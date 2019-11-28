@@ -482,8 +482,10 @@
   public
     procedure CreateNode; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -491,8 +493,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
@@ -512,8 +516,10 @@
     strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
+    {$endif}
 
     { Access the coordinate node, and inside this node access it's points list. }
     function InternalCoord(State: TX3DGraphTraverseState;
@@ -631,8 +637,10 @@
     strict private FEventSet_coordIndex: TMFInt32Event;
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -640,8 +648,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -773,8 +783,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -782,8 +794,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdVertexCount: TMFInt32;
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
@@ -828,8 +842,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -837,8 +853,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -1244,9 +1262,11 @@ procedure TAbstractComposedGeometryNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
@@ -1256,9 +1276,11 @@ begin
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
@@ -1284,9 +1306,11 @@ begin
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
   AddField(FFdRadianceTransfer);
+  {$endif}
 end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
@@ -1321,15 +1345,18 @@ end;
 
 function TAbstractComposedGeometryNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TAbstractComposedGeometryNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TAbstractComposedGeometryNode.InternalNormal: TVector3List;
@@ -1342,8 +1369,10 @@ end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1351,8 +1380,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdnormal.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1492,9 +1523,11 @@ begin
   AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
@@ -1504,9 +1537,11 @@ begin
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
@@ -1564,15 +1599,18 @@ end;
 
 function TIndexedLineSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TIndexedLineSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TIndexedLineSetNode.CoordIndexField: TMFLong;
@@ -1733,9 +1771,11 @@ procedure TLineSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
@@ -1745,9 +1785,11 @@ begin
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
    FdVertexCount.ChangesAlways := [chGeometry];
@@ -1788,15 +1830,18 @@ end;
 
 function TLineSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TLineSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TLineSetNode.InternalCoordRangesCounts(
@@ -1813,8 +1858,10 @@ end;
 
 function TLineSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1822,8 +1869,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 end;
 
 function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
@@ -1860,9 +1909,11 @@ procedure TPointSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
@@ -1872,9 +1923,11 @@ begin
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
+  {$endif}
 end;
 
 class function TPointSetNode.ClassX3DType: string;
@@ -1916,21 +1969,26 @@ end;
 
 function TPointSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TPointSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TPointSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1938,8 +1996,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 end;
 
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;

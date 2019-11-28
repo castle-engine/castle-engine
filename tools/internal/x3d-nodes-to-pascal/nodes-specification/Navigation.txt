@@ -38,11 +38,11 @@ NavigationInfo : X3DBindableNode {
   MFFloat  [in,out] avatarSize      [0.25 1.6 0.75]   [0,Inf)
   SFBool   [in,out] headlight       TRUE
   SFFloat  [in,out] speed           1.0               [0,Inf)
-  SFTime   [in,out] transitionTime  1.0               [0, Inf)
-  MFString [in,out] transitionType  ["LINEAR"]        ["TELEPORT","LINEAR","ANIMATE",...]
+  SFTime   [in,out] transitionTime  1.0               [0, Inf)  # NOT-SLIM
+  MFString [in,out] transitionType  ["LINEAR"]        ["TELEPORT","LINEAR","ANIMATE",...]  # NOT-SLIM
   MFString [in,out] type            ["EXAMINE" "ANY"] ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...]
-  SFFloat  [in,out] visibilityLimit 0.0               [0,Inf)
-  SFBool   [out]    transitionComplete
+  SFFloat  [in,out] visibilityLimit 0.0               [0,Inf) # NOT-SLIM
+  SFBool   [out]    transitionComplete                        # NOT-SLIM
 }
 
 OrthoViewpoint : X3DViewpointNode {

@@ -58,8 +58,10 @@
   { Basis for all node types that have bounds specified as part of the definition. }
   IAbstractBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
+    {$ifndef CASTLE_SLIM_NODES}
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
+    {$endif}
   end;
 
   { Base node that contains children nodes, in X3D and VRML 2.0. }
@@ -86,6 +88,7 @@
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
@@ -97,6 +100,7 @@
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
     public property FdRender: TSFBool read FFdRender;
+    {$endif}
 
     { Add the nodes as children.
 
@@ -319,11 +323,13 @@
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
   end;
@@ -396,8 +402,10 @@
     strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
+    {$endif}
 
     strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
@@ -544,6 +552,7 @@ begin
    FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -554,6 +563,7 @@ begin
 
   FFdRender := TSFBool.Create(Self, true, 'render', true);
   AddField(FFdRender);
+  {$endif}
 
   DefaultContainerField := 'children';
 end;
@@ -890,6 +900,7 @@ begin
    FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -897,6 +908,7 @@ begin
   FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+  {$endif}
 
   DefaultContainerField := 'children';
 end;
@@ -983,10 +995,12 @@ begin
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
+  {$endif}
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
@@ -1088,7 +1102,9 @@ procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+    Fdscale.Value,
+    {$ifndef CASTLE_SLIM_NODES} FdscaleOrientation.Value {$else} Vector4(0, 0, 1, 0) {$endif},
+    Fdtranslation.Value);
 
   {
   if ((Fdscale.Value[0] < 0) or

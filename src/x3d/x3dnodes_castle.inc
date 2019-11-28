@@ -1044,10 +1044,10 @@ procedure TOrientationInterpolator2DNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
+  FFdKeyValue := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'keyValue', []);
   AddField(FFdKeyValue);
 
-  FFdAxis := TSFVec3f.Create(Self, true, 'axis', Vector3(0, 0, 1));
+  FFdAxis := TSFVec3f.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'axis', Vector3(0, 0, 1));
   AddField(FFdAxis);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);

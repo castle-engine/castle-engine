@@ -30,19 +30,25 @@
     procedure SetColor(const Value: TAbstractColorNode);
     function GetCoord: TAbstractCoordinateNode;
     procedure SetCoord(const Value: TAbstractCoordinateNode);
+{$ifndef CASTLE_SLIM_NODES}
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
+{$endif not CASTLE_SLIM_NODES}
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
   public
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: array of LongInt);
     { Set X3D field "colorIndex". } { }
@@ -60,6 +66,7 @@
 
 { TIndexedLineSetNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TIndexedLineSetNode.SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 var
   L: Integer;
@@ -72,6 +79,7 @@ begin
   FdAttrib.Send(A);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TIndexedLineSetNode.GetColor: TAbstractColorNode;
 begin
   if FdColor.Value is TAbstractColorNode then
@@ -98,6 +106,7 @@ begin
   FdCoord.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TIndexedLineSetNode.GetFogCoord: TFogCoordinateNode;
 begin
   if FdFogCoord.Value is TFogCoordinateNode then
@@ -111,6 +120,7 @@ begin
   FdFogCoord.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 procedure TIndexedLineSetNode.SetColorIndex(const Value: array of LongInt);
 begin
   FdColorIndex.Send(Value);

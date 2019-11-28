@@ -368,7 +368,7 @@ begin
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
 
-  FFdKey := TMFFloat.Create(Self, true, 'key', []);
+  FFdKey := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'key', []);
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 

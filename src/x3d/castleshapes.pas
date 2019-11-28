@@ -1930,10 +1930,13 @@ end;
 
 function TShape.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits): TOctreeLimits;
+{$ifndef CASTLE_SLIM_NODES}
 var
   Props: TKambiOctreePropertiesNode;
+{$endif}
 begin
   Result := BaseLimits;
+  {$ifndef CASTLE_SLIM_NODES}
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.FdOctreeTriangles.Value <> nil) and
      (State.ShapeNode.FdOctreeTriangles.Value is TKambiOctreePropertiesNode) then
@@ -1941,6 +1944,7 @@ begin
     Props := TKambiOctreePropertiesNode(State.ShapeNode.FdOctreeTriangles.Value);
     Props.OverrideLimits(Result);
   end;
+  {$endif}
 end;
 
 procedure TShape.AddTriangleToOctreeProgress(Shape: TObject;
@@ -3172,7 +3176,7 @@ begin
       T.Center,
       T.Rotation,
       T.Scale,
-      T.ScaleOrientation,
+      {$ifndef CASTLE_SLIM_NODES} T.ScaleOrientation {$else} Vector4(0, 0, 1, 0) {$endif},
       T.Translation);
     NewTransformScale := NewTransformScale * Approximate3DScale(T.Scale);
   end;

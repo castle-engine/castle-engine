@@ -125,9 +125,11 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
+    {$endif}
 
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -343,8 +345,10 @@ procedure TIndexedQuadSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
+  {$endif}
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
    FdIndex.ChangesAlways := [chGeometry];

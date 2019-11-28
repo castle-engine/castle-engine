@@ -1609,8 +1609,10 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   if Geometry is TAbstractComposedGeometryNode then
     RadianceTransfer := (Geometry as TAbstractComposedGeometryNode).FdRadianceTransfer.Items;
+  {$endif}
 
   { calculate final RadianceTransfer:
     Leave it non-nil, and calculate RadianceTransferVertexSize,

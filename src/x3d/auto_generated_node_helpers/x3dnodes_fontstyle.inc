@@ -28,29 +28,41 @@
   strict private
     function GetHorizontal: boolean;
     procedure SetHorizontal(const Value: boolean);
+{$ifndef CASTLE_SLIM_NODES}
     function GetLanguage: string;
     procedure SetLanguage(const Value: string);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetLeftToRight: boolean;
     procedure SetLeftToRight(const Value: boolean);
+{$endif not CASTLE_SLIM_NODES}
     function GetSize: Single;
     procedure SetSize(const Value: Single);
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
     function GetTopToBottom: boolean;
     procedure SetTopToBottom(const Value: boolean);
+{$endif not CASTLE_SLIM_NODES}
   public
     { X3D field "horizontal". } { }
     property Horizontal: boolean read GetHorizontal write SetHorizontal;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "language". } { }
     property Language: string read GetLanguage write SetLanguage;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "leftToRight". } { }
     property LeftToRight: boolean read GetLeftToRight write SetLeftToRight;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "size". } { }
     property Size: Single read GetSize write SetSize;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "topToBottom". } { }
     property TopToBottom: boolean read GetTopToBottom write SetTopToBottom;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -68,6 +80,7 @@ begin
   FdHorizontal.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TFontStyleNode.GetLanguage: string;
 begin
   Result := FdLanguage.Value;
@@ -78,6 +91,8 @@ begin
   FdLanguage.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TFontStyleNode.GetLeftToRight: boolean;
 begin
   Result := FdLeftToRight.Value;
@@ -88,6 +103,7 @@ begin
   FdLeftToRight.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TFontStyleNode.GetSize: Single;
 begin
   Result := FdSize.Value;
@@ -108,6 +124,7 @@ begin
   FdSpacing.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TFontStyleNode.GetTopToBottom: boolean;
 begin
   Result := FdTopToBottom.Value;
@@ -118,4 +135,5 @@ begin
   FdTopToBottom.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

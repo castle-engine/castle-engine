@@ -364,6 +364,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
     strict private FEventSet_colorIndex: TMFInt32Event;
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
@@ -379,6 +380,7 @@
     { Event in } { }
     strict private FEventSet_texCoordIndex: TMFInt32Event;
     public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
+    {$endif}
 
     strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -1317,6 +1319,7 @@ procedure TIndexedFaceSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
   Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
@@ -1332,6 +1335,7 @@ begin
   FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   AddEvent(FEventSet_texCoordIndex);
   Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
+  {$endif}
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;

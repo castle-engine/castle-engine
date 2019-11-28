@@ -292,17 +292,21 @@
     strict private FFdSpeed: TSFFloat;
     public property FdSpeed: TSFFloat read FFdSpeed;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTransitionTime: TSFTime;
     public property FdTransitionTime: TSFTime read FFdTransitionTime;
 
     strict private FFdTransitionType: TMFString;
     public property FdTransitionType: TMFString read FFdTransitionType;
+    {$endif}
 
     strict private FFdType: TMFString;
     public property FdType: TMFString read FFdType;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdVisibilityLimit: TSFFloat;
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
+    {$endif}
 
     strict private FFdBlendingSort: TSFStringEnum;
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
@@ -310,8 +314,10 @@
       read GetBlendingSort write SetBlendingSort;
 
     { Event out } { }
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FEventTransitionComplete: TSFBoolEvent;
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
+    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
@@ -978,6 +984,7 @@ begin
   AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdTransitionTime := TSFTime.Create(Self, true, 'transitionTime', 1.0);
   AddField(FFdTransitionTime);
   { X3D specification comment: [0, Inf) }
@@ -985,6 +992,7 @@ begin
   FFdTransitionType := TMFString.Create(Self, true, 'transitionType', ['LINEAR']);
   AddField(FFdTransitionType);
   { X3D specification comment: ["TELEPORT","LINEAR","ANIMATE",...] }
+  {$endif}
 
   { TODO: default value was ["WALK", "ANY"] in VRML 97.
     X3D changed default value. }
@@ -993,12 +1001,14 @@ begin
   AddField(FFdType);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdVisibilityLimit := TSFFloat.Create(Self, true, 'visibilityLimit', 0.0);
   AddField(FFdVisibilityLimit);
   { X3D specification comment: [0,Inf) }
 
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
   AddEvent(FEventTransitionComplete);
+  {$endif}
 
   FFdBlendingSort := TSFStringEnum.Create(Self, true, 'blendingSort', BlendingSortNames, Ord(obsDefault));
    FdBlendingSort.ChangesAlways := [];

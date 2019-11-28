@@ -26,21 +26,33 @@
 {$ifdef read_interface}
 
   strict private
+{$ifndef CASTLE_SLIM_NODES}
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
+{$endif not CASTLE_SLIM_NODES}
     function GetRender: boolean;
     procedure SetRender(const Value: boolean);
   public
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "octreeTriangles". } { }
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "render". } { }
     property Render: boolean read GetRender write SetRender;
 
@@ -50,6 +62,7 @@
 
 { TAbstractShapeNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
@@ -60,6 +73,8 @@ begin
   FdBboxCenter.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
@@ -70,6 +85,8 @@ begin
   FdBboxSize.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetOctreeTriangles: TKambiOctreePropertiesNode;
 begin
   if FdOctreeTriangles.Value is TKambiOctreePropertiesNode then
@@ -83,6 +100,7 @@ begin
   FdOctreeTriangles.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetRender: boolean;
 begin
   Result := FdRender.Value;

@@ -248,9 +248,11 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     if (FaceSet.FdTexCoordIndex.Count <> 0) or // for now we don't handle texCoordIndex
        (FaceSet.FdColorIndex.Count <> 0) or
        (FaceSet.FdNormalIndex.Count <> 0) or
+       {$ifndef CASTLE_SLIM_NODES}
        (FaceSet.FdAttrib.Count <> 0) or
-       (FaceSet.FdColor.Value <> nil) or
        (FaceSet.FdFogCoord.Value <> nil) or
+       {$endif}
+       (FaceSet.FdColor.Value <> nil) or
        (FaceSet.FdNormal.Value <> nil) then
       Exit;
 

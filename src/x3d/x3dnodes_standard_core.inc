@@ -18,7 +18,9 @@
   { Interface for a base X3D node that can have some metadata. }
   IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
+    {$ifndef CASTLE_SLIM_NODES}
     property FdMetadata: TSFNode;
+    {$endif}
   end;
 
   { Basis for all metadata nodes. }
@@ -38,8 +40,10 @@
   public
     procedure CreateNode; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdMetadata: TSFNode;
     public property FdMetadata: TSFNode read FFdMetadata;
+    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
@@ -80,8 +84,10 @@
     public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
 
     { Event out } { }
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FEventBindTime: TSFTimeEvent;
     public property EventBindTime: TSFTimeEvent read FEventBindTime;
+    {$endif}
 
     { Event out } { }
     strict private FEventIsBound: TSFBoolEvent;
@@ -322,8 +328,10 @@ procedure TAbstractNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdMetadata := TSFNode.Create(Self, true, 'metadata', IAbstractMetadataNode);
   AddField(FFdMetadata);
+  {$endif}
 end;
 
 procedure TAbstractChildNode.CreateNode;
@@ -344,8 +352,10 @@ begin
   FEventSet_bind := TSFBoolEvent.Create(Self, 'set_bind', true);
   AddEvent(FEventSet_bind);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FEventBindTime := TSFTimeEvent.Create(Self, 'bindTime', false);
   AddEvent(FEventBindTime);
+  {$endif}
 
   FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
    EventIsBound.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventIsBoundReceive);

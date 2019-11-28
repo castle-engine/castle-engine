@@ -36,7 +36,9 @@ var
       Navigation.FdAvatarSize.Items[0] := ZNear * 2;
 
     if ReadChildFloat(E, 'zfar', ZFar) then
-      Navigation.FdVisibilityLimit.Value := ZFar;
+      {$ifndef CASTLE_SLIM_NODES}
+      Navigation.FdVisibilityLimit.Value := ZFar
+      {$endif};
   end;
 
 var

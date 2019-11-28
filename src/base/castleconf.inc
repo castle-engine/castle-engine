@@ -416,4 +416,14 @@
   {$define CASTLE_TREMOLO}
 {$endif}
 
+{ X3D ------------------------------------------------------------------------ }
+
+{ Define this if needed to optimize loading time.
+  It removes various seldom-used fields from often-used X3D nodes,
+  thus increasing the X3D node creation time significantly.
+  It also makes some exposed X3D fields into non-exposed
+  (it means you cannot define X3D ROUTEs to pass value into/out of this field).
+  The choice "which fields are seldom used" is purely subjective, and may change! }
+{.$define CASTLE_SLIM_NODES}
+
 {$endif not CASTLE_CONF_INCLUDED}

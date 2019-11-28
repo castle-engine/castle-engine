@@ -32,8 +32,10 @@
     procedure SetRotation(const Value: TVector4);
     function GetScale: TVector3;
     procedure SetScale(const Value: TVector3);
+{$ifndef CASTLE_SLIM_NODES}
     function GetScaleOrientation: TVector4;
     procedure SetScaleOrientation(const Value: TVector4);
+{$endif not CASTLE_SLIM_NODES}
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
   public
@@ -43,8 +45,10 @@
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "scale". } { }
     property Scale: TVector3 read GetScale write SetScale;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "scaleOrientation". } { }
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
@@ -84,6 +88,7 @@ begin
   FdScale.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TTransformNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
@@ -94,6 +99,7 @@ begin
   FdScaleOrientation.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TTransformNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;

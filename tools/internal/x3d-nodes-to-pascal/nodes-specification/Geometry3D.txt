@@ -72,10 +72,10 @@ Extrusion : X3DGeometryNode {
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
-  MFInt32 [in]     set_colorIndex
-  MFInt32 [in]     set_coordIndex
-  MFInt32 [in]     set_normalIndex
-  MFInt32 [in]     set_texCoordIndex
+  MFInt32 [in]     set_colorIndex                         # NOT-SLIM
+  MFInt32 [in]     set_coordIndex                         # NOT-SLIM
+  MFInt32 [in]     set_normalIndex                        # NOT-SLIM
+  MFInt32 [in]     set_texCoordIndex                      # NOT-SLIM
   MFInt32 []       colorIndex        []   [0,Inf) or -1
   SFBool  []       convex            TRUE
   MFInt32 []       coordIndex        []   [0,Inf) or -1

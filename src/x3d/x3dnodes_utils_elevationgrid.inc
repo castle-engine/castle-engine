@@ -146,8 +146,10 @@ begin
     IFS.ColorPerVertex := ColorPerVertex;
     IFS.Color := Color;
     IFS.CreaseAngle := CreaseAngle;
+    {$ifndef CASTLE_SLIM_NODES}
     IFS.FogCoord := FogCoord;
     IFS.FdAttrib.AssignValue(FdAttrib);
+    {$endif}
   except FreeAndNil(Result); raise end;
 end;
 

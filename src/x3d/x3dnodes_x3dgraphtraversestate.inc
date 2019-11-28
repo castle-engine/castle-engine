@@ -465,10 +465,13 @@ begin
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
+{$ifndef CASTLE_SLIM_NODES}
 var
   Node: TX3DNode;
+{$endif}
 begin
   Result := nil;
+  {$ifndef CASTLE_SLIM_NODES}
   if ShapeNode <> nil then
   begin
     Node := ShapeNode.FdAppearance.Value;
@@ -479,6 +482,7 @@ begin
         Result := TBlendModeNode(Node);
     end;
   end;
+  {$endif}
 end;
 
 function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;

@@ -255,8 +255,11 @@ var
             {Mat.FdMirrorColor.Value := } ReadColorRGB(I.Current) else
           if I.Current.TagName = 'reflectivity' then
           begin
+            {$ifndef CASTLE_SLIM_NODES}
             if AllowKambiExtensions then
-              Mat.FdMirror.Value := ReadFloatOrParam(I.Current) else
+              Mat.FdMirror.Value := ReadFloatOrParam(I.Current)
+            else
+            {$endif}
               ReadFloatOrParam(I.Current);
           end else
           if I.Current.TagName = 'transparent' then

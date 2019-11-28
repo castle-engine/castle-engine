@@ -30,8 +30,10 @@
     procedure SetColor(const Value: TAbstractColorNode);
     function GetCoord: TAbstractCoordinateNode;
     procedure SetCoord(const Value: TAbstractCoordinateNode);
+{$ifndef CASTLE_SLIM_NODES}
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
+{$endif not CASTLE_SLIM_NODES}
     function GetNormal: TAbstractNormalNode;
     procedure SetNormal(const Value: TAbstractNormalNode);
     function GetTexCoord: TAbstractTextureCoordinateNode;
@@ -43,14 +45,18 @@
     function GetNormalPerVertex: boolean;
     procedure SetNormalPerVertex(const Value: boolean);
   public
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "normal". } { }
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
     { X3D field "texCoord". } { }
@@ -61,10 +67,14 @@
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     { X3D field "normalPerVertex". } { }
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: array of TVector3);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -72,6 +82,7 @@
 
 { TAbstractComposedGeometryNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TAbstractComposedGeometryNode.SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 var
   L: Integer;
@@ -84,6 +95,7 @@ begin
   FdAttrib.Send(A);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TAbstractComposedGeometryNode.GetColor: TAbstractColorNode;
 begin
   if FdColor.Value is TAbstractColorNode then
@@ -110,6 +122,7 @@ begin
   FdCoord.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractComposedGeometryNode.GetFogCoord: TFogCoordinateNode;
 begin
   if FdFogCoord.Value is TFogCoordinateNode then
@@ -123,6 +136,7 @@ begin
   FdFogCoord.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TAbstractComposedGeometryNode.GetNormal: TAbstractNormalNode;
 begin
   if FdNormal.Value is TAbstractNormalNode then
@@ -179,14 +193,18 @@ begin
   FdNormalPerVertex.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: array of TVector3);
 begin
   FdRadianceTransfer.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: TVector3List);
 begin
   FdRadianceTransfer.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

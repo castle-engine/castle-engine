@@ -130,8 +130,11 @@ var
                      {Mat.FdMirrorColor.Value := } ReadParamAsVector3(I.Current) else
                    if ParamName = 'REFLECTIVITY' then
                    begin
+                     {$ifndef CASTLE_SLIM_NODES}
                      if AllowKambiExtensions then
-                       Mat.FdMirror.Value := ReadParamAsFloat(I.Current) else
+                       Mat.FdMirror.Value := ReadParamAsFloat(I.Current)
+                     else
+                     {$endif}
                        ReadParamAsFloat(I.Current);
                    end else
                    (*

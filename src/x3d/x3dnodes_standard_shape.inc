@@ -82,11 +82,13 @@
     strict private FFdGeometry: TSFNode;
     public property FdGeometry: TSFNode read FFdGeometry;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+    {$endif}
 
     { Whether to render this shape.
       See https://castle-engine.io/x3d_implementation_shape_extensions.php }
@@ -139,8 +141,10 @@
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdOctreeTriangles: TSFNode;
     public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
+    {$endif}
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -185,11 +189,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
     public property FdFillProperties: TSFNode read FFdFillProperties;
 
     strict private FFdLineProperties: TSFNode;
     public property FdLineProperties: TSFNode read FFdLineProperties;
+    {$endif}
 
     strict private FFdMaterial: TSFNode;
     public property FdMaterial: TSFNode read FFdMaterial;
@@ -215,12 +221,15 @@
     strict private FFdNormalMap: TSFNode;
     public property FdNormalMap: TSFNode read FFdNormalMap;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdHeightMap: TSFNode;
     public property FdHeightMap: TSFNode read FFdHeightMap;
+    {$endif}
 
     strict private FFdHeightMapScale: TSFFloat;
     public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
 
+    {$ifndef CASTLE_SLIM_NODES}
     { blendMode property.
 
       This is modelled after InstantReality extension on [http://www.instantreality.org/].
@@ -229,6 +238,7 @@
       It allows you to use BlendMode nodes, which I consider very useful. }
     strict private FFdBlendMode: TSFNode;
     public property FdBlendMode: TSFNode read FFdBlendMode;
+    {$endif}
 
     { The texture of this appearance.
 
@@ -481,6 +491,7 @@
     strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogImmune: TSFBool;
     { Make the object not affected by fog.
       This is a Castle Game Engine extension, not present in X3D standard. }
@@ -491,6 +502,7 @@
       Right now used only by the classic ray-tracer, not by interactive renderer.
       This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdMirror: TSFFloat read FFdMirror;
+    {$endif}
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -529,6 +541,7 @@
       other colors to black. }
     procedure ForcePureEmissive;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 
@@ -546,6 +559,7 @@
 
     strict private FFdTransSpecularExp: TSFFloat;
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
+    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_material.inc}
   end;
@@ -671,6 +685,7 @@ begin
    FdGeometry.ChangesAlways := [chEverything];
   AddField(FFdGeometry);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -678,6 +693,7 @@ begin
   FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+  {$endif}
 
   FFdRender := TSFBool.Create(Self, true, 'render', true);
   AddField(FFdRender);
@@ -686,9 +702,11 @@ begin
    FdShading.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdShading);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdOctreeTriangles := TSFNode.Create(Self, false, 'octreeTriangles', [TKambiOctreePropertiesNode]);
    FdOctreeTriangles.ChangesAlways := [chEverything];
   AddField(FFdOctreeTriangles);
+  {$endif}
 end;
 
 function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -843,6 +861,7 @@ begin
 end;
 
 function TAbstractShapeNode.GetLineProperties: TLinePropertiesNode;
+{$ifndef CASTLE_SLIM_NODES}
 var
   App: TAppearanceNode;
 begin
@@ -851,9 +870,14 @@ begin
     Result := App.LineProperties
   else
     Result := nil;
+{$else}
+begin
+  Result := nil;
+{$endif}
 end;
 
 procedure TAbstractShapeNode.SetLineProperties(const Value: TLinePropertiesNode);
+{$ifndef CASTLE_SLIM_NODES}
 var
   App: TAppearanceNode;
 begin
@@ -868,6 +892,10 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
+{$else}
+begin
+  // do nothing
+{$endif}
 end;
 
 function TAbstractShapeNode.GetShading: TShading;
@@ -884,6 +912,7 @@ procedure TAppearanceNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
    FdFillProperties.ChangesAlways := [chEverything];
   AddField(FFdFillProperties);
@@ -891,6 +920,7 @@ begin
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
    FdLineProperties.ChangesAlways := [chEverything];
   AddField(FFdLineProperties);
+  {$endif}
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangesAlways := [chEverything];
@@ -920,17 +950,21 @@ begin
    FdNormalMap.ChangesAlways := [chEverything];
   AddField(FFdNormalMap);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdHeightMap := TSFNode.Create(Self, true, 'heightMap', [TAbstractTextureNode]);
    FdHeightMap.ChangesAlways := [chEverything];
   AddField(FFdHeightMap);
+  {$endif CASTLE_SLIM_NODES}
 
-  FFdHeightMapScale := TSFFloat.Create(Self, true, 'heightMapScale', DefaultHeightMapScale);
+  FFdHeightMapScale := TSFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'heightMapScale', DefaultHeightMapScale);
    FdHeightMapScale.ChangesAlways := [chEverything];
   AddField(FFdHeightMapScale);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdBlendMode := TSFNode.Create(Self, true, 'blendMode', [TBlendModeNode]);
    FdBlendMode.ChangesAlways := [chEverything];
   AddField(FFdBlendMode);
+  {$endif CASTLE_SLIM_NODES}
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
@@ -986,11 +1020,13 @@ end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FFdFillProperties.Enumerate(Func);
   if Result <> nil then Exit;
 
   Result := FFdLineProperties.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := FFdMaterial.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1249,6 +1285,7 @@ begin
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
    FdFogImmune.ChangesAlways := [chMaterial2];
   AddField(FFdFogImmune);
@@ -1280,6 +1317,7 @@ begin
   FFdTransSpecularExp := TSFFloat.Create(Self, true, 'transSpecularExp', TMaterialInfo.DefaultTransSpecularExp);
    FdTransSpecularExp.ChangesAlways := [chMaterial2];
   AddField(FFdTransSpecularExp);
+  {$endif}
 end;
 
 destructor TMaterialNode.Destroy;
@@ -1429,11 +1467,15 @@ end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Vector3(
     FNode.FdMirror.Value,
     FNode.FdMirror.Value,
     FNode.FdMirror.Value
   );
+  {$else}
+  Result := TVector3.Zero;
+  {$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Transparency: Single;
@@ -1442,53 +1484,77 @@ begin
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflSpecular: TVector3;
+{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
-    CalculateReflSpecular(Result) else
+    CalculateReflSpecular(Result)
+  else
     Result := A.List^[0];
+{$else}
+begin
+  CalculateReflSpecular(Result);
+{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflDiffuse: TVector3;
+{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
-    CalculateReflDiffuse(Result) else
+    CalculateReflDiffuse(Result)
+  else
     Result := A.List^[0];
+{$else}
+begin
+  CalculateReflDiffuse(Result);
+{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransSpecular: TVector3;
+{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
-    CalculateTransSpecular(Result) else
+    CalculateTransSpecular(Result)
+  else
     Result := A.List^[0];
+{$else}
+begin
+  CalculateTransSpecular(Result);
+{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransDiffuse: TVector3;
+{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
-    CalculateTransDiffuse(Result) else
+    CalculateTransDiffuse(Result)
+  else
     Result := A.List^[0];
+{$else}
+begin
+  CalculateTransDiffuse(Result);
+{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflSpecularExp: Single;
 begin
-  Result := FNode.FdReflSpecularExp.Value;
+  Result := {$ifndef CASTLE_SLIM_NODES} FNode.FdReflSpecularExp.Value {$else} 0 {$endif};
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransSpecularExp: Single;
 begin
-  Result := FNode.FdTransSpecularExp.Value;
+  Result := {$ifndef CASTLE_SLIM_NODES} FNode.FdTransSpecularExp.Value {$else} 0 {$endif};
 end;
 
 { TShapeNode ----------------------------------------------------------------- }

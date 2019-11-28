@@ -38,12 +38,18 @@
     procedure SetSpecularColor(const Value: TCastleColorRGB);
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
     function GetMirror: Single;
     procedure SetMirror(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetReflSpecularExp: Single;
     procedure SetReflSpecularExp(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetTransSpecularExp: Single;
     procedure SetTransSpecularExp(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
   public
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
@@ -57,28 +63,50 @@
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "mirror". } { }
     property Mirror: Single read GetMirror write SetMirror;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
     procedure SetReflSpecular(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
     procedure SetReflDiffuse(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
     procedure SetReflDiffuse(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
     procedure SetTransSpecular(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
     procedure SetTransSpecular(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
     procedure SetTransDiffuse(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
     procedure SetTransDiffuse(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "reflSpecularExp". } { }
     property ReflSpecularExp: Single read GetReflSpecularExp write SetReflSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "transSpecularExp". } { }
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -146,6 +174,7 @@ begin
   FdTransparency.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetMirror: Single;
 begin
   Result := FdMirror.Value;
@@ -156,46 +185,64 @@ begin
   FdMirror.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflSpecular(const Value: array of TCastleColorRGB);
 begin
   FdReflSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflSpecular(const Value: TVector3List);
 begin
   FdReflSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflDiffuse(const Value: array of TCastleColorRGB);
 begin
   FdReflDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflDiffuse(const Value: TVector3List);
 begin
   FdReflDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransSpecular(const Value: array of TCastleColorRGB);
 begin
   FdTransSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransSpecular(const Value: TVector3List);
 begin
   FdTransSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransDiffuse(const Value: array of TCastleColorRGB);
 begin
   FdTransDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransDiffuse(const Value: TVector3List);
 begin
   FdTransDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetReflSpecularExp: Single;
 begin
   Result := FdReflSpecularExp.Value;
@@ -206,6 +253,8 @@ begin
   FdReflSpecularExp.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetTransSpecularExp: Single;
 begin
   Result := FdTransSpecularExp.Value;
@@ -216,4 +265,5 @@ begin
   FdTransSpecularExp.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

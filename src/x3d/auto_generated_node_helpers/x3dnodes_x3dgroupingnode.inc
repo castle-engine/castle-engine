@@ -26,17 +26,25 @@
 {$ifdef read_interface}
 
   strict private
+{$ifndef CASTLE_SLIM_NODES}
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
+{$endif not CASTLE_SLIM_NODES}
   public
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "bboxSize". } { }
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -56,6 +64,7 @@ begin
   FdChildren.Send(A);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractX3DGroupingNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
@@ -66,6 +75,8 @@ begin
   FdBboxCenter.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractX3DGroupingNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
@@ -76,4 +87,5 @@ begin
   FdBboxSize.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

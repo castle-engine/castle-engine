@@ -2479,7 +2479,9 @@ begin
   if Node <> nil then
   begin
     Node.EventIsBound.Send(Value, ParentScene.NextEventTime);
+    {$ifndef CASTLE_SLIM_NODES}
     Node.EventBindTime.Send(ParentScene.Time, ParentScene.NextEventTime);
+    {$endif}
   end;
 end;
 
@@ -6854,8 +6856,10 @@ begin
     BeginChangesSchedule;
     try
       WatchForTransitionComplete := false;
+      {$ifndef CASTLE_SLIM_NODES}
       if NavigationInfoStack.Top <> nil then
         NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
+      {$endif}
     finally EndChangesSchedule end;
   end;
 end;
@@ -7108,7 +7112,9 @@ var
   Radius, OriginX, OriginY: Single;
   RadiusAutomaticallyDerivedFromBox: Boolean;
   ViewpointNode: TAbstractViewpointNode;
+  {$ifndef CASTLE_SLIM_NODES}
   NavigationNode: TNavigationInfoNode;
+  {$endif}
   FieldOfView: TSingleList;
 begin
   Radius := SensibleCameraRadius(WorldBox, RadiusAutomaticallyDerivedFromBox);
@@ -7131,7 +7137,9 @@ begin
   ACamera.Orthographic.Origin := TVector2.Zero;
 
   ViewpointNode := ViewpointStack.Top;
+  {$ifndef CASTLE_SLIM_NODES}
   NavigationNode := NavigationInfoStack.Top;
+  {$endif}
 
   if ViewpointNode <> nil then
   begin
@@ -7183,8 +7191,10 @@ begin
       APosition, ADirection, AUp, GravityUp);
   end;
 
+  {$ifndef CASTLE_SLIM_NODES}
   if NavigationNode <> nil then
     ACamera.ProjectionFar := NavigationNode.VisibilityLimit;
+  {$endif}
 
   ACamera.GravityUp := GravityUp;
 
@@ -7203,19 +7213,25 @@ end;
 procedure TCastleSceneCore.CameraTransition(const Camera: TCastleCamera;
   const APosition, ADirection, AUp: TVector3);
 var
-  NavigationNode: TNavigationInfoNode;
   TransitionAnimate: boolean;
   TransitionTime: TFloatTime;
+  {$ifndef CASTLE_SLIM_NODES}
+  NavigationNode: TNavigationInfoNode;
   TransitionType: string;
   I: Integer;
+  {$endif}
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   NavigationNode := NavigationInfoStack.Top;
+  {$endif}
 
   TransitionAnimate := true;
+  TransitionTime := 1;
 
   { check NavigationInfo.transitionType, update TransitionAnimate.
     If we have LINEAR or ANIMATE or only unknown transition types,
     spec says to use animation. }
+  {$ifndef CASTLE_SLIM_NODES}
   if NavigationNode <> nil then
     for I := 0 to NavigationNode.FdTransitionType.Count - 1 do
     begin
@@ -7233,12 +7249,13 @@ begin
 
   { calculate TransitionTime }
   if NavigationNode <> nil then
-    TransitionTime := NavigationNode.FdTransitionTime.Value else
-    TransitionTime := 1;
-
-  { correct TransitionAnimate in case TransitionTime invalid }
-  if TransitionTime <= 0 then
-    TransitionAnimate := false;
+  begin
+    TransitionTime := NavigationNode.FdTransitionTime.Value;
+    { correct TransitionAnimate in case TransitionTime invalid }
+    if TransitionTime <= 0 then
+      TransitionAnimate := false;
+  end;
+  {$endif}
 
   if TransitionAnimate then
   begin
@@ -7247,8 +7264,10 @@ begin
   end else
   begin
     Camera.SetView(APosition, ADirection, AUp);
+    {$ifndef CASTLE_SLIM_NODES}
     if NavigationInfoStack.Top <> nil then
       NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
+    {$endif}
   end;
 end;
 

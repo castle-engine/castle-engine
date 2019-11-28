@@ -74,11 +74,13 @@
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
     property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
     strict private FFdLeftToRight: TSFBool;
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
+    {$endif}
 
     strict private FFdSize: TSFFloat;
     public property FdSize: TSFFloat read FFdSize;
@@ -91,8 +93,10 @@
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
+    {$endif}
 
     strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
@@ -228,6 +232,7 @@ begin
   AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdLanguage := TSFString.Create(Self, false, 'language', '');
    FdLanguage.ChangesAlways := [chFontStyle];
   AddField(FFdLanguage);
@@ -235,6 +240,7 @@ begin
   FFdLeftToRight := TSFBool.Create(Self, false, 'leftToRight', true);
    FdLeftToRight.ChangesAlways := [chFontStyle];
   AddField(FFdLeftToRight);
+  {$endif}
 
   FFdSize := TSFFloat.Create(Self, false, 'size', DefaultSize);
    FdSize.ChangesAlways := [chFontStyle];
@@ -251,9 +257,11 @@ begin
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdTopToBottom := TSFBool.Create(Self, false, 'topToBottom', true);
    FdTopToBottom.ChangesAlways := [chFontStyle];
   AddField(FFdTopToBottom);
+  {$endif}
 
   FFdBlending := TSFBool.Create(Self, false, 'blending', DefaultBlending);
    FdBlending.ChangesAlways := [chFontStyle];

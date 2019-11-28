@@ -52,8 +52,10 @@
     strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdCrossOrigin: TSFString;
     public property FdCrossOrigin: TSFString read FFdCrossOrigin;
+    {$endif}
 
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
@@ -620,9 +622,11 @@ begin
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdCrossOrigin := TSFString.Create(Self, false, 'crossOrigin', '');
    FdCrossOrigin.ChangesAlways := [];
   AddField(FFdCrossOrigin);
+  {$endif}
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];

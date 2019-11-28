@@ -30,10 +30,14 @@
     procedure SetHeadlight(const Value: boolean);
     function GetSpeed: Single;
     procedure SetSpeed(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
     function GetTransitionTime: TFloatTime;
     procedure SetTransitionTime(const Value: TFloatTime);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetVisibilityLimit: Single;
     procedure SetVisibilityLimit(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
   public
     { Set X3D field "avatarSize". } { }
     procedure SetAvatarSize(const Value: array of Single);
@@ -43,18 +47,26 @@
     property Headlight: boolean read GetHeadlight write SetHeadlight;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "transitionTime". } { }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transitionType". } { }
     procedure SetTransitionType(const Value: array of string);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transitionType". } { }
     procedure SetTransitionType(const Value: TCastleStringList);
+{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "type". } { }
     procedure SetType(const Value: array of string);
     { Set X3D field "type". } { }
     procedure SetType(const Value: TCastleStringList);
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "visibilityLimit". } { }
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -92,6 +104,7 @@ begin
   FdSpeed.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TNavigationInfoNode.GetTransitionTime: TFloatTime;
 begin
   Result := FdTransitionTime.Value;
@@ -102,16 +115,21 @@ begin
   FdTransitionTime.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TNavigationInfoNode.SetTransitionType(const Value: array of string);
 begin
   FdTransitionType.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TNavigationInfoNode.SetTransitionType(const Value: TCastleStringList);
 begin
   FdTransitionType.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 procedure TNavigationInfoNode.SetType(const Value: array of string);
 begin
   FdType.Send(Value);
@@ -122,6 +140,7 @@ begin
   FdType.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TNavigationInfoNode.GetVisibilityLimit: Single;
 begin
   Result := FdVisibilityLimit.Value;
@@ -132,4 +151,5 @@ begin
   FdVisibilityLimit.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

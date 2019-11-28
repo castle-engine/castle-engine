@@ -336,7 +336,9 @@ begin
   NavigationNode.FdAvatarSize.Items.AddRange(AvatarSize.Data);
   NavigationNode.FdHeadlight.Value := Headlight;
   NavigationNode.FdSpeed.Value := WalkSpeed;
+  {$ifndef CASTLE_SLIM_NODES}
   NavigationNode.FdVisibilityLimit.Value := VisibilityLimit;
+  {$endif}
   Result := NavigationNode;
 end;
 
