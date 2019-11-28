@@ -640,7 +640,7 @@ begin
   begin
     // assign things that should be equal when merging
     Assert(Source.Node <> nil); // only such source nodes are passed to Merge
-    Target.Node.Shading := Source.Node.Shading;
+    Target.Node.FdShading.Value := Source.Node.FdShading.Value;
     StateTarget.Lights := StateSource.Lights;
     StateTarget.LocalFog := StateSource.LocalFog;
     // using here FdAppearance.Value is marginally faster than Appearance, it matters a bit
