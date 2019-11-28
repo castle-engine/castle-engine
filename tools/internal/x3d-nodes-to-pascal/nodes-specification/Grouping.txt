@@ -29,6 +29,6 @@ Transform : X3DGroupingNode {
   SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
   SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf)
   SFVec3f    [in,out] scale            1 1 1    (-Inf, Inf)
-  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf) # NOT-SLIM
+  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf)
   SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
 }

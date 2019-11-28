@@ -192,10 +192,10 @@
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
     public property FdFillProperties: TSFNode read FFdFillProperties;
+    {$endif}
 
     strict private FFdLineProperties: TSFNode;
     public property FdLineProperties: TSFNode read FFdLineProperties;
-    {$endif}
 
     strict private FFdMaterial: TSFNode;
     public property FdMaterial: TSFNode read FFdMaterial;
@@ -229,7 +229,6 @@
     strict private FFdHeightMapScale: TSFFloat;
     public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
 
-    {$ifndef CASTLE_SLIM_NODES}
     { blendMode property.
 
       This is modelled after InstantReality extension on [http://www.instantreality.org/].
@@ -238,7 +237,6 @@
       It allows you to use BlendMode nodes, which I consider very useful. }
     strict private FFdBlendMode: TSFNode;
     public property FdBlendMode: TSFNode read FFdBlendMode;
-    {$endif}
 
     { The texture of this appearance.
 
@@ -496,13 +494,13 @@
     { Make the object not affected by fog.
       This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdFogImmune: TSFBool read FFdFogImmune;
+    {$endif}
 
     strict private FFdMirror: TSFFloat;
     { Make the object a mirror.
       Right now used only by the classic ray-tracer, not by interactive renderer.
       This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdMirror: TSFFloat read FFdMirror;
-    {$endif}
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -861,7 +859,6 @@ begin
 end;
 
 function TAbstractShapeNode.GetLineProperties: TLinePropertiesNode;
-{$ifndef CASTLE_SLIM_NODES}
 var
   App: TAppearanceNode;
 begin
@@ -870,14 +867,9 @@ begin
     Result := App.LineProperties
   else
     Result := nil;
-{$else}
-begin
-  Result := nil;
-{$endif}
 end;
 
 procedure TAbstractShapeNode.SetLineProperties(const Value: TLinePropertiesNode);
-{$ifndef CASTLE_SLIM_NODES}
 var
   App: TAppearanceNode;
 begin
@@ -892,10 +884,6 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
-{$else}
-begin
-  // do nothing
-{$endif}
 end;
 
 function TAbstractShapeNode.GetShading: TShading;
@@ -916,11 +904,11 @@ begin
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
    FdFillProperties.ChangesAlways := [chEverything];
   AddField(FFdFillProperties);
+  {$endif}
 
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
    FdLineProperties.ChangesAlways := [chEverything];
   AddField(FFdLineProperties);
-  {$endif}
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangesAlways := [chEverything];
@@ -960,11 +948,9 @@ begin
    FdHeightMapScale.ChangesAlways := [chEverything];
   AddField(FFdHeightMapScale);
 
-  {$ifndef CASTLE_SLIM_NODES}
   FFdBlendMode := TSFNode.Create(Self, true, 'blendMode', [TBlendModeNode]);
    FdBlendMode.ChangesAlways := [chEverything];
   AddField(FFdBlendMode);
-  {$endif CASTLE_SLIM_NODES}
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
@@ -1023,10 +1009,10 @@ begin
   {$ifndef CASTLE_SLIM_NODES}
   Result := FFdFillProperties.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := FFdLineProperties.Enumerate(Func);
   if Result <> nil then Exit;
-  {$endif}
 
   Result := FFdMaterial.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1289,11 +1275,13 @@ begin
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
    FdFogImmune.ChangesAlways := [chMaterial2];
   AddField(FFdFogImmune);
+  {$endif}
 
   FFdMirror := TSFFloat.Create(Self, true, 'mirror', 0.0);
    FdMirror.ChangesAlways := [chMaterial2];
   AddField(FFdMirror);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
    FdReflSpecular.ChangesAlways := [chMaterial2];
   AddField(FFdReflSpecular);
@@ -1467,15 +1455,11 @@ end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3;
 begin
-  {$ifndef CASTLE_SLIM_NODES}
   Result := Vector3(
     FNode.FdMirror.Value,
     FNode.FdMirror.Value,
     FNode.FdMirror.Value
   );
-  {$else}
-  Result := TVector3.Zero;
-  {$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Transparency: Single;

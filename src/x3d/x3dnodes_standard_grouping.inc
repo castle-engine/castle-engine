@@ -402,10 +402,8 @@
     strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
-    {$endif}
 
     strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
@@ -995,12 +993,10 @@ begin
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
-  {$ifndef CASTLE_SLIM_NODES}
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
-  {$endif}
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
@@ -1102,9 +1098,7 @@ procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value,
-    {$ifndef CASTLE_SLIM_NODES} FdscaleOrientation.Value {$else} Vector4(0, 0, 1, 0) {$endif},
-    Fdtranslation.Value);
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
   {
   if ((Fdscale.Value[0] < 0) or

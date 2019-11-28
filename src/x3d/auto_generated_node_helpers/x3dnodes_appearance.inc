@@ -30,29 +30,23 @@
     function GetFillProperties: TFillPropertiesNode;
     procedure SetFillProperties(const Value: TFillPropertiesNode);
 {$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-{$endif not CASTLE_SLIM_NODES}
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetShadowCaster: boolean;
     procedure SetShadowCaster(const Value: boolean);
     function GetHeightMapScale: Single;
     procedure SetHeightMapScale(const Value: Single);
-{$ifndef CASTLE_SLIM_NODES}
     function GetBlendMode: TBlendModeNode;
     procedure SetBlendMode(const Value: TBlendModeNode);
-{$endif not CASTLE_SLIM_NODES}
   public
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "fillProperties". } { }
     property FillProperties: TFillPropertiesNode read GetFillProperties write SetFillProperties;
 {$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
     { X3D field "lineProperties". } { }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
-{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
     { X3D field "textureTransform". } { }
@@ -63,10 +57,8 @@
     property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
     { X3D field "heightMapScale". } { }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
-{$ifndef CASTLE_SLIM_NODES}
     { X3D field "blendMode". } { }
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
-{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
 
@@ -91,7 +83,6 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
 function TAppearanceNode.GetLineProperties: TLinePropertiesNode;
 begin
   if FdLineProperties.Value is TLinePropertiesNode then
@@ -105,7 +96,6 @@ begin
   FdLineProperties.Send(Value);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
 var
   L: Integer;
@@ -163,7 +153,6 @@ begin
   FdHeightMapScale.Send(Value);
 end;
 
-{$ifndef CASTLE_SLIM_NODES}
 function TAppearanceNode.GetBlendMode: TBlendModeNode;
 begin
   if FdBlendMode.Value is TBlendModeNode then
@@ -177,7 +166,6 @@ begin
   FdBlendMode.Send(Value);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 procedure TAppearanceNode.SetEffects(const Value: array of TEffectNode);
 var
   L: Integer;

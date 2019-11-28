@@ -23,7 +23,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
 
 Appearance : X3DAppearanceNode {
   SFNode [in,out] fillProperties   NULL [FillProperties] # NOT-SLIM
-  SFNode [in,out] lineProperties   NULL [LineProperties] # NOT-SLIM
+  SFNode [in,out] lineProperties   NULL [LineProperties]
   SFNode [in,out] material         NULL [X3DMaterialNode]
   MFNode [in,out] shaders          []   [X3DShaderNode]
   SFNode [in,out] texture          NULL [X3DTextureNode]
@@ -35,7 +35,7 @@ Appearance : X3DAppearanceNode {
   SFNode     [in,out]      normalMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
   SFNode     [in,out]      heightMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed; NOT-SLIM
   SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
-  SFNode     [in,out]      blendMode        NULL        # [BlendMode]; NOT-SLIM
+  SFNode     [in,out]      blendMode        NULL        # [BlendMode]
   MFNode     []            effects          []          # [Effect]
 
   # EXTENSIONS:
@@ -66,7 +66,7 @@ Material : X3DMaterialNode {
   SFFloat [in,out] transparency     0           [0,1]
 
   # EXTENSIONS:
-  SFFloat    [in,out]      mirror      0.0         # [0.0; 1.0]    # NOT-SLIM
+  SFFloat    [in,out]      mirror      0.0         # [0.0; 1.0]
   MFColor    [in,out]      reflSpecular          []          # specular reflectance; NOT-SLIM
   MFColor    [in,out]      reflDiffuse           []          # diffuse reflectance; NOT-SLIM
   MFColor    [in,out]      transSpecular         []          # specular transmittance; NOT-SLIM

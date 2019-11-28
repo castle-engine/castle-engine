@@ -3176,7 +3176,7 @@ begin
       T.Center,
       T.Rotation,
       T.Scale,
-      {$ifndef CASTLE_SLIM_NODES} T.ScaleOrientation {$else} Vector4(0, 0, 1, 0) {$endif},
+      T.ScaleOrientation,
       T.Translation);
     NewTransformScale := NewTransformScale * Approximate3DScale(T.Scale);
   end;

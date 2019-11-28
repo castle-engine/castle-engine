@@ -38,10 +38,8 @@
     procedure SetSpecularColor(const Value: TCastleColorRGB);
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
-{$ifndef CASTLE_SLIM_NODES}
     function GetMirror: Single;
     procedure SetMirror(const Value: Single);
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     function GetReflSpecularExp: Single;
     procedure SetReflSpecularExp(const Value: Single);
@@ -63,10 +61,8 @@
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
-{$ifndef CASTLE_SLIM_NODES}
     { X3D field "mirror". } { }
     property Mirror: Single read GetMirror write SetMirror;
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB);
@@ -174,7 +170,6 @@ begin
   FdTransparency.Send(Value);
 end;
 
-{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetMirror: Single;
 begin
   Result := FdMirror.Value;
@@ -185,7 +180,6 @@ begin
   FdMirror.Send(Value);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflSpecular(const Value: array of TCastleColorRGB);
 begin
