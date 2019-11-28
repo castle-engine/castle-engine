@@ -31,10 +31,8 @@ private
   Surface: EGLSurface;
   Display: EGLDisplay;
 
-  {$ifdef CASTLE_WINDOW_XLIB}
   { GL context creation before creating native window. }
   procedure ContextCreateBegin;
-  {$endif}
 
   { GL context creation after creating native window. }
   procedure ContextCreateEnd(WndPtr: EGLNativeWindowType);
@@ -61,11 +59,9 @@ private
 
 {$ifdef read_implementation}
 
-{$ifdef CASTLE_WINDOW_XLIB}
 procedure TCastleWindowBase.ContextCreateBegin;
 begin
 end;
-{$endif}
 
 { EGL error codes and descriptions from
   http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }

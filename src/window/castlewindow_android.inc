@@ -522,13 +522,15 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 begin
+  ContextCreateBegin;
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
 procedure TCastleWindowBase.CloseBackend;
 begin
-  ContextDestroy;
+  ContextDestroyBegin;
+  ContextDestroyEnd;
   { Note that we do not clear NativeWindow now, because we may need it
     if window is opened again. Although when Android system opens the window,
     NativeWindow is set by OpenContext,
