@@ -883,7 +883,16 @@ begin
   // Cleanup after gtk_widget_push_colormap called above
   gtk_widget_pop_colormap();
 
-  ContextCreateEnd(WindowXID);
+  { We should pass WindowXID to be correct.
+    But:
+    - it is not ready yet (widget is not realized, and calling WindowXID
+      would just cause warning
+      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+    - it is actually not used by castlewindow_glx.inc now.
+
+    So, as a quick solution, we pass 0.
+  }
+  ContextCreateEnd({ WindowXID } 0);
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
