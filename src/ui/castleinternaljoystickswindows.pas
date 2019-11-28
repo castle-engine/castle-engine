@@ -251,7 +251,8 @@ begin
             EventContainer.OnAxisMove(Joystick, JOY_POVX, _value);
         Joystick.State.Axis[ JOY_POVX ] := _value;
 
-        _value := -( -Round( Cos( state.dwPOV and $FFFF div 100 / 180 * Pi ) ) );
+        _value := -Round( Cos( state.dwPOV and $FFFF div 100 / 180 * Pi ) );
+        //_value := -_value;
         if Joystick.State.Axis[ JOY_POVY ] <> _value then
           if Assigned(EventContainer.OnAxisMove) then
             EventContainer.OnAxisMove(Joystick, JOY_POVY, _value);
