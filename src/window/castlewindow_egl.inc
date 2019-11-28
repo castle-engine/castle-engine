@@ -33,15 +33,19 @@ private
 
   {$ifdef CASTLE_WINDOW_XLIB}
   { GL context creation before creating native window. }
-  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
-    var AttrValueMask: Cardinal);
+  procedure ContextCreateBegin;
   {$endif}
 
   { GL context creation after creating native window. }
   procedure ContextCreateEnd(WndPtr: EGLNativeWindowType);
 
-  { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
-  procedure ContextDestroy;
+  { Destroy context created by ContextCreateBegin + ContextCreateEnd.
+    Call ContextDestroyBegin early from CloseBackend, to destroy OpenGL context. }
+  procedure ContextDestroyBegin;
+
+  { Call this to destroy resources that should be destroyed
+    *after* the rest of the native window is destroyed. }
+  procedure ContextDestroyEnd;
 public
   { Query the EGL context what is current size. }
   procedure QuerySize(out AWidth, AHeight: EGLint);
@@ -58,8 +62,7 @@ private
 {$ifdef read_implementation}
 
 {$ifdef CASTLE_WINDOW_XLIB}
-procedure TCastleWindowBase.ContextCreateBegin(var Attr: TXSetWindowAttributes;
-  var AttrValueMask: Cardinal);
+procedure TCastleWindowBase.ContextCreateBegin;
 begin
 end;
 {$endif}
@@ -139,7 +142,7 @@ begin
     raise EGLContextNotPossible.Create('EGL: Cannot create surface: ' + EGLError);
 end;
 
-procedure TCastleWindowBase.ContextDestroy;
+procedure TCastleWindowBase.ContextDestroyBegin;
 begin
   if Surface <> EGL_NO_SURFACE { nil } then
   begin
@@ -159,6 +162,10 @@ begin
       WritelnWarning('EGL', 'Cannot terminate display connection: ' + EGLError);
     Display := EGL_NO_DISPLAY;
   end;
+end;
+
+procedure TCastleWindowBase.ContextDestroyEnd;
+begin
 end;
 
 procedure TCastleWindowBase.BackendMakeCurrent;

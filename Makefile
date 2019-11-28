@@ -216,7 +216,6 @@ EXAMPLES_BASE_NAMES := \
   examples/space_filling_curve/draw_space_filling_curve \
   examples/window/multi_window \
   examples/window/window_events \
-  examples/window/window_gtk_mix \
   examples/window/window_menu \
   tools/castle-curves/castle-curves \
   tools/image-to-pascal/image-to-pascal \

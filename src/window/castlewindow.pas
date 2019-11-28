@@ -182,7 +182,24 @@ unit CastleWindow;
   Available backends:
 
   CASTLE_WINDOW_GTK_2
-    Based on GTK 2.x, using GtkGLExt extension. Made 2005-02.
+    Based on GTK 2.x.
+
+    Only for Xlib (in practice: only for Unix), as it uses GLX to initialize context.
+    Note: At some point it was using GtkGLExt,
+    and thus was portable to anywhere GtkGLExt runs (so, not only Xlib).
+    However:
+    - This wasn't really utilized in practice by anything.
+      GTK on Xlib was the only real use-case.
+      (GTK on Windows was checked in an ancient times, but it had no real usage.)
+    - This required Unix users to install GtkGLExt.
+      It isn't commonly automatically installed.
+    - Since we can work without GtkGLExt so easily (we had our own code to use GLX anyway),
+      it seems reasonable to remove extra dependency.
+    - If more flexibility will be needed in the future,
+      we can easily add support for initializing GL context in other ways.
+      IOW, we can do on our own what GtkGLExt was doing,
+      we already have code to directly deal with wgl, egl etc.
+
     MainMenu is implemented as a nice-looking GTK menu bar.
     Dialog windows implemented using GTK dialog windows.
     Generally, has a nice native look of GTK application.
@@ -224,6 +241,13 @@ unit CastleWindow;
     Based on XLib units. No X toolkit is used.
     Only for OSes where X is used, which in practice means Unix.
 
+    Allows you to change screen resolution when
+    starting the game, which may be useful.
+
+    TODO: In fullscreen mode, the Alt+Tab and other window manager functions
+    are blocked. That's because we use ancient way to make fullscreen
+    (override_redirect).
+
     For desktop OpenGL (when OpenGLES is not defined) this is implemented
     on top of glX.
     For OpenGL ES (when OpenGLES is defined) this is implemented
@@ -241,24 +265,11 @@ unit CastleWindow;
     Dialog boxes are implemented using CastleMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
 
-    On Unix platforms, whether you should use CASTLE_WINDOW_GTK_2 or
-    this CASTLE_WINDOW_XLIB depends on your program.
-
-    - For utility programs, usually CASTLE_WINDOW_GTK_2.
-      You want the menu bar and native (GTK-themed) look of dialog boxes.
-
-    - For fullscreen games, usually CASTLE_WINDOW_XLIB.
-      You usually do not use the menu bar in fullscreen games,
-      and do not want popup dialog boxes. Instead you draw everything
-      inside your OpenGL context, which makes your game look the same
-      regardless of the platform and GUI can be styled to your game theme.
-      For example, menu may be done by TCastleOnScreenMenu, and dialog boxes
-      by CastleMessages.
-
-      As a bonus, XLIB allows you to change screen resolution when
-      starting the game, which may be useful. And has one dependency less
-      (GTK is commonly installed, but gtkglext is not, and CASTLE_WINDOW_GTK_2
-      requires gtkglext).
+    This backend is rarely used.
+    For normal applications (whether windowed or fullscreen,
+    whether using menubar / dialog boxes or not)
+    use the CASTLE_WINDOW_GTK_2, unless you want to test EGL
+    (then this is your only option, on Unix, for now).
 
   CASTLE_WINDOW_LCL
     Use Lazarus TForm (with menu, dialogs and so on) and TOpenGLControl.
@@ -306,27 +317,6 @@ unit CastleWindow;
     It compiles, but actually nothing works.
     See file CASTLE_WINDOW_backend_template.inc.
 }
-
-{ Define CASTLE_WINDOW_BEST_NOGUI to choose the best backend for programs
-  that do not use native gui (like native dialog boxes in TCastleWindow.MessageOK
-  or native menu bar in TCastleWindow.Menu). On Unix, this will choose Xlib,
-  that allows you to resize the screen and has less dependencies than GtkGlExt
-  backend. }
-{$ifdef CASTLE_WINDOW_BEST_NOGUI}
-  {$ifdef UNIX}
-    {$ifdef ANDROID}
-      {$define CASTLE_WINDOW_ANDROID}
-    {$else}
-      {$define CASTLE_WINDOW_XLIB}
-    {$endif}
-  {$else}
-    {$ifdef MSWINDOWS}
-      {$define CASTLE_WINDOW_WINAPI}
-    {$else}
-      {$fatal CASTLE_WINDOW_BEST_NOGUI is unknown for this operating system.}
-    {$endif}
-  {$endif}
-{$endif}
 
 { If CastleWindow backend is not choosen at this point, choose
   default (best, most functional and stable) for a given OS.

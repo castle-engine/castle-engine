@@ -196,7 +196,6 @@ examples/tiled/map_viewer/tiled_demo_standalone.lps
 examples/tiled/strategy_game_demo/strategy_game_demo
 examples/window/multi_window
 examples/window/window_events
-examples/window/window_gtk_mix
 examples/window/window_menu
 packages/alternative_castle_window_based_on_lcl.pas
 packages/castle_base.pas

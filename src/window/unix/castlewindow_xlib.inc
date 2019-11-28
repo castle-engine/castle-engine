@@ -32,6 +32,7 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
+  Colormap: TColormap;
 
   {$ifdef CASTLE_ENGINE_PLUGIN}
   PluginWindow: TNPWindow;
@@ -152,7 +153,13 @@ begin
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
-  ContextCreateBegin(Attr, AttrValueMask);
+  { Creates XVisual }
+  ContextCreateBegin;
+
+  Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
+    XVisual^.Visual, AllocNone);
+  Attr.Colormap := Colormap;
+  AttrValueMask := AttrValueMask or CWColormap;
 
   if FullScreen then
   begin
@@ -284,7 +291,7 @@ procedure TCastleWindowBase.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
-  ContextDestroy;
+  ContextDestroyBegin;
 
   if FFullScreenBackend and Visible then
   begin
@@ -312,10 +319,13 @@ begin
     windowXID := None
   end;
 
-  {$ifndef OpenGLES}
-  if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
-  if XVisual   <> nil  then begin XFree(XVisual);                                  XVisual := nil    end;
-  {$endif}
+  if Colormap  <> None then
+  begin
+    XFreeColormap(Application.XDisplay, Colormap);
+    Colormap := None;
+  end;
+
+  ContextDestroyEnd;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
