@@ -249,13 +249,13 @@ begin
       FillChar( Joystick.State.Axis[ JOY_POVX ], 8, 0 );
       if ( Joystick.Info.Caps and JOY_HAS_POV > 0 ) and ( state.dwPOV and $FFFF <> $FFFF ) then
       begin
-        _value := Round( Sin( state.dwPOV and $FFFF div 100 / 180 * Pi ) );
+        _value := Sin( DegToRad(state.dwPOV and $FFFF / 100.0) );
         if Joystick.State.Axis[ JOY_POVX ] <> _value then
           if Assigned(EventContainer.OnAxisMove) then
             EventContainer.OnAxisMove(Joystick, JOY_POVX, _value);
         Joystick.State.Axis[ JOY_POVX ] := _value;
 
-        _value := -Round( Cos( state.dwPOV and $FFFF div 100 / 180 * Pi ) );
+        _value := -Cos( DegToRad(state.dwPOV and $FFFF / 100.0 ) );
         //_value := -_value;
         if Joystick.State.Axis[ JOY_POVY ] <> _value then
           if Assigned(EventContainer.OnAxisMove) then
