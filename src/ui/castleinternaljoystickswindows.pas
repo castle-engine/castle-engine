@@ -219,6 +219,10 @@ begin
     begin
       for j := 0 to Joystick.Info.Count.Axes - 1 do
       begin
+        //stop if joystick reported more axes than the backend can handle
+        if j > High(BackendInfo.AxesMap) then
+          Break;
+
         // Say "no" to if's, and do everything trciky :)
         a     := BackendInfo.AxesMap[ j ];
         pcaps := @BackendInfo.Caps;
