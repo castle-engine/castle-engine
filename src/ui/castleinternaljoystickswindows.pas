@@ -219,6 +219,10 @@ begin
     begin
       for j := 0 to Joystick.Info.Count.Axes - 1 do
       begin
+        //stop if joystick reported more axes than the backend can handle
+        if j > High(BackendInfo.AxesMap) then
+          Break;
+
         // Say "no" to if's, and do everything trciky :)
         a     := BackendInfo.AxesMap[ j ];
         pcaps := @BackendInfo.Caps;
@@ -245,8 +249,18 @@ begin
       FillChar( Joystick.State.Axis[ JOY_POVX ], 8, 0 );
       if ( Joystick.Info.Caps and JOY_HAS_POV > 0 ) and ( state.dwPOV and $FFFF <> $FFFF ) then
       begin
-        Joystick.State.Axis[ JOY_POVX ] := Round( Sin( state.dwPOV and $FFFF div 100 ) );
-        Joystick.State.Axis[ JOY_POVY ] := -Round( Cos( state.dwPOV and $FFFF div 100 ) );
+        _value := Sin( DegToRad(state.dwPOV and $FFFF / 100.0) );
+        if Joystick.State.Axis[ JOY_POVX ] <> _value then
+          if Assigned(EventContainer.OnAxisMove) then
+            EventContainer.OnAxisMove(Joystick, JOY_POVX, _value);
+        Joystick.State.Axis[ JOY_POVX ] := _value;
+
+        _value := -Cos( DegToRad(state.dwPOV and $FFFF / 100.0 ) );
+        //_value := -_value;
+        if Joystick.State.Axis[ JOY_POVY ] <> _value then
+          if Assigned(EventContainer.OnAxisMove) then
+            EventContainer.OnAxisMove(Joystick, JOY_POVY, _value);
+        Joystick.State.Axis[ JOY_POVY ] := _value;
       end;
 
       for j := 0 to Joystick.Info.Count.Buttons - 1 do

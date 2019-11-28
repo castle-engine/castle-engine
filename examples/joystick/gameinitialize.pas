@@ -223,7 +223,10 @@ begin
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons]));
 
   // Create axis labels
-  SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
+  //SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
+  { Show all 8 possible axes, as D-Pad/POV axes are sometimes "further than Count.Axes"
+    This is a temporary measure until we can separate D-Pad/POV correctly in the backend }
+  SetLength(JoyAxes, 8);
   for I := 0 to High(JoyAxes) do
   begin
     JoyAxes[i] := TCastleLabel.Create(Application);
