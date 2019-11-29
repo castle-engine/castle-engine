@@ -2590,6 +2590,14 @@ begin
 end;
 
 procedure TCastleTransform.GLContextClose;
+begin
+  { Does nothing now.
+    In particular, this does not call GLContextClose on children.
+    This way it keeps their OpenGL resources prepared,
+    to be able to quickly readd them to another transform (without time-consuming
+    initial PrepareResources). }
+end;
+(*
 var
   I: Integer;
 begin
@@ -2600,6 +2608,7 @@ begin
       List[I].GLContextClose;
   end;
 end;
+*)
 
 procedure TCastleTransform.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;

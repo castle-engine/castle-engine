@@ -3684,8 +3684,11 @@ end;
 
 procedure TCastleSceneManager.GLContextClose;
 begin
-  if Items <> nil then
-    Items.GLContextClose;
+  { Keep OpenGL resources of items prepared,
+    to be able to quickly use them in another scene manager (without time-consuming
+    initial PrepareResources). }
+  // if Items <> nil then
+  //   Items.GLContextClose;
 
   FreeAndNil(FShadowVolumeRenderer);
 
