@@ -2128,8 +2128,13 @@ type
       @link(PlayAnimation) will automatically stop the previous animation.
       Moreover, @link(PlayAnimation) may do animation blending (cross-fade)
       between old and new animation (if you use @link(TPlayAnimationParameters.TransitionDuration)),
-      which only works if you @italic(did not) call StopAnimation. }
-    procedure StopAnimation;
+      which only works if you @italic(did not) call StopAnimation.
+
+      When animation is stopped (by this or any other means),
+      by default it's @link(TPlayAnimationParameters.StopNotification) is called.
+      You can use DisableStopNotification to avoid it,
+      which should be used only in exceptional situations. }
+    procedure StopAnimation(const DisableStopNotification: Boolean = false);
 
     { Reset all the fields affected by animations.
       See TimeSensor.detectAffectedFields documentation
@@ -7947,25 +7952,60 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.StopAnimation;
+procedure TCastleSceneCore.StopAnimation(const DisableStopNotification: Boolean = false);
 begin
-  { If new animation was requested, but not yet processed by UpdateNewPlayingAnimation:
+  if DisableStopNotification then
+  begin
+    PlayingAnimationStopNotification := nil;
+  end else
+  begin
+    { TODO: We can cause NeedsUpdateTimeDependentHandlers warning from ApplyNewPlayingAnimation,
+      if the new animation occurs that never played,
+      because scene had Exists = false. Testcase:
 
-    Make it start, to early call the "stop notification" callback
-    for the previous animation (before calling the "stop notification"
-    callback for the new animation).
-    This also makes all behavior consistent with
-    "what if the new animation was actually applied already", i.e. the same calls
-    to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
-  if not ApplyNewPlayingAnimation then
-    Exit;
+        uses SysUtils, CastleScene, CastleLog;
+        var
+          Scene: TCastleScene;
+        begin
+          InitializeLog;
+          Scene := TCastleScene.Create(nil);
+          try
+            Scene.ProcessEvents := true;
+            Scene.Load('data/walking/assets/hotel_room/hotel_room_phone/hotel_room_phone.json');
+            Scene.Exists := false;
+            Scene.PlayAnimation('vibrate', true);
+            Scene.StopAnimation;
+          finally FreeAndNil(Scene) end;
+        end.
+
+      Right now only the DisableStopNotification case avoids it (in a brutal way,
+      as it avoids calling ApplyNewPlayingAnimation,
+      as it's pointless in this case.
+    }
+
+    { If new animation was requested, but not yet processed by UpdateNewPlayingAnimation:
+      Make it start, to early call the "stop notification" callback
+      for the previous animation (before calling the "stop notification"
+      callback for the new animation).
+      This also makes all behavior consistent with
+      "what if the new animation was actually applied already", i.e. the same calls
+      to TTimeSensorNode.Stop and TTimeSensorNode.Start will be done. }
+    if not ApplyNewPlayingAnimation then
+      Exit;
+  end;
 
   { Stop animation by setting NewPlayingAnimationNode to nil,
     this way the "stop notification" callback
-    for new animation will be correctly called. }
+    for new animation will be correctly called.
+
+    The next Update (with UpdateNewPlayingAnimation) will set PlayingAnimationNode
+    to nil this way. }
   FCurrentAnimation := nil;
   NewPlayingAnimationNode := FCurrentAnimation;
   NewPlayingAnimationUse := true;
+  { No need to set other NewPlayingAnimationXxx,
+    like NewPlayingAnimationStopNotification,
+    they will be ignored when NewPlayingAnimationNode = nil. }
 end;
 
 procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
