@@ -1050,8 +1050,6 @@ type
     var
       FSectors: TSectorList;
       Waypoints: TWaypointList;
-    const
-      DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
 
     procedure SetNavigation(const Value: TCastleNavigation); override;
 
@@ -1109,6 +1107,9 @@ type
     function Headlight: TAbstractLightNode; override;
     //procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
   public
+    const
+      DefaultPrepareOptions = [prRenderSelf, prRenderClones, prBackground, prBoundingBox, prScreenEffects];
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GetItems: TSceneManagerWorld; override;
