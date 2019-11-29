@@ -7954,7 +7954,7 @@ begin
     for new animation will be correctly called. }
   FCurrentAnimation := nil;
   NewPlayingAnimationNode := FCurrentAnimation;
-  NewPlayingAnimationUse := true;
+  NewPlayingAnimationUse := false;
 end;
 
 procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
