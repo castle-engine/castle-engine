@@ -528,7 +528,10 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     { NewPlayingAnimationXxx describe scheduled animation to change.
-      They are set by PlayAnimation, and used by UpdateNewPlayingAnimation. }
+      They are set by PlayAnimation, and used by UpdateNewPlayingAnimation.
+      Note that NewPlayingAnimationUse does *not* imply that
+      NewPlayingAnimationNode is <> nil,
+      it can be nil (if we want to change animation to nil). }
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLoop: boolean;
@@ -2116,7 +2119,9 @@ type
 
     { Stop the @link(CurrentAnimation), started by last @link(PlayAnimation) call.
       Note that this leaves the model in a state in the middle of the last animation.
+
       You can use @link(ResetAnimationState) to reset the state afterwards.
+      Calling @link(ForceInitialAnimationPose) also will do it.
 
       Note that it is not necessary to stop the previous animation
       before starting a new one (by @link(PlayAnimation)).
@@ -7778,12 +7783,18 @@ begin
   if NewPlayingAnimationUse then
   begin
     ResetAnimationState(NewPlayingAnimationNode);
-    NewPlayingAnimationNode.FakeTime(
-      NewPlayingAnimationInitialTime,
-      NewPlayingAnimationLoop,
-      NewPlayingAnimationForward,
-      NextEventTime);
-    FinishTransformationChanges;
+    { After StopAnimation,
+      we may have NewPlayingAnimationUse and (NewPlayingAnimationNode = nil),
+      this is a valid state. }
+    if NewPlayingAnimationNode <> nil then
+    begin
+      NewPlayingAnimationNode.FakeTime(
+        NewPlayingAnimationInitialTime,
+        NewPlayingAnimationLoop,
+        NewPlayingAnimationForward,
+        NextEventTime);
+      FinishTransformationChanges;
+    end;
   end;
 end;
 
@@ -7954,7 +7965,7 @@ begin
     for new animation will be correctly called. }
   FCurrentAnimation := nil;
   NewPlayingAnimationNode := FCurrentAnimation;
-  NewPlayingAnimationUse := false;
+  NewPlayingAnimationUse := true;
 end;
 
 procedure TCastleSceneCore.ResetAnimationState(const IgnoreAffectedBy: TTimeSensorNode);
