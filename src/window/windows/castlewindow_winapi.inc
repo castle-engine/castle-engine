@@ -417,10 +417,8 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     end;
 
     { Fix some cases when KeyString should better correspond to Key }
-    if KeyString = '' then
-      case Key of
-        keyDelete: KeyString := CharDelete;
-      end;
+    if (KeyString = '') and (Key = keyDelete) then
+      KeyString := CharDelete;
 
     if (Key <> keyNone) or (KeyString <> '') then DoKeyDown(Key, KeyString);
   end;
