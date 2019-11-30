@@ -373,6 +373,9 @@ constructor TCastleProject.Create(const APath: string);
     function DefaultQualifiedName: string;
     begin
       Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      { On Android, package name cannot be just a word, it must have some dot. }
+      if Pos('.', Result) = 0 then
+        Result := 'application.' + Result;
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
