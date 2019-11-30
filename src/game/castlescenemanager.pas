@@ -4489,8 +4489,8 @@ begin
   else
     P := Position;
   P := Vector2(
-    MapRange(P.X, 0, EffectiveWidth , Projection.Dimensions.Left  , Projection.Dimensions.Right),
-    MapRange(P.Y, 0, EffectiveHeight, Projection.Dimensions.Bottom, Projection.Dimensions.Top)
+    MapRange(P.X, 0, EffectiveWidth , FProjection.Dimensions.Left  , FProjection.Dimensions.Right),
+    MapRange(P.Y, 0, EffectiveHeight, FProjection.Dimensions.Bottom, FProjection.Dimensions.Top)
   );
 
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;

@@ -1205,7 +1205,6 @@ type
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
     function StopRotating: boolean;
 
-    procedure Scale(const ScaleBy: Single); deprecated 'set ScaleFactor instead of using this method';
     procedure Move(coord: integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
 
     { User inputs ------------------------------------------------------------ }
@@ -3270,11 +3269,6 @@ begin
     FRotationsAnim := TVector3.Zero;
 end;
 
-procedure TCastleExamineNavigation.Scale(const ScaleBy: Single);
-begin
-  ScaleFactor := ScaleFactor / ScaleBy;
-end;
-
 procedure TCastleExamineNavigation.Move(coord: integer; const MoveDistance: Single);
 var
   V: TVector3;
@@ -3401,7 +3395,7 @@ begin
   begin
     FScaleFactorMin := Value;
     { Correct ScaleFactor now }
-    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
+    Camera.Orthographic.Scale := Clamped(Camera.Orthographic.Scale, FScaleFactorMin, FScaleFactorMax);
   end;
 end;
 
@@ -3411,7 +3405,7 @@ begin
   begin
     FScaleFactorMax := Value;
     { Correct ScaleFactor now }
-    ScaleFactor := Clamped(ScaleFactor, FScaleFactorMin, FScaleFactorMax);
+    Camera.Orthographic.Scale := Clamped(Camera.Orthographic.Scale, FScaleFactorMin, FScaleFactorMax);
   end;
 end;
 
@@ -3511,7 +3505,7 @@ begin
     begin
       { In case of OrthographicProjection, changing Translation
         would have no effect. So instead scale the projection size. }
-      ScaleFactor := ScaleFactor * Exp(-Factor);
+      Camera.Orthographic.Scale := Camera.Orthographic.Scale * Exp(-Factor);
     end else
     begin
       { zoom by changing Translation }
