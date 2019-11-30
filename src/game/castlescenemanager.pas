@@ -4182,12 +4182,12 @@ begin
   { Both version result in calling WorldMoveAllowed.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
   if Player <> nil then
-    Result := Player.MoveAllowed(ANavigation.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
-    Result := Items.WorldMoveAllowed(ANavigation.Position, ProposedNewPos, NewPos,
+    Result := Player.MoveAllowed(Camera.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
+    Result := Items.WorldMoveAllowed(Camera.Position, ProposedNewPos, NewPos,
       true, ANavigation.Radius,
       { We prefer to resolve collisions with navigation using sphere.
         But for TCastleTransform implementations that can't use sphere, we can construct box. }
-      Box3DAroundPoint(ANavigation.Position, ANavigation.Radius * 2),
+      Box3DAroundPoint(Camera.Position, ANavigation.Radius * 2),
       Box3DAroundPoint(ProposedNewPos, ANavigation.Radius * 2), BecauseOfGravity);
 end;
 
