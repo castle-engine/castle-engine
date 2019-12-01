@@ -35,7 +35,7 @@
     { @groupEnd }
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONData);
+    procedure Parse(const Json: TJSONData; const SkinName: String);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
       const Container: TX3DRootNode; const SkinName: string);
   end;
@@ -62,11 +62,12 @@ begin
   inherited;
 end;
 
-procedure TSkeleton.Parse(const Json: TJSONData);
+procedure TSkeleton.Parse(const Json: TJSONData; const SkinName: String);
 var
   O: TJSONObject;
   JsonArmatureArray: TJSONArray;
   DragonBonesFormat: boolean;
+  CurrentSkin: TSkin;
 begin
   if not (Json is TJSONObject) then
     raise ESpineReadError.Create('Spine JSON skeleton: Expected JSONObject at root');
@@ -89,7 +90,12 @@ begin
   Bones.Parse(O, Root, DragonBonesFormat);
   Slots.Parse(O, Bones, DragonBonesFormat);
   Skins.Parse(O, DefaultSkin, Bones, DragonBonesFormat);
-  Animations.Parse(O, Bones, Slots);
+  CurrentSkin := nil;
+  if SkinName <> '' then
+    CurrentSkin := Skins.Find(SkinName, true);
+  if CurrentSkin = nil then
+    CurrentSkin := DefaultSkin;
+  Animations.Parse(O, Bones, Slots, CurrentSkin);
 
   // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
   //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));

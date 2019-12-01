@@ -21,19 +21,20 @@
     BoneTimelines: TBoneTimelineList;
     SlotTimelines: TSlotTimelineList;
     DrawOrderTimelines: TDrawOrderTimelineList;
+    DeformTimelines: TDeformTimelineList;
     Node: TTimeSensorNode;
     NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const Bones: TBoneList; const Slots: TSlotList;
+      const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
       var CurvesRemoved: Cardinal);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 
   TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
-      const Bones: TBoneList; const Slots: TSlotList);
+      const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
     { Add all TimeSensors to EXPORTed nodes. }
     procedure Exported(const RootNode: TX3DRootNode);
@@ -50,6 +51,7 @@ begin
   BoneTimelines := TBoneTimelineList.Create;
   SlotTimelines := TSlotTimelineList.Create;
   DrawOrderTimelines := TDrawOrderTimelineList.Create;
+  DeformTimelines := TDeformTimelineList.Create;
 end;
 
 destructor TAnimation.Destroy;
@@ -60,11 +62,12 @@ begin
   FreeAndNil(BoneTimelines);
   FreeAndNil(SlotTimelines);
   FreeAndNil(DrawOrderTimelines);
+  FreeAndNil(DeformTimelines);
   inherited;
 end;
 
 procedure TAnimation.Parse(const Json: TJSONObject;
-  const Bones: TBoneList; const Slots: TSlotList;
+  const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin;
   var CurvesRemoved: Cardinal);
 
   procedure ReadBoneTimelines(const Bone: TBone; const Json: TJSONObject);
@@ -78,6 +81,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineTranslate.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
+
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
@@ -94,6 +98,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineScale.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
+
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
@@ -110,6 +115,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineRotate.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
+
       if BoneTimeline.DoingSomething then
       begin
         BoneTimelines.Add(BoneTimeline);
@@ -142,6 +148,24 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       SlotTimeline.Slot := Slot;
       SlotTimeline.Parse(ChildArray);
       SlotTimelines.Add(SlotTimeline);
+    end;
+  end;
+
+  procedure ReadDeformTimelines(const SlotName: string;
+    const Json: TJSONObject; const Slots: TSlotList);
+  var
+    I: Integer;
+    DeformTimeline: TDeformTimeline;
+  begin
+    for I := 0 to Json.Count - 1 do
+    begin
+      DeformTimeline := TDeformTimeline.Create;
+      DeformTimeline.Slot := Slots.Find(Json.Names[0]);
+      DeformTimeline.Attachment :=
+        CurrentSkin.Attachments.Find(SlotName, Json.Names[I], nil, false)
+        as TMeshAttachment;
+      DeformTimeline.Parse(Json.Items[I] as TJSONArray);
+      DeformTimelines.Add(DeformTimeline);
     end;
   end;
 
@@ -179,6 +203,16 @@ begin
     ChildArray := Json.Find('drawOrder', jtArray) as TJSONArray; // try different case
   if ChildArray <> nil then
     DrawOrderTimelines.Parse(ChildArray, Slots);
+
+  ChildObj := Json.Find('deform', jtObject) as TJSONObject;
+  if ChildObj <> nil then
+  begin
+    ChildObj := ChildObj.Find(CurrentSkin.Name) as TJSONObject;
+    if ChildObj <> nil then
+      for I := 0 to ChildObj.Count - 1 do
+        if ChildObj.Items[I] is TJSONObject then
+          ReadDeformTimelines(ChildObj.Names[I], TJSONObject(ChildObj.Items[I]), Slots);
+  end;
 end;
 
 procedure TAnimation.BuildNodes(const BaseUrl: string;
@@ -195,6 +229,8 @@ begin
     MaxVar(MaxTime, BoneTimelines[I].MaxTime);
   for I := 0 to SlotTimelines.Count - 1 do
     MaxVar(MaxTime, SlotTimelines[I].MaxTime);
+  for I := 0 to DeformTimelines.Count - 1 do
+    MaxVar(MaxTime, DeformTimelines[I].MaxTime);
   MaxVar(MaxTime, DrawOrderTimelines.MaxTime);
   { TimeSensor.cycleInterval should be > 0
     (see testcase spine/test-animation-zero-time for where it's needed).
@@ -256,12 +292,25 @@ begin
     Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);
     Container.AddRoute(Route);
   end;
+
+  for I := 0 to DeformTimelines.Count - 1 do
+  begin
+    DeformTimelines[I].BuildNodes(MaxTime, Container);
+    { add animation name to deform timeline, to make it unique in case
+      we have many animations }
+    DeformTimelines[I].Node.X3DName := Node.X3DName + '_' +
+      DeformTimelines[I].Node.X3DName;
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(DeformTimelines[I].Node.EventSet_fraction);
+    Container.AddRoute(Route);
+  end;
 end;
 
 { TAnimationList ------------------------------------------------------------- }
 
 procedure TAnimationList.Parse(const Json: TJSONObject;
-  const Bones: TBoneList; const Slots: TSlotList);
+  const Bones: TBoneList; const Slots: TSlotList; const CurrentSkin: TSkin);
 var
   I: Integer;
   Animation: TAnimation;
@@ -283,7 +332,8 @@ begin
         Animation := TAnimation.Create;
         Add(Animation);
         Animation.Name := ChildObj.Names[I];
-        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, Slots, CurvesRemoved);
+        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, Slots,
+          CurrentSkin, CurvesRemoved);
       end;
 
     // WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
