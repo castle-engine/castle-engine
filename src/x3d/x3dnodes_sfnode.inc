@@ -40,12 +40,12 @@
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
     FWeakLink: boolean;
-    procedure SetValue(AValue: TX3DNode);
-    procedure SetDefaultValue(ADefaultValue: TX3DNode);
-    procedure SetDefaultValueExists(AValue: boolean);
+    procedure SetValue(const AValue: TX3DNode);
+    procedure SetDefaultValue(const ADefaultValue: TX3DNode);
+    procedure SetDefaultValueExists(const AValue: boolean);
     procedure SetWeakLink(const AValue: boolean);
     procedure WarningIfUnusedWeakLink;
-    procedure DestructionNotification(Node: TX3DNode);
+    procedure DestructionNotification(const Node: TX3DNode);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -463,7 +463,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFNode.SetValue(AValue: TX3DNode);
+procedure TSFNode.SetValue(const AValue: TX3DNode);
 begin
   if FValue <> AValue then
   begin
@@ -487,7 +487,7 @@ begin
   end;
 end;
 
-procedure TSFNode.SetDefaultValue(ADefaultValue: TX3DNode);
+procedure TSFNode.SetDefaultValue(const ADefaultValue: TX3DNode);
 begin
   if FDefaultValue <> ADefaultValue then
   begin
@@ -511,7 +511,7 @@ begin
   end;
 end;
 
-procedure TSFNode.DestructionNotification(Node: TX3DNode);
+procedure TSFNode.DestructionNotification(const Node: TX3DNode);
 begin
   if WeakLink then
   begin
@@ -522,7 +522,7 @@ begin
   end;
 end;
 
-procedure TSFNode.SetDefaultValueExists(AValue: boolean);
+procedure TSFNode.SetDefaultValueExists(const AValue: boolean);
 begin
   FDefaultValueExists := AValue;
 end;

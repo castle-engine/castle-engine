@@ -28,7 +28,7 @@
     LastEventTime: TX3DTime;
     FInternal: boolean;
 
-    procedure DestructionNotification(Node: TX3DNode);
+    procedure DestructionNotification(const Node: TX3DNode);
 
     procedure UnsetEnding(
       var Node: TX3DNode; var Event: TX3DEvent;
@@ -551,7 +551,7 @@ begin
   end;
 end;
 
-procedure TX3DRoute.DestructionNotification(Node: TX3DNode);
+procedure TX3DRoute.DestructionNotification(const Node: TX3DNode);
 begin
   { UnsetEnding is called with RemoveFromDestructionNotification = false.
     Reason:
