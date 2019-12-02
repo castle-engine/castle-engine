@@ -10,14 +10,14 @@ object Form1: TForm1
   DesignTimePPI = 140
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '1.9.0.0'
-  object Browser: TCastleControl
+  LCLVersion = '2.0.0.4'
+  object Browser: TCastleControlBase
     Left = 0
     Height = 624
     Top = 0
     Width = 1043
     Align = alClient
+    Options = []
     TabOrder = 0
-    OnResize = BrowserResize
   end
 end
