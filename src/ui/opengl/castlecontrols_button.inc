@@ -216,7 +216,7 @@
 
     { Should we use custom text color in @link(CustomTextColor)
       instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
-    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
+    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse default false;
 
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Single
