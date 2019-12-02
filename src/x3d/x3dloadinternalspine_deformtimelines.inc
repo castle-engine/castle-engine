@@ -76,7 +76,7 @@ begin
     CurveJson := Obj.Find('curve');
     if CurveJson <> nil then
       if CurveJson is TJSONArray then
-        WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported') else
+        WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported');
     VertexJsonArray := Obj.Get('vertices', TJSONArray.Create);
     VertexList := TVector3List.Create;
 
