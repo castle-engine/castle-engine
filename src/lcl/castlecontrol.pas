@@ -112,9 +112,10 @@ type
 
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
+    procedure UpdateShiftState(const Shift: TShiftState);
+
     procedure KeyPressHandlerPress(Sender: TObject;
       const Event: TInputPressRelease);
-    procedure UpdateShiftState(const Shift: TShiftState);
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
