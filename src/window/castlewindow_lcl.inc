@@ -699,6 +699,7 @@ procedure TCastleWindowBase.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
 var
   MyKey: TKey;
 begin
+  FKeyPressHandler.BeforeKeyUp(Key, Shift);
   MyKey := KeyLCLToCastle(Key, Shift);
   if MyKey <> K_None then
     DoKeyUp(MyKey);

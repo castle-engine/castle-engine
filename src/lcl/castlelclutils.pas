@@ -143,13 +143,33 @@ type
     FUnfinishedKeyPress: Boolean;
     FUnfinishedKeyPressKey: TUTF8Char;
   public
+    { Call these events when corresponding Lazarus event
+      (OnKeyDown, OnUTF8KeyPress) occurs.
+
+      They may call OnPress in turn. }
     procedure KeyDown(const Key: Word; const Shift: TShiftState);
     procedure UTF8KeyPress(const UTF8Key: TUTF8Char);
+
+    { Call this when Lazarus OnKeyUp event occurs.
+
+      It may call OnPress in return.
+      Receiving "key up" event from Lazarus may indicate that we have
+      to do OnPress now.
+
+      This matters for keys without corresponding String/Char representation
+      (thus, without UTF8KeyPress call), like keyLeft.
+      If we have buffered to "send the OnPress for this key",
+      we need to send it now, before the OnRelease for the same key is generated.
+      Otherwise the KeyUp would cause OnRelease of the arrow key,
+      and later Flush call would send OnPress for the same key. }
+    procedure BeforeKeyUp(const Key: Word; const Shift: TShiftState);
+
     { If some keypress is half-finished, report it now.
       This should be called before e.g. Update event, to report
       events that result in OnKeyDown but not OnUTF8KeyPress,
       or OnUTF8KeyPress but not OnKeyDown. }
     procedure Flush;
+
     { Called when we collect enough information to make a CGE press event. }
     property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
   end;
@@ -498,6 +518,12 @@ begin
 
   // collected both KeyDown and KeyPress
   if FUnfinishedKeyDown and FUnfinishedKeyPress then
+    Flush;
+end;
+
+procedure TLCLKeyPressHandler.BeforeKeyUp(const Key: Word; const Shift: TShiftState);
+begin
+  if FUnfinishedKeyDown and (FUnfinishedKeyDownKey = Key) then
     Flush;
 end;
 

@@ -1071,6 +1071,10 @@ var
   MyKey: TKey;
   MyKeyString: String;
 begin
+  { Do this before anything else, in particular before even Pressed.KeyUp below.
+    This may call OnPress (which sets Pressed to true). }
+  FKeyPressHandler.BeforeKeyUp(Key, Shift);
+
   MyKey := KeyLCLToCastle(Key, Shift);
   if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
