@@ -60,20 +60,26 @@ procedure TDeformTimeline.Parse(const Json: TJSONArray);
 var
   I, J: Integer;
   Obj: TJSONObject;
+  CurveJson: TJSONData;
   VertexJsonArray: TJSONArray;
   VertexList: TVector3List;
   V3: TVector3;
   Offset: Integer;
 begin
-  for I := 0 to Json.Count-1 do
+  for I := 0 to Json.Count - 1 do
   begin
     Obj := Json.Items[I] as TJSONObject;
     Time.Add(Obj.Get('time', 0.0));
     Offset := Obj.Get('offset', 0) div 2;
     { TODO: Take care of 'curve' field once we implement CubicBezier version of
       TCoordinateInterpolatorNode }
+    CurveJson := Obj.Find('curve');
+    if CurveJson <> nil then
+      if CurveJson is TJSONArray then
+        WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported') else
     VertexJsonArray := Obj.Get('vertices', TJSONArray.Create);
     VertexList := TVector3List.Create;
+
     { |---static vertices (offset)---|---anim vertices---|---static vertices---| }
     for J := 0 to Offset - 1 do
       VertexList.Add(Vector3(Attachment.Vertices.Items[J], 0));
