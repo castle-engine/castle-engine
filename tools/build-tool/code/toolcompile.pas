@@ -161,6 +161,28 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
+{ Writeln a message that FPC/Lazarus crashed and we will retry,
+  and clean compilation leftover files. }
+procedure FpcLazarusCrashRetry(const WorkingDirectory, ToolName, ProjectName: String);
+begin
+  Writeln('-------------------------------------------------------------');
+  Writeln('It seems ' + ToolName + ' crashed. If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help ' + ProjectName + ' developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the ' + ProjectName + ' or Castle Game Engine mailing list.');
+  Writeln;
+  Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
+  Writeln('-------------------------------------------------------------');
+  { when we're called to compile a project, WorkingDirectory is the project path }
+  CleanDirectory(WorkingDirectory);
+  CleanDirectory(TempOutputPath(WorkingDirectory, false));
+  if CastleEnginePath <> '' then
+  begin
+    { Compiling project using build tool (through FPC or lazbuild)
+      should *not* leave any file in src/ .
+      But, just to be safe, try to clear it if possible. }
+    CleanDirectory(CastleEnginePath + 'src' + PathDelim);
+    CleanDirectory(CastleEnginePath + 'packages' + PathDelim + 'lib' + PathDelim);
+  end;
+end;
+
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
@@ -599,16 +621,7 @@ begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
-        Writeln('-------------------------------------------------------------');
-        Writeln('It seems FPC crashed with a compiler error (Internal error). If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC or Castle Game Engine mailing list.');
-        Writeln;
-        Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
-        Writeln('-------------------------------------------------------------');
-        { when we're called to compile a project, WorkingDirectory is the project path }
-        CleanDirectory(WorkingDirectory);
-        CleanDirectory(TempOutputPath(WorkingDirectory, false));
-        if CastleEngineSrc <> '' then
-          CleanDirectory(CastleEngineSrc);
+        FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
         RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
@@ -634,7 +647,29 @@ var
     RunCommandIndirPassthrough(WorkingDirectory,
       LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
     if LazbuildExitStatus <> 0 then
-      raise Exception.Create('Failed to compile');
+    begin
+      { Old lazbuild can fail with exception like this:
+
+          An unhandled exception occurred at $0000000000575F5F:
+          EAccessViolation: Access violation
+            $0000000000575F5F line 590 of exttools.pas
+            $000000000057A027 line 1525 of exttools.pas
+            $000000000057B231 line 1814 of exttools.pas
+
+        Simply retrying works.
+      }
+      if (Pos('Fatal: Internal error', LazbuildOutput) <> 0) or
+         (Pos('EAccessViolation: Access violation', LazbuildOutput) <> 0) then
+      begin
+        FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
+        RunCommandIndirPassthrough(WorkingDirectory,
+          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+        if LazbuildExitStatus <> 0 then
+          { do not retry compiling in a loop, give up }
+          raise Exception.Create('Failed to compile');
+      end else
+        raise Exception.Create('Failed to compile');
+    end;
   end;
 
 begin
