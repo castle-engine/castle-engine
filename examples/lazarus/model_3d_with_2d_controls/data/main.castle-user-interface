@@ -91,7 +91,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Image" : {
@@ -150,7 +149,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Image" : {
         "URL" : "castle-data:/sample_button_icon.png",
@@ -182,7 +180,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : -1.9300000000000000E+002,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -217,7 +214,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Image" : {
         "URL" : "castle-data:/sample_button_icon.png",
@@ -248,7 +244,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : -2.1100000000000000E+002,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -282,7 +277,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : 2.6000000000000000E+002,
       "Image" : {
         "URL" : "castle-data:/sample_button_icon.png",
@@ -314,7 +308,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : -1.6000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -349,7 +342,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : 2.6000000000000000E+002,
       "Image" : {
         "URL" : "castle-data:/sample_button_icon.png",
@@ -381,7 +373,6 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "CustomTextColorUse" : false,
       "HorizontalAnchorDelta" : -1.4000000000000000E+001,
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
@@ -402,10 +393,15 @@
     },
     {
       "CaptureAllInput" : false,
-      "HorizontalAnchorDelta" : 1.0800000000000000E+003,
+      "HorizontalAnchorDelta" : -2.4000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
       "Name" : "Edit1",
       "Text" : "Edit1",
-      "VerticalAnchorDelta" : 4.0000000000000000E+002,
+      "VerticalAnchorDelta" : -1.8600000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "Width" : 1.1000000000000000E+002,
       "$Children" : [
       ],
       "$ClassName" : "TCastleEdit"
