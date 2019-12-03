@@ -2144,7 +2144,6 @@ procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
   Sender: TObject);
 var
   V: TCastleAbstractViewport;
-  APos, ADir, AUp: TVector3;
 begin
   V := SelectedViewport;
   V.Camera.SetView(
