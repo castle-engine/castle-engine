@@ -34,6 +34,11 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
 
+{ Compile with lazbuild. }
+procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
+  const WorkingDirectory, LazarusProjectFile: string);
+
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
@@ -612,6 +617,37 @@ begin
         raise Exception.Create('Failed to compile');
     end;
   finally FreeAndNil(FpcOptions) end;
+end;
+
+procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
+  const WorkingDirectory, LazarusProjectFile: string);
+var
+  LazbuildExe, LazbuildOutput: String;
+  LazbuildOptions: TCastleStringList;
+  LazbuildExitStatus: Integer;
+begin
+  LazbuildExe := FindExeLazarus('lazbuild');
+  if LazbuildExe = '' then
+    raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+
+  LazbuildOptions := TCastleStringList.Create;
+  try
+    LazbuildOptions.Add('--os=' + OSToString(OS));
+    LazbuildOptions.Add('--cpu=' + CPUToString(CPU));
+    { // Do not pass --build-mode, as project may not have it defined.
+    if Mode = cmDebug then
+      LazbuildOptions.Add('--build-mode=Debug')
+    else
+      LazbuildOptions.Add('--build-mode=Release');
+    }
+    LazbuildOptions.Add(LazarusProjectFile);
+
+    RunCommandIndirPassthrough(WorkingDirectory,
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+    if LazbuildExitStatus <> 0 then
+      raise Exception.Create('Failed to compile');
+  finally FreeAndNil(LazbuildOptions) end;
 end;
 
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;

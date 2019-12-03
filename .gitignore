@@ -108,6 +108,7 @@ examples/audio/test_sound_source_allocator/*.obj
 examples/castlescript/castle_calculator
 examples/castlescript/image_make_by_script
 examples/curves/simplest_curve_read
+examples/custom_url_handler/read_game_data_from_zip
 examples/delphi/base_tests/base_tests.res
 examples/fixed_camera_game/rift
 examples/fonts/font_draw_over_image
@@ -219,6 +220,7 @@ tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
 tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+tools/build-tool/tests/test_cge_build_tool
 tools/castle-curves/castle-curves
 tools/castle-editor/code/castle_editor.res
 tools/castle-engine
