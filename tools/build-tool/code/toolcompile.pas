@@ -623,9 +623,20 @@ procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
   const Mode: TCompilationMode;
   const WorkingDirectory, LazarusProjectFile: string);
 var
-  LazbuildExe, LazbuildOutput: String;
+  LazbuildExe: String;
   LazbuildOptions: TCastleStringList;
-  LazbuildExitStatus: Integer;
+
+  procedure RunLazbuild;
+  var
+    LazbuildOutput: String;
+    LazbuildExitStatus: Integer;
+  begin
+    RunCommandIndirPassthrough(WorkingDirectory,
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+    if LazbuildExitStatus <> 0 then
+      raise Exception.Create('Failed to compile');
+  end;
+
 begin
   LazbuildExe := FindExeLazarus('lazbuild');
   if LazbuildExe = '' then
@@ -633,6 +644,26 @@ begin
 
   LazbuildOptions := TCastleStringList.Create;
   try
+    // register CGE packages first
+    if CastleEnginePath <> '' then
+    begin
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
+      RunLazbuild;
+
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
+      RunLazbuild;
+
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
+      RunLazbuild;
+    end;
+
+    LazbuildOptions.Clear;
     LazbuildOptions.Add('--os=' + OSToString(OS));
     LazbuildOptions.Add('--cpu=' + CPUToString(CPU));
     { // Do not pass --build-mode, as project may not have it defined.
@@ -643,10 +674,7 @@ begin
     }
     LazbuildOptions.Add(LazarusProjectFile);
 
-    RunCommandIndirPassthrough(WorkingDirectory,
-      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
-    if LazbuildExitStatus <> 0 then
-      raise Exception.Create('Failed to compile');
+    RunLazbuild;
   finally FreeAndNil(LazbuildOptions) end;
 end;
 
