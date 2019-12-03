@@ -497,7 +497,7 @@ constructor TCastleProject.Create(const APath: string);
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    NewCompilerOption: String;
+    NewCompilerOption, DefaultLazarusProject: String;
   begin
     ManifestFile := Path + ManifestName;
     if not RegularFileExists(ManifestFile) then
@@ -517,8 +517,11 @@ constructor TCastleProject.Create(const APath: string);
         FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
-        FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project',
-          ChangeFileExt(FStandaloneSource, '.lpi'));
+        if FStandaloneSource <> '' then
+          DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
+        else
+          DefaultLazarusProject := '';
+        FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
