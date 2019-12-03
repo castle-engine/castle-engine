@@ -46,7 +46,7 @@
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
-    procedure TooltipRender; override;
+    procedure TooltipRender(const TooltipPosition: TVector2); override;
     procedure Render; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
@@ -194,7 +194,7 @@ begin
   Result := Tooltip <> '';
 end;
 
-procedure TCastleUserInterfaceFont.TooltipRender;
+procedure TCastleUserInterfaceFont.TooltipRender(const TooltipPosition: TVector2);
 var
   X, Y, TooltipWidth, TooltipHeight: Single;
 begin
@@ -218,8 +218,8 @@ begin
   TCastleLabelTooltip(TooltipLabel).PreferredSize(TooltipWidth, TooltipHeight);
 
   { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
-  X := Container.TooltipPosition[0] / TooltipLabel.UIScale;
-  Y := Container.TooltipPosition[1] / TooltipLabel.UIScale;
+  X := TooltipPosition[0] / TooltipLabel.UIScale;
+  Y := TooltipPosition[1] / TooltipLabel.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
   MinVar(X, ContainerWidth  - TooltipWidth );

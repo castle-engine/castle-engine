@@ -271,8 +271,8 @@ type
     FForceCaptureInput: TCastleUserInterface;
     FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
-    FTooltipVisible: boolean;
     FTooltipPosition: TVector2;
+    FTooltipParent: TCastleUserInterface; // @nil if do not display
     HasLastPositionForTooltip: boolean;
     LastPositionForTooltip: TVector2;
     LastPositionForTooltipTime: TTimerResult;
@@ -415,20 +415,6 @@ type
       from back to front. So the front-most control, that should receive events first,
       is last on this list. }
     property Focus: TCastleUserInterfaceList read FFocus;
-
-    { When the tooltip should be shown (mouse hovers over a control
-      with a tooltip) then the TooltipVisible is set to @true,
-      and TooltipPosition indicate left-bottom (in screen space, regardless of UIScaling)
-      suggested position of the tooltip.
-
-      The tooltip is only detected when TCastleUserInterface.TooltipExists.
-      See TCastleUserInterface.TooltipExists and TCastleUserInterface.TooltipRender.
-      For simple purposes just set TCastleUserInterfaceFont.Tooltip to something
-      non-empty.
-      @groupBegin }
-    property TooltipVisible: Boolean read FTooltipVisible;
-    property TooltipPosition: TVector2 read FTooltipPosition;
-    { @groupEnd }
 
     { Redraw the contents of of this window, at the nearest suitable time.
       This method does not redraw immediately
@@ -1512,17 +1498,20 @@ type
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
-      Then the TCastleWindowBase.TooltipVisible will be detected,
-      and your TooltipRender will be called.
+      Then the TooltipRender will be called.
 
-      TooltipRender is called in the same way as @link(Render),
-      so e.g. you can safely assume that modelview matrix is identity
-      and (for 2D) WindowPos is zero.
+      TooltipRender is called in the same way as @link(Render).
       TooltipRender is always called as a last (front-most) control.
+      Argument TooltipPosition is the left-bottom (in screen space, regardless of UIScaling)
+      suggested position of the tooltip.
+
+      It is simplest to descend from TCastleUserInterfaceFont,
+      that implements simple @link(TCastleUserInterfaceFont.Tooltip) property
+      and overrides these two methods as necessary.
 
       @groupBegin }
-    function TooltipExists: boolean; virtual;
-    procedure TooltipRender; virtual;
+    function TooltipExists: Boolean; virtual;
+    procedure TooltipRender(const TooltipPosition: TVector2); virtual;
     { @groupEnd }
 
     { Initialize your OpenGL resources.
@@ -2430,6 +2419,9 @@ begin
     { set to nil by SetForceCaptureInput to clean nicely }
     ForceCaptureInput := nil;
 
+  if (Operation = opRemove) and (AComponent = FTooltipParent) then
+    FTooltipParent := nil;
+
   if (Operation = opRemove) and (AComponent is TCastleUserInterface) then
     DetachNotification(TCastleUserInterface(AComponent));
 end;
@@ -2765,12 +2757,15 @@ procedure TUIContainer.EventUpdate;
   procedure UpdateTooltip;
   var
     T: TTimerResult;
-    NewTooltipVisible: boolean;
+    NewTooltipParent: TCastleUserInterface;
+    I: Integer;
   begin
-    { Update TooltipVisible and LastPositionForTooltip*.
+    { Update FTooltipParent and LastPositionForTooltip*.
       Idea is that user must move the mouse very slowly to activate tooltip. }
 
+    NewTooltipParent := nil;
     T := Fps.UpdateStartTime;
+
     if (not HasLastPositionForTooltip) or
        { reset the time counter to show tooltip, if you moved mouse/finger
          significantly }
@@ -2783,34 +2778,27 @@ procedure TUIContainer.EventUpdate;
       HasLastPositionForTooltip := true;
       LastPositionForTooltip := MousePosition;
       LastPositionForTooltipTime := T;
-      NewTooltipVisible := false;
     end else
-      { TODO: allow tooltips on other controls on Focus list,
-        if Focus.Last.TooltipExists = false but other control on Focus
-        has tooltips.
-        Set something like TooltipFocusIndex or just TooltipControl
-        to pass correct control to TUIContainer.EventRender then,
-        right now we hardcoded there rendering of Focus.Last tooltip. }
-      NewTooltipVisible :=
-        { make TooltipVisible only when we're over a control that has
-          focus. This avoids unnecessary changing of TooltipVisible
-          (and related Invalidate) when there's no tooltip possible. }
-        (Focus.Count <> 0) and
-        Focus.Last.TooltipExists and
-        (TimerSeconds(T, LastPositionForTooltipTime) > TooltipDelay);
-
-    if FTooltipVisible <> NewTooltipVisible then
+    if TimerSeconds(T, LastPositionForTooltipTime) > TooltipDelay then
     begin
-      FTooltipVisible := NewTooltipVisible;
+      { Any control on Focus can cause a tooltip.
+        This is especially useful when an invisible control like TCastleWalkNavigation
+        covers other controls. }
+      for I := Focus.Count - 1 downto 0 do
+        if Focus[I].TooltipExists then
+        begin
+          NewTooltipParent := Focus[I];
+          Break;
+        end;
+    end;
 
-      if TooltipVisible then
+    if FTooltipParent <> NewTooltipParent then
+    begin
+      FTooltipParent := NewTooltipParent;
+
+      if FTooltipParent <> nil then
       begin
-        { when setting TooltipVisible from false to true,
-          update LastPositionForTooltip. We don't want to hide the tooltip
-          at the slightest jiggle of the mouse :) On the other hand,
-          we don't want to update LastPositionForTooltip more often,
-          as it would disable the purpose of TooltipDistance: faster
-          mouse movement should hide the tooltip. }
+        { When changing FTooltipParent, update LastPositionForTooltip. }
         LastPositionForTooltip := MousePosition;
         { also update TooltipPosition }
         FTooltipPosition := MousePosition;
@@ -3385,10 +3373,10 @@ begin
   for I := 0 to Controls.Count - 1 do
     Controls[I].RecursiveRender(Rect);
 
-  if TooltipVisible and (Focus.Count <> 0) then
+  if FTooltipParent <> nil then
   begin
     RenderControlPrepare(Rect);
-    Focus.Last.TooltipRender;
+    FTooltipParent.TooltipRender(FTooltipPosition);
   end;
 
   RenderControlPrepare(Rect);
@@ -4386,7 +4374,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterface.TooltipRender;
+procedure TCastleUserInterface.TooltipRender(const TooltipPosition: TVector2);
 begin
 end;
 
