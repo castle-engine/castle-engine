@@ -102,8 +102,7 @@
     { Tooltip string, displayed when user hovers the mouse over a control.
 
       Note that you can override TCastleUserInterface.TooltipExists and
-      TCastleUserInterface.TooltipStyle and TCastleUserInterface.TooltipRender
-      to customize the tooltip drawing. }
+      TCastleUserInterface.TooltipRender to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.

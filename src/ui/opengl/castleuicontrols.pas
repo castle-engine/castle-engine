@@ -422,12 +422,11 @@ type
       suggested position of the tooltip.
 
       The tooltip is only detected when TCastleUserInterface.TooltipExists.
-      See TCastleUserInterface.TooltipExists and TCastleUserInterface.TooltipStyle and
-      TCastleUserInterface.TooltipRender.
+      See TCastleUserInterface.TooltipExists and TCastleUserInterface.TooltipRender.
       For simple purposes just set TCastleUserInterfaceFont.Tooltip to something
       non-empty.
       @groupBegin }
-    property TooltipVisible: boolean read FTooltipVisible;
+    property TooltipVisible: Boolean read FTooltipVisible;
     property TooltipPosition: TVector2 read FTooltipPosition;
     { @groupEnd }
 
