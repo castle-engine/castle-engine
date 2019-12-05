@@ -2419,9 +2419,6 @@ begin
     { set to nil by SetForceCaptureInput to clean nicely }
     ForceCaptureInput := nil;
 
-  if (Operation = opRemove) and (AComponent = FTooltipParent) then
-    FTooltipParent := nil;
-
   if (Operation = opRemove) and (AComponent is TCastleUserInterface) then
     DetachNotification(TCastleUserInterface(AComponent));
 end;
@@ -2443,6 +2440,9 @@ var
   Index: Integer;
   FingerIndex: TFingerIndex;
 begin
+  if C = FTooltipParent then
+    FTooltipParent := nil;
+
   if FFocus <> nil then
   begin
     Index := FFocus.IndexOf(C);
@@ -3214,7 +3214,7 @@ var
 begin
   { Do not suspend when you're over a control that may have a tooltip,
     as EventUpdate must track and eventually show tooltip. }
-  if (Focus.Count <> 0) and Focus.Last.TooltipExists then
+  if FTooltipParent <> nil then
     Exit(false);
 
   for I := Controls.Count - 1 downto 0 do
