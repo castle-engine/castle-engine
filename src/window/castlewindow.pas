@@ -1772,6 +1772,11 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
+    { Send fake motion event, without actually moving the mouse through the backend.
+      This is useful only for automatic tests.
+      @exclude }
+    procedure InternalFakeMotion(const Event: TInputMotion);
+
     { Continuously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
       so it is continuously called even when your game
@@ -3602,6 +3607,11 @@ begin
     MakeCurrent;
     Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
   end;
+end;
+
+procedure TCastleWindowBase.InternalFakeMotion(const Event: TInputMotion);
+begin
+  DoMotion(Event);
 end;
 
 procedure TCastleWindowBase.DoMotion(const Event: TInputMotion);
