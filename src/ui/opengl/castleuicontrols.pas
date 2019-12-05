@@ -2501,42 +2501,39 @@ var
     Update (add) to FNewFocus, update (set to true) AnythingForcesNoneCursor. }
   procedure CalculateNewFocus;
 
-    { AllowAddingToFocus is used to keep track whether we should
-      do FNewFocus.Add on new controls. This way when one control obscures
-      another, the obscured control does not land on the FNewFocus list.
-      However, the obscured control can still affect the AnythingForcesNoneCursor
-      value. }
-    procedure RecursiveCalculateNewFocus(const C: TCastleUserInterface; var AllowAddingToFocus: boolean);
+    procedure RecursiveCalculateNewFocus(const C: TCastleUserInterface);
     var
       I: Integer;
-      ChildAllowAddingToFocus: boolean;
     begin
       if PassEvents(C) then
       begin
         if C.Cursor = mcForceNone then
           AnythingForcesNoneCursor := true;
 
-        if AllowAddingToFocus then
-        begin
-          FNewFocus.Add(C);
-          // siblings to C, obscured by C, will not be added to FNewFocus
-          AllowAddingToFocus := false;
-        end;
+        FNewFocus.Add(C);
 
-        // our children can be added to FNewFocus
-        ChildAllowAddingToFocus := true;
-        for I := C.ControlsCount - 1 downto 0 do
-          RecursiveCalculateNewFocus(C.Controls[I], ChildAllowAddingToFocus);
+        // Iterate in back-to-front order, because that's the order on Focus list.
+        for I := 0 to C.ControlsCount - 1 do
+          RecursiveCalculateNewFocus(C.Controls[I]);
       end;
     end;
 
   var
     I: Integer;
-    AllowAddingToFocus: boolean;
   begin
-    AllowAddingToFocus := true;
-    for I := Controls.Count - 1 downto 0 do
-      RecursiveCalculateNewFocus(Controls[I], AllowAddingToFocus);
+    { Note that even if one sibling obscures another (they both satisfy
+      CapturesEventsAtPosition) both siblings are added to the FNewFocus
+      (later to Focus) list.
+      That's because they all can receive input event (like Press),
+      assuming that all controls return "not handled" (return false from Press).
+      This is crucial to make some "invisible" controls (like TCastleNavigation
+      or TCastleInspectorControl) work seamlessly, they should not prevent
+      other controls from appearing on Focus list.
+   }
+
+    // Iterate in back-to-front order, because that's the order on Focus list.
+    for I := 0 to Controls.Count - 1 do
+      RecursiveCalculateNewFocus(Controls[I]);
   end;
 
   { Possibly adds the control to FNewFocus and

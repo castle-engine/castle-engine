@@ -31,9 +31,9 @@ type
   TCastleInspectorControl = class(TCastleUserInterfaceFont)
   strict private
     Background: TCastleRectangleControl;
-    LabelControlsUnderMouse: TCastleLabel;
+    LabelAll: TCastleLabel;
+    LabelFocus: TCastleLabel;
     TransparencySlider: TCastleFloatSlider;
-    CheckboxShowEvenNotUnderMouse: TCastleCheckbox;
     CheckboxShowEvenNotExisting: TCastleCheckbox;
     CheckboxShowEvenInternal: TCastleCheckbox;
     CheckboxShowSize: TCastleCheckbox;
@@ -94,15 +94,6 @@ begin
   TransparencySlider.Height := 30;
   UpperControls.InsertFront(TransparencySlider);
 
-  CheckboxShowEvenNotUnderMouse := TCastleCheckbox.Create(Self);
-  CheckboxShowEvenNotUnderMouse.SetTransient;
-  CheckboxShowEvenNotUnderMouse.Caption := 'Show Even Not Under Mouse';
-  CheckboxShowEvenNotUnderMouse.Checked := false;
-  CheckboxShowEvenNotUnderMouse.OnChange := @UpdateDisplay;
-  CheckboxShowEvenNotUnderMouse.TextColor := White;
-  CheckboxShowEvenNotUnderMouse.CheckboxColor := White;
-  UpperControls.InsertFront(CheckboxShowEvenNotUnderMouse);
-
   CheckboxShowEvenNotExisting := TCastleCheckbox.Create(Self);
   CheckboxShowEvenNotExisting.SetTransient;
   CheckboxShowEvenNotExisting.Caption := 'Show Even Not Existing';
@@ -130,12 +121,19 @@ begin
   CheckboxShowSize.CheckboxColor := White;
   UpperControls.InsertFront(CheckboxShowSize);
 
-  LabelControlsUnderMouse := TCastleLabel.Create(Self);
-  LabelControlsUnderMouse.SetTransient;
-  LabelControlsUnderMouse.Anchor(hpLeft, Margin);
-  LabelControlsUnderMouse.Anchor(vpBottom, Margin);
-  LabelControlsUnderMouse.Html := true;
-  Background.InsertFront(LabelControlsUnderMouse);
+  LabelAll := TCastleLabel.Create(Self);
+  LabelAll.SetTransient;
+  LabelAll.Anchor(hpLeft, Margin);
+  LabelAll.Anchor(vpBottom, Margin);
+  LabelAll.Html := true;
+  Background.InsertFront(LabelAll);
+
+  LabelFocus := TCastleLabel.Create(Self);
+  LabelFocus.SetTransient;
+  LabelFocus.Anchor(hpRight, -Margin);
+  LabelFocus.Anchor(vpBottom, Margin);
+  LabelFocus.Html := true;
+  Background.InsertFront(LabelFocus);
 end;
 
 destructor TCastleInspectorControl.Destroy;
@@ -248,29 +246,26 @@ var
     Result := '<font color="#' + ColorToHex(ControlColor(C)) + '">' + S + '</font>';
   end;
 
-  procedure CheckControl(const C: TCastleUserInterface; const Level: Integer);
+  procedure AddControlDescription(const C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
     S: string;
   begin
     if ControlShow(C) then
     begin
-      if CheckboxShowEvenNotUnderMouse.Checked or
-         C.CapturesEventsAtPosition(Container.MousePosition) then
-      begin
-        S := ControlDescription(C);
-        if CheckboxShowSize.Checked then
-          S := S + ' ' + C.RenderRect.ToString;
-        if not C.GetExists then
-          S := S + ' (hidden)';
-        if C.Focused then
-          S := S + ' (focused)';
-        S := DupeString('- ', Level) + S;
-        S := ControlColorizeHtml(C, S);
-        NewText.Add(S);
-      end;
+      S := ControlDescription(C);
+      if CheckboxShowSize.Checked then
+        S := S + ' ' + C.RenderRect.ToString;
+      if not C.GetExists then
+        S := S + ' (hidden)';
+      if C.Focused then
+        S := S + ' (focused)';
+      S := DupeString('- ', Level) + S;
+      S := ControlColorizeHtml(C, S);
+      NewText.Add(S);
+
       for I := 0 to C.ControlsCount - 1 do
-        CheckControl(C.Controls[I], Level + 1);
+        AddControlDescription(C.Controls[I], Level + 1);
     end;
   end;
 
@@ -281,17 +276,17 @@ var
 begin
   NewText := TCastleStringList.Create;
   try
-    if CheckboxShowEvenNotUnderMouse.Checked then
-      NewText.Add('All controls:')
-    else
-      NewText.Add('Controls under mouse:');
+    NewText.Add('All controls:');
     for I := 0 to Container.Controls.Count - 1 do
-      CheckControl(Container.Controls[I], 0);
+      AddControlDescription(Container.Controls[I], 0);
+    LabelAll.Text.Assign(NewText);
+  finally FreeAndNil(NewText) end;
 
+  NewText := TCastleStringList.Create;
+  try
     if Container.Focus.Count <> 0 then
     begin
-      NewText.Add('');
-      NewText.Add('Container.Focus:');
+      NewText.Add('Container.Focus (controls that can receive input):');
       for C in Container.Focus do
         if ControlShow(C) then
         begin
@@ -300,8 +295,7 @@ begin
           NewText.Add('  ' + S);
         end;
     end;
-
-    LabelControlsUnderMouse.Text.Assign(NewText);
+    LabelFocus.Text.Assign(NewText);
   finally FreeAndNil(NewText) end;
 end;
 
