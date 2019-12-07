@@ -46,6 +46,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+  protected
+    procedure Show;
+    procedure Hide;
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
@@ -69,6 +72,24 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   ToolCompilerInfo, ToolFpcVersion;
 
 { TChooseProjectForm ------------------------------------------------------------- }
+
+procedure TChooseProjectForm.Show;
+begin
+  {$IFDEF WINDOWS}
+  Application.ShowMainForm := True;
+  {$ELSE}
+  TForm(Self).Show;
+  {$ENDIF}
+end;
+
+procedure TChooseProjectForm.Hide;
+begin
+  {$IFDEF WINDOWS}
+  Application.ShowMainForm := False;
+  {$ELSE}
+  TForm(Self).Hide;
+  {$ENDIF}
+end;
 
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
 begin
