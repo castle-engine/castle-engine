@@ -75,20 +75,20 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
 
 procedure TChooseProjectForm.Show;
 begin
-  {$IFDEF WINDOWS}
+  {$ifdef MSWINDOWS}
   Application.ShowMainForm := True;
-  {$ELSE}
-  TForm(Self).Show;
-  {$ENDIF}
+  {$else}
+  inherited Show;
+  {$endif}
 end;
 
 procedure TChooseProjectForm.Hide;
 begin
-  {$IFDEF WINDOWS}
+  {$ifdef MSWINDOWS}
   Application.ShowMainForm := False;
-  {$ELSE}
-  TForm(Self).Hide;
-  {$ENDIF}
+  {$else}
+  inherited Hide;
+  {$endif}
 end;
 
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
