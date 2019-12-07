@@ -80,7 +80,8 @@ begin
   SceneManager.Items.Add(Level);
   SceneManager.MainScene := Level;
 
-  // make gravity work even if your position is over the world bbox
+  { Make movement possible only within the world box,
+    and make gravity work even if you're far above the world. }
   MoveLimit := SceneManager.Items.BoundingBox;
   MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
   SceneManager.MoveLimit := MoveLimit;

@@ -1132,35 +1132,16 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
-    { Where the 3D items (player, creatures, items) can move,
-      and where the gravity works. In case of 1st-person view
-      (always, for now) limiting the player position also implies limiting
-      the camera position.
-      Intuitively, this is the "sensible" part of 3D space where normal physics
-      should work.
+    { Where the 3D items (player, creatures, items) can move.
+      This limits the player position in case of 1st-person view also.
+      Ignored when this is an empty box (default).
 
-      TODO: When you activate 3rd-person camera (not implemented yet),
-      this limit will apply to the Player.Position, not Camera.Position.
-
-      @unorderedList(
-        @item(When MoveLimit is an empty box (this is the default situation)
-          then movement is limited to not fall because of gravity
-          outside of Items.BoundingBox. Still, we can freely move anywhere
-          (only gravity effect is limited to the Items.BoundingBox).
-
-          This is the safest behavior for general 3D model browsers,
-          it prevents camera from falling into an infinite abyss of our 3D space,
-          since gravity will always stop at the Items.BoundingBox border.)
-
-        @item(When MoveLimit is not an empty box,
-          then position cannot go outside of this box.
-
-          Note that the TGameSceneManager.LoadLevel always,
-          automatically, assigns this property to be non-empty.
-          It's either determined by CasMoveLimit placeholder
-          in the level 3D model, or it's automatically calculated
-          to include level bounding box + some space for flying.)
-      ) }
+      Note that the @link(TGameSceneManager.LoadLevel) always
+      assigns this property to be non-empty.
+      It either determines it by CasMoveLimit placeholder
+      in the level 3D model, or by calculating
+      to include level bounding box + some space for flying.
+    }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
     { Renderer of shadow volumes. You can use this to optimize rendering
@@ -4325,16 +4306,7 @@ end;
 function TCastleSceneManager.MoveAllowed(const OldPosition, NewPosition: TVector3;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := true;
-
-  if MoveLimit.IsEmpty then
-  begin
-    { Don't let objects/camera fall outside of the box because of gravity,
-      as then they would fall into infinity. }
-    if BecauseOfGravity then
-      Result := Items.BoundingBox.Contains(NewPosition);
-  end else
-    Result := MoveLimit.Contains(NewPosition);
+  Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPosition);
 
   if Assigned(OnMoveAllowed) then
     OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);
