@@ -1002,7 +1002,7 @@ type
       (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
 
       @nil if we are not part of a hierarchy rooted in TSceneManagerWorld.
-      In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
+      In practice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
       hierarchy. }
     property World: TSceneManagerWorld read FWorld;
 
