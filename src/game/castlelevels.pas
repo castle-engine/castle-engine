@@ -1148,7 +1148,9 @@ procedure TGameSceneManager.Update(const SecondsPassed: Single;
     if Water.Contains(Player.Translation) then
       FPlayerSwimming := psUnderWater
     else
-    if Water.Contains(Player.Translation - GravityUp * Navigation.PreferredHeight) then
+    { Check Player.Navigation, not Navigation, in case Navigation=nil
+      but Player is <> nil. Then Player.Navigation is guaranteed non-nil. }
+    if Water.Contains(Player.Translation - GravityUp * Player.Navigation.PreferredHeight) then
       FPlayerSwimming := psAboveWater
     else
       FPlayerSwimming := psNo;
