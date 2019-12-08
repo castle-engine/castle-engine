@@ -3133,6 +3133,7 @@ begin
         W := WalkNavigation;
         {$warnings on}
         W.Input := [];
+        W.Gravity := false;
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
