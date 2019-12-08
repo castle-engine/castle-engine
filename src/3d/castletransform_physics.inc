@@ -17,6 +17,7 @@
 
 {$ifdef read_interface}
 
+  { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
     FAngularVelocityRK4Integration: Boolean;
@@ -39,8 +40,14 @@
     constructor Create(AOwner: TComponent); override;
 
   published
+    { Use a more precise (but also more expensive) method for simulating angular velocity.
+      The "RK4" refers to Runge–Kutta method. }
     property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    { Use a more precise (but also more expensive) method for simulating linear velocity.
+      The "RK4" refers to Runge–Kutta method. }
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    { How often should the physics simulation run in a second.
+      Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
   end;
 
@@ -316,12 +323,12 @@
 
     { Triggers report when other object collides with them,
       but still allow the other object to pass through.
-      In other words, colliding with a trigger will not cause the collider to stop or 
+      In other words, colliding with a trigger will not cause the collider to stop or
       "bounce off" the trigger.
 
       They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
       that the player can "consume" by colliding with it.
-      
+
       Triggers report collisions through the same events as other rigid bodies:
       (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
       @link(TRigidBody.OnCollisionExit)). }
