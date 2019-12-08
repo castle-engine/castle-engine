@@ -213,7 +213,7 @@ begin
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
-  CreatureResource.CreateCreature(SceneManager.Items, Translation, Direction);
+  CreatureResource.CreateCreature(SceneManager.LevelProperties, Translation, Direction);
 
   // update and show CreaturesSpawned
   Inc(CreaturesSpawned);
@@ -233,7 +233,7 @@ begin
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
     instance) and adds it to SceneManager.Items. }
-  ItemResource.CreateItem(1).PutOnWorld(SceneManager.Items, Translation);
+  ItemResource.CreateItem(1).PutOnWorld(SceneManager.LevelProperties, Translation);
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
@@ -336,7 +336,8 @@ begin
   if Player.Swimming = psUnderWater then
     DrawRectangle(ParentRect, Vector4(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangleDark(ParentRect, Red, 1.0) else
+    GLFadeRectangleDark(ParentRect, Red, 1.0)
+  else
     GLFadeRectangleDark(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 

@@ -131,12 +131,11 @@ type
       example how to add an item to your 3D world is this:
 
       @longCode(#
-        Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3(2, 3, 4));
+        Sword.CreateItem(1).PutOnWorld(SceneManager.LevelProperties, Vector3(2, 3, 4));
       #)
 
       This adds 1 item of the MyItemResource to the 3D world,
-      on position (2, 3, 4). In simple cases you can get SceneManager
-      instance from TCastleWindow.SceneManager or TCastleControl.SceneManager.
+      on position (2, 3, 4).
 
       If you want to instead add sword to the inventory of Player,
       you can call
@@ -154,7 +153,8 @@ type
 
     { Instantiate placeholder by create new item with CreateItem
       and putting it on level with TInventoryItem.PutOnWorld. }
-    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
+    procedure InstantiatePlaceholder(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -366,7 +366,8 @@ type
       so we take AWorld parameter explicitly.
       This is how you should create new TItemOnWorld instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items. }
-    function PutOnWorld(const AWorld: TSceneManagerWorld;
+    function PutOnWorld(
+      const ALevelProperties: TLevelProperties;
       const APosition: TVector3): TItemOnWorld;
 
     { 3D owner of the item,
@@ -380,16 +381,6 @@ type
       (in case of TItemOnWorld, it does it directly;
       in case of player or creature, it does it by TInventory). }
     property Owner3D: TCastleTransform read FOwner3D;
-
-    { 3D world of this item, if any.
-
-      Although the TInventoryItem, by itself, is not a 3D thing
-      (only pickable TItemOnWorld is a 3D thing).
-      But it exists inside a 3D world: either as pickable (TItemOnWorld),
-      or as being owned by a 3D object (like player or creature) that are
-      part of 3D world. In other words, our Owner3D.World is the 3D world
-      this item lives in. }
-    function World: TSceneManagerWorld;
   end;
 
   TItemWeapon = class(TInventoryItem)
@@ -407,7 +398,7 @@ type
       The default implementation in @className does a short-range/shoot
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
-    procedure Attack; virtual;
+    procedure Attack(const LevelProperties: TLevelProperties); virtual;
     procedure Use; override;
   public
     function Resource: TItemWeaponResource;
@@ -416,10 +407,10 @@ type
     procedure Equip; virtual;
 
     { Owner starts attack with this equipped weapon. }
-    procedure EquippedAttack(const LifeTime: Single); virtual;
+    procedure EquippedAttack(const LevelProperties: TLevelProperties; const LifeTime: Single); virtual;
 
     { Time passses for equipped weapon. }
-    procedure EquippedUpdate(const LifeTime: Single); virtual;
+    procedure EquippedUpdate(const LevelProperties: TLevelProperties; const LifeTime: Single); virtual;
 
     { Return the 3D model to render for this equipped weapon, or @nil if none. }
     function EquippedScene(const LifeTime: Single): TCastleScene; virtual;
@@ -493,6 +484,7 @@ type
       FResourceFrame: TResourceFrame;
       ItemRotation, LifeTime: Single;
       FDebugTransform: TItemDebugTransform;
+      LevelProperties: TLevelProperties;
     function BoundingBoxRotated: TBox3D;
   public
     class var
@@ -551,6 +543,10 @@ type
   private
     FInventory: TInventory;
   public
+    var
+      { Set when assigning TPlayer to @link(TGameSceneManager.Player). }
+      InternalLevelProperties: TLevelProperties;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -666,7 +662,8 @@ begin
   Result := TInventoryItem;
 end;
 
-procedure TItemResource.InstantiatePlaceholder(World: TSceneManagerWorld;
+procedure TItemResource.InstantiatePlaceholder(
+  const ALevelProperties: TLevelProperties;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -677,7 +674,7 @@ begin
     ItemQuantity := Number else
     ItemQuantity := 1;
 
-  CreateItem(ItemQuantity).PutOnWorld(World, APosition);
+  CreateItem(ItemQuantity).PutOnWorld(ALevelProperties, APosition);
 end;
 
 function TItemResource.AlwaysPrepared: boolean;
@@ -763,32 +760,32 @@ begin
   FQuantity := FQuantity - QuantitySplit;
 end;
 
-function TInventoryItem.PutOnWorld(const AWorld: TSceneManagerWorld;
+function TInventoryItem.PutOnWorld(
+  const ALevelProperties: TLevelProperties;
   const APosition: TVector3): TItemOnWorld;
+var
+  TransformRoot: TSceneManagerWorld;
 begin
-  Result := TItemOnWorld.Create(AWorld { owner });
+  TransformRoot := ALevelProperties.TransformRoot;
+
+  Result := TItemOnWorld.Create(TransformRoot { owner });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
+  Result.LevelProperties := ALevelProperties;
   Result.FItem := Self;
   FOwner3D := Result;
-  Result.SetView(APosition, AnyOrthogonalVector(AWorld.GravityUp), AWorld.GravityUp);
+  Result.SetView(APosition, AnyOrthogonalVector(TransformRoot.GravityUp), TransformRoot.GravityUp);
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
-  AWorld.Add(Result);
+
+  TransformRoot.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
 begin
   Notifications.Show('This item cannot be used');
-end;
-
-function TInventoryItem.World: TSceneManagerWorld;
-begin
-  if Owner3D <> nil then
-    Result := Owner3D.World else
-    Result := nil;
 end;
 
 procedure TInventoryItem.Picked(const NewOwner: TAliveWithInventory);
@@ -798,7 +795,7 @@ end;
 
 { TItemWeapon ---------------------------------------------------------------- }
 
-procedure TItemWeapon.Attack;
+procedure TItemWeapon.Attack(const LevelProperties: TLevelProperties);
 var
   Attacker: TAlive;
   AttackDC, AttackDR, AttackKD: Single;
@@ -840,16 +837,18 @@ var
     I: Integer;
     Enemy: TAlive;
     WeaponBoundingBox: TBox3D;
+    TransformRoot: TSceneManagerWorld;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
+    TransformRoot := LevelProperties.TransformRoot;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use World.BoxCollision for this,
+    { TODO: we would prefer to use TransformRoot.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to World.Count - 1 do
-      if World[I] is TAlive then
+    for I := 0 to TransformRoot.Count - 1 do
+      if TransformRoot[I] is TAlive then
       begin
-        Enemy := TAlive(World[I]);
+        Enemy := TAlive(TransformRoot[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -860,7 +859,7 @@ var
   procedure FireMissileAttack;
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-       CreateCreature(World, Attacker.Translation, Attacker.Direction);
+      CreateCreature(LevelProperties, Attacker.Translation, Attacker.Direction);
     SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
@@ -912,7 +911,7 @@ begin
   Attacking := false;
 end;
 
-procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
+procedure TItemWeapon.EquippedAttack(const LevelProperties: TLevelProperties; const LifeTime: Single);
 
   { Check do you have ammunition to perform attack, and decrease it if yes. }
   function CheckAmmo: boolean;
@@ -963,18 +962,18 @@ begin
     if Resource.AttackTime = 0 then
     begin
       AttackDone := true;
-      Attack;
+      Attack(LevelProperties);
     end;
   end;
 end;
 
-procedure TItemWeapon.EquippedUpdate(const LifeTime: Single);
+procedure TItemWeapon.EquippedUpdate(const LevelProperties: TLevelProperties; const LifeTime: Single);
 begin
   if Attacking and (not AttackDone) and
     (LifeTime - AttackStartTime >= Resource.AttackTime) then
   begin
     AttackDone := true;
-    Attack;
+    Attack(LevelProperties);
   end;
 end;
 
@@ -1171,6 +1170,7 @@ procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
 var
   DirectionZero, U: TVector3;
+  Player: TAliveWithInventory;
 begin
   inherited;
   if not GetExists then Exit;
@@ -1189,12 +1189,16 @@ begin
 
   FDebugTransform.Exists := RenderDebug;
 
+  if LevelProperties.Player is TAliveWithInventory then
+    Player := TAliveWithInventory(LevelProperties.Player)
+  else
+    Player := nil;
+
   if AutoPick and
-     (World.Player <> nil) and
-     (World.Player is TAliveWithInventory) and
-     (not (World.Player as TAlive).Dead) and
-     BoundingBox.Collision(World.Player.BoundingBox) then
-    ExtractItem.Picked(TAliveWithInventory(World.Player));
+     (Player <> nil) and
+     (not Player.Dead) and
+     BoundingBox.Collision(Player.BoundingBox) then
+    ExtractItem.Picked(Player);
 
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then
@@ -1312,7 +1316,7 @@ begin
     if GetItemDropTranslation(Inventory[Index].Resource, DropTranslation) then
     begin
       DropppedItem := Inventory.Drop(Index);
-      Result := DropppedItem.PutOnWorld(World, DropTranslation);
+      Result := DropppedItem.PutOnWorld(InternalLevelProperties, DropTranslation);
     end;
   end;
 end;

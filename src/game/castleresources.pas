@@ -23,7 +23,8 @@ interface
 
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum,
-  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
+  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles,
+  CastleSectors;
 
 type
   T3DResource = class;
@@ -123,6 +124,15 @@ type
     { Set which animation and animation frame to display. }
     procedure SetFrame(const AnAnimation: T3DResourceAnimation;
       const ATime: TFloatTime; const ALoop: boolean);
+  end;
+
+  { Information useful to FPS games resources (creatures, items)
+    given to them based on current level. }
+  TLevelProperties = class
+  public
+    function Player: TCastleTransform; virtual; abstract;
+    function Sectors: TSectorList; virtual; abstract;
+    function TransformRoot: TSceneManagerWorld; virtual; abstract;
   end;
 
   { Resource used for rendering and processing of 3D objects.
@@ -248,7 +258,8 @@ type
 
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
-    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
+    procedure InstantiatePlaceholder(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 

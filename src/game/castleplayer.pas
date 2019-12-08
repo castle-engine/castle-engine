@@ -24,17 +24,23 @@ uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform;
+  CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform,
+  CastleResources;
 
 type
-  TPlayerSwimming = (psNo,
-    { Player is floating on the water.
-      Not falling down, but also not drowning.
-      This means that player head is above the water surface
-      but his feet are in the water. In some sense he/she is swimming,
-      in some not. }
+  TPlayerSwimming = (
+    { Not swimming. }
+    psNo,
+
+    { Swimming on the water surface.
+      Conceptually, avatar is submerged in water, but has head above the water. }
     psAboveWater,
-    psUnderWater);
+
+    { Swimming under the water surface.
+      Conpeptually, avatar is fully submerged in water, and may have trouble
+      breathing. Games may simulate lack of oxygen, drowning etc. in this case. }
+    psUnderWater
+  );
 
   { Player, 3D object controlling the camera, main enemy of hostile creatures,
     carries a backpack, may cause fadeout effects on screen and such.
@@ -191,10 +197,11 @@ type
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
-    { Various navigation properties that may depend on loaded level. }
-    DefaultMoveHorizontalSpeed: Single;
-    DefaultMoveVerticalSpeed: Single;
-    DefaultPreferredHeight: Single;
+    var
+      { Various navigation properties that may depend on loaded level. }
+      DefaultMoveHorizontalSpeed: Single;
+      DefaultMoveVerticalSpeed: Single;
+      DefaultPreferredHeight: Single;
 
     const
       DefaultLife = 100;
@@ -284,9 +291,8 @@ type
     { @noAutoLinkHere }
     procedure Attack; virtual;
 
-    { You should set this property as appropriate.
-      This object will just use this property (changing it's @link(Navigation)
-      properties etc.). }
+    { TGameSceneManager sets this property automatically, based on the water volume.
+      @exclude }
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
     { Load various player properties from an XML file.
@@ -469,7 +475,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleResources;
+  CastleGLImages, CastleConfig;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -791,7 +797,7 @@ begin
   Navigation.Gravity := (not Blocked) and (not Flying);
   { Note that when not Navigation.Gravity then FallingEffect will not
     work anyway. }
-  Navigation.FallingEffect := FallingEffect and (Swimming = psNo);
+  Navigation.FallingEffect := FallingEffect and (FSwimming = psNo);
 
   if Blocked then
   begin
@@ -873,7 +879,7 @@ begin
       Navigation.MoveHorizontalSpeed := DefaultMoveHorizontalSpeed;
       Navigation.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
     end else
-    if Swimming <> psNo then
+    if FSwimming <> psNo then
     begin
       Navigation.PreferGravityUpForMoving := false;
       Navigation.PreferGravityUpForRotations := true;
@@ -950,21 +956,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
-  var
-    NewSwimming: TPlayerSwimming;
   begin
-    { update Swimming }
-    NewSwimming := psNo;
-    if World <> nil then
-    begin
-      if World.Water.Contains(Translation) then
-        NewSwimming := psUnderWater else
-      if World.Water.Contains(Translation - World.GravityUp * Navigation.PreferredHeight) then
-        NewSwimming := psAboveWater;
-    end;
-    Swimming := NewSwimming;
-
-    if Swimming = psUnderWater then
+    { Swimming possibly was changed by TGameSceneManager.Update }
+    if FSwimming = psUnderWater then
     begin
       { Take care of drowning. }
       if not Dead then
@@ -1167,8 +1161,9 @@ begin
   if FFadeOutIntensity > 0 then
     FFadeOutIntensity -= FadeOutSpeed * SecondsPassed;
 
-  if EquippedWeapon <> nil then
-    EquippedWeapon.EquippedUpdate(LifeTime);
+  if (EquippedWeapon <> nil) and
+     (InternalLevelProperties <> nil) then
+    EquippedWeapon.EquippedUpdate(InternalLevelProperties, LifeTime);
 
   UpdateIsOnTheGround;
   UpdateToxic;
@@ -1192,10 +1187,10 @@ procedure TPlayer.Fall(const FallHeight: Single);
 begin
   inherited;
 
-  if (Swimming = psNo) and (FallHeight > FallMinHeightToSound) then
+  if (FSwimming = psNo) and (FallHeight > FallMinHeightToSound) then
     SoundEngine.Sound(FallSound);
 
-  if (Swimming = psNo) and (FallHeight > FallMinHeightToDamage) then
+  if (FSwimming = psNo) and (FallHeight > FallMinHeightToDamage) then
     Life := Life - Max(0, FallHeight *
       MapRange(Random, 0.0, 1.0, FallDamageScaleMin, FallDamageScaleMax));
 end;
@@ -1227,8 +1222,10 @@ end;
 
 procedure TPlayer.Attack;
 begin
-  if EquippedWeapon <> nil then
-    EquippedWeapon.EquippedAttack(LifeTime) else
+  if (EquippedWeapon <> nil) and
+     (InternalLevelProperties <> nil) then
+    EquippedWeapon.EquippedAttack(InternalLevelProperties, LifeTime)
+  else
     { TODO: allow to do some "punch" / "kick" here easily }
     Notifications.Show('No weapon equipped');
 end;
@@ -1266,7 +1263,7 @@ begin
 
     FSwimming := Value;
 
-    if Swimming = psUnderWater then
+    if FSwimming = psUnderWater then
     begin
       SwimBeginTime := LifeTime;
       SwimLastDrownTime := 0.0;

@@ -25,8 +25,8 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleInternalBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
-  CastleInputs, CastlePlayer, CastleRectangles, CastleColors,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils,
+  CastleInputs, CastleRectangles, CastleColors,
   CastleProjection, CastleScreenEffects;
 
 type
@@ -150,16 +150,10 @@ type
       SSAOShader: TGLSLScreenEffect;
       SSAOShaderInitialized: Boolean;
 
-      { Set these to non-1 to deliberately distort field of view / aspect ratio.
-        This is useful for special effects when you want to create unrealistic
-        projection. Used by ApplyProjection. }
-      DistortFieldOfViewY, DistortViewAspect: Single;
-      SickProjectionTime: TFloatTime;
       FOnCameraChanged: TNotifyEvent;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
-    function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SSAOShaderInitialize;
     procedure RenderWithScreenEffectsCore;
@@ -206,6 +200,12 @@ type
       Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
   protected
+    var
+      { Set these to non-1 to deliberately distort field of view / aspect ratio.
+        This is useful for special effects when you want to create unrealistic
+        projection. Used by ApplyProjection. }
+      DistortFieldOfViewY, DistortViewAspect: Single;
+
     { Calculate projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
       Called each time at the beginning of rendering.
@@ -311,7 +311,6 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
-    function GetPlayer: TPlayer; virtual; abstract;
     function GetTimeScale: Single; virtual; abstract;
     { @groupEnd }
 
@@ -1004,9 +1003,8 @@ type
 
     FMouseRayHit: TRayCollision;
 
-    FPlayer: TPlayer;
+    FAvoidNavigationCollisions: TCastleTransform;
 
-    FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
     FHeadlightNode: TAbstractLightNode;
     FUseHeadlight: TUseHeadlight;
@@ -1030,7 +1028,7 @@ type
 
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
-    procedure SetPlayer(const Value: TPlayer);
+    procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
     procedure SetNavigationType(const Value: TNavigationType); override;
 
     function GetHeadlightNode: TAbstractLightNode;
@@ -1047,10 +1045,6 @@ type
 
     class procedure CreateComponentSetup2D(Sender: TObject);
   protected
-    var
-      FSectors: TSectorList;
-      Waypoints: TWaypointList;
-
     procedure SetNavigation(const Value: TCastleNavigation); override;
 
     { Triangles to ignore by all collision detection in scene manager.
@@ -1076,7 +1070,6 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
-    function GetPlayer: TPlayer; override;
     function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
@@ -1174,56 +1167,16 @@ type
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; deprecated 'use Camera.GravityUp';
 
-    { Sectors and waypoints of this world, for AI in 3D.
-      Initialized by TGameSceneManager.LoadLevel.
-      @nil if you never call TGameSceneManager.LoadLevel.
+    { Do not collide with this object when moving by @link(Navigation).
+      It makes sense to put here player avatar (in 3rd person view)
+      or player collision volume (in 1st person view)
+      to allow player to move, not colliding with its own body.
 
-      A generic AI code should work regardless if these are @nil or not.
-      But if you're making a game and you know you will always call
-      TGameSceneManager.LoadLevel, you can just use them straight away. }
-    property Sectors: TSectorList read FSectors;
-
-    { Water volume in the scene. It may be used by various 3D objects
-      to indicate appropriate behavior --- some things swim,
-      some things drown and such. For now, this is only used by TPlayer
-      class to detect swimming (and make appropriate sounds, special rendering,
-      drowning and such).
-
-      For now, this is just a simple TBox3D. It will
-      be extended to represent a set of flexible 3D volumes in the future.
-
-      Empty initially. Initialize it however you want. }
-    property Water: TBox3D read FWater write FWater;
-
-    { Player in this 3D world. This currently serves various purposes:
-
-      @unorderedList(
-        @item(In the 1st person view, this 3D object guides the camera and
-          it never collides with the camera. That is, our CameraMoveAllowed
-          and similar methods simply call Player.MoveAllowed,
-          that in turn calls World.WorldMoveAllowed making sure
-          that player is temporarily disabled (does not collide with itself).
-
-          TGameSceneManager.LoadLevel will set Player.Camera to
-          TCastleSceneManager.Camera. This means that user can directly
-          control Player.Camera view (position, direction, up),
-          which in turn is always synchronized with Player view (that
-          is, TPlayer.Direction always equals TPlayer.Camera.Direction and so on).)
-
-        @item(For simple AI in CastleCreatures, hostile creatures will attack
-          this player. So this determines the target position that
-          creatures try to reach, where they shoot missiles etc.
-          More advanced AI, with friendlies/companions, or cooperating
-          factions of creatures, may have other mechanisms to determine who
-          wants to attack who.)
-
-        @item(For items on level in CastleItems, this player will pick up the items
-          lying on the ground, and will be able to equip weapons.
-          This functionality may be generalized in the future, to allow
-          anyone to pick up and carry and equip items.)
-      )
-    }
-    property Player: TPlayer read FPlayer write SetPlayer;
+      In case of @link(TGameSceneManager), this is automatically
+      set when you set @link(TGameSceneManager.Player). }
+    property AvoidNavigationCollisions: TCastleTransform
+      read FAvoidNavigationCollisions
+      write SetAvoidNavigationCollisions;
 
     { Determines the headlight look, if we use a headlight
       (which is determined by the algorithm described at @link(UseHeadlight) and
@@ -1537,7 +1490,6 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
-    function GetPlayer: TPlayer; override;
     function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
@@ -1569,24 +1521,6 @@ var
     Simply change properties like TInputShortcut.Key1
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
-
-  { Key/mouse combination to operate on Player and it's inventory.
-    They are used only when Player is assigned, and only when it's
-    not Dead and not Blocked (see TAlive.Dead, TPlayer.Blocked).
-    Also other TCastleAbstractViewport rules for processing
-    inputs must be satisfied, of course (TCastleAbstractViewport must exist,
-    according to TCastleAbstractViewport.GetExists, and not be paused, see
-    TCastleAbstractViewport.Paused). The event must also not be handled
-    first by other input handler inside viewport, like TCastleNavigation.
-    @groupBegin }
-  Input_Attack: TInputShortcut;
-  Input_InventoryShow: TInputShortcut; //< No key/mouse associated by default.
-  Input_InventoryPrevious: TInputShortcut;
-  Input_InventoryNext: TInputShortcut;
-  Input_UseItem: TInputShortcut;
-  Input_DropItem: TInputShortcut; //< No key/mouse associated by default.
-  Input_CancelFlying: TInputShortcut; //< No key/mouse associated by default.
-  { @groupEnd }
 
 implementation
 
@@ -1782,17 +1716,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.PlayerNotBlocked: boolean;
-var
-  P: TPlayer;
-begin
-  P := GetPlayer;
-  Result := (P = nil) or (not (P.Blocked or P.Dead));
-end;
-
 function TCastleAbstractViewport.Press(const Event: TInputPressRelease): boolean;
-var
-  P: TPlayer;
 begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
@@ -1810,56 +1734,9 @@ begin
      GetItems.Press(Event) then
     Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and
-     Input_Interact.IsEvent(Event) and
+  if Input_Interact.IsEvent(Event) and
      PointingDeviceActivate(true) then
     Exit(ExclusiveEvents);
-
-  P := GetPlayer;
-  if (P <> nil) and not (P.Blocked or P.Dead) then
-  begin
-    if Input_Attack.IsEvent(Event) then
-    begin
-      P.Attack;
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_CancelFlying.IsEvent(Event) then
-    begin
-      P.Flying := false;
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_InventoryShow.IsEvent(Event) then
-    begin
-      P.InventoryVisible := not P.InventoryVisible;
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_InventoryPrevious.IsEvent(Event) then
-    begin
-      P.ChangeInventoryCurrentItem(-1);
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_InventoryNext.IsEvent(Event) then
-    begin
-      P.ChangeInventoryCurrentItem(+1);
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_DropItem.IsEvent(Event) then
-    begin
-      P.DropCurrentItem;
-      Exit(ExclusiveEvents);
-    end;
-
-    if Input_UseItem.IsEvent(Event) then
-    begin
-      P.UseCurrentItem;
-      Exit(ExclusiveEvents);
-    end;
-  end;
 end;
 
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
@@ -1871,8 +1748,7 @@ begin
      GetItems.Release(Event) then
     Exit(ExclusiveEvents);
 
-  if PlayerNotBlocked and
-     Input_Interact.IsEvent(Event) and
+  if Input_Interact.IsEvent(Event) and
      PointingDeviceActivate(false) then
     Exit(ExclusiveEvents);
 end;
@@ -2020,8 +1896,6 @@ end;
 procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
-  P: TPlayer;
-  S, C: Extended;
   SecondsPassedScaled: Single;
 begin
   inherited;
@@ -2031,35 +1905,10 @@ begin
 
   SecondsPassedScaled := SecondsPassed * GetTimeScale;
 
-  { As for HandleInput: let Camera decide.
-    By default, camera (like all TCastleUserInterface) has ExclusiveEvents = true
-    and so will cause HandleInput := false, so things under this
-    viewport do not get keys/mouse events. This is good when you have
-    one viewport covering another, like in fps_game. This means pressing
-    e.g. the "up arrow key" only moves camera in one viewport.
-
-    Note about Items.Update (called in TCastleSceneManager.Update):
-    Our Items.Update do not have HandleInput
-    parameter, as it would not be controllable for them: 3D objects do not
-    have strict front-to-back order, so we would not know in what order
-    call their Update methods, so we have to let many Items handle keys anyway.
-    So, it's consistent to just treat 3D objects as "cannot definitely
-    mark keys/mouse as handled". Besides, currently 3D objects do not
-    get Pressed information (which keys/mouse buttons are pressed) at all,
-    so they could not process keys/mouse anyway. }
-
+  { Note that TCastleCamera.Update doesn't process any input
+    (only TCastleNavigation processes inputs),
+    so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
-
-  DistortFieldOfViewY := 1;
-  DistortViewAspect := 1;
-  P := GetPlayer;
-  if (P <> nil) and (P.Swimming = psUnderWater) then
-  begin
-    SickProjectionTime := SickProjectionTime + SecondsPassedScaled;
-    SinCos(SickProjectionTime * P.SickProjectionSpeed, S, C);
-    DistortFieldOfViewY := DistortFieldOfViewY + (C * 0.03);
-    DistortViewAspect := DistortViewAspect + (S * 0.03);
-  end;
 end;
 
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
@@ -3419,11 +3268,8 @@ type
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: PTriangle): boolean; override;
     function GravityUp: TVector3; override;
-    function Player: TCastleTransform; override;
     function PrepareParams: TPrepareParams; override;
     function PhysicsProperties: TPhysicsProperties; override;
-    function Sectors: TSectorList; override;
-    function Water: TBox3D; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
@@ -3458,11 +3304,6 @@ begin
   Result := Owner.Camera.GravityUp;
 end;
 
-function TSceneManagerWorldConcrete.Player: TCastleTransform;
-begin
-  Result := Owner.Player;
-end;
-
 function TSceneManagerWorldConcrete.PrepareParams: TPrepareParams;
 begin
   Result := Owner.PrepareParams;
@@ -3471,16 +3312,6 @@ end;
 function TSceneManagerWorldConcrete.PhysicsProperties: TPhysicsProperties;
 begin
   Result := Owner.PhysicsProperties;
-end;
-
-function TSceneManagerWorldConcrete.Sectors: TSectorList;
-begin
-  Result := Owner.Sectors;
-end;
-
-function TSceneManagerWorldConcrete.Water: TBox3D;
-begin
-  Result := Owner.Water;
 end;
 
 function TSceneManagerWorldConcrete.WorldMoveAllowed(
@@ -3576,7 +3407,6 @@ begin
   FItems.OnVisibleChange := @ItemsVisibleChange;
 
   FMoveLimit := TBox3D.Empty;
-  FWater := TBox3D.Empty;
   FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
@@ -3598,7 +3428,7 @@ begin
 
   { unregister free notification from these objects }
   SetMouseRayHit(nil);
-  Player := nil;
+  AvoidNavigationCollisions := nil;
 
   if FViewports <> nil then
   begin
@@ -3614,8 +3444,6 @@ begin
     FreeAndNil(FViewports);
   end;
 
-  FreeAndNil(FSectors);
-  FreeAndNil(Waypoints);
   FreeIfUnusedAndNil(FHeadlightNode);
 
   inherited;
@@ -3689,10 +3517,9 @@ begin
   begin
     if FMainScene <> nil then
     begin
-      { When FMainScene = FPlayer or inside MouseRayHit, leave free notification }
-      if (not MouseRayHitContains(FMainScene)) { and
-         // impossible, as FMainScene is TCastleScene and FPlayer is TPlayer
-         (FMainScene <> FPlayer) } then
+      { When FMainScene = FAvoidNavigationCollisions or inside MouseRayHit, leave free notification }
+      if (not MouseRayHitContains(FMainScene)) and
+         (FMainScene <> FAvoidNavigationCollisions) then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
       FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
@@ -3744,7 +3571,7 @@ begin
       begin
         { leave free notification for 3D item if it's also present somewhere else }
         if (FMouseRayHit[I].Item <> FMainScene) and
-           (FMouseRayHit[I].Item <> FPlayer) then
+           (FMouseRayHit[I].Item <> FAvoidNavigationCollisions) then
           FMouseRayHit[I].Item.RemoveFreeNotification(Self);
       end;
       FreeAndNil(FMouseRayHit);
@@ -3760,23 +3587,22 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetPlayer(const Value: TPlayer);
+procedure TCastleSceneManager.SetAvoidNavigationCollisions(const Value: TCastleTransform);
 begin
-  if FPlayer <> Value then
+  if FAvoidNavigationCollisions <> Value then
   begin
-    if FPlayer <> nil then
+    if FAvoidNavigationCollisions <> nil then
     begin
-      { leave free notification for FPlayer if it's also present somewhere else }
-      if { // impossible, as FMainScene is TCastleScene and FPlayer is TPlayer
-         (FPlayer <> FMainScene) and }
-         (not MouseRayHitContains(FPlayer)) then
-        FPlayer.RemoveFreeNotification(Self);
+      { leave free notification for FAvoidNavigationCollisions if it's also present somewhere else }
+      if (FAvoidNavigationCollisions <> FMainScene) and
+         (not MouseRayHitContains(FAvoidNavigationCollisions)) then
+        FAvoidNavigationCollisions.RemoveFreeNotification(Self);
     end;
 
-    FPlayer := Value;
+    FAvoidNavigationCollisions := Value;
 
-    if FPlayer <> nil then
-      FPlayer.FreeNotification(Self);
+    if FAvoidNavigationCollisions <> nil then
+      FAvoidNavigationCollisions.FreeNotification(Self);
   end;
 end;
 
@@ -3824,8 +3650,8 @@ begin
       SetMouseRayHit(nil);
     end;
 
-    if AComponent = FPlayer then
-      Player := nil;
+    if AComponent = FAvoidNavigationCollisions then
+      AvoidNavigationCollisions := nil;
   end;
 end;
 
@@ -4106,6 +3932,14 @@ begin
   if (not Paused) and GetExists then
   begin
     RemoveItem := rtNone;
+
+    { Note that Items.Update do not take HandleInput
+      parameter, as it would not be controllable for them: 3D objects do not
+      have strict front-to-back order, so we would not know in what order
+      call their Update methods, so we have to let many Items handle keys anyway.
+      So, it's consistent to just treat 3D objects as "cannot definitely
+      mark keys/mouse as handled". }
+
     Items.Update(SecondsPassedScaled, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
   end;
@@ -4161,9 +3995,11 @@ function TCastleSceneManager.NavigationMoveAllowed(ANavigation: TCastleWalkNavig
   const BecauseOfGravity: boolean): boolean;
 begin
   { Both version result in calling WorldMoveAllowed.
-    Player version adds Player.Disable/Enable around, so don't collide with self. }
-  if Player <> nil then
-    Result := Player.MoveAllowed(Camera.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
+    AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
+
+  if AvoidNavigationCollisions <> nil then
+    Result := AvoidNavigationCollisions.MoveAllowed(Camera.Position, ProposedNewPos, NewPos, BecauseOfGravity)
+  else
     Result := Items.WorldMoveAllowed(Camera.Position, ProposedNewPos, NewPos,
       true, ANavigation.Radius,
       { We prefer to resolve collisions with navigation using sphere.
@@ -4177,18 +4013,22 @@ function TCastleSceneManager.NavigationHeight(ANavigation: TCastleWalkNavigation
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   { Both version result in calling WorldHeight.
-    Player version adds Player.Disable/Enable around, so don't collide with self. }
-  if Player <> nil then
-    Result := Player.Height(Position, AboveHeight, AboveGround) else
+    AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
+
+  if AvoidNavigationCollisions <> nil then
+    Result := AvoidNavigationCollisions.Height(Position, AboveHeight, AboveGround)
+  else
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   { Both version result in calling WorldRay.
-    Player version adds Player.Disable/Enable around, so don't collide with self. }
-  if Player <> nil then
-    Result := Player.Ray(RayOrigin, RayDirection) else
+    AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
+
+  if AvoidNavigationCollisions <> nil then
+    Result := AvoidNavigationCollisions.Ray(RayOrigin, RayDirection)
+  else
     Result := Items.WorldRay(RayOrigin, RayDirection);
 end;
 
@@ -4265,11 +4105,6 @@ end;
 function TCastleSceneManager.GetHeadlightCamera: TCastleCamera;
 begin
   Result := Camera;
-end;
-
-function TCastleSceneManager.GetPlayer: TPlayer;
-begin
-  Result := Player;
 end;
 
 function TCastleSceneManager.GetTimeScale: Single;
@@ -4574,14 +4409,6 @@ begin
   Result := SceneManager.Camera;
 end;
 
-function TCastleViewport.GetPlayer: TPlayer;
-begin
-  if SceneManager <> nil then
-    Result := SceneManager.Player
-  else
-    Result := nil; // to make Update work without errors when SceneManager=nil
-end;
-
 function TCastleViewport.GetTimeScale: Single;
 begin
   if SceneManager <> nil then
@@ -4639,28 +4466,8 @@ end;
 var
   R: TRegisteredComponent;
 initialization
-  { Basic shortcuts. }
-  Input_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
-  Input_Attack.Assign(K_Ctrl, K_None, '', false, mbLeft);
-  Input_Attack.GroupOrder := -100; { before other (player) shortcuts }
-
-  { Items shortcuts. }
-  Input_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
-  Input_InventoryShow.Assign(K_None, K_None, '', false, mbLeft);
-  Input_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
-  Input_InventoryPrevious.Assign(K_LeftBracket, K_None, '', false, mbLeft, mwUp);
-  Input_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
-  Input_InventoryNext.Assign(K_RightBracket, K_None, '', false, mbLeft, mwDown);
-  Input_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
-  Input_UseItem.Assign(K_Enter, K_None, '', false, mbLeft);
-  Input_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
-  Input_DropItem.Assign(K_None, K_None, '', false, mbLeft);
-
-  { Other shortcuts. }
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
   Input_Interact.Assign(K_None, K_None, '', true, mbLeft);
-  Input_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
-  Input_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
 
   RegisterSerializableComponent(TCastleSceneManager, 'Scene Manager');
 

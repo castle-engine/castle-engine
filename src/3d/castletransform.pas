@@ -22,7 +22,7 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
-  CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
+  CastleSoundEngine, CastleCameras, CastleTriangles;
 
 type
   TSceneManagerWorld = class;
@@ -1073,12 +1073,6 @@ type
       of the box. See @link(TCastleTransform.MiddleHeight). }
     function Middle: TVector3; virtual;
 
-    { Sector where the middle of this 3D object is.
-      Used for AI. @nil if none (maybe because we're not part of any world,
-      maybe because sectors of the world were not initialized,
-      or maybe simply because we're outside of all sectors). }
-    function Sector: TSector;
-
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
       tasks. If @true then Radius (and Middle point) determine the approximate
@@ -1240,8 +1234,8 @@ type
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
-      defined in this item --- it does not recursively apply all transform on the way to root
-      @groupBegin. }
+      defined in this item --- it does not recursively apply all transform on the way to root.
+      @groupBegin }
     function OutsideToLocal(const Pos: TVector3): TVector3;
     function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
@@ -1257,7 +1251,7 @@ type
       Although the TPlayer.Fall method still works as expected
       (it's linked to TWalkCamera.OnFall in this case).
 
-      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      TODO: This will be deprecated at some point, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
@@ -1803,15 +1797,10 @@ type
       Full GravityUp vector may allow for more fun with weird gravity
       in future games. }
     function GravityCoordinate: Integer;
-    { Player, see TCastleSceneManager.Player. }
-    function Player: TCastleTransform; virtual; abstract;
+
     { Parameters to prepare rendering for,
       see @link(TCastleAbstractViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;
-    { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
-    function Sectors: TSectorList; virtual; abstract;
-    { Water volume. See TCastleSceneManager.Water. }
-    function Water: TBox3D; virtual; abstract;
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
@@ -2168,13 +2157,6 @@ end;
 function TCastleTransform.GetVisible: boolean;
 begin
   Result := FVisible and GetExists;
-end;
-
-function TCastleTransform.Sector: TSector;
-begin
-  if (World <> nil) and (World.Sectors <> nil) then
-    Result := World.Sectors.SectorWithPoint(Middle) else
-    Result := nil;
 end;
 
 function TCastleTransform.Sphere(out Radius: Single): boolean;

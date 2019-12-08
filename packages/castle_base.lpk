@@ -180,7 +180,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleTriangulate"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/3d/opengl/castleglboxes.pas"/>
+        <Filename Value="../src/deprecated_units/castleglboxes.pas"/>
         <UnitName Value="CastleGLBoxes"/>
       </Item20>
       <Item21>
@@ -730,7 +730,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleWindowsFonts"/>
       </Item154>
       <Item155>
-        <Filename Value="../src/game/castle2dscenemanager.pas"/>
+        <Filename Value="../src/deprecated_units/castle2dscenemanager.pas"/>
         <UnitName Value="Castle2DSceneManager"/>
       </Item155>
       <Item156>
@@ -762,7 +762,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleResources"/>
       </Item162>
       <Item163>
-        <Filename Value="../src/game/castlescenemanager.pas"/>
+        <Filename Value="../src/x3d/opengl/castlescenemanager.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleSceneManager"/>
       </Item163>
@@ -1104,7 +1104,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFlashEffect"/>
       </Item247>
       <Item248>
-        <Filename Value="../src/ui/opengl/castleglcontainer.pas"/>
+        <Filename Value="../src/deprecated_units/castleglcontainer.pas"/>
         <UnitName Value="CastleGLContainer"/>
       </Item248>
       <Item249>
