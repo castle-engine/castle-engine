@@ -695,6 +695,7 @@ begin
 
   FreeAndNil(FSectors);
   FreeAndNil(Waypoints);
+  FreeAndNil(FLevelProperties);
 
   inherited;
 end;
