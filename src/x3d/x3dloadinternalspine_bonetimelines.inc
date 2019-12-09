@@ -382,6 +382,7 @@ begin
 
       Testcase: Unholy exorcist going_on_ladder_up animation hand movement.
       It could do unexpected interpolation using slerp:
+      (this was before SLerp was hacked to specially honor case when Rot1Axis equals Rot2Axis).
 
           uses CastleVectors, CastleQuaternions;
           const
