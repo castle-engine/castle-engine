@@ -3549,6 +3549,17 @@ begin
         TCastleTransform to Items. This would fix the problem of 1st frame not using BlendingSort
         for non-MainScene scenes, as in trees_blending/CW_demo.lpr testcase
         from Eugene.
+
+        TODO: actually this call should not be necessary anymore,
+        as adding item to the hierarchy calls ChangeWorld,
+        which causes UpdateCameraEvents already in TCastleSceneCore.
+        Maybe we should just generalize it, and call CameraChanged always after ChangeWorld?
+        Then the call below to CameraChanged should be removed.
+
+        Do it, and retest on
+        - trees_blending/CW_demo.lpr testcase from Eugene
+        - testcase from Kagamma https://sourceforge.net/p/castle-engine/discussion/general/thread/882ca037/
+        - and make autotest about it.
       }
       MainScene.CameraChanged(Camera);
       ItemsVisibleChange(MainScene, CameraToChanges(Camera));

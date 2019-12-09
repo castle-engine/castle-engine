@@ -6861,7 +6861,7 @@ begin
   UpdateCameraEvents;
 
   { handle WatchForTransitionComplete, looking at ACamera.Animation }
-  if ProcessEvents and WatchForTransitionComplete {TODO:and not ACamera.Animation} then
+  if ProcessEvents and WatchForTransitionComplete and not ACamera.Animation then
   begin
     BeginChangesSchedule;
     try
