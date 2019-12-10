@@ -22,11 +22,15 @@
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
-    FMaxPhysicsTicksPerUpdate: Integer;
+    FMaxPhysicsTicksPerUpdate: Cardinal;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
+
+  private
+    { Buffer to not count physics step time per frame }
+    FPhysicsTimeStep: TFloatTime;
 
   protected
     function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
@@ -45,12 +49,15 @@
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
 
-    { This helps to avoid spiral of death when physics step get more time than rendering.
-      You can disable this by set it to 0 but then when physics takes long than render,
-      next Update will get more time and leads to infinite time.
-      When you set it to 1 simulation will get max one step per Update, so on very
-      weak hardware physics will slow down instead of jumping. }
-    property MaxPhysicsTicksPerUpdate: Integer read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
+    { Non-zero value avoids the "spiral of death" when the physics takes
+      a long time to calculate.
+
+      When the value is zero, physics makes always as many steps as necessary,
+      to advance the time by @code(1 / @link(Frequency)) steps.
+      This means that if physics takes a long time to calculate,
+      next time it will take even longer time to calculate (it will need more steps),
+      thus we have a "spiral of death" that leads to lower and lower FPS. }
+    property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
@@ -414,7 +421,7 @@ begin
     Exit;
 
   FFrequency := AValue;
-  SceneManagerWorld.FPhysicsTimeStep := 1.0 / FFrequency;
+  FPhysicsTimeStep := 1.0 / FFrequency;
 
   if Assigned(SceneManagerWorld.FKraftEngine) then
     SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
@@ -448,6 +455,7 @@ begin
   FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
   FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
   FFrequency := DefaultFrequency;
+  FPhysicsTimeStep := 1.0 / FFrequency;
   FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
 end;
 
@@ -1091,7 +1099,6 @@ begin
       very slow, so we need remove this limitation. }
     FKraftEngine.MaximalLinearVelocity := 0;
     FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
-    FPhysicsTimeStep := 1.0 / PhysicsProperties.Frequency;
     FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
     FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
   end;
@@ -1148,20 +1155,27 @@ begin
     end else
     begin
       TimeAccumulator := TimeAccumulator + SecondsPassed;
-      while TimeAccumulator >= FPhysicsTimeStep do
+      while TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep do
       begin
-        TimeAccumulator := TimeAccumulator - FPhysicsTimeStep;
+        TimeAccumulator := TimeAccumulator - PhysicsProperties.FPhysicsTimeStep;
         FKraftEngine.StoreWorldTransforms;
-        FKraftEngine.Step(FPhysicsTimeStep);
+        FKraftEngine.Step(PhysicsProperties.FPhysicsTimeStep);
 
         Inc(PhysicsTicksCount);
 
-        { This helps to avoid spiral of death when physics step get more time than rendering. }
-        if (TimeAccumulator >= FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate > 0) and
+        { To avoid the spiral of death, we ignore some accumulated time
+          (we will not account for this time in the physics simulation,
+          so physics simulation may be slower than time perceived by user,
+          than non-physics animations etc.).
+          An alternative approach would be to prolong the simulation step
+          sometimes, but this could lead to unreliable collision detection.
+          See description of this in
+          https://github.com/castle-engine/castle-engine/pull/144#issuecomment-562850820 }
+        if (TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate <> 0) and
            (PhysicsTicksCount >= PhysicsProperties.MaxPhysicsTicksPerUpdate) then
         begin
           OldTimeAccumulator := TimeAccumulator;
-          TimeAccumulator := TimeAccumulator - (FPhysicsTimeStep * Floor(TimeAccumulator / FPhysicsTimeStep));
+          TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
           WritelnLog('Max physics ticks in TSceneManagerWorld.Update() exceeded ('
             + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
@@ -1192,7 +1206,7 @@ begin
         (The original https://gafferongames.com/post/fix_your_timestep/ no longer
         has comments.)
       }
-      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / FPhysicsTimeStep);
+      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep);
     end;
     FrameProfiler.Stop(fmUpdatePhysics);
   end;
