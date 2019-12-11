@@ -117,10 +117,10 @@ type
     function ShapeNode: TAbstractShapeNode;
 
     { X3D material node of this triangle. May be @nil in case material is not set,
-      or in VRML 1.0. }
-    function Material: TMaterialNode;
-
-    function MaterialNode: TMaterialNode; deprecated 'use Material';
+      or is VRML 1.0 node, or is TCommonSurfaceShaderNode,
+      or is TTwoSidedMaterialNode. }
+    function Material: TMaterialNode; deprecated 'use MaterialInfo';
+    function MaterialNode: TMaterialNode; deprecated 'use MaterialInfo';
 
     { Material information for the material of this triangle.
       See TMaterialInfo for usage description.
@@ -128,7 +128,7 @@ type
       (which indicates white unlit look).
 
       Returned TMaterialInfo is valid only as long as the underlying
-      Material or CommonSurfaceShader node exists.
+      node (Material, TwoSidedMaterial, CommonSurfaceShader) exists.
       Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
 
@@ -1143,8 +1143,8 @@ var
   S: TAbstractShapeNode;
 begin
   S := ShapeNode;
-  if S <> nil then
-    Result := S.Material
+  if (S <> nil) and (S.Material is TMaterialNode) then
+    Result := TMaterialNode(S.Material)
   else
     Result := nil;
 end;
@@ -1699,14 +1699,13 @@ var
   S: TX3DGraphTraverseState;
 
   function MaterialOpacity: Single;
+  var
+    MatInfo: TMaterialInfo;
   begin
-    // TODO: maybe this should take S.ShapeNode.CommonSurfaceShader into account?
-    // And just use S.MaterialInfo or such?
-    if G is TAbstractGeometryNode_1 then
-      Result := S.VRML1State.Material.MaterialInfo(0).Opacity else
-    if (S.ShapeNode <> nil) and
-       (S.ShapeNode.Material <> nil) then
-      Result := S.ShapeNode.Material.Opacity else
+    MatInfo := S.MaterialInfo;
+    if MatInfo <> nil then
+      Result := MatInfo.Opacity
+    else
       Result := 1;
   end;
 
@@ -2139,21 +2138,13 @@ function TShape.AlphaChannel: TAlphaChannel;
     end;
 
   var
-    SurfaceShader: TCommonSurfaceShaderNode;
-    M: TMaterialNode;
+    M: TMaterialInfo;
     Tex: TAbstractTextureNode;
   begin
     if State.ShapeNode <> nil then
     begin
-      SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-      if SurfaceShader <> nil then
-      begin
-        Result := SurfaceShader.Transparency > SingleEpsilon;
-      end else
-      begin
-        M := State.ShapeNode.Material;
-        Result := (M <> nil) and (M.FdTransparency.Value > SingleEpsilon);
-      end;
+      M := State.MaterialInfo;
+      Result := (M <> nil) and (M.Transparency > SingleEpsilon);
     end else
       { For VRML 1.0, there may be multiple materials on a node.
         Some of them may be transparent, some not --- we arbitrarily

@@ -1674,10 +1674,9 @@ begin
         VertexColor := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
         VertexColor := Color.ItemsSafe[IndexNum];
     end else
-    if (State.ShapeNode <> nil) and
-       (State.ShapeNode.Material <> nil) then
+    if State.MaterialInfo <> nil then
     begin
-      VertexColor := State.ShapeNode.Material.FdDiffuseColor.Value;
+      VertexColor := State.MaterialInfo.DiffuseColor;
     end else
       VertexColor := WhiteRGB; { default fallback }
 

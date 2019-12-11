@@ -677,6 +677,7 @@ type
     Texture2D: TAbstractTexture2DNode;
     TexCoords: TTextureCoordinateNode;
     IndexedFaceSet: TIndexedFaceSetNode;
+    Material: TMaterialNode;
   public
     constructor Create(const ANode: TImageBackgroundNode);
     destructor Destroy; override;
@@ -722,8 +723,9 @@ begin
     Shape.Appearance := TAppearanceNode.Create;
     Shape.Appearance.Texture := Texture2D;
 
-    Shape.Appearance.Material := TMaterialNode.Create;
-    Shape.Appearance.Material.ForcePureEmissive;
+    Material := TMaterialNode.Create;
+    Material.ForcePureEmissive;
+    Shape.Appearance.Material := Material;
 
     RootNode.AddChildren(Shape);
 
@@ -749,8 +751,8 @@ procedure TBackground2D.Render(const RenderingCamera: TRenderingCamera;
     Assert(Node <> nil);
     Assert(Texture2D <> nil);
 
-    Shape.Appearance.Material.EmissiveColor := Node.Color.XYZ;
-    Shape.Appearance.Material.Transparency := 1 - Node.Color.W;
+    Material.EmissiveColor := Node.Color.XYZ;
+    Material.Transparency := 1 - Node.Color.W;
 
     // TODO: check do they differ
     TexCoords.SetPoint(Node.FdTexCoords.Items);

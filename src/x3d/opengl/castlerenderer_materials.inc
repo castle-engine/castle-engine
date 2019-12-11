@@ -75,7 +75,7 @@ procedure RenderMaterialsBegin;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material
     (index 0). }
-  procedure Material_1(M: TMaterialNode_1);
+  procedure RenderMaterialVrml1(const M: TMaterialNode_1);
   var
     UnlitColor: TVector3;
     I: TMaterialInfo;
@@ -113,17 +113,18 @@ procedure RenderMaterialsBegin;
       I.Opacity);
   end;
 
-  { Sets current OpenGL material and color properties for VRML >= 2.0 material.
+  { Sets current OpenGL material and color properties for X3D (or VRML >= 2.0) material.
+    Works with any TMaterialInfo (and follows always X3D / VRML 2.0 spec).
     Material may be nil. }
-  procedure Material_2(Material: TMaterialNode);
+  procedure RenderMaterialX3d(const Material: TMaterialInfo);
   begin
     if (Material <> nil) and not Material.PureEmissive then
     begin
       RenderMaterial(
-        Material.FdDiffuseColor.Value * Material.FdAmbientIntensity.Value,
-        Material.FdDiffuseColor.Value,
-        Material.FdSpecularColor.Value,
-        Material.FdEmissiveColor.Value,
+        Material.AmbientColor,
+        Material.DiffuseColor,
+        Material.SpecularColor,
+        Material.EmissiveColor,
         WhiteRGB,
         Material.ShininessExp,
         Material.Opacity);
@@ -138,7 +139,7 @@ procedure RenderMaterialsBegin;
         so this can be rendered like unlit material with color = emissiveColor. }
       RenderMaterial(
         WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
-        Material.FdEmissiveColor.Value,
+        Material.EmissiveColor,
         Material.ShininessExp,
         Material.Opacity);
     end else
@@ -155,53 +156,49 @@ procedure RenderMaterialsBegin;
     end;
   end;
 
-  { Sets current OpenGL material and color properties from CommonSurfaceShader. }
-  procedure Material_CommonSurfaceShader(const SurfaceShader: TCommonSurfaceShaderNode);
-  begin
-    RenderMaterial(
-      SurfaceShader.AmbientFactor,
-      SurfaceShader.DiffuseFactor,
-      SurfaceShader.SpecularFactor,
-      SurfaceShader.EmissiveFactor,
-      WhiteRGB,
-      SurfaceShader.ShininessFactorExp,
-      SurfaceShader.AlphaFactor);
-  end;
-
 var
-  M1: TMaterialNode_1;
-  M2: TMaterialNode;
-  SurfaceShader: TCommonSurfaceShaderNode;
+  MaterialVrml1: TMaterialNode_1;
+  MaterialX3d: TMaterialInfo;
   MaterialLit: boolean;
 begin
-  { calculate material parameters: M1, M2, SurfaceShader, MaterialLit }
-  M1 := nil;
-  M2 := nil;
-  SurfaceShader := nil;
+  { calculate material parameters: MaterialVrml1, MaterialX3d, MaterialLit }
+  MaterialVrml1 := nil;
+  MaterialX3d := nil;
   if Shape.Geometry is TAbstractGeometryNode_1 then
   begin
     { VRML 1.0 }
-    M1 := Shape.State.VRML1State.Material;
+    MaterialVrml1 := Shape.State.VRML1State.Material;
     { VRML 1.0 specification states that this is a special case
       and we should treat EmissiveColor as precalculated color,
       and turn lighting off to improve speed. }
-    MaterialLit := not M1.PureEmissive;
+    MaterialLit := not MaterialVrml1.PureEmissive;
   end else
   begin
     { VRML >= 2.0 }
     if Shape.Node <> nil then
     begin
-      SurfaceShader := Shape.Node.CommonSurfaceShader;
-      M2 := Shape.Node.Material;
+      if Shape.Node.CommonSurfaceShader <> nil then
+        MaterialX3d := Shape.Node.CommonSurfaceShader.MaterialInfo
+      else
+      if Shape.Node.Material is TMaterialNode then
+        MaterialX3d := TMaterialNode(Shape.Node.Material).MaterialInfo
+      else
+      if Shape.Node.Material is TTwoSidedMaterialNode then
+        MaterialX3d := TTwoSidedMaterialNode(Shape.Node.Material).MaterialInfo
+      else
+        MaterialX3d := nil;
     end else
-      WritelnWarning('VRML/X3D', 'VRML node "' + Shape.Geometry.X3DType +
-        '" can be specified only in a "geometry" field of "Shape" node');
+      WritelnWarning('VRML/X3D', 'VRML node "' + Shape.NiceName +
+        '" can be specified only in the "geometry" field of the "Shape" node');
+
     { VRML 2.0 spec says that when Material is not assigned, shape is unlit.
+
+      Note that our MaterialX3d may also be set by CommonSurfaceShader,
+      and that is OK:
       If the CommonSurfaceShader is present, we also treat it as lit
       (this way CommonSurfaceShader works regardless if the underlying
       implementation uses shaders).  }
-    MaterialLit := (SurfaceShader <> nil) or
-      ((M2 <> nil) and not M2.PureEmissive);
+    MaterialLit := (MaterialX3d <> nil) and (not MaterialX3d.PureEmissive);
   end;
 
   { calculate MaterialAndShapeLit (like Lighting, but ignores things
@@ -215,14 +212,11 @@ begin
   if Lighting then
     Shader.EnableLighting;
 
-  { set material. At the end, since this uses MaterialAndShapeLit, M1, M2, SurfaceShader. }
-  if M1 <> nil then
-    Material_1(M1)
+  { set material. At the end, since this uses MaterialAndShapeLit, MaterialVrml1, MaterialX3d. }
+  if MaterialVrml1 <> nil then
+    RenderMaterialVrml1(MaterialVrml1)
   else
-  if SurfaceShader <> nil then
-    Material_CommonSurfaceShader(SurfaceShader)
-  else
-    Material_2(M2);
+    RenderMaterialX3d(MaterialX3d);
 
   { override Shader.MaterialUnlit in case rmSolidColor }
   if Attributes.Mode = rmSolidColor then

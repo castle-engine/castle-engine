@@ -298,25 +298,20 @@
       TCommonSurfaceShaderInfo = class(TMaterialInfo)
       strict private
         FNode: TCommonSurfaceShaderNode;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TCommonSurfaceShaderNode);
 
         function AmbientColor: TVector3; override;
-        function DiffuseColor: TVector3; override;
-        function SpecularColor: TVector3; override;
         function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function TransmissionColor: TVector3; override;
         function Transparency: Single; override;
-
-        function ReflSpecular: TVector3; override;
-        function ReflDiffuse: TVector3; override;
-        function TransSpecular: TVector3; override;
-        function TransDiffuse: TVector3; override;
-
-        function ReflSpecularExp: Single; override;
-        function TransSpecularExp: Single; override;
       end;
     var
       FMaterialInfo: TMaterialInfo;
@@ -1182,14 +1177,24 @@ begin
   Result := FNode.AmbientFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.DiffuseColor: TVector3;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.GetDiffuseColor: TVector3;
 begin
   Result := FNode.DiffuseFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SpecularColor: TVector3;
+procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetDiffuseColor(const Value: TVector3);
+begin
+  FNode.DiffuseFactor := Value;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.GetSpecularColor: TVector3;
 begin
   Result := FNode.SpecularFactor;
+end;
+
+procedure TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SetSpecularColor(const Value: TVector3);
+begin
+  FNode.SpecularFactor := Value;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3;
@@ -1215,36 +1220,6 @@ end;
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Transparency: Single;
 begin
   Result := FNode.Transparency;
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecular: TVector3;
-begin
-  CalculateReflSpecular(Result);
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflDiffuse: TVector3;
-begin
-  CalculateReflDiffuse(Result);
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecular: TVector3;
-begin
-  CalculateTransSpecular(Result);
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransDiffuse: TVector3;
-begin
-  CalculateTransDiffuse(Result);
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecularExp: Single;
-begin
-  Result := 1000000;
-end;
-
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecularExp: Single;
-begin
-  Result := 1000000;
 end;
 
 { TCommonSurfaceShaderNode ----------------------------------------------------- }

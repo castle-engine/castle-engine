@@ -331,12 +331,15 @@
       strict private
         FNode: TMaterialNode_1;
         FIndex: Integer;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
-        function DiffuseColor: TVector3; override;
-        function SpecularColor: TVector3; override;
         function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
@@ -1495,7 +1498,7 @@ begin
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3;
+function TMaterialNode_1.TMaterialInfo_1.GetDiffuseColor: TVector3;
 var
   A: TVector3List;
 begin
@@ -1506,7 +1509,12 @@ begin
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.SpecularColor: TVector3;
+procedure TMaterialNode_1.TMaterialInfo_1.SetDiffuseColor(const Value: TVector3);
+begin
+  FNode.FdDiffuseColor.Send([Value]);
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.GetSpecularColor: TVector3;
 var
   A: TVector3List;
 begin
@@ -1515,6 +1523,11 @@ begin
     Result := TMaterialInfo.DefaultSpecularColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
+end;
+
+procedure TMaterialNode_1.TMaterialInfo_1.SetSpecularColor(const Value: TVector3);
+begin
+  FNode.FdSpecularColor.Send([Value]);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
@@ -1570,7 +1583,7 @@ var
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
-    CalculateReflSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1581,7 +1594,7 @@ var
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
-    CalculateReflDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1592,7 +1605,7 @@ var
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
-    CalculateTransSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1603,7 +1616,7 @@ var
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
-    CalculateTransDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1614,7 +1627,7 @@ var
 begin
   A := FNode.FdReflSpecularExp.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultReflSpecularExp
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1625,7 +1638,7 @@ var
 begin
   A := FNode.FdTransSpecularExp.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultTransSpecularExp
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
