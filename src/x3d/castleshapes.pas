@@ -1151,7 +1151,9 @@ end;
 
 function TTriangleHelper.MaterialNode: TMaterialNode;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := Material;
+  {$warnings on}
 end;
 
 function TTriangleHelper.MaterialInfo: TMaterialInfo;

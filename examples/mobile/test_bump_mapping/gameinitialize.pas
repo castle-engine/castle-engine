@@ -49,12 +49,14 @@ procedure ApplicationInitialize;
   var
     Sphere: TSphereNode;
     Shape: TShapeNode;
+    Material: TMaterialNode;
   begin
     Sphere := TSphereNode.CreateWithShape(Shape);
     Sphere.Radius := 0.1;
 
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.EmissiveColor := YellowRGB * 0.5;
+    Material := TMaterialNode.Create;
+    Material.EmissiveColor := YellowRGB * 0.5;
+    Shape.Material := Material;
 
     Result := TX3DRootNode.Create;
     Result.AddChildren(Shape);

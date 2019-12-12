@@ -155,6 +155,7 @@ var
   CoordArray: array of TVector3;
   TexCoordArray: array of TVector2;
   R1, R2, R3, R4: TX3DRoute;
+  Material: TMaterialNode;
 begin
   for List in Animations.Values do
   begin
@@ -175,11 +176,10 @@ begin
   Root.Meta['source'] := SSName + SSExt;
   try
     Shape:= TShapeNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := Vector3(0, 0, 0);
-    Shape.Material.SpecularColor := Vector3(0, 0, 0);
-    Shape.Material.AmbientIntensity := 0;
-    Shape.Material.EmissiveColor := Vector3(1, 1, 1);
+    Material := TMaterialNode.Create;
+    Material.ForcePureEmissive;
+    Material.EmissiveColor := Vector3(1, 1, 1);
+    Shape.Material := Material;
 
     Tex := TImageTextureNode.Create;
     Tex.FdUrl.Send(Meta.Name);

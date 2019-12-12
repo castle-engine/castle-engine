@@ -73,6 +73,7 @@ var
   Root: TX3DRootNode;
   RBody: TRigidBody;
   Collider: TBoxCollider;
+  Material: TMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -82,10 +83,10 @@ begin
   Box := TBoxNode.CreateWithShape(Shape);
   Box.Size := Size;
 
-  Shape.Appearance := TAppearanceNode.Create;
-  Shape.Appearance.Material := TMaterialNode.Create;
-  Shape.Appearance.Material.ForcePureEmissive;
-  Shape.Appearance.Material.EmissiveColor := Color;
+  Material := TMaterialNode.Create;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := Color;
+  Shape.Material := Material;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(Shape);
@@ -151,6 +152,7 @@ var
   Root: TX3DRootNode;
   RBody: TRigidBody;
   Collider: TBoxCollider;
+  Material: TMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -160,10 +162,10 @@ begin
   Box := TBoxNode.CreateWithShape(Shape);
   Box.Size := Size;
 
-  Shape.Appearance := TAppearanceNode.Create;
-  Shape.Appearance.Material := TMaterialNode.Create;
-  Shape.Appearance.Material.ForcePureEmissive;
-  Shape.Appearance.Material.EmissiveColor := Color;
+  Material := TMaterialNode.Create;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := Color;
+  Shape.Material := Material;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(Shape);
