@@ -1794,10 +1794,6 @@ type
 
     function GravityUp: TVector3; deprecated 'use CameraGravityUp after checking CameraKnown';
 
-    { Parameters to prepare rendering for,
-      see @link(TCastleAbstractViewport.PrepareParams). }
-    function PrepareParams: TPrepareParams; virtual; abstract;
-
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
       3D world.

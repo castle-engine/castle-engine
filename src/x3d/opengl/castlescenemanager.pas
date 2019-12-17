@@ -3268,7 +3268,6 @@ type
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: PTriangle): boolean; override;
-    function PrepareParams: TPrepareParams; override;
     function PhysicsProperties: TPhysicsProperties; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
@@ -3297,11 +3296,6 @@ begin
   {$warnings off} // consiously using deprecated here
   Result := Owner.CollisionIgnoreItem(Sender, Triangle);
   {$warnings on}
-end;
-
-function TSceneManagerWorldConcrete.PrepareParams: TPrepareParams;
-begin
-  Result := Owner.PrepareParams;
 end;
 
 function TSceneManagerWorldConcrete.PhysicsProperties: TPhysicsProperties;

@@ -317,6 +317,7 @@ type
         function Player: TCastleTransform; override;
         function Sectors: TSectorList; override;
         function TransformRoot: TSceneManagerWorld; override;
+        function PrepareParams: TPrepareParams; override;
       end;
     var
       FLogic: TLevelLogic;
@@ -496,13 +497,14 @@ type
     function LevelProperties: TLevelProperties;
   end;
 
-  { Level logic. We use T3D descendant, since this is the comfortable
-    way to add any behavior to the 3D world (it doesn't matter that
-    "level logic" is not a usual 3D object --- it doesn't have to collide
+  { Level logic. We use TCastleTransform descendant, since this is the comfortable
+    way to add any behavior to the game world (it doesn't matter that
+    "level logic" is not a usual visible object --- it doesn't have to collide
     or be visible). }
   TLevelLogic = class(TCastleTransform)
-  private
+  strict private
     FTime: TFloatTime;
+    FLevelProperties: TLevelProperties;
   protected
     { Load 3D scene from file, doing common tasks.
       @unorderedList(
@@ -536,13 +538,16 @@ type
       after creatures and items are added).
       You can modify MainScene contents here.
 
-      @param(AWorld
+      @param(LevelProperties
 
-        3D world items. We provide AWorld instance at construction,
-        and the created TLevelLogic instance will be added to this AWorld,
-        and you cannot change it later. This is necessary,
-        as TLevelLogic descendants at construction may actually modify your world,
-        and depend on it later.)
+        Instance of TLevelProperties, in particular with the root of level transformation
+        in LevelProperties.TransformRoot.
+
+        The created TLevelLogic instance will be added to this LevelProperties.TransformRoot,
+        and it must stay there always.
+
+        Passing it in constructor is necessary, as TLevelLogic descendants at
+        construction may actually modify your world, and depend on it later.)
 
       @param(DOMElement
 
@@ -558,8 +563,9 @@ type
         #)
       )
     }
-    constructor Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
-      MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
+    constructor Create(const AOwner: TComponent;
+      const ALevelProperties: TLevelProperties;
+      const MainScene: TCastleScene; const DOMElement: TDOMElement); reintroduce; virtual;
     function LocalBoundingBox: TBox3D; override;
 
     { Called when new player starts new game on this level.
@@ -662,6 +668,11 @@ end;
 function TGameSceneManager.TLevelPropertiesConcrete.TransformRoot: TSceneManagerWorld;
 begin
   Result := SceneManager.Items;
+end;
+
+function TGameSceneManager.TLevelPropertiesConcrete.PrepareParams: TPrepareParams;
+begin
+  Result := SceneManager.PrepareParams;
 end;
 
 { TGameSceneManager ---------------------------------------------------------- }
@@ -1054,7 +1065,7 @@ begin
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
     { create new Logic }
-    FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
+    FLogic := Info.LogicClass.Create(Self, FLevelProperties, MainScene, Info.Element);
     Items.Add(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
@@ -1257,12 +1268,14 @@ end;
 
 { TLevelLogic ---------------------------------------------------------------- }
 
-constructor TLevelLogic.Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
-  MainScene: TCastleScene; DOMElement: TDOMElement);
+constructor TLevelLogic.Create(const AOwner: TComponent;
+  const ALevelProperties: TLevelProperties;
+  const MainScene: TCastleScene; const DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  Assert(AWorld <> nil, 'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
-  AddToWorld(AWorld);
+  FLevelProperties := ALevelProperties;
+
+  AddToWorld(ALevelProperties.TransformRoot);
 
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
@@ -1296,7 +1309,7 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, World.PrepareParams);
+  Result.PrepareResources(Options, false, FLevelProperties.PrepareParams);
 
   if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];

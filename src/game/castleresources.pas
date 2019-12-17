@@ -126,13 +126,16 @@ type
       const ATime: TFloatTime; const ALoop: boolean);
   end;
 
-  { Information useful to FPS games resources (creatures, items)
+  { Information useful to games resources (creatures, items)
     given to them based on current level. }
   TLevelProperties = class
   public
     function Player: TCastleTransform; virtual; abstract;
     function Sectors: TSectorList; virtual; abstract;
     function TransformRoot: TSceneManagerWorld; virtual; abstract;
+    { Parameters to prepare rendering for,
+      see @link(TCastleAbstractViewport.PrepareParams). }
+    function PrepareParams: TPrepareParams; virtual; abstract;
   end;
 
   { Resource used for rendering and processing of 3D objects.
