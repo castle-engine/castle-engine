@@ -913,7 +913,7 @@ var
   { Assign Camera and Navigation, knowing MainScene and Player.
     We need to assign Camera early, as initial Camera also is used
     when placing initial resources on the level (to determine their
-    initial direciton, World.GravityUp etc.) }
+    initial direction, World.GravityUp etc.) }
   procedure InitializeCamera;
   var
     InitialPosition: TVector3;

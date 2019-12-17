@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 }
-{ Group and transform 3D scenes (TCastleTransform). }
+{ Group and transform scenes (TCastleTransform). }
 unit CastleTransform;
 
 {$I castleconf.inc}
@@ -996,14 +996,8 @@ type
       so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { World containing this 3D object. In other words, the root of 3D objects
-      tree containing this object. In practice, the world instance
-      is always 1-1 corresponding to a particular TCastleSceneManager instance
-      (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
-
-      @nil if we are not part of a hierarchy rooted in TSceneManagerWorld.
-      In practice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
-      hierarchy. }
+    { Root TCastleTransform containing this transformation.
+      @nil if we are not (yet) part of some hierarchy rooted in TSceneManagerWorld. }
     property World: TSceneManagerWorld read FWorld;
 
     { Something visible changed in the world.
@@ -1769,7 +1763,7 @@ type
     FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
+    FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
     FCameraKnown: boolean;
     FEnablePhysics: boolean;
     { Create FKraftEngine, if not assigned yet. }
@@ -1784,10 +1778,10 @@ type
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: PTriangle): boolean; virtual; abstract;
-    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3; virtual; abstract;
+
     { The major axis of gravity vector: 0, 1 or 2.
-      This is derived from GravityUp value. It can only truly express
+      This is trivially derived from the known camera
+      GravityUp value. It can only truly express
       GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
       although in practice this is enough for normal games (normal 3D scenes
       use up either +Y or +Z).
@@ -1797,6 +1791,8 @@ type
       Full GravityUp vector may allow for more fun with weird gravity
       in future games. }
     function GravityCoordinate: Integer;
+
+    function GravityUp: TVector3; deprecated 'use CameraGravityUp after checking CameraKnown';
 
     { Parameters to prepare rendering for,
       see @link(TCastleAbstractViewport.PrepareParams). }
@@ -1839,19 +1835,17 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    { Camera position, direction and up, in the world coordinates.
+    { Camera position, direction, up and gravity up vectors.
+      Expressed in the coordinate space of this TSceneManagerWorld,
+      which means: the coordinate space of enclosing @link(TCastleViewport).
 
       Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
-      will need to transform this camera to scene local space.
-      They use @link(WorldTransform), and will raise @link(ETransformParentUndefined)
-      when it is not possible (e.g. when the same scene instance
-      is reused under many different locations).
-
-      So, to be on the safe side, do not turn on @link(TCastleSceneCore.ProcessEvents),
-      or do not share the scene in multiple places in the scene manager.
-      Or at least don't use features like LOD or Billboard or ProximitySensor,
-      that cannot work in case the same scene instance in rendered in multiple
-      locations on the world.
+      need to transform this camera to scene local space.
+      Which is not possible if the same scene instance
+      is used multiple times (e.g. under many different TCastleTransform parents).
+      If you need to use these features of TCastleScene,
+      then simply do not use the same scene reference multiple times
+      (instead clone the scene by @link(TCastleScene.Clone)).
 
       CameraKnown = @false means that
       CameraChanged was never called, and so camera settings are not known,
@@ -1861,6 +1855,7 @@ type
     property CameraPosition: TVector3 read FCameraPosition;
     property CameraDirection: TVector3 read FCameraDirection;
     property CameraUp: TVector3 read FCameraUp;
+    property CameraGravityUp: TVector3 read FCameraGravityUp;
     property CameraKnown: boolean read FCameraKnown;
     { @groupEnd }
 
@@ -3061,8 +3056,10 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
     OldFalling: boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
+    if (World = nil) or not World.CameraKnown then Exit;
+
     { calculate and save GravityUp once, it's used quite often in this procedure }
-    GravityUp := World.GravityUp;
+    GravityUp := World.CameraGravityUp;
 
     OldFalling := FFalling;
 
@@ -3385,11 +3382,19 @@ begin
   FEnablePhysics := true;
   { everything inside is part of this world }
   AddToWorld(Self);
+  { This initialization is only to keep deprecated GravityUp/GravityCoordinate
+    sensible, even for old code that doesn't look at CameraKnown. }
+  FCameraGravityUp := Vector3(0, 1, 0);
+end;
+
+function TSceneManagerWorld.GravityUp: TVector3;
+begin
+  Result := FCameraGravityUp;
 end;
 
 function TSceneManagerWorld.GravityCoordinate: Integer;
 begin
-  Result := MaxAbsVectorCoord(GravityUp);
+  Result := MaxAbsVectorCoord(FCameraGravityUp);
 end;
 
 function TSceneManagerWorld.WorldBoxCollision(const Box: TBox3D): boolean;
@@ -3417,7 +3422,7 @@ end;
 
 procedure TSceneManagerWorld.CameraChanged(const ACamera: TCastleCamera);
 begin
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp);
   FCameraKnown := true;
 
   { inherited calls CameraChanged on all items,
