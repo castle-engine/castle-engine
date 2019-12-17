@@ -20,6 +20,7 @@ Before 6.6 release:
   castlecontrols_crosshair.inc
 
 * Anchors tab keeps getting deselected for some reason when moving UI control
+  RETEST, probably fixed, it no longer blinks out-in.
 
 * TCastleButton:
   - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
