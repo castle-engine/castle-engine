@@ -1775,10 +1775,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { See TCastleSceneManager.CollisionIgnoreItem. }
-    function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: PTriangle): boolean; virtual; abstract;
-
     { The major axis of gravity vector: 0, 1 or 2.
       This is trivially derived from the known camera
       GravityUp value. It can only truly express
@@ -1795,8 +1791,7 @@ type
     function GravityUp: TVector3; deprecated 'use CameraGravityUp after checking CameraKnown';
 
     { Collisions with world. They call corresponding methods without the World
-      prefix, automatically taking into account some knowledge about this
-      3D world.
+      prefix, automatically taking into account some knowledge about this world.
 
       Calling these methods to check collisions makes sense if your
       collision query is not initiated by any existing TCastleTransform instance.
@@ -1806,7 +1801,7 @@ type
       Instead call TCastleTransform.MoveAllowed, TCastleTransform.Height methods.
       Underneath, they still call @code(World.WorldMoveAllowed) and
       @code(World.WorldHeight),
-      additionally making sure that the 3D object does not collide with itself.
+      additionally making sure that the object does not collide with itself.
       @groupBegin }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
@@ -1819,9 +1814,9 @@ type
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
-    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
     function WorldBoxCollision(const Box: TBox3D): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
@@ -1893,7 +1888,7 @@ const
 
 implementation
 
-uses CastleLog, CastleQuaternions, CastleComponentSerialize;
+uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
@@ -3414,6 +3409,28 @@ end;
 function TSceneManagerWorld.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
+end;
+
+function TSceneManagerWorld.WorldHeight(const APosition: TVector3;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+begin
+  Result := HeightCollision(APosition, CameraGravityUp, nil,
+    AboveHeight, AboveGround);
+end;
+
+function TSceneManagerWorld.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+begin
+  Result := not SegmentCollision(Pos1, Pos2,
+    { Ignore transparent materials, this means that creatures can see through
+      glass --- even though they can't walk through it. }
+    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
+    true);
+end;
+
+function TSceneManagerWorld.WorldRay(
+  const RayOrigin, RayDirection: TVector3): TRayCollision;
+begin
+  Result := RayCollision(RayOrigin, RayDirection, nil);
 end;
 
 procedure TSceneManagerWorld.CameraChanged(const ACamera: TCastleCamera);

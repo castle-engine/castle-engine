@@ -1047,14 +1047,6 @@ type
   protected
     procedure SetNavigation(const Value: TCastleNavigation); override;
 
-    { Triangles to ignore by all collision detection in scene manager.
-      The default implementation in this class resturns always @false,
-      so nothing is ignored. You can override it e.g. to ignore your "water"
-      material, when you want player to dive under the water. }
-    function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: PTriangle): boolean; virtual;
-      deprecated 'use "Collision" X3D node with enabled=FALSE to selectively make some part of the world non-collidable';
-
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     function NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
@@ -3266,8 +3258,6 @@ type
     Owner is always non-nil, always a TCastleSceneManager. }
   TSceneManagerWorldConcrete = class(TSceneManagerWorld)
     function Owner: TCastleSceneManager;
-    function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: PTriangle): boolean; override;
     function PhysicsProperties: TPhysicsProperties; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
@@ -3279,23 +3269,11 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
-    function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
-    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
 function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
-end;
-
-function TSceneManagerWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: PTriangle): boolean;
-begin
-  {$warnings off} // consiously using deprecated here
-  Result := Owner.CollisionIgnoreItem(Sender, Triangle);
-  {$warnings on}
 end;
 
 function TSceneManagerWorldConcrete.PhysicsProperties: TPhysicsProperties;
@@ -3310,7 +3288,7 @@ function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
-    OldBox, NewBox, @CollisionIgnoreItem);
+    OldBox, NewBox, nil);
   if Result then
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
@@ -3322,35 +3300,9 @@ function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
-    OldBox, NewBox, @CollisionIgnoreItem);
+    OldBox, NewBox, nil);
   if Result then
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
-end;
-
-function TSceneManagerWorldConcrete.WorldHeight(const APosition: TVector3;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
-begin
-  Result := HeightCollision(APosition, Owner.Camera.GravityUp, @CollisionIgnoreItem,
-    AboveHeight, AboveGround);
-end;
-
-function TSceneManagerWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
-begin
-  Result := not SegmentCollision(Pos1, Pos2,
-    { Ignore transparent materials, this means that creatures can see through
-      glass --- even though they can't walk through it.
-      CollisionIgnoreItem doesn't matter for LineOfSight. }
-    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
-    true);
-end;
-
-function TSceneManagerWorldConcrete.WorldRay(
-  const RayOrigin, RayDirection: TVector3): TRayCollision;
-begin
-  Result := RayCollision(RayOrigin, RayDirection,
-    { Do not use CollisionIgnoreItem here,
-      as this is for picking, so the first object should win --- usually.
-      May be configurable in the future. } nil);
 end;
 
 { TPhysicsPropertiesConcrete ------------------------------------------------- }
@@ -3982,12 +3934,6 @@ begin
   inherited;
   if chCamera in Changes then
     CameraChange;
-end;
-
-function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: PTriangle): boolean;
-begin
-  Result := false;
 end;
 
 function TCastleSceneManager.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;

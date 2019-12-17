@@ -587,14 +587,12 @@ begin
             if Item.Sphere(SphereRadius) then
             begin
               if SphereCollisionAssumeTranslation(NewTranslation,
-                Item.Middle, SphereRadius,
-                {$ifdef CASTLE_OBJFPC}@{$endif} World.CollisionIgnoreItem) then
+                Item.Middle, SphereRadius, nil) then
                 TCastleTransform(Item).Translate(MoveTranslation);
             end else
             begin
               if BoxCollisionAssumeTranslation(NewTranslation,
-                Item.BoundingBox,
-                {$ifdef CASTLE_OBJFPC}@{$endif} World.CollisionIgnoreItem) then
+                Item.BoundingBox, nil) then
                 TCastleTransform(Item).Translate(MoveTranslation);
             end;
         end;
