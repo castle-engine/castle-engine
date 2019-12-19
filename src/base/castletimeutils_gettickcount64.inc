@@ -1,3 +1,27 @@
+{%MainUnit castletimeutils.pas}
+{
+  Copyright 2019-2019 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{$ifdef read_interface}
+{ Just like standard GetTickCount64 function, but works on all platforms supported by CGE.
+  On Nintendo Switch the standard function will crash now. }
+function CastleGetTickCount64: QWord;
+{$endif}
+
+{$ifdef read_implementation}
+
 { Windows -------------------------------------------------------------------- }
 
 {$ifdef MSWINDOWS}
@@ -84,3 +108,5 @@ begin
 end;
 {$I norqcheckend.inc}
 {$endif UNIX}
+
+{$endif}

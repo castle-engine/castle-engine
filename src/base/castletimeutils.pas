@@ -31,6 +31,7 @@ uses
   CastleUtils;
 
 {$define read_interface}
+{$I castletimeutils_gettickcount64.inc}
 {$I castletimeutils_miscellaneous.inc}
 {$I castletimeutils_timer.inc}
 {$I castletimeutils_processtimer.inc}

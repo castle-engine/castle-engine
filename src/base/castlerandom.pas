@@ -85,9 +85,9 @@ function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
 
 implementation
 
-uses
-  { Required only for randomization based on "Now" function. }
-  SysUtils;
+uses SysUtils,
+  { Required only for randomization based on CastleNow / CastleGetTickCount64 function. }
+  CastleTimeUtils;
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
 begin
@@ -191,8 +191,8 @@ begin
      semi-simultaneously will seed them with EQUAL seeds
      which we obviously don't want to.}
 
-    {so let's start by getting tick count as SysUtils does}
-    c64 := GetTickCount64;
+    {so let's start by getting tick count as SysUtils.Randomize does}
+    c64 := CastleGetTickCount64;
     {just to make sure it's not zero. It's not really important here.}
     if c64 = 0 then
       c64 := 2903758934725;
@@ -213,7 +213,7 @@ begin
      synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
-    c64 += QWord(Round(Now * DateMultiplier));
+    c64 += QWord(Round(CastleNow * DateMultiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
      the OS startup - different date&time will shift the random seed...
