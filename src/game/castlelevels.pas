@@ -316,7 +316,7 @@ type
         SceneManager: TGameSceneManager;
         function Player: TCastleTransform; override;
         function Sectors: TSectorList; override;
-        function TransformRoot: TSceneManagerWorld; override;
+        function RootTransform: TCastleRootTransform; override;
         function PrepareParams: TPrepareParams; override;
       end;
     var
@@ -541,9 +541,9 @@ type
       @param(LevelProperties
 
         Instance of TLevelProperties, in particular with the root of level transformation
-        in LevelProperties.TransformRoot.
+        in LevelProperties.RootTransform.
 
-        The created TLevelLogic instance will be added to this LevelProperties.TransformRoot,
+        The created TLevelLogic instance will be added to this LevelProperties.RootTransform,
         and it must stay there always.
 
         Passing it in constructor is necessary, as TLevelLogic descendants at
@@ -665,7 +665,7 @@ begin
   Result := SceneManager.Sectors;
 end;
 
-function TGameSceneManager.TLevelPropertiesConcrete.TransformRoot: TSceneManagerWorld;
+function TGameSceneManager.TLevelPropertiesConcrete.RootTransform: TCastleRootTransform;
 begin
   Result := SceneManager.Items;
 end;
@@ -1275,7 +1275,7 @@ begin
   inherited Create(AOwner);
   FLevelProperties := ALevelProperties;
 
-  AddToWorld(ALevelProperties.TransformRoot);
+  AddToWorld(ALevelProperties.RootTransform);
 
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit

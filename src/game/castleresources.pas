@@ -132,7 +132,7 @@ type
   public
     function Player: TCastleTransform; virtual; abstract;
     function Sectors: TSectorList; virtual; abstract;
-    function TransformRoot: TSceneManagerWorld; virtual; abstract;
+    function RootTransform: TCastleRootTransform; virtual; abstract;
     { Parameters to prepare rendering for,
       see @link(TCastleAbstractViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;

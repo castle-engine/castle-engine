@@ -32,9 +32,7 @@
   private
     { Buffer to not count physics step time per frame }
     FPhysicsTimeStep: TFloatTime;
-
-  protected
-    function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
+    RootTransform: TCastleRootTransform;
 
   public
     const
@@ -430,8 +428,8 @@ begin
   FFrequency := AValue;
   FPhysicsTimeStep := 1.0 / FFrequency;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.SetFrequency(AValue);
 end;
 
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
@@ -441,8 +439,8 @@ begin
 
   FLinearVelocityRK4Integration := AValue;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.LinearVelocityRK4Integration := AValue;
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.LinearVelocityRK4Integration := AValue;
 end;
 
 procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -452,8 +450,8 @@ begin
 
   FAngularVelocityRK4Integration := AValue;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.AngularVelocityRK4Integration := AValue;
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
 end;
 
 constructor TPhysicsProperties.Create(AOwner: TComponent);
@@ -609,7 +607,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: TSceneManagerWorld;
+    World: TCastleRootTransform;
     V: TVector3;
   begin
     World := Transform.World;
@@ -1076,12 +1074,12 @@ procedure TCastleTransform.PhysicsChangeWorldAttach;
 begin
   { Calling TRigidBody.InitializeTransform explicitly now
     (instead of letting it happen in TRigidBody.Update)
-    makes sure that when TSceneManagerWorld.Update will happen,
+    makes sure that when TCastleRootTransform.Update will happen,
     the physics engine will know
     the initial position of this object during 1st simulation tick.
 
     TODO: it's not really nice.
-    - If you change a transformation from now to TSceneManagerWorld.Update,
+    - If you change a transformation from now to TCastleRootTransform.Update,
       then 1st simulation tick will have invalid transformation anyway.
     - If you change some other rigid body parameter between now and
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
@@ -1093,9 +1091,9 @@ begin
     RigidBody.InitializeTransform(Self);
 end;
 
-{ TSceneManagerWorld ------------------------------------------------------------------- }
+{ TCastleRootTransform ------------------------------------------------------------------- }
 
-procedure TSceneManagerWorld.InitializePhysicsEngine;
+procedure TCastleRootTransform.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
@@ -1111,7 +1109,7 @@ begin
   end;
 end;
 
-destructor TSceneManagerWorld.Destroy;
+destructor TCastleRootTransform.Destroy;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1137,7 +1135,7 @@ begin
   inherited;
 end;
 
-procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   KraftGravity: TVector3;
   PhysicsTicksCount:Integer;
@@ -1184,7 +1182,7 @@ begin
           OldTimeAccumulator := TimeAccumulator;
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
-          WritelnLog('Max physics ticks in TSceneManagerWorld.Update() exceeded ('
+          WritelnLog('Max physics ticks in TCastleRootTransform.Update() exceeded ('
             + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
             + FloatToStr(OldTimeAccumulator) + ' to ' + FloatToStr(TimeAccumulator));
 

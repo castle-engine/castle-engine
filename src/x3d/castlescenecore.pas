@@ -938,7 +938,7 @@ type
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
 
     procedure ChangedTransform; override;
-    procedure ChangeWorld(const Value: TSceneManagerWorld); override;
+    procedure ChangeWorld(const Value: TCastleRootTransform); override;
 
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
@@ -1364,8 +1364,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1378,8 +1378,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use @link(InternalOctreeCollisions) to get either
       @link(InternalOctreeDynamicCollisions) or
@@ -1399,8 +1399,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains X3D Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1413,8 +1413,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       It is automatically used by the XxxCollision methods in this class,
       if exists, unless OctreeDynamicCollisions exists.
@@ -1434,8 +1434,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+      @link(TCastleRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;
@@ -6827,7 +6827,7 @@ begin
   UpdateCameraEvents;
 end;
 
-procedure TCastleSceneCore.ChangeWorld(const Value: TSceneManagerWorld);
+procedure TCastleSceneCore.ChangeWorld(const Value: TCastleRootTransform);
 begin
   inherited;
   { World changed, so update things depending on camera view }

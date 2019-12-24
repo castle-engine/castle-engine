@@ -128,7 +128,7 @@ type
       ScreenEffectsRoot: TX3DRootNode;
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
-      World: TSceneManagerWorld;
+      World: TCastleRootTransform;
       Camera: TCastleCamera;
 
       { Valid only between Render and RenderOverChildren calls. }
@@ -315,7 +315,7 @@ begin
     (* We use Camera and World to make some ProximitySensors working,
        like a dummy "ProximitySensors { size 10000 10000 10000 }". *)
     // TODO: creating class with abstract methods here
-    World := TSceneManagerWorld.Create(Self);
+    World := TCastleRootTransform.Create(Self);
     World.Add(ScreenEffectsScene);
     Camera := TCastleCamera.Create(Self);
   end;

@@ -60,7 +60,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "SceneManager1",
       "UseHeadlight" : "hlOn",

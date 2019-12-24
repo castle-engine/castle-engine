@@ -364,7 +364,7 @@ type
       using @link(TCastleSceneManager.Items) property.
       In case of TCastleViewport, this is a shortcut to access
       @link(TCastleViewport.SceneManager.Items TCastleViewport.SceneManager). }
-    function GetItems: TSceneManagerWorld; virtual; abstract;
+    function GetItems: TCastleRootTransform; virtual; abstract;
 
     { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
       about the current pointing device.
@@ -987,7 +987,7 @@ type
     procedure SetMoveLimit(const Value: TBox3D);
   private
     FMainScene: TCastleScene;
-    FItems: TSceneManagerWorld;
+    FItems: TCastleRootTransform;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
     FTimeScale: Single;
@@ -1080,7 +1080,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetItems: TSceneManagerWorld; override;
+    function GetItems: TCastleRootTransform; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
@@ -1102,7 +1102,7 @@ type
 
     { Limit the movement allowed by @link(WorldMoveAllowed).
       Ignored when empty (default).
-      @seealso TSceneManagerWorld.MoveLimit }
+      @seealso TCastleRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
       deprecated 'use Items.MoveLimit';
 
@@ -1273,11 +1273,11 @@ type
       instances.
 
       It is by default created (not nil), but you can also assign here your own
-      TSceneManagerWorld instance.
-      You can also copy a TSceneManagerWorld from one TCastleViewport to another,
-      that is multiple TCastleViewport can refer to the same TSceneManagerWorld
+      TCastleRootTransform instance.
+      You can also copy a TCastleRootTransform from one TCastleViewport to another,
+      that is multiple TCastleViewport can refer to the same TCastleRootTransform
       instance. }
-    property Items: TSceneManagerWorld read FItems {write TODO SetItems}; // exception when nil
+    property Items: TCastleRootTransform read FItems {write TODO SetItems}; // exception when nil
 
     { The main scene of your 3D world. It's not necessary to set this.
       It adds some optional features that require a notion of
@@ -1431,7 +1431,7 @@ type
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
-    function GetItems: TSceneManagerWorld; override;
+    function GetItems: TCastleRootTransform; override;
     procedure Render; override;
   published
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
@@ -3193,7 +3193,7 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := TSceneManagerWorld.Create(Self);
+  FItems := TCastleRootTransform.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }
@@ -3256,7 +3256,7 @@ end;
 //  const ResultName, ResultClassName: String): TComponent;
 //begin
 //  if (ResultName = 'Items') and
-//     (ResultClassName = 'TSceneManagerWorldConcrete') then
+//     (ResultClassName = 'TCastleRootTransform') then
 //    Result := Items
 //  else
 //    Result := inherited InternalGetChild(ResultName, ResultClassName);
@@ -3882,7 +3882,7 @@ begin
   Result := MainCamera;
 end;
 
-function TCastleSceneManager.GetItems: TSceneManagerWorld;
+function TCastleSceneManager.GetItems: TCastleRootTransform;
 begin
   Result := Items;
 end;
@@ -4183,7 +4183,7 @@ begin
     Result := nil; // to work even before SceneManager is assigned
 end;
 
-function TCastleViewport.GetItems: TSceneManagerWorld;
+function TCastleViewport.GetItems: TCastleRootTransform;
 begin
   if SceneManager <> nil then
     Result := SceneManager.Items

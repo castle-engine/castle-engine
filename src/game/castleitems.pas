@@ -764,23 +764,23 @@ function TInventoryItem.PutOnWorld(
   const ALevelProperties: TLevelProperties;
   const APosition: TVector3): TItemOnWorld;
 var
-  TransformRoot: TSceneManagerWorld;
+  RootTransform: TCastleRootTransform;
 begin
-  TransformRoot := ALevelProperties.TransformRoot;
+  RootTransform := ALevelProperties.RootTransform;
 
-  Result := TItemOnWorld.Create(TransformRoot { owner });
+  Result := TItemOnWorld.Create(RootTransform { owner });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.LevelProperties := ALevelProperties;
   Result.FItem := Self;
   FOwner3D := Result;
-  Result.SetView(APosition, AnyOrthogonalVector(TransformRoot.GravityUp), TransformRoot.GravityUp);
+  Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
 
-  TransformRoot.Add(Result);
+  RootTransform.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
@@ -837,18 +837,18 @@ var
     I: Integer;
     Enemy: TAlive;
     WeaponBoundingBox: TBox3D;
-    TransformRoot: TSceneManagerWorld;
+    RootTransform: TCastleRootTransform;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
-    TransformRoot := LevelProperties.TransformRoot;
+    RootTransform := LevelProperties.RootTransform;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use TransformRoot.BoxCollision for this,
+    { TODO: we would prefer to use RootTransform.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to TransformRoot.Count - 1 do
-      if TransformRoot[I] is TAlive then
+    for I := 0 to RootTransform.Count - 1 do
+      if RootTransform[I] is TAlive then
       begin
-        Enemy := TAlive(TransformRoot[I]);
+        Enemy := TAlive(RootTransform[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then

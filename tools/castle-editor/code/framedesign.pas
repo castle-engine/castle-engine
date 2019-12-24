@@ -1253,7 +1253,7 @@ function TDesignFrame.SelectedViewport: TCastleAbstractViewport;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TSceneManagerWorld;
+  World: TCastleRootTransform;
   Sel: TComponent;
   NewResult: TCastleAbstractViewport;
   Nav: TCastleNavigation;
@@ -1318,8 +1318,7 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
     // hide some internal classes by instead displaying ancestor name
     if (C = TControlGameSceneManager) or
-       (C = TSceneManagerWorld) or
-       (Result = 'TSceneManagerWorldConcrete') then
+       (C = TCastleRootTransform) then
       Result := ClassCaption(C.ClassParent);
   end;
 

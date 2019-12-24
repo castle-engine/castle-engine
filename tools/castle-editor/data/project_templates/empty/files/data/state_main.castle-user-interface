@@ -14,7 +14,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "MainScene" : "Scene1",
       "Name" : "SceneManager1",

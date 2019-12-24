@@ -94,7 +94,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "MainScene" : "Scene3",
       "Name" : "SceneManager1",
@@ -202,7 +202,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "SceneManager3",
       "PhysicsProperties" : {
@@ -300,7 +300,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "MainScene" : "Scene4",
       "Name" : "SceneManager2",

@@ -1096,9 +1096,9 @@ function TCreatureResource.CreateCreature(
   const MaxLife: Single): TCreature;
 var
   Scale: Single;
-  TransformRoot: TSceneManagerWorld;
+  RootTransform: TCastleRootTransform;
 begin
-  TransformRoot := ALevelProperties.TransformRoot;
+  RootTransform := ALevelProperties.RootTransform;
 
   { This is only needed if you did not add creature to <resources>.
 
@@ -1111,12 +1111,12 @@ begin
     PrepareResource. IOW, PrepareResource is just too late. }
   Prepare(ALevelProperties.PrepareParams);
 
-  Result := CreatureClass.Create(TransformRoot { owner }, MaxLife);
+  Result := CreatureClass.Create(RootTransform { owner }, MaxLife);
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
   Result.LevelProperties := ALevelProperties;
   Result.FResource := Self;
-  Result.SetView(APosition, ADirection, TransformRoot.GravityUp, FlexibleUp);
+  Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
   Result.Gravity := not Flying;
@@ -1127,7 +1127,7 @@ begin
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
   Result.Scale := Vector3(Scale, Scale, Scale);
 
-  TransformRoot.Add(Result);
+  RootTransform.Add(Result);
 end;
 
 function TCreatureResource.CreateCreature(
