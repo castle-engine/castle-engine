@@ -145,6 +145,12 @@ type
       SSAOShaderInitialized: Boolean;
 
       FOnCameraChanged: TNotifyEvent;
+      { Renderer of shadow volumes. You can use this to optimize rendering
+        of your shadow quads in RenderShadowVolume, and you can read
+        it's statistics (TGLShadowVolumeRenderer.Count and related properties).
+
+        @nil when OpenGL context is not yet initialized. }
+      FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -302,7 +308,6 @@ type
     function GetSceneManager: TCastleSceneManager; virtual; abstract;
     function GetMainCamera: TCastleCamera; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
-    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
     function GetTimeScale: Single; virtual; abstract;
@@ -530,6 +535,7 @@ type
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: boolean;
 
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
     { Parameters to prepare items that are to be rendered
@@ -993,7 +999,6 @@ type
     FTimeScale: Single;
 
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
-    FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     FMouseRayHit: TRayCollision;
 
@@ -1052,7 +1057,6 @@ type
     function GetSceneManager: TCastleSceneManager; override;
     function GetMainCamera: TCastleCamera; override;
     function GetMainScene: TCastleScene; override;
-    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
     function GetTimeScale: Single; override;
@@ -1081,8 +1085,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function GetItems: TCastleRootTransform; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
     //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
 
     { Prepare resources, to make various methods (like @link(Render))
@@ -1105,16 +1107,6 @@ type
       @seealso TCastleRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
       deprecated 'use Items.MoveLimit';
-
-    { Renderer of shadow volumes. You can use this to optimize rendering
-      of your shadow quads in RenderShadowVolume, and you can control
-      it's statistics (TGLShadowVolumeRenderer.Count and related properties).
-
-      This is internally initialized by scene manager. It's @nil when
-      OpenGL context is not yet initialized (or scene manager is not
-      added to @code(Controls) list yet). }
-    property ShadowVolumeRenderer: TGLShadowVolumeRenderer
-      read FShadowVolumeRenderer;
 
     { Current 3D objects under the mouse cursor.
       Updated in every mouse move. May be @nil. }
@@ -1415,7 +1407,6 @@ type
     function GetSceneManager: TCastleSceneManager; override;
     function GetMainCamera: TCastleCamera; override;
     function GetMainScene: TCastleScene; override;
-    function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
     function GetTimeScale: Single; override;
@@ -2135,7 +2126,7 @@ end;
 
 procedure TCastleAbstractViewport.RenderShadowVolume;
 begin
-  GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, TMatrix4.Identity);
+  GetItems.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
 procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
@@ -2245,8 +2236,8 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
-    GetShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
-    GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
+    FShadowVolumeRenderer.InitFrustumAndLight(Params.RenderingCamera.Frustum, MainLightPosition);
+    FShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -2805,16 +2796,36 @@ begin
   SSAOShaderInitialized := true;
 end;
 
+procedure TCastleAbstractViewport.GLContextOpen;
+begin
+  inherited;
+
+  { We actually need to do it only if GLFeatures.ShadowVolumesPossible
+    and ShadowVolumes for any viewport.
+    But we can as well do it always, it's harmless (just checks some GL
+    extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
+  if FShadowVolumeRenderer = nil then
+  begin
+    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
+    FShadowVolumeRenderer.GLContextOpen;
+  end;
+end;
+
 procedure TCastleAbstractViewport.GLContextClose;
 begin
+  FreeAndNil(FShadowVolumeRenderer);
+
+  // screen effects stuff
   glFreeTexture(ScreenEffectTextureDest);
   glFreeTexture(ScreenEffectTextureSrc);
   glFreeTexture(ScreenEffectTextureDepth);
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
+  glFreeBuffer(ScreenPointVbo);
+
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
-  glFreeBuffer(ScreenPointVbo);
+
   inherited;
 end;
 
@@ -3194,9 +3205,6 @@ begin
   inherited;
 
   FItems := TCastleRootTransform.Create(Self);
-  { Items is displayed and streamed with TCastleSceneManager
-    (and in the future this should allow design Items.List by IDE),
-    so make it a correct sub-component. }
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
@@ -3270,34 +3278,6 @@ begin
     the same frame. }
   ScheduledVisibleChangeNotification := true;
   ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
-end;
-
-procedure TCastleSceneManager.GLContextOpen;
-begin
-  inherited;
-
-  { We actually need to do it only if GLFeatures.ShadowVolumesPossible
-    and ShadowVolumes for any viewport.
-    But we can as well do it always, it's harmless (just checks some GL
-    extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
-  if ShadowVolumeRenderer = nil then
-  begin
-    FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
-    ShadowVolumeRenderer.GLContextOpen;
-  end;
-end;
-
-procedure TCastleSceneManager.GLContextClose;
-begin
-  { Keep OpenGL resources of items prepared,
-    to be able to quickly use them in another scene manager (without time-consuming
-    initial PrepareResources). }
-  // if Items <> nil then
-  //   Items.GLContextClose;
-
-  FreeAndNil(FShadowVolumeRenderer);
-
-  inherited;
 end;
 
 function TCastleSceneManager.MouseRayHitContains(const Item: TCastleTransform): boolean;
@@ -3892,11 +3872,6 @@ begin
   Result := MainScene;
 end;
 
-function TCastleSceneManager.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
-begin
-  Result := ShadowVolumeRenderer;
-end;
-
 function TCastleSceneManager.GetMouseRayHit: TRayCollision;
 begin
   Result := MouseRayHit;
@@ -4195,12 +4170,6 @@ function TCastleViewport.GetMainScene: TCastleScene;
 begin
   CheckSceneManagerAssigned;
   Result := SceneManager.MainScene;
-end;
-
-function TCastleViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
-begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.ShadowVolumeRenderer;
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
