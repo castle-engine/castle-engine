@@ -1766,6 +1766,8 @@ type
     FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
     FCameraKnown: boolean;
     FEnablePhysics: boolean;
+    FMoveLimit: TBox3D;
+    FPhysicsProperties: TPhysicsProperties;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1807,12 +1809,12 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload;
     function WorldMoveAllowed(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload;
     function WorldHeight(const APosition: TVector3;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
@@ -1852,12 +1854,32 @@ type
 
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
-    function PhysicsProperties: TPhysicsProperties; virtual; abstract;
-
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
       default true;
+
+    { Limit the movement allowed by @link(WorldMoveAllowed).
+      Ignored when empty (default).
+
+      This property allows to easily limit the possible places
+      where player and creatures go.
+      Player is honoring this if it uses @link(WorldMoveAllowed),
+      in particular our @link(TCastleWalkNavigation) navigation honors it.
+      Creatures honor it if they use @link(WorldMoveAllowed)
+      for their decision,
+      in particular all creatures in @link(CastleCreatures) use it.
+
+      Note that the @link(TGameSceneManager.LoadLevel) always
+      assigns this property to be non-empty.
+      It either determines it by CasMoveLimit placeholder
+      in the level 3D model, or by calculating
+      to include level bounding box + some space for flying.
+    }
+    property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
+  published
+    { Adjust physics behaviour. }
+    property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
   end;
 
   {$define read_interface}
@@ -3370,12 +3392,19 @@ end;
 constructor TSceneManagerWorld.Create(AOwner: TComponent);
 begin
   inherited;
+
+  FPhysicsProperties := TPhysicsProperties.Create(Self);
+  FPhysicsProperties.SetSubComponent(true);
+  FPhysicsProperties.Name := 'PhysicsProperties';
+
+  FMoveLimit := TBox3D.Empty;
   FEnablePhysics := true;
-  { everything inside is part of this world }
-  AddToWorld(Self);
   { This initialization is only to keep deprecated GravityUp/GravityCoordinate
     sensible, even for old code that doesn't look at CameraKnown. }
   FCameraGravityUp := Vector3(0, 1, 0);
+
+  { everything inside is part of this world }
+  AddToWorld(Self);
 end;
 
 function TSceneManagerWorld.GravityUp: TVector3;
@@ -3431,6 +3460,30 @@ function TSceneManagerWorld.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection, nil);
+end;
+
+function TSceneManagerWorld.WorldMoveAllowed(
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, nil);
+  if Result then
+    Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
+end;
+
+function TSceneManagerWorld.WorldMoveAllowed(
+  const OldPos, NewPos: TVector3;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, nil);
+  if Result then
+    Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
 end;
 
 procedure TSceneManagerWorld.CameraChanged(const ACamera: TCastleCamera);

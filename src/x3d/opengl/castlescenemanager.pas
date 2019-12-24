@@ -52,12 +52,6 @@ type
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
-  { Event for @link(TCastleSceneManager.OnMoveAllowed). }
-  TWorldMoveAllowedEvent = procedure (Sender: TCastleSceneManager;
-    var Allowed: boolean;
-    const OldPosition, NewPosition: TVector3;
-    const BecauseOfGravity: boolean) of object;
-
   { Event for @link(TCastleAbstractViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
@@ -989,7 +983,8 @@ type
     (this allows e.g. 3D items to receive @link(Update) events). }
   TCastleSceneManager = class(TCastleAbstractViewport)
   strict private
-    FPhysicsProperties: TPhysicsProperties;
+    function GetMoveLimit: TBox3D;
+    procedure SetMoveLimit(const Value: TBox3D);
   private
     FMainScene: TCastleScene;
     FItems: TSceneManagerWorld;
@@ -998,14 +993,12 @@ type
     FTimeScale: Single;
 
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
-    FMoveLimit: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     FMouseRayHit: TRayCollision;
 
     FAvoidNavigationCollisions: TCastleTransform;
 
-    FOnMoveAllowed: TWorldMoveAllowedEvent;
     FHeadlightNode: TAbstractLightNode;
     FUseHeadlight: TUseHeadlight;
     FMainCamera: TCastleCamera;
@@ -1077,16 +1070,6 @@ type
     function PointingDeviceActivate3D(const Item: TCastleTransform; const Active: boolean;
       const Distance: Single): boolean; virtual;
 
-    { Handle OnMoveAllowed and default MoveLimit algorithm.
-      See the description of OnMoveAllowed property for information.
-
-      When this is called, collision detection determined that this move
-      is allowed. The default implementation in TCastleSceneManager
-      calculates the result using the algorithm described at the MoveLimit
-      property, then calls OnMoveAllowed event. }
-    function MoveAllowed(const OldPosition, NewPosition: TVector3;
-      const BecauseOfGravity: boolean): boolean; virtual;
-
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
     function Headlight: TAbstractLightNode; override;
@@ -1117,17 +1100,11 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
-    { Where the 3D items (player, creatures, items) can move.
-      This limits the player position in case of 1st-person view also.
-      Ignored when this is an empty box (default).
-
-      Note that the @link(TGameSceneManager.LoadLevel) always
-      assigns this property to be non-empty.
-      It either determines it by CasMoveLimit placeholder
-      in the level 3D model, or by calculating
-      to include level bounding box + some space for flying.
-    }
-    property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
+    { Limit the movement allowed by @link(WorldMoveAllowed).
+      Ignored when empty (default).
+      @seealso TSceneManagerWorld.MoveLimit }
+    property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
+      deprecated 'use Items.MoveLimit';
 
     { Renderer of shadow volumes. You can use this to optimize rendering
       of your shadow quads in RenderShadowVolume, and you can control
@@ -1286,14 +1263,21 @@ type
       For now, be sure to unassign it early enough, before freeing the camera. }
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
 
+    function PhysicsProperties: TPhysicsProperties; deprecated 'use Items.PhysicsProperties';
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
 
-    { Tree of 3D objects within your world. This is the place where you should
-      add your scenes to have them handled by scene manager.
-      You may also set your main TCastleScene (if you have any) as MainScene. }
-    property Items: TSceneManagerWorld read FItems;
+    { Transformations and scenes visible in this viewport.
+      You should add here your @link(TCastleTransform) and @link(TCastleScene)
+      instances.
+
+      It is by default created (not nil), but you can also assign here your own
+      TSceneManagerWorld instance.
+      You can also copy a TSceneManagerWorld from one TCastleViewport to another,
+      that is multiple TCastleViewport can refer to the same TSceneManagerWorld
+      instance. }
+    property Items: TSceneManagerWorld read FItems {write TODO SetItems}; // exception when nil
 
     { The main scene of your 3D world. It's not necessary to set this.
       It adds some optional features that require a notion of
@@ -1374,57 +1358,9 @@ type
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
 
-    (*Enable or disable movement of the player, items and creatures.
-      This applies to all 3D objects using TCastleTransform.WorldMoveAllowed for movement.
-      In case of 1st-person view (always for now),
-      limiting the player position also implies limiting the camera position.
-
-      When this event is called at all, the basic collision detection
-      already decided that the move is allowed (so object does not collide with
-      other collidable 3D features).
-      You can now implement additional rules to say when the move is,
-      or is not, allowed.
-
-      Callback parameters:
-
-      @unorderedList(
-        @item(@bold(Allowed):
-
-          Initially, the Allowed parameter is set following the algorithm
-          described at the MoveLimit property.
-          Your event can use this, and e.g. do something like
-
-          @longCode(#  Allowed := Allowed and (my custom move rule); #)
-
-          Or you can simply ignore the default Allowed value,
-          thus ignoring the algorithm described at the MoveLimit property,
-          and simply always set Allowed to your own decision.
-          For example, setting
-
-          @longCode(#  Allowed := true; #)
-
-          will make gravity and movement work everywhere.)
-
-        @item(@bold(BecauseOfGravity):
-
-          @true if this move was caused by gravity, that is: given object
-          is falling down. You can use this to limit gravity to some box,
-          but keep other movement unlimited, like
-
-          @longCode(#
-            { Allow movement everywhere, but limit gravity to a box. }
-            Allowed := (not BecauseOfGravity) or MyGravityBox.Contains(NewPos);
-          #)
-        )
-      ) *)
-    property OnMoveAllowed: TWorldMoveAllowedEvent
-      read FOnMoveAllowed write FOnMoveAllowed;
-
     { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
     property UseHeadlight: TUseHeadlight
       read FUseHeadlight write FUseHeadlight default hlMainScene;
-
-    property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -3251,94 +3187,13 @@ begin
   Result := false;
 end;
 
-{ TSceneManagerWorldConcrete ----------------------------------------------------------- }
-
-type
-  { Root of T3D hierarchy lists.
-    Owner is always non-nil, always a TCastleSceneManager. }
-  TSceneManagerWorldConcrete = class(TSceneManagerWorld)
-    function Owner: TCastleSceneManager;
-    function PhysicsProperties: TPhysicsProperties; override;
-    function WorldMoveAllowed(
-      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; override;
-    function WorldMoveAllowed(
-      const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; override;
-  end;
-
-function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
-begin
-  Result := TCastleSceneManager(inherited Owner);
-end;
-
-function TSceneManagerWorldConcrete.PhysicsProperties: TPhysicsProperties;
-begin
-  Result := Owner.PhysicsProperties;
-end;
-
-function TSceneManagerWorldConcrete.WorldMoveAllowed(
-  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const BecauseOfGravity: boolean): boolean;
-begin
-  Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
-    OldBox, NewBox, nil);
-  if Result then
-    Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
-end;
-
-function TSceneManagerWorldConcrete.WorldMoveAllowed(
-  const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const BecauseOfGravity: boolean): boolean;
-begin
-  Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
-    OldBox, NewBox, nil);
-  if Result then
-    Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
-end;
-
-{ TPhysicsPropertiesConcrete ------------------------------------------------- }
-
-type
-  TPhysicsPropertiesConcrete = class(TPhysicsProperties)
-  strict private
-    FSceneManager: TCastleSceneManager;
-  protected
-    function SceneManagerWorld: TSceneManagerWorld; override;
-  public
-    constructor Create(SceneManager: TCastleSceneManager); reintroduce;
-  end;
-
-function TPhysicsPropertiesConcrete.SceneManagerWorld: TSceneManagerWorld;
-begin
-  Result := FSceneManager.Items;
-end;
-
-constructor TPhysicsPropertiesConcrete.Create(SceneManager: TCastleSceneManager);
-begin
-  FSceneManager := SceneManager;
-  inherited Create(SceneManager);
-end;
-
 { TCastleSceneManager -------------------------------------------------------- }
 
 constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FPhysicsProperties := TPhysicsPropertiesConcrete.Create(Self);
-  FPhysicsProperties.SetSubComponent(true);
-  FPhysicsProperties.Name := 'PhysicsProperties';
-
-  FItems := TSceneManagerWorldConcrete.Create(Self);
+  FItems := TSceneManagerWorld.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }
@@ -3347,7 +3202,6 @@ begin
   FItems.OnCursorChange := @RecalculateCursor;
   FItems.OnVisibleChange := @ItemsVisibleChange;
 
-  FMoveLimit := TBox3D.Empty;
   FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
@@ -4084,15 +3938,6 @@ begin
   Result := Camera.GravityUp;
 end;
 
-function TCastleSceneManager.MoveAllowed(const OldPosition, NewPosition: TVector3;
-  const BecauseOfGravity: boolean): boolean;
-begin
-  Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPosition);
-
-  if Assigned(OnMoveAllowed) then
-    OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);
-end;
-
 function TCastleSceneManager.GetHeadlightNode: TAbstractLightNode;
 begin
   { HeadlightNode is never nil, so recreate it now if nil. }
@@ -4261,6 +4106,21 @@ end;
 class procedure TCastleSceneManager.CreateComponentSetup2D(Sender: TObject);
 begin
   (Sender as TCastleSceneManager).Setup2D;
+end;
+
+function TCastleSceneManager.GetMoveLimit: TBox3D;
+begin
+  Result := Items.MoveLimit;
+end;
+
+procedure TCastleSceneManager.SetMoveLimit(const Value: TBox3D);
+begin
+  Items.MoveLimit := Value;
+end;
+
+function TCastleSceneManager.PhysicsProperties: TPhysicsProperties;
+begin
+  Result := Items.PhysicsProperties;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }
