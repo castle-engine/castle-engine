@@ -1271,7 +1271,7 @@ type
       instance. }
     property Items: TCastleRootTransform read FItems {write TODO SetItems}; // exception when nil
 
-    { The main scene of your 3D world. It's not necessary to set this.
+    { The main scene of the world. It's not necessary to set this.
       It adds some optional features that require a notion of
       the "main" scene to make sense.
 
@@ -1280,35 +1280,27 @@ type
       The MainScene is used for a couple of things:
 
       @unorderedList(
-        @item(Determines initial camera position, orientation, projection,
-          move speed and other details.
-          The initial camera follows the X3D Viewpoint, OrthoViewpoint
-          and NavigationInfo nodes inside the MainScene.
+        @item(Determines initial @link(Camera) (if @link(AutoCamera))
+          and @link(Navigation) (if @link(AutoNavigation)) properties.
+          This includes camera position, orientation, projection.
+          This includes navigation type (examine, walk, fly), move speed.
+          These follow the X3D Viewpoint, OrthoViewpoint
+          and NavigationInfo nodes defined inside the MainScene.
 
-          The camera will also stay synchronized with the X3D nodes in MainScene.
-          This means that @link(Camera) will be updated when X3D events
-          change current X3D Viewpoint or X3D NavigationInfo, for example
-          you can animate the camera by animating the viewpoint
-          (or it's transformation) or bind camera to a viewpoint.
+          Later changes to nodes Viewpoint/NavigatioInfo using X3D events inside
+          MainScene may also influence the @link(Camera) and @link(Navigation).
+          For example in X3D you can animate the Viewpoint position,
+          and it will actually animate our @link(Camera) position.
 
-          Note that scene manager "hijacks" some TCastleSceneCore events
-          for this purpose:
-          TCastleSceneCore.OnBoundViewpointVectorsChanged,
-          TCastleSceneCore.ViewpointStack.OnBoundChanged,
-          TCastleSceneCore.NavigationInfoStack.OnBoundChanged
-          for this purpose. If you want to know when viewpoint changes,
-          you can use scene manager's event OnBoundViewpointChanged,
-          OnBoundNavigationInfoChanged.
-
-          Note that descendants that overrride @link(CalculateProjection)
-          can change this behaviour.
-          For example @link(TCastle2DSceneManager) completely ignores the camera
-          parameters in MainScene, and instead always sets up a suitable
-          orthogonal camera.
+          If both @link(AutoCamera) and @link(AutoNavigation) are @false,
+          none of these things are applied.
         )
 
         @item(Determines what background is rendered.
-          If the MainScene contains an X3D Background node, it will be used.
+          If the MainScene contains an X3D Background node (or other
+          node descending from TAbstractBackgroundNode),
+          it will be used.
+
           Otherwise we render a background using @link(BackgroundColor).
 
           Note that when @link(Transparent) is @true,
@@ -1324,11 +1316,19 @@ type
           @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
           value depends on the X3D NavigationInfo node inside MainScene.)
 
-        @item(Determines if, and where, the main light casting shadow volumes is.)
+        @item(Determines the main light casting shadow volumes.)
 
         @item(Determines lights shining on all scenes, if @link(UseGlobalLights).)
 
         @item(Determines fog on all scenes, if @link(UseGlobalFog).)
+
+        @link(The screen effects defined inside MainScene (TScreenEffectNode)
+          are automatically used.)
+
+        @link(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
+          even if mouse cursor is not pointing at the MainScene.
+          This way MainScene reliably knows when you move mouse such that it
+          @italic(no longer) points at the MainScene.)
       )
 
       Freeing MainScene will automatically set this property to @nil. }
