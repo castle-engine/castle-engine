@@ -816,7 +816,7 @@ begin
   if IsPrefix(ResourcePrefix, PlaceholderName) then
     PlaceholderResource(Shape, SEnding(PlaceholderName, Length(ResourcePrefix) + 1)) else
   if PlaceholderName = MoveLimitName then
-    MoveLimit := Shape.BoundingBox else
+    Items.MoveLimit := Shape.BoundingBox else
   if PlaceholderName = WaterName then
     Water := Shape.BoundingBox else
   if IsPrefix(SectorPrefix, PlaceholderName) then
@@ -906,14 +906,14 @@ var
   var
     NewMoveLimit: TBox3D;
   begin
-    if MoveLimit.IsEmpty then
+    if Items.MoveLimit.IsEmpty then
     begin
       { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := MainScene.BoundingBox;
       NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
         4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
              NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
-      MoveLimit := NewMoveLimit;
+      Items.MoveLimit := NewMoveLimit;
     end;
 
     Sectors.LinkToWaypoints(Waypoints);
@@ -1074,7 +1074,7 @@ begin
     FreeAndNil(Waypoints);
     FSectors := TSectorList.Create(true);
     Waypoints := TWaypointList.Create(true);
-    MoveLimit := TBox3D.Empty;
+    Items.MoveLimit := TBox3D.Empty;
     Water := TBox3D.Empty;
 
     ItemsToRemove := TX3DNodeList.Create(false);
