@@ -2805,7 +2805,7 @@ function TCastleNavigation.ReallyEnableMouseDragging: boolean;
       dragging will not simultaneously also affect the navigation (which would be very
       disorienting). }
 
-    Result := (V.GetItems <> nil) and V.GetItems.Dragging;
+    Result := (V.Items <> nil) and V.Items.Dragging;
   end;
 
 begin

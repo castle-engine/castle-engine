@@ -1141,6 +1141,12 @@ var
   PhysicsTicksCount:Integer;
   OldTimeAccumulator: TFloatTime;
 begin
+  { Avoid doing this two times within the same FrameId.
+    Important if the same TCastleRootTransform is present in multiple viewports. }
+  if UpdateFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateFrameId := TFramesPerSecond.FrameId;
+
   if EnablePhysics and (FKraftEngine <> nil) then
   begin
     FrameProfiler.Start(fmUpdatePhysics);

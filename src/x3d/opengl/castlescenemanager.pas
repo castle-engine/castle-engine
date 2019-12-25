@@ -151,6 +151,9 @@ type
 
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
+      FItems: TCastleRootTransform;
+      ScheduledVisibleChangeNotification: boolean;
+      ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -163,6 +166,7 @@ type
     procedure SetAutoCamera(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
+    procedure SetItems(const Value: TCastleRootTransform);
   private
     var
       FNavigation: TCastleNavigation;
@@ -199,6 +203,7 @@ type
       This takes care to always update Camera.ProjectionMatrix,
       Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
+    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
   protected
     var
       { Set these to non-1 to deliberately distort field of view / aspect ratio.
@@ -363,13 +368,7 @@ type
       var HandleInput: boolean); override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
-
-    { Scenes and their transformations, displayed in this viewport.
-      In case of TCastleSceneManager, this is settable,
-      using @link(TCastleSceneManager.Items) property.
-      In case of TCastleViewport, this is a shortcut to access
-      @link(TCastleViewport.SceneManager.Items TCastleViewport.SceneManager). }
-    function GetItems: TCastleRootTransform; virtual; abstract;
+    procedure Render; override;
 
     { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
       about the current pointing device.
@@ -750,6 +749,17 @@ type
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
   published
+    { Transformations and scenes visible in this viewport.
+      You should add here your @link(TCastleTransform) and @link(TCastleScene)
+      instances.
+
+      It is by default created (not nil), but you can also assign here your own
+      TCastleRootTransform instance.
+      You can also copy a TCastleRootTransform from one TCastleViewport to another,
+      that is multiple TCastleViewport can refer to the same TCastleRootTransform
+      instance. }
+    property Items: TCastleRootTransform read FItems write SetItems;
+
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
     property Camera: TCastleCamera read FCamera;
@@ -1017,6 +1027,11 @@ type
   end;
 
   TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
+  private
+    SceneManager: TCastleSceneManager;
+  protected
+    procedure Notify(constref Value: TCastleAbstractViewport;
+      Action: TCollectionNotification); override;
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;
@@ -1067,10 +1082,8 @@ type
   strict private
     function GetMoveLimit: TBox3D;
     procedure SetMoveLimit(const Value: TBox3D);
-    procedure SetItems(const Value: TCastleRootTransform);
   private
     FMainScene: TCastleScene;
-    FItems: TCastleRootTransform;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
     FTimeScale: Single;
@@ -1085,16 +1098,11 @@ type
     FUseHeadlight: TUseHeadlight;
     FMainCamera: TCastleCamera;
 
-    ScheduledVisibleChangeNotification: boolean;
-    ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
     PrepareResourcesDone: Boolean;
-    UpdateGeneratedTexturesFrameId: TFrameId;
 
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
-
-    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
@@ -1112,11 +1120,6 @@ type
     { What changes happen when camera changes.
       You may want to use it when calling Scene.CameraChanged. }
     function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-
-    { Call at the beginning of Render (from both scene manager and custom viewport),
-      to make sure a first viewport rendered in this frame
-      causes Items.UpdateGeneratedTextures. }
-    procedure UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
 
     class procedure CreateComponentSetup2D(Sender: TObject);
   protected
@@ -1161,7 +1164,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetItems: TCastleRootTransform; override;
     //function InternalGetChild(const ResultName, ResultClassName: String): TComponent; override;
 
     { Prepare resources, to make various methods (like @link(Render))
@@ -1175,9 +1177,6 @@ type
 
     procedure BeforeRender; override;
     procedure Render; override;
-
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
 
     { Limit the movement allowed by @link(WorldMoveAllowed).
       Ignored when empty (default).
@@ -1260,17 +1259,6 @@ type
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
-
-    { Transformations and scenes visible in this viewport.
-      You should add here your @link(TCastleTransform) and @link(TCastleScene)
-      instances.
-
-      It is by default created (not nil), but you can also assign here your own
-      TCastleRootTransform instance.
-      You can also copy a TCastleRootTransform from one TCastleViewport to another,
-      that is multiple TCastleViewport can refer to the same TCastleRootTransform
-      instance. }
-    property Items: TCastleRootTransform read FItems write SetItems;
 
     { The main scene of the world. It's not necessary to set this.
       It adds some optional features that require a notion of
@@ -1423,8 +1411,6 @@ type
     function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
-    function GetItems: TCastleRootTransform; override;
-    procedure Render; override;
   published
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
   end;
@@ -1508,6 +1494,12 @@ begin
   FCamera.InternalViewport := Self;
   FCamera.SetSubComponent(true);
   FCamera.Name := 'Camera';
+
+  FItems := TCastleRootTransform.Create(Self);
+  FItems.SetSubComponent(true);
+  FItems.Name := 'Items';
+  FItems.OnCursorChange := @RecalculateCursor;
+  FItems.OnVisibleChange := @ItemsVisibleChange;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
@@ -1650,8 +1642,8 @@ begin
 
   LastPressEvent := TInputPressRelease(Event);
 
-  if (GetItems <> nil) and
-     GetItems.Press(Event) then
+  if (Items <> nil) and
+     Items.Press(Event) then
     Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
@@ -1664,8 +1656,8 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  if (GetItems <> nil) and
-     GetItems.Release(Event) then
+  if (Items <> nil) and
+     Items.Release(Event) then
     Exit(ExclusiveEvents);
 
   if Input_Interact.IsEvent(Event) and
@@ -1771,12 +1763,12 @@ end;
 procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
 begin
   if { This may be called from TCastleViewport without SceneManager assigned. }
-     (GetItems = nil) or
+     (Items = nil) or
      { This may be called from
        TCastleTransformList.Notify when removing stuff owned by other
        stuff, in particular during our own destructor when FItems is freed
        and we're in half-destructed state. }
-     (csDestroying in GetItems.ComponentState) or
+     (csDestroying in Items.ComponentState) or
      { When Paused, then Press and Motion events are not passed to Navigation,
        or to Items inside. So it's sensible that they also don't control the cursor
        anymore.
@@ -1817,6 +1809,43 @@ procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
   SecondsPassedScaled: Single;
+
+  procedure ItemsUpdate;
+  var
+    RemoveItem: TRemoveType;
+  begin
+    RemoveItem := rtNone;
+
+    { Note that Items.Update do not take HandleInput
+      parameter, as it would not be controllable for them: 3D objects do not
+      have strict front-to-back order, so we would not know in what order
+      call their Update methods, so we have to let many Items handle keys anyway.
+      So, it's consistent to just treat 3D objects as "cannot definitely
+      mark keys/mouse as handled". }
+
+    Items.Update(SecondsPassedScaled, RemoveItem);
+    { we ignore RemoveItem --- main Items list cannot be removed }
+  end;
+
+  procedure DoScheduledVisibleChangeNotification;
+  var
+    Changes: TVisibleChanges;
+  begin
+    if ScheduledVisibleChangeNotification then
+    begin
+      { reset state first, in case some VisibleChangeNotification will post again
+        another visible change. }
+      ScheduledVisibleChangeNotification := false;
+      Changes := ScheduledVisibleChangeNotificationChanges;
+      ScheduledVisibleChangeNotificationChanges := [];
+
+      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
+      VisibleChange([chRender]);
+      { pass visible change notification "downward", to all children TCastleTransform }
+      Items.VisibleChangeNotification(Changes);
+    end;
+  end;
+
 begin
   inherited;
 
@@ -1829,6 +1858,9 @@ begin
     (only TCastleNavigation processes inputs),
     so passing HandleInput there is not necessary. }
   Camera.Update(SecondsPassedScaled);
+
+  ItemsUpdate;
+  DoScheduledVisibleChangeNotification;
 end;
 
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
@@ -1891,8 +1923,8 @@ end;
 
 function TCastleAbstractViewport.ItemsBoundingBox: TBox3D;
 begin
-  if GetItems <> nil then
-    Result := GetItems.BoundingBox
+  if Items <> nil then
+    Result := Items.BoundingBox
   else
     Result := TBox3D.Empty;
 end;
@@ -2120,14 +2152,14 @@ end;
 procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
-  GetItems.Render(Params);
+  Items.Render(Params);
   if Assigned(FOnRender3D) then
     FOnRender3D(Self, Params);
 end;
 
 procedure TCastleAbstractViewport.RenderShadowVolume;
 begin
-  GetItems.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
+  Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
 procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
@@ -2727,6 +2759,15 @@ begin
   end;
 end;
 
+procedure TCastleAbstractViewport.Render;
+begin
+  inherited;
+  ApplyProjection;
+  Items.UpdateGeneratedTextures(@RenderFromViewEverything,
+    FProjection.ProjectionNear, FProjection.ProjectionFar);
+  RenderOnScreen(Camera);
+end;
+
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
   if ScreenSpaceAmbientOcclusion then
@@ -3290,11 +3331,49 @@ begin
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
 end;
 
+procedure TCastleAbstractViewport.SetItems(const Value: TCastleRootTransform);
+begin
+  if FItems <> Value then
+  begin
+    if Value = nil then
+      raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
+    FItems := Value;
+  end;
+end;
+
+procedure TCastleAbstractViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
+begin
+  { merely schedule broadcasting this change to a later time.
+    This way e.g. animating a lot of transformations doesn't cause a lot of
+    "visible change notifications" repeatedly on the same 3D object within
+    the same frame. }
+  ScheduledVisibleChangeNotification := true;
+  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
 { TCastleAbstractViewportList -------------------------------------------------- }
+
+procedure TCastleAbstractViewportList.Notify(constref Value: TCastleAbstractViewport;
+  Action: TCollectionNotification);
+begin
+  inherited;
+
+  { Note that SceneManager itself is also on SceneManager.Viewports list,
+    depending on SceneManager.DefaultViewport value.
+    Ignore it below, since we don't want to change SceneManager.Items value. }
+  if Value <> SceneManager then
+  begin
+    if Action = cnAdded then
+      Value.Items := SceneManager.Items
+    else
+      // Action in [cnRemoved, cnExtracted]
+      Value.Items := TCastleRootTransform.Create(Value);
+  end;
+end;
 
 function TCastleAbstractViewportList.UsesShadowVolumes: boolean;
 var
@@ -3319,12 +3398,6 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := TCastleRootTransform.Create(Self);
-  FItems.SetSubComponent(true);
-  FItems.Name := 'Items';
-  FItems.OnCursorChange := @RecalculateCursor;
-  FItems.OnVisibleChange := @ItemsVisibleChange;
-
   FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
@@ -3332,6 +3405,7 @@ begin
   FMainCamera := Camera;
 
   FViewports := TCastleAbstractViewportList.Create(false);
+  FViewports.SceneManager := Self;
   if DefaultViewport then FViewports.Add(Self);
 end;
 
@@ -3365,34 +3439,6 @@ begin
   FreeIfUnusedAndNil(FHeadlightNode);
 
   inherited;
-end;
-
-// Not needed anymore, Items are automatically saved/restored by FpJsonRtti.
-//
-//procedure TCastleSceneManager.GetChildren(Proc: TGetChildProc; Root: TComponent);
-//begin
-//  inherited;
-//  Proc(Items);
-//end;
-//
-//function TCastleSceneManager.InternalGetChild(
-//  const ResultName, ResultClassName: String): TComponent;
-//begin
-//  if (ResultName = 'Items') and
-//     (ResultClassName = 'TCastleRootTransform') then
-//    Result := Items
-//  else
-//    Result := inherited InternalGetChild(ResultName, ResultClassName);
-//end;
-
-procedure TCastleSceneManager.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
-begin
-  { merely schedule broadcasting this change to a later time.
-    This way e.g. animating a lot of transformations doesn't cause a lot of
-    "visible change notifications" repeatedly on the same 3D object within
-    the same frame. }
-  ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
 function TCastleSceneManager.MouseRayHitContains(const Item: TCastleTransform): boolean;
@@ -3639,13 +3685,8 @@ end;
 
 procedure TCastleSceneManager.Render;
 begin
-  if not GetExists then Exit;
-
-  inherited;
   if not DefaultViewport then Exit;
-  ApplyProjection;
-  UpdateGeneratedTextures(FProjection.ProjectionNear, FProjection.ProjectionFar);
-  RenderOnScreen(Camera);
+  inherited;
 end;
 
 function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): boolean;
@@ -3800,54 +3841,6 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-
-  procedure DoScheduledVisibleChangeNotification;
-  var
-    Changes: TVisibleChanges;
-  begin
-    if ScheduledVisibleChangeNotification then
-    begin
-      { reset state first, in case some VisibleChangeNotification will post again
-        another visible change. }
-      ScheduledVisibleChangeNotification := false;
-      Changes := ScheduledVisibleChangeNotificationChanges;
-      ScheduledVisibleChangeNotificationChanges := [];
-
-      { pass visible change notification "upward" (as a TCastleUserInterface, to container) }
-      VisibleChange([chRender]);
-      { pass visible change notification "downward", to all children TCastleTransform }
-      Items.VisibleChangeNotification(Changes);
-    end;
-  end;
-
-var
-  RemoveItem: TRemoveType;
-  SecondsPassedScaled: Single;
-begin
-  inherited;
-
-  SecondsPassedScaled := SecondsPassed * TimeScale;
-
-  if (not Paused) and GetExists then
-  begin
-    RemoveItem := rtNone;
-
-    { Note that Items.Update do not take HandleInput
-      parameter, as it would not be controllable for them: 3D objects do not
-      have strict front-to-back order, so we would not know in what order
-      call their Update methods, so we have to let many Items handle keys anyway.
-      So, it's consistent to just treat 3D objects as "cannot definitely
-      mark keys/mouse as handled". }
-
-    Items.Update(SecondsPassedScaled, RemoveItem);
-    { we ignore RemoveItem --- main Items list cannot be removed }
-  end;
-
-  DoScheduledVisibleChangeNotification;
-end;
-
 procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean = false);
 
@@ -3977,11 +3970,6 @@ begin
   Result := MainCamera;
 end;
 
-function TCastleSceneManager.GetItems: TCastleRootTransform;
-begin
-  Result := Items;
-end;
-
 function TCastleSceneManager.GetMainScene: TCastleScene;
 begin
   Result := MainScene;
@@ -4070,25 +4058,6 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetItems(const Value: TCastleRootTransform);
-begin
-  if FItems <> Value then
-  begin
-    if Value = nil then
-      raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
-    FItems := Value;
-  end;
-end;
-
-procedure TCastleSceneManager.UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
-begin
-  if UpdateGeneratedTexturesFrameId <> TFramesPerSecond.FrameId then
-  begin
-    UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
-    Items.UpdateGeneratedTextures(@RenderFromViewEverything, ProjectionNear, ProjectionFar);
-  end;
-end;
-
 class procedure TCastleSceneManager.CreateComponentSetup2D(Sender: TObject);
 begin
   (Sender as TCastleSceneManager).Setup2D;
@@ -4169,14 +4138,6 @@ begin
     Result := nil; // to work even before SceneManager is assigned
 end;
 
-function TCastleViewport.GetItems: TCastleRootTransform;
-begin
-  if SceneManager <> nil then
-    Result := SceneManager.Items
-  else
-    Result := nil; // to work even before SceneManager is assigned
-end;
-
 function TCastleViewport.GetMainScene: TCastleScene;
 begin
   CheckSceneManagerAssigned;
@@ -4201,16 +4162,6 @@ begin
     Result := SceneManager.TimeScale
   else
     Result := 1; // to make Update work without errors when SceneManager=nil
-end;
-
-procedure TCastleViewport.Render;
-begin
-  if (not GetExists) or (SceneManager = nil) then Exit;
-
-  inherited;
-  ApplyProjection;
-  SceneManager.UpdateGeneratedTextures(FProjection.ProjectionNear, FProjection.ProjectionFar);
-  RenderOnScreen(Camera);
 end;
 
 function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;

@@ -1770,6 +1770,7 @@ type
     FEnablePhysics: boolean;
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
+    UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1778,6 +1779,10 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { The major axis of gravity vector: 0, 1 or 2.
       This is trivially derived from the known camera
@@ -1827,8 +1832,6 @@ type
       const Details: TCollisionDetails = nil): boolean;
     function WorldPointCollision2D(const Point: TVector2): boolean;
     { @groupEnd }
-
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Camera position, direction, up and gravity up vectors.
       Expressed in the coordinate space of this TCastleRootTransform,
@@ -3496,6 +3499,19 @@ begin
 
   { inherited calls CameraChanged on all items,
     and they may assume that World.Camera* properties are already properly set. }
+  inherited;
+end;
+
+procedure TCastleRootTransform.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single);
+begin
+  { Avoid doing this two times within the same FrameId.
+    Important if the same TCastleRootTransform is present in multiple viewports. }
+  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+
   inherited;
 end;
 
