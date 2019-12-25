@@ -673,6 +673,82 @@ type
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType
       default ntNone;
+
+    { Convert 2D position on the viewport into "world coordinates",
+      which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+      This is a more general version of @link(PositionTo2DWorld),
+      that works with any projection (perspective or orthographic).
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This intersects the ray cast by @link(Camera)
+      with a plane at Z = PlaneZ.
+
+      Returns true and sets 3D PlanePosition (the Z component of this vector
+      must always be equal to PlaneZ) if such intersection is found.
+      Returns false if it's not possible to determine such point (when
+      the camera looks in the other direction).
+    }
+    function PositionToWorldPlane(const Position: TVector2;
+      const ScreenCoordinates: Boolean;
+      const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+
+    { Convert 2D position into "world coordinates", which is the coordinate
+      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items),
+      assuming that we use orthographic projection in XY axes.
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindow or TCastleControl).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      This assumes that camera "up vector" is +Y, and it is looking along the negative Z
+      axis. It also assumes orthographic projection (@link(TCastleCamera.ProjectionType Camera.ProjectionType)
+      equal @link(ptOrthographic)).
+      These are default camera direction, up and projection types set
+      by @link(TCastle2DSceneManager). }
+    function PositionTo2DWorld(const Position: TVector2;
+      const ScreenCoordinates: Boolean): TVector2;
   published
     { Camera determines the viewer position and orientation.
       The given camera instance is always available and connected with this viewport. }
@@ -991,6 +1067,7 @@ type
   strict private
     function GetMoveLimit: TBox3D;
     procedure SetMoveLimit(const Value: TBox3D);
+    procedure SetItems(const Value: TCastleRootTransform);
   private
     FMainScene: TCastleScene;
     FItems: TCastleRootTransform;
@@ -1153,82 +1230,6 @@ type
     property HeadlightNode: TAbstractLightNode
       read GetHeadlightNode write SetHeadlightNode;
 
-    { Convert 2D position on the viewport into "world coordinates",
-      which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
-      This is a more general version of @link(PositionTo2DWorld),
-      that works with any projection (perspective or orthographic).
-
-      The interpretation of Position depends on ScreenCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
-
-      @unorderedList(
-        @item(When ScreenCoordinates = @true,
-          then Position is relative to the whole container
-          (like TCastleWindow or TCastleControl).
-
-          And it is expressed in real device coordinates,
-          just like @link(TInputPressRelease.Position)
-          when mouse is being clicked, or like @link(TInputMotion.Position)
-          when mouse is moved.
-        )
-
-        @item(When ScreenCoordinates = @false,
-          then Position is relative to this UI control.
-
-          And it is expressed in coordinates after UI scaling.
-          IOW, if the size of this control is @link(Width) = 100,
-          then Position.X between 0 and 100 reflects the visible range of this control.
-        )
-      )
-
-      This intersects the ray cast by @link(Camera)
-      with a plane at Z = PlaneZ.
-
-      Returns true and sets 3D PlanePosition (the Z component of this vector
-      must always be equal to PlaneZ) if such intersection is found.
-      Returns false if it's not possible to determine such point (when
-      the camera looks in the other direction).
-    }
-    function PositionToWorldPlane(const Position: TVector2;
-      const ScreenCoordinates: Boolean;
-      const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
-
-    { Convert 2D position into "world coordinates", which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items),
-      assuming that we use orthographic projection in XY axes.
-
-      The interpretation of Position depends on ScreenCoordinates,
-      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
-
-      @unorderedList(
-        @item(When ScreenCoordinates = @true,
-          then Position is relative to the whole container
-          (like TCastleWindow or TCastleControl).
-
-          And it is expressed in real device coordinates,
-          just like @link(TInputPressRelease.Position)
-          when mouse is being clicked, or like @link(TInputMotion.Position)
-          when mouse is moved.
-        )
-
-        @item(When ScreenCoordinates = @false,
-          then Position is relative to this UI control.
-
-          And it is expressed in coordinates after UI scaling.
-          IOW, if the size of this control is @link(Width) = 100,
-          then Position.X between 0 and 100 reflects the visible range of this control.
-        )
-      )
-
-      This assumes that camera "up vector" is +Y, and it is looking along the negative Z
-      axis. It also assumes orthographic projection (@link(TCastleCamera.ProjectionType Camera.ProjectionType)
-      equal @link(ptOrthographic)).
-      These are default camera direction, up and projection types set
-      by @link(TCastle2DSceneManager). }
-    function PositionTo2DWorld(const Position: TVector2;
-      const ScreenCoordinates: Boolean): TVector2;
-
     { The central camera, that controls the features that require
       a single camera (cannot adapt to multiple possible viewports)
       like a headlight.
@@ -1269,7 +1270,7 @@ type
       You can also copy a TCastleRootTransform from one TCastleViewport to another,
       that is multiple TCastleViewport can refer to the same TCastleRootTransform
       instance. }
-    property Items: TCastleRootTransform read FItems {write TODO SetItems}; // exception when nil
+    property Items: TCastleRootTransform read FItems write SetItems;
 
     { The main scene of the world. It's not necessary to set this.
       It adds some optional features that require a notion of
@@ -3175,6 +3176,120 @@ begin
   AutoCamera := false;
 end;
 
+function TCastleAbstractViewport.PositionToWorldPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
+var
+  R: TFloatRectangle;
+  ScreenPosition: TVector2;
+  RayOrigin, RayDirection: TVector3;
+begin
+  R := RenderRect;
+
+  if ScreenCoordinates then
+    ScreenPosition := Position
+  else
+    ScreenPosition := Position * UIScale + R.LeftBottom;
+
+  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+
+  Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
+    RayOrigin, RayDirection);
+end;
+
+function TCastleAbstractViewport.PositionTo2DWorld(const Position: TVector2;
+  const ScreenCoordinates: Boolean): TVector2;
+
+{ Version 1:
+  This makes sense, but ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
+
+var
+  P: TVector2;
+  Proj: TProjection;
+  ProjRect: TFloatRectangle;
+begin
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+
+  Proj := Projection;
+  if Proj.ProjectionType <> ptOrthographic then
+    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
+  ProjRect := Proj.Dimensions;
+
+  if Navigation <> nil then
+    ProjRect := ProjRect.Translate(Navigation.Position.XY);
+
+  Result := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , ProjRect.Left  , ProjRect.Right),
+    MapRange(P.Y, 0, EffectiveHeight, ProjRect.Bottom, ProjRect.Top)
+  );
+end; }
+
+{ Version 2:
+  This also makes sense, but also
+  ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
+  TCastleNavigation.CustomRay looks only at camera pos/dir/up and ignores scaling.
+
+var
+  P: TVector2;
+  Proj: TProjection;
+  RayOrigin, RayDirection: TVector3;
+begin
+  if not ScreenCoordinates then
+    P := Position * UIScale + RenderRect.LeftBottom
+  else
+    P := Position;
+  RequiredNavigation.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
+  Result := RayOrigin.XY;
+end; }
+
+{ Version 3:
+  Should work, but
+  1. Cannot invert projection matrix,
+  2. Also it's not efficient, since camera has ready InverseMatrix calculated
+     more efficiently.
+
+var
+  WorldToScreenMatrix: TMatrix4;
+  ScreenToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  WorldToScreenMatrix := RequiredNavigation.ProjectionMatrix * RequiredNavigation.Matrix;
+  if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
+    raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , -1, 1),
+    MapRange(P.Y, 0, EffectiveHeight, -1, 1)
+  );
+
+  Result := ScreenToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end; }
+
+var
+  CameraToWorldMatrix: TMatrix4;
+  P: TVector2;
+begin
+  CameraToWorldMatrix := Camera.MatrixInverse;
+
+  if ScreenCoordinates then
+    P := (Position - RenderRect.LeftBottom) / UIScale
+  else
+    P := Position;
+  P := Vector2(
+    MapRange(P.X, 0, EffectiveWidth , FProjection.Dimensions.Left  , FProjection.Dimensions.Right),
+    MapRange(P.Y, 0, EffectiveHeight, FProjection.Dimensions.Bottom, FProjection.Dimensions.Top)
+  );
+
+  Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3955,118 +4070,14 @@ begin
   end;
 end;
 
-function TCastleSceneManager.PositionToWorldPlane(const Position: TVector2;
-  const ScreenCoordinates: Boolean;
-  const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
-var
-  R: TFloatRectangle;
-  ScreenPosition: TVector2;
-  RayOrigin, RayDirection: TVector3;
+procedure TCastleSceneManager.SetItems(const Value: TCastleRootTransform);
 begin
-  R := RenderRect;
-
-  if ScreenCoordinates then
-    ScreenPosition := Position
-  else
-    ScreenPosition := Position * UIScale + R.LeftBottom;
-
-  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
-
-  Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
-    RayOrigin, RayDirection);
-end;
-
-function TCastleSceneManager.PositionTo2DWorld(const Position: TVector2;
-  const ScreenCoordinates: Boolean): TVector2;
-
-{ Version 1:
-  This makes sense, but ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
-
-var
-  P: TVector2;
-  Proj: TProjection;
-  ProjRect: TFloatRectangle;
-begin
-  if ScreenCoordinates then
-    P := (Position - RenderRect.LeftBottom) / UIScale
-  else
-    P := Position;
-
-  Proj := Projection;
-  if Proj.ProjectionType <> ptOrthographic then
-    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
-  ProjRect := Proj.Dimensions;
-
-  if Navigation <> nil then
-    ProjRect := ProjRect.Translate(Navigation.Position.XY);
-
-  Result := Vector2(
-    MapRange(P.X, 0, EffectiveWidth , ProjRect.Left  , ProjRect.Right),
-    MapRange(P.Y, 0, EffectiveHeight, ProjRect.Bottom, ProjRect.Top)
-  );
-end; }
-
-{ Version 2:
-  This also makes sense, but also
-  ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
-  TCastleNavigation.CustomRay looks only at camera pos/dir/up and ignores scaling.
-
-var
-  P: TVector2;
-  Proj: TProjection;
-  RayOrigin, RayDirection: TVector3;
-begin
-  if not ScreenCoordinates then
-    P := Position * UIScale + RenderRect.LeftBottom
-  else
-    P := Position;
-  RequiredNavigation.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
-  Result := RayOrigin.XY;
-end; }
-
-{ Version 3:
-  Should work, but
-  1. Cannot invert projection matrix,
-  2. Also it's not efficient, since camera has ready InverseMatrix calculated
-     more efficiently.
-
-var
-  WorldToScreenMatrix: TMatrix4;
-  ScreenToWorldMatrix: TMatrix4;
-  P: TVector2;
-begin
-  WorldToScreenMatrix := RequiredNavigation.ProjectionMatrix * RequiredNavigation.Matrix;
-  if not WorldToScreenMatrix.TryInverse(ScreenToWorldMatrix) then
-    raise Exception.Create('Cannot invert projection * camera matrix. Possibly one of them was not initialized, or camera contains scale to zero.');
-
-  if ScreenCoordinates then
-    P := (Position - RenderRect.LeftBottom) / UIScale
-  else
-    P := Position;
-  P := Vector2(
-    MapRange(P.X, 0, EffectiveWidth , -1, 1),
-    MapRange(P.Y, 0, EffectiveHeight, -1, 1)
-  );
-
-  Result := ScreenToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
-end; }
-
-var
-  CameraToWorldMatrix: TMatrix4;
-  P: TVector2;
-begin
-  CameraToWorldMatrix := Camera.MatrixInverse;
-
-  if ScreenCoordinates then
-    P := (Position - RenderRect.LeftBottom) / UIScale
-  else
-    P := Position;
-  P := Vector2(
-    MapRange(P.X, 0, EffectiveWidth , FProjection.Dimensions.Left  , FProjection.Dimensions.Right),
-    MapRange(P.Y, 0, EffectiveHeight, FProjection.Dimensions.Bottom, FProjection.Dimensions.Top)
-  );
-
-  Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
+  if FItems <> Value then
+  begin
+    if Value = nil then
+      raise EInternalError.Create('Cannot set TCastleSceneManager.Items to nil');
+    FItems := Value;
+  end;
 end;
 
 procedure TCastleSceneManager.UpdateGeneratedTextures(const ProjectionNear, ProjectionFar: Single);
