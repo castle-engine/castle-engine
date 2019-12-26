@@ -193,6 +193,7 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
+    procedure Render(const Params: TRenderParams); override;
     procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
@@ -222,8 +223,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -783,17 +782,6 @@ begin
   inherited;
   { If something called Player.Translation := xxx, update Navigation }
   SynchronizeToNavigation;
-end;
-
-procedure TPlayer.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
-begin
-  inherited;
-  { Do this before rendering (not in TPlayer.UpdateNavigation)
-    makes the player's weapon always correctly rendered, without any delay.
-    (Testcase: move/rotate using touch control
-    in fps_game when you have shooting_eye.) }
-  SynchronizeFromNavigation;
 end;
 
 procedure TPlayer.UpdateNavigation;
@@ -1402,6 +1390,19 @@ begin
   Result := false;
   AboveHeight := MaxSingle;
   AboveGround := nil;
+end;
+
+procedure TPlayer.Render(const Params: TRenderParams);
+begin
+  { Do this before rendering, otherwise we could display weapon in unsynchronized
+    position/orientation.
+    That's because Navigation could be changed after our Update,
+    but before rendering.
+    (Testcase: move/rotate using touch control
+    in fps_game when you have shooting_eye.) }
+  SynchronizeFromNavigation;
+
+  inherited;
 end;
 
 procedure TPlayer.LocalRender(const Params: TRenderParams);

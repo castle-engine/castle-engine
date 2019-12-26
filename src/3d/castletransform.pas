@@ -812,7 +812,7 @@ type
       The rendering transformation, frustum, and filtering
       is specified inside TRenderParams class.
       This method should only update @code(TRenderParams.Statistics). }
-    procedure Render(const Params: TRenderParams); overload;
+    procedure Render(const Params: TRenderParams); virtual; overload;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); overload;
       deprecated 'use Render method without an explicit Frustum parameter, it is in Params.Frustum now';
