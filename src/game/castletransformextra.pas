@@ -13,69 +13,27 @@
   ----------------------------------------------------------------------------
 }
 
-{ Additional 3D objects derived from TCastleTransform (TAlive, T3DMoving...). }
-unit Castle3D;
+{ Additional classes derived from TCastleTransform (TCastleAlive, TCastleMoving...). }
+unit CastleTransformExtra;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections, Kraft,
+uses SysUtils, Classes, Math, Generics.Collections,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles,
   CastleTransform;
 
 type
-  T3D                         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DList                     = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DCustomTranslated         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTranslated               = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DCustomTransform          = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTransform                = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-
-  T3DOrient = class(CastleTransform.TCastleTransform)
-  private
-    FCamera: TCastleWalkNavigation;
-  protected
-    procedure ChangedTransform; override;
-  public
-    { Camera that is automatically synchronized with this 3D object. }
-    property Camera: TCastleWalkNavigation read FCamera; deprecated 'instead of using this, better define your own TCastleWalkNavigation instance synchronized with this TCastleTransform';
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    constructor Create(AOwner: TComponent); override;
-  end deprecated 'use TCastleTransform from CastleTransform unit';
-
-  T3DListCore                 = CastleTransform.TCastleTransformList;
-  T3DWorld                    = CastleTransform.TCastleRootTransform;
-  TCollisionDetails           = CastleTransform.TCollisionDetails;
-  TRayCollision               = CastleTransform.TRayCollision;
-  TRayCollisionNode           = CastleTransform.TRayCollisionNode;
-  PRayCollisionNode           = CastleTransform.PRayCollisionNode;
-  TRemoveType                 = CastleTransform.TRemoveType;
-  TPrepareResourcesOption     = CastleTransform.TPrepareResourcesOption;
-  TPrepareResourcesOptions    = CastleTransform.TPrepareResourcesOptions;
-  TAbstractLightInstancesList = CastleTransform.TAbstractLightInstancesList;
-  TRenderFromViewFunction     = CastleTransform.TRenderFromViewFunction;
-  TRenderingPass              = CastleTransform.TInternalRenderingPass;
-  TRenderParams               = CastleTransform.TRenderParams;
-  TBaseShadowVolumeRenderer   = CastleTransform.TBaseShadowVolumeRenderer;
-  TVisibleChange              = CastleTransform.TVisibleChange;
-  TVisibleChanges             = CastleTransform.TVisibleChanges;
-  TRenderStatistics           = CastleTransform.TRenderStatistics;
-  TRigidBody                  = CastleTransform.TRigidBody;
-  TCollider                   = CastleTransform.TCollider;
-  TSphereCollider             = CastleTransform.TSphereCollider;
-  TBoxCollider                = CastleTransform.TBoxCollider;
-  TPlaneCollider              = CastleTransform.TPlaneCollider;
-
-  { 3D object moving and potentially pushing other 3D objects.
+  { Transformation moving and potentially pushing other objects.
     Good for elevators, doors and such.
 
-    Other 3D objects may be pushed, if @link(Pushes).
+    Other objects may be pushed, if @link(Pushes).
     There are two methods of pushing available, see @link(PushesEverythingInside).
-    Only the 3D objects with @link(TCastleTransform.CollidesWithMoving) are ever pushed by
-    this object (the rest of 3D world is treated as static, does not interact with
+    Only the objects with @link(TCastleTransform.CollidesWithMoving) are ever pushed by
+    this object (the rest of the world is treated as static, does not interact with
     elevators / doors or such).
 
     You can also stop/reverse the move to prevent some collisions
@@ -84,7 +42,7 @@ type
     You do this by overriding BeforeTimeIncrease.
     See TDoomLevelDoor.BeforeTimeIncrease in "The Castle" for example how to
     do this. }
-  T3DMoving = class(TCastleTransform)
+  TCastleMoving = class(TCastleTransform)
   private
     FPushes: boolean;
     FPushesEverythingInside: boolean;
@@ -102,7 +60,7 @@ type
 
       Useful for taking care of collision detection issues,
       as our assumption always is that "nothing collides". Which means
-      that if you don't want your T3DMoving to collide
+      that if you don't want your TCastleMoving to collide
       with e.g. player or creatures or items, then you should
       prevent the collision @italic(before it happens).
       This is the place to do it. }
@@ -168,15 +126,15 @@ type
       read FPushesEverythingInside write FPushesEverythingInside default true;
   end;
 
-  { 3D moving with constant speed between 2 points.
+  { Transform moving with constant speed between 2 points.
     Moves with a constant speed from (0, 0, 0) to TranslationEnd.
     They are called @italic(begin position) and @italic(end position).
 
-    This is a simplified, more comfortable descendant of T3DMoving.
+    This is a simplified, more comfortable descendant of TCastleMoving.
     You get easy to use GoBeginPosition, GoEndPosition
     properties, you can easily set sounds by SoundGoBeginPosition and
     SoundGoEndPosition and such. }
-  T3DLinearMoving = class(T3DMoving)
+  TCastleLinearMoving = class(TCastleMoving)
   private
     FEndPosition: boolean;
     FEndPositionStateChangeTime: Single;
@@ -272,17 +230,17 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  { Alive, oriented 3D object. Basis for players, creatures and everything
+  { Transform representing an alive thing. Basis for players, creatures and everything
     else that has some position, direction and that can be killed.
 
-    Note that the TAlive doesn't remove dead objects, doesn't make any
-    dead animations or such. TAlive class merely keeps track of
+    Note that the TCastleAlive doesn't remove dead objects, doesn't make any
+    dead animations or such. TCastleAlive class merely keeps track of
     @link(Life), @link(Dead) and such properties,
     and allows you to call @link(Hurt) doing eventual knockback.
     If your own code doesn't call @link(Hurt),
     or even doesn't look at @link(Life) value, then they have no implication
     for given 3D object, so it may be indestructible just like other 3D objects. }
-  TAlive = class(TCastleTransform)
+  TCastleAlive = class(TCastleTransform)
   private
     FLifeTime: Single;
     FDieTime: Single;
@@ -324,12 +282,12 @@ type
       Ignored if HurtDirection is zero.
 
       Attacker is the other alive creature that caused this damage. It may be @nil
-      if no other TAlive is directly responsible for this damage. This may
+      if no other TCastleAlive is directly responsible for this damage. This may
       be useful for various purposes, for example the victim may become aware
       of attacker presence when it's attacked. }
     procedure Hurt(const LifeLoss: Single;
       const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: TAlive); virtual;
+      const AKnockbackDistance: Single; const Attacker: TCastleAlive); virtual;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
@@ -361,108 +319,22 @@ type
       default DefaultKnockBackSpeed;
   end;
 
-  T3DAlive = TAlive deprecated 'use TAlive';
-
-  T3DExistsEvent = function(const Item: T3D): boolean of object;
-
 const
-  MaxSingle = Math.MaxSingle;
-
   { Default values common to TPlayer and TCreature classes.
-
-    Note that FallMinHeightToSound is usually better to be larger for player,
-    to avoid making "fall" sound when player merely jumps or walks down a steep
-    hill. No such need for creature.
-
     @groupBegin }
   DefaultFallMinHeightToDamage = 5.0;
   DefaultFallDamageScaleMin = 0.8;
   DefaultFallDamageScaleMax = 1.2;
-  DefaultCreatureFallMinHeightToSound = 1.0;
-  DefaultPlayerFallMinHeightToSound = 4.0;
-  DefaultCreatureFallSoundName = 'creature_fall';
-  DefaultPlayerFallSoundName = 'player_fall';
   { @groupEnd }
-
-  vcVisibleGeometry    = CastleTransform.vcVisibleGeometry;
-  vcVisibleNonGeometry = CastleTransform.vcVisibleNonGeometry;
-  prShadowVolume       = CastleTransform.prShadowVolume;
-  prSpatial            = CastleTransform.prSpatial;
-  prScreenEffects      = CastleTransform.prScreenEffects;
-  prRender             = CastleTransform.prRenderSelf;
-  prBackground         = CastleTransform.prBackground;
-  prBoundingBox        = CastleTransform.prBoundingBox;
-  rtNone               = CastleTransform.rtNone;
-  rtRemove             = CastleTransform.rtRemove;
-  rtRemoveAndFree      = CastleTransform.rtRemoveAndFree;
-  otUpYDirectionMinusZ = CastleTransform.otUpYDirectionMinusZ;
-  otUpZDirectionMinusY = CastleTransform.otUpZDirectionMinusY;
-  otUpZDirectionX      = CastleTransform.otUpZDirectionX;
-
-var
-  { Creatures, items and possibly other 3D stuff may look at these variables
-    to display additional features of 3D objects, helpful to debug collisions,
-    AI and other things.
-    @groupBegin }
-  RenderDebug3D: boolean = false
-    {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-    // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
-    deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug'
-    {$endif};
-  RenderDebugCaptions: boolean = false
-    {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-    // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
-    deprecated 'use TCreature.RenderDebug'
-    {$endif};
-  { @groupEnd }
-
-  { Log shadow volume information.
-
-    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogShadowVolumes: boolean = false;
 
 implementation
 
-uses CastleLog;
-
-{ T3DOrient ------------------------------------------------------------------ }
-
-constructor T3DOrient.Create(AOwner: TComponent);
-begin
-  inherited;
-  FCamera := TCastleWalkNavigation.Create(Self);
-end;
-
-procedure T3DOrient.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  P, D, U: TVector3;
-begin
-  inherited;
-  // synchronize Position, Direction, Up *from* Camera
-  {$warnings off} // knowingly using deprecated
-  Camera.GetView(P, D, U);
-  {$warnings on}
-  SetView(P, D, U);
-end;
-
-procedure T3DOrient.ChangedTransform;
-var
-  P, D, U: TVector3;
-begin
-  inherited;
-  // synchronize Position, Direction, Up *to* Camera
-  GetView(P, D, U);
-  {$warnings off} // knowingly using deprecated
-  Camera.SetView(P, D, U);
-  {$warnings on}
-end;
-
-{ T3DMoving --------------------------------------------------------- }
+{ TCastleMoving --------------------------------------------------------- }
 
 { TODO: this browses World list, doesn't take into acount CollidesWithMoving items
   that may be inside a sublist. }
 
-constructor T3DMoving.Create(AOwner: TComponent);
+constructor TCastleMoving.Create(AOwner: TComponent);
 begin
   inherited;
   FPushes := true;
@@ -483,7 +355,7 @@ end;
   just make sure that there is enough space on the way of move.
 }
 
-procedure T3DMoving.BeforeTimeIncrease(
+procedure TCastleMoving.BeforeTimeIncrease(
   const NewAnimationTime: TFloatTime);
 
   function BoundingBoxAssumeTranslation(
@@ -539,7 +411,7 @@ begin
     CurrentTranslation := GetTranslationFromTime(AnimationTime);
     NewTranslation := GetTranslationFromTime(NewAnimationTime);
 
-    { It often happens that T3DMoving doesn't move at all,
+    { It often happens that TCastleMoving doesn't move at all,
       and then MoveTranslation doesn't change at all
       (even when compared precisely, without usual epsilon used to compare
       floats). So the check below may be worth the time, we expect
@@ -601,7 +473,7 @@ begin
   end;
 end;
 
-procedure T3DMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   NewAnimationTime: TFloatTime;
 begin
@@ -614,9 +486,9 @@ begin
   Translation := GetTranslationFromTime(AnimationTime);
 end;
 
-{ T3DLinearMoving --------------------------------------------------- }
+{ TCastleLinearMoving --------------------------------------------------- }
 
-constructor T3DLinearMoving.Create(AOwner: TComponent);
+constructor TCastleLinearMoving.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -632,7 +504,7 @@ begin
   UsedSound := nil;
 end;
 
-destructor T3DLinearMoving.Destroy;
+destructor TCastleLinearMoving.Destroy;
 begin
   { Otherwise, if you exit from the game while some sound was played,
     and the sound was e.g. looping (like the elevator on "Tower" level),
@@ -643,18 +515,18 @@ begin
   inherited;
 end;
 
-procedure T3DLinearMoving.SoundRelease(Sender: TSound);
+procedure TCastleLinearMoving.SoundRelease(Sender: TSound);
 begin
   Assert(Sender = UsedSound);
   UsedSound := nil;
 end;
 
-function T3DLinearMoving.SoundPosition: TVector3;
+function TCastleLinearMoving.SoundPosition: TVector3;
 begin
   Result := BoundingBox.Center;
 end;
 
-procedure T3DLinearMoving.PlaySound(SoundType: TSoundType;
+procedure TCastleLinearMoving.PlaySound(SoundType: TSoundType;
   Looping: boolean);
 begin
   { The object can play only one sound (going to begin or end position)
@@ -667,21 +539,21 @@ begin
     UsedSound.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif} SoundRelease;
 end;
 
-procedure T3DLinearMoving.GoEndPosition;
+procedure TCastleLinearMoving.GoEndPosition;
 begin
   FEndPosition := true;
   FEndPositionStateChangeTime := AnimationTime;
   PlaySound(SoundGoEndPosition, SoundGoEndPositionLooping);
 end;
 
-procedure T3DLinearMoving.GoBeginPosition;
+procedure TCastleLinearMoving.GoBeginPosition;
 begin
   FEndPosition := false;
   FEndPositionStateChangeTime := AnimationTime;
   PlaySound(SoundGoBeginPosition, SoundGoBeginPositionLooping);
 end;
 
-procedure T3DLinearMoving.RevertGoEndPosition;
+procedure TCastleLinearMoving.RevertGoEndPosition;
 begin
   FEndPosition := true;
   FEndPositionStateChangeTime := { AnimationTime -
@@ -691,7 +563,7 @@ begin
   PlaySound(SoundGoEndPosition, SoundGoEndPositionLooping);
 end;
 
-procedure T3DLinearMoving.RevertGoBeginPosition;
+procedure TCastleLinearMoving.RevertGoBeginPosition;
 begin
   FEndPosition := false;
   FEndPositionStateChangeTime := { AnimationTime -
@@ -701,7 +573,7 @@ begin
   PlaySound(SoundGoEndPosition, SoundGoBeginPositionLooping);
 end;
 
-procedure T3DLinearMoving.GoOtherPosition;
+procedure TCastleLinearMoving.GoOtherPosition;
 begin
   if CompletelyEndPosition then
     GoBeginPosition else
@@ -714,7 +586,7 @@ begin
   end;
 end;
 
-function T3DLinearMoving.GetTranslationFromTime(
+function TCastleLinearMoving.GetTranslationFromTime(
   const AnAnimationTime: TFloatTime): TVector3;
 begin
   if not EndPosition then
@@ -736,19 +608,19 @@ begin
   end;
 end;
 
-function T3DLinearMoving.CompletelyEndPosition: boolean;
+function TCastleLinearMoving.CompletelyEndPosition: boolean;
 begin
   Result := EndPosition and
     (AnimationTime - EndPositionStateChangeTime > MoveTime);
 end;
 
-function T3DLinearMoving.CompletelyBeginPosition: boolean;
+function TCastleLinearMoving.CompletelyBeginPosition: boolean;
 begin
   Result := (not EndPosition) and
     (AnimationTime - EndPositionStateChangeTime > MoveTime);
 end;
 
-procedure T3DLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
 
@@ -764,9 +636,9 @@ begin
     UsedSound.Release;
 end;
 
-{ TAlive ------------------------------------------------------------------- }
+{ TCastleAlive ------------------------------------------------------------------- }
 
-constructor TAlive.Create(AOwner: TComponent);
+constructor TCastleAlive.Create(AOwner: TComponent);
 begin
   inherited;
   KnockBackSpeed := 1.0;
@@ -774,21 +646,21 @@ begin
     so everything is already in the correct state. }
 end;
 
-procedure TAlive.SetLife(const Value: Single);
+procedure TCastleAlive.SetLife(const Value: Single);
 begin
   if (FLife > 0) and (Value <= 0) then
     FDieTime := LifeTime;
   FLife := Value;
 end;
 
-function TAlive.Dead: boolean;
+function TCastleAlive.Dead: boolean;
 begin
   Result := Life <= 0;
 end;
 
-procedure TAlive.Hurt(const LifeLoss: Single;
+procedure TCastleAlive.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: TAlive);
+  const AKnockbackDistance: Single; const Attacker: TCastleAlive);
 begin
   Life := Life - LifeLoss;
   FKnockbackDistance := AKnockbackDistance;
@@ -800,12 +672,12 @@ begin
     MakeVectorsOrthoOnTheirPlane(FLastHurtDirectionGround, World.GravityUp);
 end;
 
-procedure TAlive.CancelKnockback;
+procedure TCastleAlive.CancelKnockback;
 begin
   FKnockbackDistance := 0;
 end;
 
-procedure TAlive.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleAlive.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 { Do the knockback effect, if it's currently active, by pushing
   creature along last attack direction. }
 var

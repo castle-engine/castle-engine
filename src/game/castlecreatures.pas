@@ -21,10 +21,9 @@ unit CastleCreatures;
 interface
 
 uses Classes, Generics.Collections,
-  CastleVectors, CastleBoxes, CastleClassUtils,
-  CastleUtils, CastleScene, CastleStringUtils,
-  CastleResources, CastleXMLConfig, CastleTransform, Castle3D,
-  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
+  CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
+  CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
+  CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebugTransform, CastleSectors;
 
 type
@@ -122,6 +121,8 @@ type
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
+      DefaultFallMinHeightToSound = 1.0;
+      DefaultFallSoundName = 'creature_fall';
 
     constructor Create(const AName: string); override;
 
@@ -223,10 +224,10 @@ type
       read FKnockBackDistance write FKnockBackDistance
       default DefaultKnockBackDistance;
 
-    { See TAlive.KnockBackSpeed. }
+    { See TCastleAlive.KnockBackSpeed. }
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
-      default TAlive.DefaultKnockBackSpeed;
+      default TCastleAlive.DefaultKnockBackSpeed;
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -278,7 +279,7 @@ type
       default TCastleTransform.DefaultMiddleHeight;
 
     property FallMinHeightToSound: Single
-      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
+      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
     property FallMinHeightToDamage: Single
       read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
     property FallDamageScaleMin: Single
@@ -794,7 +795,7 @@ type
   end;
 
   { Base creature, using any TCreatureResource. }
-  TCreature = class(TAlive)
+  TCreature = class(TCastleAlive)
   private
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
@@ -828,7 +829,7 @@ type
     function LerpLegsMiddle(const A: Single): TVector3;
 
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
-    procedure AttackHurt(const HurtEnemy: TAlive);
+    procedure AttackHurt(const HurtEnemy: TCastleAlive);
 
     procedure UpdateDebugCaption(const Lines: TCastleStringList); virtual;
 
@@ -944,7 +945,7 @@ type
     { Enemy of this creature. In this class, this always returns global
       World.Player (if it exists and is still alive).
       Return @nil for no enemy. }
-    function Enemy: TAlive; virtual;
+    function Enemy: TCastleAlive; virtual;
 
     { Last State change time, taken from LifeTime. }
     property StateChangeTime: Single read FStateChangeTime;
@@ -985,7 +986,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: TAlive); override;
+      const AKnockbackDistance: Single; const Attacker: TCastleAlive); override;
   end;
 
   { Creature using TMissileCreatureResource. }
@@ -1034,17 +1035,17 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
-  FKnockBackSpeed := TAlive.DefaultKnockBackSpeed;
+  FKnockBackSpeed := TCastleAlive.DefaultKnockBackSpeed;
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
   FMiddleHeight := TCastleTransform.DefaultMiddleHeight;
-  FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
+  FFallMinHeightToSound := DefaultFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
-  FFallSound := SoundEngine.SoundFromName(DefaultCreatureFallSoundName, false);
+  FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
 end;
 
 procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -1052,7 +1053,7 @@ begin
   inherited;
 
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
-    TAlive.DefaultKnockBackSpeed);
+    TCastleAlive.DefaultKnockBackSpeed);
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
   ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
@@ -1072,7 +1073,7 @@ begin
   AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
   MiddleHeight := ResourceConfig.GetFloat('middle_height', TCastleTransform.DefaultMiddleHeight);
-  FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
+  FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultFallMinHeightToSound);
   FallMinHeightToDamage := ResourceConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
   FallDamageScaleMax := ResourceConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
@@ -1082,7 +1083,7 @@ begin
   SoundDie := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_die', ''));
   FallSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
+    ResourceConfig.GetValue('fall/sound/name', DefaultFallSoundName), false);
 end;
 
 function TCreatureResource.FlexibleUp: boolean;
@@ -1594,7 +1595,7 @@ begin
   if not GetExists then Exit;
 
   { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
-    TAlive.Update changed LifeTime.
+    TCastleAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
     transformation (things taken into account in TCastleTransform) stay equal. }
@@ -1621,7 +1622,7 @@ begin
   inherited;
 end;
 
-procedure TCreature.AttackHurt(const HurtEnemy: TAlive);
+procedure TCreature.AttackHurt(const HurtEnemy: TCastleAlive);
 begin
   if HurtEnemy <> nil then
     HurtEnemy.Hurt(Resource.AttackDamageConst +
@@ -1692,9 +1693,9 @@ begin
   Result := TWalkAttackCreatureResource(inherited Resource);
 end;
 
-function TWalkAttackCreature.Enemy: TAlive;
+function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
-  Result := LevelProperties.Player as TAlive;
+  Result := LevelProperties.Player as TCastleAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2508,7 +2509,7 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
-  E: TAlive;
+  E: TCastleAlive;
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2595,7 +2596,7 @@ end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: TAlive);
+  const AKnockbackDistance: Single; const Attacker: TCastleAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
     AKnockbackDistance * Resource.KnockBackDistance, Attacker);
@@ -2762,7 +2763,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(LevelProperties.Player as TAlive);
+  AttackHurt(LevelProperties.Player as TCastleAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

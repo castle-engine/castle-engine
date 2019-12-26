@@ -25,7 +25,7 @@ uses Generics.Collections,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
-  Castle3D, CastleTransform, CastleColors, CastleDebugTransform;
+  CastleTransformExtra, CastleTransform, CastleColors, CastleDebugTransform;
 
 type
   TInventoryItem = class;
@@ -539,7 +539,7 @@ type
   end;
 
   { Alive 3D thing that has inventory (can keep items). }
-  TAliveWithInventory = class(TAlive)
+  TAliveWithInventory = class(TCastleAlive)
   private
     FInventory: TInventory;
   public
@@ -797,11 +797,11 @@ end;
 
 procedure TItemWeapon.Attack(const LevelProperties: TLevelProperties);
 var
-  Attacker: TAlive;
+  Attacker: TCastleAlive;
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
-  procedure ImmediateAttackHit(Enemy: TAlive);
+  procedure ImmediateAttackHit(Enemy: TCastleAlive);
   begin
     if not AttackSoundHitDone then
     begin
@@ -823,9 +823,9 @@ var
     if Hit <> nil then
     begin
       for I := 0 to Hit.Count - 1 do
-        if Hit[I].Item is TAlive then
+        if Hit[I].Item is TCastleAlive then
         begin
-          ImmediateAttackHit(TAlive(Hit[I].Item));
+          ImmediateAttackHit(TCastleAlive(Hit[I].Item));
           Break;
         end;
       FreeAndNil(Hit);
@@ -835,7 +835,7 @@ var
   procedure ShortRangeAttack;
   var
     I: Integer;
-    Enemy: TAlive;
+    Enemy: TCastleAlive;
     WeaponBoundingBox: TBox3D;
     RootTransform: TCastleRootTransform;
   begin
@@ -846,9 +846,9 @@ var
     { TODO: we would prefer to use RootTransform.BoxCollision for this,
       but we need to know which creature was hit. }
     for I := 0 to RootTransform.Count - 1 do
-      if RootTransform[I] is TAlive then
+      if RootTransform[I] is TCastleAlive then
       begin
-        Enemy := TAlive(RootTransform[I]);
+        Enemy := TCastleAlive(RootTransform[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -869,9 +869,9 @@ begin
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
-     (Owner3D is TAlive) then
+     (Owner3D is TCastleAlive) then
   begin
-    Attacker := TAlive(Owner3D);
+    Attacker := TCastleAlive(Owner3D);
 
     AttackDC := Resource.AttackDamageConst;
     AttackDR := Resource.AttackDamageRandom;

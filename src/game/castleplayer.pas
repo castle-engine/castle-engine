@@ -23,7 +23,7 @@ interface
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
-  Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
+  CastleTransformExtra, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform,
   CastleResources;
 
@@ -213,6 +213,12 @@ type
       DefaultDrownDamageConst = 5.0;
       DefaultDrownDamageRandom = 10.0;
       DefaultSwimSoundPause = 3.11111111;
+      { TPlayer.FallMinHeightToSound is larger than
+        TCreature.FallMinHeightToSound,
+        to avoid making "fall" sound when player merely jumps or walks down a steep
+        hill. No such need for creature. }
+      DefaultFallMinHeightToSound = 4.0;
+      DefaultFallSoundName = 'player_fall';
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -367,7 +373,7 @@ type
       default DefaultRenderOnTop;
 
     property FallMinHeightToSound: Single
-      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultPlayerFallMinHeightToSound;
+      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
     property FallMinHeightToDamage: Single
       read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
     property FallDamageScaleMin: Single
@@ -539,11 +545,11 @@ begin
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;
   RenderOnTop := DefaultRenderOnTop;
-  FFallMinHeightToSound := DefaultPlayerFallMinHeightToSound;
+  FFallMinHeightToSound := DefaultFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
-  FFallSound := SoundEngine.SoundFromName(DefaultPlayerFallSoundName, false);
+  FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
   KnockBackSpeed := DefaultPlayerKnockBackSpeed;
   FSickProjectionSpeed := DefaultSickProjectionSpeed;
   FSwimBreath := DefaultSwimBreath;
@@ -1306,11 +1312,11 @@ begin
     Navigation.HeadBobbingTime := Config.GetFloat('head_bobbing_time', TCastleWalkNavigation.DefaultHeadBobbingTime);
     HeadBobbing := Config.GetFloat('head_bobbing', TCastleWalkNavigation.DefaultHeadBobbing);
     SickProjectionSpeed := Config.GetFloat('sick_projection_speed', DefaultSickProjectionSpeed);
-    FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
+    FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultFallMinHeightToSound);
     FallMinHeightToDamage := Config.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
     FallDamageScaleMin := Config.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
     FallDamageScaleMax := Config.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
-    FallSound := SoundEngine.SoundFromName(Config.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
+    FallSound := SoundEngine.SoundFromName(Config.GetValue('fall/sound/name', DefaultFallSoundName), false);
     FSwimBreath := Config.GetFloat('swim/breath', DefaultSwimBreath);
     FSwimSoundPause := Config.GetFloat('swim/sound_pause', DefaultSwimSoundPause);
     FDrownPause := Config.GetFloat('drown/pause', DefaultDrownPause);

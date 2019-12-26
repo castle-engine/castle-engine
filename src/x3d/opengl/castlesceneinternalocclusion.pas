@@ -24,8 +24,8 @@ interface
 
 uses
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleSceneCore, CastleSceneInternalShape, Castle3D,
-  CastleFrustum, CastleGLShaders, CastleBoxes;
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape,
+  CastleFrustum, CastleGLShaders, CastleBoxes, CastleTransform;
 
 type
   TShapeProcedure = procedure (const Shape: TGLShape) is nested;

@@ -26,7 +26,7 @@ uses Classes, CastleFrustum,
   CastleVectors, CastleBoxes, CastleWindow, CastleUIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils, CastleControls,
   CastleGLUtils, CastleCameras, Math, CastleSphereSampling, CastleSphericalHarmonics,
-  CastleSceneManager, CastleScene, X3DNodes, CastleShapes, Castle3D,
+  CastleSceneManager, CastleScene, X3DNodes, CastleShapes,
   CastleStringUtils, CastleKeysMouse, CastleColors;
 
 var

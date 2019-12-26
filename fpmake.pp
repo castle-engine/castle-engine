@@ -89,7 +89,6 @@ begin
     {$endif}
 
     P.SourcePath.Add('src' + PathDelim + '3d');
-    P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
     P.Targets.AddUnit('castlecomponentserialize.pas');
@@ -139,6 +138,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'deprecated_units');
     P.Targets.AddUnit('castle2dscenemanager.pas');
+    P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleglboxes.pas');
     P.Targets.AddUnit('castleglcontainer.pas');
