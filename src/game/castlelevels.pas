@@ -1178,7 +1178,7 @@ procedure TGameSceneManager.Update(const SecondsPassed: Single;
     DistortViewAspect := 1;
     if FPlayerSwimming = psUnderWater then
     begin
-      SickProjectionTime := SickProjectionTime + SecondsPassed * TimeScale;
+      SickProjectionTime := SickProjectionTime + SecondsPassed * Items.TimeScale;
       SinCos(SickProjectionTime * Player.SickProjectionSpeed, S, C);
       DistortFieldOfViewY := DistortFieldOfViewY + (C * 0.03);
       DistortViewAspect := DistortViewAspect + (S * 0.03);

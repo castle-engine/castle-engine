@@ -1761,8 +1761,7 @@ type
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene). }
   TCastleRootTransform = class(TCastleTransform)
-  private
-    FKraftEngine: TKraft;
+  strict private
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
     FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
@@ -1771,6 +1770,11 @@ type
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
     UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
+    FTimeScale: Single;
+    FPaused: boolean;
+    procedure SetPaused(const Value: boolean);
+  private
+    FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1885,6 +1889,47 @@ type
   published
     { Adjust physics behaviour. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
+
+    { Time scale used when not @link(Paused). }
+    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+
+    { Pausing means that no events (key, mouse, update) are processed.
+      So time doesn't move, and input is not processed.
+
+      Navigation also doesn't work (this part is implemented by TCastleViewport
+      and each TCastleNavigation).
+
+      This is useful if you want to unconditionally make your world temporary
+      still (for example, useful when entering some modal dialog box
+      and you want the world to behave as a still background).
+
+      @italic(See also): For other pausing methods,
+      there are other methods of pausing / disabling
+      some events processing for the world:
+
+      @unorderedList(
+        @item(You can set TCastleScene.TimePlaying to @false.
+          This is roughly equivalent to not running their @link(Update) methods.
+          This means that time will "stand still" for them,
+          so their animations will not play. Although they may
+          still react and change in response to mouse clicks / key presses,
+          if TCastleScene.ProcessEvents.)
+
+        @item(You can set TCastleScene.ProcessEvents to @false.
+          This means that scene will not receive and process any
+          key / mouse and other events (through VRML/X3D sensors).
+          Some animations (not depending on VRML/X3D events processing)
+          may still run, for example MovieTexture will still animate,
+          if only TCastleScene.TimePlaying.)
+
+        @item(For navigation, you can set @code(TCastleNavigation.Input := []) to ignore
+          key / mouse clicks.
+
+          Or you can set @code(TCastleNavigation.Exists) to @false,
+          this is actually equivalent to what pausing does now for TCastleNavigation.
+        )
+      ) }
+    property Paused: boolean read FPaused write SetPaused default false;
   end;
 
   {$define read_interface}
@@ -3403,6 +3448,7 @@ begin
   FPhysicsProperties.Name := 'PhysicsProperties';
   FPhysicsProperties.RootTransform := Self;
 
+  FTimeScale := 1;
   FMoveLimit := TBox3D.Empty;
   FEnablePhysics := true;
   { This initialization is only to keep deprecated GravityUp/GravityCoordinate
@@ -3513,6 +3559,16 @@ begin
   UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
 
   inherited;
+end;
+
+procedure TCastleRootTransform.SetPaused(const Value: boolean);
+begin
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    { TODO: update the viewport cursor when Paused changed. }
+    // RecalculateCursor(Self);
+  end;
 end;
 
 initialization

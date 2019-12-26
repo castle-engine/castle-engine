@@ -100,7 +100,6 @@ type
       end;
     var
       FCamera: TCastleCamera;
-      FPaused: boolean;
       FRenderParams: TManagerRenderParams;
       FPrepareParams: TPrepareParams;
       FBackgroundWireframe: boolean;
@@ -161,12 +160,13 @@ type
     procedure SSAOShaderInitialize;
     procedure RenderWithScreenEffectsCore;
     function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
-    procedure SetPaused(const Value: boolean);
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
     procedure EnsureCameraDetected;
     procedure SetItems(const Value: TCastleRootTransform);
+    function GetPaused: Boolean;
+    procedure SetPaused(const Value: Boolean);
   private
     var
       FNavigation: TCastleNavigation;
@@ -315,7 +315,6 @@ type
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
-    function GetTimeScale: Single; virtual; abstract;
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
@@ -748,6 +747,9 @@ type
       by @link(TCastle2DSceneManager). }
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
+
+    property Paused: boolean read GetPaused write SetPaused default false;
+      deprecated 'use Items.Paused';
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -785,51 +787,6 @@ type
       @seealso OnCameraChanged }
     property Navigation: TCastleNavigation read FNavigation write SetNavigation
       stored IsStoredNavigation;
-
-    { For scene manager: you can pause everything inside your 3D world,
-      for viewport: you can make the navigation within this viewport paused
-      (not responsive).
-
-      @italic(For scene manager:)
-
-      "Paused" means that no events (key, mouse, @link(Update)) are passed to any
-      @link(TCastleSceneManager.Items) or the @link(Navigation).
-      This is suitable if you really want to totally, unconditionally,
-      make your 3D world view temporary still (for example,
-      useful when entering some modal dialog box and you want
-      3D scene to behave as a still background).
-
-      You can of course still directly change some scene property,
-      and then 3D world will change.
-      But no change will be initialized automatically by scene manager events.
-
-      @italic(See also): For less drastic pausing methods,
-      there are other methods of pausing / disabling
-      some events processing for the 3D world:
-
-      @unorderedList(
-        @item(You can set TCastleScene.TimePlaying to @false.
-          This is roughly equivalent to not running their @link(Update) methods.
-          This means that time will "stand still" for them,
-          so their animations will not play. Although they may
-          still react and change in response to mouse clicks / key presses,
-          if TCastleScene.ProcessEvents.)
-
-        @item(You can set TCastleScene.ProcessEvents to @false.
-          This means that scene will not receive and process any
-          key / mouse and other events (through VRML/X3D sensors).
-          Some animations (not depending on VRML/X3D events processing)
-          may still run, for example MovieTexture will still animate,
-          if only TCastleScene.TimePlaying.)
-
-        @item(For navigation, you can set @code(TCastleNavigation.Input := []) to ignore
-          key / mouse clicks.
-
-           Or you can set @code(TCastleNavigation.Exists) to @false,
-          this is actually equivalent to what pausing does now for TCastleNavigation.
-        )
-      ) }
-    property Paused: boolean read FPaused write SetPaused default false;
 
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
@@ -1082,11 +1039,12 @@ type
   strict private
     function GetMoveLimit: TBox3D;
     procedure SetMoveLimit(const Value: TBox3D);
+    function GetTimeScale: Single;
+    procedure SetTimeScale(const Value: Single);
   private
     FMainScene: TCastleScene;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
-    FTimeScale: Single;
 
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
 
@@ -1139,7 +1097,6 @@ type
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
-    function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
@@ -1256,10 +1213,11 @@ type
     property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
 
     function PhysicsProperties: TPhysicsProperties; deprecated 'use Items.PhysicsProperties';
-  published
-    { Time scale used when not @link(Paused). }
-    property TimeScale: Single read FTimeScale write FTimeScale default 1;
 
+    { Time scale used when not @link(Paused). }
+    property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
+      deprecated 'use Items.TimeScale';
+  published
     { The main scene of the world. It's not necessary to set this.
       It adds some optional features that require a notion of
       the "main" scene to make sense.
@@ -1398,7 +1356,6 @@ type
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
-    function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
 
@@ -1631,7 +1588,7 @@ end;
 function TCastleAbstractViewport.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not GetExists) then Exit;
+  if Result or Items.Paused then Exit;
 
   { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
     about the current pointing device.
@@ -1654,7 +1611,7 @@ end;
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not GetExists) then Exit;
+  if Result or Items.Paused then Exit;
 
   if (Items <> nil) and
      Items.Release(Event) then
@@ -1689,7 +1646,7 @@ var
   TopMostScene: TCastleTransform;
 begin
   Result := inherited;
-  if (not Result) and (not Paused) and GetExists then
+  if (not Result) and (not Items.Paused) then
   begin
     if Navigation <> nil then
     begin
@@ -1750,16 +1707,6 @@ begin
   PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
-procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
-begin
-  if FPaused <> Value then
-  begin
-    FPaused := Value;
-    { update the cursor when Paused changed. }
-    RecalculateCursor(Self);
-  end;
-end;
-
 procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
 begin
   if { This may be called from TCastleViewport without SceneManager assigned. }
@@ -1774,7 +1721,7 @@ begin
        anymore.
        In particular, it means cursor is no longer hidden by Navigation.MouseLook
        when the Paused is switched to true. }
-     Paused then
+     Items.Paused then
   begin
     Cursor := mcDefault;
     Exit;
@@ -1849,10 +1796,10 @@ var
 begin
   inherited;
 
-  if Paused or (not GetExists) then
+  if Items.Paused or (not GetExists) then
     Exit;
 
-  SecondsPassedScaled := SecondsPassed * GetTimeScale;
+  SecondsPassedScaled := SecondsPassed * Items.TimeScale;
 
   { Note that TCastleCamera.Update doesn't process any input
     (only TCastleNavigation processes inputs),
@@ -1865,7 +1812,7 @@ end;
 
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
 begin
-  Result := Paused;
+  Result := Items.Paused;
 end;
 
 procedure TCastleAbstractViewport.EnsureCameraDetected;
@@ -3351,6 +3298,16 @@ begin
   ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
+function TCastleAbstractViewport.GetPaused: Boolean;
+begin
+  Result := Items.Paused;
+end;
+
+procedure TCastleAbstractViewport.SetPaused(const Value: Boolean);
+begin
+  Items.Paused := Value;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3398,7 +3355,6 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FTimeScale := 1;
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
 
@@ -3985,11 +3941,6 @@ begin
   Result := Camera;
 end;
 
-function TCastleSceneManager.GetTimeScale: Single;
-begin
-  Result := TimeScale;
-end;
-
 procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
 begin
   if Value <> FDefaultViewport then
@@ -4078,6 +4029,16 @@ begin
   Result := Items.PhysicsProperties;
 end;
 
+function TCastleSceneManager.GetTimeScale: Single;
+begin
+  Result := Items.TimeScale;
+end;
+
+procedure TCastleSceneManager.SetTimeScale(const Value: Single);
+begin
+  Items.TimeScale := Value;
+end;
+
 { TCastleViewport --------------------------------------------------------------- }
 
 destructor TCastleViewport.Destroy;
@@ -4154,14 +4115,6 @@ function TCastleViewport.GetHeadlightCamera: TCastleCamera;
 begin
   CheckSceneManagerAssigned;
   Result := SceneManager.Camera;
-end;
-
-function TCastleViewport.GetTimeScale: Single;
-begin
-  if SceneManager <> nil then
-    Result := SceneManager.TimeScale
-  else
-    Result := 1; // to make Update work without errors when SceneManager=nil
 end;
 
 function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
