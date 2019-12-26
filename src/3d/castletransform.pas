@@ -1772,7 +1772,9 @@ type
     UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
     FTimeScale: Single;
     FPaused: boolean;
+    FMainCamera: TCastleCamera;
     procedure SetPaused(const Value: boolean);
+    procedure SetMainCamera(const Value: TCastleCamera);
   private
     FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
@@ -1886,6 +1888,36 @@ type
       to include level bounding box + some space for flying.
     }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
+
+    { The central camera, that controls the features that require
+      a single "main" camera (features that do not make sense
+      with multiple cameras from multiple viewports).
+
+      This camera controls:
+
+      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
+      - an audio listener (controlling the spatial sound).
+      - the headlight.
+
+      Note that it means that "headlight" is assigned to one camera
+      in case of multiple viewports looking at the same world.
+      You cannot have a different "headlight" in each viewport,
+      this would cause subtle problems since it's not how it would work in reality
+      (where every light is visible in all viewports),
+      e.g. mirror textures (like GeneratedCubeMapTexture)
+      would need different contents in different viewpoints.
+
+      By default this is set to @link(Camera) of the @link(TCastleAbstractViewport)
+      that created this @link(TCastleRootTransform) instance.
+      So in simple cases (when you just create one @link(TCastleViewport)
+      and add your scenes to it's already-created @link(TCastleAbstractViewport.Items TCastleViewport.Items))
+      you don't have to do anything, it just works.
+      In general, you can change this to any camera of any associated @link(TCastleViewport),
+      or @nil (in case no camera should be that "central" camera).
+
+      TODO: Use free notification to automatically nil this.
+      For now, be sure to unassign it early enough, before freeing the camera. }
+    property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
   published
     { Adjust physics behaviour. }
     property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
@@ -3568,6 +3600,15 @@ begin
     FPaused := Value;
     { TODO: update the viewport cursor when Paused changed. }
     // RecalculateCursor(Self);
+  end;
+end;
+
+procedure TCastleRootTransform.SetMainCamera(const Value: TCastleCamera);
+begin
+  if FMainCamera <> Value then
+  begin
+    FMainCamera := Value;
+    VisibleChangeHere([]);
   end;
 end;
 

@@ -204,6 +204,10 @@ type
       Projection, GetMainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
     procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
+
+    { What changes happen when camera changes.
+      You may want to use it when calling Scene.CameraChanged. }
+    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
   protected
     var
       { Set these to non-1 to deliberately distort field of view / aspect ratio.
@@ -311,7 +315,6 @@ type
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
     function GetSceneManager: TCastleSceneManager; virtual; abstract;
-    function GetMainCamera: TCastleCamera; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
@@ -1054,12 +1057,12 @@ type
 
     FHeadlightNode: TAbstractLightNode;
     FUseHeadlight: TUseHeadlight;
-    FMainCamera: TCastleCamera;
 
     PrepareResourcesDone: Boolean;
 
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
+    function GetMainCamera: TCastleCamera;
     procedure SetMainCamera(const Value: TCastleCamera);
 
     { scene callbacks }
@@ -1075,10 +1078,6 @@ type
     function GetHeadlightNode: TAbstractLightNode;
     procedure SetHeadlightNode(const Node: TAbstractLightNode);
 
-    { What changes happen when camera changes.
-      You may want to use it when calling Scene.CameraChanged. }
-    function CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-
     class procedure CreateComponentSetup2D(Sender: TObject);
   protected
     procedure SetNavigation(const Value: TCastleNavigation); override;
@@ -1093,7 +1092,6 @@ type
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
 
     function GetSceneManager: TCastleSceneManager; override;
-    function GetMainCamera: TCastleCamera; override;
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
@@ -1186,35 +1184,15 @@ type
     property HeadlightNode: TAbstractLightNode
       read GetHeadlightNode write SetHeadlightNode;
 
-    { The central camera, that controls the features that require
-      a single camera (cannot adapt to multiple possible viewports)
-      like a headlight.
-      This camera controls:
+    { See @link(TCastleRootTransform.MainCamera). }
+    property MainCamera: TCastleCamera read GetMainCamera write SetMainCamera;
+      deprecated 'use Items.MainCamera';
 
-      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
-      - an audio listener (controlling the spatial sound).
-      - the headlight.
+    { See @link(TCastleRootTransform.PhysicsProperties). }
+    function PhysicsProperties: TPhysicsProperties;
+      deprecated 'use Items.PhysicsProperties';
 
-      Note that it means that "headlight" is assigned to one camera
-      in case of multiple viewports looking at the same world.
-      You cannot have a different "headlight" in each viewport,
-      this would cause subtle problems since it's not how it would work in reality
-      (where every light is visible in all viewports),
-      e.g. mirror textures (like GeneratedCubeMapTexture)
-      would need different contents in different viewpoints.
-
-      By default this is set to @link(Camera) of the @link(TCastleSceneManager).
-      So in @link(TCastleSceneManager), by default @link(Camera) = @name.
-      However you can change this to any camera of any associated @link(TCastleViewport),
-      or @nil (in case no camera should be that "central" camera).
-
-      TODO: Use free notification to automatically nil this.
-      For now, be sure to unassign it early enough, before freeing the camera. }
-    property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
-
-    function PhysicsProperties: TPhysicsProperties; deprecated 'use Items.PhysicsProperties';
-
-    { Time scale used when not @link(Paused). }
+    { See @link(TCastleRootTransform.TimeScale). }
     property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
       deprecated 'use Items.TimeScale';
   published
@@ -1352,7 +1330,6 @@ type
     procedure CheckSceneManagerAssigned;
   protected
     function GetSceneManager: TCastleSceneManager; override;
-    function GetMainCamera: TCastleCamera; override;
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
@@ -1457,6 +1434,7 @@ begin
   FItems.Name := 'Items';
   FItems.OnCursorChange := @RecalculateCursor;
   FItems.OnVisibleChange := @ItemsVisibleChange;
+  FItems.MainCamera := Camera;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
@@ -2158,9 +2136,7 @@ begin
   Node := Headlight;
   if Node <> nil then
   begin
-    HC := GetMainCamera;
-    { GetMainCamera may be nil in case TCastleViewport.SceneManager not assigned,
-      or SceneManager.MainCamera set to @nil. }
+    HC := Items.MainCamera;
     if HC <> nil then
     begin
       PrepareInstance;
@@ -3308,6 +3284,15 @@ begin
   Items.Paused := Value;
 end;
 
+function TCastleAbstractViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
+begin
+  // headlight exists, and we changed camera controlling headlight
+  if (Headlight <> nil) and (ACamera = Items.MainCamera) then
+    Result := [vcVisibleNonGeometry]
+  else
+    Result := [];
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3357,8 +3342,6 @@ begin
 
   FDefaultViewport := true;
   FUseHeadlight := hlMainScene;
-
-  FMainCamera := Camera;
 
   FViewports := TCastleAbstractViewportList.Create(false);
   FViewports.SceneManager := Self;
@@ -3629,15 +3612,6 @@ begin
   end;
 end;
 
-function TCastleSceneManager.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
-begin
-  // headlight exists, and we changed camera controlling headlight
-  if (Headlight <> nil) and (ACamera = GetMainCamera) then
-    Result := [vcVisibleNonGeometry]
-  else
-    Result := [];
-end;
-
 procedure TCastleSceneManager.Render;
 begin
   if not DefaultViewport then Exit;
@@ -3803,21 +3777,17 @@ procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterf
   var
     Pos, Dir, Up: TVector3;
     MC: TCastleCamera;
-    SM: TCastleSceneManager;
   begin
-    MC := GetMainCamera;
+    MC := Items.MainCamera;
     if MC = Camera then
     begin
-      SM := GetSceneManager;
-      Assert(SM <> nil); // since GetMainCamera <> nil, so GetSceneManager must also <> nil
-
       { Call CameraChanged on all TCastleTransform.
         Note that we have to call it on all Items, not just MainScene,
         to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
-      SM.Items.CameraChanged(Camera);
+      Items.CameraChanged(Camera);
       { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleSceneManager),
         but without chCamera, so no infinite recursion. }
-      SM.ItemsVisibleChange(SM.Items, SM.CameraToChanges(Camera));
+      ItemsVisibleChange(Items, CameraToChanges(Camera));
 
       Camera.GetView(Pos, Dir, Up);
       SoundEngine.UpdateListener(Pos, Dir, Up);
@@ -3920,11 +3890,6 @@ begin
   Result := Self;
 end;
 
-function TCastleSceneManager.GetMainCamera: TCastleCamera;
-begin
-  Result := MainCamera;
-end;
-
 function TCastleSceneManager.GetMainScene: TCastleScene;
 begin
   Result := MainScene;
@@ -3952,13 +3917,14 @@ begin
   end;
 end;
 
+function TCastleSceneManager.GetMainCamera: TCastleCamera;
+begin
+  Result := Items.MainCamera;
+end;
+
 procedure TCastleSceneManager.SetMainCamera(const Value: TCastleCamera);
 begin
-  if FMainCamera <> Value then
-  begin
-    FMainCamera := Value;
-    VisibleChange([chRender]);
-  end;
+  Items.MainCamera := Value;
 end;
 
 function TCastleSceneManager.GravityUp: TVector3;
@@ -4088,14 +4054,6 @@ end;
 function TCastleViewport.GetSceneManager: TCastleSceneManager;
 begin
   Result := SceneManager;
-end;
-
-function TCastleViewport.GetMainCamera: TCastleCamera;
-begin
-  if SceneManager <> nil then
-    Result := SceneManager.MainCamera
-  else
-    Result := nil; // to work even before SceneManager is assigned
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
