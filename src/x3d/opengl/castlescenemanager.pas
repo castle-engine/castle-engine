@@ -1796,7 +1796,7 @@ var
 begin
   inherited;
 
-  if Items.Paused or (not GetExists) then
+  if Items.Paused then
     Exit;
 
   SecondsPassedScaled := SecondsPassed * Items.TimeScale;
@@ -3618,7 +3618,6 @@ end;
 procedure TCastleSceneManager.BeforeRender;
 begin
   inherited;
-  if not GetExists then Exit;
 
   { Do it only once, otherwise BeforeRender eats time each frame
     (traversing TCastleTransform tree one more time, usually doing nothing if
