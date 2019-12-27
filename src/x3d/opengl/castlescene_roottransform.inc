@@ -18,6 +18,41 @@
 {$ifdef read_interface}
 
 type
+  { Possible value of @link(TCastleRootTransform.UseHeadlight). }
+  TUseHeadlight = (
+    { Always show a headlight.
+      The headlight properties (color, intensity, shape)
+      are taken from @link(TCastleRootTransform.HeadlightNode). }
+    hlOn,
+
+    { Never show a headlight. }
+    hlOff,
+
+    { Show a headlight following the @link(TCastleRootTransform.MainScene)
+      properties.
+
+      If @link(TCastleRootTransform.MainScene) is @nil,
+      there is no headlight.
+
+      If @link(TCastleRootTransform.MainScene) is assigned,
+      the headlight is shown if
+      @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
+      is @true.
+      @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn) in turn
+      is configutable, and by default looks at X3D NavigationInfo.headlight field.
+      (If no NavigationInfo node is present, the headlight is shown,
+      as NavigationInfo.headlight is @true by default.)
+
+      The headlight properties (color, intensity, shape)
+      follow @link(TCastleSceneCore.CustomHeadlight MainScene.CustomHeadlight),
+      which can be customized in an X3D file using
+      https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
+      If no @link(TCastleSceneCore.CustomHeadlight MainScene.CustomHeadlight)
+      is set, we use @link(TCastleRootTransform.HeadlightNode). }
+    hlMainScene
+  );
+
+  { Root of transformations and scenes (tree of TCastleTransform and TCastleScene). }
   TCastleRootTransform = class(TCastleAbstractRootTransform)
   strict private
     type
@@ -34,13 +69,39 @@ type
         (when MainScene is our direct child, or when MainScene is part of our world,
         which is actually almost always the case). }
       MainSceneFreeNotificationProxy: TFreeNotificationProxy;
+      FUseHeadlight: TUseHeadlight;
+      FHeadlightNode: TAbstractLightNode;
     procedure SetMainScene(const Value: TCastleScene);
     procedure MainScene_BoundViewpointChanged(Sender: TObject);
     procedure MainScene_BoundViewpointVectorsChanged(Sender: TObject);
     procedure MainScene_BoundNavigationInfoChanged(Sender: TObject);
+    function GetHeadlightNode: TAbstractLightNode;
+    procedure SetHeadlightNode(const Node: TAbstractLightNode);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Determines the headlight look, if we use a headlight
+      (which is determined by the algorithm described at @link(UseHeadlight) and
+      @link(TUseHeadlight)).
+      By default it's a simplest directional headlight,
+      but you can customize it, and thus you can use a point light
+      or a spot light for a headlight.
+      Just like https://castle-engine.io/x3d_implementation_navigation_extensions.php#section_ext_headlight .
+
+      This is never @nil.
+      Assigning here @nil simply causes us to recreate it using
+      the simplest directional headlight. }
+    property HeadlightNode: TAbstractLightNode
+      read GetHeadlightNode write SetHeadlightNode;
+
+    { Headlight used to light the scene.
+
+      Returns non-nil headlight node
+      if the algorithm described at @link(TCastleSceneManager.UseHeadlight) and
+      @link(TUseHeadlight) indicates we should use a headlight.
+      Otherwise returns @nil, to indicate we do not show a headlight now. }
+    function InternalHeadlight: TAbstractLightNode;
   published
     { The main scene of the world. It's not necessary to set this.
       It adds some optional features that require a notion of
@@ -104,6 +165,10 @@ type
 
       Freeing MainScene will automatically set this property to @nil. }
     property MainScene: TCastleScene read FMainScene write SetMainScene;
+
+    { Whether the headlight is shown, see @link(TUseHeadlight) for possible values. }
+    property UseHeadlight: TUseHeadlight
+      read FUseHeadlight write FUseHeadlight default hlMainScene;
   end;
 
 {$endif read_interface}
@@ -129,6 +194,7 @@ constructor TCastleRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
   MainSceneFreeNotificationProxy := TFreeNotificationProxy.Create(Self);
+  FUseHeadlight := hlMainScene;
 end;
 
 destructor TCastleRootTransform.Destroy;
@@ -137,6 +203,8 @@ begin
     make MainScene.RemoveFreeNotification(Self)... this is all
     done by SetMainScene(nil) already. }
   MainScene := nil;
+
+  FreeIfUnusedAndNil(FHeadlightNode);
   inherited;
 end;
 
@@ -196,6 +264,48 @@ begin
   if (MainCamera <> nil) and
      Assigned(MainCamera.InternalOnSceneBoundNavigationInfoChanged) then
               MainCamera.InternalOnSceneBoundNavigationInfoChanged(Sender);
+end;
+
+function TCastleRootTransform.GetHeadlightNode: TAbstractLightNode;
+begin
+  { HeadlightNode is never nil, so recreate it now if nil. }
+
+  if FHeadlightNode = nil then
+    { Nothing more needed, all DirectionalLight default properties
+      are suitable for default headlight. }
+    FHeadlightNode := TDirectionalLightNode.Create;
+
+  Result := FHeadlightNode;
+end;
+
+procedure TCastleRootTransform.SetHeadlightNode(const Node: TAbstractLightNode);
+begin
+  if FHeadlightNode <> Node then
+  begin
+    FreeIfUnusedAndNil(FHeadlightNode);
+    FHeadlightNode := Node;
+  end;
+end;
+
+function TCastleRootTransform.InternalHeadlight: TAbstractLightNode;
+begin
+  Result := nil;
+
+  case UseHeadlight of
+    hlOn : Result := HeadlightNode;
+    hlOff: Result := nil;
+    hlMainScene:
+      if (MainScene <> nil) and MainScene.HeadlightOn then
+      begin
+        Result := MainScene.CustomHeadlight;
+        if Result = nil then
+          Result := HeadlightNode;
+        Assert(Result <> nil);
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create(2018081902);
+    {$endif}
+  end;
 end;
 
 {$endif read_implementation}
