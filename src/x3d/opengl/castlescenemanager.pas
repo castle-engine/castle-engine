@@ -3572,7 +3572,10 @@ begin
       if FViewports[I] is TCastleViewport then
       begin
         {$warnings off} // using deprecated in deprecated
-        Assert(TCastleViewport(FViewports[I]).SceneManager = Self);
+        Assert(
+          (TCastleViewport(FViewports[I]).SceneManager = Self) or
+          (TCastleViewport(FViewports[I]).SceneManager = nil)
+        );
         {$warnings on}
 
         { Set SceneManager by direct field (FSceneManager),
