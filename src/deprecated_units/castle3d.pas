@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles,
-  CastleTransform;
+  CastleTransform, CastleTransformExtra;
 
 type
   T3D                         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
