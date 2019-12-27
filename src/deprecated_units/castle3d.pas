@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles,
-  CastleTransform, CastleTransformExtra;
+  CastleTransform, CastleTransformExtra, CastleScene;
 
 type
   T3D                         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
@@ -47,7 +47,7 @@ type
   end deprecated 'use TCastleTransform from CastleTransform unit';
 
   T3DListCore                 = CastleTransform.TCastleTransformList;
-  T3DWorld                    = CastleTransform.TCastleRootTransform;
+  T3DWorld                    = TCastleRootTransform;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;
   TRayCollisionNode           = CastleTransform.TRayCollisionNode;

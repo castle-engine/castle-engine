@@ -323,6 +323,10 @@ type
       @exclude }
     InternalViewport: TCastleUserInterface;
 
+    InternalOnSceneBoundViewpointChanged,
+    InternalOnSceneBoundViewpointVectorsChanged,
+    InternalOnSceneBoundNavigationInfoChanged: TNotifyEvent;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;

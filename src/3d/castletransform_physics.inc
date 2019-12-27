@@ -32,7 +32,7 @@
   private
     { Buffer to not count physics step time per frame }
     FPhysicsTimeStep: TFloatTime;
-    RootTransform: TCastleRootTransform;
+    RootTransform: TCastleAbstractRootTransform;
 
   public
     const
@@ -607,7 +607,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: TCastleRootTransform;
+    World: TCastleAbstractRootTransform;
     V: TVector3;
   begin
     World := Transform.World;
@@ -1074,12 +1074,12 @@ procedure TCastleTransform.PhysicsChangeWorldAttach;
 begin
   { Calling TRigidBody.InitializeTransform explicitly now
     (instead of letting it happen in TRigidBody.Update)
-    makes sure that when TCastleRootTransform.Update will happen,
+    makes sure that when TCastleAbstractRootTransform.Update will happen,
     the physics engine will know
     the initial position of this object during 1st simulation tick.
 
     TODO: it's not really nice.
-    - If you change a transformation from now to TCastleRootTransform.Update,
+    - If you change a transformation from now to TCastleAbstractRootTransform.Update,
       then 1st simulation tick will have invalid transformation anyway.
     - If you change some other rigid body parameter between now and
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
@@ -1091,9 +1091,9 @@ begin
     RigidBody.InitializeTransform(Self);
 end;
 
-{ TCastleRootTransform ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
-procedure TCastleRootTransform.InitializePhysicsEngine;
+procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
@@ -1109,7 +1109,7 @@ begin
   end;
 end;
 
-destructor TCastleRootTransform.Destroy;
+destructor TCastleAbstractRootTransform.Destroy;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1135,14 +1135,14 @@ begin
   inherited;
 end;
 
-procedure TCastleRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   KraftGravity: TVector3;
   PhysicsTicksCount:Integer;
   OldTimeAccumulator: TFloatTime;
 begin
   { Avoid doing this two times within the same FrameId.
-    Important if the same TCastleRootTransform is present in multiple viewports. }
+    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
   if UpdateFrameId = TFramesPerSecond.FrameId then
     Exit;
   UpdateFrameId := TFramesPerSecond.FrameId;
@@ -1188,7 +1188,7 @@ begin
           OldTimeAccumulator := TimeAccumulator;
           TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
 
-          WritelnLog('Max physics ticks in TCastleRootTransform.Update() exceeded ('
+          WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
             + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
             + FloatToStr(OldTimeAccumulator) + ' to ' + FloatToStr(TimeAccumulator));
 

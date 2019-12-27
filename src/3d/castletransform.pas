@@ -25,7 +25,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleSoundEngine, CastleCameras, CastleTriangles;
 
 type
-  TCastleRootTransform = class;
+  TCastleAbstractRootTransform = class;
   TCastleTransform = class;
   TRenderingCamera = class;
 
@@ -343,7 +343,7 @@ type
       Disabled: Cardinal;
       FExcludeFromGlobalLights, FExcludeFromStatistics,
         FInternalExcludeFromParentBoundingVolume: boolean;
-      FWorld: TCastleRootTransform;
+      FWorld: TCastleAbstractRootTransform;
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FParent: TCastleTransform;
@@ -426,23 +426,23 @@ type
 
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: TCastleRootTransform);
+    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: TCastleRootTransform);
+    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
       This can be ignored (not care about FWorldReferences) when Value = FWorld.
 
-      Each transformation/scene can only be part of one TCastleRootTransform at a time.
+      Each transformation/scene can only be part of one TCastleAbstractRootTransform at a time.
       The object may be present many times within the world
       (counted by FWorldReferences, which is always set to 1 by this procedure
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: TCastleRootTransform); virtual;
+    procedure ChangeWorld(const Value: TCastleAbstractRootTransform); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -996,9 +996,9 @@ type
       so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Root transformation (TCastleRootTransform) containing us.
-      @nil if we are not (yet) part of some hierarchy rooted in TCastleRootTransform. }
-    property World: TCastleRootTransform read FWorld;
+    { Root transformation (TCastleAbstractRootTransform) containing us.
+      @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
+    property World: TCastleAbstractRootTransform read FWorld;
 
     { Something visible changed in the world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1351,7 +1351,7 @@ type
       (derived from properties like @link(Translation), @link(Rotation), @link(Scale))
       with the transformation of parent @link(TCastleTransform) instances,
       all the way up to and including the root transformation
-      (@link(TCastleRootTransform)).
+      (@link(TCastleAbstractRootTransform)).
       Thus, this is a transformation to the world known to the
       @link(TCastleSceneManager) instance.
 
@@ -1757,10 +1757,10 @@ type
 
   TPhysicsProperties = class;
 
-  TSceneManagerWorld = TCastleRootTransform deprecated 'use TCastleRootTransform';
+  TSceneManagerWorld = TCastleAbstractRootTransform deprecated 'use TCastleRootTransform';
 
   { Root of transformations and scenes (tree of TCastleTransform and TCastleScene). }
-  TCastleRootTransform = class(TCastleTransform)
+  TCastleAbstractRootTransform = class(TCastleTransform)
   strict private
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
@@ -1840,7 +1840,7 @@ type
     { @groupEnd }
 
     { Camera position, direction, up and gravity up vectors.
-      Expressed in the coordinate space of this TCastleRootTransform,
+      Expressed in the coordinate space of this TCastleAbstractRootTransform,
       which means: the coordinate space of enclosing @link(TCastleViewport).
 
       Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
@@ -1898,6 +1898,8 @@ type
       - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
       - an audio listener (controlling the spatial sound).
       - the headlight.
+      - when X3D nodes change Viewport/NavigationInfo,
+        they apply these changes to this camera.
 
       Note that it means that "headlight" is assigned to one camera
       in case of multiple viewports looking at the same world.
@@ -1908,7 +1910,7 @@ type
       would need different contents in different viewpoints.
 
       By default this is set to @link(Camera) of the @link(TCastleAbstractViewport)
-      that created this @link(TCastleRootTransform) instance.
+      that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleAbstractViewport.Items TCastleViewport.Items))
       you don't have to do anything, it just works.
@@ -2265,7 +2267,7 @@ begin
   Dec(Disabled);
 end;
 
-procedure TCastleTransform.AddToWorld(const Value: TCastleRootTransform);
+procedure TCastleTransform.AddToWorld(const Value: TCastleAbstractRootTransform);
 var
   I: Integer;
 begin
@@ -2284,7 +2286,7 @@ begin
       List[I].AddToWorld(Value);
 end;
 
-procedure TCastleTransform.RemoveFromWorld(const Value: TCastleRootTransform);
+procedure TCastleTransform.RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 var
   I: Integer;
 begin
@@ -2303,7 +2305,7 @@ begin
       List[I].RemoveFromWorld(Value);
 end;
 
-procedure TCastleTransform.ChangeWorld(const Value: TCastleRootTransform);
+procedure TCastleTransform.ChangeWorld(const Value: TCastleAbstractRootTransform);
 begin
   if FWorld <> Value then
   begin
@@ -2322,7 +2324,7 @@ begin
 
     if FWorld <> nil then
     begin
-      // Ignore FWorld = Self case, when this is done by TCastleRootTransform.Create? No need to.
+      // Ignore FWorld = Self case, when this is done by TCastleAbstractRootTransform.Create? No need to.
       //if FWorld <> Self then
       FWorld.FreeNotification(Self);
 
@@ -3469,9 +3471,9 @@ end;
 {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TCastleRootTransform ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
-constructor TCastleRootTransform.Create(AOwner: TComponent);
+constructor TCastleAbstractRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -3491,47 +3493,47 @@ begin
   AddToWorld(Self);
 end;
 
-function TCastleRootTransform.GravityUp: TVector3;
+function TCastleAbstractRootTransform.GravityUp: TVector3;
 begin
   Result := FCameraGravityUp;
 end;
 
-function TCastleRootTransform.GravityCoordinate: Integer;
+function TCastleAbstractRootTransform.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(FCameraGravityUp);
 end;
 
-function TCastleRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
+function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
 begin
   Result := BoxCollision(Box, nil);
 end;
 
-function TCastleRootTransform.WorldSphereCollision(const Pos: TVector3;
+function TCastleAbstractRootTransform.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
-function TCastleRootTransform.WorldSphereCollision2D(const Pos: TVector2;
+function TCastleAbstractRootTransform.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const Details: TCollisionDetails): boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function TCastleRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
+function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
 end;
 
-function TCastleRootTransform.WorldHeight(const APosition: TVector3;
+function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   Result := HeightCollision(APosition, CameraGravityUp, nil,
     AboveHeight, AboveGround);
 end;
 
-function TCastleRootTransform.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+function TCastleAbstractRootTransform.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
@@ -3540,13 +3542,13 @@ begin
     true);
 end;
 
-function TCastleRootTransform.WorldRay(
+function TCastleAbstractRootTransform.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection, nil);
 end;
 
-function TCastleRootTransform.WorldMoveAllowed(
+function TCastleAbstractRootTransform.WorldMoveAllowed(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -3558,7 +3560,7 @@ begin
     Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
 end;
 
-function TCastleRootTransform.WorldMoveAllowed(
+function TCastleAbstractRootTransform.WorldMoveAllowed(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -3570,7 +3572,7 @@ begin
     Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
 end;
 
-procedure TCastleRootTransform.CameraChanged(const ACamera: TCastleCamera);
+procedure TCastleAbstractRootTransform.CameraChanged(const ACamera: TCastleCamera);
 begin
   ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp);
   FCameraKnown := true;
@@ -3580,12 +3582,12 @@ begin
   inherited;
 end;
 
-procedure TCastleRootTransform.UpdateGeneratedTextures(
+procedure TCastleAbstractRootTransform.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single);
 begin
   { Avoid doing this two times within the same FrameId.
-    Important if the same TCastleRootTransform is present in multiple viewports. }
+    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
   if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
     Exit;
   UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
@@ -3593,7 +3595,7 @@ begin
   inherited;
 end;
 
-procedure TCastleRootTransform.SetPaused(const Value: boolean);
+procedure TCastleAbstractRootTransform.SetPaused(const Value: boolean);
 begin
   if FPaused <> Value then
   begin
@@ -3603,7 +3605,7 @@ begin
   end;
 end;
 
-procedure TCastleRootTransform.SetMainCamera(const Value: TCastleCamera);
+procedure TCastleAbstractRootTransform.SetMainCamera(const Value: TCastleCamera);
 begin
   if FMainCamera <> Value then
   begin

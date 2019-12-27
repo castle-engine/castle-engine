@@ -827,6 +827,10 @@ const
   ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
   ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
 
+{$define read_interface}
+{$I castlescene_roottransform.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -837,6 +841,10 @@ uses CastleGLVersion, CastleImages, CastleLog,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize;
 {$warnings on}
+
+{$define read_implementation}
+{$I castlescene_roottransform.inc}
+{$undef read_implementation}
 
 var
   TemporaryAttributeChange: Cardinal = 0;

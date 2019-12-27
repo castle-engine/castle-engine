@@ -201,7 +201,7 @@ type
       see @link(AssignDefaultNavigation).
 
       This takes care to always update Camera.ProjectionMatrix,
-      Projection, GetMainScene.BackgroundSkySphereRadius. }
+      Projection, MainScene.BackgroundSkySphereRadius. }
     procedure ApplyProjection;
     procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 
@@ -314,7 +314,6 @@ type
       For scene manager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
-    function GetMainScene: TCastleScene; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
     { @groupEnd }
@@ -370,6 +369,8 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure Render; override;
+
+    function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
     { Update MouseHitRay and update Items (TCastleTransform hierarchy) knowledge
       about the current pointing device.
@@ -516,7 +517,7 @@ type
       screen to a temporary texture, processing it with
       each shader.
 
-      By default, screen effects come from GetMainScene.ScreenEffects,
+      By default, screen effects come from MainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
       nodes (see docs: [https://castle-engine.io/x3d_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
@@ -636,7 +637,7 @@ type
 
       If @link(AutoNavigation), the initial @link(Navigation)
       as well as initial value of this property are automatically determined
-      by the currently bound X3D NavigatinInfo node in the @link(GetMainScene),
+      by the currently bound X3D NavigatinInfo node in the @link(TCastleRootTransform.MainScene MainScene),
       and world bounding box.
       They are also automatically adjusted e.g. when current NavigatinInfo
       node changes.
@@ -645,7 +646,7 @@ type
       manually to override the detected navigation.
       You should set @link(AutoNavigation) to @false to take control
       of @link(Navigation) and this property completely (no auto-detection
-      based on @link(GetMainScene) will then take place).
+      based on @link(TCastleRootTransform.MainScene MainScene) will then take place).
 
       Note that you can also affect the current NavigationType by directly
       changing the camera properties,
@@ -1044,7 +1045,6 @@ type
     function GetTimeScale: Single;
     procedure SetTimeScale(const Value: Single);
   private
-    FMainScene: TCastleScene;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
 
@@ -1059,15 +1059,16 @@ type
 
     PrepareResourcesDone: Boolean;
 
-    procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
     function GetMainCamera: TCastleCamera;
     procedure SetMainCamera(const Value: TCastleCamera);
+    function GetMainSceneInternal: TCastleScene;
+    procedure SetMainScene(const Value: TCastleScene);
 
-    { scene callbacks }
-    procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
-    procedure SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
-    procedure SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
+    { Callbacks when MainCamera is notified that MainScene changes camera/navigation }
+    procedure MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
+    procedure MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
+    procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: TCastleTransform): boolean;
@@ -1090,7 +1091,6 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
 
-    function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
@@ -1193,70 +1193,11 @@ type
     { See @link(TCastleRootTransform.TimeScale). }
     property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
       deprecated 'use Items.TimeScale';
+
+    { See @link(TCastleRootTransform.MainScene). }
+    property MainScene: TCastleScene read GetMainSceneInternal write SetMainScene;
+      deprecated 'use Items.MainScene';
   published
-    { The main scene of the world. It's not necessary to set this.
-      It adds some optional features that require a notion of
-      the "main" scene to make sense.
-
-      The scene you set here @italic(must) also be added to our @link(Items).
-
-      The MainScene is used for a couple of things:
-
-      @unorderedList(
-        @item(Determines initial @link(Camera) (if @link(AutoCamera))
-          and @link(Navigation) (if @link(AutoNavigation)) properties.
-          This includes camera position, orientation, projection.
-          This includes navigation type (examine, walk, fly), move speed.
-          These follow the X3D Viewpoint, OrthoViewpoint
-          and NavigationInfo nodes defined inside the MainScene.
-
-          Later changes to nodes Viewpoint/NavigatioInfo using X3D events inside
-          MainScene may also influence the @link(Camera) and @link(Navigation).
-          For example in X3D you can animate the Viewpoint position,
-          and it will actually animate our @link(Camera) position.
-
-          If both @link(AutoCamera) and @link(AutoNavigation) are @false,
-          none of these things are applied.
-        )
-
-        @item(Determines what background is rendered.
-          If the MainScene contains an X3D Background node (or other
-          node descending from TAbstractBackgroundNode),
-          it will be used.
-
-          Otherwise we render a background using @link(BackgroundColor).
-
-          Note that when @link(Transparent) is @true,
-          we never render any background (neither from MainScene,
-          nor from @link(BackgroundColor)).
-        )
-
-        @item(Determines whether headlight is used if @link(UseHeadlight)
-          is hlMainScene. The value of
-          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
-          then determines the headlight.
-          The initial
-          @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
-          value depends on the X3D NavigationInfo node inside MainScene.)
-
-        @item(Determines the main light casting shadow volumes.)
-
-        @item(Determines lights shining on all scenes, if @link(UseGlobalLights).)
-
-        @item(Determines fog on all scenes, if @link(UseGlobalFog).)
-
-        @link(The screen effects defined inside MainScene (TScreenEffectNode)
-          are automatically used.)
-
-        @link(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
-          even if mouse cursor is not pointing at the MainScene.
-          This way MainScene reliably knows when you move mouse such that it
-          @italic(no longer) points at the MainScene.)
-      )
-
-      Freeing MainScene will automatically set this property to @nil. }
-    property MainScene: TCastleScene read FMainScene write SetMainScene;
-
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
@@ -1327,7 +1268,6 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
     procedure CheckSceneManagerAssigned;
   protected
-    function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
@@ -1835,12 +1775,12 @@ begin
 
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
-  if GetMainScene <> nil then
-    GetMainScene.BackgroundSkySphereRadius :=
+  if Items.MainScene <> nil then
+    Items.MainScene.BackgroundSkySphereRadius :=
       TBackground.NearFarToSkySphereRadius(
         FProjection.ProjectionNear,
         FProjection.ProjectionFarFinite,
-        GetMainScene.BackgroundSkySphereRadius);
+        Items.MainScene.BackgroundSkySphereRadius);
 end;
 
 function TCastleAbstractViewport.ItemsBoundingBox: TBox3D;
@@ -2057,8 +1997,8 @@ end;
 
 function TCastleAbstractViewport.Background: TBackground;
 begin
-  if GetMainScene <> nil then
-    Result := GetMainScene.InternalBackground
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.InternalBackground
   else
     Result := nil;
 end;
@@ -2066,8 +2006,9 @@ end;
 function TCastleAbstractViewport.MainLightForShadows(
   out AMainLightPosition: TVector4): boolean;
 begin
-  if GetMainScene <> nil then
-    Result := GetMainScene.MainLightForShadows(AMainLightPosition) else
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.MainLightForShadows(AMainLightPosition)
+  else
     Result := false;
 end;
 
@@ -2158,8 +2099,8 @@ begin
 
   { initialize FPrepareParams.InternalGlobalFog }
   if UseGlobalFog and
-     (GetMainScene <> nil) then
-    FPrepareParams.InternalGlobalFog := GetMainScene.FogStack.Top
+     (Items.MainScene <> nil) then
+    FPrepareParams.InternalGlobalFog := Items.MainScene.FogStack.Top
   else
     FPrepareParams.InternalGlobalFog := nil;
 
@@ -2300,23 +2241,23 @@ begin
   FRenderParams.FBaseLights[false].Clear;
   InitializeLights(FRenderParams.FBaseLights[false]);
   if UseGlobalLights and
-     (GetMainScene <> nil) and
-     (GetMainScene.GlobalLights.Count <> 0) then
+     (Items.MainScene <> nil) and
+     (Items.MainScene.GlobalLights.Count <> 0) then
   begin
-    FRenderParams.MainScene := GetMainScene;
+    FRenderParams.MainScene := Items.MainScene;
     { For MainScene, BaseLights are only the ones calculated by InitializeLights }
     FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
     { For others than MainScene, BaseLights are calculated by InitializeLights
-      summed with GetMainScene.GlobalLights. }
-    FRenderParams.FBaseLights[false].AppendInWorldCoordinates(GetMainScene.GlobalLights);
+      summed with Items.MainScene.GlobalLights. }
+    FRenderParams.FBaseLights[false].AppendInWorldCoordinates(Items.MainScene.GlobalLights);
   end else
     { Do not use Params.FBaseLights[true] }
     FRenderParams.MainScene := nil;
 
   { initialize FRenderParams.GlobalFog }
   if UseGlobalFog and
-     (GetMainScene <> nil) then
-    FRenderParams.GlobalFog := GetMainScene.FogStack.Top
+     (Items.MainScene <> nil) then
+    FRenderParams.GlobalFog := Items.MainScene.FogStack.Top
   else
     FRenderParams.GlobalFog := nil;
 
@@ -2697,10 +2638,11 @@ begin
   begin
     if Index = 0 then
       Result := SSAOShader else
-      Result := GetMainScene.ScreenEffects(Index - 1);
+      Result := Items.MainScene.ScreenEffects(Index - 1);
   end else
-  if GetMainScene <> nil then
-    Result := GetMainScene.ScreenEffects(Index) else
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.ScreenEffects(Index)
+  else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
 end;
@@ -2710,8 +2652,9 @@ begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
 
-  if GetMainScene <> nil then
-    Result := GetMainScene.ScreenEffectsCount else
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.ScreenEffectsCount
+  else
     Result := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
@@ -2724,8 +2667,9 @@ begin
 
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Exit(true);
-  if GetMainScene <> nil then
-    Result := GetMainScene.ScreenEffectsNeedDepth else
+  if Items.MainScene <> nil then
+    Result := Items.MainScene.ScreenEffectsNeedDepth
+  else
     Result := false;
 end;
 
@@ -3064,7 +3008,7 @@ var
   Nav: TNavigationType;
 begin
   Box := ItemsBoundingBox;
-  Scene := GetMainScene;
+  Scene := Items.MainScene;
   if Scene <> nil then
   begin
     Nav := Scene.NavigationTypeFromNavigationInfo;
@@ -3099,7 +3043,7 @@ var
   APos, ADir, AUp, NewGravityUp: TVector3;
 begin
   Box := ItemsBoundingBox;
-  Scene := GetMainScene;
+  Scene := Items.MainScene;
   if Scene <> nil then
   begin
     Scene.InternalUpdateCamera(Camera, Box, false, false);
@@ -3290,6 +3234,11 @@ begin
     Result := [];
 end;
 
+function TCastleAbstractViewport.GetMainScene: TCastleScene;
+begin
+  Result := Items.MainScene;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3343,17 +3292,17 @@ begin
   FViewports := TCastleAbstractViewportList.Create(false);
   FViewports.SceneManager := Self;
   if DefaultViewport then FViewports.Add(Self);
+
+  // TODO: move up class
+  Camera.InternalOnSceneBoundViewpointChanged := @MainSceneAndCamera_BoundViewpointChanged;
+  Camera.InternalOnSceneBoundViewpointVectorsChanged := @MainSceneAndCamera_BoundViewpointVectorsChanged;
+  Camera.InternalOnSceneBoundNavigationInfoChanged := @MainSceneAndCamera_BoundNavigationInfoChanged;
 end;
 
 destructor TCastleSceneManager.Destroy;
 var
   I: Integer;
 begin
-  { unregister self from MainScene callbacs,
-    make MainScene.RemoveFreeNotification(Self)... this is all
-    done by SetMainScene(nil) already. }
-  MainScene := nil;
-
   { unregister free notification from these objects }
   SetMouseRayHit(nil);
   AvoidNavigationCollisions := nil;
@@ -3383,61 +3332,6 @@ begin
             (MouseRayHit.IndexOfItem(Item) <> -1);
 end;
 
-procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
-begin
-  if FMainScene <> Value then
-  begin
-    if FMainScene <> nil then
-    begin
-      { When FMainScene = FAvoidNavigationCollisions or inside MouseRayHit, leave free notification }
-      if (not MouseRayHitContains(FMainScene)) and
-         (FMainScene <> FAvoidNavigationCollisions) then
-        FMainScene.RemoveFreeNotification(Self);
-      FMainScene.OnBoundViewpointVectorsChanged := nil;
-      FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
-      { this SetMainScene may happen from MainScene destruction notification,
-        when *Stack is already freed. }
-      if FMainScene.ViewpointStack <> nil then
-        FMainScene.ViewpointStack.OnBoundChanged := nil;
-      if FMainScene.NavigationInfoStack <> nil then
-        FMainScene.NavigationInfoStack.OnBoundChanged := nil;
-    end;
-
-    FMainScene := Value;
-
-    if FMainScene <> nil then
-    begin
-      FMainScene.FreeNotification(Self);
-      FMainScene.OnBoundViewpointVectorsChanged := @SceneBoundViewpointVectorsChanged;
-      FMainScene.OnBoundNavigationInfoFieldsChanged := @SceneBoundNavigationInfoChanged;
-      FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
-      FMainScene.NavigationInfoStack.OnBoundChanged := @SceneBoundNavigationInfoChanged;
-
-      { Call initial CameraChanged (this allows ProximitySensors to work
-        as soon as ProcessEvents becomes true).
-
-        TODO: actually, we should call CameraChanged on all newly added
-        TCastleTransform to Items. This would fix the problem of 1st frame not using BlendingSort
-        for non-MainScene scenes, as in trees_blending/CW_demo.lpr testcase
-        from Eugene.
-
-        TODO: actually this call should not be necessary anymore,
-        as adding item to the hierarchy calls ChangeWorld,
-        which causes UpdateCameraEvents already in TCastleSceneCore.
-        Maybe we should just generalize it, and call CameraChanged always after ChangeWorld?
-        Then the call below to CameraChanged should be removed.
-
-        Do it, and retest on
-        - trees_blending/CW_demo.lpr testcase from Eugene
-        - testcase from Kagamma https://sourceforge.net/p/castle-engine/discussion/general/thread/882ca037/
-        - and make autotest about it.
-      }
-      MainScene.CameraChanged(Camera);
-      ItemsVisibleChange(MainScene, CameraToChanges(Camera));
-    end;
-  end;
-end;
-
 procedure TCastleSceneManager.SetMouseRayHit(const Value: TRayCollision);
 var
   I: Integer;
@@ -3453,8 +3347,7 @@ begin
       for I := 0 to FMouseRayHit.Count - 1 do
       begin
         { leave free notification for 3D item if it's also present somewhere else }
-        if (FMouseRayHit[I].Item <> FMainScene) and
-           (FMouseRayHit[I].Item <> FAvoidNavigationCollisions) then
+        if (FMouseRayHit[I].Item <> FAvoidNavigationCollisions) then
           FMouseRayHit[I].Item.RemoveFreeNotification(Self);
       end;
       FreeAndNil(FMouseRayHit);
@@ -3477,8 +3370,7 @@ begin
     if FAvoidNavigationCollisions <> nil then
     begin
       { leave free notification for FAvoidNavigationCollisions if it's also present somewhere else }
-      if (FAvoidNavigationCollisions <> FMainScene) and
-         (not MouseRayHitContains(FAvoidNavigationCollisions)) then
+      if (not MouseRayHitContains(FAvoidNavigationCollisions)) then
         FAvoidNavigationCollisions.RemoveFreeNotification(Self);
     end;
 
@@ -3522,10 +3414,6 @@ begin
 
   if Operation = opRemove then
   begin
-    { set to nil by methods (like SetMainScene), to clean nicely }
-    if AComponent = FMainScene then
-      MainScene := nil;
-
     if (AComponent is TCastleTransform) and
        MouseRayHitContains(TCastleTransform(AComponent)) then
     begin
@@ -3854,37 +3742,32 @@ begin
     OnBoundNavigationInfoChanged(Self);
 end;
 
-procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
+procedure TCastleSceneManager.MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
 begin
   if AutoCamera then
   begin
-    Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
+    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, false);
     BoundViewpointChanged;
   end;
 end;
 
-procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
+procedure TCastleSceneManager.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 begin
   if AutoNavigation and (Navigation <> nil) then
   begin
-    NavigationType := Scene.NavigationTypeFromNavigationInfo;
-    Scene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
+    NavigationType := Items.MainScene.NavigationTypeFromNavigationInfo;
+    Items.MainScene.InternalUpdateNavigation(Navigation, Items.BoundingBox);
   end;
   BoundNavigationInfoChanged;
 end;
 
-procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
+procedure TCastleSceneManager.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
 begin
   { TODO: It may be useful to enable camera animation by some specific property,
     like AnimateCameraByViewpoint (that works even when AutoCamera = false,
     as we advise for new scene managers). }
   if AutoCamera { or AnimateCameraByViewpoint } then
-    Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
-end;
-
-function TCastleSceneManager.GetMainScene: TCastleScene;
-begin
-  Result := MainScene;
+    Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
 function TCastleSceneManager.GetMouseRayHit: TRayCollision;
@@ -3917,6 +3800,16 @@ end;
 procedure TCastleSceneManager.SetMainCamera(const Value: TCastleCamera);
 begin
   Items.MainCamera := Value;
+end;
+
+function TCastleSceneManager.GetMainSceneInternal: TCastleScene;
+begin
+  Result := Items.MainScene;
+end;
+
+procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
+begin
+  Items.MainScene := Value;
 end;
 
 function TCastleSceneManager.GravityUp: TVector3;
@@ -4041,12 +3934,6 @@ begin
   if SceneManager <> nil then
     Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
     Result := nil;
-end;
-
-function TCastleViewport.GetMainScene: TCastleScene;
-begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.MainScene;
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
