@@ -13,31 +13,37 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of using SceneManager. Shows how you can add many 3D objects to
-  SceneManager.Items tree. For simpler usage,
-  see view_3d_model_basic.lpr first.
+{ Demo of using TCastleTransform hierarchy.
+  Shows how you can add many objects to TCastleViewport.Items tree.
 
-  This reads a couple of 3D files from data/ subdirectory.
+  This reads a couple of models from the data/ subdirectory.
   Their URLs are in the source code below.
   Do not hesitate to experiment, just replace URLs of the 3D models
   with your own, and generally experiment freely with this program :)
 }
-program scene_manager_demos;
+program transform_scenes_demos;
 
-{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleLog, CastleTransform,
   CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties,
-  CastleFilesUtils;
+  CastleFilesUtils, CastleSceneManager;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene, ParticlesScene, DinoScene: TCastleScene;
   DinoTransform1, DinoTransform2: TCastleTransform;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
   Window.FpsShowOnCaption := true;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
@@ -52,21 +58,22 @@ begin
     presses, processing VRML/X3D script nodes etc. }
   Scene.ProcessEvents := true;
 
-  { add Scene to SceneManager }
-  { Add your scene to SceneManager.Items. This is essential,
+  { add Scene to Viewport.Items }
+  { Add your scene to Viewport.Items. This is essential,
     it makes the scene actually rendered, animated etc. }
-  Window.SceneManager.Items.Add(Scene);
-  { Set the scene as SceneManager.MainScene. This is optional
-    (you do have to set SceneManager.MainScene), but usually desired.
-    MainScene is used in various moments when we need a single designated 3D
-    object to do some task. For example, default camera location is taken
-    from Viewpoint VRML/X3D node inside the MainScene. }
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  { Set the scene as Viewport.Items.MainScene.
+    This is optional (you do have to set Viewport.Items.MainScene).
+    Setting MainScene allows to e.g. determine initial camera by the
+    X3D Viewpoint node inside the MainScene (in simple words:
+    you can set the camera in Blender, and it will be used as default
+    camera in the engine). }
+  Viewport.Items.MainScene := Scene;
 
-  { To have some more fun with SceneManager, let's add more 3D objects to it.
-    Let's suppose we want to have SceneManager.Items to be a tree:
+  { To have some more fun with TCastleTransform hierarchy, add more objects to it.
+    We want the Viewport.Items to be a tree:
 
-    SceneManager.Items
+    Viewport.Items
     |- Scene (class TCastleScene)
     |- ParticlesScene (class TCastleScene)
     |- DinoTransform1 (class TCastleTransform)
@@ -94,7 +101,7 @@ begin
   ParticlesScene.ProcessEvents := true;
   ParticlesScene.Translation := Vector3(-15, -4, 0);
   ParticlesScene.Rotation := Vector4(1, 0, 0, -Pi/2);
-  Window.SceneManager.Items.Add(ParticlesScene);
+  Viewport.Items.Add(ParticlesScene);
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
@@ -110,12 +117,12 @@ begin
   { initialize DinoTransform1 }
   DinoTransform1 := TCastleTransform.Create(Application);
   DinoTransform1.Translation := Vector3(-20, -1, -2);
-  Window.SceneManager.Items.Add(DinoTransform1);
+  Viewport.Items.Add(DinoTransform1);
 
   { initialize DinoTransform2 }
   DinoTransform2 := TCastleTransform.Create(Application);
   DinoTransform2.Translation := Vector3(-30, -1, -2);
-  Window.SceneManager.Items.Add(DinoTransform2);
+  Viewport.Items.Add(DinoTransform2);
 
   DinoTransform1.Add(DinoScene);
   DinoTransform2.Add(DinoScene);

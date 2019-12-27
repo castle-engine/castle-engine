@@ -177,7 +177,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/render_3d_to_image \
   examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
-  examples/3d_rendering_processing/scene_manager_demos \
+  examples/3d_rendering_processing/transform_scenes_demos \
   examples/3d_rendering_processing/show_bounding_rect_in_2d \
   examples/3d_rendering_processing/switch_projection \
   examples/3d_rendering_processing/triangulate_demo \
