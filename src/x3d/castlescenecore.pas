@@ -1824,7 +1824,7 @@ type
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TCastleAbstractViewport.MainLightForShadows }
+      @seealso TCastleViewport.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4): boolean;
 
@@ -4658,7 +4658,7 @@ var
 
     { Change light instance on GlobalLights list, if any.
       This way other 3D scenes, using our lights by
-      @link(TCastleAbstractViewport.UseGlobalLights) feature,
+      @link(TCastleViewport.UseGlobalLights) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }
@@ -7141,7 +7141,7 @@ begin
   if RadiusAutomaticallyDerivedFromBox then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
-      (because it can be calculated by each TCastleAbstractViewport.CalculateProjection). }
+      (because it can be calculated by each TCastleViewport.CalculateProjection). }
     ACamera.ProjectionNear := 0
   else
     ACamera.ProjectionNear := Radius * RadiusToProjectionNear;

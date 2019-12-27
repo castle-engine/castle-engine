@@ -725,7 +725,7 @@ type
 
       An example when this is useful is when you use camera MouseLook,
       and the associated viewport does not fill the full window
-      (TCastleAbstractViewport.FullSize is @false, and actual sizes are smaller
+      (TCastleViewport.FullSize is @false, and actual sizes are smaller
       than window, and may not include window center). In this case you want
       to make sure that motion events get passed to this control,
       and that this control has focus (to keep mouse cursor hidden).
@@ -829,8 +829,8 @@ type
 
         @item(or use @link(TCastleSceneManager) with
           @link(TCastleUserInterface.FullSize) = @true and
-          @link(TCastleAbstractViewport.Transparent) = @false and set
-          @link(TCastleAbstractViewport.BackgroundColor) as desired,)
+          @link(TCastleViewport.Transparent) = @false and set
+          @link(TCastleViewport.BackgroundColor) as desired,)
 
         @item(eventually you can also call
           @link(TRenderContext.Clear RenderContext.Clear)
@@ -2560,7 +2560,7 @@ var
       { Calculate cursor looking at Focus.Last.Cursor,
         unless that's mcDefault then look at previous control on Focus list,
         and so on.
-        This is crucial e.g. to allow TCastleAbstractViewport to display
+        This is crucial e.g. to allow TCastleViewport to display
         "hand" cursor over TouchSensor, even when TCastleXxxNavigation within
         this viewport has focus.
       }

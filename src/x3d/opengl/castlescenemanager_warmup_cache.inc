@@ -51,7 +51,7 @@ class procedure TSceneCache.Event(const Cache: TWarmupCache;
 var
   URL: String;
   Scene: TSceneFromCache;
-  TempSceneManager: TCastleSceneManager;
+  TempViewport: TCastleViewport;
 begin
   URL := Element.AttributeURL('url', ElementBaseUrl);
   Scene := TSceneFromCache.Create(nil);
@@ -63,12 +63,12 @@ begin
   // loads the scene using cache, this way other scenes may reload it by DeepCopy
   Scene.LoadFromCache(URL);
 
-  TempSceneManager := TCastleSceneManager.Create(nil);
+  TempViewport := TCastleViewport.Create(nil);
   try
     // loads the textures inside scene
-    TempSceneManager.PrepareResources(Scene, '',
-      TCastleSceneManager.DefaultPrepareOptions - [prRenderSelf]);
-  finally FreeAndNil(TempSceneManager) end;
+    TempViewport.PrepareResources(Scene, '',
+      TCastleViewport.DefaultPrepareOptions - [prRenderSelf]);
+  finally FreeAndNil(TempViewport) end;
 end;
 
 procedure InitializeWarmupCache;

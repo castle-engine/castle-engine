@@ -134,7 +134,7 @@ type
     function Sectors: TSectorList; virtual; abstract;
     function RootTransform: TCastleRootTransform; virtual; abstract;
     { Parameters to prepare rendering for,
-      see @link(TCastleAbstractViewport.PrepareParams). }
+      see @link(TCastleViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;
   end;
 

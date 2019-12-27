@@ -18,7 +18,7 @@
   @bold(This is an internal and deprecated unit).
 
   - Normal applications should not access
-    camera this way (instead use TCastleAbstractViewport.Camera).
+    camera this way (instead use TCastleViewport.Camera).
     However, there are some valid uses for it (like querying
     RenderingCamera.Target to selectively hide some stuff).
 
@@ -27,7 +27,7 @@
 
   @exclude }
 unit CastleRenderingCamera
-  deprecated 'RenderingCamera singleton should not be used; most applications should only deal with camera through SceneManager.Camera (TCastleAbstractViewport.Camera); eventually, if doing custom rendering, you can read TRenderParams.RenderingCamera';
+  deprecated 'RenderingCamera singleton should not be used; most applications should only deal with camera through TCastleViewport.Camera; eventually, if doing custom rendering, you can read TRenderParams.RenderingCamera';
 
 {$I castleconf.inc}
 

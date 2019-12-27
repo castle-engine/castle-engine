@@ -30,13 +30,14 @@ uses SysUtils, Classes, Generics.Collections,
   CastleProjection, CastleScreenEffects;
 
 type
-  TCastleAbstractViewport = class;
+  TCastleViewport = class;
+  TCastleAbstractViewport = TCastleViewport;
   TCastleSceneManager = class;
 
   EViewportSceneManagerMissing = class(Exception)
   end deprecated 'this is never raised anymore';
 
-  TRender3DEvent = procedure (Viewport: TCastleAbstractViewport;
+  TRender3DEvent = procedure (Viewport: TCastleViewport;
     const Params: TRenderParams) of object;
 
   { Internal, special TRenderParams descendant that can return different
@@ -53,12 +54,55 @@ type
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
-  { Event for @link(TCastleAbstractViewport.OnProjection). }
+  { Event for @link(TCastleViewport.OnProjection). }
   TProjectionEvent = procedure (var Parameters: TProjection) of object;
 
-  { Common abstract class for things that may act as a viewport:
-    TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TCastleScreenEffects)
+  { Viewport displays a tree of scenes and transformations
+    (TCastleTransform and TCastleScene).
+    Add the scenes and transformations to @link(Items).
+
+    For some features, that require a notion of "main" scene,
+    it is useful to set @link(TCastleRootTransform.MainScene Items.MainScene).
+    See the @link(TCastleRootTransform.MainScene) docs.
+
+    Each viewport has a @link(Camera) with a position and orientation.
+    The initial camera may be auto-detected if @link(AutoCamera).
+
+    Viewport may also have a @link(Navigation) that allows to move
+    camera by keyboard, mouse and other inputs.
+    You can use TCastleExamineNavigation or TCastleWalkNavigation instances.
+    You can also implement your own navigation method
+    (as a TCastleNavigation descendant,
+    or just move/rotate the camera by calling @link(TCastleCamera.SetView) from anywhere).
+    The inital navigation method may be auto-detected if @link(AutoNavigation).
+
+    Viewport may clear the screen at the beginning,
+    with a solid color or using a TAbstractBackgroundNode defined in
+    @link(TCastleRootTransform.MainScene Items.MainScene).
+    This way you can use e.g. a skybox.
+    You can control this using @link(Transparent), @link(BackgroundColor) properties.
+
+    Viewport may also add headlight to the scene,
+    see @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight).
+
+    Multiple viewports can display the same world.
+    To do this, simply copy @link(Items) reference from one
+    TCastleViewport to another. You can also just create your own @link(TCastleRootTransform)
+    instance and then assign it to multiple viewports.
+    This allows e.g. to make a split-screen game (played by 2 people,
+    with 2 viewports, on a single monitor).
+    Or you can show in a 3D FPS game an additional view from some security camera,
+    or from a flying rocket.
+    For examples of using multiple viewports see:
+
+    @unorderedList(
+      @item(Explanation with an example:
+        https://castle-engine.io/manual_2d_user_interface.php#section_viewport)
+      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
+      @item(Example in engine sources: examples/fps_game/)
+    )
+  }
+  TCastleViewport = class(TCastleScreenEffects)
   strict private
     type
       TScreenPoint = packed record
@@ -164,12 +208,13 @@ type
     { @groupEnd }
 
     procedure SetNavigation(const Value: TCastleNavigation);
-
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
+    procedure SetSceneManager(const Value: TCastleSceneManager);
   private
     var
       FNavigation: TCastleNavigation;
       FProjection: TProjection;
+      FSceneManager: TCastleSceneManager;
 
     class procedure CreateComponentSetup2D(Sender: TObject);
 
@@ -239,7 +284,7 @@ type
       or orthogonal and exact field of view parameters.
       Called each time at the beginning of rendering.
 
-      The default implementation of this method in TCastleAbstractViewport
+      The default implementation of this method in TCastleViewport
       calculates projection based on the @link(Camera) parameters.
 
       In turn, the @link(Camera) parameters may be automatically
@@ -475,7 +520,7 @@ type
       and @link(AutoNavigation).
       You can also use it explicitly.
 
-      The implementation in base TCastleAbstractViewport uses
+      The implementation in base TCastleViewport uses
       @link(TCastleSceneCore.NavigationTypeFromNavigationInfo MainScene.NavigationTypeFromNavigationInfo)
       and
       @link(TCastleSceneCore.InternalUpdateNavigation MainScene.InternalUpdateNavigation),
@@ -756,6 +801,9 @@ type
     { See @link(TCastleRootTransform.Paused). }
     property Paused: boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
+
+    property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
+      deprecated 'assign Items from one TCastleViewport to another to view the same world from multiple viewports';
   published
     { Transformations and scenes visible in this viewport.
       You should add here your @link(TCastleTransform) and @link(TCastleScene)
@@ -993,63 +1041,28 @@ type
     property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
 
   {$define read_interface_class}
-  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_interface_class}
   end;
 
-  TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
+  TCastleViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleViewport>)
   private
     SceneManager: TCastleSceneManager;
   protected
-    procedure Notify(constref Value: TCastleAbstractViewport;
+    procedure Notify(constref Value: TCastleViewport;
       Action: TCollectionNotification); override;
-  end;
+  end deprecated 'internal for TCastleSceneManager';
 
-  { Scene manager that knows about all 3D things inside your world.
-
-    Single scenes/models (like TCastleScene instances)
-    can be rendered directly, but it's not always comfortable.
-    Scenes have to assume that they are "one of the many" inside your 3D world,
-    which means that multi-pass rendering techniques have to be implemented
-    at a higher level. This concerns the need for multiple passes from
-    the same camera (for shadow volumes) and multiple passes from different
-    cameras (for generating textures for shadow maps, cube map environment etc.).
-
-    Scene manager overcomes this limitation. A single SceneManager object
-    knows about all 3D things in your world, and renders them all for you,
-    taking care of doing multiple rendering passes for particular features.
-    Naturally, it also serves as container for all your visible 3D scenes.
-
-    @link(Items) property keeps a tree of TCastleTransform objects.
-    TCastleTransform and TCastleScene can be added to this tree.
-    Naturally you can implement your own TCastleTransform descendants,
-    representing any (possibly dynamic, animated and even interactive) object.
-
-    TCastleSceneManager.Render can assume that it's the @italic(only) manager rendering
-    to the screen (although you can safely render more 3D geometry *after*
-    calling TCastleSceneManager.Render). So it's Render method takes care of
-
-    @unorderedList(
-      @item(clearing the screen,)
-      @item(rendering the background of the scene,)
-      @item(rendering the headlight,)
-      @item(rendering the scene from given camera,)
-      @item(and making multiple passes for shadow volumes and generated textures.)
-    )
-
-    For some of these features, you'll have to set the @link(MainScene) property.
-
-    This is a TCastleUserInterface descendant, which means it's advised usage
-    is to add this to TCastleWindowBase.Controls or TCastleControlBase.Controls.
-    This passes relevant TCastleUserInterface events to all the TCastleTransform objects inside.
-    Note that even when you set DefaultViewport = @false
-    (and use custom viewports, by TCastleViewport class, to render your 3D world),
-    you still should add scene manager to the controls list
-    (this allows e.g. 3D items to receive @link(Update) events). }
-  TCastleSceneManager = class(TCastleAbstractViewport)
+  { Deprecated way to manage transformatiosn and scenes.
+    To upgrade:
+    - use @link(TCastleViewport)
+    - set FullSize, AutoCamera and AutoNavigation to true. }
+  TCastleSceneManager = class(TCastleViewport)
   strict private
     FDefaultViewport: boolean;
-    FViewports: TCastleAbstractViewportList;
+    {$warnings off} // using deprecated in deprecated
+    FViewports: TCastleViewportList;
+    {$warnings on}
 
     function GetMoveLimit: TBox3D;
     procedure SetMoveLimit(const Value: TBox3D);
@@ -1087,7 +1100,7 @@ type
       in this unit (when you change TCastleViewport.SceneManager
       or TCastleSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
-    property Viewports: TCastleAbstractViewportList read FViewports;
+    property Viewports: TCastleViewportList read FViewports;
 
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; deprecated 'use Camera.GravityUp';
@@ -1125,61 +1138,7 @@ type
       for making your world visible. }
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
-  end;
-
-  { Custom 2D viewport showing 3D world. This uses assigned SceneManager
-    to show 3D world on the screen.
-
-    For simple games, using this is not needed, because TCastleSceneManager
-    also acts as a viewport (when TCastleSceneManager.DefaultViewport is @true,
-    which is the default).
-    Using custom viewports (implemented by this class)
-    is useful when you want to have more than one viewport showing
-    the same 3D world. Different viewports may have different cameras,
-    but they always share the same 3D world (in scene manager).
-
-    You can control the size of this viewport by
-    @link(TCastleUserInterface.FullSize FullSize),
-    @link(TCastleUserInterface.Left Left),
-    @link(TCastleUserInterface.Bottom Bottom),
-    @link(TCastleUserInterface.Width Width),
-    @link(TCastleUserInterface.Height Height) properties. For custom
-    viewports, you often want to set FullSize = @false
-    and control viewport's position and size explicitly.
-
-    Viewports may be overlapping, that is one viewport may (partially)
-    obscure another viewport. Just like with any other TCastleUserInterface,
-    position of viewport on the Controls list
-    (like TCastleControlBase.Controls or TCastleWindowBase.Controls)
-    is important: Controls are specified in the back-to-front order.
-    That is, if the viewport A may obscure viewport B,
-    then A must be after B on the Controls list.
-
-    The viewports are a cool feature for many cases.
-    For example typical 3D modeling programs have 4 viewports to view the model
-    from various sides.
-    Or you can make a split-screen game, played by 2 people on a single monitor.
-    Or you can show in a 3D FPS game an additional view from some security camera,
-    or from a flying rocket.
-    For examples of using viewports see:
-
-    @unorderedList(
-      @item(Explanation with an example:
-        https://castle-engine.io/tutorial_2d_user_interface.php#section_viewport)
-      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
-      @item(Example in engine sources: examples/fps_game/)
-    )
-  }
-  TCastleViewport = class(TCastleAbstractViewport)
-  private
-    FSceneManager: TCastleSceneManager;
-    procedure SetSceneManager(const Value: TCastleSceneManager);
-  public
-    destructor Destroy; override;
-  published
-    property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
-      deprecated 'assign Items from one TCastleViewport to another to view the same world from multiple viewports';
-  end;
+  end deprecated 'use only TCastleViewport to render transform/scenes';
 
 procedure Register;
 
@@ -1238,9 +1197,9 @@ begin
   Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
 end;
 
-{ TCastleAbstractViewport ------------------------------------------------------- }
+{ TCastleViewport ------------------------------------------------------- }
 
-constructor TCastleAbstractViewport.Create(AOwner: TComponent);
+constructor TCastleViewport.Create(AOwner: TComponent);
 begin
   inherited;
   FBackgroundColor := DefaultBackgroundColor;
@@ -1272,12 +1231,16 @@ begin
   FItems.MainCamera := Camera;
 
   {$define read_implementation_constructor}
-  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_constructor}
 end;
 
-destructor TCastleAbstractViewport.Destroy;
+destructor TCastleViewport.Destroy;
 begin
+  {$warnings off} // only to keep deprecated feature working
+  SceneManager := nil; { remove Self from SceneManager.Viewports }
+  {$warnings on}
+
   { unregister free notification from these objects }
   SetMouseRayHit(nil);
   AvoidNavigationCollisions := nil;
@@ -1306,12 +1269,12 @@ begin
   FreeAndNil(FPrepareParams);
 
   {$define read_implementation_destructor}
-  {$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+  {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
   {$undef read_implementation_destructor}
   inherited;
 end;
 
-function TCastleAbstractViewport.FillsWholeContainer: boolean;
+function TCastleViewport.FillsWholeContainer: boolean;
 begin
   if Container = nil then
     Result := FullSize
@@ -1319,7 +1282,7 @@ begin
     Result := RenderRect.Round.Equals(Container.Rect);
 end;
 
-procedure TCastleAbstractViewport.SetNavigation(const Value: TCastleNavigation);
+procedure TCastleViewport.SetNavigation(const Value: TCastleNavigation);
 begin
   { Scene manager / viewport will handle passing events to their camera,
     and will also pass our own Container to Camera.Container.
@@ -1386,7 +1349,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleViewport.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -1416,7 +1379,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.Press(const Event: TInputPressRelease): boolean;
+function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1439,7 +1402,7 @@ begin
     Exit(ExclusiveEvents);
 end;
 
-function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
+function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1453,7 +1416,7 @@ begin
     Exit(ExclusiveEvents);
 end;
 
-function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
+function TCastleViewport.Motion(const Event: TInputMotion): boolean;
 
   function IsTouchSensorActiveInScene(const Scene: TCastleTransform): boolean;
   var
@@ -1530,7 +1493,7 @@ begin
   RecalculateCursor(Self);
 end;
 
-procedure TCastleAbstractViewport.UpdateMouseRayHit;
+procedure TCastleViewport.UpdateMouseRayHit;
 var
   RayOrigin, RayDirection: TVector3;
 begin
@@ -1538,7 +1501,7 @@ begin
   PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
-procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
+procedure TCastleViewport.RecalculateCursor(Sender: TObject);
 begin
   if { This may be called from TCastleViewport without SceneManager assigned. }
      (Items = nil) or
@@ -1574,7 +1537,7 @@ begin
     Cursor := mcDefault;
 end;
 
-function TCastleAbstractViewport.TriangleHit: PTriangle;
+function TCastleViewport.TriangleHit: PTriangle;
 begin
   if (MouseRayHit <> nil) and
      (MouseRayHit.Count <> 0) then
@@ -1583,7 +1546,7 @@ begin
     Result := nil;
 end;
 
-procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
+procedure TCastleViewport.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
   SecondsPassedScaled: Single;
@@ -1641,12 +1604,12 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-function TCastleAbstractViewport.AllowSuspendForInput: boolean;
+function TCastleViewport.AllowSuspendForInput: boolean;
 begin
   Result := Items.Paused;
 end;
 
-procedure TCastleAbstractViewport.EnsureCameraDetected;
+procedure TCastleViewport.EnsureCameraDetected;
 begin
   if AutoCamera and not AssignDefaultCameraDone then
     AssignDefaultCamera;
@@ -1657,7 +1620,7 @@ begin
   AssignDefaultCameraDone := true;
 end;
 
-procedure TCastleAbstractViewport.ApplyProjection;
+procedure TCastleViewport.ApplyProjection;
 var
   Viewport: TRectangle;
   AspectRatio: Single;
@@ -1699,7 +1662,7 @@ begin
         Items.MainScene.BackgroundSkySphereRadius);
 end;
 
-function TCastleAbstractViewport.ItemsBoundingBox: TBox3D;
+function TCastleViewport.ItemsBoundingBox: TBox3D;
 begin
   if Items <> nil then
     Result := Items.BoundingBox
@@ -1707,7 +1670,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function TCastleAbstractViewport.IsStoredNavigation: Boolean;
+function TCastleViewport.IsStoredNavigation: Boolean;
 begin
   { Do not store Navigation when it is an internal instance
     (set by AutoNavigation being true at some point).
@@ -1717,7 +1680,7 @@ begin
     (not (csTransient in Navigation.ComponentStyle));
 end;
 
-procedure TCastleAbstractViewport.SetAutoCamera(const Value: Boolean);
+procedure TCastleViewport.SetAutoCamera(const Value: Boolean);
 begin
   if FAutoCamera <> Value then
   begin
@@ -1755,7 +1718,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.CalculateProjection: TProjection;
+function TCastleViewport.CalculateProjection: TProjection;
 var
   Box: TBox3D;
   Viewport: TFloatRectangle;
@@ -1911,7 +1874,7 @@ begin
 }
 end;
 
-function TCastleAbstractViewport.Background: TBackground;
+function TCastleViewport.Background: TBackground;
 begin
   if Items.MainScene <> nil then
     Result := Items.MainScene.InternalBackground
@@ -1919,7 +1882,7 @@ begin
     Result := nil;
 end;
 
-function TCastleAbstractViewport.MainLightForShadows(
+function TCastleViewport.MainLightForShadows(
   out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
@@ -1928,7 +1891,7 @@ begin
     Result := false;
 end;
 
-procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
+procedure TCastleViewport.Render3D(const Params: TRenderParams);
 begin
   Params.Frustum := @Params.RenderingCamera.Frustum;
   Items.Render(Params);
@@ -1936,12 +1899,12 @@ begin
     FOnRender3D(Self, Params);
 end;
 
-procedure TCastleAbstractViewport.RenderShadowVolume;
+procedure TCastleViewport.RenderShadowVolume;
 begin
   Items.RenderShadowVolume(FShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
-procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
+procedure TCastleViewport.InitializeLights(const Lights: TLightInstancesList);
 var
   HI: TLightInstance;
 begin
@@ -1951,7 +1914,7 @@ begin
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
+function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
 var
   Node: TAbstractLightNode;
   HC: TCastleCamera;
@@ -1999,7 +1962,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.PrepareParams: TPrepareParams;
+function TCastleViewport.PrepareParams: TPrepareParams;
 { Note: you cannot refer to PrepareParams inside
   the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
   as they may change the referenced PrepareParams.InternalBaseLights value.
@@ -2023,12 +1986,12 @@ begin
   Result := FPrepareParams;
 end;
 
-function TCastleAbstractViewport.BaseLights: TLightInstancesList;
+function TCastleViewport.BaseLights: TLightInstancesList;
 begin
   Result := PrepareParams.InternalBaseLights as TLightInstancesList;
 end;
 
-procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
+procedure TCastleViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderNoShadows;
   begin
@@ -2060,7 +2023,7 @@ begin
     RenderNoShadows;
 end;
 
-procedure TCastleAbstractViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
+procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRenderingCamera);
 
   { Call RenderContext.Clear with proper options. }
   procedure RenderClear;
@@ -2180,7 +2143,7 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
+procedure TCastleViewport.RenderWithScreenEffectsCore;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
@@ -2287,7 +2250,7 @@ begin
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
 end;
 
-function TCastleAbstractViewport.RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
+function TCastleViewport.RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
@@ -2516,7 +2479,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCastleCamera);
+procedure TCastleViewport.RenderOnScreen(ACamera: TCastleCamera);
 begin
   RenderingCamera.Target := rtScreen;
   RenderingCamera.FromCameraObject(ACamera);
@@ -2536,7 +2499,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.Render;
+procedure TCastleViewport.Render;
 begin
   inherited;
   ApplyProjection;
@@ -2545,7 +2508,7 @@ begin
   RenderOnScreen(Camera);
 end;
 
-function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
+function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2563,7 +2526,7 @@ begin
     Result := nil;
 end;
 
-function TCastleAbstractViewport.ScreenEffectsCount: Integer;
+function TCastleViewport.ScreenEffectsCount: Integer;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2576,7 +2539,7 @@ begin
     Inc(Result);
 end;
 
-function TCastleAbstractViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleViewport.ScreenEffectsNeedDepth: boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2589,7 +2552,7 @@ begin
     Result := false;
 end;
 
-procedure TCastleAbstractViewport.SSAOShaderInitialize;
+procedure TCastleViewport.SSAOShaderInitialize;
 begin
   { Do not retry creating SSAOShader if SSAOShaderInitialize was already called.
     Even if SSAOShader is nil (when SSAOShaderInitialize = true but
@@ -2618,7 +2581,7 @@ begin
   SSAOShaderInitialized := true;
 end;
 
-procedure TCastleAbstractViewport.GLContextOpen;
+procedure TCastleViewport.GLContextOpen;
 begin
   inherited;
 
@@ -2633,7 +2596,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.GLContextClose;
+procedure TCastleViewport.GLContextClose;
 begin
   FreeAndNil(FShadowVolumeRenderer);
 
@@ -2651,13 +2614,13 @@ begin
   inherited;
 end;
 
-function TCastleAbstractViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
+function TCastleViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
 begin
   SSAOShaderInitialize;
   Result := (SSAOShader <> nil);
 end;
 
-procedure TCastleAbstractViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
+procedure TCastleViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
 begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
@@ -2666,14 +2629,14 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.RequiredCamera: TCastleNavigation;
+function TCastleViewport.RequiredCamera: TCastleNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := RequiredNavigation;
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.RequiredNavigation: TCastleNavigation;
+function TCastleViewport.RequiredNavigation: TCastleNavigation;
 begin
   { For backward-compatibility, this also initializes Camera vectors
     (even though the method docs only guarantee that it initializes Navigation,
@@ -2690,21 +2653,21 @@ begin
   Result := Navigation;
 end;
 
-function TCastleAbstractViewport.InternalExamineCamera: TCastleExamineNavigation;
+function TCastleViewport.InternalExamineCamera: TCastleExamineNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := InternalExamineNavigation;
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.InternalWalkCamera: TCastleWalkNavigation;
+function TCastleViewport.InternalWalkCamera: TCastleWalkNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := InternalWalkNavigation;
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.InternalExamineNavigation: TCastleExamineNavigation;
+function TCastleViewport.InternalExamineNavigation: TCastleExamineNavigation;
 begin
   if FInternalExamineNavigation = nil then
   begin
@@ -2718,7 +2681,7 @@ begin
   Result := FInternalExamineNavigation;
 end;
 
-function TCastleAbstractViewport.InternalWalkNavigation: TCastleWalkNavigation;
+function TCastleViewport.InternalWalkNavigation: TCastleWalkNavigation;
 begin
   if FInternalWalkNavigation = nil then
   begin
@@ -2732,7 +2695,7 @@ begin
   Result := FInternalWalkNavigation;
 end;
 
-function TCastleAbstractViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
+function TCastleViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
 var
   NewNavigation: TCastleExamineNavigation;
 begin
@@ -2762,14 +2725,14 @@ begin
   Result := Navigation as TCastleExamineNavigation;
 end;
 
-function TCastleAbstractViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
+function TCastleViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := ExamineNavigation(SwitchNavigationTypeIfNeeded);
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
+function TCastleViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
 var
   NewNavigation: TCastleWalkNavigation;
 begin
@@ -2799,14 +2762,14 @@ begin
   Result := Navigation as TCastleWalkNavigation;
 end;
 
-function TCastleAbstractViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
+function TCastleViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := WalkNavigation(SwitchNavigationTypeIfNeeded);
   {$warnings on}
 end;
 
-function TCastleAbstractViewport.GetNavigationType: TNavigationType;
+function TCastleViewport.GetNavigationType: TNavigationType;
 var
   C: TCastleNavigation;
 begin
@@ -2822,7 +2785,7 @@ begin
     Result := C.GetNavigationType;
 end;
 
-procedure TCastleAbstractViewport.SetNavigationType(const Value: TNavigationType);
+procedure TCastleViewport.SetNavigationType(const Value: TNavigationType);
 var
   E: TCastleExamineNavigation;
   W: TCastleWalkNavigation;
@@ -2897,7 +2860,7 @@ begin
         W.Gravity := false;
       end;
     {$ifndef COMPILER_CASE_ANALYSIS}
-    else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
+    else raise EInternalError.Create('TCastleViewport.SetNavigationType: Value?');
     {$endif}
   end;
 
@@ -2912,14 +2875,14 @@ begin
   BoundNavigationInfoChanged;
 end;
 
-procedure TCastleAbstractViewport.ClearCameras;
+procedure TCastleViewport.ClearCameras;
 begin
   Navigation := nil;
   FreeAndNil(FInternalExamineNavigation);
   FreeAndNil(FInternalWalkNavigation);
 end;
 
-procedure TCastleAbstractViewport.AssignDefaultNavigation;
+procedure TCastleViewport.AssignDefaultNavigation;
 var
   Box: TBox3D;
   Scene: TCastleScene;
@@ -2955,7 +2918,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.AssignDefaultCamera;
+procedure TCastleViewport.AssignDefaultCamera;
 var
   Box: TBox3D;
   Scene: TCastleScene;
@@ -2981,12 +2944,12 @@ begin
   AssignDefaultCameraDone := true;
 end;
 
-function TCastleAbstractViewport.Statistics: TRenderStatistics;
+function TCastleViewport.Statistics: TRenderStatistics;
 begin
   Result := FRenderParams.Statistics;
 end;
 
-procedure TCastleAbstractViewport.Setup2D;
+procedure TCastleViewport.Setup2D;
 begin
   Camera.Init(
     { pos } Vector3(0, 0, Default2DCameraZ),
@@ -3000,7 +2963,7 @@ begin
   AutoCamera := false;
 end;
 
-function TCastleAbstractViewport.PositionToWorldPlane(const Position: TVector2;
+function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
   const ScreenCoordinates: Boolean;
   const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 var
@@ -3021,7 +2984,7 @@ begin
     RayOrigin, RayDirection);
 end;
 
-function TCastleAbstractViewport.PositionTo2DWorld(const Position: TVector2;
+function TCastleViewport.PositionTo2DWorld(const Position: TVector2;
   const ScreenCoordinates: Boolean): TVector2;
 
 { Version 1:
@@ -3114,7 +3077,7 @@ begin
   Result := CameraToWorldMatrix.MultPoint(Vector3(P, 0)).XY;
 end;
 
-procedure TCastleAbstractViewport.SetItems(const Value: TCastleRootTransform);
+procedure TCastleViewport.SetItems(const Value: TCastleRootTransform);
 begin
   if FItems <> Value then
   begin
@@ -3124,7 +3087,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
+procedure TCastleViewport.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 begin
   { merely schedule broadcasting this change to a later time.
     This way e.g. animating a lot of transformations doesn't cause a lot of
@@ -3134,17 +3097,17 @@ begin
   ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
-function TCastleAbstractViewport.GetPaused: Boolean;
+function TCastleViewport.GetPaused: Boolean;
 begin
   Result := Items.Paused;
 end;
 
-procedure TCastleAbstractViewport.SetPaused(const Value: Boolean);
+procedure TCastleViewport.SetPaused(const Value: Boolean);
 begin
   Items.Paused := Value;
 end;
 
-function TCastleAbstractViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
+function TCastleViewport.CameraToChanges(const ACamera: TCastleCamera): TVisibleChanges;
 begin
   // headlight exists, and we changed camera controlling headlight
   if (Items.InternalHeadlight <> nil) and
@@ -3154,18 +3117,18 @@ begin
     Result := [];
 end;
 
-function TCastleAbstractViewport.GetMainScene: TCastleScene;
+function TCastleViewport.GetMainScene: TCastleScene;
 begin
   Result := Items.MainScene;
 end;
 
-function TCastleAbstractViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
+function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
 begin
   Result := (MouseRayHit <> nil) and
             (MouseRayHit.IndexOfItem(Item) <> -1);
 end;
 
-procedure TCastleAbstractViewport.SetMouseRayHit(const Value: TRayCollision);
+procedure TCastleViewport.SetMouseRayHit(const Value: TRayCollision);
 var
   I: Integer;
 begin
@@ -3196,7 +3159,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.SetAvoidNavigationCollisions(const Value: TCastleTransform);
+procedure TCastleViewport.SetAvoidNavigationCollisions(const Value: TCastleTransform);
 begin
   if FAvoidNavigationCollisions <> Value then
   begin
@@ -3214,7 +3177,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.PrepareResources(const Item: TCastleTransform;
+procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
   const DisplayProgressTitle: string;
   Options: TPrepareResourcesOptions);
 var
@@ -3253,13 +3216,13 @@ begin
     Item.PrepareResources(Options, false, PrepareParams);
 end;
 
-procedure TCastleAbstractViewport.PrepareResources(const DisplayProgressTitle: string;
+procedure TCastleViewport.PrepareResources(const DisplayProgressTitle: string;
   const Options: TPrepareResourcesOptions);
 begin
   PrepareResources(Items, DisplayProgressTitle, Options);
 end;
 
-procedure TCastleAbstractViewport.BeforeRender;
+procedure TCastleViewport.BeforeRender;
 begin
   inherited;
 
@@ -3273,7 +3236,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.PointingDeviceActivate(const Active: boolean): boolean;
+function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
 
   { Try PointingDeviceActivate on 3D stuff hit by RayHit }
   function TryActivate(RayHit: TRayCollision): boolean;
@@ -3367,19 +3330,19 @@ begin
     PointingDeviceActivateFailed(Active);
 end;
 
-function TCastleAbstractViewport.PointingDeviceActivate3D(const Item: TCastleTransform;
+function TCastleViewport.PointingDeviceActivate3D(const Item: TCastleTransform;
   const Active: boolean; const Distance: Single): boolean;
 begin
   Result := Item.PointingDeviceActivate(Active, Distance);
 end;
 
-procedure TCastleAbstractViewport.PointingDeviceActivateFailed(const Active: boolean);
+procedure TCastleViewport.PointingDeviceActivateFailed(const Active: boolean);
 begin
   if Active then
     SoundEngine.Sound(stPlayerInteractFailed);
 end;
 
-function TCastleAbstractViewport.PointingDeviceMove(
+function TCastleViewport.PointingDeviceMove(
   const RayOrigin, RayDirection: TVector3): boolean;
 var
   PassToMainScene: boolean;
@@ -3425,7 +3388,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
+procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
   const ChangeInitiatedByChildren: boolean = false);
 
   procedure CameraChange;
@@ -3440,7 +3403,7 @@ procedure TCastleAbstractViewport.VisibleChange(const Changes: TCastleUserInterf
         Note that we have to call it on all Items, not just MainScene,
         to make ProximitySensor, Billboard etc. to work in all scenes, not just in MainScene. }
       Items.CameraChanged(Camera);
-      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleAbstractViewport),
+      { ItemsVisibleChange may again cause this VisibleChange (if we are TCastleViewport),
         but without chCamera, so no infinite recursion. }
       ItemsVisibleChange(Items, CameraToChanges(Camera));
 
@@ -3458,7 +3421,7 @@ begin
     CameraChange;
 end;
 
-function TCastleAbstractViewport.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
+function TCastleViewport.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
   const ProposedNewPos: TVector3; out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -3476,7 +3439,7 @@ begin
       Box3DAroundPoint(ProposedNewPos, ANavigation.Radius * 2), BecauseOfGravity);
 end;
 
-function TCastleAbstractViewport.NavigationHeight(ANavigation: TCastleWalkNavigation;
+function TCastleViewport.NavigationHeight(ANavigation: TCastleWalkNavigation;
   const Position: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
@@ -3489,7 +3452,7 @@ begin
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 end;
 
-function TCastleAbstractViewport.CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
+function TCastleViewport.CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   { Both version result in calling WorldRay.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
@@ -3500,19 +3463,19 @@ begin
     Result := Items.WorldRay(RayOrigin, RayDirection);
 end;
 
-procedure TCastleAbstractViewport.BoundViewpointChanged;
+procedure TCastleViewport.BoundViewpointChanged;
 begin
   if Assigned(OnBoundViewpointChanged) then
     OnBoundViewpointChanged(Self);
 end;
 
-procedure TCastleAbstractViewport.BoundNavigationInfoChanged;
+procedure TCastleViewport.BoundNavigationInfoChanged;
 begin
   if Assigned(OnBoundNavigationInfoChanged) then
     OnBoundNavigationInfoChanged(Self);
 end;
 
-procedure TCastleAbstractViewport.MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
+procedure TCastleViewport.MainSceneAndCamera_BoundViewpointChanged(Sender: TObject);
 begin
   if AutoCamera then
   begin
@@ -3521,7 +3484,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
+procedure TCastleViewport.MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 begin
   if AutoNavigation and (Navigation <> nil) then
   begin
@@ -3531,7 +3494,7 @@ begin
   BoundNavigationInfoChanged;
 end;
 
-procedure TCastleAbstractViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
+procedure TCastleViewport.MainSceneAndCamera_BoundViewpointVectorsChanged(Sender: TObject);
 begin
   { TODO: It may be useful to enable camera animation by some specific property,
     like AnimateCameraByViewpoint (that works even when AutoCamera = false,
@@ -3540,18 +3503,32 @@ begin
     Items.MainScene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
-class procedure TCastleAbstractViewport.CreateComponentSetup2D(Sender: TObject);
+class procedure TCastleViewport.CreateComponentSetup2D(Sender: TObject);
 begin
-  (Sender as TCastleAbstractViewport).Setup2D;
+  (Sender as TCastleViewport).Setup2D;
+end;
+
+procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
+begin
+  {$warnings off} // only to keep deprecated feature working
+  if Value <> FSceneManager then
+  begin
+    if SceneManager <> nil then
+      SceneManager.Viewports.Remove(Self);
+    FSceneManager := Value;
+    if SceneManager <> nil then
+      SceneManager.Viewports.Add(Self);
+  end;
+  {$warnings on}
 end;
 
 {$define read_implementation_methods}
-{$I auto_generated_persistent_vectors/tcastleabstractviewport_persistent_vectors.inc}
+{$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TCastleAbstractViewportList -------------------------------------------------- }
+{ TCastleViewportList -------------------------------------------------- }
 
-procedure TCastleAbstractViewportList.Notify(constref Value: TCastleAbstractViewport;
+procedure TCastleViewportList.Notify(constref Value: TCastleViewport;
   Action: TCollectionNotification);
 begin
   inherited;
@@ -3577,7 +3554,9 @@ begin
 
   FDefaultViewport := true;
 
-  FViewports := TCastleAbstractViewportList.Create(false);
+  {$warnings off} // using deprecated in deprecated
+  FViewports := TCastleViewportList.Create(false);
+  {$warnings on}
   FViewports.SceneManager := Self;
   if DefaultViewport then FViewports.Add(Self);
 end;
@@ -3591,7 +3570,10 @@ begin
     for I := 0 to FViewports.Count - 1 do
       if FViewports[I] is TCastleViewport then
       begin
+        {$warnings off} // using deprecated in deprecated
         Assert(TCastleViewport(FViewports[I]).SceneManager = Self);
+        {$warnings on}
+
         { Set SceneManager by direct field (FSceneManager),
           otherwise TCastleViewport.SetSceneManager would try to update
           our Viewports list, that we iterate over right now... }
@@ -3689,26 +3671,6 @@ end;
 procedure TCastleSceneManager.SetTimeScale(const Value: Single);
 begin
   Items.TimeScale := Value;
-end;
-
-{ TCastleViewport --------------------------------------------------------------- }
-
-destructor TCastleViewport.Destroy;
-begin
-  SceneManager := nil; { remove Self from SceneManager.Viewports }
-  inherited;
-end;
-
-procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
-begin
-  if Value <> FSceneManager then
-  begin
-    if SceneManager <> nil then
-      SceneManager.Viewports.Remove(Self);
-    FSceneManager := Value;
-    if SceneManager <> nil then
-      SceneManager.Viewports.Add(Self);
-  end;
 end;
 
 var

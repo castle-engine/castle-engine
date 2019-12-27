@@ -2434,30 +2434,26 @@ type
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     function MainScene: TCastleScene;
-      deprecated 'use SceneManager.MainScene';
+      deprecated 'create TCastleViewport and use TCastleViewport.Items.MainScene';
 
     property SceneManager: TGameSceneManager read FSceneManager;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
-      deprecated 'use SceneManager.ShadowVolumes';
+      default TCastleViewport.DefaultShadowVolumes;
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumes';
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
-      deprecated 'use SceneManager.ShadowVolumesRender';
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumesRender';
 
-    { Navigation type of the main camera associated with the default SceneManager.
-      Note that this may not be the only camera used for rendering,
-      it may not even be used at all (you can do all rendering using
-      @link(TCastleAbstractViewport)s.
-      So use this property only if you use only a single default viewport. }
+    { Navigation type of the main camera associated with the default SceneManager. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
-      deprecated 'use SceneManager.NavigationType';
-  end;
+      deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
+  end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
 
   TWindowList = class(specialize TObjectList<TCastleWindowBase>)
   private

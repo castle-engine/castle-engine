@@ -205,9 +205,9 @@ type
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
 
-    { If the selected items all have the same TCastleAbstractViewport parent,
+    { If the selected items all have the same TCastleViewport parent,
       return it. Otherwise return nil. }
-    function SelectedViewport: TCastleAbstractViewport;
+    function SelectedViewport: TCastleViewport;
 
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
@@ -1249,13 +1249,13 @@ begin
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
 end;
 
-function TDesignFrame.SelectedViewport: TCastleAbstractViewport;
+function TDesignFrame.SelectedViewport: TCastleViewport;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
   World: TCastleRootTransform;
   Sel: TComponent;
-  NewResult: TCastleAbstractViewport;
+  NewResult: TCastleViewport;
   Nav: TCastleNavigation;
 begin
   Result := nil;
@@ -1265,9 +1265,9 @@ begin
     for I := 0 to SelectedCount - 1 do
     begin
       Sel := Selected[I];
-      if Sel is TCastleAbstractViewport then
+      if Sel is TCastleViewport then
       begin
-        NewResult := Sel as TCastleAbstractViewport;
+        NewResult := Sel as TCastleViewport;
         if (Result <> nil) and (Result <> NewResult) then
           Exit(nil); // multiple viewports selected
         Result := NewResult;
@@ -1275,9 +1275,9 @@ begin
       if Sel is TCastleNavigation then
       begin
         Nav := Sel as TCastleNavigation;
-        if Nav.InternalViewport is TCastleAbstractViewport then
+        if Nav.InternalViewport is TCastleViewport then
         begin
-          NewResult := Nav.InternalViewport as TCastleAbstractViewport;
+          NewResult := Nav.InternalViewport as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -1659,7 +1659,7 @@ var
   I, SelectedCount: Integer;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -2132,7 +2132,7 @@ end;
 procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(
   Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
   V.Setup2D;
@@ -2142,7 +2142,7 @@ end;
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
   Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
   V.Camera.SetView(
@@ -2154,7 +2154,7 @@ end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
   Position, Direction, Up, GravityUp: TVector3;
   ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
   Box: TBox3D;
@@ -2194,7 +2194,7 @@ end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
   APos, ADir, AUp: TVector3;
 begin
   V := SelectedViewport;
@@ -2208,7 +2208,7 @@ end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
 
@@ -2238,7 +2238,7 @@ end;
 
 procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
 

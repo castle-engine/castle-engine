@@ -211,13 +211,13 @@ type
     you should not need to read anything inside or deal with this class otherwise.
 
     The only official usage allowed is to pass an instance of this class
-    taken from @link(TCastleAbstractViewport.PrepareParams)
+    taken from @link(TCastleViewport.PrepareParams)
     as a parameter to @link(TCastleTransform.PrepareResources) and friends
     like @link(T3DResource.Prepare). You should treat this class as a "black box"
     in normal applications. }
   TPrepareParams = class
     { Include a headlight, or global lights that shine on all
-      scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
+      scenes (see @link(TCastleViewport.UseGlobalLights)).
 
       It is not necessary to define this (it may be @nil).
       And all the lighting is dynamic, so of course you can always
@@ -1734,9 +1734,9 @@ type
     property Visible: boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleSceneManager,
-      and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
+      and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
       to make an exception for this 3D object: even though
-      @link(TCastleAbstractViewport.UseGlobalLights) is @true,
+      @link(TCastleViewport.UseGlobalLights) is @true,
       do not use global lights @italic(for this 3D object).
 
       Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
@@ -1746,7 +1746,7 @@ type
       read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
 
     { Exclude from rendering statistics in
-      @link(TCastleAbstractViewport.Statistics). }
+      @link(TCastleViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
 
@@ -1909,10 +1909,10 @@ type
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
 
-      By default this is set to @link(Camera) of the @link(TCastleAbstractViewport)
+      By default this is set to @link(Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
-      and add your scenes to it's already-created @link(TCastleAbstractViewport.Items TCastleViewport.Items))
+      and add your scenes to it's already-created @link(TCastleViewport.Items))
       you don't have to do anything, it just works.
       In general, you can change this to any camera of any associated @link(TCastleViewport),
       or @nil (in case no camera should be that "central" camera).

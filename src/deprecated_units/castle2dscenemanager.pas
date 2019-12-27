@@ -29,7 +29,7 @@ type
 
     @unorderedList(
       @item(
-        See @link(TCastleAbstractViewport.Setup2D) for a description what it does.
+        See @link(TCastleViewport.Setup2D) for a description what it does.
       )
 
       @item(Also, the navigation by default remains @nil,
@@ -38,7 +38,7 @@ type
         That is because you typically want to
         code yourself all camera movement for 2D games.
 
-        Of course, just like with any @link(TCastleAbstractViewport), you can set
+        Of course, just like with any @link(TCastleViewport), you can set
         @link(Navigation) to any custom navigation component.
       )
     )

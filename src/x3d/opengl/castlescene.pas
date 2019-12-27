@@ -695,7 +695,7 @@ type
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
-    { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
+    { Screen effects information, used by TCastleViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;

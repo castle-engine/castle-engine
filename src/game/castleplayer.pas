@@ -422,7 +422,7 @@ type
 
     { Navigation synchronized with this player instance.
 
-      You can use this navigation as @link(TCastleAbstractViewport.Navigation)
+      You can use this navigation as @link(TCastleViewport.Navigation)
       to allow user to directly control this player in first-person game.
       @link(TGameSceneManager.LoadLevel) sets this automatically.
 

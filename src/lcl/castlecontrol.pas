@@ -541,15 +541,15 @@ type
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
+      default TCastleViewport.DefaultShadowVolumes;
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
@@ -585,7 +585,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property SceneManager: TControl2DSceneManager read FSceneManager;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
 procedure Register;
 

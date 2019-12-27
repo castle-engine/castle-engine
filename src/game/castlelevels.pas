@@ -353,7 +353,7 @@ type
 
           Clear all 3D items from @link(TCastleSceneManager.Items)
           list (except @link(TCastleSceneManager.Player)), clear
-          @link(TCastleAbstractViewport.Camera Camera)
+          @link(TCastleViewport.Camera Camera)
           and @link(TCastleSceneManager.MainScene) as well.
           Then load a new main scene and camera, adding to
           @link(TCastleSceneManager.Items) all 3D resources (creatures and items)
@@ -475,7 +475,7 @@ type
 
         @item(
           Player transformation will be automatically synchronized
-          with current @link(TCastleAbstractViewport.Camera) position.
+          with current @link(TCastleViewport.Camera) position.
           As such, TPlayer represents the volume of player in 1st person games.)
 
         @item(For AI in CastleCreatures, hostile creatures will attack
