@@ -940,9 +940,6 @@ type
   protected
     procedure Notify(constref Value: TCastleAbstractViewport;
       Action: TCollectionNotification); override;
-  public
-    { Does any viewport on the list has shadow volumes all set up? }
-    function UsesShadowVolumes: boolean;
   end;
 
   { Scene manager that knows about all 3D things inside your world.
@@ -3198,23 +3195,6 @@ begin
   end;
 end;
 
-function TCastleAbstractViewportList.UsesShadowVolumes: boolean;
-var
-  I: Integer;
-  MainLightPosition: TVector4; { ignored }
-  V: TCastleAbstractViewport;
-begin
-  for I := 0 to Count - 1 do
-  begin
-    V := Items[I];
-    if GLFeatures.ShadowVolumesPossible and
-       V.ShadowVolumes and
-       V.MainLightForShadows(MainLightPosition) then
-      Exit(true);
-  end;
-  Result := false;
-end;
-
 { TCastleSceneManager -------------------------------------------------------- }
 
 constructor TCastleSceneManager.Create(AOwner: TComponent);
@@ -3362,51 +3342,39 @@ procedure TCastleSceneManager.PrepareResources(const Item: TCastleTransform;
   const DisplayProgressTitle: string;
   Options: TPrepareResourcesOptions);
 var
-  ChosenViewport: TCastleAbstractViewport;
+  MainLightPosition: TVector4; // value of this is ignored
 begin
-  ChosenViewport := nil;
+  if GLFeatures.ShadowVolumesPossible and
+     ShadowVolumes and
+     MainLightForShadows(MainLightPosition) then
+    Include(Options, prShadowVolume);
 
-  { This preparation is done only once, before rendering all viewports.
-    No point in doing this when no viewport is configured.
-    Also, we'll need to use one of viewport's projection here. }
-  if Viewports.Count <> 0 then
+  { call TCastleScreenEffects.PrepareResources. }
+  inherited PrepareResources;
+
+  if ContainerSizeKnown then
   begin
-    if Viewports.UsesShadowVolumes then
-      Include(Options, prShadowVolume);
-
-    { We need one viewport, to setup it's projection and to setup it's camera.
-      There's really no perfect choice, although in practice any viewport
-      should do just fine. For now: use the 1st one on the list.
-      Maybe in the future we'll need more intelligent method of choosing. }
-    ChosenViewport := Viewports[0];
-
-    { call TCastleScreenEffects.PrepareResources. }
-    ChosenViewport.PrepareResources;
-
-    if ChosenViewport.ContainerSizeKnown then
-    begin
-      { Apply projection now, it calculates
-        MainScene.BackgroundSkySphereRadius, which is used by MainScene.Background.
-        Otherwise our preparations of "prBackground" here would be useless,
-        as BackgroundSkySphereRadius will change later, and MainScene.Background
-        will have to be recreated. }
-      ChosenViewport.ApplyProjection;
-    end;
-
-    { RenderingCamera properties must be already set,
-      since PrepareResources may do some operations on texture gen modes
-      in WORLDSPACE*. }
-    RenderingCamera.FromCameraObject(ChosenViewport.Camera);
-
-    if DisplayProgressTitle <> '' then
-    begin
-      Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
-      try
-        Item.PrepareResources(Options, true, PrepareParams);
-      finally Progress.Fini end;
-    end else
-      Item.PrepareResources(Options, false, PrepareParams);
+    { Apply projection now, it calculates
+      MainScene.BackgroundSkySphereRadius, which is used by MainScene.Background.
+      Otherwise our preparations of "prBackground" here would be useless,
+      as BackgroundSkySphereRadius will change later, and MainScene.Background
+      will have to be recreated. }
+    ApplyProjection;
   end;
+
+  { RenderingCamera properties must be already set,
+    since PrepareResources may do some operations on texture gen modes
+    in WORLDSPACE*. }
+  RenderingCamera.FromCameraObject(Camera);
+
+  if DisplayProgressTitle <> '' then
+  begin
+    Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
+    try
+      Item.PrepareResources(Options, true, PrepareParams);
+    finally Progress.Fini end;
+  end else
+    Item.PrepareResources(Options, false, PrepareParams);
 end;
 
 procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string;
