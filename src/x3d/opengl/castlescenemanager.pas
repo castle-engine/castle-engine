@@ -314,7 +314,6 @@ type
       For scene manager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
-    function GetSceneManager: TCastleSceneManager; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCastleCamera; virtual; abstract;
@@ -1091,7 +1090,6 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
 
-    function GetSceneManager: TCastleSceneManager; override;
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
@@ -1329,7 +1327,6 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
     procedure CheckSceneManagerAssigned;
   protected
-    function GetSceneManager: TCastleSceneManager; override;
     function GetMainScene: TCastleScene; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCastleCamera; override;
@@ -3885,11 +3882,6 @@ begin
     Scene.InternalUpdateCamera(Camera, ItemsBoundingBox, true);
 end;
 
-function TCastleSceneManager.GetSceneManager: TCastleSceneManager;
-begin
-  Result := Self;
-end;
-
 function TCastleSceneManager.GetMainScene: TCastleScene;
 begin
   Result := MainScene;
@@ -4049,11 +4041,6 @@ begin
   if SceneManager <> nil then
     Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
     Result := nil;
-end;
-
-function TCastleViewport.GetSceneManager: TCastleSceneManager;
-begin
-  Result := SceneManager;
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
