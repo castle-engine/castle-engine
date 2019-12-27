@@ -984,9 +984,6 @@ type
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
       deprecated 'use Camera.ProjectionFar, and set AutoCamera to false';
 
-    { Viewports are by default full size (fill the parent control completely). }
-    property FullSize default true;
-
     { Adjust the projection parameters. This event is called before every render.
       See the @link(CalculateProjection) for a description how to default
       projection parameters are calculated. }
@@ -1018,7 +1015,7 @@ type
       that you control @link(Camera) properties on your own.
     }
     property AutoCamera: Boolean
-      read FAutoCamera write SetAutoCamera default true;
+      read FAutoCamera write SetAutoCamera default false;
 
     { Assign sensible @link(Navigation) looking
       at the initial world (@link(Items)) if it is not assigned.
@@ -1030,7 +1027,7 @@ type
       that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
-      read FAutoNavigation write FAutoNavigation default true;
+      read FAutoNavigation write FAutoNavigation default false;
 
     { Called when bound Viewpoint node changes.
       Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
@@ -1138,6 +1135,10 @@ type
       for making your world visible. }
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
+
+    property FullSize default true;
+    property AutoCamera default true;
+    property AutoNavigation default true;
   end deprecated 'use only TCastleViewport to render transform/scenes';
 
 procedure Register;
@@ -1211,9 +1212,6 @@ begin
   FClearDepth := true;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-  FullSize := true;
-  FAutoNavigation := true;
-  FAutoCamera := true;
 
   FCamera := TCastleCamera.Create(Self);
   FCamera.InternalViewport := Self;
@@ -3553,6 +3551,9 @@ begin
   inherited;
 
   FDefaultViewport := true;
+  FullSize := true;
+  AutoNavigation := true;
+  AutoCamera := true;
 
   {$warnings off} // using deprecated in deprecated
   FViewports := TCastleViewportList.Create(false);

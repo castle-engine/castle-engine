@@ -13,37 +13,42 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simplest demo of using our engine to load and render 3D model.
-  Create and load a Scene,
-  create a Window (which automatically also creates Window.SceneManager),
-  add Scene to Window.SceneManager.
+{ Simplest demo of using our engine to load and render a model.
 
-  This trivial program is a fully-capable VRML/X3D browser and viewer
-  for all 3D models. "VRML/X3D browser" means that it not only renders
-  the scene, it also animates it, allows you to interact with it
-  (if a scene uses mouse/key sensors), allows you to navigate within it
-  (with navigation mode adjusted to NavigationInfo.type, see view3dscene docs
-  for keys/mouse to control Walk/Examine navigation
-  [https://castle-engine.io/view3dscene.php]), with collision
-  detection and generally with *everything* working. }
+  - Create TCastleWindowBase,
+  - Create TCastleViewport (rectangular area within window to display scene),
+  - Create and load TCastleScene (model loaded from file).
+
+  This trivial program is a fully capable, interactive
+  browser of all model formats supported by Castle Game Engine
+  ( https://castle-engine.io/creating_data_model_formats.php ).
+  The model is displayed, animated, may be interactive (if using X3D sensors),
+  you can navigate in it etc. }
 program view_3d_model_basic;
 
-uses SysUtils, CastleWindow, CastleSceneCore, CastleScene;
+uses SysUtils,
+  CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
   Scene.Load('data/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   Application.Run;
 end.
