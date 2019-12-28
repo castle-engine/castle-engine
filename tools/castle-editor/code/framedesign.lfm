@@ -1456,13 +1456,17 @@ object DesignFrame: TDesignFrame
       Caption = 'Set Navigation to None (SceneManager.Navigation := nil)'
       OnClick = MenuViewportNavigationNoneClick
     end
-    object MenuViewportNavigationWalk: TMenuItem
-      Caption = 'Set Navigation to Walk/Fly (SceneManager.Navigation := TCastleWalkNavigation.Create)'
-      OnClick = MenuViewportNavigationWalkClick
-    end
     object MenuViewportNavigationExamine: TMenuItem
       Caption = 'Set Navigation to Examine (SceneManager.Navigation := TCastleExamineNavigation.Create)'
       OnClick = MenuViewportNavigationExamineClick
+    end
+    object MenuViewportNavigationFly: TMenuItem
+      Caption = 'Set Navigation to Fly (SceneManager.Navigation := TCastleWalkNavigation.Create, Gravity := false)'
+      OnClick = MenuViewportNavigationFlyClick
+    end
+    object MenuViewportNavigationWalk: TMenuItem
+      Caption = 'Set Navigation to Walk (SceneManager.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
+      OnClick = MenuViewportNavigationWalkClick
     end
     object MenuItemSeparator1: TMenuItem
       Caption = '-'

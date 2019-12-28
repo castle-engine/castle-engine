@@ -42,6 +42,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -107,6 +108,7 @@ type
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
+    procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
   protected
@@ -2284,9 +2286,22 @@ begin
   ChangeViewportNavigation(TCastleExamineNavigation.Create(DesignOwner));
 end;
 
-procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
+procedure TDesignFrame.MenuViewportNavigationFlyClick(Sender: TObject);
+var
+  W: TCastleWalkNavigation;
 begin
-  ChangeViewportNavigation(TCastleWalkNavigation.Create(DesignOwner));
+  W := TCastleWalkNavigation.Create(DesignOwner);
+  W.Gravity := false;
+  ChangeViewportNavigation(W);
+end;
+
+procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
+var
+  W: TCastleWalkNavigation;
+begin
+  W := TCastleWalkNavigation.Create(DesignOwner);
+  W.Gravity := true;
+  ChangeViewportNavigation(W);
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);
