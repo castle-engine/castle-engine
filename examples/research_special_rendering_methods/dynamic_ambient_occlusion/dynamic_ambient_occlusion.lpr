@@ -30,13 +30,12 @@ program dynamic_ambient_occlusion;
 
 uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleWindow, CastleTriangles,
+  CastleVectors, CastleWindow, CastleTriangles, CastleTransform,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
-  CastleGLVersion, CastleSceneManager, CastleRenderingCamera,
-  CastleRectangles, CastleApplicationProperties;
+  CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -450,14 +449,14 @@ var
   FullRenderIntensityTex: TGrayscaleImage;
 
 type
-  TMySceneManager = class(TCastleSceneManager)
+  TMyViewport = class(TCastleViewport)
     procedure RenderFromView3D(const Params: TRenderParams); override;
   end;
 
 var
-  SceneManager: TMySceneManager;
+  Viewport: TMyViewport;
 
-procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
+procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
   { If ElementsIntensityTex = nil,
     then all element discs will have the same glMaterial.
@@ -612,7 +611,7 @@ var
 begin
   { RenderFromView3D must initialize some Params fields itself }
   Params.InShadow := false;
-  Params.Frustum := @RenderingCamera.Frustum;
+  Params.Frustum := @Params.RenderingCamera.Frustum;
 
   case DrawType of
     dtNormalGL:
@@ -725,7 +724,7 @@ begin
   if (Elements.Count = 0) or
      Scene.BoundingBox.IsEmpty then
   begin
-    Window.Controls.Remove(SceneManager); { do not try to render }
+    Window.Controls.Remove(Viewport); { do not try to render }
     MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.');
     Window.Close;
     Exit;
@@ -736,9 +735,9 @@ begin
   { initialize GLSL program }
   GLSLProgram[0] := TGLSLProgram.Create;
 
-  if GLSLProgram[0].Support = gsNone then
+  if GLFeatures.Shaders = gsNone then
   begin
-    Window.Controls.Remove(SceneManager); { do not try to render }
+    Window.Controls.Remove(Viewport); { do not try to render }
     MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.');
     Window.Close;
     Exit;
@@ -883,8 +882,8 @@ end;
 
 var
   ModelURL: string =
-    //'data/chinchilla_awakens.x3dv';
-    'data/peach.wrl.gz';
+    //'castle-data:/chinchilla_awakens.x3dv';
+    'castle-data:/peach.wrl.gz';
 begin
   Window := TCastleWindowBase.Create(Application);
 
@@ -908,11 +907,15 @@ begin
     Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
     Scene.ProcessEvents := true;
 
-    { init SceneManager, with a Scene inside }
-    SceneManager := TMySceneManager.Create(Window);
-    Window.Controls.InsertFront(SceneManager);
-    SceneManager.MainScene := Scene;
-    SceneManager.Items.Add(Scene);
+    { init Viewport, with a Scene inside }
+    Viewport := TMyViewport.Create(Window);
+    Viewport.FullSize := true;
+    Viewport.AutoCamera := true;
+    Viewport.AutoNavigation := true;
+    Window.Controls.InsertFront(Viewport);
+
+    Viewport.Items.MainScene := Scene;
+    Viewport.Items.Add(Scene);
 
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuClick := @MenuClick;
@@ -923,7 +926,7 @@ begin
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally
-    FreeAndNil(SceneManager);
+    FreeAndNil(Viewport);
     FreeAndNil(Elements);
     FreeAndNil(ElementsPositionAreaTex);
     FreeAndNil(ElementsNormalTex);
