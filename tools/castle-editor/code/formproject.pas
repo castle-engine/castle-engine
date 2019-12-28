@@ -173,7 +173,7 @@ implementation
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
-  CastleScene, CastleSceneManager, Castle2DSceneManager, CastleCameras,
+  CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,

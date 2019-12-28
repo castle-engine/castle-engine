@@ -1330,7 +1330,7 @@ end;
 
 function TCastleControl.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
 function TCastleControl.Camera: TCastleCamera;
@@ -1413,7 +1413,7 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
-  OnMainContainer := @TCastleControl(nil).GetMainContainer;
+  OnMainContainer := @TCastleControlBase(nil).GetMainContainer;
 finalization
   OnMainContainer := nil;
   FreeAndNil(ControlsList);

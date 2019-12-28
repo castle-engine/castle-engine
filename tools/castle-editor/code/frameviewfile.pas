@@ -20,7 +20,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls,
-  CastleControl, CastleControls, CastleSceneManager, CastleScene,
+  CastleControl, CastleControls, CastleViewport, CastleScene,
   CastleUIControls, CastleSoundEngine;
 
 type
@@ -30,7 +30,7 @@ type
     FURL, FSuccessMessage, FErrorMessage: String;
     LabelURL, LabelInformation: TCastleLabel;
     PreviewLayer: TCastleUserInterface;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
     Scene: TCastleScene;
     Image: TCastleImageControl;
     SoundSource: TSound;
@@ -67,7 +67,7 @@ begin
   FSuccessMessage := '';
   FErrorMessage := '';
 
-  FreeAndNil(SceneManager);
+  FreeAndNil(Viewport);
   FreeAndNil(Scene);
   FreeAndNil(Image);
   FreeAndNil(SoundButton);
@@ -164,11 +164,11 @@ var
 begin
   ClearLoaded;
 
-  SceneManager := TCastleSceneManager.Create(Self);
-  PreviewLayer.InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(Self);
+  PreviewLayer.InsertFront(Viewport);
   Scene := TCastleScene.Create(Self);
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   try
     Scene.URL := AURL;
@@ -181,10 +181,10 @@ begin
       Scene.BoundingBox.ToString
     ]);
 
-    CameraViewpointForWholeScene(SceneManager.Items.BoundingBox,
+    CameraViewpointForWholeScene(Viewport.Items.BoundingBox,
       2, 1, false, true, Pos, Dir, Up, GravityUp);
-    SceneManager.NavigationType := ntExamine;
-    SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
+    Viewport.NavigationType := ntExamine;
+    Viewport.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
     on E: Exception do
     begin

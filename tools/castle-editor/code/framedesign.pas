@@ -30,7 +30,7 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager, CastleClassUtils, CastleControls, CastleTiledMap,
+  CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes,
   FrameAnchors;
 
@@ -272,7 +272,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
-  CastleProjection,
+  CastleProjection, CastleScene,
   EditorUtils;
 
 {$R *.lfm}
@@ -891,7 +891,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
 
 var
   Background: TCastleRectangleControl;
-  TempSceneManager: TCastleSceneManager;
+  TempViewport: TCastleViewport;
 begin
   ClearDesign;
 
@@ -904,11 +904,11 @@ begin
   end else
   if NewDesignRoot is TCastleTransform then
   begin
-    TempSceneManager := TCastleSceneManager.Create(NewDesignOwner);
-    TempSceneManager.Transparent := true;
-    TempSceneManager.UseHeadlight := hlOn;
-    TempSceneManager.Items.Add(NewDesignRoot as TCastleTransform);
-    CastleControl.Controls.InsertBack(TempSceneManager);
+    TempViewport := TCastleViewport.Create(NewDesignOwner);
+    TempViewport.Transparent := true;
+    TempViewport.Items.UseHeadlight := hlOn;
+    TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
+    CastleControl.Controls.InsertBack(TempViewport);
   end else
     raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
@@ -1253,7 +1253,7 @@ function TDesignFrame.SelectedViewport: TCastleViewport;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TCastleRootTransform;
+  World: TCastleAbstractRootTransform;
   Sel: TComponent;
   NewResult: TCastleViewport;
   Nav: TCastleNavigation;
@@ -1288,7 +1288,7 @@ begin
         World := (Sel as TCastleTransform).World;
         if World <> nil then
         begin
-          NewResult := World.Owner as TCastleSceneManager;
+          NewResult := World.Owner as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -1526,7 +1526,7 @@ procedure TDesignFrame.UpdateDesign;
   var
     S: String;
     I: Integer;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
   begin
     S := ComponentCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
@@ -1537,11 +1537,11 @@ procedure TDesignFrame.UpdateDesign;
         AddControl(Result, C.Controls[I]);
     end;
 
-    if C is TCastleSceneManager then
+    if C is TCastleViewport then
     begin
-      SceneManager := TCastleSceneManager(C);
-      if Selectable(SceneManager.Items) then
-        AddTransform(Result, SceneManager.Items);
+      Viewport := TCastleViewport(C);
+      if Selectable(Viewport.Items) then
+        AddTransform(Result, Viewport.Items);
     end;
   end;
 
@@ -2160,7 +2160,7 @@ var
   Box: TBox3D;
 begin
   V := SelectedViewport;
-  Box := V.GetItems.BoundingBox;
+  Box := V.Items.BoundingBox;
 
   if V.Camera.ProjectionType = ptOrthographic then
   begin
@@ -2212,7 +2212,7 @@ var
 begin
   V := SelectedViewport;
 
-  V.GetItems.SortBackToFront2D;
+  V.Items.SortBackToFront2D;
 
   ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order

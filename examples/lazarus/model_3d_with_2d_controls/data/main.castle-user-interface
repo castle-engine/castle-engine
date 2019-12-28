@@ -4,22 +4,14 @@
   "$Children" : [
     {
       "Camera" : {
-        "InitialDirectionPersistent" : {
-          "X" : 9.6228855848312378E-001,
-          "Y" : 3.2980743795633316E-002,
-          "Z" : -2.7002412080764771E-001,
-          "$ClassName" : "TCastleVector3Persistent"
-        },
         "InitialPositionPersistent" : {
-          "X" : -4.6300395965576172E+001,
-          "Y" : -4.4862656593322754E+000,
-          "Z" : 4.8882923126220703E+000,
+          "X" : -2.1953582763671875E-001,
+          "Y" : -7.0770711898803711E+000,
+          "Z" : 2.0422471618652344E+002,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialUpPersistent" : {
-          "X" : -3.1754374504089355E-002,
-          "Y" : 9.9945598840713501E-001,
-          "Z" : 8.9102238416671753E-003,
+          "Z" : 4.3711388286737929E-008,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "Name" : "Camera",
@@ -41,7 +33,14 @@
         "$ClassName" : "TCastleCamera"
       },
       "Items" : {
+        "MainScene" : "Scene1",
         "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
         "$Children" : [
           {
             "Name" : "Scene1",
@@ -58,14 +57,7 @@
         ],
         "$ClassName" : "TCastleRootTransform"
       },
-      "MainScene" : "Scene1",
       "Name" : "SceneManager1",
-      "PhysicsProperties" : {
-        "Name" : "PhysicsProperties",
-        "$Children" : [
-        ],
-        "$ClassName" : "TPhysicsPropertiesConcrete"
-      },
       "$Children" : [
       ],
       "$ClassName" : "TCastleSceneManager"
