@@ -26,6 +26,8 @@
   you can navigate in it etc. }
 program view_3d_model_basic;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
 

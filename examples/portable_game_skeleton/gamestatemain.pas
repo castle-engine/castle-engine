@@ -10,14 +10,14 @@ unit GameStateMain;
 interface
 
 uses CastleUIState, CastleScene, CastleControls,
-  CastleKeysMouse, CastleColors, CastleSceneManager, CastleUIControls;
+  CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls;
 
 type
   { Main user interface class.
     This implements the majority of this application functionality. }
   TStateMain = class(TUIState)
   private
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
     Status: TCastleLabel;
     ExampleImage: TCastleImageControl;
     ExampleScene: TCastleScene;
@@ -39,17 +39,19 @@ begin
   inherited;
 
   { Create scene manager to show 3D stuff (in TCastleScene) }
-  SceneManager := TCastleSceneManager.Create(FreeAtStop);
-  InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(FreeAtStop);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  InsertFront(Viewport);
 
-  { Show a 3D object (TCastleScene) inside a Window.SceneManager
-    (which acts as a full-screen viewport by default). }
+  { Show a 3D object (TCastleScene) inside a Viewport }
   ExampleScene := TCastleScene.Create(FreeAtStop);
   ExampleScene.Load('castle-data:/example_scene.x3dv');
   ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
   ExampleScene.ProcessEvents := true;
-  SceneManager.Items.Add(ExampleScene);
-  SceneManager.MainScene := ExampleScene;
+  Viewport.Items.Add(ExampleScene);
+  Viewport.Items.MainScene := ExampleScene;
 
   { Show a label with frames per second information }
   Status := TCastleLabel.Create(FreeAtStop);

@@ -13,50 +13,43 @@
   ----------------------------------------------------------------------------
 }
 
-{ Use SceneManager.OnProjection to adjust the projection settings. }
+{ Use Viewport.Camera.ProjectionType to adjust the projection settings. }
 program switch_projection;
 
 uses SysUtils,
   CastleWindow, CastleSceneCore, CastleScene, CastleProjection, CastleControls,
-  CastleCameras, CastleUIControls;
+  CastleCameras, CastleUIControls, CastleViewport, CastleVectors;
 
 var
+  Window: TCastleWindowBase;
+  Scene: TCastleScene;
+  Viewport: TCastleViewport;
   OrthographicProjection: Boolean = false;
   ButtonToggleOrthographic: TCastleButton;
 
 type
   TEventsHandler = class
     class procedure ClickToggleOrthographic(Sender: TObject);
-    class procedure AdjustProjection(var Parameters: TProjection);
   end;
 
 class procedure TEventsHandler.ClickToggleOrthographic(Sender: TObject);
 begin
   OrthographicProjection := not OrthographicProjection;
+  if OrthographicProjection then
+    Viewport.Camera.ProjectionType := ptOrthographic
+  else
+    Viewport.Camera.ProjectionType := ptPerspective;
   ButtonToggleOrthographic.Pressed := OrthographicProjection;
 end;
 
-class procedure TEventsHandler.AdjustProjection(var Parameters: TProjection);
-begin
-  { By default, Parameters.ProjectionType is based on existence on
-    Viewpoint or OrthoViewpoint node in scene.
-    We override it here, to based it on our Boolean OrthographicProjection
-    variable.
-    Note that we could also adjust other parameters,
-    like Parameters.Dimensions that determine orthographic visible view. }
 
-  if OrthographicProjection then
-    Parameters.ProjectionType := ptOrthographic
-  else
-    Parameters.ProjectionType := ptPerspective;
-end;
-
-var
-  Window: TCastleWindow;
-  Scene: TCastleScene;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
 
   ButtonToggleOrthographic := TCastleButton.Create(Application);
   ButtonToggleOrthographic.Caption := 'Orthographic Projection';
@@ -67,17 +60,20 @@ begin
   Window.Controls.InsertFront(ButtonToggleOrthographic);
 
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('data/bridge_final.x3dv');
+  Scene.Load('castle-data:/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   { force Examine navigation, Walk doesn't work comfortably
     in orthographic projection. }
-  Window.SceneManager.NavigationType := ntExamine;
+  Viewport.NavigationType := ntExamine;
 
-  Window.SceneManager.OnProjection := @TEventsHandler(nil).AdjustProjection;
+  Viewport.AssignDefaultCamera;
+  Viewport.Camera.Orthographic.Width := 10;
+  Viewport.Camera.Orthographic.Height := 10;
+  Viewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
 
   Application.Run;
 end.
