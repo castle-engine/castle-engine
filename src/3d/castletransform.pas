@@ -1759,7 +1759,8 @@ type
 
   TSceneManagerWorld = TCastleAbstractRootTransform deprecated 'use TCastleRootTransform';
 
-  { Root of transformations and scenes (tree of TCastleTransform and TCastleScene). }
+  { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
+    This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
   strict private
     WasPhysicsStep: boolean;
