@@ -193,7 +193,6 @@ type
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    procedure Render(const Params: TRenderParams); override;
     procedure LocalRender(const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
@@ -223,6 +222,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure Render(const Params: TRenderParams); override;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
