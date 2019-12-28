@@ -3,7 +3,13 @@
   "Name" : "Group1",
   "$Children" : [
     {
+      "AutoCamera" : true,
+      "AutoNavigation" : true,
       "Camera" : {
+        "InitialDirectionPersistent" : {
+          "Y" : -1.7151265217091316E-015,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
         "InitialPositionPersistent" : {
           "X" : -2.1953582763671875E-001,
           "Y" : -7.0770711898803711E+000,
@@ -32,6 +38,7 @@
         ],
         "$ClassName" : "TCastleCamera"
       },
+      "FullSize" : true,
       "Items" : {
         "MainScene" : "Scene1",
         "Name" : "Items",
@@ -57,10 +64,10 @@
         ],
         "$ClassName" : "TCastleRootTransform"
       },
-      "Name" : "SceneManager1",
+      "Name" : "Viewport1",
       "$Children" : [
       ],
-      "$ClassName" : "TCastleSceneManager"
+      "$ClassName" : "TCastleViewport"
     },
     {
       "AutoSize" : false,
