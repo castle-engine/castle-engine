@@ -21,7 +21,7 @@ unit CastleSceneManager deprecated 'use CastleViewport';
 interface
 
 uses SysUtils,
-  CastleViewport;
+  CastleViewport, CastleScene;
 
 type
   TCastleViewport             = CastleViewport.TCastleViewport;
@@ -33,9 +33,15 @@ type
   TRender3DEvent              = CastleViewport.TRender3DEvent;
   TManagerRenderParams        = CastleViewport.TManagerRenderParams;
   TProjectionEvent            = CastleViewport.TProjectionEvent;
+  TUseHeadlight               = CastleScene.TUseHeadlight;
 
   EViewportSceneManagerMissing = class(Exception)
   end deprecated 'this is never raised anymore';
+
+const
+  hlOn        = CastleScene.hlOn;
+  hlOff       = CastleScene.hlOff;
+  hlMainScene = CastleScene.hlMainScene;
 
 implementation
 
