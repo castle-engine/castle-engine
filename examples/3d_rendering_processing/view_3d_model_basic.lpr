@@ -29,7 +29,7 @@ program view_3d_model_basic;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils,
-  CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
+  CastleWindow, CastleSceneCore, CastleScene, CastleViewport, CastleCameras, CastleVectors;
 
 var
   Window: TCastleWindowBase;
@@ -41,8 +41,20 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
+
   Viewport.AutoCamera := true;
+  // Instead of using AutoCamera:=true, you could initialize camera explicitly:
+  // Viewport.Camera.SetView(
+  //   Vector3(-46.30, -4.49, 4.89), // position
+  //   Vector3(0.96, 0.03, -0.27), // direction
+  //   Vector3(-0.03, 1.00, 0.01), // up (current)
+  //   Vector3(0.00, 1.00, 0.00) // gravity up
+  // );
+
   Viewport.AutoNavigation := true;
+  // Instead of using AutoNavigation:=true, you could initialize navigation explicitly:
+  // Viewport.Navigation := TCastleExamineNavigation.Create(Application);
+
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
