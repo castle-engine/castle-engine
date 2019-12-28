@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of using custom viewports (TCastleViewport) to view the same 3D world
-  (scene manager in TCastleSceneManager). }
+{ Demo of using multiple viewports (TCastleViewport) to view the same world.
+  All TCastleViewport instances have the same TCastleViewport.Items reference. }
 
 { If defined, then the 3D world will contain an additional animation
   of a dinosaur. It's most suitable when as the main scene you load
@@ -28,7 +28,7 @@
 uses SysUtils, Classes,
   CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
+  CastleControls, CastleLog, CastleScreenEffects, CastleViewport,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
   CastleApplicationProperties, CastleTransform
@@ -249,7 +249,7 @@ begin
   { initialize Transform }
   Transform := TCastleTransform.Create(Application);
 //  Transform.Translation := Vector3(5, 3, 60);
-  Window.SceneManager.Items.Add(Transform);
+  RootTransform.Add(Transform);
 
   { initialize Animation }
   Animation := TCastleScene.Create(Application);

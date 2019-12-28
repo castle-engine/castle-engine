@@ -27,7 +27,7 @@ program transform_scenes_demos;
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleLog, CastleTransform,
   CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties,
-  CastleFilesUtils, CastleSceneManager;
+  CastleFilesUtils, CastleViewport;
 
 var
   Window: TCastleWindowBase;

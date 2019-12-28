@@ -27,7 +27,7 @@
 program view_3d_model_basic;
 
 uses SysUtils,
-  CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
+  CastleWindow, CastleSceneCore, CastleScene, CastleViewport;
 
 var
   Window: TCastleWindowBase;

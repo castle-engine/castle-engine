@@ -23,7 +23,7 @@
 
 uses SysUtils,
   CastleLog, CastleRendererBaseTypes, CastleVectors, X3DNodes, CastleWindow,
-  CastleSceneCore, CastleScene, CastleUtils;
+  CastleSceneCore, CastleScene, CastleUtils, CastleViewport;
 
 function BuildX3D: TX3DRootNode;
 var
@@ -78,20 +78,27 @@ begin
 end;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 begin
   { the log will contain e.g. information if the GLSL failed to compile }
   InitializeLog;
 
+  Window := TCastleWindowBase.Create(Application);
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
+
   Scene := TCastleScene.Create(Application);
   Scene.Load(BuildX3D, true);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-
-  Window := TCastleWindow.Create(Application);
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   Window.Open;
   Application.Run;

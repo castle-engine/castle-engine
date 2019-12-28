@@ -22,7 +22,7 @@ program cars_demo;
 
 uses SysUtils, CastleVectors, CastleTransform, CastleUIControls, CastleUtils,
   CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene,
-  CastleKeysMouse, CastleBoxes, X3DNodes, CastleSceneManager;
+  CastleKeysMouse, CastleBoxes, X3DNodes, CastleViewport;
 
 var
   Window: TCastleWindowBase;
