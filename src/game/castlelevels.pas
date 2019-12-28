@@ -26,7 +26,7 @@ uses Classes, DOM, Generics.Collections,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastleInputs,
   CastleSoundEngine, CastleTransform, CastleShapes, CastleXMLConfig, CastleImages,
-  CastleTimeUtils, CastleSceneManager, CastleFindFiles, CastleKeysMouse;
+  CastleTimeUtils, CastleViewport, CastleFindFiles, CastleKeysMouse;
 
 type
   TLevelLogic = class;

@@ -1803,7 +1803,11 @@ type
       in future games. }
     function GravityCoordinate: Integer;
 
-    function GravityUp: TVector3; deprecated 'use CameraGravityUp after checking CameraKnown';
+    function GravityUp: TVector3;
+      // TODO: I would like to deprecate it,
+      // but it is so often useful, and the alternative name with Camera prefix looks convoluted.
+      // Leave it be for now.
+      // TODO: deprecated 'use CameraGravityUp after checking CameraKnown';
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this world.

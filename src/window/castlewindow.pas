@@ -495,7 +495,7 @@ uses {$define read_interface_uses}
   CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties,
   { Castle Game Engine units depending on VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
+  X3DNodes, CastleScene, CastleViewport, CastleLevels;
 
 {$define read_interface}
 
