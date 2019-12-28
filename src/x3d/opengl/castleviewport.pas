@@ -1135,7 +1135,7 @@ type
     property FullSize default true;
     property AutoCamera default true;
     property AutoNavigation default true;
-  end deprecated 'use only TCastleViewport to render transform/scenes';
+  end deprecated 'use TCastleViewport to render scenes. To have the same initial behavior, set FullSize, AutoCamera and AutoNavigation to true';
 
 procedure Register;
 
@@ -2954,7 +2954,6 @@ begin
   Camera.ProjectionNear := -Default2DProjectionFar;
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
-  AutoCamera := false;
 end;
 
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
