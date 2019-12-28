@@ -165,7 +165,11 @@ begin
   ClearLoaded;
 
   Viewport := TCastleViewport.Create(Self);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
   PreviewLayer.InsertFront(Viewport);
+
   Scene := TCastleScene.Create(Self);
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
@@ -273,4 +277,3 @@ begin
 end;
 
 end.
-

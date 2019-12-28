@@ -908,6 +908,9 @@ begin
     TempViewport.Transparent := true;
     TempViewport.Items.UseHeadlight := hlOn;
     TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
+    TempViewport.FullSize := true;
+    TempViewport.AutoCamera := true;
+    TempViewport.AutoNavigation := true;
     CastleControl.Controls.InsertBack(TempViewport);
   end else
     raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
