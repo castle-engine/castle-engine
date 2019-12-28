@@ -33,7 +33,7 @@ type
     procedure Test3DTransformNotCollides;
     procedure Test3DTransformReal;
     procedure TestNotifications;
-    procedure TestNotificationsSceneManager;
+    procedure TestNotificationsViewport;
     procedure TestList;
     procedure TestViewVectorsOrthogonal1;
     procedure TestViewVectorsOrthogonal2;
@@ -53,8 +53,8 @@ type
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleBoxes, CastleTransform, CastleSceneManager, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer;
+  CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer, CastleScene;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -723,26 +723,26 @@ begin
   finally FreeAndNil(ListParent) end;
 end;
 
-procedure TTestCastleTransform.TestNotificationsSceneManager;
+procedure TTestCastleTransform.TestNotificationsViewport;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   List: TCastleTransform;
   ItemOnList: TCastleTransform;
 begin
-  SceneManager := TCastleSceneManager.Create(nil);
+  Viewport := TCastleViewport.Create(nil);
   try
-    List := TCastleTransform.Create(SceneManager);
+    List := TCastleTransform.Create(Viewport);
     try
-      SceneManager.Items.Add(List);
+      Viewport.Items.Add(List);
 
-      ItemOnList := TCastleTransform.Create(SceneManager);
+      ItemOnList := TCastleTransform.Create(Viewport);
       List.Add(ItemOnList);
 
       { now this will cause TCastleTransform.Notification with Owner=Self, and List=nil }
       FreeAndNil(ItemOnList);
 
     finally FreeAndNil(List) end;
-  finally FreeAndNil(SceneManager) end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestList;
@@ -1221,26 +1221,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptyBox;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TBoxCollider;
 begin
   try
-    SceneManager := TCastleSceneManager.Create(nil);
+    Viewport := TCastleViewport.Create(nil);
     try
-      Scene := TCastleSceneCore.Create(SceneManager.Items);
+      Scene := TCastleSceneCore.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(SceneManager.Items);
+      Body := TRigidBody.Create(Viewport.Items);
 
       Collider := TBoxCollider.Create(Body);
 
-      // add to SceneManager before setting Scene.RigidBody,
+      // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
-      SceneManager.Items.Add(Scene);
+      Viewport.Items.Add(Scene);
 
       Scene.RigidBody := Body;
-    finally FreeAndNil(SceneManager) end;
+    finally FreeAndNil(Viewport) end;
 
     Fail('This should raise EPhysicsError, as TBoxCollider is empty');
   except on EPhysicsError do end;
@@ -1248,26 +1248,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptySphere;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TSphereCollider;
 begin
   //try
-    SceneManager := TCastleSceneManager.Create(nil);
+    Viewport := TCastleViewport.Create(nil);
     try
-      Scene := TCastleSceneCore.Create(SceneManager.Items);
+      Scene := TCastleSceneCore.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(SceneManager.Items);
+      Body := TRigidBody.Create(Viewport.Items);
 
       Collider := TSphereCollider.Create(Body);
 
-      // add to SceneManager before setting Scene.RigidBody,
+      // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
-      SceneManager.Items.Add(Scene);
+      Viewport.Items.Add(Scene);
 
       Scene.RigidBody := Body;
-    finally FreeAndNil(SceneManager) end;
+    finally FreeAndNil(Viewport) end;
 
     // OK, this can work without error now,
     // although it's a little inconsistent with TestPhysicsWorldOwnerEmptyBox.
@@ -1278,26 +1278,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwner;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TBoxCollider;
 begin
-  SceneManager := TCastleSceneManager.Create(nil);
+  Viewport := TCastleViewport.Create(nil);
   try
-    Scene := TCastleSceneCore.Create(SceneManager.Items);
+    Scene := TCastleSceneCore.Create(Viewport.Items);
 
-    Body := TRigidBody.Create(SceneManager.Items);
+    Body := TRigidBody.Create(Viewport.Items);
 
     Collider := TBoxCollider.Create(Body);
     Collider.Size := Vector3(2, 2, 2);
 
-    // add to SceneManager before setting Scene.RigidBody,
+    // add to Viewport before setting Scene.RigidBody,
     // to provoke RigidBody.InitializeTransform to create all physics stuff
-    SceneManager.Items.Add(Scene);
+    Viewport.Items.Add(Scene);
 
     Scene.RigidBody := Body;
-  finally FreeAndNil(SceneManager) end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestPass;

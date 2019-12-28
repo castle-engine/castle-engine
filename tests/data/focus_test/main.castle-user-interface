@@ -56,16 +56,10 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TCastleRootTransform"
+        "$ClassName" : "TCastleRootTransform",
+        "MainScene" : "Scene1"
       },
-      "MainScene" : "Scene1",
       "Name" : "SceneManager1",
-      "PhysicsProperties" : {
-        "Name" : "PhysicsProperties",
-        "$Children" : [
-        ],
-        "$ClassName" : "TPhysicsPropertiesConcrete"
-      },
       "$Children" : [
       ],
       "$ClassName" : "TCastleSceneManager"
