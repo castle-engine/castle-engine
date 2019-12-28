@@ -26,7 +26,8 @@ unit CastleInternalUseDeprecatedUnits;
 interface
 
 uses CastleGooglePlayGames, CastleShaders, CastleGenericLists, CastleWarnings,
-  CastleLocalization, CastleLocalizationFileLoader;
+  CastleLocalization, CastleLocalizationFileLoader,
+  CastleSceneManager, Castle3D, Castle2DSceneManager;
 
 implementation
 

@@ -2465,7 +2465,7 @@ implementation
 
 uses Math, DateUtils,
   X3DCameraUtils, CastleStringUtils, CastleLog,
-  X3DLoad, CastleURIUtils, CastleTimeUtils, CastleSceneManager;
+  X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}

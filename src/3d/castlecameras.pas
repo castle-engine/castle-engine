@@ -2186,7 +2186,7 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleStringUtils, CastleLog, CastleSceneManager,
+  CastleStringUtils, CastleLog, CastleViewport,
   CastleComponentSerialize;
 
 procedure Register;
@@ -2890,7 +2890,7 @@ function TCastleNavigation.GetExists: boolean;
 begin
   Result := (inherited GetExists) and
     ( (InternalViewport = nil) or
-      (not (InternalViewport as TCastleViewport).Paused) );
+      (not (InternalViewport as TCastleViewport).Items.Paused) );
 end;
 
 procedure TCastleNavigation.GetView(out APos, ADir, AUp: TVector3);

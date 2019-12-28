@@ -895,10 +895,10 @@ var
   var
     I: Integer;
   begin
-    MainScene.BeforeNodesFree;
+    Items.MainScene.BeforeNodesFree;
     for I := 0 to ItemsToRemove.Count - 1 do
       ItemsToRemove.Items[I].FreeRemovingFromAllParents;
-    MainScene.ChangedAll;
+    Items.MainScene.ChangedAll;
   end;
 
   { After placeholders are processed, finish some stuff. }
@@ -908,8 +908,8 @@ var
   begin
     if Items.MoveLimit.IsEmpty then
     begin
-      { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
-      NewMoveLimit := MainScene.BoundingBox;
+      { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
+      NewMoveLimit := Items.MainScene.BoundingBox;
       NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
         4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
              NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
@@ -921,7 +921,7 @@ var
     Logic.PlaceholdersEnd;
   end;
 
-  { Assign Camera and Navigation, knowing MainScene and Player.
+  { Assign Camera and Navigation, knowing Items.MainScene and Player.
     We need to assign Camera early, as initial Camera also is used
     when placing initial resources on the level (to determine their
     initial direction, World.GravityUp etc.) }
@@ -936,8 +936,8 @@ var
     NavigationNode: TNavigationInfoNode;
     WalkNavigation: TCastleWalkNavigation;
   begin
-    if MainScene.ViewpointStack.Top <> nil then
-      MainScene.ViewpointStack.Top.GetView(InitialPosition,
+    if Items.MainScene.ViewpointStack.Top <> nil then
+      Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
         InitialDirection, InitialUp, GravityUp) else
     begin
       InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
@@ -946,7 +946,7 @@ var
       GravityUp := DefaultX3DGravityUp;
     end;
 
-    NavigationNode := MainScene.NavigationInfoStack.Top;
+    NavigationNode := Items.MainScene.NavigationInfoStack.Top;
 
     // calculate Radius
     Radius := 0;
@@ -955,7 +955,7 @@ var
       Radius := NavigationNode.FdAvatarSize.Items[0];
     // If radius not specified, or invalid (<0), calculate it
     if Radius <= 0 then
-      Radius := MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+      Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
     Assert(Radius > 0, 'Navigation Radius must be > 0');
 
     // calculate ProjectionNear
@@ -1032,18 +1032,18 @@ begin
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
     { disconnect previous Camera from SceneManager.
-      Otherwise, it would be updated by MainScene loading binding new
+      Otherwise, it would be updated by Items.MainScene loading binding new
       NavigationInfo (with it's speed) and Viewpoint.
       We prefer to do it ourselves in InitializeCamera. }
     Navigation := nil;
 
-    MainScene := TCastleScene.Create(Self);
-    Inc(MainScene.InternalDirty);
-    MainScene.Load(Info.SceneURL);
+    Items.MainScene := TCastleScene.Create(Self);
+    Inc(Items.MainScene.InternalDirty);
+    Items.MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
       use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
-    Items.Insert(0, MainScene);
+    Items.Insert(0, Items.MainScene);
 
     InitializeCamera;
 
@@ -1054,7 +1054,7 @@ begin
 
   { load new resources (and release old unused). This must be done after
     InitializeCamera (because it uses GravityUp), which in turn must
-    be after loading MainScene (because initial camera looks at MainScene
+    be after loading Items.MainScene (because initial camera looks at Items.MainScene
     contents).
     It will show it's own progress bar. }
   Info.LevelResources.Prepare(PrepareParams);
@@ -1065,7 +1065,7 @@ begin
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
     { create new Logic }
-    FLogic := Info.LogicClass.Create(Self, FLevelProperties, MainScene, Info.Element);
+    FLogic := Info.LogicClass.Create(Self, FLevelProperties, Items.MainScene, Info.Element);
     Items.Add(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
@@ -1079,7 +1079,7 @@ begin
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
-      ShapeList := MainScene.Shapes.TraverseList({ OnlyActive } true);
+      ShapeList := Items.MainScene.Shapes.TraverseList({ OnlyActive } true);
       for Shape in ShapeList do
         TraverseForPlaceholders(Shape);
       RemoveItemsToRemove;
@@ -1092,9 +1092,9 @@ begin
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
-    MainScene.PrepareResources(Options, false, PrepareParams);
+    Items.MainScene.PrepareResources(Options, false, PrepareParams);
 
-    MainScene.FreeResources([frTextureDataInNodes]);
+    Items.MainScene.FreeResources([frTextureDataInNodes]);
 
     Progress.Step;
   finally
@@ -1103,10 +1103,10 @@ begin
 
   { Loading octree have their own Progress, so we load them outside our
     progress. }
-  MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
-  MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
-  MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  MainScene.PrepareResources([prSpatial], false, PrepareParams);
+  Items.MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
+  Items.MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
+  Items.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Items.MainScene.PrepareResources([prSpatial], false, PrepareParams);
 
   if (Player <> nil) then
     Player.LevelChanged;
@@ -1114,9 +1114,9 @@ begin
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
   SoundEngine.PrepareResources;
 
-  MainScene.ProcessEvents := true;
+  Items.MainScene.ProcessEvents := true;
 
-  Dec(MainScene.InternalDirty);
+  Dec(Items.MainScene.InternalDirty);
 end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);

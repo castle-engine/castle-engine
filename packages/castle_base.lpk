@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="693">
+    <Files Count="694">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -762,8 +762,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleResources"/>
       </Item162>
       <Item163>
-        <Filename Value="../src/x3d/opengl/castlescenemanager.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/deprecated_units/castlescenemanager.pas"/>
         <UnitName Value="CastleSceneManager"/>
       </Item163>
       <Item164>
@@ -2889,6 +2888,11 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/3d/castletransformextra.pas"/>
         <UnitName Value="CastleTransformExtra"/>
       </Item693>
+      <Item694>
+        <Filename Value="../src/x3d/opengl/castleviewport.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastleViewport"/>
+      </Item694>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

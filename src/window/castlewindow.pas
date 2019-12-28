@@ -4650,8 +4650,10 @@ procedure TWindowSceneManager.BoundNavigationInfoChanged;
 begin
   { Owner will be automatically switched to nil when freeing us
     by TComponent ownership mechanism (TComponent.Remove). }
+  {$warnings off} // this code is only to keep deprecated working
   if Owner <> nil then
     (Owner as TCastleWindow).NavigationInfoChanged;
+  {$warnings on}
   inherited;
 end;
 
@@ -4679,22 +4681,22 @@ end;
 
 procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
-  { destroy MainScene and Camera, we will recreate them }
-  SceneManager.MainScene.Free;
-  SceneManager.MainScene := nil;
+  { destroy MainScene and clear cameras, we will recreate it }
+  SceneManager.Items.MainScene.Free;
+  SceneManager.Items.MainScene := nil;
   SceneManager.Items.Clear;
   {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
   {$warnings on}
   Assert(SceneManager.Camera = nil);
 
-  SceneManager.MainScene := TCastleScene.Create(Self);
-  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.MainScene);
+  SceneManager.Items.MainScene := TCastleScene.Create(Self);
+  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.Add(SceneManager.Items.MainScene);
 
   { initialize octrees titles }
-  SceneManager.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  SceneManager.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   { For backward compatibility, to make our Navigation always non-nil. }
   {$warnings off} // using deprecated in deprecated
@@ -4704,7 +4706,7 @@ end;
 
 function TCastleWindow.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
 function TCastleWindow.GetShadowVolumes: boolean;

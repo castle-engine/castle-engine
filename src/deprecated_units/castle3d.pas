@@ -14,7 +14,7 @@
 }
 
 { Additional 3D objects derived from TCastleTransform (TAlive, T3DMoving...). }
-unit Castle3D deprecated 'use CastleTransformExtra';
+unit Castle3D deprecated 'use CastleTransform, CastleTransformExtra';
 
 {$I castleconf.inc}
 

@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager (TCastleSceneManager) and viewport (TCastleViewport) classes. }
-unit CastleSceneManager;
+{ Viewport to display scenes (TCastleViewport). }
+unit CastleViewport;
 
 {$I castleconf.inc}
 
@@ -31,11 +31,7 @@ uses SysUtils, Classes, Generics.Collections,
 
 type
   TCastleViewport = class;
-  TCastleAbstractViewport = TCastleViewport;
   TCastleSceneManager = class;
-
-  EViewportSceneManagerMissing = class(Exception)
-  end deprecated 'this is never raised anymore';
 
   TRender3DEvent = procedure (Viewport: TCastleViewport;
     const Params: TRenderParams) of object;
@@ -1175,7 +1171,7 @@ begin
   { RegisterComponents('Castle', [TCastleSceneManager]); }
 end;
 
-{$I castlescenemanager_warmup_cache.inc}
+{$I castleviewport_warmup_cache.inc}
 
 { TManagerRenderParams ------------------------------------------------------- }
 

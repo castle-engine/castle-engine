@@ -146,6 +146,7 @@ begin
     P.Targets.AddUnit('castleinternalusedeprecatedunits.pas');
     P.Targets.AddUnit('castlelocalization.pas');
     P.Targets.AddUnit('castlelocalizationfileloader.pas');
+    P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
 
@@ -379,9 +380,9 @@ begin
     P.Targets.AddUnit('castlesceneinternalblending.pas');
     P.Targets.AddUnit('castlesceneinternalocclusion.pas');
     P.Targets.AddUnit('castlesceneinternalshape.pas');
-    P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('castlescreeneffects.pas');
     P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
+    P.Targets.AddUnit('castleviewport.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'pasgltf');
     P.Targets.AddUnit('PasDblStrUtils.pas');
