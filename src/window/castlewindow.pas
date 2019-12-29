@@ -495,7 +495,7 @@ uses {$define read_interface_uses}
   CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties,
   { Castle Game Engine units depending on VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
+  X3DNodes, CastleScene, CastleViewport, CastleLevels;
 
 {$define read_interface}
 
@@ -1772,6 +1772,11 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
+    { Send fake motion event, without actually moving the mouse through the backend.
+      This is useful only for automatic tests.
+      @exclude }
+    procedure InternalFakeMotion(const Event: TInputMotion);
+
     { Continuously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
       so it is continuously called even when your game
@@ -2429,30 +2434,26 @@ type
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     function MainScene: TCastleScene;
-      deprecated 'use SceneManager.MainScene';
+      deprecated 'create TCastleViewport and use TCastleViewport.Items.MainScene';
 
     property SceneManager: TGameSceneManager read FSceneManager;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
-      deprecated 'use SceneManager.ShadowVolumes';
+      default TCastleViewport.DefaultShadowVolumes;
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumes';
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
-      deprecated 'use SceneManager.ShadowVolumesRender';
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumesRender';
 
-    { Navigation type of the main camera associated with the default SceneManager.
-      Note that this may not be the only camera used for rendering,
-      it may not even be used at all (you can do all rendering using
-      @link(TCastleAbstractViewport)s.
-      So use this property only if you use only a single default viewport. }
+    { Navigation type of the main camera associated with the default SceneManager. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
-      deprecated 'use SceneManager.NavigationType';
-  end;
+      deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
+  end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
 
   TWindowList = class(specialize TObjectList<TCastleWindowBase>)
   private
@@ -3604,6 +3605,11 @@ begin
   end;
 end;
 
+procedure TCastleWindowBase.InternalFakeMotion(const Event: TInputMotion);
+begin
+  DoMotion(Event);
+end;
+
 procedure TCastleWindowBase.DoMotion(const Event: TInputMotion);
 begin
   MakeCurrent;
@@ -4644,8 +4650,10 @@ procedure TWindowSceneManager.BoundNavigationInfoChanged;
 begin
   { Owner will be automatically switched to nil when freeing us
     by TComponent ownership mechanism (TComponent.Remove). }
+  {$warnings off} // this code is only to keep deprecated working
   if Owner <> nil then
     (Owner as TCastleWindow).NavigationInfoChanged;
+  {$warnings on}
   inherited;
 end;
 
@@ -4673,22 +4681,22 @@ end;
 
 procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
-  { destroy MainScene and Camera, we will recreate them }
-  SceneManager.MainScene.Free;
-  SceneManager.MainScene := nil;
+  { destroy MainScene and clear cameras, we will recreate it }
+  SceneManager.Items.MainScene.Free;
+  SceneManager.Items.MainScene := nil;
   SceneManager.Items.Clear;
   {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
   {$warnings on}
   Assert(SceneManager.Camera = nil);
 
-  SceneManager.MainScene := TCastleScene.Create(Self);
-  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.MainScene);
+  SceneManager.Items.MainScene := TCastleScene.Create(Self);
+  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.Add(SceneManager.Items.MainScene);
 
   { initialize octrees titles }
-  SceneManager.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  SceneManager.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   { For backward compatibility, to make our Navigation always non-nil. }
   {$warnings off} // using deprecated in deprecated
@@ -4698,7 +4706,7 @@ end;
 
 function TCastleWindow.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
 function TCastleWindow.GetShadowVolumes: boolean;

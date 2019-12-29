@@ -220,6 +220,7 @@ mode
 move
 move
 name
+navigation
 negate
 node
 nodes

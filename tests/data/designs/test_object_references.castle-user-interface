@@ -94,16 +94,10 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform",
+        "MainScene" : "Scene3"
       },
-      "MainScene" : "Scene3",
       "Name" : "SceneManager1",
-      "PhysicsProperties" : {
-        "Name" : "PhysicsProperties",
-        "$Children" : [
-        ],
-        "$ClassName" : "TPhysicsPropertiesConcrete"
-      },
       "ProjectionAutoSize" : false,
       "ProjectionHeight" : 9.2922906494140625E+002,
       "VerticalAnchorDelta" : 2.4000000000000000E+002,
@@ -202,7 +196,7 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "SceneManager3",
       "PhysicsProperties" : {
@@ -300,16 +294,10 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform",
+        "MainScene" : "Scene4"
       },
-      "MainScene" : "Scene4",
       "Name" : "SceneManager2",
-      "PhysicsProperties" : {
-        "Name" : "PhysicsProperties",
-        "$Children" : [
-        ],
-        "$ClassName" : "TPhysicsPropertiesConcrete"
-      },
       "UseHeadlight" : "hlOn",
       "VerticalAnchorDelta" : 1.6297698974609375E+002,
       "Width" : 6.3000000000000000E+002,

@@ -29,7 +29,7 @@ type
 
     @unorderedList(
       @item(
-        See @link(TCastleAbstractViewport.Setup2D) for a description what it does.
+        See @link(TCastleViewport.Setup2D) for a description what it does.
       )
 
       @item(Also, the navigation by default remains @nil,
@@ -38,7 +38,7 @@ type
         That is because you typically want to
         code yourself all camera movement for 2D games.
 
-        Of course, just like with any @link(TCastleAbstractViewport), you can set
+        Of course, just like with any @link(TCastleViewport), you can set
         @link(Navigation) to any custom navigation component.
       )
     )
@@ -122,14 +122,14 @@ type
     property ProjectionOriginCenter: boolean
       read GetProjectionOriginCenter write SetProjectionOriginCenter default false;
       deprecated 'use Camera.Orthographic.Origin';
-  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoNavigation:=false';
+  end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true';
 
   T2DSceneManager = class(TCastle2DSceneManager)
   public
     constructor Create(AOwner: TComponent); override;
   published
     property Transparent default true;
-  end deprecated 'use TCastleSceneManager, and call Setup2D method, and set AutoNavigation:=false, and set Transparent:=true';
+  end deprecated 'use TCastleViewport. To have the same initial behavior call Setup2D method, and set FullSize:=true, and set Transparent:=true';
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
     good when your transparent objects have proper order along the Z axis
@@ -143,9 +143,9 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
     function Clone(const AOwner: TComponent): TCastle2DScene;
-  end;
+  end deprecated 'use TCastleScene, and call Setup2D right after creating';
 
-  T2DScene = TCastle2DScene deprecated 'use TCastle2DScene';
+  T2DScene = TCastle2DScene deprecated 'use TCastleScene, and call Setup2D right after creating';
 
 implementation
 

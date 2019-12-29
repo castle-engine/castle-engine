@@ -29,14 +29,14 @@ type
 
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
-    you usually want to override the @link(TCastleAbstractViewport.CalculateProjection). }
+    you usually want to override the @link(TCastleViewport.CalculateProjection). }
   TProjection = record
     ProjectionType: TProjectionTypeCore;
 
     { If ProjectionType is ptPerspective, this property specifies
       angles of view (horizontal and vertical), in degrees.
 
-      Note that when overriding the @link(TCastleAbstractViewport.CalculateProjection),
+      Note that when overriding the @link(TCastleViewport.CalculateProjection),
       you are expected to provide both angles calculated, even though some routines
       for now will only use the vertical angle (and automatically adjust the other
       to the aspect ratio).

@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes, Generics.Collections, Math,
   CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, Castle2DSceneManager,
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleViewport,
   CastleUIControls, CastleTimeUtils, CastleUtils, CastleApplicationProperties;
 
 type
@@ -35,7 +35,7 @@ type
 
 var
   Window: TCastleWindowBase;
-  SceneManager: TCastle2DSceneManager;
+  Viewport: TCastleViewport;
   Status: TCastleLabel;
   Plane: TPlane;
   LeftWall: TWall;
@@ -73,6 +73,7 @@ var
   Root: TX3DRootNode;
   RBody: TRigidBody;
   Collider: TBoxCollider;
+  Material: TMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -82,10 +83,10 @@ begin
   Box := TBoxNode.CreateWithShape(Shape);
   Box.Size := Size;
 
-  Shape.Appearance := TAppearanceNode.Create;
-  Shape.Appearance.Material := TMaterialNode.Create;
-  Shape.Appearance.Material.ForcePureEmissive;
-  Shape.Appearance.Material.EmissiveColor := Color;
+  Material := TMaterialNode.Create;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := Color;
+  Shape.Material := Material;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(Shape);
@@ -151,6 +152,7 @@ var
   Root: TX3DRootNode;
   RBody: TRigidBody;
   Collider: TBoxCollider;
+  Material: TMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -160,10 +162,10 @@ begin
   Box := TBoxNode.CreateWithShape(Shape);
   Box.Size := Size;
 
-  Shape.Appearance := TAppearanceNode.Create;
-  Shape.Appearance.Material := TMaterialNode.Create;
-  Shape.Appearance.Material.ForcePureEmissive;
-  Shape.Appearance.Material.EmissiveColor := Color;
+  Material := TMaterialNode.Create;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := Color;
+  Shape.Material := Material;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(Shape);
@@ -185,7 +187,7 @@ end;
 procedure LoadPlane;
 begin
   Plane := TPlane.Create(Application);
-  SceneManager.Items.Add(Plane);
+  Viewport.Items.Add(Plane);
   Plane.Scale := Vector3(5, 5, 0);
 end;
 
@@ -195,22 +197,22 @@ procedure ApplicationInitialize;
   procedure LoadWalls;
   begin
     LeftWall := TWall.Create(Application, 'LeftWall', Vector3(10, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
-    SceneManager.Items.Add(LeftWall);
+    Viewport.Items.Add(LeftWall);
 
     RightWall := TWall.Create(Application, 'RightWall', Vector3(1014, 768/2, 0), Vector3(20, 700, 4), Vector3(0.5, 0.5, 1.0));
-    SceneManager.Items.Add(RightWall);
+    Viewport.Items.Add(RightWall);
 
     TopWall := TWall.Create(Application, 'TopWall', Vector3(1024/2, 758, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
-    SceneManager.Items.Add(TopWall);
+    Viewport.Items.Add(TopWall);
 
     BottomWall := TWall.Create(Application, 'BottomWall', Vector3(1024/2, 10, 0), Vector3(1000, 20, 4), Vector3(0.5, 0.5, 1.0));
-    SceneManager.Items.Add(BottomWall);
+    Viewport.Items.Add(BottomWall);
   end;
 
   procedure LoadTriggers;
   begin
     TriggerGreen := TTrigger.Create(Application, 'TriggerGreen', Vector3(500, 210, -3), Vector3(200, 200, 4), Vector3(0.1, 0.5, 0.0));
-    SceneManager.Items.Add(TriggerGreen);
+    Viewport.Items.Add(TriggerGreen);
   end;
 
 begin
@@ -219,25 +221,23 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  SceneManager := TCastle2DSceneManager.Create(Application);
-  SceneManager.FullSize := true;
-  SceneManager.ProjectionHeight := 768;
-  SceneManager.ProjectionAutoSize := false;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.Setup2D;
+  Viewport.FullSize := true;
+  Viewport.Camera.Orthographic.Height := 768;
 
   { change physics frequency }
-  // SceneManager.PhysicsProperties.Frequency := 30;
+  // Viewport.Items.PhysicsProperties.Frequency := 30;
 
   { change velocity integration from Euler to RK4 }
-  // SceneManager.PhysicsProperties.AngularVelocityRK4Integration := true;
-  // SceneManager.PhysicsProperties.LinearVelocityRK4Integration := true;
+  // Viewport.Items.PhysicsProperties.AngularVelocityRK4Integration := true;
+  // Viewport.Items.PhysicsProperties.LinearVelocityRK4Integration := true;
 
-  Window.Controls.InsertFront(SceneManager);
+  Window.Controls.InsertFront(Viewport);
 
   LoadWalls;
   LoadTriggers;
   LoadPlane;
-
-  SceneManager.NavigationType := ntNone;
 
   Status := TCastleLabel.Create(Application);
   Status.Anchor(hpLeft, 40);
@@ -282,13 +282,13 @@ begin
     NL +
     'Last Plane Collision Enter (from TRigidBody.OnCollisionEnter):' + NL +
     '  %s', [
-     Container.Fps.ToString,
-     SceneManager.Items.Count,
-     Plane.RigidBody.LinearVelocity.Length,
-     CollisionsListTXT,
-     Plane.LastCollisionEnter
-   ]);
-  if IsZero(SceneManager.TimeScale) then
+    Container.Fps.ToString,
+    Viewport.Items.Count,
+    Plane.RigidBody.LinearVelocity.Length,
+    CollisionsListTXT,
+    Plane.LastCollisionEnter
+  ]);
+  if IsZero(Viewport.Items.TimeScale) then
     Status.Caption := Status.Caption + NL + 'Paused';
 end;
 
@@ -315,10 +315,10 @@ begin
   end;
   if Event.IsKey(keySpace) then
   begin
-    if IsZero(SceneManager.TimeScale) then
-      SceneManager.TimeScale := 1
+    if IsZero(Viewport.Items.TimeScale) then
+      Viewport.Items.TimeScale := 1
     else
-      SceneManager.TimeScale := 0;
+      Viewport.Items.TimeScale := 0;
   end;
 end;
 

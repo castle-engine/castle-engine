@@ -17,31 +17,52 @@
 
 {$ifdef read_interface}
 
+  { Configure physics simulation calculation. }
   TPhysicsProperties = class(TComponent)
   strict private
     FAngularVelocityRK4Integration: Boolean;
     FLinearVelocityRK4Integration: Boolean;
     FFrequency: Single;
+    FMaxPhysicsTicksPerUpdate: Cardinal;
 
     procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
     procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
     procedure SetFrequency(const AValue: Single);
 
-  protected
-    function SceneManagerWorld: TSceneManagerWorld; virtual; abstract;
+  private
+    { Buffer to not count physics step time per frame }
+    FPhysicsTimeStep: TFloatTime;
+    RootTransform: TCastleAbstractRootTransform;
 
   public
     const
       DefaultAngularVelocityRK4Integration = false;
       DefaultLinearVelocityRK4Integration = false;
       DefaultFrequency = 60.0;
+      DefaultMaxPhysicsTicksPerUpdate = 5;
 
     constructor Create(AOwner: TComponent); override;
 
   published
+    { Use a more precise (but also more expensive) method for simulating angular velocity.
+      The "RK4" refers to Runge–Kutta method. }
     property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    { Use a more precise (but also more expensive) method for simulating linear velocity.
+      The "RK4" refers to Runge–Kutta method. }
     property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    { How often should the physics simulation run in a second.
+      Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
     property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+
+    { Non-zero value avoids the "spiral of death" when the physics takes
+      a long time to calculate.
+
+      When the value is zero, physics makes always as many steps as necessary,
+      to advance the time by @code(1 / @link(Frequency)) steps.
+      This means that if physics takes a long time to calculate,
+      next time it will take even longer time to calculate (it will need more steps),
+      thus we have a "spiral of death" that leads to lower and lower FPS. }
+    property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
   end;
 
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
@@ -316,12 +337,12 @@
 
     { Triggers report when other object collides with them,
       but still allow the other object to pass through.
-      In other words, colliding with a trigger will not cause the collider to stop or 
+      In other words, colliding with a trigger will not cause the collider to stop or
       "bounce off" the trigger.
 
       They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
       that the player can "consume" by colliding with it.
-      
+
       Triggers report collisions through the same events as other rigid bodies:
       (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
       @link(TRigidBody.OnCollisionExit)). }
@@ -405,9 +426,10 @@ begin
     Exit;
 
   FFrequency := AValue;
+  FPhysicsTimeStep := 1.0 / FFrequency;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.SetFrequency(AValue);
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.SetFrequency(AValue);
 end;
 
 procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
@@ -417,8 +439,8 @@ begin
 
   FLinearVelocityRK4Integration := AValue;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.LinearVelocityRK4Integration := AValue;
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.LinearVelocityRK4Integration := AValue;
 end;
 
 procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
@@ -428,8 +450,8 @@ begin
 
   FAngularVelocityRK4Integration := AValue;
 
-  if Assigned(SceneManagerWorld.FKraftEngine) then
-    SceneManagerWorld.FKraftEngine.AngularVelocityRK4Integration := AValue;
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
 end;
 
 constructor TPhysicsProperties.Create(AOwner: TComponent);
@@ -438,6 +460,8 @@ begin
   FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
   FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
   FFrequency := DefaultFrequency;
+  FPhysicsTimeStep := 1.0 / FFrequency;
+  FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
 end;
 
 { TCollider ------------------------------------------------------------------ }
@@ -583,7 +607,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: TSceneManagerWorld;
+    World: TCastleAbstractRootTransform;
     V: TVector3;
   begin
     World := Transform.World;
@@ -1050,12 +1074,12 @@ procedure TCastleTransform.PhysicsChangeWorldAttach;
 begin
   { Calling TRigidBody.InitializeTransform explicitly now
     (instead of letting it happen in TRigidBody.Update)
-    makes sure that when TSceneManagerWorld.Update will happen,
+    makes sure that when TCastleAbstractRootTransform.Update will happen,
     the physics engine will know
     the initial position of this object during 1st simulation tick.
 
     TODO: it's not really nice.
-    - If you change a transformation from now to TSceneManagerWorld.Update,
+    - If you change a transformation from now to TCastleAbstractRootTransform.Update,
       then 1st simulation tick will have invalid transformation anyway.
     - If you change some other rigid body parameter between now and
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
@@ -1067,9 +1091,9 @@ begin
     RigidBody.InitializeTransform(Self);
 end;
 
-{ TSceneManagerWorld ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
-procedure TSceneManagerWorld.InitializePhysicsEngine;
+procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
@@ -1085,7 +1109,7 @@ begin
   end;
 end;
 
-destructor TSceneManagerWorld.Destroy;
+destructor TCastleAbstractRootTransform.Destroy;
 var
   CastleRigidBody: TRigidBody;
   KraftRigidBody: TKraftRigidBody;
@@ -1111,17 +1135,28 @@ begin
   inherited;
 end;
 
-procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  OldTimeAccumulator: TFloatTime;
 begin
+  { Avoid doing this two times within the same FrameId.
+    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
+  if UpdateFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateFrameId := TFramesPerSecond.FrameId;
+
   if EnablePhysics and (FKraftEngine <> nil) then
   begin
+    FrameProfiler.Start(fmUpdatePhysics);
+
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
     KraftGravity := -GravityUp * 9.81;
     FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
+
+    PhysicsTicksCount := 0;
 
     if not WasPhysicsStep then
     begin
@@ -1130,13 +1165,35 @@ begin
       WasPhysicsStep := true;
     end else
     begin
-      PhysicsTimeStep := 1.0 / FKraftEngine.WorldFrequency;
       TimeAccumulator := TimeAccumulator + SecondsPassed;
-      while TimeAccumulator >= PhysicsTimeStep do
+      while TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep do
       begin
-        TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
+        TimeAccumulator := TimeAccumulator - PhysicsProperties.FPhysicsTimeStep;
         FKraftEngine.StoreWorldTransforms;
-        FKraftEngine.Step(PhysicsTimeStep);
+        FKraftEngine.Step(PhysicsProperties.FPhysicsTimeStep);
+
+        Inc(PhysicsTicksCount);
+
+        { To avoid the spiral of death, we ignore some accumulated time
+          (we will not account for this time in the physics simulation,
+          so physics simulation may be slower than time perceived by user,
+          than non-physics animations etc.).
+          An alternative approach would be to prolong the simulation step
+          sometimes, but this could lead to unreliable collision detection.
+          See description of this in
+          https://github.com/castle-engine/castle-engine/pull/144#issuecomment-562850820 }
+        if (TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate <> 0) and
+           (PhysicsTicksCount >= PhysicsProperties.MaxPhysicsTicksPerUpdate) then
+        begin
+          OldTimeAccumulator := TimeAccumulator;
+          TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
+
+          WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
+            + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
+            + FloatToStr(OldTimeAccumulator) + ' to ' + FloatToStr(TimeAccumulator));
+
+          break;
+        end;
       end;
 
       { One can wonder why we do interpolate below between
@@ -1160,9 +1217,9 @@ begin
         (The original https://gafferongames.com/post/fix_your_timestep/ no longer
         has comments.)
       }
-
-      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
+      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep);
     end;
+    FrameProfiler.Stop(fmUpdatePhysics);
   end;
 
   { call inherited at the end,

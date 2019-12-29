@@ -58,6 +58,8 @@ type
     FSearchPaths, FLibraryPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
+    FLazarusProject: String;
+    FBuildUsingLazbuild: Boolean;
     FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
@@ -373,6 +375,9 @@ constructor TCastleProject.Create(const APath: string);
     function DefaultQualifiedName: string;
     begin
       Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      { On Android, package name cannot be just a word, it must have some dot. }
+      if Pos('.', Result) = 0 then
+        Result := 'application.' + Result;
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -442,6 +447,8 @@ constructor TCastleProject.Create(const APath: string);
       FQualifiedName := DefaultQualifiedName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
+      FLazarusProject := FName + '.lpi';
+      FFullscreenImmersive := true; // default value if not specified in manifest
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
@@ -490,7 +497,7 @@ constructor TCastleProject.Create(const APath: string);
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    NewCompilerOption: String;
+    NewCompilerOption, DefaultLazarusProject: String;
   begin
     ManifestFile := Path + ManifestName;
     if not RegularFileExists(ManifestFile) then
@@ -510,6 +517,11 @@ constructor TCastleProject.Create(const APath: string);
         FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+        if FStandaloneSource <> '' then
+          DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
+        else
+          DefaultLazarusProject := '';
+        FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
@@ -519,6 +531,7 @@ constructor TCastleProject.Create(const APath: string);
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
         FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
+        FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
 
         Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
@@ -889,6 +902,12 @@ var
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
+
+  if FBuildUsingLazbuild then
+  begin
+    CompileLazbuild(OS, CPU, Mode, Path, FLazarusProject);
+    Exit;
+  end;
 
   ExtraOptions := TCastleStringList.Create;
   try

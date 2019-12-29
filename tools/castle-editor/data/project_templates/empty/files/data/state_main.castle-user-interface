@@ -3,8 +3,43 @@
   "Name" : "Group1",
   "$Children" : [
     {
+      "Camera" : {
+        "InitialPositionPersistent" : {
+          "X" : 1.5000000000000000E+000,
+          "Z" : 7.0000000000000000E+000,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialUpPersistent" : {
+          "Z" : 4.3711388286737929E-008,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Name" : "Orthographic",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
       "Items" : {
+        "MainScene" : "Scene1",
         "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
         "$Children" : [
           {
             "Name" : "Scene1",
@@ -14,14 +49,20 @@
             "$ClassName" : "TCastleScene"
           }
         ],
-        "$ClassName" : "TSceneManagerWorldConcrete"
+        "$ClassName" : "TCastleRootTransform"
       },
-      "MainScene" : "Scene1",
-      "Name" : "SceneManager1",
-      "UseHeadlight" : "hlOn",
+      "Name" : "Viewport1",
+      "Navigation" : "ExamineNavigation1",
       "$Children" : [
+        {
+          "FullSize" : true,
+          "Name" : "ExamineNavigation1",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleExamineNavigation"
+        }
       ],
-      "$ClassName" : "TCastleSceneManager"
+      "$ClassName" : "TCastleViewport"
     },
     {
       "ColorPersistent" : {
@@ -52,7 +93,6 @@
           "CustomBackgroundPressed" : {
             "$ClassName" : "TCastleImagePersistent"
           },
-          "CustomTextColorUse" : false,
           "FontSize" : 5.0000000000000000E+001,
           "HorizontalAnchorParent" : "hpMiddle",
           "HorizontalAnchorSelf" : "hpMiddle",

@@ -483,7 +483,7 @@ end;
 
 function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;
 var
-  M2: TMaterialNode;
+  Mat: TAbstractMaterialNode;
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
   if ShapeNode <> nil then
@@ -493,9 +493,12 @@ begin
       Result := SurfaceShader.MaterialInfo
     else
     begin
-      M2 := ShapeNode.Material;
-      if M2 <> nil then
-        Result := M2.MaterialInfo
+      Mat := ShapeNode.Material;
+      if Mat is TMaterialNode then // also checks Mat <> nil
+        Result := TMaterialNode(Mat).MaterialInfo
+      else
+      if Mat is TTwoSidedMaterialNode then // also checks Mat <> nil
+        Result := TTwoSidedMaterialNode(Mat).MaterialInfo
       else
         Result := nil;
     end;

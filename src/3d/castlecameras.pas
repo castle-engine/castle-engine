@@ -58,7 +58,7 @@ type
   TCameraInputs = TNavigationInputs deprecated 'use TNavigationInputs';
 
   { Navigation type that determines various navigation properties,
-    used by @link(TCastleAbstractViewport.NavigationType). }
+    used by @link(TCastleViewport.NavigationType). }
   TNavigationType = (
     { Examine mode, comfortable to rotate the scene like an item held in your hand.
       Uses TCastleExamineNavigation. }
@@ -209,9 +209,9 @@ type
           then the effetive projection width and height
           are based on the viewport width and height.
           That is, they will follow
-          @link(TCastleUserInterface.EffectiveWidth TCastleAbstractViewport.EffectiveWidth)
+          @link(TCastleUserInterface.EffectiveWidth TCastleViewport.EffectiveWidth)
           and
-          @link(TCastleUserInterface.EffectiveHeight TCastleAbstractViewport.EffectiveHeight).
+          @link(TCastleUserInterface.EffectiveHeight TCastleViewport.EffectiveHeight).
         )
 
         @item(When exactly one of @link(Width) and @link(Height) is non-zero,
@@ -266,7 +266,7 @@ type
   { Camera determines viewer position and orientation in a 3D or 2D world.
 
     An instance of this class is automatically available
-    in @link(TCastleAbstractViewport.Camera).
+    in @link(TCastleViewport.Camera).
     In practice this means that you access @code(Camera) as a property of
     @link(TCastleSceneManager) (when it acts as a viewport, which is @true by default)
     or @link(TCastleViewport).
@@ -319,9 +319,13 @@ type
     procedure Loaded; override;
   public
     { Associated viewport.
-      Do not set this directly, instead always set @link(TCastleAbstractViewport.Navigation).
+      Do not set this directly, instead always set @link(TCastleViewport.Navigation).
       @exclude }
     InternalViewport: TCastleUserInterface;
+
+    InternalOnSceneBoundViewpointChanged,
+    InternalOnSceneBoundViewpointVectorsChanged,
+    InternalOnSceneBoundNavigationInfoChanged: TNotifyEvent;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -421,7 +425,7 @@ type
       which in turn allows rendering code to use frustum culling.
 
       In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleAbstractViewport)) for rendering,
+      and viewport (@link(TCastleViewport)) for rendering,
       this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;
@@ -519,11 +523,11 @@ type
     procedure Init(const AInitialPosition, AInitialDirection, AInitialUp,
       AGravityUp: TVector3);
 
-    { Called by TCastleAbstractViewport to make @link(AnimateTo) working.
+    { Called by TCastleViewport to make @link(AnimateTo) working.
       Internal. @exclude }
     procedure Update(const SecondsPassed: Single);
 
-    procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleAbstractViewport should create and destroy TCastleAbstractViewport.Camera; this method does nothing now';
+    procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleViewport should create and destroy TCastleViewport.Camera; this method does nothing now';
 
   published
     { Projection near plane distance.
@@ -566,16 +570,16 @@ type
 
   { Handle user input to modify viewport camera.
 
-    You will usually set it using @link(TCastleAbstractViewport.Navigation).
+    You will usually set it using @link(TCastleViewport.Navigation).
     But really it's a normal @link(TCastleUserInterface) descendant,
     you can add it as a child of any other UI control,
-    and just assign @link(Viewport) to any @link(TCastleAbstractViewport).
+    and just assign @link(Viewport) to any @link(TCastleViewport).
     You can always treat it as a normal @link(TCastleUserInterface) descendant,
     e.g. you can use @link(Exists) property and so on.
 
     The only purpose of the class @link(TCastleNavigation)
     is to allow to remove other @link(TCastleNavigation) children when assigning
-    @link(TCastleAbstractViewport.Navigation).
+    @link(TCastleViewport.Navigation).
     Otherwise, it's really a completely normal @link(TCastleUserInterface),
     i.e. it receives input events and reacts to them as all other UI controls.
 
@@ -637,7 +641,7 @@ type
 
     var
       { Associated viewport.
-        Do not set this directly, instead always set @link(TCastleAbstractViewport.Navigation).
+        Do not set this directly, instead always set @link(TCastleViewport.Navigation).
         @exclude }
       InternalViewport: TCastleUserInterface;
 
@@ -688,7 +692,7 @@ type
       which in turn allows rendering code to use frustum culling.
 
       In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleAbstractViewport)) for rendering,
+      and viewport (@link(TCastleViewport)) for rendering,
       this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4
       read GetProjectionMatrix write SetProjectionMatrix; deprecated 'use Viewport.Camera.ProjectionMatrix';
@@ -1003,7 +1007,7 @@ type
 
       To disable any user interaction with camera
       you can simply set this to empty.
-      You can also leave @link(TCastleAbstractViewport.Navigation) as @nil. }
+      You can also leave @link(TCastleViewport.Navigation) as @nil. }
     property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
   end;
 
@@ -2182,7 +2186,7 @@ procedure Register;
 implementation
 
 uses Math,
-  CastleStringUtils, CastleLog, CastleSceneManager,
+  CastleStringUtils, CastleLog, CastleViewport,
   CastleComponentSerialize;
 
 procedure Register;
@@ -2678,7 +2682,7 @@ function TCastleNavigation.Camera: TCastleCamera;
 begin
   if InternalViewport = nil then
     raise EViewportNotAssigned.Create('Viewport not assigned, cannot get Camera properties');
-  Result := (InternalViewport as TCastleAbstractViewport).Camera;
+  Result := (InternalViewport as TCastleViewport).Camera;
 end;
 
 procedure TCastleNavigation.SetInput(const Value: TNavigationInputs);
@@ -2797,7 +2801,7 @@ end;
 
 function TCastleNavigation.ReallyEnableMouseDragging: boolean;
 
-  function ViewportItemsDragging(const V: TCastleAbstractViewport): Boolean;
+  function ViewportItemsDragging(const V: TCastleViewport): Boolean;
   begin
     { Do not navigate by dragging (regardless of niMouseDragging in Navigation.Input)
       when we're already dragging a 3D item.
@@ -2805,7 +2809,7 @@ function TCastleNavigation.ReallyEnableMouseDragging: boolean;
       dragging will not simultaneously also affect the navigation (which would be very
       disorienting). }
 
-    Result := (V.GetItems <> nil) and V.GetItems.Dragging;
+    Result := (V.Items <> nil) and V.Items.Dragging;
   end;
 
 begin
@@ -2816,7 +2820,7 @@ begin
       It is used to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     ( (InternalViewport = nil) or
-      not ViewportItemsDragging(InternalViewport as TCastleAbstractViewport) );
+      not ViewportItemsDragging(InternalViewport as TCastleViewport) );
 end;
 
 function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
@@ -2829,9 +2833,9 @@ begin
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
-    { TODO: Not setting Result to true below is a hack, to allow TCastleAbstractViewport
+    { TODO: Not setting Result to true below is a hack, to allow TCastleViewport
       to receive presses anyway. A cleaner solution would be to use
-      PreviewPress in TCastleAbstractViewport, but this causes other problems,
+      PreviewPress in TCastleViewport, but this causes other problems,
       for unknown reason clicking on TouchSensor then still allows navigation like Walk
       to receive mouse dragging.
       Testcase: demo-models, touch_sensor_tests.x3dv }
@@ -2886,7 +2890,7 @@ function TCastleNavigation.GetExists: boolean;
 begin
   Result := (inherited GetExists) and
     ( (InternalViewport = nil) or
-      (not (InternalViewport as TCastleAbstractViewport).Paused) );
+      (not (InternalViewport as TCastleViewport).Items.Paused) );
 end;
 
 procedure TCastleNavigation.GetView(out APos, ADir, AUp: TVector3);

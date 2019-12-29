@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="693">
+    <Files Count="695">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -180,7 +180,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleTriangulate"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/3d/opengl/castleglboxes.pas"/>
+        <Filename Value="../src/deprecated_units/castleglboxes.pas"/>
         <UnitName Value="CastleGLBoxes"/>
       </Item20>
       <Item21>
@@ -730,7 +730,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleWindowsFonts"/>
       </Item154>
       <Item155>
-        <Filename Value="../src/game/castle2dscenemanager.pas"/>
+        <Filename Value="../src/deprecated_units/castle2dscenemanager.pas"/>
         <UnitName Value="Castle2DSceneManager"/>
       </Item155>
       <Item156>
@@ -762,8 +762,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleResources"/>
       </Item162>
       <Item163>
-        <Filename Value="../src/game/castlescenemanager.pas"/>
-        <HasRegisterProc Value="True"/>
+        <Filename Value="../src/deprecated_units/castlescenemanager.pas"/>
         <UnitName Value="CastleSceneManager"/>
       </Item163>
       <Item164>
@@ -1104,7 +1103,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFlashEffect"/>
       </Item247>
       <Item248>
-        <Filename Value="../src/ui/opengl/castleglcontainer.pas"/>
+        <Filename Value="../src/deprecated_units/castleglcontainer.pas"/>
         <UnitName Value="CastleGLContainer"/>
       </Item248>
       <Item249>
@@ -2885,10 +2884,19 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item692>
-      <Item693>
+      <Item695>
         <Filename Value="../src/x3d/x3dloadinternalspine_deformtimelines.inc"/>
         <Type Value="Include"/>
+      </Item695>
+      <Item693>
+        <Filename Value="../src/3d/castletransformextra.pas"/>
+        <UnitName Value="CastleTransformExtra"/>
       </Item693>
+      <Item694>
+        <Filename Value="../src/x3d/opengl/castleviewport.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastleViewport"/>
+      </Item694>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

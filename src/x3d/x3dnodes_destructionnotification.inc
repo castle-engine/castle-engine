@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
 
-  TNodeDestructionNotification = procedure (Node: TX3DNode) of object;
+  TNodeDestructionNotification = procedure (const Node: TX3DNode) of object;
 
   TNodeDestructionNotificationList = class(specialize TList<TNodeDestructionNotification>)
   public
     { Call all functions. }
-    procedure ExecuteAll(Node: TX3DNode);
+    procedure ExecuteAll(const Node: TX3DNode);
   end;
 
 {$endif read_interface}
@@ -29,7 +29,7 @@
 
 { TNodeDestructionNotificationList ------------------------------------------- }
 
-procedure TNodeDestructionNotificationList.ExecuteAll(Node: TX3DNode);
+procedure TNodeDestructionNotificationList.ExecuteAll(const Node: TX3DNode);
 var
   I: Integer;
 begin

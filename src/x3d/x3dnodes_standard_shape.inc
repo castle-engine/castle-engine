@@ -51,8 +51,8 @@
     procedure SetGeometry(const Value: TAbstractGeometryNode);
     function GetAppearance: TAppearanceNode;
     procedure SetAppearance(const Value: TAppearanceNode);
-    function GetMaterial: TMaterialNode;
-    procedure SetMaterial(const Value: TMaterialNode);
+    function GetMaterial: TAbstractMaterialNode;
+    procedure SetMaterial(const Value: TAbstractMaterialNode);
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
@@ -127,14 +127,10 @@
     property TextureTransform: TAbstractTextureTransformNode
       read GetTextureTransform write SetTextureTransform;
 
-    { Get / set the (simple, one-sided) material of this shape.
-      This is a shortcut for accessing "material" field of Apperance,
-      that is @code(TAppearanceNode(FdAppearance.Value).FdMaterial.Value),
-      checking whether nodes are set to appropriate types along the way.
-
+    { Get / set the material of this shape.
       When setting this material to something non-nil, we make sure
       to also set Appearance to something non-nil. }
-    property Material: TMaterialNode read GetMaterial write SetMaterial;
+    property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
     { Line properties of this shape. This is a clean, type-safe way
       for accessing Appearance.lineProperties field of this shape. }
@@ -175,8 +171,8 @@
   strict private
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
-    function GetMaterial: TMaterialNode;
-    procedure SetMaterial(const Value: TMaterialNode);
+    function GetMaterial: TAbstractMaterialNode;
+    procedure SetMaterial(const Value: TAbstractMaterialNode);
     function GetNormalMap: TAbstractTexture2DNode;
     procedure SetNormalMap(const Value: TAbstractTexture2DNode);
     function GetAlphaChannel: TAutoAlphaChannel;
@@ -258,12 +254,10 @@
     property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
 
     { The material of this appearance.
-      This only sets the simple, one-sided material node.
-
       This is a comfortable property for getting and setting the appropriate
       X3D field, checking class types along the way and setting the value
       through X3D events if necessary. }
-    property Material: TMaterialNode read GetMaterial write SetMaterial;
+    property Material: TAbstractMaterialNode read GetMaterial write SetMaterial;
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -340,26 +334,16 @@
   end;
 
   { Material information, that abstracts various ways to define material properties.
-    This hides differences between VRML 1.0 Material,
-    X3D and VRML 2.0 Material and CommonSurfaceShader. }
+    This hides differences between various material nodes,
+    like TMaterialNode and TCommonSurfaceShaderNode. }
   TMaterialInfo = class
   strict private
     FNode: TX3DNode;
-  strict protected
-    { Calculate physical material properties using standard VRML material
-      fields. See [https://castle-engine.io/x3d_extensions.php#section_ext_material_phong_brdf_fields].
-
-      These should be used by descendants implementation,
-      for example CalculateReflSpecular should be used by descendant
-      ReflSpecular when material node doesn't specify any value
-      in FdReflSpecular field.
-
-      @groupBegin }
-    procedure CalculateReflSpecular(out V: TVector3);
-    procedure CalculateReflDiffuse(out V: TVector3);
-    procedure CalculateTransSpecular(out V: TVector3);
-    procedure CalculateTransDiffuse(out V: TVector3);
-    { @groupEnd }
+  protected
+    function GetDiffuseColor: TVector3; virtual; abstract;
+    procedure SetDiffuseColor(const Value: TVector3); virtual; abstract;
+    function GetSpecularColor: TVector3; virtual; abstract;
+    procedure SetSpecularColor(const Value: TVector3); virtual; abstract;
   public
     const
       { Default material parameters.
@@ -367,13 +351,15 @@
         They luckily match between all the material-like nodes:
         @unorderedList(
           @itemSpacing Compact
-          @item X3D and VRML 2.0: TMaterialNode
+          @item X3D and VRML 2.0: TMaterialNode, TTwoSidedMaterialNode
           @item VRML 1.0: TMaterialNode_1
-          @item CommonSurfaceShader: TCommonSurfaceShaderNode
+          @item Extension: TCommonSurfaceShaderNode
         )
 
-        The AmbientColor is an exception, the effective ambientColor for X3D is
-        @code(ambientIntensity * diffuseColor = (0.2 * 0.8, 0.2 * 0.8, 0.2 * 0.8)).
+        The AmbientColor is an exception.
+        In X3D the effective AmbientColor is an AmbientIntensity * DiffuseColor,
+        thus it has a default value of
+        @code(DefaultAmbientIntensity * DefaultiffuseColor = (0.2 * 0.8, 0.2 * 0.8, 0.2 * 0.8)).
       }
       DefaultAmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2));
       DefaultAmbientIntensity = 0.2;
@@ -395,8 +381,8 @@
     property Node: TX3DNode read FNode;
 
     function AmbientColor: TVector3; virtual; abstract;
-    function DiffuseColor: TVector3; virtual; abstract;
-    function SpecularColor: TVector3; virtual; abstract;
+    property DiffuseColor: TVector3 read GetDiffuseColor write SetDiffuseColor;
+    property SpecularColor: TVector3 read GetSpecularColor write SetSpecularColor;
     function EmissiveColor: TVector3; virtual; abstract;
 
     { Only the emissiveColor is not black (zero),
@@ -425,43 +411,57 @@
     { Opacity is just @code(1 - Transparency). }
     function Opacity: Single;
 
-    function ReflSpecular: TVector3; virtual; abstract;
-    function ReflDiffuse: TVector3; virtual; abstract;
-    function TransSpecular: TVector3; virtual; abstract;
-    function TransDiffuse: TVector3; virtual; abstract;
-
-    function ReflSpecularExp: Single; virtual; abstract;
-    function TransSpecularExp: Single; virtual; abstract;
+    { Used by path-tracer.
+      See https://castle-engine.io/x3d_extensions.php#section_ext_material_phong_brdf_fields .
+      Not useful for normal CGE rendering.
+      @deprecated }
+    function ReflSpecular: TVector3; virtual;
+    function ReflDiffuse: TVector3; virtual;
+    function TransSpecular: TVector3; virtual;
+    function TransDiffuse: TVector3; virtual;
+    function ReflSpecularExp: Single; virtual;
+    function TransSpecularExp: Single; virtual;
   end;
 
   TX3DMaterialInfoAbstract = TMaterialInfo deprecated 'use TMaterialInfo';
 
-  { Surface material properties for associated geometry nodes,
-    used by the lighting equations during rendering. }
+  { Material determines how the geometry looks on the screen,
+    by providing parameters to the lighting equations.
+    This is the material responsible for the Phong lighting model.
+
+    It may be one-sided material under some cirumstances (black from the back
+    side).
+    To have a two-sided material, either use TTwoSidedMaterialNode,
+    or set the shading to Phong using @link(TRenderingAttributes.PhongShading)
+    or @link(TShapeNode.Shading). }
   TMaterialNode = class(TAbstractMaterialNode)
   strict private
     type
       TX3DMaterialInfo = class(TMaterialInfo)
       strict private
         FNode: TMaterialNode;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode);
 
         function AmbientColor: TVector3; override;
-        function DiffuseColor: TVector3; override;
-        function SpecularColor: TVector3; override;
         function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
 
+        {$ifndef CASTLE_SLIM_NODES}
         function ReflSpecular: TVector3; override;
         function ReflDiffuse: TVector3; override;
         function TransSpecular: TVector3; override;
         function TransDiffuse: TVector3; override;
-
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
+        {$endif}
       end;
     var
       FMaterialInfo: TX3DMaterialInfo;
@@ -573,14 +573,42 @@
     {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
 
-  { Material properties that can effect both the front and back side
-    of a polygon individually.
-    @bold(Not implemented yet.) }
+  { Two-sided material (always lit from both sides),
+    with properties that allow to lit both sides with different properties (colors). }
   TTwoSidedMaterialNode = class(TAbstractMaterialNode)
+  strict private
+    type
+      TTwoSidedMaterialInfo = class(TMaterialInfo)
+      strict private
+        WarningSeparateBackColorDone: Boolean;
+        FNode: TTwoSidedMaterialNode;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
+      public
+        constructor Create(ANode: TTwoSidedMaterialNode);
+
+        function AmbientColor: TVector3; override;
+        function EmissiveColor: TVector3; override;
+        function Shininess: Single; override;
+        function ReflectionColor: TVector3; override;
+        function Transparency: Single; override;
+      end;
+    var
+      FMaterialInfo: TMaterialInfo;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
+    function MaterialInfo: TMaterialInfo;
 
     strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
@@ -763,7 +791,7 @@ begin
   FdAppearance.Send(Value);
 end;
 
-function TAbstractShapeNode.GetMaterial: TMaterialNode;
+function TAbstractShapeNode.GetMaterial: TAbstractMaterialNode;
 var
   App: TAppearanceNode;
 begin
@@ -785,7 +813,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractShapeNode.SetMaterial(const Value: TMaterialNode);
+procedure TAbstractShapeNode.SetMaterial(const Value: TAbstractMaterialNode);
 var
   App: TAppearanceNode;
 begin
@@ -1053,15 +1081,15 @@ begin
   FdNormalMap.Send(Value);
 end;
 
-function TAppearanceNode.GetMaterial: TMaterialNode;
+function TAppearanceNode.GetMaterial: TAbstractMaterialNode;
 begin
-  if FdMaterial.Value is TMaterialNode then
-    Result := TMaterialNode(FdMaterial.Value)
+  if FdMaterial.Value is TAbstractMaterialNode then
+    Result := TAbstractMaterialNode(FdMaterial.Value)
   else
     Result := nil;
 end;
 
-procedure TAppearanceNode.SetMaterial(const Value: TMaterialNode);
+procedure TAppearanceNode.SetMaterial(const Value: TAbstractMaterialNode);
 begin
   FdMaterial.Send(Value);
 end;
@@ -1371,26 +1399,6 @@ begin
   FNode := ANode;
 end;
 
-procedure TMaterialInfo.CalculateReflSpecular(out V: TVector3);
-begin
-  V := ReflectionColor;
-end;
-
-procedure TMaterialInfo.CalculateReflDiffuse(out V: TVector3);
-begin
-  V := DiffuseColor;
-end;
-
-procedure TMaterialInfo.CalculateTransSpecular(out V: TVector3);
-begin
-  V := TransmissionColor;
-end;
-
-procedure TMaterialInfo.CalculateTransDiffuse(out V: TVector3);
-begin
-  V := DiffuseColor * TransmissionColor;
-end;
-
 function TMaterialInfo.ShininessExp: Single;
 begin
   { According to VRML / X3D specification, shininess must be within 0..1 range,
@@ -1420,6 +1428,40 @@ begin
   Result := 1 - Transparency;
 end;
 
+function TMaterialInfo.ReflSpecular: TVector3;
+begin
+  { Default implementation calculates something sensible looking at other fields. }
+  Result := ReflectionColor;
+end;
+
+function TMaterialInfo.ReflDiffuse: TVector3;
+begin
+  { Default implementation calculates something sensible looking at other fields. }
+  Result := DiffuseColor;
+end;
+
+function TMaterialInfo.TransSpecular: TVector3;
+begin
+  { Default implementation calculates something sensible looking at other fields. }
+  Result := TransmissionColor;
+end;
+
+function TMaterialInfo.TransDiffuse: TVector3;
+begin
+  { Default implementation calculates something sensible looking at other fields. }
+  Result := DiffuseColor * TransmissionColor;
+end;
+
+function TMaterialInfo.ReflSpecularExp: Single;
+begin
+  Result := DefaultReflSpecularExp;
+end;
+
+function TMaterialInfo.TransSpecularExp: Single;
+begin
+  Result := DefaultTransSpecularExp;
+end;
+
 { TMaterialNode.TX3DMaterialInfo -------------------------------------------------------- }
 
 constructor TMaterialNode.TX3DMaterialInfo.Create(ANode: TMaterialNode);
@@ -1430,116 +1472,109 @@ end;
 
 function TMaterialNode.TX3DMaterialInfo.AmbientColor: TVector3;
 begin
-  Result := FNode.FdDiffuseColor.Value * FNode.FdAmbientIntensity.Value;
+  Result := FNode.DiffuseColor * FNode.AmbientIntensity;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.DiffuseColor: TVector3;
+function TMaterialNode.TX3DMaterialInfo.GetDiffuseColor: TVector3;
 begin
-  Result := FNode.FdDiffuseColor.Value;
+  Result := FNode.DiffuseColor;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.SpecularColor: TVector3;
+procedure TMaterialNode.TX3DMaterialInfo.SetDiffuseColor(const Value: TVector3);
 begin
-  Result := FNode.FdSpecularColor.Value;
+  FNode.DiffuseColor := Value;
+end;
+
+function TMaterialNode.TX3DMaterialInfo.GetSpecularColor: TVector3;
+begin
+  Result := FNode.SpecularColor;
+end;
+
+procedure TMaterialNode.TX3DMaterialInfo.SetSpecularColor(const Value: TVector3);
+begin
+  FNode.SpecularColor := Value;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.EmissiveColor: TVector3;
 begin
-  Result := FNode.FdEmissiveColor.Value;
+  Result := FNode.EmissiveColor;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Shininess: Single;
 begin
-  Result := FNode.FdShininess.Value;
+  Result := FNode.Shininess;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3;
+var
+  M: Single;
 begin
-  Result := Vector3(
-    FNode.FdMirror.Value,
-    FNode.FdMirror.Value,
-    FNode.FdMirror.Value
-  );
+  M := FNode.Mirror;
+  Result := Vector3(M, M, M);
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Transparency: Single;
 begin
-  Result := FNode.FdTransparency.Value;
+  Result := FNode.Transparency;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.ReflSpecular: TVector3;
 {$ifndef CASTLE_SLIM_NODES}
+
+function TMaterialNode.TX3DMaterialInfo.ReflSpecular: TVector3;
 var
   A: TVector3List;
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
-    CalculateReflSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[0];
-{$else}
-begin
-  CalculateReflSpecular(Result);
-{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflDiffuse: TVector3;
-{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
-    CalculateReflDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[0];
-{$else}
-begin
-  CalculateReflDiffuse(Result);
-{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransSpecular: TVector3;
-{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
-    CalculateTransSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[0];
-{$else}
-begin
-  CalculateTransSpecular(Result);
-{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransDiffuse: TVector3;
-{$ifndef CASTLE_SLIM_NODES}
 var
   A: TVector3List;
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
-    CalculateTransDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[0];
-{$else}
-begin
-  CalculateTransDiffuse(Result);
-{$endif}
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflSpecularExp: Single;
 begin
-  Result := {$ifndef CASTLE_SLIM_NODES} FNode.FdReflSpecularExp.Value {$else} 0 {$endif};
+  Result := FNode.FdReflSpecularExp.Value;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransSpecularExp: Single;
 begin
-  Result := {$ifndef CASTLE_SLIM_NODES} FNode.FdTransSpecularExp.Value {$else} 0 {$endif};
+  Result := FNode.FdTransSpecularExp.Value;
 end;
+
+{$endif not CASTLE_SLIM_NODES}
 
 { TShapeNode ----------------------------------------------------------------- }
 
@@ -1559,6 +1594,70 @@ begin
     (URN = URNVRML97Nodes + ClassX3DType) or
     (URN = URNX3DNodes + ClassX3DType);
 end;
+
+{ TTwoSidedMaterialInfo --------------------------------------------------- }
+
+constructor TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Create(ANode: TTwoSidedMaterialNode);
+begin
+  inherited Create(ANode);
+  FNode := ANode;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.AmbientColor: TVector3;
+begin
+  Result := FNode.DiffuseColor * FNode.AmbientIntensity;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetDiffuseColor: TVector3;
+begin
+  { Warn about SeparateBackColor not being implemented, in 1st call to DiffuseColor
+    (most often used method). }
+  if FNode.SeparateBackColor and not WarningSeparateBackColorDone then
+  begin
+    WritelnWarning('TwoSidedMaterial X3D node (%s) with SeparateBackColor = true is not supported yet', [
+      FNode.NiceName
+    ]);
+    WarningSeparateBackColorDone := true;
+  end;
+  Result := FNode.DiffuseColor;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetDiffuseColor(const Value: TVector3);
+begin
+  FNode.DiffuseColor := Value;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.GetSpecularColor: TVector3;
+begin
+  Result := FNode.SpecularColor;
+end;
+
+procedure TTwoSidedMaterialNode.TTwoSidedMaterialInfo.SetSpecularColor(const Value: TVector3);
+begin
+  FNode.SpecularColor := Value;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.EmissiveColor: TVector3;
+begin
+  Result := FNode.EmissiveColor;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Shininess: Single;
+begin
+  Result := FNode.Shininess;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.ReflectionColor: TVector3;
+begin
+  Result := TVector3.Zero;
+end;
+
+function TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Transparency: Single;
+begin
+  Result := FNode.Transparency;
+end;
+
+{ TTwoSidedMaterialNode ------------------------------------------------------ }
 
 procedure TTwoSidedMaterialNode.CreateNode;
 begin
@@ -1629,6 +1728,12 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
+destructor TTwoSidedMaterialNode.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
 class function TTwoSidedMaterialNode.ClassX3DType: string;
 begin
   Result := 'TwoSidedMaterial';
@@ -1639,6 +1744,15 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
 end;
+
+function TTwoSidedMaterialNode.MaterialInfo: TMaterialInfo;
+begin
+  if FMaterialInfo = nil then
+    FMaterialInfo := TTwoSidedMaterialInfo.Create(Self);
+  Result := FMaterialInfo;
+end;
+
+{ register ------------------------------------------------------------------- }
 
 procedure RegisterShapeNodes;
 begin

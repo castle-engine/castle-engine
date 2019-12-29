@@ -12,7 +12,7 @@
 
   ----------------------------------------------------------------------------
 }
-{ Group and transform 3D scenes (TCastleTransform). }
+{ Group and transform scenes (TCastleTransform). }
 unit CastleTransform;
 
 {$I castleconf.inc}
@@ -22,10 +22,10 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
-  CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
+  CastleSoundEngine, CastleCameras, CastleTriangles;
 
 type
-  TSceneManagerWorld = class;
+  TCastleAbstractRootTransform = class;
   TCastleTransform = class;
   TRenderingCamera = class;
 
@@ -211,13 +211,13 @@ type
     you should not need to read anything inside or deal with this class otherwise.
 
     The only official usage allowed is to pass an instance of this class
-    taken from @link(TCastleAbstractViewport.PrepareParams)
+    taken from @link(TCastleViewport.PrepareParams)
     as a parameter to @link(TCastleTransform.PrepareResources) and friends
     like @link(T3DResource.Prepare). You should treat this class as a "black box"
     in normal applications. }
   TPrepareParams = class
     { Include a headlight, or global lights that shine on all
-      scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
+      scenes (see @link(TCastleViewport.UseGlobalLights)).
 
       It is not necessary to define this (it may be @nil).
       And all the lighting is dynamic, so of course you can always
@@ -343,7 +343,7 @@ type
       Disabled: Cardinal;
       FExcludeFromGlobalLights, FExcludeFromStatistics,
         FInternalExcludeFromParentBoundingVolume: boolean;
-      FWorld: TSceneManagerWorld;
+      FWorld: TCastleAbstractRootTransform;
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FParent: TCastleTransform;
@@ -426,23 +426,23 @@ type
 
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: TSceneManagerWorld);
+    procedure AddToWorld(const Value: TCastleAbstractRootTransform);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: TSceneManagerWorld);
+    procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
       This can be ignored (not care about FWorldReferences) when Value = FWorld.
 
-      Each 3D object can only be part of one TSceneManagerWorld at a time.
+      Each transformation/scene can only be part of one TCastleAbstractRootTransform at a time.
       The object may be present many times within the world
       (counted by FWorldReferences, which is always set to 1 by this procedure
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: TSceneManagerWorld); virtual;
+    procedure ChangeWorld(const Value: TCastleAbstractRootTransform); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -812,7 +812,7 @@ type
       The rendering transformation, frustum, and filtering
       is specified inside TRenderParams class.
       This method should only update @code(TRenderParams.Statistics). }
-    procedure Render(const Params: TRenderParams); overload;
+    procedure Render(const Params: TRenderParams); virtual; overload;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); overload;
       deprecated 'use Render method without an explicit Frustum parameter, it is in Params.Frustum now';
@@ -996,15 +996,9 @@ type
       so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { World containing this 3D object. In other words, the root of 3D objects
-      tree containing this object. In practice, the world instance
-      is always 1-1 corresponding to a particular TCastleSceneManager instance
-      (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
-
-      @nil if we are not part of a hierarchy rooted in TSceneManagerWorld.
-      In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
-      hierarchy. }
-    property World: TSceneManagerWorld read FWorld;
+    { Root transformation (TCastleAbstractRootTransform) containing us.
+      @nil if we are not (yet) part of some hierarchy rooted in TCastleAbstractRootTransform. }
+    property World: TCastleAbstractRootTransform read FWorld;
 
     { Something visible changed in the world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1039,7 +1033,7 @@ type
     { Are we in the middle of dragging something by moving the mouse.
 
       This should be set to @true to disable camera navigation
-      methods that also use mouse move. In practice, to disable TExamineCamera
+      methods that also use mouse move. In practice, to disable TCastleExamineNavigation
       view rotation/movement by moving the mouse, as it makes (comfortable)
       dragging practically impossible (at each mouse move, view changes...).
 
@@ -1072,12 +1066,6 @@ type
       In this class this returns something sensible above the bottom
       of the box. See @link(TCastleTransform.MiddleHeight). }
     function Middle: TVector3; virtual;
-
-    { Sector where the middle of this 3D object is.
-      Used for AI. @nil if none (maybe because we're not part of any world,
-      maybe because sectors of the world were not initialized,
-      or maybe simply because we're outside of all sectors). }
-    function Sector: TSector;
 
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
@@ -1240,8 +1228,8 @@ type
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
-      defined in this item --- it does not recursively apply all transform on the way to root
-      @groupBegin. }
+      defined in this item --- it does not recursively apply all transform on the way to root.
+      @groupBegin }
     function OutsideToLocal(const Pos: TVector3): TVector3;
     function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
@@ -1255,9 +1243,9 @@ type
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
-      (it's linked to TWalkCamera.OnFall in this case).
+      (it's linked to TCastleWalkNavigation.OnFall in this case).
 
-      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      TODO: This will be deprecated at some point, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
@@ -1362,8 +1350,8 @@ type
       This accumulates the transformation of this instance
       (derived from properties like @link(Translation), @link(Rotation), @link(Scale))
       with the transformation of parent @link(TCastleTransform) instances,
-      all the way up to and including the root transformation of
-      @link(TSceneManagerWorld).
+      all the way up to and including the root transformation
+      (@link(TCastleAbstractRootTransform)).
       Thus, this is a transformation to the world known to the
       @link(TCastleSceneManager) instance.
 
@@ -1746,9 +1734,9 @@ type
     property Visible: boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleSceneManager,
-      and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
+      and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
       to make an exception for this 3D object: even though
-      @link(TCastleAbstractViewport.UseGlobalLights) is @true,
+      @link(TCastleViewport.UseGlobalLights) is @true,
       do not use global lights @italic(for this 3D object).
 
       Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
@@ -1758,7 +1746,7 @@ type
       read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
 
     { Exclude from rendering statistics in
-      @link(TCastleAbstractViewport.Statistics). }
+      @link(TCastleViewport.Statistics). }
     property ExcludeFromStatistics: boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
 
@@ -1769,15 +1757,27 @@ type
 
   TPhysicsProperties = class;
 
-  { 3D world. List of 3D objects, with some central properties. }
-  TSceneManagerWorld = class(TCastleTransform)
-  private
-    FKraftEngine: TKraft;
+  TSceneManagerWorld = TCastleAbstractRootTransform deprecated 'use TCastleRootTransform';
+
+  { Root of transformations and scenes (tree of TCastleTransform and TCastleScene).
+    This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
+  TCastleAbstractRootTransform = class(TCastleTransform)
+  strict private
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
+    FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
     FCameraKnown: boolean;
     FEnablePhysics: boolean;
+    FMoveLimit: TBox3D;
+    FPhysicsProperties: TPhysicsProperties;
+    UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
+    FTimeScale: Single;
+    FPaused: boolean;
+    FMainCamera: TCastleCamera;
+    procedure SetPaused(const Value: boolean);
+    procedure SetMainCamera(const Value: TCastleCamera);
+  private
+    FKraftEngine: TKraft;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1786,14 +1786,14 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure UpdateGeneratedTextures(
+      const RenderFunc: TRenderFromViewFunction;
+      const ProjectionNear, ProjectionFar: Single); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    { See TCastleSceneManager.CollisionIgnoreItem. }
-    function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: PTriangle): boolean; virtual; abstract;
-    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3; virtual; abstract;
     { The major axis of gravity vector: 0, 1 or 2.
-      This is derived from GravityUp value. It can only truly express
+      This is trivially derived from the known camera
+      GravityUp value. It can only truly express
       GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
       although in practice this is enough for normal games (normal 3D scenes
       use up either +Y or +Z).
@@ -1803,19 +1803,15 @@ type
       Full GravityUp vector may allow for more fun with weird gravity
       in future games. }
     function GravityCoordinate: Integer;
-    { Player, see TCastleSceneManager.Player. }
-    function Player: TCastleTransform; virtual; abstract;
-    { Parameters to prepare rendering for,
-      see @link(TCastleAbstractViewport.PrepareParams). }
-    function PrepareParams: TPrepareParams; virtual; abstract;
-    { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
-    function Sectors: TSectorList; virtual; abstract;
-    { Water volume. See TCastleSceneManager.Water. }
-    function Water: TBox3D; virtual; abstract;
+
+    function GravityUp: TVector3;
+      // TODO: I would like to deprecate it,
+      // but it is so often useful, and the alternative name with Camera prefix looks convoluted.
+      // Leave it be for now.
+      // TODO: deprecated 'use CameraGravityUp after checking CameraKnown';
 
     { Collisions with world. They call corresponding methods without the World
-      prefix, automatically taking into account some knowledge about this
-      3D world.
+      prefix, automatically taking into account some knowledge about this world.
 
       Calling these methods to check collisions makes sense if your
       collision query is not initiated by any existing TCastleTransform instance.
@@ -1825,22 +1821,22 @@ type
       Instead call TCastleTransform.MoveAllowed, TCastleTransform.Height methods.
       Underneath, they still call @code(World.WorldMoveAllowed) and
       @code(World.WorldHeight),
-      additionally making sure that the 3D object does not collide with itself.
+      additionally making sure that the object does not collide with itself.
       @groupBegin }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload;
     function WorldMoveAllowed(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
-    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
     function WorldBoxCollision(const Box: TBox3D): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
@@ -1848,21 +1844,17 @@ type
     function WorldPointCollision2D(const Point: TVector2): boolean;
     { @groupEnd }
 
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-
-    { Camera position, direction and up, in the world coordinates.
+    { Camera position, direction, up and gravity up vectors.
+      Expressed in the coordinate space of this TCastleAbstractRootTransform,
+      which means: the coordinate space of enclosing @link(TCastleViewport).
 
       Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
-      will need to transform this camera to scene local space.
-      They use @link(WorldTransform), and will raise @link(ETransformParentUndefined)
-      when it is not possible (e.g. when the same scene instance
-      is reused under many different locations).
-
-      So, to be on the safe side, do not turn on @link(TCastleSceneCore.ProcessEvents),
-      or do not share the scene in multiple places in the scene manager.
-      Or at least don't use features like LOD or Billboard or ProximitySensor,
-      that cannot work in case the same scene instance in rendered in multiple
-      locations on the world.
+      need to transform this camera to scene local space.
+      Which is not possible if the same scene instance
+      is used multiple times (e.g. under many different TCastleTransform parents).
+      If you need to use these features of TCastleScene,
+      then simply do not use the same scene reference multiple times
+      (instead clone the scene by @link(TCastleScene.Clone)).
 
       CameraKnown = @false means that
       CameraChanged was never called, and so camera settings are not known,
@@ -1872,17 +1864,111 @@ type
     property CameraPosition: TVector3 read FCameraPosition;
     property CameraDirection: TVector3 read FCameraDirection;
     property CameraUp: TVector3 read FCameraUp;
+    property CameraGravityUp: TVector3 read FCameraGravityUp;
     property CameraKnown: boolean read FCameraKnown;
     { @groupEnd }
 
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
-    function PhysicsProperties: TPhysicsProperties; virtual; abstract;
-
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
     property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
       default true;
+
+    { Limit the movement allowed by @link(WorldMoveAllowed).
+      Ignored when empty (default).
+
+      This property allows to easily limit the possible places
+      where player and creatures go.
+      Player is honoring this if it uses @link(WorldMoveAllowed),
+      in particular our @link(TCastleWalkNavigation) navigation honors it.
+      Creatures honor it if they use @link(WorldMoveAllowed)
+      for their decision,
+      in particular all creatures in @link(CastleCreatures) use it.
+
+      Note that the @link(TGameSceneManager.LoadLevel) always
+      assigns this property to be non-empty.
+      It either determines it by CasMoveLimit placeholder
+      in the level 3D model, or by calculating
+      to include level bounding box + some space for flying.
+    }
+    property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
+
+    { The central camera, that controls the features that require
+      a single "main" camera (features that do not make sense
+      with multiple cameras from multiple viewports).
+
+      This camera controls:
+
+      - the X3D nodes that "sense" camera like ProximitySensor, Billboard.
+      - an audio listener (controlling the spatial sound).
+      - the headlight.
+      - when X3D nodes change Viewport/NavigationInfo,
+        they apply these changes to this camera.
+
+      Note that it means that "headlight" is assigned to one camera
+      in case of multiple viewports looking at the same world.
+      You cannot have a different "headlight" in each viewport,
+      this would cause subtle problems since it's not how it would work in reality
+      (where every light is visible in all viewports),
+      e.g. mirror textures (like GeneratedCubeMapTexture)
+      would need different contents in different viewpoints.
+
+      By default this is set to @link(Camera) of the @link(TCastleViewport)
+      that created this @link(TCastleAbstractRootTransform) instance.
+      So in simple cases (when you just create one @link(TCastleViewport)
+      and add your scenes to it's already-created @link(TCastleViewport.Items))
+      you don't have to do anything, it just works.
+      In general, you can change this to any camera of any associated @link(TCastleViewport),
+      or @nil (in case no camera should be that "central" camera).
+
+      TODO: Use free notification to automatically nil this.
+      For now, be sure to unassign it early enough, before freeing the camera. }
+    property MainCamera: TCastleCamera read FMainCamera write SetMainCamera;
+  published
+    { Adjust physics behaviour. }
+    property PhysicsProperties: TPhysicsProperties read FPhysicsProperties;
+
+    { Time scale used when not @link(Paused). }
+    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+
+    { Pausing means that no events (key, mouse, update) are processed.
+      So time doesn't move, and input is not processed.
+
+      Navigation also doesn't work (this part is implemented by TCastleViewport
+      and each TCastleNavigation).
+
+      This is useful if you want to unconditionally make your world temporary
+      still (for example, useful when entering some modal dialog box
+      and you want the world to behave as a still background).
+
+      @italic(See also): For other pausing methods,
+      there are other methods of pausing / disabling
+      some events processing for the world:
+
+      @unorderedList(
+        @item(You can set TCastleScene.TimePlaying to @false.
+          This is roughly equivalent to not running their @link(Update) methods.
+          This means that time will "stand still" for them,
+          so their animations will not play. Although they may
+          still react and change in response to mouse clicks / key presses,
+          if TCastleScene.ProcessEvents.)
+
+        @item(You can set TCastleScene.ProcessEvents to @false.
+          This means that scene will not receive and process any
+          key / mouse and other events (through VRML/X3D sensors).
+          Some animations (not depending on VRML/X3D events processing)
+          may still run, for example MovieTexture will still animate,
+          if only TCastleScene.TimePlaying.)
+
+        @item(For navigation, you can set @code(TCastleNavigation.Input := []) to ignore
+          key / mouse clicks.
+
+          Or you can set @code(TCastleNavigation.Exists) to @false,
+          this is actually equivalent to what pausing does now for TCastleNavigation.
+        )
+      ) }
+    property Paused: boolean read FPaused write SetPaused default false;
   end;
 
   {$define read_interface}
@@ -1913,7 +1999,7 @@ const
 
 implementation
 
-uses CastleLog, CastleQuaternions, CastleComponentSerialize;
+uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
@@ -2170,13 +2256,6 @@ begin
   Result := FVisible and GetExists;
 end;
 
-function TCastleTransform.Sector: TSector;
-begin
-  if (World <> nil) and (World.Sectors <> nil) then
-    Result := World.Sectors.SectorWithPoint(Middle) else
-    Result := nil;
-end;
-
 function TCastleTransform.Sphere(out Radius: Single): boolean;
 begin
   Result := false;
@@ -2193,7 +2272,7 @@ begin
   Dec(Disabled);
 end;
 
-procedure TCastleTransform.AddToWorld(const Value: TSceneManagerWorld);
+procedure TCastleTransform.AddToWorld(const Value: TCastleAbstractRootTransform);
 var
   I: Integer;
 begin
@@ -2212,7 +2291,7 @@ begin
       List[I].AddToWorld(Value);
 end;
 
-procedure TCastleTransform.RemoveFromWorld(const Value: TSceneManagerWorld);
+procedure TCastleTransform.RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 var
   I: Integer;
 begin
@@ -2231,7 +2310,7 @@ begin
       List[I].RemoveFromWorld(Value);
 end;
 
-procedure TCastleTransform.ChangeWorld(const Value: TSceneManagerWorld);
+procedure TCastleTransform.ChangeWorld(const Value: TCastleAbstractRootTransform);
 begin
   if FWorld <> Value then
   begin
@@ -2250,7 +2329,7 @@ begin
 
     if FWorld <> nil then
     begin
-      // Ignore FWorld = Self case, when this is done by TSceneManagerWorld.Create? No need to.
+      // Ignore FWorld = Self case, when this is done by TCastleAbstractRootTransform.Create? No need to.
       //if FWorld <> Self then
       FWorld.FreeNotification(Self);
 
@@ -3048,7 +3127,7 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
   var
     GravityUp: TVector3;
 
-    { TODO: this is a duplicate of similar TWalkCamera method }
+    { TODO: this is a duplicate of similar TCastleWalkNavigation method }
     procedure DoFall;
     var
       BeginPos, EndPos, FallVector: TVector3;
@@ -3079,8 +3158,10 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
     OldFalling: boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
+    if (World = nil) or not World.CameraKnown then Exit;
+
     { calculate and save GravityUp once, it's used quite often in this procedure }
-    GravityUp := World.GravityUp;
+    GravityUp := World.CameraGravityUp;
 
     OldFalling := FFalling;
 
@@ -3395,52 +3476,147 @@ end;
 {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
 {$undef read_implementation_methods}
 
-{ TSceneManagerWorld ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
-constructor TSceneManagerWorld.Create(AOwner: TComponent);
+constructor TCastleAbstractRootTransform.Create(AOwner: TComponent);
 begin
   inherited;
+
+  FPhysicsProperties := TPhysicsProperties.Create(Self);
+  FPhysicsProperties.SetSubComponent(true);
+  FPhysicsProperties.Name := 'PhysicsProperties';
+  FPhysicsProperties.RootTransform := Self;
+
+  FTimeScale := 1;
+  FMoveLimit := TBox3D.Empty;
   FEnablePhysics := true;
+  { This initialization is only to keep deprecated GravityUp/GravityCoordinate
+    sensible, even for old code that doesn't look at CameraKnown. }
+  FCameraGravityUp := Vector3(0, 1, 0);
+
   { everything inside is part of this world }
   AddToWorld(Self);
 end;
 
-function TSceneManagerWorld.GravityCoordinate: Integer;
+function TCastleAbstractRootTransform.GravityUp: TVector3;
 begin
-  Result := MaxAbsVectorCoord(GravityUp);
+  Result := FCameraGravityUp;
 end;
 
-function TSceneManagerWorld.WorldBoxCollision(const Box: TBox3D): boolean;
+function TCastleAbstractRootTransform.GravityCoordinate: Integer;
+begin
+  Result := MaxAbsVectorCoord(FCameraGravityUp);
+end;
+
+function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
 begin
   Result := BoxCollision(Box, nil);
 end;
 
-function TSceneManagerWorld.WorldSphereCollision(const Pos: TVector3;
+function TCastleAbstractRootTransform.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
-function TSceneManagerWorld.WorldSphereCollision2D(const Pos: TVector2;
+function TCastleAbstractRootTransform.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const Details: TCollisionDetails): boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function TSceneManagerWorld.WorldPointCollision2D(const Point: TVector2): boolean;
+function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
 end;
 
-procedure TSceneManagerWorld.CameraChanged(const ACamera: TCastleCamera);
+function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  Result := HeightCollision(APosition, CameraGravityUp, nil,
+    AboveHeight, AboveGround);
+end;
+
+function TCastleAbstractRootTransform.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+begin
+  Result := not SegmentCollision(Pos1, Pos2,
+    { Ignore transparent materials, this means that creatures can see through
+      glass --- even though they can't walk through it. }
+    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
+    true);
+end;
+
+function TCastleAbstractRootTransform.WorldRay(
+  const RayOrigin, RayDirection: TVector3): TRayCollision;
+begin
+  Result := RayCollision(RayOrigin, RayDirection, nil);
+end;
+
+function TCastleAbstractRootTransform.WorldMoveAllowed(
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, nil);
+  if Result then
+    Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
+end;
+
+function TCastleAbstractRootTransform.WorldMoveAllowed(
+  const OldPos, NewPos: TVector3;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, nil);
+  if Result then
+    Result := MoveLimit.IsEmpty or MoveLimit.Contains(NewPos);
+end;
+
+procedure TCastleAbstractRootTransform.CameraChanged(const ACamera: TCastleCamera);
+begin
+  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp);
   FCameraKnown := true;
 
   { inherited calls CameraChanged on all items,
     and they may assume that World.Camera* properties are already properly set. }
   inherited;
+end;
+
+procedure TCastleAbstractRootTransform.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single);
+begin
+  { Avoid doing this two times within the same FrameId.
+    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
+  if UpdateGeneratedTexturesFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateGeneratedTexturesFrameId := TFramesPerSecond.FrameId;
+
+  inherited;
+end;
+
+procedure TCastleAbstractRootTransform.SetPaused(const Value: boolean);
+begin
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    { TODO: update the viewport cursor when Paused changed. }
+    // RecalculateCursor(Self);
+  end;
+end;
+
+procedure TCastleAbstractRootTransform.SetMainCamera(const Value: TCastleCamera);
+begin
+  if FMainCamera <> Value then
+  begin
+    FMainCamera := Value;
+    VisibleChangeHere([]);
+  end;
 end;
 
 initialization

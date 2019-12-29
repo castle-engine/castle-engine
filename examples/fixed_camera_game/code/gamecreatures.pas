@@ -367,13 +367,16 @@ constructor TPlayer.Create(AKind: TCreatureKind);
   procedure CreateTargetVisualize;
   var
     Sphere: TSphereNode;
+    Material: TMaterialNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
 
+    Material := TMaterialNode.Create;
+    Material.DiffuseColor := RedRGB;
+
     FTargetVisualizeShape := TShapeNode.Create;
-    FTargetVisualizeShape.Material := TMaterialNode.Create;
-    FTargetVisualizeShape.Material.DiffuseColor := RedRGB;
+    FTargetVisualizeShape.Material := Material;
     FTargetVisualizeShape.Geometry := Sphere;
 
     FTargetVisualize := TTransformNode.Create;

@@ -38,12 +38,12 @@ published
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
-function TCastleAbstractViewport.GetBackgroundColorForPersistent: TCastleColor;
+function TCastleViewport.GetBackgroundColorForPersistent: TCastleColor;
 begin
   Result := BackgroundColor;
 end;
 
-procedure TCastleAbstractViewport.SetBackgroundColorForPersistent(const AValue: TCastleColor);
+procedure TCastleViewport.SetBackgroundColorForPersistent(const AValue: TCastleColor);
 begin
   BackgroundColor := AValue;
 end;

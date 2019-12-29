@@ -46,6 +46,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+  protected
+    procedure Show;
+    procedure Hide;
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
@@ -70,8 +73,42 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
+procedure TChooseProjectForm.Show;
+begin
+  {$ifdef MSWINDOWS}
+  Application.ShowMainForm := True;
+  {$else}
+  inherited Show;
+  {$endif}
+end;
+
+procedure TChooseProjectForm.Hide;
+begin
+  {$ifdef MSWINDOWS}
+  Application.ShowMainForm := False;
+  {$else}
+  inherited Hide;
+  {$endif}
+end;
+
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
 begin
+  { This is critical in a corner case:
+    - You run CGE editor such that it detects as "data directory"
+      current directory. E.g. you compiled it manually and run on Unix as
+      "tools/castle-editor/castle-editor"
+    - Now you open project in subdirectory. (E.g. some CGE example,
+      to continue previous example.)
+    - With UseCastleDataProtocol, OpenProject.URL will now be like
+      'castle-data:/examples/xxx/CastleEngineManifest.xml'.
+      Which means that it's absolute (AbsoluteURI in ProjectOpen will not change it),
+      but it's also bad to be used (because later we will set ApplicationDataOverride
+      to something derived from it, thus ResolveCastleDataURL will resolve
+      castle-data:/ to another castle-data:/ , and it will make no sense
+      since one castle-data:/ assumes ApplicationDataOverride = '' ...).
+  }
+  OpenProject.UseCastleDataProtocol := false;
+
   if OpenProject.Execute then
   begin
     RecentProjects.Add(OpenProject.URL, false);

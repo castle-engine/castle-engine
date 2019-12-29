@@ -70,7 +70,7 @@ begin
     Registering properties that use TSubPropertiesEditor
     (not any descendant of it) is still necessary to expand them
     in castle-editor and Lazarus design-time. }
-  RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
+  RegisterPropertyEditor(TypeInfo(TCastleRootTransform), TCastleViewport, 'Items',
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);

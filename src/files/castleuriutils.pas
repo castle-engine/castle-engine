@@ -608,7 +608,7 @@ end;
 
 function URIToFilenameSafe(const URI: string): string;
 var
-  P: string;
+  P, CastleDataResolved: string;
 begin
   { Use our URIProtocol instead of depending that URIToFilename will detect
     empty protocol case correctly. This allows to handle Windows absolute
@@ -633,8 +633,14 @@ begin
     end;
   end else
   if P = 'castle-data' then
-    Result := URIToFilenameSafe(ResolveCastleDataURL(URI))
-  else
+  begin
+    CastleDataResolved := ResolveCastleDataURL(URI);
+    if URIProtocol(CastleDataResolved) = 'castle-data' then
+      raise EInternalError.CreateFmt('ResolveCastleDataURL cannot return URL with castle-data protocol. This probably indicates that ApplicationDataOverride (%s) contains castle-data protocol, which it should not.', [
+        ApplicationDataOverride
+      ]);
+    Result := URIToFilenameSafe(CastleDataResolved);
+  end else
     Result := '';
 end;
 

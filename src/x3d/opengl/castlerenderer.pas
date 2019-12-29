@@ -124,7 +124,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
-  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform;
 
@@ -2762,6 +2762,13 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     end;
   end;
 
+  function ShapeMaybeUsesTwoSidedMaterial(Shape: TX3DRendererShape): boolean;
+  begin
+    Result :=
+      (Shape.Node <> nil) and
+      (Shape.Node.Material is TTwoSidedMaterialNode);
+  end;
+
 var
   PhongShading: boolean;
   Shader: TShader;
@@ -2783,7 +2790,8 @@ begin
       PhongShading := false;
   { if some feature requires PhongShading, make it true }
   if ShapeMaybeUsesPhongSurfaceTexture(Shape) or
-     ShapeMaybeUsesShadowMaps(Shape) then
+     ShapeMaybeUsesShadowMaps(Shape) or
+     ShapeMaybeUsesTwoSidedMaterial(Shape) then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);

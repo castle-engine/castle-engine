@@ -131,7 +131,7 @@ type
     procedure ProcessUpdateTimerTimer(Sender: TObject);
   private
     ProjectName: String;
-    ProjectPath, ProjectPathUrl, ProjectStandaloneSource: String;
+    ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
     BuildMode: TBuildMode;
     OutputList: TOutputList;
     RunningProcess: TAsynchronousProcessQueue;
@@ -173,7 +173,7 @@ implementation
 uses TypInfo, LCLType,
   CastleXMLUtils, CastleLCLUtils, CastleOpenDocument, CastleURIUtils,
   CastleFilesUtils, CastleUtils, CastleVectors, CastleColors,
-  CastleScene, CastleSceneManager, Castle2DSceneManager, CastleCameras,
+  CastleScene, CastleViewport, Castle2DSceneManager, CastleCameras,
   CastleTransform, CastleControls, CastleDownload, CastleApplicationProperties,
   CastleLog, CastleComponentSerialize, CastleSceneCore, CastleStringUtils,
   CastleFonts, X3DLoad, CastleFileFilters, CastleImages, CastleSoundEngine,
@@ -690,8 +690,10 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
   var
     Exe: String;
   begin
-    if ProjectStandaloneSource = '' then
+    //if ProjectLazarus = '' then
+    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
     begin
+      //EditorUtils.ErrorBox('Cannot open project in Lazarus, as neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml.');
       EditorUtils.ErrorBox('Cannot open project in Lazarus, as "standalone_source" was not specified in CastleEngineManifest.xml.');
       Exit;
     end;
@@ -705,6 +707,17 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
         Exit;
       end;
     end;
+
+    { It would be cleaner to use LPI file, like this:
+
+    // pass both project name, and particular filename, to open file within this project.
+    RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectLazarus, FileName]);
+
+      But it doesn't work nicely: Lazarus asks for confirmation whether to open
+      LPI as XML file, or a project.
+      Instead opening LPR works better, i.e. just switches project (if necessary)
+      to new one.
+    }
 
     if SameFileName(ProjectStandaloneSource, FileName) then
       RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
@@ -903,12 +916,21 @@ end;
 procedure TProjectForm.OpenProject(const ManifestUrl: String);
 var
   ManifestDoc: TXMLDocument;
+  DefaultLazarusProject: String;
 begin
   ManifestDoc := URLReadXML(ManifestUrl);
   try
     ProjectName := ManifestDoc.DocumentElement.AttributeString('name');
-    if not ManifestDoc.DocumentElement.AttributeString('standalone_source', ProjectStandaloneSource) then
+    if not ManifestDoc.DocumentElement.AttributeString(
+      'standalone_source', ProjectStandaloneSource) then
       ProjectStandaloneSource := '';
+
+    if ProjectStandaloneSource <> '' then
+      DefaultLazarusProject := ChangeFileExt(ProjectStandaloneSource, '.lpi')
+    else
+      DefaultLazarusProject := '';
+    ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
+      'lazarus_project', DefaultLazarusProject);
   finally FreeAndNil(ManifestDoc) end;
 
   { Below we assume ManifestUrl contains an absolute path,
@@ -917,9 +939,11 @@ begin
   ProjectPathUrl := ExtractURIPath(ManifestUrl);
   ProjectPath := URIToFilenameSafe(ProjectPathUrl);
 
-  { Make ProjectStandaloneSource absolute path, or empty }
+  { Make some fields absolute paths, or empty }
   if ProjectStandaloneSource <> '' then
     ProjectStandaloneSource := CombinePaths(ProjectPath, ProjectStandaloneSource);
+  if ProjectLazarus <> '' then
+    ProjectLazarus := CombinePaths(ProjectPath, ProjectLazarus);
 
   { override ApplicationData interpretation, and castle-data:/xxx URL,
     while this project is open. }

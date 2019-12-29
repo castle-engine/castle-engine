@@ -288,18 +288,29 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         );
     end;
 
-    function MaterialsMatch(const M1, M2: TMaterialNode): Boolean;
+    { Checks contents of M1 and M2,
+      assuming that they are both <> nil and different references
+      (so there's no point in checking their references). }
+    function MaterialsContentsMatch(const M1, M2: TMaterialNode): Boolean;
     begin
       Result :=
-        (M1 = M2) or
         (
-          (M1 <> nil) and
-          (M2 <> nil) and
           TVector3.PerfectlyEquals(M1.FdDiffuseColor    .Value, M2.FdDiffuseColor    .Value) and
           TVector3.PerfectlyEquals(M1.FdSpecularColor   .Value, M2.FdSpecularColor   .Value) and
           TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
           (M1.FdAmbientIntensity.Value = M2.FdAmbientIntensity.Value) and
           (M1.FdTransparency    .Value = M2.FdTransparency    .Value)
+        );
+    end;
+
+    function AbstractMaterialsMatch(const M1, M2: TAbstractMaterialNode): Boolean;
+    begin
+      Result :=
+        (M1 = M2) or
+        (
+          (M1 is TMaterialNode) and
+          (M2 is TMaterialNode) and
+          MaterialsContentsMatch(TMaterialNode(M1), TMaterialNode(M2))
         );
     end;
 
@@ -312,7 +323,7 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           (A2 <> nil) and
           (A1.FdTexture.Value          = A2.FdTexture         .Value) and
           (A1.FdTextureTransform.Value = A2.FdTextureTransform.Value) and
-          MaterialsMatch(A1.Material, A2.Material)
+          AbstractMaterialsMatch(A1.Material, A2.Material)
         );
     end;
 

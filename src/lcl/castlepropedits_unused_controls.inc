@@ -39,7 +39,7 @@ type
   T3DEditorForm = class(TComponent)
     Control: TCastleControl;
     SceneManager: TCastleSceneManager; //< just a shortcut for TCastleControl.SceneManager now
-    Items: TSceneManagerWorld; //< just a shortcut for SceneManager.Items now
+    Items: TCastleRootTransform; //< just a shortcut for SceneManager.Items now
     procedure ShowModal;
   end;
 
@@ -91,27 +91,27 @@ begin
   end;
 end;
 
-{ TSceneManagerWorldPropertyEditor ----------------------------------------------------- }
+{ TCastleRootTransformPropertyEditor ----------------------------------------------------- }
 
 type
-  TSceneManagerWorldPropertyEditor = class(TClassPropertyEditor)
+  TCastleRootTransformPropertyEditor = class(TClassPropertyEditor)
   public
     procedure Edit; Override;
     function  GetAttributes: TPropertyAttributes; Override;
   end;
 
-procedure TSceneManagerWorldPropertyEditor.Edit;
+procedure TCastleRootTransformPropertyEditor.Edit;
 var
   Dialog: T3DEditorForm;
 begin
   Dialog := T3DEditorForm.Create(nil);
   try
-    Dialog.Items := TSceneManagerWorld(GetObjectValue(TSceneManagerWorld));
+    Dialog.Items := TCastleRootTransform(GetObjectValue(TCastleRootTransform));
     Dialog.ShowModal;
   finally FreeAndNil(Dialog) end;
 end;
 
-function TSceneManagerWorldPropertyEditor.GetAttributes: TPropertyAttributes;
+function TCastleRootTransformPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paMultiSelect, paSubProperties, {paDialog,} paReadOnly];
 end;

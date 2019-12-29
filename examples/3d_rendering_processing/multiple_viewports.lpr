@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of using custom viewports (TCastleViewport) to view the same 3D world
-  (scene manager in TCastleSceneManager). }
+{ Demo of using multiple viewports (TCastleViewport) to view the same world.
+  All TCastleViewport instances have the same TCastleViewport.Items reference. }
 
 { If defined, then the 3D world will contain an additional animation
   of a dinosaur. It's most suitable when as the main scene you load
@@ -28,10 +28,10 @@
 uses SysUtils, Classes,
   CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
+  CastleControls, CastleLog, CastleScreenEffects, CastleViewport,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
-  CastleApplicationProperties
+  CastleApplicationProperties, CastleTransform
   {$ifdef ADD_ANIMATION} , CastleFilesUtils, CastleTransform {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
@@ -62,9 +62,9 @@ begin
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     But this is not possible on OpenGLES. }
 
-  GetMainScene.Attributes.WireframeEffect := weWireframeOnly;
+  Items.MainScene.Attributes.WireframeEffect := weWireframeOnly;
   inherited;
-  GetMainScene.Attributes.WireframeEffect := weNormal;
+  Items.MainScene.Attributes.WireframeEffect := weNormal;
 end;
 
 { TScreenEffectDemoViewport -------------------------------------------------- }
@@ -131,7 +131,8 @@ end;
 { ---------------------------------------------------------------------------- }
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  RootTransform: TCastleRootTransform;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
   ViewportFrames: array [0..3] of TFocusedFrame;
@@ -240,18 +241,18 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
-  Window.SceneManager.DefaultViewport := false;
+  RootTransform := TCastleRootTransform.Create(Application);
+  RootTransform.Add(Scene);
+  RootTransform.MainScene := Scene;
 
   {$ifdef ADD_ANIMATION}
   { initialize Transform }
-  Transform := TCastleTransform.Create(Window.SceneManager);
+  Transform := TCastleTransform.Create(Application);
 //  Transform.Translation := Vector3(5, 3, 60);
-  Window.SceneManager.Items.Add(Transform);
+  RootTransform.Add(Transform);
 
   { initialize Animation }
-  Animation := TCastleScene.Create(Window.SceneManager);
+  Animation := TCastleScene.Create(Application);
   Animation.Load('castle-data:/raptor.castle-anim-frames');
   Animation.ProcessEvents := true;
   Animation.Spatial := [ssRendering, ssDynamicCollisions];
@@ -265,7 +266,7 @@ begin
   { shadow on one viewport }
   Viewports[1] := TMyViewport.Create(Application);
   Viewports[1].Caption := 'Shadow volumes On' + NL + 'Main Camera (controls headlight)';
-  Window.SceneManager.MainCamera := Viewports[1].Camera; // just a test of MainCamera
+  RootTransform.MainCamera := Viewports[1].Camera; // just a test of MainCamera
 
   Viewports[2] := TScreenEffectDemoViewport.Create(Application);
   Viewports[2].Caption := 'Screen effect shader';
@@ -282,7 +283,7 @@ begin
 
     Viewports[I].AutoCamera := false;
     Viewports[I].AutoNavigation := false;
-    Viewports[I].SceneManager := Window.SceneManager;
+    Viewports[I].Items := RootTransform;
     Viewports[I].FullSize := false;
     Viewports[I].ShadowVolumes := I = 1;
     { The initial Resize event will position viewports correctly }
@@ -299,7 +300,6 @@ begin
     ViewportsLabels[I].Anchor(vpBottom, 15);
     Viewports[I].InsertFront(ViewportsLabels[I]);
   end;
-  Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
   CameraReinitialize;
 
@@ -333,7 +333,7 @@ end;
   the ApplicationInitialize) would be in a cross-platform unit.
   See https://castle-engine.io/manual_cross_platform.php . }
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.StencilBits := 8;
 
   Application.OnInitialize := @ApplicationInitialize;

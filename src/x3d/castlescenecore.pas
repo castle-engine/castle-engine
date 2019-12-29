@@ -92,8 +92,6 @@ type
 
   TCastleSceneCore = class;
 
-  TSceneNotification = procedure (Scene: TCastleSceneCore) of object;
-
   { Callback for TCastleSceneCore.OnGeometryChanged.
 
     SomeLocalGeometryChanged means that octree, triangles, bounding volumes
@@ -113,7 +111,7 @@ type
   TX3DBindableStack = class(TX3DBindableStackBasic)
   private
     FParentScene: TCastleSceneCore;
-    FOnBoundChanged: TSceneNotification;
+    FOnBoundChanged: TNotifyEvent;
     BoundChangedSchedule: Cardinal;
     BoundChangedScheduled: boolean;
 
@@ -183,8 +181,7 @@ type
       @link(Top), changed. This also includes notification
       when @link(Top) changed to (or from) @nil, that is
       when no node becomes bound or when some node is initially bound. }
-    property OnBoundChanged: TSceneNotification
-      read FOnBoundChanged write FOnBoundChanged;
+    property OnBoundChanged: TNotifyEvent read FOnBoundChanged write FOnBoundChanged;
   end;
 
   TBackgroundStack = class(TX3DBindableStack)
@@ -695,9 +692,9 @@ type
     procedure FontChanged_AsciiTextNode_1(Node: TX3DNode);
   private
     FOnGeometryChanged: TSceneGeometryChanged;
-    FOnViewpointsChanged: TSceneNotification;
-    FOnBoundViewpointVectorsChanged: TSceneNotification;
-    FOnBoundNavigationInfoFieldsChanged: TSceneNotification;
+    FOnViewpointsChanged: TNotifyEvent;
+    FOnBoundViewpointVectorsChanged: TNotifyEvent;
+    FOnBoundNavigationInfoFieldsChanged: TNotifyEvent;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -938,7 +935,7 @@ type
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
 
     procedure ChangedTransform; override;
-    procedure ChangeWorld(const Value: TSceneManagerWorld); override;
+    procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
 
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
@@ -1254,7 +1251,7 @@ type
       If you only want to get notified when currently @italic(bound)
       viewpoint changes, then what you seek is rather
       @link(TX3DBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
-    property OnViewpointsChanged: TSceneNotification
+    property OnViewpointsChanged: TNotifyEvent
       read FOnViewpointsChanged write FOnViewpointsChanged;
 
     { Notification when the currently bound viewpoint's vectors
@@ -1269,7 +1266,7 @@ type
       @link(TX3DBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged).
       This is called only when @italic(currently bound viewpoint stays
       the same, only it's vectors change). }
-    property OnBoundViewpointVectorsChanged: TSceneNotification
+    property OnBoundViewpointVectorsChanged: TNotifyEvent
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
     { Called when geometry changed.
@@ -1288,7 +1285,7 @@ type
     { Call OnBoundViewpointVectorsChanged, if assigned. }
     procedure DoBoundViewpointVectorsChanged;
 
-    property OnBoundNavigationInfoFieldsChanged: TSceneNotification
+    property OnBoundNavigationInfoFieldsChanged: TNotifyEvent
       read FOnBoundNavigationInfoFieldsChanged write FOnBoundNavigationInfoFieldsChanged;
     procedure DoBoundNavigationInfoFieldsChanged; virtual;
 
@@ -1364,8 +1361,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1378,8 +1375,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use @link(InternalOctreeCollisions) to get either
       @link(InternalOctreeDynamicCollisions) or
@@ -1399,8 +1396,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains X3D Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1413,8 +1410,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       It is automatically used by the XxxCollision methods in this class,
       if exists, unless OctreeDynamicCollisions exists.
@@ -1434,8 +1431,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;
@@ -1827,7 +1824,7 @@ type
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TCastleAbstractViewport.MainLightForShadows }
+      @seealso TCastleViewport.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4): boolean;
 
@@ -2468,7 +2465,7 @@ implementation
 
 uses Math, DateUtils,
   X3DCameraUtils, CastleStringUtils, CastleLog,
-  X3DLoad, CastleURIUtils, CastleTimeUtils, CastleSceneManager;
+  X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}
@@ -4661,7 +4658,7 @@ var
 
     { Change light instance on GlobalLights list, if any.
       This way other 3D scenes, using our lights by
-      @link(TCastleAbstractViewport.UseGlobalLights) feature,
+      @link(TCastleViewport.UseGlobalLights) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }
@@ -6827,10 +6824,27 @@ begin
   UpdateCameraEvents;
 end;
 
-procedure TCastleSceneCore.ChangeWorld(const Value: TSceneManagerWorld);
+procedure TCastleSceneCore.ChangeWorld(const Value: TCastleAbstractRootTransform);
 begin
   inherited;
-  { World changed, so update things depending on camera view }
+
+  { World changed, so update things depending on camera view.
+    This is important to make ProximitySensors, Billboard etc. work immediately
+    when item is part of the world (and knows the camera),
+    and has ProcessEvents = true.
+
+    TODO: Maybe we should call CameraChanged here?
+    But we don't have CameraChanged argument.
+
+    Testcase:
+
+    - 1st frame rendering not using BlendingSort for non-MainScene scenes:
+      trees_blending/CW_demo.lpr testcase from Eugene.
+    - Billboards test from Kagamma:
+      https://sourceforge.net/p/castle-engine/discussion/general/thread/882ca037/
+      https://gist.github.com/michaliskambi/9520282717870d3be1511412754958e9
+
+  }
   if Value <> nil then
     UpdateCameraEvents;
 end;
@@ -6861,7 +6875,7 @@ begin
   UpdateCameraEvents;
 
   { handle WatchForTransitionComplete, looking at ACamera.Animation }
-  if ProcessEvents and WatchForTransitionComplete {TODO:and not ACamera.Animation} then
+  if ProcessEvents and WatchForTransitionComplete and not ACamera.Animation then
   begin
     BeginChangesSchedule;
     try
@@ -7127,7 +7141,7 @@ begin
   if RadiusAutomaticallyDerivedFromBox then
     { Set ProjectionNear to zero, this way we avoid serializing value
       when it is not necessary to serialize it
-      (because it can be calculated by each TCastleAbstractViewport.CalculateProjection). }
+      (because it can be calculated by each TCastleViewport.CalculateProjection). }
     ACamera.ProjectionNear := 0
   else
     ACamera.ProjectionNear := Radius * RadiusToProjectionNear;

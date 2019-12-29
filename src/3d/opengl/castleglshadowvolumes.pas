@@ -22,7 +22,7 @@ interface
 
 uses
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum, Castle3D;
+  CastleTransform, CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -231,8 +231,9 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
-  CastleTriangles;
+uses SysUtils,
+  CastleUtils, CastleStringUtils, CastleLog, CastleGLVersion,
+  CastleTriangles, CastleRendererBaseTypes;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin

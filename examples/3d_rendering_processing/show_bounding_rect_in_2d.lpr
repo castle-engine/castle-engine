@@ -39,6 +39,7 @@ var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
   LineProperties: TLinePropertiesNode;
+  Material: TMaterialNode;
 begin
   RectCoords := TCoordinateNode.Create;
   UpdateRectangleCoords(Rect, RectCoords);
@@ -47,9 +48,10 @@ begin
   LineSet.Coord := RectCoords;
   LineSet.SetVertexCount([RectCoords.FdPoint.Count]);
 
-  Shape.Material := TMaterialNode.Create;
-  Shape.Material.EmissiveColor := Color;
-  //Shape.Material.Transparency := 0.8;
+  Material := TMaterialNode.Create;
+  Material.EmissiveColor := Color;
+  //Material.Transparency := 0.8;
+  Shape.Material := Material;
 
   if LineWidth <> 1 then
   begin

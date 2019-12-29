@@ -30,7 +30,7 @@ uses
   // CGE units
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
-  CastleSceneManager, CastleClassUtils, CastleControls, CastleTiledMap,
+  CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes,
   FrameAnchors;
 
@@ -42,6 +42,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
     MenuItemSeparator2: TMenuItem;
@@ -107,6 +108,7 @@ type
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
+    procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
   protected
@@ -205,9 +207,9 @@ type
     property SelectedComponent: TComponent
       read GetSelectedComponent write SetSelectedComponent;
 
-    { If the selected items all have the same TCastleAbstractViewport parent,
+    { If the selected items all have the same TCastleViewport parent,
       return it. Otherwise return nil. }
-    function SelectedViewport: TCastleAbstractViewport;
+    function SelectedViewport: TCastleViewport;
 
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
@@ -272,7 +274,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
-  CastleProjection,
+  CastleProjection, CastleScene,
   EditorUtils;
 
 {$R *.lfm}
@@ -891,7 +893,7 @@ procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponen
 
 var
   Background: TCastleRectangleControl;
-  TempSceneManager: TCastleSceneManager;
+  TempViewport: TCastleViewport;
 begin
   ClearDesign;
 
@@ -904,11 +906,14 @@ begin
   end else
   if NewDesignRoot is TCastleTransform then
   begin
-    TempSceneManager := TCastleSceneManager.Create(NewDesignOwner);
-    TempSceneManager.Transparent := true;
-    TempSceneManager.UseHeadlight := hlOn;
-    TempSceneManager.Items.Add(NewDesignRoot as TCastleTransform);
-    CastleControl.Controls.InsertBack(TempSceneManager);
+    TempViewport := TCastleViewport.Create(NewDesignOwner);
+    TempViewport.Transparent := true;
+    TempViewport.Items.UseHeadlight := hlOn;
+    TempViewport.Items.Add(NewDesignRoot as TCastleTransform);
+    TempViewport.FullSize := true;
+    TempViewport.AutoCamera := true;
+    TempViewport.AutoNavigation := true;
+    CastleControl.Controls.InsertBack(TempViewport);
   end else
     raise EInternalError.Create('DesignRoot from file does not descend from TCastleUserInterface or TCastleTransform');
 
@@ -1249,13 +1254,13 @@ begin
     ErrorBox('To duplicate, select exactly one component that is not a subcomponent');
 end;
 
-function TDesignFrame.SelectedViewport: TCastleAbstractViewport;
+function TDesignFrame.SelectedViewport: TCastleViewport;
 var
   Selected: TComponentList;
   SelectedCount, I: Integer;
-  World: TSceneManagerWorld;
+  World: TCastleAbstractRootTransform;
   Sel: TComponent;
-  NewResult: TCastleAbstractViewport;
+  NewResult: TCastleViewport;
   Nav: TCastleNavigation;
 begin
   Result := nil;
@@ -1265,9 +1270,9 @@ begin
     for I := 0 to SelectedCount - 1 do
     begin
       Sel := Selected[I];
-      if Sel is TCastleAbstractViewport then
+      if Sel is TCastleViewport then
       begin
-        NewResult := Sel as TCastleAbstractViewport;
+        NewResult := Sel as TCastleViewport;
         if (Result <> nil) and (Result <> NewResult) then
           Exit(nil); // multiple viewports selected
         Result := NewResult;
@@ -1275,9 +1280,9 @@ begin
       if Sel is TCastleNavigation then
       begin
         Nav := Sel as TCastleNavigation;
-        if Nav.InternalViewport is TCastleAbstractViewport then
+        if Nav.InternalViewport is TCastleViewport then
         begin
-          NewResult := Nav.InternalViewport as TCastleAbstractViewport;
+          NewResult := Nav.InternalViewport as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -1288,7 +1293,7 @@ begin
         World := (Sel as TCastleTransform).World;
         if World <> nil then
         begin
-          NewResult := World.Owner as TCastleSceneManager;
+          NewResult := World.Owner as TCastleViewport;
           if (Result <> nil) and (Result <> NewResult) then
             Exit(nil); // multiple viewports selected
           Result := NewResult;
@@ -1318,8 +1323,7 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
 
     // hide some internal classes by instead displaying ancestor name
     if (C = TControlGameSceneManager) or
-       (C = TSceneManagerWorld) or
-       (Result = 'TSceneManagerWorldConcrete') then
+       (C = TCastleRootTransform) then
       Result := ClassCaption(C.ClassParent);
   end;
 
@@ -1527,7 +1531,7 @@ procedure TDesignFrame.UpdateDesign;
   var
     S: String;
     I: Integer;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
   begin
     S := ComponentCaption(C);
     Result := ControlsTree.Items.AddChildObject(Parent, S, C);
@@ -1538,11 +1542,11 @@ procedure TDesignFrame.UpdateDesign;
         AddControl(Result, C.Controls[I]);
     end;
 
-    if C is TCastleSceneManager then
+    if C is TCastleViewport then
     begin
-      SceneManager := TCastleSceneManager(C);
-      if Selectable(SceneManager.Items) then
-        AddTransform(Result, SceneManager.Items);
+      Viewport := TCastleViewport(C);
+      if Selectable(Viewport.Items) then
+        AddTransform(Result, Viewport.Items);
     end;
   end;
 
@@ -1660,7 +1664,7 @@ var
   I, SelectedCount: Integer;
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -2133,7 +2137,7 @@ end;
 procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(
   Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
   V.Setup2D;
@@ -2143,8 +2147,7 @@ end;
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
   Sender: TObject);
 var
-  V: TCastleAbstractViewport;
-  APos, ADir, AUp: TVector3;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
   V.Camera.SetView(
@@ -2156,13 +2159,13 @@ end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
   Position, Direction, Up, GravityUp: TVector3;
   ProjectionWidth, ProjectionHeight, ProjectionFar: Single;
   Box: TBox3D;
 begin
   V := SelectedViewport;
-  Box := V.GetItems.BoundingBox;
+  Box := V.Items.BoundingBox;
 
   if V.Camera.ProjectionType = ptOrthographic then
   begin
@@ -2196,7 +2199,7 @@ end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
   APos, ADir, AUp: TVector3;
 begin
   V := SelectedViewport;
@@ -2210,11 +2213,11 @@ end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
 
-  V.GetItems.SortBackToFront2D;
+  V.Items.SortBackToFront2D;
 
   ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order
@@ -2240,7 +2243,7 @@ end;
 
 procedure TDesignFrame.ChangeViewportNavigation(const NewNavigation: TCastleNavigation);
 var
-  V: TCastleAbstractViewport;
+  V: TCastleViewport;
 begin
   V := SelectedViewport;
 
@@ -2283,9 +2286,22 @@ begin
   ChangeViewportNavigation(TCastleExamineNavigation.Create(DesignOwner));
 end;
 
-procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
+procedure TDesignFrame.MenuViewportNavigationFlyClick(Sender: TObject);
+var
+  W: TCastleWalkNavigation;
 begin
-  ChangeViewportNavigation(TCastleWalkNavigation.Create(DesignOwner));
+  W := TCastleWalkNavigation.Create(DesignOwner);
+  W.Gravity := false;
+  ChangeViewportNavigation(W);
+end;
+
+procedure TDesignFrame.MenuViewportNavigationWalkClick(Sender: TObject);
+var
+  W: TCastleWalkNavigation;
+begin
+  W := TCastleWalkNavigation.Create(DesignOwner);
+  W.Gravity := true;
+  ChangeViewportNavigation(W);
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);

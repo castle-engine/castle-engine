@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2018 Michalis Kamburelis.
+  Copyright 2016-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,6 +28,11 @@ type
 const
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );
+
+var
+  { Log shadow volume information.
+    See https://castle-engine.io/manual_log.php about the log. }
+  LogShadowVolumes: boolean = false;
 
 implementation
 

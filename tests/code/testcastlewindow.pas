@@ -1,4 +1,4 @@
-// -*- compile-command: "./compile_console.sh && ./test_castle_game_engine --suite=TTestWindow" -*-
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestWindow" -*-
 {
   Copyright 2010-2018 Michalis Kamburelis.
 
@@ -27,15 +27,19 @@ type
     procedure TestNotifications;
     procedure TestMenu;
     { Test TCastleUserInterface.AutoSizeToChildren.
-      Placed here, as it requires TCastleWindow (UI container) to make sense. }
+      In this unit, as it requires TCastleWindow (UI container) to make sense. }
     procedure TestAutoSizeToChildren;
+    { Test TUIContainer.Focus.
+      In this unit, as it requires TCastleWindow (UI container) to make sense. }
+    procedure TestFocus;
   end;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse,
-  CastleUIControls, CastleRectangles;
+  CastleUIControls, CastleRectangles, CastleOnScreenMenu, CastleComponentSerialize,
+  CastleInspectorControl, CastleCameras, CastleSceneManager, CastleVectors;
 
 procedure TTestWindow.Test1;
 var
@@ -154,6 +158,100 @@ begin
     FreeAndNil(Child1);
     FreeAndNil(Child2);
   end;
+end;
+
+procedure TTestWindow.TestFocus;
+var
+  Window: TCastleWindowBase;
+  ManualButton, Button2: TCastleButton;
+  OnScreenMenu1: TCastleOnScreenMenu;
+  SceneManager1: TCastleSceneManager;
+
+  { Based on examples/lazarus/model_3d_with_2d_controls/ }
+
+  procedure AddUserInterfaceDesigned;
+  var
+    UiRoot: TCastleUserInterface;
+    UiOwner: TComponent;
+  begin
+    UiOwner := TComponent.Create(Window);
+    UiRoot := UserInterfaceLoad('castle-data:/focus_test/main.castle-user-interface', UiOwner);
+    Window.Controls.InsertFront(UiRoot);
+    Button2 := UiOwner.FindRequiredComponent('Button2') as TCastleButton;
+    SceneManager1 := UiOwner.FindRequiredComponent('SceneManager1') as TCastleSceneManager;
+    SceneManager1.AssignDefaultNavigation; // adds TCastleWalkNavigation
+  end;
+
+  procedure AddUserInterfaceFromCode;
+  begin
+    ManualButton := TCastleButton.Create(Window);
+    ManualButton.Caption := 'Button added from code';
+    ManualButton.Anchor(hpRight, -10);
+    ManualButton.Anchor(vpBottom, 120);
+    Window.Controls.InsertFront(ManualButton);
+
+    OnScreenMenu1 := TCastleOnScreenMenu.Create(Window);
+    OnScreenMenu1.Bottom := 140;
+    OnScreenMenu1.Left := 400;
+    OnScreenMenu1.Add('one');
+    OnScreenMenu1.Add('two');
+    OnScreenMenu1.Add('three');
+    Window.Controls.InsertFront(OnScreenMenu1);
+
+    Window.Controls.InsertFront(TCastleInspectorControl.Create(Window));
+  end;
+
+  procedure MoveMouse(const Pos: TVector2);
+  // var
+  //   C: TCastleUserInterface;
+  begin
+    Window.InternalFakeMotion(InputMotion(Window.MousePosition, Pos, [], 0));
+    Window.Container.UpdateFocusAndMouseCursor;
+    (* Useful to test current Focus value:
+    Writeln('Focus now ', Window.Container.Focus.Count);
+    for C in Window.Container.Focus do
+      Writeln('  ', C.Name, ':', C.ClassName);
+    *)
+  end;
+
+begin
+  Window := TCastleWindowBase.Create(nil);
+  try
+    Window.Width := 800;
+    Window.Height := 800;
+    Window.ResizeAllowed := raNotAllowed;
+    Window.Open;
+
+    AddUserInterfaceDesigned;
+    AddUserInterfaceFromCode;
+
+    MoveMouse(FloatRectangle(Window.Rect).Middle);
+    AssertEquals(6, Window.Container.Focus.Count);
+    AssertTrue(Window.Container.Focus[0].Name = 'Group1');
+    AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
+    AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
+    AssertTrue(Window.Container.Focus[3] is TCastleInspectorControl);
+    AssertTrue(Window.Container.Focus[4] is TCastleRectangleControl); // internal in TCastleInspectorControl
+    AssertTrue(Window.Container.Focus[5] is TCastleLabel); // internal in TCastleInspectorControl
+
+    MoveMouse(ManualButton.RenderRect.Middle);
+    AssertEquals(6, Window.Container.Focus.Count);
+    AssertTrue(Window.Container.Focus[0].Name = 'Group1');
+    AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
+    AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
+    AssertTrue(Window.Container.Focus[3] = ManualButton);
+    AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
+    AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
+
+    MoveMouse(Button2.RenderRect.Middle);
+    AssertEquals(6, Window.Container.Focus.Count);
+    AssertTrue(Window.Container.Focus[0].Name = 'Group1');
+    AssertTrue(Window.Container.Focus[1].Name = 'SceneManager1');
+    AssertTrue(Window.Container.Focus[2] is TCastleWalkNavigation); // internal in SceneManager1
+    AssertTrue(Window.Container.Focus[3] = Button2);
+    AssertTrue(Window.Container.Focus[4] is TCastleInspectorControl);
+    AssertTrue(Window.Container.Focus[5] is TCastleRectangleControl); // internal in TCastleInspectorControl
+  finally FreeAndNil(Window) end;
 end;
 
 initialization

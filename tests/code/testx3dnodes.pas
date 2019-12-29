@@ -915,10 +915,10 @@ end;
 
 type
   TMyObject = class
-    procedure Foo(Node: TX3DNode);
+    procedure Foo(const Node: TX3DNode);
   end;
 
-procedure TMyObject.Foo(Node: TX3DNode);
+procedure TMyObject.Foo(const Node: TX3DNode);
 begin
 end;
 

@@ -625,6 +625,11 @@ type
       const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+
+    { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
+      which is good when your transparent objects have proper order along the Z axis
+      (useful e.g. for Spine animations). }
+    procedure Setup2D;
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -695,7 +700,7 @@ type
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
-    { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
+    { Screen effects information, used by TCastleViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;
@@ -827,6 +832,10 @@ const
   ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
   ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
 
+{$define read_interface}
+{$I castlescene_roottransform.inc}
+{$undef read_interface}
+
 implementation
 
 {$warnings off}
@@ -837,6 +846,10 @@ uses CastleGLVersion, CastleImages, CastleLog,
   CastleRenderingCamera, CastleShapeInternalRenderShadowVolumes,
   CastleComponentSerialize;
 {$warnings on}
+
+{$define read_implementation}
+{$I castlescene_roottransform.inc}
+{$undef read_implementation}
 
 var
   TemporaryAttributeChange: Cardinal = 0;
@@ -2430,6 +2443,11 @@ begin
   if FBatching = nil then
     FBatching := TBatchShapes.Create({$ifdef CASTLE_OBJFPC}@{$endif} CreateShape);
   Result := FBatching;
+end;
+
+procedure TCastleScene.Setup2D;
+begin
+  Attributes.BlendingSort := bs2D;
 end;
 
 { TSceneRenderingAttributes ---------------------------------------------- }

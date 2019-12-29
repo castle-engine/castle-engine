@@ -213,7 +213,7 @@ begin
     Scene.PrepareResources([], false, nil);
 
     { Prepare rendering parameters
-      (this is done by TCastleAbstractViewport in normal circumstances).
+      (this is done by TCastleViewport in normal circumstances).
 
       Note: Creating and using TRenderParams instance (or any descendant of it)
       means that you deal with internal stuff.
@@ -226,7 +226,7 @@ begin
         lights from one TCastleScene over another TCastleScene).
 
       - You should not do this in a normal CGE application. In normal application,
-        SceneManager (or other TCastleAbstractViewport descendant) prepares render
+        SceneManager (or other TCastleViewport descendant) prepares render
         parameters, and TCastleScene uses them.
         How are they are prepared, and how are they used -- it's
         internal for normal applications.
@@ -242,7 +242,7 @@ begin
       { TODO: Clear the screen contents (color, depth) now. }
 
       { Prepare projection
-        (this is done by TCastleAbstractViewport in normal circumstances). }
+        (this is done by TCastleViewport in normal circumstances). }
       ProjectionMatrix := PerspectiveProjectionMatrixDeg(
         60, Window.Width / Window.Height, 0.1, 1000);
 

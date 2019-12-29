@@ -28,13 +28,20 @@ type
   TCastleOpenDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
+    FUseCastleDataProtocol: Boolean;
     function GetURL: string;
     procedure SetURL(AValue: string);
   protected
     function DoExecute: boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
   published
     property URL: string read GetURL write SetURL stored false;
+    { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
+    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+      make sure it starts with protocol castle-data:/ . }
+    property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
 
   { General save dialog that uses URL.
@@ -42,13 +49,20 @@ type
   TCastleSaveDialog = class(TSaveDialog)
   private
     FAdviceDataDirectory: Boolean;
+    FUseCastleDataProtocol: Boolean;
     function GetURL: string;
     procedure SetURL(AValue: string);
   protected
     function DoExecute: boolean; override;
+  public
+    constructor Create(AOwner: TComponent); override;
   published
     property URL: string read GetURL write SetURL stored false;
+    { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
+    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+      make sure it starts with protocol castle-data:/ . }
+    property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
   end;
 
   { 3D model open dialog. It uses an URL, and additionally initializes the filters
@@ -57,6 +71,7 @@ type
   TCastleOpen3DDialog = class(TOpenDialog)
   private
     FAdviceDataDirectory: Boolean;
+    FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
     InitialFilter: string;
     function GetURL: string;
@@ -68,7 +83,11 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property URL: string read GetURL write SetURL stored false;
+    { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
+    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+      make sure it starts with protocol castle-data:/ . }
+    property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
@@ -79,6 +98,7 @@ type
   TCastleOpenImageDialog = class(TOpenPictureDialog)
   private
     FAdviceDataDirectory: Boolean;
+    FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
     InitialFilter: string;
     function GetURL: string;
@@ -90,7 +110,11 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property URL: string read GetURL write SetURL stored false;
+    { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
+    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+      make sure it starts with protocol castle-data:/ . }
+    property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
@@ -101,6 +125,7 @@ type
   TCastleSaveImageDialog = class(TSavePictureDialog)
   private
     FAdviceDataDirectory: Boolean;
+    FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
     InitialFilter: string;
     function GetURL: string;
@@ -112,7 +137,11 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property URL: string read GetURL write SetURL stored false;
+    { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
+    { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
+      make sure it starts with protocol castle-data:/ . }
+    property UseCastleDataProtocol: Boolean read FUseCastleDataProtocol write FUseCastleDataProtocol default true;
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
@@ -186,7 +215,8 @@ end;
 function TCastleOpen3DDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
-  Result := MaybeUseDataProtocol(Result);
+  if UseCastleDataProtocol then
+    Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleOpen3DDialog.SetURL(AValue: string);
@@ -209,6 +239,7 @@ end;
 constructor TCastleOpen3DDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FUseCastleDataProtocol := true;
   FileFiltersToDialog(LoadScene_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
@@ -219,7 +250,8 @@ end;
 function TCastleSaveImageDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
-  Result := MaybeUseDataProtocol(Result);
+  if UseCastleDataProtocol then
+    Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleSaveImageDialog.SetURL(AValue: string);
@@ -242,6 +274,7 @@ end;
 constructor TCastleSaveImageDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FUseCastleDataProtocol := true;
   FileFiltersToDialog(SaveImage_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
@@ -252,7 +285,8 @@ end;
 function TCastleOpenImageDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
-  Result := MaybeUseDataProtocol(Result);
+  if UseCastleDataProtocol then
+    Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleOpenImageDialog.SetURL(AValue: string);
@@ -275,6 +309,7 @@ end;
 constructor TCastleOpenImageDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FUseCastleDataProtocol := true;
   FileFiltersToDialog(LoadImage_FileFilters, Self);
   InitialFilter := Filter;
   InitialFilterIndex := FilterIndex;
@@ -285,7 +320,8 @@ end;
 function TCastleSaveDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
-  Result := MaybeUseDataProtocol(Result);
+  if UseCastleDataProtocol then
+    Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleSaveDialog.SetURL(AValue: string);
@@ -300,12 +336,19 @@ begin
     WarningIfOutsideDataDirectory(URL);
 end;
 
+constructor TCastleSaveDialog.Create(AOwner: TComponent);
+begin
+  inherited;
+  FUseCastleDataProtocol := true;
+end;
+
 { TCastleOpenDialog ---------------------------------------------------------- }
 
 function TCastleOpenDialog.GetURL: string;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
-  Result := MaybeUseDataProtocol(Result);
+  if UseCastleDataProtocol then
+    Result := MaybeUseDataProtocol(Result);
 end;
 
 procedure TCastleOpenDialog.SetURL(AValue: string);
@@ -318,6 +361,12 @@ begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
     WarningIfOutsideDataDirectory(URL);
+end;
+
+constructor TCastleOpenDialog.Create(AOwner: TComponent);
+begin
+  inherited;
+  FUseCastleDataProtocol := true;
 end;
 
 end.

@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Inspector of 2D controls (@link(TCastleInspectorControl)). }
+{ Inspector of user interface (@link(TCastleInspectorControl)). }
 unit CastleInspectorControl;
 
 {$I castleconf.inc}
@@ -25,89 +25,120 @@ uses Classes,
   CastleVectors, CastleKeysMouse;
 
 type
-  { Add this on top of your 2D controls to have a nice inspector
-    displaying names and borders of stuff under the mouse cursor. }
+  { Add this to your 2D controls to have a nice inspector
+    of the user interface hierarchy.
+    Pressing F12 toggles it. }
   TCastleInspectorControl = class(TCastleUserInterfaceFont)
-  private
-    FColor: TCastleColor;
-    FPadding: Single;
-    FText: TStringList;
-    FControlsUnderMouse: TCastleUserInterfaceList;
-    FControlsInitialized: boolean;
-    FSizeWhenControlsInitialized: TVector2;
-    FShowNotExisting: boolean;
+  strict private
+    Background: TCastleRectangleControl;
+    LabelAll: TCastleLabel;
+    LabelFocus: TCastleLabel;
+    TransparencySlider: TCastleFloatSlider;
+    CheckboxShowEvenNotExisting: TCastleCheckbox;
+    CheckboxShowEvenInternal: TCastleCheckbox;
+    CheckboxShowSize: TCastleCheckbox;
     function ControlColor(const C: TCastleUserInterface): TCastleColor;
     function ControlDescription(const C: TCastleUserInterface): string;
-  protected
-    procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
+    procedure TransparencyChange(Sender: TObject);
+    procedure UpdateDisplay(Sender: TObject);
+    function ControlShow(const C: TCastleUserInterface): Boolean;
   public
-    const
-      DefaultPadding = 10;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure BeforeRender; override;
-    procedure Render; override;
-    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    procedure RenderOverChildren; override;
     function Motion(const Event: TInputMotion): boolean; override;
-
-    { Text color. By default it's white. }
-    property Color: TCastleColor read FColor write FColor;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   published
-    { Padding between rect borders and text. }
-    property Padding: Single read FPadding write FPadding
-      default DefaultPadding;
-    property HorizontalAnchorSelf stored false;
-    property HorizontalAnchorParent stored false;
-    property VerticalAnchorSelf stored false;
-    property VerticalAnchorParent stored false;
     property KeepInFront stored false;
+    property FullSize stored false;
   end;
 
 implementation
 
-uses SysUtils,
-  CastleGLUtils;
+uses SysUtils, StrUtils,
+  CastleStringUtils, CastleGLUtils;
+
+const
+  Margin = 10;
 
 constructor TCastleInspectorControl.Create(AOwner: TComponent);
+var
+  UpperControls: TCastleVerticalGroup;
 begin
   inherited;
-  FColor := White;
-  FPadding := DefaultPadding;
-  FSizeWhenControlsInitialized := TVector2.Zero;
-  Anchor(hpLeft);
-  Anchor(vpBottom);
+
+  // adjust inherited published properties
+  FullSize := true;
   KeepInFront := true;
 
-  FText := TStringList.Create;
-  FControlsUnderMouse := TCastleUserInterfaceList.Create(false);
+  Background := TCastleRectangleControl.Create(Self);
+  Background.SetTransient;
+  Background.FullSize := true;
+  // partially-transparent gray
+  Background.Color := Vector4(0.25, 0.25, 0.25, 0.9);
+  InsertFront(Background);
+
+  UpperControls := TCastleVerticalGroup.Create(Self);
+  UpperControls.SetTransient;
+  UpperControls.Anchor(hpRight, -Margin);
+  UpperControls.Anchor(vpTop, -Margin);
+  Background.InsertFront(UpperControls);
+
+  TransparencySlider := TCastleFloatSlider.Create(Self);
+  TransparencySlider.SetTransient;
+  TransparencySlider.Caption := 'Overlay Transparency';
+  TransparencySlider.Value := 1 - Background.Color.W;
+  TransparencySlider.OnChange := @TransparencyChange;
+  TransparencySlider.SmallFont := false;
+  TransparencySlider.Width := 300;
+  TransparencySlider.Height := 30;
+  UpperControls.InsertFront(TransparencySlider);
+
+  CheckboxShowEvenNotExisting := TCastleCheckbox.Create(Self);
+  CheckboxShowEvenNotExisting.SetTransient;
+  CheckboxShowEvenNotExisting.Caption := 'Show Even Not Existing';
+  CheckboxShowEvenNotExisting.Checked := false;
+  CheckboxShowEvenNotExisting.OnChange := @UpdateDisplay;
+  CheckboxShowEvenNotExisting.TextColor := White;
+  CheckboxShowEvenNotExisting.CheckboxColor := White;
+  UpperControls.InsertFront(CheckboxShowEvenNotExisting);
+
+  CheckboxShowEvenInternal := TCastleCheckbox.Create(Self);
+  CheckboxShowEvenInternal.SetTransient;
+  CheckboxShowEvenInternal.Caption := 'Show Even Internal';
+  CheckboxShowEvenInternal.Checked := false;
+  CheckboxShowEvenInternal.OnChange := @UpdateDisplay;
+  CheckboxShowEvenInternal.TextColor := White;
+  CheckboxShowEvenInternal.CheckboxColor := White;
+  UpperControls.InsertFront(CheckboxShowEvenInternal);
+
+  CheckboxShowSize := TCastleCheckbox.Create(Self);
+  CheckboxShowSize.SetTransient;
+  CheckboxShowSize.Caption := 'Show Size';
+  CheckboxShowSize.Checked := false;
+  CheckboxShowSize.OnChange := @UpdateDisplay;
+  CheckboxShowSize.TextColor := White;
+  CheckboxShowSize.CheckboxColor := White;
+  UpperControls.InsertFront(CheckboxShowSize);
+
+  LabelAll := TCastleLabel.Create(Self);
+  LabelAll.SetTransient;
+  LabelAll.Anchor(hpLeft, Margin);
+  LabelAll.Anchor(vpBottom, Margin);
+  LabelAll.Html := true;
+  Background.InsertFront(LabelAll);
+
+  LabelFocus := TCastleLabel.Create(Self);
+  LabelFocus.SetTransient;
+  LabelFocus.Anchor(hpRight, -Margin);
+  LabelFocus.Anchor(vpBottom, Margin);
+  LabelFocus.Html := true;
+  Background.InsertFront(LabelFocus);
 end;
 
 destructor TCastleInspectorControl.Destroy;
 begin
-  FreeAndNil(FText);
-  FreeAndNil(FControlsUnderMouse);
   inherited;
-end;
-
-procedure TCastleInspectorControl.PreferredSize(var PreferredWidth, PreferredHeight: Single);
-var
-  US: Single;
-  PaddingScaled: Single;
-begin
-  inherited;
-  if FControlsInitialized then
-  begin
-    US := UIScale;
-    PaddingScaled := US * Padding;
-    FSizeWhenControlsInitialized := Vector2(
-      Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
-      Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
-  end;
-  { note that when FControlsInitialized = false, this simply returns last value calculated
-    when FControlsInitialized = true. }
-  PreferredWidth  := FSizeWhenControlsInitialized.Data[0];
-  PreferredHeight := FSizeWhenControlsInitialized.Data[1];
 end;
 
 function TCastleInspectorControl.ControlColor(const C: TCastleUserInterface): TCastleColor;
@@ -133,17 +164,28 @@ begin
     0.5 + (Hash and $FF) / 128,
     0.5 + ((Hash shr 8) and $FF) / 128,
     0.5 + ((Hash shr 16) and $FF) / 128,
-    Transparency);
+    1);
 end;
 
 function TCastleInspectorControl.ControlDescription(const C: TCastleUserInterface): string;
 begin
   if C.Name <> '' then
-    Result := C.Name + ':' + C.ClassName else
+    Result := C.Name + ':' + C.ClassName
+  else
     Result := C.ClassName;
 end;
 
-procedure TCastleInspectorControl.Render;
+function TCastleInspectorControl.ControlShow(const C: TCastleUserInterface): Boolean;
+var
+  IsInternal: Boolean;
+begin
+  IsInternal := (C = Self) or (csTransient in C.ComponentStyle);
+  Result :=
+    (C.GetExists or CheckboxShowEvenNotExisting.Checked) and
+    ((not IsInternal) or CheckboxShowEvenInternal.Checked);
+end;
+
+procedure TCastleInspectorControl.RenderOverChildren;
 
   function InvertColorRGB(const C: TCastleColor): TCastleColor;
   begin
@@ -154,117 +196,112 @@ procedure TCastleInspectorControl.Render;
   end;
 
 var
-  US: Single;
-  SR: TFloatRectangle;
-  PaddingScaled: Single;
-  I: Integer;
-  C: TCastleColor;
+  RR: TFloatRectangle;
+  UiCol: TCastleColor;
+  Ui: TCastleUserInterface;
 begin
   inherited;
-  SR := RenderRect;
-  US := UIScale;
-  PaddingScaled := US * Padding;
 
-  if FText.Count <> 0 then
-  begin
-    DrawRectangle(SR, Black);
-    //Theme.Draw(SR, tiLabel, UIScale);
-    Font.PrintStrings(
-      SR.Left + PaddingScaled,
-      SR.Bottom + PaddingScaled + Font.Descend,
-      Color, FText, true, 0, hpLeft);
+  // exit if turned off by F12
+  if not Background.Exists then Exit;
 
-    for I := 0 to FControlsUnderMouse.Count - 1 do
+  RR := RenderRect;
+  for Ui in Container.Focus do
+    if ControlShow(Ui) then
     begin
-      SR := FControlsUnderMouse[I].RenderRect;
-      if SR.IsEmpty then Continue;
-      C := ControlColor(FControlsUnderMouse[I]);
-      DrawRectangle(SR, InvertColorRGB(C));
-      C[3] := 1.0;
-      Theme.Draw(SR, tiActiveFrame, UIScale, C);
-      Font.Print(SR.Left + PaddingScaled,
-        SR.Top - PaddingScaled - Font.RowHeight, C,
-        ControlDescription(FControlsUnderMouse[I]));
+      RR := Ui.RenderRect;
+      if RR.IsEmpty then Continue;
+      UiCol := ControlColor(Ui);
+      Theme.Draw(RR, tiActiveFrame, UIScale, UiCol);
+      Font.Print(RR.Left, RR.Top - Font.RowHeight, UiCol, ControlDescription(Ui));
     end;
-  end;
-
-  { will be initialized again in next BeforeRender,
-    for now clear it --- to not keep references to controls that could
-    be freed. }
-  FText.Clear;
-  FControlsUnderMouse.Clear;
-  FControlsInitialized := false;
 end;
 
-procedure TCastleInspectorControl.BeforeRender;
+function TCastleInspectorControl.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
 
-  procedure CheckControl(C: TCastleUserInterface; const Level: Integer);
+  if Event.IsKey(keyF12) then
+    Background.Exists := not Background.Exists;
+    // do not set event as handled, to allow game to handle it too
+end;
+
+function TCastleInspectorControl.Motion(const Event: TInputMotion): Boolean;
+begin
+  Result := inherited;
+
+  // exit if turned off by F12
+  if not Background.Exists then Exit;
+
+  UpdateDisplay(nil);
+end;
+
+procedure TCastleInspectorControl.UpdateDisplay(Sender: TObject);
+var
+  NewText: TCastleStringList;
+
+  function ControlColorizeHtml(const C: TCastleUserInterface; const S: String): String;
+  begin
+    Result := '<font color="#' + ColorToHex(ControlColor(C)) + '">' + S + '</font>';
+  end;
+
+  procedure AddControlDescription(const C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
-    Col: TCastleColor;
     S: string;
   begin
-    Col := ControlColor(C);
-    Col[3] := 1.0;
-    if (C <> Self) and
-        C.CapturesEventsAtPosition(Container.MousePosition) and
-        (C.GetExists or FShowNotExisting) then
+    if ControlShow(C) then
     begin
-      S := ControlDescription(C) + ' ' + C.RenderRect.ToString;
+      S := ControlDescription(C);
+      if CheckboxShowSize.Checked then
+        S := S + ' ' + C.RenderRect.ToString;
       if not C.GetExists then
         S := S + ' (hidden)';
       if C.Focused then
         S := S + ' (focused)';
-      S := StringOfChar(' ', Level) + S;
-      S := '<font color="#' + ColorToHex(Col) + '">' + S + '</font>';
-      FText.Add(S);
-      FControlsUnderMouse.Add(C);
-    end;
-    if C.GetExists or FShowNotExisting then
+      S := DupeString('- ', Level) + S;
+      S := ControlColorizeHtml(C, S);
+      NewText.Add(S);
+
       for I := 0 to C.ControlsCount - 1 do
-        CheckControl(C.Controls[I], Level + 1);
+        AddControlDescription(C.Controls[I], Level + 1);
+    end;
   end;
 
 var
   I: Integer;
+  C: TCastleUserInterface;
+  S: String;
 begin
-  inherited;
+  NewText := TCastleStringList.Create;
+  try
+    NewText.Add('All controls:');
+    for I := 0 to Container.Controls.Count - 1 do
+      AddControlDescription(Container.Controls[I], 0);
+    LabelAll.Text.Assign(NewText);
+  finally FreeAndNil(NewText) end;
 
-  FText.Clear;
-  FControlsUnderMouse.Clear;
-  for I := 0 to Container.Controls.Count - 1 do
-    CheckControl(Container.Controls[I], 0);
-  if Container.Focus.Count <> 0 then
-  begin
-    FText.Add('');
-    FText.Add('Container.Focus:');
-    for I := 0 to Container.Focus.Count - 1 do
-      FText.Add('  ' + ControlDescription(Container.Focus[I]));
-  end;
-  FControlsInitialized := true;
-end;
-
-function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2): boolean;
-begin
-  Result := true;
-end;
-
-function TCastleInspectorControl.Motion(const Event: TInputMotion): boolean;
-begin
-  Result := inherited;
-
-  { escape to bottom or top, to not be under mouse }
-  if Event.FingerIndex = 0 then
-  begin
-    if RenderRect.Contains(Event.Position) then
+  NewText := TCastleStringList.Create;
+  try
+    if Container.Focus.Count <> 0 then
     begin
-      if HorizontalAnchorSelf = hpLeft then
-        Anchor(hpRight) else
-        Anchor(hpLeft);
+      NewText.Add('Container.Focus (controls that can receive input):');
+      for C in Container.Focus do
+        if ControlShow(C) then
+        begin
+          S := ControlDescription(C);
+          S := ControlColorizeHtml(C, S);
+          NewText.Add('  ' + S);
+        end;
     end;
-  end;
+    LabelFocus.Text.Assign(NewText);
+  finally FreeAndNil(NewText) end;
+end;
 
-  VisibleChange([chRender]);
+procedure TCastleInspectorControl.TransparencyChange(Sender: TObject);
+begin
+  Background.Color := Vector4(Background.Color.XYZ, 1 - TransparencySlider.Value);
 end;
 
 end.

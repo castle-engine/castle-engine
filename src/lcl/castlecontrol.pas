@@ -112,9 +112,10 @@ type
 
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
+    procedure UpdateShiftState(const Shift: TShiftState);
+
     procedure KeyPressHandlerPress(Sender: TObject;
       const Event: TInputPressRelease);
-    procedure UpdateShiftState(const Shift: TShiftState);
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
@@ -540,15 +541,15 @@ type
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
+      default TCastleViewport.DefaultShadowVolumes;
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
@@ -584,7 +585,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property SceneManager: TControl2DSceneManager read FSceneManager;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
 procedure Register;
 
@@ -1070,6 +1071,10 @@ var
   MyKey: TKey;
   MyKeyString: String;
 begin
+  { Do this before anything else, in particular before even Pressed.KeyUp below.
+    This may call OnPress (which sets Pressed to true). }
+  FKeyPressHandler.BeforeKeyUp(Key, Shift);
+
   MyKey := KeyLCLToCastle(Key, Shift);
   if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
@@ -1325,7 +1330,7 @@ end;
 
 function TCastleControl.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
 function TCastleControl.Camera: TCastleCamera;
@@ -1408,7 +1413,7 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
-  OnMainContainer := @TCastleControl(nil).GetMainContainer;
+  OnMainContainer := @TCastleControlBase(nil).GetMainContainer;
 finalization
   OnMainContainer := nil;
   FreeAndNil(ControlsList);

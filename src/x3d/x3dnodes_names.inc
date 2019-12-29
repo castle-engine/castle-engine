@@ -28,7 +28,7 @@
   TX3DNodeNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
   strict private
     FAutoRemove: boolean;
-    procedure DestructionNotification(Node: TX3DNode);
+    procedure DestructionNotification(const Node: TX3DNode);
     function IndexOfNode(Node: TX3DNode): Integer;
     function IndexOfName(const Name: string): Integer;
   public
@@ -142,7 +142,7 @@ begin
   Result := -1;
 end;
 
-procedure TX3DNodeNames.DestructionNotification(Node: TX3DNode);
+procedure TX3DNodeNames.DestructionNotification(const Node: TX3DNode);
 var
   I: Integer;
 begin

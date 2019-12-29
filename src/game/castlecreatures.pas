@@ -21,11 +21,10 @@ unit CastleCreatures;
 interface
 
 uses Classes, Generics.Collections,
-  CastleVectors, CastleBoxes, CastleClassUtils,
-  CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
-  CastleResources, CastleXMLConfig, CastleTransform, Castle3D,
-  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
-  CastleDebugTransform;
+  CastleVectors, CastleBoxes, CastleClassUtils, CastleUtils, CastleScene,
+  CastleStringUtils, CastleResources, CastleXMLConfig, CastleTransform,
+  CastleTransformExtra, CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
+  CastleDebugTransform, CastleSectors;
 
 type
   TCreatureState = type Integer;
@@ -122,6 +121,8 @@ type
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
+      DefaultFallMinHeightToSound = 1.0;
+      DefaultFallSoundName = 'creature_fall';
 
     constructor Create(const AName: string); override;
 
@@ -178,7 +179,7 @@ type
       e.g. if this resource has settings for short-range fight,
       then the TCreature instance will be able to short-range fight.
 
-      The creature is added to the World, and it's owned by World.
+      The creature is added to the World, and is owned by World.
 
       This is the only way to create TCreature instances.
 
@@ -186,15 +187,18 @@ type
       as initial TCreature.Direction value.
 
       @groupBegin }
-    function CreateCreature(World: TSceneManagerWorld;
+    function CreateCreature(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; virtual; overload;
-    function CreateCreature(World: TSceneManagerWorld;
+    function CreateCreature(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3): TCreature; overload;
     { @groupEnd }
 
     { Instantiate creature placeholder, by calling CreateCreature. }
-    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
+    procedure InstantiatePlaceholder(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -220,10 +224,10 @@ type
       read FKnockBackDistance write FKnockBackDistance
       default DefaultKnockBackDistance;
 
-    { See TAlive.KnockBackSpeed. }
+    { See TCastleAlive.KnockBackSpeed. }
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
-      default TAlive.DefaultKnockBackSpeed;
+      default TCastleAlive.DefaultKnockBackSpeed;
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -275,7 +279,7 @@ type
       default TCastleTransform.DefaultMiddleHeight;
 
     property FallMinHeightToSound: Single
-      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
+      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
     property FallMinHeightToDamage: Single
       read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
     property FallDamageScaleMin: Single
@@ -694,7 +698,8 @@ type
     constructor Create(const AName: string); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-    function CreateCreature(World: TSceneManagerWorld;
+    function CreateCreature(
+      const ALevelProperties: TLevelProperties;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; override;
 
@@ -790,7 +795,7 @@ type
   end;
 
   { Base creature, using any TCreatureResource. }
-  TCreature = class(TAlive)
+  TCreature = class(TCastleAlive)
   private
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
@@ -812,6 +817,10 @@ type
 
     procedure SoundRelease(Sender: TSound);
   protected
+    var
+      { Set by CreateCreature. }
+      LevelProperties: TLevelProperties;
+
     procedure SetLife(const Value: Single); override;
     procedure Fall(const FallHeight: Single); override;
 
@@ -820,9 +829,16 @@ type
     function LerpLegsMiddle(const A: Single): TVector3;
 
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
-    procedure AttackHurt(const HurtEnemy: TAlive);
+    procedure AttackHurt(const HurtEnemy: TCastleAlive);
 
     procedure UpdateDebugCaption(const Lines: TCastleStringList); virtual;
+
+    { Sector where the middle of this 3D object is.
+      Used for AI. @nil if none (maybe because we're not part of any world,
+      maybe because sectors of the world were not initialized,
+      or maybe simply because we're outside of all sectors). }
+    function Sector(const OtherTransform: TCastleTransform): TSector;
+    function Sector: TSector;
   public
     class var
       { Render debug bounding boxes and captions at every creature. }
@@ -929,7 +945,7 @@ type
     { Enemy of this creature. In this class, this always returns global
       World.Player (if it exists and is still alive).
       Return @nil for no enemy. }
-    function Enemy: TAlive; virtual;
+    function Enemy: TCastleAlive; virtual;
 
     { Last State change time, taken from LifeTime. }
     property StateChangeTime: Single read FStateChangeTime;
@@ -970,7 +986,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: TAlive); override;
+      const AKnockbackDistance: Single; const Attacker: TCastleAlive); override;
   end;
 
   { Creature using TMissileCreatureResource. }
@@ -1019,17 +1035,17 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
-  FKnockBackSpeed := TAlive.DefaultKnockBackSpeed;
+  FKnockBackSpeed := TCastleAlive.DefaultKnockBackSpeed;
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
   FMiddleHeight := TCastleTransform.DefaultMiddleHeight;
-  FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
+  FFallMinHeightToSound := DefaultFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
-  FFallSound := SoundEngine.SoundFromName(DefaultCreatureFallSoundName, false);
+  FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
 end;
 
 procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -1037,7 +1053,7 @@ begin
   inherited;
 
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
-    TAlive.DefaultKnockBackSpeed);
+    TCastleAlive.DefaultKnockBackSpeed);
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   ScaleMin := ResourceConfig.GetFloat('scale_min', 1);
   ScaleMax := ResourceConfig.GetFloat('scale_max', 1);
@@ -1057,7 +1073,7 @@ begin
   AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
   MiddleHeight := ResourceConfig.GetFloat('middle_height', TCastleTransform.DefaultMiddleHeight);
-  FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
+  FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultFallMinHeightToSound);
   FallMinHeightToDamage := ResourceConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
   FallDamageScaleMax := ResourceConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
@@ -1067,7 +1083,7 @@ begin
   SoundDie := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_die', ''));
   FallSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
+    ResourceConfig.GetValue('fall/sound/name', DefaultFallSoundName), false);
 end;
 
 function TCreatureResource.FlexibleUp: boolean;
@@ -1075,12 +1091,16 @@ begin
   Result := true;
 end;
 
-function TCreatureResource.CreateCreature(World: TSceneManagerWorld;
+function TCreatureResource.CreateCreature(
+  const ALevelProperties: TLevelProperties;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 var
   Scale: Single;
+  RootTransform: TCastleRootTransform;
 begin
+  RootTransform := ALevelProperties.RootTransform;
+
   { This is only needed if you did not add creature to <resources>.
 
     Note: we experimented with moving this to TCreature.PrepareResource,
@@ -1090,13 +1110,14 @@ begin
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
     Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }
-  Prepare(World.PrepareParams);
+  Prepare(ALevelProperties.PrepareParams);
 
-  Result := CreatureClass.Create(World { owner }, MaxLife);
+  Result := CreatureClass.Create(RootTransform { owner }, MaxLife);
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
+  Result.LevelProperties := ALevelProperties;
   Result.FResource := Self;
-  Result.SetView(APosition, ADirection, World.GravityUp, FlexibleUp);
+  Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
   Result.Gravity := not Flying;
@@ -1107,16 +1128,18 @@ begin
   Scale := RandomFloatRange(ScaleMin, ScaleMax);
   Result.Scale := Vector3(Scale, Scale, Scale);
 
-  World.Add(Result);
+  RootTransform.Add(Result);
 end;
 
-function TCreatureResource.CreateCreature(World: TSceneManagerWorld;
+function TCreatureResource.CreateCreature(
+  const ALevelProperties: TLevelProperties;
   const APosition, ADirection: TVector3): TCreature;
 begin
-  Result := CreateCreature(World, APosition, ADirection, DefaultMaxLife);
+  Result := CreateCreature(ALevelProperties, APosition, ADirection, DefaultMaxLife);
 end;
 
-procedure TCreatureResource.InstantiatePlaceholder(World: TSceneManagerWorld;
+procedure TCreatureResource.InstantiatePlaceholder(
+  const ALevelProperties: TLevelProperties;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -1128,10 +1151,11 @@ begin
 
   { calculate MaxLife }
   if NumberPresent then
-    MaxLife := Number else
+    MaxLife := Number
+  else
     MaxLife := DefaultMaxLife;
 
-  CreateCreature(World, APosition, CreatureDirection, MaxLife);
+  CreateCreature(ALevelProperties, APosition, CreatureDirection, MaxLife);
 end;
 
 function TCreatureResource.Radius(const GravityUp: TVector3): Single;
@@ -1311,7 +1335,8 @@ begin
     ResourceConfig.GetValue('sound_idle', ''));
 end;
 
-function TMissileCreatureResource.CreateCreature(World: TSceneManagerWorld;
+function TMissileCreatureResource.CreateCreature(
+  const ALevelProperties: TLevelProperties;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin
@@ -1570,7 +1595,7 @@ begin
   if not GetExists then Exit;
 
   { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
-    TAlive.Update changed LifeTime.
+    TCastleAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
     transformation (things taken into account in TCastleTransform) stay equal. }
@@ -1597,7 +1622,7 @@ begin
   inherited;
 end;
 
-procedure TCreature.AttackHurt(const HurtEnemy: TAlive);
+procedure TCreature.AttackHurt(const HurtEnemy: TCastleAlive);
 begin
   if HurtEnemy <> nil then
     HurtEnemy.Hurt(Resource.AttackDamageConst +
@@ -1616,6 +1641,19 @@ begin
   if FRadius = 0 then
     FRadius := Resource.Radius(World.GravityUp);
   Result := FRadius;
+end;
+
+function TCreature.Sector(const OtherTransform: TCastleTransform): TSector;
+begin
+  if LevelProperties.Sectors <> nil then
+    Result := LevelProperties.Sectors.SectorWithPoint(OtherTransform.Middle)
+  else
+    Result := nil;
+end;
+
+function TCreature.Sector: TSector;
+begin
+  Result := Sector(Self);
 end;
 
 { TWalkAttackCreature -------------------------------------------------------- }
@@ -1655,9 +1693,9 @@ begin
   Result := TWalkAttackCreatureResource(inherited Resource);
 end;
 
-function TWalkAttackCreature.Enemy: TAlive;
+function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
-  Result := World.Player as TAlive;
+  Result := LevelProperties.Player as TCastleAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2427,7 +2465,7 @@ begin
   begin
     HasLastSensedEnemy := true;
     LastSensedEnemy := E.Middle;
-    LastSensedEnemySector := E.Sector;
+    LastSensedEnemySector := Sector(E);
   end;
 
   if HasLastSensedEnemy then
@@ -2471,7 +2509,7 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
-  E: TAlive;
+  E: TCastleAlive;
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2528,7 +2566,7 @@ begin
     MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
     MissileDirection := LastSensedEnemy - MissilePosition;
     Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-      CreateCreature(World, MissilePosition, MissileDirection);
+      CreateCreature(LevelProperties, MissilePosition, MissileDirection);
     Missile.Sound3d(Resource.FireMissileSound, 0.0);
   end;
 end;
@@ -2558,7 +2596,7 @@ end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: TAlive);
+  const AKnockbackDistance: Single; const Attacker: TCastleAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
     AKnockbackDistance * Resource.KnockBackDistance, Attacker);
@@ -2570,7 +2608,7 @@ begin
   begin
     HasLastSensedEnemy := true;
     LastSensedEnemy := Attacker.Middle;
-    LastSensedEnemySector := Attacker.Sector;
+    LastSensedEnemySector := Sector(Attacker);
   end;
 end;
 
@@ -2632,7 +2670,7 @@ begin
     Exit;
   end;
 
-  Player := World.Player;
+  Player := LevelProperties.Player;
 
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
@@ -2725,7 +2763,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(World.Player as TAlive);
+  AttackHurt(LevelProperties.Player as TCastleAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

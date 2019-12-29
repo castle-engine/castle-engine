@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="scene_manager_demos.lpr"/>
+        <Filename Value="transform_scenes_demos.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>

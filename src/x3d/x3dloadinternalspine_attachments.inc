@@ -254,12 +254,13 @@ begin
   if Shape.Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
-  Shape.Material := TMaterialNode.Create(
+  Material := TMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Shape.Material.ForcePureEmissive;
-  Shape.Material.EmissiveColor := Vector3(1, 1, 1);
-  Material := Shape.Material;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := Vector3(1, 1, 1);
+
+  Shape.Material := Material;
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
@@ -593,13 +594,14 @@ begin
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
-  Shape.Material := TMaterialNode.Create(
+  Material := TMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Shape.Material.ForcePureEmissive;
-  Shape.Material.EmissiveColor := WhiteRGB;
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := WhiteRGB;
+  Shape.Material := Material;
+
   Shape.Render := false;
-  Material := Shape.Material;
 
   ControlPoints := TCoordinateNode.Create('', BaseUrl);
   { we ignore first and last Vertices, they are only handles outside of

@@ -26,10 +26,10 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
+  CastleControls, CastleKeysMouse, CastleFilesUtils, CastleViewport,
   CastleVectors, CastleTransform, CastleSceneCore, CastleUtils, CastleColors,
   CastleUIControls, CastleMessaging, CastleGameService, CastleLog,
-  CastleCameras, CastleApplicationProperties;
+  CastleCameras, CastleApplicationProperties, CastleScene;
 
 { Google Play Games integration stuff ---------------------------------------- }
 
@@ -58,9 +58,9 @@ var
 { main game stuff ------------------------------------------------------------ }
 
 var
-  SceneManager: TCastle2DSceneManager;
-  Background: TCastle2DScene;
-  Dragon: TCastle2DScene;
+  Viewport: TCastleViewport;
+  Background: TCastleScene;
+  Dragon: TCastleScene;
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
   ShowAchievements: TCastleButton;
@@ -108,9 +108,10 @@ procedure AddBackgroundItems;
   procedure AddItem(const X, Y, Z, Scale: Single; const URL: string;
     const RunAnimation: boolean = true);
   var
-    Scene: TCastle2DScene;
+    Scene: TCastleScene;
   begin
-    Scene := TCastle2DScene.Create(Application);
+    Scene := TCastleScene.Create(Application);
+    Scene.Setup2D;
     Scene.Load(URL);
     Scene.ProcessEvents := true;
     if RunAnimation then
@@ -122,7 +123,7 @@ procedure AddBackgroundItems;
       as we want, because items in front of the background would "hijack"
       mouse picks. }
     Scene.Pickable := false;
-    SceneManager.Items.Add(Scene);
+    Viewport.Items.Add(Scene);
   end;
 
 const
@@ -147,7 +148,7 @@ begin
   AddItem(0,    0,  50, 1, 'castle-data:/background/smoktlo2.json');
   AddItem(0,    0, 100, 1, 'castle-data:/background_front.x3dv', false);
 
-  SceneManager.Items.SortBackToFront2D;
+  Viewport.Items.SortBackToFront2D;
 end;
 
 { One-time initialization. }
@@ -160,8 +161,10 @@ begin
   GameService := TGameService.Create(nil);
   GameService.Initialize;
 
-  SceneManager := TCastle2DSceneManager.Create(Application);
-  Window.Controls.InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.Setup2D;
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
 
   { add to scene manager an X3D scene with background and trees.
     See data/background.x3dv (go ahead, open it in a text editor --- X3D files
@@ -172,9 +175,10 @@ begin
     like TCastleImageControl instead of X3D model.
     Or you could load a scene from any format --- e.g. your background
     could also be a Spine scene. }
-  Background := TCastle2DScene.Create(Application);
-  SceneManager.Items.Add(Background);
-  SceneManager.MainScene := Background;
+  Background := TCastleScene.Create(Application);
+  Background.Setup2D;
+  Viewport.Items.Add(Background);
+  Viewport.Items.MainScene := Background;
   Background.Load('castle-data:/background.x3dv');
   { not really necessary now, but in case some animations will appear
     on Background }
@@ -190,10 +194,11 @@ begin
     we know it starts from bottom = 0.
     BoudingBox.Data[1][1] is the maximum Y value, i.e. our height.
     So projection height should adjust to background.x3dv height. }
-  SceneManager.Camera.Orthographic.Height := Background.BoundingBox.Data[1][1];
-  SceneManager.Camera.ProjectionFar := 10000;
+  Viewport.Camera.Orthographic.Height := Background.BoundingBox.Data[1][1];
+  Viewport.Camera.ProjectionFar := 10000;
 
-  Dragon := TCastle2DScene.Create(Application);
+  Dragon := TCastleScene.Create(Application);
+  Dragon.Setup2D;
   Dragon.Load('castle-data:/dragon/dragon.json');
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
@@ -204,7 +209,7 @@ begin
     translate in Z to push dragon in front of trees
     (on Z = 20, see data/background.x3dv) }
   Dragon.Translation := DragonInitialPosition;
-  SceneManager.Items.Add(Dragon);
+  Viewport.Items.Add(Dragon);
 
   CameraView3D := TCastleButton.Create(Window);
   CameraView3D.Caption := '3D Camera View';
@@ -247,7 +252,7 @@ end;
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
 procedure CalculateCamera(out Pos, Dir, Up: TVector3);
 const
-  { Initial camera. Like initialized by TCastle2DSceneManager,
+  { Initial camera. Like initialized by TCastleViewport.Setup2D,
     but shifted to the right, to see the middle of the background scene
     where we can see the castle and dragon at initial position. }
   Camera2DPos: TVector3 = (Data: (2100, 0, 0));
@@ -281,7 +286,7 @@ begin
     Pos[0] := Dragon.Translation[0]
       { Subtract half of the screen, because camera is at the left screen corner
         when using default 2D projection (with default Camera.Orthographic.Origin = zero). }
-      - 0.5 * SceneManager.Camera.Orthographic.EffectiveWidth;
+      - 0.5 * Viewport.Camera.Orthographic.EffectiveWidth;
     { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
       we need to offset the above calculation }
     if CameraView3D.Pressed then
@@ -295,7 +300,7 @@ begin
   if not CameraView3D.Pressed then
     Pos[0] := Clamped(Pos[0],
       Background.BoundingBox.Data[0].Data[0],
-      Background.BoundingBox.Data[1].Data[0] - SceneManager.Camera.Orthographic.EffectiveWidth);
+      Background.BoundingBox.Data[1].Data[0] - Viewport.Camera.Orthographic.EffectiveWidth);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -307,7 +312,7 @@ var
 begin
   Status.Caption := 'FPS: ' + Window.Fps.ToString;
 
-  Camera := SceneManager.Camera;
+  Camera := Viewport.Camera;
 
   { check Camera.Animation, to not mess in the middle
     of Camera.AnimateTo (we could mess it by changing Dragon now
@@ -372,7 +377,7 @@ begin
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    if SceneManager.PositionToWorldPlane(Event.Position, true, 0, WorldPosition) then
+    if Viewport.PositionToWorldPlane(Event.Position, true, 0, WorldPosition) then
     begin
       if not DragonFlying then
         DragonChangeAnimation('flying');
@@ -400,11 +405,11 @@ class procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
 begin
-  if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
+  if not Viewport.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
   begin
     CameraView3D.Pressed := not CameraView3D.Pressed;
     CalculateCamera(Pos, Dir, Up);
-    SceneManager.Camera.AnimateTo(Pos, Dir, Up, 1.0);
+    Viewport.Camera.AnimateTo(Pos, Dir, Up, 1.0);
     GameService.Achievement(AchievementClick3D);
   end;
 end;
@@ -413,11 +418,11 @@ class procedure TButtonsHandler.CameraFollowsDragonClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3;
 begin
-  if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
+  if not Viewport.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
   begin
     CameraFollowsDragon.Pressed := not CameraFollowsDragon.Pressed;
     CalculateCamera(Pos, Dir, Up);
-    SceneManager.Camera.AnimateTo(Pos, Dir, Up, 1.0);
+    Viewport.Camera.AnimateTo(Pos, Dir, Up, 1.0);
     GameService.Achievement(AchievementClickFollow);
   end;
 end;
