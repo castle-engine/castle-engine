@@ -21,7 +21,7 @@ unit CastleSceneManager deprecated 'use CastleViewport';
 interface
 
 uses SysUtils,
-  CastleViewport, CastleScene;
+  CastleViewport, CastleScene, CastleInputs;
 
 type
   TCastleViewport             = CastleViewport.TCastleViewport;
@@ -43,6 +43,20 @@ const
   hlOff       = CastleScene.hlOff;
   hlMainScene = CastleScene.hlMainScene;
 
+function GetInput_Interact: TInputShortcut;
+procedure SetInput_Interact(const Value: TInputShortcut);
+property Input_Interact: TInputShortcut read GetInput_Interact write SetInput_Interact;
+
 implementation
+
+function GetInput_Interact: TInputShortcut;
+begin
+  Result := CastleViewport.Input_Interact;
+end;
+
+procedure SetInput_Interact(const Value: TInputShortcut);
+begin
+  CastleViewport.Input_Interact := Value;
+end;
 
 end.
