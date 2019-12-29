@@ -2954,6 +2954,7 @@ begin
   Camera.ProjectionNear := -Default2DProjectionFar;
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
+  AutoCamera := false;
 end;
 
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
