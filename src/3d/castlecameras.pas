@@ -1294,7 +1294,7 @@ type
 
   { See @link(TCastleWalkNavigation.DoMoveAllowed) and
     @link(TCastleWalkNavigation.OnMoveAllowed) }
-  TMoveAllowedFunc = function(Camera: TCastleWalkNavigation;
+  TMoveAllowedFunc = function(Navigation: TCastleWalkNavigation;
     const ProposedNewPos: TVector3;
     out NewPos: TVector3;
     const BecauseOfGravity: boolean): boolean of object;
@@ -1449,7 +1449,7 @@ type
     FIsWalkingOnTheGround: boolean;
 
     FInvertVerticalMouseLook: boolean;
-    FOnMoveAllowed: TMoveAllowedFunc;
+    FOnMoveAllowed, FOnInternalMoveAllowed: TMoveAllowedFunc;
     FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
     FMouseDraggingMoveSpeed: Single;
 
@@ -1489,8 +1489,14 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    { This is used by @link(DoMoveAllowed), see there for description. }
+    { Used by @link(DoMoveAllowed), see there for description.
+      You can assign this property. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
+
+    { Used by @link(DoMoveAllowed), see there for description.
+      This property is used internally by TCastleViewport. }
+    property OnInternalMoveAllowed: TMoveAllowedFunc
+      read FOnInternalMoveAllowed write FOnInternalMoveAllowed;
 
     { @abstract(DoMoveAllowed will be used when user will move in the scene,
       i.e. when user will want to change @link(Position).)
@@ -1533,11 +1539,9 @@ type
       outside bounding box is allowed (to allow camera to look at the
       scene from "the outside").
 
-      Basic implementation of DoMoveAllowed in this class:
-      If OnMoveAllowed = nil then returns true and sets NewPos to
-      ProposedNewPos (so move is always allowed).
-      Else calls OnMoveAllowed. }
-    function DoMoveAllowed(const ProposedNewPos: TVector3;
+      Basic implementation of DoMoveAllowed in this class
+      checks OnMoveAllowed and OnInternalMoveAllowed. }
+    function DoMoveAllowed(ProposedNewPos: TVector3;
       out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual;
 
@@ -3854,15 +3858,21 @@ begin
   inherited;
 end;
 
-function TCastleWalkNavigation.DoMoveAllowed(const ProposedNewPos: TVector3;
+function TCastleWalkNavigation.DoMoveAllowed(ProposedNewPos: TVector3;
   out NewPos: TVector3; const BecauseOfGravity: boolean): boolean;
 begin
- if Assigned(OnMoveAllowed) then
-  Result := OnMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity) else
- begin
   Result := true;
   NewPos := ProposedNewPos;
- end;
+
+  if Result and Assigned(OnInternalMoveAllowed) then
+  begin
+    Result := OnInternalMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity);
+    // update ProposedNewPos for OnMoveAllowed call
+    if Result then
+      ProposedNewPos := NewPos;
+  end;
+  if Result and Assigned(OnMoveAllowed) then
+    Result := OnMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity);
 end;
 
 procedure TCastleWalkNavigation.Height(const APosition: TVector3;

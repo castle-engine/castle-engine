@@ -190,11 +190,7 @@ type
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
     procedure SetNavigationType(const Value: TNavigationType);
 
-    { Handle navigation events.
-
-      Scene manager implements collisions by looking at 3D scene,
-      custom viewports implements collisions by calling their scene manager.
-
+    { Handle navigation events by checking collisions with @link(Items).
       @groupBegin }
     function NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
       const ProposedNewPos: TVector3; out NewPos: TVector3;
@@ -1301,7 +1297,7 @@ begin
     begin
       if FNavigation is TCastleWalkNavigation then
       begin
-        TCastleWalkNavigation(FNavigation).OnMoveAllowed := nil;
+        TCastleWalkNavigation(FNavigation).OnInternalMoveAllowed := nil;
         TCastleWalkNavigation(FNavigation).OnHeight := nil;
       end;
 
@@ -1324,7 +1320,7 @@ begin
     begin
       if FNavigation is TCastleWalkNavigation then
       begin
-        TCastleWalkNavigation(FNavigation).OnMoveAllowed := @NavigationMoveAllowed;
+        TCastleWalkNavigation(FNavigation).OnInternalMoveAllowed := @NavigationMoveAllowed;
         TCastleWalkNavigation(FNavigation).OnHeight := @NavigationHeight;
       end;
 
