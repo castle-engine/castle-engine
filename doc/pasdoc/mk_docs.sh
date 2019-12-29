@@ -113,6 +113,7 @@ if (( $# == 0 )); then
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iname 'kraft.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
+              '(' -iwholename '*/deprecated_units/*' ')' -or \
               '(' -iwholename '*/pasgltf/*' ')' -or \
               '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
               '(' -iwholename '*fonts/castletexturefont_*.pas' ')' \

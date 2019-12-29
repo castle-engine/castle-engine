@@ -17,7 +17,7 @@
 {$ifdef read_interface}
 
   { Statistics about what was rendered during last frame.
-    You will usually access this by scene manager property,
+    You will usually access this by viewport property,
     see @link(TCastleViewport.Statistics). }
   TRenderStatistics = record
     { How many shapes were rendered (send to OpenGL)

@@ -184,8 +184,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleGLBoxes"/>
       </Item20>
       <Item21>
-        <Filename Value="../src/3d/opengl/castleglshadowvolumes.pas"/>
-        <UnitName Value="CastleGLShadowVolumes"/>
+        <Filename Value="../src/3d/opengl/castleinternalglshadowvolumes.pas"/>
+        <UnitName Value="CastleInternalGLShadowVolumes"/>
       </Item21>
       <Item22>
         <Filename Value="../src/audio/castleinternalabstractsoundbackend.pas"/>

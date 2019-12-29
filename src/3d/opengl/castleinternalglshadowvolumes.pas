@@ -14,7 +14,7 @@
 }
 
 { Rendering shadow volumes in OpenGL (TGLShadowVolumeRenderer). }
-unit CastleGLShadowVolumes;
+unit CastleInternalGLShadowVolumes;
 
 {$I castleconf.inc}
 

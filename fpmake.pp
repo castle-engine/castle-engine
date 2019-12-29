@@ -110,7 +110,7 @@ begin
     P.Targets.AddUnit('castletriangulate.pas');
 
     P.SourcePath.Add('src' + PathDelim + '3d' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castleglshadowvolumes.pas');
+    P.Targets.AddUnit('castleinternalglshadowvolumes.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('castleinternalsoundfile.pas');
