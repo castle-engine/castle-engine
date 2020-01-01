@@ -57,6 +57,30 @@
       const TexRotated: boolean): TAbstractGeometryNode; virtual;
   end;
 
+  TAbstractMeshAttachment = class(TRegionAttachment)
+  public
+    Coord: TCoordinateNode;
+    UVs: TVector2List;
+    Triangles: TLongIntList;
+    Vertices: TVector2List;
+    Edges: TLongIntList; //< unused for now
+    { Unused for now.
+      Looking as official Spine runtime in spine-csharp and spine-unity,
+      it is also unused there. }
+    Hull: Integer;
+    Invalid: boolean;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+    function BuildGeometry(const BaseUrl: string;
+      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
+      const TexRotated: boolean): TAbstractGeometryNode; override;
+  end;
+
+  TMeshAttachment = class(TAbstractMeshAttachment)
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+  end;
+
   TSkinnedMeshVertexBone = class
     Bone: TBone;
     V: TVector2; //< vertex position in local Bone coordinate system
@@ -76,33 +100,8 @@
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
-  TAbstractMeshAttachment = class(TRegionAttachment)
-  public           
-    Coord: TCoordinateNode;
-    UVs: TVector2List;
-    Triangles: TLongIntList;
-    Vertices: TVector2List;
-    Weights: TSkinnedMeshVertexList;
-    Edges: TLongIntList; //< unused for now
-    { Unused for now.
-      Looking as official Spine runtime in spine-csharp and spine-unity,
-      it is also unused there. }
-    Hull: Integer;
-    Invalid: boolean;
-    constructor Create;
-    destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    function BuildGeometry(const BaseUrl: string;
-      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractGeometryNode; override;
-  end;
-
-  TMeshAttachment = class(TAbstractMeshAttachment)
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-  end;
-
   TSkinnedMeshAttachment = class(TAbstractMeshAttachment)
-    // Weights: TSkinnedMeshVertexList;
+    Weights: TSkinnedMeshVertexList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
@@ -311,7 +310,6 @@ begin
   Triangles := TLongIntList.Create;
   Vertices := TVector2List.Create;
   Edges := TLongIntList.Create;
-  Weights := TSkinnedMeshVertexList.Create;
 end;
 
 destructor TAbstractMeshAttachment.Destroy;
@@ -320,7 +318,6 @@ begin
   FreeAndNil(Triangles);
   FreeAndNil(Vertices);
   FreeAndNil(Edges);
-  FreeAndNil(Weights);
   inherited;
 end;
 
@@ -362,7 +359,6 @@ begin
   for I := 0 to Vertices.Count - 1 do
     Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
   Faces.Coord := Coord;
-  Coord.X3DName := 'coord_' + SlotName + '_' + Name;
 
   { We do not guarantee correct rendering when model used
     atlas "whitespace compression" by Spine, and used mesh attachment types.
@@ -408,13 +404,11 @@ procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList)
 begin
   inherited;
   ReadVector2List(Json, 'vertices', Vertices);
+
   if Vertices.Count > UVs.Count then
   begin
     WritelnWarning('Spine', 'A weighted mesh (when the number of vertices > number of uvs) is not supported');
-    { TODO: Ineffective. We should merge ReadVector2List and ReadWeightedVertexList
-      into a new function instead of calling them separately }
-    Vertices.Clear;
-    ReadWeightedVertexList(Json, 'vertices', Bones, Vertices, Weights);
+    Invalid := true;
   end else
   if UVs.Count <> Vertices.Count then
   begin
@@ -493,10 +487,12 @@ end;
 constructor TSkinnedMeshAttachment.Create;
 begin
   inherited;
+  Weights := TSkinnedMeshVertexList.Create;
 end;
 
 destructor TSkinnedMeshAttachment.Destroy;
 begin
+  FreeAndNil(Weights);
   inherited;
 end;
 

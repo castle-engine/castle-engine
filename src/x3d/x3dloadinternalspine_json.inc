@@ -42,8 +42,8 @@ begin
           Vec2Index := 0;
         end;
       end;
-    // if Vec2Index <> 0 then
-    //   WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector. This is possible in case of (unsupported now) weighted mesh.');
+    if Vec2Index <> 0 then
+      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector. This is possible in case of (unsupported now) weighted mesh.');
   end;
 end;
 
@@ -81,44 +81,5 @@ begin
     for I := 0 to JsonArray.Count - 1 do
       List.Add(JsonArray[I].AsFloat);
 end;
-
-procedure ReadWeightedVertexList(const Json: TJSONObject; const Name: String;
-  const Bones: TBoneList;
-  const VertexList: TVector2List; const WeightList: TSkinnedMeshVertexList);
-var
-  JsonArray: TJSONArray;
-  I, J: Integer;
-  NumberOfBones: Integer;
-  V: TVector2;
-  VertexBoneList: TSkinnedMeshVertexBoneList;
-  VertexBone: TSkinnedMeshVertexBone;
-  Vertex: TSkinnedMeshVertex;
-begin
-  JsonArray := Json.Find(Name, jtArray) as TJSONArray;
-  if JsonArray <> nil then
-  begin
-    I := 0;
-    while I < JsonArray.Count do
-    begin
-      NumberOfBones := JsonArray[I].AsInteger;
-      Vertex := TSkinnedMeshVertex.Create;
-      VertexBoneList := TSkinnedMeshVertexBoneList.Create;
-      Vertex.Bones := VertexBoneList;
-      V := TVector2.Zero;
-      Inc(I);
-      for J := 0 to NumberOfBones - 1 do
-      begin
-        VertexBone := TSkinnedMeshVertexBone.Create;
-        VertexBone.Bone := Bones.Items[JsonArray[I].AsInteger];
-        VertexBone.V := Vector2(JsonArray[I + 1].AsFloat, JsonArray[I + 2].AsFloat);
-        VertexBone.Weight := JsonArray[I + 3].AsFloat;
-        VertexBoneList.Add(VertexBone);
-        V := V + (VertexBone.Bone.ToWorldSpace(VertexBone.V) * VertexBone.Weight);
-        Inc(I, 4);
-      end;
-      WeightList.Add(Vertex);
-      VertexList.Add(V);
-    end;
-  end;
-end;
 {$endif}
+
