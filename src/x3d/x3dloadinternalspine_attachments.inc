@@ -625,6 +625,8 @@ end;
 destructor TClippingAttachment.Destroy;
 begin
   FreeAndNil(Vertices);
+  // If you didn't call VisualizeClipPolygon in BuildNodes, Material node remains unused
+  FreeIfUnusedAndNil(Material);
   inherited;
 end;
 
@@ -650,6 +652,7 @@ procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
     I: Integer;
   begin
     Shape := TShapeNode.Create('', BaseUrl);
+    Shape.Material := Material;
     Node.AddChildren(Shape);
 
     Faces := TIndexedFaceSetNode.Create('', BaseUrl);
@@ -693,6 +696,12 @@ begin
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
+
+  Material := TMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Material.ForcePureEmissive;
+  Material.EmissiveColor := WhiteRGB;
 
   // debug
   //VisualizeClipPolygon;

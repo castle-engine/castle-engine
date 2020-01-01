@@ -156,6 +156,9 @@ begin
 
   // This once failed to be read, as the Spine has DefaultSkin = nil
   CheckIterator('data/spine/empty_spine.json');
+
+  // This once failed with access violation because TClippingAttachment.BuildNodes didn't assign Material
+  CheckIterator('data/spine/clip_region/skeleton.json');
 end;
 
 procedure TTestSceneCore.TestFind;
