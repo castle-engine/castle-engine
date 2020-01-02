@@ -160,7 +160,7 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     for I := 0 to Json.Count - 1 do
     begin
       DeformTimeline := TDeformTimeline.Create;
-      DeformTimeline.Slot := Slots.Find(Json.Names[0]);
+      DeformTimeline.Slot := Slots.Find(SlotName);
       DeformTimeline.Attachment :=
         CurrentSkin.Attachments.Find(SlotName, Json.Names[I], nil, false)
         as TMeshAttachment;
