@@ -16,7 +16,7 @@
 { Spine deform timelines. }
 
 {$ifdef read_interface}
-  TDeformVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TVector3List>)
+  TDeformVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVector3List>)
   end;
 
   TDeformTimeline = class
@@ -46,7 +46,7 @@ constructor TDeformTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
-  Vertices := TDeformVertexList.Create;
+  Vertices := TDeformVertexList.Create(true);
 end;
 
 destructor TDeformTimeline.Destroy;
@@ -64,7 +64,7 @@ var
   VertexJsonArray: TJSONArray;
   VertexList: TVector3List;
   V3: TVector3;
-  Offset: Integer;
+  Offset, VertexJsonArrayCount: Integer;
 begin
   for I := 0 to Json.Count - 1 do
   begin
@@ -77,13 +77,17 @@ begin
     if CurveJson <> nil then
       if CurveJson is TJSONArray then
         WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported');
-    VertexJsonArray := Obj.Get('vertices', TJSONArray.Create);
+    VertexJsonArray := Obj.Get('vertices', TJSONArray(nil));
+    if VertexJsonArray = nil then
+      VertexJsonArrayCount := 0
+    else
+      VertexJsonArrayCount := VertexJsonArray.Count;
     VertexList := TVector3List.Create;
 
     { |---static vertices (offset)---|---anim vertices---|---static vertices---| }
     for J := 0 to Offset - 1 do
       VertexList.Add(Vector3(Attachment.Vertices.Items[J], 0));
-    for J := 0 to VertexJsonArray.Count div 2 - 1 do
+    for J := 0 to VertexJsonArrayCount div 2 - 1 do
     begin
       V3 := Vector3(VertexJsonArray.Items[J * 2].AsFloat,
                     VertexJsonArray.Items[J * 2 + 1].AsFloat,
@@ -91,7 +95,7 @@ begin
       V3 := V3 + Vector3(Attachment.Vertices.Items[Offset + J], 0);
       VertexList.Add(V3);
     end;
-    for J := Offset + VertexJsonArray.Count div 2 to Attachment.Vertices.Count - 1 do
+    for J := Offset + VertexJsonArrayCount div 2 to Attachment.Vertices.Count - 1 do
       VertexList.Add(Vector3(Attachment.Vertices.Items[J], 0));
     Vertices.Add(VertexList);
   end;
