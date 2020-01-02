@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="694">
+    <Files Count="695">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2884,6 +2884,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item692>
+      <Item695>
+        <Filename Value="../src/x3d/x3dloadinternalspine_deformtimelines.inc"/>
+        <Type Value="Include"/>
+      </Item695>
       <Item693>
         <Filename Value="../src/3d/castletransformextra.pas"/>
         <UnitName Value="CastleTransformExtra"/>

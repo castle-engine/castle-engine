@@ -82,3 +82,4 @@ begin
       List.Add(JsonArray[I].AsFloat);
 end;
 {$endif}
+

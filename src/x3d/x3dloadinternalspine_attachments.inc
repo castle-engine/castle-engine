@@ -58,9 +58,8 @@
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
-  strict protected
-    Coord: TCoordinateNode;
   public
+    Coord: TCoordinateNode;
     UVs: TVector2List;
     Triangles: TLongIntList;
     Vertices: TVector2List;
