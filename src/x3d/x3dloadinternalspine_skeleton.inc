@@ -25,19 +25,18 @@
     Slots: TSlotList;
     Skins: TSkinList;
     Animations: TAnimationList;
-    { After parsing skins, we calculate default and current skin
+    { When parsing the skeleton, we calculate default and current skin
       (used to search for attachments). They cannot be @nil.
       It is possible that CurrentSkin = DefaultSkin.
-      For now, CurrentSkin remains local in BuildNodes, no need to make
-      it public.
       @groupBegin }
     DefaultSkin: TSkin;
+    CurrentSkin: TSkin;
     { @groupEnd }
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONData; const SkinName: String);
+    procedure Parse(const BaseUrl: string; const Json: TJSONData; const SkinName: String);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
-      const Container: TX3DRootNode; const SkinName: string);
+      const Container: TX3DRootNode);
   end;
 {$endif}
 
@@ -62,12 +61,50 @@ begin
   inherited;
 end;
 
-procedure TSkeleton.Parse(const Json: TJSONData; const SkinName: String);
+procedure TSkeleton.Parse(const BaseUrl: string; const Json: TJSONData; const SkinName: String);
+
+  procedure CalculateCurrentSkin;
+  begin
+    CurrentSkin := nil;
+    if SkinName <> '' then
+      CurrentSkin := Skins.Find(SkinName, true);
+    if CurrentSkin = nil then
+    begin
+      { Old version:
+        prefer non-default skin, if exists, since default skin may miss some
+        attachments, see goblins.json example. }
+      // if Skins.Count > 1 then
+      //   CurrentSkin := Skins[1] else
+      { New version: use DefaultSkin by default, this is more intuitive
+        and naturally expected
+        (see e.g. hero default/girl skins in "The Unholy Society"). }
+      CurrentSkin := DefaultSkin;
+    end;
+  end;
+
+  procedure SkinLog;
+  var
+    S: string;
+    I: Integer;
+  begin
+    if Skins.Count = 1 then
+    begin
+      Assert(CurrentSkin = Skins[0]);
+      //WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
+    end else
+    begin
+      S := Format('%s available skins: %d', [BaseUrl, Skins.Count]) + NL;
+      for I := 0 to Skins.Count - 1 do
+        S := S + (Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL);
+      S := S + Format('Using skin: %s', [CurrentSkin.Name]);
+      WritelnLogMultiline('Spine', S);
+    end;
+  end;
+
 var
   O: TJSONObject;
   JsonArmatureArray: TJSONArray;
   DragonBonesFormat: boolean;
-  CurrentSkin: TSkin;
 begin
   if not (Json is TJSONObject) then
     raise ESpineReadError.Create('Spine JSON skeleton: Expected JSONObject at root');
@@ -90,11 +127,11 @@ begin
   Bones.Parse(O, Root, DragonBonesFormat);
   Slots.Parse(O, Bones, DragonBonesFormat);
   Skins.Parse(O, DefaultSkin, Bones, DragonBonesFormat);
-  CurrentSkin := nil;
-  if SkinName <> '' then
-    CurrentSkin := Skins.Find(SkinName, true);
-  if CurrentSkin = nil then
-    CurrentSkin := DefaultSkin;
+
+  CalculateCurrentSkin; // Animations.Parse below requires CurrentSkin <> nil
+  Assert(CurrentSkin <> nil);
+  SkinLog;
+
   Animations.Parse(O, Bones, Slots, CurrentSkin);
 
   // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
@@ -102,29 +139,7 @@ begin
 end;
 
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
-  const Container: TX3DRootNode; const SkinName: string);
-var
-  CurrentSkin: TSkin;
-
-  procedure SkinLog;
-  var
-    S: string;
-    I: Integer;
-  begin
-    if Skins.Count = 1 then
-    begin
-      Assert(CurrentSkin = Skins[0]);
-      //WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
-    end else
-    begin
-      S := Format('%s available skins: %d', [BaseUrl, Skins.Count]) + NL;
-      for I := 0 to Skins.Count - 1 do
-        S := S + (Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL);
-      S := S + Format('Using skin: %s', [CurrentSkin.Name]);
-      WritelnLogMultiline('Spine', S);
-    end;
-  end;
-
+  const Container: TX3DRootNode);
 var
   NavigationInfo: TNavigationInfoNode;
 begin
@@ -140,24 +155,6 @@ begin
   Root.NodeUsedAsChild := true;
   Container.AddChildren(Root.Node);
   Skins.BuildNodes(BaseUrl, TextureLoader);
-
-  CurrentSkin := nil;
-  if SkinName <> '' then
-    CurrentSkin := Skins.Find(SkinName, true);
-  if CurrentSkin = nil then
-  begin
-    { Old version:
-      prefer non-default skin, if exists, since default skin may miss some
-      attachments, see goblins.json example. }
-    // if Skins.Count > 1 then
-    //   CurrentSkin := Skins[1] else
-    { New version: use DefaultSkin by default, this is more intuitive
-      and naturally expected
-      (see e.g. hero default/girl skins in "The Unholy Society"). }
-    CurrentSkin := DefaultSkin;
-  end;
-  SkinLog;
-
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
   Animations.BuildNodes(BaseUrl, Container);
 end;

@@ -188,8 +188,8 @@ begin
               begin
                 Skeleton := TSkeleton.Create;
                 try
-                  Skeleton.Parse(Json, SkinName);
-                  Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                  Skeleton.Parse(URL, Json, SkinName);
+                  Skeleton.BuildNodes(URL, TextureLoader, Result);
                   if Skeleton.DefaultSkin = nil then Exit;
                   Skeleton.Animations.Exported(Result);
                 finally FreeAndNil(Skeleton) end;
