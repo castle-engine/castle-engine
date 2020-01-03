@@ -128,8 +128,13 @@ begin
   Slots.Parse(O, Bones, DragonBonesFormat);
   Skins.Parse(O, DefaultSkin, Bones, DragonBonesFormat);
 
-  CalculateCurrentSkin; // Animations.Parse below requires CurrentSkin <> nil
-  Assert(CurrentSkin <> nil);
+  CalculateCurrentSkin; // Animations.Parse below requires CurrentSkin initialized
+  // This is possible in case of empty Spine file
+  if CurrentSkin = nil then
+  begin
+    Assert(DefaultSkin = nil);
+    Exit;
+  end;
   SkinLog;
 
   Animations.Parse(O, Bones, Slots, CurrentSkin);
