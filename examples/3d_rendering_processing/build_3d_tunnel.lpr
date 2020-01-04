@@ -16,8 +16,10 @@
 { Build a 3D tunnel using X3D mesh (IndexedFaceSet node). }
 program build_3d_tunnel;
 
-uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
-  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog, CastleCameras;
+uses SysUtils,
+  CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
+  X3dnodes, CastleKeysMouse, CastleRandom, CastleLog, CastleCameras,
+  CastleViewport;
 
 const
   { Amount of vertexes generated on the floor.
@@ -48,8 +50,9 @@ type
   end;
 
 var
-  { global variables of the Engine }
-  Window: TCastleWindow;
+  { global variables referencing important instances of CGE classes }
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   Navigation: TCastleWalkNavigation;
 
@@ -61,7 +64,7 @@ var
   Appearance: TAppearanceNode;    // contains material
   Material: TMaterialNode;        // colored material
 
-  { local variables used for generation }
+  { variables used for generation }
   last_sect, next_sect: TSection;
   core_section: TSection;
   nindex: integer;   // global indexes of vertexes
@@ -207,38 +210,38 @@ begin
   Root := TX3DRootNode.Create;
   Root.AddChildren(shape);
 
-  { Initialize Castle Window }
+  { Initialize Window }
+  Window := TCastleWindowBase.Create(Application);
 
-  Window := TCastleWindow.Create(Application);
+  { Initialize Viewport }
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
 
-  { Create a scene based on Root node }
-
+  { Create a Scene based on Root node }
   Scene := TCastleScene.Create(Application);
   scene.load(Root,true);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  { Add the scene to Scene Manager }
+  { Add the scene to Viewport }
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
-
-  { Set camera and navigation }
-
+  { Initialize Viewport.Navigation }
   Navigation := TCastleWalkNavigation.Create(Application);
   Navigation.MouseLook := true;
   Navigation.PreferredHeight := 1;
   Navigation.MoveHorizontalSpeed := 10;
   Navigation.Radius := 0.1;
-  Window.SceneManager.Navigation := Navigation;
+  Viewport.Navigation := Navigation;
   // We could also set AutoNavigation to false,
   // but it's not necessary since we assign Navigation explicitly.
 
-  Window.SceneManager.AutoCamera := false;
-  Window.SceneManager.Camera.Position := Vector3(0, 0, -1);
-  Window.SceneManager.Camera.ProjectionNear := Navigation.Radius * 0.5;
+  { Initialize Viewport.Camera }
+  Viewport.Camera.Position := Vector3(0, 0, -1);
+  Viewport.Camera.ProjectionNear := Navigation.Radius * 0.5;
 
   { finally run the application }
-
   Window.OpenAndRun;
 end.

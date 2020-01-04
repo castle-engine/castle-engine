@@ -1060,7 +1060,7 @@ type
       Note that sometimes you don't need to create multiple scenes
       to show the same model many times.
       You can simply insert the same TCastleScene instance multiple
-      times to SceneManager.Items.
+      times to TCastleViewport.Items (TCastleRootTransform).
       See the manual:
       https://castle-engine.io/manual_scene.php#section_many_instances
     }
@@ -1357,12 +1357,11 @@ type
     { A spatial structure containing all visible shapes.
       Add ssRendering to @link(Spatial) property, otherwise it's @nil.
 
-      @bold(You should not usually use this directly.
-      Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
-      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @bold(You should not use this directly.
+      Instead use TCastleViewport
+      and then use @code(Viewport.Items.WorldXxxCollision) methods like
+      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1372,11 +1371,10 @@ type
       Add ssDynamicCollisions to @link(Spatial) property, otherwise it's @nil.
 
       @bold(You should not usually use this directly.
-      Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
-      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      Instead use TCastleViewport
+      and then use @code(Viewport.Items.WorldXxxCollision) methods like
+      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
 
       You can use @link(InternalOctreeCollisions) to get either
       @link(InternalOctreeDynamicCollisions) or
@@ -1393,11 +1391,10 @@ type
       Add ssVisibleTriangles to @link(Spatial) property, otherwise it's @nil.
 
       @bold(You should not usually use this directly.
-      Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
-      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      Instead use TCastleViewport
+      and then use @code(Viewport.Items.WorldXxxCollision) methods like
+      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains X3D Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1407,11 +1404,10 @@ type
       Add ssStaticCollisions to @link(Spatial) property, otherwise it's @nil.
 
       @bold(You should not usually use this directly.
-      Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
-      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      Instead use TCastleViewport
+      and then use @code(Viewport.Items.WorldXxxCollision) methods like
+      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).)
 
       It is automatically used by the XxxCollision methods in this class,
       if exists, unless OctreeDynamicCollisions exists.
@@ -1428,11 +1424,10 @@ type
       this available.
 
       @bold(You should not usually use this directly.
-      Instead use SceneManager
-      (like @link(TCastleSceneManager) or @link(TCastle2DSceneManager))
-      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(TCastleAbstractRootTransform.WorldRay SceneManager.Items.WorldRay) or
-      @link(TCastleAbstractRootTransform.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+      Instead use TCastleViewport
+      and then use @code(Viewport.Items.WorldXxxCollision) methods like
+      @link(TCastleAbstractRootTransform.WorldRay Viewport.Items.WorldRay) or
+      @link(TCastleAbstractRootTransform.WorldSphereCollision Viewport.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;
@@ -1628,7 +1623,7 @@ type
       You can use @link(SetTime) or @link(IncreaseTime) to move time
       forward manually. But usually there's no need for it:
       our @link(Update) method takes care of it automatically,
-      you only need to place the scene inside @link(TCastleSceneManager.Items).
+      you only need to place the scene inside @link(TCastleViewport.Items).
 
       You can start/stop time progress by @link(TimePlaying)
       and scale it by @link(TimePlayingSpeed). These properties
@@ -1696,10 +1691,10 @@ type
     function GetNavigationInfoStack: TX3DBindableStackBasic; override;
     function GetViewpointStack: TX3DBindableStackBasic; override;
 
-    function CameraPosition: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.Position';
-    function CameraDirection: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.GetView';
-    function CameraUp: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.GetView';
-    function CameraViewKnown: boolean; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera';
+    function CameraPosition: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.Position';
+    function CameraDirection: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
+    function CameraUp: TVector3; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera.GetView';
+    function CameraViewKnown: boolean; deprecated 'do not access camera properties this way, instead use e.g. Viewport.Camera';
 
     { Call when camera position/dir/up changed, to update things depending
       on camera settings. This includes sensors like ProximitySensor,
@@ -1707,8 +1702,10 @@ type
 
       @bold(There should be no need to call this method explicitly.
       The scene is notified about camera changes automatically,
-      by the @link(TCastleSceneManager). This method may be renamed / removed
-      in future releases.) }
+      by the @link(TCastleViewport). This method may be renamed / removed
+      in future releases.)
+
+      @exclude }
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
@@ -1747,7 +1744,7 @@ type
       )
 
       WorldBox is the expected bounding box of the whole 3D scene.
-      Usually, it should be SceneManager.Items.BoundingBox.
+      Usually, it should be TCastleViewport.Items.BoundingBox.
       In simple cases (if this scene is the only TCastleScene instance
       in your world, and it's not transformed) it may be equal to just
       @link(BoundingBox) of this scene. }
@@ -1835,7 +1832,7 @@ type
       should actually be used --- for this, see HeadlightOn. }
     function CustomHeadlight: TAbstractLightNode;
 
-    { Should we use headlight for this scene. Controls if containing TCastleSceneManager
+    { Should we use headlight for this scene. Controls if containing TCastleViewport
       will use a headlight, if this is the main scene.
 
       When you load a new model, this is always updated based on this model's
@@ -5771,8 +5768,7 @@ begin
       even if some X3DKeyDeviceSensorNode was found and did something.
       That is because we don't get enough information
       from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
-      to be sure that the event is handled (and should not be passed to others,
-      like Camera processed by TCastleSceneManager after Items.Press).
+      to be sure that the event is handled (and should not be passed to others).
     Result := false; }
   end;
 end;
@@ -5797,8 +5793,7 @@ begin
       even if some X3DKeyDeviceSensorNode was found and did something.
       That is because we don't get enough information
       from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
-      to be sure that the event is handled (and should not be passed to others,
-      like Camera processed by TCastleSceneManager after Items.Release).
+      to be sure that the event is handled (and should not be passed to others).
     Result := false; }
   end;
 end;
@@ -6151,14 +6146,14 @@ begin
       if ActiveChanged then DoPointingDeviceSensorsChange;
 
       { We try hard to leave Result as false when nothing happened.
-        This is important for TCastleSceneManager, that wants to retry
+        This is important for TCastleViewport, that wants to retry
         activation around if ApproximateActivation, and for other 3D objects
         along the same TRayCollision list. So we really must set
         Result := false if nothing happened, to enable other objects
         to have a better chance of catching activation.
         At the same time, we really must set Result := true if something
         (possibly) happened. Otherwise, simultaneously two objects may be activated,
-        and TCastleSceneManager.PointingDeviceActivateFailed may do a sound
+        and TCastleViewport.PointingDeviceActivateFailed may do a sound
         warning that activation was unsuccessful.
 
         Fortunately, our ActiveChanged right now precisely tells us
@@ -6549,7 +6544,7 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  { in case the same scene is present many times on SceneManager.Items list,
+  { in case the same scene is present many times on Viewport.Items list,
     do not process it's Update() many times (would cause time to move too fast). }
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;

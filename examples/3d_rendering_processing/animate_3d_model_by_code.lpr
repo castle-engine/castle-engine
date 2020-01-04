@@ -39,13 +39,16 @@
 
 program animate_3d_model_by_code;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 
 var
@@ -68,31 +71,36 @@ begin
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  InitializeLog;
+  Application.ParseStandardParameters;
+  Parameters.CheckHigh(0); // no command-line options specific to this program are allowed
+
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
-  Parameters.CheckHigh(0);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
-  Scene := TCastleScene.Create(nil);
-  try
-    Scene.Load('castle-data:/boxes.x3dv');
-    TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box2Transform', true) as TTransformNode;
-    TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box3Transform', true) as TTransformNode;
-    TransformBox4 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box4Transform', true) as TTransformNode;
+  Scene := TCastleScene.Create(Application);
+  Scene.Load('castle-data:/boxes.x3dv');
+  TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box2Transform', true) as TTransformNode;
+  TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box3Transform', true) as TTransformNode;
+  TransformBox4 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box4Transform', true) as TTransformNode;
 
-    { init SceneManager with our Scene }
-    Window.SceneManager.MainScene := Scene;
-    Window.SceneManager.Items.Add(Scene);
+  { init Viewport with our Scene }
+  Viewport.Items.MainScene := Scene;
+  Viewport.Items.Add(Scene);
 
-    { init SceneManager.Camera }
-    Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
+  { init Viewport.Navigation }
+  Viewport.NavigationType := ntExamine;
 
-    Window.OnUpdate := @Update;
-    Window.SetDemoOptions(K_F11, CharEscape, true);
-    Application.Run;
-  finally Scene.Free end;
+  Window.OnUpdate := @Update;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Application.Run;
 end.
