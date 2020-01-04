@@ -24,10 +24,11 @@ uses SysUtils, Classes, Zipper,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
-  CastleURIUtils;
+  CastleURIUtils, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Status: TCastleLabel;
   ExampleImage: TCastleImageControl;
   ExampleScene: TCastleScene;
@@ -114,6 +115,12 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
+
   { Show a label with frames per second information }
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
@@ -130,14 +137,15 @@ begin
   ExampleImage.Left := 100;
   Window.Controls.InsertFront(ExampleImage);
 
-  { Show a 3D object (TCastleScene) inside a Window.SceneManager
+  { Show a 3D object (TCastleScene) inside a Viewport
     (which acts as a full-screen viewport by default). }
   ExampleScene := TCastleScene.Create(Application);
   ExampleScene.Load('castle-data:/example_scene.x3dv');
   ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
   ExampleScene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(ExampleScene);
-  Window.SceneManager.MainScene := ExampleScene;
+
+  Viewport.Items.Add(ExampleScene);
+  Viewport.Items.MainScene := ExampleScene;
 end;
 
 initialization
@@ -153,7 +161,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.
