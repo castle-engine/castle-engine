@@ -95,14 +95,14 @@ begin
     '  gl_FragColor = texture2D(texture, tex_coord_frag);' + NL +
 
     // Uncomment to make simple edge detection
-    '#define IMAGE_WIDTH 100' + NL +
-    '#define IMAGE_HEIGHT 100' + NL +
+    '#define IMAGE_WIDTH 100.0' + NL +
+    '#define IMAGE_HEIGHT 100.0' + NL +
     '  gl_FragColor +=' + NL +
     '    texture2D(texture, tex_coord_frag - vec2(0.0, 0.5/IMAGE_HEIGHT)) - texture2D(texture, tex_coord_frag + vec2(0.0, 0.5/IMAGE_HEIGHT)) +' + NL +
     '    texture2D(texture, tex_coord_frag - vec2(0.5/IMAGE_WIDTH, 0.0))  - texture2D(texture, tex_coord_frag + vec2(0.5/IMAGE_WIDTH, 0.0));' + NL +
 
     // Uncomment to animate rgb
-    '  gl_FragColor.rgb = gl_FragColor.rgb * frac(life_time * 0.5);' + NL +
+    '  gl_FragColor.rgb = gl_FragColor.rgb * fract(life_time * 0.5);' + NL +
 
     '}'
   );
