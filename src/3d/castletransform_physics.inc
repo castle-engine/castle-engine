@@ -1141,6 +1141,8 @@ var
   PhysicsTicksCount:Integer;
   OldTimeAccumulator: TFloatTime;
 begin
+  if not GetExists then Exit;
+
   { Avoid doing this two times within the same FrameId.
     Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
   if UpdateFrameId = TFramesPerSecond.FrameId then
