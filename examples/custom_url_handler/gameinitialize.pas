@@ -90,7 +90,7 @@ begin
   PackedDataReader.SourceZipFileName := URIToFilenameSafe('castle-data:/packed_game_data.zip');
   PackedDataReader.TempDirectory := InclPathDelim(GetTempDir) + 'unpacked_data';
   ForceDirectories(PackedDataReader.TempDirectory);
-  WritelnLog('Using temporary directory "%s"', PackedDataReader.TempDirectory);
+  WritelnLog('Using temporary directory "%s"', [PackedDataReader.TempDirectory]);
   RegisterUrlProtocol('my-packed-data', @PackedDataReader.ReadUrl, nil);
 
   { make following calls to castle-data:/ also load data from ZIP }
