@@ -26,16 +26,20 @@
 program combine_multiple_x3d_into_one;
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, X3DLoad, X3DNodes,
-  CastleFilesUtils, CastleVectors;
+  CastleFilesUtils, CastleVectors, CastleViewport;
 
 var
   MainRoot, ModelBoxes, ModelRaptor: TX3DRootNode;
   TransformBoxes: TTransformNode;
   TransformRaptor: array [0..2] of TTransformNode;
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   I: Integer;
 begin
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
+
   { Create an X3D graph like this:
 
     MainRoot (TX3DRootNode)
@@ -88,10 +92,14 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window := TCastleWindow.Create(Application);
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
-  Window.Open;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+
   Application.Run;
 end.

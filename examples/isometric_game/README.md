@@ -6,8 +6,8 @@ Everything is just drawn as 2D, using our TDrawableImage.
 
 This could be made much more impressive by:
 
-- Using TCastle2DSceneManager for a game world,
-  and using inside TCastle2DScene with (possibly animated) models.
+- Using TCastleViewport for a game world,
+  and using inside TCastleScene with (possibly animated) models.
 - And by providing more impressive game assets :)
 - And by designing some interesting map (the current map is just a test).
 

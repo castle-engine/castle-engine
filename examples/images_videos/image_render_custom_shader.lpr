@@ -16,7 +16,7 @@
 { Simple rendering using TCastleImageControl with a custom GLSL shader.
 
   Note that an alternative way of using custom shaders is to use a scene
-  (like TCastle2DScene and TCastle2DSceneManager with a rectangle,
+  (like TCastleScene and TCastleViewport with a rectangle,
   see https://castle-engine.io/x3d_implementation_geometry2d.php ).
   And then you can assign custom shaders using nodes, see the example
   ../3d_rendering_processing/display_box_custom_shaders.lpr .

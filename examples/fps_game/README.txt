@@ -51,8 +51,8 @@ A lot more keys and mouse shortcuts are instantly working
 All input shortcuts are TInputShortcut instances.
 Currently the following units of our engine define some shortcuts:
 
-- CastleSceneManager (Input_Xxx global properties)
-- Cameras unit (Input_Xxx properties specific to each camera class)
+- CastleViewport, CastleLevels units (various global properties Input_Xxx)
+- CastleCameras unit (Input_Xxx properties specific to each camera class)
 - CastlePlayer unit (PlayerInput_Xxx global properties, these override
   some camera shortcuts when Player is used)
 

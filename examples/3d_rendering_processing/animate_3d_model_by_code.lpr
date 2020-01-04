@@ -44,7 +44,7 @@ program animate_3d_model_by_code;
 uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse,
-  CastleApplicationProperties, CastleViewport;
+  CastleApplicationProperties, CastleViewport, CastleTimeUtils;
 
 var
   Window: TCastleWindowBase;
@@ -52,22 +52,20 @@ var
   Scene: TCastleScene;
 
 var
+  Time: TFloatTime;
   TransformBox2: TTransformNode;
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
 procedure Update(Container: TUIContainer);
 begin
-  { We want to keep track of current time here (for calculating rotations
-    below). It's most natural to just use Scene.Time property for this.
-    (Scene.Time is already incremented for us by SceneManager.) }
+  Time += Container.Fps.SecondsPassed;
 
   { change rotation angles (4th component of the vector),
     leaving the rotation axis (XYZ components) unchanged. }
-
-  TransformBox2.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time);
-  TransformBox3.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 2);
-  TransformBox4.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 4);
+  TransformBox2.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time);
+  TransformBox3.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time * 2);
+  TransformBox4.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time * 4);
 end;
 
 begin
@@ -81,7 +79,6 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
   Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
@@ -98,7 +95,7 @@ begin
   Viewport.Items.Add(Scene);
 
   { init Viewport.Navigation }
-  Viewport.NavigationType := ntExamine;
+  Viewport.Navigation := TCastleExamineNavigation.Create(Application);
 
   Window.OnUpdate := @Update;
   Window.SetDemoOptions(K_F11, CharEscape, true);
