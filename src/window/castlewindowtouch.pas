@@ -96,7 +96,7 @@ type
     property AutomaticExamineTouchCtl: TTouchInterface
       read FAutomaticExamineTouchCtl write SetAutomaticExamineTouchCtl
       default DefaultAutomaticExamineTouchCtl;
-  end;
+  end deprecated 'use TCastleWindowBase and manually configure TCastleTouchControl; TODO: simpler approach to it, that allows to insert TCastleTouchNavigation to TCastleViewport, will be done';
 
 const
   etciNone = tiNone deprecated;

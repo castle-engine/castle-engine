@@ -285,8 +285,10 @@ begin
     only a temporary list of controls e.g. for progress bar UI),
     so TouchInterface (e.g. when camera changes to nil,
     then to non-nil, during SceneManager.LoadLevel) should remain unchanged. }
+  {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
     OldAutomaticTouchControl := TCastleWindowTouch(Window).AutomaticTouchInterface;
+  {$warnings on}
 end;
 
 destructor TGLMode.TWindowState.Destroy;
@@ -324,8 +326,10 @@ begin
   { restore AutomaticTouchInterface after Controls are restored,
     as it may add/remove touch controls, if navigation type changed
     during the mode. }
+  {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := OldAutomaticTouchControl;
+  {$warnings on}
 
   inherited;
 end;
@@ -393,8 +397,10 @@ begin
   Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := K_None;
   Window.Close_KeyString := '';
+  {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
+  {$warnings on}
   Window.Controls.Clear;
 end;
 
