@@ -8,10 +8,10 @@ const float density = 5.0;
 
 void main (void)
 {
-  gl_FragColor = screen_get_color(screen_position());
+  gl_FragColor = screenf_get_color(screenf_position());
 
   /* Squeeze grainCoord into [0..1,0..1]. */
-  int screen_size = max(screen_width, screen_height);
+  float screen_size = float(max(screen_width, screen_height));
   vec2 grainCoord = density *
     vec2(screen_position()) /
     vec2(screen_size, screen_size);

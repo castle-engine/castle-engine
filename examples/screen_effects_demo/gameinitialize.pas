@@ -138,10 +138,13 @@ procedure ApplicationInitialize;
     FragmentShader.Contents :=
       'void main (void)' + NL +
       '{' + NL +
-      '  vec4 left   = screen_get_color(ivec2(screen_x() - 1, screen_y()));' + NL +
-      '  vec4 right  = screen_get_color(ivec2(screen_x() + 1, screen_y()));' + NL +
-      '  vec4 top    = screen_get_color(ivec2(screen_x(), screen_y() - 1));' + NL +
-      '  vec4 bottom = screen_get_color(ivec2(screen_x(), screen_y() + 1));' + NL +
+      '  float x = screenf_x();' + NL +
+      '  float y = screenf_y();' + NL +
+      '  #define SCAN_DISTANCE 1.0' + NL +
+      '  vec4 left   = screenf_get_color(vec2(x - SCAN_DISTANCE, y));' + NL +
+      '  vec4 right  = screenf_get_color(vec2(x + SCAN_DISTANCE, y));' + NL +
+      '  vec4 top    = screenf_get_color(vec2(x, y - SCAN_DISTANCE));' + NL +
+      '  vec4 bottom = screenf_get_color(vec2(x, y + SCAN_DISTANCE));' + NL +
       '  gl_FragColor = (abs(left - right) + abs(top - bottom)) / 2.0;' + NL +
       '}';
 
