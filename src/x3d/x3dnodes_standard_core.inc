@@ -111,7 +111,7 @@
       )
 
       The top-most node of each stack is called "bound".
-      If the scene is set as TCastleSceneManager.MainScene,
+      If the scene is set as TCastleRootTransform.MainScene,
       then the "bound" node determines the camera, background or fog settings.
 
       Setting this property to @true sends an X3D event "set_bind := true".

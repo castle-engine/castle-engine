@@ -617,10 +617,13 @@ type
   {$undef read_interface_types}
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
-    Add the user-interface controls to the
-    @link(TCastleWindowBase.Controls) property, in particular
-    you can add there scene manager instances (like @link(TCastleSceneManager)
-    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
+
+    Add the user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
     @link(TUIContainer.BackgroundColor Container.BackgroundColor).
@@ -1653,8 +1656,7 @@ type
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
       It instructs to call EventRender (OnRender) again, as soon as possible.
 
-      When you have some controls on the @link(Controls) list
-      (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
+      When you have some controls on the @link(Controls) list,
       the OnRender event is done @bold(last).
       So here you can draw on top of the existing controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
@@ -1683,15 +1685,7 @@ type
     { Called when the window size (@link(Width), @link(Height)) changes.
       It's also guaranteed to be called during @link(Open),
       right after the EventOpen (OnOpen) event.
-
-      Our OpenGL context is already "current" when this event is called
-      (MakeCurrent is done right before), like for other events.
-      This is a good place to set OpenGL viewport and projection matrix.
-
-      See also ResizeAllowed.
-
-      In the usual case, the SceneManager takes care of setting appropriate
-      OpenGL projection, so you don't need to do anything here. }
+      @seealso ResizeAllowed }
     property OnResize: TContainerEvent read GetOnResize write SetOnResize;
 
     { Called when the window is closed, right before the OpenGL context

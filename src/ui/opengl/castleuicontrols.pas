@@ -210,7 +210,7 @@ type
 
     chCursor,
 
-    { Used by @link(TCamera) descendants to notify that the current
+    { Used by @link(TCastleCamera) descendants to notify that the current
       camera view (position, direction, up and everything related to it) changed. }
     chCamera,
 
@@ -542,7 +542,7 @@ type
       See example ../../../examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad.lpr.
 
       This is a good method to render the UI control off-screen.
-      It can render any UI control, including e.g. TCastleSceneManager
+      It can render any UI control, including e.g. TCastleViewport
       with 3D stuff inside TCastleScene.
 
       The contents of the @link(Controls) list doesn't matter for this method.
@@ -827,7 +827,7 @@ type
           @link(TCastleUserInterface.FullSize FullSize) = @true and set
           @link(TCastleRectangleControl.Color) as desired,)
 
-        @item(or use @link(TCastleSceneManager) with
+        @item(or use @link(TCastleViewport) with
           @link(TCastleUserInterface.FullSize) = @true and
           @link(TCastleViewport.Transparent) = @false and set
           @link(TCastleViewport.BackgroundColor) as desired,)
@@ -2293,7 +2293,7 @@ function GetMainContainer: TUIContainer;
   if you use TUIContainer.UIScaling).
 
   This is the @italic(easiest) way to make off-screen rendering,
-  i.e. to render 3D things (like TCastleScene or TCastleSceneManager)
+  i.e. to render 3D things (like TCastleScene in TCastleViewport)
   into an image. This is @italic(not the fastest way), as it creates
   new TGLRenderToTexture instance each time,
   and it grabs the image contents to CPU.
@@ -3939,11 +3939,10 @@ begin
   { Note that ContainerSizeKnown is calculated looking at current Container,
     without waiting for Resize. This way it works even before
     we receive Resize method, which may happen to be useful:
-    if you insert a SceneManager to a window before it's open (like it happens
-    with standard scene manager in TCastleWindow and TCastleControl),
+    if you insert some TCastleUserInterface to a window before it's open,
     and then you do something inside OnOpen that wants to render
     this viewport (which may happen if you simply initialize a progress bar
-    without any predefined loading_image). Scene manager did not receive
+    without any predefined loading_image). TCastleUserInterface did not receive
     a Resize in this case yet (it will receive it from OnResize,
     which happens after OnOpen).
 
@@ -4253,7 +4252,7 @@ procedure TCastleUserInterface.RecursiveRender(const ViewportRect: TRectangle);
     RectLeftRightBorders: TFloatRectangle;
   begin
     if FBorderColor[3] = 0 then Exit; // early exit in a common case
-    { RenderControlPrepare necessary, since TCastleSceneManager could have
+    { RenderControlPrepare necessary, since TCastleViewport could have
       changed RenderContext.Viewport. }
     TUIContainer.RenderControlPrepare(ViewportRect);
 

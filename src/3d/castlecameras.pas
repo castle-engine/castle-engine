@@ -267,9 +267,6 @@ type
 
     An instance of this class is automatically available
     in @link(TCastleViewport.Camera).
-    In practice this means that you access @code(Camera) as a property of
-    @link(TCastleSceneManager) (when it acts as a viewport, which is @true by default)
-    or @link(TCastleViewport).
     @italic(Do not instantiate this class yourself.)
 
     Note that this class does not handle any user input to modify the camera.
@@ -797,7 +794,7 @@ type
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
+      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
 
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
@@ -809,7 +806,7 @@ type
       @seealso CustomRay }
     procedure MouseRay(
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
+      out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
 
     { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.
@@ -2053,7 +2050,7 @@ type
       read FGravity write FGravity default true;
   end;
 
-  TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and SceneManager.NavigationType to switch type';
+  TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
 
   TCamera = TCastleNavigation deprecated 'use TCastleNavigation';
   TExamineCamera = TCastleExamineNavigation deprecated 'use TCastleExamineNavigation';
@@ -2147,7 +2144,7 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   Assumes that the camera direction is -Z, and camera up is +Y.
   So the horizontal axis of the world is X,
   vertical axis is Y.
-  These are default values of camera in TCastle2DSceneManager.
+  These are default values of camera set by @link(TCastleViewport.Setup2D).
 
   The meaning of Origin is the same as @link(TCastleOrthographic.Origin).
 
@@ -2155,7 +2152,7 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   @link(TCastleOrthographic.Width),
   @link(TCastleOrthographic.Height),
   @link(TCastleCamera.ProjectionFar) and camera position
-  (set it like @code(SceneManager.Camera.Position := NewPosition;)).
+  (set it like @code(Viewport.Camera.Position := NewPosition;)).
 }
 procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   const ViewportWidth, ViewportHeight: Single;
@@ -5506,15 +5503,14 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
   { Calculate Position.Z and AProjectionFar. }
   function PositionZ: Single;
   const
-    // Same as TCastle2DSceneManager constants
-    Default2DProjectionFar = 1000.0;
-    DefaultCameraZ = Default2DProjectionFar / 2;
+    Default2DProjectionFar = TCastleViewport.Default2DProjectionFar;
+    Default2DCameraZ = TCastleViewport.Default2DCameraZ;
   var
     MinZ, MaxZ: Single;
   begin
     if Box.IsEmpty then
     begin
-      Result := DefaultCameraZ;
+      Result := Default2DCameraZ;
       AProjectionFar := Default2DProjectionFar;
     end else
     begin
@@ -5523,8 +5519,8 @@ procedure CameraOrthoViewpointForWholeScene(const Box: TBox3D;
       if (MinZ > - Default2DProjectionFar / 2) and
          (MaxZ < Default2DProjectionFar / 2) then
       begin
-        // prefer to use Default2DProjectionFar and DefaultCameraZ, if the scene fits inside
-        Result := DefaultCameraZ;
+        // prefer to use Default2DProjectionFar and Default2DCameraZ, if the scene fits inside
+        Result := Default2DCameraZ;
         AProjectionFar := Default2DProjectionFar;
       end else
       begin

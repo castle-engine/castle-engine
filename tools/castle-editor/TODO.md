@@ -55,10 +55,9 @@ OK if after nearest release:
 
 * TEditDirectory use at "new project"
 
-* TCastle2DScene design cannot load if you don't use Castle2DSceneManager unit.
-  Show better message for XxxLoad:
+* Show better message for XxxLoad when component cannot be found:
 
-    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);". For example, to allow loading TCastle2DScene class, add the unit Castle2DSceneManager.
+    The class "%s" cannot be loaded from the design file. You should add to the "uses" clause a unit that calls "RegisterSerializableComponent(%s,...);".
 
 * *All* images from theme should also be customizable at the control level,
   and naming should be consistent.

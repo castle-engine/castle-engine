@@ -59,7 +59,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
     ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
-    ecgevarScenePaused     = 6,   // pause SceneManager (int, 1 = on, 0 = off)
+    ecgevarScenePaused     = 6,   // pause Viewport (int, 1 = on, 0 = off)
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
@@ -285,7 +285,7 @@ extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
                                   float fVal1, float fVal2, float fVal3, float fVal4);
 
-extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when sceneManager paused
+extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused
 
 #ifdef __cplusplus
 }

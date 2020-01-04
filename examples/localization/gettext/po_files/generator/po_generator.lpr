@@ -2,7 +2,7 @@
 
 uses CastleLocalizationGetText, CastleFilesUtils,
   { Use this unit to allow deserializing all used UI classes. }
-  CastleControls, CastleSceneManager;
+  CastleControls, CastleViewport;
 
 begin
   StringToFile('../user_interface.pot',

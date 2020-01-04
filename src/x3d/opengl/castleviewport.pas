@@ -281,12 +281,12 @@ type
 
       In turn, the @link(Camera) parameters may be automatically
       calculated (if @link(AutoCamera))
-      based on the nodes in the @link(TCastleSceneManager.MainScene).
+      based on the nodes in the @link(TCastleRootTransform.MainScene).
       Nodes like TViewpointNode or TOrthoViewpointNode or TNavigationInfoNode
       determine the default camera and projection details.
       Note that the TCastle2DSceneManager turns off @link(AutoCamera),
       and initializes camera to orthographic, regardless of the
-      @link(TCastleSceneManager.MainScene).
+      @link(TCastleRootTransform.MainScene).
 
       You can override this method, or assign the @link(OnProjection) event
       to adjust the projection settings.

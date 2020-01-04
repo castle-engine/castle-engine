@@ -26,7 +26,7 @@ uses SysUtils,
   CastleWindowTouch, CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleScreenEffects,
-  CastleSceneManager, Castle2DSceneManager, X3DNodes, X3DLoad, CastleUtils,
+  CastleViewport, X3DNodes, X3DLoad, CastleUtils,
   CastleRendererBaseTypes, CastleVectors;
 
 var
@@ -36,20 +36,21 @@ var
   { 3 controls below have methods AddScreenEffect / RemoveScreenEffect
     that we will use.
 
-    Note that we *could* insert each TCastleSceneManager and TCastle2DSceneManager
+    Note that we *could* insert each TCastleViewport
     as child of a new TCastleScreenEffects instance,
     and thus have 3 TCastleScreenEffects instances like this:
+
     - ScreenEffectsOnButtonImage,
-    - ScreenEffectsOnSceneManager
-    - ScreenEffectsOn2DSceneManager
-    However, we demonstrate below a simpler approach:
-    TCastleSceneManager and TCastle2DSceneManager already descend
-    from TCastleScreenEffects. So we can call AddScreenEffect method
-    directly on SceneManager and SceneManager2D, without the need to create
-    something like ScreenEffectsOnSceneManager. }
+    - ScreenEffectsOnViewport3D
+    - ScreenEffectsOnViewport2D
+
+    However, for demo, we demonstrate below another approach:
+    Since TCastleViewport already descends from TCastleScreenEffects,
+    we can call AddScreenEffect method directly on TCastleViewport.
+    So we don't need something like ScreenEffectsOnViewport3D, ScreenEffectsOnViewport2D. }
   ScreenEffectsOnButtonImage: TCastleScreenEffects;
-  SceneManager2D: TCastle2DSceneManager;
-  SceneManager3D: TCastleSceneManager;
+  Viewport2D: TCastleViewport;
+  Viewport3D: TCastleViewport;
 
 { TEffect -------------------------------------------------------------------- }
 
@@ -63,8 +64,8 @@ type
 
     { 3 instances of TScreenEffectNode, for 3 controls
       (for ScreenEffectsOnButtonImage,
-      for SceneManager2D,
-      for SceneManager3D). }
+      for Viewport2D,
+      for Viewport3D). }
     EffectNodes: array [0..2] of TScreenEffectNode;
 
     { 3 instances of X3D node graph that contains TScreenEffectNode,
@@ -159,9 +160,9 @@ procedure ApplicationInitialize;
       of things I wanted to demonstrate. But the basic API to add screen effects
       is very simple: you want to load the X3D graph containing one or more
       TScreenEffectNode, and call AddScreenEffect with it.
-      For example, this is how to load film grain effect in SceneManager3D:
+      For example, this is how to load film grain effect in Viewport3D:
 
-      SceneManager3D.AddScreenEffect(
+      Viewport3D.AddScreenEffect(
         LoadNode('castle-data:/screen_effects/film_grain.x3dv'));
 
       Alternatively, you may want to save the LoadNode result,
@@ -175,7 +176,7 @@ procedure ApplicationInitialize;
         RootNode := LoadNode('castle-data:/screen_effects/film_grain.x3dv');
         ScreenEffectNode := RootNode.FindNodeByName(TScreenEffectNode,
           'FilmGrainScreenEffect', true) as TScreenEffectNode;
-        SceneManager3D.AddScreenEffect(RootNode);
+        Viewport3D.AddScreenEffect(RootNode);
       end;
 
       Note that you should call "AddScreenEffect(RootNode)",
@@ -214,13 +215,13 @@ procedure ApplicationInitialize;
     ScreenEffectsOnButtonImage.AddScreenEffect(Pixelate.RootNodes[0]);
     ScreenEffectsOnButtonImage.AddScreenEffect(EdgeDetect.RootNodes[0]);
 
-    SceneManager3D.AddScreenEffect(FilmGrain.RootNodes[1]);
-    SceneManager3D.AddScreenEffect(Pixelate.RootNodes[1]);
-    SceneManager3D.AddScreenEffect(EdgeDetect.RootNodes[1]);
+    Viewport3D.AddScreenEffect(FilmGrain.RootNodes[1]);
+    Viewport3D.AddScreenEffect(Pixelate.RootNodes[1]);
+    Viewport3D.AddScreenEffect(EdgeDetect.RootNodes[1]);
 
-    SceneManager2D.AddScreenEffect(FilmGrain.RootNodes[2]);
-    SceneManager2D.AddScreenEffect(Pixelate.RootNodes[2]);
-    SceneManager2D.AddScreenEffect(EdgeDetect.RootNodes[2]);
+    Viewport2D.AddScreenEffect(FilmGrain.RootNodes[2]);
+    Viewport2D.AddScreenEffect(Pixelate.RootNodes[2]);
+    Viewport2D.AddScreenEffect(EdgeDetect.RootNodes[2]);
   end;
 
 var
@@ -228,7 +229,7 @@ var
   ExampleImage: TCastleImageControl;
   ExampleButton: TCastleButton;
   Example3DScene: TCastleScene;
-  Example2DScene: TCastle2DScene;
+  Example2DScene: TCastleScene;
   Label1, Label2, Label3, LabelEffects: TCastleLabel;
   BottomControls: TCastleHorizontalGroup;
 begin
@@ -276,42 +277,45 @@ begin
   ExampleButton.Height := 150;
   ScreenEffectsOnButtonImage.InsertFront(ExampleButton);
 
-  SceneManager2D := TCastle2DSceneManager.Create(Application);
-  SceneManager2D.Anchor(hpMiddle);
-  SceneManager2D.Anchor(vpMiddle);
-  SceneManager2D.FullSize := false;
-  SceneManager2D.Width := 300;
-  SceneManager2D.Height := 300;
-  SceneManager2D.BackgroundColor := Gray;
-  SceneManager2D.ProjectionAutoSize := false;
-  SceneManager2D.ProjectionWidth := 2000;
-  SceneManager2D.ProjectionOriginCenter := true;
-  Window.Controls.InsertFront(SceneManager2D);
+  Viewport2D := TCastleViewport.Create(Application);
+  Viewport2D.Setup2D;
+  Viewport2D.Anchor(hpMiddle);
+  Viewport2D.Anchor(vpMiddle);
+  Viewport2D.FullSize := false;
+  Viewport2D.Width := 300;
+  Viewport2D.Height := 300;
+  Viewport2D.BackgroundColor := Gray;
+  Viewport2D.Camera.Orthographic.Width := 2000;
+  Viewport2D.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
+  Window.Controls.InsertFront(Viewport2D);
 
-  Example2DScene := TCastle2DScene.Create(Application);
+  Example2DScene := TCastleScene.Create(Application);
+  Example2DScene.Setup2D;
   Example2DScene.Load('castle-data:/example_2d_scene/dragon/dragon.json');
   Example2DScene.Spatial := [ssRendering, ssDynamicCollisions];
   Example2DScene.ProcessEvents := true;
   Example2DScene.PlayAnimation('flying', true);
-  SceneManager2D.Items.Add(Example2DScene);
-  SceneManager2D.MainScene := Example2DScene;
+  Viewport2D.Items.Add(Example2DScene);
+  Viewport2D.Items.MainScene := Example2DScene;
 
-  SceneManager3D := TCastleSceneManager.Create(Application);
-  SceneManager3D.Anchor(hpMiddle, 300 + 50);
-  SceneManager3D.Anchor(vpMiddle);
-  SceneManager3D.FullSize := false;
-  SceneManager3D.Width := 300;
-  SceneManager3D.Height := 300;
-  SceneManager3D.BackgroundColor := Gray;
-  Window.Controls.InsertFront(SceneManager3D);
+  Viewport3D := TCastleViewport.Create(Application);
+  Viewport3D.AutoCamera := true;
+  Viewport3D.AutoNavigation := true;
+  Viewport3D.Anchor(hpMiddle, 300 + 50);
+  Viewport3D.Anchor(vpMiddle);
+  Viewport3D.FullSize := false;
+  Viewport3D.Width := 300;
+  Viewport3D.Height := 300;
+  Viewport3D.BackgroundColor := Gray;
+  Window.Controls.InsertFront(Viewport3D);
 
   Example3DScene := TCastleScene.Create(Application);
   Example3DScene.Load('castle-data:/example_3d_scene.x3dv');
   Example3DScene.Spatial := [ssRendering, ssDynamicCollisions];
   Example3DScene.ProcessEvents := true;
   Example3DScene.PlayAnimation('AnimateRotation', true);
-  SceneManager3D.Items.Add(Example3DScene);
-  SceneManager3D.MainScene := Example3DScene;
+  Viewport3D.Items.Add(Example3DScene);
+  Viewport3D.Items.MainScene := Example3DScene;
 
   Label1 := TCastleLabel.Create(Application);
   Label1.Caption := 'Example button and image';

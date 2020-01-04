@@ -18,11 +18,11 @@
 uses SysUtils,
   CastleWindow, CastleScene, CastleVectors,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleGLImages,
-  CastleSceneManager, CastleURIUtils;
+  CastleViewport, CastleURIUtils;
 
 var
   Window: TCastleWindowBase;
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Image: TDrawableImage;
 
 const
@@ -41,14 +41,14 @@ begin
   try
     Scene.Load(Url);
 
-    SceneManager.Items.Clear;
-    SceneManager.Items.Add(Scene);
-    { Setting MainScene allows SceneManager to adjust
+    Viewport.Items.Clear;
+    Viewport.Items.Add(Scene);
+    { Setting MainScene allows Viewport to adjust
       viewpoint, headlight, background etc. based on MainScene contents. }
-    SceneManager.MainScene := Scene;
-    SceneManager.AssignDefaultCamera;
+    Viewport.Items.MainScene := Scene;
+    Viewport.AssignDefaultCamera;
 
-    Window.Container.RenderControl(SceneManager,
+    Window.Container.RenderControl(Viewport,
       Rectangle(0, 0, ImageWidth, ImageHeight));
   finally FreeAndNil(Scene) end;
 
@@ -82,39 +82,29 @@ begin
     some backends will just keep showing the window. }
   Window.Visible := false;
 
-  { Create scene manager, which is also a viewport by default,
-    so it is a 2D control that shows 3D world.
+  { Create viewport (a 2D control that shows 3D world).
 
-    Note that in this simple demo, we could as well create
-    TCastleWindow instead of TCastleWindowBase.
-    And then
-    - Instead of creating "TCastleSceneManager.Create",
-      we could have just used ready Window.SceneManager.
-    - There would be no point in calling SceneManager.GLContextOpen then.
-      The scene manager on "Window.SceneManager" is present on
-      "Window.Controls" list, and as such it already has GL resources initialized
-      (GLContextOpen was already called on it).
+    Note that calling manually Viewport.GLContextOpen would not be necessary
+    if Viewport was already part of Window.Controls.
+    In this example, I wanted to show more general approach, that works
+    regardless if the control passed to Window.Container.RenderControl
+    is present on "Window.Controls" list.
 
-    However, I'm showing below an alternative way where we create
-    TCastleSceneManager explicitly, to emphasize that the control passed
-    to Window.Container.RenderControl does *not* need to be present
-    on "Window.Controls" list.
-
-    Note that you *could* create new TCastleSceneManager inside
-    each RenderScene, instead of reusing one SceneManager instance.
-    But then it may be slower, as TCastleSceneManager.GLContextOpen
+    Note that you *could* create new TCastleViewport inside
+    each RenderScene, instead of reusing one Viewport instance.
+    But then it may be slower, as TCastleViewport.GLContextOpen
     will be called many times.
-    Although right now, TCastleSceneManager.GLContextOpen
+    Although right now, TCastleViewport.GLContextOpen
     doesn't do anything, so this optimization actually doesn't matter.
   }
 
-  SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.AutoCamera := false;
-  SceneManager.AutoNavigation := false;
-  SceneManager.FullSize := false;
-  SceneManager.Width := ImageWidth;
-  SceneManager.Height := ImageHeight;
-  SceneManager.GLContextOpen;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.AutoCamera := false;
+  Viewport.AutoNavigation := false;
+  Viewport.FullSize := false;
+  Viewport.Width := ImageWidth;
+  Viewport.Height := ImageHeight;
+  Viewport.GLContextOpen;
 
   { Create an image as a destination for all off-screen rendering.
 

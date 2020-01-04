@@ -98,7 +98,7 @@ type
     property Name: string read FName write FName;
 
     { Main level 3D model. When the level is loaded, this scene will be set
-      as TCastleSceneManager.MainScene,
+      as TCastleRootTransform.MainScene,
       so it determines the default viewpoint, background and such.
 
       Usually it also contains the most (if not all) of the visible level geometry,
@@ -354,7 +354,7 @@ type
           Clear all 3D items from @link(TCastleSceneManager.Items)
           list (except @link(TCastleSceneManager.Player)), clear
           @link(TCastleViewport.Camera Camera)
-          and @link(TCastleSceneManager.MainScene) as well.
+          and @link(TCastleRootTransform.MainScene) as well.
           Then load a new main scene and camera, adding to
           @link(TCastleSceneManager.Items) all 3D resources (creatures and items)
           defined by placeholders named CasRes* in the main level 3D file.)
@@ -419,7 +419,7 @@ type
       It's important to note that @bold(you do not have to use
       this method to make a 3D game). You may as well just load the 3D scene
       yourself, and add things to TCastleSceneManager.Items and
-      TCastleSceneManager.MainScene directly.
+      TCastleRootTransform.MainScene directly.
       This method is just a very comfortable way to set your 3D world in one call
       --- but it's not the only way.
 

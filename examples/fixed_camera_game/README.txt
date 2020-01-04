@@ -111,7 +111,7 @@ REQUIREMENTS TO MAKE THIS WORK
 
   But, depending on your needs, this can be changed.
   The location 3D scene could also be a shadow caster,
-  just add it to TGameSceneManager.RenderShadowVolume .
+  just add it to TCastleViewport.RenderShadowVolume .
 
   - This would also allow to make shadow-casting main light dynamic.
 

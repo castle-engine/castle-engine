@@ -40,7 +40,7 @@ uses SysUtils, Classes,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
-  CastleVectors, CastleUtils, CastleColors, CastleSceneManager, CastleDialogs,
+  CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
   CastleTiledMap, CastleGLImages, CastleStringUtils;
 
 {$I castlepropedits_any_subproperties.inc}
@@ -74,7 +74,7 @@ begin
     TSubPropertiesEditor);
   RegisterPropertyEditor(TypeInfo(TBorder), nil, '',
     TSubPropertiesEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleSceneManager, '',
+  RegisterPropertyEditor(TypeInfo(TCastleCamera), TCastleViewport, '',
     TSubPropertiesEditor);
 
   { Other properties }
@@ -94,7 +94,7 @@ begin
     TSceneAutoAnimationPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
-  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleSceneManager, 'Navigation',
+  RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
 end;
 

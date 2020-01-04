@@ -91,7 +91,7 @@ type
 
       If the ray hit empty space (@link(Item) field is @nil),
       then this is undefined.
-      Note that only @link(TCastleSceneManager.MainScene) is informed about pointing
+      Note that only @link(TCastleRootTransform.MainScene) is informed about pointing
       device events when the ray hit empty space, so this is an unusual case.
     }
     Point: TVector3;
@@ -100,7 +100,7 @@ type
 
       If the ray hit empty space (@link(Item) field is @nil),
       then this is @nil.
-      Note that only @link(TCastleSceneManager.MainScene) is informed about pointing
+      Note that only @link(TCastleRootTransform.MainScene) is informed about pointing
       device events when the ray hit empty space, so this is an unusual case.
 
       May also be @nil if RayCollision implementation for the 3D object
@@ -127,7 +127,7 @@ type
   { Represents a @bold(ray) collision with a 3D objects tree.
     Just access the @code(First) item for the collision information
     with the final 3D object. The rest of items are containers of this 3D
-    object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
+    object (a path within @link(TCastleViewport.Items) hierarchy tree,
     usually).
 
     This list is a path in the TCastleTransform tree leading from the
@@ -170,7 +170,7 @@ type
       that eventually proxy the collisions to underlying TCastleSceneCore instances.
 
       If the ray hit empty space, this is @nil.
-      Note that only TCastleSceneManager.MainScene is informed about pointing
+      Note that only TCastleRootTransform.MainScene is informed about pointing
       device events when the ray hit empty space, so this is an unusual case. }
     // Triangle: PTriangle;
   end;
@@ -179,7 +179,7 @@ type
   { Represents a collision with a 3D objects tree.
     Just access the @code(First) item for the collision information
     with the final 3D object. The rest of items are containers of this 3D
-    object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
+    object (a path within @link(TCastleViewport.Items) hierarchy tree,
     usually).
 
     This list is a path in the TCastleTransform tree leading from the
@@ -320,8 +320,8 @@ type
         @link(ScaleOrientation).)
     )
 
-    This class is the base object that is managed by the @link(TCastleSceneManager).
-    You insert instances of this class into @link(TCastleSceneManager.Items),
+    This class is the base object that is managed by the @link(TCastleViewport).
+    You insert instances of this class into @link(TCastleViewport.Items),
     which is actually an instance of @link(TCastleTransform) too.
 
     This class implements also optional gravity and physics.
@@ -433,7 +433,7 @@ type
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
     { Called when the current 3D world (which corresponds to the current
-      TCastleSceneManager) of this 3D object changes.
+      TCastleViewport) of this 3D object changes.
       This can be ignored (not care about FWorldReferences) when Value = FWorld.
 
       Each transformation/scene can only be part of one TCastleAbstractRootTransform at a time.
@@ -753,7 +753,7 @@ type
 
       In general, the same TCastleTransform instance may be used
       multiple times as a child of other TCastleTransform instances
-      (as long as they are all within the same TCastleSceneManager),
+      (as long as they are all within the same TCastleViewport),
       in which case this property is @nil.
 
       It is also @nil if this is the root transform, not added to any parent. }
@@ -843,8 +843,8 @@ type
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
 
-      It is usually simpler to call @link(TCastleSceneManager.PrepareResources)
-      then this method. Calling @code(SceneManager.PrepareResources(MyScene))
+      It is usually simpler to call @link(TCastleViewport.PrepareResources)
+      then this method. Calling @code(Viewport.PrepareResources(MyScene))
       will automatically call @code(MyScene.PrepareResources(...)) underneath,
       with proper parameters.
 
@@ -942,10 +942,10 @@ type
       to other 3D objects (we simply iterate over the TRayCollision list).
       If nothing on TRayCollision list
       handled the item, it is eventually passed to main 3D scene
-      (TCastleSceneManager.MainScene), if it wasn't already present on
+      (TCastleRootTransform.MainScene), if it wasn't already present on
       TRayCollision list.
 
-      Note that when passing this event to TCastleSceneManager.MainScene,
+      Note that when passing this event to TCastleRootTransform.MainScene,
       it is possible that 3D ray simply didn't hit anything (mouse pointer
       is over the background). In this case, TRayCollisionNode.Point
       is undefined, TRayCollisionNode.Triangle is @nil
@@ -954,7 +954,7 @@ type
       This event should be handled only if GetExists.
       Usually, 3D objects with GetExists = @false will not be returned
       by RayCollision, so they will not receive this event anyway.
-      However, if 3D object may be equal to TCastleSceneManager.MainScene,
+      However, if 3D object may be equal to TCastleRootTransform.MainScene,
       then it should be secured and check for GetExists
       inside PointingDeviceActivate and PointingDeviceMove.
 
@@ -986,7 +986,7 @@ type
       We still broadcast VisibleChangeNotification, even when Changes=[].
 
       The information about visibility changed is passed upward,
-      to the Parent, and eventually to the TCastleSceneManager,
+      to the Parent, and eventually to the TCastleViewport,
       that broadcasts this to all 3D objects
       by VisibleChangeNotification. If you want to @italic(react) to visibility
       changes, you should override VisibleChangeNotification,
@@ -1001,7 +1001,7 @@ type
     property World: TCastleAbstractRootTransform read FWorld;
 
     { Something visible changed in the world.
-      This is usually called by our container (like TCastleSceneManager),
+      This is usually called by our container (like TCastleViewport),
       to allow this object to react (e.g. by regenerating mirror textures)
       to changes in the world (not necessarily in this object,
       maybe in some other TCastleScene instance).
@@ -1011,7 +1011,7 @@ type
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
 
     { Main camera observing this 3D object changed.
-      This is usually called by our container (like TCastleSceneManager)
+      This is usually called by our container (like TCastleViewport)
       to notify that camera changed. }
     procedure CameraChanged(const ACamera: TCastleCamera); overload; virtual;
     procedure CameraChanged(const ACamera: TCastleNavigation); overload;
@@ -1163,7 +1163,7 @@ type
     function Sphere(out Radius: Single): boolean; virtual;
 
     { Can this object be pushed by (or block movement of) doors, elevators
-      and other moving level parts (T3DMoving instances).
+      and other moving level parts (TCastleMoving instances).
 
       Some 3D moving objects may try to avoid crushing this item.
       Like an automatic door that stops it's closing animation
@@ -1353,14 +1353,14 @@ type
       all the way up to and including the root transformation
       (@link(TCastleAbstractRootTransform)).
       Thus, this is a transformation to the world known to the
-      @link(TCastleSceneManager) instance.
+      @link(TCastleViewport) instance.
 
       Two conditions are necessary to make this available:
 
       @unorderedList(
         @item(
           This instance must be part of some @link(World).
-          So it must be added to @link(TCastleSceneManager.Items SceneManager.Items),
+          So it must be added to @link(TCastleViewport.Items Viewport.Items),
           or to some other @link(TCastleTransform) that is part of @link(World).
 
           Otherwise reading this raises @link(ENotAddedToWorld).
@@ -1373,7 +1373,7 @@ type
           In general, it is allowed to have multiple references to the same TCastleTransform
           within the same @link(World). So you can add
           the same TCastleTransform or TCastleScene many times to
-          @link(TCastleSceneManager.Items SceneManager.Items).
+          @link(TCastleViewport.Items Viewport.Items).
           This is a useful optimization (sharing), and is explicitly allowed.
           But if you do this --- you cannot rely on WorldTransform property.
 
@@ -1669,7 +1669,7 @@ type
       Setting this to @false pretty much turns everything of this 3D object
       to "off". This is useful for objects that disappear completely from
       the level when something happens. You could just as well remove
-      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
+      this object from @link(TCastleViewport.Items) tree, but sometimes it's more
       comfortable to simply turn this property to @false.
 
       Descendants may also override GetExists method.
@@ -1692,10 +1692,10 @@ type
       it exceptionally ignores Collides value, as it's primarily used for picking.
       Same for SegmentCollision with LineOfSight=true.)
 
-      The only exception are the collisions with T3DMoving instances
+      The only exception are the collisions with TCastleMoving instances
       (movable world parts like elevators and doors) that have their own
       detection routines and look at CollidesWithMoving property of other objects.
-      That is, the T3DMoving instance itself must still have Collides = @true,
+      That is, the TCastleMoving instance itself must still have Collides = @true,
       but it interacts with @italic(other) objects if and only if they have
       CollidesWithMoving = @true (ignoring their Collides value).
       This allows items to be moved by elevators, but still player and creatures
@@ -1733,7 +1733,7 @@ type
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
 
-    { If this 3D object is rendered as part of TCastleSceneManager,
+    { If this 3D object is rendered as part of TCastleViewport,
       and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
       to make an exception for this 3D object: even though
       @link(TCastleViewport.UseGlobalLights) is @true,
@@ -2280,7 +2280,7 @@ begin
   if FWorld <> Value then
   begin
     if FWorld <> nil then
-      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one world to another. This means that your object is part of SceneManager1.Items, and you are adding it to SceneManager2.Items. You have to remove it from SceneManager1.Items first.');
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one TCastleRootTransform to another. This usually means that your object is part of "Viewport1.Items", and you are adding it to "Viewport2.Items". You have to remove it from "Viewport1.Items" first, or set both "Viewport1.Items" and "Viewport2.Items" to be equal.');
     ChangeWorld(Value);
   end else
     Inc(FWorldReferences);
@@ -2298,7 +2298,7 @@ begin
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
-    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one TCastleTransform instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManager.Items.Remove(xxx)") before adding to new scene manager.');
+    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you added one TCastleTransform instance to multiple TCastleRootTransform trees, which is not allowed. Always remove TCastleTransform from previous viewport (e.g. by "Viewport1.Items.Remove(xxx)") before adding to the new viewport.');
 
   Dec(FWorldReferences);
   if FWorldReferences = 0 then
@@ -2626,7 +2626,7 @@ function TCastleTransform.PointingDeviceActivate(const Active: boolean;
   const Distance: Single; const CancelAction: boolean): boolean;
 begin
   { This event is not automatically passed to all children on List,
-    instead the TCastleSceneManager has special logic which
+    instead the TCastleViewport has special logic which
     TCastleTransform instances receive the PointingDeviceActivate call. }
   Result := false;
 end;
@@ -2635,7 +2635,7 @@ function TCastleTransform.PointingDeviceMove(const Pick: TRayCollisionNode;
   const Distance: Single): boolean;
 begin
   { This event is not automatically passed to all children on List,
-    instead the TCastleSceneManager has special logic which
+    instead the TCastleViewport has special logic which
     TCastleTransform instances receive the PointingDeviceMove call. }
   Result := false;
 end;
@@ -2777,16 +2777,16 @@ begin
   if FWorldReferences <> 1 then
   begin
     if FWorldReferences = 0 then
-      raise ENotAddedToWorld.Create('Parent (and WorldTransform) not available: This instance is not yet added to SceneManager.Items')
+      raise ENotAddedToWorld.Create('Parent (and WorldTransform) not available: This instance is not yet added to Viewport.Items')
     else
-      raise EMultipleReferencesInWorld.Create('Parent (and WorldTransform) not available: This instance is added multiple times to SceneManager.Items, it does not have a single Parent value');
+      raise EMultipleReferencesInWorld.Create('Parent (and WorldTransform) not available: This instance is added multiple times to Viewport.Items, it does not have a single Parent value');
   end;
   if FParent = nil then
   begin
     if Self = World then
       raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to SceneManager.Items (it lost link to Parent)');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to Viewport.Items (it lost link to Parent)');
   end;
   Result := FParent;
 end;

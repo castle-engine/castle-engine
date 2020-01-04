@@ -42,15 +42,13 @@ const
 
 type
   { Control to render everything (3D or 2D) with Castle Game Engine.
-    Add the user-interface controls to the
-    @link(Controls) property, in particular
-    you can add there scene manager instances (like @link(TCastleSceneManager)
-    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
-    Use events like @link(OnUpdate) to process your game world.
 
-    You can use a descendant of this called TCastleControl to have even
-    more comfort: TCastleControl gives you a ready
-    @link(TCastleControl.SceneManager) for your world.
+    Add the user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
     @link(TUIContainer.BackgroundColor Container.BackgroundColor).
@@ -219,7 +217,7 @@ type
 
     { List of user-interface controls currently active.
       You can add your TCastleUserInterface instances
-      (like TCastleSceneManager, TCastleButton and much more) to this list.
+      (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
       See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
@@ -379,8 +377,7 @@ type
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
       It instructs to call EventRender (OnRender) again, as soon as possible.
 
-      When you have some controls on the @link(Controls) list
-      (in particular, the @link(TCastleControl.SceneManager) is also on this list),
+      When you have some controls on the @link(Controls) list,
       the OnRender event is done @bold(last).
       So here you can draw on top of the existing UI controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
@@ -389,15 +386,7 @@ type
     property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
     { Called when the control size (@code(Width), @code(Height)) changes.
-      It's also guaranteed to be called
-      right after the OnOpen event.
-
-      Our OpenGL context is already "current" when this event is called
-      (MakeCurrent is done right before), like for other events.
-      This is a good place to set OpenGL viewport and projection matrix.
-
-      In the usual case, the SceneManager takes care of setting appropriate
-      OpenGL projection, so you don't need to do anything here. }
+      It's also guaranteed to be called right after the OnOpen event. }
     property OnResize: TNotifyEvent read FOnResize write FOnResize;
 
     { Called when user presses a key or mouse button or moves mouse wheel. }

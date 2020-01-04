@@ -30,12 +30,13 @@ program window_menu;
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses SysUtils, CastleVectors, CastleKeysMouse, CastleColors,
+uses SysUtils,
+  CastleVectors, CastleKeysMouse, CastleColors,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,
-  CastleScene, X3DNodes;
+  CastleViewport, CastleScene, X3DNodes;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
   MenuHorizLeft, MenuHorizMiddle, MenuHorizRight: TMenuItemRadio;
   MainMenu, AlternativeMainMenu: TMenu;
 
@@ -193,13 +194,19 @@ var
   { Helper variables for setting up radio items }
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
+  Viewport: TCastleViewport;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Window.Controls.InsertFront(Viewport);
 
   CreateScene;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
-  Window.SceneManager.AutoNavigation := false;
+
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   { create menu }
   MainMenu := TMenu.Create('Main menu');

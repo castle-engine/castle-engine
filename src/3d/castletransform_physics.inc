@@ -694,7 +694,7 @@ begin
   Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
   if Transform.FWorldReferences > 1 then
-    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the SceneManager.Items');
+    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the Viewport.Items');
 
   FTransform := Transform;
   RecreateKraftInstance;

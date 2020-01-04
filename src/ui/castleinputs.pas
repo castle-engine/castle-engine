@@ -15,6 +15,8 @@
 
 { Key and mouse shortcuts (TInputShortcut) and global management of them.
 
+  See https://castle-engine.io/manual_key_mouse.php for overview.
+
   TInputShortcut instance represents a key/mouse shortcut.
   Instances of this class are spread throughout the engine.
   We have two different ways of using TInputShortcut instance:
@@ -40,39 +42,18 @@
       This implies that InputsAll and InputsGroup(Group) lists will never shrink,
       which is useful --- once added, shortcuts will not disappear.
       Global TInputShortcut instances are always in practice also global variables.
-
-      For example CastleSceneManager unit contains Input_Interact.
-      For example CastlePlayer contains many inputs.
     )
 
     @item(
       @bold(Local)
 
       TInputShortcut instance with TInputShortcut.Group = igLocal
-      is called "local". Basically, it means it's a normal component,
-      it's not magically present on any global list, it's not magically
-      managed by any list.
+      is called "local". It means it's a normal component,
+      it's not automatically present on any global list,
+      so it doesn't conflict with other global shortcuts.
 
-      For example TWalkCamera contains a number of them like
-      TWalkCamera.Input_Forward.
-
-      Although it seems like "global" inputs are such a good idea, there
-      are some reasons for having some inputs "local":
-
-      @unorderedList(
-        @itemSpacing Compact
-        @item(You can set them locally, obviously, not program-wide.)
-        @item(You can set them from Lazarus object inspector e.g. for cameras.)
-        @item(We cannot add shortcuts of both TExamineCamera and TWalkCamera
-          to global, as they would conflict (e.g. "up arrow key" is used
-          by both by default). The InputsAll doesn't have (for now) any mechanism
-          to indicate that only one of the cameras will be in practice
-          used for a given TCastleSceneManager.)
-        @item(We cannot add shortcuts of TCamera descendants also because
-          CastlePlayer has shortcuts that override camera shortcuts.
-          One day this problem may disappear, when TPlayer and TCamera
-          will become integrated more.)
-      )
+      For example TCastleWalkNavigation contains a number of them like
+      TCastleWalkNavigation.Input_Forward.
     )
   )
 
@@ -313,13 +294,13 @@ type
   published
     { Key/mouse properties on TInputShortcut are declared without
       "default" specifier, to always save them in Lazarus LFM file.
-      Reason: various class (TExamineCamera, TWalkCamera, TCastleSceneManager)
+      Reason: various class (TCastleExamineNavigation, TCastleWalkNavigation, TCastleViewport)
       create them setting different default values.
       If we would declare that default for Key1 is K_None,
-      then you couldn't set in Lazarus e.g. TWalkCamera.Input_Forward.Key1 to K_None.
+      then you couldn't set in Lazarus e.g. TCastleWalkNavigation.Input_Forward.Key1 to K_None.
       Such K_None would not be saved to LFM (since it would equal Key1 default
       value), but when reading the LFM back it would change into K_Up
-      (because TWalkCamera creates Input_Forward with K_Up by default). }
+      (because TCastleWalkNavigation creates Input_Forward with K_Up by default). }
 
     { Key shortcuts for given command. You can set any of them to K_None
       to indicate that no key is assigned.
@@ -374,14 +355,14 @@ type
     { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
       to activate only when specific modifier is pressed.
 
-      Right now both TWalkCamera and TExamineCamera check modifiers
+      Right now both TCastleWalkNavigation and TCastleExamineNavigation check modifiers
       and have not configurable behavior:
 
-      - TWalkCamera allows inputs only when modifiers = [].
+      - TCastleWalkNavigation allows inputs only when modifiers = [].
         Except Input_Right/LeftRot and Input_Up/DownRotate that have special
-        meaning when Ctrl is pressed (see TWalkCamera.AllowSlowerRotations).
-      - TExamineCamera allows Inputs_Move only when modifiers = [mkCtrl].
-        Other TExamineCamera are allowed only when modifiers = []. }
+        meaning when Ctrl is pressed (see TCastleWalkNavigation.AllowSlowerRotations).
+      - TCastleExamineNavigation allows Inputs_Move only when modifiers = [mkCtrl].
+        Other TCastleExamineNavigation are allowed only when modifiers = []. }
   end;
 
   { Group of TInputShortcut, to easily manage (search, load, save...)
