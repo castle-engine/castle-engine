@@ -20,7 +20,7 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Unzip51g,
+uses SysUtils, Classes, Zipper,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleDownload, CastleStringUtils,
@@ -49,15 +49,24 @@ var
 function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
 var
   FileInZip: String;
+  Unzip: TUnZipper;
+  FilesInZipList: TStringlist;
 begin
-  { Unpack file to a temporary directory.
-    TODO: Preferably, this should be done without storing the temp file on disk. }
   FileInZip := PrefixRemove('/', URIDeleteProtocol(Url), false);
-  if FileUnzip(
-       PChar(SourceZipFileName),
-       PChar(TempDirectory),
-       PChar(FileInZip), nil, nil) <> 1 then
-    raise EDownloadError.CreateFmt('Cannot open "%s" inside ZIP', [FileInZip]);
+
+  { Unpack file to a temporary directory.
+    TODO: TPackedDataReader.ReadUrl should be implemented
+    without storing the temp file on disk. }
+  Unzip := TUnZipper.Create;
+  try
+    Unzip.FileName := SourceZipFileName;
+    Unzip.OutputPath := TempDirectory;
+    FilesInZipList := TStringlist.Create;
+    try
+      FilesInZipList.Add(FileInZip);
+      Unzip.UnZipFiles(FilesInZipList);
+    finally FreeAndNil(FilesInZipList) end;
+  finally FreeAndNil(Unzip) end;
 
   { Use Download with file:/ protocol to load filename to TStream }
   Result := Download(FilenameToURISafe(CombinePaths(TempDirectory, FileInZip)), [], MimeType);
