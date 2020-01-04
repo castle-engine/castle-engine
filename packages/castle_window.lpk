@@ -7,8 +7,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window"/>
-        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows"/>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/castle_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Conditionals Value="// example for adding linker options on macOS
@@ -128,7 +128,7 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleWindowRecentFiles"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/window/castlewindowtouch.pas"/>
+        <Filename Value="../src/deprecated_units/castlewindowtouch.pas"/>
         <UnitName Value="CastleWindowTouch"/>
       </Item11>
       <Item12>
