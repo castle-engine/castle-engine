@@ -284,7 +284,7 @@ begin
     as adding to Controls during a mode doesn't work (Controls contain
     only a temporary list of controls e.g. for progress bar UI),
     so TouchInterface (e.g. when camera changes to nil,
-    then to non-nil, during SceneManager.LoadLevel) should remain unchanged. }
+    then to non-nil, during TLevel.Load) should remain unchanged. }
   {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
     OldAutomaticTouchControl := TCastleWindowTouch(Window).AutomaticTouchInterface;

@@ -164,7 +164,7 @@ type
       Note that you can always override it for a particular creature
       instance. You can use a special creature placeholder with
       a specific starting life value
-      (see TLevel.LoadLevel for placeholders docs,
+      (see TLevel.Load for placeholders docs,
       and see https://castle-engine.io/castle-development.php
       about the creature placeholders).
       Or you can use CreateCreature overloaded version that takes extra MaxLife

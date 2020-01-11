@@ -24,7 +24,7 @@
   will assume that model.x3d was created using standard Blender X3D exporter,
   and will show Blender object names for every shape in the model.
 
-  See TLevel.LoadLevel for a description where we use
+  See TLevel.Load for a description where we use
   placeholders in the engine. }
 program placeholder_names;
 

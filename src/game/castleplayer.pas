@@ -425,7 +425,7 @@ type
 
       You can use this navigation as @link(TCastleViewport.Navigation)
       to allow user to directly control this player in first-person game.
-      @link(TLevel.LoadLevel) sets this automatically.
+      @link(TLevel.Load) sets this automatically.
 
       The view vectors (position, direction and up), @link(TCastleWalkNavigation.Gravity),
       and various navigation inputs are automatically adjusted based on the current

@@ -212,7 +212,7 @@ type
 
     { Unique identifier of this resource.
       Used to refer to this resource from level placeholders
-      (see TLevel.LoadLevel about placeholders),
+      (see TLevel.Load about placeholders),
       from other XML files (for example one creature may shoot another
       creature as a missile using @link(TWalkAttackCreatureResource.FireMissileName)),
       and in other places.

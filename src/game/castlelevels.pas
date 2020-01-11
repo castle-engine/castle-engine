@@ -89,7 +89,7 @@ type
     property LogicClass: TLevelLogicClass read FLogicClass write FLogicClass;
 
     { Unique identifier of this level. This name may be useful in scripts,
-      as @link(TLevel.LoadLevel) parameter and such.
+      as @link(TLevel.Load) parameter and such.
 
       For all (current and future) uses it should be a valid VRML/X3D
       and ObjectPascal identifier, so use only (English) letters,
@@ -203,7 +203,7 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
 
     { Placeholder detection method. See TPlaceholderName, and see
-      @link(TLevel.LoadLevel) for a description when we use placeholders.
+      @link(TLevel.Load) for a description when we use placeholders.
       Default value is @code(PlaceholderNames['x3dshape']). }
     property PlaceholderName: TPlaceholderName
       read FPlaceholderName write FPlaceholderName;
@@ -329,11 +329,11 @@ type
       FPlayer: TPlayer;
       FPlayerSwimming: TPlayerSwimming;
       SickProjectionTime: TFloatTime;
-    { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
-    procedure LoadLevelCore(const AInfo: TLevelInfo);
+    { Like TLevel.Load, but doesn't care about AInfo.LoadingImage. }
+    procedure LoadCore(const AInfo: TLevelInfo);
     { Unload Items from previous level, keeps only Player on Items.
       Returns previous resources. You have to call Release and free them. }
-    function UnloadLevelCore: T3DResourceList;
+    function UnloadCore: T3DResourceList;
     function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
     procedure SetPlayer(const Value: TPlayer);
     function Items: TCastleRootTransform;
@@ -350,7 +350,7 @@ type
     function PrepareParams: TPrepareParams; override;
 
     { Viewport whose contents will be adjusted to show given level.
-      Must be assigned before @link(LoadLevel). }
+      Must be assigned before @link(Load). }
     property Viewport: TCastleViewport read FViewport write FViewport;
 
     { Load game level.
@@ -419,7 +419,7 @@ type
       usually by @link(TLevelInfoList.LoadFromFiles Levels.LoadFromFiles)
       call. So you can easily define a level in your data with @code(name="xxx")
       in the @code(level.xml) file, and then you can load it
-      by @code(LoadLevel('xxx')) call.
+      by @code(Load('xxx')) call.
 
       It's important to note that @bold(you do not have to use
       this method to make a 3D game). You may as well just load the 3D scene
@@ -429,8 +429,8 @@ type
       with creatures and items, using placeholders.
 
       @groupBegin }
-    procedure LoadLevel(const LevelName: string);
-    procedure LoadLevel(const AInfo: TLevelInfo);
+    procedure Load(const LevelName: string);
+    procedure Load(const AInfo: TLevelInfo);
     { @groupEnd }
 
     { Level logic and state. }
@@ -439,25 +439,25 @@ type
     { Level information, independent from current level state. }
     property Info: TLevelInfo read FInfo;
 
-    { Release everything loaded by LoadLevel, clearing the 3D world
+    { Release everything loaded by @link(Load), clearing the 3D world
       (only Player is left).
 
       You do not have to call this in normal circumstances,
-      as each LoadLevel automatically clears previous 3D world. If fact,
+      as each @link(Load) automatically clears previous 3D world. If fact,
       you should not call this in normal circumstances:
-      calling this prevents the next LoadLevel to reuse resources
+      calling this prevents the next Load to reuse resources
       that were needed by both old and new level.
 
       Call this only if you really want to conserve memory @italic(right now).
-      Or when you want to force reload of resources at next LoadLevel
+      Or when you want to force reload of resources at next Load
       call (for example, if you changed BakedAnimationSmoothness, it is useful
       --- otherwise the old animations will remain loaded with old BakedAnimationSmoothness
       setting). }
-    procedure UnloadLevel;
+    procedure Unload;
 
     { Sectors and waypoints of this world, for AI in 3D.
-      Initialized by @link(LoadLevel).
-      @nil if you never call @link(LoadLevel). }
+      Initialized by @link(Load).
+      @nil if you never call @link(Load). }
     property Sectors: TSectorList read FSectors;
 
     { Water volume in the scene. It may be used by various 3D objects
@@ -562,7 +562,7 @@ type
     function Placeholder(const Shape: TShape; const PlaceholderName: string): boolean; virtual;
 
     { Called after all placeholders have been processed,
-      that is after TLevel.LoadLevel placed initial creatures,
+      that is after @link(TLevel.Load) placed initial creatures,
       items and other stuff on the level.
       Override it to do anything you want. }
     procedure PlaceholdersEnd; virtual;
@@ -636,7 +636,7 @@ type
 function LevelLogicClasses: TLevelLogicClasses;
 
 { All known levels. You can use this to show a list of available levels to user.
-  You can also search it and use @link(TLevel.LoadLevel) to load
+  You can also search it and use @link(TLevel.Load) to load
   a given TLevelInfo instance. }
 function Levels: TLevelInfoList;
 
@@ -697,7 +697,7 @@ begin
   begin
     { we check LevelResourcesPrepared, to avoid calling
       Info.LevelResources.Release when Info.LevelResources.Prepare
-      was not called (which may happen if there was an exception if LoadLevelCore
+      was not called (which may happen if there was an exception if LoadCore
       at MainScene.Load(SceneURL). }
     if (Info.LevelResources <> nil) and LevelResourcesPrepared then
       Info.LevelResources.Release;
@@ -851,7 +851,7 @@ begin
     Result := Logic.Placeholder(Shape, PlaceholderName);
 end;
 
-function TLevel.UnloadLevelCore: T3DResourceList;
+function TLevel.UnloadCore: T3DResourceList;
 var
   I: Integer;
 begin
@@ -882,11 +882,11 @@ begin
   end;
 end;
 
-procedure TLevel.UnloadLevel;
+procedure TLevel.Unload;
 var
   PreviousResources: T3DResourceList;
 begin
-  PreviousResources := UnloadLevelCore;
+  PreviousResources := UnloadCore;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
 end;
@@ -896,7 +896,7 @@ begin
   Result := Viewport.Items;
 end;
 
-procedure TLevel.LoadLevelCore(const AInfo: TLevelInfo);
+procedure TLevel.LoadCore(const AInfo: TLevelInfo);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -1050,9 +1050,9 @@ begin
     So we do not check field "not GLInitialized", instead we look at global
     GLVersion. }
   if GLVersion = nil then
-    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TLevel.LoadLevel.');
+    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TLevel.Load.');
 
-  PreviousResources := UnloadLevelCore;
+  PreviousResources := UnloadCore;
 
   FInfo := AInfo;
   Inc(Levels.References);
@@ -1150,7 +1150,7 @@ begin
   Dec(Items.MainScene.InternalDirty);
 end;
 
-procedure TLevel.LoadLevel(const AInfo: TLevelInfo);
+procedure TLevel.Load(const AInfo: TLevelInfo);
 var
   SavedImage: TObject;
   SavedBarYPosition: Single;
@@ -1163,7 +1163,7 @@ begin
     Progress.UserInterface.OwnsImage := false; // never free Image at next assignment
     Progress.UserInterface.Image := AInfo.LoadingImage;
     Progress.UserInterface.BarYPosition := AInfo.LoadingBarYPosition;
-    LoadLevelCore(AInfo);
+    LoadCore(AInfo);
   finally
     Progress.UserInterface.Image := nil; // unassign AInfo.LoadingImage, while OwnsImage = false
     Progress.UserInterface.OwnsImage := SavedOwnsImage;
@@ -1172,9 +1172,9 @@ begin
   end;
 end;
 
-procedure TLevel.LoadLevel(const LevelName: string);
+procedure TLevel.Load(const LevelName: string);
 begin
-  LoadLevel(Levels.FindName(LevelName));
+  Load(Levels.FindName(LevelName));
 end;
 
 procedure TLevel.Update(const SecondsPassed: Single);
@@ -1287,12 +1287,12 @@ end;
 
 procedure TGameSceneManager.LoadLevel(const LevelName: string);
 begin
-  FLevel.LoadLevel(LevelName);
+  FLevel.Load(LevelName);
 end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 begin
-  FLevel.LoadLevel(AInfo);
+  FLevel.Load(AInfo);
 end;
 
 function TGameSceneManager.Logic: TLevelLogic;
@@ -1307,7 +1307,7 @@ end;
 
 procedure TGameSceneManager.UnloadLevel;
 begin
-  FLevel.UnloadLevel;
+  FLevel.Unload;
 end;
 
 function TGameSceneManager.LevelProperties: TAbstractLevel;

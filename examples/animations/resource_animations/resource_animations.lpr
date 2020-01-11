@@ -299,7 +299,7 @@ begin
 
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
-    depend on TLevel.LoadLevel doing this for you. }
+    depend on TLevel.Load doing this for you. }
   Resources.Prepare(Window.SceneManager.PrepareParams, 'resources');
 
   LoadResourceButton := TLoadResourceButton.Create(Application);

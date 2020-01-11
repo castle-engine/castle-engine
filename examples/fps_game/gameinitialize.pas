@@ -548,7 +548,7 @@ begin
     item can be equipped and used to hurt enemies), footsteps and some other
     nice stuff.
 
-    It's best to assign Level.Player before Level.LoadLevel,
+    It's best to assign Level.Player before Level.Load,
     then Player.Navigation is automatically configured as Viewport.Navigation
     and it follows level's properties like PreferredHeight (from level's
     NavigationInfo.avatarSize). }
@@ -560,11 +560,11 @@ begin
     This loads and adds 3D model of your level to the 3D world
     (that is to Viewport.Items). It may also load initial creatures/items
     on levels, waypoints/sectors and other information from so-called
-    "placeholders" on the level, see TLevel.LoadLevel documentation. }
-  Level.LoadLevel('example_level');
+    "placeholders" on the level, see TLevel.Load documentation. }
+  Level.Load('example_level');
 
   { Maybe adjust some rendering properties?
-    (Viewport.Items.MainScene was initialized by Level.LoadLevel) }
+    (Viewport.Items.MainScene was initialized by Level.Load) }
   // Viewport.Items.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
 
   { Add some buttons.

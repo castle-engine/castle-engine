@@ -1886,7 +1886,7 @@ type
       for their decision,
       in particular all creatures in @link(CastleCreatures) use it.
 
-      Note that the @link(TLevel.LoadLevel) always
+      Note that the @link(TLevel.Load) always
       assigns this property to be non-empty.
       It either determines it by CasMoveLimit placeholder
       in the level 3D model, or by calculating

@@ -206,9 +206,8 @@ begin
   case Command of
     APP_CMD_INIT_WINDOW:
       begin
-        { We will actually process this event (calling TCastleWindow.Open)
-          later, to avoid ANRs when OnOpen does something time-consuming
-          (like SceneManager.LoadLevel). }
+        { We will actually process this event (calling TCastleWindowBase.Open)
+          later, to avoid ANRs when OnOpen does something time-consuming. }
         MainWindow.NativeWindow := App^.Window;
         MainWindow.Dpi := DetermineDpi(App);
         QEvent.EventType := aeOpen;
