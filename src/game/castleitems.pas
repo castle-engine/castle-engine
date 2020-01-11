@@ -544,7 +544,7 @@ type
     FInventory: TInventory;
   public
     var
-      { Set when assigning TPlayer to @link(TGameSceneManager.Player). }
+      { Set when assigning TPlayer to @link(TLevel.Player). }
       InternalLevelProperties: TLevelProperties;
 
     constructor Create(AOwner: TComponent); override;

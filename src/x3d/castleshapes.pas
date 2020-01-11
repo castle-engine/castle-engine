@@ -1072,7 +1072,7 @@ type
     So just don't use shapes with multiple materials if this shape
     may be meaningful for a placeholder.
 
-    This is used only by TGameSceneManager.LoadLevel placeholders.
+    This is used only by TLevel.LoadLevel placeholders.
     Ultimately, this should be something that is easy to set when creating
     a 3D model in given external modeler.
     @italic(Nothing else in our engine depends on a particular modeler

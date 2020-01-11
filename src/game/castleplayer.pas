@@ -223,6 +223,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render(const Params: TRenderParams); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
 
     { Flying.
       How it interacts with FlyingTimeout: Setting this property
@@ -296,7 +297,7 @@ type
     { @noAutoLinkHere }
     procedure Attack; virtual;
 
-    { TGameSceneManager sets this property automatically, based on the water volume.
+    { TLevel sets this property automatically, based on the water volume.
       @exclude }
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
@@ -424,7 +425,7 @@ type
 
       You can use this navigation as @link(TCastleViewport.Navigation)
       to allow user to directly control this player in first-person game.
-      @link(TGameSceneManager.LoadLevel) sets this automatically.
+      @link(TLevel.LoadLevel) sets this automatically.
 
       The view vectors (position, direction and up), @link(TCastleWalkNavigation.Gravity),
       and various navigation inputs are automatically adjusted based on the current
@@ -463,6 +464,8 @@ var
   AutoOpenInventory: boolean = DefaultAutoOpenInventory;
 
 var
+  { Player inputs that handle navigation.
+    @groupBegin }
   PlayerInput_Forward: TInputShortcut;
   PlayerInput_Backward: TInputShortcut;
   PlayerInput_LeftRot: TInputShortcut;
@@ -474,6 +477,18 @@ var
   PlayerInput_GravityUp: TInputShortcut;
   PlayerInput_Jump: TInputShortcut;
   PlayerInput_Crouch: TInputShortcut;
+  { @groupEnd }
+
+  { Player inputs that deal with items.
+    @groupBegin }
+  PlayerInput_Attack: TInputShortcut;
+  PlayerInput_InventoryShow: TInputShortcut; //< No key/mouse associated by default.
+  PlayerInput_InventoryPrevious: TInputShortcut;
+  PlayerInput_InventoryNext: TInputShortcut;
+  PlayerInput_UseItem: TInputShortcut;
+  PlayerInput_DropItem: TInputShortcut; //< No key/mouse associated by default.
+  PlayerInput_CancelFlying: TInputShortcut; //< No key/mouse associated by default.
+  { @groupEnd }
 
 implementation
 
@@ -951,7 +966,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
   begin
-    { Swimming possibly was changed by TGameSceneManager.Update }
+    { Swimming possibly was changed by TLevel update }
     if FSwimming = psUnderWater then
     begin
       { Take care of drowning. }
@@ -1392,6 +1407,57 @@ begin
   AboveGround := nil;
 end;
 
+function TPlayer.Press(const Event: TInputPressRelease): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if not (Blocked or Dead) then
+  begin
+    if PlayerInput_Attack.IsEvent(Event) then
+    begin
+      Attack;
+      Exit(true);
+    end;
+
+    if PlayerInput_CancelFlying.IsEvent(Event) then
+    begin
+      Flying := false;
+      Exit(true);
+    end;
+
+    if PlayerInput_InventoryShow.IsEvent(Event) then
+    begin
+      InventoryVisible := not InventoryVisible;
+      Exit(true);
+    end;
+
+    if PlayerInput_InventoryPrevious.IsEvent(Event) then
+    begin
+      ChangeInventoryCurrentItem(-1);
+      Exit(true);
+    end;
+
+    if PlayerInput_InventoryNext.IsEvent(Event) then
+    begin
+      ChangeInventoryCurrentItem(+1);
+      Exit(true);
+    end;
+
+    if PlayerInput_DropItem.IsEvent(Event) then
+    begin
+      DropCurrentItem;
+      Exit(true);
+    end;
+
+   if PlayerInput_UseItem.IsEvent(Event) then
+    begin
+      UseCurrentItem;
+      Exit(true);
+    end;
+  end;
+end;
+
 procedure TPlayer.Render(const Params: TRenderParams);
 begin
   { Do this before rendering, otherwise we could display weapon in unsynchronized
@@ -1485,4 +1551,20 @@ initialization
   PlayerInput_Jump.Assign(K_Space);
   PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
   PlayerInput_Crouch.Assign(K_C);
+
+  PlayerInput_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
+  PlayerInput_Attack.Assign(K_Ctrl, K_None, '', false, mbLeft);
+  PlayerInput_Attack.GroupOrder := -100; { before other (player) shortcuts }
+  PlayerInput_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
+  PlayerInput_InventoryShow.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
+  PlayerInput_InventoryPrevious.Assign(K_LeftBracket, K_None, '', false, mbLeft, mwUp);
+  PlayerInput_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
+  PlayerInput_InventoryNext.Assign(K_RightBracket, K_None, '', false, mbLeft, mwDown);
+  PlayerInput_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
+  PlayerInput_UseItem.Assign(K_Enter, K_None, '', false, mbLeft);
+  PlayerInput_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
+  PlayerInput_DropItem.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
+  PlayerInput_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
 end.

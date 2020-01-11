@@ -266,12 +266,6 @@ type
     { Pass pointing device (mouse) move event to 3D world. }
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean;
   protected
-    var
-      { Set these to non-1 to deliberately distort field of view / aspect ratio.
-        This is useful for special effects when you want to create unrealistic
-        projection. Used by ApplyProjection. }
-      DistortFieldOfViewY, DistortViewAspect: Single;
-
     { Calculate projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
       Called each time at the beginning of rendering.
@@ -370,6 +364,12 @@ type
         By default this is always 0, the engine doesn't modify this.
         You can set this field manually. }
       CustomRenderingPass: TUserRenderingPass;
+
+      { Set these to non-1 to deliberately distort field of view / aspect ratio.
+        This is useful for special effects when you want to create unrealistic
+        projection.
+        @exclude }
+      InternalDistortFieldOfViewY, InternalDistortViewAspect: Single;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -784,8 +784,8 @@ type
       or player collision volume (in 1st person view)
       to allow player to move, not colliding with its own body.
 
-      In case of @link(TGameSceneManager), this is automatically
-      set when you set @link(TGameSceneManager.Player). }
+      In case of using @link(TLevel), this is automatically
+      set when you set @link(TLevel.Player). }
     property AvoidNavigationCollisions: TCastleTransform
       read FAvoidNavigationCollisions
       write SetAvoidNavigationCollisions;
@@ -1202,8 +1202,8 @@ begin
   FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
   FClearDepth := true;
-  DistortFieldOfViewY := 1;
-  DistortViewAspect := 1;
+  InternalDistortFieldOfViewY := 1;
+  InternalDistortViewAspect := 1;
 
   FCamera := TCastleCamera.Create(Self);
   FCamera.InternalViewport := Self;
@@ -1633,9 +1633,9 @@ begin
     OnProjection(FProjection);
   {$warnings on}
 
-  { take into account Distort* properties }
-  AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
-  FProjection.PerspectiveAngles[1] := DistortFieldOfViewY * FProjection.PerspectiveAngles[1];
+  { take into account InternalDistort* properties }
+  AspectRatio := InternalDistortViewAspect * Viewport.Width / Viewport.Height;
+  FProjection.PerspectiveAngles[1] := InternalDistortFieldOfViewY * FProjection.PerspectiveAngles[1];
 
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);

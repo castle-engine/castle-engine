@@ -528,10 +528,10 @@ begin
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
-  Input_DropItem.Assign(K_R);
+  PlayerInput_DropItem.Assign(K_R);
   if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
-    Input_Attack.Assign(K_Ctrl, K_None, '', true, mbLeft);
+    PlayerInput_Attack.Assign(K_Ctrl, K_None, '', true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
@@ -565,7 +565,7 @@ begin
     This loads and adds 3D model of your level to the 3D world
     (that is to SceneManager.Items). It may also load initial creatures/items
     on levels, waypoints/sectors and other information from so-called
-    "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
+    "placeholders" on the level, see TLevel.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
 
   { Initialize ExtraViewport camera to something

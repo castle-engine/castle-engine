@@ -48,7 +48,7 @@ type
     property FootstepsSound: TSoundType read FFootstepsSound write FFootstepsSound;
 
     { Is the floor toxic when walking on it.
-      Taken into account only if you assign @link(TGameSceneManager.Player).
+      Taken into account only if you assign @link(TLevel.Player).
       @groupBegin }
     property Toxic: boolean read FToxic write FToxic;
     property ToxicDamageConst: Single read FToxicDamageConst write FToxicDamageConst;
