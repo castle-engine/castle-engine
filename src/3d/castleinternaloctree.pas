@@ -366,7 +366,7 @@ type
     property ItemsInNonLeafNodes: boolean
       read FItemsInNonLeafNodes;
 
-    { The actual (non-abstact) TOctreeNode descendant class for this octree.
+    { The actual (non-abstract) TOctreeNode descendant class for this octree.
       Set when constructing this octree.
 
       This tells what class should have FTreeRoot.

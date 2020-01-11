@@ -587,7 +587,7 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstact implementation of TUIContainer that cooperates with
+  { Non-abstract implementation of TUIContainer that cooperates with
     TCastleWindowBase. }
   TWindowContainer = class(TUIContainer)
   private

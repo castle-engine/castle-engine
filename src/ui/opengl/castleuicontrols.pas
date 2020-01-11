@@ -231,7 +231,7 @@ type
     code with Castle Game Engine controls (TCastleUserInterface, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowBase
     (a window) or TCastleControlBase (Lazarus component), they provide
-    you a non-abstact implementation of TUIContainer.
+    you a non-abstract implementation of TUIContainer.
 
     Basically, this class manages a @link(Controls) list.
 

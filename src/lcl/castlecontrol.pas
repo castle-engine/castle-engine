@@ -56,7 +56,7 @@ type
   TCastleControlBase = class(TCustomOpenGLControl)
   private
     type
-      { Non-abstact implementation of TUIContainer that cooperates with
+      { Non-abstract implementation of TUIContainer that cooperates with
         TCastleControlBase. }
       TContainer = class(TUIContainer)
       private

@@ -779,7 +779,7 @@ type
 
   { @exclude Internal.
 
-    Basic non-abstact implementation of render params for calling
+    Basic non-abstract implementation of render params for calling
     TCastleTransform.LocalRender.
 
     @bold(This is exposed here only to support some experiments with non-standard
