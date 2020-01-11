@@ -75,6 +75,15 @@ var
 begin
   inherited;
 
+  { We use TCastleButton from CastleControls unit for buttons drawn using CGE.
+    If you would use Lazarus and TCastleControlBase (instead of TCastleWindowBase)
+    you can also consider using Lazarus standard buttons and other components
+    on your form.
+
+    The advantage of our TCastleButton is that it is drawn completely by our
+    engine, which means that you can style the TCastleButton to match the theme
+    of your game (like medieval fantasy of futuristic sci-fi). }
+
   NextButtonBottom := ControlsMargin;
 
   if not ApplicationProperties.TouchDevice then
@@ -567,19 +576,7 @@ begin
     (Viewport.Items.MainScene was initialized by Level.Load) }
   // Viewport.Items.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
 
-  { Add some buttons.
-    We use TCastleButton from CastleControls unit for buttons,
-    which are drawn using OpenGL.
-    If you use Lazarus and TCastleControl (instead of TCastleWindow)
-    you can also consider using Lazarus standard buttons and other components
-    on your form.
-
-    The advantage of our TCastleButton is that it is drawn completely by our
-    engine, which means that you can style the TCastleButton to match the theme
-    of your game (like medieval fantasy of futuristic sci-fi).
-    For now, you can change the colors (see global Theme (instance
-    of TCastleTheme class) properties), and also TCastleButton.Opacity.
-    Easy way to apply textures on TCastleButton is planned in the future. }
+  { Add some buttons }
   Buttons := TButtons.Create(Application);
 
   { Add the Notifications to our window.
