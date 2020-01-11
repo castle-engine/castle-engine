@@ -1171,8 +1171,8 @@ begin
     FFadeOutIntensity -= FadeOutSpeed * SecondsPassed;
 
   if (EquippedWeapon <> nil) and
-     (InternalLevelProperties <> nil) then
-    EquippedWeapon.EquippedUpdate(InternalLevelProperties, LifeTime);
+     (InternalLevel <> nil) then
+    EquippedWeapon.EquippedUpdate(InternalLevel, LifeTime);
 
   UpdateIsOnTheGround;
   UpdateToxic;
@@ -1232,8 +1232,8 @@ end;
 procedure TPlayer.Attack;
 begin
   if (EquippedWeapon <> nil) and
-     (InternalLevelProperties <> nil) then
-    EquippedWeapon.EquippedAttack(InternalLevelProperties, LifeTime)
+     (InternalLevel <> nil) then
+    EquippedWeapon.EquippedAttack(InternalLevel, LifeTime)
   else
     { TODO: allow to do some "punch" / "kick" here easily }
     Notifications.Show('No weapon equipped');

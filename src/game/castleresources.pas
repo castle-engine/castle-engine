@@ -126,12 +126,12 @@ type
       const ATime: TFloatTime; const ALoop: boolean);
   end;
 
-  { Information useful to games resources (creatures, items)
-    given to them based on current level. }
-  TLevelProperties = class
+  { Abstract level information, with information useful to spawn resources
+    like creatures and items. }
+  TAbstractLevel = class(TComponent)
   public
-    function Player: TCastleTransform; virtual; abstract;
-    function Sectors: TSectorList; virtual; abstract;
+    function GetPlayer: TCastleTransform; virtual; abstract;
+    function GetSectors: TSectorList; virtual; abstract;
     function RootTransform: TCastleRootTransform; virtual; abstract;
     { Parameters to prepare rendering for,
       see @link(TCastleViewport.PrepareParams). }
@@ -262,7 +262,7 @@ type
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
     procedure InstantiatePlaceholder(
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 

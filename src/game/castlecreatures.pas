@@ -188,17 +188,17 @@ type
 
       @groupBegin }
     function CreateCreature(
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; virtual; overload;
     function CreateCreature(
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3): TCreature; overload;
     { @groupEnd }
 
     { Instantiate creature placeholder, by calling CreateCreature. }
     procedure InstantiatePlaceholder(
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -699,7 +699,7 @@ type
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreateCreature(
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; override;
 
@@ -819,7 +819,7 @@ type
   protected
     var
       { Set by CreateCreature. }
-      LevelProperties: TLevelProperties;
+      Level: TAbstractLevel;
 
     procedure SetLife(const Value: Single); override;
     procedure Fall(const FallHeight: Single); override;
@@ -1092,14 +1092,14 @@ begin
 end;
 
 function TCreatureResource.CreateCreature(
-  const ALevelProperties: TLevelProperties;
+  const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 var
   Scale: Single;
   RootTransform: TCastleRootTransform;
 begin
-  RootTransform := ALevelProperties.RootTransform;
+  RootTransform := ALevel.RootTransform;
 
   { This is only needed if you did not add creature to <resources>.
 
@@ -1110,12 +1110,12 @@ begin
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
     Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }
-  Prepare(ALevelProperties.PrepareParams);
+  Prepare(ALevel.PrepareParams);
 
   Result := CreatureClass.Create(RootTransform { owner }, MaxLife);
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
-  Result.LevelProperties := ALevelProperties;
+  Result.Level := ALevel;
   Result.FResource := Self;
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
@@ -1132,14 +1132,14 @@ begin
 end;
 
 function TCreatureResource.CreateCreature(
-  const ALevelProperties: TLevelProperties;
+  const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3): TCreature;
 begin
-  Result := CreateCreature(ALevelProperties, APosition, ADirection, DefaultMaxLife);
+  Result := CreateCreature(ALevel, APosition, ADirection, DefaultMaxLife);
 end;
 
 procedure TCreatureResource.InstantiatePlaceholder(
-  const ALevelProperties: TLevelProperties;
+  const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -1155,7 +1155,7 @@ begin
   else
     MaxLife := DefaultMaxLife;
 
-  CreateCreature(ALevelProperties, APosition, CreatureDirection, MaxLife);
+  CreateCreature(ALevel, APosition, CreatureDirection, MaxLife);
 end;
 
 function TCreatureResource.Radius(const GravityUp: TVector3): Single;
@@ -1336,7 +1336,7 @@ begin
 end;
 
 function TMissileCreatureResource.CreateCreature(
-  const ALevelProperties: TLevelProperties;
+  const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin
@@ -1645,8 +1645,8 @@ end;
 
 function TCreature.Sector(const OtherTransform: TCastleTransform): TSector;
 begin
-  if LevelProperties.Sectors <> nil then
-    Result := LevelProperties.Sectors.SectorWithPoint(OtherTransform.Middle)
+  if Level.GetSectors <> nil then
+    Result := Level.GetSectors.SectorWithPoint(OtherTransform.Middle)
   else
     Result := nil;
 end;
@@ -1695,7 +1695,7 @@ end;
 
 function TWalkAttackCreature.Enemy: TCastleAlive;
 begin
-  Result := LevelProperties.Player as TCastleAlive;
+  Result := Level.GetPlayer as TCastleAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2566,7 +2566,7 @@ begin
     MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
     MissileDirection := LastSensedEnemy - MissilePosition;
     Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-      CreateCreature(LevelProperties, MissilePosition, MissileDirection);
+      CreateCreature(Level, MissilePosition, MissileDirection);
     Missile.Sound3d(Resource.FireMissileSound, 0.0);
   end;
 end;
@@ -2670,7 +2670,7 @@ begin
     Exit;
   end;
 
-  Player := LevelProperties.Player;
+  Player := Level.GetPlayer;
 
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
@@ -2763,7 +2763,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(LevelProperties.Player as TCastleAlive);
+  AttackHurt(Level.GetPlayer as TCastleAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

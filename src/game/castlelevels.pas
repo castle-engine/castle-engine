@@ -310,16 +310,9 @@ type
     @code(Viewport.Items), but has some extra features. Most notably,
     it will instantiate also creatures and items looking at special
     "placeholders" in the model file. }
-  TLevel = class(TComponent)
+  TLevel = class(TAbstractLevel)
   strict private
     type
-      TLevelPropertiesConcrete = class(TLevelProperties)
-        Level: TLevel;
-        function Player: TCastleTransform; override;
-        function Sectors: TSectorList; override;
-        function RootTransform: TCastleRootTransform; override;
-        function PrepareParams: TPrepareParams; override;
-      end;
       TLevelInternalLogic = class(TCastleTransform)
         Level: TLevel;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -335,7 +328,6 @@ type
       Waypoints: TWaypointList;
       FPlayer: TPlayer;
       FPlayerSwimming: TPlayerSwimming;
-      FLevelProperties: TLevelPropertiesConcrete;
       SickProjectionTime: TFloatTime;
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelInfo);
@@ -351,6 +343,11 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function GetPlayer: TCastleTransform; override;
+    function GetSectors: TSectorList; override;
+    function RootTransform: TCastleRootTransform; override;
+    function PrepareParams: TPrepareParams; override;
 
     { Viewport whose contents will be adjusted to show given level.
       Must be assigned before @link(LoadLevel). }
@@ -500,10 +497,9 @@ type
       )
     }
     property Player: TPlayer read FPlayer write SetPlayer;
-
-    { Instance of TLevelProperties to be passed to created creatures, items. }
-    function LevelProperties: TLevelProperties;
   end;
+
+  TLevelProperties = TAbstractLevel deprecated 'use TAbstractLevel';
 
   { Scene manager that can comfortably load and manage a 3D game level.
     It really adds only one new method to TCastleSceneManager:
@@ -532,7 +528,7 @@ type
     property Sectors: TSectorList read GetSectors;
     property Water: TBox3D read GetWater write SetWater;
     property Player: TPlayer read GetPlayer write SetPlayer;
-    function LevelProperties: TLevelProperties;
+    function LevelProperties: TAbstractLevel;
   end deprecated 'use TLevel together with a TCastleViewport';
 
   { Level logic. We use TCastleTransform descendant, since this is the comfortable
@@ -542,7 +538,7 @@ type
   TLevelLogic = class(TCastleTransform)
   strict private
     FTime: TFloatTime;
-    FLevelProperties: TLevelProperties;
+    FLevel: TAbstractLevel;
   protected
     { Load 3D scene from file, doing common tasks.
       @unorderedList(
@@ -576,12 +572,12 @@ type
       after creatures and items are added).
       You can modify MainScene contents here.
 
-      @param(LevelProperties
+      @param(Level
 
-        Instance of TLevelProperties, in particular with the root of level transformation
-        in LevelProperties.RootTransform.
+        Instance of TLevel, in particular with the root of level transformation
+        in Level.RootTransform.
 
-        The created TLevelLogic instance will be added to this LevelProperties.RootTransform,
+        The created TLevelLogic instance will be added to this Level.RootTransform,
         and it must stay there always.
 
         Passing it in constructor is necessary, as TLevelLogic descendants at
@@ -602,7 +598,7 @@ type
       )
     }
     constructor Create(const AOwner: TComponent;
-      const ALevelProperties: TLevelProperties;
+      const ALevel: TAbstractLevel;
       const MainScene: TCastleScene; const DOMElement: TDOMElement); reintroduce; virtual;
     function LocalBoundingBox: TBox3D; override;
 
@@ -677,28 +673,6 @@ begin
   Result := FLevels;
 end;
 
-{ TLevelPropertiesConcrete --------------------------------------------------- }
-
-function TLevel.TLevelPropertiesConcrete.Player: TCastleTransform;
-begin
-  Result := Level.Player;
-end;
-
-function TLevel.TLevelPropertiesConcrete.Sectors: TSectorList;
-begin
-  Result := Level.Sectors;
-end;
-
-function TLevel.TLevelPropertiesConcrete.RootTransform: TCastleRootTransform;
-begin
-  Result := Level.Viewport.Items;
-end;
-
-function TLevel.TLevelPropertiesConcrete.PrepareParams: TPrepareParams;
-begin
-  Result := Level.Viewport.PrepareParams;
-end;
-
 { TLevelInternalLogic -------------------------------------------------------- }
 
 procedure TLevel.TLevelInternalLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -712,8 +686,6 @@ end;
 constructor TLevel.Create(AOwner: TComponent);
 begin
   inherited;
-  FLevelProperties := TLevelPropertiesConcrete.Create;
-  FLevelProperties.Level := Self;
   FWater := TBox3D.Empty;
   FInternalLogic := TLevelInternalLogic.Create(Self);
   FInternalLogic.Level := Self;
@@ -740,14 +712,32 @@ begin
 
   FreeAndNil(FSectors);
   FreeAndNil(Waypoints);
-  FreeAndNil(FLevelProperties);
   FreeAndNil(FInternalLogic);
 
   inherited;
 end;
 
-function TLevel.Placeholder(Shape: TShape;
-  PlaceholderName: string): boolean;
+function TLevel.GetPlayer: TCastleTransform;
+begin
+  Result := FPlayer;
+end;
+
+function TLevel.GetSectors: TSectorList;
+begin
+  Result := FSectors;
+end;
+
+function TLevel.RootTransform: TCastleRootTransform;
+begin
+  Result := Viewport.Items;
+end;
+
+function TLevel.PrepareParams: TPrepareParams;
+begin
+  Result := Viewport.PrepareParams;
+end;
+
+function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): boolean;
 const
   { Prefix of all placeholders that we seek on 3D models. }
   PlaceholderPrefix = 'Cas';
@@ -799,7 +789,7 @@ const
     Direction := Info.PlaceholderReferenceDirection;
     Direction := Shape.State.Transform.MultDirection(Direction);
 
-    Resource.InstantiatePlaceholder(FLevelProperties, Position, Direction,
+    Resource.InstantiatePlaceholder(Self, Position, Direction,
       ResourceNumberPresent, ResourceNumber);
   end;
 
@@ -1105,7 +1095,7 @@ begin
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
     { create new Logic }
-    FLogic := Info.LogicClass.Create(Self, FLevelProperties, Items.MainScene, Info.Element);
+    FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
     Items.Add(Logic);
     Items.Add(FInternalLogic);
 
@@ -1238,13 +1228,8 @@ begin
   { No need to setup FreeNotification, as AvoidNavigationCollisions will already set it }
   FPlayer := Value;
   if FPlayer <> nil then
-    FPlayer.InternalLevelProperties := FLevelProperties;
+    FPlayer.InternalLevel := Self;
   Viewport.AvoidNavigationCollisions := Value;
-end;
-
-function TLevel.LevelProperties: TLevelProperties;
-begin
-  Result := FLevelProperties;
 end;
 
 procedure TLevel.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1325,21 +1310,21 @@ begin
   FLevel.UnloadLevel;
 end;
 
-function TGameSceneManager.LevelProperties: TLevelProperties;
+function TGameSceneManager.LevelProperties: TAbstractLevel;
 begin
-  Result := FLevel.LevelProperties;
+  Result := FLevel;
 end;
 
 { TLevelLogic ---------------------------------------------------------------- }
 
 constructor TLevelLogic.Create(const AOwner: TComponent;
-  const ALevelProperties: TLevelProperties;
+  const ALevel: TAbstractLevel;
   const MainScene: TCastleScene; const DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  FLevelProperties := ALevelProperties;
+  FLevel := ALevel;
 
-  AddToWorld(ALevelProperties.RootTransform);
+  AddToWorld(ALevel.RootTransform);
 
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
@@ -1373,7 +1358,7 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, FLevelProperties.PrepareParams);
+  Result.PrepareResources(Options, false, FLevel.PrepareParams);
 
   if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];

@@ -214,7 +214,7 @@ begin
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to Viewport.Items }
-  CreatureResource.CreateCreature(Level.LevelProperties, Translation, Direction);
+  CreatureResource.CreateCreature(Level, Translation, Direction);
 
   // update and show CreaturesSpawned
   Inc(CreaturesSpawned);
@@ -234,7 +234,7 @@ begin
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
     instance) and adds it to Viewport.Items. }
-  ItemResource.CreateItem(1).PutOnWorld(Level.LevelProperties, Translation);
+  ItemResource.CreateItem(1).PutOnWorld(Level, Translation);
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
