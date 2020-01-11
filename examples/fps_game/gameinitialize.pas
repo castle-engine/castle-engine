@@ -28,14 +28,15 @@ uses SysUtils, Classes,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
-  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
+  CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
 
 var
-  Window: TCastleWindowTouch;
-  SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
-  Player: TPlayer; //< same thing as Window.SceneManager.Player
+  Window: TCastleWindowBase;
+  Level: TLevel;
+  Player: TPlayer;
+  Viewport: TCastleViewport;
   ExtraViewport: TCastleViewport;
   CreaturesSpawned: Integer;
 
@@ -212,8 +213,8 @@ begin
   Translation.Data[1] := Translation.Data[1] + 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
-  { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
-  CreatureResource.CreateCreature(SceneManager.LevelProperties, Translation, Direction);
+  { CreateCreature creates TCreature instance and adds it to Viewport.Items }
+  CreatureResource.CreateCreature(Level.LevelProperties, Translation, Direction);
 
   // update and show CreaturesSpawned
   Inc(CreaturesSpawned);
@@ -232,8 +233,8 @@ begin
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
-    instance) and adds it to SceneManager.Items. }
-  ItemResource.CreateItem(1).PutOnWorld(SceneManager.LevelProperties, Translation);
+    instance) and adds it to Viewport.Items. }
+  ItemResource.CreateItem(1).PutOnWorld(Level.LevelProperties, Translation);
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
@@ -259,13 +260,11 @@ procedure TPlayerHUD.Render;
 const
   InventoryImageSize = 128;
 var
-  Player: TPlayer;
   I: Integer;
   X, Y: Single;
   S: string;
 begin
   inherited;
-  Player := SceneManager.Player;
 
   Y := ContainerHeight;
 
@@ -460,13 +459,12 @@ begin
     https://castle-engine.io/tutorial_user_prefs.php . }
   //UserConfig.Load;
 
-  { Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
-    gives you a ready instance of SceneManager. SceneManager is a very
-    important object in our engine: it contains the whole knowledge about
-    your 3D world. In fact, we will use it so often that it's comfortable
-    to assign it to a handy variable SceneManager,
-    instead of always writing "Window.SceneManager". }
-  SceneManager := Window.SceneManager;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
+
+  Level := TLevel.Create(Application);
+  Level.Viewport := Viewport;
 
   { Load named sounds defined in sounds/index.xml }
   SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
@@ -480,36 +478,29 @@ begin
   Theme.OwnsImages[tiActiveFrame] := true;
   Theme.Corners[tiActiveFrame] := Vector4(38, 38, 38, 38);
 
-  { Create extra viewport to observe the 3D world.
-
-    Note that (by default) SceneManager has two functions:
-    1.The primary function of SceneManager is to keep track of everything inside
-      your 3D world.
-    2.In addition, by default it acts as a full-screen viewport
-      that allows you to actually see and interact with the 3D world.
-
-    But the 2nd feature (SceneManager as viewport) is completely optional
-    and configurable. You can turn it off by SceneManager.DefaultViewport := false.
-    Or you can configure size of the viewport by
-    by SceneManager.FullSize and SceneManager.Left/Bottom/Width/Height.
-
-    Regardless of this, you can also always add additional viewports by
-    TCastleViewport. TCastleViewport refers to the existing SceneManager
-    for 3D world information, like below.
-    Each viewport has it's own camera, so you can even interact with it
-    (the viewport created below uses Examine camera).
+  { Create extra viewport to observe the world.
+    You can always add additional viewports.
+    Each viewport has it's own camera and navigation.
     See
     examples/3d_rendering_processing/multiple_viewports and
     examples/2d_standard_ui/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
-  ExtraViewport.SceneManager := SceneManager;
+  ExtraViewport.Items := Viewport.Items; // share the same world as Viewport
   ExtraViewport.FullSize := false;
   ExtraViewport.Width := 150;
   ExtraViewport.Height := 400;
   ExtraViewport.Anchor(vpMiddle);
   ExtraViewport.Anchor(hpRight, -ControlsMargin);
-  { We insert ExtraViewport to Controls before SceneManager, to be on top. }
   Window.Controls.InsertFront(ExtraViewport);
+
+  { Initialize ExtraViewport.Camera to nicely see the level from above. }
+  ExtraViewport.Camera.SetView(
+    { position } Vector3(0, 55, 44),
+    { direction } Vector3(0, -1, 0),
+    { up } Vector3(0, 0, -1), false
+  );
+  { Allow user to actually edit this view, e.g. by mouse scroll. }
+  ExtraViewport.NavigationType := ntExamine;
 
   { Assign callbacks to some window events.
     Note about initial events: Window.Open calls OnOpen and first OnResize events,
@@ -521,9 +512,13 @@ begin
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
 
+(* TODO: TCastleWindowTouch is deprecated now.
+   Fixing this needs upgrading TCastleTouchNavigation to be easily added to Viewport.
+
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
   Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
+*)
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
@@ -553,36 +548,24 @@ begin
     item can be equipped and used to hurt enemies), footsteps and some other
     nice stuff.
 
-    It's best to assign SceneManager.Player before SceneManager.LoadLevel,
-    then Player.Camera is automatically configured as SceneManager.Camera
+    It's best to assign Level.Player before Level.LoadLevel,
+    then Player.Navigation is automatically configured as Viewport.Navigation
     and it follows level's properties like PreferredHeight (from level's
     NavigationInfo.avatarSize). }
-  Player := TPlayer.Create(SceneManager);
-  SceneManager.Items.Add(Player);
-  SceneManager.Player := Player;
+  Player := TPlayer.Create(Application);
+  Viewport.Items.Add(Player);
+  Level.Player := Player;
 
   { Load initial level.
     This loads and adds 3D model of your level to the 3D world
-    (that is to SceneManager.Items). It may also load initial creatures/items
+    (that is to Viewport.Items). It may also load initial creatures/items
     on levels, waypoints/sectors and other information from so-called
     "placeholders" on the level, see TLevel.LoadLevel documentation. }
-  SceneManager.LoadLevel('example_level');
-
-  { Initialize ExtraViewport camera to something
-    that nicely views the scene from above. }
-  ExtraViewport.NavigationType := ntExamine;
-  ExtraViewport.Camera.SetView(
-    { position } Vector3(0, 55, 44),
-    { direction } Vector3(0, -1, 0),
-    { up } Vector3(0, 0, -1), false
-  );
-  { Note we allow user to actually edit this view, e.g. by mouse dragging.
-    But you could always do this to make camera non-editable: }
-  // ExtraViewport.Camera.Input := [];
+  Level.LoadLevel('example_level');
 
   { Maybe adjust some rendering properties?
-    (SceneManager.MainScene was initialized by SceneManager.LoadLevel) }
-  // SceneManager.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
+    (Viewport.Items.MainScene was initialized by Level.LoadLevel) }
+  // Viewport.Items.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
 
   { Add some buttons.
     We use TCastleButton from CastleControls unit for buttons,
