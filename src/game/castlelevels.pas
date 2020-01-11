@@ -533,7 +533,7 @@ type
     property Water: TBox3D read GetWater write SetWater;
     property Player: TPlayer read GetPlayer write SetPlayer;
     function LevelProperties: TLevelProperties;
-  end;
+  end deprecated 'use TLevel together with a TCastleViewport';
 
   { Level logic. We use TCastleTransform descendant, since this is the comfortable
     way to add any behavior to the game world (it doesn't matter that
