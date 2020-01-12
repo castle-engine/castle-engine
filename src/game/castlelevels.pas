@@ -1098,6 +1098,8 @@ begin
     FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
     Items.Add(Logic);
     Items.Add(FInternalLogic);
+    if Items.List.IndexOf(Player) = -1 then
+      Items.Add(Player);
 
     { We will calculate new Sectors and Waypoints and other stuff
       based on placeholders. Initialize them now to be empty. }
@@ -1225,6 +1227,13 @@ end;
 
 procedure TLevel.SetPlayer(const Value: TPlayer);
 begin
+  if (not (csDestroying in ComponentState)) and
+     (Value <> nil) and
+     (FInfo <> nil) then
+    { Setting Player not allowed now, as Load() would not have a chance to properly
+      process it, e.g. setting Player.Navigation as Viewport.Navigation. }
+    raise EInternalError.Create('Do not assign TLevel.Player after calling TLevel.Load');
+
   { No need to setup FreeNotification, as AvoidNavigationCollisions will already set it }
   FPlayer := Value;
   if FPlayer <> nil then

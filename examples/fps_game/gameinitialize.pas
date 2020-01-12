@@ -551,18 +551,19 @@ begin
   //Levels.LoadFromFiles; // on non-Android, this finds all level.xml files in data
   Levels.AddFromFile('castle-data:/example_level/level.xml');
 
-  { Create player. This is necessary to represent the player as anything
-    more than a camera. Player adds inventory, with automatic picking of items
-    by default, health (can be hurt by enemies), equipping weapon (a special
-    item can be equipped and used to hurt enemies), footsteps and some other
-    nice stuff.
+  { Create player. Player implements:
+    - inventory,
+    - automatic picking of items by default,
+    - health (can be hurt by enemies),
+    - equipping weapon (a special item can be equipped and used to hurt enemies),
+    - footsteps
+    - and some other nice stuff.
+    - Player.Navigation is also automatically configured as Viewport.Navigation
+      and it follows level's properties like PreferredHeight (from level's
+      NavigationInfo.avatarSize).
 
-    It's best to assign Level.Player before Level.Load,
-    then Player.Navigation is automatically configured as Viewport.Navigation
-    and it follows level's properties like PreferredHeight (from level's
-    NavigationInfo.avatarSize). }
+    We must assign Level.Player before Level.Load. }
   Player := TPlayer.Create(Application);
-  Viewport.Items.Add(Player);
   Level.Player := Player;
 
   { Load initial level.
