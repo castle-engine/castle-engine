@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
-  CastleTransform, CastleFrustum, CastleSceneManager, CastleURIUtils,
+  CastleTransform, CastleFrustum, CastleViewport, CastleURIUtils,
   CastleRectangles, CastleControls, CastleRendererBaseTypes,
   CastleApplicationProperties, CastleLog, CastleScene, X3DLoad,
   TerrainScene;
@@ -36,7 +36,7 @@ type
 
 var
   { global stuff }
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
   Scene: TTerrainScene; //< terrain
   EnvironmentScene: TCastleScene; //< defines sky (background) and fog
   ExamineNavigation: TCastleExamineNavigation;
@@ -50,7 +50,7 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
-  Size: Single = 10.0;
+  Size: Single = 100.0;
   OnScreenMenuVisible: boolean = true;
 
 procedure UpdateScene;
@@ -98,7 +98,7 @@ begin
 
   SizeSlider := TCastleFloatSlider.Create(Self);
   SizeSlider.Min := 5;
-  SizeSlider.Max := 100;
+  SizeSlider.Max := 1000;
   SizeSlider.Value := Size;
   SizeSlider.OnChange := @SizeChanged;
 
@@ -297,7 +297,7 @@ var
   OnScreenMenuNoise: TOnScreenMenuNoise;
   OnScreenMenuImage: TOnScreenMenuImage;
   OnScreenMenuGeneral: TOnScreenMenuGeneral;
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
 
 { Current TCastleOnScreenMenu, or none, based on Terrain class and OnScreenMenuVisible. }
 function CurrentOnScreenMenu: TBaseOnScreenMenu;
@@ -382,7 +382,7 @@ begin
 
     if Value then
     begin
-      SceneManager.Navigation := ExamineNavigation;
+      Viewport.Navigation := ExamineNavigation;
       ExamineNavigation.Init(Box3D(
         Vector3(-1, -1, -1),
         Vector3( 1,  1,  1)), { Radius } 0.2);
@@ -393,7 +393,7 @@ begin
       );
     end else
     begin
-      SceneManager.Navigation := WalkNavigation;
+      Viewport.Navigation := WalkNavigation;
       WalkNavigation.Init(
         Vector3(0, 10, 0),
         Vector3(0, 0, -1),
@@ -410,9 +410,9 @@ begin
 
       { Make movement possible only within the world box,
         and make gravity work even if you're far above the world. }
-      MoveLimit := SceneManager.Items.BoundingBox;
+      MoveLimit := Viewport.Items.BoundingBox;
       MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-      SceneManager.MoveLimit := MoveLimit;
+      Viewport.Items.MoveLimit := MoveLimit;
     end;
   end;
 end;
@@ -618,7 +618,7 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (ElevationGrid) ...', 1000));
     M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { SceneManager.Navigation = WalkNavigation }, true));
+    M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { Viewport.Navigation = WalkNavigation }, true));
     M.Append(TMenuItemChecked.Create('Mouse Look in Walk Mode', 125, CtrlM, false { initial WalkNavigation.MouseLook }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
@@ -665,17 +665,18 @@ begin
   Scene := TTerrainScene.Create(Window);
   Scene.Spatial := [ssDynamicCollisions]; // for proper walking
 
-  SceneManager := Window.SceneManager;
-  SceneManager.AutoNavigation := false;
-  SceneManager.AutoCamera := false;
-  SceneManager.Items.Add(Scene);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
+
+  Viewport.Items.Add(Scene);
   NavigationExamine := false; // do this only to make sure SetNavigationExamine updates state
   SetNavigationExamine(true);
 
   EnvironmentScene := TCastleScene.Create(Window);
   EnvironmentScene.Load('castle-data:/environment/environment.x3dv');
-  SceneManager.Items.Add(EnvironmentScene);
-  SceneManager.MainScene := EnvironmentScene;
+  Viewport.Items.Add(EnvironmentScene);
+  Viewport.Items.MainScene := EnvironmentScene;
 
   Window.OnMenuClick := @MenuClick;
   Window.FpsShowOnCaption := true;
@@ -706,7 +707,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   Window.MainMenu := CreateMainMenu;

@@ -141,11 +141,11 @@ type
       you can call
 
       @longCode(#
-        SceneManager.Player.PickItem(Sword.CreateItem(1));
+        Player.PickItem(Sword.CreateItem(1));
       #)
 
-      This assumes that you use SceneManager.Player property. It's not really
-      obligatory, but it's the simplest way to have player with an inventory.
+      This assumes that you have Player (TPlayer) instance.
+      It's the simplest way to have player with an inventory.
       See engine tutorial for examples how to create player.
       Anyway, if you have any TInventory instance, you can use
       TInventory.Pick to add TInventoryItem this way. }
@@ -817,7 +817,7 @@ var
     Hit: TRayCollision;
   begin
     { TODO: allow some helpers for aiming,
-      similar to TCastleSceneManager.ApproximateActivation
+      similar to TCastleViewport.ApproximateActivation
       or maybe just collide a tube (not infinitely thin ray) with world. }
     Hit := Attacker.Ray(Attacker.Middle, Attacker.Direction);
     if Hit <> nil then

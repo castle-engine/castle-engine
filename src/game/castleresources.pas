@@ -151,19 +151,6 @@ type
     For this purpose, it has a unique identifier in @link(Name) property. }
   T3DResource = class
   private
-  { Internal design notes: Having resource expressed as
-    T3DResource instance, as opposed to overusing dummy T3D instances
-    for it, is sometimes good. That's because such resource may be shared by many
-    3D objects, may be used for different purposes by various 3D objects
-    (e.g. various creatures may be in different state / animation time),
-    it's users (3D objects) may not always initially exist on the level
-    (e.g. TInventoryItem, that is not even T3D, may refer to it), etc.
-    There were ideas to unify T3DResource to be like a T3D descendant
-    (or ancestor), but they turned out to cause more confusion (special cases,
-    special treatment) than the gain from unification (which would
-    be no need of Resources list in TCastleSceneManager, simple
-    TCastleSceneManager.Items would suffice.) }
-
     FName: string;
     FPrepared: boolean;
     FUsageCount: Cardinal;

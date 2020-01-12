@@ -38,53 +38,16 @@ type
 type
   T3DEditorForm = class(TComponent)
     Control: TCastleControl;
-    SceneManager: TCastleSceneManager; //< just a shortcut for TCastleControl.SceneManager now
-    Items: TCastleRootTransform; //< just a shortcut for SceneManager.Items now
     procedure ShowModal;
   end;
 
 procedure T3DEditorForm.ShowModal;
-var
-  Transform: TCastleTransform;
-  Scene: TCastleScene;
-  Root: TX3DRootNode;
-  Shape: TShapeNode;
 begin
-  if MessageDlg('Edit Game World',
-    'TODO: Here we will implement a real editor to edit SceneManager.Items.' + NL +
-    NL +
-    'For now: do you want to add a yellow 3D sphere to your world (with a little randomized location)?',
+  if MessageDlg('Edit Castle Game Engine Contents',
+    'TODO: Here we will implement a real editor to edit TCastleUserInterface.' + NL +
+    'For now: activate CGE rendering?',
     mtConfirmation, mbYesNo, 0) = mrYes then
   begin
-    Shape := TShapeNode.Create;
-    Shape.Geometry := TSphereNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := YellowRGB;
-
-    Root := TX3DRootNode.Create;
-    Root.AddChildren(Shape);
-
-    Scene := TCastleScene.Create(Items);
-    Scene.Load(Root, true);
-
-    Transform := TCastleTransform.Create(Items);
-    Transform.Translation := Vector3(
-      RandomFloatRange(-1, 1),
-      RandomFloatRange(-1, 1),
-      RandomFloatRange(-1, 1)
-    );
-    Transform.Add(Scene);
-
-    Items.Add(Transform);
-
-    if SceneManager <> nil then
-    begin
-      // set MainScene, to set headlight
-      if SceneManager.MainScene = nil then
-        SceneManager.MainScene := Scene;
-      SceneManager.AssignDefaultCamera;
-    end;
-
     {$ifdef HAS_RENDER_AT_DESIGN_TIME}
     Control.Options := Control.Options + [ocoRenderAtDesignTime];
     {$endif}
@@ -132,15 +95,11 @@ procedure TCastleControlComponentEditor.DoShowEditor;
 var
   Dialog: T3DEditorForm;
   Control: TCastleControl;
-  SceneManager: TCastleSceneManager;
 begin
   Dialog := T3DEditorForm.Create(nil);
   try
     Control := GetComponent as TCastleControl;
-    SceneManager := Control.SceneManager;
     Dialog.Control := Control;
-    Dialog.Items := SceneManager.Items;
-    Dialog.SceneManager := SceneManager;
     Dialog.ShowModal;
     Control.Invalidate;
   finally FreeAndNil(Dialog) end;
@@ -155,7 +114,7 @@ end;
 
 function TCastleControlComponentEditor.GetVerb(Index: Integer): String;
 begin
-  Result := 'Edit the Game World (SceneManager.Items)...';
+  Result := 'Edit In Castle Game Engine...';
 end;
 
 function TCastleControlComponentEditor.GetVerbCount: Integer;
@@ -165,9 +124,6 @@ end;
 
 procedure RegisterPropEditsControls;
 begin
-  // TODO: the SceneManager.Items, actually complete TCastleControl,
-  // should be editable using new CGE editor now.
-
   { TODO: crashes
   RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlBase,
     'Controls', TChildrenControlsPropertyEditor);

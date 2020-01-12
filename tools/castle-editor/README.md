@@ -31,7 +31,7 @@ You can visually design:
 
     Saved as `xxx.castle-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
-* a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
+* a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleViewport.Items`.
 
     Saved as `xxx.castle-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
 

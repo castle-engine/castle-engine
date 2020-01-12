@@ -46,7 +46,7 @@ type
     carries a backpack, may cause fadeout effects on screen and such.
 
     Note that you can operate on player even before level is loaded,
-    before TCastleSceneManager and such are initialized.
+    before TLevel or TCastleViewport are initialized.
     This allows to create player before level is started
     (create it from scratch, or by loading from save game),
     and "carry" the same player instance across various loaded levels.
@@ -772,7 +772,7 @@ begin
     Navigation.Camera.SetView(P, D, U);
   except
     on EViewportNotAssigned do
-      WritelnWarning('Changing TCastlePlayer transformation (like position) before the TCastlePlayer.Navigation is assigned as SceneManager.Navigation is ignored');
+      WritelnWarning('Changing TCastlePlayer transformation (like position) before the TCastlePlayer.Navigation is assigned as TCastleViewport.Navigation is ignored');
   end;
 end;
 
@@ -788,7 +788,7 @@ begin
     Dec(InsideSynchronizeFromNavigation);
   except
     on EViewportNotAssigned do
-      WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if SceneManager.Navigation is not yet associated with TCastlePlayer.Navigation');
+      WritelnWarning('Adjusting TCastlePlayer transformation (like position) in PrepareResources is aborted if TCastleViewport.Navigation is not yet associated with TCastlePlayer.Navigation');
   end;
 end;
 
