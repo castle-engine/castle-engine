@@ -708,7 +708,7 @@ begin
       FreeAndNil(FLevels);
   end;
 
-  { unregister free notification from these objects }
+  { unregister free notification from this }
   Player := nil;
 
   FreeAndNil(FSectors);
@@ -1271,21 +1271,25 @@ begin
       process it, e.g. setting Player.Navigation as Viewport.Navigation. }
     raise EInternalError.Create('Do not assign TLevel.Player after calling TLevel.Load');
 
-  { No need to setup FreeNotification, as AvoidNavigationCollisions will already set it }
-  FPlayer := Value;
-  if FPlayer <> nil then
-    FPlayer.InternalLevel := Self;
-  Viewport.AvoidNavigationCollisions := Value;
+  if FPlayer <> Value then
+  begin
+    if FPlayer <> nil then
+      FPlayer.RemoveFreeNotification(Self);
+    FPlayer := Value;
+    if FPlayer <> nil then
+    begin
+      FPlayer.FreeNotification(Self);
+      FPlayer.InternalLevel := Self;
+    end;
+    Viewport.AvoidNavigationCollisions := Value;
+  end;
 end;
 
 procedure TLevel.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
-  { FPlayer is equal to FAvoidNavigationCollisions,
-    so we get free notification about it.
-    Use it to set to nil FPlayer reference. }
   if (Operation = opRemove) and (AComponent = FPlayer) then
-    FPlayer := nil;
+    Player := nil;
 end;
 
 { TGameSceneManager ---------------------------------------------------------- }
