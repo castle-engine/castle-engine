@@ -100,10 +100,12 @@ begin
     begin
       NewBackendInfo.DeviceInitialized := true;
       SetLength( NewJoystick.Info.Name, 256 );
-      FpIOCtl( NewBackendInfo.Device, JSIOCGNAME,    @NewJoystick.Info.Name[ 1 ] );
-      FpIOCtl( NewBackendInfo.Device, JSIOCGAXMAP,   @NewBackendInfo.AxesMap[ 0 ] );
-      FpIOCtl( NewBackendInfo.Device, JSIOCGAXES,    @NewJoystick.Info.Count.Axes );
-      FpIOCtl( NewBackendInfo.Device, JSIOCGBUTTONS, @NewJoystick.Info.Count.Buttons );
+      { TODO: why is cast to TIOCtlRequest needed (with FPC 3.3.1-r43920),
+        we should probably fix the definition of JSIOCGNAME etc. instead. }
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGNAME),    @NewJoystick.Info.Name[ 1 ] );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXMAP),   @NewBackendInfo.AxesMap[ 0 ] );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGAXES),    @NewJoystick.Info.Count.Axes );
+      FpIOCtl( NewBackendInfo.Device, TIOCtlRequest(JSIOCGBUTTONS), @NewJoystick.Info.Count.Buttons );
 
       for j := 0 to NewJoystick.Info.Count.Axes - 1 do
         with NewJoystick.Info do
