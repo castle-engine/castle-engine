@@ -1008,7 +1008,7 @@ type
     { Update generated texture for this shape.
 
       The given camera position, direction, up should be in world space
-      (that is, in TCastleSceneManager space,
+      (that is, in TCastleRootTransform space,
       not in space local to this TCastleScene).
 
       This does not change current viewport or projection matrix. }

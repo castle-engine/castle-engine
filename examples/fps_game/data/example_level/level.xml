@@ -6,7 +6,7 @@
   for extensive documentation of available properties, in short:
 
   - name: used to refer to this level from ObjectPascal code,
-    e.g. in SceneManager.Load(...)
+    e.g. in TLevel.Load(...)
 
   - type: indicates ObjectPascal class used to handle this level logic,
     usually just 'Level' to use standard TLevelLogic class.

@@ -20,7 +20,7 @@ unit GameStateMain;
 interface
 
 uses CastleUIState, CastleScene, CastleControls,
-  CastleKeysMouse, CastleColors, CastleSceneManager, CastleUIControls;
+  CastleKeysMouse, CastleColors, CastleUIControls;
 
 type
   { Main user interface class.

@@ -19,17 +19,17 @@ unit GameStatePlay;
 interface
 
 uses Classes, CastleControls, CastleUIState, CastleOnScreenMenu,
-  CastleSceneManager, CastleSceneCore, CastleScene,
+  CastleViewport, CastleSceneCore, CastleScene,
   CastleCameras, CastleKeysMouse;
 
 type
   TStatePlay = class(TUIState)
   strict private
     Background: TCastleRectangleControl;
-    SceneManager: TCastleSceneManager;
-    Scene: TCastleScene;
-    ViewportRect: TCastleRectangleControl;
     Viewport: TCastleViewport;
+    Scene: TCastleScene;
+    MapViewportRect: TCastleRectangleControl;
+    MapViewport: TCastleViewport;
     ButtonBack: TCastleButton;
     LabelInstructions: TCastleLabel;
     procedure BackClick(Sender: TObject);
@@ -70,44 +70,45 @@ begin
     This is actually the default now. }
   //Scene.Attributes.BlendingSort := bs3D;
 
-  SceneManager := TCastleSceneManager.Create(FreeAtStop);
-  SceneManager.FullSize := false;
-  SceneManager.Left := 10;
-  SceneManager.Bottom := 10;
-  SceneManager.Width := 800;
-  SceneManager.Height := 748;
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
-  SceneManager.NavigationType := ntWalk;
-  SceneManager.WalkNavigation.MoveSpeed := 10;
-  { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
-  SceneManager.WalkNavigation.HeadBobbing := 0;
-  InsertFront(SceneManager);
-
-  ViewportRect := TCastleRectangleControl.Create(FreeAtStop);
-  ViewportRect.FullSize := false;
-  ViewportRect.Left := 820;
-  ViewportRect.Bottom := 10;
-  ViewportRect.Width := 256;
-  ViewportRect.Height := 256;
-  ViewportRect.Color := Silver;
-  InsertFront(ViewportRect);
-
   Viewport := TCastleViewport.Create(FreeAtStop);
+  Viewport.AutoCamera := true;
   Viewport.FullSize := false;
   Viewport.Left := 10;
   Viewport.Bottom := 10;
-  Viewport.Width := 236;
-  Viewport.Height := 236;
-  Viewport.SceneManager := SceneManager;
-  Viewport.Transparent := true;
-  Viewport.NavigationType := ntNone;
-  Viewport.AutoCamera := false;
-  Viewport.Camera.SetView(
+  Viewport.Width := 800;
+  Viewport.Height := 748;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+  Viewport.NavigationType := ntWalk;
+  Viewport.WalkNavigation.MoveSpeed := 10;
+  { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
+  Viewport.WalkNavigation.HeadBobbing := 0;
+  InsertFront(Viewport);
+
+  MapViewportRect := TCastleRectangleControl.Create(FreeAtStop);
+  MapViewportRect.FullSize := false;
+  MapViewportRect.Left := 820;
+  MapViewportRect.Bottom := 10;
+  MapViewportRect.Width := 256;
+  MapViewportRect.Height := 256;
+  MapViewportRect.Color := Silver;
+  InsertFront(MapViewportRect);
+
+  MapViewport := TCastleViewport.Create(FreeAtStop);
+  MapViewport.FullSize := false;
+  MapViewport.Left := 10;
+  MapViewport.Bottom := 10;
+  MapViewport.Width := 236;
+  MapViewport.Height := 236;
+  MapViewport.Items := Viewport.Items;
+  MapViewport.Transparent := true;
+  MapViewport.NavigationType := ntNone;
+  MapViewport.AutoCamera := false;
+  MapViewport.Camera.SetView(
     Vector3(5, 92.00, 0.99),
     Vector3(0, -1, 0),
     Vector3(0, 0, 1));
-  ViewportRect.InsertFront(Viewport);
+  MapViewportRect.InsertFront(MapViewport);
 
   LabelInstructions := TCastleLabel.Create(FreeAtStop);
   LabelInstructions.Caption :=
@@ -131,14 +132,14 @@ begin
   inherited;
 
   { Without setting ForceCaptureInput, inputs are only passed
-    when mouse cursor is over the SceneManager.
+    when mouse cursor is over the Viewport.
 
     Usually you set such things in Start method, but here we need to be
     prepared that we may be covered by the transparent StateAskDialog state.
     When StateAskDialog is active, we do *not* want to forcefully capture input
     (it would allow user to move by mouse dragging when StateAskDialog is open).
     So we set this in Resume, and turn off in Pause. }
-  StateContainer.ForceCaptureInput := SceneManager;
+  StateContainer.ForceCaptureInput := Viewport.Navigation;
 end;
 
 procedure TStatePlay.Pause;
@@ -161,7 +162,7 @@ begin
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    Triangle := SceneManager.TriangleHit;
+    Triangle := Viewport.TriangleHit;
     if (Triangle <> nil) and
        ( (Triangle^.Material.X3DName = 'MA_female_zombie_material') or
          (Triangle^.Material.X3DName = 'MA_male_zombie_material')) then

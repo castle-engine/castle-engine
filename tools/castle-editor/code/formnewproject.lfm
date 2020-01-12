@@ -2792,7 +2792,7 @@ object NewProjectForm: TNewProjectForm
     object ButtonTemplate2D: TSpeedButton
       Left = 480
       Height = 220
-      Hint = 'Application using TCastle2DScene and TCastle2DSceneManager to display animated 2D character and level.'
+      Hint = 'Application using TCastleScene and TCastleViewport to display animated 2D character in a 2D level.'
       Top = 8
       Width = 206
       Caption = 'TODO: 2D Game'

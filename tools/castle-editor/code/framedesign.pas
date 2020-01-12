@@ -929,7 +929,7 @@ begin
   DesignOwner := NewDesignOwner;
   FDesignModified := DesignUrl = ''; // when opening '', mark new hierarchy modified
 
-  // Allows object inspectors to find matching components, e.g. when editing SceneManager.MainScene
+  // Allows object inspectors to find matching components, e.g. when editing Viewport.Items.MainScene
   PropertyEditorHook.LookupRoot := DesignOwner;
 
   UpdateDesign;
@@ -1028,7 +1028,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
       ParentComponent.InsertFront(NewUserInterface);
       FinishAddingComponent(NewUserInterface);
     end else
-      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select SceneManager.Items.',
+      ErrorBox(Format('Cannot add component class %s when the parent is a TCastleUserInterface descendant (%s). Select a parent that descends from TCastleTransform, for example select Viewport.Items.',
         [ComponentClass.ClassName, ParentComponent.ClassName]))
   end;
 
@@ -1322,9 +1322,9 @@ function TDesignFrame.ComponentCaption(const C: TComponent): String;
     Result := C.ClassName;
 
     // hide some internal classes by instead displaying ancestor name
-    if (C = TControlGameSceneManager) or
-       (C = TCastleRootTransform) then
-      Result := ClassCaption(C.ClassParent);
+    // No point in doing this now
+    // if C = Txxx then
+    //   Result := ClassCaption(C.ClassParent);
   end;
 
 begin

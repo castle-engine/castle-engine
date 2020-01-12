@@ -663,7 +663,7 @@ type
       The scene manager should use this to render background.
 
       You should not access the background this way in your own code.
-      This is public only because our own TCastleSceneManager needs to access it.
+      This is public only because our own TCastleViewport needs to access it.
 
       If you want to change the background,
       instead of using this internal reference,
@@ -789,8 +789,8 @@ type
     but you don't use scene manager.
     Usually this should not be needed.
     This class may be removed at some point!
-    You should always try to use TCastleSceneManager to manage and render
-    3D stuff in new programs, and then TCastleSceneManager will take care of creating
+    You should always try to use TCastleViewport to manage and render
+    3D stuff in new programs, and then TCastleViewport will take care of creating
     proper render params instance for you. }
   TBasicRenderParams = class(TRenderParams)
   public
@@ -1526,7 +1526,7 @@ procedure TCastleScene.PrepareResources(
     { calculate OwnParams, GoodParams }
     if Params = nil then
     begin
-      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
+      WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from Viewport.PrepareParams (create a temporary TCastleViewport if you need to).');
       OwnParams := TPrepareParams.Create;
       GoodParams := OwnParams;
     end else

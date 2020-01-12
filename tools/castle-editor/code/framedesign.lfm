@@ -685,7 +685,7 @@ object DesignFrame: TDesignFrame
         Width = 176
         BorderSpacing.Left = 32
         BorderSpacing.Right = 8
-        Caption = 'MySceneManager:'
+        Caption = 'MyViewport:'
         Layout = tlCenter
         ParentColor = False
         ParentFont = False
@@ -1430,7 +1430,7 @@ object DesignFrame: TDesignFrame
     top = 96
     object MenuItemViewportCameraSetInitial: TMenuItem
       Caption = 'Camera Initial (stored in design file) := Current'
-      Hint = 'Sets SceneManager.Camera InitialPosition/Direction/Up to current view, and sets SceneManager.AutoCamera to false.'
+      Hint = 'Sets Viewport.Camera InitialPosition/Direction/Up to current view, and sets Viewport.AutoCamera to false.'
       OnClick = MenuItemViewportCameraSetInitialClick
     end
     object MenuItemViewportCameraCurrentFromInitial: TMenuItem
@@ -1445,27 +1445,27 @@ object DesignFrame: TDesignFrame
       Caption = '-'
     end
     object MenuItemViewportCamera2DViewInitial: TMenuItem
-      Caption = 'Camera Setup (Initial and Current) for  2D View and Projection'
-      Hint = 'Call TCastleSceneManager.Setup2D'
+      Caption = 'Camera Setup (Initial and Current) for 2D View and Projection'
+      Hint = 'Call Viewport.Setup2D'
       OnClick = MenuItemViewportCamera2DViewInitialClick
     end
     object MenuItemSeparator2: TMenuItem
       Caption = '-'
     end
     object MenuViewportNavigationNone: TMenuItem
-      Caption = 'Set Navigation to None (SceneManager.Navigation := nil)'
+      Caption = 'Set Navigation to None (Viewport.Navigation := nil)'
       OnClick = MenuViewportNavigationNoneClick
     end
     object MenuViewportNavigationExamine: TMenuItem
-      Caption = 'Set Navigation to Examine (SceneManager.Navigation := TCastleExamineNavigation.Create)'
+      Caption = 'Set Navigation to Examine (Viewport.Navigation := TCastleExamineNavigation.Create)'
       OnClick = MenuViewportNavigationExamineClick
     end
     object MenuViewportNavigationFly: TMenuItem
-      Caption = 'Set Navigation to Fly (SceneManager.Navigation := TCastleWalkNavigation.Create, Gravity := false)'
+      Caption = 'Set Navigation to Fly (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := false)'
       OnClick = MenuViewportNavigationFlyClick
     end
     object MenuViewportNavigationWalk: TMenuItem
-      Caption = 'Set Navigation to Walk (SceneManager.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
+      Caption = 'Set Navigation to Walk (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
       OnClick = MenuViewportNavigationWalkClick
     end
     object MenuItemSeparator1: TMenuItem

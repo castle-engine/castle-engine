@@ -30,7 +30,7 @@ uses SysUtils, Classes, DOM,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleViewport,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -44,6 +44,7 @@ type
   public
     MyFontData: TTextureFontData;
     MyFont: TTextureFont;
+    SceneUsingText: TCastleScene;
     constructor Create;
     destructor Destroy; override;
     procedure GetFont(const FontStyle: TFontStyleNode; var Font: TTextureFontData);
@@ -123,8 +124,8 @@ begin
   { use custom font by default when rendering X3D text }
   TFontStyleNode.OnFont := @FontContainer.GetFont;
   { this is necessary to recalculate 3D shape of the text after font changes }
-  if Window.SceneManager.MainScene <> nil then
-    Window.SceneManager.MainScene.FontChanged;
+  if SceneUsingText <> nil then
+    SceneUsingText.FontChanged;
 end;
 
 procedure TFontContainer.ButtonExternalFontClick(Sender: TObject);
@@ -152,7 +153,7 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  Background: TCastleRectangleControl;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   TestLabel: TCastleLabel;
   Config: TCastleConfig;
@@ -166,26 +167,27 @@ begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
 
-  Background := TCastleRectangleControl.Create(Application);
-  Background.Color := Black;
-  Background.FullSize := true;
-  Window.Controls.InsertBack(Background);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load('castle-data:/scene.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
 
-  Window.SceneManager.FullSize := false;
-  Window.SceneManager.Anchor(hpRight, -10);
-  Window.SceneManager.Anchor(vpTop, -10);
-  Window.SceneManager.Width := 800;
-  Window.SceneManager.Height := 300;
-  Window.SceneManager.BackgroundColor := Gray;
-  Window.SceneManager.AutoCamera := false;
-  Window.SceneManager.Camera.SetView(
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+  FontContainer.SceneUsingText := Scene;
+
+  Viewport.FullSize := false;
+  Viewport.Anchor(hpRight, -10);
+  Viewport.Anchor(vpTop, -10);
+  Viewport.Width := 800;
+  Viewport.Height := 300;
+  Viewport.BackgroundColor := Gray;
+  Viewport.Camera.SetView(
     Vector3(2, -2, 10),
     Vector3(0.5, 0, -1),
     Vector3(0, 1, 0)
