@@ -26,12 +26,12 @@ uses SysUtils,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
-  CastleDownload, CastleMessages, CastleApplicationProperties;
+  CastleDownload, CastleMessages, CastleApplicationProperties, CastleViewport;
 
 { routines ------------------------------------------------------------------- }
 
 type
-  TPluginWindow = class(TCastleWindow)
+  TPluginWindow = class(TCastleWindowBase)
   protected
     function CreateContainer: TWindowContainer; override;
   end;
@@ -41,13 +41,14 @@ type
     procedure MessageClick(Sender: TObject);
     procedure ProgressClick(Sender: TObject);
   public
-    Parent: TPluginWindow;
+    Window: TPluginWindow;
+    Viewport: TCastleViewport;
     Scene: TCastleScene;
     Status: TCastleLabel;
     MessageButton: TCastleButton;
     ProgressButton: TCastleButton;
     URL, ErrorMessage: string;
-    constructor Create(AParent: TPluginWindow); reintroduce;
+    constructor Create(AWindow: TPluginWindow); reintroduce;
     procedure LoadScene(const AURL: string);
     procedure EventOpen(const OpenWindowsCount: Cardinal); override;
     procedure EventUpdate; override;
@@ -63,10 +64,10 @@ end;
 
 { TPluginWindowContainer ----------------------------------------------------- }
 
-constructor TPluginWindowContainer.Create(AParent: TPluginWindow);
+constructor TPluginWindowContainer.Create(AWindow: TPluginWindow);
 begin
-  inherited Create(AParent);
-  Parent := AParent;
+  inherited Create(AWindow);
+  Window := AWindow;
 end;
 
 procedure TPluginWindowContainer.LoadScene(const AURL: string);
@@ -76,7 +77,7 @@ begin
       the scene anyway }
     URL := AURL;
     { used for progress bar }
-    Application.MainWindow := Parent;
+    Application.MainWindow := Window;
     Scene.Load(AURL);
     Application.MainWindow := nil;
     ErrorMessage := '';
@@ -90,39 +91,46 @@ begin
   inherited;
 
   { used for progress bar }
-  Application.MainWindow := Parent;
+  Application.MainWindow := Window;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
   Scene.ShapeOctreeProgressTitle := 'Building shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Parent.SceneManager.Items.Add(Scene);
-  Parent.SceneManager.MainScene := Scene;
 
-  if Parent.NamedParameters.Values['cge_scene'] <> '' then
-    LoadScene(Parent.NamedParameters.Values['cge_scene']);
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+
+  if Window.NamedParameters.Values['cge_scene'] <> '' then
+    LoadScene(Window.NamedParameters.Values['cge_scene']);
 
   Application.MainWindow := nil;
 
   Status := TCastleLabel.Create(Self);
   Status.Frame := true;
   Status.Color := White;
-  Parent.Controls.InsertFront(Status);
+  Window.Controls.InsertFront(Status);
 
   MessageButton := TCastleButton.Create(Self);
   MessageButton.Caption := 'Test Modal Message';
   MessageButton.OnClick := @MessageClick;
   MessageButton.Bottom := 100;
   MessageButton.Left := 10;
-  Parent.Controls.InsertFront(MessageButton);
+  Window.Controls.InsertFront(MessageButton);
 
   ProgressButton := TCastleButton.Create(Self);
   ProgressButton.Caption := 'Test Progress Bar';
   ProgressButton.OnClick := @ProgressClick;
   ProgressButton.Bottom := 150;
   ProgressButton.Left := 10;
-  Parent.Controls.InsertFront(ProgressButton);
+  Window.Controls.InsertFront(ProgressButton);
 end;
 
 procedure TPluginWindowContainer.EventUpdate;
@@ -149,9 +157,9 @@ end;
 
 procedure TPluginWindowContainer.MessageClick(Sender: TObject);
 begin
-  if MessageYesNo(Parent, 'Test of a yes/no message. Click one of the buttons!') then
-    MessageOK(Parent, 'You clicked "Yes".') else
-    MessageOK(Parent, 'You clicked "No".');
+  if MessageYesNo(Window, 'Test of a yes/no message. Click one of the buttons!') then
+    MessageOK(Window, 'You clicked "Yes".') else
+    MessageOK(Window, 'You clicked "No".');
 end;
 
 procedure TPluginWindowContainer.ProgressClick(Sender: TObject);
@@ -161,7 +169,7 @@ var
   I: Integer;
 begin
   { used for progress bar }
-  Application.MainWindow := Parent;
+  Application.MainWindow := Window;
 
   Progress.Init(TestProgressSteps, 'Please wait...');
   try
