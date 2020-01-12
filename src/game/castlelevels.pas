@@ -1097,8 +1097,11 @@ begin
     { create new Logic }
     FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
     Items.Add(Logic);
+
+    { add necessary things to Items }
     Items.Add(FInternalLogic);
-    if Items.List.IndexOf(Player) = -1 then
+    if (Player <> nil) and
+       (Items.List.IndexOf(Player) = -1) then
       Items.Add(Player);
 
     { We will calculate new Sectors and Waypoints and other stuff
