@@ -136,6 +136,11 @@ type
     { Parameters to prepare rendering for,
       see @link(TCastleViewport.PrepareParams). }
     function PrepareParams: TPrepareParams; virtual; abstract;
+    { Use this as Owner of any TComponent, to have something automatically freed
+      when level is being unloaded (at @link(TLevel.Unload) call,
+      or at @link(TLevel.Load) of new level,
+      or at destruction of this TLevel). }
+    function FreeAtUnload: TComponent; virtual; abstract;
   end;
 
   { Resource used for rendering and processing of 3D objects.

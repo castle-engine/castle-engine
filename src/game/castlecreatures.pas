@@ -1112,7 +1112,7 @@ begin
     PrepareResource. IOW, PrepareResource is just too late. }
   Prepare(ALevel.PrepareParams);
 
-  Result := CreatureClass.Create(RootTransform { owner }, MaxLife);
+  Result := CreatureClass.Create(ALevel.FreeAtUnload, MaxLife);
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
   Result.Level := ALevel;

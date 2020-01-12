@@ -768,7 +768,7 @@ var
 begin
   RootTransform := ALevel.RootTransform;
 
-  Result := TItemOnWorld.Create(RootTransform { owner });
+  Result := TItemOnWorld.Create(ALevel.FreeAtUnload);
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.Level := ALevel;

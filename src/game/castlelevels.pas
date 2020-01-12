@@ -329,6 +329,7 @@ type
       FPlayer: TPlayer;
       FPlayerSwimming: TPlayerSwimming;
       SickProjectionTime: TFloatTime;
+      FFreeAtUnload: TComponent;
     { Like TLevel.Load, but doesn't care about AInfo.LoadingImage. }
     procedure LoadCore(const AInfo: TLevelInfo);
     { Unload Items from previous level, keeps only Player on Items.
@@ -348,6 +349,7 @@ type
     function GetSectors: TSectorList; override;
     function RootTransform: TCastleRootTransform; override;
     function PrepareParams: TPrepareParams; override;
+    function FreeAtUnload: TComponent; override;
 
     { Viewport whose contents will be adjusted to show given level.
       Must be assigned before @link(Load). }
@@ -358,7 +360,7 @@ type
       @unorderedList(
         @item(@bold(Set Viewport.Items):
 
-          Clear @link(TCastleViewport.Items) list (except @link(Player)),
+          Clear @link(TCastleViewport.Items),
           clear @link(TCastleViewport.Navigation Navigation),
           clear @link(TCastleRootTransform.MainScene) as well.
           Then load a new main scene and set navigation, adding to
@@ -439,8 +441,7 @@ type
     { Level information, independent from current level state. }
     property Info: TLevelInfo read FInfo;
 
-    { Release everything loaded by @link(Load), clearing the 3D world
-      (only Player is left).
+    { Release everything loaded by @link(Load), clearing the 3D world.
 
       You do not have to call this in normal circumstances,
       as each @link(Load) automatically clears previous 3D world. If fact,
@@ -713,8 +714,16 @@ begin
   FreeAndNil(FSectors);
   FreeAndNil(Waypoints);
   FreeAndNil(FInternalLogic);
+  FreeAndNil(FFreeAtUnload); // free stuff owned by FFreeAtUnload now
 
   inherited;
+end;
+
+function TLevel.FreeAtUnload: TComponent;
+begin
+  if FFreeAtUnload = nil then
+    FFreeAtUnload := TComponent.Create(nil);
+  Result := FFreeAtUnload;
 end;
 
 function TLevel.GetPlayer: TCastleTransform;
@@ -852,21 +861,16 @@ begin
 end;
 
 function TLevel.UnloadCore: T3DResourceList;
-var
-  I: Integer;
 begin
-  { release stuff from previous level. Our items must be clean.
-    This releases previous Level (logic), MainScene,
-    and our creatures and items --- the ones added in TraverseForResources,
-    but also the ones created dynamically (when creature is added to scene manager,
-    e.g. because player/creature shoots a missile, or when player drops an item).
-    The only thing that can (and should) remain is Player. }
-  I := 0;
-  while I < Items.Count do
-    if Items[I] <> Player then
-      Items[I].Free else
-      Inc(I);
-  FLogic := nil; { we freed FLogic above, since it was on Items list }
+  { clear Items, removing everything from previous level }
+  Items.Clear;
+
+  { free stuff like creatures, items, level logic.
+    Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,
+    remain untouched. }
+  FreeAndNil(FFreeAtUnload);
+
+  FLogic := nil; { we freed FLogic above, since it is always owned by FFreeAtUnload }
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -1124,15 +1128,14 @@ begin
       IOW, TPlayer now requires that you let SynchronizeFromNavigation to happen
       in each frame, before any SynchronizeToNavigation.
     }
-    if (Player <> nil) and
-       (Items.List.IndexOf(Player) = -1) then
+    if Player <> nil then
       Items.Add(Player);
 
     { add FInternalLogic to Items }
     Items.Add(FInternalLogic);
 
     { add FLogic (new Info.LogicClass instance) to Items }
-    FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
+    FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);
     Items.Add(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
