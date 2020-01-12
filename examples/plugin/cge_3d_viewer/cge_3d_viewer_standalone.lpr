@@ -13,5 +13,6 @@ begin
   Application.MainWindow := Application.DefaultWindowClass.Create(Application);
   Application.MainWindow.NamedParameters.Values['cge_scene'] :=
     'https://raw.githubusercontent.com/castle-engine/demo-models/master/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv';
+    //'http://localhost/~michalis/test_model/skeleton.json';
   Application.MainWindow.OpenAndRun;
 end.
