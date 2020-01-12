@@ -1094,15 +1094,46 @@ begin
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
-    { create new Logic }
-    FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
-    Items.Add(Logic);
+    { add Player to Items.
 
-    { add necessary things to Items }
-    Items.Add(FInternalLogic);
+      It is necessary to keep Player as 1st item:
+      Testcase darkest-before-the-dawn:
+      - Doing Info.LogicClass.Create creates a number of TCastleLinearMoving
+        and adds them to Items.
+
+      - If the TCastleLinearMoving are *before* Player on Items,
+        things are broken when player is moved
+        by TCastleLinearMoving (standing on elevator):
+
+        TCastleLinearMoving.Update changes Player transformation,
+        causing TPlayer.ChangedTransform
+        causing TPlayer.SynchronizeToNavigation.
+
+        But in effect any changes possibly done by user input in the same frame
+        (e.g. moving around) are lost.
+        When we reach TPlayer.Update, it calls SynchronizeFromNavigation
+        that does nothing, as Navigation and Player transformation
+        are for sure synchronized now.
+
+      - OTOH, when Player is *before* everything else:
+
+        TPlayer.Update calls SynchronizeFromNavigation which can apply
+        to Player transformation changes done to Viewport.Camera
+        (done by TCastleWalkNavigation receiving inputs).
+
+      IOW, TPlayer now requires that you let SynchronizeFromNavigation to happen
+      in each frame, before any SynchronizeToNavigation.
+    }
     if (Player <> nil) and
        (Items.List.IndexOf(Player) = -1) then
       Items.Add(Player);
+
+    { add FInternalLogic to Items }
+    Items.Add(FInternalLogic);
+
+    { add FLogic (new Info.LogicClass instance) to Items }
+    FLogic := Info.LogicClass.Create(Self, Self, Items.MainScene, Info.Element);
+    Items.Add(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
       based on placeholders. Initialize them now to be empty. }
