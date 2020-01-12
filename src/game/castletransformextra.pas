@@ -181,7 +181,7 @@ type
       @italic(begin position).
 
       As an example, this is what happens when door on DOOM level gets blocked.
-      In the middle of closing (which ig going to @italic(begin position))
+      In the middle of closing (which is going to @italic(begin position))
       it will realize that something blocks it, and open back
       (go back to @italic(end position)).  }
     procedure RevertGoEndPosition;
