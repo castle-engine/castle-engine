@@ -29,6 +29,12 @@ uses SysUtils,
   CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine,
   CastleApplicationProperties;
 
+{ TODO:
+  Using TCastleWindowTouch and TCastleWindow is deprecated.
+  You should instead create your own Viewport: TCastleViewport instance.
+  But... TCastleWindowTouch navigation UI is not yet upgraded.
+}
+
 var
   Window: TCastleWindowTouch;
 

@@ -22,7 +22,7 @@
   gives you a nice Lazarus component readily integrated with the engine,
   CastleWindow gives you a window (without LCL dependency) integrated with
   engine. Countless other engine units give you useful things
-  (like CastleScene, CastleSceneManager, CastleVectors... see the engine manual).
+  (like CastleScene, CastleViewport, CastleVectors... see the engine manual).
 
   Using the engine units directly gives you a complete object-oriented API
   in ObjectPascal to do everything :) The C library API (exposed in
