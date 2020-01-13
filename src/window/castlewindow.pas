@@ -2400,7 +2400,9 @@ type
     see @link(TCastleControl) component. }
   TCastleWindow = class(TCastleWindowBase)
   private
+    {$warnings off} // using deprecated in deprecated
     FSceneManager: TGameSceneManager;
+    {$warnings on}
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesRender: boolean;
