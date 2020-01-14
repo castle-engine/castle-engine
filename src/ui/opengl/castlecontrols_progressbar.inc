@@ -44,12 +44,6 @@
     property Progress: TProgress read FProgress write FProgress;
 
     { Background drawn under the progress bar.
-      May be left unassigned (@nil), in which case you're responsible for making
-      sure some other control
-      (like @link(TCastleRectangleControl) with FullSize=true
-      or @link(TCastleSceneManager) with FullSize=true and Transparent=false)
-      always covers the screen underneath.
-
       When it's assigned, it's always drawn scaled to cover the whole
       screen (container). It's owner by this component (it will be automatically
       freed when necessary). }

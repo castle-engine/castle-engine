@@ -98,7 +98,7 @@ type
     { Headlight used to light the scene.
 
       Returns non-nil headlight node
-      if the algorithm described at @link(TCastleSceneManager.UseHeadlight) and
+      if the algorithm described at @link(TCastleViewport.UseHeadlight) and
       @link(TUseHeadlight) indicates we should use a headlight.
       Otherwise returns @nil, to indicate we do not show a headlight now. }
     function InternalHeadlight: TAbstractLightNode;

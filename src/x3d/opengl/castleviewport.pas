@@ -278,9 +278,6 @@ type
       based on the nodes in the @link(TCastleRootTransform.MainScene).
       Nodes like TViewpointNode or TOrthoViewpointNode or TNavigationInfoNode
       determine the default camera and projection details.
-      Note that the TCastle2DSceneManager turns off @link(AutoCamera),
-      and initializes camera to orthographic, regardless of the
-      @link(TCastleRootTransform.MainScene).
 
       You can override this method, or assign the @link(OnProjection) event
       to adjust the projection settings.
@@ -338,7 +335,7 @@ type
 
     { Handle pointing device (mouse) activation/deactivation event over a given 3D
       object. See TCastleTransform.PointingDeviceActivate method for description how it
-      should be handled. Default implementation in TCastleSceneManager
+      should be handled. Default implementation in TCastleViewport
       just calls TCastleTransform.PointingDeviceActivate. }
     function PointingDeviceActivate3D(const Item: TCastleTransform; const Active: boolean;
       const Distance: Single): boolean; virtual;
@@ -431,9 +428,9 @@ type
       )
     }
     function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
-      deprecated 'create own instance of TCastleWalkNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+      deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
     function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
-      deprecated 'create own instance of TCastleWalkNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+      deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
     { Return the currently used camera as TCastleExamineNavigation, making sure that current
       NavigationType is something using TCastleExamineNavigation.
@@ -462,9 +459,9 @@ type
       )
     }
     function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
-      deprecated 'create own instance of TCastleExamineNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+      deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
     function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
-      deprecated 'create own instance of TCastleExamineNavigation, and assign it to SceneManager.Navigation, this is more flexible and predictable';
+      deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
     { Make @link(Navigation) @nil.
       The actual creation may be caused by calling
@@ -560,7 +557,7 @@ type
 
       Note: Instead of using @link(TCastleTransform.PrepareResources),
       and this method,
-      it's usually easier to call @link(TCastleSceneManager.PrepareResources).
+      it's usually easier to call @link(TCastleViewport.PrepareResources).
       Then the appropriate TPrepareParams will be passed automatically. }
     function PrepareParams: TPrepareParams;
 
@@ -762,7 +759,7 @@ type
       axis. It also assumes orthographic projection (@link(TCastleCamera.ProjectionType Camera.ProjectionType)
       equal @link(ptOrthographic)).
       These are default camera direction, up and projection types set
-      by @link(TCastle2DSceneManager). }
+      by @link(Setup2D). }
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
 
@@ -822,7 +819,7 @@ type
       Note that, if you leave it as @nil and have @link(AutoNavigation) as @true
       (default) then a default navigation will be calculated
       right before the first rendering. It will take into account the 3D world
-      initialized in SceneManager.Items, e.g. the NavigatinInfo inside SceneManager.MainScene.
+      initialized in Viewport.Items, e.g. the NavigatinInfo inside Viewport.Items.MainScene.
       Set @link(AutoNavigation) to false to avoid this automatic detection.
 
       Note that assigning @link(NavigationType) also implicitly sets
@@ -919,7 +916,7 @@ type
 
       Note that for now this assumes that MainScene coordinates equal
       world coordinates. This means that you should not transform
-      the MainScene, it should be placed inside @link(TCastleSceneManager.Items)
+      the MainScene, it should be placed inside @link(TCastleViewport.Items)
       and not transformed by TCastleTransform. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
@@ -1246,7 +1243,7 @@ begin
     no way to set FNavigation to nil, and FNavigation would then remain as invalid
     pointer.
 
-    And when SceneManager is freed it sends a free notification
+    And when Viewport is freed it sends a free notification
     (this is also done in "inherited" destructor) to TCastleWindowBase instance,
     which causes removing us from TCastleWindowBase.Controls list,
     which causes SetContainer(nil) call that tries to access Navigation.
@@ -1479,7 +1476,10 @@ begin
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing RecalculateCursor below, this isn't
     a problem for now, as we'll update cursor anyway, as long as it changes
-    only during mouse move. }
+    only during mouse move.
+
+    TODO: this comment is probably no longer valid, TCastleViewport
+    is now used for everything. }
   RecalculateCursor(Self);
 end;
 

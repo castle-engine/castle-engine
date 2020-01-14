@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,11 +18,12 @@ uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
   CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog,
-  CastleURIUtils;
+  CastleURIUtils, CastleViewport;
 
 var
   BaseScene: TCastleScene;
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Resource: T3DResource;
   Animation: T3DResourceAnimation;
 
@@ -150,7 +151,7 @@ begin
   begin
     Resources.AddFromFile(LastChosenURL);
     { directly prepare new resource }
-    Resources.Prepare(Window.SceneManager.PrepareParams, 'resources');
+    Resources.Prepare(Viewport.PrepareParams, 'resources');
     UpdateButtons(ucpActivateLast);
   end;
 end;
@@ -177,7 +178,7 @@ begin
       Window.Controls.InsertFront(ResButton);
     end;
     if Resources.Count = 0 then
-      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', 
+      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")',
         [ResolveCastleDataURL('castle-data:/')]);
     case UpdateCurrentResource of
       ucpActivateFirst:
@@ -278,10 +279,16 @@ end;
 begin
   InitializeLog;
 
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
   Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   Resources.LoadFromFiles;
 
@@ -294,13 +301,13 @@ begin
   BaseScene.Load('castle-data:/base.x3d');
   { turn on headlight, as base.x3d exported from Blender has always headlight=false }
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
-  Window.SceneManager.MainScene := BaseScene;
-  Window.SceneManager.Items.Add(BaseScene);
+  Viewport.Items.MainScene := BaseScene;
+  Viewport.Items.Add(BaseScene);
 
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
     depend on TLevel.Load doing this for you. }
-  Resources.Prepare(Window.SceneManager.PrepareParams, 'resources');
+  Resources.Prepare(Viewport.PrepareParams, 'resources');
 
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';
@@ -310,7 +317,7 @@ begin
   UpdateButtons(ucpActivateFirst);
 
   LoopAnimation := TLoopAnimation.Create(Application);
-  Window.SceneManager.Items.Add(LoopAnimation);
+  Viewport.Items.Add(LoopAnimation);
 
   Window.OnResize := @Resize;
 

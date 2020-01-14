@@ -95,16 +95,15 @@ type
     it's descendants.
 
     It can be used to apply screen effects over any UI control,
-    like @link(TCastleSceneManager), @link(TCastleViewport),
+    like @link(TCastleViewport),
     @link(TCastleButton), @link(TCastleImageControl) and so on.
     Simply place the desired control as child of this control.
 
-    To make it easier to apply effects on
-    @link(TCastleSceneManager) and @link(TCastleViewport),
-    they already descend from this class. So, while you can, you don't need to wrap
-    @link(TCastleSceneManager) instance inside another @link(TCastleScreenEffects)
+    To make it easier to apply effects on @link(TCastleViewport),
+    it already descends from this class. So, while you can, you don't need to wrap
+    @link(TCastleViewport) instance inside another @link(TCastleScreenEffects)
     instance. You can instead directly call @link(AddScreenEffect) on your
-    @link(TCastleSceneManager) instance.
+    @link(TCastleViewport) instance.
 
     Note that the UI controls rendered for the screen effects
     (our children and descendants) must always initialize and fill
@@ -112,7 +111,7 @@ type
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
     You may use e.g. @link(TCastleRectangleControl)
-    or TCastleSceneManager with @link(TCastleViewport.Background)=true
+    or TCastleViewport with @link(TCastleViewport.Background)=true
     to always reliably fill the background.
   }
   TCastleScreenEffects = class(TCastleUserInterface)

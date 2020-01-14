@@ -19,12 +19,12 @@
   In the future, Castle Game Engine should allow to "plug" a new renderer,
   such that the underlying renderer can be switched at runtime,
   and the public engine API stays the same.
-  So all the engine classes (like TCastleScene, TCastleSceneManager, TCastleWindow,
+  So all the engine classes (like TCastleScene, TCastleViewport, TCastleWindowBase,
   TCastleButton, TDrawableImage...) will work, regardless of the renderer.
 
   Also, you will then no longer need to initialize some semi-internal things
   shown in this program: initializing Params, ProjectionMatrix, RenderingCamera
-  should be done automatically by TCastleSceneManager (once TCastleSceneManager
+  should be done automatically by TCastleViewport (once TCastleViewport
   is independent from OpenGL).
 
   In the meantime, you can use this approach, which creates a descendant
@@ -226,7 +226,7 @@ begin
         lights from one TCastleScene over another TCastleScene).
 
       - You should not do this in a normal CGE application. In normal application,
-        SceneManager (or other TCastleViewport descendant) prepares render
+        TCastleViewport prepares render
         parameters, and TCastleScene uses them.
         How are they are prepared, and how are they used -- it's
         internal for normal applications.

@@ -22,12 +22,12 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  CastleControl, CastleCameras, CastleScene, CastleSceneManager;
+  CastleControl, CastleCameras, CastleScene, CastleViewport;
 
 type
   TForm1 = class(TForm)
     Control1: TCastleControlBase;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
     procedure FormCreate(Sender: TObject);
   private
     WalkNavigation: TCastleWalkNavigation;
@@ -49,20 +49,21 @@ uses CastleVectors, CastleSceneCore;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  SceneManager := TCastleSceneManager.Create(Self);
-  SceneManager.AutoCamera := false;
-  SceneManager.AutoNavigation := false;
-  Control1.Controls.InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(Self);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := false;
+  Viewport.AutoNavigation := false;
+  Control1.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Self);
   Scene.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
   Scene.ProcessEvents := true; // if you use VRML/X3D events
 
-  SceneManager.MainScene := Scene;
-  SceneManager.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+  Viewport.Items.Add(Scene);
 
-  SceneManager.Camera.Init(
+  Viewport.Camera.Init(
     Vector3(0, 0, 0), // position
     Vector3(1, 0, 0), // direction
     Vector3(0, 1, 0), // up
@@ -73,7 +74,7 @@ begin
   WalkNavigation.Radius := 0.1;
   WalkNavigation.MoveSpeed := 10.0; // default is 1
   WalkNavigation.Gravity := true;
-  SceneManager.Navigation := WalkNavigation;
+  Viewport.Navigation := WalkNavigation;
 end;
 
 end.

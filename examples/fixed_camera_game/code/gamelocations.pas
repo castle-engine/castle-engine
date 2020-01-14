@@ -31,7 +31,7 @@ type
       private
         Image, ShadowedImage: TDrawableImage;
       public
-        SceneManagerRect: TRectangle;
+        ViewportRect: TRectangle;
         RenderInternalModel: boolean;
         procedure LocalRender(const Params: TRenderParams); override;
       end;
@@ -101,13 +101,13 @@ procedure TLocation.TLocationScene.LocalRender(const Params: TRenderParams);
   var
     DrawRect: TRectangle;
   begin
-    { Draw Image such that Image.Height always fills the SceneManagerRect.Height,
+    { Draw Image such that Image.Height always fills the ViewportRect.Height,
       because that is the field of view of 3D scene,
       and that was the field of view used to render the image in Blender. }
-    DrawRect := Image.Rect.ScaleToHeight(SceneManagerRect.Height);
+    DrawRect := Image.Rect.ScaleToHeight(ViewportRect.Height);
     { above calculated DrawRect size OK, but DrawRect position (Left, Bottom)
       should be fixed now. }
-    DrawRect := SceneManagerRect.CenterInside(DrawRect.Width, DrawRect.Height);
+    DrawRect := ViewportRect.CenterInside(DrawRect.Width, DrawRect.Height);
     Image.Draw(DrawRect);
   end;
 
@@ -138,7 +138,7 @@ begin
       To work correctly, the location scene must be rendered before creatures
       (like Player) scenes (otherwise Image.Draw would unconditionally cover
       the the Player). This is satisfied, since CurrentLocation.Scene
-      is first in SceneManager.Items. }
+      is first in Viewport.Items. }
 
     if (not Params.Transparent) and
        (ReceiveShadowVolumes in Params.ShadowVolumesReceivers) then
@@ -149,7 +149,7 @@ begin
         When GLFeatures.EnableFixedFunction = false,
         then rendering Image doesn't need to have a projection matrix set. }
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-      OrthoProjection(FloatRectangle(SceneManagerRect)); // need 2D projection
+      OrthoProjection(FloatRectangle(ViewportRect)); // need 2D projection
 
       if Params.InShadow then
         DrawImage(ShadowedImage)

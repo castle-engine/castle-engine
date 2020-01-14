@@ -23,10 +23,11 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
-  CastleApplicationProperties, CastleVectors, CastleCameras;
+  CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 
   { user interface }
@@ -128,7 +129,7 @@ class procedure TEventsHandler.Open(const Url: string);
 
 begin
   Scene.Load(Url);
-  Window.SceneManager.AssignDefaultCamera;
+  Viewport.AssignDefaultCamera;
   RecreateAnimationsPanel;
 end;
 
@@ -193,15 +194,18 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := false; // we will explicitly call AssignDefaultCamera
+  Viewport.AutoNavigation := false;
+  Viewport.NavigationType := ntExamine; // always Examine, regardless of scene
+  Window.Controls.InsertFront(Viewport);
+
   Scene := TCastleScene.Create(Application);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
-
-  Window.SceneManager.AutoCamera := false; // we will explicitly call AssignDefaultCamera
-  Window.SceneManager.AutoNavigation := false;
-  Window.SceneManager.NavigationType := ntExamine; // always Examine, regardless of scene
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   Y := -Margin;
 

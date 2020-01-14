@@ -26,11 +26,12 @@ uses SysUtils, Classes, Math,
   CastleFrustum, CastleVectors, CastleBoxes, CastleWindow, CastleUIControls,
   CastleClassUtils, CastleUtils, CastleFilesUtils, CastleControls,
   CastleGLUtils, CastleCameras, CastleSphereSampling, CastleSphericalHarmonics,
-  CastleSceneManager, CastleScene, X3DNodes, CastleShapes,
+  CastleViewport, CastleScene, X3DNodes, CastleShapes,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleTransform;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
 
   LM: Cardinal = 0;
 
@@ -119,7 +120,13 @@ end;
 var
   M: TMenu;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   DefaultTriangulationSlices := 60;
   DefaultTriangulationStacks := 60;
@@ -130,8 +137,8 @@ begin
     M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
     Window.MainMenu.Append(M);
 
-  Window.SceneManager.MainScene := TMyScene.Create(Application);
-  Window.SceneManager.Items.Add(Window.SceneManager.MainScene);
+  Viewport.Items.MainScene := TMyScene.Create(Application);
+  Viewport.Items.Add(Viewport.Items.MainScene);
 
   Window.OnMenuClick := @MenuClick;
   Window.OnRender := @Render;

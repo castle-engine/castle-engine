@@ -852,7 +852,7 @@ object Main: TMain
       }
     end
   end
-  object Browser: TCastleControl
+  object Browser: TCastleControlBase
     AnchorSideBottom.Control = PanelBottom
     Left = 0
     Height = 309
@@ -860,9 +860,6 @@ object Main: TMain
     Width = 718
     Align = alClient
     TabOrder = 0
-    SceneManager.OnCameraChanged = BrowserCameraChanged
-    SceneManager.OnBoundNavigationInfoChanged = SceneManagerBoundNavigationInfoChanged
-    OnCameraChanged = BrowserCameraChanged
   end
   object MainMenu1: TMainMenu
     left = 80

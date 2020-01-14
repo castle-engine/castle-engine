@@ -22,7 +22,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleScene, CastleControls, CastleLog, CastleVectors,
-  CastleFilesUtils, CastleSceneCore, CastleSceneManager, CastleComponentSerialize,
+  CastleFilesUtils, CastleSceneCore, CastleViewport, CastleComponentSerialize,
   CastleUIControls, CastleApplicationProperties, CastleUIState, X3DNodes;
 
 { TMainState -------------------------------------------------------------- }
@@ -33,7 +33,7 @@ type
     LabelFps: TCastleLabel;
     ButtonAnimationSqueeze, ButtonAnimationGear: TCastleButton;
     Scene1: TCastleScene;
-    SceneManager1: TCastleSceneManager;
+    Viewport1: TCastleViewport;
     procedure ClickAnimationSqueeze(Sender: TObject);
     procedure ClickAnimationGear(Sender: TObject);
   public
@@ -54,10 +54,7 @@ begin
   ButtonAnimationSqueeze := UiOwner.FindRequiredComponent('ButtonAnimationSqueeze') as TCastleButton;
   ButtonAnimationGear := UiOwner.FindRequiredComponent('ButtonAnimationGear') as TCastleButton;
   Scene1 := UiOwner.FindRequiredComponent('Scene1') as TCastleScene;
-  SceneManager1 := UiOwner.FindRequiredComponent('SceneManager1') as TCastleSceneManager;
-
-  { determine default camera from the camera recorded in Scene1 }
-  SceneManager1.MainScene := Scene1;
+  Viewport1 := UiOwner.FindRequiredComponent('Viewport1') as TCastleViewport;
 
   { Assign OnClick events }
   ButtonAnimationSqueeze.OnClick := @ClickAnimationSqueeze;
@@ -130,7 +127,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

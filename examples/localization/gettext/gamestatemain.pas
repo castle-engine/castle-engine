@@ -66,7 +66,7 @@ implementation
 
 uses SysUtils,
   CastleLog, CastleUIControls, CastleURIUtils, CastleFonts,
-  CastleLocalizationGetText, CastleColors, CastleSceneManager, CastleSystemLanguage,
+  CastleLocalizationGetText, CastleColors, CastleViewport, CastleSystemLanguage,
   CastleVectors, CastleMessages,
   Font_DejaVuSans;
 
@@ -129,7 +129,7 @@ procedure TStateMain.InitializeUserInterface;
 
 var
   Scene: TCastleScene;
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   ButtonSwitchEnglish, ButtonSwitchGerman, ButtonSwitchPolish,
     ButtonSwitchRussian, ButtonSwitchUkrainian: TCastleButton;
   ButtonMessage: TCastleButton;
@@ -137,7 +137,7 @@ begin
   { Load designed user interface }
   InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
 
-  SceneManager := UiOwner.FindRequiredComponent('SceneManager') as TCastleSceneManager;
+  Viewport := UiOwner.FindRequiredComponent('Viewport') as TCastleViewport;
   ButtonSwitchEnglish := UiOwner.FindRequiredComponent('ButtonSwitchEnglish') as TCastleButton;
   ButtonSwitchGerman := UiOwner.FindRequiredComponent('ButtonSwitchGerman') as TCastleButton;
   ButtonSwitchPolish := UiOwner.FindRequiredComponent('ButtonSwitchPolish') as TCastleButton;
@@ -149,8 +149,8 @@ begin
   Scene := TCastleScene.Create(Application);
   Scene.Load(BuildScene, true);
   Scene.ProcessEvents := true;
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   { assign callbacks }
   ButtonSwitchEnglish.OnClick := @ClickButtonEnglish;
