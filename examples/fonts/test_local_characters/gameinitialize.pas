@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 
 implementation
 
@@ -311,7 +311,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Container.UIScaling := usEncloseReferenceSize;
   Window.Container.UIReferenceWidth := 1600;
   Window.Container.UIReferenceHeight := 900;

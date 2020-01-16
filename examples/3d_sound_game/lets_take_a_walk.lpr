@@ -44,7 +44,7 @@ uses SysUtils, Classes,
 { global variables ----------------------------------------------------------- }
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
   Viewport: TCastleViewport;
   Navigation: TCastleWalkNavigation;
 
@@ -262,7 +262,7 @@ begin
   Theme.Images[tiWindow] := WindowDarkTransparent;
 
   { init window }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.OnUpdate := @Update;
   Window.OnTimer := @Timer;
   Window.OnPress := @Press;

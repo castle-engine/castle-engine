@@ -120,7 +120,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
   TilingBackground := TTilingBackground.Create(Application);
@@ -133,9 +133,6 @@ begin
   // TilingBackground.Anchor(hpMiddle);
   // TilingBackground.Width := 300;
   // TilingBackground.Height := 300;
-  // { ClipChildren is only useful when the control doesn't fill the entire screen.
-  //   This way extraneous image parts (outside of RenderRect) are clipped. }
-  // TilingBackground.ClipChildren := true;
 
   Window.Controls.InsertFront(TilingBackground);
 

@@ -249,6 +249,6 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 end.

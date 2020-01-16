@@ -29,6 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
 var
   Window: TCastleWindowBase;
   Viewport: TCastleViewport;
+  Navigation: TCastleWalkNavigation;
   Level: TCastleScene;
   BoxTemplate, SphereTemplate: TCastleScene;
 
@@ -116,10 +117,14 @@ begin
 
   LoadLevel('castle-data:/level_simple.x3dv', false);
 
-  Viewport.NavigationType := ntWalk;
+  // create Navigation
+  Navigation := TCastleWalkNavigation.Create(Application);
+  Navigation.PreferredHeight := 2;
+  Navigation.Gravity := true;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
-  Viewport.WalkNavigation.Input :=
-    Viewport.WalkNavigation.Input - [niMouseDragging];
+  Navigation.Input := Navigation.Input - [niMouseDragging];
+  Viewport.Navigation := Navigation;
+
   // easy way to make the simulation feel more dynamic
   Viewport.Items.TimeScale := 2;
 
@@ -180,16 +185,12 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
   end;
 
 var
-  C: TCastleWalkNavigation;
   RigidBody: TRigidBody;
   BoxCollider: TBoxCollider;
   SphereCollider: TSphereCollider;
 begin
   if Event.IsKey(K_F4) then
-  begin
-    C := Viewport.WalkNavigation;
-    C.MouseLook := not C.MouseLook;
-  end;
+    Navigation.MouseLook := not Navigation.MouseLook;
 
   if Event.IsKey(K_F6) then
     Viewport.Items.EnablePhysics := not Viewport.Items.EnablePhysics;
@@ -228,7 +229,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnPress := @WindowPress;
