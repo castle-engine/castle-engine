@@ -1,5 +1,5 @@
 {
-  Copyright 2019-2019 Michalis Kamburelis.
+  Copyright 2019-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,81 +14,126 @@
 }
 
 { Example how to draw a tiling background.
-  Defines a reusable class TTilingBackground. }
+  Defines a reusable class TTilingBackground.
+  Use arrows to modify the origin (shift the image).
+}
 
 uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleRectangles,
-  CastleUtils, CastleGLImages, CastleUIControls, CastleStringUtils,
-  CastleKeysMouse;
+  CastleUtils, CastleUIControls, CastleStringUtils,
+  CastleKeysMouse, CastleViewport, CastleScene, X3DNodes;
 
 var
   Window: TCastleWindowBase;
 
 type
   { User interface component that draws a tiling texture. }
-  TTilingBackground = class(TCastleUserInterface)
+  TTilingBackground = class(TCastleViewport)
   strict private
-    Image: TDrawableImage;
+    Coordinate: TCoordinateNode;
+    TextureCoordinate: TTextureCoordinateNode;
+    Texture: TImageTextureNode;
   public
-    { Image position visible at the control's left-bottom corner,
-      in the range [0..1, 0..1]. }
+    { Image position visible at the control's left-bottom corner }
     ImageOrigin: TVector2;
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    procedure Render; override;
+    procedure Resize; override;
+    { Call this always when ImageOrigin changes.
+      Automatically called when control size changes too. }
+    procedure UpdateCoordinates;
   end;
 
 constructor TTilingBackground.Create(AOwner: TComponent);
-begin
-  inherited;
-  Image := TDrawableImage.Create('castle-data:/test_texture.png');
-end;
 
-destructor TTilingBackground.Destroy;
-begin
-  FreeAndNil(Image);
-  inherited;
-end;
+  { Create X3D nodes graph with a textured rectangle.
+    Set RepeatS, RepeatT to true, to repeat the texture. }
+  function BuildRootNode: TX3DRootNode;
+  var
+    Shape: TShapeNode;
+    Geometry: TIndexedFaceSetNode;
+  begin
+    { Create ImageTexture node (represents the texture from file) }
+    Texture := TImageTextureNode.Create;
+    Texture.SetUrl(['castle-data:/test_texture.png']);
+    Texture.RepeatS := true;
+    Texture.RepeatT := true;
 
-procedure TTilingBackground.Render;
+    { Create Coordinate node (position of quad in 3D) }
+    Coordinate := TCoordinateNode.Create;
+    // these will be updated in each UpdateCoordinates
+    Coordinate.SetPoint([
+      Vector3(0  ,   0, 0),
+      Vector3(100,   0, 0),
+      Vector3(100, 100, 0),
+      Vector3(0  , 100, 0)
+    ]);
+
+    { Create TextureCoordinate node (how the image is mapped onto a surface) }
+    TextureCoordinate := TTextureCoordinateNode.Create;
+    // these will be updated in each UpdateCoordinates
+    TextureCoordinate.SetPoint([
+      Vector2(0, 0),
+      Vector2(10, 0),
+      Vector2(10, 10),
+      Vector2(0, 10)
+    ]);
+
+    { Create Shape and IndexedFaceSet node (mesh with coordinates, texture coordinates) }
+    Geometry := TIndexedFaceSetNode.CreateWithShape(Shape);
+    Geometry.Coord := Coordinate;
+    Geometry.TexCoord := TextureCoordinate;
+    Geometry.SetCoordIndex([0, 1, 2, 3]);
+
+    { Create Appearance (refers to a texture, connects the Texture to Shape) }
+    Shape.Appearance := TAppearanceNode.Create;
+    Shape.Appearance.Texture := Texture;
+
+    Result := TX3DRootNode.Create;
+    Result.AddChildren(Shape);
+  end;
+
 var
-  ScreenRects, ImageRects: TFloatRectangleList;
-  R: TFloatRectangle;
-  X, Y, ImageW, ImageH: Single;
+  Scene: TCastleScene;
 begin
   inherited;
-  R := RenderRect;
-  ImageW := Image.Width * UIScale;
-  ImageH := Image.Height * UIScale;
+  Scene := TCastleScene.Create(Self);
+  Scene.Load(BuildRootNode, true);
+  Items.Add(Scene);
 
-  { Calculate all ScreenRects (position/size on the screen where to draw image)
-    and ImageRects (position/size of the image to draw, always the same
-    in this example ("Image.Rect"), we draw whole images).
-    Later we can render them with one Image.Draw call.
-    This is much faster (for many images) than calling Image.Draw multiple times.
-  }
+  // set 2D orthographic view
+  Setup2D;
+end;
 
-  ScreenRects := TFloatRectangleList.Create;
-  try
-    ImageRects := TFloatRectangleList.Create;
-    try
-      X := R.Left + ImageW * (ImageOrigin.X - 1);
-      while X < R.Right do
-      begin
-        Y := R.Bottom + ImageH * (ImageOrigin.Y - 1);
-        while Y < R.Top do
-        begin
-          ScreenRects.Add(FloatRectangle(X, Y, ImageW, ImageH));
-          ImageRects.Add(FloatRectangle(Image.Rect));
-          Y += ImageH;
-        end;
-        X += ImageW;
-      end;
+procedure TTilingBackground.Resize;
+begin
+  inherited;
+  UpdateCoordinates;
+end;
 
-      Assert(ScreenRects.Count = ImageRects.Count);
-      Image.Draw(ScreenRects.List, ImageRects.List, ScreenRects.Count);
-    finally FreeAndNil(ImageRects) end;
-  finally FreeAndNil(ScreenRects) end;
+procedure TTilingBackground.UpdateCoordinates;
+var
+  TextureSizeX, TextureSizeY: Single;
+begin
+  { update Coordinate to make the shape fill entire viewport exactly }
+  Coordinate.SetPoint([
+    Vector3(             0,               0, 0),
+    Vector3(EffectiveWidth,               0, 0),
+    Vector3(EffectiveWidth, EffectiveHeight, 0),
+    Vector3(             0, EffectiveHeight, 0)
+  ]);
+
+  { texture coordinates are expressed in the range 0..1 }
+  TextureSizeX := EffectiveWidth  / Texture.TextureImage.Width;
+  TextureSizeY := EffectiveHeight / Texture.TextureImage.Height;
+
+  { update TextureCoordinate to adjust the amount of "repeat" based on control size
+    on the screen (EffectiveWidth/Height), and apply ImageOrigin. }
+  TextureCoordinate.SetPoint([
+    ImageOrigin + Vector2(           0,            0),
+    ImageOrigin + Vector2(TextureSizeX,            0),
+    ImageOrigin + Vector2(TextureSizeX, TextureSizeY),
+    ImageOrigin + Vector2(           0, TextureSizeY)
+  ]);
 end;
 
 var
@@ -100,16 +145,10 @@ procedure Update(Container: TUIContainer);
   procedure Move(const X, Y: Single);
   const
     MoveSpeed = 1;
-  var
-    T: TVector2;
   begin
-    T := TilingBackground.ImageOrigin;
-    T := T + MoveSpeed * Container.Fps.SecondsPassed * Vector2(X, Y);
-    { Use Frac to put T.X, T.Y in [0..1] range.
-      TTilingBackground.Render assumes this is true. }
-    T.X := Frac(T.X);
-    T.Y := Frac(T.Y);
-    TilingBackground.ImageOrigin := T;
+    TilingBackground.ImageOrigin := TilingBackground.ImageOrigin +
+      MoveSpeed * Container.Fps.SecondsPassed * Vector2(X, Y);
+    TilingBackground.UpdateCoordinates;
   end;
 
 begin
@@ -125,15 +164,12 @@ begin
 
   TilingBackground := TTilingBackground.Create(Application);
   TilingBackground.FullSize := true;
-
-  // { Alternative size and position that are not FullSize,
-  //   just to demonstrate that TTilingBackground works in this case too. }
+  // you could also set FullSize := false and explicitly set control size and anchors
   // TilingBackground.FullSize := false;
   // TilingBackground.Anchor(vpMiddle);
   // TilingBackground.Anchor(hpMiddle);
-  // TilingBackground.Width := 300;
-  // TilingBackground.Height := 300;
-
+  // TilingBackground.Width := 800;
+  // TilingBackground.Height := 800;
   Window.Controls.InsertFront(TilingBackground);
 
   Window.OnUpdate := @Update;
