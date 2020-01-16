@@ -174,7 +174,7 @@ type
       inside an external X3D file, e.g. like this:
 
       @longCode(#
-      SceneManager.AddScreenEffect(
+      ScreenEffects.AddScreenEffect(
         LoadNode('castle-data:/screen_effects_scene.x3dv'));
       #)
 
@@ -222,7 +222,7 @@ type
       May be 0 to stop time passing.
       This has deliberately long name, instead of simple TimeScale,
       to make it clear that it's completely independent from
-      @link(TCastleSceneManager.TimeScale). }
+      @link(TCastleRootTransform.TimeScale). }
     property ScreenEffectsTimeScale: Single
       read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
 
