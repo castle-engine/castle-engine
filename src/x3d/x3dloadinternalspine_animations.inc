@@ -156,14 +156,41 @@ procedure TAnimation.Parse(const Json: TJSONObject;
   var
     I: Integer;
     DeformTimeline: TDeformTimeline;
+    Attachment: TAttachment;
+    AttachmentName: String;
   begin
     for I := 0 to Json.Count - 1 do
     begin
+      AttachmentName := Json.Names[I];
+      Attachment := CurrentSkin.Attachments.Find(SlotName, AttachmentName, nil, false);
+      if Attachment = nil then
+      begin
+        WritelnWarning('Cannot find attachment "%s" in slot "%s" to animate using deformation', [
+          AttachmentName,
+          SlotName
+        ]);
+        Continue;
+      end;
+      if not (Attachment is TMeshAttachment) then
+      begin
+        WritelnWarning('Attachment "%s" in slot "%s" cannot be animated using deformation, as it is not a mesh attachment, it is %s', [
+          AttachmentName,
+          SlotName,
+          Attachment.ClassName
+        ]);
+        Continue;
+      end;
+      if not (Json.Items[I] is TJSONArray) then
+      begin
+        WritelnWarning('Attachment "%s" in slot "%s" cannot be animated: JSON error, expected array', [
+          AttachmentName,
+          SlotName
+        ]);
+        Continue;
+      end;
       DeformTimeline := TDeformTimeline.Create;
       DeformTimeline.Slot := Slots.Find(SlotName);
-      DeformTimeline.Attachment :=
-        CurrentSkin.Attachments.Find(SlotName, Json.Names[I], nil, false)
-        as TMeshAttachment;
+      DeformTimeline.Attachment := Attachment as TMeshAttachment;
       DeformTimeline.Parse(Json.Items[I] as TJSONArray);
       DeformTimelines.Add(DeformTimeline);
     end;
