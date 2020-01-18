@@ -659,7 +659,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLook) then
+        if Event.IsMouseButton(mbLeft) then
         begin
           Drag := true;
           Cursor := mcForceNone;
@@ -672,7 +672,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLook) then
+        if Event.IsMouseButton(mbLeft) then
         begin
           Drag := false;
           Cursor := mcDefault;
