@@ -378,7 +378,7 @@ object DesignFrame: TDesignFrame
       object ButtonInteractMode: TSpeedButton
         Left = 0
         Height = 40
-        Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in scene managers by mouse dragging, and more.'
+        Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in viewports by mouse dragging, and more.'
         Top = 0
         Width = 40
         AllowAllUp = True
@@ -1284,7 +1284,7 @@ object DesignFrame: TDesignFrame
       object ButtonViewportMenu: TSpeedButton
         Left = 555
         Height = 40
-        Hint = 'Scene Manager Options'
+        Hint = 'Viewport Options'
         Top = 0
         Width = 40
         Constraints.MinHeight = 40

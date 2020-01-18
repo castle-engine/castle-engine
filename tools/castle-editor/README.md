@@ -27,7 +27,7 @@ In this sense, CGE editor may serve as just a GUI wrapper around our "build tool
 
 You can visually design:
 
-* a hierarchy of user-interface controls. Anything descending from `TCastleUserInterface`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
+* a hierarchy of user-interface controls. Anything descending from `TCastleUserInterface`, like a button, label, or a powerful viewport (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
     Saved as `xxx.castle-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
@@ -114,7 +114,7 @@ You can browse the application files. Our "Files Browser" just displays the file
     * TCastleScene to load a 3D model,
     * TCastle2DScene to load a Spine JSON model,
     * TCastleImageControl to show a 2D image.
-    * This has some requirements (TCastleScene can only be inside a scene manager, TCastleImageControl only inside UI hierarchy).
+    * This has some requirements (TCastleScene can only be inside a TCastleRootTransform, TCastleImageControl only inside UI hierarchy).
 
 ### Distributed in a binary form too
 

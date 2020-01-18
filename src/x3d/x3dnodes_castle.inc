@@ -854,7 +854,7 @@ begin
 
   FFdNeedsDepth := TSFBool.Create(Self, true, 'needsDepth', false);
    { no change needed, TCastleScene recalculates NeedsDepth every time
-     when ScreenEffectsNeedDepth is called by scene manager. }
+     when ScreenEffectsNeedDepth is called by TCastleScreenEffects. }
    FdNeedsDepth.ChangesAlways := [];
   AddField(FFdNeedsDepth);
 

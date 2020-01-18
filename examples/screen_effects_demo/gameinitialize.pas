@@ -328,14 +328,14 @@ begin
   Window.Controls.InsertFront(Label1);
 
   Label2 := TCastleLabel.Create(Application);
-  Label2.Caption := '2D Scene Manager';
+  Label2.Caption := '2D Viewport';
   Label2.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label2.Anchor(hpMiddle);
   Label2.Color := White;
   Window.Controls.InsertFront(Label2);
 
   Label3 := TCastleLabel.Create(Application);
-  Label3.Caption := '3D Scene Manager';
+  Label3.Caption := '3D Viewport';
   Label3.Anchor(vpBottom, vpMiddle, 150 + 20);
   Label3.Anchor(hpMiddle, 300 + 50);
   Label3.Color := White;

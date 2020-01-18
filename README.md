@@ -6,9 +6,11 @@ is an open-source 3D and 2D game engine.
 
 We have many graphic features (shadows, mirrors, screen effects...)
 and support many data formats for game assets (X3D, glTF, VRML, Collada, Spine...).
-We have a nice scene manager, with many optional components
+We have many user-interface components,
+with a powerful viewport to display 3D or 2D content,
+with many optional features
 (like instant creatures with simple walking and attacking intelligence).
-We're cross-platform (desktop, mobile).
+We're cross-platform (desktop, mobile, Nintendo Switch).
 
 See https://castle-engine.io/features.php
 for the complete list of engine features.

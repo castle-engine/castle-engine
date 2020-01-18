@@ -579,12 +579,10 @@ type
         )
 
         @item(Calls @link(TInputListener.Resize Control.Resize),
-          required by some controls (like scene manager) to know viewport size.)
+          which may be expected by some controls.)
 
         @item(Calls @link(TCastleUserInterface.BeforeRender Control.BeforeRender),
-          required by some controls (like scene manager)
-          to prepare resources (like generated textures,
-          important for mirrors for screenshots in batch mode).)
+          which may be expected by some controls.)
       )
     }
     procedure RenderControl(const Control: TCastleUserInterface;

@@ -191,7 +191,7 @@ OK if after nearest release:
 * at scene loading show something "wait, loading..."
 
 * "Camera View All" button more prominent?
-  Maybe attached to scene manager in designer mode?
+  Maybe attached to viewport in designer mode?
 
 * allow to import file with textures, audio, inline tracked
   as alternative at warning message when opening file outside of castle-data:

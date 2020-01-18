@@ -162,9 +162,9 @@ type
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
-      { Owner of all components saved/loaded to component file,
-        also temporary scene manager for .castle-transform.
-        Everything specific to this hierarchy in CastleControl. }
+      { Owner of all components saved/loaded to the design file.
+        Also owner of a temporary viewport for .castle-transform,
+        in general this owns everything specific to display currrent design. }
       DesignOwner: TComponent;
       FDesignModified: Boolean;
       CastleControl: TCastleControlBase;
@@ -1300,7 +1300,7 @@ begin
         end;
       end else
       begin
-        // UI that is not scene manager selected
+        // UI that is not viewport selected
         Exit(nil);
       end;
     end;
