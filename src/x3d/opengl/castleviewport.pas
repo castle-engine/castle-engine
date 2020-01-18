@@ -105,6 +105,10 @@ type
         Position: TVector2;
         TexCoord: TVector2;
       end;
+      TSSAOScreenEffect = class(TGLSLScreenEffect)
+        Viewport: TCastleViewport;
+        function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
+      end;
     var
       FCamera: TCastleCamera;
       FRenderParams: TManagerRenderParams;
@@ -129,25 +133,8 @@ type
       FShadowVolumes: boolean;
       FShadowVolumesRender: boolean;
 
-      { If a texture for screen effects is ready, then
-        ScreenEffectTextureDest/Src/Depth/Target are non-zero and
-        ScreenEffectRTT is non-nil.
-        Also, ScreenEffectTextureWidth/Height indicate size of the texture,
-        as well as ScreenEffectRTT.Width/Height. }
-      ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
-      ScreenEffectTextureTarget: TGLenum;
-      ScreenEffectTextureDepth: TGLuint;
-      ScreenEffectRTT: TGLRenderToTexture;
-      ScreenEffectTextureWidth: Cardinal;
-      ScreenEffectTextureHeight: Cardinal;
-      { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
-      CurrentScreenEffectsCount: Integer;
-      CurrentScreenEffectsNeedDepth: boolean;
-      ScreenPointVbo: TGLuint;
-      ScreenPoint: packed array [0..3] of TScreenPoint;
-
       FScreenSpaceAmbientOcclusion: boolean;
-      SSAOShader: TGLSLScreenEffect;
+      SSAOShader: TSSAOScreenEffect;
       SSAOShaderInitialized: Boolean;
 
       FOnCameraChanged: TNotifyEvent;
@@ -170,8 +157,6 @@ type
     function IsStoredNavigation: Boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
     procedure SSAOShaderInitialize;
-    procedure RenderWithScreenEffectsCore;
-    function RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
     { Make sure to call AssignDefaultCamera, if needed because of AutoCamera. }
@@ -212,19 +197,6 @@ type
 
     procedure RecalculateCursor(Sender: TObject);
     function ItemsBoundingBox: TBox3D;
-
-    { Render everything (by RenderFromViewEverything) on the screen.
-      Takes care to set RenderingCamera (Target = rtScreen and camera as given),
-      and takes care to apply Scissor if not FillsWholeContainer,
-      and calls RenderFromViewEverything.
-
-      Takes care of using ScreenEffects. For this,
-      before we render to the actual screen,
-      we may render a couple times to a texture by a framebuffer.
-
-      Always call ApplyProjection before this, to set correct
-      projection matrix. }
-    procedure RenderOnScreen(ACamera: TCastleCamera);
 
     { Set the projection parameters and matrix.
       Used by our Render method.
@@ -328,6 +300,10 @@ type
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
 
+    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; override;
+    function InternalExtraScreenEffectsCount: Integer; override;
+    function InternalExtraScreenEffectsNeedDepth: Boolean; override;
+
     { Called when PointingDeviceActivate was not handled by any 3D object.
       You can override this to make a message / sound signal to notify user
       that his Input_Interact click was not successful. }
@@ -342,6 +318,8 @@ type
 
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
+
+    procedure RenderWithoutScreenEffects; override;
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
@@ -380,7 +358,6 @@ type
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure BeforeRender; override;
-    procedure Render; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
 
@@ -1185,6 +1162,28 @@ end;
 function TManagerRenderParams.BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList;
 begin
   Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
+end;
+
+{ TSSAOScreenEffect ---------------------------------------------------------- }
+
+function TCastleViewport.TSSAOScreenEffect.SetupUniforms(var BoundTextureUnits: Cardinal): Boolean;
+begin
+  Result := inherited;
+
+  { set special uniforms for SSAO shader }
+
+  { TODO: use actual projection near/far values, instead of hardcoded ones.
+    Assignment below works, but it seems that effect is much less noticeable
+    then?
+
+  WritelnLog('setting near to %f', [Viewport.ProjectionNear]); // testing
+  WritelnLog('setting far to %f', [Viewport.ProjectionFarFinite]); // testing
+  Uniform('near').SetValue(Viewport.ProjectionNear);
+  Uniform('far').SetValue(Viewport.ProjectionFarFinite);
+  }
+
+  Uniform('near').SetValue(1.0);
+  Uniform('far').SetValue(1000.0);
 end;
 
 { TCastleViewport ------------------------------------------------------- }
@@ -2133,369 +2132,52 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-procedure TCastleViewport.RenderWithScreenEffectsCore;
+procedure TCastleViewport.RenderWithoutScreenEffects;
 
-  procedure RenderOneEffect(Shader: TGLSLProgram);
-  var
-    BoundTextureUnits: Cardinal;
-    AttribVertex, AttribTexCoord: TGLSLAttribute;
+  { Render everything (by RenderFromViewEverything) on the screen.
+    Takes care to set RenderingCamera (Target = rtScreen and camera as given),
+    and takes care to apply Scissor if not FillsWholeContainer,
+    and calls RenderFromViewEverything.
+
+    Always call ApplyProjection before this, to set correct
+    projection matrix. }
+  procedure RenderOnScreen(ACamera: TCastleCamera);
   begin
-    if ScreenPointVbo = 0 then
-    begin
-      { generate and fill ScreenPointVbo. It's contents are constant. }
-      glGenBuffers(1, @ScreenPointVbo);
-      ScreenPoint[0].TexCoord := Vector2(0, 0);
-      ScreenPoint[0].Position := Vector2(-1, -1);
-      ScreenPoint[1].TexCoord := Vector2(1, 0);
-      ScreenPoint[1].Position := Vector2( 1, -1);
-      ScreenPoint[2].TexCoord := Vector2(1, 1);
-      ScreenPoint[2].Position := Vector2( 1,  1);
-      ScreenPoint[3].TexCoord := Vector2(0, 1);
-      ScreenPoint[3].Position := Vector2(-1,  1);
-      glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
-      glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
-    end;
+    RenderingCamera.Target := rtScreen;
+    RenderingCamera.FromCameraObject(ACamera);
 
-    glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
-
-    glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
-    glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
-    BoundTextureUnits := 1;
-
-    if CurrentScreenEffectsNeedDepth then
-    begin
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureDepth);
-      Inc(BoundTextureUnits);
-    end;
-
-    TGLSLProgram.Current := Shader;
-    Shader.Uniform('screen').SetValue(0);
-    if CurrentScreenEffectsNeedDepth then
-      Shader.Uniform('screen_depth').SetValue(1);
-    Shader.Uniform('screen_width').SetValue(TGLint(ScreenEffectTextureWidth));
-    Shader.Uniform('screen_height').SetValue(TGLint(ScreenEffectTextureHeight));
-
-    { set special uniforms for SSAO shader }
-    if Shader = SSAOShader then
-    begin
-      { TODO: use actual projection near/far values, instead of hardcoded ones.
-        Assignment below works, but it seems that effect is much less noticeable
-        then?
-
-      Writeln('setting near to ', ProjectionNear:0:10); // testing
-      Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
-      Shader.Uniform('near').SetValue(ProjectionNear);
-      Shader.Uniform('far').SetValue(ProjectionFarFinite);
-      }
-
-      Shader.Uniform('near').SetValue(1.0);
-      Shader.Uniform('far').SetValue(1000.0);
-    end;
-
-    { Note that we ignore SetupUniforms result --- if some texture
-      could not be bound, it will be undefined for shader.
-      I don't see anything much better to do now. }
-    Shader.SetupUniforms(BoundTextureUnits);
-
-    { Note that there's no need to worry about Rect.Left or Rect.Bottom,
-      here or inside RenderWithScreenEffectsCore, because we're already within
-      RenderContext.Viewport that takes care of this. }
-
-    AttribVertex := Shader.Attribute('vertex');
-    AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
-      OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
-    AttribTexCoord := Shader.Attribute('tex_coord');
-    AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
-      OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
-
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    AttribVertex.DisableArray;
-    AttribTexCoord.DisableArray;
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  end;
-
-var
-  I: Integer;
-begin
-  { Render all except the last screen effects: from texture
-    (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
-  for I := 0 to CurrentScreenEffectsCount - 2 do
-  begin
-    ScreenEffectRTT.RenderBegin;
-    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-    RenderOneEffect(ScreenEffects[I]);
-    ScreenEffectRTT.RenderEnd;
-
-    SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
-  end;
-
-  { Restore RenderContext.Viewport set by ApplyProjection }
-  if not FillsWholeContainer then
-    RenderContext.Viewport := RenderRect.Round;
-
-  { the last effect gets a texture, and renders straight into screen }
-  RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
-end;
-
-function TCastleViewport.RenderWithScreenEffects(const RenderingCamera: TRenderingCamera): boolean;
-
-  { Create and setup new OpenGL texture for screen effects.
-    Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
-  function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
-
-    { Create new OpenGL texture for screen effect.
-      Calls glTexImage2D or glTexImage2DMultisample
-      (depending on multi-sampling requirements).
-
-      - image contents are always unallocated (pixels = nil for glTexImage2D).
-        For screen effects, we never need to load initial image contents,
-        and we also do not have to care about pixel packing.
-      - level for mipmaps is always 0
-      - border is always 0
-      - image target is ScreenEffectTextureTarget
-      - size is ScreenEffectTextureWidth/Height }
-    procedure TexImage2D(const InternalFormat: TGLint;
-      const Format, AType: TGLenum);
-    begin
-      {$ifndef OpenGLES}
-      if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
-        glTexImage2DMultisample(ScreenEffectTextureTarget,
-          GLFeatures.CurrentMultiSampling, InternalFormat,
-          ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight,
-          { fixedsamplelocations = TRUE are necessary in case we use
-            this with cbColor mode, where FBO will also have renderbuffer
-            for depth (and maybe stencil). In this case,
-            https://www.opengl.org/registry/specs/ARB/texture_multisample.txt
-            says that
-
-              if the attached images are a mix of
-              renderbuffers and textures, the value of
-              TEXTURE_FIXED_SAMPLE_LOCATIONS must be TRUE for all attached
-              textures.
-
-            which implies that this parameter must be true.
-            See https://sourceforge.net/p/castle-engine/tickets/22/ . }
-          GL_TRUE) else
-      {$endif}
-        glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
-          ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight, 0, Format, AType, nil);
-    end;
-
-  begin
-    glGenTextures(1, @Result);
-    glBindTexture(ScreenEffectTextureTarget, Result);
-    {$ifndef OpenGLES}
-    { for multisample texture, these cannot be configured (OpenGL makes
-      "invalid enumerant" error) }
-    if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-    {$endif}
-    begin
-      { TODO: NEAREST or LINEAR? Allow to config this and eventually change
-        before each screen effect? }
-      SetTextureFilter(ScreenEffectTextureTarget, TextureFilter(minNearest, magNearest));
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
-    end;
-    if Depth then
-    begin
-      {$ifndef OpenGLES}
-      // TODO-es What do we use here? See TGLRenderToTexture TODO at similar place
-      if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
-        TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
-      {$endif}
-        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
-          { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
-            with INCOMPLETE_ATTACHMENT.
-            http://www.khronos.org/registry/gles/extensions/OES/OES_depth_texture.txt
-            allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures. }
-          {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif});
-      //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
-      //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
-    end else
-      TexImage2D({$ifdef OpenGLES} GL_RGB {$else} GL_RGB8 {$endif},
-        GL_RGB, GL_UNSIGNED_BYTE);
-
-    TextureMemoryProfiler.Allocate(Result, 'screen-contents', '', { TODO } 0, false,
-      ScreenEffectTextureWidth, ScreenEffectTextureHeight, 1);
-  end;
-
-var
-  SR: TRectangle;
-begin
-  { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
-    and also to make the following code stable --- this way we know
-    CurrentScreenEffects* values are constant, even if overridden
-    ScreenEffects* methods do something weird. }
-  CurrentScreenEffectsCount := ScreenEffectsCount;
-  SR := RenderRect.Round;
-
-  Result := GLFeatures.VertexBufferObject { for screen quad } and
-    { check IsTextureSized, to gracefully work (without screen effects)
-      on old desktop OpenGL that does not support NPOT textures. }
-    IsTextureSized(SR.Width, SR.Height, tsAny) and
-    GLFeatures.UseMultiTexturing and
-    (CurrentScreenEffectsCount <> 0);
-
-  if Result then
-  begin
-    CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
-    if CurrentScreenEffectsNeedDepth and not GLFeatures.TextureDepth then
-      { We support only screen effects that do not require depth.
-        TODO: It would be cleaner to still enable screen effects not using
-        depth (and only them), instead of just disabling all screen effects. }
-      Exit(false);
-
-    { We need a temporary texture, for screen effect. }
-    if (ScreenEffectTextureDest = 0) or
-       (ScreenEffectTextureSrc = 0) or
-       (CurrentScreenEffectsNeedDepth <> (ScreenEffectTextureDepth <> 0)) or
-       (ScreenEffectRTT = nil) or
-       (ScreenEffectTextureWidth  <> SR.Width ) or
-       (ScreenEffectTextureHeight <> SR.Height) then
-    begin
-      glFreeTexture(ScreenEffectTextureDest);
-      glFreeTexture(ScreenEffectTextureSrc);
-      glFreeTexture(ScreenEffectTextureDepth);
-      FreeAndNil(ScreenEffectRTT);
-
-      {$ifndef OpenGLES}
-      if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
-        ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
-      {$endif}
-        ScreenEffectTextureTarget := GL_TEXTURE_2D;
-
-      ScreenEffectTextureWidth  := SR.Width;
-      ScreenEffectTextureHeight := SR.Height;
-      { We use two textures: ScreenEffectTextureDest is the destination
-        of framebuffer, ScreenEffectTextureSrc is the source to render.
-
-        Although for some effects one texture (both src and dest) is enough.
-        But when you have > 1 effect and one of the effects has non-local
-        operations (they read color values that can be modified by operations
-        of the same shader, so it's undefined (depends on how shaders are
-        executed in parallel) which one is first) then the artifacts are
-        visible. For example, use view3dscene "Edge Detect" effect +
-        any other effect. }
-      ScreenEffectTextureDest := CreateScreenEffectTexture(false);
-      ScreenEffectTextureSrc := CreateScreenEffectTexture(false);
-      if CurrentScreenEffectsNeedDepth then
-        ScreenEffectTextureDepth := CreateScreenEffectTexture(true);
-
-      { create new TGLRenderToTexture (usually, framebuffer object) }
-      ScreenEffectRTT := TGLRenderToTexture.Create(
-        ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-      ScreenEffectRTT.CompleteTextureTarget := ScreenEffectTextureTarget;
-      { use the same multi-sampling strategy as container }
-      ScreenEffectRTT.MultiSampling := GLFeatures.CurrentMultiSampling;
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        ScreenEffectRTT.Buffer := tbColorAndDepth;
-        ScreenEffectRTT.DepthTexture := ScreenEffectTextureDepth;
-        ScreenEffectRTT.DepthTextureTarget := ScreenEffectTextureTarget;
-      end else
-        ScreenEffectRTT.Buffer := tbColor;
-      ScreenEffectRTT.Stencil := GLFeatures.ShadowVolumesPossible;
-      ScreenEffectRTT.GLContextOpen;
-
-      WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
-        [ ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight,
-          BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
-    end;
-
-    { We have to adjust RenderContext.Viewport.
-      It will be restored from RenderWithScreenEffectsCore right before actually
-      rendering to screen. }
-    if not FillsWholeContainer then
-      RenderContext.Viewport := Rectangle(0, 0, SR.Width, SR.Height);
-
-    ScreenEffectRTT.RenderBegin;
-    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-    RenderFromViewEverything(RenderingCamera);
-    ScreenEffectRTT.RenderEnd;
-
-    SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
-
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glDisable(GL_DEPTH_TEST);
-
-      glActiveTexture(GL_TEXTURE0);
-      glDisable(GL_TEXTURE_2D);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glEnable(ScreenEffectTextureTarget);
-
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        glDisable(GL_TEXTURE_2D);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glEnable(ScreenEffectTextureTarget);
-      end;
-      {$endif}
-    end;
-
-    OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
-    RenderWithScreenEffectsCore;
-
-    if GLFeatures.EnableFixedFunction then
-    begin
-      {$ifndef OpenGLES}
-      if CurrentScreenEffectsNeedDepth then
-      begin
-        glActiveTexture(GL_TEXTURE1);
-        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-          glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-      end;
-
-      glActiveTexture(GL_TEXTURE0);
-      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
-        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-
-      { at the end, we left active texture as default GL_TEXTURE0 }
-
-      glPopAttrib;
-      {$endif}
-    end;
-  end;
-end;
-
-procedure TCastleViewport.RenderOnScreen(ACamera: TCastleCamera);
-begin
-  RenderingCamera.Target := rtScreen;
-  RenderingCamera.FromCameraObject(ACamera);
-
-  if not RenderWithScreenEffects(RenderingCamera) then
-  begin
-    { Rendering directly to the screen, when no screen effects are used. }
-    if not FillsWholeContainer then
+    if (not FillsWholeContainer) and (not RenderScreenEffects) then
       { Use Scissor to limit what RenderContext.Clear clears. }
       RenderContext.ScissorEnable(
         RenderRect.Translate(Vector2(RenderContext.ViewportDelta)).Round);
 
     RenderFromViewEverything(RenderingCamera);
 
-    if not FillsWholeContainer then
+    if (not FillsWholeContainer) and (not RenderScreenEffects) then
       RenderContext.ScissorDisable;
   end;
-end;
 
-procedure TCastleViewport.Render;
 begin
   inherited;
   ApplyProjection;
   Items.UpdateGeneratedTextures(@RenderFromViewEverything,
     FProjection.ProjectionNear, FProjection.ProjectionFar);
   RenderOnScreen(Camera);
+end;
+
+function TCastleViewport.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
+begin
+  Result := GetScreenEffects(Index);
+end;
+
+function TCastleViewport.InternalExtraScreenEffectsCount: Integer;
+begin
+  Result := ScreenEffectsCount;
+end;
+
+function TCastleViewport.InternalExtraScreenEffectsNeedDepth: Boolean;
+begin
+  Result := ScreenEffectsNeedDepth;
 end;
 
 function TCastleViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
@@ -2555,7 +2237,8 @@ begin
   if GLFeatures.Shaders <> gsNone then
   begin
     try
-      SSAOShader := TGLSLScreenEffect.Create;
+      SSAOShader := TSSAOScreenEffect.Create;
+      SSAOShader.Viewport := Self;
       SSAOShader.NeedsDepth := true;
       SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
       SSAOShader.Link;
@@ -2589,14 +2272,6 @@ end;
 procedure TCastleViewport.GLContextClose;
 begin
   FreeAndNil(FShadowVolumeRenderer);
-
-  // screen effects stuff
-  glFreeTexture(ScreenEffectTextureDest);
-  glFreeTexture(ScreenEffectTextureSrc);
-  glFreeTexture(ScreenEffectTextureDepth);
-  ScreenEffectTextureTarget := 0; //< clear, for safety
-  FreeAndNil(ScreenEffectRTT);
-  glFreeBuffer(ScreenPointVbo);
 
   FreeAndNil(SSAOShader);
   SSAOShaderInitialized := false;
