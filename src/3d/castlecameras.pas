@@ -3456,7 +3456,7 @@ begin
     if Input_StopRotating.IsEvent(Event) then
     begin
       { If StopRotating was useless, do not mark the event as "handled".
-        This is nice, otherwise on an empty TCastleControl/Window mouse clicks
+        This is nice, otherwise on an empty TCastleControl/TCastleWindow mouse clicks
         are "mysteriously" intercepted, since the default scene manager creates
         examine camera, and it captures left mouse click as Input_StopRotating. }
       if StopRotating then

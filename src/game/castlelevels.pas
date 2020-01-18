@@ -1054,7 +1054,7 @@ begin
     So we do not check field "not GLInitialized", instead we look at global
     GLVersion. }
   if GLVersion = nil then
-    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TLevel.Load.');
+    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControlBase.OnGLContextOpen) before using TLevel.Load.');
 
   PreviousResources := UnloadCore;
 

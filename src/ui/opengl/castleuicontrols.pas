@@ -314,8 +314,8 @@ type
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
-    { These should only be get/set by a container provider,
-      like TCastleWindow or TCastleControl.
+    { These should only be get/set by a container owner,
+      like TCastleWindowBase or TCastleControlBase.
       @groupBegin }
     property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
     property OnOpenObject: TContainerObjectEvent read FOnOpenObject write FOnOpenObject;
@@ -369,7 +369,7 @@ type
       to "fake" some event by calling these methods.
 
       Most of these methods are called automatically
-      by the container owner, like TCastleWindow or TCastleControl.
+      by the container owner, like TCastleWindowBase or TCastleControlBase.
       Some are called by @link(EventUpdate),
       which is special in this regard, as @link(EventUpdate) is not only
       responsible for calling @link(TInputListener.Update) on all @link(Controls),
@@ -594,7 +594,7 @@ type
       (or straight to an image file, like png).
 
       Note that only capturing from the double-buffered OpenGL
-      windows (which the default for our TCastleWindow and TCastleControl)
+      windows (which the default for our TCastleWindowBase and TCastleControlBase)
       is reliable. Internally, these methods may need to redraw the screen
       to the back buffer, because that's the only guaranteed way to capture
       OpenGL drawing (you have to capture the back buffer, before swap).
@@ -1613,7 +1613,7 @@ type
 
           The control always fills the whole parent.
           If the control is added directly to the container,
-          it will fill the whole container (TCastleWindow or TCastleControl).
+          it will fill the whole container (TCastleWindowBase or TCastleControlBase).
         )
         @item(
           Otherwise (when @link(FullSize) and @link(AutoSizeToChildren)
@@ -2274,7 +2274,7 @@ var
 
   Returns @nil if OnMainContainer not assigned (possible if you don't use
   CastleWindow or CastleControl), or OnMainContainer returns @nil
-  (possible if you don't set Application.MainWindow or TCastleControl.MainControl).
+  (possible if you don't set Application.MainWindow or TCastleControlBase.MainControl).
 
   @exclude }
 function GetMainContainer: TUIContainer;
@@ -3791,7 +3791,7 @@ end;
 procedure TUIContainer.LoadSettings(const SettingsUrl: String);
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindow.OnOpen, TCastleControl.OnOpen');
+    raise Exception.Create('Rendering context not open when calling TUIContainer.LoadSettings. Call LoadSettings later, e.g. in Application.OnInitialize, TCastleWindowBase.OnOpen, TCastleControlBase.OnOpen');
   SettingsLoad(Self, SettingsUrl);
 end;
 

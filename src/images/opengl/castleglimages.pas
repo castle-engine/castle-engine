@@ -38,7 +38,7 @@
 
     @item(Save the current OpenGL screen contents to our TCastleImage.
       You usually use this through TCastleWindowBase.SaveScreen
-      or TCastleControl.SaveScreen,
+      or TCastleControlBase.SaveScreen,
       based on SaveScreen_NoFlush in this unit.)
 
     @item(Render to texture, see TGLRenderToTexture class.

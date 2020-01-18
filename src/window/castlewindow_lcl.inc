@@ -726,7 +726,7 @@ end;
 { Since LCL event loop may become clogged when dragging with mouse
   (like when using mouse look), force doing update and (if needed) redraw
   from time to time.
-  See TCastleControl implementation for analogous AggressiveUpdate
+  See TCastleControlBase implementation for analogous AggressiveUpdate
   procedure with detailed discussion about why this is needed. }
 procedure TCastleWindowBase.AggressiveUpdate;
 var

@@ -76,8 +76,8 @@
       throughout your code, and everything will just work.
 
       This way your applications will behave the same, whether they use LCL
-      (which happens if you use TCastleControl on Lazarus form) or not
-      (which happens if you use TCastleWindow).
+      (which happens if you use TCastleControlBase on Lazarus form) or not
+      (which happens if you use TCastleWindowBase).
 
       This is also consistent with what our TCastleFont expects (it's
       rendering assumes UTF-8 encoding of strings) and what some of our

@@ -676,7 +676,7 @@ type
       @unorderedList(
         @item(When ScreenCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindow or TCastleControl).
+          (like TCastleWindowBase or TCastleControlBase).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -715,7 +715,7 @@ type
       @unorderedList(
         @item(When ScreenCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindow or TCastleControl).
+          (like TCastleWindowBase or TCastleControlBase).
 
           And it is expressed in real device coordinates,
           just like @link(TInputPressRelease.Position)
@@ -1134,11 +1134,6 @@ uses DOM, Math,
 
 procedure Register;
 begin
-  { For engine 3.0.0, TCastleSceneManager is not registered on palette,
-    as the suggested usage for everyone is to take TCastleControl with
-    scene manager instance already created.
-    See castlecontrol.pas comments in Register. }
-  { RegisterComponents('Castle', [TCastleSceneManager]); }
 end;
 
 {$I castleviewport_warmup_cache.inc}

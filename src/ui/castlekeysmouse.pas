@@ -672,8 +672,8 @@ type
       for EventType = itMouseButton (in case of mouse press/release).
 
       For normal backends that simply support a single mouse device,
-      this is just equivalent to TCastleWindow.MousePosition
-      and TCastleControl.MousePosition, so it's not really interesting.
+      this is just equivalent to TCastleWindowBase.MousePosition
+      and TCastleControlBase.MousePosition, so it's not really interesting.
 
       For multi-touch devices, this is very useful, as it describes
       the position of the current finger (corresponding to FingerIndex).
