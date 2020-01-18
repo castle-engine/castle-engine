@@ -91,7 +91,8 @@ uses
   TestCastleRandom,
   TestCastleSoundEngine,
   TestCastleComponentSerialize,
-  TestX3DLoadInternalUtils
+  TestX3DLoadInternalUtils,
+  TestCastleLevels
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,

@@ -1047,15 +1047,6 @@ var
   Shape: TShape;
   PreviousResources: T3DResourceList;
 begin
-  { We want OpenGL context, but we don't want to require that this scene manager
-    is actually added to Window.Controls yet. This would prevent taking a screenshot
-    from previous 3D contents as a background when loading level, which is actually
-    used by castle1.
-    So we do not check field "not GLInitialized", instead we look at global
-    GLVersion. }
-  if GLVersion = nil then
-    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControlBase.OnGLContextOpen) before using TLevel.Load.');
-
   PreviousResources := UnloadCore;
 
   FInfo := AInfo;
