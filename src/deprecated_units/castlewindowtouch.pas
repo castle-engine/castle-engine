@@ -38,7 +38,7 @@ type
     this class can additionally manage one or two TCastleTouchControl instances.
     They will be automatically positioned in the bottom-left
     and bottom-right corners of the screen,
-    and will allow the user to navigate using the default SceneManager.Camera.
+    and will allow the user to navigate using the default @link(TCastleViewport.Navigation SceneManager.Navigation).
     In the simplest case, just set @link(AutomaticTouchInterface) to @true,
     and the touch controls will automatically adjust to the current
     navigation type of the camera (examine, walk, fly...). }
@@ -136,8 +136,11 @@ begin
         FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
       end;
 
-    SceneManager.SensorTranslation(Tx, Ty, Tz, TLength, Fps.SecondsPassed);
-    SceneManager.SensorRotation(Rx, Ry, Rz, RAngle, Fps.SecondsPassed);
+    if SceneManager.Navigation <> nil then
+    begin
+      SceneManager.Navigation.SensorTranslation(Tx, Ty, Tz, TLength, Fps.SecondsPassed);
+      SceneManager.Navigation.SensorRotation(Rx, Ry, Rz, RAngle, Fps.SecondsPassed);
+    end;
   end;
 end;
 
