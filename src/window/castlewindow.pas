@@ -4684,7 +4684,7 @@ begin
   {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
   {$warnings on}
-  Assert(SceneManager.Camera = nil);
+  Assert(SceneManager.Navigation = nil);
 
   SceneManager.Items.MainScene := TCastleScene.Create(Self);
   SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
