@@ -60,7 +60,7 @@ public class ServicePhotoService extends ServiceAbstract
                 Toast.makeText(getActivity(), "Image saved", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
-                logWarning(CATEGORY, "Error writing screenshot", e);
+                logWarning(CATEGORY, "Error writing screenshot: " + e.toString());
             }
 
             return true;
