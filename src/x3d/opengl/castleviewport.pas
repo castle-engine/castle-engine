@@ -152,7 +152,7 @@ type
       FMouseRayHit: TRayCollision;
       FAvoidNavigationCollisions: TCastleTransform;
       PrepareResourcesDone: Boolean;
-      FProtectInfiniteFallingDown: Boolean;
+      FPreventInfiniteFallingDown: Boolean;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -1012,8 +1012,8 @@ type
       For now, the only thing doing gravity on camera is TCastleWalkNavigation
       when TCastleWalkNavigation.Gravity = @true, so this is the only case
       when this property is relevant. }
-    property ProtectInfiniteFallingDown: Boolean
-      read FProtectInfiniteFallingDown write FProtectInfiniteFallingDown default false;
+    property PreventInfiniteFallingDown: Boolean
+      read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -3124,9 +3124,9 @@ begin
   { Both version result in calling WorldMoveAllowed.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  // take into account ProtectInfiniteFallingDown
+  // take into account PreventInfiniteFallingDown
   if BecauseOfGravity and
-     ProtectInfiniteFallingDown and
+     PreventInfiniteFallingDown and
      PositionOutsideBoundingBox then
     Exit(false);
 
