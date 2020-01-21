@@ -2006,7 +2006,9 @@ begin
   else
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
 
-  if depOggVorbis in Dependencies then
+  // Since right now we always compile with CASTLE_TREMOLO_STATIC,
+  // we just always behave like ogg_vorbis service was included.
+  if {depOggVorbis in Dependencies}true then
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '"ONLY_C=1",' + NL)
   else
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');

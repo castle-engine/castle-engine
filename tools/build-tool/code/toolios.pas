@@ -161,7 +161,9 @@ var
     for S in Project.IOSServices do
       ExtractService(S.Name);
 
-    if (depOggVorbis in Project.Dependencies) and
+    // Since right now we always compile with CASTLE_TREMOLO_STATIC,
+    // we just always add ogg_vorbis service, otherwise it would not link.
+    if {(depOggVorbis in Project.Dependencies) and}
        not Project.IOSServices.HasService('ogg_vorbis') then
       ExtractService('ogg_vorbis');
   end;
