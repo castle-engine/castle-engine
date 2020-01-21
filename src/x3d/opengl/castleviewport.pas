@@ -152,6 +152,7 @@ type
       FMouseRayHit: TRayCollision;
       FAvoidNavigationCollisions: TCastleTransform;
       PrepareResourcesDone: Boolean;
+      FProtectInfiniteFallingDown: Boolean;
 
     function FillsWholeContainer: boolean;
     function IsStoredNavigation: Boolean;
@@ -1002,6 +1003,17 @@ type
     { Called when bound NavigationInfo changes (to a different node,
       or just a field changes). }
     property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
+
+    { Protect from falling down because of gravity when position is outside
+      of world bounding box.
+      This is a nice thing for general model viewers (like view3dscene),
+      to prevent from accidentally falling down when using "Walk" mode.
+
+      For now, the only thing doing gravity on camera is TCastleWalkNavigation
+      when TCastleWalkNavigation.Gravity = @true, so this is the only case
+      when this property is relevant. }
+    property ProtectInfiniteFallingDown: Boolean
+      read FProtectInfiniteFallingDown write FProtectInfiniteFallingDown default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleviewport_persistent_vectors.inc}
@@ -3084,9 +3096,39 @@ end;
 function TCastleViewport.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
   const ProposedNewPos: TVector3; out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
+
+  function PositionOutsideBoundingBox: Boolean;
+  var
+    CameraPos: TVector3;
+    Box: TBox3D;
+    GravityCoordinate, Coord1, Coord2: Integer;
+  begin
+    CameraPos := Camera.Position;
+    Box := ItemsBoundingBox;
+    if Box.IsEmpty then Exit(false);
+    GravityCoordinate := MaxAbsVectorCoord(NewPos - CameraPos);
+    RestOf3DCoords(GravityCoordinate, Coord1, Coord2);
+    { Do not fall down if CamePos is outside of Box.
+      But in case camera is *above* Box, consider it *inside* the box
+      (gravity will work there).
+      This is useful to allow jumping on top of the scene work naturally. }
+    Result :=
+      (CameraPos[Coord1] < Box.Data[0][Coord1]) or
+      (CameraPos[Coord1] > Box.Data[1][Coord1]) or
+      (CameraPos[Coord2] < Box.Data[0][Coord2]) or
+      (CameraPos[Coord2] > Box.Data[1][Coord2]) or
+      (CameraPos[GravityCoordinate] < Box.Data[0][GravityCoordinate]);
+  end;
+
 begin
   { Both version result in calling WorldMoveAllowed.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
+
+  // take into account ProtectInfiniteFallingDown
+  if BecauseOfGravity and
+     ProtectInfiniteFallingDown and
+     PositionOutsideBoundingBox then
+    Exit(false);
 
   if AvoidNavigationCollisions <> nil then
     Result := AvoidNavigationCollisions.MoveAllowed(Camera.Position, ProposedNewPos, NewPos, BecauseOfGravity)
