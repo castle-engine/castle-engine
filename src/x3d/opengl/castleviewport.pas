@@ -101,10 +101,6 @@ type
   TCastleViewport = class(TCastleScreenEffects)
   strict private
     type
-      TScreenPoint = packed record
-        Position: TVector2;
-        TexCoord: TVector2;
-      end;
       TSSAOScreenEffect = class(TGLSLScreenEffect)
         Viewport: TCastleViewport;
         function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
