@@ -34,6 +34,38 @@ uses SysUtils, Classes, TypInfo, Math, PasGLTF,
   CastleImages, CastleVideos, CastleTimeUtils,
   X3DLoadInternalUtils;
 
+{ TMyGltfDocument ------------------------------------------------------------ }
+
+type
+  { Descendant of TPasGLTF.TDocument that changes URI loading,
+    to load URI using our CastleDownload, thus supporting all our URLs. }
+  TMyGltfDocument = class(TPasGLTF.TDocument)
+  strict private
+    function CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+  public
+    constructor Create(const Stream: TStream; const BaseUrl: String); reintroduce;
+  end;
+
+constructor TMyGltfDocument.Create(const Stream: TStream; const BaseUrl: String);
+begin
+  inherited Create;
+
+  { The interpretation of RootPath lies on our side, in GetUri implementation.
+    Just use it to store BaseUrl then. }
+  RootPath := BaseUrl;
+  GetURI := @CastleGetUri;
+
+  LoadFromStream(Stream);
+end;
+
+function TMyGltfDocument.CastleGetUri(const aURI: TPasGLTFUTF8String): TStream;
+begin
+  { Resolve and open URI using our CGE functions.
+    Without this, TPasGLTF.TDocument.DefaultGetURI would always use TFileStream.Create,
+    and not work e.g. with Android assets. }
+  Result := Download(CombineURI(RootPath, aURI));
+end;
+
 { Reading glTF using PasGLTF from Bero:
   https://github.com/BeRo1985/pasgltf/
 
@@ -989,7 +1021,9 @@ begin
     "view3dscene my_file.gtlf" on the command-line. }
   BaseUrl := AbsoluteURI(URL);
 
-  Stream := Download(URL, []);
+  { Using soForceMemoryStream, because PasGLTF does seeking,
+    otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
+  Stream := Download(URL, [soForceMemoryStream]);
   try
     Result := TX3DRootNode.Create('', BaseUrl);
     try
@@ -998,9 +1032,7 @@ begin
       Appearances := nil;
       Nodes := nil;
       try
-        Document := TPasGLTF.TDocument.Create;
-        Document.RootPath := InclPathDelim(ExtractFilePath(URIToFilenameSafe(BaseUrl)));
-        Document.LoadFromStream(Stream);
+        Document := TMyGltfDocument.Create(Stream, BaseUrl);
 
         ReadHeader;
 
