@@ -430,10 +430,8 @@ begin
 
   { calculate MaxTexture3DSize, eventually correct Texture3D if buggy }
   case Texture3D of
-    {$ifndef OpenGLES}
-    gsExtension: MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
-    gsStandard : MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
-    {$endif}
+    gsExtension: MaxTexture3DSize := {$ifndef OpenGLES} glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT) {$else} 0 {$endif};
+    gsStandard : MaxTexture3DSize := {$ifndef OpenGLES} glGetInteger(GL_MAX_3D_TEXTURE_SIZE) {$else} 0 {$endif};
     gsNone     : MaxTexture3DSize := 0;
   end;
   if (MaxTexture3DSize = 0) and (Texture3D <> gsNone) then
