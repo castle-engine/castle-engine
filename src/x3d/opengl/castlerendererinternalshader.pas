@@ -657,7 +657,12 @@ const
 { MoveTo do not warn about incorrect PLUG_ declarations, only return @false
   on them. That's because FindPlugName should just ignore them.
   But we log them --- maybe they will be useful
-  in case there's some problem with FindPlugName. }
+  in case there's some problem with FindPlugName.
+
+  Testcase: opening
+  view3dscene-mobile/data/demo/teapot (fresnel and toon shader).x3dv
+  in view3dscene-mobile.
+}
 
 function MoveToOpeningParen(const S: string; var P: Integer): boolean;
 begin
@@ -667,14 +672,14 @@ begin
 
     if P > Length(S) then
     begin
-      WritelnWarning('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
+      WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(") ');
       Exit(false);
     end;
 
     if (S[P] <> '(') and
        not (S[P] in WhiteSpaces) then
     begin
-      WritelnWarning('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
+      WritelnLog('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(") in "%s"',
         [S[P], S]));
       Exit(false);
     end;
@@ -692,7 +697,7 @@ begin
     Inc(P);
     if P > Length(S) then
     begin
-      WritelnWarning('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
       Exit(false);
     end;
 
