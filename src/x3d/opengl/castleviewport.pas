@@ -2085,7 +2085,7 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   end;
 
 begin
-  { TODO: Temporary compatibiliy cludge:
+  { TODO: Temporary compatibility cludge:
     Because some rendering code still depends on
     the CastleRenderingCamera.RenderingCamera singleton being initialized,
     so initialize it from current parameter. }

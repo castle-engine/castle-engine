@@ -4694,10 +4694,11 @@ begin
   SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { For backward compatibility, to make our Navigation always non-nil. }
-  {$warnings off} // using deprecated in deprecated
-  SceneManager.RequiredNavigation;
-  {$warnings on}
+  { Adjust SceneManager.Navigation and SceneManager.Camera to latest scene }
+  SceneManager.AssignDefaultCamera;
+  SceneManager.AssignDefaultNavigation;
+  // AssignDefaultNavigation should satisfy this, and we need it for backward compatibility
+  Assert(SceneManager.Navigation <> nil);
 end;
 
 function TCastleWindow.MainScene: TCastleScene;
