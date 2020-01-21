@@ -2,7 +2,9 @@
 
 This service integrates _Castle Game Engine_ applications with [Test Fairy](https://www.testfairy.com/). It's a nice way to distribute mobile applications to your testers, gather logs, feedback etc.
 
-Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.com/) in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK. But it's a nice bonus, see https://docs.testfairy.com/Android/Integrating_Android_SDK.html: _"It tells you when and how people are using your app, and provides you with any metrics you may need in order to optimize your user experience and code."_
+Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.com/) in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK.
+
+Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service.
 
 Note (following TestFairy docs): to gather logs, make sure e to check the _"Log collection"_ checkbox found under the "Insights" tab in [Build Settings](https://docs.testfairy.com/Getting_Started/Version_Settings.html). This can be done after the app was uploaded or the first session performed.
 
@@ -12,10 +14,8 @@ You need to specify additional parameters inside `CastleEngineManifest.xml` when
 
 ~~~~xml
 <service name="test_fairy">
-  <parameters>
-    <parameter name="domain" value="xxxxxx" />
-    <parameter name="sdk_app_token" value="SDK-yyyyyy" />
-  </parameters>
+  <parameter key="domain" value="xxxxxx" />
+  <parameter key="sdk_app_token" value="SDK-yyyyyy" />
 </service>
 ~~~~
 
