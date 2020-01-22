@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -166,6 +166,11 @@ var
     if {(depOggVorbis in Project.Dependencies) and}
        not Project.IOSServices.HasService('ogg_vorbis') then
       ExtractService('ogg_vorbis');
+    // Since right now we always compile with CASTLE_FREETYPE_STATIC,
+    // we just always add freetype service, otherwise it would not link.
+    if {(depFreeType in Project.Dependencies) and}
+       not Project.AndroidServices.HasService('freetype') then
+      ExtractService('freetype');
   end;
 
   { Generate icons, in various sizes, from the base icon. }

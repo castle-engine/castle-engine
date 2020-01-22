@@ -1,11 +1,21 @@
 { Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
   as Castle Game Engine, so no problem).
+
   Adjusted to
-  - load library using TDynLib, and merely expose
+
+  - Load dynamic library using TDynLib, and merely expose
     FreeTypeLibraryInitialized = false when library not found.
     TFontManager.Create will raise an exception if freetype library is not
     installed, and it can be handled gracefully.
+
   - Honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION symbol.
+
+  - Optionally load is staticaly, if CASTLE_FREETYPE_STATIC is defined.
+    It is automatically defined on iOS now
+    (matchin Castle Game Engine "freetype" service on iOS,
+    that links freetype statically into the main library).
+
+  -----------------------------------------------------------------
 }
 {
     This file is part of the Free Pascal run time library.
@@ -35,6 +45,10 @@ unit CastleInternalFreeTypeH;
 { Note that these are not all the availlable calls from the dll yet.
   This unit is used by TStringBitMaps and FTFont }
 {$i castleconf.inc}
+
+{$ifdef CASTLE_IOS}
+  {$define CASTLE_FREETYPE_STATIC}
+{$endif}
 
 interface
 
@@ -215,10 +229,10 @@ type
   end;
   PFT_Outline = ^FT_Outline;
 
-  FT_Outline_MoveToFunc = function(const to_: PFT_Vector; user: Pointer): integer;
-  FT_Outline_LineToFunc = function(const to_: PFT_Vector; user: Pointer): integer;
-  FT_Outline_ConicToFunc = function(const control, to_: PFT_Vector; user: Pointer): integer;
-  FT_Outline_CubicToFunc = function(const control1, control2, to_: PFT_Vector; user: Pointer): integer;
+  FT_Outline_MoveToFunc = function(const to_: PFT_Vector; user: Pointer): integer; cdecl;
+  FT_Outline_LineToFunc = function(const to_: PFT_Vector; user: Pointer): integer; cdecl;
+  FT_Outline_ConicToFunc = function(const control, to_: PFT_Vector; user: Pointer): integer; cdecl;
+  FT_Outline_CubicToFunc = function(const control1, control2, to_: PFT_Vector; user: Pointer): integer; cdecl;
 
   FT_Outline_Funcs = record
     move_to: FT_Outline_MoveToFunc;
@@ -344,8 +358,39 @@ type
     outline : FT_Outline;
   end;
 
+{$ifdef CASTLE_FREETYPE_STATIC}
+
 //Base Interface
+function FT_Done_Face(face: PFT_Face): integer; cdecl; external;
+function FT_Done_FreeType(alibrary: PFT_Library): integer; cdecl; external;
+function FT_Get_Char_Index(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl; external;
+function FT_Get_Kerning(face: PFT_Face; left_glyph, right_glyph, kern_mode: FT_UInt; out akerning: FT_Vector): integer; cdecl; external;
+function FT_Init_FreeType(var alibrary: PFT_Library): integer; cdecl; external;
+function FT_Load_Char(face: PFT_Face; charcode: FT_ULong; load_flags: longint): integer; cdecl; external;
+function FT_Load_Glyph(face: PFT_Face; glyph_index: FT_UInt; load_flags: longint): integer; cdecl; external;
+function FT_New_Face(alibrary: PFT_Library; filepathname: PChar; face_index: integer; var aface: PFT_Face): integer; cdecl; external;
+function FT_Set_Char_Size(face: PFT_Face; char_width, char_height: FT_F26dot6; horz_res, vert_res: FT_UInt): integer; cdecl; external;
+function FT_Set_Pixel_Sizes(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl; external;
+procedure FT_Set_Transform(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl; external;
+
+//Outline Processing
+function FT_Outline_Decompose(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl; external;
+
+//FreeType Version
+procedure FT_Library_Version(alibrary: PFT_Library; var amajor, aminor, apatch: integer); cdecl; external;
+
+//Glyph Management
+function FT_Get_Glyph(slot: PFT_GlyphSlot; out aglyph: PFT_Glyph): integer; cdecl; external;
+function FT_Glyph_Copy(Source: PFT_Glyph; out target: PFT_Glyph): integer; cdecl; external;
+function FT_Glyph_To_Bitmap(var the_glyph: PFT_Glyph; render_mode: FT_Render_Mode; origin: PFT_Vector; Destroy: FT_Bool): integer; cdecl; external;
+function FT_Glyph_Transform(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl; external;
+procedure FT_Done_Glyph(glyph: PFT_Glyph); cdecl; external;
+procedure FT_Glyph_Get_CBox(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl; external;
+
+{$else}
+
 var
+//Base Interface
   FT_Done_Face: function(face: PFT_Face): integer; cdecl;
   FT_Done_FreeType: function(alibrary: PFT_Library): integer; cdecl;
   FT_Get_Char_Index: function(face: PFT_Face; charcode: FT_ULong): FT_UInt; cdecl;
@@ -358,11 +403,7 @@ var
   FT_Set_Pixel_Sizes: function(face: PFT_Face; pixel_width, pixel_height: FT_UInt): integer; cdecl;
   FT_Set_Transform: procedure(face: PFT_Face; matrix: PFT_Matrix; delta: PFT_Vector); cdecl;
 
-//Base Interface - macros
-function FT_IS_SCALABLE(face: PFT_Face): boolean;
-
 //Outline Processing
-var
   FT_Outline_Decompose: function(outline: PFT_Outline; const func_interface: PFT_Outline_Funcs; user: Pointer): integer; cdecl;
 
 //FreeType Version
@@ -375,6 +416,10 @@ var
   FT_Glyph_Transform: function(glyph: PFT_Glyph; matrix: PFT_Matrix; delta: PFT_Vector): integer; cdecl;
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
   FT_Glyph_Get_CBox: procedure(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl;
+{$endif CASTLE_FREETYPE_STATIC}
+
+//Base Interface - macros
+function FT_IS_SCALABLE(face: PFT_Face): boolean;
 
 procedure LoadFreeTypeLibrary;
 
@@ -395,6 +440,20 @@ end;
 
 { Loading FreeType library --------------------------------------------------- }
 
+{$ifdef CASTLE_FREETYPE_STATIC}
+
+procedure LoadFreeTypeLibrary;
+begin
+end;
+
+function FreeTypeLibraryInitialized: boolean;
+begin
+  Result := true;
+end;
+
+end.
+{$else CASTLE_FREETYPE_STATIC}
+
 var
   FreeTypeLibrary: TDynLib;
 
@@ -412,7 +471,7 @@ begin
   {$endif}
 
   // macOS
-  {$ifdef darwin}
+  {$ifdef DARWIN}
     {$define ft_found_platform}
     FreeTypeLibrary := TDynLib.Load('libfreetype.dylib', false);
     if FreeTypeLibrary = nil then
@@ -458,3 +517,5 @@ initialization
 finalization
   FreeAndNil(FreeTypeLibrary);
 end.
+
+{$endif CASTLE_FREETYPE_STATIC}
