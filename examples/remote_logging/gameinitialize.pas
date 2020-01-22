@@ -20,13 +20,13 @@ interface
 
 implementation
 
-uses SysUtils, Math, URIParser, Classes,
-  CastleWindow, CastleLog, CastleApplicationProperties, CastleDownload,
-  CastleKeysMouse;
+uses SysUtils, Math, URIParser, Classes, FpHttpClient,
+  CastleWindow, CastleLog, CastleApplicationProperties, CastleKeysMouse;
 
 var
   Window: TCastleWindowBase;
   InsideLogCallback: Boolean;
+  ProcessId: Cardinal;
 
 type
   TEventsHandler = class
@@ -35,48 +35,33 @@ type
 
 class procedure TEventsHandler.LogCallback(const Message: String);
 
-  { Escape any special URL characters.
-    Following Escape from URIParser. }
-  function EscapeUriParameter(const S: String): String;
-  const
-    ALPHA = ['A'..'Z', 'a'..'z'];
-    DIGIT = ['0'..'9'];
-    Allowed {Unreserved} = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  { Send, using HTTP post, one parameter. }
+  procedure HttpPost(const URL: String; const ParameterKey, ParameterValue: String);
   var
-    i, L: Integer;
-    P: PChar;
+    HttpClient: TFpHttpClient;
+    FormData: TStringList;
+    Response: String;
   begin
-    L := Length(s);
-    for i := 1 to Length(s) do
-      if not (s[i] in Allowed) then Inc(L,2);
-    if L = Length(s) then
-    begin
-      Result := s;
-      Exit;
-    end;
+    HttpClient := TFpHttpClient.Create(nil);
+    try
+      FormData := TStringList.Create;
+      try
+        FormData.Values[ParameterKey] := ParameterValue;
 
-    SetLength(Result, L);
-    P := @Result[1];
-    for i := 1 to Length(s) do
-    begin
-      if not (s[i] in Allowed) then
-      begin
-        P^ := '%'; Inc(P);
-        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
-      end
-      else
-        P^ := s[i];
-      Inc(P);
-    end;
+        { TODO: This waits until the HTTP POST returns,
+          which may slow down your application noticeably,
+          since each WritelnLog call is now a network request that must be completed. }
+
+        Response := HttpClient.FormPost(URL, FormData);
+        Writeln(ErrOutput, Format('Posted log to "%s" with response: %s', [
+          URL,
+          Response
+        ]));
+      finally FreeAndNil(FormData) end;
+    finally FreeAndNil(HttpClient) end;
   end;
 
-const
-  { Some limit is necessary, otherwise server will answer HTTP 414
-    ( https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/414 ).
-    TODO: Using http POST would solve it. }
-  MaxMessageLen = 1024;
 var
-  S: TStream;
   SendMessage: String;
 begin
   { Use InsideLogCallback to prevent from infinite recursion:
@@ -84,19 +69,10 @@ begin
   if InsideLogCallback then Exit;
   InsideLogCallback := true;
   try
-    // calculate SendMessage, apply MaxMessageLen
-    if Length(Message) > MaxMessageLen then
-      SendMessage := Copy(Message, 1, MaxMessageLen - 3) + '...'
-    else
-      SendMessage := Message;
-    SendMessage := Trim(SendMessage);
-
-    { TODO: This does synchronous waiting, until the Download() call returns,
-      which will slow down your application noticeably,
-      since each WritelnLog call is now a network request that must be completed. }
-    S := Download('http://michalis.ii.uni.wroc.pl/~michalis/cge_logger.php?message=' +
-      EscapeUriParameter(SendMessage));
-    FreeAndNil(S);
+    // We use TrimRight to strip traling newline
+    SendMessage := ApplicationName + '[' + IntToStr(ProcessId) + '] ' + TrimRight(Message);
+    HttpPost('http://michalis.ii.uni.wroc.pl/~michalis/cge_logger.php',
+      'message', SendMessage);
   finally InsideLogCallback := false end;
 end;
 
@@ -109,7 +85,13 @@ initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'remote_logging';
   ApplicationProperties.OnLog.Add(@TEventsHandler(nil).LogCallback);
-  EnableNetwork := true;
+
+  { This "process id" is not used for any OS process management.
+    It's only a unique process id, hopefully unique across all current
+    application instances on all systems.
+    So we can just choose it using Random, no need to use Unix "pid" or
+    equivalent WinAPI function for this. }
+  ProcessId := Random(1000);
 
   InitializeLog;
 
