@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="695">
+    <Files Count="696">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2897,6 +2897,10 @@ See https://castle-engine.io/license.php for details.
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleViewport"/>
       </Item694>
+      <Item696>
+        <Filename Value="../src/services/castletestfairy.pas"/>
+        <UnitName Value="CastleTestFairy"/>
+      </Item696>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
