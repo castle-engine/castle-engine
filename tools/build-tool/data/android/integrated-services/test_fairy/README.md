@@ -6,7 +6,7 @@ Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.
 
 Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service.
 
-Note (following TestFairy docs): to gather logs, make sure e to check the _"Log collection"_ checkbox found under the "Insights" tab in [Build Settings](https://docs.testfairy.com/Getting_Started/Version_Settings.html). This can be done after the app was uploaded or the first session performed.
+To see the logs, make sure to turn _"Application logs"_ in the _"Metrics"_ section in the _"Insights"_ tab of your application [Build Settings](https://docs.testfairy.com/Getting_Started/Version_Settings.html). This can be done after the app was uploaded or the first session performed. They are enabled by default, so usually you don't have to do anything.
 
 ## Parameters
 
