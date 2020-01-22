@@ -42,7 +42,7 @@ public
 private
   FScreenWidth, FScreenHeight: Integer;
   FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(Sender: TObject; const Category, S: string);
+  procedure WarningToCallback(const Category, S: string);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
@@ -315,7 +315,7 @@ begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(Sender: TObject; const Category, S: string);
+procedure TCastleApplication.WarningToCallback(const Category, S: string);
 var
   sMsg: string;
   szBuffer: PChar;

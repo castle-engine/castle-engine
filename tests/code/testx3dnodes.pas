@@ -27,7 +27,7 @@ uses
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
-    procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
+    procedure WeakLinkUnusedWarning(const Category, S: string);
   published
     procedure TestNodesManager;
 
@@ -2024,7 +2024,7 @@ end;
 type
   EWeakLinkUnused = class(Exception);
 
-procedure TTestX3DNodes.WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
+procedure TTestX3DNodes.WeakLinkUnusedWarning(const Category, S: string);
 begin
   if Pos('GeneratedShadowMap.light', S) <> 0 then
     raise EWeakLinkUnused.Create('We want this warning, good: ' + S)

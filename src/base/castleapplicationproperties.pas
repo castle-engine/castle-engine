@@ -35,17 +35,17 @@ type
     procedure ExecuteBackward;
   end;
 
-  TWarningEvent = procedure (Sender: TObject; const Category, Message: String) of object;
-  TLogEvent = procedure (Sender: TObject; const Message: String) of object;
+  TWarningEvent = procedure (const Category, Message: String) of object;
+  TLogEvent = procedure (const Message: String) of object;
 
   TWarningEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TWarningEvent>)
   public
-    procedure ExecuteAll(Sender: TObject; const Category, Message: String);
+    procedure ExecuteAll(const Category, Message: String);
   end;
 
   TLogEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLogEvent>)
   public
-    procedure ExecuteAll(Sender: TObject; const Message: String);
+    procedure ExecuteAll(const Message: String);
   end;
 
   { Events and properties of the Castle Game Engine application,
@@ -245,7 +245,7 @@ type
     { Add this to OnWarning to output warnings to standard output (usually, console).
       Eventually, on GUI Windows programs, it will make a dialog box.
       This is handled by @link(WarningWrite) procedure. }
-    procedure WriteWarningOnConsole(Sender: TObject; const Category, Message: String);
+    procedure WriteWarningOnConsole(const Category, Message: String);
 
     { Internal for Castle Game Engine.
       Called from CastleWindow or CastleControl.
@@ -312,22 +312,22 @@ end;
 
 { TWarningEventList ---------------------------------------------------------- }
 
-procedure TWarningEventList.ExecuteAll(Sender: TObject; const Category, Message: String);
+procedure TWarningEventList.ExecuteAll(const Category, Message: String);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I](Sender, Category, Message);
+    Items[I](Category, Message);
 end;
 
 { TLogEventList ---------------------------------------------------------- }
 
-procedure TLogEventList.ExecuteAll(Sender: TObject; const Message: String);
+procedure TLogEventList.ExecuteAll(const Message: String);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I](Sender, Message);
+    Items[I](Message);
 end;
 
 { TCastleApplicationProperties ----------------------------------------------- }
@@ -440,17 +440,16 @@ end;
 
 procedure TCastleApplicationProperties._Warning(const Category, Message: String);
 begin
-  FOnWarning.ExecuteAll(Self, Category, Message);
+  FOnWarning.ExecuteAll(Category, Message);
 end;
 
 procedure TCastleApplicationProperties._Log(const Message: String);
 begin
   if FOnLog.Count <> 0 then // quickly eliminate most often case
-    FOnLog.ExecuteAll(Self, Message);
+    FOnLog.ExecuteAll(Message);
 end;
 
-procedure TCastleApplicationProperties.WriteWarningOnConsole(
-  Sender: TObject; const Category, Message: String);
+procedure TCastleApplicationProperties.WriteWarningOnConsole(const Category, Message: String);
 var
   WarningCategory: String;
 begin

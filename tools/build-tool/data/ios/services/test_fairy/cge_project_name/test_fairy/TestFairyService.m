@@ -31,4 +31,16 @@
     [TestFairy begin:@"${IOS.TEST_FAIRY.SDK_APP_TOKEN}"];
 }
 
+- (bool)messageReceived:(NSArray* )message
+{
+    if (message.count == 2 &&
+        [[message objectAtIndex: 0] isEqualToString:@"test-fairy-log"])
+    {
+        [TestFairy log: [message objectAtIndex: 1]];
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 @end

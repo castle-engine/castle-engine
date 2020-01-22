@@ -24,7 +24,7 @@ uses
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
   private
-    procedure WavNonPcmWarning(Sender: TObject; const Category, S: string);
+    procedure WavNonPcmWarning(const Category, S: string);
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
@@ -72,7 +72,7 @@ end;
 type
   EWavNonPcm = class(Exception);
 
-procedure TTestCastleSoundEngine.WavNonPcmWarning(Sender: TObject; const Category, S: string);
+procedure TTestCastleSoundEngine.WavNonPcmWarning(const Category, S: string);
 begin
   if Pos('Loading WAV files not in PCM format not implemented', S) <> 0 then
     raise EWavNonPcm.Create('Good, we have warning: ' + S);

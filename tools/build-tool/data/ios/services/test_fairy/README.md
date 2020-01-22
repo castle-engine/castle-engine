@@ -8,6 +8,8 @@ Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.
 
 Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service. See https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html for a description of benefits.
 
+Use the `CastleTestFairy` unit and call `TTestFairy.InitializeRemoteLogging;` to initialize remote logging to TestFairy on iOS. This way you will see all CGE logs in the TestFairy session report. This is necessary now only on iOS (on Android, all logs are automatically collected), but you can safely call it on all platforms.
+
 ## Parameters
 
 You need to specify additional parameters inside `CastleEngineManifest.xml` when using this service:

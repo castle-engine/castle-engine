@@ -157,7 +157,7 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
-    procedure WarningNotification(Sender: TObject; const Category, Message: string);
+    procedure WarningNotification(const Category, Message: string);
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -513,7 +513,7 @@ begin
   end;
 end;
 
-procedure TProjectForm.WarningNotification(Sender: TObject; const Category,
+procedure TProjectForm.WarningNotification(const Category,
   Message: string);
 begin
   if Category <> '' then

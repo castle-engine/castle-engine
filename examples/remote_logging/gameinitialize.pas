@@ -30,10 +30,10 @@ var
 
 type
   TEventsHandler = class
-    class procedure LogCallback(Sender: TObject; const Message: String);
+    class procedure LogCallback(const Message: String);
   end;
 
-class procedure TEventsHandler.LogCallback(Sender: TObject; const Message: String);
+class procedure TEventsHandler.LogCallback(const Message: String);
 
   { Escape any special URL characters.
     Following Escape from URIParser. }
