@@ -4,7 +4,9 @@ This service integrates _Castle Game Engine_ applications with [Test Fairy](http
 
 On iOS, it's a nice alternative to TestFlight. Unlike TestFlight, you do not need Apple to accept your test applications (but you will still need to sign them with a developer key signed by Apple).
 
-Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.com/) in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK. But it's a nice bonus, see https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html for information what this SDK adds.
+Using this service is *not* necessary to use [Test Fairy](https://www.testfairy.com/) in a basic way. That is, you can distribute your apps through TestFairy without integrating their SDK.
+
+Still, using this service enhances the experience. You will receive logs, videos, user can submit feedback (from the mobile application to your TestFairy application) and more. There's no need to do anything on the Pascal side, you merely use this service. See https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html for a description of benefits.
 
 ## Parameters
 
@@ -12,10 +14,8 @@ You need to specify additional parameters inside `CastleEngineManifest.xml` when
 
 ~~~~xml
 <service name="test_fairy">
-  <parameters>
-    <parameter name="domain" value="xxxxxx" />
-    <parameter name="sdk_app_token" value="SDK-yyyyyy" />
-  </parameters>
+  <parameter key="domain" value="xxxxxx" />
+  <parameter key="sdk_app_token" value="SDK-yyyyyy" />
 </service>
 ~~~~
 
