@@ -354,10 +354,12 @@ end;
 
 { Add the String to log contents.
   Assumes that log is initialized.
-  Sends it to AndroidLog and LogStream. }
+  Sends it to AndroidLog and LogStream and ApplicationProperties._Log. }
 procedure WriteLogCoreCore(const S: string);
 begin
   // Assert(FLog); // do not check it, as InitializeLog uses it before FLog := true
+
+  ApplicationProperties._Log(S);
 
   {$ifdef ANDROID}
   AndroidLogRobust(alInfo, S);
@@ -374,7 +376,7 @@ end;
 { Add the String to log contents.
   - Optionally adds backtrace to the String.
   - If log not initialized yet, adds the String to CollectedLog.
-  - If log initialized, sends it to AndroidLog and LogStream.
+  - If log initialized, sends it to AndroidLog and LogStream and ApplicationProperties._Log
 }
 procedure WriteLogCore(const S: string);
 var

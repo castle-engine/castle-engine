@@ -690,7 +690,6 @@ const
     end;
   end;
 
-
 var
   I: Integer;
   FilenamePart: string;

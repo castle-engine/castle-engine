@@ -35,11 +35,17 @@ type
     procedure ExecuteBackward;
   end;
 
-  TWarningEvent = procedure (Sender: TObject; const Category, Message: string) of object;
+  TWarningEvent = procedure (Sender: TObject; const Category, Message: String) of object;
+  TLogEvent = procedure (Sender: TObject; const Message: String) of object;
 
   TWarningEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TWarningEvent>)
   public
-    procedure ExecuteAll(Sender: TObject; const Category, Message: string);
+    procedure ExecuteAll(Sender: TObject; const Category, Message: String);
+  end;
+
+  TLogEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLogEvent>)
+  public
+    procedure ExecuteAll(Sender: TObject; const Message: String);
   end;
 
   { Events and properties of the Castle Game Engine application,
@@ -57,11 +63,12 @@ type
       FOnGLContextOpenObject, FOnGLContextCloseObject,
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
-    FVersion: string;
+    FOnLog: TLogEventList;
+    FVersion: String;
     FTouchDevice: boolean;
     FLimitFPS: Single;
-    function GetApplicationName: string;
-    procedure SetApplicationName(const Value: string);
+    function GetApplicationName: String;
+    procedure SetApplicationName(const Value: String);
   public
     const
       DefaultLimitFPS = 100.0;
@@ -75,12 +82,12 @@ type
       When compiled with FPC, this returns and sets the same thing
       as standard SysUtils.ApplicationName.
       When setting this, we automatically set SysUtils.OnGetApplicationName. }
-    property ApplicationName: string read GetApplicationName write SetApplicationName;
+    property ApplicationName: String read GetApplicationName write SetApplicationName;
 
     { Version of this application.
       It may be used e.g. by @link(InitializeLog) and
       @link(TCastleApplication.ParseStandardParameters). }
-    property Version: string read FVersion write FVersion;
+    property Version: String read FVersion write FVersion;
 
     { Initialized to @true on touch devices (Android, iOS).
 
@@ -229,12 +236,16 @@ type
     property OnResume: TNotifyEventList read FOnResume;
     { @groupEnd }
 
+    { Events called upon @link(WritelnWarning). }
     property OnWarning: TWarningEventList read FOnWarning;
+
+    { Events called upon any @link(WritelnLog), including @link(WritelnWarning). }
+    property OnLog: TLogEventList read FOnLog;
 
     { Add this to OnWarning to output warnings to standard output (usually, console).
       Eventually, on GUI Windows programs, it will make a dialog box.
       This is handled by @link(WarningWrite) procedure. }
-    procedure WriteWarningOnConsole(Sender: TObject; const Category, Message: string);
+    procedure WriteWarningOnConsole(Sender: TObject; const Category, Message: String);
 
     { Internal for Castle Game Engine.
       Called from CastleWindow or CastleControl.
@@ -255,7 +266,9 @@ type
     { @exclude }
     procedure _Resume;
     { @exclude }
-    procedure _Warning(const Category, Message: string);
+    procedure _Warning(const Category, Message: String);
+    { @exclude }
+    procedure _Log(const Message: String);
     { @exclude
       Indicates that operating on files (opening, saving, creating dirs) is safe.
 
@@ -299,12 +312,22 @@ end;
 
 { TWarningEventList ---------------------------------------------------------- }
 
-procedure TWarningEventList.ExecuteAll(Sender: TObject; const Category, Message: string);
+procedure TWarningEventList.ExecuteAll(Sender: TObject; const Category, Message: String);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
     Items[I](Sender, Category, Message);
+end;
+
+{ TLogEventList ---------------------------------------------------------- }
+
+procedure TLogEventList.ExecuteAll(Sender: TObject; const Message: String);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](Sender, Message);
 end;
 
 { TCastleApplicationProperties ----------------------------------------------- }
@@ -331,6 +354,7 @@ begin
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
+  FOnLog := TLogEventList.Create;
   FFileAccessSafe := true;
   FTouchDevice :=
     {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
@@ -352,23 +376,24 @@ begin
   FreeAndNil(FOnPause);
   FreeAndNil(FOnResume);
   FreeAndNil(FOnWarning);
+  FreeAndNil(FOnLog);
   inherited;
 end;
 
-function TCastleApplicationProperties.GetApplicationName: string;
+function TCastleApplicationProperties.GetApplicationName: String;
 begin
   Result := {$ifdef FPC} SysUtils {$else} CastleUtils {$endif} .ApplicationName;
 end;
 
 var
-  CastleApplicationNameValue: string;
+  CastleApplicationNameValue: String;
 
-function CastleGetApplicationName: string;
+function CastleGetApplicationName: String;
 begin
   Result := CastleApplicationNameValue;
 end;
 
-procedure TCastleApplicationProperties.SetApplicationName(const Value: string);
+procedure TCastleApplicationProperties.SetApplicationName(const Value: String);
 begin
   OnGetApplicationName := @CastleGetApplicationName;
   CastleApplicationNameValue := Value;
@@ -413,13 +438,19 @@ begin
   FOnResume.ExecuteAll(Self);
 end;
 
-procedure TCastleApplicationProperties._Warning(const Category, Message: string);
+procedure TCastleApplicationProperties._Warning(const Category, Message: String);
 begin
   FOnWarning.ExecuteAll(Self, Category, Message);
 end;
 
+procedure TCastleApplicationProperties._Log(const Message: String);
+begin
+  if FOnLog.Count <> 0 then // quickly eliminate most often case
+    FOnLog.ExecuteAll(Self, Message);
+end;
+
 procedure TCastleApplicationProperties.WriteWarningOnConsole(
-  Sender: TObject; const Category, Message: string);
+  Sender: TObject; const Category, Message: String);
 var
   WarningCategory: String;
 begin
