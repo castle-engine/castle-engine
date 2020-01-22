@@ -763,6 +763,8 @@ type
       read FDistanceCulling write SetDistanceCulling default 0;
   end;
 
+  TCastleSceneClass = class of TCastleScene;
+
   TCastleSceneList = class(specialize TObjectList<TCastleScene>)
   private
     { Call InvalidateBackground on all items. }

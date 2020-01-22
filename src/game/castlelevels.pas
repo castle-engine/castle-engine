@@ -31,7 +31,6 @@ uses Classes, DOM, Generics.Collections,
 type
   TLevelLogic = class;
   TLevelLogicClass = class of TLevelLogic;
-  TCastleSceneClass = class of TCastleScene;
 
   TLevelInfo = class
   private
