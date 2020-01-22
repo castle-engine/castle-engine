@@ -147,6 +147,11 @@
 
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
   {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
+    { Build tool defines CASTLE_IOS automatically.
+      This include file defines IOS, and CASTLE_IOS.
+      We advise to use CASTLE_IOS everywhere (in engine code and user applications),
+      to make it simple. }
+    {$define CASTLE_IOS}
     {$define iOS}
   {$endif}
 {$endif}

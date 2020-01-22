@@ -44,8 +44,11 @@ uses CastleMessaging, CastleApplicationProperties;
 
 class procedure TTestFairy.InitializeRemoteLogging;
 begin
+  // While it would work on all platforms, it's pointless (not handled) on other than iOS plaforms
+  {$ifdef CASTLE_IOS}
   if ApplicationProperties.OnLog.IndexOf(@LogCallback) = -1 then
     ApplicationProperties.OnLog.Add(@LogCallback);
+  {$endif}
 end;
 
 class procedure TTestFairy.FinalizeRemoteLogging;
