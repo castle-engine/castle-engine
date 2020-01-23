@@ -43,11 +43,19 @@ type
 
   TListLocalizedAppName = specialize TList<TLocalizedAppName>;
 
+  TProjectVersion = class(TComponent)
+  public
+    DisplayValue: String;
+    Code: Cardinal;
+  end;
+
   TCastleProject = class
   private
+    OwnerComponent: TComponent;
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
-    FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
+    FIOSOverrideQualifiedName: string;
+    FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
     FUsesNonExemptEncryption: boolean;
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     FDataExists: Boolean;
@@ -62,8 +70,7 @@ type
     FBuildUsingLazbuild: Boolean;
     FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
-    FVersion: string;
-    FVersionCode: Cardinal;
+    FVersion: TProjectVersion;
     FFullscreenImmersive: boolean;
     FScreenOrientation: TScreenOrientation;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
@@ -173,7 +180,7 @@ type
       various project operations. }
     { }
 
-    property Version: string read FVersion;
+    property Version: TProjectVersion read FVersion;
     property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
@@ -414,11 +421,6 @@ constructor TCastleProject.Create(const APath: string);
       finally FreeAndNil(Components) end;
     end;
 
-    procedure CheckValidVersion(const OptionName: string; const Version: string);
-    begin
-      CheckMatches(OptionName, Version, AlphaNum + ['_','-','.']);
-    end;
-
     procedure AutoGuessManifest;
 
       function GuessName: string;
@@ -449,7 +451,8 @@ constructor TCastleProject.Create(const APath: string);
       FStandaloneSource := FName + '.lpr';
       FLazarusProject := FName + '.lpi';
       FFullscreenImmersive := true; // default value if not specified in manifest
-      FVersionCode := DefautVersionCode;
+      FVersion := TProjectVersion.Create(OwnerComponent);
+      FVersion.Code := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
@@ -459,13 +462,24 @@ constructor TCastleProject.Create(const APath: string);
       FDataExists := DefaultDataExists;
     end;
 
+    { Create and read version from given DOM element.
+      Returns @nil if Element is @nil. }
+    function ReadVersion(const Element: TDOMElement): TProjectVersion;
+    begin
+      if Element = nil then
+        Exit(nil);
+      Result := TProjectVersion.Create(OwnerComponent);
+      Result.DisplayValue := Element.AttributeString('value');
+      CheckMatches('version value', Result.DisplayValue, AlphaNum + ['_','-','.']);
+      Result.Code := Element.AttributeCardinalDef('code', DefautVersionCode);
+    end;
+
     procedure CheckManifestCorrect;
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
       { non-filename stuff: allow also dots }
-      CheckValidVersion('version', Version);
       CheckValidQualifiedName('qualified_name', QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
@@ -533,12 +547,12 @@ constructor TCastleProject.Create(const APath: string);
         FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
         FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
 
-        Element := Doc.DocumentElement.ChildElement('version', false);
-        FVersionCode := DefautVersionCode;
-        if Element <> nil then
+        FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
+        // create default FVersion value, if necessary
+        if FVersion = nil then
         begin
-          FVersion := Element.AttributeString('value');
-          FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
+          FVersion := TProjectVersion.Create(OwnerComponent);
+          FVersion.Code := DefautVersionCode;
         end;
 
         Element := Doc.DocumentElement.ChildElement('dependencies', false);
@@ -660,9 +674,7 @@ constructor TCastleProject.Create(const APath: string);
           if FIOSOverrideQualifiedName <> '' then
             CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
 
-          FIOSOverrideVersion := Element.AttributeStringDef('override_version_value', '');
-          if FIOSOverrideVersion <> '' then
-            CheckValidVersion('override_version_value', FIOSOverrideVersion);
+          FIOSOverrideVersion := ReadVersion(Element.Child('override_version', false));
 
           FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
             DefaultUsesNonExemptEncryption);
@@ -819,6 +831,7 @@ begin
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
+  OwnerComponent := TComponent.Create(nil);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -833,6 +846,7 @@ end;
 
 destructor TCastleProject.Destroy;
 begin
+  FreeAndNil(OwnerComponent);
   FreeAndNil(IncludePaths);
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
@@ -1313,7 +1327,7 @@ begin
   else
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
-      PluginLibraryFile(OS, CPU), Version, Author)
+      PluginLibraryFile(OS, CPU), Version.DisplayValue, Author)
   else
   {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
@@ -1464,8 +1478,8 @@ function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU;
   const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if PackageNameIncludeVersion and (Version <> '') then
-    Result += '-' + Version;
+  if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
+    Result += '-' + Version.DisplayValue;
   Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
   case PackageFormat of
     pfZip: Result += '.zip';
@@ -1477,8 +1491,8 @@ end;
 function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if PackageNameIncludeVersion and (Version <> '') then
-    Result += '-' + Version;
+  if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
+    Result += '-' + Version.DisplayValue;
   Result += '-src';
   Result += '.tar.gz';
 end;
@@ -1941,21 +1955,18 @@ const
       Result := QualifiedName;
   end;
 
-  { Version for iOS: either version, or ios.override_version_value. }
-  function IOSVersion: string;
-  begin
-    if FIOSOverrideVersion <> '' then
-      Result := FIOSOverrideVersion
-    else
-      Result := Version;
-  end;
-
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   Service: TService;
+  IOSVersion: TProjectVersion;
 begin
+  if FIOSOverrideVersion <> nil then
+    IOSVersion := FIOSOverrideVersion
+  else
+    IOSVersion := FVersion;
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
-  Macros.Add('IOS_VERSION', IOSVersion);
+  Macros.Add('IOS_VERSION', IOSVersion.DisplayValue);
+  Macros.Add('IOS_VERSION_CODE', IntToStr(IOSVersion.Code));
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
   Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
@@ -2044,7 +2055,7 @@ var
   Macros: TStringStringMap;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := CastleStringUtils.SplitString(Version, '.');
+  VersionComponentsString := CastleStringUtils.SplitString(Version.DisplayValue, '.');
   try
     for I := 0 to High(VersionComponents) do
       if I < VersionComponentsString.Count then
@@ -2064,8 +2075,8 @@ begin
     Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
     Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
     Macros.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
-    Macros.Add('VERSION'         , Version);
-    Macros.Add('VERSION_CODE'    , IntToStr(FVersionCode));
+    Macros.Add('VERSION'         , FVersion.DisplayValue);
+    Macros.Add('VERSION_CODE'    , IntToStr(FVersion.Code));
     Macros.Add('NAME'            , Name);
     Macros.Add('NAME_PASCAL'     , NamePascal);
     Macros.Add('QUALIFIED_NAME'  , QualifiedName);
