@@ -10,6 +10,8 @@ Still, using this service enhances the experience. You will receive logs, videos
 
 Use the `CastleTestFairy` unit and call `TTestFairy.InitializeRemoteLogging;` to initialize remote logging to TestFairy on iOS. This way you will see all CGE logs in the TestFairy session report. This is necessary now only on iOS (on Android, all logs are automatically collected), but you can safely call it on all platforms.
 
+Note about `CastleTestFairy` unit: on iOS, use it *only* if you use `test_fairy` service, otherwise the code will not even link.
+
 ## Parameters
 
 You need to specify additional parameters inside `CastleEngineManifest.xml` when using this service:

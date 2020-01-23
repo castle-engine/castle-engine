@@ -40,7 +40,7 @@ type
 
 implementation
 
-uses CastleMessaging, CastleApplicationProperties;
+uses CastleApplicationProperties;
 
 class procedure TTestFairy.InitializeRemoteLogging;
 begin
@@ -56,9 +56,15 @@ begin
   ApplicationProperties.OnLog.Remove(@LogCallback);
 end;
 
+{$ifdef CASTLE_IOS}
+procedure CGE_TestFairyLog(Message: PChar); cdecl; external;
+{$endif}
+
 class procedure TTestFairy.LogCallback(const Message: String);
 begin
-  Messaging.Send(['test-fairy-log', Message]);
+  {$ifdef CASTLE_IOS}
+  CGE_TestFairyLog(PChar(Message));
+  {$endif}
 end;
 
 end.
