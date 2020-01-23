@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 */
 
-/* TestFairy SDK https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html#cocoapods
+/* TestFairy SDK https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html
    integration with Castle Game Engine https://castle-engine.io/ .
 */
 
@@ -22,15 +22,34 @@
 
 #import "TestFairy.h"
 
+bool testFairyInitialized = false;
+
+void TestFairyInitialize()
+{
+    if (!testFairyInitialized) {
+        [TestFairy setServerEndpoint:@"https://${IOS.TEST_FAIRY.DOMAIN}.testfairy.com"];
+        [TestFairy begin:@"${IOS.TEST_FAIRY.SDK_APP_TOKEN}"];
+        testFairyInitialized = true;
+    }
+}
+
+/* We are using special callback for this, not our messaging system,
+   to receive messages even before application finished initializing. */
+void CGE_TestFairyLog(const char *message)
+{
+    TestFairyInitialize();
+    [TestFairy log: [NSString stringWithUTF8String: message]];
+}
+
 @implementation TestFairyService
 
 - (void)application:(UIApplication *) application
     didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
-    [TestFairy setServerEndpoint:@"https://${IOS.TEST_FAIRY.DOMAIN}.testfairy.com"];
-    [TestFairy begin:@"${IOS.TEST_FAIRY.SDK_APP_TOKEN}"];
+    TestFairyInitialize();
 }
 
+/*
 - (bool)messageReceived:(NSArray* )message
 {
     if (message.count == 2 &&
@@ -42,5 +61,6 @@
 
     return FALSE;
 }
+*/
 
 @end

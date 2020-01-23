@@ -25,3 +25,5 @@
 }
 
 @end
+
+void CGE_TestFairyLog(const char *message);
