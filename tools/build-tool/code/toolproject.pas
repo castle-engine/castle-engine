@@ -2155,6 +2155,9 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
+  if SameText(DestinationRelativeFileName, 'README.md') then
+    Exit; // do not copy README.md, most services define it and would just overwrite each other
+
   if (not OverrideExisting) and RegularFileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
