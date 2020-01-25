@@ -59,6 +59,8 @@
       <!-- <service name="startapp" /> -->
       <!-- <service name="ogg_vorbis" /> -->
       <!-- <service name="vibrate" /> -->
+      <!-- <service name="read_external_storage" /> -->
+      <!-- <service name="write_external_storage" /> -->
     </services>
   </android>
   <ios>
