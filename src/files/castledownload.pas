@@ -94,20 +94,24 @@ type
   for ecmascript/javascript), and the returned stream simply contains
   script code.
 
-  Set EnableNetwork to @true to have also support for network protocols.
-  Right now this means only http, handled by FpHttpClient.
+  Set EnableNetwork to @true to support network protocols.
+  Right now this means http and (in FPC >= 3.2.0) https, handled by FpHttpClient.
   The MIME type for such content is usually reported by the http server
   (but if the server doesn't report MIME type, we still try to guess it,
   looking at URL using URIMimeType).
 
-  On Android, URLs that indicate assets (files packaged inside .apk)
-  are also supported, as @code(assets:/my_file.png).
+  On Android, you should use the "read_external_storage"
+  service to be able to read storage files (e.g. from SD card).
+  This means files accessed by the 'file' protocol.
+  See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
 
-  Note if you use a network URL (like http://...) and you read from this
-  stream that you make a @bold(synchronous downloader).
-  Which means that your application will wait until the data arrives
-  from the Internet. This is why http:// support is disabled here
-  by default (see @link(EnableNetwork)).
+  Note that this is a @italic(synchronous downloader).
+  Which means that if you use a network URL (like http://...) then your
+  application will wait until the data arrives from the Internet.
+  There may be a timeout of the request (so your application will not hang
+  indefinitely), but still your code (or user) have no way to cancel or watch
+  the progress of this operation.
+  This is why network support is disabled by default (see @link(EnableNetwork)).
   This is sometimes acceptable (e.g. if you're
   waiting during the "loading" process, and the data just @italic(has)
   to be downloaded in order to continue), and it's really easy to use
@@ -244,6 +248,11 @@ function Downloads: TDownloadList;
   When saving to @code(castle-data) URL, remember that on some platforms
   the game data is read-only. Use this only during development on desktop,
   when you know that "data" is just your regular data directory.
+
+  On Android, you should use the "write_external_storage"
+  service to be able to write storage files (e.g. to SD card).
+  This means files accessed by the 'file' protocol.
+  See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
 
   @raises(ESaveError In case of problems saving this URL.)
 
