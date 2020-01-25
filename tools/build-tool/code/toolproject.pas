@@ -1959,6 +1959,7 @@ var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   Service: TService;
   IOSVersion: TProjectVersion;
+  GccPreprocessorDefinitions: String;
 begin
   if FIOSOverrideVersion <> nil then
     IOSVersion := FIOSOverrideVersion
@@ -2017,12 +2018,12 @@ begin
   else
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
 
+  GccPreprocessorDefinitions := '';
   // Since right now we always compile with CASTLE_TREMOLO_STATIC,
   // we just always behave like ogg_vorbis service was included.
-  if {depOggVorbis in Dependencies}true then
-    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '"ONLY_C=1",' + NL)
-  else
-    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
+  //if depOggVorbis in Dependencies then
+    GccPreprocessorDefinitions := GccPreprocessorDefinitions + '"ONLY_C=1",' + NL;
+  Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', GccPreprocessorDefinitions);
 
   for Service in IOSServices do
     ParametersAddMacros(Macros, Service.Parameters, 'IOS.' + Service.Name + '.');
