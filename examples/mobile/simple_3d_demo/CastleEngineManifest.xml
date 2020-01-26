@@ -8,5 +8,9 @@
   <package>
     <include path="README.txt" />
   </package>
-  <android project_type="integrated" /> <!-- necessary for sound to work -->
+  <android project_type="integrated">
+    <services>
+      <service name="vibrate" />
+    </services>
+  </android>
 </project>

@@ -3,6 +3,7 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required by ServiceClientServer. -->
+    <!-- TODO: These should probably be requested at runtime too, by requestPermissions. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 

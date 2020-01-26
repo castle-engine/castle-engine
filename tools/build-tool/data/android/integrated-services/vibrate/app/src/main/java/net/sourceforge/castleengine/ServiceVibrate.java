@@ -17,6 +17,7 @@
 
 package net.sourceforge.castleengine;
 
+import android.Manifest;
 import android.view.View;
 import android.os.Build;
 import android.os.Vibrator;
@@ -34,6 +35,7 @@ public class ServiceVibrate extends ServiceAbstract
     public ServiceVibrate(MainActivity activity)
     {
         super(activity);
+        getActivity().requestPermission(Manifest.permission.VIBRATE);
     }
 
     public String getName()
