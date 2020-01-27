@@ -72,6 +72,11 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    // For ActivityCompat
+    // See https://developer.android.com/jetpack/androidx/releases/activity
+    def activity_version = "1.1.0"
+    implementation "androidx.activity:activity:$activity_version"
+
     // Do not change the line below, it is necessary for build.gradle merging to work.
     // MERGE-DEPENDENCIES
 }
