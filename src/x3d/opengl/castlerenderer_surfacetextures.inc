@@ -69,6 +69,8 @@ end;
 class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  MatPhong: TMaterialNode;
+  MatPhysical: TPhysicalMaterialNode;
 begin
   Result := false;
   if Shape.Node <> nil then
@@ -86,6 +88,27 @@ begin
     if Shape.Node.Appearance <> nil then
     begin
       Result := Shape.Node.Appearance.NormalMap <> nil;
+      if Result then Exit;
+      if Shape.Node.Appearance.Material is TMaterialNode then
+      begin
+        MatPhong := TMaterialNode(Shape.Node.Appearance.Material);
+        Result :=
+          (MatPhong.EmissiveTexture <> nil) or
+          (MatPhong.NormalTexture <> nil) or
+          (MatPhong.AmbientTexture <> nil) or
+          // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+          (MatPhong.ShininessTexture <> nil) or
+          (MatPhong.SpecularTexture <> nil);
+      end;
+      if Shape.Node.Appearance.Material is TPhysicalMaterialNode then
+      begin
+        MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
+        Result :=
+          (MatPhysical.EmissiveTexture <> nil) or
+          (MatPhysical.NormalTexture <> nil) or
+          // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+          (MatPhysical.MetallicRoughnessTexture <> nil);
+      end;
     end;
   end;
 end;
@@ -131,6 +154,8 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
 
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  Mat: TAbstractMaterialNode;
+  MatOneSided: TAbstractOneSidedMaterialNode;
   Appearance: TAppearanceNode;
 begin
   if State.ShapeNode <> nil then
@@ -146,7 +171,16 @@ begin
     if State.ShapeNode.Appearance <> nil then
     begin
       Appearance := State.ShapeNode.Appearance;
-      Enable(Appearance.NormalMap, 0, Appearance.HeightMapScale);
+      Mat := Appearance.Material;
+      if (Mat is TAbstractOneSidedMaterialNode) and
+         (TAbstractOneSidedMaterialNode(Mat).NormalTexture <> nil) then
+      begin
+        MatOneSided := TAbstractOneSidedMaterialNode(Mat);
+        Enable(MatOneSided.NormalTexture, MatOneSided.NormalTextureChannel, 0.0);
+      end else
+      begin
+        Enable(Appearance.NormalMap, 0, Appearance.HeightMapScale);
+      end;
     end;
   end;
 end;
@@ -193,41 +227,88 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     end;
   end;
 
+  procedure AmbientTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer;
+    const ChannelMask: String = 'rgb');
+  begin
+    SurfaceTextureEnable(stAmbient,
+      Texture,
+      TextureChannel,
+      ChannelMask,
+      'castle_texture_ambient',
+      'vec3',
+      'light_ambient',
+      'vec4',
+      '.rgb');
+  end;
+
+  procedure SpecularTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer;
+    const ChannelMask: String = 'rgb');
+  begin
+    SurfaceTextureEnable(stSpecular,
+      Texture,
+      TextureChannel,
+      ChannelMask,
+      'castle_texture_specular',
+      'vec3',
+      'light_specular',
+      'vec4',
+      '.rgb');
+  end;
+
+  procedure ShininessTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer;
+    const ChannelMask: String = 'r');
+  begin
+    SurfaceTextureEnable(stShininess,
+      Texture,
+      TextureChannel,
+      ChannelMask,
+      'castle_texture_shininess',
+      'float',
+      'shininess',
+      'float',
+      '');
+  end;
+
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  MatPhong: TMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
-      SurfaceTextureEnable(stAmbient,
+      AmbientTextureEnable(
         SurfaceShader.AmbientTexture,
         SurfaceShader.AmbientTextureCoordinatesId,
-        SurfaceShader.AmbientTextureChannelMask,
-        'castle_texture_ambient',
-        'vec3',
-        'light_ambient',
-        'vec4',
-        '.rgb');
-      SurfaceTextureEnable(stSpecular,
+        SurfaceShader.AmbientTextureChannelMask);
+      SpecularTextureEnable(
         SurfaceShader.SpecularTexture,
         SurfaceShader.SpecularTextureCoordinatesId,
-        SurfaceShader.SpecularTextureChannelMask,
-        'castle_texture_specular',
-        'vec3',
-        'light_specular',
-        'vec4',
-        '.rgb');
-      SurfaceTextureEnable(stShininess,
+        SurfaceShader.SpecularTextureChannelMask);
+      ShininessTextureEnable(
         SurfaceShader.ShininessTexture,
         SurfaceShader.ShininessTextureCoordinatesId,
-        SurfaceShader.ShininessTextureChannelMask,
-        'castle_texture_shininess',
-        'float',
-        'shininess',
-        'float',
-        '');
+        SurfaceShader.ShininessTextureChannelMask);
+    end;
+    if State.ShapeNode.Material is TMaterialNode then
+    begin
+      MatPhong := TMaterialNode(State.ShapeNode.Material);
+      AmbientTextureEnable(
+        MatPhong.AmbientTexture,
+        MatPhong.AmbientTextureChannel);
+      SpecularTextureEnable(
+        MatPhong.SpecularTexture,
+        MatPhong.SpecularTextureChannel);
+      ShininessTextureEnable(
+        MatPhong.ShininessTexture,
+        MatPhong.ShininessTextureChannel);
     end;
   end;
 end;

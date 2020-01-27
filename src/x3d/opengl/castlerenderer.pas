@@ -3488,10 +3488,11 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
          (TextureNode <> Shape.Node.Appearance.Texture) then
       begin
         { This means that Shape.State.DiffuseAlphaTexture comes
-          from CommonSurfaceShader (or a weird mix of VRML 1.0 and X3D which
-          is undefined).
+          from CommonSurfaceShader or X3Dv4 Material or PhysicalMaterial.
           Make sure to still enable shadow maps from Shape.Appearance.Texture
-          then. }
+          then.
+          TODO: shadow maps should be placed in some special slot,
+          dedicated for them. }
         EnableShadowMaps(Shape.Node.Appearance.Texture, TexCoordsNeeded, Shader);
       end;
 

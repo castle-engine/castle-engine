@@ -497,6 +497,9 @@ begin
       if Mat is TMaterialNode then // also checks Mat <> nil
         Result := TMaterialNode(Mat).MaterialInfo
       else
+      if Mat is TPhysicalMaterialNode then // also checks Mat <> nil
+        Result := TPhysicalMaterialNode(Mat).MaterialInfo
+      else
       if Mat is TTwoSidedMaterialNode then // also checks Mat <> nil
         Result := TTwoSidedMaterialNode(Mat).MaterialInfo
       else

@@ -1715,6 +1715,8 @@ var
   var
     Tex: TAbstractTextureNode;
     SurfaceShader: TCommonSurfaceShaderNode;
+    MatPhong: TMaterialNode;
+    MatPhysical: TPhysicalMaterialNode;
   begin
     Tex := S.DiffuseAlphaTexture;
 
@@ -1744,8 +1746,38 @@ var
         if SurfaceShader.ShininessTexture <> nil then
           MaxVar(Result, SurfaceShader.ShininessTextureCoordinatesId + 1);
       end else
-      if S.ShapeNode.Appearance.NormalMap <> nil then
-        MaxVar(Result, 1);
+      begin
+        if S.ShapeNode.Appearance.NormalMap <> nil then
+          MaxVar(Result, 1);
+        if S.ShapeNode.Appearance.Material is TMaterialNode then
+        begin
+          MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
+          if MatPhong.EmissiveTexture <> nil then
+            MaxVar(Result, MatPhong.EmissiveTextureChannel + 1);
+          if MatPhong.NormalTexture <> nil then
+            MaxVar(Result, MatPhong.NormalTextureChannel + 1);
+          if MatPhong.AmbientTexture <> nil then
+            MaxVar(Result, MatPhong.AmbientTextureChannel + 1);
+          if MatPhong.DiffuseTexture <> nil then
+            MaxVar(Result, MatPhong.DiffuseTextureChannel + 1);
+          if MatPhong.ShininessTexture <> nil then
+            MaxVar(Result, MatPhong.ShininessTextureChannel + 1);
+          if MatPhong.SpecularTexture <> nil then
+            MaxVar(Result, MatPhong.SpecularTextureChannel + 1);
+        end;
+        if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
+        begin
+          MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
+          if MatPhysical.EmissiveTexture <> nil then
+            MaxVar(Result, MatPhysical.EmissiveTextureChannel + 1);
+          if MatPhysical.NormalTexture <> nil then
+            MaxVar(Result, MatPhysical.NormalTextureChannel + 1);
+          if MatPhysical.BaseTexture <> nil then
+            MaxVar(Result, MatPhysical.BaseTextureChannel + 1);
+          if MatPhysical.MetallicRoughnessTexture <> nil then
+            MaxVar(Result, MatPhysical.MetallicRoughnessTextureChannel + 1);
+        end;
+      end;
     end;
 
     if OriginalGeometry.FontTextureNode <> nil then
@@ -2577,6 +2609,34 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     if Result <> nil then Exit;
   end;
 
+  function HandleMaterial(const Mat: TMaterialNode): Pointer;
+  begin
+    Result := HandleTextureNode(Mat.FdEmissiveTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdNormalTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdAmbientTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdDiffuseTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdShininessTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdSpecularTexture.Value);
+    if Result <> nil then Exit;
+  end;
+
+  function HandlePhysicalMaterial(const Mat: TPhysicalMaterialNode): Pointer;
+  begin
+    Result := HandleTextureNode(Mat.FdEmissiveTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdNormalTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdBaseTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdMetallicRoughnessTexture.Value);
+    if Result <> nil then Exit;
+  end;
+
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   I: Integer;
@@ -2590,6 +2650,18 @@ begin
      (State.ShapeNode.Appearance <> nil) then
   begin
     App := State.ShapeNode.Appearance;
+
+    if App.FdMaterial.Value is TMaterialNode then
+    begin
+      Result := HandleMaterial(TMaterialNode(App.FdMaterial.Value));
+      if Result <> nil then Exit;
+    end;
+
+    if App.FdMaterial.Value is TPhysicalMaterialNode then
+    begin
+      Result := HandlePhysicalMaterial(TPhysicalMaterialNode(App.FdMaterial.Value));
+      if Result <> nil then Exit;
+    end;
 
     Result := HandleTextureNode(App.FdTexture.Value);
     if Result <> nil then Exit;

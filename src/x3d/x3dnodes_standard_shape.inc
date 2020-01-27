@@ -1190,7 +1190,15 @@ begin
     if SurfaceShader.DiffuseTexture <> nil then
       Exit(SurfaceShader.DiffuseTexture);
   end else
+  begin
+    if (Material is TMaterialNode) and
+       (TMaterialNode(Material).DiffuseTexture <> nil) then
+      Exit(TMaterialNode(Material).DiffuseTexture);
+    if (Material is TPhysicalMaterialNode) and
+       (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
+      Exit(TPhysicalMaterialNode(Material).BaseTexture);
     Result := Texture;
+  end;
 end;
 
 function TAppearanceNode.MaterialProperty: TMaterialProperty;

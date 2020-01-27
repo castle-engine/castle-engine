@@ -180,6 +180,9 @@ begin
       if Shape.Node.CommonSurfaceShader <> nil then
         MaterialX3d := Shape.Node.CommonSurfaceShader.MaterialInfo
       else
+      if Shape.Node.Material is TPhysicalMaterialNode then
+        MaterialX3d := TPhysicalMaterialNode(Shape.Node.Material).MaterialInfo
+      else
       if Shape.Node.Material is TMaterialNode then
         MaterialX3d := TMaterialNode(Shape.Node.Material).MaterialInfo
       else
