@@ -72,9 +72,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    // Necessary for requestPermissions implementation
-    compile "com.android.support:support-v4:27.0.2"
-
     // Do not change the line below, it is necessary for build.gradle merging to work.
     // MERGE-DEPENDENCIES
 }
