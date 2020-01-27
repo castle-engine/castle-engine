@@ -126,7 +126,7 @@
 
   { Texture with contents created by rendering the scene from a specific
     viewpoint. }
-  TRenderedTextureNode = class(TAbstractTextureNode)
+  TRenderedTextureNode = class(TAbstractSingleTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public

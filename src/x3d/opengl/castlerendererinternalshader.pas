@@ -277,7 +277,7 @@ type
   TTextureShader = class(TTextureCoordinateShader)
   private
     TextureType: TTextureType;
-    Node: TAbstractTextureNode;
+    Node: TAbstractSingleTextureNode;
     Env: TTextureEnv;
     ShadowMapSize: Cardinal;
     ShadowLight: TAbstractLightNode;
@@ -546,7 +546,7 @@ type
     function CodeHash: TShaderCodeHash;
 
     procedure EnableTexture(const TextureUnit: Cardinal;
-      const TextureType: TTextureType; const Node: TAbstractTextureNode;
+      const TextureType: TTextureType; const Node: TAbstractSingleTextureNode;
       const Env: TTextureEnv;
       const ShadowMapSize: Cardinal = 0;
       const ShadowLight: TAbstractLightNode = nil);
@@ -2939,7 +2939,7 @@ end;
 
 procedure TShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
-  const Node: TAbstractTextureNode;
+  const Node: TAbstractSingleTextureNode;
   const Env: TTextureEnv;
   const ShadowMapSize: Cardinal;
   const ShadowLight: TAbstractLightNode);

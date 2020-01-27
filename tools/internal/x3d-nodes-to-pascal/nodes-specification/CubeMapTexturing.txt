@@ -1,4 +1,4 @@
-X3DEnvironmentTextureNode : X3DTextureNode {
+X3DEnvironmentTextureNode : X3DSingleTextureNode {
 }
 
 ComposedCubeMapTexture : X3DEnvironmentTextureNode {

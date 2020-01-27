@@ -28,14 +28,28 @@
   strict private
     function GetAmbientIntensity: Single;
     procedure SetAmbientIntensity(const Value: Single);
+    function GetAmbientTexture: TAbstractSingleTextureNode;
+    procedure SetAmbientTexture(const Value: TAbstractSingleTextureNode);
+    function GetAmbientTextureChannel: Integer;
+    procedure SetAmbientTextureChannel(const Value: Integer);
     function GetDiffuseColor: TCastleColorRGB;
     procedure SetDiffuseColor(const Value: TCastleColorRGB);
-    function GetEmissiveColor: TCastleColorRGB;
-    procedure SetEmissiveColor(const Value: TCastleColorRGB);
-    function GetShininess: Single;
-    procedure SetShininess(const Value: Single);
+    function GetDiffuseTexture: TAbstractSingleTextureNode;
+    procedure SetDiffuseTexture(const Value: TAbstractSingleTextureNode);
+    function GetDiffuseTextureChannel: Integer;
+    procedure SetDiffuseTextureChannel(const Value: Integer);
     function GetSpecularColor: TCastleColorRGB;
     procedure SetSpecularColor(const Value: TCastleColorRGB);
+    function GetSpecularTexture: TAbstractSingleTextureNode;
+    procedure SetSpecularTexture(const Value: TAbstractSingleTextureNode);
+    function GetSpecularTextureChannel: Integer;
+    procedure SetSpecularTextureChannel(const Value: Integer);
+    function GetShininess: Single;
+    procedure SetShininess(const Value: Single);
+    function GetShininessTexture: TAbstractSingleTextureNode;
+    procedure SetShininessTexture(const Value: TAbstractSingleTextureNode);
+    function GetShininessTextureChannel: Integer;
+    procedure SetShininessTextureChannel(const Value: Integer);
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
     function GetMirror: Single;
@@ -51,14 +65,28 @@
   public
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
+    { X3D field "ambientTexture". } { }
+    property AmbientTexture: TAbstractSingleTextureNode read GetAmbientTexture write SetAmbientTexture;
+    { X3D field "ambientTextureChannel". } { }
+    property AmbientTextureChannel: Integer read GetAmbientTextureChannel write SetAmbientTextureChannel;
     { X3D field "diffuseColor". } { }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
-    { X3D field "emissiveColor". } { }
-    property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
-    { X3D field "shininess". } { }
-    property Shininess: Single read GetShininess write SetShininess;
+    { X3D field "diffuseTexture". } { }
+    property DiffuseTexture: TAbstractSingleTextureNode read GetDiffuseTexture write SetDiffuseTexture;
+    { X3D field "diffuseTextureChannel". } { }
+    property DiffuseTextureChannel: Integer read GetDiffuseTextureChannel write SetDiffuseTextureChannel;
     { X3D field "specularColor". } { }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
+    { X3D field "specularTexture". } { }
+    property SpecularTexture: TAbstractSingleTextureNode read GetSpecularTexture write SetSpecularTexture;
+    { X3D field "specularTextureChannel". } { }
+    property SpecularTextureChannel: Integer read GetSpecularTextureChannel write SetSpecularTextureChannel;
+    { X3D field "shininess". } { }
+    property Shininess: Single read GetShininess write SetShininess;
+    { X3D field "shininessTexture". } { }
+    property ShininessTexture: TAbstractSingleTextureNode read GetShininessTexture write SetShininessTexture;
+    { X3D field "shininessTextureChannel". } { }
+    property ShininessTextureChannel: Integer read GetShininessTextureChannel write SetShininessTextureChannel;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
     { X3D field "mirror". } { }
@@ -120,6 +148,29 @@ begin
   FdAmbientIntensity.Send(Value);
 end;
 
+function TMaterialNode.GetAmbientTexture: TAbstractSingleTextureNode;
+begin
+  if FdAmbientTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdAmbientTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetAmbientTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdAmbientTexture.Send(Value);
+end;
+
+function TMaterialNode.GetAmbientTextureChannel: Integer;
+begin
+  Result := FdAmbientTextureChannel.Value;
+end;
+
+procedure TMaterialNode.SetAmbientTextureChannel(const Value: Integer);
+begin
+  FdAmbientTextureChannel.Send(Value);
+end;
+
 function TMaterialNode.GetDiffuseColor: TCastleColorRGB;
 begin
   Result := FdDiffuseColor.Value;
@@ -130,14 +181,60 @@ begin
   FdDiffuseColor.Send(Value);
 end;
 
-function TMaterialNode.GetEmissiveColor: TCastleColorRGB;
+function TMaterialNode.GetDiffuseTexture: TAbstractSingleTextureNode;
 begin
-  Result := FdEmissiveColor.Value;
+  if FdDiffuseTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdDiffuseTexture.Value)
+  else
+    Result := nil;
 end;
 
-procedure TMaterialNode.SetEmissiveColor(const Value: TCastleColorRGB);
+procedure TMaterialNode.SetDiffuseTexture(const Value: TAbstractSingleTextureNode);
 begin
-  FdEmissiveColor.Send(Value);
+  FdDiffuseTexture.Send(Value);
+end;
+
+function TMaterialNode.GetDiffuseTextureChannel: Integer;
+begin
+  Result := FdDiffuseTextureChannel.Value;
+end;
+
+procedure TMaterialNode.SetDiffuseTextureChannel(const Value: Integer);
+begin
+  FdDiffuseTextureChannel.Send(Value);
+end;
+
+function TMaterialNode.GetSpecularColor: TCastleColorRGB;
+begin
+  Result := FdSpecularColor.Value;
+end;
+
+procedure TMaterialNode.SetSpecularColor(const Value: TCastleColorRGB);
+begin
+  FdSpecularColor.Send(Value);
+end;
+
+function TMaterialNode.GetSpecularTexture: TAbstractSingleTextureNode;
+begin
+  if FdSpecularTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdSpecularTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetSpecularTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdSpecularTexture.Send(Value);
+end;
+
+function TMaterialNode.GetSpecularTextureChannel: Integer;
+begin
+  Result := FdSpecularTextureChannel.Value;
+end;
+
+procedure TMaterialNode.SetSpecularTextureChannel(const Value: Integer);
+begin
+  FdSpecularTextureChannel.Send(Value);
 end;
 
 function TMaterialNode.GetShininess: Single;
@@ -150,14 +247,27 @@ begin
   FdShininess.Send(Value);
 end;
 
-function TMaterialNode.GetSpecularColor: TCastleColorRGB;
+function TMaterialNode.GetShininessTexture: TAbstractSingleTextureNode;
 begin
-  Result := FdSpecularColor.Value;
+  if FdShininessTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdShininessTexture.Value)
+  else
+    Result := nil;
 end;
 
-procedure TMaterialNode.SetSpecularColor(const Value: TCastleColorRGB);
+procedure TMaterialNode.SetShininessTexture(const Value: TAbstractSingleTextureNode);
 begin
-  FdSpecularColor.Send(Value);
+  FdShininessTexture.Send(Value);
+end;
+
+function TMaterialNode.GetShininessTextureChannel: Integer;
+begin
+  Result := FdShininessTextureChannel.Value;
+end;
+
+procedure TMaterialNode.SetShininessTextureChannel(const Value: Integer);
+begin
+  FdShininessTextureChannel.Send(Value);
 end;
 
 function TMaterialNode.GetTransparency: Single;

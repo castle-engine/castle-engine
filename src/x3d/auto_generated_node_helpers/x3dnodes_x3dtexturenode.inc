@@ -25,18 +25,6 @@
 
 {$ifdef read_interface}
 
-  strict private
-{$ifndef CASTLE_SLIM_NODES}
-    function GetCrossOrigin: string;
-    procedure SetCrossOrigin(const Value: string);
-{$endif not CASTLE_SLIM_NODES}
-  public
-    { Set X3D field "effects". } { }
-    procedure SetEffects(const Value: array of TEffectNode);
-{$ifndef CASTLE_SLIM_NODES}
-    { X3D field "crossOrigin". } { }
-    property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
-{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -44,28 +32,4 @@
 
 { TAbstractTextureNode ----------------------------------------------- }
 
-procedure TAbstractTextureNode.SetEffects(const Value: array of TEffectNode);
-var
-  L: Integer;
-  A: array of TX3DNode;
-begin
-  L := High(Value) + 1;
-  SetLength(A, L);
-  if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TEffectNode));
-  FdEffects.Send(A);
-end;
-
-{$ifndef CASTLE_SLIM_NODES}
-function TAbstractTextureNode.GetCrossOrigin: string;
-begin
-  Result := FdCrossOrigin.Value;
-end;
-
-procedure TAbstractTextureNode.SetCrossOrigin(const Value: string);
-begin
-  FdCrossOrigin.Send(Value);
-end;
-
-{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

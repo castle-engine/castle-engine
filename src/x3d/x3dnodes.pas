@@ -531,6 +531,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
+{$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
@@ -653,6 +654,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
@@ -665,6 +667,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}

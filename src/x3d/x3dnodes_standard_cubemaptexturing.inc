@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { Base type for cubic environment map textures. }
-  TAbstractEnvironmentTextureNode = class(TAbstractTextureNode)
+  TAbstractEnvironmentTextureNode = class(TAbstractSingleTextureNode)
   public
     procedure CreateNode; override;
 

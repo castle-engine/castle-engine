@@ -1,4 +1,4 @@
-X3DTexture3DNode : X3DTextureNode {
+X3DTexture3DNode : X3DSingleTextureNode {
   SFBool []       repeatS           FALSE
   SFBool []       repeatT           FALSE
   SFBool []       repeatR           FALSE

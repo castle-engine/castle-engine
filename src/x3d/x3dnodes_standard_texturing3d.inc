@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { Base type for all node types that specify 3D sources for texture images. }
-  TAbstractTexture3DNode = class(TAbstractTextureNode)
+  TAbstractTexture3DNode = class(TAbstractSingleTextureNode)
   private
     UsedCache: TTexturesVideosCache;
     FTextureLoaded: boolean;

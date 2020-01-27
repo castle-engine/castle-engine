@@ -2,6 +2,9 @@ X3DTextureCoordinateNode : X3DGeometricPropertyNode {
 }
 
 X3DTextureNode : X3DAppearanceChildNode {
+}
+
+X3DSingleTextureNode : X3DTextureNode {
   # EXTENSIONS:
   MFNode     []            effects          []          # [Effect]
 
@@ -51,7 +54,7 @@ MultiTexture : X3DTextureNode {
   MFString [in,out] function []
   MFString [in,out] mode     []
   MFString [in,out] source   []
-  MFNode   [in,out] texture  []    [X3DTextureNode]
+  MFNode   [in,out] texture  []    [X3DSingleTextureNode]
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {

@@ -22,11 +22,8 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
   end;
 
-  { Base for all nodes which specify sources for texture images. }
+  { Base for all nodes which specify a texture, possibly multi-texture. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
-  strict private
-    function GetAlphaChannelField: TAutoAlphaChannel;
-    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
   strict protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -49,6 +46,21 @@
       Override to say something more descriptive. }
     function TextureDescription: string; virtual;
 
+    { Alpha channel of the loaded texture data.
+      Looks at loaded texture data, and at alphaChannel field
+      (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ).
+      In case of MultiTexture node, looks at children. }
+    function AlphaChannelFinal: TAlphaChannel; virtual;
+  end;
+
+  { Base for all nodes which specify a texture, but not multi-texture. }
+  TAbstractSingleTextureNode = class(TAbstractTextureNode)
+  strict private
+    function GetAlphaChannelField: TAutoAlphaChannel;
+    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
+  public
+    procedure CreateNode; override;
+
     strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
@@ -57,16 +69,13 @@
     public property FdCrossOrigin: TSFString read FFdCrossOrigin;
     {$endif}
 
-    { Alpha channel of the loaded texture data.
-      Looks at loaded texture data, and at alphaChannel field
-      (see https://castle-engine.io/x3d_extensions.php#section_ext_alpha_channel_detection ) }
-    function AlphaChannelFinal: TAlphaChannel;
-
     strict private FFdAlphaChannel: TSFStringEnum;
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
 
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
+    function AlphaChannelFinal: TAlphaChannel; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
   end;
 
   TTexturePropertiesNode = class;
@@ -75,7 +84,7 @@
 
     For X3D, this descends from X3DTextureNode and is an ancestor
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
-  TAbstractTexture2DNode = class(TAbstractTextureNode)
+  TAbstractTexture2DNode = class(TAbstractSingleTextureNode)
   private
     { Together we call FTextureImage, FTextureComposite,
       FTextureVideo, FAlphaChannelData as "texture data". }
@@ -612,9 +621,32 @@ begin
   DefaultContainerField := 'texCoord';
 end;
 
-{ TAbstractTextureNode -------------------------------------------------------- }
+{ TAbstractTextureNode ------------------------------------------------------- }
 
 procedure TAbstractTextureNode.CreateNode;
+begin
+  inherited;
+  DefaultContainerField := 'texture';
+end;
+
+function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
+begin
+  Result := acNone;
+end;
+
+function TAbstractTextureNode.AlphaChannelFinal: TAlphaChannel;
+begin
+  Result := AlphaChannelData;
+end;
+
+function TAbstractTextureNode.TextureDescription: string;
+begin
+  Result := X3DType;
+end;
+
+{ TAbstractSingleTextureNode -------------------------------------------------------- }
+
+procedure TAbstractSingleTextureNode.CreateNode;
 begin
   inherited;
 
@@ -631,21 +663,19 @@ begin
   FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdAlphaChannel);
-
-  DefaultContainerField := 'texture';
 end;
 
-function TAbstractTextureNode.TextureDescription: string;
+function TAbstractSingleTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
 begin
-  Result := X3DType;
+  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
 end;
 
-function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
+procedure TAbstractSingleTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
 begin
-  Result := acNone;
+  FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
-function TAbstractTextureNode.AlphaChannelFinal: TAlphaChannel;
+function TAbstractSingleTextureNode.AlphaChannelFinal: TAlphaChannel;
 var
   Res: TAutoAlphaChannel;
 begin
@@ -653,16 +683,6 @@ begin
   if Res = acAuto then
     Result := AlphaChannelData else
     Result := Res;
-end;
-
-function TAbstractTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
-begin
-  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
-end;
-
-procedure TAbstractTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
-begin
-  FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
@@ -1124,7 +1144,7 @@ begin
    FdSource.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSource);
 
-  FFdTexture := TMFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
+  FFdTexture := TMFNode.Create(Self, true, 'texture', [TAbstractSingleTextureNode]);
    FdTexture.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTexture);
 end;
@@ -1150,8 +1170,8 @@ begin
   begin
     ChildTex := FdTexture[I];
     if (ChildTex <> nil) and
-       (ChildTex is TAbstractTextureNode) then
-      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannelFinal);
+       (ChildTex is TAbstractSingleTextureNode) then
+      AlphaMaxVar(Result, TAbstractSingleTextureNode(ChildTex).AlphaChannelFinal);
   end;
 end;
 

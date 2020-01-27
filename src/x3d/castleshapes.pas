@@ -2488,9 +2488,12 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
 
     if Tex is TAbstractTextureNode then
     begin
-      { Texture node may use more texture nodes through it's "effects" field. }
-      Result := HandleIDecls(TAbstractTextureNode(Tex).FdEffects);
-      if Result <> nil then Exit;
+      if Tex is TAbstractSingleTextureNode then
+      begin
+        { Texture node may use more texture nodes through it's "effects" field. }
+        Result := HandleIDecls(TAbstractSingleTextureNode(Tex).FdEffects);
+        if Result <> nil then Exit;
+      end;
 
       if Tex is TMultiTextureNode then
       begin

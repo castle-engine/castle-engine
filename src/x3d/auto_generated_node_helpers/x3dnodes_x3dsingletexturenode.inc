@@ -26,42 +26,46 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDistanceFromShape: Single;
-    procedure SetDistanceFromShape(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
+    function GetCrossOrigin: string;
+    procedure SetCrossOrigin(const Value: string);
+{$endif not CASTLE_SLIM_NODES}
   public
-    procedure CreateNode; override;
-
-    strict private FFdDistanceFromShape: TSFFloat;
-    { X3D field "distanceFromShape". } { }
-    public property FdDistanceFromShape: TSFFloat read FFdDistanceFromShape;
-    { X3D field "distanceFromShape". } { }
-    property DistanceFromShape: Single read GetDistanceFromShape write SetDistanceFromShape;
+    { Set X3D field "effects". } { }
+    procedure SetEffects(const Value: array of TEffectNode);
+{$ifndef CASTLE_SLIM_NODES}
+    { X3D field "crossOrigin". } { }
+    property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TViewpointMirrorNode ----------------------------------------------- }
+{ TAbstractSingleTextureNode ----------------------------------------------- }
 
-function TViewpointMirrorNode.GetDistanceFromShape: Single;
+procedure TAbstractSingleTextureNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
 begin
-  Result := FdDistanceFromShape.Value;
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
 end;
 
-procedure TViewpointMirrorNode.SetDistanceFromShape(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
+function TAbstractSingleTextureNode.GetCrossOrigin: string;
 begin
-  FdDistanceFromShape.Send(Value);
+  Result := FdCrossOrigin.Value;
 end;
 
-procedure TViewpointMirrorNode.CreateNode;
+procedure TAbstractSingleTextureNode.SetCrossOrigin(const Value: string);
 begin
-  inherited;
-
-  FFdDistanceFromShape := TSFFloat.Create(Self, True, 'distanceFromShape', 0.01);
-   FdDistanceFromShape.ChangesAlways := [chVisibleNonGeometry];
-  AddField(FFdDistanceFromShape);
-
-  DefaultContainerField := 'viewpoint';
+  FdCrossOrigin.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

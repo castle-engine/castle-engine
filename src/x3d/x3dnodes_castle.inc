@@ -201,7 +201,7 @@
 
   { Generate texture by rendering a depth (shadow) map.
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
-  TGeneratedShadowMapNode = class(TAbstractTextureNode)
+  TGeneratedShadowMapNode = class(TAbstractSingleTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
     function GetCompareMode: TShadowMapCompareMode;
@@ -402,7 +402,7 @@
 
   { Procedural texture defined by shaders.
     See https://castle-engine.io/compositing_shaders.php . }
-  TShaderTextureNode = class(TAbstractTextureNode)
+  TShaderTextureNode = class(TAbstractSingleTextureNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

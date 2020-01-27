@@ -225,7 +225,7 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexCoordinateId: Integer);
+    out Texture: TAbstractX3DTexture2DNode; out TexChannel: Integer);
   var
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
@@ -234,7 +234,7 @@ var
     Stream: TMemoryStream;
   begin
     Texture := nil;
-    TexCoordinateId := GltfTextureAtMaterial.TexCoord;
+    TexChannel := GltfTextureAtMaterial.TexCoord;
 
     if not GltfTextureAtMaterial.Empty then
     begin
@@ -331,50 +331,40 @@ var
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
   var
-    CommonSurfaceShader: TCommonSurfaceShaderNode;
+    X3DMaterial: TPhysicalMaterialNode;
     BaseColorFactor: TVector4;
     BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureCoordinateId, NormalTextureCoordinateId, EmissiveTextureCoordinateId: Integer;
+    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
     AlphaChannel: TAutoAlphaChannel;
-    //MetallicFactor, RoughnessFactor: TPasGLTFFloat;
-    EmissiveFactor: TVector3;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
     BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
-    EmissiveFactor := Vector3FromGltf(Material.EmissiveFactor);
-    // MetallicFactor := Material.PBRMetallicRoughness.MetallicFactor;
-    // RoughnessFactor := Material.PBRMetallicRoughness.RoughnessFactor;
 
-    CommonSurfaceShader := TCommonSurfaceShaderNode.Create;
-    CommonSurfaceShader.DiffuseFactor := BaseColorFactor.XYZ;
-    CommonSurfaceShader.AlphaFactor := BaseColorFactor.W;
-    // metallic/roughness conversion idea from X3DOM
-    // CommonSurfaceShader.SpecularFactor := Vector3(
-    //   Lerp(0.04, BaseColorFactor.X, MetallicFactor),
-    //   Lerp(0.04, BaseColorFactor.Y, MetallicFactor),
-    //   Lerp(0.04, BaseColorFactor.Z, MetallicFactor)
-    // );
-    // CommonSurfaceShader.ShininessFactor := 1 - RoughnessFactor;
-    CommonSurfaceShader.EmissiveFactor := EmissiveFactor;
-    Result.SetShaders([CommonSurfaceShader]);
+    X3DMaterial := TPhysicalMaterialNode.Create;
+    X3DMaterial.BaseColor := BaseColorFactor.XYZ;
+    X3DMaterial.Transparency := 1 - BaseColorFactor.W;
+    X3DMaterial.Metallic := Material.PBRMetallicRoughness.MetallicFactor;
+    X3DMaterial.Roughness := Material.PBRMetallicRoughness.RoughnessFactor;
+    X3DMaterial.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
+    Result.Material := X3DMaterial;
 
     Result.DoubleSided := Material.DoubleSided;
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureCoordinateId);
-    CommonSurfaceShader.MultiDiffuseAlphaTexture := BaseColorTexture;
-    CommonSurfaceShader.DiffuseTextureCoordinatesId := BaseColorTextureCoordinateId;
+      BaseColorTexture, BaseColorTextureChannel);
+    X3DMaterial.BaseTexture := BaseColorTexture;
+    X3DMaterial.BaseTextureChannel := BaseColorTextureChannel;
 
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureCoordinateId);
-    CommonSurfaceShader.NormalTexture := NormalTexture;
-    CommonSurfaceShader.NormalTextureCoordinatesId := NormalTextureCoordinateId;
+      NormalTexture, NormalTextureChannel);
+    X3DMaterial.NormalTexture := NormalTexture;
+    X3DMaterial.NormalTextureChannel := NormalTextureChannel;
 
     ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureCoordinateId);
-    CommonSurfaceShader.EmissiveTexture := EmissiveTexture;
-    CommonSurfaceShader.EmissiveTextureCoordinatesId := EmissiveTextureCoordinateId;
+      EmissiveTexture, EmissiveTextureChannel);
+    X3DMaterial.EmissiveTexture := EmissiveTexture;
+    X3DMaterial.EmissiveTextureChannel := EmissiveTextureChannel;
 
     // read alpha channel treatment
     case Material.AlphaMode of
