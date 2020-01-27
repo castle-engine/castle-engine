@@ -68,8 +68,8 @@ type
 
       Texture: you only have to generate texture coordinates in descendants.
       For all texture units < TexCoordsNeeded. (For other tex units,
-      you don't have to (but you can,
-      although they will be unused) generate texture coords.)
+      do not generate texture coords,
+      they may not be even declared in shader code.)
       Do not change here the bound texture or operate on texture matrix
       or texture enabled state. }
     procedure Render; virtual; abstract;
@@ -570,6 +570,15 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     TransformToWorldSpace: boolean;
     ProjectorMatrix: TMatrix4;
   begin
+    { No point in generating for more texture units.
+      They are not even declared in GLSL code, and would cause GLSL errors
+      if your textures use e.g. only 1 texture unit,
+      but you use MultiTextureCoordinate with 2 children and 2nd children
+      is TextureCoordinateGenerator.
+      (testcase: x3d-tests/pbr/physical_material.x3dv) }
+    if TexUnit >= Renderer.TexCoordsNeeded then
+      Exit;
+
     TransformToWorldSpace := TexCoord.Generation in
       [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
 
