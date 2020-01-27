@@ -138,6 +138,13 @@ var
   EventResult, Handled: boolean;
 begin
   Handled := false;
+
+  // The permission-xxx messages do not have to be handled by anything.
+  if (Received.Count > 0) and
+     ( (Received[0] = 'permission-granted') or
+       (Received[0] = 'permission-cancelled') ) then
+    Handled := true;
+
   for I := 0 to Count - 1 do
   begin
     { Use EventResult to workaround FPC 3.1.1 bug (reproducible
