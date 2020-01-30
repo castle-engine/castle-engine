@@ -20,7 +20,14 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
+  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackage;
+
+type
+  TIosArchiveType = (
+    atDevelopment,
+    atAdHoc,
+    atAppStore
+  );
 
 procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
@@ -28,7 +35,12 @@ procedure CompileIOS(
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+  out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
+
 procedure PackageIOS(const Project: TCastleProject);
+{ Call ArchiveIOS immediately after PackageIOS to perform build + archive using Xcode command-line. }
+procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
 procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
@@ -43,8 +55,7 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolPackage,
-  ToolCommonUtils;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -386,6 +397,107 @@ begin
   Writeln('  ', XcodeProject);
   Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
   Writeln('The generated project should compile and work out-of-the-box.');
+end;
+
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+  out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
+begin
+  case PackageFormat of
+    pfIosArchiveDevelopment:
+      begin
+        ArchiveType := atDevelopment;
+        ExportMethod := 'development';
+        Result := true;
+      end;
+    pfIosArchiveAdHoc:
+      begin
+        ArchiveType := atAdHoc;
+        ExportMethod := 'ad-hoc';
+        Result := true;
+      end;
+    pfIosArchiveAppStore:
+      begin
+        ArchiveType := atAppStore;
+        ExportMethod := 'app-store';
+        Result := true;
+      end;
+    else Result := false;
+  end;
+end;
+
+procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
+var
+  XcodeProject: String;
+  XcodeSelectExe, XcodeBuildExe: String;
+  OutputString, ArchivePath, ExportPath: String;
+  ExitStatus: Integer;
+begin
+  XcodeProject := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'xcode_project' + PathDelim; // same as in PackageIOS
+  ArchivePath := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'App.xcarchive';
+  ExportPath := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'build' + PathDelim;
+
+  if not DirectoryExists(XcodeProject) then
+    raise Exception.CreateFmt('Cannot read created Xcode project in "%s"', [XcodeProject]);
+
+  XcodeSelectExe := FindExe('xcode-select');
+  if XcodeSelectExe = '' then
+    raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
+
+  MyRunCommandIndir(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+
+  if ExitStatus <> 0 then
+    raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [
+      ExitStatus,
+      OutputString
+    ]);
+
+  if Trim(OutputString) = '/Library/Developer/CommandLineTools' then
+    WritelnWarning('xcode-select points to only command-line utilities, but not Xcode path. In new Xcode versions, you should do something like "sudo xcode-select -switch /Applications/Xcode.app".');
+
+  Writeln('Using Xcode from: ' + Trim(OutputString));
+
+  { See
+    https://developer.apple.com/library/archive/technotes/tn2339/_index.html
+    https://stackoverflow.com/questions/25678372/xcodebuild-cant-build-when-no-physical-ios
+    about these commands.
+
+    xcodebuild -list -workspace castle-engine-output/ios/xcode_project/PROJ_NAME.xcworkspace
+  }
+
+  XcodeBuildExe := FindExe('xcodebuild');
+  if XcodeBuildExe = '' then
+    raise Exception.Create('Cannot find "xcodebuild". Make sure that Xcode with command-line utilities is installed.');
+
+  if DirectoryExists(ArchivePath) then
+    RemoveNonEmptyDir(ArchivePath);
+  // do not create the archive path, it would be malformed archive to Xcode then
+
+  if DirectoryExists(ExportPath) then
+    RemoveNonEmptyDir(ExportPath);
+  CheckForceDirectories(ExportPath);
+
+  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-workspace', Project.Name + '.xcworkspace',
+    '-scheme', Project.Caption,
+    '-destination', 'generic/platform=iOS',
+    '-quiet',
+    '-archivePath', ArchivePath,
+    'archive'
+  ]);
+  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-archivePath', ArchivePath,
+    '-exportOptionsPlist', XcodeProject + 'export_options.plist',
+    '-exportArchive',
+    '-exportPath', ExportPath
+  ]);
+
+  // TODO: It could be a bit cleaner to keep export_options.plist outside of Xcode project dir,
+  // and copy it here to the final place,
+  // replacing IOS_EXPORT_METHOD by a special code in this unit.
+  // This would allow to simplify PackageFormatWantsIOSArchive?
 end;
 
 procedure InstallIOS(const Project: TCastleProject);

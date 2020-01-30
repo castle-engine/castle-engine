@@ -21,8 +21,16 @@ unit ToolPackage;
 interface
 
 type
-  TPackageFormat = (pfDefault, pfDirectory, pfZip, pfTarGz);
-  TPackageFormatNoDefault = pfDirectory..pfTarGz;
+  TPackageFormat = (
+    pfDefault,
+    pfDirectory,
+    pfZip,
+    pfTarGz,
+    pfIosArchiveDevelopment,
+    pfIosArchiveAdHoc,
+    pfIosArchiveAppStore
+  );
+  TPackageFormatNoDefault = pfDirectory..High(TPackageFormat);
 
   TPackageDirectory = class
   private
@@ -196,8 +204,15 @@ begin
 end;
 
 const
-  PackageFormatNames: array [TPackageFormat] of string =
-  ('default', 'directory', 'zip', 'targz');
+  PackageFormatNames: array [TPackageFormat] of string = (
+    'default',
+    'directory',
+    'zip',
+    'targz',
+    'ios-archive-development',
+    'ios-archive-ad-hoc',
+    'ios-archive-app-store'
+  );
 
 function PackageFormatToString(const O: TPackageFormat): string;
 begin
