@@ -336,6 +336,20 @@ function URICurrentPath: string;
 { If this is castle-data:... URL, resolve it using ApplicationData. }
 function ResolveCastleDataURL(const URL: String): String;
 
+{ If this URL indicates something inside the CGE data directory
+  ( https://castle-engine.io/manual_data_directory.php ),
+  then return URL relative to this data directory.
+  E.g. for "castle-data:/foo/bar.txt" it returns "foo/bar.txt".
+
+  It accepts any URL, relative (to the current working directory)
+  or absolute (with any protocol).
+  It works when the URL starts with castle-data:/ protocol,
+  it works when the URL starts with other (like file:/) protocol
+  that still points to a file inside data.
+
+  If the URL does not point to a file in data, it is returned untouched. }
+function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean): String;
+
 implementation
 
 uses SysUtils, URIParser,
@@ -1124,6 +1138,19 @@ begin
     Result := ApplicationData(PrefixRemove('/', URIDeleteProtocol(URL), false))
   else
     Result := URL;
+end;
+
+function RelativeToCastleDataURL(const Url: String; out WasInsideData: Boolean): String;
+var
+  FullUrl, DataUrl: String;
+begin
+  FullUrl := ResolveCastleDataURL(AbsoluteURI(Url));
+  DataUrl := ResolveCastleDataURL('castle-data:/');
+  WasInsideData := IsPrefix(DataUrl, FullUrl, true);
+  if WasInsideData then
+    Result := PrefixRemove(DataUrl, FullUrl, true)
+  else
+    Result := Url;
 end;
 
 initialization

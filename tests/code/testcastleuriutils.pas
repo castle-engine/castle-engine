@@ -30,6 +30,7 @@ type
     procedure TestURIDisplay;
     procedure TestRelativeURLWhitespace;
     procedure TestURIExists;
+    procedure TestRelativeToCastleDataURL;
   end;
 
 implementation
@@ -223,6 +224,24 @@ begin
     '    geometry Text { string "VRML 2.0 model inlined using data URI" }' + NL +
     '  }' + NL +
     '}'));
+end;
+
+procedure TTestURIUtils.TestRelativeToCastleDataURL;
+var
+  WasInsideData: Boolean;
+begin
+  AssertEquals('foo/bar.txt', RelativeToCastleDataURL('castle-data:/foo/bar.txt', WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('bar.txt', RelativeToCastleDataURL('castle-data:/bar.txt', WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('foo/bar.txt', RelativeToCastleDataURL(ResolveCastleDataURL('castle-data:/foo/bar.txt'), WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('bar.txt', RelativeToCastleDataURL(ResolveCastleDataURL('castle-data:/bar.txt'), WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('http://example.com/bar.txt', RelativeToCastleDataURL('http://example.com/bar.txt', WasInsideData));
+  AssertFalse(WasInsideData);
+  AssertEquals('/something-not-in-root/bar.txt', RelativeToCastleDataURL('/something-not-in-root/bar.txt', WasInsideData));
+  AssertFalse(WasInsideData);
 end;
 
 initialization
