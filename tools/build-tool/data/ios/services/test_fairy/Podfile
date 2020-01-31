@@ -3,4 +3,4 @@
 #
 # See https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html#cocoapods
 
-pod 'TestFairy'
+pod 'TestFairy', :inhibit_warnings => true

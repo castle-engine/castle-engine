@@ -84,6 +84,7 @@ type
     ExtractTemplateOverrideExisting: Boolean;
     // @groupEnd
     IOSTeam: string;
+    IOSExportMethod: String; // set by DoPackage based on PackageFormat, otherwise ''
     { Use to define macros containing the Android architecture names.
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
@@ -1225,6 +1226,8 @@ var
   PackageFileName: string;
   Files: TCastleStringList;
   PackageFormatFinal: TPackageFormatNoDefault;
+  WantsIOSArchive: Boolean;
+  IOSArchiveType: TIosArchiveType;
 begin
   Writeln(Format('Packaging project "%s" for %s.',
     [Name, PlatformToString(Target, OS, CPU, Plugin)]));
@@ -1232,15 +1235,20 @@ begin
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
 
+  { for iOS, the packaging process is special }
+  if (Target = targetIOS) and
+     (PackageFormat in [pfDefault, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore]) then
+  begin
+    // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
+    WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormat, IOSArchiveType, IOSExportMethod);
+    PackageIOS(Self);
+    if WantsIOSArchive then
+      ArchiveIOS(Self, IOSArchiveType);
+    Exit;
+  end;
+
   if PackageFormat = pfDefault then
   begin
-    { for iOS, the packaging process is special }
-    if Target = targetIOS then
-    begin
-      PackageIOS(Self);
-      Exit;
-    end;
-
     { for Android, the packaging process is special }
     if (Target = targetAndroid) or (OS = Android) then
     begin
@@ -2012,6 +2020,7 @@ begin
 
   Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
   Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+  Macros.Add('IOS_EXPORT_METHOD', IOSExportMethod);
 
   if IOSServices.HasService('icloud_for_save_games') then
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
