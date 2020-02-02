@@ -71,8 +71,7 @@ begin
   try
     // We use TrimRight to strip traling newline
     SendMessage := ApplicationName + '[' + IntToStr(ProcessId) + '] ' + TrimRight(Message);
-    HttpPost('http://michalis.ii.uni.wroc.pl/~michalis/cge_logger.php',
-      'message', SendMessage);
+    HttpPost('http://example.com/cge_logger.php', 'message', SendMessage);
   finally InsideLogCallback := false end;
 end;
 
