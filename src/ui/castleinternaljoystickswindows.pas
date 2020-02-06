@@ -101,6 +101,11 @@ const
   JOYCAPS_POV4DIR = 32;
   JOYCAPS_POVCTS  = 64;
 
+  JOYERR_NOERROR = 0;
+  JOYERR_BASE = 160;
+  JOYERR_PARMS = JOYERR_BASE + 5; // The specified joystick identifier is invalid.
+  JOYERR_UNPLUGGED = JOYERR_BASE + 7; //The specified joystick is not connected to the system.
+
   WINMMLIB = 'winmm.dll';
 
   JS_AXIS : array[ 0..5 ] of LongWord = ( 17 {X}, 19 {Y}, 21 {Z}, 26 {R}, 28 {U}, 30 {V} );
@@ -204,7 +209,11 @@ var
   vMax  : LongWord;
   Joystick: TJoystick;
   BackendInfo: TWindowsJoystickBackendInfo;
+  JoyError: LongWord;
+  JoystickHadBeenDisconnected: Boolean;
+  JoystickDisconnected: TJoystick;
 begin
+  JoystickHadBeenDisconnected := false;
   state.dwSize := SizeOf( TJOYINFOEX );
   for I := 0 to List.Count - 1 do
   begin
@@ -215,7 +224,8 @@ begin
     if BackendInfo.Caps.wCaps and JOYCAPS_POVCTS > 0 then
       state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
 
-    if joyGetPosEx( i, @state ) = 0 then
+    JoyError := joyGetPosEx( i, @state );
+    if JoyError = JOYERR_NOERROR then
     begin
       for j := 0 to Joystick.Info.Count.Axes - 1 do
       begin
@@ -283,8 +293,20 @@ begin
         Joystick.State.BtnUp[ j ] := btn = 0;
         if Assigned(EventContainer.OnButtonDown) and (btn <> 0) then EventContainer.OnButtonDown(Joystick, j);
       end;
+    end else
+    if JoyError = JOYERR_UNPLUGGED then
+    begin
+      WritelnLog('Joystick was unplugged. Trying to run Joysticks.Initialize.');
+      JoystickHadBeenDisconnected := true;
+      { Note that only last unplugged joystick will be sent to the Unplugged event
+        if multiple joysticks have been unplugged simultaneously
+        which may happen e.g. in case an USB-Hub with several joysticks had been disconnected }
+      JoystickDisconnected := Joystick;
     end;
   end;
+  if JoystickHadBeenDisconnected then
+    if Assigned(Joysticks.OnDisconnect) then
+      Joysticks.OnDisconnect(JoystickDisconnected);
 end;
 
 end.

@@ -47,6 +47,8 @@ const
   JSIOCGAXES    = -2147390959;
   JSIOCGBUTTONS = -2147390958;
 
+  EAGAIN = 11; //Error: "there is no data available right now, try again later"
+
   JS_AXIS : array[ 0..17 ] of Byte = ( JOY_AXIS_X, JOY_AXIS_Y, JOY_AXIS_Z, JOY_AXIS_U, JOY_AXIS_V, JOY_AXIS_R, JOY_AXIS_Z, JOY_AXIS_R, 0, 0, 0, 0, 0, 0, 0, 0, JOY_POVX, JOY_POVY );
 
 type
@@ -145,54 +147,75 @@ var
   event : TLinuxJsEvent;
   Joystick: TJoystick;
   BackendInfo: TLinuxJoystickBackendInfo;
+  BytesRead: TSsize;
+  JoystickHadBeenDisconnected: Boolean;
+  JoystickDisconnected: TJoystick;
 begin
+  JoystickHadBeenDisconnected := false;
   for I := 0 to List.Count - 1 do
   begin
     Joystick := List[I];
     BackendInfo := Joystick.InternalBackendInfo as TLinuxJoystickBackendInfo;
-    while FpRead( BackendInfo.Device, event, 8 ) = 8 do
-      case event.EventType of
-        JS_EVENT_AXIS:
-          begin
-            axis := JS_AXIS[ BackendInfo.AxesMap[ event.number ] ];
-            Value := event.value / 32767;
-            { Y axis should be 1 when pointing up, -1 when pointing down.
-              This is consistent with CGE 2D coordinate system
-              (and standard math 2D coordinate system). }
-            if Axis = JOY_AXIS_Y then
-              Value := -Value;
-            Joystick.State.Axis[ axis ] := Value;
-            if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
-          end;
-        JS_EVENT_BUTTON:
-          case event.value of
-            0:
-              begin
-                if Joystick.State.BtnDown[ event.number ] then
+    BytesRead := FpRead( BackendInfo.Device, event, 8 );
+    if BytesRead = 8 then
+      repeat
+        case event.EventType of
+          JS_EVENT_AXIS:
+            begin
+              axis := JS_AXIS[ BackendInfo.AxesMap[ event.number ] ];
+              Value := event.value / 32767;
+              { Y axis should be 1 when pointing up, -1 when pointing down.
+                This is consistent with CGE 2D coordinate system
+                (and standard math 2D coordinate system). }
+              if Axis = JOY_AXIS_Y then
+                Value := -Value;
+              Joystick.State.Axis[ axis ] := Value;
+              if Assigned(EventContainer.OnAxisMove) then EventContainer.OnAxisMove(Joystick, axis, Value);
+            end;
+          JS_EVENT_BUTTON:
+            case event.value of
+              0:
                 begin
-                  Joystick.State.BtnUp[ event.number ] := True;
-                  Joystick.State.BtnPress   [ event.number ] := False;
-                  if Assigned(EventContainer.OnButtonUp) then EventContainer.OnButtonUp(Joystick, event.number);
-                  Joystick.State.BtnCanPress[ event.number ] := True;
-                end;
-
-                Joystick.State.BtnDown[ event.number ] := False;
-              end;
-            1:
-              begin
-                Joystick.State.BtnDown[ event.number ] := True;
-                if Assigned(EventContainer.OnButtonDown) then EventContainer.OnButtonDown(Joystick, event.number);
-                Joystick.State.BtnUp  [ event.number ] := False;
-                if Joystick.State.BtnCanPress[ event.number ] then
+                  if Joystick.State.BtnDown[ event.number ] then
                   begin
-                    Joystick.State.BtnPress   [ event.number ] := True;
-                    if Assigned(EventContainer.OnButtonPress) then EventContainer.OnButtonPress(Joystick, event.number);
-                    Joystick.State.BtnCanPress[ event.number ] := False;
+                    Joystick.State.BtnUp[ event.number ] := True;
+                    Joystick.State.BtnPress   [ event.number ] := False;
+                    if Assigned(EventContainer.OnButtonUp) then EventContainer.OnButtonUp(Joystick, event.number);
+                    Joystick.State.BtnCanPress[ event.number ] := True;
                   end;
-              end;
-          end;
+
+                  Joystick.State.BtnDown[ event.number ] := False;
+                end;
+              1:
+                begin
+                  Joystick.State.BtnDown[ event.number ] := True;
+                  if Assigned(EventContainer.OnButtonDown) then EventContainer.OnButtonDown(Joystick, event.number);
+                  Joystick.State.BtnUp  [ event.number ] := False;
+                  if Joystick.State.BtnCanPress[ event.number ] then
+                    begin
+                      Joystick.State.BtnPress   [ event.number ] := True;
+                      if Assigned(EventContainer.OnButtonPress) then EventContainer.OnButtonPress(Joystick, event.number);
+                      Joystick.State.BtnCanPress[ event.number ] := False;
+                    end;
+                end;
+            end;
+        end;
+        BytesRead := FpRead( BackendInfo.Device, event, 8 );
+      until BytesRead <> 8
+    else
+      if fpgeterrno <> EAGAIN then
+      begin
+        WritelnLog('Joystick error, possibly it was unplugged. Trying to run Joysticks.Initialize.');
+        JoystickHadBeenDisconnected := true;
+        { Note that only last unplugged joystick will be sent to the Unplugged event
+          if multiple joysticks have been unplugged simultaneously
+          which may happen e.g. in case an USB-Hub with several joysticks had been disconnected }
+        JoystickDisconnected := Joystick;
       end;
   end;
+  if JoystickHadBeenDisconnected then
+    if Assigned(Joysticks.OnDisconnect) then
+      Joysticks.OnDisconnect(JoystickDisconnected);
 end;
 
 end.

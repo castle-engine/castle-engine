@@ -120,6 +120,8 @@ type
     FList: TJoystickList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
+    FOnDisconnect: TNotifyEvent;
+    //FOnConnect: TNotifyEvent;
     function GetItems(const Index: Integer): TJoystick;
     { Get (creating if necessary) joystick's explicit backend.
       Always returns TExplicitJoystickBackend, but cannot be declared as such. }
@@ -175,6 +177,11 @@ type
       but it may be called in other cases (e.g. "explicit" joystick backend,
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+
+    { Called in case a previously initalized joystick had been unplugged unexpectedly. }
+    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
+    { Called in case a joystick had been plugged in the system. }
+    //property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
   end;
 
 { Detect connected joysticks. }
