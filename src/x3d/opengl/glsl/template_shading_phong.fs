@@ -74,16 +74,16 @@ void main(void)
   fragment_color = vec4(castle_SceneColor, 1.0);
 
   #ifdef COLOR_PER_VERTEX
-    /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, castle_ColorPerVertexFragment) */
+    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, castle_ColorPerVertexFragment) */
 
     /* Apply castle_ColorPerVertexFragment alpha here.
        The RGB portion of castle_ColorPerVertexFragment was
        already applied in template_light.glsl . */
     fragment_color.a = castle_ColorPerVertexFragment.a;
   #else
-    /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, vec4(0.0)) */
+    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, vec4(0.0)) */
 
-    /* Apply alpha. Otherwise, alpha is usually large after previous add_light_contribution,
+    /* Apply alpha. Otherwise, alpha is usually large after previous add_light,
        and it's always opaque.
        Using diffuse.a is actually exactly what fixed-function pipeline does
        too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
@@ -100,7 +100,7 @@ void main(void)
 #ifdef COLOR_PER_VERTEX
     /* Apply COLOR_PER_VERTEX, when unlit.
        (When lit, then the analogous multiplication is done
-        inside template_add_light.glsl) */
+        inside template_light.glsl) */
     * castle_ColorPerVertexFragment
 #endif
   ;

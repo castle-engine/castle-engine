@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_gouraud.vs" }
+{ DON'T EDIT -- this file was automatically generated from "template_shading_gouraud.vs" }
 '/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
@@ -93,10 +93,10 @@
 '  /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */' + LineEnding +
 '' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */' + LineEnding +
+'    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */' + LineEnding +
 '    castle_Color.a = castle_ColorPerVertex.a;' + LineEnding +
 '  #else' + LineEnding +
-'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
+'    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
 '    castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +

@@ -91,10 +91,10 @@ void main(void)
   /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */
 
   #ifdef COLOR_PER_VERTEX
-    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */
+    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */
     castle_Color.a = castle_ColorPerVertex.a;
   #else
-    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */
+    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */
     castle_Color.a = castle_MaterialDiffuseAlpha;
   #endif
 

@@ -1,6 +1,7 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_light.glsl" }
-'/* Shader code used for adding light source contribution.' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "template_material_phong_add_light.glsl" }
+'/* Shader code used for adding light source contribution for Material' + LineEnding +
+'   (Phong lighting model).' + LineEnding +
 '   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
 '   This is used in both Gouraud and Phong shading,' + LineEnding +
 '   so it may go either in vertex or fragment shader.' + LineEnding +
@@ -51,7 +52,7 @@
 '#endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'void PLUG_add_light_contribution(inout vec4 color,' + LineEnding +
+'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
 '  in float material_shininess,' + LineEnding +

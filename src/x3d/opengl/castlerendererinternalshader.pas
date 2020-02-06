@@ -975,7 +975,7 @@ begin
   begin
     FCode := TShaderSource.Create;
 
-    TemplateLight := {$I template_light.glsl.inc};
+    TemplateLight := {$I template_material_phong_add_light.glsl.inc};
     TemplateLight := StringReplace(TemplateLight,
       '<Light>', IntToStr(Number), [rfReplaceAll]);
 
@@ -1839,10 +1839,14 @@ begin
 end;
 
 const
-  DefaultVertexShader   : array [ { phong shading } boolean ] of string =
-  ( {$I template_gouraud.vs.inc}, {$I template_phong.vs.inc} );
-  DefaultFragmentShader : array [ { phong shading } boolean ] of string =
-  ( {$I template_gouraud.fs.inc}, {$I template_phong.fs.inc} );
+  DefaultVertexShader: array [ { phong shading } boolean ] of string = (
+    {$I template_shading_gouraud.vs.inc},
+    {$I template_shading_phong.vs.inc}
+  );
+  DefaultFragmentShader: array [ { phong shading } boolean ] of string = (
+    {$I template_shading_gouraud.fs.inc},
+    {$I template_shading_phong.fs.inc}
+  );
   DefaultGeometryShader = {$I template.gs.inc};
 
   // TODO: fix this to pass color in new shaders (not using deprecated gl_FrontColor, gl_BackColor)

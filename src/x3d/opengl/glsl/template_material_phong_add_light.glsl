@@ -1,4 +1,5 @@
-/* Shader code used for adding light source contribution.
+/* Shader code used for adding light source contribution for Material
+   (Phong lighting model).
    This is used by both desktop OpenGL and OpenGLES.
    This is used in both Gouraud and Phong shading,
    so it may go either in vertex or fragment shader.
@@ -49,7 +50,7 @@ void separate_diffuse_apply_texture(inout vec4 fragment_color,
 #endif
 #endif
 
-void PLUG_add_light_contribution(inout vec4 color,
+void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
   in float material_shininess,

@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_phong.fs" }
+{ DON'T EDIT -- this file was automatically generated from "template_shading_phong.fs" }
 '/* Phong shading GLSL fragment shader.' + LineEnding +
 '   Used by ../castlerendererinternalshader.pas to construct the final shader.' + LineEnding +
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +
@@ -76,16 +76,16 @@
 '  fragment_color = vec4(castle_SceneColor, 1.0);' + LineEnding +
 '' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'    /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, castle_ColorPerVertexFragment) */' + LineEnding +
+'    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, castle_ColorPerVertexFragment) */' + LineEnding +
 '' + LineEnding +
 '    /* Apply castle_ColorPerVertexFragment alpha here.' + LineEnding +
 '       The RGB portion of castle_ColorPerVertexFragment was' + LineEnding +
 '       already applied in template_light.glsl . */' + LineEnding +
 '    fragment_color.a = castle_ColorPerVertexFragment.a;' + LineEnding +
 '  #else' + LineEnding +
-'    /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
+'    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
 '' + LineEnding +
-'    /* Apply alpha. Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding +
+'    /* Apply alpha. Otherwise, alpha is usually large after previous add_light,' + LineEnding +
 '       and it''s always opaque.' + LineEnding +
 '       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding +
 '       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding +
@@ -102,7 +102,7 @@
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
 '    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
 '       (When lit, then the analogous multiplication is done' + LineEnding +
-'        inside template_add_light.glsl) */' + LineEnding +
+'        inside template_light.glsl) */' + LineEnding +
 '    * castle_ColorPerVertexFragment' + LineEnding +
 '#endif' + LineEnding +
 '  ;' + LineEnding +
