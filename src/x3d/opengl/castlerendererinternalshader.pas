@@ -877,14 +877,14 @@ const
     Name: string;
     Hash: LongWord;
   end =
-  ( (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
-    (Name: 'LIGHT_TYPE_SPOT'        ; Hash: 109; ),
-    (Name: 'LIGHT_HAS_ATTENUATION'  ; Hash: 113; ),
-    (Name: 'LIGHT_HAS_RADIUS'       ; Hash: 127; ),
-    (Name: 'LIGHT_HAS_AMBIENT'      ; Hash: 131; ),
-    (Name: 'LIGHT_HAS_SPECULAR'     ; Hash: 137; ),
-    (Name: 'LIGHT_HAS_BEAM_WIDTH'   ; Hash: 139; ),
-    (Name: 'LIGHT_HAS_SPOT_EXPONENT'; Hash: 149; )
+  ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
+    (Name: 'LIGHT%d_TYPE_SPOT'        ; Hash: 109; ),
+    (Name: 'LIGHT%d_HAS_ATTENUATION'  ; Hash: 113; ),
+    (Name: 'LIGHT%d_HAS_RADIUS'       ; Hash: 127; ),
+    (Name: 'LIGHT%d_HAS_AMBIENT'      ; Hash: 131; ),
+    (Name: 'LIGHT%d_HAS_SPECULAR'     ; Hash: 137; ),
+    (Name: 'LIGHT%d_HAS_BEAM_WIDTH'   ; Hash: 139; ),
+    (Name: 'LIGHT%d_HAS_SPOT_EXPONENT'; Hash: 149; )
   );
 
 procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
@@ -964,7 +964,7 @@ function TLightShader.Code: TShaderSource;
   begin
     Result := '';
     for I := 0 to DefinesCount - 1 do
-      Result += '#define ' + LightDefines[Defines[I]].Name + NL;
+      Result += '#define ' + Format(LightDefines[Defines[I]].Name, [Number]) + NL;
   end;
 
 var

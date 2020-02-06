@@ -4,24 +4,24 @@
    so it may go either in vertex or fragment shader.
 */
 
-/* Light source position (or direction, if not LIGHT_TYPE_POSITIONAL)
+/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)
    in eye coordinates. */
 uniform vec3 castle_LightSource<Light>Position;
-#ifdef LIGHT_TYPE_SPOT
+#ifdef LIGHT<Light>_TYPE_SPOT
 uniform vec3 castle_LightSource<Light>SpotDirection;
 uniform float castle_LightSource<Light>SpotCosCutoff;
-#ifdef LIGHT_HAS_BEAM_WIDTH
+#ifdef LIGHT<Light>_HAS_BEAM_WIDTH
 /* In radians. Note that this differs from gl_LightSource[<Light>].spotCutoff
    that is in degrees. */
 uniform float castle_LightSource<Light>SpotCutoff;
 uniform float castle_LightSource<Light>BeamWidth;
 #endif
-#ifdef LIGHT_HAS_SPOT_EXPONENT
+#ifdef LIGHT<Light>_HAS_SPOT_EXPONENT
 uniform float castle_LightSource<Light>SpotExponent;
 #endif
 #endif
 /* Multiplied colors of light source and material. */
-#ifdef LIGHT_HAS_AMBIENT
+#ifdef LIGHT<Light>_HAS_AMBIENT
 uniform vec4 castle_SideLightProduct<Light>Ambient;
 #endif
 #ifdef COLOR_PER_VERTEX
@@ -29,15 +29,15 @@ uniform vec4 castle_LightSource<Light>Diffuse;
 #else
 uniform vec4 castle_SideLightProduct<Light>Diffuse;
 #endif
-#ifdef LIGHT_HAS_SPECULAR
+#ifdef LIGHT<Light>_HAS_SPECULAR
 uniform vec4 castle_SideLightProduct<Light>Specular;
 #endif
-#ifdef LIGHT_HAS_ATTENUATION
+#ifdef LIGHT<Light>_HAS_ATTENUATION
 /* Attenuation: constant, linear, quadratic. */
 uniform vec3 castle_LightSource<Light>Attenuation;
 #endif
 
-#ifdef LIGHT_HAS_RADIUS
+#ifdef LIGHT<Light>_HAS_RADIUS
 uniform float castle_LightSource<Light>Radius;
 #endif
 
@@ -58,7 +58,7 @@ void PLUG_add_light_contribution(inout vec4 color,
   vec3 light_dir;
 
 /* Calculate light_dir */
-#ifdef LIGHT_TYPE_POSITIONAL
+#ifdef LIGHT<Light>_TYPE_POSITIONAL
   light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);
   float distance_to_light = length(light_dir);
   light_dir /= distance_to_light;
@@ -66,7 +66,7 @@ void PLUG_add_light_contribution(inout vec4 color,
   light_dir = normalize(castle_LightSource<Light>Position);
 #endif
 
-#ifdef LIGHT_TYPE_SPOT
+#ifdef LIGHT<Light>_TYPE_SPOT
   /* Check SpotCosCutoff first, as we want to add nothing
      (not even ambient term) when were outside of spot light cone. */
 
@@ -78,8 +78,8 @@ void PLUG_add_light_contribution(inout vec4 color,
   float scale = 1.0;
   /* PLUG: light_scale (scale, normal_eye, light_dir) */
 
-#ifdef LIGHT_TYPE_SPOT
-#ifdef LIGHT_HAS_BEAM_WIDTH
+#ifdef LIGHT<Light>_TYPE_SPOT
+#ifdef LIGHT<Light>_HAS_BEAM_WIDTH
   /* calculate spot following VRML 2.0/X3D idea of beamWidth */
   float cutOffAngle = castle_LightSource<Light>SpotCutoff;
   scale *= clamp(
@@ -88,27 +88,27 @@ void PLUG_add_light_contribution(inout vec4 color,
     0.0, 1.0);
 #endif
 
-#ifdef LIGHT_HAS_SPOT_EXPONENT
+#ifdef LIGHT<Light>_HAS_SPOT_EXPONENT
   /* calculate spot like fixed-function pipeline, using exponent */
   scale *= pow(spot_cos, castle_LightSource<Light>SpotExponent);
 #endif
 #endif
 
-#ifdef LIGHT_HAS_ATTENUATION
+#ifdef LIGHT<Light>_HAS_ATTENUATION
   scale /= max(1.0,
            castle_LightSource<Light>Attenuation.x +
            castle_LightSource<Light>Attenuation.y * distance_to_light +
            castle_LightSource<Light>Attenuation.z * distance_to_light * distance_to_light);
 #endif
 
-#ifdef LIGHT_HAS_RADIUS
+#ifdef LIGHT<Light>_HAS_RADIUS
   if (distance_to_light >= castle_LightSource<Light>Radius)
     scale = 0.0;
 #endif
 
   /* add ambient term */
   vec4 light_color =
-#ifdef LIGHT_HAS_AMBIENT
+#ifdef LIGHT<Light>_HAS_AMBIENT
   castle_SideLightProduct<Light>Ambient;
   /* PLUG: material_light_ambient (light_color) */
 #else
@@ -131,7 +131,7 @@ void PLUG_add_light_contribution(inout vec4 color,
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;
 
-#ifdef LIGHT_HAS_SPECULAR
+#ifdef LIGHT<Light>_HAS_SPECULAR
   /* add specular term */
   /* halfVector is an average of
      - normalize(light position - vertex_eye) (we already have this
@@ -151,14 +151,3 @@ void PLUG_add_light_contribution(inout vec4 color,
 
   color += light_color * scale;
 }
-
-/* Undefine lights symbols, since for OpenGL ES all the shader parts
-   are concatenated into a single string. */
-#undef LIGHT_TYPE_POSITIONAL
-#undef LIGHT_TYPE_SPOT
-#undef LIGHT_HAS_AMBIENT
-#undef LIGHT_HAS_SPECULAR
-#undef LIGHT_HAS_ATTENUATION
-#undef LIGHT_HAS_RADIUS
-#undef LIGHT_HAS_BEAM_WIDTH
-#undef LIGHT_HAS_SPOT_EXPONENT
