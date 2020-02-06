@@ -109,6 +109,7 @@ type
     class procedure ClearSelectedJoystickUI;
   public
     class procedure InitializeJoystickUI(Sender: TObject);
+    class procedure JoystickDisconnected;
     class procedure ClickReinitialize(Sender: TObject);
     class procedure ClickJoystickSelect(Sender: TObject);
     class procedure JoyAxisMove(const Joy: TJoystick; const Axis: Byte; const Value: Single);
@@ -265,6 +266,12 @@ begin
   end;
 end;
 
+class procedure TEventsHandler.JoystickDisconnected;
+begin
+  Joysticks.Initialize;
+  //will call OnChange and therefore InitializeJoystickUI
+end;
+
 { other routines ------------------------------------------------------------- }
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -322,6 +329,7 @@ begin
   MenuGroup.InsertFront(LabelSelectedJoystick);
 
   Joysticks.OnChange := @TEventsHandler(nil).InitializeJoystickUI;
+  Joysticks.OnDisconnect:= @TEventsHandler(nil).JoystickDisconnected;
   Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
   Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
   Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
