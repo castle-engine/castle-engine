@@ -25,7 +25,7 @@ unit CastleJoysticks;
 interface
 
 uses Generics.Collections, Classes,
-  CastleVectors;
+  CastleVectors, CastleUtils;
 
 type
   PJoyInfo = ^TJoyInfo;
@@ -120,8 +120,8 @@ type
     FList: TJoystickList;
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
-    FOnDisconnect: TNotifyEvent;
-    //FOnConnect: TNotifyEvent;
+    FOnDisconnect: TSimpleNotifyEvent;
+    //FOnConnect: TSimpleNotifyEvent;
     function GetItems(const Index: Integer): TJoystick;
     { Get (creating if necessary) joystick's explicit backend.
       Always returns TExplicitJoystickBackend, but cannot be declared as such. }
@@ -178,10 +178,10 @@ type
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Called in case a previously initalized joystick had been unplugged unexpectedly. }
-    property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
-    { Called in case a joystick had been plugged in the system. }
-    //property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
+    { Called in case a previously initalized joystick has been unplugged. }
+    property OnDisconnect: TSimpleNotifyEvent read FOnDisconnect write FOnDisconnect;
+    { Called in case a joystick has been plugged in the system. }
+    //property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
   end;
 
 { Detect connected joysticks. }
