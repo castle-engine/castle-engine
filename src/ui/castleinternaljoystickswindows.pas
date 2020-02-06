@@ -205,7 +205,7 @@ begin
       end else
       begin
         if JoyError = JOYERR_UNPLUGGED then
-          WriteLnLog('CastleJoysticks Init', 'Found joy: %s, but it cannot be added due to JOYERR_UNPLUGGED. This is normal in case the joystick has been recently disconnected from the system.',
+          WriteLnLog('CastleJoysticks Init', 'Found joy: %s, but it will not be added because it seems to have been disconnected from the system recently (JOYERR_UNPLUGGED).',
             [NewJoystick.Info.Name])
         else
           WriteLnLog('CastleJoysticks Init', 'Found joy: %s, but it cannot be added due to an error %d.',

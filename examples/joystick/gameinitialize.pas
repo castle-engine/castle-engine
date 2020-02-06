@@ -329,7 +329,7 @@ begin
   MenuGroup.InsertFront(LabelSelectedJoystick);
 
   Joysticks.OnChange := @TEventsHandler(nil).InitializeJoystickUI;
-  Joysticks.OnDisconnect:= @TEventsHandler(nil).JoystickDisconnected;
+  Joysticks.OnDisconnect := @TEventsHandler(nil).JoystickDisconnected;
   Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
   Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
   Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
