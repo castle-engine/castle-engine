@@ -149,7 +149,6 @@ var
   BackendInfo: TLinuxJoystickBackendInfo;
   BytesRead: TSsize;
   JoystickHadBeenDisconnected: Boolean;
-  JoystickDisconnected: TJoystick;
 begin
   JoystickHadBeenDisconnected := false;
   for I := 0 to List.Count - 1 do
@@ -205,17 +204,13 @@ begin
     else
       if fpgeterrno <> EAGAIN then
       begin
-        WritelnLog('Joystick error, possibly it was unplugged. Trying to run Joysticks.Initialize.');
+        WritelnLog('Joystick error: possibly "%s" was disconnected.', [Joystick.Info.Name]);
         JoystickHadBeenDisconnected := true;
-        { Note that only last unplugged joystick will be sent to the Unplugged event
-          if multiple joysticks have been unplugged simultaneously
-          which may happen e.g. in case an USB-Hub with several joysticks had been disconnected }
-        JoystickDisconnected := Joystick;
       end;
   end;
   if JoystickHadBeenDisconnected then
     if Assigned(Joysticks.OnDisconnect) then
-      Joysticks.OnDisconnect(JoystickDisconnected);
+      Joysticks.OnDisconnect;
 end;
 
 end.
