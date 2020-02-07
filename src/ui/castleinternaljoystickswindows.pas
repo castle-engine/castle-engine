@@ -208,7 +208,7 @@ begin
           WriteLnLog('CastleJoysticks Init', 'Found joy: %s, but it will not be added because it seems to have been disconnected from the system recently (JOYERR_UNPLUGGED).',
             [NewJoystick.Info.Name])
         else
-          WriteLnLog('CastleJoysticks Init', 'Found joy: %s, but it cannot be added due to an error %d.',
+          WriteLnWarning('CastleJoysticks Init', 'Found joy: %s, but it cannot be added due to an error %d.',
             [NewJoystick.Info.Name, JoyError]);
         FreeAndNil(NewJoystick);
       end;
@@ -232,9 +232,9 @@ var
   Joystick: TJoystick;
   BackendInfo: TWindowsJoystickBackendInfo;
   JoyError: LongWord;
-  JoystickHadBeenDisconnected: Boolean;
+  JoystickHasBeenDisconnected: Boolean;
 begin
-  JoystickHadBeenDisconnected := false;
+  JoystickHasBeenDisconnected := false;
   state.dwSize := SizeOf( TJOYINFOEX );
   for I := 0 to List.Count - 1 do
   begin
@@ -319,14 +319,14 @@ begin
       JOYERR_UNPLUGGED:
         begin
           WritelnLog('Joystick %s was disconnected', [Joystick.Info.Name]);
-          JoystickHadBeenDisconnected := true;
+          JoystickHasBeenDisconnected := true;
         end;
       JOYERR_PARMS:
-        WritelnLog('Joystick %s parameters are no longer valid.', [Joystick.Info.Name]);
+        WriteLnWarning('Joystick %s parameters are no longer valid.', [Joystick.Info.Name]);
       else
-        WritelnLog('Joystick %s error %d', [Joystick.Info.Name, JoyError]);
+        WriteLnWarning('Joystick %s error %d', [Joystick.Info.Name, JoyError]);
     end;
-    if JoystickHadBeenDisconnected then
+    if JoystickHasBeenDisconnected then
       if Assigned(Joysticks.OnDisconnect) then
         Joysticks.OnDisconnect;
   end;

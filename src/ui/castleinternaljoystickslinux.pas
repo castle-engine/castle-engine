@@ -148,9 +148,9 @@ var
   Joystick: TJoystick;
   BackendInfo: TLinuxJoystickBackendInfo;
   BytesRead: TSsize;
-  JoystickHadBeenDisconnected: Boolean;
+  JoystickHasBeenDisconnected: Boolean;
 begin
-  JoystickHadBeenDisconnected := false;
+  JoystickHasBeenDisconnected := false;
   for I := 0 to List.Count - 1 do
   begin
     Joystick := List[I];
@@ -205,10 +205,10 @@ begin
       if fpgeterrno <> EAGAIN then
       begin
         WritelnLog('Joystick error: possibly "%s" was disconnected.', [Joystick.Info.Name]);
-        JoystickHadBeenDisconnected := true;
+        JoystickHasBeenDisconnected := true;
       end;
   end;
-  if JoystickHadBeenDisconnected then
+  if JoystickHasBeenDisconnected then
     if Assigned(Joysticks.OnDisconnect) then
       Joysticks.OnDisconnect;
 end;
