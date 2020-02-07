@@ -31,7 +31,7 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-Windows, CommDlg,
+JwaWinUser,  Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -719,6 +719,18 @@ begin
           DoMouseWheel(TWinParam(WParm).HiSmallInt / 120, uMsg = WM_MOUSEWHEEL);
         Exit;
       end;
+
+    WM_DEVICECHANGE:
+      begin
+        if (WParm = 32768{DBT_DEVICEARRIVAL}) then
+          WriteLn('WM_DEVICECHANGE - DBT_DEVICEARRIVAL!')
+        else
+          if (WParm = 32772{DBT_DEVICEREMOVECOMPLETE}) then
+            WriteLn('WM_DEVICECHANGE - DBT_DEVICEREMOVECOMPLETE!')
+        else
+          WriteLn('WM_DEVICECHANGE - other event WParm=', WParm, ' LParm=', LParm);
+        Exit(0);
+      end;
   end;
 
   { The DefWindowProc may enter a modal loop in some cases, e.g. when
@@ -832,6 +844,9 @@ begin
   MenuInitialize;
 end;
 
+{function RegisterDeviceNotification(hRecipient: HANDLE; NotificationFilter: LPVOID;
+  Flags: DWORD): HDEVNOTIFY; stdcall; {$EXTERNALSYM RegisterDeviceNotification} }
+
 procedure TCastleWindowBase.OpenBackend;
 
   // Get initial MousePosition, even before the first mouse move/down event.
@@ -852,6 +867,44 @@ procedure TCastleWindowBase.OpenBackend;
     FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
     WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
       [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
+  procedure RegisterForJoystickEvents;
+  const
+    DBT_DEVTYP_DEVICEINTERFACE = 5;
+    DEVICE_NOTIFY_WINDOW_HANDLE = 0;
+  type
+    DEV_BROADCAST_DEVICEINTERFACE = record
+      dbcc_size: DWORD;
+      dbcc_devicetype: DWORD;
+      dbcc_reserved: DWORD;
+      dbcc_classguid: GUID;
+      dbcc_name: TCHAR;
+    end;
+  var
+    BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
+    GUID_DEVINTERFACE_HID: GUID;
+  begin
+    //GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+    GUID_DEVINTERFACE_HID.Data1 := $4D1E55B2;
+    GUID_DEVINTERFACE_HID.Data2 := $F16F;
+    GUID_DEVINTERFACE_HID.Data3 := $11CF;
+    GUID_DEVINTERFACE_HID.Data4[0] := $88;
+    GUID_DEVINTERFACE_HID.Data4[1] := $CB;
+    GUID_DEVINTERFACE_HID.Data4[2] := 0;
+    GUID_DEVINTERFACE_HID.Data4[3] := $11;
+    GUID_DEVINTERFACE_HID.Data4[4] := $11;
+    GUID_DEVINTERFACE_HID.Data4[5] := 0;
+    GUID_DEVINTERFACE_HID.Data4[6] := 0;
+    GUID_DEVINTERFACE_HID.Data4[7] := $30;
+
+    FillChar(BroadcastDeviceInterface, SizeOf(BroadcastDeviceInterface), 0);
+    BroadcastDeviceInterface.dbcc_size := sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+    BroadcastDeviceInterface.dbcc_devicetype := DBT_DEVTYP_DEVICEINTERFACE;
+    BroadcastDeviceInterface.dbcc_classguid := GUID_DEVINTERFACE_HID;
+    {if not RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE) then
+      WriteLnWarning('Unable to RegisterDeviceNotification');}
+    RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
   end;
 
 var
@@ -1008,6 +1061,8 @@ begin
 
   GetInitialCursorPos(ClientRect);
   InitializeDpi;
+
+  RegisterForJoystickEvents;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
