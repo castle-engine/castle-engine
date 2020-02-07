@@ -1,37 +1,24 @@
-# Note about file_to_pascal_string: it's another program of mine,
-# you can get it from pasdoc [http://pasdoc.sourceforge.net/] sources.
+# Generate Pascal include files from all GLSL code in source/ .
+#
+# Uses file_to_pascal_string, which is part of PasDoc. See:
+# - PasDoc main webpage:
+#   https://github.com/pasdoc/pasdoc/wiki
+# - file_to_pascal_string trivial source code (you can just get this one file and compile it yourself):
+#   https://github.com/pasdoc/pasdoc/blob/master/source/tools/file_to_pascal_string.dpr
+#
+# Placing source/ and generated-pascal/ in separate subdirectories makes it easier
+# to browse, and to grep inside GLSL files, since you can easily grep only within source/ .
 
-ALL_OUTPUT := common.fs.inc \
-              common.vs.inc \
-              shadow_map_common.fs.inc \
-	      shadow_map_generate.fs.inc \
-	      shadow_map_generate.vs.inc \
-	      variance_shadow_map_common.fs.inc \
-	      template_shading_phong.vs.inc \
-	      template_shading_phong.fs.inc \
-	      template.gs.inc \
-	      ssao.glsl.inc \
-	      screen_effect_library.glsl.inc \
-	      screen_effect.vs.inc \
-	      template_shading_gouraud.vs.inc \
-	      template_shading_gouraud.fs.inc \
-	      template_material_phong_add_light.glsl.inc \
-	      template_material_physical_add_light.glsl.inc \
-	      fallback.vs.inc \
-	      fallback.fs.inc \
-	      simplest.vs.inc \
-	      simplest.fs.inc \
-	      bump_mapping.fs.inc \
-	      bump_mapping.vs.inc \
-	      bump_mapping_parallax.fs.inc \
-	      bump_mapping_parallax.vs.inc \
-	      bump_mapping_steep_parallax_shadowing.fs.inc \
-	      bump_mapping_steep_parallax_shadowing.vs.inc
+ALL_SOURCES := $(wildcard source/*.fs) \
+               $(wildcard source/*.vs) \
+	       $(wildcard source/*.gs) \
+	       $(wildcard source/*.glsl)
+ALL_OUTPUT := $(addsuffix .inc, $(subst source/,generated-pascal/,$(ALL_SOURCES)))
 
 .PHONY: all
 all: $(ALL_OUTPUT)
 
-%.inc: %
+generated-pascal/%.inc: source/%
 	file_to_pascal_string $< $@
 
 .PHONY: clean

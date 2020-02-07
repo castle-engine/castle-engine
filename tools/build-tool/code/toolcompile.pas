@@ -223,12 +223,12 @@ var
       AddEnginePath('window/unix');
       AddEnginePath('images');
       AddEnginePath('images/opengl');
-      AddEnginePath('images/opengl/glsl');
+      AddEnginePath('images/opengl/glsl/generated-pascal');
       AddEnginePath('3d');
       AddEnginePath('3d/opengl');
       AddEnginePath('x3d');
       AddEnginePath('x3d/opengl');
-      AddEnginePath('x3d/opengl/glsl');
+      AddEnginePath('x3d/opengl/glsl/generated-pascal');
       AddEnginePath('audio');
       AddEnginePath('audio/fmod');
       AddEnginePath('audio/openal');

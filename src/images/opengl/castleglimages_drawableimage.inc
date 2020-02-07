@@ -587,8 +587,8 @@ type
       The shader must define the same uniform variables and attributes
       as the standard TDrawableImage shader, like viewport_size, vertex, tex_coord.
       See for example our default shader code:
-      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/image.vs
-      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/image.fs .
+      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.vs
+      https://github.com/castle-engine/castle-engine/blob/master/src/images/opengl/glsl/source/image.fs .
 
       See also example examples/images_videos/image_render_custom_shader.lpr .
 
