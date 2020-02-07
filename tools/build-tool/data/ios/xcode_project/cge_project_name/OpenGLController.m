@@ -47,6 +47,33 @@
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
 
+    /* Configure OpenGLES buffer sizes.
+       GLKView provides very limited configuration options, see
+       https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/DrawingWithOpenGLES/DrawingWithOpenGLES.html#//apple_ref/doc/uid/TP40008793-CH503-SW1
+       https://developer.apple.com/documentation/glkit/glkview
+    */
+    int redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits;
+    CGEApp_ContextProperties(&redBits, &greenBits, &blueBits, &alphaBits, &depthBits, &stencilBits);
+    // view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888; // default
+
+    if (depthBits == 0) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat.formatNone;
+    } else
+    if (depthBits <= 16) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat.format16;
+    } else {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat.format24;
+    }
+
+    if (stencilBits == 0) {
+        view.drawableStencilFormat = GLKViewDrawableStencil.formatNone;
+    } else {
+        view.drawableStencilFormat = GLKViewDrawableStencil.format8;
+    }
+    // view.drawableMultisample = GLKViewDrawableMultisample4X;
+
+    // initialize input
+
     self.view.multipleTouchEnabled = YES;
     for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
 
