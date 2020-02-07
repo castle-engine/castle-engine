@@ -42,6 +42,10 @@ type
 
   ECheckFailed = class(Exception);
 
+type
+  { Simple notify event with no Sender }
+  TSimpleNotifyEvent = procedure of object;
+
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
 procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
