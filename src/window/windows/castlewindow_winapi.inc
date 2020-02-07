@@ -31,11 +31,16 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-JwaWinUser,  Windows, CommDlg,
+{ note: this unit's definitions conflict with other definitions used in this file
+  But we need it for RegisterDeviceNotification, therefore adding it to the very
+  first position in the uses list to be overwritten by subsequent used units}
+JwaWinUser,
+{ /note }
+Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleMessages,
+CastleWindowModes, CastleMessages, CastleJoysticks,
 {$endif}
 
 {$ifdef read_window_interface}
