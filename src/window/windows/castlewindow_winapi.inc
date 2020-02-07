@@ -732,9 +732,12 @@ begin
     WM_DEVICECHANGE:
       begin
         case WParm of
+          { A device had been sucessfully added to the system}
           DBT_DEVICEARRIVAL: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+          { A device had been succesfully removed from the system}
           DBT_DEVICEREMOVECOMPLETE: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
-          DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
+          { Something unspecified changed in the system devices configuration }
+          //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED'); // Ignore these events for now
         end;
         Exit(0);
       end;
@@ -851,9 +854,6 @@ begin
   MenuInitialize;
 end;
 
-{function RegisterDeviceNotification(hRecipient: HANDLE; NotificationFilter: LPVOID;
-  Flags: DWORD): HDEVNOTIFY; stdcall; {$EXTERNALSYM RegisterDeviceNotification} }
-
 procedure TCastleWindowBase.OpenBackend;
 
   // Get initial MousePosition, even before the first mouse move/down event.
@@ -893,7 +893,7 @@ procedure TCastleWindowBase.OpenBackend;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
     GUID_DEVINTERFACE_HID: GUID;
-    DeviceNotification: Pointer;//HDEVNOTIFY;
+    DeviceNotification: Pointer; // HDEVNOTIFY;
   begin
     { Construct GUID that corresponds to Joysticks/controllers devices
       The values have been taken from SDL2 SDL_windowsjoystick.c }
