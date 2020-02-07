@@ -163,7 +163,7 @@ type
     procedure DoPackage(const Target: TTarget;
       const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
-      const PackageNameIncludeVersion: Boolean);
+      const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
     procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
       const Plugin: boolean);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
@@ -1182,7 +1182,7 @@ end;
 procedure TCastleProject.DoPackage(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
-  const PackageNameIncludeVersion: Boolean);
+  const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
 var
   Pack: TPackageDirectory;
 
@@ -1241,7 +1241,7 @@ begin
   begin
     // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
     WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormat, IOSArchiveType, IOSExportMethod);
-    PackageIOS(Self);
+    PackageIOS(Self, UpdateOnlyCode);
     if WantsIOSArchive then
       ArchiveIOS(Self, IOSArchiveType);
     Exit;

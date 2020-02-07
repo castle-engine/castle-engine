@@ -38,7 +38,8 @@ procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
   out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
 
-procedure PackageIOS(const Project: TCastleProject);
+procedure PackageIOS(const Project: TCastleProject;
+  const UpdateOnlyCode: Boolean);
 { Call ArchiveIOS immediately after PackageIOS to perform build + archive using Xcode command-line. }
 procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
 procedure InstallIOS(const Project: TCastleProject);
@@ -137,7 +138,8 @@ begin
   ]);
 end;
 
-procedure PackageIOS(const Project: TCastleProject);
+procedure PackageIOS(const Project: TCastleProject;
+  const UpdateOnlyCode: Boolean);
 var
   XcodeProject: string;
   UsesCocoaPods: boolean;
@@ -381,22 +383,31 @@ begin
   UsesCocoaPods := false;
   XcodeProject := TempOutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
-  if DirectoryExists(XcodeProject) then
-    RemoveNonEmptyDir(XcodeProject);
 
-  GenerateFromTemplates;
-  GenerateServicesFromTemplates;
-  FixPbxProjectFile; // must be done *after* all files for services are created
-  GenerateIcons;
-  GenerateLaunchImages;
-  GenerateData;
-  GenerateLibrary;
-  GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
+  if UpdateOnlyCode then
+  begin
+    if not DirectoryExists(XcodeProject) then
+      raise Exception.Create('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option');
+    GenerateLibrary;
+  end else
+  begin
+    if DirectoryExists(XcodeProject) then
+      RemoveNonEmptyDir(XcodeProject);
 
-  Writeln('Xcode project has been created in:');
-  Writeln('  ', XcodeProject);
-  Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
-  Writeln('The generated project should compile and work out-of-the-box.');
+    GenerateFromTemplates;
+    GenerateServicesFromTemplates;
+    FixPbxProjectFile; // must be done *after* all files for services are created
+    GenerateIcons;
+    GenerateLaunchImages;
+    GenerateData;
+    GenerateLibrary;
+    GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
+
+    Writeln('Xcode project has been created in:');
+    Writeln('  ', XcodeProject);
+    Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
+    Writeln('The generated project should compile and work out-of-the-box.');
+  end;
 end;
 
 function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
