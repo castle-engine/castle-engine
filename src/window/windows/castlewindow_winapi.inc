@@ -448,6 +448,10 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     MaybeRelease;
   end;
 
+const
+  DBT_DEVNODES_CHANGED = 7;
+  DBT_DEVICEREMOVECOMPLETE = 32772;
+  DBT_DEVICEARRIVAL = 32768;
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
@@ -720,15 +724,18 @@ begin
         Exit;
       end;
 
+    { Event received when something in Windows configuration had been changed,
+      most often this means connecting/disconnecting plug-n-play devices.
+      Here we use it to detect DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+      which correspond to adding or removing devices and suggest those are
+      caused by connecting/disconnecting a Joystick from the system. }
     WM_DEVICECHANGE:
       begin
-        if (WParm = 32768{DBT_DEVICEARRIVAL}) then
-          WriteLn('WM_DEVICECHANGE - DBT_DEVICEARRIVAL!')
-        else
-          if (WParm = 32772{DBT_DEVICEREMOVECOMPLETE}) then
-            WriteLn('WM_DEVICECHANGE - DBT_DEVICEREMOVECOMPLETE!')
-        else
-          WriteLn('WM_DEVICECHANGE - other event WParm=', WParm, ' LParm=', LParm);
+        case WParm of
+          DBT_DEVICEARRIVAL: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+          DBT_DEVICEREMOVECOMPLETE: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
+          DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
+        end;
         Exit(0);
       end;
   end;
@@ -869,12 +876,14 @@ procedure TCastleWindowBase.OpenBackend;
       [FDpi, FDpi / DefaultDpi, DefaultDpi]);
   end;
 
+  { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+    when new Joysticks have been connected to the system }
   procedure RegisterForJoystickEvents;
   const
     DBT_DEVTYP_DEVICEINTERFACE = 5;
     DEVICE_NOTIFY_WINDOW_HANDLE = 0;
   type
-    DEV_BROADCAST_DEVICEINTERFACE = record
+    DEV_BROADCAST_DEVICEINTERFACE = {packed?} record
       dbcc_size: DWORD;
       dbcc_devicetype: DWORD;
       dbcc_reserved: DWORD;
@@ -884,8 +893,10 @@ procedure TCastleWindowBase.OpenBackend;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
     GUID_DEVINTERFACE_HID: GUID;
+    DeviceNotification: Pointer;//HDEVNOTIFY;
   begin
-    //GUID GUID_DEVINTERFACE_HID = { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+    { Construct GUID that corresponds to Joysticks/controllers devices
+      The values have been taken from SDL2 SDL_windowsjoystick.c }
     GUID_DEVINTERFACE_HID.Data1 := $4D1E55B2;
     GUID_DEVINTERFACE_HID.Data2 := $F16F;
     GUID_DEVINTERFACE_HID.Data3 := $11CF;
@@ -898,13 +909,16 @@ procedure TCastleWindowBase.OpenBackend;
     GUID_DEVINTERFACE_HID.Data4[6] := 0;
     GUID_DEVINTERFACE_HID.Data4[7] := $30;
 
+    //construct BroadcastDeviceInterface record
     FillChar(BroadcastDeviceInterface, SizeOf(BroadcastDeviceInterface), 0);
     BroadcastDeviceInterface.dbcc_size := sizeof(DEV_BROADCAST_DEVICEINTERFACE);
     BroadcastDeviceInterface.dbcc_devicetype := DBT_DEVTYP_DEVICEINTERFACE;
     BroadcastDeviceInterface.dbcc_classguid := GUID_DEVINTERFACE_HID;
-    {if not RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE) then
-      WriteLnWarning('Unable to RegisterDeviceNotification');}
-    RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
+    { Ask WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+      for the requested GUID }
+    DeviceNotification := RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
+    if not Assigned(DeviceNotification) then
+      WriteLnWarning('Unable to RegisterDeviceNotification. Connecting/disconnecting joysticks will not be reported.');
   end;
 
 var
