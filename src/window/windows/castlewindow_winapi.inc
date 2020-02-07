@@ -737,10 +737,20 @@ begin
     WM_DEVICECHANGE:
       begin
         case WParm of
-          { A device had been sucessfully added to the system}
-          DBT_DEVICEARRIVAL: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
-          { A device had been succesfully removed from the system}
-          DBT_DEVICEREMOVECOMPLETE: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
+          { A device had been sucessfully added to the system }
+          DBT_DEVICEARRIVAL:
+            begin
+              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              //it might be a joystick, therefore
+              Joysticks.InternalConnected;
+            end;
+          { A device had been succesfully removed from the system }
+          DBT_DEVICEREMOVECOMPLETE:
+            begin
+              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
+              //it might be a joystick, therefore
+              Joysticks.InternalDisconnected;
+            end;
           { Something unspecified changed in the system devices configuration }
           //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED'); // Ignore these events for now
         end;
