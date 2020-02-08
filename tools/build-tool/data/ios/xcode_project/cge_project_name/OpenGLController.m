@@ -57,18 +57,18 @@
     // view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888; // default
 
     if (depthBits == 0) {
-        view.drawableDepthFormat = GLKViewDrawableDepthFormat.formatNone;
+        view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
     } else
     if (depthBits <= 16) {
-        view.drawableDepthFormat = GLKViewDrawableDepthFormat.format16;
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
     } else {
-        view.drawableDepthFormat = GLKViewDrawableDepthFormat.format24;
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     }
 
     if (stencilBits == 0) {
-        view.drawableStencilFormat = GLKViewDrawableStencil.formatNone;
+        view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
     } else {
-        view.drawableStencilFormat = GLKViewDrawableStencil.format8;
+        view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
     }
     // view.drawableMultisample = GLKViewDrawableMultisample4X;
 
