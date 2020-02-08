@@ -141,6 +141,8 @@ var
 
   state : TJOYINFOEX;
   JoyError: LongWord;
+
+  JoyCapsResult: LongWord;
 begin
   j := joyGetNumDevs();
   for i := 0 to j - 1 do
@@ -149,7 +151,16 @@ begin
     NewBackendInfo := TWindowsJoystickBackendInfo.Create;
     NewJoystick.InternalBackendInfo := NewBackendInfo;
 
-    if joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) ) = 0 then
+    JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+    { Below we try to counter the WinAPI bug, when in case the application was run
+      with no joysticks connected and this is the first call to joyGetDevCapsW
+      after the joystick has been connected, the joyGetDevCapsW returns JOYERR_PARAMS = 165
+      which is also returned for disconnected/unavailable joysticks.
+      Here we just call joyGetDevCapsW the second time to get the new value. }
+    if JoyCapsResult <> 0 then
+      JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+
+    if JoyCapsResult = 0 then
     begin
       NewJoystick.Info.Name          := NewBackendInfo.Caps.szPname;
       NewJoystick.Info.Count.Axes    := NewBackendInfo.Caps.wNumAxes;
@@ -327,8 +338,7 @@ begin
         WriteLnWarning('Joystick %s error %d', [Joystick.Info.Name, JoyError]);
     end;
     if JoystickHasBeenDisconnected then
-      if Assigned(Joysticks.OnDisconnect) then
-        Joysticks.OnDisconnect;
+      Joysticks.InternalDisconnected;
   end;
 end;
 

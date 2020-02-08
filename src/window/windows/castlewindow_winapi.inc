@@ -31,11 +31,16 @@
 {$endif}
 
 {$ifdef read_interface_uses}
+{ note: this unit's definitions conflict with other definitions used in this file
+  But we need it for RegisterDeviceNotification, therefore adding it to the very
+  first position in the uses list to be overwritten by subsequent used units}
+JwaWinUser, JwaDbt,
+{ /note }
 Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleMessages,
+CastleWindowModes, CastleMessages, CastleJoysticks,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -719,6 +724,34 @@ begin
           DoMouseWheel(TWinParam(WParm).HiSmallInt / 120, uMsg = WM_MOUSEWHEEL);
         Exit;
       end;
+
+    { Event received when something in Windows configuration had been changed,
+      most often this means connecting/disconnecting plug-n-play devices.
+      Here we use it to detect DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+      which correspond to adding or removing devices and suggest those are
+      caused by connecting/disconnecting a Joystick from the system. }
+    WM_DEVICECHANGE:
+      begin
+        case WParm of
+          { A device had been sucessfully added to the system }
+          DBT_DEVICEARRIVAL:
+            begin
+              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
+              //it might be a joystick, therefore
+              Joysticks.InternalConnected;
+            end;
+          { A device had been succesfully removed from the system }
+          DBT_DEVICEREMOVECOMPLETE:
+            begin
+              WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
+              //it might be a joystick, therefore
+              Joysticks.InternalDisconnected;
+            end;
+          { Something unspecified changed in the system devices configuration }
+          //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
+        end;
+        Exit(1);
+      end;
   end;
 
   { The DefWindowProc may enter a modal loop in some cases, e.g. when
@@ -852,6 +885,40 @@ procedure TCastleWindowBase.OpenBackend;
     FDpi := GetDeviceCaps(h_Dc, LOGPIXELSX);
     WritelnLog('WinAPI', 'Dots (pixels) per inch is %f (%f * default %f)',
       [FDpi, FDpi / DefaultDpi, DefaultDpi]);
+  end;
+
+  { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+    when new Joysticks have been connected to the system }
+  procedure RegisterForJoystickEvents;
+  var
+    BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
+    GUID_DEVINTERFACE_HID: GUID;
+    DeviceNotification: Pointer; // HDEVNOTIFY;
+  begin
+    { Construct GUID that corresponds to Joysticks/controllers devices
+      The values have been taken from SDL2 SDL_windowsjoystick.c }
+    GUID_DEVINTERFACE_HID.Data1 := $4D1E55B2;
+    GUID_DEVINTERFACE_HID.Data2 := $F16F;
+    GUID_DEVINTERFACE_HID.Data3 := $11CF;
+    GUID_DEVINTERFACE_HID.Data4[0] := $88;
+    GUID_DEVINTERFACE_HID.Data4[1] := $CB;
+    GUID_DEVINTERFACE_HID.Data4[2] := 0;
+    GUID_DEVINTERFACE_HID.Data4[3] := $11;
+    GUID_DEVINTERFACE_HID.Data4[4] := $11;
+    GUID_DEVINTERFACE_HID.Data4[5] := 0;
+    GUID_DEVINTERFACE_HID.Data4[6] := 0;
+    GUID_DEVINTERFACE_HID.Data4[7] := $30;
+
+    //construct BroadcastDeviceInterface record
+    FillChar(BroadcastDeviceInterface, SizeOf(BroadcastDeviceInterface), 0);
+    BroadcastDeviceInterface.dbcc_size := sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+    BroadcastDeviceInterface.dbcc_devicetype := DBT_DEVTYP_DEVICEINTERFACE;
+    BroadcastDeviceInterface.dbcc_classguid := GUID_DEVINTERFACE_HID;
+    { Ask WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
+      for the requested GUID }
+    DeviceNotification := RegisterDeviceNotification(h_Wnd, @BroadcastDeviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
+    if not Assigned(DeviceNotification) then
+      WriteLnWarning('Unable to RegisterDeviceNotification. Connecting/disconnecting joysticks will not be reported.');
   end;
 
 var
@@ -1008,6 +1075,8 @@ begin
 
   GetInitialCursorPos(ClientRect);
   InitializeDpi;
+
+  RegisterForJoystickEvents;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);

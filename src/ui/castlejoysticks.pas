@@ -121,7 +121,7 @@ type
     FInitialized: Boolean;
     FOnChange: TNotifyEvent;
     FOnDisconnect: TSimpleNotifyEvent;
-    //FOnConnect: TSimpleNotifyEvent;
+    FOnConnect: TSimpleNotifyEvent;
     function GetItems(const Index: Integer): TJoystick;
     { Get (creating if necessary) joystick's explicit backend.
       Always returns TExplicitJoystickBackend, but cannot be declared as such. }
@@ -172,16 +172,23 @@ type
     { @exclude }
     procedure InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
 
+    { Used by CastleWindow when
+      an external API notifies us about connecting/disconnecting devices to the system.
+      @exclude }
+    procedure InternalConnected;
+    { @exclude }
+    procedure InternalDisconnected;
+
     { Called after TJoystick instances on the list change (some are added, destroyed).
       In case of some backends, this is only called at the end of @link(Initialize),
       but it may be called in other cases (e.g. "explicit" joystick backend,
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Called in case a previously initalized joystick has been unplugged. }
+    { Called in case a previously initalized joystick has been disconnected. }
     property OnDisconnect: TSimpleNotifyEvent read FOnDisconnect write FOnDisconnect;
-    { Called in case a joystick has been plugged in the system. }
-    //property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
+    { Called in case a joystick has been connected to the system. }
+    property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
   end;
 
 { Detect connected joysticks. }
@@ -355,6 +362,18 @@ end;
 procedure TJoysticks.InternalSetJoystickAxis(const JoystickIndex: Integer; const Axis: TVector2);
 begin
   TExplicitJoystickBackend(ExplicitBackend).SetJoystickAxis(FList, JoystickIndex, Axis);
+end;
+
+procedure TJoysticks.InternalConnected;
+begin
+  if Assigned(OnConnect) then
+    OnConnect;
+end;
+
+procedure TJoysticks.InternalDisconnected;
+begin
+  if Assigned(OnDisconnect) then
+    OnDisconnect;
 end;
 
 function TJoysticks.GetItems(const Index: Integer): TJoystick;
