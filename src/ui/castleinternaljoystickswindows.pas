@@ -152,6 +152,11 @@ begin
     NewJoystick.InternalBackendInfo := NewBackendInfo;
 
     JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+    { Below we try to counter the WinAPI bug, when in case the application was run
+      with no joysticks connected and this is the first call to joyGetDevCapsW
+      after the joystick has been connected, the joyGetDevCapsW returns JOYERR_PARAMS = 165
+      which is also returned for disconnected/unavailable joysticks.
+      Here we just call joyGetDevCapsW the second time to get the new value. }
     if JoyCapsResult <> 0 then
       JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
 
