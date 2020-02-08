@@ -34,7 +34,7 @@
 { note: this unit's definitions conflict with other definitions used in this file
   But we need it for RegisterDeviceNotification, therefore adding it to the very
   first position in the uses list to be overwritten by subsequent used units}
-JwaWinUser,
+JwaWinUser, JwaDbt,
 { /note }
 Windows, CommDlg,
 {$endif}
@@ -453,10 +453,6 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     MaybeRelease;
   end;
 
-const
-  DBT_DEVNODES_CHANGED = 7;
-  DBT_DEVICEREMOVECOMPLETE = 32772;
-  DBT_DEVICEARRIVAL = 32768;
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
@@ -752,9 +748,9 @@ begin
               Joysticks.InternalDisconnected;
             end;
           { Something unspecified changed in the system devices configuration }
-          //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED'); // Ignore these events for now
+          //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
         end;
-        Exit(0);
+        Exit(1);
       end;
   end;
 
@@ -894,17 +890,6 @@ procedure TCastleWindowBase.OpenBackend;
   { Request WinAPI to send DBT_DEVICEARRIVAL and DBT_DEVICEREMOVECOMPLETE events
     when new Joysticks have been connected to the system }
   procedure RegisterForJoystickEvents;
-  const
-    DBT_DEVTYP_DEVICEINTERFACE = 5;
-    DEVICE_NOTIFY_WINDOW_HANDLE = 0;
-  type
-    DEV_BROADCAST_DEVICEINTERFACE = {packed?} record
-      dbcc_size: DWORD;
-      dbcc_devicetype: DWORD;
-      dbcc_reserved: DWORD;
-      dbcc_classguid: GUID;
-      dbcc_name: TCHAR;
-    end;
   var
     BroadcastDeviceInterface: DEV_BROADCAST_DEVICEINTERFACE;
     GUID_DEVINTERFACE_HID: GUID;
