@@ -185,9 +185,9 @@ type
       used by Nintendo Switch, may call this at any moment). }
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
 
-    { Called in case a previously initalized joystick has been unplugged. }
+    { Called in case a previously initalized joystick has been disconnected. }
     property OnDisconnect: TSimpleNotifyEvent read FOnDisconnect write FOnDisconnect;
-    { Called in case a joystick has been plugged in the system. }
+    { Called in case a joystick has been connected to the system. }
     property OnConnect: TSimpleNotifyEvent read FOnConnect write FOnConnect;
   end;
 
