@@ -141,6 +141,8 @@ var
 
   state : TJOYINFOEX;
   JoyError: LongWord;
+
+  JoyCapsResult: LongWord;
 begin
   j := joyGetNumDevs();
   for i := 0 to j - 1 do
@@ -149,7 +151,11 @@ begin
     NewBackendInfo := TWindowsJoystickBackendInfo.Create;
     NewJoystick.InternalBackendInfo := NewBackendInfo;
 
-    if joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) ) = 0 then
+    JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+    if JoyCapsResult <> 0 then
+      JoyCapsResult := joyGetDevCapsW( i, @NewBackendInfo.Caps, SizeOf( TJOYCAPSW ) );
+
+    if JoyCapsResult = 0 then
     begin
       NewJoystick.Info.Name          := NewBackendInfo.Caps.szPname;
       NewJoystick.Info.Count.Axes    := NewBackendInfo.Caps.wNumAxes;
@@ -327,8 +333,7 @@ begin
         WriteLnWarning('Joystick %s error %d', [Joystick.Info.Name, JoyError]);
     end;
     if JoystickHasBeenDisconnected then
-      if Assigned(Joysticks.OnDisconnect) then
-        Joysticks.OnDisconnect;
+      Joysticks.InternalDisconnected;
   end;
 end;
 
