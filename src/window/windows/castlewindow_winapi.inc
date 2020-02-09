@@ -740,13 +740,13 @@ begin
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
-          { A device has been succesfully removed from the system.
+          { A device has been successfully removed from the system.
             Currently we more reliably handle this case in Joystick backend Poll
             because DBT_DEVICEREMOVECOMPLETE is sent by many different devices
             e.g. such as USB flash drive and it isn't right to treat all of these
             as disconnected joysticks. E.g. according to Steam recommendations
             the game should be set to pause when the joystick is disconnected,
-            but forcing pause mode every time some arbitraty device has disconnected
+            but forcing pause mode every time some arbitrary device has disconnected
             may be inconsistent and look like a bug to the user.
             The backend does this job better:
             1. The InternalDisconnected is sent immediately after the joystick has
