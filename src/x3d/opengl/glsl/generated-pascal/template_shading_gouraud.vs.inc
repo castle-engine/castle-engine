@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_shading_gouraud.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/template_shading_gouraud.vs" }
 '/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
@@ -14,7 +14,7 @@
 'varying vec3 castle_normal_eye;' + LineEnding +
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
-'uniform float castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
 '/* Color summed with all the lights.' + LineEnding +
 '   Like gl_Front/BackLightModelProduct.sceneColor:' + LineEnding +
@@ -29,6 +29,12 @@
 '' + LineEnding +
 '/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
 '/* CASTLE-COMMON-CODE */' + LineEnding +
+'' + LineEnding +
+'/* Calculated color from' + LineEnding +
+'   Material.diffuseColor/transparency (or ColorRGBA node).' + LineEnding +
+'   Contains complete "diffuse/transparency" information that is independent of light source' + LineEnding +
+'   (as much as we can get in vertex shader, in case of Gouraud). */' + LineEnding +
+'vec4 castle_material_complete_diffuse_alpha;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
@@ -54,8 +60,6 @@
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
-'  castle_Color = vec4(castle_SceneColor, 1.0);' + LineEnding +
-'' + LineEnding +
 '  /* Two-sided lighting in Gouraud shading:' + LineEnding +
 '     flip the normal vector to correspond to the face side that we actually see.' + LineEnding +
 '' + LineEnding +
@@ -93,24 +97,23 @@
 '  /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */' + LineEnding +
 '' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */' + LineEnding +
-'    castle_Color.a = castle_ColorPerVertex.a;' + LineEnding +
+'  castle_material_complete_diffuse_alpha = castle_ColorPerVertex;' + LineEnding +
 '  #else' + LineEnding +
-'    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
-'    castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
+'' + LineEnding +
+'  castle_Color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
 '  castle_Color.rgb = min(castle_Color.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
-'  castle_Color = castle_UnlitColor' + LineEnding +
-'#ifdef COLOR_PER_VERTEX' + LineEnding +
-'    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
-'       (When lit, then the analogous multiplication is done' + LineEnding +
-'        inside template_light.glsl) */' + LineEnding +
-'    * castle_ColorPerVertex' + LineEnding +
-'#endif' + LineEnding +
-'  ;' + LineEnding +
+'  // Unlit case' + LineEnding +
+'  castle_Color = castle_UnlitColor;' + LineEnding +
+'  #ifdef COLOR_PER_VERTEX' + LineEnding +
+'  castle_Color *= castle_ColorPerVertex;' + LineEnding +
+'  #endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: lighting_apply (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +

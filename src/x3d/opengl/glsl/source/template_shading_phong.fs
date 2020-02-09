@@ -17,7 +17,7 @@ precision mediump float;
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
-uniform float castle_MaterialDiffuseAlpha;
+uniform vec4 castle_MaterialDiffuseAlpha;
 uniform float castle_MaterialShininess;
 /* Color summed with all the lights.
    Like gl_Front/BackLightModelProduct.sceneColor:
@@ -33,14 +33,16 @@ varying vec4 castle_ColorPerVertexFragment;
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
 
-#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
-void separate_diffuse_apply_texture(inout vec4 fragment_color,
-  const in vec4 vertex_eye,
+void main_texture_apply(inout vec4 fragment_color,
   const in vec3 normal_eye)
 {
-  /* PLUG: separate_diffuse_apply_texture (fragment_color, normal_eye) */
+  /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */
 }
-#endif
+
+/* Calculated color from
+   Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.
+   Contains complete "diffuse/transparency" information that is independent of light source. */
+vec4 castle_material_complete_diffuse_alpha;
 
 void main(void)
 {
@@ -66,29 +68,17 @@ void main(void)
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
-  /* Comparing this with Gouraud shading (template_gouraud.vs/fs:
-     this variable performs both the role of castle_Color and fragment_color
-     from that GLSL code). */
-  vec4 fragment_color;
-
-  fragment_color = vec4(castle_SceneColor, 1.0);
-
   #ifdef COLOR_PER_VERTEX
-    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, castle_ColorPerVertexFragment) */
-
-    /* Apply castle_ColorPerVertexFragment alpha here.
-       The RGB portion of castle_ColorPerVertexFragment was
-       already applied in template_light.glsl . */
-    fragment_color.a = castle_ColorPerVertexFragment.a;
+  castle_material_complete_diffuse_alpha = castle_ColorPerVertexFragment;
   #else
-    /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess, vec4(0.0)) */
-
-    /* Apply alpha. Otherwise, alpha is usually large after previous add_light,
-       and it's always opaque.
-       Using diffuse.a is actually exactly what fixed-function pipeline does
-       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
-    fragment_color.a = castle_MaterialDiffuseAlpha;
+  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
+
+  main_texture_apply(castle_material_complete_diffuse_alpha, normal_eye_fragment);
+
+  vec4 fragment_color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);
+
+  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment) */
 
   /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
      This isn't really mandatory, but scenes with many lights could easily
@@ -96,20 +86,22 @@ void main(void)
      Of course, for future HDR rendering we will turn this off. */
   fragment_color.rgb = min(fragment_color.rgb, 1.0);
 #else
-  vec4 fragment_color = castle_UnlitColor
-#ifdef COLOR_PER_VERTEX
-    /* Apply COLOR_PER_VERTEX, when unlit.
-       (When lit, then the analogous multiplication is done
-        inside template_light.glsl) */
-    * castle_ColorPerVertexFragment
-#endif
-  ;
+  // Unlit case
 
+  vec4 fragment_color = castle_UnlitColor;
+  /* TODO: This is not strictly correct,
+     as ColorRGBA should only be used for unlit when Material=NULL.
+     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */
+  #ifdef COLOR_PER_VERTEX
+  fragment_color *= castle_ColorPerVertexFragment;
+  #endif
+  /* TODO: This is not strictly correct,
+     as Appearance.texture should only be used for unlit when Material=NULL.
+     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */
+  main_texture_apply(fragment_color, normal_eye_fragment);
 #endif
 
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */
-
-  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 

@@ -426,8 +426,6 @@ type
     GroupEffects: TX3DNodeList;
     Lighting, ColorPerVertex: boolean;
 
-    function UseSeparateDiffuseTexture: boolean;
-
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
@@ -457,7 +455,7 @@ type
     { Collected material properties for current shape.
       Must be set before EnableLight, and be constant later --- this matters
       esp. for MaterialSpecular. }
-    MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4;
+    MaterialAmbient, MaterialDiffuseAlpha, MaterialSpecular, MaterialEmission: TVector4;
     MaterialShininessExp: Single;
     MaterialUnlit: TVector4;
     { We use a callback, instead of storing TBox3D result, because
@@ -476,8 +474,6 @@ type
       the OpenGL modelview matrix contains also shape transformation,
       so it's different than SceneModelView. }
     SceneModelView: TMatrix4;
-
-    SeparateDiffuseTexture: boolean;
 
     { Assign this if you used EnableTexGen with tgMirrorPlane
       to setup correct uniforms. }
@@ -1099,13 +1095,7 @@ begin
     Uniforms.SetUniform('castle_SideLightProduct%dSpecular', Uniforms.Specular,
       Shader.MaterialSpecular * Color4);
 
-  { depending on COLOR_PER_VERTEX define, only one of these uniforms
-    will be actually used. }
-  if Shader.ColorPerVertex then
-    Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse,
-      Color4) else
-    Uniforms.SetUniform('castle_SideLightProduct%dDiffuse', Uniforms.DiffuseProduct,
-      Shader.MaterialDiffuse * Color4);
+  Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse, Color4);
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -1942,7 +1932,7 @@ begin
   FPhongShading := false;
   ShapeBoundingBox := nil;
   MaterialAmbient := TVector4.Zero;
-  MaterialDiffuse := TVector4.Zero;
+  MaterialDiffuseAlpha := TVector4.Zero;
   MaterialSpecular := TVector4.Zero;
   MaterialEmission := TVector4.Zero;
   MaterialShininessExp := 0;
@@ -1951,7 +1941,6 @@ begin
   TextureMatrix.Count := 0;
   NeedsCameraInverseMatrix := false;
   NeedsMirrorPlaneTexCoords := false;
-  SeparateDiffuseTexture := false;
   RenderingCamera := nil;
 end;
 
@@ -2246,11 +2235,6 @@ begin
       EnableEffect(TEffectNode(Effects[I]));
 end;
 
-function TShader.UseSeparateDiffuseTexture: boolean;
-begin
-  Result := SeparateDiffuseTexture and PhongShading and Lighting;
-end;
-
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
   const ShapeNiceName: string);
 var
@@ -2398,7 +2382,7 @@ var
 
         Plug(stFragment,
           'varying float castle_ClipDistance[' + IntToStr(ClipPlanesCount) + '];' +NL+
-          'void PLUG_texture_apply(inout vec4 fragment_color, const in vec3 normal)' +NL+
+          'void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)' +NL+
           '{' +NL+
           PlugFragmentImplementation +
           '}');
@@ -2440,8 +2424,7 @@ var
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix, false);
 
-    TextureApplyPoint := Iff(UseSeparateDiffuseTexture,
-      'separate_diffuse_apply_texture', 'texture_apply');
+    TextureApplyPoint := 'main_texture_apply';
     PlugDirectly(Source[stFragment], 0, '/* PLUG: ' + TextureApplyPoint,
       TextureColorDeclare + TextureApply, false);
 
@@ -2857,8 +2840,6 @@ begin
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
-  if UseSeparateDiffuseTexture then
-    Define('CASTLE_SEPARATE_DIFFUSE_TEXTURE', stFragment);
 
   if LogShaders then
     DoLogShaders;
@@ -2929,7 +2910,6 @@ function TShader.CodeHash: TShaderCodeHash;
   procedure CodeHashFinalize;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
-    FCodeHash.AddInteger((Ord(UseSeparateDiffuseTexture) + 1) * 151);
   end;
 
 begin

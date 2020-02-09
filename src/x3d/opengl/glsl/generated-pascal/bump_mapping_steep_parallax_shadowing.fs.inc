@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "bump_mapping_steep_parallax_shadowing.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/bump_mapping_steep_parallax_shadowing.fs" }
 '/* Steep parallax with self-shading bump mapping shader effect.' + LineEnding +
 '   This is added right after bump_mapping.fs and bump_mapping_parallax.fs.' + LineEnding +
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +
@@ -15,7 +15,7 @@
 '' + LineEnding +
 'varying vec3 castle_light_direction_tangent_space;' + LineEnding +
 '' + LineEnding +
-'/* This has to be done after PLUG texture_coord_shift (done from PLUG texture_apply),' + LineEnding +
+'/* This has to be done after PLUG texture_coord_shift (done from PLUG main_texture_apply),' + LineEnding +
 '   as we depend that global castle_bm_height/castle_parallax_tex_coord' + LineEnding +
 '   are already set correctly. */' + LineEnding +
 'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' + LineEnding +

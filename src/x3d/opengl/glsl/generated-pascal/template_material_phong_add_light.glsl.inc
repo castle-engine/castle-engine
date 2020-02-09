@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_material_phong_add_light.glsl" }
+{ DON'T EDIT -- this file was automatically generated from "source/template_material_phong_add_light.glsl" }
 '/* Shader code used for adding light source contribution for Material' + LineEnding +
 '   (Phong lighting model).' + LineEnding +
 '   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
@@ -23,18 +23,18 @@
 'uniform float castle_LightSource<Light>SpotExponent;' + LineEnding +
 '#endif' + LineEnding +
 '#endif' + LineEnding +
-'/* Multiplied colors of light source and material. */' + LineEnding +
+'' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
+'/* Multiplied colors of light source ambient and material ambient. */' + LineEnding +
 'uniform vec4 castle_SideLightProduct<Light>Ambient;' + LineEnding +
 '#endif' + LineEnding +
-'#ifdef COLOR_PER_VERTEX' + LineEnding +
 'uniform vec4 castle_LightSource<Light>Diffuse;' + LineEnding +
-'#else' + LineEnding +
-'uniform vec4 castle_SideLightProduct<Light>Diffuse;' + LineEnding +
-'#endif' + LineEnding +
+'' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_SPECULAR' + LineEnding +
+'/* Multiplied colors of light source specular and material specular. */' + LineEnding +
 'uniform vec4 castle_SideLightProduct<Light>Specular;' + LineEnding +
 '#endif' + LineEnding +
+'' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_ATTENUATION' + LineEnding +
 '/* Attenuation: constant, linear, quadratic. */' + LineEnding +
 'uniform vec3 castle_LightSource<Light>Attenuation;' + LineEnding +
@@ -44,19 +44,18 @@
 'uniform float castle_LightSource<Light>Radius;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
+'// In case of OpenGLES, all shader code is glued, so this is already declared' + LineEnding +
 '#ifndef GL_ES' + LineEnding +
-'void separate_diffuse_apply_texture(inout vec4 fragment_color,' + LineEnding +
-'  const in vec4 vertex_eye,' + LineEnding +
-'  const in vec3 normal_eye);' + LineEnding +
-'#endif' + LineEnding +
+'uniform float castle_MaterialShininess;' + LineEnding +
+'vec4 castle_material_complete_diffuse_alpha;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
+'/* Add light contribution.' + LineEnding +
+'   Note: this never changes color.a.' + LineEnding +
+'*/' + LineEnding +
 'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
-'  const in vec3 normal_eye,' + LineEnding +
-'  in float material_shininess,' + LineEnding +
-'  in vec4 color_per_vertex)' + LineEnding +
+'  const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -119,16 +118,7 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec4 diffuse =' + LineEnding +
-'#ifdef COLOR_PER_VERTEX' + LineEnding +
-'  castle_LightSource<Light>Diffuse * color_per_vertex;' + LineEnding +
-'#else' + LineEnding +
-'  castle_SideLightProduct<Light>Diffuse;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
-'  #ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE' + LineEnding +
-'  separate_diffuse_apply_texture(diffuse, vertex_eye, normal_eye);' + LineEnding +
-'  #endif' + LineEnding +
+'  vec4 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
@@ -145,6 +135,7 @@
 '  if (diffuse_factor != 0.0) {' + LineEnding +
 '    vec4 specular_color = castle_SideLightProduct<Light>Specular;' + LineEnding +
 '    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
+'    float material_shininess = castle_MaterialShininess;' + LineEnding +
 '    /* PLUG: material_shininess (material_shininess) */' + LineEnding +
 '    light_color += specular_color *' + LineEnding +
 '      pow(max(dot(halfVector, normal_eye),' + LineEnding +

@@ -288,7 +288,7 @@ begin
         CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
-        CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
+        CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuseAlpha);
         CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
         CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
           RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);

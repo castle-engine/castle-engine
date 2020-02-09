@@ -452,6 +452,7 @@ type
     property SeparateDiffuseTexture: boolean
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
+      deprecated 'rendering always behaves as if this was true now, with Phong shading';
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -2776,7 +2777,6 @@ begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
-  Shader.SeparateDiffuseTexture := Attributes.SeparateDiffuseTexture;
   Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }

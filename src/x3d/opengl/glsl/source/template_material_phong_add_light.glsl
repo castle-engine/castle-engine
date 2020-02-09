@@ -21,18 +21,18 @@ uniform float castle_LightSource<Light>BeamWidth;
 uniform float castle_LightSource<Light>SpotExponent;
 #endif
 #endif
-/* Multiplied colors of light source and material. */
+
 #ifdef LIGHT<Light>_HAS_AMBIENT
+/* Multiplied colors of light source ambient and material ambient. */
 uniform vec4 castle_SideLightProduct<Light>Ambient;
 #endif
-#ifdef COLOR_PER_VERTEX
 uniform vec4 castle_LightSource<Light>Diffuse;
-#else
-uniform vec4 castle_SideLightProduct<Light>Diffuse;
-#endif
+
 #ifdef LIGHT<Light>_HAS_SPECULAR
+/* Multiplied colors of light source specular and material specular. */
 uniform vec4 castle_SideLightProduct<Light>Specular;
 #endif
+
 #ifdef LIGHT<Light>_HAS_ATTENUATION
 /* Attenuation: constant, linear, quadratic. */
 uniform vec3 castle_LightSource<Light>Attenuation;
@@ -42,19 +42,18 @@ uniform vec3 castle_LightSource<Light>Attenuation;
 uniform float castle_LightSource<Light>Radius;
 #endif
 
-#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
+// In case of OpenGLES, all shader code is glued, so this is already declared
 #ifndef GL_ES
-void separate_diffuse_apply_texture(inout vec4 fragment_color,
-  const in vec4 vertex_eye,
-  const in vec3 normal_eye);
-#endif
+uniform float castle_MaterialShininess;
+vec4 castle_material_complete_diffuse_alpha;
 #endif
 
+/* Add light contribution.
+   Note: this never changes color.a.
+*/
 void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
-  const in vec3 normal_eye,
-  in float material_shininess,
-  in vec4 color_per_vertex)
+  const in vec3 normal_eye)
 {
   vec3 light_dir;
 
@@ -117,16 +116,7 @@ void PLUG_add_light(inout vec4 color,
 #endif
 
   /* add diffuse term */
-  vec4 diffuse =
-#ifdef COLOR_PER_VERTEX
-  castle_LightSource<Light>Diffuse * color_per_vertex;
-#else
-  castle_SideLightProduct<Light>Diffuse;
-#endif
-
-  #ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
-  separate_diffuse_apply_texture(diffuse, vertex_eye, normal_eye);
-  #endif
+  vec4 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha;
 
   /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
@@ -143,6 +133,7 @@ void PLUG_add_light(inout vec4 color,
   if (diffuse_factor != 0.0) {
     vec4 specular_color = castle_SideLightProduct<Light>Specular;
     /* PLUG: material_light_specular (specular_color) */
+    float material_shininess = castle_MaterialShininess;
     /* PLUG: material_shininess (material_shininess) */
     light_color += specular_color *
       pow(max(dot(halfVector, normal_eye),

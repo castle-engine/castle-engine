@@ -33,7 +33,7 @@ procedure RenderMaterialsBegin;
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
     Shader.MaterialAmbient := Vector4(AmbientColor, MaterialOpacity);
-    Shader.MaterialDiffuse := Vector4(DiffuseColor, MaterialOpacity);
+    Shader.MaterialDiffuseAlpha := Vector4(DiffuseColor, MaterialOpacity);
     Shader.MaterialSpecular := Vector4(SpecularColor, MaterialOpacity);
     Shader.MaterialEmission := Vector4(EmissiveColor, MaterialOpacity);
     Shader.MaterialShininessExp := ShininessExp;
@@ -60,7 +60,7 @@ procedure RenderMaterialsBegin;
       if Lighting then
       begin
         glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Shader.MaterialAmbient);
-        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuse);
+        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuseAlpha);
         glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Shader.MaterialSpecular);
         glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Shader.MaterialEmission);
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, Shader.MaterialShininessExp);

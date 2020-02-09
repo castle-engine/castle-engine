@@ -12,7 +12,7 @@ varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
 
-uniform float castle_MaterialDiffuseAlpha;
+uniform vec4 castle_MaterialDiffuseAlpha;
 uniform float castle_MaterialShininess;
 /* Color summed with all the lights.
    Like gl_Front/BackLightModelProduct.sceneColor:
@@ -27,6 +27,12 @@ attribute vec4 castle_ColorPerVertex;
 
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
+
+/* Calculated color from
+   Material.diffuseColor/transparency (or ColorRGBA node).
+   Contains complete "diffuse/transparency" information that is independent of light source
+   (as much as we can get in vertex shader, in case of Gouraud). */
+vec4 castle_material_complete_diffuse_alpha;
 
 void main(void)
 {
@@ -52,8 +58,6 @@ void main(void)
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
 
 #ifdef LIT
-  castle_Color = vec4(castle_SceneColor, 1.0);
-
   /* Two-sided lighting in Gouraud shading:
      flip the normal vector to correspond to the face side that we actually see.
 
@@ -91,24 +95,23 @@ void main(void)
   /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */
 
   #ifdef COLOR_PER_VERTEX
-    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */
-    castle_Color.a = castle_ColorPerVertex.a;
+  castle_material_complete_diffuse_alpha = castle_ColorPerVertex;
   #else
-    /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */
-    castle_Color.a = castle_MaterialDiffuseAlpha;
+  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
+
+  castle_Color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);
+
+  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye) */
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   castle_Color.rgb = min(castle_Color.rgb, 1.0);
 #else
-  castle_Color = castle_UnlitColor
-#ifdef COLOR_PER_VERTEX
-    /* Apply COLOR_PER_VERTEX, when unlit.
-       (When lit, then the analogous multiplication is done
-        inside template_light.glsl) */
-    * castle_ColorPerVertex
-#endif
-  ;
+  // Unlit case
+  castle_Color = castle_UnlitColor;
+  #ifdef COLOR_PER_VERTEX
+  castle_Color *= castle_ColorPerVertex;
+  #endif
 #endif
 
   /* PLUG: lighting_apply (castle_Color, castle_vertex_eye, castle_normal_eye) */

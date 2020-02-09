@@ -13,7 +13,7 @@ vec2 castle_parallax_tex_coord;
 
 varying vec3 castle_light_direction_tangent_space;
 
-/* This has to be done after PLUG texture_coord_shift (done from PLUG texture_apply),
+/* This has to be done after PLUG texture_coord_shift (done from PLUG main_texture_apply),
    as we depend that global castle_bm_height/castle_parallax_tex_coord
    are already set correctly. */
 void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)
