@@ -245,24 +245,35 @@ type
       resulting in no scaling. }
     property ScaleMax: Single read FScaleMax write FScaleMax default 1;
 
-    { Default attack damage and knockback.
-      Used only by the creatures that actually do some kind of direct attack.
+    { Attack damage.
+      Used by the creatures that actually do some kind of direct attack.
       For example it is used for short-range attack by TWalkAttackCreatureResource
       (if TWalkAttackCreatureResource.AttackAnimation defined)
       and for hit of TMissileCreatureResource.
 
-      All these values must be >= 0.
+      The damage dealt is a random float in the range
+      [AttackDamageConst, AttackDamageConst + AttackDamageRandom].
 
-      AttackKnockbackDistance = 0 means no knockback.
+      Both AttackDamageConst and AttackDamageRandom must be >= 0.
 
       @groupBegin }
     property AttackDamageConst: Single
       read FAttackDamageConst write FAttackDamageConst default DefaultAttackDamageConst;
+
+    { Attack damage, see @link(AttackDamageConst) for documentation. }
     property AttackDamageRandom: Single
       read FAttackDamageRandom write FAttackDamageRandom default DefaultAttackDamageRandom;
+    { @groupEnd }
+
+    { Attack knockback (how far will the victim be pushed back).
+      Used by the creatures that actually do some kind of direct attack.
+      For example it is used for short-range attack by TWalkAttackCreatureResource
+      (if TWalkAttackCreatureResource.AttackAnimation defined)
+      and for hit of TMissileCreatureResource.
+
+      Must be >= 0. Value equal exactly 0 disables any knockback. }
     property AttackKnockbackDistance: Single
       read FAttackKnockbackDistance write FAttackKnockbackDistance default DefaultAttackKnockbackDistance;
-    { @groupEnd }
 
     { Height of the eyes of the creature,
       used for various collision detection routines.
@@ -278,14 +289,28 @@ type
       read FMiddleHeight write FMiddleHeight
       default TCastleTransform.DefaultMiddleHeight;
 
+    { When creature is falling down, it needs to fall at least the given distance
+      to make a "hurt" sound. }
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound default DefaultFallMinHeightToSound;
+
+    { When creature is falling down, it needs to fall at least the given distance
+      to get some damage from the fall.
+      The amount of damage is determined by @link(FallDamageScaleMin),
+      @link(FallDamageScaleMax). }
     property FallMinHeightToDamage: Single
       read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
+
+    { When creature is falling down (at least for @link(FallMinHeightToDamage) distance),
+      it will take a random damage in range [FallDamageScaleMin, FallDamageScaleMax]. }
     property FallDamageScaleMin: Single
       read FFallDamageScaleMin write FFallDamageScaleMin default DefaultFallDamageScaleMin;
+
+    { When creature is falling down (at least for @link(FallMinHeightToDamage) distance),
+      it will take a random damage in range [FallDamageScaleMin, FallDamageScaleMax]. }
     property FallDamageScaleMax: Single
       read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
+
     { Sound when falling.
       The default is the sound named 'creature_fall'. }
     property FallSound: TSoundType
@@ -562,12 +587,31 @@ type
     property AttackSoundStart: TSoundType
       read FAttackSoundStart write FAttackSoundStart;
 
+    { The time (in seconds) since the FireMissileAnimation start when we actually
+      spawn a missile. By default zero, which means that we spawn the missile
+      right when FireMissileAnimation starts.
+      Must be < than the FireMissileAnimation duration, otherwise we will never
+      reach tthis time and missile will never be fired. }
     property FireMissileTime: Single
       read FFireMissileTime write FFireMissileTime default DefaultFireMissileTime;
+
+    { Minimum delay (in seconds) between firing of the missiles.
+      The missile will not be fired if a previous missile was fired within last
+      FireMissileMinDelay seconds.
+      (Even if all other conditions for firing the missile are satisfied.) }
     property FireMissileMinDelay: Single
       read FFireMissileMinDelay write FFireMissileMinDelay default DefaultFireMissileMinDelay;
+
+    { Maximum distance to the enemy to make firing missiles sensible.
+      The creature will only fire the missile if enemy is within this distance.
+      The creature will also try to shorten distance to the enemy,
+      to get within this distance. }
     property FireMissileMaxDistance: Single
       read FFireMissileMaxDistance write FFireMissileMaxDistance default DefaultFireMissileMaxDistance;
+
+    { Maximum angle (in radians) between current direction and
+      the direction toward enemy to make firing missiles sensible.
+      The creature will only fire the missile if enemy is within a cone of this angle. }
     property FireMissileMaxAngle: Single
       read FFireMissileMaxAngle write FFireMissileMaxAngle default DefaultFireMissileMaxAngle;
 

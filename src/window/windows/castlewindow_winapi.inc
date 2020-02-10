@@ -733,21 +733,38 @@ begin
     WM_DEVICECHANGE:
       begin
         case WParm of
-          { A device had been sucessfully added to the system }
+          { A device has been sucessfully added to the system }
           DBT_DEVICEARRIVAL:
             begin
               WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEARRIVAL');
               //it might be a joystick, therefore
               Joysticks.InternalConnected;
             end;
-          { A device had been succesfully removed from the system }
-          DBT_DEVICEREMOVECOMPLETE:
+          { A device has been successfully removed from the system.
+            Currently we more reliably handle this case in Joystick backend Poll
+            because DBT_DEVICEREMOVECOMPLETE is sent by many different devices
+            e.g. such as USB flash drive and it isn't right to treat all of these
+            as disconnected joysticks. E.g. according to Steam recommendations
+            the game should be set to pause when the joystick is disconnected,
+            but forcing pause mode every time some arbitrary device has disconnected
+            may be inconsistent and look like a bug to the user.
+            The backend does this job better:
+            1. The InternalDisconnected is sent immediately after the joystick has
+               been disconnected, while WinAPI message comes with a delay ~0.5 seconds.
+            2. Backend Poll guarantees that disconnect event comes from a previously
+               connected joystick, not from any device.
+            3. Backend Poll guarantees to send the InternalDisconnected event when
+               joystick stopped working properly, while WinAPI behavior may depend
+               on joystick driver implementation. }
+          {DBT_DEVICEREMOVECOMPLETE:
             begin
               WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVICEREMOVECOMPLETE');
               //it might be a joystick, therefore
               Joysticks.InternalDisconnected;
-            end;
-          { Something unspecified changed in the system devices configuration }
+            end;}
+          { Something unspecified has changed in the system devices configuration
+            We don't need to handle this case because we are subscribed to more specific
+            joystick connect/disconnect events through RegisterDeviceNotification. }
           //DBT_DEVNODES_CHANGED: WriteLnLog('Received a WM_DEVICECHANGE event with DBT_DEVNODES_CHANGED');
         end;
         Exit(1);
