@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "common.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/common.vs" }
 '/* Vertex shader utilities used by both Gouraud and Phong shading.' + LineEnding +
 '' + LineEnding +
 '   Used by ../castlerendererinternalshader.pas to construct the final shader.' + LineEnding +

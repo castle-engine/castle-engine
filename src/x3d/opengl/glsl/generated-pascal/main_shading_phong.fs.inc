@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/template_shading_phong.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/main_shading_phong.fs" }
 '/* Phong shading GLSL fragment shader.' + LineEnding +
 '   Used by ../castlerendererinternalshader.pas to construct the final shader.' + LineEnding +
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +

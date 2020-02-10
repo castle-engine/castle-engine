@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "simplest.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/simplest.vs" }
 '/* Simplest GLSL vertex shader.' + LineEnding +
 '   Used also when we''re OK with the simplest shader that transforms' + LineEnding +
 '   vertexes with projection + modelview and really nothing more.' + LineEnding +

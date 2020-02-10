@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "simplest.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/simplest.fs" }
 '/* Simplest GLSL fragment shader,' + LineEnding +
 '   used when we want to cover the pixels with anything. */' + LineEnding +
 '' + LineEnding +

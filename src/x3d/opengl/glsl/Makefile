@@ -23,4 +23,6 @@ generated-pascal/%.inc: source/%
 
 .PHONY: clean
 clean:
-	rm -f $(ALL_OUTPUT)
+#	rm -f $(ALL_OUTPUT)
+# Clean all *.inc files, in case we renamed some files in source/
+	rm -f generated-pascal/*.inc

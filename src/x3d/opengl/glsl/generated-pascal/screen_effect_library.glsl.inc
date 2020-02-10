@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "screen_effect_library.glsl" }
+{ DON'T EDIT -- this file was automatically generated from "source/screen_effect_library.glsl" }
 '/* The library of common functions for GLSL screen effects.' + LineEnding +
 '   The ObjectPascal code that includes this will take care to define (or not)' + LineEnding +
 '   symbols MULTI_SAMPLING_x, DEPTH at the beginning of this file.' + LineEnding +

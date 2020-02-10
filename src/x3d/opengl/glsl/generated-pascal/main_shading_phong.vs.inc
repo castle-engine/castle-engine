@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_phong.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/main_shading_phong.vs" }
 '/* Phong shading GLSL vertex shader.' + LineEnding +
 '   Used by ../castlerendererinternalshader.pas to construct the final shader.' + LineEnding +
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +

@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/template_shading_gouraud.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/main_shading_gouraud.fs" }
 '/* Gouraud shading GLSL fragment shader. */' + LineEnding +
 '' + LineEnding +
 '#ifdef GL_ES' + LineEnding +

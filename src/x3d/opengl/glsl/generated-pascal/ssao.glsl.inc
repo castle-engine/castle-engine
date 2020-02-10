@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "ssao.glsl" }
+{ DON'T EDIT -- this file was automatically generated from "source/ssao.glsl" }
 'ivec2 screen_position();' + LineEnding +
 'float screen_get_depth_fast(ivec2 position);' + LineEnding +
 'vec4 screen_get_color(ivec2 position);' + LineEnding +

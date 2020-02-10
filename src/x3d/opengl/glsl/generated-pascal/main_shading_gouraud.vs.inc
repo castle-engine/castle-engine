@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/template_shading_gouraud.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/main_shading_gouraud.vs" }
 '/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
