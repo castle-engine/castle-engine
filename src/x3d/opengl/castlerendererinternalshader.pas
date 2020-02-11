@@ -27,7 +27,7 @@ uses Generics.Collections,
   CastleShapes, CastleRectangles, CastleTransform;
 
 type
-  TSurfaceTexture = (stAmbient, stSpecular, stShininess);
+  TSurfaceTexture = (stEmissive, stAmbient, stSpecular, stShininess);
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
 
@@ -72,6 +72,9 @@ type
     UniformCastle_NormalMatrix,
     UniformCastle_MaterialDiffuseAlpha,
     UniformCastle_MaterialShininess,
+    UniformCastle_MaterialEmissive,
+    UniformCastle_MaterialAmbient,
+    UniformCastle_GlobalAmbient,
     UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
 
@@ -108,7 +111,7 @@ type
     SpotExponent: Single;
     SpotCutoff: Single;
     Attenuation: TVector3;
-    Ambient, Specular, Diffuse, DiffuseProduct: TVector4;
+    Ambient, Diffuse, Specular: TVector3;
 
     procedure SetUniform(const NamePattern: string;
       var CurrentValue: Single; const NewValue: Single);
@@ -455,7 +458,8 @@ type
     { Collected material properties for current shape.
       Must be set before EnableLight, and be constant later --- this matters
       esp. for MaterialSpecular. }
-    MaterialAmbient, MaterialDiffuseAlpha, MaterialSpecular, MaterialEmission: TVector4;
+    MaterialDiffuseAlpha: TVector4;
+    MaterialAmbient, MaterialSpecular, MaterialEmission: TVector3;
     MaterialShininessExp: Single;
     MaterialUnlit: TVector4;
     { We use a callback, instead of storing TBox3D result, because
@@ -945,9 +949,7 @@ begin
   end;
   if Node.FdAmbientIntensity.Value <> 0 then
     Define(ldHasAmbient);
-  if not ( (Shader.MaterialSpecular[0] = 0) and
-           (Shader.MaterialSpecular[1] = 0) and
-           (Shader.MaterialSpecular[2] = 0)) then
+  if not Shader.MaterialSpecular.IsPerfectlyZero then
     Define(ldHasSpecular);
 end;
 
@@ -1000,7 +1002,6 @@ procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
 var
   Uniforms: TLightUniforms;
   Color3, AmbientColor3: TVector3;
-  Color4, AmbientColor4: TVector4;
   Position: TVector4;
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
@@ -1016,17 +1017,14 @@ begin
   end;
   Uniforms := AProgram.FLightUniformsList[Number];
 
-  { calculate Color4 = light color * light intensity }
+  { calculate Color3 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
-  Color4 := Vector4(Color3, 1);
 
-  { calculate AmbientColor4 = light color * light ambient intensity }
+  { calculate AmbientColor3 = light color * light ambient intensity }
   if Node.FdAmbientIntensity.Value < 0 then
-    AmbientColor4 := Color4 else
-  begin
+    AmbientColor3 := Color3
+  else
     AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
-    AmbientColor4 := Vector4(AmbientColor3, 1);
-  end;
 
   if Light^.WorldCoordinates then
     LightToEyeSpace := @RenderingCamera.Matrix
@@ -1087,15 +1085,13 @@ begin
 
   if Node.FdAmbientIntensity.Value <> 0 then
     Uniforms.SetUniform('castle_SideLightProduct%dAmbient', Uniforms.Ambient,
-      Shader.MaterialAmbient * AmbientColor4);
+      Shader.MaterialAmbient * AmbientColor3);
 
-  if not ( (Shader.MaterialSpecular[0] = 0) and
-           (Shader.MaterialSpecular[1] = 0) and
-           (Shader.MaterialSpecular[2] = 0)) then
+  if not Shader.MaterialSpecular.IsPerfectlyZero then
     Uniforms.SetUniform('castle_SideLightProduct%dSpecular', Uniforms.Specular,
-      Shader.MaterialSpecular * Color4);
+      Shader.MaterialSpecular * Color3);
 
-  Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse, Color4);
+  Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse, Color3);
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -1125,6 +1121,9 @@ begin
   UniformCastle_NormalMatrix         := Uniform('castle_NormalMatrix'        , uaIgnore);
   UniformCastle_MaterialDiffuseAlpha := Uniform('castle_MaterialDiffuseAlpha', uaIgnore);
   UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
+  UniformCastle_MaterialEmissive     := Uniform('castle_MaterialEmissive'    , uaIgnore);
+  UniformCastle_MaterialAmbient      := Uniform('castle_MaterialAmbient'     , uaIgnore);
+  UniformCastle_GlobalAmbient        := Uniform('castle_GlobalAmbient'       , uaIgnore);
   UniformCastle_SceneColor           := Uniform('castle_SceneColor'          , uaIgnore);
   UniformCastle_UnlitColor           := Uniform('castle_UnlitColor'          , uaIgnore);
 
@@ -1813,6 +1812,7 @@ end;
 class function TSurfaceTextureShader.UniformTextureName(const SurfaceTexture: TSurfaceTexture): string; static;
 const
   Names: array [TSurfaceTexture] of string = (
+    'castle_emissiveTexture',
     'castle_ambientTexture',
     'castle_specularTexture',
     'castle_shininessTexture'
@@ -1931,10 +1931,10 @@ begin
   ColorPerVertex := false;
   FPhongShading := false;
   ShapeBoundingBox := nil;
-  MaterialAmbient := TVector4.Zero;
+  MaterialAmbient := TVector3.Zero;
   MaterialDiffuseAlpha := TVector4.Zero;
-  MaterialSpecular := TVector4.Zero;
-  MaterialEmission := TVector4.Zero;
+  MaterialSpecular := TVector3.Zero;
+  MaterialEmission := TVector3.Zero;
   MaterialShininessExp := 0;
   MaterialUnlit := TVector4.Zero;
   DynamicUniforms.Count := 0;
@@ -2601,6 +2601,10 @@ var
       // Calculate {variable_texture_value} once, in PLUG_fragment_eye_space,
       // to later use it potentially many times in
       // PLUG_material_{plug_name_suffix} (which may be called multiple times in case of multiple lights).
+      //
+      // Note: this optimization is not necessary for stEmissive, that will always
+      // be calculated once, i.e. "PLUG_material_emissive" is called only once.
+      // But we do this optimization always, for simplicity.
       'void PLUG_fragment_eye_space(const vec4 vertex_eye, inout vec3 normal_eye)' + NL+
       '{' +NL+
       '  {variable_texture_value} = texture2D({uniform_texture_name}, {coord_name}.st).{channel_mask};' +NL+

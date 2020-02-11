@@ -26,13 +26,13 @@
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
 '/* Multiplied colors of light source ambient and material ambient. */' + LineEnding +
-'uniform vec4 castle_SideLightProduct<Light>Ambient;' + LineEnding +
+'uniform vec3 castle_SideLightProduct<Light>Ambient;' + LineEnding +
 '#endif' + LineEnding +
-'uniform vec4 castle_LightSource<Light>Diffuse;' + LineEnding +
+'uniform vec3 castle_LightSource<Light>Diffuse;' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_SPECULAR' + LineEnding +
 '/* Multiplied colors of light source specular and material specular. */' + LineEnding +
-'uniform vec4 castle_SideLightProduct<Light>Specular;' + LineEnding +
+'uniform vec3 castle_SideLightProduct<Light>Specular;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_ATTENUATION' + LineEnding +
@@ -109,16 +109,16 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add ambient term */' + LineEnding +
-'  vec4 light_color =' + LineEnding +
+'  vec3 light_color =' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
 '  castle_SideLightProduct<Light>Ambient;' + LineEnding +
 '  /* PLUG: material_light_ambient (light_color) */' + LineEnding +
 '#else' + LineEnding +
-'  vec4(0.0);' + LineEnding +
+'  vec3(0.0);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec4 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha;' + LineEnding +
+'  vec3 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha.rgb;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
@@ -133,7 +133,7 @@
 '       (and camera position == zero in camera space). */' + LineEnding +
 '  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));' + LineEnding +
 '  if (diffuse_factor != 0.0) {' + LineEnding +
-'    vec4 specular_color = castle_SideLightProduct<Light>Specular;' + LineEnding +
+'    vec3 specular_color = castle_SideLightProduct<Light>Specular;' + LineEnding +
 '    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
 '    float material_shininess = castle_MaterialShininess;' + LineEnding +
 '    /* PLUG: material_shininess (material_shininess) */' + LineEnding +
@@ -143,6 +143,6 @@
 '  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'  color += light_color * scale;' + LineEnding +
+'  color.rgb += light_color * scale;' + LineEnding +
 '}' + LineEnding +
 ''

@@ -21,11 +21,22 @@
 '' + LineEnding +
 'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
-'/* Color summed with all the lights.' + LineEnding +
-'   Like gl_Front/BackLightModelProduct.sceneColor:' + LineEnding +
-'   material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'' + LineEnding +
+'// TODO: define it from code only when necessary' + LineEnding +
+'#define HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
+'#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
+'uniform vec3 castle_MaterialEmissive;' + LineEnding +
+'uniform vec3 castle_MaterialAmbient;' + LineEnding +
+'uniform vec3 castle_GlobalAmbient;' + LineEnding +
+'#else' + LineEnding +
+'/* In this case we can optimize it.' + LineEnding +
+'   Color summed with all the lights:' + LineEnding +
+'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)' + LineEnding +
 '*/' + LineEnding +
 'uniform vec3 castle_SceneColor;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'uniform vec4 castle_UnlitColor;' + LineEnding +
 '' + LineEnding +
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
@@ -34,6 +45,22 @@
 '' + LineEnding +
 '/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
 '/* CASTLE-COMMON-CODE */' + LineEnding +
+'' + LineEnding +
+'/* Calculate color summed with all the lights:' + LineEnding +
+'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'*/' + LineEnding +
+'vec3 get_scene_color()' + LineEnding +
+'{' + LineEnding +
+'#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
+'  vec3 ambient = castle_MaterialAmbient;' + LineEnding +
+'  /* PLUG: material_light_ambient (ambient) */' + LineEnding +
+'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
+'  /* PLUG: material_emissive (emissive) */' + LineEnding +
+'  return emissive + ambient * castle_GlobalAmbient;' + LineEnding +
+'#else' + LineEnding +
+'  return castle_SceneColor;' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
 'void main_texture_apply(inout vec4 fragment_color,' + LineEnding +
 '  const in vec3 normal_eye)' + LineEnding +
@@ -78,7 +105,7 @@
 '' + LineEnding +
 '  main_texture_apply(castle_material_complete_diffuse_alpha, normal_eye_fragment);' + LineEnding +
 '' + LineEnding +
-'  vec4 fragment_color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);' + LineEnding +
+'  vec4 fragment_color = vec4(get_scene_color(), castle_material_complete_diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +

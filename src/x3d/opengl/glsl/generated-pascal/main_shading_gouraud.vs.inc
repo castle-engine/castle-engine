@@ -16,9 +16,9 @@
 '' + LineEnding +
 'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
-'/* Color summed with all the lights.' + LineEnding +
-'   Like gl_Front/BackLightModelProduct.sceneColor:' + LineEnding +
-'   material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'/* Color summed with all the lights:' + LineEnding +
+'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)' + LineEnding +
 '*/' + LineEnding +
 'uniform vec3 castle_SceneColor;' + LineEnding +
 'uniform vec4 castle_UnlitColor;' + LineEnding +

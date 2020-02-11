@@ -19,11 +19,22 @@ varying vec3 castle_normal_eye;
 
 uniform vec4 castle_MaterialDiffuseAlpha;
 uniform float castle_MaterialShininess;
-/* Color summed with all the lights.
-   Like gl_Front/BackLightModelProduct.sceneColor:
-   material emissive color + material ambient color * global (light model) ambient.
+
+// TODO: define it from code only when necessary
+#define HAS_EMISSIVE_OR_AMBIENT_TEXTURE
+#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
+uniform vec3 castle_MaterialEmissive;
+uniform vec3 castle_MaterialAmbient;
+uniform vec3 castle_GlobalAmbient;
+#else
+/* In this case we can optimize it.
+   Color summed with all the lights:
+   Material emissive color + material ambient color * global (light model) ambient.
+   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)
 */
 uniform vec3 castle_SceneColor;
+#endif
+
 uniform vec4 castle_UnlitColor;
 
 #ifdef COLOR_PER_VERTEX
@@ -32,6 +43,22 @@ varying vec4 castle_ColorPerVertexFragment;
 
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
+
+/* Calculate color summed with all the lights:
+   Material emissive color + material ambient color * global (light model) ambient.
+*/
+vec3 get_scene_color()
+{
+#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
+  vec3 ambient = castle_MaterialAmbient;
+  /* PLUG: material_light_ambient (ambient) */
+  vec3 emissive = castle_MaterialEmissive;
+  /* PLUG: material_emissive (emissive) */
+  return emissive + ambient * castle_GlobalAmbient;
+#else
+  return castle_SceneColor;
+#endif
+}
 
 void main_texture_apply(inout vec4 fragment_color,
   const in vec3 normal_eye)
@@ -76,7 +103,7 @@ void main(void)
 
   main_texture_apply(castle_material_complete_diffuse_alpha, normal_eye_fragment);
 
-  vec4 fragment_color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);
+  vec4 fragment_color = vec4(get_scene_color(), castle_material_complete_diffuse_alpha.a);
 
   /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment) */
 

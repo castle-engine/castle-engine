@@ -290,8 +290,19 @@ begin
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
         CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuseAlpha);
         CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
-        CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
-          RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);
+        if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
+             Shader.PhongShading ) and
+           { TODO: HasEmissiveOrAmbientTexture } true then
+        begin
+          CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(Shader.MaterialEmission);
+          CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(Shader.MaterialAmbient);
+          CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
+        end else
+        begin
+          CurrentMeshShader.UniformCastle_SceneColor.SetValue(
+            Shader.MaterialEmission +
+            RenderContext.GlobalAmbient * Shader.MaterialAmbient);
+        end;
         CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
         Attribs := TGLSLAttributeList.Create;

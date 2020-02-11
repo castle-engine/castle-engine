@@ -32,10 +32,10 @@ procedure RenderMaterialsBegin;
 
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
-    Shader.MaterialAmbient := Vector4(AmbientColor, MaterialOpacity);
+    Shader.MaterialAmbient := AmbientColor;
     Shader.MaterialDiffuseAlpha := Vector4(DiffuseColor, MaterialOpacity);
-    Shader.MaterialSpecular := Vector4(SpecularColor, MaterialOpacity);
-    Shader.MaterialEmission := Vector4(EmissiveColor, MaterialOpacity);
+    Shader.MaterialSpecular := SpecularColor;
+    Shader.MaterialEmission := EmissiveColor;
     Shader.MaterialShininessExp := ShininessExp;
 
     if MaterialAndShapeLit then
@@ -59,10 +59,11 @@ procedure RenderMaterialsBegin;
       {$ifndef OpenGLES}
       if Lighting then
       begin
-        glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Shader.MaterialAmbient);
+
+        glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4(AmbientColor, MaterialOpacity));
         glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuseAlpha);
-        glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Shader.MaterialSpecular);
-        glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Shader.MaterialEmission);
+        glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(SpecularColor, MaterialOpacity));
+        glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4(EmissiveColor, MaterialOpacity));
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, Shader.MaterialShininessExp);
 
         { If Lighting, we know that GL_LIGHTING is enabled

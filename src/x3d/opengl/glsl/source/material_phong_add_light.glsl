@@ -24,13 +24,13 @@ uniform float castle_LightSource<Light>SpotExponent;
 
 #ifdef LIGHT<Light>_HAS_AMBIENT
 /* Multiplied colors of light source ambient and material ambient. */
-uniform vec4 castle_SideLightProduct<Light>Ambient;
+uniform vec3 castle_SideLightProduct<Light>Ambient;
 #endif
-uniform vec4 castle_LightSource<Light>Diffuse;
+uniform vec3 castle_LightSource<Light>Diffuse;
 
 #ifdef LIGHT<Light>_HAS_SPECULAR
 /* Multiplied colors of light source specular and material specular. */
-uniform vec4 castle_SideLightProduct<Light>Specular;
+uniform vec3 castle_SideLightProduct<Light>Specular;
 #endif
 
 #ifdef LIGHT<Light>_HAS_ATTENUATION
@@ -107,16 +107,16 @@ void PLUG_add_light(inout vec4 color,
 #endif
 
   /* add ambient term */
-  vec4 light_color =
+  vec3 light_color =
 #ifdef LIGHT<Light>_HAS_AMBIENT
   castle_SideLightProduct<Light>Ambient;
   /* PLUG: material_light_ambient (light_color) */
 #else
-  vec4(0.0);
+  vec3(0.0);
 #endif
 
   /* add diffuse term */
-  vec4 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha;
+  vec3 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha.rgb;
 
   /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
@@ -131,7 +131,7 @@ void PLUG_add_light(inout vec4 color,
        (and camera position == zero in camera space). */
   vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
   if (diffuse_factor != 0.0) {
-    vec4 specular_color = castle_SideLightProduct<Light>Specular;
+    vec3 specular_color = castle_SideLightProduct<Light>Specular;
     /* PLUG: material_light_specular (specular_color) */
     float material_shininess = castle_MaterialShininess;
     /* PLUG: material_shininess (material_shininess) */
@@ -141,5 +141,5 @@ void PLUG_add_light(inout vec4 color,
   }
 #endif
 
-  color += light_color * scale;
+  color.rgb += light_color * scale;
 }

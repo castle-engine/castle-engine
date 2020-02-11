@@ -14,9 +14,9 @@ varying vec4 castle_Color;
 
 uniform vec4 castle_MaterialDiffuseAlpha;
 uniform float castle_MaterialShininess;
-/* Color summed with all the lights.
-   Like gl_Front/BackLightModelProduct.sceneColor:
-   material emissive color + material ambient color * global (light model) ambient.
+/* Color summed with all the lights:
+   Material emissive color + material ambient color * global (light model) ambient.
+   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)
 */
 uniform vec3 castle_SceneColor;
 uniform vec4 castle_UnlitColor;
