@@ -277,7 +277,9 @@ begin
   Faces.Solid := false;
   Faces.SetCoordIndex([0, 1, 2, 3]);
 
-  Coord := TCoordinateNode.Create('', Faces.BaseUrl);
+  Coord := TCoordinateNode.Create(
+    Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
+    Faces.BaseUrl);
   Rect[0] := Vector2(
     MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2),
     MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2));
@@ -354,7 +356,9 @@ begin
   Faces.Solid := false;
   Faces.SetIndex(Triangles);
 
-  Coord := TCoordinateNode.Create('', Faces.BaseUrl);
+  Coord := TCoordinateNode.Create(
+    Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
+    Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
     Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
   Faces.Coord := Coord;
