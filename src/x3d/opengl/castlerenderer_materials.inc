@@ -178,19 +178,7 @@ begin
     { VRML >= 2.0 }
     if Shape.Node <> nil then
     begin
-      if Shape.Node.CommonSurfaceShader <> nil then
-        MaterialX3d := Shape.Node.CommonSurfaceShader.MaterialInfo
-      else
-      if Shape.Node.Material is TPhysicalMaterialNode then
-        MaterialX3d := TPhysicalMaterialNode(Shape.Node.Material).MaterialInfo
-      else
-      if Shape.Node.Material is TMaterialNode then
-        MaterialX3d := TMaterialNode(Shape.Node.Material).MaterialInfo
-      else
-      if Shape.Node.Material is TTwoSidedMaterialNode then
-        MaterialX3d := TTwoSidedMaterialNode(Shape.Node.Material).MaterialInfo
-      else
-        MaterialX3d := nil;
+      MaterialX3d := Shape.State.MaterialInfo;
     end else
       WritelnWarning('VRML/X3D', 'VRML node "' + Shape.NiceName +
         '" can be specified only in the "geometry" field of the "Shape" node');

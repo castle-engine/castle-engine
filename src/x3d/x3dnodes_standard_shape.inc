@@ -716,6 +716,43 @@
     {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
   end;
 
+  TUnlitMaterialNode = class(TAbstractOneSidedMaterialNode)
+  strict private
+    type
+      // TODO: Should not need to define Phong light properties
+      TUnlitMaterialInfo = class(TMaterialInfo)
+      strict private
+        FNode: TUnlitMaterialNode;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
+      public
+        constructor Create(ANode: TUnlitMaterialNode);
+        function AmbientColor: TVector3; override;
+        function EmissiveColor: TVector3; override;
+        function Shininess: Single; override;
+        function ReflectionColor: TVector3; override;
+        function Transparency: Single; override;
+      end;
+    var
+      FMaterialInfo: TUnlitMaterialInfo;
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    destructor Destroy; override;
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
+    function MaterialInfo: TMaterialInfo;
+
+    {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1197,6 +1234,9 @@ begin
     if (Material is TPhysicalMaterialNode) and
        (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
       Exit(TPhysicalMaterialNode(Material).BaseTexture);
+    if (Material is TUnlitMaterialNode) and
+       (TUnlitMaterialNode(Material).EmissiveTexture <> nil) then
+      Exit(TUnlitMaterialNode(Material).EmissiveTexture);
     Result := Texture;
   end;
 end;
@@ -1952,6 +1992,93 @@ begin
   Result := FMaterialInfo;
 end;
 
+{ TUnlitMaterialNode.TUnlitMaterialInfo --------------------------------------------------- }
+
+constructor TUnlitMaterialNode.TUnlitMaterialInfo.Create(ANode: TUnlitMaterialNode);
+begin
+  inherited Create(ANode);
+  FNode := ANode;
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.AmbientColor: TVector3;
+begin
+  Result := TVector3.Zero;
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.GetDiffuseColor: TVector3;
+begin
+  Result := TVector3.Zero;
+end;
+
+procedure TUnlitMaterialNode.TUnlitMaterialInfo.SetDiffuseColor(const Value: TVector3);
+begin
+  // do nothing
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.GetSpecularColor: TVector3;
+begin
+  Result := TVector3.Zero;
+end;
+
+procedure TUnlitMaterialNode.TUnlitMaterialInfo.SetSpecularColor(const Value: TVector3);
+begin
+  // do nothing
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.EmissiveColor: TVector3;
+begin
+  Result := FNode.EmissiveColor;
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.Shininess: Single;
+begin
+  Result := 0;
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.ReflectionColor: TVector3;
+begin
+  Result := TVector3.Zero;
+end;
+
+function TUnlitMaterialNode.TUnlitMaterialInfo.Transparency: Single;
+begin
+  Result := FNode.Transparency;
+end;
+
+{ TUnlitMaterialNode ------------------------------------------------------ }
+
+constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+begin
+  inherited;
+  // default is different
+  FdEmissiveColor.DefaultValue := Vector3(1, 1, 1);
+  FdEmissiveColor.Value := Vector3(1, 1, 1);
+end;
+
+destructor TUnlitMaterialNode.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
+class function TUnlitMaterialNode.ClassX3DType: string;
+begin
+  Result := 'UnlitMaterial';
+end;
+
+class function TUnlitMaterialNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassX3DType);
+end;
+
+function TUnlitMaterialNode.MaterialInfo: TMaterialInfo;
+begin
+  if FMaterialInfo = nil then
+    FMaterialInfo := TUnlitMaterialInfo.Create(Self);
+  Result := FMaterialInfo;
+end;
+
 { register ------------------------------------------------------------------- }
 
 procedure RegisterShapeNodes;
@@ -1963,7 +2090,8 @@ begin
     TMaterialNode,
     TPhysicalMaterialNode,
     TShapeNode,
-    TTwoSidedMaterialNode
+    TTwoSidedMaterialNode,
+    TUnlitMaterialNode
   ]);
 end;
 

@@ -136,3 +136,12 @@ TwoSidedMaterial : X3DMaterialNode {
   SFColor [in,out] specularColor        0 0 0       [0,1]
   SFFloat [in,out] transparency         0           [0,1]
 }
+
+UnlitMaterial : X3DOneSidedMaterialNode {
+  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: default-container-field material
+
+  # Note: emissiveColor default also changes to 1 1 1
+
+  SFFloat [in,out] transparency             0            [0,1]
+}

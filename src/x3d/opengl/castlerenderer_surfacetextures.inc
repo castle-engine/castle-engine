@@ -69,6 +69,7 @@ end;
 class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  MatOne: TAbstractOneSidedMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
 begin
@@ -87,27 +88,33 @@ begin
     end else
     if Shape.Node.Appearance <> nil then
     begin
-      Result := Shape.Node.Appearance.NormalMap <> nil;
-      if Result then Exit;
+      if Shape.Node.Appearance.NormalMap <> nil then
+        Exit(true);
+
+      if Shape.Node.Appearance.Material is TAbstractOneSidedMaterialNode then
+      begin
+        MatOne := TAbstractOneSidedMaterialNode(Shape.Node.Appearance.Material);
+        if (MatOne.EmissiveTexture <> nil) or
+           (MatOne.NormalTexture <> nil) then
+          Exit(true);
+      end;
+
       if Shape.Node.Appearance.Material is TMaterialNode then
       begin
         MatPhong := TMaterialNode(Shape.Node.Appearance.Material);
-        Result :=
-          (MatPhong.EmissiveTexture <> nil) or
-          (MatPhong.NormalTexture <> nil) or
-          (MatPhong.AmbientTexture <> nil) or
-          // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
-          (MatPhong.ShininessTexture <> nil) or
-          (MatPhong.SpecularTexture <> nil);
+        if (MatPhong.AmbientTexture <> nil) or
+           // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+           (MatPhong.ShininessTexture <> nil) or
+           (MatPhong.SpecularTexture <> nil) then
+          Exit(true);
       end;
+
       if Shape.Node.Appearance.Material is TPhysicalMaterialNode then
       begin
         MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
-        Result :=
-          (MatPhysical.EmissiveTexture <> nil) or
-          (MatPhysical.NormalTexture <> nil) or
-          // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-          (MatPhysical.MetallicRoughnessTexture <> nil);
+        if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+           (MatPhysical.MetallicRoughnessTexture <> nil) then
+          Exit(true);
       end;
     end;
   end;

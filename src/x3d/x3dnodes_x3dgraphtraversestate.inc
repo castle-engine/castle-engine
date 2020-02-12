@@ -503,6 +503,9 @@ begin
       if Mat is TTwoSidedMaterialNode then // also checks Mat <> nil
         Result := TTwoSidedMaterialNode(Mat).MaterialInfo
       else
+      if Mat is TUnlitMaterialNode then // also checks Mat <> nil
+        Result := TUnlitMaterialNode(Mat).MaterialInfo
+      else
         Result := nil;
     end;
   end else

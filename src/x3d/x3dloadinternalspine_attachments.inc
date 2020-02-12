@@ -31,7 +31,7 @@
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
-    Material: TMaterialNode; //< initialized together with Node, always inside
+    Material: TUnlitMaterialNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
     { Create and parse correct TAttachment descendant.
@@ -253,10 +253,9 @@ begin
   if Shape.Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
-  Material := TMaterialNode.Create(
+  Material := TUnlitMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Material.ForcePureEmissive;
   Material.EmissiveColor := Vector3(1, 1, 1);
 
   Shape.Material := Material;
@@ -590,10 +589,9 @@ begin
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
-  Material := TMaterialNode.Create(
+  Material := TUnlitMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Material.ForcePureEmissive;
   Material.EmissiveColor := WhiteRGB;
   Shape.Material := Material;
 
@@ -696,10 +694,9 @@ begin
     Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
 
-  Material := TMaterialNode.Create(
+  Material := TUnlitMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Material.ForcePureEmissive;
   Material.EmissiveColor := WhiteRGB;
 
   // debug

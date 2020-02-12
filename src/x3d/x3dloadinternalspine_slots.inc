@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterialNode>;
+  TUnlitMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUnlitMaterialNode>;
 
   TColorInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
   TScalarInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
@@ -46,7 +46,7 @@
     Node: TTransformNode;
     SwitchNode: TSwitchNode;
     NodeUsedAsChild: boolean;
-    Materials: TMaterialNodeList;
+    Materials: TUnlitMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
@@ -75,7 +75,7 @@ constructor TSlot.Create;
 begin
   inherited;
   AttachmentNames := TStringList.Create;
-  Materials := TMaterialNodeList.Create(false);
+  Materials := TUnlitMaterialNodeList.Create(false);
 end;
 
 destructor TSlot.Destroy;
