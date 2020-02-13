@@ -403,7 +403,9 @@ begin
   if UpdateOnlyCode then
   begin
     if not DirectoryExists(XcodeProject) then
-      raise Exception.Create('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option');
+      raise Exception.CreateFmt('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option', [
+        XcodeProject
+      ]);
     GenerateLibrary;
   end else
   begin
