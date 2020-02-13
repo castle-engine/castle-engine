@@ -499,6 +499,7 @@ begin
     'archive'
   ]);
   RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
     '-archivePath', ArchivePath,
     '-exportOptionsPlist', XcodeProject + 'export_options.plist',
     '-exportArchive',
