@@ -32,7 +32,9 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
+  {$ifndef OpenGLES}
   Colormap: TColormap;
+  {$endif}
 
   {$ifdef CASTLE_ENGINE_PLUGIN}
   PluginWindow: TNPWindow;
@@ -156,10 +158,12 @@ begin
   { Creates XVisual }
   ContextCreateBegin;
 
+  {$ifndef OpenGLES}
   Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
     XVisual^.Visual, AllocNone);
   Attr.Colormap := Colormap;
   AttrValueMask := AttrValueMask or CWColormap;
+  {$endif}
 
   if FullScreen then
   begin
@@ -319,11 +323,13 @@ begin
     windowXID := None
   end;
 
+  {$ifndef OpenGLES}
   if Colormap  <> None then
   begin
     XFreeColormap(Application.XDisplay, Colormap);
     Colormap := None;
   end;
+  {$endif}
 
   ContextDestroyEnd;
 end;
