@@ -17,9 +17,9 @@
 
 {$ifdef read_interface}
 
-{ Multiline string describing attributes of current OpenGL
-  library. This simply queries OpenGL using glGet* functions
-  about many things. Does not change OpenGL state in any way.
+{ Multiline string describing attributes of current OpenGL(ES)
+  library. This simply queries OpenGL(ES) using glGet* functions
+  about many things. Does not change OpenGL(ES) state in any way.
 
   Note that the last line of returned string does not terminate
   with a newline character (so e.g. you may want to do
@@ -155,7 +155,8 @@ const
 
 begin
   Result:=
-    'OpenGL information (detected by ' + ApplicationName +'):' + NL +
+    {$ifdef OpenGLES} 'OpenGLES' {$else} 'OpenGL' {$endif} +
+    ' information (detected by ' + ApplicationName +'):' + NL +
     NL +
 
     '--------' + NL +
@@ -168,7 +169,7 @@ begin
     {$ifndef OpenGLES}
     '------------------------' + NL +
     'Real versions available:' + NL +
-    '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' + NL +
+    '(checks both version string and actual functions availability in GL library, to secure from buggy implementations)' + NL +
     NL +
     '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) + NL +
     '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) + NL +
