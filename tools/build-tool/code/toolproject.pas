@@ -1348,6 +1348,29 @@ end;
 procedure TCastleProject.DoRun(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Params: TCastleStringList);
+
+  procedure MaybeUseWrapperToRun(var ExeName: String);
+  var
+    S: String;
+  begin
+    if OS in AllUnixOSes then
+    begin
+      S := Path + ChangeFileExt(ExecutableName, '') + '_run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+
+      S := Path + 'run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+    end;
+  end;
+
 var
   ExeName: string;
   ProcessStatus: Integer;
@@ -1366,7 +1389,8 @@ begin
   else
   if Target = targetCustom then
   begin
-    ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
     { Run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user.
