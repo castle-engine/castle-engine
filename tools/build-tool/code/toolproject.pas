@@ -211,7 +211,8 @@ type
 
     { List filenames of external libraries used by the current project,
       on given OS/CPU. }
-    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
+    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+      const CheckFilesExistence: Boolean = true);
 
     function ReplaceMacros(const Source: string): string;
 
@@ -1099,11 +1100,12 @@ begin
       Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
 end;
 
-procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
+procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+  const CheckFilesExistence: Boolean);
 
   { Path to the external library in data/external_libraries/ .
     Right now, these host various Windows-specific DLL files.
-    This checks existence of appropriate files along the way,
+    If CheckFilesExistence then this checks existence of appropriate files along the way,
     and raises exception in case of trouble. }
   function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
   var
@@ -1111,7 +1113,7 @@ procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const
   begin
     LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
     Result := URIToFilenameSafe(LibraryURL);
-    if not RegularFileExists(Result) then
+    if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
   end;
 
@@ -1749,7 +1751,9 @@ procedure TCastleProject.DoClean;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      { CheckFilesExistence parameter for ExternalLibraries may be false.
+        This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
+      ExternalLibraries(OS, CPU, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
