@@ -17,7 +17,12 @@
 { Library to run the game on iOS. }
 library ${NAME_PASCAL};
 
-uses Math, CastleWindow, CastleMessaging, ${GAME_UNITS};
+uses
+  {$ifdef CASTLE_THREADS}
+    {$info Thread support enabled.}
+    {$ifdef UNIX} CThreads, {$endif}
+  {$endif}
+  Math, CastleWindow, CastleMessaging, ${GAME_UNITS};
 
 { Qualify identifiers by unit names below,
   to prevent GAME_UNITS from changing the meaning of code below. }

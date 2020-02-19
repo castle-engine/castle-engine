@@ -22,6 +22,9 @@ uses Classes,
   CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackage;
 
+var
+  IosSimulatorSupport: Boolean = false;
+
 type
   TIosArchiveType = (
     atDevelopment,
@@ -120,8 +123,11 @@ begin
       Later PackageIOS will actually add the static tremolo files to the project. }
     FinalExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
 
-    CompileLibrary(iphonesim, i386);
-    CompileLibrary(iphonesim, x86_64);
+    if IosSimulatorSupport then
+    begin
+      CompileLibrary(iphonesim, i386);
+      CompileLibrary(iphonesim, x86_64);
+    end;
     CompileLibrary(darwin, arm);
     CompileLibrary(darwin, aarch64);
 
@@ -129,13 +135,23 @@ begin
 end;
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+var
+  Options: TCastleStringList;
 begin
-  RunCommandSimple('libtool', ['-static', '-o', OutputFile,
-    CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName
-  ]);
+  Options := TCastleStringList.Create;
+  try
+    Options.Add('-static');
+    Options.Add('-o');
+    Options.Add(OutputFile);
+    if IosSimulatorSupport then
+    begin
+      Options.Add(CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      Options.Add(CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    end;
+    Options.Add(CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    RunCommandSimple('libtool', Options.ToArray);
+  finally FreeAndNil(Options) end;
 end;
 
 procedure PackageIOS(const Project: TCastleProject;
@@ -387,7 +403,9 @@ begin
   if UpdateOnlyCode then
   begin
     if not DirectoryExists(XcodeProject) then
-      raise Exception.Create('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option');
+      raise Exception.CreateFmt('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option', [
+        XcodeProject
+      ]);
     GenerateLibrary;
   end else
   begin
@@ -499,6 +517,7 @@ begin
     'archive'
   ]);
   RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
     '-archivePath', ArchivePath,
     '-exportOptionsPlist', XcodeProject + 'export_options.plist',
     '-exportArchive',

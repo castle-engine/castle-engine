@@ -211,7 +211,8 @@ type
 
     { List filenames of external libraries used by the current project,
       on given OS/CPU. }
-    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
+    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+      const CheckFilesExistence: Boolean = true);
 
     function ReplaceMacros(const Source: string): string;
 
@@ -1099,11 +1100,12 @@ begin
       Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
 end;
 
-procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings);
+procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+  const CheckFilesExistence: Boolean);
 
   { Path to the external library in data/external_libraries/ .
     Right now, these host various Windows-specific DLL files.
-    This checks existence of appropriate files along the way,
+    If CheckFilesExistence then this checks existence of appropriate files along the way,
     and raises exception in case of trouble. }
   function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
   var
@@ -1111,7 +1113,7 @@ procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const
   begin
     LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
     Result := URIToFilenameSafe(LibraryURL);
-    if not RegularFileExists(Result) then
+    if CheckFilesExistence and (not RegularFileExists(Result)) then
       raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
   end;
 
@@ -1348,6 +1350,29 @@ end;
 procedure TCastleProject.DoRun(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Params: TCastleStringList);
+
+  procedure MaybeUseWrapperToRun(var ExeName: String);
+  var
+    S: String;
+  begin
+    if OS in AllUnixOSes then
+    begin
+      S := Path + ChangeFileExt(ExecutableName, '') + '_run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+
+      S := Path + 'run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+    end;
+  end;
+
 var
   ExeName: string;
   ProcessStatus: Integer;
@@ -1366,7 +1391,8 @@ begin
   else
   if Target = targetCustom then
   begin
-    ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
     { Run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user.
@@ -1725,7 +1751,9 @@ procedure TCastleProject.DoClean;
   begin
     List := TCastleStringList.Create;
     try
-      ExternalLibraries(OS, CPU, List);
+      { CheckFilesExistence parameter for ExternalLibraries may be false.
+        This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
+      ExternalLibraries(OS, CPU, List, false);
       for FileName in List do
       begin
         OutputFile := LibrariesOutputPath + ExtractFileName(FileName);

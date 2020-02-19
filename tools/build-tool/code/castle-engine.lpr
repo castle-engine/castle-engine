@@ -44,7 +44,7 @@ var
   UpdateOnlyCode: Boolean = false;
 
 const
-  Options: array [0..16] of TOption =
+  Options: array [0..17] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -62,7 +62,8 @@ const
     (Short: #0 ; Long: 'project'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
-    (Short: #0 ; Long: 'update-only-code'; Argument: oaNone)
+    (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
+    (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -209,6 +210,7 @@ begin
     14: PackageFormat := StringToPackageFormat(Argument);
     15: PackageNameIncludeVersion := false;
     16: UpdateOnlyCode := true;
+    17: IosSimulatorSupport := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
