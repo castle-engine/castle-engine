@@ -46,7 +46,7 @@ Group{
       parts EffectPart {
         type "FRAGMENT"
         url "data:text/plain,
-        void PLUG_texture_apply(
+        void PLUG_main_texture_apply(
            inout vec4 color,
            const in vec3 normal)
         {
