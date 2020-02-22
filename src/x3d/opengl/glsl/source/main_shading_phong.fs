@@ -65,11 +65,6 @@ void main_texture_apply(inout vec4 fragment_color,
   /* PLUG: main_texture_apply (fragment_color, normal_eye) */
 }
 
-/* Calculated color from
-   Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.
-   Contains complete "diffuse/transparency" information that is independent of light source. */
-vec4 castle_material_complete_diffuse_alpha;
-
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(castle_normal_eye);
@@ -94,17 +89,19 @@ void main(void)
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
+  vec4 material_diffuse_alpha;
+
   #ifdef COLOR_PER_VERTEX
-  castle_material_complete_diffuse_alpha = castle_ColorPerVertexFragment;
+  material_diffuse_alpha = castle_ColorPerVertexFragment;
   #else
-  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;
+  material_diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
 
-  main_texture_apply(castle_material_complete_diffuse_alpha, normal_eye_fragment);
+  main_texture_apply(material_diffuse_alpha, normal_eye_fragment);
 
-  vec4 fragment_color = vec4(get_scene_color(), castle_material_complete_diffuse_alpha.a);
+  vec4 fragment_color = vec4(get_scene_color(), material_diffuse_alpha.a);
 
-  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment) */
+  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, material_diffuse_alpha) */
 
   /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
      This isn't really mandatory, but scenes with many lights could easily

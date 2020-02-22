@@ -30,12 +30,6 @@ attribute vec4 castle_ColorPerVertex;
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
 
-/* Calculated color from
-   Material.diffuseColor/transparency (or ColorRGBA node).
-   Contains complete "diffuse/transparency" information that is independent of light source
-   (as much as we can get in vertex shader, in case of Gouraud). */
-vec4 castle_material_complete_diffuse_alpha;
-
 void main(void)
 {
   vec4 vertex_object = castle_Vertex;
@@ -96,15 +90,17 @@ void main(void)
   */
   /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */
 
+  vec4 material_diffuse_alpha;
+
   #ifdef COLOR_PER_VERTEX
-  castle_material_complete_diffuse_alpha = castle_ColorPerVertex;
+  material_diffuse_alpha = castle_ColorPerVertex;
   #else
-  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;
+  material_diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
 
-  castle_Color = vec4(castle_SceneColor, castle_material_complete_diffuse_alpha.a);
+  castle_Color = vec4(castle_SceneColor, material_diffuse_alpha.a);
 
-  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, material_diffuse_alpha) */
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   castle_Color.rgb = min(castle_Color.rgb, 1.0);

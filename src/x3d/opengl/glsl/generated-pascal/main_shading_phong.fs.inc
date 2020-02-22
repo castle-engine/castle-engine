@@ -67,11 +67,6 @@
 '  /* PLUG: main_texture_apply (fragment_color, normal_eye) */' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
-'/* Calculated color from' + LineEnding +
-'   Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.' + LineEnding +
-'   Contains complete "diffuse/transparency" information that is independent of light source. */' + LineEnding +
-'vec4 castle_material_complete_diffuse_alpha;' + LineEnding +
-'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec3 normal_eye_fragment = normalize(castle_normal_eye);' + LineEnding +
@@ -96,17 +91,19 @@
 '  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
+'  vec4 material_diffuse_alpha;' + LineEnding +
+'' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  castle_material_complete_diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
+'  material_diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
 '  #else' + LineEnding +
-'  castle_material_complete_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  material_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
-'  main_texture_apply(castle_material_complete_diffuse_alpha, normal_eye_fragment);' + LineEnding +
+'  main_texture_apply(material_diffuse_alpha, normal_eye_fragment);' + LineEnding +
 '' + LineEnding +
-'  vec4 fragment_color = vec4(get_scene_color(), castle_material_complete_diffuse_alpha.a);' + LineEnding +
+'  vec4 fragment_color = vec4(get_scene_color(), material_diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
+'  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, material_diffuse_alpha) */' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +

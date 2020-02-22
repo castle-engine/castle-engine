@@ -45,7 +45,6 @@
 'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
-'vec4 castle_material_complete_diffuse_alpha;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '/* Add light contribution.' + LineEnding +
@@ -53,7 +52,13 @@
 '*/' + LineEnding +
 'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
-'  const in vec3 normal_eye)' + LineEnding +
+'  const in vec3 normal_eye,' + LineEnding +
+'  /* Calculated color from' + LineEnding +
+'     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.' + LineEnding +
+'     Contains complete "diffuse/transparency" information that is independent of light source.' + LineEnding +
+'     In case of Gouraud shading it is not multiplied by the diffuse texture' + LineEnding +
+'     (because it cannot be, as we''re on vertex shader). */' + LineEnding +
+'  const in vec4 material_diffuse_alpha)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -116,7 +121,7 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec3 diffuse = castle_LightSource<Light>Color * castle_material_complete_diffuse_alpha.rgb;' + LineEnding +
+'  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
