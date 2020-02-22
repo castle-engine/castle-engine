@@ -357,11 +357,21 @@ begin
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
 
+        { Call one of MaterialXxxInitialize, to choose and initialize lighting equation. }
+
         if Attributes.Mode = rmSolidColor then
           { In case of rmSolidColor, force using unlit with Attributes.SolidColor.
             Note that castlerenderer_materials.inc made sure that Lightning = false
             in case of rmSolidColor, so we know it is rendered with LIT undefined. }
           MaterialUnlitExplicitInitialize(Vector4(Attributes.SolidColor, 1))
+        else
+        if (not Attributes.Lighting) and (Shader.Material <> nil) then
+          { In case we have a material, but user requested Attributes.Lighting = false,
+            use MainColor. Otherwise we would e.g. use EmissiveColor in case of Phong,
+            which would usually be black.
+            Attributes.Lighting = false is a debug rendering anyway, not covered
+            by X3D spec equations. }
+          MaterialUnlitExplicitInitialize(Vector4(Shader.Material.MainColor, Shader.Material.Opacity))
         else
         if Shader.Material is TPhongMaterialInfo then
           MaterialPhongInitialize(TPhongMaterialInfo(Shader.Material))

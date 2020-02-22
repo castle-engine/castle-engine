@@ -76,7 +76,9 @@ procedure RenderMaterialsBegin;
       end else
       if M <> nil then
       begin
-        { UnlitMaterial is implemented here, as it causes Lighting = false always. }
+        { UnlitMaterial is implemented here, as it causes Lighting = false always.
+          We will also use this for fixed-function pipeline when
+          user set Attributes.Lighting = false and we have Phong Material or PhysicalMaterial. }
         glColorv(M.MainColor);
       end else
       begin
