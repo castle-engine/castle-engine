@@ -275,9 +275,12 @@ var
         RenderContext.GlobalAmbient * M.AmbientColor);
     end;
 
-    { castle_UnlitColor is used when Lighting = false with TPhongMaterialInfo,
-      which means that TPhongMaterialInfo has PureEmissive
-      or (TODO: not accounted) Attributes.Lighting = false. }
+    { castle_UnlitColor is used when we calculated Lighting = false
+      (in castlerenderer_materials.inc) and material is TPhongMaterialInfo.
+      This means that TPhongMaterialInfo has PureEmissive.
+      (Note: the case when Lighting = false because of
+      Attributes.Lighting = false was covered earlier,
+      instead of calling MaterialPhongInitialize). }
     CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
   end;
 
