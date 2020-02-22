@@ -315,12 +315,12 @@ var
     CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
   end;
 
-  { Pass shader uniforms for unlit white (when material = nil) lighting calculation. }
-  procedure MaterialUnlitWhiteInitialize;
+  { Pass shader uniforms for unlit (with explicit color) lighting calculation. }
+  procedure MaterialUnlitExplicitInitialize(const Color: TCastleColor);
   begin
     // TODO: Reuses Phong shader for unlit now, but knows that LIT is not defined
 
-    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(White);
+    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Color);
   end;
 
 const
@@ -357,6 +357,12 @@ begin
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
 
+        if Attributes.Mode = rmSolidColor then
+          { In case of rmSolidColor, force using unlit with Attributes.SolidColor.
+            Note that castlerenderer_materials.inc made sure that Lightning = false
+            in case of rmSolidColor, so we know it is rendered with LIT undefined. }
+          MaterialUnlitExplicitInitialize(Vector4(Attributes.SolidColor, 1))
+        else
         if Shader.Material is TPhongMaterialInfo then
           MaterialPhongInitialize(TPhongMaterialInfo(Shader.Material))
         else
@@ -366,7 +372,8 @@ begin
         if Shader.Material is TUnlitMaterialInfo then
           MaterialUnlitInitialize(TUnlitMaterialInfo(Shader.Material))
         else
-          MaterialUnlitWhiteInitialize;
+          { Unlit white is used when material = nil. }
+          MaterialUnlitExplicitInitialize(White);
 
         Attribs := TGLSLAttributeList.Create;
 
