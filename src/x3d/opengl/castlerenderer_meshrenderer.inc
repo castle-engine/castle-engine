@@ -295,7 +295,7 @@ var
     CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(TVector3.Zero);
     if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
          Shader.PhongShading ) and
-       { TODO: HasEmissiveOrAmbientTexture } true then
+       Shader.HasEmissiveOrAmbientTexture then
     begin
       CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
       CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);

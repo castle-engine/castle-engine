@@ -429,6 +429,7 @@ type
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
     Lighting, ColorPerVertex: boolean;
+    FHasEmissiveOrAmbientTexture: Boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -618,6 +619,9 @@ type
     procedure Initialize(const APhongShading: boolean);
 
     property PhongShading: boolean read FPhongShading;
+
+    { Calculated based on EnableSurfaceTexture calls. }
+    property HasEmissiveOrAmbientTexture: Boolean read FHasEmissiveOrAmbientTexture;
 
     { Set uniforms that should be set each time before using shader
       (because changes to their values may happen at any time,
@@ -1931,6 +1935,7 @@ begin
   NeedsCameraInverseMatrix := false;
   NeedsMirrorPlaneTexCoords := false;
   RenderingCamera := nil;
+  FHasEmissiveOrAmbientTexture := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2833,6 +2838,8 @@ begin
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
+  if HasEmissiveOrAmbientTexture then
+    Define('HAS_EMISSIVE_OR_AMBIENT_TEXTURE', stFragment);
 
   if LogShaders then
     DoLogShaders;
@@ -3309,6 +3316,10 @@ begin
     2081 * TextureCoordinatesId
   ));
   FCodeHash.AddString(ChannelMask, 2083 * HashMultiplier);
+
+  // update HasEmissiveOrAmbientTexture value
+  if SurfaceTexture in [stAmbient, stEmissive] then
+    FHasEmissiveOrAmbientTexture := true;
 end;
 
 procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);

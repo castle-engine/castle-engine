@@ -22,8 +22,6 @@ uniform vec3 castle_MaterialAmbient;
 uniform vec3 castle_MaterialSpecular;
 uniform float castle_MaterialShininess;
 
-// TODO: define it from code only when necessary
-#define HAS_EMISSIVE_OR_AMBIENT_TEXTURE
 #ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
 uniform vec3 castle_MaterialEmissive;
 uniform vec3 castle_GlobalAmbient;

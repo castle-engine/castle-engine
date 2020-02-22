@@ -24,8 +24,6 @@
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
 '' + LineEnding +
-'// TODO: define it from code only when necessary' + LineEnding +
-'#define HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 '#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 'uniform vec3 castle_MaterialEmissive;' + LineEnding +
 'uniform vec3 castle_GlobalAmbient;' + LineEnding +
