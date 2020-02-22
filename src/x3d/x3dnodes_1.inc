@@ -414,7 +414,7 @@
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
-    procedure ForcePureEmissive;
+    procedure ForcePureEmissive; deprecated 'use X3D with TUnlitMaterialNode';
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;

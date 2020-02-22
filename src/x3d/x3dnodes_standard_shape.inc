@@ -475,7 +475,7 @@
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
-    procedure ForcePureEmissive;
+    procedure ForcePureEmissive; deprecated 'use TUnlitMaterialNode for unlit materials';
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdReflSpecular: TMFColor;

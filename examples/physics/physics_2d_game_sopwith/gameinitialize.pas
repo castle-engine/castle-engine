@@ -119,7 +119,7 @@ procedure ApplicationInitialize;
   var
     Box: TBoxNode;
     Shape: TShapeNode;
-    Material: TMaterialNode;
+    Material: TUnlitMaterialNode;
     Root: TX3DRootNode;
   begin
     BoxScene := TCastleScene.Create(Application);
@@ -127,8 +127,7 @@ procedure ApplicationInitialize;
     Box := TBoxNode.CreateWithShape(Shape);
     Box.Size := Vector3(4, 4, 4);
 
-    Material := TMaterialNode.Create;
-    Material.ForcePureEmissive;
+    Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := Vector3(0.5, 0.5, 1.0);
     Shape.Material := Material;
 
@@ -143,15 +142,14 @@ procedure ApplicationInitialize;
     Sphere: TSphereNode;
     Shape: TShapeNode;
     Root: TX3DRootNode;
-    Material: TMaterialNode;
+    Material: TUnlitMaterialNode;
   begin
     MissileScene := TCastleScene.Create(Application);
 
     Sphere := TSphereNode.CreateWithShape(Shape);
     Sphere.Radius := 1;
 
-    Material := TMaterialNode.Create;
-    Material.ForcePureEmissive;
+    Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := Vector3(1, 0, 0);
     Shape.Material := Material;
 
