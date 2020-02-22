@@ -18,13 +18,14 @@ varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
 uniform vec4 castle_MaterialDiffuseAlpha;
+uniform vec3 castle_MaterialAmbient;
+uniform vec3 castle_MaterialSpecular;
 uniform float castle_MaterialShininess;
 
 // TODO: define it from code only when necessary
 #define HAS_EMISSIVE_OR_AMBIENT_TEXTURE
 #ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
 uniform vec3 castle_MaterialEmissive;
-uniform vec3 castle_MaterialAmbient;
 uniform vec3 castle_GlobalAmbient;
 #else
 /* In this case we can optimize it.
@@ -63,7 +64,7 @@ vec3 get_scene_color()
 void main_texture_apply(inout vec4 fragment_color,
   const in vec3 normal_eye)
 {
-  /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */
+  /* PLUG: main_texture_apply (fragment_color, normal_eye) */
 }
 
 /* Calculated color from
@@ -118,7 +119,10 @@ void main(void)
   vec4 fragment_color = castle_UnlitColor;
   /* TODO: This is not strictly correct,
      as ColorRGBA should only be used for unlit when Material=NULL.
-     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */
+     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set).
+
+     TODO: Also we multiply ColorRGBA, while it should replace by default in X3D?
+     But e.g. Spine rendering assumes we multiply. */
   #ifdef COLOR_PER_VERTEX
   fragment_color *= castle_ColorPerVertexFragment;
   #endif

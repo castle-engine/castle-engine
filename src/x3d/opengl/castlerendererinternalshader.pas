@@ -74,6 +74,7 @@ type
     UniformCastle_MaterialShininess,
     UniformCastle_MaterialEmissive,
     UniformCastle_MaterialAmbient,
+    UniformCastle_MaterialSpecular,
     UniformCastle_GlobalAmbient,
     UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
@@ -111,7 +112,7 @@ type
     SpotExponent: Single;
     SpotCutoff: Single;
     Attenuation: TVector3;
-    Ambient, Diffuse, Specular: TVector3;
+    AmbientColor, Color: TVector3;
 
     procedure SetUniform(const NamePattern: string;
       var CurrentValue: Single; const NewValue: Single);
@@ -454,14 +455,10 @@ type
 
     function DeclareShadowFunctions: string;
   public
+    { Material parameters for current shape.
+      Must be set before EnableLight, and be constant later. }
+    Material: TMaterialInfo;
 
-    { Collected material properties for current shape.
-      Must be set before EnableLight, and be constant later --- this matters
-      esp. for MaterialSpecular. }
-    MaterialDiffuseAlpha: TVector4;
-    MaterialAmbient, MaterialSpecular, MaterialEmission: TVector3;
-    MaterialShininessExp: Single;
-    MaterialUnlit: TVector4;
     { We use a callback, instead of storing TBox3D result, because
       1. in many cases, we will not need to call it (so we don't need to recalculate
          TShape.LocalBoundingBox every frame for a changing shape),
@@ -949,7 +946,8 @@ begin
   end;
   if Node.FdAmbientIntensity.Value <> 0 then
     Define(ldHasAmbient);
-  if not Shader.MaterialSpecular.IsPerfectlyZero then
+  if (Shader.Material is TPhongMaterialInfo) and
+     (not TPhongMaterialInfo(Shader.Material).SpecularColor.IsPerfectlyZero) then
     Define(ldHasSpecular);
 end;
 
@@ -1084,14 +1082,9 @@ begin
   end;
 
   if Node.FdAmbientIntensity.Value <> 0 then
-    Uniforms.SetUniform('castle_SideLightProduct%dAmbient', Uniforms.Ambient,
-      Shader.MaterialAmbient * AmbientColor3);
+    Uniforms.SetUniform('castle_LightSource%dAmbientColor', Uniforms.AmbientColor, AmbientColor3);
 
-  if not Shader.MaterialSpecular.IsPerfectlyZero then
-    Uniforms.SetUniform('castle_SideLightProduct%dSpecular', Uniforms.Specular,
-      Shader.MaterialSpecular * Color3);
-
-  Uniforms.SetUniform('castle_LightSource%dDiffuse', Uniforms.Diffuse, Color3);
+  Uniforms.SetUniform('castle_LightSource%dColor', Uniforms.Color, Color3);
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -1123,6 +1116,7 @@ begin
   UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
   UniformCastle_MaterialEmissive     := Uniform('castle_MaterialEmissive'    , uaIgnore);
   UniformCastle_MaterialAmbient      := Uniform('castle_MaterialAmbient'     , uaIgnore);
+  UniformCastle_MaterialSpecular     := Uniform('castle_MaterialSpecular'    , uaIgnore);
   UniformCastle_GlobalAmbient        := Uniform('castle_GlobalAmbient'       , uaIgnore);
   UniformCastle_SceneColor           := Uniform('castle_SceneColor'          , uaIgnore);
   UniformCastle_UnlitColor           := Uniform('castle_UnlitColor'          , uaIgnore);
@@ -1931,12 +1925,7 @@ begin
   ColorPerVertex := false;
   FPhongShading := false;
   ShapeBoundingBox := nil;
-  MaterialAmbient := TVector3.Zero;
-  MaterialDiffuseAlpha := TVector4.Zero;
-  MaterialSpecular := TVector3.Zero;
-  MaterialEmission := TVector3.Zero;
-  MaterialShininessExp := 0;
-  MaterialUnlit := TVector4.Zero;
+  Material := nil;
   DynamicUniforms.Count := 0;
   TextureMatrix.Count := 0;
   NeedsCameraInverseMatrix := false;

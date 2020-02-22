@@ -20,13 +20,14 @@
 'varying vec3 castle_normal_eye;' + LineEnding +
 '' + LineEnding +
 'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform vec3 castle_MaterialAmbient;' + LineEnding +
+'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
 '' + LineEnding +
 '// TODO: define it from code only when necessary' + LineEnding +
 '#define HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 '#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 'uniform vec3 castle_MaterialEmissive;' + LineEnding +
-'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_GlobalAmbient;' + LineEnding +
 '#else' + LineEnding +
 '/* In this case we can optimize it.' + LineEnding +
@@ -65,7 +66,7 @@
 'void main_texture_apply(inout vec4 fragment_color,' + LineEnding +
 '  const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
-'  /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'  /* PLUG: main_texture_apply (fragment_color, normal_eye) */' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 '/* Calculated color from' + LineEnding +
@@ -120,7 +121,10 @@
 '  vec4 fragment_color = castle_UnlitColor;' + LineEnding +
 '  /* TODO: This is not strictly correct,' + LineEnding +
 '     as ColorRGBA should only be used for unlit when Material=NULL.' + LineEnding +
-'     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */' + LineEnding +
+'     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set).' + LineEnding +
+'' + LineEnding +
+'     TODO: Also we multiply ColorRGBA, while it should replace by default in X3D?' + LineEnding +
+'     But e.g. Spine rendering assumes we multiply. */' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
 '  fragment_color *= castle_ColorPerVertexFragment;' + LineEnding +
 '  #endif' + LineEnding +

@@ -15,6 +15,8 @@
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
 'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform vec3 castle_MaterialAmbient;' + LineEnding +
+'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
 '/* Color summed with all the lights:' + LineEnding +
 '   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +

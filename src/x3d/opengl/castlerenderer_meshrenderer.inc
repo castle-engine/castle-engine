@@ -255,6 +255,74 @@ var
     end;
   end;
 
+  { Pass shader uniforms for Phong calculation. }
+  procedure MaterialPhongInitialize(const M: TPhongMaterialInfo);
+  begin
+    CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Vector4(M.DiffuseColor, M.Opacity));
+    CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(M.ShininessExp);
+    CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(M.AmbientColor);
+    CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(M.SpecularColor);
+    if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
+         Shader.PhongShading ) and
+       { TODO: HasEmissiveOrAmbientTexture } true then
+    begin
+      CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+      CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
+    end else
+    begin
+      CurrentMeshShader.UniformCastle_SceneColor.SetValue(
+        M.EmissiveColor +
+        RenderContext.GlobalAmbient * M.AmbientColor);
+    end;
+
+    { castle_UnlitColor is used when Lighting = false with TPhongMaterialInfo,
+      which means that TPhongMaterialInfo has PureEmissive
+      or (TODO: not accounted) Attributes.Lighting = false. }
+    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+  end;
+
+  { Pass shader uniforms for Physical (PBR) lighting calculation. }
+  procedure MaterialPhysicalInitialize(const M: TPhysicalMaterialInfo);
+  begin
+    // TODO: Reuses Phong shader for PBR now
+
+    CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Vector4(M.BaseColor, M.Opacity));
+    CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(0);
+    CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(TVector3.Zero);
+    CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(TVector3.Zero);
+    if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
+         Shader.PhongShading ) and
+       { TODO: HasEmissiveOrAmbientTexture } true then
+    begin
+      CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+      CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
+    end else
+    begin
+      CurrentMeshShader.UniformCastle_SceneColor.SetValue(M.EmissiveColor);
+    end;
+
+    { castle_UnlitColor is used when Lighting = false with TPhongMaterialInfo,
+      which means that TPhongMaterialInfo has PureEmissive
+      or (TODO: not accounted) Attributes.Lighting = false. }
+    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+  end;
+
+  { Pass shader uniforms for unlit lighting calculation. }
+  procedure MaterialUnlitInitialize(const M: TUnlitMaterialInfo);
+  begin
+    // TODO: Reuses Phong shader for unlit now, but knows that LIT is not defined
+
+    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+  end;
+
+  { Pass shader uniforms for unlit white (when material = nil) lighting calculation. }
+  procedure MaterialUnlitWhiteInitialize;
+  begin
+    // TODO: Reuses Phong shader for unlit now, but knows that LIT is not defined
+
+    CurrentMeshShader.UniformCastle_UnlitColor.SetValue(White);
+  end;
+
 const
   ToMode: array [TGeometryPrimitive] of TGLenum =
   ( GL_TRIANGLES, {$ifndef OpenGLES} GL_QUADS, {$endif}
@@ -288,22 +356,17 @@ begin
         CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
-        CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuseAlpha);
-        CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
-        if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
-             Shader.PhongShading ) and
-           { TODO: HasEmissiveOrAmbientTexture } true then
-        begin
-          CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(Shader.MaterialEmission);
-          CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(Shader.MaterialAmbient);
-          CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
-        end else
-        begin
-          CurrentMeshShader.UniformCastle_SceneColor.SetValue(
-            Shader.MaterialEmission +
-            RenderContext.GlobalAmbient * Shader.MaterialAmbient);
-        end;
-        CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
+
+        if Shader.Material is TPhongMaterialInfo then
+          MaterialPhongInitialize(TPhongMaterialInfo(Shader.Material))
+        else
+        if Shader.Material is TPhysicalMaterialInfo then
+          MaterialPhysicalInitialize(TPhysicalMaterialInfo(Shader.Material))
+        else
+        if Shader.Material is TUnlitMaterialInfo then
+          MaterialUnlitInitialize(TUnlitMaterialInfo(Shader.Material))
+        else
+          MaterialUnlitWhiteInitialize;
 
         Attribs := TGLSLAttributeList.Create;
 

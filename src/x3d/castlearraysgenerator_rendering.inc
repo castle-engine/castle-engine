@@ -144,7 +144,7 @@ type
 
 procedure TPointSet_1Generator.GenerateCoordinateBegin;
 var
-  M: TMaterialInfo;
+  M: TPhongMaterialInfo;
 begin
   inherited;
 

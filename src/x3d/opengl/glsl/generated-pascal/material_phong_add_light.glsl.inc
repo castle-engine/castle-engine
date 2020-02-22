@@ -10,6 +10,8 @@
 '/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)' + LineEnding +
 '   in eye coordinates. */' + LineEnding +
 'uniform vec3 castle_LightSource<Light>Position;' + LineEnding +
+'' + LineEnding +
+'/* SpotLight specific parameters */' + LineEnding +
 '#ifdef LIGHT<Light>_TYPE_SPOT' + LineEnding +
 'uniform vec3 castle_LightSource<Light>SpotDirection;' + LineEnding +
 'uniform float castle_LightSource<Light>SpotCosCutoff;' + LineEnding +
@@ -25,15 +27,9 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
-'/* Multiplied colors of light source ambient and material ambient. */' + LineEnding +
-'uniform vec3 castle_SideLightProduct<Light>Ambient;' + LineEnding +
+'uniform vec3 castle_LightSource<Light>AmbientColor;' + LineEnding +
 '#endif' + LineEnding +
-'uniform vec3 castle_LightSource<Light>Diffuse;' + LineEnding +
-'' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_SPECULAR' + LineEnding +
-'/* Multiplied colors of light source specular and material specular. */' + LineEnding +
-'uniform vec3 castle_SideLightProduct<Light>Specular;' + LineEnding +
-'#endif' + LineEnding +
+'uniform vec3 castle_LightSource<Light>Color;' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_ATTENUATION' + LineEnding +
 '/* Attenuation: constant, linear, quadratic. */' + LineEnding +
@@ -46,6 +42,8 @@
 '' + LineEnding +
 '// In case of OpenGLES, all shader code is glued, so this is already declared' + LineEnding +
 '#ifndef GL_ES' + LineEnding +
+'uniform vec3 castle_MaterialAmbient;' + LineEnding +
+'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
 'vec4 castle_material_complete_diffuse_alpha;' + LineEnding +
 '#endif' + LineEnding +
@@ -111,14 +109,14 @@
 '  /* add ambient term */' + LineEnding +
 '  vec3 light_color =' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
-'  castle_SideLightProduct<Light>Ambient;' + LineEnding +
+'  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;' + LineEnding +
 '  /* PLUG: material_light_ambient (light_color) */' + LineEnding +
 '#else' + LineEnding +
 '  vec3(0.0);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec3 diffuse = castle_LightSource<Light>Diffuse * castle_material_complete_diffuse_alpha.rgb;' + LineEnding +
+'  vec3 diffuse = castle_LightSource<Light>Color * castle_material_complete_diffuse_alpha.rgb;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
@@ -133,7 +131,7 @@
 '       (and camera position == zero in camera space). */' + LineEnding +
 '  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));' + LineEnding +
 '  if (diffuse_factor != 0.0) {' + LineEnding +
-'    vec3 specular_color = castle_SideLightProduct<Light>Specular;' + LineEnding +
+'    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;' + LineEnding +
 '    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
 '    float material_shininess = castle_MaterialShininess;' + LineEnding +
 '    /* PLUG: material_shininess (material_shininess) */' + LineEnding +

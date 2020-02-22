@@ -13,6 +13,8 @@ varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
 
 uniform vec4 castle_MaterialDiffuseAlpha;
+uniform vec3 castle_MaterialAmbient;
+uniform vec3 castle_MaterialSpecular;
 uniform float castle_MaterialShininess;
 /* Color summed with all the lights:
    Material emissive color + material ambient color * global (light model) ambient.

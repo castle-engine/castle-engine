@@ -327,7 +327,7 @@
   TMaterialNode_1 = class(TAbstractChildNode)
   strict private
     type
-      TMaterialInfo_1 = class(TMaterialInfo)
+      TMaterialInfo_1 = class(TPhongMaterialInfo)
       strict private
         FNode: TMaterialNode_1;
         FIndex: Integer;
@@ -423,7 +423,7 @@
       It is automatically updated when properties of this material change.
       Do not free it yourself, it will be automatically freed when
       this node is freed. }
-    function MaterialInfo(const AIndex: Integer = 0): TMaterialInfo;
+    function MaterialInfo(const AIndex: Integer = 0): TPhongMaterialInfo;
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
@@ -1378,23 +1378,23 @@ procedure TMaterialNode_1.CreateNode;
 begin
   inherited;
 
-  FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TMaterialInfo.DefaultAmbientColor]);
+  FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TPhongMaterialInfo.DefaultAmbientColor]);
    FdAmbientColor.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdAmbientColor);
 
-  FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TMaterialInfo.DefaultDiffuseColor]);
+  FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TPhongMaterialInfo.DefaultDiffuseColor]);
    FdDiffuseColor.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdDiffuseColor);
 
-  FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TMaterialInfo.DefaultSpecularColor]);
+  FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TPhongMaterialInfo.DefaultSpecularColor]);
    FdSpecularColor.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdSpecularColor);
 
-  FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TMaterialInfo.DefaultEmissiveColor]);
+  FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TPhongMaterialInfo.DefaultEmissiveColor]);
    FdEmissiveColor.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdEmissiveColor);
 
-  FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TMaterialInfo.DefaultShininess]);
+  FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TPhongMaterialInfo.DefaultShininess]);
    FdShininess.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdShininess);
 
@@ -1422,11 +1422,11 @@ begin
    FdTransDiffuse.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdTransDiffuse);
 
-  FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TMaterialInfo.DefaultReflSpecularExp]);
+  FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TPhongMaterialInfo.DefaultReflSpecularExp]);
    FdReflSpecularExp.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdReflSpecularExp);
 
-  FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TMaterialInfo.DefaultTransSpecularExp]);
+  FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TPhongMaterialInfo.DefaultTransSpecularExp]);
    FdTransSpecularExp.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdTransSpecularExp);
 
@@ -1469,7 +1469,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TMaterialInfo;
+function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TPhongMaterialInfo;
 begin
   if AIndex >= Length(FMaterialInfo) then
     SetLength(FMaterialInfo, AIndex + 1);
@@ -1493,7 +1493,7 @@ var
 begin
   A := FNode.FdAmbientColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultAmbientColor
+    Result := TPhongMaterialInfo.DefaultAmbientColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1504,7 +1504,7 @@ var
 begin
   A := FNode.FdDiffuseColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultDiffuseColor
+    Result := TPhongMaterialInfo.DefaultDiffuseColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1520,7 +1520,7 @@ var
 begin
   A := FNode.FdSpecularColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultSpecularColor
+    Result := TPhongMaterialInfo.DefaultSpecularColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1536,7 +1536,7 @@ var
 begin
   A := FNode.FdEmissiveColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultEmissiveColor
+    Result := TPhongMaterialInfo.DefaultEmissiveColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1547,7 +1547,7 @@ var
 begin
   A := FNode.FdShininess.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultShininess
+    Result := TPhongMaterialInfo.DefaultShininess
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
