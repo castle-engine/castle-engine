@@ -45,7 +45,7 @@ procedure ApplicationInitialize;
       S: String;
     begin
       try
-        AssignFile(F, UTF8ToSystemFileName(FileName));
+        AssignFile(F, FileName);
         Reset(F);
         try
           Readln(F, S);
