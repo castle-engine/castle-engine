@@ -22,7 +22,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleLog, CastleApplicationProperties, CastleDownload, CastleClassUtils,
-  CastleControls, CastleUIControls, CastleColors, CastleUnicode, CastleUtils;
+  CastleControls, CastleUIControls, CastleColors, CastleUnicode, CastleUtils, CastleFilesUtils;
 
 var
   Window: TCastleWindowBase;
@@ -124,7 +124,10 @@ procedure ApplicationInitialize;
     TestReadingThroughReference('castle-data:/reference to file with Russian chars.txt');
     TestReadingThroughReference('castle-data:/reference to file with Polish chars.txt');
 
-    // TODO: test saving too
+    StringToFile(ApplicationConfig('config_ascii.txt'), 'Testing save.');
+    StringToFile(ApplicationConfig('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
+    StringToFile(ApplicationConfig('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
+    StringToFile(ApplicationConfig('config with Russian chars образец русского текста.txt'), 'Testing save.');
   end;
 
 var
