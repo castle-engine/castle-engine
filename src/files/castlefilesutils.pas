@@ -1151,10 +1151,12 @@ var
   ExeLinkName: String;
 {$endif}
 begin
-  { Initialize FExeName.
-    Under Windows, ParamStr(0) is a reliable exe name.
-    Under other OSes, it's at least some default. }
-  FExeName := ParamStr(0);
+  { Initialize FExeName. }
+  FExeName :=
+    {$ifdef MSWINDOWS} ExeNameFromGetModule
+    // On non-Windows OSes, using ParamStr(0) for this is not reliable, but at least it's some default
+    {$else} ParamStr(0)
+    {$endif};
 
   {$ifdef LINUX}
   { Under Linux, try to use /proc/getpid()/exe.

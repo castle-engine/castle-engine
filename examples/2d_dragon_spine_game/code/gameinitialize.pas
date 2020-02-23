@@ -1,12 +1,12 @@
 {
   Copyright 2014-2018 Michalis Kamburelis.
 
-  This file is part of "Castle Spine".
+  This file is part of "Castle Game Engine".
 
-  "Castle Spine" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
 
-  "Castle Spine" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
