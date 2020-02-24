@@ -22,7 +22,8 @@ implementation
 
 uses SysUtils, Classes,
   CastleWindow, CastleLog, CastleApplicationProperties, CastleDownload, CastleClassUtils,
-  CastleControls, CastleUIControls, CastleColors, CastleUnicode, CastleUtils, CastleFilesUtils;
+  CastleControls, CastleUIControls, CastleColors, CastleUnicode, CastleUtils,
+  CastleFilesUtils, CastleFonts;
 
 var
   Window: TCastleWindowBase;
@@ -84,6 +85,17 @@ procedure ApplicationInitialize;
       finally FreeAndNil(Stream) end;
     end;
 
+    { Test reading font (as it goes through FreeType library). }
+    procedure TestReadingFont(const FontUrl: String);
+    var
+      MyNewFont: TTextureFont;
+    begin
+      MyNewFont := TTextureFont.Create(TComponent(nil));
+      try
+        MyNewFont.Load(FontUrl, 20, true);
+      finally FreeAndNil(MyNewFont) end;
+    end;
+
   var
     DataPath: String;
   begin
@@ -128,6 +140,8 @@ procedure ApplicationInitialize;
     StringToFile(ApplicationConfig('config with Chinese chars 样例中文文本.txt'), 'Testing save.');
     StringToFile(ApplicationConfig('config with Polish chars ćma źrebak żmija wąż królik.txt'), 'Testing save.');
     StringToFile(ApplicationConfig('config with Russian chars образец русского текста.txt'), 'Testing save.');
+
+    TestReadingFont('castle-data:/DejaVuSans name with Russian chars образец русского текста.ttf');
   end;
 
 var
