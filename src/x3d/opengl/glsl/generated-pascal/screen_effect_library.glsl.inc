@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "screen_effect_library.glsl" }
+{ DON'T EDIT -- this file was automatically generated from "source/screen_effect_library.glsl" }
 '/* The library of common functions for GLSL screen effects.' + LineEnding +
 '   The ObjectPascal code that includes this will take care to define (or not)' + LineEnding +
 '   symbols MULTI_SAMPLING_x, DEPTH at the beginning of this file.' + LineEnding +
@@ -180,6 +180,16 @@
 '  return tex_coord_frag.t * float(screen_height);' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
+'vec4 screenf_get_original_color()' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
+'  return screenf_get_color(screenf_position());' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen, tex_coord_frag);' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
 'vec4 screenf_get_color(vec2 position)' + LineEnding +
 '{' + LineEnding +
 '/* TODO: it would be nice to autogenerate this code */' + LineEnding +
@@ -274,6 +284,16 @@
 '#endif' + LineEnding +
 '#endif' + LineEnding +
 '#endif' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'vec4 screenf_get_original_depth()' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  // We cannot do something much more optimal in this case, so just call full screenf_get_depth' + LineEnding +
+'  return screenf_get_depth(screenf_position());' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen_depth, tex_coord_frag);' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
