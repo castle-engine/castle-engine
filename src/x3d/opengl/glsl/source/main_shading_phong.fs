@@ -17,24 +17,7 @@ precision mediump float;
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
-uniform vec4 castle_MaterialDiffuseAlpha;
-uniform vec3 castle_MaterialAmbient;
-uniform vec3 castle_MaterialSpecular;
-uniform float castle_MaterialShininess;
-
-#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
-uniform vec3 castle_MaterialEmissive;
-uniform vec3 castle_GlobalAmbient;
-#else
-/* In this case we can optimize it.
-   Color summed with all the lights:
-   Material emissive color + material ambient color * global (light model) ambient.
-   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)
-*/
-uniform vec3 castle_SceneColor;
-#endif
-
-uniform vec4 castle_UnlitColor;
+/* CASTLE-LIGHTING-MODEL-DECLARE */
 
 #ifdef COLOR_PER_VERTEX
 varying vec4 castle_ColorPerVertexFragment;
@@ -42,22 +25,6 @@ varying vec4 castle_ColorPerVertexFragment;
 
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
-
-/* Calculate color summed with all the lights:
-   Material emissive color + material ambient color * global (light model) ambient.
-*/
-vec3 get_scene_color()
-{
-#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE
-  vec3 ambient = castle_MaterialAmbient;
-  /* PLUG: material_light_ambient (ambient) */
-  vec3 emissive = castle_MaterialEmissive;
-  /* PLUG: material_emissive (emissive) */
-  return emissive + ambient * castle_GlobalAmbient;
-#else
-  return castle_SceneColor;
-#endif
-}
 
 void main_texture_apply(inout vec4 fragment_color,
   const in vec3 normal_eye)
@@ -88,44 +55,9 @@ void main(void)
 
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
-#ifdef LIT
-  vec4 material_diffuse_alpha;
+  vec4 fragment_color; // will be always initialized by CASTLE-LIGHTING-MODEL-MAIN
 
-  #ifdef COLOR_PER_VERTEX
-  material_diffuse_alpha = castle_ColorPerVertexFragment;
-  #else
-  material_diffuse_alpha = castle_MaterialDiffuseAlpha;
-  #endif
-
-  main_texture_apply(material_diffuse_alpha, normal_eye_fragment);
-
-  vec4 fragment_color = vec4(get_scene_color(), material_diffuse_alpha.a);
-
-  /* PLUG: add_light (fragment_color, castle_vertex_eye, normal_eye_fragment, material_diffuse_alpha) */
-
-  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
-     This isn't really mandatory, but scenes with many lights could easily
-     have colors > 1 and then the textures will look "burned out".
-     Of course, for future HDR rendering we will turn this off. */
-  fragment_color.rgb = min(fragment_color.rgb, 1.0);
-#else
-  // Unlit case
-
-  vec4 fragment_color = castle_UnlitColor;
-  /* TODO: This is not strictly correct,
-     as ColorRGBA should only be used for unlit when Material=NULL.
-     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set).
-
-     TODO: Also we multiply ColorRGBA, while it should replace by default in X3D?
-     But e.g. Spine rendering assumes we multiply. */
-  #ifdef COLOR_PER_VERTEX
-  fragment_color *= castle_ColorPerVertexFragment;
-  #endif
-  /* TODO: This is not strictly correct,
-     as Appearance.texture should only be used for unlit when Material=NULL.
-     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */
-  main_texture_apply(fragment_color, normal_eye_fragment);
-#endif
+  /* CASTLE-LIGHTING-MODEL-MAIN */
 
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */

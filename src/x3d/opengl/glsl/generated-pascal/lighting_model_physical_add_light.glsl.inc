@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/material_phong_add_light.glsl" }
+{ DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/add_light.glsl" }
 '/* Shader code used for adding light source contribution for Material' + LineEnding +
 '   (Phong lighting model).' + LineEnding +
 '   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +

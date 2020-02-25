@@ -27,6 +27,8 @@ uses Generics.Collections,
   CastleShapes, CastleRectangles, CastleTransform;
 
 type
+  TLightingModel = (lmPhong, lmPhysical, lmUnlit);
+
   TSurfaceTexture = (stEmissive, stAmbient, stSpecular, stShininess);
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -245,6 +247,7 @@ type
     DefinesCount: Cardinal;
   public
     RenderingCamera: TRenderingCamera; //< Set this after construction.
+    LightingModel: TLightingModel;
     destructor Destroy; override;
     { Prepare some stuff for Code generation, update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
@@ -409,6 +412,7 @@ type
     NeedsCameraInverseMatrix: boolean;
     NeedsMirrorPlaneTexCoords: Boolean;
     FPhongShading: boolean;
+    FLightingModel: TLightingModel;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -608,6 +612,8 @@ type
       read FShadowSampling write FShadowSampling;
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
+    property LightingModel: TLightingModel
+      read FLightingModel write FLightingModel;
 
     { Clear instance, bringing it to the state after creation.
       You must call Intialize afterwards. }
@@ -967,23 +973,29 @@ function TLightShader.Code: TShaderSource;
       Result += '#define ' + Format(LightDefines[Defines[I]].Name, [Number]) + NL;
   end;
 
+const
+  TemplateLight: array [TLightingModel] of String = (
+    {$I lighting_model_phong_add_light.glsl.inc},
+    {$I lighting_model_physical_add_light.glsl.inc},
+    {$I lighting_model_unlit_add_light.glsl.inc}
+  );
 var
-  TemplateLight: string;
+  LightShader: string;
   LightingStage: TShaderType;
 begin
   if FCode = nil then
   begin
     FCode := TShaderSource.Create;
 
-    TemplateLight := {$I material_phong_add_light.glsl.inc};
-    TemplateLight := StringReplace(TemplateLight,
+    LightShader := TemplateLight[LightingModel];
+    LightShader := StringReplace(LightShader,
       '<Light>', IntToStr(Number), [rfReplaceAll]);
 
     if Shader.PhongShading then
       LightingStage := stFragment
     else
       LightingStage := stVertex;
-    FCode[LightingStage].Add(DefinesStr + TemplateLight);
+    FCode[LightingStage].Add(DefinesStr + LightShader);
 
     if Node <> nil then
       Shader.EnableEffects(Node.FdEffects, FCode);
@@ -1936,6 +1948,7 @@ begin
   NeedsMirrorPlaneTexCoords := false;
   RenderingCamera := nil;
   FHasEmissiveOrAmbientTexture := false;
+  FLightingModel := lmPhong;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2237,6 +2250,70 @@ var
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
 
+  procedure EnableLightingModel;
+  type
+    TLightingModelPart = (lmpDeclare, lmpMain);
+  const
+    LightingModelCode: array [TLightingModel, { PhongShading } Boolean, TLightingModelPart] of String = (
+      (
+        (
+          {$I lighting_model_phong_shading_gouraud_declare.vs.inc},
+          {$I lighting_model_phong_shading_gouraud_main.vs.inc}
+        ),
+        (
+          {$I lighting_model_phong_shading_phong_declare.fs.inc},
+          {$I lighting_model_phong_shading_phong_main.fs.inc}
+        )
+      ),
+      (
+        (
+          {$I lighting_model_physical_shading_gouraud_declare.vs.inc},
+          {$I lighting_model_physical_shading_gouraud_main.vs.inc}
+        ),
+        (
+          {$I lighting_model_physical_shading_phong_declare.fs.inc},
+          {$I lighting_model_physical_shading_phong_main.fs.inc}
+        )
+      ),
+      (
+        (
+          {$I lighting_model_unlit_shading_gouraud_declare.vs.inc},
+          {$I lighting_model_unlit_shading_gouraud_main.vs.inc}
+        ),
+        (
+          {$I lighting_model_unlit_shading_phong_declare.fs.inc},
+          {$I lighting_model_unlit_shading_phong_main.fs.inc}
+        )
+      )
+    );
+  var
+    LightingStage: TShaderType;
+    LightShader: TLightShader;
+  begin
+    { Just like in EnableLights, don't add lights code in some cases }
+    if (Source[stFragment].Count = 0) or
+       (Source[stVertex].Count = 0) or
+       (SelectedNode <> nil) then
+      Exit;
+
+    if PhongShading then
+      LightingStage := stFragment
+    else
+      LightingStage := stVertex;
+
+    Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
+      '/* CASTLE-LIGHTING-MODEL-DECLARE */',
+      LightingModelCode[LightingModel, PhongShading, lmpDeclare],
+      [rfReplaceAll]);
+    Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
+      '/* CASTLE-LIGHTING-MODEL-MAIN */',
+      LightingModelCode[LightingModel, PhongShading, lmpMain],
+      [rfReplaceAll]);
+
+    for LightShader in LightShaders do
+      LightShader.LightingModel := LightingModel;
+  end;
+
   procedure RequireTextureCoordinateForSurfaceTextures;
 
     { Make sure TextureShaders has an item
@@ -2472,6 +2549,7 @@ var
   procedure EnableLights;
   var
     LightShader: TLightShader;
+    LightShaderCode: TShaderSource;
     LightingStage: TShaderType;
   begin
     PassLightsUniforms := false;
@@ -2505,10 +2583,11 @@ var
 
       for LightShader in LightShaders do
       begin
-        Plug(LightingStage, LightShader.Code[LightingStage][0]);
+        LightShaderCode := LightShader.Code;
+        Plug(LightingStage, LightShaderCode[LightingStage][0]);
         { Append the rest of LightShader, it may contain shadow maps utilities
           and light plugs. }
-        Source.Append(LightShader.Code, LightingStage);
+        Source.Append(LightShaderCode, LightingStage);
       end;
     end else
     begin
@@ -2805,6 +2884,7 @@ var
   GeometryInputSize: string;
   I: Integer;
 begin
+  EnableLightingModel; // do this early, as later EnableLights may assume it's done
   RequireTextureCoordinateForSurfaceTextures;
   EnableTextures;
   EnableClipPlanes;
@@ -2910,6 +2990,7 @@ function TShader.CodeHash: TShaderCodeHash;
   procedure CodeHashFinalize;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
+    FCodeHash.AddInteger(Ord(LightingModel) * 503);
   end;
 
 begin
