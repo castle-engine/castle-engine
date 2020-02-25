@@ -41,7 +41,6 @@
   material_diffuse_alpha = castle_ColorPerVertex;
   #else
   material_diffuse_alpha = castle_MaterialBaseAlpha;
-  material_diffuse_alpha.rgb *= 2.0; // TODO just for test
   #endif
 
   castle_Color = vec4(castle_SceneColor, material_diffuse_alpha.a);

@@ -7,7 +7,6 @@
 '  material_diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
 '  #else' + LineEnding +
 '  material_diffuse_alpha = castle_MaterialBaseAlpha;' + LineEnding +
-'  material_diffuse_alpha.rgb *= 2.0; // TODO just for test' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
 '  main_texture_apply(material_diffuse_alpha, normal_eye_fragment);' + LineEnding +
