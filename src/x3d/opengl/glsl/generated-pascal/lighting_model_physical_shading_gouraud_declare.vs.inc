@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/shading_gouraud_declare.vs" }
-'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform vec4 castle_MaterialBaseAlpha;' + LineEnding +
 'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +

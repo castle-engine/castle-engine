@@ -73,6 +73,7 @@ type
     UniformCastle_ProjectionMatrix,
     UniformCastle_NormalMatrix,
     UniformCastle_MaterialDiffuseAlpha,
+    UniformCastle_MaterialBaseAlpha,
     UniformCastle_MaterialShininess,
     UniformCastle_MaterialEmissive,
     UniformCastle_MaterialAmbient,
@@ -1129,6 +1130,7 @@ begin
   UniformCastle_ProjectionMatrix     := Uniform('castle_ProjectionMatrix'    , uaIgnore);
   UniformCastle_NormalMatrix         := Uniform('castle_NormalMatrix'        , uaIgnore);
   UniformCastle_MaterialDiffuseAlpha := Uniform('castle_MaterialDiffuseAlpha', uaIgnore);
+  UniformCastle_MaterialBaseAlpha    := Uniform('castle_MaterialBaseAlpha'   , uaIgnore);
   UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
   UniformCastle_MaterialEmissive     := Uniform('castle_MaterialEmissive'    , uaIgnore);
   UniformCastle_MaterialAmbient      := Uniform('castle_MaterialAmbient'     , uaIgnore);

@@ -1,4 +1,4 @@
-uniform vec4 castle_MaterialDiffuseAlpha;
+uniform vec4 castle_MaterialBaseAlpha;
 uniform vec3 castle_MaterialAmbient;
 uniform vec3 castle_MaterialSpecular;
 uniform float castle_MaterialShininess;

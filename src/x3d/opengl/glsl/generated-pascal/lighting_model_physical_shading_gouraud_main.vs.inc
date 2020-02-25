@@ -42,7 +42,8 @@
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
 '  material_diffuse_alpha = castle_ColorPerVertex;' + LineEnding +
 '  #else' + LineEnding +
-'  material_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  material_diffuse_alpha = castle_MaterialBaseAlpha;' + LineEnding +
+'  material_diffuse_alpha.rgb *= 2.0; // TODO just for test' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
 '  castle_Color = vec4(castle_SceneColor, material_diffuse_alpha.a);' + LineEnding +
