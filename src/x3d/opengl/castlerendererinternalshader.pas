@@ -74,6 +74,7 @@ type
     UniformCastle_NormalMatrix,
     UniformCastle_MaterialDiffuseAlpha,
     UniformCastle_MaterialBaseAlpha,
+    UniformCastle_MaterialEmissiveAlpha,
     UniformCastle_MaterialShininess,
     UniformCastle_MaterialEmissive,
     UniformCastle_MaterialAmbient,
@@ -1126,18 +1127,19 @@ procedure TX3DShaderProgramBase.Link;
 begin
   inherited;
 
-  UniformCastle_ModelViewMatrix      := Uniform('castle_ModelViewMatrix'     , uaIgnore);
-  UniformCastle_ProjectionMatrix     := Uniform('castle_ProjectionMatrix'    , uaIgnore);
-  UniformCastle_NormalMatrix         := Uniform('castle_NormalMatrix'        , uaIgnore);
-  UniformCastle_MaterialDiffuseAlpha := Uniform('castle_MaterialDiffuseAlpha', uaIgnore);
-  UniformCastle_MaterialBaseAlpha    := Uniform('castle_MaterialBaseAlpha'   , uaIgnore);
-  UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
-  UniformCastle_MaterialEmissive     := Uniform('castle_MaterialEmissive'    , uaIgnore);
-  UniformCastle_MaterialAmbient      := Uniform('castle_MaterialAmbient'     , uaIgnore);
-  UniformCastle_MaterialSpecular     := Uniform('castle_MaterialSpecular'    , uaIgnore);
-  UniformCastle_GlobalAmbient        := Uniform('castle_GlobalAmbient'       , uaIgnore);
-  UniformCastle_SceneColor           := Uniform('castle_SceneColor'          , uaIgnore);
-  UniformCastle_UnlitColor           := Uniform('castle_UnlitColor'          , uaIgnore);
+  UniformCastle_ModelViewMatrix       := Uniform('castle_ModelViewMatrix'      , uaIgnore);
+  UniformCastle_ProjectionMatrix      := Uniform('castle_ProjectionMatrix'     , uaIgnore);
+  UniformCastle_NormalMatrix          := Uniform('castle_NormalMatrix'         , uaIgnore);
+  UniformCastle_MaterialDiffuseAlpha  := Uniform('castle_MaterialDiffuseAlpha' , uaIgnore);
+  UniformCastle_MaterialBaseAlpha     := Uniform('castle_MaterialBaseAlpha'    , uaIgnore);
+  UniformCastle_MaterialEmissiveAlpha := Uniform('castle_MaterialEmissiveAlpha', uaIgnore);
+  UniformCastle_MaterialShininess     := Uniform('castle_MaterialShininess'    , uaIgnore);
+  UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , uaIgnore);
+  UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , uaIgnore);
+  UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , uaIgnore);
+  UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
+  UniformCastle_SceneColor            := Uniform('castle_SceneColor'           , uaIgnore);
+  UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
   AttributeCastle_Normal         := AttributeOptional('castle_Normal');

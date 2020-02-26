@@ -322,20 +322,14 @@ var
     procedure MaterialUnlit(const M: TUnlitMaterialInfo);
     begin
       Assert(Shader.LightingModel = lmUnlit); // should be set by InitializeLightingModel
-
-      // TODO: Reuses Phong shader for unlit now, but knows that LIT is not defined
-
-      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+      CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Vector4(M.EmissiveColor, M.Opacity));
     end;
 
     { Pass shader uniforms for unlit (with explicit color) lighting calculation. }
     procedure MaterialUnlitExplicit(const Color: TCastleColor);
     begin
       Assert(Shader.LightingModel = lmUnlit); // should be set by InitializeLightingModel
-
-      // TODO: Reuses Phong shader for unlit now, but knows that LIT is not defined
-
-      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Color);
+      CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Color);
     end;
 
   begin
@@ -437,12 +431,12 @@ begin
           mcDefaultColor:
             begin
               Assert(Arrays.HasDefaultColor);
-              { We apply Arrays.DefaultColor as Shader.MaterialUnlit,
-                overriding previous castle_UnlitColor setting.
+              { We apply Arrays.DefaultColor overriding previous value of this uniform setting.
                 Arrays.DefaultColor is in fact used with this intention
                 ("override unlit color") by PointSet and LineSet generators
                 in castlearraysgenerator_rendering.inc . }
               CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
+              CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Arrays.DefaultColor);
             end;
           else ;
         end;
