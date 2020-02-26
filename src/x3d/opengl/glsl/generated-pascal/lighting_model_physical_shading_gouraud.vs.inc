@@ -17,8 +17,8 @@
 '  /* Two-sided lighting in Gouraud shading:' + LineEnding +
 '     flip the normal vector to correspond to the face side that we actually see.' + LineEnding +
 '' + LineEnding +
-'     Note that we don''t flip the castle_normal_eye (we only flip the' + LineEnding +
-'     normal_for_lighting), as castle_normal_eye may be useful also for other' + LineEnding +
+'     Note that we don''t flip the normal_eye (we only flip the' + LineEnding +
+'     normal_for_lighting), as normal_eye may be useful also for other' + LineEnding +
 '     calculations, e.g. cubemap reflections, that don''t want this flippping' + LineEnding +
 '     (testcase: demo-models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv )' + LineEnding +
 '' + LineEnding +
@@ -30,7 +30,7 @@
 '     - demo-models/fog/fog_linear, rotate in Examine and look at the thin water' + LineEnding +
 '       edges.' + LineEnding +
 '' + LineEnding +
-'     The problem: We base our flipping on castle_normal_eye,' + LineEnding +
+'     The problem: We base our flipping on normal_eye,' + LineEnding +
 '     which may be a smoothed (per-vertex) normal vector.' + LineEnding +
 '' + LineEnding +
 '     - We cannot calculate here reliably per-face vector (fragment shaders' + LineEnding +
@@ -48,7 +48,7 @@
 '     - If you''re OK with being correct (not fast), you can use Phong shading' + LineEnding +
 '       where two-sided lighting works easily.' + LineEnding +
 '  */' + LineEnding +
-'  /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */' + LineEnding +
+'  /* vec3 normal_for_lighting = (normal_eye.z > 0.0 ? normal_eye : -normal_eye); */' + LineEnding +
 '' + LineEnding +
 '  vec4 material_diffuse_alpha;' + LineEnding +
 '' + LineEnding +

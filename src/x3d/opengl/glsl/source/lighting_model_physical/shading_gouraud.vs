@@ -15,8 +15,8 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   /* Two-sided lighting in Gouraud shading:
      flip the normal vector to correspond to the face side that we actually see.
 
-     Note that we don't flip the castle_normal_eye (we only flip the
-     normal_for_lighting), as castle_normal_eye may be useful also for other
+     Note that we don't flip the normal_eye (we only flip the
+     normal_for_lighting), as normal_eye may be useful also for other
      calculations, e.g. cubemap reflections, that don't want this flippping
      (testcase: demo-models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv )
 
@@ -28,7 +28,7 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
      - demo-models/fog/fog_linear, rotate in Examine and look at the thin water
        edges.
 
-     The problem: We base our flipping on castle_normal_eye,
+     The problem: We base our flipping on normal_eye,
      which may be a smoothed (per-vertex) normal vector.
 
      - We cannot calculate here reliably per-face vector (fragment shaders
@@ -46,7 +46,7 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
      - If you're OK with being correct (not fast), you can use Phong shading
        where two-sided lighting works easily.
   */
-  /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */
+  /* vec3 normal_for_lighting = (normal_eye.z > 0.0 ? normal_eye : -normal_eye); */
 
   vec4 material_diffuse_alpha;
 
