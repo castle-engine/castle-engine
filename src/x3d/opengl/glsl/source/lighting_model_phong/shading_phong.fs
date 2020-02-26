@@ -56,20 +56,24 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
      Of course, for future HDR rendering we will turn this off. */
   result.rgb = min(result.rgb, 1.0);
 #else
-  // Unlit case
+  /* Unlit case.
+     This is only an optimization of the "lit" case
+     (e.g. no need to do per-light-source processing).
 
+     Diffuse color is zero in this case, and we know that it's not set to non-zero
+     by castle_ColorPerVertexFragment (since that would make the shape "lit").
+     So we don't use castle_ColorPerVertexFragment,
+     and we don't apply RGB of main_texture_apply (as it would be multiplied by zero).
+  */
   result = castle_UnlitColor;
-  /* TODO: This is not strictly correct,
-     as ColorRGBA should only be used for unlit when Material=NULL.
-     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set).
 
-     TODO: Also we multiply ColorRGBA, while it should replace by default in X3D. */
-  #ifdef COLOR_PER_VERTEX
-  result *= castle_ColorPerVertexFragment;
-  #endif
-  /* TODO: This is not strictly correct,
-     as Appearance.texture should only be used for unlit when Material=NULL.
-     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */
-  main_texture_apply(result, normal_eye);
+  // Apply emissiveTexture, if exists
+  /* PLUG: material_emissive (result.rgb) */
+
+  // Apply alpha from the diffuseTexture (or Appearance.texture).
+  // We need to call main_texture_apply for this.
+  vec4 color_alpha = result;
+  main_texture_apply(color_alpha, normal_eye);
+  result.a = color_alpha.a;
 #endif
 }

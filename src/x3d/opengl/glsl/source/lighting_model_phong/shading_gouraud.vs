@@ -63,10 +63,9 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   result.rgb = min(result.rgb, 1.0);
 #else
-  // Unlit case
+  /* Unlit case.
+     See shading_phong.fs for comments when this is used.
+  */
   result = castle_UnlitColor;
-  #ifdef COLOR_PER_VERTEX
-  result *= castle_ColorPerVertex;
-  #endif
 #endif
 }

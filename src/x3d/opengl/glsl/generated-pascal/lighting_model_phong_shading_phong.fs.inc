@@ -58,21 +58,25 @@
 '     Of course, for future HDR rendering we will turn this off. */' + LineEnding +
 '  result.rgb = min(result.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
-'  // Unlit case' + LineEnding +
+'  /* Unlit case.' + LineEnding +
+'     This is only an optimization of the "lit" case' + LineEnding +
+'     (e.g. no need to do per-light-source processing).' + LineEnding +
 '' + LineEnding +
+'     Diffuse color is zero in this case, and we know that it''s not set to non-zero' + LineEnding +
+'     by castle_ColorPerVertexFragment (since that would make the shape "lit").' + LineEnding +
+'     So we don''t use castle_ColorPerVertexFragment,' + LineEnding +
+'     and we don''t apply RGB of main_texture_apply (as it would be multiplied by zero).' + LineEnding +
+'  */' + LineEnding +
 '  result = castle_UnlitColor;' + LineEnding +
-'  /* TODO: This is not strictly correct,' + LineEnding +
-'     as ColorRGBA should only be used for unlit when Material=NULL.' + LineEnding +
-'     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set).' + LineEnding +
 '' + LineEnding +
-'     TODO: Also we multiply ColorRGBA, while it should replace by default in X3D. */' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  result *= castle_ColorPerVertexFragment;' + LineEnding +
-'  #endif' + LineEnding +
-'  /* TODO: This is not strictly correct,' + LineEnding +
-'     as Appearance.texture should only be used for unlit when Material=NULL.' + LineEnding +
-'     But we also enter this clause when Material<>NULL, but is unlit (only emissiveColor is set). */' + LineEnding +
-'  main_texture_apply(result, normal_eye);' + LineEnding +
+'  // Apply emissiveTexture, if exists' + LineEnding +
+'  /* PLUG: material_emissive (result.rgb) */' + LineEnding +
+'' + LineEnding +
+'  // Apply alpha from the diffuseTexture (or Appearance.texture).' + LineEnding +
+'  // We need to call main_texture_apply for this.' + LineEnding +
+'  vec4 color_alpha = result;' + LineEnding +
+'  main_texture_apply(color_alpha, normal_eye);' + LineEnding +
+'  result.a = color_alpha.a;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 ''

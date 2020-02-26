@@ -65,11 +65,10 @@
 '  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
 '  result.rgb = min(result.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
-'  // Unlit case' + LineEnding +
+'  /* Unlit case.' + LineEnding +
+'     See shading_phong.fs for comments when this is used.' + LineEnding +
+'  */' + LineEnding +
 '  result = castle_UnlitColor;' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  result *= castle_ColorPerVertex;' + LineEnding +
-'  #endif' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 ''
