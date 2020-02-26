@@ -52,11 +52,11 @@ void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
   /* Calculated color from
-     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.
-     Contains complete "diffuse/transparency" information that is independent of light source.
-     In case of Gouraud shading it is not multiplied by the diffuse texture
+     Material.baseColor/transparency (or ColorRGBA node) * base texture.
+     Contains complete "base/transparency" information that is independent of light source.
+     In case of Gouraud shading it is not multiplied by the base texture
      (because it cannot be, as we're on vertex shader). */
-  const in vec4 material_diffuse_alpha)
+  const in vec4 material_base_alpha)
 {
   vec3 light_dir;
 
@@ -119,30 +119,10 @@ void PLUG_add_light(inout vec4 color,
 #endif
 
   /* add diffuse term */
-  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;
+  vec3 diffuse = castle_LightSource<Light>Color * material_base_alpha.rgb;
 
-  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;
-
-#ifdef LIGHT<Light>_HAS_SPECULAR
-  /* add specular term */
-  /* halfVector is an average of
-     - normalize(light position - vertex_eye) (we already have this
-       in light_dir) and
-     - normalize(camera position - vertex_eye)
-       (and camera position == zero in camera space). */
-  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
-  if (diffuse_factor != 0.0) {
-    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;
-    /* PLUG: material_light_specular (specular_color) */
-    float material_shininess = castle_MaterialShininess;
-    /* PLUG: material_shininess (material_shininess) */
-    light_color += specular_color *
-      pow(max(dot(halfVector, normal_eye),
-        0.0), material_shininess);
-  }
-#endif
 
   color.rgb += light_color * scale;
 }

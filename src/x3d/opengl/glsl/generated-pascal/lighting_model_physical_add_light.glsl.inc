@@ -54,11 +54,11 @@
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
 '  /* Calculated color from' + LineEnding +
-'     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.' + LineEnding +
-'     Contains complete "diffuse/transparency" information that is independent of light source.' + LineEnding +
-'     In case of Gouraud shading it is not multiplied by the diffuse texture' + LineEnding +
+'     Material.baseColor/transparency (or ColorRGBA node) * base texture.' + LineEnding +
+'     Contains complete "base/transparency" information that is independent of light source.' + LineEnding +
+'     In case of Gouraud shading it is not multiplied by the base texture' + LineEnding +
 '     (because it cannot be, as we''re on vertex shader). */' + LineEnding +
-'  const in vec4 material_diffuse_alpha)' + LineEnding +
+'  const in vec4 material_base_alpha)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -121,30 +121,10 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;' + LineEnding +
+'  vec3 diffuse = castle_LightSource<Light>Color * material_base_alpha.rgb;' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
 '  light_color += diffuse * diffuse_factor;' + LineEnding +
-'' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_SPECULAR' + LineEnding +
-'  /* add specular term */' + LineEnding +
-'  /* halfVector is an average of' + LineEnding +
-'     - normalize(light position - vertex_eye) (we already have this' + LineEnding +
-'       in light_dir) and' + LineEnding +
-'     - normalize(camera position - vertex_eye)' + LineEnding +
-'       (and camera position == zero in camera space). */' + LineEnding +
-'  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));' + LineEnding +
-'  if (diffuse_factor != 0.0) {' + LineEnding +
-'    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;' + LineEnding +
-'    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
-'    float material_shininess = castle_MaterialShininess;' + LineEnding +
-'    /* PLUG: material_shininess (material_shininess) */' + LineEnding +
-'    light_color += specular_color *' + LineEnding +
-'      pow(max(dot(halfVector, normal_eye),' + LineEnding +
-'        0.0), material_shininess);' + LineEnding +
-'  }' + LineEnding +
-'#endif' + LineEnding +
 '' + LineEnding +
 '  color.rgb += light_color * scale;' + LineEnding +
 '}' + LineEnding +
