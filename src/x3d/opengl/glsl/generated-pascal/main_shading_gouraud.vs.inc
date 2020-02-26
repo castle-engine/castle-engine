@@ -14,14 +14,14 @@
 'varying vec3 castle_normal_eye;' + LineEnding +
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
-'/* CASTLE-LIGHTING-MODEL-DECLARE */' + LineEnding +
-'' + LineEnding +
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
 'attribute vec4 castle_ColorPerVertex;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '/* Include fragment shader utilities used by both Gouraud and Phong shading. */' + LineEnding +
 '/* CASTLE-COMMON-CODE */' + LineEnding +
+'' + LineEnding +
+'/* CASTLE-LIGHTING-MODEL */' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
@@ -46,8 +46,7 @@
 '' + LineEnding +
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +
-'  // will always initialize castle_Color' + LineEnding +
-'  /* CASTLE-LIGHTING-MODEL-MAIN */' + LineEnding +
+'  calculate_lighting(castle_Color, castle_vertex_eye, castle_normal_eye);' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: lighting_apply (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +

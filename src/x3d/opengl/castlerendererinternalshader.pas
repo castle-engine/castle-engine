@@ -2253,39 +2253,19 @@ var
   TextureUniformsSet: boolean;
 
   procedure EnableLightingModel;
-  type
-    TLightingModelPart = (lmpDeclare, lmpMain);
   const
-    LightingModelCode: array [TLightingModel, { PhongShading } Boolean, TLightingModelPart] of String = (
+    LightingModelCode: array [TLightingModel, { PhongShading } Boolean] of String = (
       (
-        (
-          {$I lighting_model_phong_shading_gouraud_declare.vs.inc},
-          {$I lighting_model_phong_shading_gouraud_main.vs.inc}
-        ),
-        (
-          {$I lighting_model_phong_shading_phong_declare.fs.inc},
-          {$I lighting_model_phong_shading_phong_main.fs.inc}
-        )
+        {$I lighting_model_phong_shading_gouraud.vs.inc},
+        {$I lighting_model_phong_shading_phong.fs.inc}
       ),
       (
-        (
-          {$I lighting_model_physical_shading_gouraud_declare.vs.inc},
-          {$I lighting_model_physical_shading_gouraud_main.vs.inc}
-        ),
-        (
-          {$I lighting_model_physical_shading_phong_declare.fs.inc},
-          {$I lighting_model_physical_shading_phong_main.fs.inc}
-        )
+        {$I lighting_model_physical_shading_gouraud.vs.inc},
+        {$I lighting_model_physical_shading_phong.fs.inc}
       ),
       (
-        (
-          {$I lighting_model_unlit_shading_gouraud_declare.vs.inc},
-          {$I lighting_model_unlit_shading_gouraud_main.vs.inc}
-        ),
-        (
-          {$I lighting_model_unlit_shading_phong_declare.fs.inc},
-          {$I lighting_model_unlit_shading_phong_main.fs.inc}
-        )
+        {$I lighting_model_unlit_shading_gouraud.vs.inc},
+        {$I lighting_model_unlit_shading_phong.fs.inc}
       )
     );
   var
@@ -2304,12 +2284,8 @@ var
       LightingStage := stVertex;
 
     Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
-      '/* CASTLE-LIGHTING-MODEL-DECLARE */',
-      LightingModelCode[LightingModel, PhongShading, lmpDeclare],
-      [rfReplaceAll]);
-    Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
-      '/* CASTLE-LIGHTING-MODEL-MAIN */',
-      LightingModelCode[LightingModel, PhongShading, lmpMain],
+      '/* CASTLE-LIGHTING-MODEL */',
+      LightingModelCode[LightingModel, PhongShading],
       [rfReplaceAll]);
 
     for LightShader in LightShaders do

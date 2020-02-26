@@ -1,5 +1,18 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/shading_gouraud_main.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/shading_gouraud.vs" }
+'uniform vec4 castle_MaterialBaseAlpha;' + LineEnding +
+'uniform vec3 castle_MaterialAmbient;' + LineEnding +
+'uniform vec3 castle_MaterialSpecular;' + LineEnding +
+'uniform float castle_MaterialShininess;' + LineEnding +
+'/* Color summed with all the lights:' + LineEnding +
+'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)' + LineEnding +
+'*/' + LineEnding +
+'uniform vec3 castle_SceneColor;' + LineEnding +
+'uniform vec4 castle_UnlitColor;' + LineEnding +
+'' + LineEnding +
+'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
+'{' + LineEnding +
 '#ifdef LIT' + LineEnding +
 '  /* Two-sided lighting in Gouraud shading:' + LineEnding +
 '     flip the normal vector to correspond to the face side that we actually see.' + LineEnding +
@@ -45,17 +58,18 @@
 '  material_diffuse_alpha = castle_MaterialBaseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
-'  castle_Color = vec4(castle_SceneColor, material_diffuse_alpha.a);' + LineEnding +
+'  result = vec4(castle_SceneColor, material_diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, material_diffuse_alpha) */' + LineEnding +
+'  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
-'  castle_Color.rgb = min(castle_Color.rgb, 1.0);' + LineEnding +
+'  result.rgb = min(result.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
 '  // Unlit case' + LineEnding +
-'  castle_Color = castle_UnlitColor;' + LineEnding +
+'  result = castle_UnlitColor;' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  castle_Color *= castle_ColorPerVertex;' + LineEnding +
+'  result *= castle_ColorPerVertex;' + LineEnding +
 '  #endif' + LineEnding +
 '#endif' + LineEnding +
+'}' + LineEnding +
 ''

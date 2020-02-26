@@ -1,3 +1,16 @@
+uniform vec4 castle_MaterialBaseAlpha;
+uniform vec3 castle_MaterialAmbient;
+uniform vec3 castle_MaterialSpecular;
+uniform float castle_MaterialShininess;
+/* Color summed with all the lights:
+   Material emissive color + material ambient color * global (light model) ambient.
+   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)
+*/
+uniform vec3 castle_SceneColor;
+uniform vec4 castle_UnlitColor;
+
+void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)
+{
 #ifdef LIT
   /* Two-sided lighting in Gouraud shading:
      flip the normal vector to correspond to the face side that we actually see.
@@ -43,16 +56,17 @@
   material_diffuse_alpha = castle_MaterialBaseAlpha;
   #endif
 
-  castle_Color = vec4(castle_SceneColor, material_diffuse_alpha.a);
+  result = vec4(castle_SceneColor, material_diffuse_alpha.a);
 
-  /* PLUG: add_light (castle_Color, castle_vertex_eye, castle_normal_eye, material_diffuse_alpha) */
+  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
-  castle_Color.rgb = min(castle_Color.rgb, 1.0);
+  result.rgb = min(result.rgb, 1.0);
 #else
   // Unlit case
-  castle_Color = castle_UnlitColor;
+  result = castle_UnlitColor;
   #ifdef COLOR_PER_VERTEX
-  castle_Color *= castle_ColorPerVertex;
+  result *= castle_ColorPerVertex;
   #endif
 #endif
+}

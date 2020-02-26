@@ -17,8 +17,6 @@ precision mediump float;
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
-/* CASTLE-LIGHTING-MODEL-DECLARE */
-
 #ifdef COLOR_PER_VERTEX
 varying vec4 castle_ColorPerVertexFragment;
 #endif
@@ -31,6 +29,8 @@ void main_texture_apply(inout vec4 fragment_color,
 {
   /* PLUG: main_texture_apply (fragment_color, normal_eye) */
 }
+
+/* CASTLE-LIGHTING-MODEL */
 
 void main(void)
 {
@@ -55,9 +55,8 @@ void main(void)
 
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
-  vec4 fragment_color; // will be always initialized by CASTLE-LIGHTING-MODEL-MAIN
-
-  /* CASTLE-LIGHTING-MODEL-MAIN */
+  vec4 fragment_color;
+  calculate_lighting(fragment_color, castle_vertex_eye, normal_eye_fragment);
 
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */

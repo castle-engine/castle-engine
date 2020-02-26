@@ -19,8 +19,6 @@
 'varying vec4 castle_vertex_eye;' + LineEnding +
 'varying vec3 castle_normal_eye;' + LineEnding +
 '' + LineEnding +
-'/* CASTLE-LIGHTING-MODEL-DECLARE */' + LineEnding +
-'' + LineEnding +
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
 'varying vec4 castle_ColorPerVertexFragment;' + LineEnding +
 '#endif' + LineEnding +
@@ -33,6 +31,8 @@
 '{' + LineEnding +
 '  /* PLUG: main_texture_apply (fragment_color, normal_eye) */' + LineEnding +
 '}' + LineEnding +
+'' + LineEnding +
+'/* CASTLE-LIGHTING-MODEL */' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
@@ -57,9 +57,8 @@
 '' + LineEnding +
 '  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
-'  vec4 fragment_color; // will be always initialized by CASTLE-LIGHTING-MODEL-MAIN' + LineEnding +
-'' + LineEnding +
-'  /* CASTLE-LIGHTING-MODEL-MAIN */' + LineEnding +
+'  vec4 fragment_color;' + LineEnding +
+'  calculate_lighting(fragment_color, castle_vertex_eye, normal_eye_fragment);' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
