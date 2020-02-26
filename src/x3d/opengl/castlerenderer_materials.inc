@@ -89,6 +89,19 @@ procedure RenderMaterialsBegin;
     end;
   end;
 
+  { Is this a Phong material that has only emissiveColor non-zero. }
+  function PureEmissivePhong(const Material: TMaterialInfo): Boolean;
+  begin
+    Result :=
+      (Material is TPhongMaterialInfo) and
+      TPhongMaterialInfo(Material).PureEmissive and
+      { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
+        "only emissive" lighting calculation, because Color/ColorRGBA
+        nodes replace the diffuse factor, in case of Phong Material. }
+      (Shape.Geometry.InternalColor = nil) and
+      (Shape.Geometry.InternalColorRGBA = nil);
+  end;
+
 var
   Material: TMaterialInfo;
   MaterialLit, MaterialAndShapeLit: Boolean;
@@ -109,7 +122,7 @@ begin
     { Material = nil indicates "white unlit material". }
     (Material <> nil) and
     { Optimize materials in case of PureEmissive. }
-    (not ((Material is TPhongMaterialInfo) and TPhongMaterialInfo(Material).PureEmissive)) and
+    (not PureEmissivePhong(Material)) and
     { UnlitMaterial explicitly says that lighting calculation is not done. }
     (not (Material is TUnlitMaterialInfo));
 
