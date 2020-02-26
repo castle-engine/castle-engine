@@ -134,8 +134,8 @@ type
 
     FHasColor: boolean;
     ColorOffset: Integer;
-    FHasDefaultColor: boolean;
-    FDefaultColor: TVector4;
+    FForceUnlit: boolean;
+    FForcedUnlitColor: TVector4;
 
     FHasFogCoord: boolean;
     FogCoordOffset: Integer;
@@ -256,11 +256,14 @@ type
     procedure IncColor(var P: PVector4);
     property HasColor: boolean read FHasColor;
 
-    { When Color array is not initialized and HasDefaultColor,
-      then the default color will be set to DefaultColor.
+    { When ForceUnlit, the shape must be rendered like with UnlitMaterial,
+      with UnlitMaterial.emissiveColor/alpha = ForcedUnlitColor.
+
+      Note that (as with UnlitMaterial) the colors may be overridden
+      per-vertex using Color array (X3D Color/ColorRGBA nodes).
       @groupBegin }
-    property HasDefaultColor: boolean read FHasDefaultColor write FHasDefaultColor default false;
-    property DefaultColor: TVector4 read FDefaultColor write FDefaultColor;
+    property ForceUnlit: boolean read FForceUnlit write FForceUnlit default false;
+    property ForcedUnlitColor: TVector4 read FForcedUnlitColor write FForcedUnlitColor;
     { @groupEnd }
 
     procedure AddFogCoord;

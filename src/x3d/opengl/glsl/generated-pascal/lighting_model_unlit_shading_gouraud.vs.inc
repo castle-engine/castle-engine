@@ -6,7 +6,7 @@
 '{' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
 '  /* In case of UnlitMaterial, Color/ColorRGBA replaces emissive color.*/' + LineEnding +
-'  result = castle_ColorPerVertexFragment;' + LineEnding +
+'  result = castle_ColorPerVertex;' + LineEnding +
 '  #else' + LineEnding +
 '  result = castle_MaterialEmissiveAlpha;' + LineEnding +
 '  #endif' + LineEnding +

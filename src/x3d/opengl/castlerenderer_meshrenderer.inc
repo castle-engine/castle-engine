@@ -75,15 +75,6 @@ type
     procedure Render; virtual; abstract;
   end;
 
-  { Does the mesh (regardless of material) define some color. }
-  TMeshColor = (
-    mcNone,
-    { Use Arrays.Color, knowing that Arrays.HasColor. }
-    mcColorPerVertex,
-    { Use Arrays.DefaultColor, knowing that Arrays.HasDefaultColor. }
-    mcDefaultColor
-  );
-
   { Base abstract class for rendering nodes with explicit "coord" field.
     (Both IndexedXxx and not indexed). Uses TArraysGenerator
     instance to generate TGeometryArrays contents, then renders them. }
@@ -91,8 +82,7 @@ type
   private
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
-
-    function MeshColor: TMeshColor;
+    function PerVertexColor: Boolean;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -270,7 +260,7 @@ var
       CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(M.SpecularColor);
       if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
            Shader.PhongShading ) and
-         { TODO: HasEmissiveOrAmbientTexture } true then
+         Shader.HasEmissiveOrAmbientTexture then
       begin
         CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
         CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
@@ -347,6 +337,9 @@ var
         by X3D spec equations. }
       MaterialUnlitExplicit(Vector4(Shader.Material.MainColor, Shader.Material.Opacity))
     else
+    if Arrays.ForceUnlit then
+      MaterialUnlitExplicit(Arrays.ForcedUnlitColor)
+    else
     if Shader.Material is TPhongMaterialInfo then
       MaterialPhong(TPhongMaterialInfo(Shader.Material))
     else
@@ -361,10 +354,14 @@ var
   end;
 
 const
-  ToMode: array [TGeometryPrimitive] of TGLenum =
-  ( GL_TRIANGLES, {$ifndef OpenGLES} GL_QUADS, {$endif}
-    GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
-    GL_LINE_STRIP, GL_POINTS );
+  ToMode: array [TGeometryPrimitive] of TGLenum = (
+    GL_TRIANGLES,
+    {$ifndef OpenGLES} GL_QUADS, {$endif}
+    GL_TRIANGLE_FAN,
+    GL_TRIANGLE_STRIP,
+    GL_LINE_STRIP,
+    GL_POINTS
+  );
 var
   I: Integer;
   First: Cardinal;
@@ -420,25 +417,11 @@ begin
 
       if CurrentMeshShader <> nil then
       begin
-        case MeshColor of
-          mcColorPerVertex:
-            begin
-              Assert(Arrays.HasColor);
-              CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
-              Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
-            end;
-
-          mcDefaultColor:
-            begin
-              Assert(Arrays.HasDefaultColor);
-              { We apply Arrays.DefaultColor overriding previous value of this uniform setting.
-                Arrays.DefaultColor is in fact used with this intention
-                ("override unlit color") by PointSet and LineSet generators
-                in castlearraysgenerator_rendering.inc . }
-              CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
-              CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Arrays.DefaultColor);
-            end;
-          else ;
+        if PerVertexColor then
+        begin
+          Assert(Arrays.HasColor);
+          CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
         end;
 
         if Arrays.HasFogCoord then
@@ -463,20 +446,14 @@ begin
       begin
         { set fixed-function parameters }
         {$ifndef OpenGLES}
-        case MeshColor of
-          mcColorPerVertex:
-            begin
-              Assert(Arrays.HasColor);
-              glEnableClientState(GL_COLOR_ARRAY);
-              glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
-            end;
-          mcDefaultColor:
-            begin
-              Assert(Arrays.HasDefaultColor);
-              glColorv(Arrays.DefaultColor);
-            end;
-          else ;
-        end;
+        if PerVertexColor then
+        begin
+          Assert(Arrays.HasColor);
+          glEnableClientState(GL_COLOR_ARRAY);
+          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        end else
+        if (Attributes.Mode = rmFull) and Arrays.ForceUnlit then
+          glColorv(Arrays.ForcedUnlitColor);
 
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         begin
@@ -561,16 +538,9 @@ procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
 begin
 end;
 
-function TBaseCoordinateRenderer.MeshColor: TMeshColor;
+function TBaseCoordinateRenderer.PerVertexColor: Boolean;
 begin
-  Result := mcNone;
-  if Attributes.Mode = rmFull then
-  begin
-    if Arrays.HasColor then
-      Result := mcColorPerVertex else
-    if Arrays.HasDefaultColor then
-      Result := mcDefaultColor;
-  end;
+  Result := (Attributes.Mode = rmFull) and Arrays.HasColor;
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -973,28 +943,22 @@ procedure TColorPerVertexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  { The shader implementation of color-per-vertex (for OpenGLES,
-    or OpenGL shader pipeline) must be enabled regardless
-    if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
-    feature, which works regardless if we're lit or unlit.
-
-    However, we can use it only for mcColorPerVertex case (the case
-    of mcDefaultColor is implemented in OpenGLES differently,
-    without default color "pretending" to be a color per vertex,
-    as in fixed-function pipeline case). }
-  if MeshColor = mcColorPerVertex then
+  if PerVertexColor then
+  begin
+    { Note that the shader implementation of color-per-vertex is enabled regardless
+      if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
+      feature, which works regardless if we're lit or unlit. }
     Shader.EnableColorPerVertex;
 
-  {$ifndef OpenGLES}
-  { for fixed-function pipeline, GL_COLOR_MATERIAL is similar to
-    the Shader.EnableColorPerVertex feature, but not exactly the same.
-    It can only be used when Lighting, and it suitable for mcDefaultColor too. }
-  MaterialFromColorEnabled :=
-    GLFeatures.EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
-  if MaterialFromColorEnabled then
-    { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
-    glEnable(GL_COLOR_MATERIAL);
-  {$endif}
+    {$ifndef OpenGLES}
+    { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
+    MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
+    if MaterialFromColorEnabled then
+      { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
+      glEnable(GL_COLOR_MATERIAL);
+    {$endif}
+  end else
+    MaterialFromColorEnabled := false;
 end;
 
 procedure TColorPerVertexCoordinateRenderer.RenderCoordinateEnd;
@@ -1021,6 +985,9 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
       Shader.LightingModel := lmUnlit
     else
     if (not Attributes.Lighting) and (Shader.Material <> nil) then
+      Shader.LightingModel := lmUnlit
+    else
+    if Arrays.ForceUnlit then
       Shader.LightingModel := lmUnlit
     else
     if Shader.Material is TPhongMaterialInfo then
