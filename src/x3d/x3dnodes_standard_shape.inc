@@ -267,10 +267,24 @@
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
 
-    { Returns an effective diffuse (and alpha) texture node
-      that should be used for this appearance, or @nil.
-      This texture may come from @link(Texture) or from @link(CommonSurfaceShader). }
-    function DiffuseAlphaTexture: TAbstractTextureNode;
+    { Texture that determines the primary RGB color of the material,
+      and transparency of the material.
+
+      This is the texture used when rendering using Gouraud shading
+      (following the new X3D 4 specification advise).
+
+      For Phong shading, this is the texture:
+      - diffuseTexture for Material
+      - emissiveTexture for UnlitMaterial
+      - baseTexture for PhysicalMaterial
+
+      This is also the texture that determines the opacity of the material.
+
+      This is also the texture which is affected by @link(FdTexture)
+      field (if appropriate material slot is empty).
+
+      Returns @nil if none. }
+    function MainTexture: TAbstractTextureNode;
 
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
@@ -1110,7 +1124,7 @@ begin
   end;
 end;
 
-function TAppearanceNode.DiffuseAlphaTexture: TAbstractTextureNode;
+function TAppearanceNode.MainTexture: TAbstractTextureNode;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
@@ -1163,7 +1177,7 @@ var
 begin
   Result := nil;
 
-  Tex := DiffuseAlphaTexture;
+  Tex := MainTexture;
   if Tex is TImageTextureNode then
     Result := TryUrl(TImageTextureNode(Tex).FdUrl);
   if Tex is TMovieTextureNode then

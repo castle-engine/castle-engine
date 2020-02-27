@@ -74,12 +74,15 @@
       We do not clamp color components to (0, 1). This would be a waste of time,
       you should clamp only at the end (or never). This also allows
       to multiply / accumulate values outside of the (0, 1) range
-      during calculations. OpenGL also clamps only at the end. }
+      during calculations. OpenGL also clamps only at the end.
+
+      MainTextureColor is color of the "main" texture.
+      See @link(TAppearanceNode.MainTexture) for definition what is this texture. }
     function Contribution(
       const Point: TVector3; const PointPlaneNormal: TVector3;
       State: TX3DGraphTraverseState;
       const CamPosition: TVector3;
-      const DiffuseTextureColor: TCastleColorRGB): TVector3;
+      const MainTextureColor: TCastleColorRGB): TVector3;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -105,7 +108,7 @@ function TLightInstance.Contribution(
   const Point: TVector3; const PointPlaneNormal: TVector3;
   State: TX3DGraphTraverseState;
   const CamPosition: TVector3;
-  const DiffuseTextureColor: TCastleColorRGB): TVector3;
+  const MainTextureColor: TCastleColorRGB): TVector3;
 
 { Note: In some cases we have to do something different than VRML 2.0/X3D spec:
 
@@ -197,7 +200,7 @@ var
       Exit(TVector3.Zero);
 
     Result :=
-      (MaterialDiffuseColor * DiffuseTextureColor) *
+      (MaterialDiffuseColor * MainTextureColor) *
       (Node.FdIntensity.Value * TVector3.DotProduct(Normal, LightDirNorm));
   end;
 

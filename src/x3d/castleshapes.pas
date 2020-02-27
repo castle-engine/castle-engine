@@ -1719,7 +1719,7 @@ var
     MatPhysical: TPhysicalMaterialNode;
     MatOne: TAbstractOneSidedMaterialNode;
   begin
-    Tex := S.DiffuseAlphaTexture;
+    Tex := S.MainTexture;
 
     if Tex is TMultiTextureNode then
       Result := TMultiTextureNode(Tex).FdTexture.Count
@@ -2207,7 +2207,7 @@ function TShape.AlphaChannel: TAlphaChannel;
       Note that State.Texture may be TMultiTextureNode --- that's Ok,
       it has AlphaChannel = atFullRange
       if any child has atFullRange. So it automatically works Ok too. }
-    Tex := State.DiffuseAlphaTexture;
+    Tex := State.MainTexture;
     if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
       Result := true;
 
@@ -2222,7 +2222,7 @@ function TShape.AlphaChannel: TAlphaChannel;
     FontTextureNode: TAbstractTexture2DNode;
     TexturesAlphaChannel: TAlphaChannel;
   begin
-    TextureNode := State.DiffuseAlphaTexture;
+    TextureNode := State.MainTexture;
     FontTextureNode := OriginalGeometry.FontTextureNode;
 
     { This works also for TextureNode being TMultiTextureNode,

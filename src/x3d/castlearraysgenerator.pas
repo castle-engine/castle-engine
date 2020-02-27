@@ -905,7 +905,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   var
     Tex: TAbstractTextureNode;
   begin
-    Tex := State.DiffuseAlphaTexture;
+    Tex := State.MainTexture;
     Result := (
       (Tex <> nil) and
       ( ( (TexUnit = 0) and IsSingleTexture3D(Tex) )

@@ -3103,9 +3103,12 @@ begin
           By the way, we don't do any texture transform if Texture = nil,
           since then no texture is used anyway.
 
-          TODO: what to do with CommonSurfaceShader ? }
-        if (State.DiffuseAlphaTexture <> nil) and
-           (not (State.DiffuseAlphaTexture is TMultiTextureNode)) then
+          TODO: what to do with CommonSurfaceShader ?
+
+          TODO: fix for new texture channels, where one TextureTransform
+          should work like MultiTextureTransform with one item. }
+        if (State.MainTexture <> nil) and
+           (not (State.MainTexture is TMultiTextureNode)) then
         begin
           if FirstTexUnit < GLFeatures.MaxTextureUnits then
           begin
@@ -3453,7 +3456,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.DiffuseAlphaTexture;
+    TextureNode := Shape.State.MainTexture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
@@ -3487,7 +3490,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
          (Shape.Node.Appearance.Texture <> nil) and
          (TextureNode <> Shape.Node.Appearance.Texture) then
       begin
-        { This means that Shape.State.DiffuseAlphaTexture comes
+        { This means that Shape.State.MainTexture comes
           from CommonSurfaceShader or X3Dv4 Material or PhysicalMaterial.
           Make sure to still enable shadow maps from Shape.Appearance.Texture
           then.

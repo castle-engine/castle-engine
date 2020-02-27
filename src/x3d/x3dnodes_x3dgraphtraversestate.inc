@@ -112,11 +112,9 @@
     function Equals(SecondValue: TX3DGraphTraverseState;
       const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
 
-    { Diffuse (and alpha) texture that should be used for nodes within this State.
-      Regardless of VRML/X3D version. May return multi-texture
-      (TMultiTextureNode), or normal 2D texture (TAbstractTexture2DNode),
-      or some other TAbstractTextureNode descendant (cube map, 3d texture). }
-    function DiffuseAlphaTexture: TAbstractTextureNode;
+    { Primary texture that determines RGB color and opacity.
+      See @link(TAppearanceNode.MainTexture) for definition. }
+    function MainTexture: TAbstractTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -454,14 +452,14 @@ begin
   end;
 end;
 
-function TX3DGraphTraverseState.DiffuseAlphaTexture: TAbstractTextureNode;
+function TX3DGraphTraverseState.MainTexture: TAbstractTextureNode;
 begin
   Result := nil;
   if ShapeNode = nil then
     Result := VRML1State.Texture2
   else
   if ShapeNode.Appearance <> nil then
-    Result := ShapeNode.Appearance.DiffuseAlphaTexture;
+    Result := ShapeNode.Appearance.MainTexture;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;

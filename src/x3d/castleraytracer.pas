@@ -665,7 +665,7 @@ var
       WhiteRGB
       {$else}
       GetDiffuseTexture(
-        IntersectNode^.State.DiffuseAlphaTexture,
+        IntersectNode^.State.MainTexture,
         IntersectNode^.ITexCoord(Intersection))
       {$endif};
 
