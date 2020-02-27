@@ -288,10 +288,16 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         );
     end;
 
+    function MaterialTexturesEqual(const Texture1, Texture2: TX3DNode;
+      const Texture1Channel, Texture2Channel: Integer): Boolean;
+    begin
+      Result := (Texture1 = Texture2) and (Texture1Channel = Texture2Channel);
+    end;
+
     { Checks contents of M1 and M2,
       assuming that they are both <> nil and different references
       (so there's no point in checking their references). }
-    function MaterialsContentsMatch(const M1, M2: TMaterialNode): Boolean;
+    function PhongMaterialsContentsMatch(const M1, M2: TMaterialNode): Boolean;
     begin
       Result :=
         (
@@ -299,7 +305,42 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           TVector3.PerfectlyEquals(M1.FdSpecularColor   .Value, M2.FdSpecularColor   .Value) and
           TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
           (M1.FdAmbientIntensity.Value = M2.FdAmbientIntensity.Value) and
-          (M1.FdTransparency    .Value = M2.FdTransparency    .Value)
+          (M1.FdTransparency    .Value = M2.FdTransparency    .Value) and
+
+          MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureChannel  .Value, M2.FdNormalTextureChannel  .Value) and
+          MaterialTexturesEqual(M1.FdDiffuseTexture .Value, M2.FdDiffuseTexture .Value, M1.FdDiffuseTextureChannel .Value, M2.FdDiffuseTextureChannel .Value) and
+          MaterialTexturesEqual(M1.FdSpecularTexture.Value, M2.FdSpecularTexture.Value, M1.FdSpecularTextureChannel.Value, M2.FdSpecularTextureChannel.Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureChannel.Value, M2.FdEmissiveTextureChannel.Value) and
+          MaterialTexturesEqual(M1.FdAmbientTexture .Value, M2.FdAmbientTexture .Value, M1.FdAmbientTextureChannel .Value, M2.FdAmbientTextureChannel .Value)
+        );
+    end;
+
+    function UnlitMaterialsContentsMatch(const M1, M2: TUnlitMaterialNode): Boolean;
+    begin
+      Result :=
+        (
+          TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
+          (M1.FdTransparency    .Value = M2.FdTransparency    .Value) and
+
+          // ignored: MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureChannel  .Value, M2.FdNormalTextureChannel  .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureChannel.Value, M2.FdEmissiveTextureChannel.Value)
+        );
+    end;
+
+    function PhysicalMaterialsContentsMatch(const M1, M2: TPhysicalMaterialNode): Boolean;
+    begin
+      Result :=
+        (
+          TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
+          TVector3.PerfectlyEquals(M1.FdBaseColor       .Value, M2.FdBaseColor       .Value) and
+          (M1.FdMetallic    .Value = M2.FdMetallic    .Value) and
+          (M1.FdRoughness   .Value = M2.FdRoughness   .Value) and
+          (M1.FdTransparency.Value = M2.FdTransparency.Value) and
+
+          MaterialTexturesEqual(M1.FdNormalTexture           .Value, M2.FdNormalTexture           .Value, M1.FdNormalTextureChannel           .Value, M2.FdNormalTextureChannel           .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture         .Value, M2.FdEmissiveTexture         .Value, M1.FdEmissiveTextureChannel         .Value, M2.FdEmissiveTextureChannel         .Value) and
+          MaterialTexturesEqual(M1.FdBaseTexture             .Value, M2.FdBaseTexture             .Value, M1.FdBaseTextureChannel             .Value, M2.FdBaseTextureChannel             .Value) and
+          MaterialTexturesEqual(M1.FdMetallicRoughnessTexture.Value, M2.FdMetallicRoughnessTexture.Value, M1.FdMetallicRoughnessTextureChannel.Value, M2.FdMetallicRoughnessTextureChannel.Value)
         );
     end;
 
@@ -310,7 +351,17 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
         (
           (M1 is TMaterialNode) and
           (M2 is TMaterialNode) and
-          MaterialsContentsMatch(TMaterialNode(M1), TMaterialNode(M2))
+          PhongMaterialsContentsMatch(TMaterialNode(M1), TMaterialNode(M2))
+        ) or
+        (
+          (M1 is TUnlitMaterialNode) and
+          (M2 is TUnlitMaterialNode) and
+          UnlitMaterialsContentsMatch(TUnlitMaterialNode(M1), TUnlitMaterialNode(M2))
+        ) or
+        (
+          (M1 is TPhysicalMaterialNode) and
+          (M2 is TPhysicalMaterialNode) and
+          PhysicalMaterialsContentsMatch(TPhysicalMaterialNode(M1), TPhysicalMaterialNode(M2))
         );
     end;
 
