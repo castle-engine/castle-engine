@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "shadow_map_generate.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/shadow_map_generate.vs" }
 '/* Vertex shader when generating shadow maps. */' + LineEnding +
 '' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +

@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template.gs" }
+{ DON'T EDIT -- this file was automatically generated from "source/geometry_shader_utils.gs" }
 '/* Default geometry shader code.' + LineEnding +
 '   Defines geometryVertexXxx functions,' + LineEnding +
 '   to be called from user code, and respective geometry_vertex_xxx plugs,' + LineEnding +

@@ -69,6 +69,7 @@ end;
 class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
+  MatOne: TAbstractOneSidedMaterialNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
 begin
@@ -87,27 +88,33 @@ begin
     end else
     if Shape.Node.Appearance <> nil then
     begin
-      Result := Shape.Node.Appearance.NormalMap <> nil;
-      if Result then Exit;
+      if Shape.Node.Appearance.NormalMap <> nil then
+        Exit(true);
+
+      if Shape.Node.Appearance.Material is TAbstractOneSidedMaterialNode then
+      begin
+        MatOne := TAbstractOneSidedMaterialNode(Shape.Node.Appearance.Material);
+        if (MatOne.EmissiveTexture <> nil) or
+           (MatOne.NormalTexture <> nil) then
+          Exit(true);
+      end;
+
       if Shape.Node.Appearance.Material is TMaterialNode then
       begin
         MatPhong := TMaterialNode(Shape.Node.Appearance.Material);
-        Result :=
-          (MatPhong.EmissiveTexture <> nil) or
-          (MatPhong.NormalTexture <> nil) or
-          (MatPhong.AmbientTexture <> nil) or
-          // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
-          (MatPhong.ShininessTexture <> nil) or
-          (MatPhong.SpecularTexture <> nil);
+        if (MatPhong.AmbientTexture <> nil) or
+           // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
+           (MatPhong.ShininessTexture <> nil) or
+           (MatPhong.SpecularTexture <> nil) then
+          Exit(true);
       end;
+
       if Shape.Node.Appearance.Material is TPhysicalMaterialNode then
       begin
         MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
-        Result :=
-          (MatPhysical.EmissiveTexture <> nil) or
-          (MatPhysical.NormalTexture <> nil) or
-          // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-          (MatPhysical.MetallicRoughnessTexture <> nil);
+        if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
+           (MatPhysical.MetallicRoughnessTexture <> nil) then
+          Exit(true);
       end;
     end;
   end;
@@ -227,6 +234,22 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     end;
   end;
 
+  procedure EmissiveTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer;
+    const ChannelMask: String = 'rgb');
+  begin
+    SurfaceTextureEnable(stEmissive,
+      Texture,
+      TextureChannel,
+      ChannelMask,
+      'castle_texture_emissive',
+      'vec3',
+      'emissive',
+      'vec3',
+      '.rgb');
+  end;
+
   procedure AmbientTextureEnable(
     const Texture: TAbstractTextureNode;
     const TextureChannel: Integer;
@@ -239,7 +262,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       'castle_texture_ambient',
       'vec3',
       'light_ambient',
-      'vec4',
+      'vec3',
       '.rgb');
   end;
 
@@ -255,7 +278,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       'castle_texture_specular',
       'vec3',
       'light_specular',
-      'vec4',
+      'vec3',
       '.rgb');
   end;
 
@@ -284,6 +307,10 @@ begin
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
+      EmissiveTextureEnable(
+        SurfaceShader.EmissiveTexture,
+        SurfaceShader.EmissiveTextureCoordinatesId,
+        SurfaceShader.EmissiveTextureChannelMask);
       AmbientTextureEnable(
         SurfaceShader.AmbientTexture,
         SurfaceShader.AmbientTextureCoordinatesId,
@@ -300,6 +327,9 @@ begin
     if State.ShapeNode.Material is TMaterialNode then
     begin
       MatPhong := TMaterialNode(State.ShapeNode.Material);
+      EmissiveTextureEnable(
+        MatPhong.EmissiveTexture,
+        MatPhong.EmissiveTextureChannel);
       AmbientTextureEnable(
         MatPhong.AmbientTexture,
         MatPhong.AmbientTextureChannel);

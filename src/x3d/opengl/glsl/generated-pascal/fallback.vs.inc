@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "fallback.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/fallback.vs" }
 '/* Fallback GLSL vertex shader.' + LineEnding +
 '' + LineEnding +
 '   Used when we need a shader (e.g. because it is OpenGLES or' + LineEnding +

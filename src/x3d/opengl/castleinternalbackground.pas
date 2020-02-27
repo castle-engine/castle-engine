@@ -677,7 +677,7 @@ type
     Texture2D: TAbstractTexture2DNode;
     TexCoords: TTextureCoordinateNode;
     IndexedFaceSet: TIndexedFaceSetNode;
-    Material: TMaterialNode;
+    Material: TUnlitMaterialNode;
   public
     constructor Create(const ANode: TImageBackgroundNode);
     destructor Destroy; override;
@@ -723,8 +723,7 @@ begin
     Shape.Appearance := TAppearanceNode.Create;
     Shape.Appearance.Texture := Texture2D;
 
-    Material := TMaterialNode.Create;
-    Material.ForcePureEmissive;
+    Material := TUnlitMaterialNode.Create;
     Shape.Appearance.Material := Material;
 
     RootNode.AddChildren(Shape);

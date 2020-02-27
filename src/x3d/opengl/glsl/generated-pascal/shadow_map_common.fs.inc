@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "shadow_map_common.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/shadow_map_common.fs" }
 '/* Shadow map functions. */' + LineEnding +
 '' + LineEnding +
 '/* Define exactly one of PCF* symbols, or none (to not use any PCF).' + LineEnding +

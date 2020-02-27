@@ -106,7 +106,7 @@ procedure TStateMain.InitializeUserInterface;
   var
     FontStyle: TFontStyleNode;
     TextShape: TShapeNode;
-    Material: TMaterialNode;
+    Material: TUnlitMaterialNode;
   begin
     FontStyle := TFontStyleNode.Create;
     FontStyle.Justify := fjMiddle;
@@ -118,9 +118,8 @@ procedure TStateMain.InitializeUserInterface;
     TextNode.Solid := false;
     TextNode.SetString([Text3D]);
 
-    Material := TMaterialNode.Create;
+    Material := TUnlitMaterialNode.Create;
     Material.EmissiveColor := YellowRGB;
-    Material.ForcePureEmissive;
     TextShape.Material := Material;
 
     Result := TX3DRootNode.Create;

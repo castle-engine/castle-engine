@@ -8,19 +8,37 @@
 #
 # Placing source/ and generated-pascal/ in separate subdirectories makes it easier
 # to browse, and to grep inside GLSL files, since you can easily grep only within source/ .
+#
+# Note that we flatten directory structure in generated-pascal/,
+# to avoid the need to specify many include paths.
+# It just seems easier to extend and reorganize the source/ directory freely this way.
 
-ALL_SOURCES := $(wildcard source/*.fs) \
-               $(wildcard source/*.vs) \
-	       $(wildcard source/*.gs) \
-	       $(wildcard source/*.glsl)
-ALL_OUTPUT := $(addsuffix .inc, $(subst source/,generated-pascal/,$(ALL_SOURCES)))
+ALL_SOURCES := $(shell find source/ \
+  -iname '*.fs' -or \
+  -iname '*.vs' -or \
+  -iname '*.gs' -or \
+  -iname '*.glsl')
+ALL_OUTPUT := $(addsuffix .inc, \
+  $(subst lighting_model_phong/,lighting_model_phong_, \
+  $(subst lighting_model_physical/,lighting_model_physical_, \
+  $(subst lighting_model_unlit/,lighting_model_unlit_, \
+  $(subst source/,generated-pascal/, \
+  $(ALL_SOURCES))))))
 
 .PHONY: all
 all: $(ALL_OUTPUT)
 
 generated-pascal/%.inc: source/%
 	file_to_pascal_string $< $@
+generated-pascal/lighting_model_phong_%.inc: source/lighting_model_phong/%
+	file_to_pascal_string $< $@
+generated-pascal/lighting_model_physical_%.inc: source/lighting_model_physical/%
+	file_to_pascal_string $< $@
+generated-pascal/lighting_model_unlit_%.inc: source/lighting_model_unlit/%
+	file_to_pascal_string $< $@
 
 .PHONY: clean
 clean:
-	rm -f $(ALL_OUTPUT)
+#	rm -f $(ALL_OUTPUT)
+# Clean all *.inc files, in case we renamed some files in source/
+	rm -f generated-pascal/*.inc

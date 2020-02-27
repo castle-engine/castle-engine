@@ -8,6 +8,8 @@
 /* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)
    in eye coordinates. */
 uniform vec3 castle_LightSource<Light>Position;
+
+/* SpotLight specific parameters */
 #ifdef LIGHT<Light>_TYPE_SPOT
 uniform vec3 castle_LightSource<Light>SpotDirection;
 uniform float castle_LightSource<Light>SpotCosCutoff;
@@ -21,18 +23,12 @@ uniform float castle_LightSource<Light>BeamWidth;
 uniform float castle_LightSource<Light>SpotExponent;
 #endif
 #endif
-/* Multiplied colors of light source and material. */
+
 #ifdef LIGHT<Light>_HAS_AMBIENT
-uniform vec4 castle_SideLightProduct<Light>Ambient;
+uniform vec3 castle_LightSource<Light>AmbientColor;
 #endif
-#ifdef COLOR_PER_VERTEX
-uniform vec4 castle_LightSource<Light>Diffuse;
-#else
-uniform vec4 castle_SideLightProduct<Light>Diffuse;
-#endif
-#ifdef LIGHT<Light>_HAS_SPECULAR
-uniform vec4 castle_SideLightProduct<Light>Specular;
-#endif
+uniform vec3 castle_LightSource<Light>Color;
+
 #ifdef LIGHT<Light>_HAS_ATTENUATION
 /* Attenuation: constant, linear, quadratic. */
 uniform vec3 castle_LightSource<Light>Attenuation;
@@ -42,19 +38,25 @@ uniform vec3 castle_LightSource<Light>Attenuation;
 uniform float castle_LightSource<Light>Radius;
 #endif
 
-#ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
+// In case of OpenGLES, all shader code is glued, so this is already declared
 #ifndef GL_ES
-void separate_diffuse_apply_texture(inout vec4 fragment_color,
-  const in vec4 vertex_eye,
-  const in vec3 normal_eye);
-#endif
+uniform vec3 castle_MaterialAmbient;
+uniform vec3 castle_MaterialSpecular;
+uniform float castle_MaterialShininess;
 #endif
 
+/* Add light contribution.
+   Note: this never changes color.a.
+*/
 void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  in float material_shininess,
-  in vec4 color_per_vertex)
+  /* Calculated color from
+     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.
+     Contains complete "diffuse/transparency" information that is independent of light source.
+     In case of Gouraud shading it is not multiplied by the diffuse texture
+     (because it cannot be, as we're on vertex shader). */
+  const in vec4 material_diffuse_alpha)
 {
   vec3 light_dir;
 
@@ -108,25 +110,16 @@ void PLUG_add_light(inout vec4 color,
 #endif
 
   /* add ambient term */
-  vec4 light_color =
+  vec3 light_color =
 #ifdef LIGHT<Light>_HAS_AMBIENT
-  castle_SideLightProduct<Light>Ambient;
+  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;
   /* PLUG: material_light_ambient (light_color) */
 #else
-  vec4(0.0);
+  vec3(0.0);
 #endif
 
   /* add diffuse term */
-  vec4 diffuse =
-#ifdef COLOR_PER_VERTEX
-  castle_LightSource<Light>Diffuse * color_per_vertex;
-#else
-  castle_SideLightProduct<Light>Diffuse;
-#endif
-
-  #ifdef CASTLE_SEPARATE_DIFFUSE_TEXTURE
-  separate_diffuse_apply_texture(diffuse, vertex_eye, normal_eye);
-  #endif
+  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;
 
   /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
@@ -141,8 +134,9 @@ void PLUG_add_light(inout vec4 color,
        (and camera position == zero in camera space). */
   vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
   if (diffuse_factor != 0.0) {
-    vec4 specular_color = castle_SideLightProduct<Light>Specular;
+    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;
     /* PLUG: material_light_specular (specular_color) */
+    float material_shininess = castle_MaterialShininess;
     /* PLUG: material_shininess (material_shininess) */
     light_color += specular_color *
       pow(max(dot(halfVector, normal_eye),
@@ -150,5 +144,5 @@ void PLUG_add_light(inout vec4 color,
   }
 #endif
 
-  color += light_color * scale;
+  color.rgb += light_color * scale;
 }

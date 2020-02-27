@@ -46,11 +46,11 @@ Group{
       parts EffectPart {
         type "FRAGMENT"
         url "data:text/plain,
-        void PLUG_texture_apply(
-           inout vec4 fragment_color,
+        void PLUG_main_texture_apply(
+           inout vec4 color,
            const in vec3 normal)
         {
-           fragment_color.rgb = pow(fragment_color.rgb * 3.0 / 2.0, vec3(3.0));
+           color.rgb = pow(color.rgb * 3.0 / 2.0, vec3(3.0));
         }"
       }
     }

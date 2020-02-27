@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "bump_mapping_parallax.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/bump_mapping_parallax.fs" }
 '/* Parallax bump mapping shader effect.' + LineEnding +
 '   This is added right after bump_mapping.fs.' + LineEnding +
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +

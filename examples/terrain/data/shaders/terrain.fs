@@ -25,7 +25,7 @@ uniform float h3; // below is tex_3 mixed with tex_2
 varying vec3 terrain_position;
 varying vec3 terrain_normal;
 
-void PLUG_texture_apply(inout vec4 fragment_color, const in vec3 normal)
+void PLUG_main_texture_apply(inout vec4 fragment_color, const in vec3 normal)
 {
   vec4 tex;
   float h = terrain_position.y;

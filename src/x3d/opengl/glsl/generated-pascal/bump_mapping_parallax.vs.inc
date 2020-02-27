@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "bump_mapping_parallax.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/bump_mapping_parallax.vs" }
 '/* Parallax bump mapping shader effect.' + LineEnding +
 '   This is added right after bump_mapping.fs.' + LineEnding +
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +
@@ -24,8 +24,6 @@
 '    vec3(m[0].z, m[1].z, m[2].z)' + LineEnding +
 '  );' + LineEnding +
 '}' + LineEnding +
-'' + LineEnding +
-'/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
 '// avoid redeclaring variables when no "separate compilation units" available (OpenGLES)' + LineEnding +
 '#ifndef GL_ES' + LineEnding +

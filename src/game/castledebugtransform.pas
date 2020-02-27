@@ -157,7 +157,7 @@ uses CastleLog;
 
 constructor TDebugAxis.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
-  Material: TMaterialNode;
+  Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -172,8 +172,7 @@ begin
   FGeometry.SetVertexCount([2, 2, 2]);
   FGeometry.Coord := FCoord;
 
-  Material := TMaterialNode.Create;
-  Material.ForcePureEmissive;
+  Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Color;
 
   FShape := TShapeNode.Create;
@@ -211,7 +210,7 @@ end;
 
 constructor TDebugBox.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
-  Material: TMaterialNode;
+  Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -221,8 +220,7 @@ begin
   FShape.Geometry := FGeometry;
   FShape.Shading := shWireframe;
 
-  Material := TMaterialNode.Create;
-  Material.ForcePureEmissive;
+  Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Color;
   FShape.Material := Material;
 
@@ -244,7 +242,7 @@ end;
 
 constructor TDebugSphere.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
 var
-  Material: TMaterialNode;
+  Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -256,8 +254,7 @@ begin
   FShape.Geometry := FGeometry;
   FShape.Shading := shWireframe;
 
-  Material := TMaterialNode.Create;
-  Material.ForcePureEmissive;
+  Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Color;
   FShape.Material := Material;
 

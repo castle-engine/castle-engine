@@ -905,7 +905,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   var
     Tex: TAbstractTextureNode;
   begin
-    Tex := State.DiffuseAlphaTexture;
+    Tex := State.MainTexture;
     Result := (
       (Tex <> nil) and
       ( ( (TexUnit = 0) and IsSingleTexture3D(Tex) )
@@ -1566,7 +1566,7 @@ end;
 function TAbstractMaterial1Generator.GetMaterial1Color(
   const MaterialIndex: Integer): TVector4;
 var
-  M: TMaterialInfo;
+  M: TPhongMaterialInfo; // VRML 1.0 has only Phong lighting model
 begin
   M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
   if M.PureEmissive then
@@ -1655,6 +1655,7 @@ procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
 var
   VertexColor: TCastleColorRGB;
   VertexIndex: Cardinal;
+  M: TMaterialInfo;
 begin
   inherited;
   { Implement different color per vertex here. }
@@ -1674,11 +1675,13 @@ begin
         VertexColor := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
         VertexColor := Color.ItemsSafe[IndexNum];
     end else
-    if State.MaterialInfo <> nil then
     begin
-      VertexColor := State.MaterialInfo.DiffuseColor;
-    end else
-      VertexColor := WhiteRGB; { default fallback }
+      M := State.MaterialInfo;
+      if M <> nil then
+        VertexColor := M.MainColor
+      else
+        VertexColor := WhiteRGB; { default fallback }
+    end;
 
     OnVertexColor(VertexColor, Shape, GetVertex(IndexNum), VertexIndex);
     Arrays.Color(ArrayIndexNum)^ := Vector4(VertexColor, MaterialOpacity);

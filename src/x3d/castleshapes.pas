@@ -1717,8 +1717,9 @@ var
     SurfaceShader: TCommonSurfaceShaderNode;
     MatPhong: TMaterialNode;
     MatPhysical: TPhysicalMaterialNode;
+    MatOne: TAbstractOneSidedMaterialNode;
   begin
-    Tex := S.DiffuseAlphaTexture;
+    Tex := S.MainTexture;
 
     if Tex is TMultiTextureNode then
       Result := TMultiTextureNode(Tex).FdTexture.Count
@@ -1749,13 +1750,17 @@ var
       begin
         if S.ShapeNode.Appearance.NormalMap <> nil then
           MaxVar(Result, 1);
+        if S.ShapeNode.Appearance.Material is TAbstractOneSidedMaterialNode then
+        begin
+          MatOne := TAbstractOneSidedMaterialNode(S.ShapeNode.Appearance.Material);
+          if MatOne.EmissiveTexture <> nil then
+            MaxVar(Result, MatOne.EmissiveTextureChannel + 1);
+          if MatOne.NormalTexture <> nil then
+            MaxVar(Result, MatOne.NormalTextureChannel + 1);
+        end;
         if S.ShapeNode.Appearance.Material is TMaterialNode then
         begin
           MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
-          if MatPhong.EmissiveTexture <> nil then
-            MaxVar(Result, MatPhong.EmissiveTextureChannel + 1);
-          if MatPhong.NormalTexture <> nil then
-            MaxVar(Result, MatPhong.NormalTextureChannel + 1);
           if MatPhong.AmbientTexture <> nil then
             MaxVar(Result, MatPhong.AmbientTextureChannel + 1);
           if MatPhong.DiffuseTexture <> nil then
@@ -1768,10 +1773,6 @@ var
         if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
         begin
           MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
-          if MatPhysical.EmissiveTexture <> nil then
-            MaxVar(Result, MatPhysical.EmissiveTextureChannel + 1);
-          if MatPhysical.NormalTexture <> nil then
-            MaxVar(Result, MatPhysical.NormalTextureChannel + 1);
           if MatPhysical.BaseTexture <> nil then
             MaxVar(Result, MatPhysical.BaseTextureChannel + 1);
           if MatPhysical.MetallicRoughnessTexture <> nil then
@@ -2206,7 +2207,7 @@ function TShape.AlphaChannel: TAlphaChannel;
       Note that State.Texture may be TMultiTextureNode --- that's Ok,
       it has AlphaChannel = atFullRange
       if any child has atFullRange. So it automatically works Ok too. }
-    Tex := State.DiffuseAlphaTexture;
+    Tex := State.MainTexture;
     if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
       Result := true;
 
@@ -2221,7 +2222,7 @@ function TShape.AlphaChannel: TAlphaChannel;
     FontTextureNode: TAbstractTexture2DNode;
     TexturesAlphaChannel: TAlphaChannel;
   begin
-    TextureNode := State.DiffuseAlphaTexture;
+    TextureNode := State.MainTexture;
     FontTextureNode := OriginalGeometry.FontTextureNode;
 
     { This works also for TextureNode being TMultiTextureNode,
@@ -2609,12 +2610,16 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     if Result <> nil then Exit;
   end;
 
-  function HandleMaterial(const Mat: TMaterialNode): Pointer;
+  function HandleOneSidedMaterial(const Mat: TAbstractOneSidedMaterialNode): Pointer;
   begin
     Result := HandleTextureNode(Mat.FdEmissiveTexture.Value);
     if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdNormalTexture.Value);
     if Result <> nil then Exit;
+  end;
+
+  function HandleMaterial(const Mat: TMaterialNode): Pointer;
+  begin
     Result := HandleTextureNode(Mat.FdAmbientTexture.Value);
     if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdDiffuseTexture.Value);
@@ -2627,10 +2632,6 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
 
   function HandlePhysicalMaterial(const Mat: TPhysicalMaterialNode): Pointer;
   begin
-    Result := HandleTextureNode(Mat.FdEmissiveTexture.Value);
-    if Result <> nil then Exit;
-    Result := HandleTextureNode(Mat.FdNormalTexture.Value);
-    if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdBaseTexture.Value);
     if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdMetallicRoughnessTexture.Value);
@@ -2650,6 +2651,12 @@ begin
      (State.ShapeNode.Appearance <> nil) then
   begin
     App := State.ShapeNode.Appearance;
+
+    if App.FdMaterial.Value is TAbstractOneSidedMaterialNode then
+    begin
+      Result := HandleOneSidedMaterial(TAbstractOneSidedMaterialNode(App.FdMaterial.Value));
+      if Result <> nil then Exit;
+    end;
 
     if App.FdMaterial.Value is TMaterialNode then
     begin

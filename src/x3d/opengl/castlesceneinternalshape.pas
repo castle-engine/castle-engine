@@ -98,7 +98,7 @@ begin
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
   begin
-    Renderer.UnprepareTexture(State.DiffuseAlphaTexture);
+    Renderer.UnprepareTexture(State.MainTexture);
     PreparedForRenderer := false;
     PreparedUseAlphaChannel := false;
     SchedulePrepareResources;

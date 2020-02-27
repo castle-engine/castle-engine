@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -75,15 +75,6 @@ type
     procedure Render; virtual; abstract;
   end;
 
-  { Does the mesh (regardless of material) define some color. }
-  TMeshColor = (
-    mcNone,
-    { Use Arrays.Color, knowing that Arrays.HasColor. }
-    mcColorPerVertex,
-    { Use Arrays.DefaultColor, knowing that Arrays.HasDefaultColor. }
-    mcDefaultColor
-  );
-
   { Base abstract class for rendering nodes with explicit "coord" field.
     (Both IndexedXxx and not indexed). Uses TArraysGenerator
     instance to generate TGeometryArrays contents, then renders them. }
@@ -91,8 +82,7 @@ type
   private
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
-
-    function MeshColor: TMeshColor;
+    function PerVertexColor: Boolean;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -255,11 +245,103 @@ var
     end;
   end;
 
+  { Call one of MaterialXxx, to pass shader uniforms suitable
+    for the current lighting model. }
+  procedure FinalizeLightingModel;
+
+    { Pass shader uniforms for Phong calculation. }
+    procedure MaterialPhong(const M: TPhongMaterialInfo);
+    begin
+      Assert(Shader.LightingModel = lmPhong); // should be set by InitializeLightingModel
+
+      CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Vector4(M.DiffuseColor, M.Opacity));
+      CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(M.ShininessExp);
+      CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(M.AmbientColor);
+      CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(M.SpecularColor);
+      if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
+           Shader.PhongShading ) and
+         Shader.HasEmissiveOrAmbientTexture then
+      begin
+        CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+        CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
+      end else
+      begin
+        CurrentMeshShader.UniformCastle_SceneColor.SetValue(
+          M.EmissiveColor +
+          RenderContext.GlobalAmbient * M.AmbientColor);
+      end;
+
+      { castle_UnlitColor is used when we calculated Lighting = false
+        (in castlerenderer_materials.inc) and material is TPhongMaterialInfo.
+        This means that TPhongMaterialInfo has PureEmissive.
+        (Note: the case when Lighting = false because of
+        Attributes.Lighting = false was covered earlier,
+        instead of calling MaterialPhongInitialize). }
+      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+    end;
+
+    { Pass shader uniforms for Physical (PBR) lighting calculation. }
+    procedure MaterialPhysical(const M: TPhysicalMaterialInfo);
+    begin
+      Assert(Shader.LightingModel = lmPhysical); // should be set by InitializeLightingModel
+      CurrentMeshShader.UniformCastle_MaterialBaseAlpha.SetValue(Vector4(M.BaseColor, M.Opacity));
+      CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+    end;
+
+    { Pass shader uniforms for unlit lighting calculation. }
+    procedure MaterialUnlit(const M: TUnlitMaterialInfo);
+    begin
+      Assert(Shader.LightingModel = lmUnlit); // should be set by InitializeLightingModel
+      CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Vector4(M.EmissiveColor, M.Opacity));
+    end;
+
+    { Pass shader uniforms for unlit (with explicit color) lighting calculation. }
+    procedure MaterialUnlitExplicit(const Color: TCastleColor);
+    begin
+      Assert(Shader.LightingModel = lmUnlit); // should be set by InitializeLightingModel
+      CurrentMeshShader.UniformCastle_MaterialEmissiveAlpha.SetValue(Color);
+    end;
+
+  begin
+    if Attributes.Mode = rmSolidColor then
+      { In case of rmSolidColor, force using unlit with Attributes.SolidColor.
+        Note that castlerenderer_materials.inc made sure that Lightning = false
+        in case of rmSolidColor, so we know it is rendered with LIT undefined. }
+      MaterialUnlitExplicit(Vector4(Attributes.SolidColor, 1))
+    else
+    if (not Attributes.Lighting) and (Shader.Material <> nil) then
+      { In case we have a material, but user requested Attributes.Lighting = false,
+        use MainColor. Otherwise we would e.g. use EmissiveColor in case of Phong,
+        which would usually be black.
+        Attributes.Lighting = false is a debug rendering anyway, not covered
+        by X3D spec equations. }
+      MaterialUnlitExplicit(Vector4(Shader.Material.MainColor, Shader.Material.Opacity))
+    else
+    if Arrays.ForceUnlit then
+      MaterialUnlitExplicit(Arrays.ForcedUnlitColor)
+    else
+    if Shader.Material is TPhongMaterialInfo then
+      MaterialPhong(TPhongMaterialInfo(Shader.Material))
+    else
+    if Shader.Material is TPhysicalMaterialInfo then
+      MaterialPhysical(TPhysicalMaterialInfo(Shader.Material))
+    else
+    if Shader.Material is TUnlitMaterialInfo then
+      MaterialUnlit(TUnlitMaterialInfo(Shader.Material))
+    else
+      { Unlit white is used when material = nil. }
+      MaterialUnlitExplicit(White);
+  end;
+
 const
-  ToMode: array [TGeometryPrimitive] of TGLenum =
-  ( GL_TRIANGLES, {$ifndef OpenGLES} GL_QUADS, {$endif}
-    GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
-    GL_LINE_STRIP, GL_POINTS );
+  ToMode: array [TGeometryPrimitive] of TGLenum = (
+    GL_TRIANGLES,
+    {$ifndef OpenGLES} GL_QUADS, {$endif}
+    GL_TRIANGLE_FAN,
+    GL_TRIANGLE_STRIP,
+    GL_LINE_STRIP,
+    GL_POINTS
+  );
 var
   I: Integer;
   First: Cardinal;
@@ -288,11 +370,8 @@ begin
         CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
         CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
         CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
-        CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
-        CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
-        CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
-          RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);
-        CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
+
+        FinalizeLightingModel;
 
         Attribs := TGLSLAttributeList.Create;
 
@@ -318,25 +397,11 @@ begin
 
       if CurrentMeshShader <> nil then
       begin
-        case MeshColor of
-          mcColorPerVertex:
-            begin
-              Assert(Arrays.HasColor);
-              CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
-              Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
-            end;
-
-          mcDefaultColor:
-            begin
-              Assert(Arrays.HasDefaultColor);
-              { We apply Arrays.DefaultColor as Shader.MaterialUnlit,
-                overriding previous castle_UnlitColor setting.
-                Arrays.DefaultColor is in fact used with this intention
-                ("override unlit color") by PointSet and LineSet generators
-                in castlearraysgenerator_rendering.inc . }
-              CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
-            end;
-          else ;
+        if PerVertexColor then
+        begin
+          Assert(Arrays.HasColor);
+          CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
         end;
 
         if Arrays.HasFogCoord then
@@ -361,20 +426,14 @@ begin
       begin
         { set fixed-function parameters }
         {$ifndef OpenGLES}
-        case MeshColor of
-          mcColorPerVertex:
-            begin
-              Assert(Arrays.HasColor);
-              glEnableClientState(GL_COLOR_ARRAY);
-              glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
-            end;
-          mcDefaultColor:
-            begin
-              Assert(Arrays.HasDefaultColor);
-              glColorv(Arrays.DefaultColor);
-            end;
-          else ;
-        end;
+        if PerVertexColor then
+        begin
+          Assert(Arrays.HasColor);
+          glEnableClientState(GL_COLOR_ARRAY);
+          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        end else
+        if (Attributes.Mode = rmFull) and Arrays.ForceUnlit then
+          glColorv(Arrays.ForcedUnlitColor);
 
         if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
         begin
@@ -459,16 +518,9 @@ procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
 begin
 end;
 
-function TBaseCoordinateRenderer.MeshColor: TMeshColor;
+function TBaseCoordinateRenderer.PerVertexColor: Boolean;
 begin
-  Result := mcNone;
-  if Attributes.Mode = rmFull then
-  begin
-    if Arrays.HasColor then
-      Result := mcColorPerVertex else
-    if Arrays.HasDefaultColor then
-      Result := mcDefaultColor;
-  end;
+  Result := (Attributes.Mode = rmFull) and Arrays.HasColor;
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -871,28 +923,22 @@ procedure TColorPerVertexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  { The shader implementation of color-per-vertex (for OpenGLES,
-    or OpenGL shader pipeline) must be enabled regardless
-    if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
-    feature, which works regardless if we're lit or unlit.
-
-    However, we can use it only for mcColorPerVertex case (the case
-    of mcDefaultColor is implemented in OpenGLES differently,
-    without default color "pretending" to be a color per vertex,
-    as in fixed-function pipeline case). }
-  if MeshColor = mcColorPerVertex then
+  if PerVertexColor then
+  begin
+    { Note that the shader implementation of color-per-vertex is enabled regardless
+      if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
+      feature, which works regardless if we're lit or unlit. }
     Shader.EnableColorPerVertex;
 
-  {$ifndef OpenGLES}
-  { for fixed-function pipeline, GL_COLOR_MATERIAL is similar to
-    the Shader.EnableColorPerVertex feature, but not exactly the same.
-    It can only be used when Lighting, and it suitable for mcDefaultColor too. }
-  MaterialFromColorEnabled :=
-    GLFeatures.EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
-  if MaterialFromColorEnabled then
-    { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
-    glEnable(GL_COLOR_MATERIAL);
-  {$endif}
+    {$ifndef OpenGLES}
+    { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
+    MaterialFromColorEnabled := GLFeatures.EnableFixedFunction and Lighting;
+    if MaterialFromColorEnabled then
+      { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
+      glEnable(GL_COLOR_MATERIAL);
+    {$endif}
+  end else
+    MaterialFromColorEnabled := false;
 end;
 
 procedure TColorPerVertexCoordinateRenderer.RenderCoordinateEnd;
@@ -908,6 +954,34 @@ end;
 { TShaderCoordinateRenderer -------------------------------------------------- }
 
 procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
+
+  { Initialize Shader.LightingModel.
+    Must be done before linking the shader.
+    Logic must follow *exactly* FinalizeLightingModel (which must be done after
+    linking the shader). }
+  procedure InitializeLightingModel;
+  begin
+    if Attributes.Mode = rmSolidColor then
+      Shader.LightingModel := lmUnlit
+    else
+    if (not Attributes.Lighting) and (Shader.Material <> nil) then
+      Shader.LightingModel := lmUnlit
+    else
+    if Arrays.ForceUnlit then
+      Shader.LightingModel := lmUnlit
+    else
+    if Shader.Material is TPhongMaterialInfo then
+      Shader.LightingModel := lmPhong
+    else
+    if Shader.Material is TPhysicalMaterialInfo then
+      Shader.LightingModel := lmPhysical
+    else
+    if Shader.Material is TUnlitMaterialInfo then
+      Shader.LightingModel := lmUnlit
+    else
+      Shader.LightingModel := lmUnlit
+  end;
+
 var
   UseShaderRendering: boolean;
   CurrentX3DProgram: TX3DShaderProgram;
@@ -936,6 +1010,8 @@ begin
 
     if UseShaderRendering then
     begin
+      InitializeLightingModel;
+
       { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
       if (Shape.ProgramCache[Renderer.Pass] = nil) or
          (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then

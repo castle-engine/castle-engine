@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "bump_mapping_steep_parallax_shadowing.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/bump_mapping_steep_parallax_shadowing.vs" }
 '/* Steep parallax with self-shading bump mapping shader effect.' + LineEnding +
 '   This is added right after bump_mapping.vs and bump_mapping_parallax.vs.' + LineEnding +
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +

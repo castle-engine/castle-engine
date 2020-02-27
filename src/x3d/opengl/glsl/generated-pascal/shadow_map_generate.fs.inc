@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "shadow_map_generate.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/shadow_map_generate.fs" }
 '/* Fragment shader when generating shadow maps. */' + LineEnding +
 '' + LineEnding +
 '#ifdef GL_ES' + LineEnding +

@@ -2481,7 +2481,7 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item591>
       <Item592>
-        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/template.gs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/generated-pascal/geometry_shader_utils.gs"/>
         <Type Value="Include"/>
       </Item592>
       <Item593>

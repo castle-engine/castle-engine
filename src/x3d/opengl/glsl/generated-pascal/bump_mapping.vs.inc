@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "bump_mapping.vs" }
+{ DON'T EDIT -- this file was automatically generated from "source/bump_mapping.vs" }
 '/* Bump mapping shader effect.' + LineEnding +
 '   Included by EnableShaderBumpMapping in ../castlerendererinternalshader.pas unit.' + LineEnding +
 '*/' + LineEnding +

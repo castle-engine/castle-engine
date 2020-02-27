@@ -190,6 +190,7 @@ type
   {$I x3dnodes_x3dnodeclasseslist.inc}
   {$I x3dnodes_sfnode.inc}
   {$I x3dnodes_mfnode.inc}
+  {$I x3dnodes_utils_materials.inc}
 
   { Nodes from standard X3D components }
   {$I x3dnodes_standard_core.inc}
@@ -323,6 +324,7 @@ uses
 {$I x3dnodes_names.inc}
 {$I x3dnodes_nodesmanager.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
+{$I x3dnodes_utils_materials.inc}
 
 // These must be includes after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}
@@ -610,6 +612,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}

@@ -295,7 +295,7 @@
   TCommonSurfaceShaderNode = class(TAbstractShaderNode)
   strict private
     type
-      TCommonSurfaceShaderInfo = class(TMaterialInfo)
+      TCommonSurfaceShaderInfo = class(TPhongMaterialInfo)
       strict private
         FNode: TCommonSurfaceShaderNode;
       protected
