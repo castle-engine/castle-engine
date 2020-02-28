@@ -23,9 +23,11 @@ procedure RenderMaterialsBegin;
     Assumes Lighting is already calculated.
     For fixed-function pipeline, this sets full glMaterial and glColor. }
   procedure RenderMaterial(const M: TMaterialInfo);
+  {$ifndef OpenGLES}
   var
     PM: TPhongMaterialInfo;
     // UM: TUnlitMaterialInfo;
+  {$endif}
   begin
     Shader.Material := M;
 

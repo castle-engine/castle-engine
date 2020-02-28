@@ -938,7 +938,11 @@ begin
       glEnable(GL_COLOR_MATERIAL);
     {$endif}
   end else
+  begin
+    {$ifndef OpenGLES}
     MaterialFromColorEnabled := false;
+    {$endif}
+  end;
 end;
 
 procedure TColorPerVertexCoordinateRenderer.RenderCoordinateEnd;
