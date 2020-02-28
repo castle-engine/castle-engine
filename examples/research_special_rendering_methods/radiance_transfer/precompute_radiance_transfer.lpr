@@ -67,7 +67,7 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
-  CastleSphereSampling, CastleProgress, CastleProgressConsole,
+  CastleSphereSampling, CastleProgress, CastleProgressConsole, CastleColors,
   CastleSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 
 var
@@ -169,15 +169,15 @@ begin
   finally Progress.Fini end;
 end;
 
-function DiffuseColor(State: TX3DGraphTraverseState): TVector3;
+function MainColor(State: TX3DGraphTraverseState): TVector3;
 var
   MaterialInfo: TMaterialInfo;
 begin
   MaterialInfo := State.MaterialInfo;
   if MaterialInfo <> nil then
-    Result := MaterialInfo.DiffuseColor
+    Result := MaterialInfo.MainColor
   else
-    Result := TMaterialInfo.DefaultDiffuseColor;
+    Result := WhiteRGB;
 end;
 
 const
@@ -247,7 +247,7 @@ begin
         Normals := Shape.NormalsSmooth(true, true);
         ComputeTransfer(RadianceTransfer,
           Geometry.InternalCoordinates(State).Items,
-          State.Transform, DiffuseColor(State));
+          State.Transform, MainColor(State));
       end;
     end;
 
