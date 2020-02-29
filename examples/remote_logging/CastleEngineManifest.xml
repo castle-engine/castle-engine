@@ -3,4 +3,5 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.remote.logging"
 >
+  <data exists="false"/>
 </project>

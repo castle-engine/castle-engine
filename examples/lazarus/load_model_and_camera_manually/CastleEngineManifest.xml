@@ -3,4 +3,5 @@
   lazarus_project="load_model_and_camera_manually.lpi"
   build_using_lazbuild="true"
 >
+  <data exists="false"/>
 </project>
