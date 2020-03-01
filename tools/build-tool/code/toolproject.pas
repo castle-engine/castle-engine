@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2019 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -759,6 +759,13 @@ constructor TCastleProject.Create(const APath: string);
         WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
         FDataExists := false;
       end;
+    end else
+    begin
+      if DirectoryExists(DataPath) then
+        WritelnWarning('Possible data directory found in "' + DataPath + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
+        '  To remove this warning:' + NL +
+        '  1. Rename this directory to something else than "data" (if it should not be packaged),' + NL +
+        '  2. Remove <data exists="false"/> from CastleEngineManifest.xml (if "data" should be packaged).');
     end;
   end;
 
