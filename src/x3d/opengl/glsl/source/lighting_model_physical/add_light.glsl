@@ -1,8 +1,24 @@
-/* Shader code used for adding light source contribution for Material
-   (Phong lighting model).
-   This is used by both desktop OpenGL and OpenGLES.
-   This is used in both Gouraud and Phong shading,
-   so it may go either in vertex or fragment shader.
+/*
+  Copyright 2020-2020 Michalis Kamburelis and glTF-Sample-Viewer authors.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+
+  Shader code used for adding light source contribution for PhysicalMaterial
+  (PBR lighting model).
+  This is used by both desktop OpenGL and OpenGLES.
+
+  In the future this may be used in both Gouraud and Phong shading,
+  so it may go either in vertex or fragment shader.
+  For now: since PhysicalMaterial now forces Phong shading, this is only used in Phong shading.
 */
 
 /* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)
@@ -24,9 +40,6 @@ uniform float castle_LightSource<Light>SpotExponent;
 #endif
 #endif
 
-#ifdef LIGHT<Light>_HAS_AMBIENT
-uniform vec3 castle_LightSource<Light>AmbientColor;
-#endif
 uniform vec3 castle_LightSource<Light>Color;
 
 #ifdef LIGHT<Light>_HAS_ATTENUATION
@@ -40,9 +53,7 @@ uniform float castle_LightSource<Light>Radius;
 
 // In case of OpenGLES, all shader code is glued, so this is already declared
 #ifndef GL_ES
-uniform vec3 castle_MaterialAmbient;
-uniform vec3 castle_MaterialSpecular;
-uniform float castle_MaterialShininess;
+vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view);
 #endif
 
 /* Add light contribution.
@@ -51,12 +62,8 @@ uniform float castle_MaterialShininess;
 void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  /* Calculated color from
-     Material.baseColor/transparency (or ColorRGBA node) * base texture.
-     Contains complete "base/transparency" information that is independent of light source.
-     In case of Gouraud shading it is not multiplied by the base texture
-     (because it cannot be, as we're on vertex shader). */
-  const in vec4 material_base_alpha)
+  MaterialInfo material_info,
+  const in vec3 view)
 {
   vec3 light_dir;
 
@@ -109,20 +116,8 @@ void PLUG_add_light(inout vec4 color,
     scale = 0.0;
 #endif
 
-  /* add ambient term */
-  vec3 light_color =
-#ifdef LIGHT<Light>_HAS_AMBIENT
-  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;
-  /* PLUG: material_light_ambient (light_color) */
-#else
-  vec3(0.0);
-#endif
+  vec3 light_shade = castle_LightSource<Light>Color *
+    getPointShade(light_dir, material_info, normal_eye, view);
 
-  /* add diffuse term */
-  vec3 diffuse = castle_LightSource<Light>Color * material_base_alpha.rgb;
-
-  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
-  light_color += diffuse * diffuse_factor;
-
-  color.rgb += light_color * scale;
+  color.rgb += light_shade * scale;
 }

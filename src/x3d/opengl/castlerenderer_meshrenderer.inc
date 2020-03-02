@@ -286,6 +286,8 @@ var
       Assert(Shader.LightingModel = lmPhysical); // should be set by InitializeLightingModel
       CurrentMeshShader.UniformCastle_MaterialBaseAlpha.SetValue(Vector4(M.BaseColor, M.Opacity));
       CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+      CurrentMeshShader.UniformCastle_MaterialMetallic.SetValue(M.Metallic);
+      CurrentMeshShader.UniformCastle_MaterialRoughness.SetValue(M.Roughness);
     end;
 
     { Pass shader uniforms for unlit lighting calculation. }

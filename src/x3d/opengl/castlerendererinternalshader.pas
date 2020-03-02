@@ -79,6 +79,8 @@ type
     UniformCastle_MaterialEmissive,
     UniformCastle_MaterialAmbient,
     UniformCastle_MaterialSpecular,
+    UniformCastle_MaterialMetallic,
+    UniformCastle_MaterialRoughness,
     UniformCastle_GlobalAmbient,
     UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
@@ -1137,6 +1139,8 @@ begin
   UniformCastle_MaterialEmissive      := Uniform('castle_MaterialEmissive'     , uaIgnore);
   UniformCastle_MaterialAmbient       := Uniform('castle_MaterialAmbient'      , uaIgnore);
   UniformCastle_MaterialSpecular      := Uniform('castle_MaterialSpecular'     , uaIgnore);
+  UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
+  UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
   UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
   UniformCastle_SceneColor            := Uniform('castle_SceneColor'           , uaIgnore);
   UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
@@ -2254,6 +2258,9 @@ var
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
 
+const
+  PhysicalStructures = {$I lighting_model_physical_structures.fs.inc};
+
   procedure EnableLightingModel;
   const
     LightingModelCode: array [TLightingModel, { PhongShading } Boolean] of String = (
@@ -2287,8 +2294,12 @@ var
 
     Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
       '/* CASTLE-LIGHTING-MODEL */',
-      LightingModelCode[LightingModel, PhongShading],
-      [rfReplaceAll]);
+      LightingModelCode[LightingModel, PhongShading], []);
+
+    if LightingModel = lmPhysical then
+      Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
+        '/* PLUG-DECLARATIONS */',
+        PhysicalStructures + '/* PLUG-DECLARATIONS */', []);
 
     for LightShader in LightShaders do
       LightShader.LightingModel := LightingModel;
@@ -2531,6 +2542,7 @@ var
     LightShader: TLightShader;
     LightShaderCode: TShaderSource;
     LightingStage: TShaderType;
+    LightShaderCodeBase: String;
   begin
     PassLightsUniforms := false;
 
@@ -2564,7 +2576,13 @@ var
       for LightShader in LightShaders do
       begin
         LightShaderCode := LightShader.Code;
-        Plug(LightingStage, LightShaderCode[LightingStage][0]);
+
+        // Plug the "base" GLSL code of the light (with PLUG_add_light)
+        LightShaderCodeBase := LightShaderCode[LightingStage][0];
+        if LightingModel = lmPhysical then
+          LightShaderCodeBase := PhysicalStructures + LightShaderCodeBase;
+        Plug(LightingStage, LightShaderCodeBase);
+
         { Append the rest of LightShader, it may contain shadow maps utilities
           and light plugs. }
         Source.Append(LightShaderCode, LightingStage);

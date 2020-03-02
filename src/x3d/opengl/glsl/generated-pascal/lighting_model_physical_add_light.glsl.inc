@@ -1,10 +1,26 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/add_light.glsl" }
-'/* Shader code used for adding light source contribution for Material' + LineEnding +
-'   (Phong lighting model).' + LineEnding +
-'   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
-'   This is used in both Gouraud and Phong shading,' + LineEnding +
-'   so it may go either in vertex or fragment shader.' + LineEnding +
+'/*' + LineEnding +
+'  Copyright 2020-2020 Michalis Kamburelis and glTF-Sample-Viewer authors.' + LineEnding +
+'' + LineEnding +
+'  This file is part of "Castle Game Engine".' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is free software; see the file COPYING.txt,' + LineEnding +
+'  included in this distribution, for details about the copyright.' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is distributed in the hope that it will be useful,' + LineEnding +
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of' + LineEnding +
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + LineEnding +
+'' + LineEnding +
+'  ----------------------------------------------------------------------------' + LineEnding +
+'' + LineEnding +
+'  Shader code used for adding light source contribution for PhysicalMaterial' + LineEnding +
+'  (PBR lighting model).' + LineEnding +
+'  This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
+'' + LineEnding +
+'  In the future this may be used in both Gouraud and Phong shading,' + LineEnding +
+'  so it may go either in vertex or fragment shader.' + LineEnding +
+'  For now: since PhysicalMaterial now forces Phong shading, this is only used in Phong shading.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
 '/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)' + LineEnding +
@@ -26,9 +42,6 @@
 '#endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
-'uniform vec3 castle_LightSource<Light>AmbientColor;' + LineEnding +
-'#endif' + LineEnding +
 'uniform vec3 castle_LightSource<Light>Color;' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_ATTENUATION' + LineEnding +
@@ -42,9 +55,7 @@
 '' + LineEnding +
 '// In case of OpenGLES, all shader code is glued, so this is already declared' + LineEnding +
 '#ifndef GL_ES' + LineEnding +
-'uniform vec3 castle_MaterialAmbient;' + LineEnding +
-'uniform vec3 castle_MaterialSpecular;' + LineEnding +
-'uniform float castle_MaterialShininess;' + LineEnding +
+'vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '/* Add light contribution.' + LineEnding +
@@ -53,12 +64,8 @@
 'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
-'  /* Calculated color from' + LineEnding +
-'     Material.baseColor/transparency (or ColorRGBA node) * base texture.' + LineEnding +
-'     Contains complete "base/transparency" information that is independent of light source.' + LineEnding +
-'     In case of Gouraud shading it is not multiplied by the base texture' + LineEnding +
-'     (because it cannot be, as we''re on vertex shader). */' + LineEnding +
-'  const in vec4 material_base_alpha)' + LineEnding +
+'  MaterialInfo material_info,' + LineEnding +
+'  const in vec3 view)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -111,21 +118,9 @@
 '    scale = 0.0;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'  /* add ambient term */' + LineEnding +
-'  vec3 light_color =' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
-'  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;' + LineEnding +
-'  /* PLUG: material_light_ambient (light_color) */' + LineEnding +
-'#else' + LineEnding +
-'  vec3(0.0);' + LineEnding +
-'#endif' + LineEnding +
+'  vec3 light_shade = castle_LightSource<Light>Color *' + LineEnding +
+'    getPointShade(light_dir, material_info, normal_eye, view);' + LineEnding +
 '' + LineEnding +
-'  /* add diffuse term */' + LineEnding +
-'  vec3 diffuse = castle_LightSource<Light>Color * material_base_alpha.rgb;' + LineEnding +
-'' + LineEnding +
-'  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
-'  light_color += diffuse * diffuse_factor;' + LineEnding +
-'' + LineEnding +
-'  color.rgb += light_color * scale;' + LineEnding +
+'  color.rgb += light_shade * scale;' + LineEnding +
 '}' + LineEnding +
 ''

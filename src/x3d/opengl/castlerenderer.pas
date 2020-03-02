@@ -2763,11 +2763,13 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     end;
   end;
 
-  function ShapeMaybeUsesTwoSidedMaterial(Shape: TX3DRendererShape): boolean;
+  function ShapeMaterialRequiresPhongShading(Shape: TX3DRendererShape): boolean;
   begin
     Result :=
       (Shape.Node <> nil) and
-      (Shape.Node.Material is TTwoSidedMaterialNode);
+      ( (Shape.Node.Material is TTwoSidedMaterialNode) or
+        (Shape.Node.Material is TPhysicalMaterialNode)
+      );
   end;
 
 var
@@ -2791,7 +2793,7 @@ begin
   { if some feature requires PhongShading, make it true }
   if ShapeMaybeUsesPhongSurfaceTexture(Shape) or
      ShapeMaybeUsesShadowMaps(Shape) or
-     ShapeMaybeUsesTwoSidedMaterial(Shape) then
+     ShapeMaterialRequiresPhongShading(Shape) then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);
