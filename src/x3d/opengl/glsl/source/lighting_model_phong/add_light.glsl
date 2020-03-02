@@ -1,8 +1,22 @@
-/* Shader code used for adding light source contribution for Material
-   (Phong lighting model).
-   This is used by both desktop OpenGL and OpenGLES.
-   This is used in both Gouraud and Phong shading,
-   so it may go either in vertex or fragment shader.
+/*
+  Copyright 2010-2020 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+
+  Shader code used for adding light source contribution for Material
+  (Phong lighting model).
+  This is used by both desktop OpenGL and OpenGLES.
+  This is used in both Gouraud and Phong shading,
+  so it may go either in vertex or fragment shader.
 */
 
 /* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)

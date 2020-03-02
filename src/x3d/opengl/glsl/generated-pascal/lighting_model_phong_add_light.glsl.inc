@@ -1,10 +1,24 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/lighting_model_phong/add_light.glsl" }
-'/* Shader code used for adding light source contribution for Material' + LineEnding +
-'   (Phong lighting model).' + LineEnding +
-'   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
-'   This is used in both Gouraud and Phong shading,' + LineEnding +
-'   so it may go either in vertex or fragment shader.' + LineEnding +
+'/*' + LineEnding +
+'  Copyright 2010-2020 Michalis Kamburelis.' + LineEnding +
+'' + LineEnding +
+'  This file is part of "Castle Game Engine".' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is free software; see the file COPYING.txt,' + LineEnding +
+'  included in this distribution, for details about the copyright.' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is distributed in the hope that it will be useful,' + LineEnding +
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of' + LineEnding +
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + LineEnding +
+'' + LineEnding +
+'  ----------------------------------------------------------------------------' + LineEnding +
+'' + LineEnding +
+'  Shader code used for adding light source contribution for Material' + LineEnding +
+'  (Phong lighting model).' + LineEnding +
+'  This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
+'  This is used in both Gouraud and Phong shading,' + LineEnding +
+'  so it may go either in vertex or fragment shader.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
 '/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)' + LineEnding +

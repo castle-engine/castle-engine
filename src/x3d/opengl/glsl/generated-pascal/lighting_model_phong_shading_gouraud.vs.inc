@@ -1,5 +1,21 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "source/lighting_model_phong/shading_gouraud.vs" }
+'/*' + LineEnding +
+'  Copyright 2010-2020 Michalis Kamburelis.' + LineEnding +
+'' + LineEnding +
+'  This file is part of "Castle Game Engine".' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is free software; see the file COPYING.txt,' + LineEnding +
+'  included in this distribution, for details about the copyright.' + LineEnding +
+'' + LineEnding +
+'  "Castle Game Engine" is distributed in the hope that it will be useful,' + LineEnding +
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of' + LineEnding +
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + LineEnding +
+'' + LineEnding +
+'  ----------------------------------------------------------------------------' + LineEnding +
+'' + LineEnding +
+'  Calculate Phong lighting model, in Gouraud shading. */' + LineEnding +
+'' + LineEnding +
 'uniform vec4 castle_MaterialDiffuseAlpha;' + LineEnding +
 'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
