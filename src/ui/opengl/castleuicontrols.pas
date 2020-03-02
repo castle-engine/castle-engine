@@ -311,6 +311,15 @@ type
     class procedure RenderControlPrepare(const ViewportRect: TRectangle); static;
     function PassEvents(const C: TCastleUserInterface;
       const CheckMousePosition: Boolean = true): Boolean;
+    function PassEvents(const C: TCastleUserInterface;
+      const EventPosition: TVector2;
+      const CheckEventPosition: Boolean = true): Boolean;
+    function PassEvents(const C: TCastleUserInterface;
+      const Event: TInputPressRelease;
+      const CheckEventPosition: Boolean = true): Boolean;
+    function PassEvents(const C: TCastleUserInterface;
+      const Event: TInputMotion;
+      const CheckEventPosition: Boolean = true): Boolean;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2482,13 +2491,34 @@ begin
 end;
 
 function TUIContainer.PassEvents(const C: TCastleUserInterface;
-  const CheckMousePosition: Boolean): Boolean;
+  const EventPosition: TVector2;
+  const CheckEventPosition: Boolean = true): Boolean;
 begin
   Result :=
     (not (csDestroying in C.ComponentState)) and
     C.GetExists and
-    ((not CheckMousePosition) or C.CapturesEventsAtPosition(MousePosition)) and
+    ((not CheckEventPosition) or C.CapturesEventsAtPosition(EventPosition)) and
     C.FVisible;
+end;
+
+function TUIContainer.PassEvents(const C: TCastleUserInterface;
+  const Event: TInputPressRelease;
+  const CheckEventPosition: Boolean = true): Boolean;
+begin
+  Result := PassEvents(C, Event.Position, CheckEventPosition);
+end;
+
+function TUIContainer.PassEvents(const C: TCastleUserInterface;
+  const Event: TInputMotion;
+  const CheckEventPosition: Boolean = true): Boolean;
+begin
+  Result := PassEvents(C, Event.Position, CheckEventPosition);
+end;
+
+function TUIContainer.PassEvents(const C: TCastleUserInterface;
+  const CheckMousePosition: Boolean): Boolean;
+begin
+  Result := PassEvents(C, MousePosition, CheckMousePosition);
 end;
 
 procedure TUIContainer.UpdateFocusAndMouseCursor;
@@ -2950,7 +2980,7 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    if PassEvents(C) then
+    if PassEvents(C, Event) then
     begin
       { try C.PreviewPress }
       if (C <> ForceCaptureInput) and C.PreviewPress(Event) then
@@ -3027,7 +3057,7 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    if PassEvents(C) then
+    if PassEvents(C, Event) then
     begin
       { try C.PreviewRelease }
       if (C <> ForceCaptureInput) and C.PreviewRelease(Event) then
@@ -3225,7 +3255,7 @@ procedure TUIContainer.EventMotion(const Event: TInputMotion);
   var
     I: Integer;
   begin
-    if PassEvents(C) then
+    if PassEvents(C, Event) then
     begin
       { try to pass release to C children }
       for I := C.ControlsCount - 1 downto 0 do
