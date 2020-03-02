@@ -333,8 +333,8 @@ var
   var
     X3DMaterial: TPhysicalMaterialNode;
     BaseColorFactor: TVector4;
-    BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
+    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture: TAbstractX3DTexture2DNode;
+    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel: Integer;
     AlphaChannel: TAutoAlphaChannel;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
@@ -365,6 +365,11 @@ var
       EmissiveTexture, EmissiveTextureChannel);
     X3DMaterial.EmissiveTexture := EmissiveTexture;
     X3DMaterial.EmissiveTextureChannel := EmissiveTextureChannel;
+
+    ReadTexture(Material.PBRMetallicRoughness.MetallicRoughnessTexture,
+      MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
+    X3DMaterial.MetallicRoughnessTexture := MetallicRoughnessTexture;
+    X3DMaterial.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
 
     // read alpha channel treatment
     case Material.AlphaMode of
