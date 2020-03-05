@@ -3733,13 +3733,13 @@ var
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
-      if TexNode.FdLight.Value is TAbstractLightNode then
+      if TexNode.FdLight.Value is TAbstractPunctualLightNode then
       begin
         GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
-            TAbstractLightNode(TexNode.FdLight.Value));
+            TAbstractPunctualLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
 

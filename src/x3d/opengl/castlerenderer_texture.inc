@@ -382,7 +382,7 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      Light: TAbstractLightNode);
+      const Light: TAbstractPunctualLightNode);
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
@@ -2069,7 +2069,7 @@ end;
 procedure TGLGeneratedShadowMap.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  Light: TAbstractLightNode);
+  const Light: TAbstractPunctualLightNode);
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedViewport: TRectangle;

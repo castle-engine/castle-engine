@@ -1235,7 +1235,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
         (not even chEverything would help) }
       (Field.ParentNode is TNavigationInfoNode) or
       { TODO: stuff not implemented / things we don't look at all }
-      FieldIs(Field, TAbstractLightNode, 'showProxyGeometry') or
+      FieldIs(Field, TAbstractPunctualLightNode, 'showProxyGeometry') or
       FieldIs(Field, TRenderedTextureNode, 'triggerName') or
       (Field.ParentNode is TLODNode_1) or
       (Field.X3DName = 'bboxSize') or

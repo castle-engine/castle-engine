@@ -6,14 +6,18 @@ X3DLightNode : X3DChildNode {
   SFBool  [in,out] on               TRUE
 
   # EXTENSIONS:
-  SFBool     []            shadows               FALSE
+  MFNode     []            effects               []          # [Effect]
   SFBool     [in,out]      shadowVolumes         FALSE
+}
+
+X3DPunctualLightNode : X3DLightNode {
+  # EXTENSIONS:
+  SFBool     []            shadows               FALSE
   SFBool     [in,out]      shadowVolumesMain     FALSE       # meaningfull only when shadowVolumes = TRUE
   SFFloat    [in,out]      projectionNear        1           # > 0
   SFFloat    [in,out]      projectionFar         100         # anything > projectionNear
   SFVec3f    [in,out]      up                    0 1 0
   SFNode     []            defaultShadowMap      NULL        # [GeneratedShadowMap]
-  MFNode     []            effects               []          # [Effect]
 }
 
 DirectionalLight : X3DLightNode {
@@ -59,4 +63,11 @@ SpotLight : X3DLightNode {
 
   # EXTENSIONS:
   SFFloat    [in,out]      projectionAngle       0
+}
+
+EnvironmentLight : X3DLightNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+
+  SFNode  [in,out]  diffuseTexture   NULL  [X3DEnvironmentTextureNode]
+  SFNode  [in,out]  specularTexture  NULL  [X3DEnvironmentTextureNode]
 }

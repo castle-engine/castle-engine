@@ -38,6 +38,8 @@
     procedure SetNormalTextureChannel(const Value: Integer);
   public
     procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEmissiveColor: TSFColor;
     { X3D field "emissiveColor". } { }
@@ -129,6 +131,17 @@ end;
 procedure TAbstractOneSidedMaterialNode.SetNormalTextureChannel(const Value: Integer);
 begin
   FdNormalTextureChannel.Send(Value);
+end;
+
+class function TAbstractOneSidedMaterialNode.ClassX3DType: String;
+begin
+  Result := 'X3DOneSidedMaterialNode';
+end;
+
+class function TAbstractOneSidedMaterialNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TAbstractOneSidedMaterialNode.CreateNode;

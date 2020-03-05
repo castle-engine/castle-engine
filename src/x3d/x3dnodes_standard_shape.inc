@@ -534,8 +534,6 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Material information based on this node.
       It is automatically updated when properties of this material change.
@@ -651,8 +649,6 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Material information based on this node.
       It is automatically updated when properties of this material change.
@@ -970,7 +966,7 @@ begin
    FdTextureTransform.ChangesAlways := [chEverything];
   AddField(FFdTextureTransform);
 
-  FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractLightNode]);
+  FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractPunctualLightNode]);
    FdReceiveShadows.ChangesAlways := [chShadowMaps];
   AddField(FFdReceiveShadows);
 
@@ -1607,17 +1603,6 @@ begin
   inherited;
 end;
 
-class function TPhysicalMaterialNode.ClassX3DType: string;
-begin
-  Result := 'PhysicalMaterial';
-end;
-
-class function TPhysicalMaterialNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TPhysicalMaterialNode.MaterialInfo: TMaterialInfo;
 begin
   if FMaterialInfo = nil then
@@ -1833,17 +1818,6 @@ destructor TUnlitMaterialNode.Destroy;
 begin
   FreeAndNil(FMaterialInfo);
   inherited;
-end;
-
-class function TUnlitMaterialNode.ClassX3DType: string;
-begin
-  Result := 'UnlitMaterial';
-end;
-
-class function TUnlitMaterialNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TUnlitMaterialNode.MaterialInfo: TMaterialInfo;

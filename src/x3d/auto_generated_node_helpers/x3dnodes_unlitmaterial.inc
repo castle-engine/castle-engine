@@ -30,6 +30,8 @@
     procedure SetTransparency(const Value: Single);
   public
     procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTransparency: TSFFloat;
     { X3D field "transparency". } { }
@@ -51,6 +53,17 @@ end;
 procedure TUnlitMaterialNode.SetTransparency(const Value: Single);
 begin
   FdTransparency.Send(Value);
+end;
+
+class function TUnlitMaterialNode.ClassX3DType: String;
+begin
+  Result := 'UnlitMaterial';
+end;
+
+class function TUnlitMaterialNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TUnlitMaterialNode.CreateNode;

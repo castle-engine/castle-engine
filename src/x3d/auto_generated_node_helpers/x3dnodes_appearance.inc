@@ -52,7 +52,7 @@
     { X3D field "textureTransform". } { }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
     { Set X3D field "receiveShadows". } { }
-    procedure SetReceiveShadows(const Value: array of TAbstractLightNode);
+    procedure SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
     { X3D field "shadowCaster". } { }
     property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
     { X3D field "heightMapScale". } { }
@@ -121,7 +121,7 @@ begin
   FdTextureTransform.Send(Value);
 end;
 
-procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractLightNode);
+procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -129,7 +129,7 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TAbstractLightNode));
+    Move(Value[0], A[0], L * SizeOf(TAbstractPunctualLightNode));
   FdReceiveShadows.Send(A);
 end;
 

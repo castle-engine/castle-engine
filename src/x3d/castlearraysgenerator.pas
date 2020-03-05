@@ -1097,9 +1097,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         begin
           ProjectorValue := TTextureCoordinateGeneratorNode(GeneratorNode).FdProjectedLight.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractLightNode) then
+             (ProjectorValue is TAbstractPunctualLightNode) then
           begin
-            Result := @TAbstractLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('VRML/X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
@@ -1107,9 +1107,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         begin
           ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractLightNode) then
+             (ProjectorValue is TAbstractPunctualLightNode) then
           begin
-            Result := @TAbstractLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if (ProjectorValue <> nil) and
              (ProjectorValue is TAbstractX3DViewpointNode) then

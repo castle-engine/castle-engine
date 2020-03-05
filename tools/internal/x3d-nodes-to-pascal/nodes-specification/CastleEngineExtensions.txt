@@ -173,7 +173,7 @@ Toggler  : X3DChildNode {
 }
 
 ViewpointMirror {
-  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field viewpoint
   SFFloat   [in,out]      distanceFromShape 0.01
 }

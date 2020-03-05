@@ -869,7 +869,7 @@ type
   private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4;
-    FMainLightForShadowsNode: TAbstractLightNode;
+    FMainLightForShadowsNode: TAbstractPunctualLightNode;
     FMainLightForShadowsTransform: TMatrix4;
     function SearchMainLightForShadows(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
@@ -7334,7 +7334,7 @@ function TCastleSceneCore.SearchMainLightForShadows(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 var
-  L: TAbstractLightNode absolute Node;
+  L: TAbstractPunctualLightNode absolute Node;
 begin
   if L.FdShadowVolumes.Value and
      L.FdShadowVolumesMain.Value then
@@ -7354,7 +7354,7 @@ procedure TCastleSceneCore.ValidateMainLightForShadows;
   begin
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
-      RootNode.Traverse(TAbstractLightNode, @SearchMainLightForShadows);
+      RootNode.Traverse(TAbstractPunctualLightNode, @SearchMainLightForShadows);
   end;
 
 begin

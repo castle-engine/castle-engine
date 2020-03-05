@@ -89,7 +89,7 @@ begin
 
   case OutputMode of
     omHelper  : Processor := THelperProcessor.Create;
-    omTemplate: Processor := TTemplateProcessor.Create;
+    // no other possibility right now
     else raise EInternalError.Create('OutputMode?');
   end;
 

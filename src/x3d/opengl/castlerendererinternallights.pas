@@ -134,6 +134,7 @@ procedure glLightFromVRMLLight(
   end;
 
 var
+  LightNode: TAbstractPunctualLightNode;
   SetNoAttenuation: boolean;
   Attenuat: TVector3;
   Color3, AmbientColor3: TVector3;
@@ -141,6 +142,10 @@ var
 begin
   if not GLFeatures.EnableFixedFunction then
     Exit;
+
+  if not (Light.Node is TAbstractPunctualLightNode) then
+    Exit;
+  LightNode := TAbstractPunctualLightNode(Light.Node);
 
   glLightNum += GL_LIGHT0;
 
@@ -151,24 +156,24 @@ begin
 
     glMultMatrix(Light.Transform);
 
-    glLightv(glLightNum, GL_POSITION, Light.Node.PositionAndDirection);
+    glLightv(glLightNum, GL_POSITION, LightNode.PositionAndDirection);
 
-    if Light.Node is TAbstractDirectionalLightNode then
-      SetupDirectionalLight(TAbstractDirectionalLightNode(Light.Node)) else
-    if Light.Node is TAbstractPointLightNode then
-      SetupPointLight(TAbstractPointLightNode(Light.Node)) else
-    if Light.Node is TSpotLightNode_1 then
-      SetupSpotLight_1(TSpotLightNode_1(Light.Node)) else
-    if Light.Node is TSpotLightNode then
-      SetupSpotLight(TSpotLightNode(Light.Node)) else
+    if LightNode is TAbstractDirectionalLightNode then
+      SetupDirectionalLight(TAbstractDirectionalLightNode(LightNode)) else
+    if LightNode is TAbstractPointLightNode then
+      SetupPointLight(TAbstractPointLightNode(LightNode)) else
+    if LightNode is TSpotLightNode_1 then
+      SetupSpotLight_1(TSpotLightNode_1(LightNode)) else
+    if LightNode is TSpotLightNode then
+      SetupSpotLight(TSpotLightNode(LightNode)) else
       raise EInternalError.Create('Unknown light node class');
 
     { setup attenuation for OpenGL light }
     SetNoAttenuation := true;
 
-    if (Light.Node is TAbstractPositionalLightNode) then
+    if (LightNode is TAbstractPositionalLightNode) then
     begin
-      Attenuat := TAbstractPositionalLightNode(Light.Node).FdAttenuation.Value;
+      Attenuat := TAbstractPositionalLightNode(LightNode).FdAttenuation.Value;
       if not Attenuat.IsZero then
       begin
         SetNoAttenuation := false;
@@ -189,15 +194,15 @@ begin
   finally glPopMatrix end;
 
   { calculate Color4 = light color * light intensity }
-  Color3 := Light.Node.FdColor.Value * Light.Node.FdIntensity.Value;
+  Color3 := LightNode.FdColor.Value * LightNode.FdIntensity.Value;
   Color4 := Vector4(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
-  if Light.Node.FdAmbientIntensity.Value < 0 then
+  if LightNode.FdAmbientIntensity.Value < 0 then
     AmbientColor4 := Color4 else
   begin
-    AmbientColor3 := Light.Node.FdColor.Value *
-      Light.Node.FdAmbientIntensity.Value;
+    AmbientColor3 := LightNode.FdColor.Value *
+      LightNode.FdAmbientIntensity.Value;
     AmbientColor4 := Vector4(AmbientColor3, 1);
   end;
 

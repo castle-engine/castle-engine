@@ -437,6 +437,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_effect.inc}
 {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
 {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_environmentlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
@@ -664,6 +665,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}

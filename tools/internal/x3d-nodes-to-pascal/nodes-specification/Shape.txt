@@ -9,7 +9,7 @@ X3DMaterialNode : X3DAppearanceChildNode {
 }
 
 X3DOneSidedMaterialNode : X3DMaterialNode {
-  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field material
 
   SFColor [in,out] emissiveColor           0 0 0  # [0, 1]
@@ -43,7 +43,7 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 
   # EXTENSIONS:
-  MFNode     []            receiveShadows  []           # [X3DLightNode] list
+  MFNode     []            receiveShadows  []           # [X3DPunctualLightNode] list
   SFBool     [in,out]      shadowCaster     TRUE
   SFNode     [in,out]      normalMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
   SFNode     [in,out]      heightMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed; NOT-SLIM
@@ -102,7 +102,7 @@ Material : X3DOneSidedMaterialNode {
 }
 
 PhysicalMaterial : X3DOneSidedMaterialNode {
-  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field material
 
   SFColor [in,out] baseColor                       1 1 1  [0,1]
@@ -138,7 +138,7 @@ TwoSidedMaterial : X3DMaterialNode {
 }
 
 UnlitMaterial : X3DOneSidedMaterialNode {
-  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field material
 
   # Note: emissiveColor default also changes to 1 1 1

@@ -56,7 +56,7 @@ const
 type
   { Information about light source relevant for shadow maps. }
   TLight = record
-    Light: TAbstractLightNode;
+    Light: TAbstractPunctualLightNode;
     ShadowMap: TGeneratedShadowMapNode;
     TexGen: TProjectedTextureCoordinateNode;
     ShadowReceiversBox: TBox3D;
@@ -72,7 +72,7 @@ type
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
-    function FindLight(Light: TAbstractLightNode): PLight;
+    function FindLight(Light: TAbstractPunctualLightNode): PLight;
 
     procedure ShapeRemove(Shape: TShape);
     procedure ShapeAdd(Shape: TShape);
@@ -85,7 +85,7 @@ type
     procedure HandleLightCastingOnEverything(Node: TX3DNode);
   end;
 
-function TLightList.FindLight(Light: TAbstractLightNode): PLight;
+function TLightList.FindLight(Light: TAbstractPunctualLightNode): PLight;
 var
   I: Integer;
   LightUniqueName: string;
@@ -337,7 +337,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
   { 1. Add necessary ShadowMap
     2. Add necessary TexGen
     3. Convert texture, texCoord, textureTransform to multi-texture if needed }
-  procedure HandleLight(LightNode: TAbstractLightNode);
+  procedure HandleLight(LightNode: TAbstractPunctualLightNode);
   var
     Light: PLight;
     Texture: TAbstractTextureNode;
@@ -474,11 +474,11 @@ begin
       of both lists. }
 
     for I := 0 to App.FdReceiveShadows.Count - 1 do
-      if App.FdReceiveShadows[I] is TAbstractLightNode then
-        HandleLight(TAbstractLightNode(App.FdReceiveShadows[I]));
+      if App.FdReceiveShadows[I] is TAbstractPunctualLightNode then
+        HandleLight(TAbstractPunctualLightNode(App.FdReceiveShadows[I]));
 
     for I := 0 to LightsCastingOnEverything.Count - 1 do
-      HandleLight(TAbstractLightNode(LightsCastingOnEverything[I]));
+      HandleLight(TAbstractPunctualLightNode(LightsCastingOnEverything[I]));
   finally Shape.InternalAfterChange end;
 end;
 
@@ -591,7 +591,7 @@ end;
 
 procedure TLightList.HandleLightCastingOnEverything(Node: TX3DNode);
 begin
-  if TAbstractLightNode(Node).FdShadows.Value then
+  if TAbstractPunctualLightNode(Node).FdShadows.Value then
     LightsCastingOnEverything.Add(Node);
 end;
 
@@ -645,7 +645,7 @@ begin
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
-      Model.EnumerateNodes(TAbstractLightNode, @Lights.HandleLightCastingOnEverything, false);
+      Model.EnumerateNodes(TAbstractPunctualLightNode, @Lights.HandleLightCastingOnEverything, false);
 
       Shapes.Traverse(@HereShapeAdd, false);
 

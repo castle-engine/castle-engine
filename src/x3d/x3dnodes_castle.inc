@@ -418,9 +418,6 @@
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
   TViewpointMirrorNode = class(TX3DNode)
   public
-    class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
   end;
 
@@ -1022,18 +1019,6 @@ begin
 end;
 
 class function TShaderTextureNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
-{ TViewpointMirrorNode ----------------------------------------------------- }
-
-class function TViewpointMirrorNode.ClassX3DType: string;
-begin
-  Result := 'ViewpointMirror';
-end;
-
-class function TViewpointMirrorNode.URNMatching(const URN: string): boolean;
 begin
   Result := URNMatchingCastle(URN, ClassX3DType);
 end;

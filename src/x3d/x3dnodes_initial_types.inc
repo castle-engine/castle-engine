@@ -63,6 +63,8 @@
   TAbstractNormalNode = class;
   TFogCoordinateNode = class;
   TAbstractTextureCoordinateNode = class;
+  TAbstractEnvironmentTextureNode = class;
+  TAbstractPunctualLightNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 
