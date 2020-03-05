@@ -380,8 +380,11 @@ begin
         CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
         Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
 
-        CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
-        Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
+        if Shader.LightingModel <> lmUnlit then // optimize lmUnlit: no need for normals data
+        begin
+          CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
+        end;
       end else
       begin
         { set fixed-function parameters }
@@ -389,8 +392,11 @@ begin
         glEnableClientState(GL_VERTEX_ARRAY);
         glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
 
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+        if Shader.LightingModel <> lmUnlit then // optimize lmUnlit: no need for normals data
+        begin
+          glEnableClientState(GL_NORMAL_ARRAY);
+          glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+        end;
         {$endif not OpenGLES}
       end;
 
