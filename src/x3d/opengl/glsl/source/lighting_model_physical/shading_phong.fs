@@ -160,19 +160,10 @@ MaterialInfo getPhysicalMaterialInfo(const in vec4 material_base_alpha)
   float perceptualRoughness = castle_MaterialRoughness;
   float metallic = castle_MaterialMetallic;
   vec3 diffuseColor = vec3(0.0);
-  vec3 specularColor= vec3(0.0);
+  vec3 specularColor = vec3(0.0);
   vec3 f0 = vec3(0.04);
 
-  /* TODO: adjust perceptualRoughness, metallic by a texture, using plug.
-
-    glTF sample code:
-
-  // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
-  // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-  vec4 mrSample = texture2D(u_MetallicRoughnessSampler, getMetallicRoughnessUV());
-  perceptualRoughness = mrSample.g * u_RoughnessFactor;
-  metallic = mrSample.b * u_MetallicFactor;
-  */
+  /* PLUG: material_metallic_roughness (metallic, perceptualRoughness) */
 
   diffuseColor = material_base_alpha.rgb * (vec3(1.0) - f0) * (1.0 - metallic);
 

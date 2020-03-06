@@ -29,7 +29,13 @@ uses Generics.Collections,
 type
   TLightingModel = (lmPhong, lmPhysical, lmUnlit);
 
-  TSurfaceTexture = (stEmissive, stAmbient, stSpecular, stShininess);
+  TSurfaceTexture = (
+    stEmissive,
+    stAmbient,
+    stSpecular,
+    stShininess,
+    stMetallicRoughness
+  );
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
 
@@ -356,12 +362,10 @@ type
     Enable: boolean;
     TextureUnit, TextureCoordinatesId: Cardinal;
     ChannelMask: String;
+    UniformTextureName: String;
     VariableTextureValue: String;
     VariableTextureType: String;
-    PlugNameSuffix: String;
-    PlugParameterType: String;
-    PlugMultiplicateChannels: String;
-    class function UniformTextureName(const SurfaceTexture: TSurfaceTexture): string; static;
+    PlugCode: String;
   end;
 
   { Shader uniforms calculated by rendering using ViewpointMirror,
@@ -588,11 +592,10 @@ type
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
       const ChannelMask,
+        UniformTextureName,
         VariableTextureValue,
         VariableTextureType,
-        PlugNameSuffix,
-        PlugParameterType,
-        PlugMultiplicateChannels: String);
+        PlugCode: String);
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -1825,20 +1828,6 @@ begin
   AProgram.SetUniform(Name, Value);
 end;
 
-{ TSurfaceTextureShader ------------------------------------------------------ }
-
-class function TSurfaceTextureShader.UniformTextureName(const SurfaceTexture: TSurfaceTexture): string; static;
-const
-  Names: array [TSurfaceTexture] of string = (
-    'castle_emissiveTexture',
-    'castle_ambientTexture',
-    'castle_specularTexture',
-    'castle_shininessTexture'
-  );
-begin
-  Result := Names[SurfaceTexture];
-end;
-
 { TShader ---------------------------------------------------------------- }
 
 function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
@@ -2670,8 +2659,8 @@ var
       'varying vec4 {coord_name};' + NL+
       '{variable_texture_type} {variable_texture_value};' + NL+
       // Calculate {variable_texture_value} once, in PLUG_fragment_eye_space,
-      // to later use it potentially many times in
-      // PLUG_material_{plug_name_suffix} (which may be called multiple times in case of multiple lights).
+      // to later use it potentially many times in PlugCode
+      // (which may be called multiple times in case of multiple lights).
       //
       // Note: this optimization is not necessary for stEmissive, that will always
       // be calculated once, i.e. "PLUG_material_emissive" is called only once.
@@ -2679,40 +2668,30 @@ var
       'void PLUG_fragment_eye_space(const vec4 vertex_eye, inout vec3 normal_eye)' + NL+
       '{' +NL+
       '  {variable_texture_value} = texture2D({uniform_texture_name}, {coord_name}.st).{channel_mask};' +NL+
-      '}' +NL+
-      'void PLUG_material_{plug_name_suffix}(inout {plug_parameter_type} parameter)' +NL+
-      '{' +NL+
-      '  parameter{plug_multiplicate_channels} *= {variable_texture_value};' +NL+
       '}' +NL;
   var
     SurfaceTexture: TSurfaceTexture;
-    CoordName, UniformTextureName: string;
   begin
     for SurfaceTexture in TSurfaceTexture do
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
       begin
-        UniformTextureName := TSurfaceTextureShader.UniformTextureName(SurfaceTexture);
-        CoordName := TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId);
-        Plug(stFragment, SReplacePatterns(PlugFunction, [
-          '{uniform_texture_name}',
-          '{coord_name}',
-          '{channel_mask}',
-          '{variable_texture_value}',
-          '{variable_texture_type}',
-          '{plug_name_suffix}',
-          '{plug_parameter_type}',
-          '{plug_multiplicate_channels}'
-        ],
-        [
-          UniformTextureName,
-          CoordName,
-          FSurfaceTextureShaders[SurfaceTexture].ChannelMask,
-          FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue,
-          FSurfaceTextureShaders[SurfaceTexture].VariableTextureType,
-          FSurfaceTextureShaders[SurfaceTexture].PlugNameSuffix,
-          FSurfaceTextureShaders[SurfaceTexture].PlugParameterType,
-          FSurfaceTextureShaders[SurfaceTexture].PlugMultiplicateChannels
-        ], false));
+        Plug(stFragment, SReplacePatterns(
+          PlugFunction +
+          FSurfaceTextureShaders[SurfaceTexture].PlugCode,
+          [
+            '{uniform_texture_name}',
+            '{coord_name}',
+            '{channel_mask}',
+            '{variable_texture_value}',
+            '{variable_texture_type}'
+          ],
+          [
+            FSurfaceTextureShaders[SurfaceTexture].UniformTextureName,
+            TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId),
+            FSurfaceTextureShaders[SurfaceTexture].ChannelMask,
+            FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue,
+            FSurfaceTextureShaders[SurfaceTexture].VariableTextureType
+          ], false));
       end;
   end;
 
@@ -2819,7 +2798,7 @@ var
     for SurfaceTexture in TSurfaceTexture do
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
         AProgram.SetUniform(
-          TSurfaceTextureShader.UniformTextureName(SurfaceTexture),
+          FSurfaceTextureShaders[SurfaceTexture].UniformTextureName,
           Integer(FSurfaceTextureShaders[SurfaceTexture].TextureUnit));
 
     AProgram.BindUniforms(UniformsNodes, false);
@@ -3369,11 +3348,10 @@ end;
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
   const ChannelMask,
+    UniformTextureName,
     VariableTextureValue,
     VariableTextureType,
-    PlugNameSuffix,
-    PlugParameterType,
-    PlugMultiplicateChannels: String);
+    PlugCode: String);
 var
   HashMultiplier: LongWord;
 begin
@@ -3381,11 +3359,10 @@ begin
   FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;
   FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
   FSurfaceTextureShaders[SurfaceTexture].ChannelMask := ChannelMask;
+  FSurfaceTextureShaders[SurfaceTexture].UniformTextureName := UniformTextureName;
   FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue := VariableTextureValue;
   FSurfaceTextureShaders[SurfaceTexture].VariableTextureType := VariableTextureType;
-  FSurfaceTextureShaders[SurfaceTexture].PlugNameSuffix := PlugNameSuffix;
-  FSurfaceTextureShaders[SurfaceTexture].PlugParameterType := PlugParameterType;
-  FSurfaceTextureShaders[SurfaceTexture].PlugMultiplicateChannels := PlugMultiplicateChannels;
+  FSurfaceTextureShaders[SurfaceTexture].PlugCode := PlugCode;
 
   ShapeRequiresShaders := true;
 

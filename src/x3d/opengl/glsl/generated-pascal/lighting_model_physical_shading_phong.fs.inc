@@ -162,19 +162,10 @@
 '  float perceptualRoughness = castle_MaterialRoughness;' + LineEnding +
 '  float metallic = castle_MaterialMetallic;' + LineEnding +
 '  vec3 diffuseColor = vec3(0.0);' + LineEnding +
-'  vec3 specularColor= vec3(0.0);' + LineEnding +
+'  vec3 specularColor = vec3(0.0);' + LineEnding +
 '  vec3 f0 = vec3(0.04);' + LineEnding +
 '' + LineEnding +
-'  /* TODO: adjust perceptualRoughness, metallic by a texture, using plug.' + LineEnding +
-'' + LineEnding +
-'    glTF sample code:' + LineEnding +
-'' + LineEnding +
-'  // Roughness is stored in the ''g'' channel, metallic is stored in the ''b'' channel.' + LineEnding +
-'  // This layout intentionally reserves the ''r'' channel for (optional) occlusion map data' + LineEnding +
-'  vec4 mrSample = texture2D(u_MetallicRoughnessSampler, getMetallicRoughnessUV());' + LineEnding +
-'  perceptualRoughness = mrSample.g * u_RoughnessFactor;' + LineEnding +
-'  metallic = mrSample.b * u_MetallicFactor;' + LineEnding +
-'  */' + LineEnding +
+'  /* PLUG: material_metallic_roughness (metallic, perceptualRoughness) */' + LineEnding +
 '' + LineEnding +
 '  diffuseColor = material_base_alpha.rgb * (vec3(1.0) - f0) * (1.0 - metallic);' + LineEnding +
 '' + LineEnding +

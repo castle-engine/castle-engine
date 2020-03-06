@@ -199,11 +199,10 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     const Texture: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
     const ChannelMask,
+      UniformTextureName,
       VariableTextureValue,
       VariableTextureType,
-      PlugNameSuffix,
-      PlugParameterType,
-      PlugMultiplicateChannels: String);
+      PlugCode: String);
   var
     GLTextureId: TGLTextureId;
   begin
@@ -218,11 +217,10 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
         Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
           Max(0, TextureCoordinatesId),
           ChannelMask,
+          UniformTextureName,
           VariableTextureValue,
           VariableTextureType,
-          PlugNameSuffix,
-          PlugParameterType,
-          PlugMultiplicateChannels);
+          PlugCode);
         Inc(ABoundTextureUnits);
 
         { There is no need to increase the TexCoordNeeded unconditionally.
@@ -243,11 +241,10 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       Texture,
       TextureChannel,
       ChannelMask,
-      'castle_texture_emissive',
+      'castle_SurfaceTexture_emissive',
+      'castle_SurfaceTexture_emissive_value',
       'vec3',
-      'emissive',
-      'vec3',
-      '.rgb');
+      'void PLUG_material_emissive(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
   end;
 
   procedure AmbientTextureEnable(
@@ -259,11 +256,10 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       Texture,
       TextureChannel,
       ChannelMask,
-      'castle_texture_ambient',
+      'castle_SurfaceTexture_ambient',
+      'castle_SurfaceTexture_ambient_value',
       'vec3',
-      'light_ambient',
-      'vec3',
-      '.rgb');
+      'void PLUG_material_light_ambient(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
   end;
 
   procedure SpecularTextureEnable(
@@ -275,11 +271,10 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       Texture,
       TextureChannel,
       ChannelMask,
-      'castle_texture_specular',
+      'castle_SurfaceTexture_specular',
+      'castle_SurfaceTexture_specular_value',
       'vec3',
-      'light_specular',
-      'vec3',
-      '.rgb');
+      'void PLUG_material_light_specular(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
   end;
 
   procedure ShininessTextureEnable(
@@ -291,18 +286,30 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       Texture,
       TextureChannel,
       ChannelMask,
-      'castle_texture_shininess',
+      'castle_SurfaceTexture_shininess',
+      'castle_SurfaceTexture_shininess_value',
       'float',
-      'shininess',
-      'float',
-      '');
+      'void PLUG_material_shininess(inout float parameter) { parameter *= {variable_texture_value}; }');
   end;
 
   procedure MetallicRoughnessTextureEnable(
     const Texture: TAbstractTextureNode;
     const TextureChannel: Integer);
   begin
-    // TODO
+    SurfaceTextureEnable(stMetallicRoughness,
+      Texture,
+      TextureChannel,
+      { roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
+        Read it to place metallic is x, roughness in y. }
+      'bg',
+      'castle_SurfaceTexture_metallic_roughness',
+      'castle_SurfaceTexture_metallic_roughness_value',
+      'vec2',
+      'void PLUG_material_metallic_roughness(inout float metallic, inout float roughness)' + NL +
+      '{' + NL +
+      '  metallic *= {variable_texture_value}.x;' + NL +
+      '  roughness *= {variable_texture_value}.y;' + NL +
+      '}');
   end;
 
 var
