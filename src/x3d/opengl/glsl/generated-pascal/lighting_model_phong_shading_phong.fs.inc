@@ -54,19 +54,26 @@
 'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
 '#ifdef LIT' + LineEnding +
-'  vec4 material_diffuse_alpha;' + LineEnding +
+'  MaterialInfo material_info;' + LineEnding +
+'' + LineEnding +
+'  material_info.ambient = castle_MaterialAmbient;' + LineEnding +
+'  /* PLUG: material_ambient (material_info.ambient) */' + LineEnding +
+'  material_info.specular = castle_MaterialSpecular;' + LineEnding +
+'  /* PLUG: material_specular (material_info.specular) */' + LineEnding +
+'  material_info.shininess = castle_MaterialShininess;' + LineEnding +
+'  /* PLUG: material_shininess (material_info.shininess) */' + LineEnding +
 '' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  material_diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
+'  material_info.diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
 '  #else' + LineEnding +
-'  material_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
-'  main_texture_apply(material_diffuse_alpha, normal_eye);' + LineEnding +
+'  main_texture_apply(material_info.diffuse_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +
-'  result = vec4(get_scene_color(), material_diffuse_alpha.a);' + LineEnding +
+'  result = vec4(get_scene_color(), material_info.diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */' + LineEnding +
+'  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +

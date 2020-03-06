@@ -64,7 +64,7 @@
 'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
-'  MaterialInfo material_info,' + LineEnding +
+'  const in MaterialInfo material_info,' + LineEnding +
 '  const in vec3 view)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +

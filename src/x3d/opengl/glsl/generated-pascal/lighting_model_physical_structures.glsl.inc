@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/structures.fs" }
+{ DON'T EDIT -- this file was automatically generated from "source/lighting_model_physical/structures.glsl" }
 '/*' + LineEnding +
 '  Copyright 2020-2020 Michalis Kamburelis and glTF-Sample-Viewer authors.' + LineEnding +
 '' + LineEnding +

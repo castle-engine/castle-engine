@@ -62,7 +62,7 @@ vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, ve
 void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  MaterialInfo material_info,
+  const in MaterialInfo material_info,
   const in vec3 view)
 {
   vec3 light_dir;

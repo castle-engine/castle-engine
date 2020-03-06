@@ -66,17 +66,24 @@
 '  */' + LineEnding +
 '  /* vec3 normal_for_lighting = (normal_eye.z > 0.0 ? normal_eye : -normal_eye); */' + LineEnding +
 '' + LineEnding +
-'  vec4 material_diffuse_alpha;' + LineEnding +
+'  MaterialInfo material_info;' + LineEnding +
+'' + LineEnding +
+'  material_info.ambient = castle_MaterialAmbient;' + LineEnding +
+'  /* PLUG: material_ambient (material_info.ambient) */' + LineEnding +
+'  material_info.specular = castle_MaterialSpecular;' + LineEnding +
+'  /* PLUG: material_specular (material_info.specular) */' + LineEnding +
+'  material_info.shininess = castle_MaterialShininess;' + LineEnding +
+'  /* PLUG: material_shininess (material_info.shininess) */' + LineEnding +
 '' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  material_diffuse_alpha = castle_ColorPerVertex;' + LineEnding +
+'  material_info.diffuse_alpha = castle_ColorPerVertex;' + LineEnding +
 '  #else' + LineEnding +
-'  material_diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
-'  result = vec4(castle_SceneColor, material_diffuse_alpha.a);' + LineEnding +
+'  result = vec4(castle_SceneColor, material_info.diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */' + LineEnding +
+'  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
 '  result.rgb = min(result.rgb, 1.0);' + LineEnding +

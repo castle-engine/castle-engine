@@ -361,10 +361,7 @@ type
   TSurfaceTextureShader = record
     Enable: boolean;
     TextureUnit, TextureCoordinatesId: Cardinal;
-    ChannelMask: String;
     UniformTextureName: String;
-    VariableTextureValue: String;
-    VariableTextureType: String;
     PlugCode: String;
   end;
 
@@ -591,11 +588,7 @@ type
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
-      const ChannelMask,
-        UniformTextureName,
-        VariableTextureValue,
-        VariableTextureType,
-        PlugCode: String);
+      const UniformTextureName, PlugCode: String);
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -2248,7 +2241,11 @@ var
   TextureUniformsSet: boolean;
 
 const
-  PhysicalStructures = {$I lighting_model_physical_structures.fs.inc};
+  Structures: array [TLightingModel] of String = (
+    {$I lighting_model_phong_structures.glsl.inc},
+    {$I lighting_model_physical_structures.glsl.inc},
+    {$I lighting_model_unlit_structures.glsl.inc}
+  );
 
   procedure EnableLightingModel;
   const
@@ -2285,10 +2282,9 @@ const
       '/* CASTLE-LIGHTING-MODEL */',
       LightingModelCode[LightingModel, PhongShading], []);
 
-    if LightingModel = lmPhysical then
-      Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
-        '/* PLUG-DECLARATIONS */',
-        PhysicalStructures + '/* PLUG-DECLARATIONS */', []);
+    Source[LightingStage][0] := StringReplace(Source[LightingStage][0],
+      '/* PLUG-DECLARATIONS */',
+      Structures[LightingModel] + '/* PLUG-DECLARATIONS */', []);
 
     for LightShader in LightShaders do
       LightShader.LightingModel := LightingModel;
@@ -2568,8 +2564,10 @@ var
 
         // Plug the "base" GLSL code of the light (with PLUG_add_light)
         LightShaderCodeBase := LightShaderCode[LightingStage][0];
-        if LightingModel = lmPhysical then
-          LightShaderCodeBase := PhysicalStructures + LightShaderCodeBase;
+        LightShaderCodeBase :=
+          // when "separate compilation units" are used (desktop OpenGL), need to redeclare structures
+          {$ifndef OpenGLES} Structures[LightingModel] + {$endif}
+          LightShaderCodeBase;
         Plug(LightingStage, LightShaderCodeBase);
 
         { Append the rest of LightShader, it may contain shadow maps utilities
@@ -2650,25 +2648,6 @@ var
   end;
 
   procedure EnableShaderSurfaceTextures;
-  const
-    PlugFunction =
-      'uniform sampler2D {uniform_texture_name};' +NL+
-      {$ifdef OpenGLES}
-      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
-      {$endif}
-      'varying vec4 {coord_name};' + NL+
-      '{variable_texture_type} {variable_texture_value};' + NL+
-      // Calculate {variable_texture_value} once, in PLUG_fragment_eye_space,
-      // to later use it potentially many times in PlugCode
-      // (which may be called multiple times in case of multiple lights).
-      //
-      // Note: this optimization is not necessary for stEmissive, that will always
-      // be calculated once, i.e. "PLUG_material_emissive" is called only once.
-      // But we do this optimization always, for simplicity.
-      'void PLUG_fragment_eye_space(const vec4 vertex_eye, inout vec3 normal_eye)' + NL+
-      '{' +NL+
-      '  {variable_texture_value} = texture2D({uniform_texture_name}, {coord_name}.st).{channel_mask};' +NL+
-      '}' +NL;
   var
     SurfaceTexture: TSurfaceTexture;
   begin
@@ -2676,21 +2655,18 @@ var
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
       begin
         Plug(stFragment, SReplacePatterns(
-          PlugFunction +
+          'uniform sampler2D {uniform_texture_name};' +NL+
+          {$ifndef OpenGLES} // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
+          'varying vec4 {coord_name};' + NL+
+          {$endif}
           FSurfaceTextureShaders[SurfaceTexture].PlugCode,
           [
             '{uniform_texture_name}',
-            '{coord_name}',
-            '{channel_mask}',
-            '{variable_texture_value}',
-            '{variable_texture_type}'
+            '{coord_name}'
           ],
           [
             FSurfaceTextureShaders[SurfaceTexture].UniformTextureName,
-            TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId),
-            FSurfaceTextureShaders[SurfaceTexture].ChannelMask,
-            FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue,
-            FSurfaceTextureShaders[SurfaceTexture].VariableTextureType
+            TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId)
           ], false));
       end;
   end;
@@ -3347,21 +3323,14 @@ end;
 
 procedure TShader.EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
   const TextureUnit, TextureCoordinatesId: Cardinal;
-  const ChannelMask,
-    UniformTextureName,
-    VariableTextureValue,
-    VariableTextureType,
-    PlugCode: String);
+  const UniformTextureName, PlugCode: String);
 var
   HashMultiplier: LongWord;
 begin
   FSurfaceTextureShaders[SurfaceTexture].Enable := true;
   FSurfaceTextureShaders[SurfaceTexture].TextureUnit := TextureUnit;
   FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId := TextureCoordinatesId;
-  FSurfaceTextureShaders[SurfaceTexture].ChannelMask := ChannelMask;
   FSurfaceTextureShaders[SurfaceTexture].UniformTextureName := UniformTextureName;
-  FSurfaceTextureShaders[SurfaceTexture].VariableTextureValue := VariableTextureValue;
-  FSurfaceTextureShaders[SurfaceTexture].VariableTextureType := VariableTextureType;
   FSurfaceTextureShaders[SurfaceTexture].PlugCode := PlugCode;
 
   ShapeRequiresShaders := true;
@@ -3371,7 +3340,10 @@ begin
     2069 * TextureUnit +
     2081 * TextureCoordinatesId
   ));
-  FCodeHash.AddString(ChannelMask, 2083 * HashMultiplier);
+  { TODO: add FCodeHash.AddString(PlugCode, 2083 * HashMultiplier);
+    to account that PlugCode may change?
+    But in reality it never changes, only in case of CommonSurfaceShader
+    the ChannelMask is configurable. }
 
   // update HasEmissiveOrAmbientTexture value
   if SurfaceTexture in [stAmbient, stEmissive] then

@@ -198,11 +198,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
   procedure SurfaceTextureEnable(const SurfaceTexture: TSurfaceTexture;
     const Texture: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
-    const ChannelMask,
-      UniformTextureName,
-      VariableTextureValue,
-      VariableTextureType,
-      PlugCode: String);
+    const UniformTextureName, PlugCode: String);
   var
     GLTextureId: TGLTextureId;
   begin
@@ -216,10 +212,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
         glBindTexture(GL_TEXTURE_2D, GLTextureId);
         Shader.EnableSurfaceTexture(SurfaceTexture, ABoundTextureUnits,
           Max(0, TextureCoordinatesId),
-          ChannelMask,
           UniformTextureName,
-          VariableTextureValue,
-          VariableTextureType,
           PlugCode);
         Inc(ABoundTextureUnits);
 
@@ -240,11 +233,11 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     SurfaceTextureEnable(stEmissive,
       Texture,
       TextureChannel,
-      ChannelMask,
       'castle_SurfaceTexture_emissive',
-      'castle_SurfaceTexture_emissive_value',
-      'vec3',
-      'void PLUG_material_emissive(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
+      'void PLUG_material_emissive(inout vec3 parameter)' + NL +
+      '{' + NL +
+      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '}');
   end;
 
   procedure AmbientTextureEnable(
@@ -255,11 +248,11 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     SurfaceTextureEnable(stAmbient,
       Texture,
       TextureChannel,
-      ChannelMask,
       'castle_SurfaceTexture_ambient',
-      'castle_SurfaceTexture_ambient_value',
-      'vec3',
-      'void PLUG_material_light_ambient(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
+      'void PLUG_material_ambient(inout vec3 parameter)' + NL +
+      '{' + NL +
+      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '}');
   end;
 
   procedure SpecularTextureEnable(
@@ -270,11 +263,11 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     SurfaceTextureEnable(stSpecular,
       Texture,
       TextureChannel,
-      ChannelMask,
       'castle_SurfaceTexture_specular',
-      'castle_SurfaceTexture_specular_value',
-      'vec3',
-      'void PLUG_material_light_specular(inout vec3 parameter) { parameter *= {variable_texture_value}; }');
+      'void PLUG_material_specular(inout vec3 parameter)' + NL +
+      '{' + NL +
+      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '}');
   end;
 
   procedure ShininessTextureEnable(
@@ -285,11 +278,11 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     SurfaceTextureEnable(stShininess,
       Texture,
       TextureChannel,
-      ChannelMask,
       'castle_SurfaceTexture_shininess',
-      'castle_SurfaceTexture_shininess_value',
-      'float',
-      'void PLUG_material_shininess(inout float parameter) { parameter *= {variable_texture_value}; }');
+      'void PLUG_material_shininess(inout float parameter)' + NL +
+      '{' + NL +
+      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '}');
   end;
 
   procedure MetallicRoughnessTextureEnable(
@@ -299,16 +292,14 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     SurfaceTextureEnable(stMetallicRoughness,
       Texture,
       TextureChannel,
-      { roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
-        Read it to place metallic is x, roughness in y. }
-      'bg',
       'castle_SurfaceTexture_metallic_roughness',
-      'castle_SurfaceTexture_metallic_roughness_value',
-      'vec2',
       'void PLUG_material_metallic_roughness(inout float metallic, inout float roughness)' + NL +
       '{' + NL +
-      '  metallic *= {variable_texture_value}.x;' + NL +
-      '  roughness *= {variable_texture_value}.y;' + NL +
+      { Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
+        Read it to place metallic is x, roughness in y. }
+      '  vec2 sample = texture2D({uniform_texture_name}, {coord_name}.st).bg;' + NL +
+      '  metallic *= sample.x;' + NL +
+      '  roughness *= sample.y;' + NL +
       '}');
   end;
 

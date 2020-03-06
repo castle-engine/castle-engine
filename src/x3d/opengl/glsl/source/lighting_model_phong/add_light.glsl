@@ -52,25 +52,13 @@ uniform vec3 castle_LightSource<Light>Attenuation;
 uniform float castle_LightSource<Light>Radius;
 #endif
 
-// In case of OpenGLES, all shader code is glued, so this is already declared
-#ifndef GL_ES
-uniform vec3 castle_MaterialAmbient;
-uniform vec3 castle_MaterialSpecular;
-uniform float castle_MaterialShininess;
-#endif
-
 /* Add light contribution.
    Note: this never changes color.a.
 */
 void PLUG_add_light(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  /* Calculated color from
-     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.
-     Contains complete "diffuse/transparency" information that is independent of light source.
-     In case of Gouraud shading it is not multiplied by the diffuse texture
-     (because it cannot be, as we're on vertex shader). */
-  const in vec4 material_diffuse_alpha)
+  const in MaterialInfo material_info)
 {
   vec3 light_dir;
 
@@ -126,16 +114,14 @@ void PLUG_add_light(inout vec4 color,
   /* add ambient term */
   vec3 light_color =
 #ifdef LIGHT<Light>_HAS_AMBIENT
-  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;
-  /* PLUG: material_light_ambient (light_color) */
+  castle_LightSource<Light>AmbientColor * material_info.ambient;
 #else
   vec3(0.0);
 #endif
 
   /* add diffuse term */
-  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;
+  vec3 diffuse = castle_LightSource<Light>Color * material_info.diffuse_alpha.rgb;
 
-  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;
 
@@ -148,13 +134,9 @@ void PLUG_add_light(inout vec4 color,
        (and camera position == zero in camera space). */
   vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
   if (diffuse_factor != 0.0) {
-    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;
-    /* PLUG: material_light_specular (specular_color) */
-    float material_shininess = castle_MaterialShininess;
-    /* PLUG: material_shininess (material_shininess) */
+    vec3 specular_color = castle_LightSource<Light>Color * material_info.specular;
     light_color += specular_color *
-      pow(max(dot(halfVector, normal_eye),
-        0.0), material_shininess);
+      pow(max(dot(halfVector, normal_eye), 0.0), material_info.shininess);
   }
 #endif
 

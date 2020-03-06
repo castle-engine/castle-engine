@@ -52,19 +52,26 @@ vec3 get_scene_color()
 void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)
 {
 #ifdef LIT
-  vec4 material_diffuse_alpha;
+  MaterialInfo material_info;
+
+  material_info.ambient = castle_MaterialAmbient;
+  /* PLUG: material_ambient (material_info.ambient) */
+  material_info.specular = castle_MaterialSpecular;
+  /* PLUG: material_specular (material_info.specular) */
+  material_info.shininess = castle_MaterialShininess;
+  /* PLUG: material_shininess (material_info.shininess) */
 
   #ifdef COLOR_PER_VERTEX
-  material_diffuse_alpha = castle_ColorPerVertexFragment;
+  material_info.diffuse_alpha = castle_ColorPerVertexFragment;
   #else
-  material_diffuse_alpha = castle_MaterialDiffuseAlpha;
+  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
 
-  main_texture_apply(material_diffuse_alpha, normal_eye);
+  main_texture_apply(material_info.diffuse_alpha, normal_eye);
 
-  result = vec4(get_scene_color(), material_diffuse_alpha.a);
+  result = vec4(get_scene_color(), material_info.diffuse_alpha.a);
 
-  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */
+  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */
 
   /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
      This isn't really mandatory, but scenes with many lights could easily

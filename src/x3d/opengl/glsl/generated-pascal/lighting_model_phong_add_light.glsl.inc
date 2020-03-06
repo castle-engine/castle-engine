@@ -54,25 +54,13 @@
 'uniform float castle_LightSource<Light>Radius;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
-'// In case of OpenGLES, all shader code is glued, so this is already declared' + LineEnding +
-'#ifndef GL_ES' + LineEnding +
-'uniform vec3 castle_MaterialAmbient;' + LineEnding +
-'uniform vec3 castle_MaterialSpecular;' + LineEnding +
-'uniform float castle_MaterialShininess;' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 '/* Add light contribution.' + LineEnding +
 '   Note: this never changes color.a.' + LineEnding +
 '*/' + LineEnding +
 'void PLUG_add_light(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
-'  /* Calculated color from' + LineEnding +
-'     Material.diffuseColor/transparency (or ColorRGBA node) * diffuse texture.' + LineEnding +
-'     Contains complete "diffuse/transparency" information that is independent of light source.' + LineEnding +
-'     In case of Gouraud shading it is not multiplied by the diffuse texture' + LineEnding +
-'     (because it cannot be, as we''re on vertex shader). */' + LineEnding +
-'  const in vec4 material_diffuse_alpha)' + LineEnding +
+'  const in MaterialInfo material_info)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -128,16 +116,14 @@
 '  /* add ambient term */' + LineEnding +
 '  vec3 light_color =' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
-'  castle_LightSource<Light>AmbientColor * castle_MaterialAmbient;' + LineEnding +
-'  /* PLUG: material_light_ambient (light_color) */' + LineEnding +
+'  castle_LightSource<Light>AmbientColor * material_info.ambient;' + LineEnding +
 '#else' + LineEnding +
 '  vec3(0.0);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
-'  vec3 diffuse = castle_LightSource<Light>Color * material_diffuse_alpha.rgb;' + LineEnding +
+'  vec3 diffuse = castle_LightSource<Light>Color * material_info.diffuse_alpha.rgb;' + LineEnding +
 '' + LineEnding +
-'  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
 '  light_color += diffuse * diffuse_factor;' + LineEnding +
 '' + LineEnding +
@@ -150,13 +136,9 @@
 '       (and camera position == zero in camera space). */' + LineEnding +
 '  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));' + LineEnding +
 '  if (diffuse_factor != 0.0) {' + LineEnding +
-'    vec3 specular_color = castle_LightSource<Light>Color * castle_MaterialSpecular;' + LineEnding +
-'    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
-'    float material_shininess = castle_MaterialShininess;' + LineEnding +
-'    /* PLUG: material_shininess (material_shininess) */' + LineEnding +
+'    vec3 specular_color = castle_LightSource<Light>Color * material_info.specular;' + LineEnding +
 '    light_color += specular_color *' + LineEnding +
-'      pow(max(dot(halfVector, normal_eye),' + LineEnding +
-'        0.0), material_shininess);' + LineEnding +
+'      pow(max(dot(halfVector, normal_eye), 0.0), material_info.shininess);' + LineEnding +
 '  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +

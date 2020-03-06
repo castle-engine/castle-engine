@@ -64,17 +64,24 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   */
   /* vec3 normal_for_lighting = (normal_eye.z > 0.0 ? normal_eye : -normal_eye); */
 
-  vec4 material_diffuse_alpha;
+  MaterialInfo material_info;
+
+  material_info.ambient = castle_MaterialAmbient;
+  /* PLUG: material_ambient (material_info.ambient) */
+  material_info.specular = castle_MaterialSpecular;
+  /* PLUG: material_specular (material_info.specular) */
+  material_info.shininess = castle_MaterialShininess;
+  /* PLUG: material_shininess (material_info.shininess) */
 
   #ifdef COLOR_PER_VERTEX
-  material_diffuse_alpha = castle_ColorPerVertex;
+  material_info.diffuse_alpha = castle_ColorPerVertex;
   #else
-  material_diffuse_alpha = castle_MaterialDiffuseAlpha;
+  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;
   #endif
 
-  result = vec4(castle_SceneColor, material_diffuse_alpha.a);
+  result = vec4(castle_SceneColor, material_info.diffuse_alpha.a);
 
-  /* PLUG: add_light (result, vertex_eye, normal_eye, material_diffuse_alpha) */
+  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   result.rgb = min(result.rgb, 1.0);
