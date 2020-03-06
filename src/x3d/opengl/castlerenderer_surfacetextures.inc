@@ -298,9 +298,17 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       '');
   end;
 
+  procedure MetallicRoughnessTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer);
+  begin
+    // TODO
+  end;
+
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatPhong: TMaterialNode;
+  MatPhysical: TPhysicalMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -323,22 +331,39 @@ begin
         SurfaceShader.ShininessTexture,
         SurfaceShader.ShininessTextureCoordinatesId,
         SurfaceShader.ShininessTextureChannelMask);
-    end;
-    if State.ShapeNode.Material is TMaterialNode then
+    end else
     begin
-      MatPhong := TMaterialNode(State.ShapeNode.Material);
-      EmissiveTextureEnable(
-        MatPhong.EmissiveTexture,
-        MatPhong.EmissiveTextureChannel);
-      AmbientTextureEnable(
-        MatPhong.AmbientTexture,
-        MatPhong.AmbientTextureChannel);
-      SpecularTextureEnable(
-        MatPhong.SpecularTexture,
-        MatPhong.SpecularTextureChannel);
-      ShininessTextureEnable(
-        MatPhong.ShininessTexture,
-        MatPhong.ShininessTextureChannel);
+      if State.ShapeNode.Material is TMaterialNode then
+      begin
+        MatPhong := TMaterialNode(State.ShapeNode.Material);
+        EmissiveTextureEnable(
+          MatPhong.EmissiveTexture,
+          MatPhong.EmissiveTextureChannel);
+        AmbientTextureEnable(
+          MatPhong.AmbientTexture,
+          MatPhong.AmbientTextureChannel);
+        SpecularTextureEnable(
+          MatPhong.SpecularTexture,
+          MatPhong.SpecularTextureChannel);
+        ShininessTextureEnable(
+          MatPhong.ShininessTexture,
+          MatPhong.ShininessTextureChannel);
+        // No need to apply MatPhong.DiffuseTexture here, it is applied as MainTexture
+      end else
+      if State.ShapeNode.Material is TPhysicalMaterialNode then
+      begin
+        MatPhysical := TPhysicalMaterialNode(State.ShapeNode.Material);
+        EmissiveTextureEnable(
+          MatPhysical.EmissiveTexture,
+          MatPhysical.EmissiveTextureChannel);
+        MetallicRoughnessTextureEnable(
+          MatPhysical.MetallicRoughnessTexture,
+          MatPhysical.MetallicRoughnessTextureChannel);
+        // No need to apply MatPhysical.BaseTexture here, it is applied as MainTexture
+      end;
+
+      { No need to do anything for TUnlitMaterialNode.
+        It only has EmissiveTexture, which is applied as MainTexture. }
     end;
   end;
 end;
