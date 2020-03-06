@@ -171,33 +171,6 @@ var
   { @groupEnd }
 
 const
-  { URNs used to indicate standard VRML / X3D nodes.
-
-    Funny thing, I actually didn't found anywhere a definite official
-    statement that they are using such-and-such URNs.
-
-    X3D specification refers to RFC
-    [http://www.ietf.org/rfc/rfc3541.txt?number=3541] which, basically,
-    just says "we like URNs and we'll use them" and nothing more.
-    Same thing for VRML 97 spec
-    [http://www.web3d.org/x3d/specifications/vrml/ISO-IEC-14772-VRML97/part1/extensions.html].
-    There is no precise answer e.g. what URN should be used to
-    Indicate some standard VRML 97 / X3D node.
-
-    I constructed URNs below looking at examples in the RFC,
-    annotated by a funny line "The following examples are not
-    guaranteed to be real. They are presented for pedagogical reasons only."
-
-    @groupBegin }
-  URNVRML97Nodes = 'urn:web3d:vrml97:node:';
-  URNX3DNodes = 'urn:web3d:x3d:node:';
-  { @groupEnd }
-
-  { URN to indicate BitManagement nodes. This should work, according to
-    http://www.bitmanagement.com/developer/contact/examples/layer/index.html
-    example EXTERNPROTO. }
-  URNBitManagementNodes = 'urn:inet:bitmanagement.de:node:';
-
   { Standard prefix name for a time sensor to be recognized as a "named animation"
     for TCastleSceneCore.PlayAnimation and friends. }
   DefaultAnimationPrefix = '';
@@ -303,10 +276,6 @@ function KeyRange(Key: TSingleList;
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 
-{ Does this URN indicate an X3D node that is a Castle Game Engine extension.
-  This is a helper for implementing @link(TX3DNode.URNMatching). }
-function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -395,15 +364,6 @@ begin
   Temp := TX3DNode(Obj);
   Pointer(Obj) := nil;
   Temp.FreeIfUnused;
-end;
-
-function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
-begin
-  Result :=
-    (URN = 'urn:castle-engine.io:node:' + ClassX3DType) or
-    (URN = 'urn:castle-engine.sourceforge.io:node:' + ClassX3DType) or
-    (URN = 'urn:castle-engine.sourceforge.net:node:' + ClassX3DType) or
-    (URN = 'urn:vrmlengine.sourceforge.net:node:' + ClassX3DType);
 end;
 
 {$endif read_implementation}

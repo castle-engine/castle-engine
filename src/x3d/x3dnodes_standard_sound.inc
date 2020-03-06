@@ -77,7 +77,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function GetCycleInterval: TFloatTime; override;
 
     strict private FFdUrl: TMFString;
@@ -100,7 +99,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -206,13 +204,6 @@ end;
 class function TAudioClipNode.ClassX3DType: string;
 begin
   Result := 'AudioClip';
-end;
-
-class function TAudioClipNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TAudioClipNode.ParseAfter(Reader: TX3DReaderNames);
@@ -476,13 +467,6 @@ end;
 class function TSoundNode.ClassX3DType: string;
 begin
   Result := 'Sound';
-end;
-
-class function TSoundNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterSoundNodes;

@@ -56,7 +56,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFColorEvent;
@@ -83,7 +82,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TMFVec3fEvent;
@@ -110,7 +108,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFRotationEvent;
@@ -137,7 +134,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFRotationEvent;
@@ -164,7 +160,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec3fEvent;
@@ -191,7 +186,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec2fEvent;
@@ -218,7 +212,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec3fEvent;
@@ -245,7 +238,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFVec2fEvent;
@@ -272,7 +264,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TSFFloatEvent;
@@ -299,7 +290,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_destination: TMFVec2fEvent;
@@ -392,12 +382,6 @@ begin
   Result := 'ColorDamper';
 end;
 
-class function TColorDamperNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCoordinateDamperNode.CreateNode;
 begin
   inherited;
@@ -423,12 +407,6 @@ end;
 class function TCoordinateDamperNode.ClassX3DType: string;
 begin
   Result := 'CoordinateDamper';
-end;
-
-class function TCoordinateDamperNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TOrientationChaserNode.CreateNode;
@@ -458,12 +436,6 @@ begin
   Result := 'OrientationChaser';
 end;
 
-class function TOrientationChaserNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TOrientationDamperNode.CreateNode;
 begin
   inherited;
@@ -491,12 +463,6 @@ begin
   Result := 'OrientationDamper';
 end;
 
-class function TOrientationDamperNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPositionChaserNode.CreateNode;
 begin
   inherited;
@@ -522,12 +488,6 @@ end;
 class function TPositionChaserNode.ClassX3DType: string;
 begin
   Result := 'PositionChaser';
-end;
-
-class function TPositionChaserNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPositionChaser2DNode.CreateNode;
@@ -559,12 +519,6 @@ begin
   Result := 'PositionChaser2D';
 end;
 
-class function TPositionChaser2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPositionDamperNode.CreateNode;
 begin
   inherited;
@@ -590,12 +544,6 @@ end;
 class function TPositionDamperNode.ClassX3DType: string;
 begin
   Result := 'PositionDamper';
-end;
-
-class function TPositionDamperNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPositionDamper2DNode.CreateNode;
@@ -625,12 +573,6 @@ begin
   Result := 'PositionDamper2D';
 end;
 
-class function TPositionDamper2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TScalarChaserNode.CreateNode;
 begin
   inherited;
@@ -658,12 +600,6 @@ begin
   Result := 'ScalarChaser';
 end;
 
-class function TScalarChaserNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTexCoordDamper2DNode.CreateNode;
 begin
   inherited;
@@ -689,12 +625,6 @@ end;
 class function TTexCoordDamper2DNode.ClassX3DType: string;
 begin
   Result := 'TexCoordDamper2D';
-end;
-
-class function TTexCoordDamper2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterFollowersNodes;

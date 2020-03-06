@@ -96,7 +96,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -125,7 +124,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFBool;
     public property FdKeyValue: TMFBool read FFdKeyValue;
@@ -145,7 +143,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -165,7 +162,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_triggerTime: TSFTimeEvent;
@@ -188,7 +184,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFInt32;
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
@@ -208,7 +203,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -232,7 +226,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -416,12 +409,6 @@ begin
   Result := 'BooleanFilter';
 end;
 
-class function TBooleanFilterNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TBooleanSequencerNode.CreateNode;
 begin
   inherited;
@@ -438,12 +425,6 @@ end;
 class function TBooleanSequencerNode.ClassX3DType: string;
 begin
   Result := 'BooleanSequencer';
-end;
-
-class function TBooleanSequencerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TBooleanSequencerNode.SendValueChanged(const ValueIndex: Integer;
@@ -484,12 +465,6 @@ begin
   Result := 'BooleanToggle';
 end;
 
-class function TBooleanToggleNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TBooleanTriggerNode.CreateNode;
 begin
   inherited;
@@ -515,12 +490,6 @@ begin
   Result := 'BooleanTrigger';
 end;
 
-class function TBooleanTriggerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TIntegerSequencerNode.CreateNode;
 begin
   inherited;
@@ -538,12 +507,6 @@ end;
 class function TIntegerSequencerNode.ClassX3DType: string;
 begin
   Result := 'IntegerSequencer';
-end;
-
-class function TIntegerSequencerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TIntegerSequencerNode.SendValueChanged(const ValueIndex: Integer;
@@ -586,12 +549,6 @@ begin
   Result := 'IntegerTrigger';
 end;
 
-class function TIntegerTriggerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTimeTriggerNode.CreateNode;
 begin
   inherited;
@@ -609,12 +566,6 @@ end;
 class function TTimeTriggerNode.ClassX3DType: string;
 begin
   Result := 'TimeTrigger';
-end;
-
-class function TTimeTriggerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTimeTriggerNode.EventSet_BooleanReceive(

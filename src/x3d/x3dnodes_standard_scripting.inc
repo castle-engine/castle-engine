@@ -75,7 +75,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDirectOutput: TSFBool;
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
@@ -362,13 +361,6 @@ end;
 class function TScriptNode.ClassX3DType: string;
 begin
   Result := 'Script';
-end;
-
-class function TScriptNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScriptNode.PostAddInterfaceDeclaration(

@@ -315,7 +315,6 @@
     procedure CreateNode; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCycleInterval: TSFTimeIgnoreWhenActive;
     public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
@@ -1008,13 +1007,6 @@ end;
 class function TTimeSensorNode.ClassX3DType: string;
 begin
   Result := 'TimeSensor';
-end;
-
-class function TTimeSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTimeSensorNode.EventElapsedTimeReceive(

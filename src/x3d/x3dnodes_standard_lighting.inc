@@ -338,7 +338,6 @@
   TDirectionalLightNode = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -352,7 +351,6 @@
   TPointLightNode = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -372,7 +370,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdBeamWidth: TSFFloat;
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
@@ -1023,13 +1020,6 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDirectionalLightNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
@@ -1042,13 +1032,6 @@ begin
   FdGlobal.Value := true;
 
   DefaultContainerField := 'children';
-end;
-
-class function TPointLightNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1090,13 +1073,6 @@ end;
 class function TSpotLightNode.ClassX3DType: string;
 begin
   Result := 'SpotLight';
-end;
-
-class function TSpotLightNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

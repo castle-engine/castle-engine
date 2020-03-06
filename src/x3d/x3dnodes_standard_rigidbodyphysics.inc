@@ -75,7 +75,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -95,7 +94,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCollidable: TSFNode;
     public property FdCollidable: TSFNode read FFdCollidable;
@@ -107,7 +105,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
@@ -119,7 +116,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
@@ -158,7 +154,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCollider: TSFNode;
     public property FdCollider: TSFNode read FFdCollider;
@@ -178,7 +173,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCollidables: TMFNode;
     public property FdCollidables: TMFNode read FFdCollidables;
@@ -193,7 +187,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
@@ -250,7 +243,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -333,7 +325,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAxis1Angle: TSFFloat;
     public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
@@ -417,7 +408,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAngularDampingFactor: TSFFloat;
     public property FdAngularDampingFactor: TSFFloat read FFdAngularDampingFactor;
@@ -495,7 +485,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_contacts: TMFNodeEvent;
@@ -553,7 +542,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -596,7 +584,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
@@ -631,7 +618,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -752,12 +738,6 @@ begin
   Result := 'BallJoint';
 end;
 
-class function TBallJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCollidableOffsetNode.CreateNode;
 begin
   inherited;
@@ -771,12 +751,6 @@ begin
   Result := 'CollidableOffset';
 end;
 
-class function TCollidableOffsetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCollidableShapeNode.CreateNode;
 begin
   inherited;
@@ -788,12 +762,6 @@ end;
 class function TCollidableShapeNode.ClassX3DType: string;
 begin
   Result := 'CollidableShape';
-end;
-
-class function TCollidableShapeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollisionCollectionNode.CreateNode;
@@ -844,12 +812,6 @@ begin
   Result := 'CollisionCollection';
 end;
 
-class function TCollisionCollectionNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCollisionSensorNode.CreateNode;
 begin
   inherited;
@@ -869,12 +831,6 @@ begin
   Result := 'CollisionSensor';
 end;
 
-class function TCollisionSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCollisionSpaceNode.CreateNode;
 begin
   inherited;
@@ -891,12 +847,6 @@ end;
 class function TCollisionSpaceNode.ClassX3DType: string;
 begin
   Result := 'CollisionSpace';
-end;
-
-class function TCollisionSpaceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TContactNode.CreateNode;
@@ -969,12 +919,6 @@ end;
 class function TContactNode.ClassX3DType: string;
 begin
   Result := 'Contact';
-end;
-
-class function TContactNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TDoubleAxisHingeJointNode.CreateNode;
@@ -1062,12 +1006,6 @@ end;
 class function TDoubleAxisHingeJointNode.ClassX3DType: string;
 begin
   Result := 'DoubleAxisHingeJoint';
-end;
-
-class function TDoubleAxisHingeJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMotorJointNode.CreateNode;
@@ -1160,12 +1098,6 @@ end;
 class function TMotorJointNode.ClassX3DType: string;
 begin
   Result := 'MotorJoint';
-end;
-
-class function TMotorJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TRigidBodyNode.CreateNode;
@@ -1261,12 +1193,6 @@ begin
   Result := 'RigidBody';
 end;
 
-class function TRigidBodyNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TRigidBodyCollectionNode.CreateNode;
 begin
   inherited;
@@ -1333,12 +1259,6 @@ begin
   Result := 'RigidBodyCollection';
 end;
 
-class function TRigidBodyCollectionNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TSingleAxisHingeJointNode.CreateNode;
 begin
   inherited;
@@ -1381,12 +1301,6 @@ begin
   Result := 'SingleAxisHingeJoint';
 end;
 
-class function TSingleAxisHingeJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TSliderJointNode.CreateNode;
 begin
   inherited;
@@ -1424,12 +1338,6 @@ end;
 class function TSliderJointNode.ClassX3DType: string;
 begin
   Result := 'SliderJoint';
-end;
-
-class function TSliderJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TUniversalJointNode.CreateNode;
@@ -1477,12 +1385,6 @@ end;
 class function TUniversalJointNode.ClassX3DType: string;
 begin
   Result := 'UniversalJoint';
-end;
-
-class function TUniversalJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterRigidBodyPhysicsNodes;

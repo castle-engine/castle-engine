@@ -957,14 +957,6 @@
     property PrototypeInstanceHelpers: TX3DNode read FPrototypeInstanceHelpers;
     { @groupEnd }
 
-    { Does this node matches the given URN. This is used when searching for an built-in
-      implementation of a node declared in X3D using the EXTERNPROTO.
-
-      Implementors note: in this class, this returns @false.
-      You can use constants like @link(URNVRML97Nodes) and functions like
-      @link(URNMatchingCastle) to implement this easily. }
-    class function URNMatching(const URN: string): boolean; virtual;
-
     { Default value of "containerField" attribute for this node in X3D XML
       encoding. }
     property DefaultContainerField: string
@@ -2990,11 +2982,6 @@ begin
     Helper.IgnoreCase := IgnoreCase;
     Result := EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} Helper.DoIt);
   finally FreeAndNil(Helper) end;
-end;
-
-class function TX3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := false;
 end;
 
 function TX3DNode.Field(const AName: string; const RaiseOnError: Boolean): TX3DField;

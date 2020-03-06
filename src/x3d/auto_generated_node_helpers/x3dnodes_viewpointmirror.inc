@@ -31,7 +31,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDistanceFromShape: TSFFloat;
     { X3D field "distanceFromShape". } { }
@@ -58,12 +57,6 @@ end;
 class function TViewpointMirrorNode.ClassX3DType: String;
 begin
   Result := 'ViewpointMirror';
-end;
-
-class function TViewpointMirrorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TViewpointMirrorNode.CreateNode;

@@ -71,7 +71,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
@@ -84,7 +83,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdValue: TMFFloat;
     public property FdValue: TMFFloat read FFdValue;
@@ -100,7 +98,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdValue: TMFMatrix3f;
     public property FdValue: TMFMatrix3f read FFdValue;
@@ -113,7 +110,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdValue: TMFMatrix4f;
     public property FdValue: TMFMatrix4f read FFdValue;
@@ -127,7 +123,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -143,7 +138,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPrograms: TMFNode;
     public property FdPrograms: TMFNode read FFdPrograms;
@@ -166,7 +160,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -199,7 +192,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -287,12 +279,6 @@ begin
   Result := 'ComposedShader';
 end;
 
-class function TComposedShaderNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TFloatVertexAttributeNode.CreateNode;
 begin
   inherited;
@@ -311,12 +297,6 @@ begin
   Result := 'FloatVertexAttribute';
 end;
 
-class function TFloatVertexAttributeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TMatrix3VertexAttributeNode.CreateNode;
 begin
   inherited;
@@ -331,12 +311,6 @@ begin
   Result := 'Matrix3VertexAttribute';
 end;
 
-class function TMatrix3VertexAttributeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TMatrix4VertexAttributeNode.CreateNode;
 begin
   inherited;
@@ -349,12 +323,6 @@ end;
 class function TMatrix4VertexAttributeNode.ClassX3DType: string;
 begin
   Result := 'Matrix4VertexAttribute';
-end;
-
-class function TMatrix4VertexAttributeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPackagedShaderNode.CreateNode;
@@ -374,12 +342,6 @@ begin
   Result := 'PackagedShader';
 end;
 
-class function TPackagedShaderNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TProgramShaderNode.CreateNode;
 begin
   inherited;
@@ -391,12 +353,6 @@ end;
 class function TProgramShaderNode.ClassX3DType: string;
 begin
   Result := 'ProgramShader';
-end;
-
-class function TProgramShaderNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TShaderPartNode.CreateNode;
@@ -491,12 +447,6 @@ begin
   ContentsCached := false;
 end;
 
-class function TShaderPartNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TShaderPartNode.GetShaderType: TShaderType;
 begin
   Result := TShaderType(FdType.EnumValue);
@@ -528,12 +478,6 @@ end;
 class function TShaderProgramNode.ClassX3DType: string;
 begin
   Result := 'ShaderProgram';
-end;
-
-class function TShaderProgramNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterShadersNodes;

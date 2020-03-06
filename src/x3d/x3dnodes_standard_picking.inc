@@ -51,7 +51,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
     strict private FEventPickedNormal: TMFVec3fEvent;
@@ -72,7 +71,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdObjectType: TMFString;
     public property FdObjectType: TMFString read FFdObjectType;
@@ -87,7 +85,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
     strict private FEventPickedPoint: TMFVec3fEvent;
@@ -100,7 +97,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
   end;
@@ -109,7 +105,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
   end;
@@ -171,12 +166,6 @@ begin
   Result := 'LinePickSensor';
 end;
 
-class function TLinePickSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPickableGroupNode.CreateNode;
 begin
   inherited;
@@ -196,12 +185,6 @@ begin
   Result := 'PickableGroup';
 end;
 
-class function TPickableGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPointPickSensorNode.CreateNode;
 begin
   inherited;
@@ -217,12 +200,6 @@ begin
   Result := 'PointPickSensor';
 end;
 
-class function TPointPickSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPrimitivePickSensorNode.CreateNode;
 begin
   inherited;
@@ -235,12 +212,6 @@ begin
   Result := 'PrimitivePickSensor';
 end;
 
-class function TPrimitivePickSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TVolumePickSensorNode.CreateNode;
 begin
   inherited;
@@ -251,12 +222,6 @@ end;
 class function TVolumePickSensorNode.ClassX3DType: string;
 begin
   Result := 'VolumePickSensor';
-end;
-
-class function TVolumePickSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterPickingNodes;

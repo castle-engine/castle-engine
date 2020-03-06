@@ -66,8 +66,10 @@ type
       const Version: TX3DVersion): TX3DNodeClass;
 
     { Return class that matches given URL. This is useful for EXTERNROTOs.
+      Checks also @code(ForVRMLVersion(Version)).
       Returns @nil if not found. }
-    function URNToClass(const URN: string): TX3DNodeClass;
+    function URNToClass(const URN: string;
+      const Version: TX3DVersion): TX3DNodeClass;
 
     { Enumerate all registered classes, from Registered[0] to
       Registered[RegisteredCount - 1].
@@ -155,14 +157,68 @@ begin
   Result := nil;
 end;
 
-function TNodesManager.URNToClass(const URN: string): TX3DNodeClass;
+function TNodesManager.URNToClass(const URN: string;
+  const Version: TX3DVersion): TX3DNodeClass;
+
+  { Does this node name match the given URN. This is used when searching for an built-in
+    implementation of a node declared in X3D using the EXTERNPROTO.
+
+    In the past, this was using a virtual URNMatching implementation at each node,
+    which tried to be smart:
+    - use CGE prefix only for CGE extensions
+    - use X3D only for X3D nodes (version >= 3)
+    - use VRML 97 only for VRML 97 nodes (version 2)
+    etc.
+
+    Ultimately, this was causing a lot of maintenance burden,
+    and implementation of URNMatching was often untested and slightly incorrect,
+    and was useless.
+
+    - Standard URNs for nodes are not widely used,
+    - and most modern formats are just X3D anyway,
+    - and we can check ForVRMLVersion.
+    So we can implement them simpler. }
+  function URNMatching(const URN, ClassX3DType: String): Boolean;
+  begin
+    Result :=
+      (URN = 'urn:castle-engine.io:node:' + ClassX3DType) or
+      (URN = 'urn:castle-engine.sourceforge.io:node:' + ClassX3DType) or
+      (URN = 'urn:castle-engine.sourceforge.net:node:' + ClassX3DType) or
+      (URN = 'urn:vrmlengine.sourceforge.net:node:' + ClassX3DType) or
+
+      { URNs used to indicate standard VRML / X3D nodes.
+
+        Funny thing, I actually didn't found anywhere a definite official
+        statement that they are using such-and-such URNs.
+
+        X3D specification refers to RFC
+        [http://www.ietf.org/rfc/rfc3541.txt?number=3541] which, basically,
+        just says "we like URNs and we'll use them" and nothing more.
+        Same thing for VRML 97 spec
+        [http://www.web3d.org/x3d/specifications/vrml/ISO-IEC-14772-VRML97/part1/extensions.html].
+        There is no precise answer e.g. what URN should be used to
+        Indicate some standard VRML 97 / X3D node.
+
+        I constructed URNs below looking at examples in the RFC,
+        annotated by a funny line "The following examples are not
+        guaranteed to be real. They are presented for pedagogical reasons only." }
+      (URN = 'urn:web3d:vrml97:node:' + ClassX3DType) or
+      (URN = 'urn:web3d:x3d:node:' + ClassX3DType) or
+
+      { URN to indicate BitManagement nodes. This should work, according to
+        http://www.bitmanagement.com/developer/contact/examples/layer/index.html
+        example EXTERNPROTO. }
+      (URN = 'urn:inet:bitmanagement.de:node:' + ClassX3DType);
+  end;
+
 var
   I: Integer;
 begin
   for I := 0 to FRegistered.Count - 1 do
   begin
     Result := TX3DNodeClass(FRegistered.Objects[I]);
-    if Result.URNMatching(URN) then
+    if URNMatching(URN, Result.ClassX3DType) and
+       Result.ForVRMLVersion(Version) then
       Exit;
   end;
   Result := nil;

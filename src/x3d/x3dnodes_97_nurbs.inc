@@ -85,8 +85,6 @@
 
     strict private FFdwOrder: TSFInt32;
     public property FdwOrder: TSFInt32 read FFdwOrder;
-
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   { Visible NURBS curve in 3D, in VRML 2.0.
@@ -111,8 +109,6 @@
     strict private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -136,8 +132,6 @@
 
     strict private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
-
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   { Interpolate (animate) positions along the 3D NURBS curve. }
@@ -171,8 +165,6 @@
     { Event out } { }
     strict private FEventvalue_changed: TSFVec3fEvent;
     public property Eventvalue_changed: TSFVec3fEvent read FEventvalue_changed;
-
-    class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
@@ -222,8 +214,6 @@
     strict private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
@@ -268,7 +258,6 @@
     strict private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   { NURBS surface that is trimmed by a set of trimming loops.
@@ -292,8 +281,6 @@
     strict private FFdsurface: TSFNode;
     public property Fdsurface: TSFNode read FFdsurface;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -310,7 +297,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     { Event in } { }
@@ -403,12 +389,6 @@ begin
   Result := 'CoordinateDeformer';
 end;
 
-class function TCoordinateDeformerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
-end;
-
 procedure TNurbsCurveNode_2.CreateNode;
 begin
   inherited;
@@ -437,12 +417,6 @@ end;
 class function TNurbsCurveNode_2.ClassX3DType: string;
 begin
   Result := 'NurbsCurve';
-end;
-
-class function TNurbsCurveNode_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -509,12 +483,6 @@ begin
   Result := 'NurbsGroup';
 end;
 
-class function TNurbsGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
-end;
-
 procedure TNurbsPositionInterpolatorNode_2.CreateNode;
 begin
   inherited;
@@ -548,12 +516,6 @@ end;
 class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;
 begin
   Result := 'NurbsPositionInterpolator';
-end;
-
-class function TNurbsPositionInterpolatorNode_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -657,12 +619,6 @@ end;
 class function TNurbsSurfaceNode.ClassX3DType: string;
 begin
   Result := 'NurbsSurface';
-end;
-
-class function TNurbsSurfaceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 function TNurbsSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
@@ -784,12 +740,6 @@ begin
   Result := 'NurbsTextureSurface';
 end;
 
-class function TNurbsTextureSurfaceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
-end;
-
 procedure TTrimmedSurfaceNode.CreateNode;
 begin
   inherited;
@@ -812,12 +762,6 @@ end;
 class function TTrimmedSurfaceNode.ClassX3DType: string;
 begin
   Result := 'TrimmedSurface';
-end;
-
-class function TTrimmedSurfaceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 function TTrimmedSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -865,12 +809,6 @@ end;
 class function TContour2DNode_2.ClassX3DType: string;
 begin
   Result := 'Contour2D';
-end;
-
-class function TContour2DNode_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TContour2DNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;

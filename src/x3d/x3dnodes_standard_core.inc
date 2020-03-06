@@ -190,7 +190,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -210,7 +209,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -230,7 +228,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -249,7 +246,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -269,7 +265,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -288,7 +283,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -309,7 +303,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdInfo: TMFString;
     public property FdInfo: TMFString read FFdInfo;
@@ -417,12 +410,6 @@ begin
   Result := 'MetadataBoolean';
 end;
 
-class function TMetadataBooleanNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TMetadataDoubleNode.CreateNode;
 begin
   inherited;
@@ -442,12 +429,6 @@ end;
 class function TMetadataDoubleNode.ClassX3DType: string;
 begin
   Result := 'MetadataDouble';
-end;
-
-class function TMetadataDoubleNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataFloatNode.CreateNode;
@@ -471,12 +452,6 @@ begin
   Result := 'MetadataFloat';
 end;
 
-class function TMetadataFloatNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TMetadataIntegerNode.CreateNode;
 begin
   inherited;
@@ -496,12 +471,6 @@ end;
 class function TMetadataIntegerNode.ClassX3DType: string;
 begin
   Result := 'MetadataInteger';
-end;
-
-class function TMetadataIntegerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataSetNode.CreateNode;
@@ -525,12 +494,6 @@ begin
   Result := 'MetadataSet';
 end;
 
-class function TMetadataSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TMetadataStringNode.CreateNode;
 begin
   inherited;
@@ -552,12 +515,6 @@ begin
   Result := 'MetadataString';
 end;
 
-class function TMetadataStringNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TWorldInfoNode.CreateNode;
 begin
   inherited;
@@ -572,13 +529,6 @@ end;
 class function TWorldInfoNode.ClassX3DType: string;
 begin
   Result := 'WorldInfo';
-end;
-
-class function TWorldInfoNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterCoreNodes;

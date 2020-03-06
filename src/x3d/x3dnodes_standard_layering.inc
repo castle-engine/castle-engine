@@ -41,7 +41,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventAddChildren: TMFNodeEvent;
@@ -61,7 +60,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdActiveLayer: TSFInt32;
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
@@ -79,7 +77,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClipBoundary: TMFFloat;
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
@@ -127,12 +124,6 @@ begin
   Result := 'Layer';
 end;
 
-class function TLayerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TLayerSetNode.CreateNode;
 begin
   inherited;
@@ -156,12 +147,6 @@ begin
   Result := 'LayerSet';
 end;
 
-class function TLayerSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TViewportNode.CreateNode;
 begin
   inherited;
@@ -174,12 +159,6 @@ end;
 class function TViewportNode.ClassX3DType: string;
 begin
   Result := 'Viewport';
-end;
-
-class function TViewportNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterLayeringNodes;

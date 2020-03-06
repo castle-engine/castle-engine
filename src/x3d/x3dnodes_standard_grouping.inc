@@ -160,7 +160,6 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_group.inc}
   end;
@@ -318,7 +317,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
@@ -358,7 +356,6 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    class function URNMatching(const URN: string): boolean; override;
 
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -388,7 +385,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -687,13 +683,6 @@ begin
   Result := 'Group';
 end;
 
-class function TGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
@@ -916,12 +905,6 @@ begin
   Result := 'StaticGroup';
 end;
 
-class function TStaticGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -945,13 +928,6 @@ end;
 class function TSwitchNode.ClassX3DType: string;
 begin
   Result := 'Switch';
-end;
-
-class function TSwitchNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1009,13 +985,6 @@ end;
 class function TTransformNode.ClassX3DType: string;
 begin
   Result := 'Transform';
-end;
-
-class function TTransformNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

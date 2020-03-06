@@ -23,7 +23,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -66,7 +65,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -166,7 +164,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -220,7 +217,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenterOfMass: TSFVec3f;
@@ -268,7 +264,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -320,12 +315,6 @@ end;
 class function THAnimDisplacerNode.ClassX3DType: string;
 begin
   Result := 'HAnimDisplacer';
-end;
-
-class function THAnimDisplacerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TVertexJoints.Add(Joint: THAnimJointNode; const Weight: Single);
@@ -434,12 +423,6 @@ end;
 class function THAnimHumanoidNode.ClassX3DType: string;
 begin
   Result := 'HAnimHumanoid';
-end;
-
-class function THAnimHumanoidNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -659,12 +642,6 @@ begin
   Result := 'HAnimJoint';
 end;
 
-class function THAnimJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -806,12 +783,6 @@ begin
   Result := 'HAnimSegment';
 end;
 
-class function THAnimSegmentNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -868,12 +839,6 @@ end;
 class function THAnimSiteNode.ClassX3DType: string;
 begin
   Result := 'HAnimSite';
-end;
-
-class function THAnimSiteNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

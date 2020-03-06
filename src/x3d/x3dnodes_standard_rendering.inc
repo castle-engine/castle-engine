@@ -564,7 +564,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -580,7 +579,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdColor: TMFColor;
     public property FdColor: TMFColor read FFdColor;
@@ -593,7 +591,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdColor: TMFColorRGBA;
     public property FdColor: TMFColorRGBA read FFdColor;
@@ -607,7 +604,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -627,7 +623,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_colorIndex: TMFInt32Event;
@@ -689,7 +684,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -719,7 +713,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -749,7 +742,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -781,7 +773,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
@@ -825,8 +816,6 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     strict private FFdVector: TMFVec3f;
     public property FdVector: TMFVec3f read FFdVector;
 
@@ -840,7 +829,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
@@ -887,7 +875,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
@@ -909,7 +896,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -932,7 +918,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
@@ -1435,12 +1420,6 @@ begin
   Result := 'ClipPlane';
 end;
 
-class function TClipPlaneNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TColorNode.CreateNode;
 begin
   inherited;
@@ -1454,13 +1433,6 @@ end;
 class function TColorNode.ClassX3DType: string;
 begin
   Result := 'Color';
-end;
-
-class function TColorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TColorRGBANode.CreateNode;
@@ -1478,12 +1450,6 @@ begin
   Result := 'ColorRGBA';
 end;
 
-class function TColorRGBANode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCoordinateNode.CreateNode;
 begin
   inherited;
@@ -1497,13 +1463,6 @@ end;
 class function TCoordinateNode.ClassX3DType: string;
 begin
   Result := 'Coordinate';
-end;
-
-class function TCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCoordinateNode.CoordCount: Cardinal;
@@ -1563,13 +1522,6 @@ end;
 class function TIndexedLineSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedLineSet';
-end;
-
-class function TIndexedLineSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1657,12 +1609,6 @@ begin
   Result := 'IndexedTriangleFanSet';
 end;
 
-class function TIndexedTriangleFanSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TIndexedTriangleFanSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
@@ -1700,12 +1646,6 @@ begin
   Result := 'IndexedTriangleSet';
 end;
 
-class function TIndexedTriangleSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TIndexedTriangleSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
@@ -1741,12 +1681,6 @@ end;
 class function TIndexedTriangleStripSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedTriangleStripSet';
-end;
-
-class function TIndexedTriangleStripSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedTriangleStripSetNode.CoordIndexField: TMFLong;
@@ -1800,12 +1734,6 @@ end;
 class function TLineSetNode.ClassX3DType: string;
 begin
   Result := 'LineSet';
-end;
-
-class function TLineSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLineSetNode.CoordField: TSFNode;
@@ -1898,13 +1826,6 @@ begin
   Result := 'Normal';
 end;
 
-class function TNormalNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPointSetNode.CreateNode;
 begin
   inherited;
@@ -1933,13 +1854,6 @@ end;
 class function TPointSetNode.ClassX3DType: string;
 begin
   Result := 'PointSet';
-end;
-
-class function TPointSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2022,12 +1936,6 @@ begin
   Result := 'TriangleFanSet';
 end;
 
-class function TTriangleFanSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TTriangleFanSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
@@ -2050,12 +1958,6 @@ begin
   Result := 'TriangleSet';
 end;
 
-class function TTriangleSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTriangleStripSetNode.CreateNode;
 begin
   inherited;
@@ -2069,12 +1971,6 @@ end;
 class function TTriangleStripSetNode.ClassX3DType: string;
 begin
   Result := 'TriangleStripSet';
-end;
-
-class function TTriangleStripSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(

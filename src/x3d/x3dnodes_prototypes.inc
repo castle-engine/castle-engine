@@ -268,7 +268,7 @@
     { Loads URL, until the first success. Sets either ReferencedClass to non-nil
       (if it's built-in node) or ReferencedPrototype (if prototype expansion
       found in external file). }
-    procedure LoadReferenced;
+    procedure LoadReferenced(const Version: TX3DVersion);
     procedure UnloadReferenced;
   end;
 
@@ -1037,7 +1037,7 @@ begin
 
   Reader.Prototypes.Bind(Self);
 
-  LoadReferenced;
+  LoadReferenced(Reader.Version);
 end;
 
 procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
@@ -1059,7 +1059,7 @@ begin
 
   Reader.Prototypes.Bind(Self);
 
-  LoadReferenced;
+  LoadReferenced(Reader.Version);
 end;
 
 procedure TX3DExternalPrototype.SaveToStream(Writer: TX3DWriter);
@@ -1093,7 +1093,7 @@ begin
   end;
 end;
 
-procedure TX3DExternalPrototype.LoadReferenced;
+procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
 
   procedure LoadInterfaceDeclarationsValues;
   var
@@ -1195,7 +1195,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
 
   function LoadFromURN(const URN: string): boolean;
   begin
-    FReferencedClass := NodesManager.URNToClass(URN);
+    FReferencedClass := NodesManager.URNToClass(URN, Version);
     Result := ReferencedClass <> nil;
     if not Result then
       WritelnWarning('VRML/X3D', Format('Unknown node URN "%s"', [URN]));

@@ -20,7 +20,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
@@ -47,7 +46,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClosureType: TSFString;
     public property FdClosureType: TSFString read FFdClosureType;
@@ -79,7 +77,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
@@ -101,7 +98,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdInnerRadius: TSFFloat;
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
@@ -128,7 +124,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdLineSegments: TMFVec2f;
     { Polyline segments.
@@ -151,7 +146,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
@@ -171,7 +165,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -192,7 +185,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdVertices: TMFVec2f;
     public property FdVertices: TMFVec2f read FFdVertices;
@@ -238,12 +230,6 @@ end;
 class function TArc2DNode.ClassX3DType: string;
 begin
   Result := 'Arc2D';
-end;
-
-class function TArc2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -303,12 +289,6 @@ begin
   Result := 'ArcClose2D';
 end;
 
-class function TArcClose2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -347,12 +327,6 @@ end;
 class function TCircle2DNode.ClassX3DType: string;
 begin
   Result := 'Circle2D';
-end;
-
-class function TCircle2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
@@ -426,12 +400,6 @@ begin
   Result := 'Disk2D';
 end;
 
-class function TDisk2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TDisk2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -470,13 +438,6 @@ begin
   Result := 'Polyline2D';
 end;
 
-class function TPolyline2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TPolyline2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
@@ -511,12 +472,6 @@ end;
 class function TPolypoint2DNode.ClassX3DType: string;
 begin
   Result := 'Polypoint2D';
-end;
-
-class function TPolypoint2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TPolypoint2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -557,12 +512,6 @@ end;
 class function TRectangle2DNode.ClassX3DType: string;
 begin
   Result := 'Rectangle2D';
-end;
-
-class function TRectangle2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
@@ -628,12 +577,6 @@ end;
 class function TTriangleSet2DNode.ClassX3DType: string;
 begin
   Result := 'TriangleSet2D';
-end;
-
-class function TTriangleSet2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTriangleSet2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;

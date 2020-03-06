@@ -31,7 +31,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -51,7 +50,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
@@ -86,7 +84,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdLevel: TSFInt32;
     public property FdLevel: TSFInt32 read FFdLevel;
@@ -110,7 +107,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -134,7 +130,6 @@
     destructor Destroy; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -223,7 +218,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -252,7 +246,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdStatus: TSFBool;
     public property FdStatus: TSFBool read FFdStatus;
@@ -319,7 +312,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAlphaFactor: TSFFloat;
     public property FdAlphaFactor: TSFFloat read FFdAlphaFactor;
@@ -555,7 +547,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdColor: TSFColorRGBA;
     { @seealso Color }
@@ -598,12 +589,6 @@ end;
 class function TMatrixTransformNode.ClassX3DType: string;
 begin
   Result := 'MatrixTransform';
-end;
-
-class function TMatrixTransformNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -679,12 +664,6 @@ end;
 class function TTeapotNode.ClassX3DType: string;
 begin
   Result := 'Teapot';
-end;
-
-class function TTeapotNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
@@ -846,12 +825,6 @@ begin
   Result := 'Logger';
 end;
 
-class function TLoggerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TConverterNode.CreateNode;
 begin
   inherited;
@@ -880,12 +853,6 @@ end;
 class function TConverterNode.ClassX3DType: string;
 begin
   Result := 'Converter';
-end;
-
-class function TConverterNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TRenderedTextureNode.CreateNode;
@@ -997,12 +964,6 @@ begin
   Result := 'RenderedTexture';
 end;
 
-class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TPlaneNode.CreateNode;
 begin
   inherited;
@@ -1020,12 +981,6 @@ end;
 class function TPlaneNode.ClassX3DType: string;
 begin
   Result := 'Plane';
-end;
-
-class function TPlaneNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
@@ -1103,12 +1058,6 @@ end;
 class function TTogglerNode.ClassX3DType: string;
 begin
   Result := 'Toggler';
-end;
-
-class function TTogglerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TTogglerNode.EventStatusReceive(
@@ -1524,12 +1473,6 @@ begin
   Result := 'CommonSurfaceShader';
 end;
 
-class function TCommonSurfaceShaderNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TCommonSurfaceShaderNode.ShininessFactorExp: Single;
 begin
   Result := Clamped(FdShininessFactor.Value * 128.0, 0.0, 128.0);
@@ -1571,12 +1514,6 @@ end;
 class function TImageBackgroundNode.ClassX3DType: string;
 begin
   Result := 'ImageBackground';
-end;
-
-class function TImageBackgroundNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TImageBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

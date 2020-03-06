@@ -60,7 +60,6 @@
 
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
@@ -146,7 +145,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
@@ -271,13 +269,6 @@ end;
 class function TFontStyleNode.ClassX3DType: string;
 begin
   Result := 'FontStyle';
-end;
-
-class function TFontStyleNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -540,13 +531,6 @@ end;
 class function TTextNode.ClassX3DType: string;
 begin
   Result := 'Text';
-end;
-
-class function TTextNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextNode.TexCoordField: TSFNode;

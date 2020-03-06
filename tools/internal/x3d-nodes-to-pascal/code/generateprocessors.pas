@@ -825,19 +825,12 @@ begin
   begin
     OutputPublicInterface +=
       '    procedure CreateNode; override;' + NL +
-      '    class function ClassX3DType: string; override;' + NL +
-      '    class function URNMatching(const URN: string): boolean; override;' + NL;
+      '    class function ClassX3DType: string; override;' + NL;
 
     OutputCreateImplementation +=
       'class function ' + Node.PascalType + '.ClassX3DType: String;' + NL +
       'begin' + NL +
       '  Result := ''' + Node.X3DType + ''';' + NL +
-      'end;' + NL +
-      NL +
-      'class function ' + Node.PascalType + '.URNMatching(const URN: string): boolean;' + NL +
-      'begin' + NL +
-      '  Result := (inherited URNMatching(URN)) or' + NL +
-      '    (URN = URNX3DNodes + ClassX3DType);' + NL +
       'end;' + NL +
       NL;
 

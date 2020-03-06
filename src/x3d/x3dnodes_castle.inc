@@ -45,8 +45,6 @@
     strict private FFdSpotDropOffRate: TSFFloat;
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
   end;
 
@@ -63,8 +61,6 @@
     strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
   end;
 
@@ -80,7 +76,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSrcFactor: TSFString;
     public property FdSrcFactor: TSFString read FFdSrcFactor;
@@ -105,8 +100,6 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
 
@@ -122,7 +115,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdReplaceNames: TMFString;
     public property FdReplaceNames: TMFString read FFdReplaceNames;
@@ -145,7 +137,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTimeOriginAtLoad: TSFBool;
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
@@ -183,7 +174,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdMaxDepth: TSFInt32;
     public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
@@ -218,7 +208,6 @@
     destructor Destroy; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -260,7 +249,6 @@
     procedure CreateNode; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdProjector: TSFNode;
     public property FdProjector: TSFNode read FFdProjector;
@@ -281,7 +269,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
@@ -326,7 +313,6 @@
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
@@ -344,7 +330,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdLanguage: TSFStringEnum;
     public property FdLanguage: TSFStringEnum read FFdLanguage;
@@ -374,7 +359,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
@@ -406,7 +390,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDefaultTexCoord: TSFString;
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
@@ -430,7 +413,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
@@ -490,22 +472,9 @@ begin
   AddField(FFdSpotDropOffRate);
 end;
 
-class function TKambiHeadLightNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
-end;
-
 class function TText3DNode.ClassX3DType: string;
 begin
   Result := 'Text3D';
-end;
-
-class function TText3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result :=
-    { do not call (inherited URNMatching(URN)), since we don't match Text node rules }
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TText3DNode.CreateNode;
@@ -522,12 +491,6 @@ end;
 class function TBlendModeNode.ClassX3DType: string;
 begin
   Result := 'BlendMode';
-end;
-
-class function TBlendModeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TBlendModeNode.CreateNode;
@@ -558,13 +521,6 @@ begin
   Result := 'KambiAppearance';
 end;
 
-class function TKambiAppearanceNode.URNMatching(const URN: string): boolean;
-begin
-  { Don't call "inherited URNMatching(URN)", since we don't want to
-    "intercept" URNs that should indicate standard Appearance node. }
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TKambiAppearanceNode.CreateNode;
 begin
   inherited;
@@ -584,13 +540,6 @@ end;
 class function TKambiInlineNode.ClassX3DType: string;
 begin
   Result := 'KambiInline';
-end;
-
-class function TKambiInlineNode.URNMatching(const URN: string): boolean;
-begin
-  { Don't call "inherited URNMatching(URN)", since we don't want to
-    "intercept" URNs that should indicate standard Inline node. }
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TKambiInlineNode.AfterLoadInlined;
@@ -672,11 +621,6 @@ begin
   Result := 'KambiNavigationInfo';
 end;
 
-class function TKambiNavigationInfoNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 function TKambiNavigationInfoNode.OctreeProperties(
   OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
 var
@@ -712,11 +656,6 @@ end;
 class function TKambiOctreePropertiesNode.ClassX3DType: string;
 begin
   Result := 'KambiOctreeProperties';
-end;
-
-class function TKambiOctreePropertiesNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TKambiOctreePropertiesNode.OverrideLimits(var Limits: TOctreeLimits);
@@ -785,11 +724,6 @@ begin
   Result := 'GeneratedShadowMap';
 end;
 
-class function TGeneratedShadowMapNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 function TGeneratedShadowMapNode.GetCompareMode: TShadowMapCompareMode;
 begin
   Result := TShadowMapCompareMode(FdCompareMode.EnumValue);
@@ -832,11 +766,6 @@ begin
   Result := 'ProjectedTextureCoordinate';
 end;
 
-class function TProjectedTextureCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TScreenEffectNode.CreateNode;
 begin
   inherited;
@@ -869,11 +798,6 @@ begin
   Result := 'ScreenEffect';
 end;
 
-class function TScreenEffectNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 function TScreenEffectNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -886,11 +810,6 @@ end;
 class function TMultiGeneratedTextureCoordinateNode.ClassX3DType: string;
 begin
   Result := 'MultiGeneratedTextureCoordinate';
-end;
-
-class function TMultiGeneratedTextureCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 { TEffectNode ---------------------------------------------------------------- }
@@ -927,11 +846,6 @@ begin
   Result := 'Effect';
 end;
 
-class function TEffectNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 function TEffectNode.GetLanguage: TShaderLanguage;
 begin
   Result := TShaderLanguage(FdLanguage.EnumValue);
@@ -961,11 +875,6 @@ end;
 class function TEffectPartNode.ClassX3DType: string;
 begin
   Result := 'EffectPart';
-end;
-
-class function TEffectPartNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TEffectPartNode.GetContents: string;
@@ -1018,11 +927,6 @@ begin
   Result := 'ShaderTexture';
 end;
 
-class function TShaderTextureNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 { TOrientationInterpolator2DNode ---------------------------------- }
 
 procedure TOrientationInterpolator2DNode.CreateNode;
@@ -1047,13 +951,6 @@ end;
 class function TOrientationInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'OrientationInterpolator2D';
-end;
-
-class function TOrientationInterpolator2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(

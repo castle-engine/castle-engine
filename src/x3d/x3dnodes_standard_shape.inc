@@ -187,7 +187,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
@@ -301,7 +300,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFilled: TSFBool;
     public property FdFilled: TSFBool read FFdFilled;
@@ -334,7 +332,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdApplied: TSFBool;
     public property FdApplied: TSFBool read FFdApplied;
@@ -400,7 +397,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
@@ -549,7 +545,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
@@ -583,7 +578,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Material information based on this node.
       It is automatically updated when properties of this material change.
@@ -1011,13 +1005,6 @@ begin
   Result := 'Appearance';
 end;
 
-class function TAppearanceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TAppearanceNode.GetAlphaChannel: TAutoAlphaChannel;
 begin
   Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
@@ -1229,12 +1216,6 @@ begin
   Result := 'FillProperties';
 end;
 
-class function TFillPropertiesNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TLinePropertiesNode.CreateNode;
 begin
   inherited;
@@ -1256,12 +1237,6 @@ end;
 class function TLinePropertiesNode.ClassX3DType: string;
 begin
   Result := 'LineProperties';
-end;
-
-class function TLinePropertiesNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLinePropertiesNode.GetLineType: TLineType;
@@ -1397,13 +1372,6 @@ end;
 class function TMaterialNode.ClassX3DType: string;
 begin
   Result := 'Material';
-end;
-
-class function TMaterialNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1622,13 +1590,6 @@ begin
   Result := 'Shape';
 end;
 
-class function TShapeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 { TTwoSidedMaterialInfo --------------------------------------------------- }
 
 constructor TTwoSidedMaterialNode.TTwoSidedMaterialInfo.Create(ANode: TTwoSidedMaterialNode);
@@ -1771,12 +1732,6 @@ end;
 class function TTwoSidedMaterialNode.ClassX3DType: string;
 begin
   Result := 'TwoSidedMaterial';
-end;
-
-class function TTwoSidedMaterialNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTwoSidedMaterialNode.MaterialInfo: TMaterialInfo;

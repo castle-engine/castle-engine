@@ -71,7 +71,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
@@ -96,7 +95,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
@@ -300,13 +298,6 @@ begin
   Result := 'CubicBezier2DOrientationInterpolator';
 end;
 
-class function TCubicBezier2DOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 
@@ -368,13 +359,6 @@ end;
 class function TCubicBezierPositionInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'CubicBezierPositionInterpolator';
-end;
-
-class function TCubicBezierPositionInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(

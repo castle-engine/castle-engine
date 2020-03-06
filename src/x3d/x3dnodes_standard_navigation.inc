@@ -140,7 +140,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     procedure CameraChanged(const ACameraVectors: TCameraVectors);
@@ -162,7 +161,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -256,7 +254,6 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   { Provides various levels of detail for a given object,
@@ -265,7 +262,6 @@
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
   TLODNode_3 = TLODNode;
 
@@ -281,7 +277,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAvatarSize: TMFFloat;
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
@@ -327,7 +322,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFieldOfView: TMFFloat;
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
@@ -381,7 +375,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
@@ -419,7 +412,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -636,13 +628,6 @@ begin
   Result := 'Billboard';
 end;
 
-class function TBillboardNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -767,13 +752,6 @@ end;
 class function TCollisionNode.ClassX3DType: string;
 begin
   Result := 'Collision';
-end;
-
-class function TCollisionNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -931,24 +909,12 @@ begin
   Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
 end;
 
-class function TLODNode_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
-end;
-
 class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
 
 { TLODNode ------------------------------------------------------------------- }
-
-class function TLODNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
 
 class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -1014,13 +980,6 @@ begin
   Result := 'NavigationInfo';
 end;
 
-class function TNavigationInfoNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TNavigationInfoNode.EventSet_BindReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
@@ -1060,12 +1019,6 @@ end;
 class function TOrthoViewpointNode.ClassX3DType: string;
 begin
   Result := 'OrthoViewpoint';
-end;
-
-class function TOrthoViewpointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TOrthoViewpointNode.PositionField: TSFVec3f;
@@ -1218,13 +1171,6 @@ begin
   Result := 'Viewpoint';
 end;
 
-class function TViewpointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TViewpointNode.PositionField: TSFVec3f;
 begin
   Result := FdPosition;
@@ -1346,12 +1292,6 @@ end;
 class function TViewpointGroupNode.ClassX3DType: string;
 begin
   Result := 'ViewpointGroup';
-end;
-
-class function TViewpointGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

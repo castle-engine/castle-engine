@@ -80,7 +80,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
@@ -100,7 +99,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -117,7 +115,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdImage: TMFInt32;
     public property FdImage: TMFInt32 read FFdImage;
@@ -132,7 +129,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -145,7 +141,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
@@ -159,7 +154,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
@@ -175,7 +169,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -259,12 +252,6 @@ end;
 class function TComposedTexture3DNode.ClassX3DType: string;
 begin
   Result := 'ComposedTexture3D';
-end;
-
-class function TComposedTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TComposedTexture3DNode.LoadTextureData;
@@ -375,12 +362,6 @@ begin
   Result := 'ImageTexture3D';
 end;
 
-class function TImageTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TImageTexture3DNode.LoadTextureData;
 var
   I: Integer;
@@ -439,12 +420,6 @@ end;
 class function TPixelTexture3DNode.ClassX3DType: string;
 begin
   Result := 'PixelTexture3D';
-end;
-
-class function TPixelTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPixelTexture3DNode.LoadTextureData;
@@ -542,12 +517,6 @@ begin
   Result := 'TextureCoordinate3D';
 end;
 
-class function TTextureCoordinate3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTextureCoordinate4DNode.CreateNode;
 begin
   inherited;
@@ -563,12 +532,6 @@ begin
   Result := 'TextureCoordinate4D';
 end;
 
-class function TTextureCoordinate4DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTextureTransformMatrix3DNode.CreateNode;
 begin
   inherited;
@@ -582,12 +545,6 @@ end;
 class function TTextureTransformMatrix3DNode.ClassX3DType: string;
 begin
   Result := 'TextureTransformMatrix3D';
-end;
-
-class function TTextureTransformMatrix3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4;
@@ -623,12 +580,6 @@ end;
 class function TTextureTransform3DNode.ClassX3DType: string;
 begin
   Result := 'TextureTransform3D';
-end;
-
-class function TTextureTransform3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextureTransform3DNode.TransformMatrix: TMatrix4;

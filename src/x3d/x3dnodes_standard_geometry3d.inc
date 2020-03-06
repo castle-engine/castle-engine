@@ -19,7 +19,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
@@ -59,7 +58,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
@@ -112,7 +110,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
@@ -170,7 +167,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_height: TMFFloatEvent;
@@ -264,7 +260,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_crossSection: TMFVec2fEvent;
@@ -362,7 +357,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
@@ -422,7 +416,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
@@ -494,13 +487,6 @@ begin
   Result := 'Box';
 end;
 
-class function TBoxNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TBoxNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
@@ -569,13 +555,6 @@ end;
 class function TConeNode.ClassX3DType: string;
 begin
   Result := 'Cone';
-end;
-
-class function TConeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TConeNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -673,13 +652,6 @@ end;
 class function TCylinderNode.ClassX3DType: string;
 begin
   Result := 'Cylinder';
-end;
-
-class function TCylinderNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TCylinderNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -812,13 +784,6 @@ begin
   Result := 'ElevationGrid';
 end;
 
-class function TElevationGridNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TElevationGridNode.IsNotEmpty: boolean;
 begin
   Result :=
@@ -948,13 +913,6 @@ end;
 class function TExtrusionNode.ClassX3DType: string;
 begin
   Result := 'Extrusion';
-end;
-
-class function TExtrusionNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
@@ -1377,13 +1335,6 @@ begin
   Result := 'IndexedFaceSet';
 end;
 
-class function TIndexedFaceSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
@@ -1456,13 +1407,6 @@ end;
 class function TSphereNode.ClassX3DType: string;
 begin
   Result := 'Sphere';
-end;
-
-class function TSphereNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSphereNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
