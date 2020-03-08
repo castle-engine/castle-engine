@@ -798,8 +798,14 @@ function FmodLibraryAvailable: Boolean;
 procedure FmodLibraryUsingBegin;
 procedure FmodLibraryUsingEnd;
 
-{$ifdef MSWINDOWS} {$define FMOD_DYNAMIC_LINK} {$endif}
-{$ifdef LINUX} {$define FMOD_DYNAMIC_LINK} {$endif}
+{ FMOD is linked statically on some platforms.
+  Note that, fortunately, none of these platforms use LCL for OpenGL backend.
+  That's good, because castle_base.lpk has to include the FMOD unit,
+  and including FMOD unit on platforms where static compilation is used
+  *forces* the presense of FMOD libraries. }
+{$if not (defined(NINTENDO_SWITCH) or defined(IOS))}
+  {$define FMOD_DYNAMIC_LINK}
+{$endif}
 {$ifdef FMOD_DYNAMIC_LINK}
   {$I castleinternalfmod_dynamic.inc}
 {$else}
