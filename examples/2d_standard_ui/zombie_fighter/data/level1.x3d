@@ -33,12 +33,8 @@
 							              repeatS='false'
 							              repeatT='false'
 							              />
-							<Material DEF="MA_female_zombie_material"
-							          diffuseColor="0.000 0.000 0.000"
-							          specularColor="0.000 0.000 0.000"
+							<UnlitMaterial DEF="MA_female_zombie_material"
 							          emissiveColor="0.800 0.800 0.800"
-							          ambientIntensity="0.000"
-							          shininess="0.000"
 							          transparency="0.0"
 							          />
 						</Appearance>
@@ -112,12 +108,8 @@
 							              repeatS='false'
 							              repeatT='false'
 							              />
-							<Material DEF="MA_male_zombie_material"
-							          diffuseColor="0.000 0.000 0.000"
-							          specularColor="0.000 0.000 0.000"
+							<UnlitMaterial DEF="MA_male_zombie_material"
 							          emissiveColor="0.800 0.800 0.800"
-							          ambientIntensity="0.000"
-							          shininess="0.000"
 							          transparency="0.0"
 							          />
 						</Appearance>
