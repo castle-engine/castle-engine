@@ -250,16 +250,9 @@ type
     { Enumerate all single texture nodes (possibly) used by the shapes.
       This looks into all shapes (not only active, so e.g. it looks into all
       Switch/LOD children, not only the chosen one).
-
-      This looks into the
-
-      @unorderedList(
-        @itemSpacing Compact
-        @item(Appearance.texture field (and if it's MultiTexture,
-          looks into it's children))
-        @item Into shaders textures (GLSL shaders, CommonSurfaceShader...).
-        @item For VRML 1.0, it also looks into VRML1State.Texture2.
-      )
+      This checks all possible ways how a texture may be used by a shape,
+      so it looks at material fields,
+      shaders (ComposedShader, CommonSurfaceShader) and more.
 
       If Enumerate callbacks returns non-nil for some texture, returns it immediately,
       and stops further processing. }
@@ -2479,6 +2472,8 @@ end;
 
 function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 
+  { Handle Tex being any TAbstractSingleTextureNode.
+    Ignores Tex = nil. }
   function HandleSingleTextureNode(Tex: TX3DNode): Pointer;
   begin
     if Tex is TAbstractTextureNode then
@@ -2513,6 +2508,8 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     end;
   end;
 
+  { Handle Tex being any TAbstractTextureNode.
+    Ignores Tex = nil case. }
   function HandleTextureNode(Tex: TX3DNode): Pointer;
   var
     I: Integer;
@@ -2541,6 +2538,14 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
       end else
         Result := HandleSingleTextureNode(Tex);
     end;
+  end;
+
+  procedure HandleEnvironmentLight(const EnvLight: TEnvironmentLightNode);
+  begin
+    Result := HandleSingleTextureNode(EnvLight.FdDiffuseTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleSingleTextureNode(EnvLight.FdSpecularTexture.Value);
+    if Result <> nil then Exit;
   end;
 
   { Scan IDecls for SFNode and MFNode fields, handling texture nodes inside. }
@@ -2692,6 +2697,12 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
     begin
+      if Lights.L[I].Node is TEnvironmentLightNode then
+      begin
+        HandleEnvironmentLight(TEnvironmentLightNode(Lights.L[I].Node));
+        if Result <> nil then Exit;
+      end;
+
       Result := HandleIDecls(Lights.L[I].Node.FdEffects);
       if Result <> nil then Exit;
     end;

@@ -229,8 +229,10 @@ type
 
   { Internal for TLightShader. @exclude }
   TLightDefine = (
-    ldTypePosiional,
+    ldTypePositional,
     ldTypeSpot,
+    ldTypeEnvironment,
+    ldTypePunctual,
     ldHasAttenuation,
     ldHasRadius,
     ldHasAmbient,
@@ -886,6 +888,8 @@ const
   end =
   ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
     (Name: 'LIGHT%d_TYPE_SPOT'        ; Hash: 109; ),
+    (Name: 'LIGHT%d_TYPE_ENVIRONMENT' ; Hash: 421; ),
+    (Name: 'LIGHT%d_TYPE_PUNCTUAL'    ; Hash: 443; ),
     (Name: 'LIGHT%d_HAS_ATTENUATION'  ; Hash: 113; ),
     (Name: 'LIGHT%d_HAS_RADIUS'       ; Hash: 127; ),
     (Name: 'LIGHT%d_HAS_AMBIENT'      ; Hash: 131; ),
@@ -910,7 +914,7 @@ begin
 
   if Node is TAbstractPositionalLightNode then
   begin
-    Define(ldTypePosiional);
+    Define(ldTypePositional);
     if Node is TSpotLightNode_1 then
     begin
       Define(ldTypeSpot);
@@ -959,6 +963,10 @@ begin
   if (Shader.Material is TPhongMaterialInfo) and
      (not TPhongMaterialInfo(Shader.Material).SpecularColor.IsPerfectlyZero) then
     Define(ldHasSpecular);
+  if Node is TAbstractPunctualLightNode then
+    Define(ldTypePunctual);
+  if Node is TEnvironmentLightNode then
+    Define(ldTypeEnvironment);
 end;
 
 function TLightShader.Code: TShaderSource;
@@ -1005,11 +1013,23 @@ begin
 end;
 
 procedure TLightShader.SetUniforms(AProgram: TX3DShaderProgram);
+
+  procedure SetEnvironmentLightUniforms(const EnvLight: TEnvironmentLightNode);
+  begin
+    if EnvLight.FdDiffuseTexture.Value <> nil then
+      AProgram.UniformsTextures.Add(EnvLight.FdDiffuseTexture);
+    if EnvLight.FdSpecularTexture.Value <> nil then
+      AProgram.UniformsTextures.Add(EnvLight.FdSpecularTexture);
+  end;
+
 begin
   if LightUniformName1 <> '' then
     AProgram.SetUniform(Format(LightUniformName1, [Number]), LightUniformValue1);
   if LightUniformName2 <> '' then
     AProgram.SetUniform(Format(LightUniformName2, [Number]), LightUniformValue2);
+
+  if Node is TEnvironmentLightNode then
+    SetEnvironmentLightUniforms(TEnvironmentLightNode(Node));
 end;
 
 procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
@@ -1040,61 +1060,63 @@ begin
   else
     AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
 
-  if Light^.WorldCoordinates then
-    LightToEyeSpace := @RenderingCamera.Matrix
-  else
-    LightToEyeSpace := @Shader.SceneModelView;
-
-  { This is incorrect, at least on Linux x86_64 and Darwin x86_64
-    (works OK on Darwin i386), with FPC 3.0.2.
-    Possibly TGenericMatrix4.Multiply has then equal addresses
-    for Result and argument, although I didn't manage to "catch it red-handed"
-    (it seems that merely adding a check to TGenericMatrix4.Multiply
-    about it, disables this optimization, so everything is OK then). }
-  // Position := Light^.Position;
-  // Position := LightToEyeSpace^ * Position;
-
-  Position := LightToEyeSpace^ * Light^.Position;
-
-  { Note that we cut off last component of Node.Position,
-    we don't need it. #defines tell the shader whether we deal with direcional
-    or positional light. }
-  Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
-    Position.XYZ);
-
-  if Node is TAbstractPositionalLightNode then
+  if Node is TAbstractPunctualLightNode then
   begin
-    LiPos := TAbstractPositionalLightNode(Node);
-    if LiPos is TSpotLightNode_1 then
-    begin
-      LiSpot1 := TSpotLightNode_1(Node);
-      Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
-        LiSpot1.SpotCosCutoff);
-      Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
-        LightToEyeSpace^.MultDirection(Light^.Direction));
-      if LiSpot1.SpotExponent <> 0 then
-      begin
-        Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
-          LiSpot1.SpotExponent);
-      end;
-    end else
-    if LiPos is TSpotLightNode then
-    begin
-      LiSpot := TSpotLightNode(Node);
-      Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
-        LiSpot.SpotCosCutoff);
-      Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
-        LightToEyeSpace^.MultDirection(Light^.Direction));
-      if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
-      begin
-        Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
-          LiSpot.FdCutOffAngle.Value);
-      end;
-    end;
+    if Light^.WorldCoordinates then
+      LightToEyeSpace := @RenderingCamera.Matrix
+    else
+      LightToEyeSpace := @Shader.SceneModelView;
 
-    if LiPos.HasAttenuation then
-      Uniforms.SetUniform('castle_LightSource%dAttenuation', Uniforms.Attenuation,
-        LiPos.FdAttenuation.Value);
+    { This is incorrect, at least on Linux x86_64 and Darwin x86_64
+      (works OK on Darwin i386), with FPC 3.0.2.
+      Possibly TGenericMatrix4.Multiply has then equal addresses
+      for Result and argument, although I didn't manage to "catch it red-handed"
+      (it seems that merely adding a check to TGenericMatrix4.Multiply
+      about it, disables this optimization, so everything is OK then). }
+    // Position := Light^.Position;
+    // Position := LightToEyeSpace^ * Position;
+    Position := LightToEyeSpace^ * Light^.Position;
+
+    { Note that we cut off last component of Node.Position,
+      we don't need it. #defines tell the shader whether we deal with direcional
+      or positional light. }
+    Uniforms.SetUniform('castle_LightSource%dPosition', Uniforms.Position,
+      Position.XYZ);
+
+    if Node is TAbstractPositionalLightNode then
+    begin
+      LiPos := TAbstractPositionalLightNode(Node);
+      if LiPos is TSpotLightNode_1 then
+      begin
+        LiSpot1 := TSpotLightNode_1(Node);
+        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
+          LiSpot1.SpotCosCutoff);
+        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
+          LightToEyeSpace^.MultDirection(Light^.Direction));
+        if LiSpot1.SpotExponent <> 0 then
+        begin
+          Uniforms.SetUniform('castle_LightSource%dSpotExponent', Uniforms.SpotExponent,
+            LiSpot1.SpotExponent);
+        end;
+      end else
+      if LiPos is TSpotLightNode then
+      begin
+        LiSpot := TSpotLightNode(Node);
+        Uniforms.SetUniform('castle_LightSource%dSpotCosCutoff', Uniforms.SpotCosCutoff,
+          LiSpot.SpotCosCutoff);
+        Uniforms.SetUniform('castle_LightSource%dSpotDirection', Uniforms.SpotDirection,
+          LightToEyeSpace^.MultDirection(Light^.Direction));
+        if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
+        begin
+          Uniforms.SetUniform('castle_LightSource%dSpotCutoff', Uniforms.SpotCutoff,
+            LiSpot.FdCutOffAngle.Value);
+        end;
+      end;
+
+      if LiPos.HasAttenuation then
+        Uniforms.SetUniform('castle_LightSource%dAttenuation', Uniforms.Attenuation,
+          LiPos.FdAttenuation.Value);
+    end;
   end;
 
   if Node.FdAmbientIntensity.Value <> 0 then

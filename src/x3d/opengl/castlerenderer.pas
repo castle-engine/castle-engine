@@ -2737,7 +2737,20 @@ end;
 
 procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
 
-  function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
+  function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
+  var
+    I: Integer;
+    Lights: TLightInstancesList;
+  begin
+    Lights := Shape.State.Lights;
+    if Lights <> nil then
+      for I := 0 to Lights.Count - 1 do
+        if Lights.L[I].Node is TEnvironmentLightNode then
+          Exit(true);
+    Result := false;
+  end;
+
+  function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
   var
     Tex, SubTexture: TX3DNode;
     I: Integer;
@@ -2763,7 +2776,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     end;
   end;
 
-  function ShapeMaterialRequiresPhongShading(Shape: TX3DRendererShape): boolean;
+  function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
   begin
     Result :=
       (Shape.Node <> nil) and
@@ -2791,9 +2804,10 @@ begin
     if Shape.Node.Shading = shGouraud then
       PhongShading := false;
   { if some feature requires PhongShading, make it true }
-  if ShapeMaybeUsesPhongSurfaceTexture(Shape) or
+  if ShapeMaybeUsesSurfaceTexture(Shape) or
      ShapeMaybeUsesShadowMaps(Shape) or
-     ShapeMaterialRequiresPhongShading(Shape) then
+     ShapeMaterialRequiresPhongShading(Shape) or
+     ShapeUsesEnvironmentLight(Shape) then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);

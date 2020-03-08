@@ -21,28 +21,32 @@
 '  so it may go either in vertex or fragment shader.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)' + LineEnding +
-'   in eye coordinates. */' + LineEnding +
-'uniform vec3 castle_LightSource<Light>Position;' + LineEnding +
+'/* Punctual (PointLight, DirectionalLight, SpotLight) parameters */' + LineEnding +
+'#ifdef LIGHT<Light>_TYPE_PUNCTUAL' + LineEnding +
+'  /* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)' + LineEnding +
+'     in eye coordinates. */' + LineEnding +
+'  uniform vec3 castle_LightSource<Light>Position;' + LineEnding +
 '' + LineEnding +
-'/* SpotLight specific parameters */' + LineEnding +
-'#ifdef LIGHT<Light>_TYPE_SPOT' + LineEnding +
-'uniform vec3 castle_LightSource<Light>SpotDirection;' + LineEnding +
-'uniform float castle_LightSource<Light>SpotCosCutoff;' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_BEAM_WIDTH' + LineEnding +
-'/* In radians. Note that this differs from gl_LightSource[<Light>].spotCutoff' + LineEnding +
-'   that is in degrees. */' + LineEnding +
-'uniform float castle_LightSource<Light>SpotCutoff;' + LineEnding +
-'uniform float castle_LightSource<Light>BeamWidth;' + LineEnding +
-'#endif' + LineEnding +
-'#ifdef LIGHT<Light>_HAS_SPOT_EXPONENT' + LineEnding +
-'uniform float castle_LightSource<Light>SpotExponent;' + LineEnding +
-'#endif' + LineEnding +
+'  /* SpotLight specific parameters */' + LineEnding +
+'  #ifdef LIGHT<Light>_TYPE_SPOT' + LineEnding +
+'    uniform vec3 castle_LightSource<Light>SpotDirection;' + LineEnding +
+'    uniform float castle_LightSource<Light>SpotCosCutoff;' + LineEnding +
+'    #ifdef LIGHT<Light>_HAS_BEAM_WIDTH' + LineEnding +
+'      /* In radians. Note that this differs from gl_LightSource[<Light>].spotCutoff' + LineEnding +
+'         that is in degrees. */' + LineEnding +
+'      uniform float castle_LightSource<Light>SpotCutoff;' + LineEnding +
+'      uniform float castle_LightSource<Light>BeamWidth;' + LineEnding +
+'    #endif' + LineEnding +
+'    #ifdef LIGHT<Light>_HAS_SPOT_EXPONENT' + LineEnding +
+'      uniform float castle_LightSource<Light>SpotExponent;' + LineEnding +
+'    #endif' + LineEnding +
+'  #endif' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_AMBIENT' + LineEnding +
 'uniform vec3 castle_LightSource<Light>AmbientColor;' + LineEnding +
 '#endif' + LineEnding +
+'' + LineEnding +
 'uniform vec3 castle_LightSource<Light>Color;' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_ATTENUATION' + LineEnding +
@@ -52,6 +56,12 @@
 '' + LineEnding +
 '#ifdef LIGHT<Light>_HAS_RADIUS' + LineEnding +
 'uniform float castle_LightSource<Light>Radius;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
+'/* EnvironmentLight parameters */' + LineEnding +
+'#ifdef LIGHT<Light>_TYPE_ENVIRONMENT' + LineEnding +
+'uniform samplerCube diffuseTexture;' + LineEnding +
+'uniform samplerCube specularTexture;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '/* Add light contribution.' + LineEnding +
@@ -65,12 +75,16 @@
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
 '/* Calculate light_dir */' + LineEnding +
-'#ifdef LIGHT<Light>_TYPE_POSITIONAL' + LineEnding +
-'  light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);' + LineEnding +
-'  float distance_to_light = length(light_dir);' + LineEnding +
-'  light_dir /= distance_to_light;' + LineEnding +
+'#ifdef LIGHT<Light>_TYPE_PUNCTUAL' + LineEnding +
+'  #ifdef LIGHT<Light>_TYPE_POSITIONAL' + LineEnding +
+'    light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);' + LineEnding +
+'    float distance_to_light = length(light_dir);' + LineEnding +
+'    light_dir /= distance_to_light;' + LineEnding +
+'  #else' + LineEnding +
+'    light_dir = normalize(castle_LightSource<Light>Position);' + LineEnding +
+'  #endif' + LineEnding +
 '#else' + LineEnding +
-'  light_dir = normalize(castle_LightSource<Light>Position);' + LineEnding +
+'  light_dir = normal_eye;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT<Light>_TYPE_SPOT' + LineEnding +
@@ -123,6 +137,9 @@
 '' + LineEnding +
 '  /* add diffuse term */' + LineEnding +
 '  vec3 diffuse = castle_LightSource<Light>Color * material_info.diffuse_alpha.rgb;' + LineEnding +
+'#ifdef LIGHT<Light>_TYPE_ENVIRONMENT' + LineEnding +
+'  diffuse *= textureCube(diffuseTexture, light_dir).rgb;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding +
 '  light_color += diffuse * diffuse_factor;' + LineEnding +
@@ -137,6 +154,11 @@
 '  vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));' + LineEnding +
 '  if (diffuse_factor != 0.0) {' + LineEnding +
 '    vec3 specular_color = castle_LightSource<Light>Color * material_info.specular;' + LineEnding +
+'' + LineEnding +
+'    #ifdef LIGHT<Light>_TYPE_ENVIRONMENT' + LineEnding +
+'      specular_color *= textureCube(specularTexture, light_dir).rgb;' + LineEnding +
+'    #endif' + LineEnding +
+'' + LineEnding +
 '    light_color += specular_color *' + LineEnding +
 '      pow(max(dot(halfVector, normal_eye), 0.0), material_info.shininess);' + LineEnding +
 '  }' + LineEnding +

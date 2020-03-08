@@ -13,8 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Textures that affect surface parameters, like normal maps and other
-  textures defined by the CommonSurfaceShader. }
+{ Textures that affect surface parameters beyond standard MainTexture
+  (diffuse for Phong, emissive for Unlit, base for PhysicalMaterial).
+  Like normal maps, and various other
+  textures defined by the CommonSurfaceShader and materials in X3D v4. }
 
 {$ifdef read_interface}
 
@@ -34,9 +36,9 @@ private
   procedure SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
-  { Is this shape possibly use some texture that requires Phong shading.
+  { Does this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 
 {$endif read_interface}
 
@@ -66,7 +68,7 @@ begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TGLRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;

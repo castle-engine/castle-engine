@@ -19,28 +19,32 @@
   so it may go either in vertex or fragment shader.
 */
 
-/* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)
-   in eye coordinates. */
-uniform vec3 castle_LightSource<Light>Position;
+/* Punctual (PointLight, DirectionalLight, SpotLight) parameters */
+#ifdef LIGHT<Light>_TYPE_PUNCTUAL
+  /* Light source position (or direction, if not LIGHT<Light>_TYPE_POSITIONAL)
+     in eye coordinates. */
+  uniform vec3 castle_LightSource<Light>Position;
 
-/* SpotLight specific parameters */
-#ifdef LIGHT<Light>_TYPE_SPOT
-uniform vec3 castle_LightSource<Light>SpotDirection;
-uniform float castle_LightSource<Light>SpotCosCutoff;
-#ifdef LIGHT<Light>_HAS_BEAM_WIDTH
-/* In radians. Note that this differs from gl_LightSource[<Light>].spotCutoff
-   that is in degrees. */
-uniform float castle_LightSource<Light>SpotCutoff;
-uniform float castle_LightSource<Light>BeamWidth;
-#endif
-#ifdef LIGHT<Light>_HAS_SPOT_EXPONENT
-uniform float castle_LightSource<Light>SpotExponent;
-#endif
+  /* SpotLight specific parameters */
+  #ifdef LIGHT<Light>_TYPE_SPOT
+    uniform vec3 castle_LightSource<Light>SpotDirection;
+    uniform float castle_LightSource<Light>SpotCosCutoff;
+    #ifdef LIGHT<Light>_HAS_BEAM_WIDTH
+      /* In radians. Note that this differs from gl_LightSource[<Light>].spotCutoff
+         that is in degrees. */
+      uniform float castle_LightSource<Light>SpotCutoff;
+      uniform float castle_LightSource<Light>BeamWidth;
+    #endif
+    #ifdef LIGHT<Light>_HAS_SPOT_EXPONENT
+      uniform float castle_LightSource<Light>SpotExponent;
+    #endif
+  #endif
 #endif
 
 #ifdef LIGHT<Light>_HAS_AMBIENT
 uniform vec3 castle_LightSource<Light>AmbientColor;
 #endif
+
 uniform vec3 castle_LightSource<Light>Color;
 
 #ifdef LIGHT<Light>_HAS_ATTENUATION
@@ -50,6 +54,12 @@ uniform vec3 castle_LightSource<Light>Attenuation;
 
 #ifdef LIGHT<Light>_HAS_RADIUS
 uniform float castle_LightSource<Light>Radius;
+#endif
+
+/* EnvironmentLight parameters */
+#ifdef LIGHT<Light>_TYPE_ENVIRONMENT
+uniform samplerCube diffuseTexture;
+uniform samplerCube specularTexture;
 #endif
 
 /* Add light contribution.
@@ -63,12 +73,16 @@ void PLUG_add_light(inout vec4 color,
   vec3 light_dir;
 
 /* Calculate light_dir */
-#ifdef LIGHT<Light>_TYPE_POSITIONAL
-  light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);
-  float distance_to_light = length(light_dir);
-  light_dir /= distance_to_light;
+#ifdef LIGHT<Light>_TYPE_PUNCTUAL
+  #ifdef LIGHT<Light>_TYPE_POSITIONAL
+    light_dir = castle_LightSource<Light>Position - vec3(vertex_eye);
+    float distance_to_light = length(light_dir);
+    light_dir /= distance_to_light;
+  #else
+    light_dir = normalize(castle_LightSource<Light>Position);
+  #endif
 #else
-  light_dir = normalize(castle_LightSource<Light>Position);
+  light_dir = normal_eye;
 #endif
 
 #ifdef LIGHT<Light>_TYPE_SPOT
@@ -121,6 +135,9 @@ void PLUG_add_light(inout vec4 color,
 
   /* add diffuse term */
   vec3 diffuse = castle_LightSource<Light>Color * material_info.diffuse_alpha.rgb;
+#ifdef LIGHT<Light>_TYPE_ENVIRONMENT
+  diffuse *= textureCube(diffuseTexture, light_dir).rgb;
+#endif
 
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;
@@ -135,6 +152,11 @@ void PLUG_add_light(inout vec4 color,
   vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
   if (diffuse_factor != 0.0) {
     vec3 specular_color = castle_LightSource<Light>Color * material_info.specular;
+
+    #ifdef LIGHT<Light>_TYPE_ENVIRONMENT
+      specular_color *= textureCube(specularTexture, light_dir).rgb;
+    #endif
+
     light_color += specular_color *
       pow(max(dot(halfVector, normal_eye), 0.0), material_info.shininess);
   }
