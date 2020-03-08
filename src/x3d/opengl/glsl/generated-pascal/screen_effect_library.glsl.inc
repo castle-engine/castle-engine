@@ -180,16 +180,6 @@
 '  return tex_coord_frag.t * float(screen_height);' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
-'vec4 screenf_get_original_color()' + LineEnding +
-'{' + LineEnding +
-'#ifdef MULTI_SAMPLING' + LineEnding +
-'  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
-'  return screenf_get_color(screenf_position());' + LineEnding +
-'#else' + LineEnding +
-'  return texture2D(screen, tex_coord_frag);' + LineEnding +
-'#endif' + LineEnding +
-'}' + LineEnding +
-'' + LineEnding +
 'vec4 screenf_get_color(vec2 position)' + LineEnding +
 '{' + LineEnding +
 '/* TODO: it would be nice to autogenerate this code */' + LineEnding +
@@ -235,6 +225,16 @@
 '#endif' + LineEnding +
 '#endif' + LineEnding +
 '#endif' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
+'vec4 screenf_get_original_color()' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  // We cannot do something much more optimal in this case, so just call full screenf_get_color' + LineEnding +
+'  return screenf_get_color(screenf_position());' + LineEnding +
+'#else' + LineEnding +
+'  return texture2D(screen, tex_coord_frag);' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
@@ -287,13 +287,13 @@
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
-'vec4 screenf_get_original_depth()' + LineEnding +
+'float screenf_get_original_depth()' + LineEnding +
 '{' + LineEnding +
 '#ifdef MULTI_SAMPLING' + LineEnding +
 '  // We cannot do something much more optimal in this case, so just call full screenf_get_depth' + LineEnding +
 '  return screenf_get_depth(screenf_position());' + LineEnding +
 '#else' + LineEnding +
-'  return texture2D(screen_depth, tex_coord_frag);' + LineEnding +
+'  return texture2D(screen_depth, tex_coord_frag).r;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
