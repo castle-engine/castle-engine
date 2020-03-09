@@ -416,8 +416,9 @@ type
     HasGeometryMain: boolean;
     DynamicUniforms: TDynamicUniformList;
     TextureMatrix: TCardinalList;
-    NeedsCameraInverseMatrix: boolean;
+    NeedsCameraInverseMatrix: Boolean;
     NeedsMirrorPlaneTexCoords: Boolean;
+    NeedsNormalsForTexGen: Boolean;
     FPhongShading: boolean;
     FLightingModel: TLightingModel;
 
@@ -638,6 +639,9 @@ type
 
     { Add a screen effect GLSL code. }
     procedure AddScreenEffectCode(const Depth: boolean);
+
+    { Shader needs normals, for lighting calculation or tex coord generation. }
+    function NeedsNormals: Boolean;
   end;
 
 implementation
@@ -1958,6 +1962,7 @@ begin
   TextureMatrix.Count := 0;
   NeedsCameraInverseMatrix := false;
   NeedsMirrorPlaneTexCoords := false;
+  NeedsNormalsForTexGen := false;
   RenderingCamera := nil;
   FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
@@ -3067,6 +3072,7 @@ begin
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
           '%s.st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
           [TexCoordName]);
+        NeedsNormalsForTexGen := true;
       end;
     tgNormal:
       begin
@@ -3083,6 +3089,7 @@ begin
         end;
         TextureCoordGen += Format('%s.xyz = castle_normal_eye;' + NL,
           [TexCoordName]);
+        NeedsNormalsForTexGen := true;
       end;
     tgReflection:
       begin
@@ -3100,6 +3107,7 @@ begin
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
         TextureCoordGen += Format('%s.xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
           [TexCoordName]);
+        NeedsNormalsForTexGen := true;
       end;
     tgcMirrorPlane:
       begin
@@ -3579,6 +3587,12 @@ begin
   if Source[stFragment].Count <> 0 then
     Source[stFragment][0] := FS + Source[stFragment][0] else
     Source[stFragment].Insert(0, FS);
+end;
+
+function TShader.NeedsNormals: Boolean;
+begin
+  // optimize lmUnlit: no need for normals data
+  Result := (LightingModel <> lmUnlit) or NeedsNormalsForTexGen;
 end;
 
 end.
