@@ -8,7 +8,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window"/>
-        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/deprecated_units/"/>
         <UnitOutputDirectory Value="lib/alternate_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
