@@ -12,7 +12,7 @@ uniform vec3 castle_CameraUp;
 uniform vec4 castle_FrustumDimensions;
 
 /* Calculate texture coordinates matching ViewpointMirror texture projection. */
-vec3 castle_mirror_plane_tex_coords(const in vec4 vertex_world)
+vec3 castle_generate_tex_coords_mirror_plane(const in vec4 vertex_world)
 {
   /* The same implemented on CPU in Pascal (with Coord = vertex_world):
 
@@ -44,3 +44,15 @@ vec3 castle_mirror_plane_tex_coords(const in vec4 vertex_world)
     0.0);
 }
 #endif
+
+/* Sphere mapping in GLSL adapted from
+   http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
+   by Jerome Guinot aka 'JeGX', many thanks!
+*/
+vec2 castle_generate_tex_coords_sphere(const in vec4 vertex_eye, const in vec3 normal_eye)
+{
+  vec3 r = reflect( normalize(vec3(vertex_eye)), normal_eye );
+  float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );
+  /* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */
+  return r.xy / m + vec2(1.0, 1.0) / 2.0;
+}
