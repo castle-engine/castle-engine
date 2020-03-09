@@ -204,7 +204,7 @@ function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): bool
 begin
   EntryLCL := Menus.TMenuItem(Entry.Handle);
   Result := EntryLCL <> nil;
-  if (not Result) and Log and
+  if (not Result) and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
     WritelnWarning('Menu', 'Menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
