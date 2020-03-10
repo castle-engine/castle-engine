@@ -25,6 +25,13 @@ type
   { Shader types. }
   TShaderType = (stVertex, stGeometry, stFragment);
 
+  TToneMapping = (
+    tmNone,
+    tmUncharted,
+    tmHejlRichard,
+    tmACES
+  );
+
 const
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );
@@ -32,7 +39,11 @@ const
 var
   { Log shadow volume information.
     See https://castle-engine.io/manual_log.php about the log. }
-  LogShadowVolumes: boolean = false;
+  LogShadowVolumes: Boolean = false;
+
+  GammaCorrection: Boolean = false;
+
+  ToneMapping: TToneMapping = tmNone;
 
 implementation
 
