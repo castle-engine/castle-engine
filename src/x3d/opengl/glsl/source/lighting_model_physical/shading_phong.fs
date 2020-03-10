@@ -14,8 +14,6 @@
 
   Calculate Physical (PBR) lighting model, in Phong shading. */
 
-#define CASTLE_SIMPLE_GAMMA_CORRECTION
-
 uniform vec4 castle_MaterialBaseAlpha;
 uniform vec3 castle_MaterialEmissive;
 uniform float castle_MaterialMetallic;
@@ -214,12 +212,6 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 
   main_texture_apply(material_base_alpha, normal_eye);
 
-// TODO: We should only apply pow(2.2) on data from textures.
-// And we should apply it on all color textures (emissive too), not only baseTexture.
-#ifdef CASTLE_SIMPLE_GAMMA_CORRECTION
-  material_base_alpha.rgb = pow(material_base_alpha.rgb, vec3(2.2));
-#endif
-
   vec3 emissive = castle_MaterialEmissive;
   /* PLUG: material_emissive (emissive) */
 
@@ -233,7 +225,5 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   // TODO: No need for this in Phong lighting with Phong shading, too?
   // result.rgb = min(result.rgb, 1.0);
 
-#ifdef CASTLE_SIMPLE_GAMMA_CORRECTION
   result.rgb = pow(result.rgb, vec3(1.0 / 2.2));
-#endif
 }

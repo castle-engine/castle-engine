@@ -64,6 +64,16 @@
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
+'  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
+'  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +
+'  #else' + LineEnding +
+'  #ifdef CASTLE_TONE_MAPPING' + LineEnding +
+'  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +
+'  #endif' + LineEnding +
+'  /* Optimization to not call castle_linear_to_screen always:' + LineEnding +
+'     it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */' + LineEnding +
+'  #endif' + LineEnding +
+'' + LineEnding +
 '  /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when' + LineEnding +
 '     we pass gl_FragColor as inout parameter to functions' + LineEnding +
 '     (testcase even fresnel_and_toon.x3dv).' + LineEnding +

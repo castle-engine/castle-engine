@@ -62,6 +62,16 @@ void main(void)
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 
+  #ifdef CASTLE_GAMMA_CORRECTION
+  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);
+  #else
+  #ifdef CASTLE_TONE_MAPPING
+  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);
+  #endif
+  /* Optimization to not call castle_linear_to_screen always:
+     it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */
+  #endif
+
   /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when
      we pass gl_FragColor as inout parameter to functions
      (testcase even fresnel_and_toon.x3dv).

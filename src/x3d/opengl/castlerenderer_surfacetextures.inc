@@ -238,7 +238,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       'castle_SurfaceTexture_emissive',
       'void PLUG_material_emissive(inout vec3 parameter)' + NL +
       '{' + NL +
-      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
       '}');
   end;
 
@@ -253,7 +253,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       'castle_SurfaceTexture_ambient',
       'void PLUG_material_ambient(inout vec3 parameter)' + NL +
       '{' + NL +
-      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
       '}');
   end;
 
@@ -268,7 +268,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       'castle_SurfaceTexture_specular',
       'void PLUG_material_specular(inout vec3 parameter)' + NL +
       '{' + NL +
-      '  parameter *= texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ';' + NL +
+      '  parameter *= castle_texture_color_to_linear(texture2D({uniform_texture_name}, {coord_name}.st).' + ChannelMask + ');' + NL +
       '}');
   end;
 
