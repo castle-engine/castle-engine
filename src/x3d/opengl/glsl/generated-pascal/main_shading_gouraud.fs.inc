@@ -29,6 +29,7 @@
 '#define normal_eye_fragment vec3(0.0)' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ // deprecated' + LineEnding +
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +

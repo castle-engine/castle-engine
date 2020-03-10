@@ -27,6 +27,7 @@ void main(void)
 #define normal_eye_fragment vec3(0.0)
 
   /* PLUG: main_texture_apply (fragment_color, normal_eye_fragment) */
+  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ // deprecated
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 
