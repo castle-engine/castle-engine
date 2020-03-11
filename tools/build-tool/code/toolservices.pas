@@ -40,6 +40,11 @@ type
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function HasService(const Name: string): boolean;
     procedure AddService(const Name: string);
+    { Find service by name.
+      Returns @nil if not found.
+      You can check HasService earlier, if HasService('xxx') = @true then Service('xxx')
+      will never be @nil. }
+    function Service(const Name: string): TService;
   end;
 
 implementation
@@ -74,16 +79,16 @@ procedure TServiceList.ReadCastleEngineManifest(const Element: TDOMElement);
 var
   ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
-  Service: TService;
+  NewService: TService;
 begin
   ChildElements := Element.ChildrenIterator('component');
   try
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      Service := TService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
+      NewService := TService.Create;
+      Add(NewService);
+      NewService.ReadCastleEngineManifest(ChildElement);
     end;
   finally FreeAndNil(ChildElements) end;
 
@@ -92,9 +97,9 @@ begin
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      Service := TService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
+      NewService := TService.Create;
+      Add(NewService);
+      NewService.ReadCastleEngineManifest(ChildElement);
     end;
   finally FreeAndNil(ChildElements) end;
 end;
@@ -109,14 +114,24 @@ begin
   Result := false;
 end;
 
+function TServiceList.Service(const Name: string): TService;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+  Result := nil;
+end;
+
 procedure TServiceList.AddService(const Name: string);
 var
-  Service: TService;
+  NewService: TService;
 begin
   if not HasService(Name) then
   begin
-    Service := TService.Create(Name);
-    Add(Service);
+    NewService := TService.Create(Name);
+    Add(NewService);
   end;
 end;
 
