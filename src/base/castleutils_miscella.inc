@@ -83,24 +83,6 @@ const
   { Castle Game Engine version. }
   CastleEngineVersion = {$I castleversion.inc};
 
-type
-  { See @link(Platform). }
-  TCastlePlatform = (
-    cpDesktop,
-    cpAndroid,
-    cpIOS,
-    cpNintendoSwitch
-  );
-
-{ Current platform of the compiled application.
-
-  Note that you can also use compilations symbols: CASTLE_IOS, CASTLE_NINTENDO_SWITCH.
-  And of course all the symbols defined by Pascal compilers: (for OS:)
-  ANDROID, MSWINDOWS, UNIX, LINUX etc., (for CPU:) CPUX86_64, CPUI386, CPUAARCH64 etc. }
-function Platform: TCastlePlatform;
-
-function PlatformToStr(const T: TCastlePlatform): String;
-
 {$ifdef FPC}
 { FPC version. In the form 'version.release.patch'.
 
@@ -253,34 +235,6 @@ function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; begin if 
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if boolval then result := trueval else result := falseval end;
 
 { Helpful consts ------------------------------------------------------------ }
-
-function PlatformToStr(const T: TCastlePlatform): String;
-const
-  Names: array [TCastlePlatform] of String = (
-    'Desktop',
-    'Android',
-    'iOS',
-    'Nintendo Switch'
-  );
-begin
-  Result := Names[T];
-end;
-
-function Platform: TCastlePlatform;
-begin
-  {$if defined(CASTLE_NINTENDO_SWITCH)}
-  { Note that ANDROID is also defined for Nintendo Switch for now
-    (due to a hacky way we use FPC for Nintendo Switch).
-    So we check for CASTLE_NINTENDO_SWITCH first. }
-  Exit(cpNintendoSwitch);
-  {$elseif defined(ANDROID)}
-  Exit(cpAndroid);
-  {$elseif defined(IOS)}
-  Exit(cpIOS);
-  {$else}
-  Exit(cpDesktop);
-  {$endif}
-end;
 
 {$ifdef FPC}
 function SFPCVersion: string;
