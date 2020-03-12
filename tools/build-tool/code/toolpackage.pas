@@ -20,6 +20,8 @@ unit ToolPackage;
 
 interface
 
+uses CastleUtils;
+
 type
   TPackageFormat = (
     pfDefault,
@@ -37,6 +39,8 @@ type
     TemporaryDir: string;
     FPath: string;
     FTopDirectoryName: string;
+    FTargetPlatform: TCastlePlatform;
+    FHasTargetPlatform: Boolean;
 
     { Absolute path (ends with path delimiter) under which you should
       store your files. They will end up being packaged,
@@ -44,7 +48,19 @@ type
     property Path: string read FPath;
     property TopDirectoryName: string read FTopDirectoryName;
   public
-    constructor Create(const ATopDirectoryName: string);
+    { Create a package.
+
+      @param(ATopDirectoryName is the name of the main directory that will
+        be visible in the archive, it's usually just a project name.)
+
+      @param(TargetPlatform is the platform we package for (see @link(Platform)).
+        It is useful to filter out the files unnecessary for this platform
+        (right now, this means auto-generated textures for other platforms).)
+
+      @param(HasTargetPlatform if false, then we ignore TargetPlatform and no filtering
+        is done.) }
+    constructor Create(const ATopDirectoryName: string; const HasTargetPlatform: Boolean;
+      const TargetPlatform: TCastlePlatform);
     destructor Destroy; override;
 
     { Create final archive. It will be placed within OutputProjectPath.
@@ -76,16 +92,19 @@ function StringToPackageFormat(const S: string): TPackageFormat;
 implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
+  CastleFilesUtils, CastleLog, CastleFindFiles, CastleURIUtils,
   CastleStringUtils, CastleInternalDirectoryInformation,
   ToolCommonUtils, ToolUtils;
 
 { TPackageDirectory ---------------------------------------------------------- }
 
-constructor TPackageDirectory.Create(const ATopDirectoryName: string);
+constructor TPackageDirectory.Create(const ATopDirectoryName: string; const HasTargetPlatform: Boolean;
+  const TargetPlatform: TCastlePlatform);
 begin
   inherited Create;
   FTopDirectoryName := ATopDirectoryName;
+  FHasTargetPlatform := HasTargetPlatform;
+  FTargetPlatform := TargetPlatform;
 
   TemporaryDir := CreateTemporaryDir;
 
@@ -143,9 +162,7 @@ begin
         CopyDirectory(Path, PackageFileName);
         Writeln('Created directory ' + PackageFileName);
       end;
-    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TPackageDirectory.Make PackageFormat?');
-    {$endif}
   end;
 end;
 

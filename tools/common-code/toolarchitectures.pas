@@ -119,7 +119,7 @@ Const
 function TargetToString(const Target: TTarget): String;
 Function CPUToString(CPU: TCPU) : String;
 Function OSToString(OS: TOS) : String;
-function PlatformToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
 
 function StringToTarget(const S : String): TTarget;
 Function StringToCPU(const S : String) : TCPU;
@@ -248,7 +248,7 @@ begin
   raise Exception.CreateFmt(SErrInvalidTarget,[S]);
 end;
 
-function PlatformToString(const Target: TTarget;
+function TargetCompleteToString(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
 begin
   if Target = targetCustom then

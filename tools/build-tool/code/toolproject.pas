@@ -924,7 +924,7 @@ var
   ExtraOptions: TCastleStringList;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
-    [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
 
   if FBuildUsingLazbuild then
   begin
@@ -1230,6 +1230,50 @@ var
     finally FreeAndNil(List) end;
   end;
 
+  { How the targets are detected (at build (right here) and inside the compiled application
+    (in Platform implementation)) is a bit complicated.
+
+    - nintendo-switch:
+
+        At build: building for [[Nintendo Switch]] using CGE build tool with --target=nintendo-switch .
+
+        Inside the application: if code was compiled with CASTLE_NINTENDO_SWITCH.
+
+    - Android
+
+        When OS is Android (currently possible values: Android/Arm, Android/Aarch64), and it is *not* detected as _Nintendo Switch_ (for internal reasons, right now _Nintendo Switch_ is also treated as Android by FPC).
+
+        This logic is used both at build, and inside the application.
+
+    - iOS: When OS is iPhoneSim or OS/architecture are Darwin/Arm or Darwin/Aarch64.
+
+        In total this has 4 currently possible values: iPhoneSim/i386, iPhoneSim/x86_64, Darwin/Arm, Darwin/Aarch64.
+
+        This logic is used both at build, and inside the application.
+
+    - desktop: everything else.
+  }
+  function TargetPlatform: TCastlePlatform;
+  begin
+    case Target of
+      targetIOS: Result := cpIOS;
+      targetAndroid: Result := cpAndroid;
+      targetNintendoSwitch: Result := cpNintendoSwitch;
+      else // only targetCustom for now
+      begin
+        if OS = Android then
+          Result := cpAndroid
+        else
+        if (OS = iphonesim) or
+           ((OS = darwin) and (CPU = arm)) or
+           ((OS = darwin) and (CPU = aarch64)) then
+          Result := cpIOS
+        else
+          Result := cpDesktop;
+      end;
+    end;
+  end;
+
 var
   I: Integer;
   PackageFileName: string;
@@ -1238,8 +1282,11 @@ var
   WantsIOSArchive: Boolean;
   IOSArchiveType: TIosArchiveType;
 begin
-  Writeln(Format('Packaging project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+  Writeln(Format('Packaging project "%s" for %s (platform: %s).', [
+    Name,
+    TargetCompleteToString(Target, OS, CPU, Plugin),
+    PlatformToStr(TargetPlatform)
+  ]));
 
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
@@ -1284,7 +1331,7 @@ begin
   end else
     PackageFormatFinal := PackageFormat;
 
-  Pack := TPackageDirectory.Create(Name);
+  Pack := TPackageDirectory.Create(Name, true, TargetPlatform);
   try
     { executable is added 1st, since it's the most likely file
       to not exist, so we'll fail earlier }
@@ -1334,7 +1381,7 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
 
 begin
   Writeln(Format('Installing project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
   if Target = targetIOS then
     InstallIOS(Self)
@@ -1385,7 +1432,7 @@ var
   ProcessStatus: Integer;
 begin
   Writeln(Format('Running project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
   if Plugin then
     raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
@@ -1484,7 +1531,7 @@ begin
   else
     PackageFormatFinal := PackageFormat;
 
-  Pack := TPackageDirectory.Create(Name);
+  Pack := TPackageDirectory.Create(Name, false, cpDesktop);
   try
     Files := TCastleStringList.Create;
     try
