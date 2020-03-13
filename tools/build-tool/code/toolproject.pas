@@ -1331,7 +1331,7 @@ begin
   end else
     PackageFormatFinal := PackageFormat;
 
-  Pack := TPackageDirectory.Create(Name, true, TargetPlatform);
+  Pack := TPackageDirectoryPlatformSpecific.Create(Name, TargetPlatform, DataPath);
   try
     { executable is added 1st, since it's the most likely file
       to not exist, so we'll fail earlier }
@@ -1531,7 +1531,7 @@ begin
   else
     PackageFormatFinal := PackageFormat;
 
-  Pack := TPackageDirectory.Create(Name, false, cpDesktop);
+  Pack := TPackageDirectory.Create(Name);
   try
     Files := TCastleStringList.Create;
     try
