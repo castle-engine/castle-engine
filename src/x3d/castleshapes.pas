@@ -1731,6 +1731,10 @@ var
       SurfaceShader := S.ShapeNode.CommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
+        if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+          MaxVar(Result, SurfaceShader.DiffuseTextureCoordinatesId + 1); // TODO test X3DOM/InstantReality are they using DiffuseTextureCoordinatesId in this case
+        if SurfaceShader.DiffuseTexture <> nil then
+          MaxVar(Result, SurfaceShader.DiffuseTextureCoordinatesId + 1);
         if SurfaceShader.NormalTexture <> nil then
           MaxVar(Result, SurfaceShader.NormalTextureCoordinatesId + 1);
         if SurfaceShader.AmbientTexture <> nil then

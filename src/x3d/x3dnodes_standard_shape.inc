@@ -282,8 +282,15 @@
       This is also the texture which is affected by @link(FdTexture)
       field (if appropriate material slot is empty).
 
+      The overloaded version with Mapping parameter also specifies which
+      texture coordinates / transformations should be used for this texture.
+      It returns -1 when we should use standard MultiTexture specification for this,
+      which also covers the case when MainTexture is a MultiTexture node,
+      and should use appropriate texture coordinates for MultiTexture children.
+
       Returns @nil if none. }
     function MainTexture: TAbstractTextureNode;
+    function MainTexture(out Mapping: Integer): TAbstractTextureNode;
 
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
@@ -1109,27 +1116,50 @@ end;
 
 function TAppearanceNode.MainTexture: TAbstractTextureNode;
 var
+  IgnoredMapping: Integer;
+begin
+  Result := MainTexture(IgnoredMapping);
+end;
+
+function TAppearanceNode.MainTexture(out Mapping: Integer): TAbstractTextureNode;
+var
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
   Result := nil;
+  Mapping := -1;
   SurfaceShader := CommonSurfaceShader;
   if SurfaceShader <> nil then
   begin
     if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+    begin
+      Mapping := SurfaceShader.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
       Exit(SurfaceShader.MultiDiffuseAlphaTexture);
+    end;
     if SurfaceShader.DiffuseTexture <> nil then
+    begin
+      Mapping := SurfaceShader.DiffuseTextureCoordinatesId;
       Exit(SurfaceShader.DiffuseTexture);
+    end;
   end else
   begin
     if (Material is TMaterialNode) and
        (TMaterialNode(Material).DiffuseTexture <> nil) then
+    begin
+      Mapping := TMaterialNode(Material).DiffuseTextureChannel;
       Exit(TMaterialNode(Material).DiffuseTexture);
+    end;
     if (Material is TPhysicalMaterialNode) and
        (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
+    begin
+      Mapping := TPhysicalMaterialNode(Material).BaseTextureChannel;
       Exit(TPhysicalMaterialNode(Material).BaseTexture);
+    end;
     if (Material is TUnlitMaterialNode) and
        (TUnlitMaterialNode(Material).EmissiveTexture <> nil) then
+    begin
+      Mapping := TUnlitMaterialNode(Material).EmissiveTextureChannel;
       Exit(TUnlitMaterialNode(Material).EmissiveTexture);
+    end;
     Result := Texture;
   end;
 end;

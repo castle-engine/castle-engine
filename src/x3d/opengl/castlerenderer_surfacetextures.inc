@@ -197,6 +197,16 @@ end;
 procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
+  procedure RequireTexCoord(const TextureCoordinatesId: Integer);
+  begin
+    { Note that there is no need to increase the TexCoordNeeded unconditionally.
+      If the NormalTextureCoordinatesId = 0 and
+      TexCoordNeeded = 1 then we're already satisfied, as then the normalmap
+      will use the existing texture coordinates from e.g. diffuse texture. }
+
+    MaxVar(ATexCoordsNeeded, TextureCoordinatesId + 1);
+  end;
+
   procedure SurfaceTextureEnable(const SurfaceTexture: TSurfaceTexture;
     const Texture: TAbstractTextureNode;
     const TextureCoordinatesId: Integer;
@@ -218,11 +228,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
           PlugCode);
         Inc(ABoundTextureUnits);
 
-        { There is no need to increase the TexCoordNeeded unconditionally.
-          If the NormalTextureCoordinatesId = 0 and
-          TexCoordNeeded = 1 then we're already satisfied, as then the normalmap
-          will use the existing texture coordinates from e.g. diffuse texture. }
-        MaxVar(ATexCoordsNeeded, TextureCoordinatesId + 1);
+        RequireTexCoord(TextureCoordinatesId);
       end;
     end;
   end;
@@ -309,6 +315,7 @@ var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatPhong: TMaterialNode;
   MatPhysical: TPhysicalMaterialNode;
+  MatUnlit: TUnlitMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -331,6 +338,11 @@ begin
         SurfaceShader.ShininessTexture,
         SurfaceShader.ShininessTextureCoordinatesId,
         SurfaceShader.ShininessTextureChannelMask);
+      // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
+      if SurfaceShader.DiffuseTexture <> nil then
+        RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId);
+      if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+        RequireTexCoord(SurfaceShader.DiffuseTextureCoordinatesId); // TODO test X3DOM/InstantReality are they using DiffuseTextureCoordinatesId in this case
     end else
     begin
       if State.ShapeNode.Material is TMaterialNode then
@@ -348,7 +360,9 @@ begin
         ShininessTextureEnable(
           MatPhong.ShininessTexture,
           MatPhong.ShininessTextureChannel);
-        // No need to apply MatPhong.DiffuseTexture here, it is applied as MainTexture
+        // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
+        if MatPhong.DiffuseTexture <> nil then
+          RequireTexCoord(MatPhong.DiffuseTextureChannel);
       end else
       if State.ShapeNode.Material is TPhysicalMaterialNode then
       begin
@@ -359,11 +373,17 @@ begin
         MetallicRoughnessTextureEnable(
           MatPhysical.MetallicRoughnessTexture,
           MatPhysical.MetallicRoughnessTextureChannel);
-        // No need to apply MatPhysical.BaseTexture here, it is applied as MainTexture
+        // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
+        if MatPhysical.BaseTexture <> nil then
+          RequireTexCoord(MatPhysical.BaseTextureChannel);
+      end else
+      if State.ShapeNode.Material is TPhysicalMaterialNode then
+      begin
+        MatUnlit := TUnlitMaterialNode(State.ShapeNode.Material);
+        // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
+        if MatUnlit.EmissiveTexture <> nil then
+          RequireTexCoord(MatUnlit.EmissiveTextureChannel);
       end;
-
-      { No need to do anything for TUnlitMaterialNode.
-        It only has EmissiveTexture, which is applied as MainTexture. }
     end;
   end;
 end;

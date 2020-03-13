@@ -115,6 +115,7 @@
     { Primary texture that determines RGB color and opacity.
       See @link(TAppearanceNode.MainTexture) for definition. }
     function MainTexture: TAbstractTextureNode;
+    function MainTexture(out Mapping: Integer): TAbstractTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -453,13 +454,21 @@ begin
 end;
 
 function TX3DGraphTraverseState.MainTexture: TAbstractTextureNode;
+var
+  IgnoredMapping: Integer;
+begin
+  Result := MainTexture(IgnoredMapping);
+end;
+
+function TX3DGraphTraverseState.MainTexture(out Mapping: Integer): TAbstractTextureNode;
 begin
   Result := nil;
+  Mapping := -1;
   if ShapeNode = nil then
     Result := VRML1State.Texture2
   else
   if ShapeNode.Appearance <> nil then
-    Result := ShapeNode.Appearance.MainTexture;
+    Result := ShapeNode.Appearance.MainTexture(Mapping);
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;

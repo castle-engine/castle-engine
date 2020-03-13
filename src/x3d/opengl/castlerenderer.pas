@@ -3463,6 +3463,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     AlphaTest: boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
+    MainTextureMapping: Integer;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3472,10 +3473,12 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.MainTexture;
+    TextureNode := Shape.State.MainTexture(MainTextureMapping);
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
+
+    Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
     GLFontTextureNode := GLTextureNodes.TextureNode(FontTextureNode);

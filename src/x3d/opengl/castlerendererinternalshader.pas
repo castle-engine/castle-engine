@@ -286,10 +286,11 @@ type
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); virtual;
-    procedure Enable(var TextureApply, TextureColorDeclare,
-      TextureCoordInitialize, TextureCoordMatrix,
-      TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-      GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
+    procedure Enable(const MainTextureMapping: Integer;
+      var TextureApply, TextureColorDeclare,
+        TextureCoordInitialize, TextureCoordMatrix,
+        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
   end;
 
   { Setup the necessary shader things to query a texture using texture coordinates. }
@@ -315,10 +316,11 @@ type
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); override;
-    procedure Enable(var TextureApply, TextureColorDeclare,
-      TextureCoordInitialize, TextureCoordMatrix,
-      TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-      GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
+    procedure Enable(const MainTextureMapping: Integer;
+      var TextureApply, TextureColorDeclare,
+        TextureCoordInitialize, TextureCoordMatrix,
+        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
@@ -494,6 +496,8 @@ type
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
 
     RenderingCamera: TRenderingCamera; //< Set this after construction.
+
+    MainTextureMapping: Integer;
 
     constructor Create;
     destructor Destroy; override;
@@ -1521,10 +1525,11 @@ begin
 {$include norqcheckend.inc}
 end;
 
-procedure TTextureCoordinateShader.Enable(var TextureApply, TextureColorDeclare,
-  TextureCoordInitialize, TextureCoordMatrix,
-  TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-  GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer;
+  var TextureApply, TextureColorDeclare,
+    TextureCoordInitialize, TextureCoordMatrix,
+    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 var
   TexCoordName, TexMatrixName: string;
 begin
@@ -1698,10 +1703,11 @@ begin
   }
 end;
 
-procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
-  TextureCoordInitialize, TextureCoordMatrix,
-  TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-  GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+procedure TTextureShader.Enable(const MainTextureMapping: Integer;
+  var TextureApply, TextureColorDeclare,
+    TextureCoordInitialize, TextureCoordMatrix,
+    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 const
   SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', Sampler2DShadow, 'samplerCube', 'sampler3D', '');
@@ -1741,7 +1747,7 @@ begin
       '%s' +NL+
       'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
       '{' +NL+
-      '  scale *= shadow(%s, castle_TexCoord%d, %d.0);' +NL+
+      '  scale *= shadow(%s, %s, %d.0);' +NL+
       '}',
       [SamplerType, UniformName,
        TexCoordName,
@@ -1750,10 +1756,13 @@ begin
        {$else}
        Shader.DeclareShadowFunctions
        {$endif},
-       UniformName, TextureUnit, ShadowMapSize]),
+       UniformName, TexCoordName, ShadowMapSize]),
       ShadowLightShader.Code);
   end else
   begin
+    // TODO: Actually MainTextureMapping should be applied higher, and using shadow maps should be done outside of this method
+    if MainTextureMapping <> -1 then
+      TexCoordName := CoordName(MainTextureMapping);
     if TextureColorDeclare = '' then
       TextureColorDeclare := 'vec4 texture_color;' + NL;
     case TextureType of
@@ -1966,6 +1975,7 @@ begin
   RenderingCamera := nil;
   FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
+  MainTextureMapping := -1;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2352,6 +2362,9 @@ const
     if FBumpMapping <> bmNone then
       RequireTextureCoordinateId(FNormalMapTextureCoordinatesId);
 
+    if MainTextureMapping <> -1 then
+      RequireTextureCoordinateId(MainTextureMapping);
+
     for SurfaceTexture in TSurfaceTexture do
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
         RequireTextureCoordinateId(
@@ -2377,7 +2390,8 @@ const
     TextureUniformsSet := true;
 
     for I := 0 to TextureShaders.Count - 1 do
-      TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
+      TextureShaders[I].Enable(MainTextureMapping,
+        TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
         GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
@@ -2971,6 +2985,7 @@ function TShader.CodeHash: TShaderCodeHash;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
     FCodeHash.AddInteger(Ord(LightingModel) * 503);
+    FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
   end;
 
 begin
