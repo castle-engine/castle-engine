@@ -172,8 +172,14 @@ type
   TInternalTranslateDesignCallback = procedure (const C: TComponent; const GroupName: String);
 
 var
-  { Internal, used by TranslateAllDesigns. @exclude }
+  { Internal, used by TranslateAllDesigns.
+    @exclude }
   OnInternalTranslateDesign: TInternalTranslateDesignCallback;
+
+var
+  { Set by custom editor template (used when project defines editor_units).
+    @exclude }
+  InternalHasCustomComponents: Boolean;
 
 implementation
 

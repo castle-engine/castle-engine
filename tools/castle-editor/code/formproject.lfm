@@ -113,7 +113,7 @@ object ProjectForm: TProjectForm
     object MenuItemFile: TMenuItem
       Caption = '&Project'
       object MenuItemRestartRebuildEditor: TMenuItem
-        Caption = 'Restart Editor (may rebuild editor with custom controls)'
+        Caption = 'Restart Editor (With Custom Components)'
         OnClick = MenuItemRestartRebuildEditorClick
       end
       object N1: TMenuItem

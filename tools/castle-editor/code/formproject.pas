@@ -883,7 +883,10 @@ begin
     S := Design.FormCaption
   else
     S := '';
-  Caption := S + SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
+  S := S + SQuoteLCLCaption(ProjectName);
+  if InternalHasCustomComponents then
+    S := S + ' (With Custom Components)';
+  Caption := S + ' | Castle Game Engine';
 end;
 
 function TProjectForm.ProposeSaveDesign: Boolean;
@@ -931,6 +934,9 @@ begin
       DefaultLazarusProject := '';
     ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
       'lazarus_project', DefaultLazarusProject);
+    if (ManifestDoc.DocumentElement.AttributeStringDef('editor_units', '') <> '') and
+       (not InternalHasCustomComponents) then
+      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   finally FreeAndNil(ManifestDoc) end;
 
   { Below we assume ManifestUrl contains an absolute path,
