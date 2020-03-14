@@ -1845,6 +1845,10 @@ begin
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
+  Camera.InternalSetEffectiveProjection(
+    Result.ProjectionNear,
+    Result.ProjectionFar);
+
   { Calculate Result.Dimensions regardless of Result.ProjectionType,
     this way OnProjection can easily change projection type to orthographic. }
   UpdateOrthographicDimensions;

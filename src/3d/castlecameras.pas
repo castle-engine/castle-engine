@@ -277,6 +277,7 @@ type
     FInitialPosition, FInitialDirection, FInitialUp: TVector3;
     FProjectionMatrix: TMatrix4;
     FProjectionNear, FProjectionFar: Single;
+    FEffectiveProjectionNear, FEffectiveProjectionFar: Single;
     FProjectionType: TProjectionType;
 
     FAnimation: boolean;
@@ -526,6 +527,16 @@ type
 
     procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleViewport should create and destroy TCastleViewport.Camera; this method does nothing now';
 
+    { Currently used projection near.
+      Derived from @link(ProjectionNear) and possibly scene sizes. }
+    property EffectiveProjectionNear: Single read FEffectiveProjectionNear;
+    { Currently used projection far.
+      Derived from @link(ProjectionFar) and possibly scene sizes.
+      May be equal ZFarInfinity. }
+    property EffectiveProjectionFar: Single read FEffectiveProjectionFar;
+    // @exclude
+    procedure InternalSetEffectiveProjection(
+      const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
   published
     { Projection near plane distance.
 
@@ -2652,6 +2663,13 @@ end;
 
 procedure TCastleCamera.Free;
 begin
+end;
+
+procedure TCastleCamera.InternalSetEffectiveProjection(
+  const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+begin
+  FEffectiveProjectionNear := AEffectiveProjectionNear;
+  FEffectiveProjectionFar := AEffectiveProjectionFar;
 end;
 
 {$define read_implementation_methods}
