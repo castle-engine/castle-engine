@@ -1796,7 +1796,7 @@ begin
       ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
       {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
-            {$endif}
+      {$endif}
     end;
 
     Code := TShaderSource.Create;
