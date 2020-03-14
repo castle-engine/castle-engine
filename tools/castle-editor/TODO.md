@@ -9,8 +9,6 @@ Before 7.0 release:
   (ResizeDisabledReason) somewhere
   (at tooltip)?
 
-* Show on recent list %20 as spaces, use URICaption or such ready function?
-
 * 3d gizmos to translate / rotate / scale
 
 * templates:
