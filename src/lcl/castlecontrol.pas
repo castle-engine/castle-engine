@@ -26,7 +26,7 @@ uses
   StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, CastleSceneManager, CastleLCLUtils,
+  CastleImages, CastleGLVersion, CastleLCLUtils, CastleViewport,
   CastleGLImages, CastleGLContainer, Castle2DSceneManager,
   CastleApplicationProperties;
 
@@ -600,11 +600,15 @@ uses Math, Contnrs, LazUTF8, Clipbrd,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    { We hesitated whether to publish TCastleControlBase for a while.
-      Eventually, it seems useful enough to be published. }
-    TCastleControlBase,
+    TCastleControlBase
+  ]);
+  // register deprecated components in a way that they can be serialized, but are not visible on LCL palette
+  RegisterNoIcon([
+    {$warnings off}
     TCastleControl,
-    TCastle2DControl]);
+    TCastle2DControl
+    {$warnings on}
+  ]);
 end;
 
 var
@@ -1291,30 +1295,35 @@ end;
 
 procedure TCastleControl.Load(const SceneURL: string);
 begin
+  {$warnings off} // using one deprecated from another
   Load(LoadNode(SceneURL), true);
+  {$warnings on}
 end;
 
 procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
-  { destroy MainScene and Camera, we will recreate them }
-  SceneManager.MainScene.Free;
-  SceneManager.MainScene := nil;
+  { destroy MainScene and clear cameras, we will recreate it }
+  SceneManager.Items.MainScene.Free;
+  SceneManager.Items.MainScene := nil;
   SceneManager.Items.Clear;
+  {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
-  Assert(SceneManager.Camera = nil);
+  {$warnings on}
+  Assert(SceneManager.Navigation = nil);
 
-  SceneManager.MainScene := TCastleScene.Create(Self);
-  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.MainScene);
+  SceneManager.Items.MainScene := TCastleScene.Create(Self);
+  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.Add(SceneManager.Items.MainScene);
 
   { initialize octrees titles }
-  MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { For backward compatibility, to make our Navigation always non-nil. }
-  {$warnings off} // using deprecated in deprecated
-  SceneManager.RequiredNavigation;
-  {$warnings on}
+  { Adjust SceneManager.Navigation and SceneManager.Camera to latest scene }
+  SceneManager.AssignDefaultCamera;
+  SceneManager.AssignDefaultNavigation;
+  // AssignDefaultNavigation should satisfy this, and we need it for backward compatibility
+  Assert(SceneManager.Navigation <> nil);
 end;
 
 function TCastleControl.MainScene: TCastleScene;
