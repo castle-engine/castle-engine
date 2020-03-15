@@ -3,8 +3,6 @@
 ------------------------------------------------------------------------------
 Before 7.0 release:
 
-* warning when project with editor_units opened in vanilla editor
-
 * when trying to drag to resize, we could show a hint from EditorAllowResize
   (ResizeDisabledReason) somewhere
   (at tooltip)?
@@ -39,9 +37,6 @@ OK if after nearest release:
 * TCastleButton:
   - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
   - Test a way to upgrade names in design files while doing above?
-
-* build tool integration:
-    * Detect lack of FPC / Delphi and make a nice error message
 
 * component class display with grayed-out color, to be visually separate from name
 
@@ -195,12 +190,6 @@ OK if after nearest release:
 
 ------------------------------------------------------------------------------
 "castle-engine editor" improvements:
-
-- Make editor warn when opening project with editor_units, but castle_editor_automatic_package not compiled in. (Known registered packages? Or just unit castleeditorcustomcomponents.pas can set some global variable?)
-
-  """
-  Warning: You are opening a project with possible custom components (editor_units attribute in CastleEngineManifest.xml), but these custom components are not compiled-in in this editor version. Use menu item "Restart editor in this project" to get the correct editor version.
-  """
 
 - Do not rebuild "castle-engine editor" when not needed. It seems we should compare generated lpi/lpk, and *do not* overwrite (to not change timestamp) when equal. This way Lazarus xxx.compiled files will work.
 
