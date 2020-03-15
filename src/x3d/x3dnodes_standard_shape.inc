@@ -199,6 +199,9 @@
     strict private FFdMaterial: TSFNode;
     public property FdMaterial: TSFNode read FFdMaterial;
 
+    strict private FFdBackMaterial: TSFNode;
+    public property FdBackMaterial: TSFNode read FFdBackMaterial;
+
     strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
 
@@ -954,6 +957,10 @@ begin
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangesAlways := [chEverything];
   AddField(FFdMaterial);
+
+  FFdBackMaterial := TSFNode.Create(Self, true, 'backMaterial', [TAbstractMaterialNode]);
+   FdBackMaterial.ChangesAlways := []; // not used now
+  AddField(FFdBackMaterial);
 
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
