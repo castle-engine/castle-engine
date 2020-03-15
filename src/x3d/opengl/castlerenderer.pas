@@ -2807,7 +2807,8 @@ begin
   if ShapeMaybeUsesSurfaceTexture(Shape) or
      ShapeMaybeUsesShadowMaps(Shape) or
      ShapeMaterialRequiresPhongShading(Shape) or
-     ShapeUsesEnvironmentLight(Shape) then
+     ShapeUsesEnvironmentLight(Shape) or
+     (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);

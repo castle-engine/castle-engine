@@ -942,7 +942,11 @@ begin
   inherited;
 
   DefaultContainerField := 'geometry';
-  { to make notes with and without FdSolid behave consistent }
+
+  { To make nodes without FdSolid and FdConvex field behave consistently,
+    we keep the value you set by SetValue to return it in GetSolid.
+    The defaults are "true", which are more efficient (e.g. solid=true
+    doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
 end;
