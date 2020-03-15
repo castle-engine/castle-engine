@@ -36,6 +36,12 @@
   public
     procedure CreateNode; override;
 
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
+    function MaterialInfo: TMaterialInfo; virtual; abstract;
+
     {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
   end;
 
@@ -475,11 +481,7 @@
       value of shininess field. }
     function ShininessExp: Single;
 
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     { Only the emissiveColor is not black (zero),
       which means that the material behaves like unlit.
@@ -540,12 +542,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     {$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
   end;
@@ -588,12 +585,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
@@ -653,12 +645,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
   end;

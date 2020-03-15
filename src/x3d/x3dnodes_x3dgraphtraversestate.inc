@@ -501,17 +501,8 @@ begin
     else
     begin
       Mat := ShapeNode.Material;
-      if Mat is TMaterialNode then // also checks Mat <> nil
-        Result := TMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TPhysicalMaterialNode then // also checks Mat <> nil
-        Result := TPhysicalMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TTwoSidedMaterialNode then // also checks Mat <> nil
-        Result := TTwoSidedMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TUnlitMaterialNode then // also checks Mat <> nil
-        Result := TUnlitMaterialNode(Mat).MaterialInfo
+      if Mat <> nil then
+        Result := Mat.MaterialInfo
       else
         Result := nil;
     end;
