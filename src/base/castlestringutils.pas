@@ -801,6 +801,12 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean): string; overload;
 { @groupEnd }
 
+{ Does this NamePattern contain @counter in a format understood
+  by @link(FormatNameCounter). When @true, you can be sure @link(FormatNameCounter)
+  actually changes the argument by replacing some @counter. }
+function HasNameCounter(const NamePattern: string;
+  const AllowOldPercentSyntax: Boolean = false): Boolean;
+
 { conversions ------------------------------------------------------------ }
 
 { Convert digit (like number 0) to character (like '0').
@@ -2190,6 +2196,31 @@ begin
   MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Value {$endif};
   Result := IntToStrZPad(Index, StrToInt(MatchedText));
   Inc(ReplacementsDone);
+end;
+
+function HasNameCounter(const NamePattern: string;
+  const AllowOldPercentSyntax: Boolean): Boolean;
+var
+  ReplacementsDone: Cardinal;
+  S: String;
+begin
+  { First check by searching for @counter,
+    to eliminate 99% of practical URL cases that will not have @counter.
+    Later check by actually doing FormatNameCounter,
+    in case the @counter is not followed by proper sequence "(123)".
+    This way if HasNameCounter returns @true, we can be sure that
+    FormatNameCounter actually does something, i.e. changes NamePattern,
+    otherwise e.g. LoadNode could loop. }
+  if Pos('@counter', NamePattern) <> 0 then
+  begin
+    S := FormatNameCounter(NamePattern, 0, AllowOldPercentSyntax, ReplacementsDone);
+    if ReplacementsDone <> 0 then
+    begin
+      Assert(NamePattern <> S);
+      Exit(true);
+    end;
+  end;
+  Result := false;
 end;
 
 function FormatNameCounter(const NamePattern: string;
