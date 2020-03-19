@@ -20,15 +20,20 @@ unit X3DLoadInternalGLTF;
 
 interface
 
-uses X3DNodes, X3DFields;
+uses Classes,
+  X3DNodes, X3DFields;
 
 { Load 3D model in the GLTF format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an GLTF file. }
+  This routine is internally used by the @link(LoadNode) to load an GLTF file.
+
+  The overloaded version without an explicit Stream will open the URL
+  using @link(Download). }
 function LoadGLTF(const URL: string): TX3DRootNode;
+function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, TypInfo, Math, PasGLTF,
+uses SysUtils, TypInfo, Math, PasGLTF,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils,
@@ -99,7 +104,7 @@ type
     DoubleSided: Boolean;
   end;
 
-function LoadGLTF(const URL: string): TX3DRootNode;
+function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 var
   BaseUrl: String;
   Document: TPasGLTF.TDocument;
@@ -1041,7 +1046,6 @@ type
   end;
 
 var
-  Stream: TStream;
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
 begin
@@ -1054,49 +1058,56 @@ begin
     "view3dscene my_file.gtlf" on the command-line. }
   BaseUrl := AbsoluteURI(URL);
 
+  Result := TX3DRootNode.Create('', BaseUrl);
+  try
+    Document := nil;
+    DefaultAppearance := nil;
+    Appearances := nil;
+    Nodes := nil;
+    try
+      Document := TMyGltfDocument.Create(Stream, BaseUrl);
+
+      ReadHeader;
+
+      // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
+      DefaultAppearance := TGltfAppearanceNode.Create;
+      DefaultAppearance.Material := TMaterialNode.Create;
+      DefaultAppearance.DoubleSided := false;
+      Appearances := TX3DNodeList.Create(false);
+      for Material in Document.Materials do
+        Appearances.Add(ReadAppearance(Material));
+
+      // read main scene
+      Nodes := TX3DNodeList.Create(false);
+      if Document.Scene <> -1 then
+        ReadScene(Document.Scene, Result)
+      else
+      begin
+        WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
+        ReadScene(0, Result);
+      end;
+
+      // read animations
+      for Animation in Document.Animations do
+        ReadAnimation(Animation, Result);
+    finally
+      FreeIfUnusedAndNil(DefaultAppearance);
+      X3DNodeList_FreeUnusedAndNil(Appearances);
+      X3DNodeList_FreeUnusedAndNil(Nodes);
+      FreeAndNil(Document);
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function LoadGLTF(const URL: string): TX3DRootNode;
+var
+  Stream: TStream;
+begin
   { Using soForceMemoryStream, because PasGLTF does seeking,
     otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
   Stream := Download(URL, [soForceMemoryStream]);
   try
-    Result := TX3DRootNode.Create('', BaseUrl);
-    try
-      Document := nil;
-      DefaultAppearance := nil;
-      Appearances := nil;
-      Nodes := nil;
-      try
-        Document := TMyGltfDocument.Create(Stream, BaseUrl);
-
-        ReadHeader;
-
-        // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
-        DefaultAppearance := TGltfAppearanceNode.Create;
-        DefaultAppearance.Material := TMaterialNode.Create;
-        DefaultAppearance.DoubleSided := false;
-        Appearances := TX3DNodeList.Create(false);
-        for Material in Document.Materials do
-          Appearances.Add(ReadAppearance(Material));
-
-        // read main scene
-        Nodes := TX3DNodeList.Create(false);
-        if Document.Scene <> -1 then
-          ReadScene(Document.Scene, Result)
-        else
-        begin
-          WritelnWarning('glTF does not specify a default scene to render. We will import the 1st scene, if available.');
-          ReadScene(0, Result);
-        end;
-
-        // read animations
-        for Animation in Document.Animations do
-          ReadAnimation(Animation, Result);
-      finally
-        FreeIfUnusedAndNil(DefaultAppearance);
-        X3DNodeList_FreeUnusedAndNil(Appearances);
-        X3DNodeList_FreeUnusedAndNil(Nodes);
-        FreeAndNil(Document);
-      end;
-    except FreeAndNil(Result); raise end;
+    Result := LoadGLTF(Stream, URL);
   finally FreeAndNil(Stream) end;
 end;
 
