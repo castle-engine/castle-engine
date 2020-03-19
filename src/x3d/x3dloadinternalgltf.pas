@@ -329,47 +329,85 @@ var
     end;
   end;
 
-  function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
+  function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
   var
-    X3DMaterial: TPhysicalMaterialNode;
     BaseColorFactor: TVector4;
     BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture: TAbstractX3DTexture2DNode;
     BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel: Integer;
+  begin
+    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+
+    Result := TPhysicalMaterialNode.Create;
+    Result.BaseColor := BaseColorFactor.XYZ;
+    Result.Transparency := 1 - BaseColorFactor.W;
+    Result.Metallic := Material.PBRMetallicRoughness.MetallicFactor;
+    Result.Roughness := Material.PBRMetallicRoughness.RoughnessFactor;
+    Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
+
+    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
+      BaseColorTexture, BaseColorTextureChannel);
+    Result.BaseTexture := BaseColorTexture;
+    Result.BaseTextureChannel := BaseColorTextureChannel;
+
+    ReadTexture(Material.NormalTexture,
+      NormalTexture, NormalTextureChannel);
+    Result.NormalTexture := NormalTexture;
+    Result.NormalTextureChannel := NormalTextureChannel;
+
+    ReadTexture(Material.EmissiveTexture,
+      EmissiveTexture, EmissiveTextureChannel);
+    Result.EmissiveTexture := EmissiveTexture;
+    Result.EmissiveTextureChannel := EmissiveTextureChannel;
+
+    ReadTexture(Material.PBRMetallicRoughness.MetallicRoughnessTexture,
+      MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
+    Result.MetallicRoughnessTexture := MetallicRoughnessTexture;
+    Result.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
+  end;
+
+  { Read glTF unlit material, see
+    https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit .
+    Note that baseColor/Texture is converted to X3D emissiveColor/Texture. }
+  function ReadUnlitMaterial(const Material: TPasGLTF.TMaterial): TUnlitMaterialNode;
+  var
+    BaseColorFactor: TVector4;
+    BaseColorTexture, NormalTexture: TAbstractX3DTexture2DNode;
+    BaseColorTextureChannel, NormalTextureChannel: Integer;
+  begin
+    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+
+    Result := TUnlitMaterialNode.Create;
+    Result.EmissiveColor := BaseColorFactor.XYZ;
+    Result.Transparency := 1 - BaseColorFactor.W;
+
+    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
+      BaseColorTexture, BaseColorTextureChannel);
+    Result.EmissiveTexture := BaseColorTexture;
+    Result.EmissiveTextureChannel := BaseColorTextureChannel;
+
+    { We read normal texture, even though it isn't *usually* useful for UnlitMaterial.
+      But it makes sense when geometry has TextureCoordinateGenerator
+      that depends on normal info.
+      And both glTF and X3Dv4 allow normal texture even in case of unlit materials. }
+    ReadTexture(Material.NormalTexture,
+      NormalTexture, NormalTextureChannel);
+    Result.NormalTexture := NormalTexture;
+    Result.NormalTextureChannel := NormalTextureChannel;
+  end;
+
+  function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
+  var
     AlphaChannel: TAutoAlphaChannel;
   begin
     Result := TGltfAppearanceNode.Create(Material.Name);
 
-    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+    if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
+      Result.Material := ReadUnlitMaterial(Material)
+    else
+      Result.Material := ReadPhysicalMaterial(Material);
 
-    X3DMaterial := TPhysicalMaterialNode.Create;
-    X3DMaterial.BaseColor := BaseColorFactor.XYZ;
-    X3DMaterial.Transparency := 1 - BaseColorFactor.W;
-    X3DMaterial.Metallic := Material.PBRMetallicRoughness.MetallicFactor;
-    X3DMaterial.Roughness := Material.PBRMetallicRoughness.RoughnessFactor;
-    X3DMaterial.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
-    Result.Material := X3DMaterial;
-
+    // read common material properties, that make sense in case of all material type
     Result.DoubleSided := Material.DoubleSided;
-
-    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureChannel);
-    X3DMaterial.BaseTexture := BaseColorTexture;
-    X3DMaterial.BaseTextureChannel := BaseColorTextureChannel;
-
-    ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureChannel);
-    X3DMaterial.NormalTexture := NormalTexture;
-    X3DMaterial.NormalTextureChannel := NormalTextureChannel;
-
-    ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureChannel);
-    X3DMaterial.EmissiveTexture := EmissiveTexture;
-    X3DMaterial.EmissiveTextureChannel := EmissiveTextureChannel;
-
-    ReadTexture(Material.PBRMetallicRoughness.MetallicRoughnessTexture,
-      MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
-    X3DMaterial.MetallicRoughnessTexture := MetallicRoughnessTexture;
-    X3DMaterial.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
 
     // read alpha channel treatment
     case Material.AlphaMode of
