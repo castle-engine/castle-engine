@@ -850,7 +850,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           begin
             MimeType := FrameElement.AttributeStringDef('mime_type', '');
             case MimeType of
-              '', 'model/x3d+vrml':
+              '', 'model/x3d+xml':
                 NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
               'model/gltf+json':
                 NewNode := LoadGLTFFromString(FrameElement.TextContent, AbsoluteBaseUrl);
