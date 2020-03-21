@@ -548,6 +548,23 @@ var
     end;
   end;
 
+  procedure AccessorToMatrix4(const AccessorIndex: Integer; const List: TMatrix4List; const ForVertex: Boolean);
+  var
+    Accessor: TPasGLTF.TAccessor;
+    A: TPasGLTF.TMatrix4x4DynamicArray;
+    Len: Integer;
+  begin
+    Accessor := GetAccessor(AccessorIndex);
+    if Accessor <> nil then
+    begin
+      A := Accessor.DecodeAsMatrix4x4Array(ForVertex);
+      Len := Length(A);
+      List.Count := Len;
+      if Len <> 0 then
+        Move(A[0], List.List^[0], SizeOf(TMatrix4) * Len);
+    end;
+  end;
+
   procedure AccessorToRotation(const AccessorIndex: Integer; const Field: TMFRotation; const ForVertex: Boolean);
   var
     Accessor: TPasGLTF.TAccessor;
@@ -1045,9 +1062,72 @@ type
     finally FreeAndNil(Interpolators) end;
   end;
 
+  procedure ReadSkin(const Skin: TPasGLTF.TSkin);
+  var
+    RootNode: TX3DNode;
+    Joints: TX3DNodeList;
+    InverseBindMatrices: TMatrix4List;
+    I: Integer;
+  begin
+    if Skin.Skeleton = -1 then
+      RootNode := nil
+    else
+    begin
+      if not Between(Skin.Skeleton, 0, Nodes.Count - 1) then
+      begin
+        WritelnWarning('Skin "%s" specifies invalid skeleton index %d', [
+          Skin.Name,
+          Skin.Skeleton
+        ]);
+        Exit;
+      end;
+      RootNode := Nodes[Skin.Skeleton]; // TODO unused
+    end;
+
+    // first nil local variables, to reliably do try..finally that includes them all
+    Joints := nil;
+    InverseBindMatrices := nil;
+
+    try
+      Joints := TX3DNodeList.Create(false);
+      Joints.Count := Skin.Joints.Count;
+      for I := 0 to Skin.Joints.Count - 1 do
+      begin
+        if not Between(Skin.Joints[I], 0, Nodes.Count - 1) then
+        begin
+          WritelnWarning('Skin "%s" specifies invalid joint index %d', [
+            Skin.Name,
+            Skin.Joints[I]
+          ]);
+          Exit;
+        end;
+        Joints[I] := Nodes[Skin.Joints[I]];
+      end;
+
+      InverseBindMatrices := TMatrix4List.Create;
+      AccessorToMatrix4(Skin.InverseBindMatrices, InverseBindMatrices, false);
+
+      if Joints.Count <> InverseBindMatrices.Count then
+      begin
+        WritelnWarning('Joints and InverseBindMatrices counts differ for skin "%s": %d and %d', [
+          Skin.Name,
+          Joints.Count,
+          InverseBindMatrices.Count
+        ]);
+        Exit;
+      end;
+
+      // TODO: Joints and IBM remain unused
+    finally
+      FreeAndNil(Joints);
+      FreeAndNil(InverseBindMatrices);
+    end;
+  end;
+
 var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
+  Skin: TPasGLTF.TSkin;
 begin
   { Make absolute URL.
 
@@ -1090,6 +1170,8 @@ begin
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
+      for Skin in Document.Skins do
+        ReadSkin(Skin);
     finally
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
