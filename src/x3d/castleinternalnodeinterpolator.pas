@@ -853,7 +853,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
               '', 'model/x3d+xml':
                 NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
               'model/gltf+json':
-                NewNode := LoadGLTFFromString(FrameElement.TextContent, AbsoluteBaseUrl);
+                NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl);
               else
                 raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
                   MimeType
