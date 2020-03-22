@@ -47,10 +47,15 @@ const
 
   function VersionReport(Version: TGenericGLVersion): string;
   begin
-    Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
-      'release: %d, vendor-specific information: "%s"',
-      [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists, true),
-        Version.Release, Version.VendorInfo ]);
+    Result := Format(
+      '  Version parsed: major: %d, minor: %d, release exists: %s, ' +
+      'release: %d, vendor-specific information: "%s"', [
+        Version.Major,
+        Version.Minor,
+        BoolToStr(Version.ReleaseExists, true),
+        Version.Release,
+        Version.VendorVersion
+      ]);
   end;
 
   function VendorReport(Version: TGLVersion): string;
