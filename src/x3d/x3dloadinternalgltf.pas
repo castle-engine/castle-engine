@@ -33,7 +33,7 @@ function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, TypInfo, Math, PasGLTF,
+uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils,
@@ -104,6 +104,14 @@ type
     DoubleSided: Boolean;
   end;
 
+  TSkinToInitialize = class
+    Skin: TPasGLTF.TSkin;
+    { Direct children of this grouping node that are TShapeNode should have skinning applied. }
+    Shapes: TAbstractX3DGroupingNode;
+  end;
+
+  TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
+
 function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 var
   BaseUrl: String;
@@ -114,6 +122,7 @@ var
     Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
   Nodes: TX3DNodeList;
   DefaultAppearance: TGltfAppearanceNode;
+  SkinsToInitialize: TSkinToInitializeList;
 
   procedure ReadHeader;
   begin
@@ -788,6 +797,7 @@ var
     Translation, Scale: TVector3;
     Rotation: TVector4;
     ChildNodeIndex: Integer;
+    SkinToInitialize: TSkinToInitialize;
   begin
     if Between(NodeIndex, 0, Document.Nodes.Count - 1) then
     begin
@@ -815,7 +825,23 @@ var
       ParentGroup.AddChildren(Transform);
 
       if Node.Mesh <> -1 then
+      begin
         ReadMesh(Node.Mesh, Transform);
+
+        // read Skin field, adding a new item to SkinsToInitialize list
+        if Node.Skin <> -1 then
+        begin
+          if Between(Node.Skin, 0, Document.Skins.Count - 1) then
+          begin
+            SkinToInitialize := TSkinToInitialize.Create;
+            SkinsToInitialize.Add(SkinToInitialize);
+            // Shapes is the group created inside ReadMesh
+            SkinToInitialize.Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
+            SkinToInitialize.Skin := Document.Skins[Node.Skin];
+          end else
+            WritelnWarning('glTF', 'Skin index invalid: %d', [Node.Skin]);
+        end;
+      end;
 
       if Node.Camera <> -1 then
         ReadCamera(Node.Camera, Transform);
@@ -1062,13 +1088,24 @@ type
     finally FreeAndNil(Interpolators) end;
   end;
 
-  procedure ReadSkin(const Skin: TPasGLTF.TSkin);
+  { Calculate skin interpolator nodes to deform this one shape. }
+  procedure CalculateSkinInterpolators(const Shape: TShapeNode;
+    const Joints: TX3DNodeList;
+    const InverseBindMatrices: TMatrix4List);
+  begin
+    // TODO
+    WritelnLog('Reading skin for mesh');
+  end;
+
+  { Apply Skin to deform shapes list. }
+  procedure ReadSkin(const Skin: TPasGLTF.TSkin; const Shapes: TAbstractX3DGroupingNode);
   var
-    RootNode: TX3DNode;
+    //RootNode: TX3DNode;
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
   begin
+    (*
     if Skin.Skeleton = -1 then
       RootNode := nil
     else
@@ -1083,6 +1120,7 @@ type
       end;
       RootNode := Nodes[Skin.Skeleton]; // TODO unused
     end;
+    *)
 
     // first nil local variables, to reliably do try..finally that includes them all
     Joints := nil;
@@ -1117,17 +1155,29 @@ type
         Exit;
       end;
 
-      // TODO: Joints and IBM remain unused
+      for I := 0 to Shapes.FdChildren.Count - 1 do
+        if Shapes.FdChildren[I] is TShapeNode then
+          CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]), Joints, InverseBindMatrices);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);
     end;
   end;
 
+  { Read glTF skins, which result in CoordinateInterpolator nodes
+    attached to shapes.
+    Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
+  procedure ReadSkins;
+  var
+    SkinToInitialize: TSkinToInitialize;
+  begin
+    for SkinToInitialize in SkinsToInitialize do
+      ReadSkin(SkinToInitialize.Skin, SkinToInitialize.Shapes);
+  end;
+
 var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
-  Skin: TPasGLTF.TSkin;
 begin
   { Make absolute URL.
 
@@ -1144,8 +1194,10 @@ begin
     DefaultAppearance := nil;
     Appearances := nil;
     Nodes := nil;
+    SkinsToInitialize := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
+      SkinsToInitialize := TSkinToInitializeList.Create(true);
 
       ReadHeader;
 
@@ -1170,9 +1222,9 @@ begin
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
-      for Skin in Document.Skins do
-        ReadSkin(Skin);
+      ReadSkins;
     finally
+      FreeAndNil(SkinsToInitialize);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
       X3DNodeList_FreeUnusedAndNil(Nodes);
