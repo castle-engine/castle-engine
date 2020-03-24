@@ -1009,11 +1009,10 @@ procedure TransformState(State: TX3DGraphTraverseState;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
-{ Workaround FPC 3.0.4 bug (internal error) on Darwin for AArch64
-  (not on other platforms):
-  x3dnodes_standard_grouping.inc(1035,3) Fatal: Internal error 2014121702
-}
-{$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
+{ Workaround FPC bug on Darwin for AArch64 (not on other platforms),
+  causes "Fatal: Internal error 2014121702".
+  Occurs with 3.0.4 and with 3.3.1 (r44333 from 2020/03/22). }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
 
   type
     TTransformData = record

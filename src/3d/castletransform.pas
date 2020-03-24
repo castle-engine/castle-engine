@@ -2876,7 +2876,10 @@ end;
 procedure TCastleTransform.InternalTransformMatricesMult(
   var M, MInverse: TMatrix4);
 
-{$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
+{ Workaround FPC bug on Darwin for AArch64 (not on other platforms),
+  causes "Fatal: Internal error 2014121702".
+  Occurs with 3.0.4 and with 3.3.1 (r44333 from 2020/03/22). }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
   type
     TTransformData = record
       Transform, InverseTransform: TMatrix4;
