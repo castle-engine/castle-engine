@@ -112,6 +112,20 @@ type
 
   TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
 
+  TAnimation = class
+    TimeSensor: TTimeSensorNode;
+    Interpolators: TX3DNodeList;
+    destructor Destroy; override;
+  end;
+
+  TAnimationList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>;
+
+destructor TAnimation.Destroy;
+begin
+  FreeAndNil(Interpolators);
+  inherited;
+end;
+
 function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 var
   BaseUrl: String;
@@ -123,6 +137,7 @@ var
   Nodes: TX3DNodeList;
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
+  Animations: TAnimationList;
 
   procedure ReadHeader;
   begin
@@ -1008,10 +1023,13 @@ type
     Sampler: TPasGLTF.TAnimation.TSampler;
     Node: TTransformNode;
     Duration, MaxDuration: TFloatTime;
-    Interpolators: TX3DNodeList;
     Interpolator: TAbstractInterpolatorNode;
     NodeIndex, I: Integer;
+    Anim: TAnimation;
   begin
+    Anim := TAnimation.Create;
+    Animations.Add(Anim);
+
     TimeSensor := TTimeSensorNode.Create;
     if Animation.Name = '' then
       { Needs a name, otherwise
@@ -1021,84 +1039,128 @@ type
     else
       TimeSensor.X3DName := Animation.Name;
     ParentGroup.AddChildren(TimeSensor);
+    Anim.TimeSensor := TimeSensor;
 
     MaxDuration := 0;
-    Interpolators := TX3DNodeList.Create(false);
-    try
-      for Channel in Animation.Channels do
+    Anim.Interpolators := TX3DNodeList.Create(false);
+    for Channel in Animation.Channels do
+    begin
+      NodeIndex := Channel.Target.Node;
+
+      // glTF spec says "When node isn't defined, channel should be ignored"
+      if NodeIndex = -1 then
+        Continue;
+
+      if not (Between(NodeIndex, 0, Nodes.Count - 1) and (Nodes[NodeIndex] <> nil)) then
       begin
-        NodeIndex := Channel.Target.Node;
-
-        // glTF spec says "When node isn't defined, channel should be ignored"
-        if NodeIndex = -1 then
-          Continue;
-
-        if not (Between(NodeIndex, 0, Nodes.Count - 1) and (Nodes[NodeIndex] <> nil)) then
-        begin
-          WritelnWarning('Node index %d indicated by animation %s was not imported', [
-            NodeIndex,
-            TimeSensor.X3DName
-          ]);
-          Continue;
-        end;
-
-        Node := Nodes[NodeIndex] as TTransformNode;
-
-        // read Sampler
-        if not Between(Channel.Sampler, 0, Animation.Samplers.Count - 1) then
-        begin
-          WritelnWarning('Invalid animation "%s" sampler index %d', [
-            TimeSensor.X3DName,
-            Channel.Sampler
-          ]);
-          Continue;
-        end;
-
-        Sampler := Animation.Samplers[Channel.Sampler];
-
-        // read channel Path, call ReadSampler with all information
-        case Channel.Target.Path of
-          'translation':
-            Interpolator := ReadSampler(Sampler, Node, gsTranslation, TimeSensor, ParentGroup, Duration);
-          'rotation':
-            Interpolator := ReadSampler(Sampler, Node, gsRotation, TimeSensor, ParentGroup, Duration);
-          'scale':
-            Interpolator := ReadSampler(Sampler, Node, gsScale, TimeSensor, ParentGroup, Duration);
-          else
-            begin
-              WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
-              Continue;
-            end;
-        end;
-
-        Interpolators.Add(Interpolator);
-        MaxDuration := Max(MaxDuration, Duration);
+        WritelnWarning('Node index %d indicated by animation %s was not imported', [
+          NodeIndex,
+          TimeSensor.X3DName
+        ]);
+        Continue;
       end;
 
-      // adjust TimeSensor duration, scale the keys in all Interpolators to be in 0..1 range
-      if MaxDuration <> 0 then
+      Node := Nodes[NodeIndex] as TTransformNode;
+
+      // read Sampler
+      if not Between(Channel.Sampler, 0, Animation.Samplers.Count - 1) then
       begin
-        TimeSensor.CycleInterval := MaxDuration;
-        for I := 0 to Interpolators.Count - 1 do
-        begin
-          Interpolator := Interpolators[I] as TAbstractInterpolatorNode;
-          Interpolator.FdKey.Items.MultiplyAll(1 / MaxDuration);
-        end;
+        WritelnWarning('Invalid animation "%s" sampler index %d', [
+          TimeSensor.X3DName,
+          Channel.Sampler
+        ]);
+        Continue;
       end;
-    finally FreeAndNil(Interpolators) end;
+
+      Sampler := Animation.Samplers[Channel.Sampler];
+
+      // read channel Path, call ReadSampler with all information
+      case Channel.Target.Path of
+        'translation':
+          Interpolator := ReadSampler(Sampler, Node, gsTranslation, TimeSensor, ParentGroup, Duration);
+        'rotation':
+          Interpolator := ReadSampler(Sampler, Node, gsRotation, TimeSensor, ParentGroup, Duration);
+        'scale':
+          Interpolator := ReadSampler(Sampler, Node, gsScale, TimeSensor, ParentGroup, Duration);
+        else
+          begin
+            WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
+            Continue;
+          end;
+      end;
+
+      Anim.Interpolators.Add(Interpolator);
+      MaxDuration := Max(MaxDuration, Duration);
+    end;
+
+    // adjust TimeSensor duration, scale the keys in all Interpolators to be in 0..1 range
+    if MaxDuration <> 0 then
+    begin
+      TimeSensor.CycleInterval := MaxDuration;
+      for I := 0 to Anim.Interpolators.Count - 1 do
+      begin
+        Interpolator := Anim.Interpolators[I] as TAbstractInterpolatorNode;
+        Interpolator.FdKey.Items.MultiplyAll(1 / MaxDuration);
+      end;
+    end;
   end;
 
-  { Calculate skin interpolator nodes to deform this one shape. }
+  { Calculate skin interpolator nodes to deform this one shape.
+
+    Note that ParentGroup can be really any grouping node,
+    we add there only interpolators and routes, it doesn't matter where this node is. }
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
     const Joints: TX3DNodeList;
-    const InverseBindMatrices: TMatrix4List);
+    const InverseBindMatrices: TMatrix4List;
+    const ParentGroup: TAbstractX3DGroupingNode);
+  var
+    CoordField: TSFNode;
+    Coord: TCoordinateNode;
+    Anim: TAnimation;
+    Interpolator: TCoordinateInterpolatorNode;
+    Route: TX3DRoute;
   begin
-    // TODO
-    WritelnLog('Reading skin for mesh');
+    CoordField := Shape.Geometry.CoordField;
+    if CoordField = nil then
+    begin
+      WritelnWarning('Cannot animate using skin geometry %s, it does not have coordinates', [
+        Shape.Geometry.NiceName
+      ]);
+      Exit;
+    end;
+
+    if not (CoordField.Value is TCoordinateNode) then
+    begin
+      WritelnWarning('Cannot animate using skin geometry %s, the coordinates are not expressed as Coordinate node', [
+        Shape.Geometry.NiceName
+      ]);
+      Exit;
+    end;
+    Coord := CoordField.Value as TCoordinateNode;
+
+    for Anim in Animations do
+    begin
+      Interpolator := TCoordinateInterpolatorNode.Create;
+      Interpolator.X3DName := 'SkinInterpolator_' + Anim.TimeSensor.X3DName;
+      ParentGroup.AddChildren(Interpolator);
+      WritelnLog('Created %s', [Interpolator.X3DName]);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Anim.TimeSensor.EventFraction_changed);
+      Route.SetDestinationDirectly(Interpolator.EventSet_fraction);
+      ParentGroup.AddRoute(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Interpolator.EventValue_changed);
+      Route.SetDestinationDirectly(Coord.FdPoint);
+      ParentGroup.AddRoute(Route);
+    end;
   end;
 
   { Apply Skin to deform shapes list. }
-  procedure ReadSkin(const Skin: TPasGLTF.TSkin; const Shapes: TAbstractX3DGroupingNode);
+  procedure ReadSkin(const Skin: TPasGLTF.TSkin;
+    const Shapes: TAbstractX3DGroupingNode;
+    const ParentGroup: TAbstractX3DGroupingNode);
   var
     //RootNode: TX3DNode;
     Joints: TX3DNodeList;
@@ -1157,7 +1219,8 @@ type
 
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
-          CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]), Joints, InverseBindMatrices);
+          CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]),
+            Joints, InverseBindMatrices, ParentGroup);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);
@@ -1167,12 +1230,12 @@ type
   { Read glTF skins, which result in CoordinateInterpolator nodes
     attached to shapes.
     Must be called after Nodes and SkinsToInitialize are ready, so after ReadNodes. }
-  procedure ReadSkins;
+  procedure ReadSkins(const ParentGroup: TAbstractX3DGroupingNode);
   var
     SkinToInitialize: TSkinToInitialize;
   begin
     for SkinToInitialize in SkinsToInitialize do
-      ReadSkin(SkinToInitialize.Skin, SkinToInitialize.Shapes);
+      ReadSkin(SkinToInitialize.Skin, SkinToInitialize.Shapes, ParentGroup);
   end;
 
 var
@@ -1195,9 +1258,11 @@ begin
     Appearances := nil;
     Nodes := nil;
     SkinsToInitialize := nil;
+    Animations := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
+      Animations := TAnimationList.Create(true);
 
       ReadHeader;
 
@@ -1222,8 +1287,9 @@ begin
       // read animations
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
-      ReadSkins;
+      ReadSkins(Result);
     finally
+      FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
