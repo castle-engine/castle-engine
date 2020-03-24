@@ -1138,7 +1138,32 @@ type
     // begin
     //   AnimatedCoords.Add(OriginalCoords[I] * (1 - TimeFraction));
     // end;
-    // TODO
+
+    { TODO sample by
+
+      - FakeX3DTime.Seconds := FakeX3DTime.Seconds + 1;
+        TimeSensor.EventFraction_changed.Send(TimeFraction, FakeX3DTime);
+
+        (save before + restore after state of nodes translation/rotation/scale)
+
+      - For each Joint, we calculate JointMatrix following
+        https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide
+        We need
+        - InverseBindMatrices[JointIndex]
+        - global joint[JointIndex] transformation, just traverse all nodes hierarchy and calculate matrix
+        - global skeleton (RootNode in ReadSkin?) transformation
+
+        JointMatrix[JointIndex] := SkeletonRootNode.Inverse * JointTransform[JointIndex] *
+          InverseBindMatrices[JointIndex];
+
+      - For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
+        for all joints indicated by JOINTS_0, JOINTS_1 etc. values for this vertex.
+        They are indicated as indexes there.
+        Multiply each by WEIGHTS_0, 1 etc.
+        Ignore joints with weight = 0.
+
+      - Add here SkinMatrix * OriginalCoords[I];
+    }
   end;
 
   { Calculate skin interpolator nodes to deform this one shape.
