@@ -39,6 +39,45 @@ uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleImages, CastleVideos, CastleTimeUtils,
   X3DLoadInternalUtils;
 
+{ This unit implements reading glTF into X3D.
+  We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
+
+  Docs:
+
+  - To understand glTF, and PasGLTF API, see the glTF specification:
+    https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
+
+  - This unit converts glTF to an X3D scene graph,
+    so you should be familiar with X3D as well:
+    https://castle-engine.io/vrml_x3d.php .
+
+  - See https://castle-engine.io/creating_data_model_formats.php .
+
+  TODOs:
+
+  - In the future, we would like to avoid using
+    Accessor.DecodeAsXxx. Instead we should load binary data straight to GPU,
+    looking at buffers, already exposed by PasGLTF.
+    New X3D node, like BufferGeometry (same as X3DOM) will need to be
+    invented for this, and CastleGeometryArrays will need to be rearranged.
+
+  - Morph targets, or their animations, are not supported yet.
+
+  - Skin animation is done by calculating CoordinateInterpolator at loading.
+    At runtime we merely animate using CoordinateInterpolator.
+    While this is simple, it has disadvantages:
+
+    - Loading time is longer, as we need to calculate CoordinateInterpolator.
+    - At runtime, interpolation and animation blending can only interpolate
+      sets of positions (not bones) so:
+      - They are not as accurate,
+      - CoordinateInterpolator interpolation is done on CPU,
+        it processes all mesh positions each frame.
+        This is unoptimal, as glTF skinning can be done on GPU, with much smaller runtime cost.
+
+  - See https://castle-engine.io/planned_features.php .
+}
+
 { TMyGltfDocument ------------------------------------------------------------ }
 
 type
@@ -71,30 +110,7 @@ begin
   Result := Download(CombineURI(RootPath, aURI));
 end;
 
-{ Reading glTF using PasGLTF from Bero:
-  https://github.com/BeRo1985/pasgltf/
-
-  To understand glTF, and PasGLTF API, see the glTF specification:
-  https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
-  This unit converts glTF to an X3D scene graph,
-  so you should be familiar with X3D as well:
-  https://castle-engine.io/vrml_x3d.php
-
-  Some larger TODOs:
-
-  - In the future, we would like to avoid using
-    Accessor.DecodeAsXxx. Instead we should load binary data straight to GPU,
-    looking at buffers, already exposed by PasGLTF.
-    New X3D node, like BufferGeometry (same as X3DOM) will need to be
-    invented for this, and CastleGeometryArrays will need to be rearranged.
-
-  - We do not support PBR materials yet.
-
-  - glTF skinned animations are not supported.
-    (Animating transformations (translation, rotation, scale) is supported OK.)
-
-  See https://castle-engine.io/planned_features.php .
-}
+{ TGltfAppearanceNode -------------------------------------------------------- }
 
 type
   { X3D Appearance node extended to carry some additional information specified
@@ -104,6 +120,10 @@ type
     DoubleSided: Boolean;
   end;
 
+{ TSkinToInitialize ---------------------------------------------------------- }
+
+type
+  { Information about skin, to be used later. }
   TSkinToInitialize = class
     Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node that are TShapeNode should have skinning applied. }
@@ -112,6 +132,10 @@ type
 
   TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
 
+{ TAnimation ----------------------------------------------------------------- }
+
+type
+  { Information about created animation. }
   TAnimation = class
     TimeSensor: TTimeSensorNode;
     Interpolators: TX3DNodeList; //< Only TAbstractInterpolatorNode instances
@@ -126,6 +150,9 @@ begin
   inherited;
 end;
 
+{ LoadGLTF ------------------------------------------------------------------- }
+
+{ Main routine that converts glTF -> X3D nodes, doing most of the work. }
 function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 var
   BaseUrl: String;
@@ -162,28 +189,28 @@ var
       'Textures: %d' + NL +
       'ExtensionsUsed: %s' + NL +
       'ExtensionsRequired: %s' + NL +
-      '',
-      [Document.Asset.Copyright,
-       Document.Asset.Generator,
-       Document.Asset.MinVersion,
-       Document.Asset.Version,
-       BoolToStr(Document.Asset.Empty, true),
+      '', [
+        Document.Asset.Copyright,
+        Document.Asset.Generator,
+        Document.Asset.MinVersion,
+        Document.Asset.Version,
+        BoolToStr(Document.Asset.Empty, true),
 
-       Document.Accessors.Count,
-       Document.Animations.Count,
-       Document.Buffers.Count,
-       Document.BufferViews.Count,
-       Document.Cameras.Count,
-       Document.Images.Count,
-       Document.Materials.Count,
-       Document.Meshes.Count,
-       Document.Nodes.Count,
-       Document.Samplers.Count,
-       Document.Scenes.Count,
-       Document.Skins.Count,
-       Document.Textures.Count,
-       Document.ExtensionsUsed.Text,
-       Document.ExtensionsRequired.Text
+        Document.Accessors.Count,
+        Document.Animations.Count,
+        Document.Buffers.Count,
+        Document.BufferViews.Count,
+        Document.Cameras.Count,
+        Document.Images.Count,
+        Document.Materials.Count,
+        Document.Meshes.Count,
+        Document.Nodes.Count,
+        Document.Samplers.Count,
+        Document.Scenes.Count,
+        Document.Skins.Count,
+        Document.Textures.Count,
+        Document.ExtensionsUsed.Text,
+        Document.ExtensionsRequired.Text
       ])
     );
     if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
