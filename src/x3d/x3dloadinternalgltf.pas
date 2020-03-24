@@ -114,7 +114,7 @@ type
 
   TAnimation = class
     TimeSensor: TTimeSensorNode;
-    Interpolators: TX3DNodeList;
+    Interpolators: TX3DNodeList; //< Only TAbstractInterpolatorNode instances
     destructor Destroy; override;
   end;
 
@@ -1105,6 +1105,42 @@ type
     end;
   end;
 
+  { Gather all key times (in 0..1 range) from Interpolators, place them in AllKeys.
+    If you have animation that uses multiple interpolators,
+    then this routine calculates *all* key points within this animation. }
+  procedure GatherAnimationKeysToSample(const AllKeys: TSingleList;
+    const Interpolators: TX3DNodeList);
+  var
+    I: Integer;
+    Interpolator: TAbstractInterpolatorNode;
+  begin
+    AllKeys.Clear;
+    for I := 0 to Interpolators.Count - 1 do
+    begin
+      Interpolator := Interpolators[I] as TAbstractInterpolatorNode;
+      AllKeys.AddRange(Interpolator.FdKey.Items);
+    end;
+    AllKeys.SortAndRemoveDuplicates;
+  end;
+
+  { Sample animation TimeSensor at time TimeFraction (in 0..1 range)
+    to determine how does a skin look like at this moment of time.
+    OriginalCoords contains original (not animated) coords.
+    To the AnimatedCoords, we will add OriginalCoords.Count vertexes. }
+  procedure SampleSkinAnimation(const TimeSensor: TTimeSensorNode;
+    const TimeFraction: Single;
+    const OriginalCoords, AnimatedCoords: TVector3List);
+  // var
+  //   I: Integer;
+  begin
+    AnimatedCoords.AddRange(OriginalCoords);
+    // for I := 0 to OriginalCoords.Count - 1 do
+    // begin
+    //   AnimatedCoords.Add(OriginalCoords[I] * (1 - TimeFraction));
+    // end;
+    // TODO
+  end;
+
   { Calculate skin interpolator nodes to deform this one shape.
 
     Note that ParentGroup can be really any grouping node,
@@ -1119,6 +1155,7 @@ type
     Anim: TAnimation;
     Interpolator: TCoordinateInterpolatorNode;
     Route: TX3DRoute;
+    I: Integer;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -1142,8 +1179,13 @@ type
     begin
       Interpolator := TCoordinateInterpolatorNode.Create;
       Interpolator.X3DName := 'SkinInterpolator_' + Anim.TimeSensor.X3DName;
+      GatherAnimationKeysToSample(Interpolator.FdKey.Items, Anim.Interpolators);
+      for I := 0 to Interpolator.FdKey.Items.Count - 1 do
+      begin
+        SampleSkinAnimation(Anim.TimeSensor, Interpolator.FdKey.Items[I],
+          Coord.FdPoint.Items, Interpolator.FdKeyValue.Items);
+      end;
       ParentGroup.AddChildren(Interpolator);
-      WritelnLog('Created %s', [Interpolator.X3DName]);
 
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Anim.TimeSensor.EventFraction_changed);
