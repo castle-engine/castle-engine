@@ -135,19 +135,207 @@ type
 { TAnimation ----------------------------------------------------------------- }
 
 type
+  // Which TTransformNode field is animated
+  TGltfSamplerPath = (
+    gsTranslation,
+    gsRotation,
+    gsScale
+  );
+
+  TInterpolator = record
+    Node: TAbstractInterpolatorNode;
+    Target: TTransformNode;
+    Path: TGltfSamplerPath;
+  end;
+
+  TInterpolatorList = specialize TList<TInterpolator>;
+
   { Information about created animation. }
   TAnimation = class
     TimeSensor: TTimeSensorNode;
-    Interpolators: TX3DNodeList; //< Only TAbstractInterpolatorNode instances
+    Interpolators: TInterpolatorList; //< Only TTransformNode instances
+    constructor Create;
     destructor Destroy; override;
   end;
 
   TAnimationList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>;
 
+constructor TAnimation.Create;
+begin
+  inherited;
+  Interpolators := TInterpolatorList.Create;
+end;
+
 destructor TAnimation.Destroy;
 begin
   FreeAndNil(Interpolators);
   inherited;
+end;
+
+{ TAnimationSampler --------------------------------------------------------------- }
+
+type
+  TAnimationSampler = class
+  strict private
+    { Internal in SetTime. }
+    CurrentTranslation: TVector3List;
+    CurrentRotation: TVector4List;
+    CurrentScale: TVector3List;
+  public
+    { Set this before @link(SetTime).
+      List of TTransformNode nodes, ordered just list glTF nodes.
+      Only initialized (non-nil and enough Count) for nodes that we created in ReadNode. }
+    TransformNodes: TX3DNodeList;
+    { Set this before @link(SetTime).
+      Current animation applied by @link(SetTime). }
+    Animation: TAnimation;
+    { Owned by this object, calculated by @link(SetTime).
+      Has the same size as TransformNodes, contains accumulated transformation matrix
+      for each node.
+      Contains undefined value for nodes that are @nil. }
+    TransformMatrix: TMatrix4List;
+    constructor Create;
+    destructor Destroy; override;
+    procedure SetTime(const Time: TFloatTime);
+  end;
+
+constructor TAnimationSampler.Create;
+begin
+  inherited;
+  TransformMatrix := TMatrix4List.Create;
+  CurrentTranslation := TVector3List.Create;
+  CurrentRotation := TVector4List.Create;
+  CurrentScale := TVector3List.Create;
+end;
+
+destructor TAnimationSampler.Destroy;
+begin
+  FreeAndNil(TransformMatrix);
+  FreeAndNil(CurrentTranslation);
+  FreeAndNil(CurrentRotation);
+  FreeAndNil(CurrentScale);
+  inherited;
+end;
+
+procedure TAnimationSampler.SetTime(const Time: TFloatTime);
+
+{ The implementation of this somewhat duplicates the logic
+  of the animation and transformation at runtime,
+  done by TTransformNode in CastleShapes, CastleSceneCore units.
+  At one point I considered just using TTimeSensor.FakeTime
+  or even TCastleSceneCore.ForceAnimationPose to set scene
+  to given state in each SetTime, and then read resulting transformations
+  from Scene.Shapes.
+
+  However, this causes new complications:
+  It would modify the nodes hierarchy, which means we should save/restore it.
+
+  And it's not really much simpler, since the transformation hierarchy is quite simple.
+}
+
+  { Set all CurrentXxx values to reflect initial transformations of TransformNodes }
+  procedure ResetCurrentTransformation;
+  var
+    I: Integer;
+    Transform: TTransformNode;
+  begin
+    // initialize CurrentXxx lists
+    for I := 0 to TransformNodes.Count - 1 do
+      if TransformNodes[I] <> nil then
+      begin
+        Transform := TransformNodes[I] as TTransformNode;
+        CurrentTranslation[I] := Transform.FdTranslation.Value;
+        CurrentRotation   [I] := Transform.FdRotation   .Value;
+        CurrentScale      [I] := Transform.FdScale      .Value;
+      end;
+  end;
+
+  { Perform PositionInterpolator interpolation.
+    Range and T are like results of KeyRange call. }
+  function InterpolatePosition(const Interpolator: TPositionInterpolatorNode;
+    const Range: Integer; const T: Single): TVector3;
+  var
+    KeyValue: TVector3List;
+  begin
+    KeyValue := Interpolator.FdKeyValue.Items;
+    if Range = 0 then
+      Result := KeyValue[0]
+    else
+    if Range = KeyValue.Count then
+      Result := KeyValue[KeyValue.Count - 1]
+    else
+      Result := TVector3.Lerp(T, KeyValue[Range - 1], KeyValue[Range]);
+  end;
+
+  { Perform OrientationInterpolator interpolation.
+    Range and T are like results of KeyRange call. }
+  function InterpolateOrientation(const Interpolator: TOrientationInterpolatorNode;
+    const Range: Integer; const T: Single): TVector4;
+  var
+    KeyValue: TVector4List;
+  begin
+    KeyValue := Interpolator.FdKeyValue.Items;
+    if Range = 0 then
+      Result := KeyValue[0]
+    else
+    if Range = KeyValue.Count then
+      Result := KeyValue[KeyValue.Count - 1]
+    else
+      // SLerp, like TOrientationInterpolatorNode.InterpolatorLerp
+      Result := SLerp(T, KeyValue[Range - 1], KeyValue[Range]);
+  end;
+
+  { Update all CurrentXxx values affected by this animation. }
+  procedure UpdateCurrentTransformation;
+  var
+    Interpolator: TInterpolator;
+    T: Single;
+    Range, TargetIndex: Integer;
+    Key: TSingleList;
+  begin
+    for Interpolator in Animation.Interpolators do
+    begin
+      TargetIndex := TransformNodes.IndexOf(Interpolator.Target);
+      if TargetIndex = -1 then
+        raise EInternalError.Create('Interpolator.Target not on Nodes list');
+
+      { Below we process time,
+        similar to TAbstractSingleInterpolatorNode.EventSet_FractionReceive. }
+
+      Key := Interpolator.Node.FdKey.Items;
+      if Key.Count = 0 then
+        // Interpolator nodes containing no keys in the key field shall not produce any events.
+        Exit;
+
+      Range := KeyRange(Key, Time, T);
+
+      case Interpolator.Path of
+        gsTranslation: CurrentTranslation[TargetIndex] :=
+          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
+        gsRotation: CurrentRotation[TargetIndex] :=
+          InterpolateOrientation(Interpolator.Node as TOrientationInterpolatorNode, Range, T);
+        gsScale: CurrentScale[TargetIndex] :=
+          InterpolatePosition(Interpolator.Node as TPositionInterpolatorNode, Range, T);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('Unexpected glTF Interpolator.Path value');
+        {$endif}
+      end;
+    end;
+  end;
+
+begin
+  { Since in practice TransformNodes.Count is constant during glTF file reading,
+    this sets the size only at first SetTime call (for this glTF model). }
+  TransformMatrix.Count := TransformNodes.Count;
+  CurrentTranslation.Count := TransformNodes.Count;
+  CurrentRotation.Count := TransformNodes.Count;
+  CurrentScale.Count := TransformNodes.Count;
+
+  ResetCurrentTransformation;
+  UpdateCurrentTransformation;
+
+  { TODO: accumulate transformations TransformMatrix.
+    - Traverse from Scene.Nodes, and then look into children? }
 end;
 
 { LoadGLTF ------------------------------------------------------------------- }
@@ -165,6 +353,7 @@ var
   DefaultAppearance: TGltfAppearanceNode;
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
+  AnimationSampler: TAnimationSampler;
 
   procedure ReadHeader;
   begin
@@ -915,14 +1104,6 @@ var
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
   end;
 
-type
-  // Which TTransformNode field is animated
-  TGltfSamplerPath = (
-    gsTranslation,
-    gsRotation,
-    gsScale
-  );
-
   function ReadSampler(const Sampler: TPasGLTF.TAnimation.TSampler;
     const Node: TTransformNode;
     const Path: TGltfSamplerPath;
@@ -930,8 +1111,8 @@ type
     const ParentGroup: TAbstractX3DGroupingNode;
     out Duration: TFloatTime): TAbstractInterpolatorNode;
   var
-    InterpolateVector3: TPositionInterpolatorNode;
-    InterpolateRotation: TOrientationInterpolatorNode;
+    InterpolatePosition: TPositionInterpolatorNode;
+    InterpolateOrientation: TOrientationInterpolatorNode;
     Interpolator: TAbstractInterpolatorNode;
     Route: TX3DRoute;
     InterpolatorOutputEvent: TX3DEvent;
@@ -941,10 +1122,10 @@ type
     case Path of
       gsTranslation, gsScale:
         begin
-          InterpolateVector3 := TPositionInterpolatorNode.Create;
-          Interpolator := InterpolateVector3;
-          InterpolatorOutputEvent := InterpolateVector3.EventValue_changed;
-          AccessorToVector3(Sampler.Output, InterpolateVector3.FdKeyValue, false);
+          InterpolatePosition := TPositionInterpolatorNode.Create;
+          Interpolator := InterpolatePosition;
+          InterpolatorOutputEvent := InterpolatePosition.EventValue_changed;
+          AccessorToVector3(Sampler.Output, InterpolatePosition.FdKeyValue, false);
           case Path of
             gsTranslation: TargetField := Node.FdTranslation;
             gsScale      : TargetField := Node.FdScale;
@@ -953,10 +1134,10 @@ type
         end;
       gsRotation:
         begin
-          InterpolateRotation := TOrientationInterpolatorNode.Create;
-          Interpolator := InterpolateRotation;
-          InterpolatorOutputEvent := InterpolateRotation.EventValue_changed;
-          AccessorToRotation(Sampler.Output, InterpolateRotation.FdKeyValue, false);
+          InterpolateOrientation := TOrientationInterpolatorNode.Create;
+          Interpolator := InterpolateOrientation;
+          InterpolatorOutputEvent := InterpolateOrientation.EventValue_changed;
+          AccessorToRotation(Sampler.Output, InterpolateOrientation.FdKeyValue, false);
           TargetField := Node.FdRotation;
         end;
       {$ifndef COMPILER_CASE_ANALYSIS}
@@ -999,35 +1180,35 @@ type
           case Path of
             gsTranslation, gsScale:
               begin
-                if InterpolateVector3.FdKeyValue.Count <>
-                   InterpolateVector3.FdKey.Count * 3 then
+                if InterpolatePosition.FdKeyValue.Count <>
+                   InterpolatePosition.FdKey.Count * 3 then
                 begin
                   WritelnWarning('For "CubicSpline", expected 3 output values for each input time, got %d for %d', [
-                    InterpolateVector3.FdKeyValue.Count,
-                    InterpolateVector3.FdKey.Count
+                    InterpolatePosition.FdKeyValue.Count,
+                    InterpolatePosition.FdKey.Count
                   ]);
                   Exit;
                 end;
-                for I := 0 to InterpolateVector3.FdKeyValue.Count div 3 - 1 do
-                  InterpolateVector3.FdKeyValue.Items[I] :=
-                    InterpolateVector3.FdKeyValue.Items[3 * I + 1];
-                InterpolateVector3.FdKeyValue.Count := InterpolateVector3.FdKeyValue.Count div 3;
+                for I := 0 to InterpolatePosition.FdKeyValue.Count div 3 - 1 do
+                  InterpolatePosition.FdKeyValue.Items[I] :=
+                    InterpolatePosition.FdKeyValue.Items[3 * I + 1];
+                InterpolatePosition.FdKeyValue.Count := InterpolatePosition.FdKeyValue.Count div 3;
               end;
             gsRotation:
               begin
-                if InterpolateRotation.FdKeyValue.Count <>
-                   InterpolateRotation.FdKey.Count * 3 then
+                if InterpolateOrientation.FdKeyValue.Count <>
+                   InterpolateOrientation.FdKey.Count * 3 then
                 begin
                   WritelnWarning('For "CubicSpline", expected 3 output values for each input time, got %d for %d', [
-                    InterpolateRotation.FdKeyValue.Count,
-                    InterpolateRotation.FdKey.Count
+                    InterpolateOrientation.FdKeyValue.Count,
+                    InterpolateOrientation.FdKey.Count
                   ]);
                   Exit;
                 end;
-                for I := 0 to InterpolateRotation.FdKeyValue.Count div 3 - 1 do
-                  InterpolateRotation.FdKeyValue.Items[I] :=
-                    InterpolateRotation.FdKeyValue.Items[3 * I + 1];
-                InterpolateRotation.FdKeyValue.Count := InterpolateRotation.FdKeyValue.Count div 3;
+                for I := 0 to InterpolateOrientation.FdKeyValue.Count div 3 - 1 do
+                  InterpolateOrientation.FdKeyValue.Items[I] :=
+                    InterpolateOrientation.FdKeyValue.Items[3 * I + 1];
+                InterpolateOrientation.FdKeyValue.Count := InterpolateOrientation.FdKeyValue.Count div 3;
               end;
             {$ifndef COMPILER_CASE_ANALYSIS}
             else raise EInternalError.Create('ReadSampler - Path?');
@@ -1053,6 +1234,8 @@ type
     Interpolator: TAbstractInterpolatorNode;
     NodeIndex, I: Integer;
     Anim: TAnimation;
+    InterpolatorRec: TInterpolator;
+    Path: TGltfSamplerPath;
   begin
     Anim := TAnimation.Create;
     Animations.Add(Anim);
@@ -1069,7 +1252,6 @@ type
     Anim.TimeSensor := TimeSensor;
 
     MaxDuration := 0;
-    Anim.Interpolators := TX3DNodeList.Create(false);
     for Channel in Animation.Channels do
     begin
       NodeIndex := Channel.Target.Node;
@@ -1101,14 +1283,11 @@ type
 
       Sampler := Animation.Samplers[Channel.Sampler];
 
-      // read channel Path, call ReadSampler with all information
+      // read channel Path
       case Channel.Target.Path of
-        'translation':
-          Interpolator := ReadSampler(Sampler, Node, gsTranslation, TimeSensor, ParentGroup, Duration);
-        'rotation':
-          Interpolator := ReadSampler(Sampler, Node, gsRotation, TimeSensor, ParentGroup, Duration);
-        'scale':
-          Interpolator := ReadSampler(Sampler, Node, gsScale, TimeSensor, ParentGroup, Duration);
+        'translation': Path := gsTranslation;
+        'rotation'   : Path := gsRotation;
+        'scale'      : Path := gsScale;
         else
           begin
             WritelnWarning('Animating "%s" not supported', [Channel.Target.Path]);
@@ -1116,7 +1295,15 @@ type
           end;
       end;
 
-      Anim.Interpolators.Add(Interpolator);
+      // call ReadSampler with all information
+      Interpolator := ReadSampler(Sampler, Node, Path, TimeSensor, ParentGroup, Duration);
+
+      // extend Anim.Interpolators list
+      InterpolatorRec.Node := Interpolator;
+      InterpolatorRec.Target := Node;
+      InterpolatorRec.Path := Path;
+      Anim.Interpolators.Add(InterpolatorRec);
+
       MaxDuration := Max(MaxDuration, Duration);
     end;
 
@@ -1126,7 +1313,7 @@ type
       TimeSensor.CycleInterval := MaxDuration;
       for I := 0 to Anim.Interpolators.Count - 1 do
       begin
-        Interpolator := Anim.Interpolators[I] as TAbstractInterpolatorNode;
+        Interpolator := Anim.Interpolators[I].Node;
         Interpolator.FdKey.Items.MultiplyAll(1 / MaxDuration);
       end;
     end;
@@ -1136,7 +1323,7 @@ type
     If you have animation that uses multiple interpolators,
     then this routine calculates *all* key points within this animation. }
   procedure GatherAnimationKeysToSample(const AllKeys: TSingleList;
-    const Interpolators: TX3DNodeList);
+    const Interpolators: TInterpolatorList);
   var
     I: Integer;
     Interpolator: TAbstractInterpolatorNode;
@@ -1144,17 +1331,17 @@ type
     AllKeys.Clear;
     for I := 0 to Interpolators.Count - 1 do
     begin
-      Interpolator := Interpolators[I] as TAbstractInterpolatorNode;
+      Interpolator := Interpolators[I].Node;
       AllKeys.AddRange(Interpolator.FdKey.Items);
     end;
     AllKeys.SortAndRemoveDuplicates;
   end;
 
-  { Sample animation TimeSensor at time TimeFraction (in 0..1 range)
+  { Sample animation Anim at time TimeFraction (in 0..1 range)
     to determine how does a skin look like at this moment of time.
     OriginalCoords contains original (not animated) coords.
     To the AnimatedCoords, we will add OriginalCoords.Count vertexes. }
-  procedure SampleSkinAnimation(const TimeSensor: TTimeSensorNode;
+  procedure SampleSkinAnimation(const Anim: TAnimation;
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List);
   // var
@@ -1166,19 +1353,19 @@ type
     //   AnimatedCoords.Add(OriginalCoords[I] * (1 - TimeFraction));
     // end;
 
+    AnimationSampler.TransformNodes := Nodes;
+    AnimationSampler.Animation := Anim;
+    AnimationSampler.SetTime(TimeFraction);
+
     { TODO sample by
-
-      - FakeX3DTime.Seconds := FakeX3DTime.Seconds + 1;
-        TimeSensor.EventFraction_changed.Send(TimeFraction, FakeX3DTime);
-
-        (save before + restore after state of nodes translation/rotation/scale)
 
       - For each Joint, we calculate JointMatrix following
         https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide
         We need
         - InverseBindMatrices[JointIndex]
-        - global joint[JointIndex] transformation, just traverse all nodes hierarchy and calculate matrix
+        - global joint[JointIndex] transformation from AnimationSampler.TransformMatrix
         - global skeleton (RootNode in ReadSkin?) transformation
+          (also from AnimationSampler.TransformMatrix, we have it's index even)
 
         JointMatrix[JointIndex] := SkeletonRootNode.Inverse * JointTransform[JointIndex] *
           InverseBindMatrices[JointIndex];
@@ -1234,7 +1421,7 @@ type
       GatherAnimationKeysToSample(Interpolator.FdKey.Items, Anim.Interpolators);
       for I := 0 to Interpolator.FdKey.Items.Count - 1 do
       begin
-        SampleSkinAnimation(Anim.TimeSensor, Interpolator.FdKey.Items[I],
+        SampleSkinAnimation(Anim, Interpolator.FdKey.Items[I],
           Coord.FdPoint.Items, Interpolator.FdKeyValue.Items);
       end;
       ParentGroup.AddChildren(Interpolator);
@@ -1357,6 +1544,7 @@ begin
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
       Animations := TAnimationList.Create(true);
+      AnimationSampler := TAnimationSampler.Create;
 
       ReadHeader;
 
@@ -1385,6 +1573,7 @@ begin
     finally
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
+      FreeAndNil(AnimationSampler);
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
       X3DNodeList_FreeUnusedAndNil(Nodes);
