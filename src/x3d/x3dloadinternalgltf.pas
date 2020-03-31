@@ -1504,7 +1504,7 @@ var
     Interpolator: TCoordinateInterpolatorNode;
     Route: TX3DRoute;
     I: Integer;
-    OldParent: TAbstractX3DGroupingNode;
+    // OldParent: TAbstractX3DGroupingNode;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
