@@ -65,10 +65,16 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinJoints: TVector4IntegerList;
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinWeights: TVector4List;
+
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
       for all X3D nodes descending from TAbstractGeometryNode. }
     procedure CreateNode; override;
+    destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
       They require State of this node during VRML traverse state --- this
@@ -949,6 +955,13 @@ begin
     doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
+end;
+
+destructor TAbstractGeometryNode.Destroy;
+begin
+  FreeAndNil(InternalSkinJoints);
+  FreeAndNil(InternalSkinWeights);
+  inherited;
 end;
 
 constructor TAbstractGeometryNode.CreateWithShape(out Shape: TShapeNode);
