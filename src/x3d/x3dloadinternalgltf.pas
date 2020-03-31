@@ -1484,7 +1484,7 @@ var
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
-    const SkeletonRootIndex: Integer;
+    const SkeletonRoot: TAbstractX3DGroupingNode; const SkeletonRootIndex: Integer;
     const ParentGroup: TAbstractX3DGroupingNode);
   var
     CoordField: TSFNode;
@@ -1493,6 +1493,7 @@ var
     Interpolator: TCoordinateInterpolatorNode;
     Route: TX3DRoute;
     I: Integer;
+    OldParent: TAbstractX3DGroupingNode;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -1519,6 +1520,20 @@ var
         Shape.Geometry.NiceName
       ]);
       Exit;
+    end;
+
+    { To satisfy glTF requirements
+      """
+      Client implementations should apply only the transform of the skeleton root
+      node to the skinned mesh while ignoring the transform of the skinned mesh node.
+      """
+      Just reparent the mesh under skeleton root. }
+    if (Shape.ParentFieldsCount = 1) and
+       (Shape.ParentFieldsNode[0] <> SkeletonRoot) then
+    begin
+      OldParent := Shape.ParentFieldsNode[0] as TAbstractX3DGroupingNode;
+      SkeletonRoot.AddChildren(Shape);
+      OldParent.RemoveChildren(Shape);
     end;
 
     for Anim in Animations do
@@ -1555,19 +1570,25 @@ var
     const ParentGroup: TAbstractX3DGroupingNode);
   var
     SkeletonRootIndex: Integer;
+    SkeletonRoot: TAbstractX3DGroupingNode;
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
   begin
     SkeletonRootIndex := Skin.Skeleton;
-    if (SkeletonRootIndex <> -1) and
-       (not Between(SkeletonRootIndex, 0, Nodes.Count - 1)) then
+    if SkeletonRootIndex = -1 then
+      SkeletonRoot := Result // root node created by LoadGLTF
+    else
     begin
-      WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
-        Skin.Name,
-        SkeletonRootIndex
-      ]);
-      Exit;
+      if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
+      begin
+        WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
+          Skin.Name,
+          SkeletonRootIndex
+        ]);
+        Exit;
+      end;
+      SkeletonRoot := Nodes[SkeletonRootIndex] as TAbstractX3DGroupingNode;
     end;
 
     // first nil local variables, to reliably do try..finally that includes them all
@@ -1608,7 +1629,8 @@ var
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
           CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]),
-            Joints, Skin.Joints, InverseBindMatrices, SkeletonRootIndex, ParentGroup);
+            Joints, Skin.Joints, InverseBindMatrices,
+            SkeletonRoot, SkeletonRootIndex, ParentGroup);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);

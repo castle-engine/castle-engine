@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TX3DNode class. Huge class, the basic building block of VRML nodes. }
+{ TX3DNode class. Huge class, the basic building block of X3D nodes. }
 
 {$ifdef read_interface}
 
