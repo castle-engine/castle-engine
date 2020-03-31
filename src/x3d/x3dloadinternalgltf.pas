@@ -1432,27 +1432,27 @@ var
     const OriginalCoords, AnimatedCoords: TVector3List;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
+    const SkeletonRootIndex: Integer;
     const MeshJoints: TVector4IntegerList;
     const MeshWeights: TVector4List);
   var
     I: Integer;
-    SkinMatrix: TMatrix4;
+    SkinMatrix, SkeletonRootInverse: TMatrix4;
     VertexJoints: TVector4Integer;
     VertexWeights: TVector4;
   begin
     AnimationSampler.Animation := Anim;
     AnimationSampler.SetTime(TimeFraction);
 
-{
-TODO
-        - global skeleton (RootNode in ReadSkin?) transformation
-          (also from AnimationSampler.TransformMatrix, we have it's index even)
-    }
+    if SkeletonRootIndex <> -1 then
+      SkeletonRootInverse := AnimationSampler.TransformMatrixInverse[SkeletonRootIndex]
+    else
+      SkeletonRootInverse := TMatrix4.Identity;
 
     { For each Joint, we calculate JointMatrix following
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
     for I := 0 to Joints.Count - 1 do
-      JointMatrix[I] := { TODO SkeletonRootNode.Inverse * }
+      JointMatrix[I] := SkeletonRootInverse *
         AnimationSampler.TransformMatrix[JointsGltf[I]] *
         InverseBindMatrices[I];
 
@@ -1484,6 +1484,7 @@ TODO
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
+    const SkeletonRootIndex: Integer;
     const ParentGroup: TAbstractX3DGroupingNode);
   var
     CoordField: TSFNode;
@@ -1530,6 +1531,7 @@ TODO
         SampleSkinAnimation(Anim, Interpolator.FdKey.Items[I],
           Coord.FdPoint.Items, Interpolator.FdKeyValue.Items,
           Joints, JointsGltf, InverseBindMatrices,
+          SkeletonRootIndex,
           Shape.Geometry.InternalSkinJoints,
           Shape.Geometry.InternalSkinWeights);
       end;
@@ -1552,27 +1554,21 @@ TODO
     const Shapes: TAbstractX3DGroupingNode;
     const ParentGroup: TAbstractX3DGroupingNode);
   var
-    //RootNode: TX3DNode;
+    SkeletonRootIndex: Integer;
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
   begin
-    (*
-    if Skin.Skeleton = -1 then
-      RootNode := nil
-    else
+    SkeletonRootIndex := Skin.Skeleton;
+    if (SkeletonRootIndex <> -1) and
+       (not Between(SkeletonRootIndex, 0, Nodes.Count - 1)) then
     begin
-      if not Between(Skin.Skeleton, 0, Nodes.Count - 1) then
-      begin
-        WritelnWarning('Skin "%s" specifies invalid skeleton index %d', [
-          Skin.Name,
-          Skin.Skeleton
-        ]);
-        Exit;
-      end;
-      RootNode := Nodes[Skin.Skeleton]; // TODO unused
+      WritelnWarning('Skin "%s" specifies invalid skeleton root node index %d', [
+        Skin.Name,
+        SkeletonRootIndex
+      ]);
+      Exit;
     end;
-    *)
 
     // first nil local variables, to reliably do try..finally that includes them all
     Joints := nil;
@@ -1612,7 +1608,7 @@ TODO
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
           CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]),
-            Joints, Skin.Joints, InverseBindMatrices, ParentGroup);
+            Joints, Skin.Joints, InverseBindMatrices, SkeletonRootIndex, ParentGroup);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);
