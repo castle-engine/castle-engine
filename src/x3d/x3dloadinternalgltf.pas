@@ -36,7 +36,7 @@ implementation
 uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos, CastleTimeUtils,
+  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
   X3DLoadInternalUtils;
 
 { This unit implements reading glTF into X3D.
@@ -193,7 +193,9 @@ type
       Has the same size as TransformNodes, contains accumulated transformation matrix
       for each node.
       Contains undefined value for nodes that are @nil. }
-    TransformMatrix: TMatrix4List;
+    TransformMatrix, TransformMatrixInverse: TMatrix4List;
+    TransformNodesRoots: TPasGLTF.TScene.TNodes;
+    TransformNodesGltf: TPasGLTF.TNodes;
     constructor Create;
     destructor Destroy; override;
     procedure SetTime(const Time: TFloatTime);
@@ -203,6 +205,7 @@ constructor TAnimationSampler.Create;
 begin
   inherited;
   TransformMatrix := TMatrix4List.Create;
+  TransformMatrixInverse := TMatrix4List.Create;
   CurrentTranslation := TVector3List.Create;
   CurrentRotation := TVector4List.Create;
   CurrentScale := TVector3List.Create;
@@ -211,6 +214,7 @@ end;
 destructor TAnimationSampler.Destroy;
 begin
   FreeAndNil(TransformMatrix);
+  FreeAndNil(TransformMatrixInverse);
   FreeAndNil(CurrentTranslation);
   FreeAndNil(CurrentRotation);
   FreeAndNil(CurrentScale);
@@ -323,19 +327,67 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
     end;
   end;
 
+  { Calculate contents of TransformMatrix, based on CurrentXxx and parent-child relationships. }
+  procedure UpdateMatrix;
+
+    procedure UpdateChildMatrix(const NodeIndex: Integer;
+      const ParentT, ParentTInv: TMatrix4);
+    var
+      T, TInv: PMatrix4;
+      ChildNodeIndex: Integer;
+    begin
+      if not Between(NodeIndex, 0, TransformMatrix.Count - 1) then
+        Exit; // warning about it was already done by ReadNodes
+
+      T := TransformMatrix.Ptr(NodeIndex);
+      TInv := TransformMatrixInverse.Ptr(NodeIndex);
+      T^ := ParentT;
+      TInv^ := ParentTInv;
+      { TODO: is it efficient to use TransformMatricesMult?
+        We could instead have simplified TransformMatrix,
+        that ignores center/scaleOrientation,
+        and doesn't calculate inverse (would have to be calculated later once for skeleton root).
+        Test is this faster? }
+      TransformMatricesMult(T^, TInv^, TVector3.Zero,
+        CurrentRotation[NodeIndex],
+        CurrentScale[NodeIndex],
+        TVector4.Zero,
+        CurrentTranslation[NodeIndex]);
+
+      for ChildNodeIndex in TransformNodesGltf[NodeIndex].Children do
+        UpdateChildMatrix(ChildNodeIndex, T^, TInv^);
+    end;
+
+  var
+    T, TInv: PMatrix4;
+    RootNodeIndex, ChildNodeIndex: Integer;
+  begin
+    for RootNodeIndex in TransformNodesRoots do
+    begin
+      if not Between(RootNodeIndex, 0, TransformMatrix.Count - 1) then
+        Continue; // warning about it was already done by ReadScene
+
+      T := TransformMatrix.Ptr(RootNodeIndex);
+      TInv := TransformMatrixInverse.Ptr(RootNodeIndex);
+      T^ := TMatrix4.Identity;
+      TInv^ := TMatrix4.Identity;
+      for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
+        UpdateChildMatrix(ChildNodeIndex, T^, TInv^);
+    end;
+  end;
+
 begin
   { Since in practice TransformNodes.Count is constant during glTF file reading,
     this sets the size only at first SetTime call (for this glTF model). }
   TransformMatrix.Count := TransformNodes.Count;
+  TransformMatrixInverse.Count := TransformNodes.Count;
   CurrentTranslation.Count := TransformNodes.Count;
   CurrentRotation.Count := TransformNodes.Count;
   CurrentScale.Count := TransformNodes.Count;
 
   ResetCurrentTransformation;
   UpdateCurrentTransformation;
-
-  { TODO: accumulate transformations TransformMatrix.
-    - Traverse from Scene.Nodes, and then look into children? }
+  UpdateMatrix;
 end;
 
 { LoadGLTF ------------------------------------------------------------------- }
@@ -354,6 +406,7 @@ var
   SkinsToInitialize: TSkinToInitializeList;
   Animations: TAnimationList;
   AnimationSampler: TAnimationSampler;
+  JointMatrix: TMatrix4List; //< local for SampleSkinAnimation, but created once to avoid wasting time on allocation
 
   procedure ReadHeader;
   begin
@@ -1100,6 +1153,7 @@ var
       Scene := Document.Scenes[SceneIndex];
       for NodeIndex in Scene.Nodes do
         ReadNode(NodeIndex, ParentGroup);
+      AnimationSampler.TransformNodesRoots := Scene.Nodes;
     end else
       WritelnWarning('glTF', 'Scene index invalid: %d', [SceneIndex]);
   end;
@@ -1343,41 +1397,39 @@ var
     To the AnimatedCoords, we will add OriginalCoords.Count vertexes. }
   procedure SampleSkinAnimation(const Anim: TAnimation;
     const TimeFraction: Single;
-    const OriginalCoords, AnimatedCoords: TVector3List);
-  // var
-  //   I: Integer;
+    const OriginalCoords, AnimatedCoords: TVector3List;
+    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
+    const InverseBindMatrices: TMatrix4List);
+  var
+    I: Integer;
+    SkinMatrix: TMatrix4;
   begin
-    AnimatedCoords.AddRange(OriginalCoords);
-    // for I := 0 to OriginalCoords.Count - 1 do
-    // begin
-    //   AnimatedCoords.Add(OriginalCoords[I] * (1 - TimeFraction));
-    // end;
-
-    AnimationSampler.TransformNodes := Nodes;
     AnimationSampler.Animation := Anim;
     AnimationSampler.SetTime(TimeFraction);
 
-    { TODO sample by
-
-      - For each Joint, we calculate JointMatrix following
-        https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide
-        We need
-        - InverseBindMatrices[JointIndex]
-        - global joint[JointIndex] transformation from AnimationSampler.TransformMatrix
+{
+TODO
         - global skeleton (RootNode in ReadSkin?) transformation
           (also from AnimationSampler.TransformMatrix, we have it's index even)
-
-        JointMatrix[JointIndex] := SkeletonRootNode.Inverse * JointTransform[JointIndex] *
-          InverseBindMatrices[JointIndex];
-
-      - For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
-        for all joints indicated by JOINTS_0, JOINTS_1 etc. values for this vertex.
-        They are indicated as indexes there.
-        Multiply each by WEIGHTS_0, 1 etc.
-        Ignore joints with weight = 0.
-
-      - Add here SkinMatrix * OriginalCoords[I];
     }
+
+    { For each Joint, we calculate JointMatrix following
+      https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
+    for I := 0 to Joints.Count - 1 do
+      JointMatrix[I] := { TODO SkeletonRootNode.Inverse * }
+        AnimationSampler.TransformMatrix[JointsGltf[I]] *
+        InverseBindMatrices[I];
+
+    { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]
+      for all joints indicated by JOINTS_0, JOINTS_1 etc. values for this vertex.
+      They are indicated as indexes there.
+      Multiply each by WEIGHTS_0, 1 etc.
+      Ignore joints with weight = 0.  }
+    for I := 0 to OriginalCoords.Count - 1 do
+    begin
+      SkinMatrix := TMatrix4.Identity;
+      AnimatedCoords.Add(SkinMatrix.MultPoint(OriginalCoords[I]));
+    end;
   end;
 
   { Calculate skin interpolator nodes to deform this one shape.
@@ -1385,7 +1437,7 @@ var
     Note that ParentGroup can be really any grouping node,
     we add there only interpolators and routes, it doesn't matter where this node is. }
   procedure CalculateSkinInterpolators(const Shape: TShapeNode;
-    const Joints: TX3DNodeList;
+    const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
     const ParentGroup: TAbstractX3DGroupingNode);
   var
@@ -1422,7 +1474,8 @@ var
       for I := 0 to Interpolator.FdKey.Items.Count - 1 do
       begin
         SampleSkinAnimation(Anim, Interpolator.FdKey.Items[I],
-          Coord.FdPoint.Items, Interpolator.FdKeyValue.Items);
+          Coord.FdPoint.Items, Interpolator.FdKeyValue.Items,
+          Joints, JointsGltf, InverseBindMatrices);
       end;
       ParentGroup.AddChildren(Interpolator);
 
@@ -1498,10 +1551,12 @@ var
         Exit;
       end;
 
+      JointMatrix.Count := Joints.Count;
+
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
           CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]),
-            Joints, InverseBindMatrices, ParentGroup);
+            Joints, Skin.Joints, InverseBindMatrices, ParentGroup);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);
@@ -1515,6 +1570,10 @@ var
   var
     SkinToInitialize: TSkinToInitialize;
   begin
+    // one-time initialization of structures to process skin
+    AnimationSampler.TransformNodes := Nodes;
+    AnimationSampler.TransformNodesGltf := Document.Nodes;
+
     for SkinToInitialize in SkinsToInitialize do
       ReadSkin(SkinToInitialize.Skin, SkinToInitialize.Shapes, ParentGroup);
   end;
@@ -1534,17 +1593,21 @@ begin
 
   Result := TX3DRootNode.Create('', BaseUrl);
   try
+    // Set to nil local variables, to avoid nested try..finally..end construction
     Document := nil;
     DefaultAppearance := nil;
     Appearances := nil;
     Nodes := nil;
     SkinsToInitialize := nil;
     Animations := nil;
+    AnimationSampler := nil;
+    JointMatrix := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
       Animations := TAnimationList.Create(true);
       AnimationSampler := TAnimationSampler.Create;
+      JointMatrix := TMatrix4List.Create;
 
       ReadHeader;
 
