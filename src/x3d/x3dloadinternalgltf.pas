@@ -1107,13 +1107,40 @@ var
 
   procedure ReadNode(const NodeIndex: Integer; const ParentGroup: TAbstractX3DGroupingNode);
   var
-    Node: TPasGLTF.TNode;
     Transform: TTransformNode;
+
+    { Apply Node.Skin, adding a new item to SkinsToInitialize list
+      and making the node uncollidable (otherwise every frame we would recalculate octree). }
+    procedure ApplySkin(const Skin: TPasGLTF.TSkin);
+    var
+      SkinToInitialize: TSkinToInitialize;
+      Shapes: TAbstractX3DGroupingNode;
+      //UncollidableShapes: TCollisionNode;
+    begin
+      SkinToInitialize := TSkinToInitialize.Create;
+      SkinsToInitialize.Add(SkinToInitialize);
+      // Shapes is the group created inside ReadMesh
+      Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
+
+      // { Put Collision node inside Shapes, to make them uncollidable }
+      // UncollidableShapes := TCollisionNode.Create;
+      // UncollidableShapes.Enabled := false;
+      // UncollidableShapes.FdChildren.AssignItems(Shapes.FdChildren.InternalItems);
+      // Shapes.FdChildren.Clear;
+      // Shapes.FdChildren.Add(UncollidableShapes);
+
+      // SkinToInitialize.Shapes := UncollidableShapes;
+
+      SkinToInitialize.Shapes := Shapes;
+      SkinToInitialize.Skin := Skin;
+    end;
+
+  var
+    Node: TPasGLTF.TNode;
     NodeMatrix: TMatrix4;
     Translation, Scale: TVector3;
     Rotation: TVector4;
     ChildNodeIndex: Integer;
-    SkinToInitialize: TSkinToInitialize;
   begin
     if Between(NodeIndex, 0, Document.Nodes.Count - 1) then
     begin
@@ -1144,17 +1171,11 @@ var
       begin
         ReadMesh(Node.Mesh, Transform);
 
-        // read Skin field, adding a new item to SkinsToInitialize list
         if Node.Skin <> -1 then
         begin
           if Between(Node.Skin, 0, Document.Skins.Count - 1) then
-          begin
-            SkinToInitialize := TSkinToInitialize.Create;
-            SkinsToInitialize.Add(SkinToInitialize);
-            // Shapes is the group created inside ReadMesh
-            SkinToInitialize.Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
-            SkinToInitialize.Skin := Document.Skins[Node.Skin];
-          end else
+            ApplySkin(Document.Skins[Node.Skin])
+          else
             WritelnWarning('glTF', 'Skin index invalid: %d', [Node.Skin]);
         end;
       end;
