@@ -19,6 +19,19 @@ var
 
 procedure RenderMaterialsBegin;
 
+  { Is this a Phong material that has only emissiveColor non-zero. }
+  function PureEmissivePhong(const Material: TMaterialInfo): Boolean;
+  begin
+    Result :=
+      (Material is TPhongMaterialInfo) and
+      TPhongMaterialInfo(Material).PureEmissive and
+      { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
+        "only emissive" lighting calculation, because Color/ColorRGBA
+        nodes replace the diffuse factor, in case of Phong Material. }
+      (Shape.Geometry.InternalColor = nil) and
+      (Shape.Geometry.InternalColorRGBA = nil);
+  end;
+
   { Apply material for shader and fixed-function pipelines.
     Assumes Lighting is already calculated.
     For fixed-function pipeline, this sets full glMaterial and glColor. }
@@ -80,8 +93,12 @@ procedure RenderMaterialsBegin;
       begin
         { UnlitMaterial is implemented here, as it causes Lighting = false always.
           We will also use this for fixed-function pipeline when
-          user set Attributes.Lighting = false and we have Phong Material or PhysicalMaterial. }
-        glColorv(M.MainColor);
+          - user set Attributes.Lighting = false and we have Phong Material or PhysicalMaterial.
+          - or we have Phong Material that is PureEmissive. }
+        if PureEmissivePhong(M) then
+          glColorv(Vector4(TPhongMaterialInfo(M).EmissiveColor, M.Opacity))
+        else
+          glColorv(M.MainColor);
       end else
       begin
         { In case of material = nil, behave like UnlitMaterial with emissiveColor = white. }
@@ -89,19 +106,6 @@ procedure RenderMaterialsBegin;
       end;
       {$endif}
     end;
-  end;
-
-  { Is this a Phong material that has only emissiveColor non-zero. }
-  function PureEmissivePhong(const Material: TMaterialInfo): Boolean;
-  begin
-    Result :=
-      (Material is TPhongMaterialInfo) and
-      TPhongMaterialInfo(Material).PureEmissive and
-      { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
-        "only emissive" lighting calculation, because Color/ColorRGBA
-        nodes replace the diffuse factor, in case of Phong Material. }
-      (Shape.Geometry.InternalColor = nil) and
-      (Shape.Geometry.InternalColorRGBA = nil);
   end;
 
 var
