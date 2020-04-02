@@ -369,7 +369,7 @@ begin
     Result := 'Integer'
   else
   if X3DType = 'SFBool' then
-    Result := 'boolean'
+    Result := 'Boolean'
   else
   if X3DType = 'SFRotation' then
     Result := 'TVector4'
@@ -381,7 +381,7 @@ begin
     Result := 'TCastleColor'
   else
   if X3DType = 'SFString'then
-    Result := 'string'
+    Result := 'String'
   else
   if X3DType = 'SFMatrix3f' then
     Result := 'TMatrix3'

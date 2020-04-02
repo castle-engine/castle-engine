@@ -28,8 +28,8 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
     function GetScale: TVector3;
@@ -40,8 +40,8 @@
     procedure SetSkinNormal(const Value: TAbstractNormalNode);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    function GetVersion: string;
-    procedure SetVersion(const Value: string);
+    function GetVersion: String;
+    procedure SetVersion(const Value: String);
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
     function GetBboxSize: TVector3;
@@ -56,7 +56,7 @@
     { Set X3D field "joints". } { }
     procedure SetJoints(const Value: array of THAnimJointNode);
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "scale". } { }
@@ -74,7 +74,7 @@
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
     { X3D field "version". } { }
-    property Version: string read GetVersion write SetVersion;
+    property Version: String read GetVersion write SetVersion;
     { Set X3D field "viewpoints". } { }
     procedure SetViewpoints(const Value: array of THAnimSiteNode);
     { X3D field "bboxCenter". } { }
@@ -120,12 +120,12 @@ begin
   FdJoints.Send(A);
 end;
 
-function THAnimHumanoidNode.GetNameField: string;
+function THAnimHumanoidNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimHumanoidNode.SetNameField(const Value: string);
+procedure THAnimHumanoidNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;
@@ -219,12 +219,12 @@ begin
   FdTranslation.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetVersion: string;
+function THAnimHumanoidNode.GetVersion: String;
 begin
   Result := FdVersion.Value;
 end;
 
-procedure THAnimHumanoidNode.SetVersion(const Value: string);
+procedure THAnimHumanoidNode.SetVersion(const Value: String);
 begin
   FdVersion.Send(Value);
 end;

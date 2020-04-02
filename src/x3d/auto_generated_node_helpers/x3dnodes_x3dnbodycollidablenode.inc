@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
     function GetTranslation: TVector3;
@@ -38,7 +38,7 @@
     procedure SetBboxSize(const Value: TVector3);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "translation". } { }
@@ -54,12 +54,12 @@
 
 { TAbstractNBodyCollidableNode ----------------------------------------------- }
 
-function TAbstractNBodyCollidableNode.GetEnabled: boolean;
+function TAbstractNBodyCollidableNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TAbstractNBodyCollidableNode.SetEnabled(const Value: boolean);
+procedure TAbstractNBodyCollidableNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

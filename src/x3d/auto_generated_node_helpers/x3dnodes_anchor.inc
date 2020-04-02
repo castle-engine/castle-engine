@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDescription: string;
-    procedure SetDescription(const Value: string);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
   public
     { X3D field "description". } { }
-    property Description: string read GetDescription write SetDescription;
+    property Description: String read GetDescription write SetDescription;
     { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: array of string);
     { Set X3D field "parameter". } { }
@@ -46,12 +46,12 @@
 
 { TAnchorNode ----------------------------------------------- }
 
-function TAnchorNode.GetDescription: string;
+function TAnchorNode.GetDescription: String;
 begin
   Result := FdDescription.Value;
 end;
 
-procedure TAnchorNode.SetDescription(const Value: string);
+procedure TAnchorNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
 end;

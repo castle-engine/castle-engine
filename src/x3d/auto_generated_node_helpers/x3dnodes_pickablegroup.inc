@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetPickable: boolean;
-    procedure SetPickable(const Value: boolean);
+    function GetPickable: Boolean;
+    procedure SetPickable(const Value: Boolean);
   public
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: array of string);
     { Set X3D field "objectType". } { }
     procedure SetObjectType(const Value: TCastleStringList);
     { X3D field "pickable". } { }
-    property Pickable: boolean read GetPickable write SetPickable;
+    property Pickable: Boolean read GetPickable write SetPickable;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdObjectType.Send(Value);
 end;
 
-function TPickableGroupNode.GetPickable: boolean;
+function TPickableGroupNode.GetPickable: Boolean;
 begin
   Result := FdPickable.Value;
 end;
 
-procedure TPickableGroupNode.SetPickable(const Value: boolean);
+procedure TPickableGroupNode.SetPickable(const Value: Boolean);
 begin
   FdPickable.Send(Value);
 end;

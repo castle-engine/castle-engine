@@ -28,27 +28,27 @@
   strict private
     function GetCenterOfRotation: TVector3;
     procedure SetCenterOfRotation(const Value: TVector3);
-    function GetDescription: string;
-    procedure SetDescription(const Value: string);
-    function GetJump: boolean;
-    procedure SetJump(const Value: boolean);
-    function GetRetainUserOffsets: boolean;
-    procedure SetRetainUserOffsets(const Value: boolean);
-    function GetCameraMatrixSendAlsoOnOffscreenRendering: boolean;
-    procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetJump: Boolean;
+    procedure SetJump(const Value: Boolean);
+    function GetRetainUserOffsets: Boolean;
+    procedure SetRetainUserOffsets(const Value: Boolean);
+    function GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
+    procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
     function GetGravityUp: TVector3;
     procedure SetGravityUp(const Value: TVector3);
   public
     { X3D field "centerOfRotation". } { }
     property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
     { X3D field "description". } { }
-    property Description: string read GetDescription write SetDescription;
+    property Description: String read GetDescription write SetDescription;
     { X3D field "jump". } { }
-    property Jump: boolean read GetJump write SetJump;
+    property Jump: Boolean read GetJump write SetJump;
     { X3D field "retainUserOffsets". } { }
-    property RetainUserOffsets: boolean read GetRetainUserOffsets write SetRetainUserOffsets;
+    property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
     { X3D field "cameraMatrixSendAlsoOnOffscreenRendering". } { }
-    property CameraMatrixSendAlsoOnOffscreenRendering: boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
+    property CameraMatrixSendAlsoOnOffscreenRendering: Boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
     { X3D field "gravityUp". } { }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
@@ -68,42 +68,42 @@ begin
   FdCenterOfRotation.Send(Value);
 end;
 
-function TAbstractX3DViewpointNode.GetDescription: string;
+function TAbstractX3DViewpointNode.GetDescription: String;
 begin
   Result := FdDescription.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetDescription(const Value: string);
+procedure TAbstractX3DViewpointNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
 end;
 
-function TAbstractX3DViewpointNode.GetJump: boolean;
+function TAbstractX3DViewpointNode.GetJump: Boolean;
 begin
   Result := FdJump.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetJump(const Value: boolean);
+procedure TAbstractX3DViewpointNode.SetJump(const Value: Boolean);
 begin
   FdJump.Send(Value);
 end;
 
-function TAbstractX3DViewpointNode.GetRetainUserOffsets: boolean;
+function TAbstractX3DViewpointNode.GetRetainUserOffsets: Boolean;
 begin
   Result := FdRetainUserOffsets.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetRetainUserOffsets(const Value: boolean);
+procedure TAbstractX3DViewpointNode.SetRetainUserOffsets(const Value: Boolean);
 begin
   FdRetainUserOffsets.Send(Value);
 end;
 
-function TAbstractX3DViewpointNode.GetCameraMatrixSendAlsoOnOffscreenRendering: boolean;
+function TAbstractX3DViewpointNode.GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
 begin
   Result := FdCameraMatrixSendAlsoOnOffscreenRendering.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: boolean);
+procedure TAbstractX3DViewpointNode.SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
 begin
   FdCameraMatrixSendAlsoOnOffscreenRendering.Send(Value);
 end;

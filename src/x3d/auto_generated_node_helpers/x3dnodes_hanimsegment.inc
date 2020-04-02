@@ -32,8 +32,8 @@
     procedure SetCoord(const Value: TAbstractCoordinateNode);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
   public
     { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
@@ -48,7 +48,7 @@
     { Set X3D field "momentsOfInertia". } { }
     procedure SetMomentsOfInertia(const Value: TSingleList);
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
 
 {$endif read_interface}
 
@@ -111,12 +111,12 @@ begin
   FdMomentsOfInertia.Send(Value);
 end;
 
-function THAnimSegmentNode.GetNameField: string;
+function THAnimSegmentNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimSegmentNode.SetNameField(const Value: string);
+procedure THAnimSegmentNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;

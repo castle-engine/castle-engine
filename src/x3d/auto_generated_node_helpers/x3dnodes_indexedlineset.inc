@@ -34,8 +34,8 @@
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
 {$endif not CASTLE_SLIM_NODES}
-    function GetColorPerVertex: boolean;
-    procedure SetColorPerVertex(const Value: boolean);
+    function GetColorPerVertex: Boolean;
+    procedure SetColorPerVertex(const Value: Boolean);
   public
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
@@ -54,7 +54,7 @@
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
     { X3D field "colorPerVertex". } { }
-    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
@@ -131,12 +131,12 @@ begin
   FdColorIndex.Send(Value);
 end;
 
-function TIndexedLineSetNode.GetColorPerVertex: boolean;
+function TIndexedLineSetNode.GetColorPerVertex: Boolean;
 begin
   Result := FdColorPerVertex.Value;
 end;
 
-procedure TIndexedLineSetNode.SetColorPerVertex(const Value: boolean);
+procedure TIndexedLineSetNode.SetColorPerVertex(const Value: Boolean);
 begin
   FdColorPerVertex.Send(Value);
 end;

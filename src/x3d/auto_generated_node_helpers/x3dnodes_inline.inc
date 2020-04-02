@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetLoad: boolean;
-    procedure SetLoad(const Value: boolean);
+    function GetLoad: Boolean;
+    procedure SetLoad(const Value: Boolean);
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
     { X3D field "load". } { }
-    property Load: boolean read GetLoad write SetLoad;
+    property Load: Boolean read GetLoad write SetLoad;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
@@ -50,12 +50,12 @@
 
 { TInlineNode ----------------------------------------------- }
 
-function TInlineNode.GetLoad: boolean;
+function TInlineNode.GetLoad: Boolean;
 begin
   Result := FdLoad.Value;
 end;
 
-procedure TInlineNode.SetLoad(const Value: boolean);
+procedure TInlineNode.SetLoad(const Value: Boolean);
 begin
   FdLoad.Send(Value);
 end;

@@ -38,8 +38,8 @@
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
 {$endif not CASTLE_SLIM_NODES}
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+    function GetRender: Boolean;
+    procedure SetRender(const Value: Boolean);
   public
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "bboxCenter". } { }
@@ -54,7 +54,7 @@
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
 {$endif not CASTLE_SLIM_NODES}
     { X3D field "render". } { }
-    property Render: boolean read GetRender write SetRender;
+    property Render: Boolean read GetRender write SetRender;
 
 {$endif read_interface}
 
@@ -101,12 +101,12 @@ begin
 end;
 
 {$endif not CASTLE_SLIM_NODES}
-function TAbstractShapeNode.GetRender: boolean;
+function TAbstractShapeNode.GetRender: Boolean;
 begin
   Result := FdRender.Value;
 end;
 
-procedure TAbstractShapeNode.SetRender(const Value: boolean);
+procedure TAbstractShapeNode.SetRender(const Value: Boolean);
 begin
   FdRender.Send(Value);
 end;

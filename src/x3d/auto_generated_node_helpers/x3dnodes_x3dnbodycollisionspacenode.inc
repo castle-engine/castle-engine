@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "bboxCenter". } { }
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
     { X3D field "bboxSize". } { }
@@ -46,12 +46,12 @@
 
 { TAbstractNBodyCollisionSpaceNode ----------------------------------------------- }
 
-function TAbstractNBodyCollisionSpaceNode.GetEnabled: boolean;
+function TAbstractNBodyCollisionSpaceNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TAbstractNBodyCollisionSpaceNode.SetEnabled(const Value: boolean);
+procedure TAbstractNBodyCollisionSpaceNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

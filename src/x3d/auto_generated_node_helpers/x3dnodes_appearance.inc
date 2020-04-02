@@ -36,8 +36,8 @@
     procedure SetBackMaterial(const Value: TAbstractMaterialNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
-    function GetShadowCaster: boolean;
-    procedure SetShadowCaster(const Value: boolean);
+    function GetShadowCaster: Boolean;
+    procedure SetShadowCaster(const Value: Boolean);
     function GetHeightMapScale: Single;
     procedure SetHeightMapScale(const Value: Single);
     function GetBlendMode: TBlendModeNode;
@@ -58,7 +58,7 @@
     { Set X3D field "receiveShadows". } { }
     procedure SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
     { X3D field "shadowCaster". } { }
-    property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
+    property ShadowCaster: Boolean read GetShadowCaster write SetShadowCaster;
     { X3D field "heightMapScale". } { }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
     { X3D field "blendMode". } { }
@@ -150,12 +150,12 @@ begin
   FdReceiveShadows.Send(A);
 end;
 
-function TAppearanceNode.GetShadowCaster: boolean;
+function TAppearanceNode.GetShadowCaster: Boolean;
 begin
   Result := FdShadowCaster.Value;
 end;
 
-procedure TAppearanceNode.SetShadowCaster(const Value: boolean);
+procedure TAppearanceNode.SetShadowCaster(const Value: Boolean);
 begin
   FdShadowCaster.Send(Value);
 end;

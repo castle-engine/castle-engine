@@ -26,10 +26,10 @@
 {$ifdef read_interface}
 
   strict private
-    function GetShadows: boolean;
-    procedure SetShadows(const Value: boolean);
-    function GetShadowVolumesMain: boolean;
-    procedure SetShadowVolumesMain(const Value: boolean);
+    function GetShadows: Boolean;
+    procedure SetShadows(const Value: Boolean);
+    function GetShadowVolumesMain: Boolean;
+    procedure SetShadowVolumesMain(const Value: Boolean);
     function GetProjectionNear: Single;
     procedure SetProjectionNear(const Value: Single);
     function GetProjectionFar: Single;
@@ -40,9 +40,9 @@
     procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
     { X3D field "shadows". } { }
-    property Shadows: boolean read GetShadows write SetShadows;
+    property Shadows: Boolean read GetShadows write SetShadows;
     { X3D field "shadowVolumesMain". } { }
-    property ShadowVolumesMain: boolean read GetShadowVolumesMain write SetShadowVolumesMain;
+    property ShadowVolumesMain: Boolean read GetShadowVolumesMain write SetShadowVolumesMain;
     { X3D field "projectionNear". } { }
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
     { X3D field "projectionFar". } { }
@@ -58,22 +58,22 @@
 
 { TAbstractPunctualLightNode ----------------------------------------------- }
 
-function TAbstractPunctualLightNode.GetShadows: boolean;
+function TAbstractPunctualLightNode.GetShadows: Boolean;
 begin
   Result := FdShadows.Value;
 end;
 
-procedure TAbstractPunctualLightNode.SetShadows(const Value: boolean);
+procedure TAbstractPunctualLightNode.SetShadows(const Value: Boolean);
 begin
   FdShadows.Send(Value);
 end;
 
-function TAbstractPunctualLightNode.GetShadowVolumesMain: boolean;
+function TAbstractPunctualLightNode.GetShadowVolumesMain: Boolean;
 begin
   Result := FdShadowVolumesMain.Value;
 end;
 
-procedure TAbstractPunctualLightNode.SetShadowVolumesMain(const Value: boolean);
+procedure TAbstractPunctualLightNode.SetShadowVolumesMain(const Value: Boolean);
 begin
   FdShadowVolumesMain.Send(Value);
 end;

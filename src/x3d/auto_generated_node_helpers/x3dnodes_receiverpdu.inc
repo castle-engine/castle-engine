@@ -26,14 +26,14 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAddress: string;
-    procedure SetAddress(const Value: string);
+    function GetAddress: String;
+    procedure SetAddress(const Value: String);
     function GetApplicationID: Integer;
     procedure SetApplicationID(const Value: Integer);
     function GetEntityID: Integer;
     procedure SetEntityID(const Value: Integer);
-    function GetMulticastRelayHost: string;
-    procedure SetMulticastRelayHost(const Value: string);
+    function GetMulticastRelayHost: String;
+    procedure SetMulticastRelayHost(const Value: String);
     function GetMulticastRelayPort: Integer;
     procedure SetMulticastRelayPort(const Value: Integer);
     function GetPort: Integer;
@@ -46,8 +46,8 @@
     procedure SetReceivedPower(const Value: Single);
     function GetReceiverState: Integer;
     procedure SetReceiverState(const Value: Integer);
-    function GetRtpHeaderExpected: boolean;
-    procedure SetRtpHeaderExpected(const Value: boolean);
+    function GetRtpHeaderExpected: Boolean;
+    procedure SetRtpHeaderExpected(const Value: Boolean);
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
     function GetTransmitterApplicationID: Integer;
@@ -68,13 +68,13 @@
     procedure SetBboxSize(const Value: TVector3);
   public
     { X3D field "address". } { }
-    property Address: string read GetAddress write SetAddress;
+    property Address: String read GetAddress write SetAddress;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
     { X3D field "multicastRelayHost". } { }
-    property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
     { X3D field "port". } { }
@@ -88,7 +88,7 @@
     { X3D field "receiverState". } { }
     property ReceiverState: Integer read GetReceiverState write SetReceiverState;
     { X3D field "rtpHeaderExpected". } { }
-    property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+    property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
     { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
     { X3D field "transmitterApplicationID". } { }
@@ -114,12 +114,12 @@
 
 { TReceiverPduNode ----------------------------------------------- }
 
-function TReceiverPduNode.GetAddress: string;
+function TReceiverPduNode.GetAddress: String;
 begin
   Result := FdAddress.Value;
 end;
 
-procedure TReceiverPduNode.SetAddress(const Value: string);
+procedure TReceiverPduNode.SetAddress(const Value: String);
 begin
   FdAddress.Send(Value);
 end;
@@ -144,12 +144,12 @@ begin
   FdEntityID.Send(Value);
 end;
 
-function TReceiverPduNode.GetMulticastRelayHost: string;
+function TReceiverPduNode.GetMulticastRelayHost: String;
 begin
   Result := FdMulticastRelayHost.Value;
 end;
 
-procedure TReceiverPduNode.SetMulticastRelayHost(const Value: string);
+procedure TReceiverPduNode.SetMulticastRelayHost(const Value: String);
 begin
   FdMulticastRelayHost.Send(Value);
 end;
@@ -214,12 +214,12 @@ begin
   FdReceiverState.Send(Value);
 end;
 
-function TReceiverPduNode.GetRtpHeaderExpected: boolean;
+function TReceiverPduNode.GetRtpHeaderExpected: Boolean;
 begin
   Result := FdRtpHeaderExpected.Value;
 end;
 
-procedure TReceiverPduNode.SetRtpHeaderExpected(const Value: boolean);
+procedure TReceiverPduNode.SetRtpHeaderExpected(const Value: Boolean);
 begin
   FdRtpHeaderExpected.Send(Value);
 end;
