@@ -1047,7 +1047,7 @@ begin
         'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
         'begin' + NL +
         Iff(Field.IsEnumString,
-        '  ' + Field.PascalNamePrefixed + '.SendEnumValue(OrdValue));',
+        '  ' + Field.PascalNamePrefixed + '.SendEnumValue(Ord(Value));',
         '  ' + Field.PascalNamePrefixed + '.Send(Value);') + NL +
         'end;' + NL +
         NL +

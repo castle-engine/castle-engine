@@ -59,7 +59,7 @@ end;
 
 procedure TShaderPartNode.SetShaderType(const Value: TShaderType);
 begin
-  FdType.SendEnumValue(OrdValue));
+  FdType.SendEnumValue(Ord(Value));
 end;
 
 {$endif read_implementation}

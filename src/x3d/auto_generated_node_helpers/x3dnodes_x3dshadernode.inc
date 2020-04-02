@@ -45,7 +45,7 @@ end;
 
 procedure TAbstractShaderNode.SetLanguage(const Value: TShaderLanguage);
 begin
-  FdLanguage.SendEnumValue(OrdValue));
+  FdLanguage.SendEnumValue(Ord(Value));
 end;
 
 {$endif read_implementation}
