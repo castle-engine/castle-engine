@@ -25,11 +25,16 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetShaderType: TShaderType;
+    procedure SetShaderType(const Value: TShaderType);
   public
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
+    { X3D field "type". } { }
+    property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
 {$endif read_interface}
 
@@ -45,6 +50,16 @@ end;
 procedure TShaderPartNode.SetUrl(const Value: TCastleStringList);
 begin
   FdUrl.Send(Value);
+end;
+
+function TShaderPartNode.GetShaderType: TShaderType;
+begin
+  Result := TShaderType(FdType.EnumValue);
+end;
+
+procedure TShaderPartNode.SetShaderType(const Value: TShaderType);
+begin
+  FdType.SendEnumValue(OrdValue));
 end;
 
 {$endif read_implementation}

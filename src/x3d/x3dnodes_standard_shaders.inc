@@ -22,9 +22,6 @@
 
   { Base type for all node types that specify a programmable shader. }
   TAbstractShaderNode = class(TAbstractAppearanceChildNode)
-  strict private
-    function GetLanguage: TShaderLanguage;
-    procedure SetLanguage(const Value: TShaderLanguage);
   public
     procedure CreateNode; override;
 
@@ -42,7 +39,6 @@
 
     strict private FFdLanguage: TSFStringEnum;
     public property FdLanguage: TSFStringEnum read FFdLanguage;
-    property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
   end;
@@ -153,8 +149,6 @@
     ContentsCache: string;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    function GetShaderType: TShaderType;
-    procedure SetShaderType(const Value: TShaderType);
     function GetContents: string;
     procedure SetContents(const Value: string);
   public
@@ -166,9 +160,6 @@
 
     strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
-
-    { Shader type. }
-    property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
     { The shader code.
 
@@ -229,16 +220,6 @@ begin
   AddField(FFdLanguage);
 
   DefaultContainerField := 'shaders';
-end;
-
-function TAbstractShaderNode.GetLanguage: TShaderLanguage;
-begin
-  Result := TShaderLanguage(FdLanguage.EnumValue);
-end;
-
-procedure TAbstractShaderNode.SetLanguage(const Value: TShaderLanguage);
-begin
-  FdLanguage.SendEnumValue(Ord(Value));
 end;
 
 procedure TAbstractVertexAttributeNode.CreateNode;
@@ -445,16 +426,6 @@ procedure TShaderPartNode.EventUrlReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   ContentsCached := false;
-end;
-
-function TShaderPartNode.GetShaderType: TShaderType;
-begin
-  Result := TShaderType(FdType.EnumValue);
-end;
-
-procedure TShaderPartNode.SetShaderType(const Value: TShaderType);
-begin
-  FdType.SendEnumValue(Ord(Value));
 end;
 
 procedure TShaderProgramNode.CreateNode;
