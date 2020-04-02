@@ -36,7 +36,7 @@ implementation
 uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
+  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
   X3DLoadInternalUtils;
 
 { This unit implements reading glTF into X3D.
@@ -1009,11 +1009,13 @@ var
         if ColorAccessor.Type_ = TPasGLTF.TAccessor.TType.Vec4 then
         begin
           ColorRGBA := TColorRGBANode.Create;
+          ColorRGBA.Mode := cmModulate;
           AccessorToVector4(Primitive.Attributes[AttributeName], ColorRGBA.FdColor, false);
           Geometry.ColorField.Value := ColorRGBA;
         end else
         begin
           Color := TColorNode.Create;
+          Color.Mode := cmModulate;
           AccessorToVector3(Primitive.Attributes[AttributeName], Color.FdColor, false);
           Geometry.ColorField.Value := Color;
         end;

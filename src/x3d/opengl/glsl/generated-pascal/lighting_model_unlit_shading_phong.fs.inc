@@ -4,12 +4,15 @@
 '' + LineEnding +
 'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  /* In case of UnlitMaterial, Color/ColorRGBA replaces emissive color.*/' + LineEnding +
-'  result = castle_ColorPerVertexFragment;' + LineEnding +
-'  #else' + LineEnding +
-'  result = castle_MaterialEmissiveAlpha;' + LineEnding +
-'  #endif' + LineEnding +
+'  result =' + LineEnding +
+'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
+'    /* In case of UnlitMaterial, Color/ColorRGBA replaces emissive color.*/' + LineEnding +
+'    castle_ColorPerVertexFragment;' + LineEnding +
+'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
+'    castle_ColorPerVertexFragment * castle_MaterialEmissiveAlpha;' + LineEnding +
+'    #else' + LineEnding +
+'    castle_MaterialEmissiveAlpha;' + LineEnding +
+'    #endif' + LineEnding +
 '' + LineEnding +
 '  /* In case of UnlitMaterial, main texture (emissiveTexture or Appearance.texture)' + LineEnding +
 '     is mixed with emissive color. */' + LineEnding +

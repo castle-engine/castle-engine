@@ -21,11 +21,14 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 {
   vec4 material_base_alpha;
 
-  #ifdef COLOR_PER_VERTEX
-  material_base_alpha = castle_ColorPerVertex;
-  #else
-  material_base_alpha = castle_MaterialBaseAlpha;
-  #endif
+  material_base_alpha =
+    #if defined(COLOR_PER_VERTEX_REPLACE)
+    castle_ColorPerVertex;
+    #elif defined(COLOR_PER_VERTEX_MODULATE)
+    castle_ColorPerVertex * castle_MaterialBaseAlpha;
+    #else
+    castle_MaterialBaseAlpha;
+    #endif
 
   result = vec4(castle_EmissiveColor, material_base_alpha.a);
 

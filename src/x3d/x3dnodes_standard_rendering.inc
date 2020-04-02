@@ -345,6 +345,7 @@
       @groupBegin }
     function InternalColor: TMFVec3f;
     function InternalColorRGBA: TMFColorRGBA;
+    function InternalColorNode: TAbstractColorNode;
     { @groupEnd }
 
     function InternalFogCoord: TMFFloat; virtual;
@@ -473,9 +474,6 @@
 
   { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
-  public
-    procedure CreateNode; override;
-
     {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
@@ -941,6 +939,10 @@
 
 {$ifdef read_implementation}
 
+const
+  ColorModeNames: array [TColorMode] of string =
+  ('REPLACE', 'MODULATE');
+
 { TAbstractGeometryNode ---------------------------------------------------------- }
 
 procedure TAbstractGeometryNode.CreateNode;
@@ -1222,6 +1224,18 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.InternalColorNode: TAbstractColorNode;
+var
+  F: TSFNode;
+begin
+  F := ColorField;
+  if (F <> nil) and
+     (F.Value is TAbstractColorNode) then
+    Result := TAbstractColorNode(F.Value)
+  else
+    Result := nil;
+end;
+
 function TAbstractGeometryNode.InternalColor: TMFVec3f;
 var
   F: TSFNode;
@@ -1252,13 +1266,6 @@ begin
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
-
-procedure TAbstractColorNode.CreateNode;
-begin
-  inherited;
-
-  DefaultContainerField := 'color';
-end;
 
 procedure TAbstractComposedGeometryNode.CreateNode;
 begin

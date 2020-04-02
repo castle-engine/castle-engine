@@ -208,11 +208,14 @@
 '     (because it cannot be, as we''re on vertex shader). */' + LineEnding +
 '  vec4 material_base_alpha;' + LineEnding +
 '' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  material_base_alpha = castle_ColorPerVertexFragment;' + LineEnding +
-'  #else' + LineEnding +
-'  material_base_alpha = castle_MaterialBaseAlpha;' + LineEnding +
-'  #endif' + LineEnding +
+'  material_base_alpha =' + LineEnding +
+'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
+'    castle_ColorPerVertexFragment;' + LineEnding +
+'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
+'    castle_ColorPerVertexFragment * castle_MaterialBaseAlpha;' + LineEnding +
+'    #else' + LineEnding +
+'    castle_MaterialBaseAlpha;' + LineEnding +
+'    #endif' + LineEnding +
 '' + LineEnding +
 '  main_texture_apply(material_base_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +

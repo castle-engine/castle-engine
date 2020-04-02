@@ -61,11 +61,14 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   material_info.shininess = castle_MaterialShininess;
   /* PLUG: material_shininess (material_info.shininess) */
 
-  #ifdef COLOR_PER_VERTEX
-  material_info.diffuse_alpha = castle_ColorPerVertexFragment;
-  #else
-  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;
-  #endif
+  material_info.diffuse_alpha =
+    #if defined(COLOR_PER_VERTEX_REPLACE)
+    castle_ColorPerVertexFragment;
+    #elif defined(COLOR_PER_VERTEX_MODULATE)
+    castle_ColorPerVertexFragment * castle_MaterialDiffuseAlpha;
+    #else
+    castle_MaterialDiffuseAlpha;
+    #endif
 
   main_texture_apply(material_info.diffuse_alpha, normal_eye);
 

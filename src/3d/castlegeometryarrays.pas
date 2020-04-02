@@ -133,6 +133,7 @@ type
     FCoordinateSize: Cardinal;
 
     FHasColor: boolean;
+    FColorMode: TColorMode;
     ColorOffset: Integer;
     FForceUnlit: boolean;
     FForcedUnlitColor: TVector4;
@@ -251,10 +252,11 @@ type
     function Normal(const Index: Cardinal): PVector3;
     procedure IncNormal(var P: PVector3);
 
-    procedure AddColor;
+    procedure AddColor(const AMode: TColorMode);
     function Color(const Index: Cardinal = 0): PVector4;
     procedure IncColor(var P: PVector4);
     property HasColor: boolean read FHasColor;
+    property ColorMode: TColorMode read FColorMode;
 
     { When ForceUnlit, the shape must be rendered like with UnlitMaterial,
       with UnlitMaterial.emissiveColor/alpha = ForcedUnlitColor.
@@ -456,11 +458,12 @@ begin
   PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
 end;
 
-procedure TGeometryArrays.AddColor;
+procedure TGeometryArrays.AddColor(const AMode: TColorMode);
 begin
   if not HasColor then
   begin
     FHasColor := true;
+    FColorMode := AMode;
     ColorOffset := AttributeSize;
     FAttributeSize += SizeOf(TVector4);
   end;

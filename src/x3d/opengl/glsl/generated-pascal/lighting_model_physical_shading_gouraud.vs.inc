@@ -23,11 +23,14 @@
 '{' + LineEnding +
 '  vec4 material_base_alpha;' + LineEnding +
 '' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  material_base_alpha = castle_ColorPerVertex;' + LineEnding +
-'  #else' + LineEnding +
-'  material_base_alpha = castle_MaterialBaseAlpha;' + LineEnding +
-'  #endif' + LineEnding +
+'  material_base_alpha =' + LineEnding +
+'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
+'    castle_ColorPerVertex;' + LineEnding +
+'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
+'    castle_ColorPerVertex * castle_MaterialBaseAlpha;' + LineEnding +
+'    #else' + LineEnding +
+'    castle_MaterialBaseAlpha;' + LineEnding +
+'    #endif' + LineEnding +
 '' + LineEnding +
 '  result = vec4(castle_EmissiveColor, material_base_alpha.a);' + LineEnding +
 '' + LineEnding +

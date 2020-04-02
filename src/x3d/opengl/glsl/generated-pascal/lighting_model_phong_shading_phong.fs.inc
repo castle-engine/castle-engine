@@ -63,11 +63,14 @@
 '  material_info.shininess = castle_MaterialShininess;' + LineEnding +
 '  /* PLUG: material_shininess (material_info.shininess) */' + LineEnding +
 '' + LineEnding +
-'  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'  material_info.diffuse_alpha = castle_ColorPerVertexFragment;' + LineEnding +
-'  #else' + LineEnding +
-'  material_info.diffuse_alpha = castle_MaterialDiffuseAlpha;' + LineEnding +
-'  #endif' + LineEnding +
+'  material_info.diffuse_alpha =' + LineEnding +
+'    #if defined(COLOR_PER_VERTEX_REPLACE)' + LineEnding +
+'    castle_ColorPerVertexFragment;' + LineEnding +
+'    #elif defined(COLOR_PER_VERTEX_MODULATE)' + LineEnding +
+'    castle_ColorPerVertexFragment * castle_MaterialDiffuseAlpha;' + LineEnding +
+'    #else' + LineEnding +
+'    castle_MaterialDiffuseAlpha;' + LineEnding +
+'    #endif' + LineEnding +
 '' + LineEnding +
 '  main_texture_apply(material_info.diffuse_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +

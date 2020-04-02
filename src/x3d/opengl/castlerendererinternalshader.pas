@@ -442,7 +442,8 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
-    Lighting, ColorPerVertex: boolean;
+    Lighting, ColorPerVertex: Boolean;
+    ColorPerVertexMode: TColorMode;
     FHasEmissiveOrAmbientTexture: Boolean;
 
     procedure EnableEffects(Effects: TMFNode;
@@ -613,7 +614,7 @@ type
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
-    procedure EnableColorPerVertex;
+    procedure EnableColorPerVertex(const AMode: TColorMode);
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -1964,6 +1965,7 @@ begin
   GroupEffects := nil;
   Lighting := false;
   ColorPerVertex := false;
+  ColorPerVertexMode := cmReplace;
   FPhongShading := false;
   ShapeBoundingBox := nil;
   Material := nil;
@@ -2685,6 +2687,18 @@ var
 
       Define('COLOR_PER_VERTEX', stVertex);
       Define('COLOR_PER_VERTEX', stFragment);
+      case ColorPerVertexMode of
+        cmReplace:
+          begin
+            Define('COLOR_PER_VERTEX_REPLACE', stVertex);
+            Define('COLOR_PER_VERTEX_REPLACE', stFragment);
+          end;
+        cmModulate:
+          begin
+            Define('COLOR_PER_VERTEX_MODULATE', stVertex);
+            Define('COLOR_PER_VERTEX_MODULATE', stFragment);
+          end;
+      end;
     end;
   end;
 
@@ -3532,11 +3546,12 @@ begin
   FCodeHash.AddInteger(7);
 end;
 
-procedure TShader.EnableColorPerVertex;
+procedure TShader.EnableColorPerVertex(const AMode: TColorMode);
 begin
   { This will cause appropriate shader later }
   ColorPerVertex := true;
-  FCodeHash.AddInteger(29);
+  ColorPerVertexMode := AMode;
+  FCodeHash.AddInteger((Ord(AMode) + 1) * 29);
 end;
 
 function TShader.DeclareShadowFunctions: string;

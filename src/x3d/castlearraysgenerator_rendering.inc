@@ -201,7 +201,8 @@ begin
   if (Node.FdColor.Value <> nil) and
      (Node.FdColor.Value is TColorNode) then
   begin
-    Color := TColorNode(Node.FdColor.Value).FdColor;
+    ColorNode := TColorNode(Node.FdColor.Value);
+    Color := TColorNode(ColorNode).FdColor;
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
@@ -212,7 +213,8 @@ begin
   if (Node.FdColor.Value <> nil) and
      (Node.FdColor.Value is TColorRGBANode) then
   begin
-    ColorRGBA := TColorRGBANode(Node.FdColor.Value).FdColor;
+    ColorNode := TColorRGBANode(Node.FdColor.Value);
+    ColorRGBA := TColorRGBANode(ColorNode).FdColor;
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
@@ -264,6 +266,7 @@ constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -407,6 +410,7 @@ constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: bo
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -622,6 +626,7 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -814,6 +819,7 @@ constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -1092,6 +1098,7 @@ begin
   begin
     NodeILS := Geometry as TIndexedLineSetNode;
 
+    ColorNode := NodeILS.InternalColorNode;
     Color := NodeILS.InternalColor;
     ColorRGBA := NodeILS.InternalColorRGBA;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
@@ -1101,6 +1108,7 @@ begin
     Assert(Geometry is TLineSetNode);
     NodeLS := Geometry as TLineSetNode;
 
+    ColorNode := NodeLS.InternalColorNode;
     Color := NodeLS.InternalColor;
     ColorRGBA := NodeLS.InternalColorRGBA;
     ColorPerVertex := true; { always true for LineSet }

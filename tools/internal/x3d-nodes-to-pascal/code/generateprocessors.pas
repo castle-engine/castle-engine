@@ -207,7 +207,9 @@ begin
         OutputImplementation +=
           NL +
           Field.ConditionsBegin +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
+          Iff(Field.IsEnumString,
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.EnumNames + ', Ord(' + Field.EnumDefault + '));',
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');') + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL +
           FieldImplementationComment +

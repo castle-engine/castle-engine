@@ -25,6 +25,9 @@ type
   { Shader types. }
   TShaderType = (stVertex, stGeometry, stFragment);
 
+  { Type of @link(TAbstractColorNode.Mode). }
+  TColorMode = (cmReplace, cmModulate);
+
   TToneMapping = (
     tmNone,
     tmUncharted,

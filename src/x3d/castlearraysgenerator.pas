@@ -229,7 +229,7 @@ implementation
 
 uses SysUtils, Math, Generics.Collections,
   CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
-  CastleStringUtils;
+  CastleStringUtils, CastleRendererBaseTypes;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
@@ -534,6 +534,7 @@ type
     ColorRGBA: TMFColorRGBA;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
+    ColorNode: TAbstractColorNode;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
@@ -1556,7 +1557,7 @@ begin
     [ miPerFace, miPerFaceMatIndexed,
       miPerVertexCoordIndexed, miPerVertexMatIndexed ] then
   begin
-    Arrays.AddColor;
+    Arrays.AddColor(cmReplace);
     if Mat1Implementation in
       [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
       AllowIndexed := false;
@@ -1640,12 +1641,13 @@ begin
   if Assigned(OnVertexColor) or
      (RadianceTransfer <> nil) then
   begin
-    Arrays.AddColor;
+    Arrays.AddColor(cmReplace);
     AllowIndexed := false;
   end else
-  if (Color <> nil) or (ColorRGBA <> nil) then
+  if ColorNode <> nil then
   begin
-    Arrays.AddColor;
+    Assert((Color <> nil) or (ColorRGBA <> nil));
+    Arrays.AddColor(ColorNode.Mode);
     if (ColorIndex <> nil) or (not ColorPerVertex) then
       AllowIndexed := false;
   end;

@@ -940,7 +940,8 @@ begin
     { Note that the shader implementation of color-per-vertex is enabled regardless
       if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
       feature, which works regardless if we're lit or unlit. }
-    Shader.EnableColorPerVertex;
+    Assert(Arrays.HasColor); // PerVertexColor = true should guarantee this
+    Shader.EnableColorPerVertex(Arrays.ColorMode);
 
     {$ifndef OpenGLES}
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }

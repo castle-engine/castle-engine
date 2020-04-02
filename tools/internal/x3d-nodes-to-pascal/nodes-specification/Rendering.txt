@@ -1,4 +1,7 @@
 X3DColorNode : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field color
+  SFString   []   mode   "REPLACE"   # ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace
 }
 
 X3DComposedGeometryNode : X3DGeometryNode {
