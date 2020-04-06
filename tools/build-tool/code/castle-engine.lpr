@@ -42,9 +42,10 @@ var
   PackageFormat: TPackageFormat = pfDefault;
   PackageNameIncludeVersion: Boolean = true;
   UpdateOnlyCode: Boolean = false;
+  CleanAll: Boolean = false;
 
 const
-  Options: array [0..17] of TOption =
+  Options: array [0..18] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -63,7 +64,8 @@ const
     (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
     (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
     (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
-    (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone)
+    (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone),
+    (Short: #0 ; Long: 'all'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -211,6 +213,7 @@ begin
     15: PackageNameIncludeVersion := false;
     16: UpdateOnlyCode := true;
     17: IosSimulatorSupport := true;
+    18: CleanAll := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -329,7 +332,7 @@ begin
         Project.DoAutoGenerateTextures
       else
       if Command = 'auto-generate-clean' then
-        Project.DoAutoGenerateClean
+        Project.DoAutoGenerateClean(CleanAll)
       else
       if Command = 'generate-program' then
         Project.DoGenerateProgram

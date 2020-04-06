@@ -170,7 +170,7 @@ type
       const PackageNameIncludeVersion: Boolean);
     procedure DoClean;
     procedure DoAutoGenerateTextures;
-    procedure DoAutoGenerateClean;
+    procedure DoAutoGenerateClean(const CleanAll: Boolean);
     procedure DoGenerateProgram;
     procedure DoEditor;
 
@@ -1765,9 +1765,12 @@ begin
   AutoGenerateTextures(Self);
 end;
 
-procedure TCastleProject.DoAutoGenerateClean;
+procedure TCastleProject.DoAutoGenerateClean(const CleanAll: Boolean);
 begin
-  AutoGenerateClean(Self);
+  if CleanAll then
+    AutoGenerateCleanAll(Self)
+  else
+    AutoGenerateCleanUnused(Self);
 end;
 
 procedure TCastleProject.DoGenerateProgram;
