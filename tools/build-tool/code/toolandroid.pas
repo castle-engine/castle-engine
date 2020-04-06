@@ -325,7 +325,8 @@ var
       'app' + PathDelim +
       'src' + PathDelim +
       'main' + PathDelim +
-      'assets');
+      'assets',
+      cpAndroid);
   end;
 
   procedure GenerateLocalization;

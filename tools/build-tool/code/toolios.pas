@@ -340,7 +340,7 @@ var
   { Copy project data into Xcode project. }
   procedure GenerateData;
   begin
-    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data');
+    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data', cpIOS);
   end;
 
   (* Add a large auto-generated chunk into the pbx file, replacing a special macro

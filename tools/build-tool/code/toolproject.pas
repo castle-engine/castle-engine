@@ -57,7 +57,6 @@ type
     FIOSOverrideQualifiedName: string;
     FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
     FUsesNonExemptEncryption: boolean;
-    GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     FDataExists: Boolean;
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
@@ -88,8 +87,6 @@ type
     { Use to define macros containing the Android architecture names.
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
-    procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-    procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
@@ -248,11 +245,17 @@ type
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
+
       If OnlyData, then only takes stuff inside DataPath,
       and Files will contain URLs relative to DataPath.
       Otherwise, takes all files to be packaged in a project,
-      and Files will contain URLs relative to @link(Path). }
-    function PackageFiles(const OnlyData: boolean): TCastleStringList;
+      and Files will contain URLs relative to @link(Path).
+
+      The copy will only contain files useful on given TargetPlatform.
+      Right now this means we will exclude auto-generated textures not suitable
+      for TargetPlatform. }
+    function PackageFiles(const OnlyData: boolean;
+      const TargetPlatform: TCastlePlatform): TCastleStringList;
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
@@ -275,9 +278,17 @@ type
       this is useful at least for XCode as it references the resulting directory,
       so it must exist).
 
+      The copy will only contain files useful on given TargetPlatform.
+      Right now this means we will exclude auto-generated textures not suitable
+      for TargetPlatform.
+
       We also generate the auto_generated/CastleDataInformation.xml inside.
       (Actually, this means the resulting directory is never empty now.) }
-    procedure CopyData(OutputDataPath: string);
+    procedure CopyData(OutputDataPath: string; const TargetPlatform: TCastlePlatform);
+
+    { Is this filename created by some DoPackage or DoPackageSource command.
+      FileName must be relative to project root directory. }
+    function PackageOutput(const FileName: String): Boolean;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -292,7 +303,7 @@ uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolResources, ToolAndroid, ToolWindowsRegistry,
   ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
-  ToolCommonUtils, ToolMacros, ToolCompilerInfo;
+  ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -1025,86 +1036,24 @@ begin
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
-procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  { Add relative paths to GatheringFiles, to make include/exclude
-    only work looking at relative paths. }
-  GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
-end;
-
-function TCastleProject.PackageFiles(const OnlyData: boolean): TCastleStringList;
-
-  procedure Exclude(const PathMask: string; const Files: TCastleStringList);
-  const
-    IgnoreCase = true;
-  var
-    I: Integer;
-    PathMaskSlashes, ItemSlashes: string;
-  begin
-    { replace all backslashes with slashes, so that they are equal for comparison }
-    PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);
-    I := 0;
-    while I < Files.Count do
-    begin
-      ItemSlashes := StringReplace(Files[I], '\', '/', [rfReplaceAll]);
-      if IsWild(ItemSlashes, PathMaskSlashes, IgnoreCase) then
-        Files.Delete(I) else
-        Inc(I);
-    end;
-  end;
-
+function TCastleProject.PackageFiles(const OnlyData: boolean;
+  const TargetPlatform: TCastlePlatform): TCastleStringList;
 var
-  I: Integer;
-  FindOptions: TFindFilesOptions;
-  FullPath: String;
+  Collector: TBinaryPackageFiles;
 begin
   Result := TCastleStringList.Create;
-
-  GatheringFiles := Result;
-  if DataExists then
-    FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
-
-  if not OnlyData then
-    for I := 0 to IncludePaths.Count - 1 do
-    begin
-      if IncludePathsRecursive[I] then
-        FindOptions := [ffRecursive] else
-        { not recursive, so that e.g. <include path="README.txt" />
-          or <include path="docs/README.txt" />
-          should not include *all* README.txt files inside. }
-        FindOptions := [];
-      FullPath := Path + IncludePaths[I];
-      if IsSuffix('/', FullPath, false) or
-         IsSuffix('\', FullPath, false) then
-      begin
-        WritelnWarning('Include path ends with slash or backslash, it would not match anything: "%s". Appending "*" at the end to match everything inside.',
-          [FullPath]);
-        FullPath := FullPath + '*';
-      end;
-
-      FindFiles(FullPath, false, @PackageFilesGather, FindOptions);
-    end;
-  GatheringFiles := nil;
-
-  Exclude('*.xcf', Result);
-  Exclude('*.blend*', Result);
-  Exclude('*~', Result);
-  // Note: slash or backslash below doesn't matter, Exclude function converts them
-  Exclude('*/.DS_Store', Result);
-  Exclude('*/thumbs.db', Result);
-  for I := 0 to ExcludePaths.Count - 1 do
-    Exclude(ExcludePaths[I], Result);
-
-  { Change to relative paths vs DataPath.
-    We do it only at the end, this way inclusion/exclusion mechanism
-    works the same, regardless of OnlyData. So e.g. these work the same:
-      <exclude path="data/blahblah/*" />
-    or
-      <exclude path="*/.svn/*" />
-    (even when "data/.svn" exists). }
-  if OnlyData then
-    for I := 0 to Result.Count - 1 do
-      Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
+  try
+    Collector := TBinaryPackageFiles.Create(Self);
+    try
+      Collector.IncludePaths := IncludePaths;
+      Collector.ExcludePaths := ExcludePaths;
+      Collector.IncludePathsRecursive := IncludePathsRecursive;
+      Collector.OnlyData := OnlyData;
+      Collector.TargetPlatform := TargetPlatform;
+      Collector.Run;
+      Result.Assign(Collector.CollectedFiles);
+    finally FreeAndNil(Collector) end;
+  except FreeAndNil(Result); raise; end;
 end;
 
 procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
@@ -1331,14 +1280,14 @@ begin
   end else
     PackageFormatFinal := PackageFormat;
 
-  Pack := TPackageDirectoryPlatformSpecific.Create(Name, TargetPlatform, DataPath);
+  Pack := TPackageDirectory.Create(Name);
   try
     { executable is added 1st, since it's the most likely file
       to not exist, so we'll fail earlier }
     AddExecutable;
     AddExternalLibraries;
 
-    Files := PackageFiles(false);
+    Files := PackageFiles(false, TargetPlatform);
     try
       for I := 0 to Files.Count - 1 do
         Pack.Add(Path + Files[I], Files[I]);
@@ -1464,65 +1413,15 @@ begin
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
-procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  if FileInfo.Directory then
-  begin
-    if { exclude version control dirs }
-       SameFileName(FileInfo.Name, '.git') or
-       SameFileName(FileInfo.Name, '.svn') or
-       { exclude various build tool output }
-       SameFileName(FileInfo.Name, 'castle-engine-output') then
-      Exit;
-    { recursively scan children }
-    FindFiles(FileInfo.AbsoluteName, '*', true, @PackageSourceGather, []);
-  end else
-  begin
-    { add relative filename to GatheringFiles }
-    GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
-  end;
-end;
-
 procedure TCastleProject.DoPackageSource(const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion: Boolean);
-
-  function PackageOutput(const FileName: String): Boolean;
-  var
-    OS: TOS;
-    CPU: TCPU;
-    PackageFormat: TPackageFormatNoDefault;
-    HasVersion: Boolean;
-  begin
-    for OS in TOS do
-      for CPU in TCPU do
-        // TODO: This will not exclude output of packaging with pfDirectory
-        for PackageFormat in TPackageFormatNoDefault do
-          for HasVersion in Boolean do
-            if OSCPUSupported[OS, CPU] then
-              if SameFileName(FileName, PackageName(OS, CPU, PackageFormat, HasVersion)) then
-                Exit(true);
-
-    for HasVersion in Boolean do
-      if SameFileName(FileName, SourcePackageName(HasVersion)) then
-        Exit(true);
-
-    if { avoid Android packages }
-       SameFileName(FileName, Name + '-debug.apk') or
-       SameFileName(FileName, Name + '-release.apk') or
-       { do not pack AndroidAntProperties.txt with private stuff }
-       SameFileName(FileName, 'AndroidAntProperties.txt') then
-      Exit(true);
-
-    Result := false;
-  end;
-
 var
   PackageFormatFinal: TPackageFormatNoDefault;
   Pack: TPackageDirectory;
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
-  Exclude: boolean;
+  Collector: TSourcePackageFiles;
 begin
   Writeln(Format('Packaging source code of project "%s".', [Name]));
 
@@ -1535,25 +1434,14 @@ begin
   try
     Files := TCastleStringList.Create;
     try
-      GatheringFiles := Files;
-      { Non-recursive FindFiles, we will make recursion manually
-        inside PackageSourceGather }
-      FindFiles(Path, '*', true, @PackageSourceGather, []);
-      GatheringFiles := nil;
+      Collector := TSourcePackageFiles.Create(Self);
+      try
+        Collector.Run;
+        Files.Assign(Collector.CollectedFiles);
+      finally FreeAndNil(Collector) end;
 
       for I := 0 to Files.Count - 1 do
-      begin
-        Exclude := false;
-
-        { Do not pack packages (binary or source) into the source package.
-          The packages are not cleaned by DoClean, so they could otherwise
-          be packed by accident. }
-        if PackageOutput(Files[I]) then
-          Exclude := true;
-
-        if not Exclude then
-          Pack.Add(Path + Files[I], Files[I]);
-      end;
+        Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
     PackageFileName := SourcePackageName(PackageNameIncludeVersion);
@@ -2322,7 +2210,7 @@ begin
   end;
 end;
 
-procedure TCastleProject.CopyData(OutputDataPath: string);
+procedure TCastleProject.CopyData(OutputDataPath: string; const TargetPlatform: TCastlePlatform);
 var
   I: Integer;
   FileFrom, FileTo: string;
@@ -2331,7 +2219,7 @@ begin
   OutputDataPath := InclPathDelim(OutputDataPath);
   ForceDirectories(OutputDataPath);
 
-  Files := PackageFiles(true);
+  Files := PackageFiles(true, TargetPlatform);
   try
     for I := 0 to Files.Count - 1 do
     begin
@@ -2344,6 +2232,36 @@ begin
   finally FreeAndNil(Files) end;
 
   GenerateDataInformation(OutputDataPath);
+end;
+
+function TCastleProject.PackageOutput(const FileName: String): Boolean;
+var
+  OS: TOS;
+  CPU: TCPU;
+  PackageFormat: TPackageFormatNoDefault;
+  HasVersion: Boolean;
+begin
+  for OS in TOS do
+    for CPU in TCPU do
+      // TODO: This will not exclude output of packaging with pfDirectory
+      for PackageFormat in TPackageFormatNoDefault do
+        for HasVersion in Boolean do
+          if OSCPUSupported[OS, CPU] then
+            if SameFileName(FileName, PackageName(OS, CPU, PackageFormat, HasVersion)) then
+              Exit(true);
+
+  for HasVersion in Boolean do
+    if SameFileName(FileName, SourcePackageName(HasVersion)) then
+      Exit(true);
+
+  if { avoid Android packages }
+     SameFileName(FileName, Name + '-debug.apk') or
+     SameFileName(FileName, Name + '-release.apk') or
+     { do not pack AndroidAntProperties.txt with private stuff }
+     SameFileName(FileName, 'AndroidAntProperties.txt') then
+    Exit(true);
+
+  Result := false;
 end;
 
 { globals -------------------------------------------------------------------- }
