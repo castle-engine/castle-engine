@@ -10,6 +10,14 @@ pipeline {
   agent {
     label 'ios-cge-builder'
   }
+  environment {
+    /* Used by CGE build tool ("castle-engine").
+       Define env based on another env variable.
+       According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
+       this should be supported. */
+    CASTLE_ENGINE_PATH = "${WORKSPACE}"
+    PATH = "${PATH}:${WORKSPACE}/tools/build-tool/"
+  }
   stages {
     stage('Build Tools') {
       steps {
@@ -20,7 +28,7 @@ pipeline {
       steps {
         //sh 'make examples'
         // Faster check for now:
-        sh './examples/fps_game/fps_game_compile.sh'
+        sh 'cd /examples/fps_game/ && castle-engine compile'
       }
     }
   }
