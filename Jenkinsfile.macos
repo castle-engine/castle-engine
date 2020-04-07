@@ -28,7 +28,7 @@ pipeline {
       steps {
         //sh 'make examples'
         // Faster check for now:
-        sh 'cd /examples/fps_game/ && castle-engine compile'
+        sh 'cd examples/fps_game/ && castle-engine compile'
       }
     }
   }
