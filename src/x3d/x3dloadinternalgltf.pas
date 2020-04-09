@@ -31,6 +31,20 @@ uses Classes,
 function LoadGLTF(const URL: string): TX3DRootNode;
 function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
 
+var
+  { Makes model loaded from glTF use Phong materials (TMaterialNode) instead of
+    Physically-Based Rendering materials (TPhysicalMaterialNode).
+
+    Phong is a worse lighting model in general (less realistic, and most authoring
+    tools now expose parameters closer to PBR, like Blender).
+    However Phong lighting model is cheaper to compute, and it allows both
+    Gouraud and Phong shading. And Phong lighting model combined with Gouraud shading
+    is very cheap to render, which in effect means that your models render fast.
+
+    We just interpret glTF pbrMetallicRoughness parameter "baseColor" (RGB part)
+    as Phong "diffuseColor". }
+  GltfForcePhongMaterials: Boolean;
+
 implementation
 
 uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
@@ -627,6 +641,49 @@ var
     end;
   end;
 
+  function ReadPhongMaterial(const Material: TPasGLTF.TMaterial): TMaterialNode;
+  var
+    BaseColorFactor: TVector4;
+    BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
+    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
+    MetallicFactor, RoughnessFactor: Single;
+  begin
+    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+
+    Result := TMaterialNode.Create;
+    Result.DiffuseColor := BaseColorFactor.XYZ;
+    Result.Transparency := 1 - BaseColorFactor.W;
+    Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
+
+    // Metallic/roughness conversion idea from X3DOM.
+    // Gives weird artifacts on some samples (Duck, FlightHelmet) so not used now.
+    (*
+    MetallicFactor := Material.PBRMetallicRoughness.MetallicFactor;
+    RoughnessFactor := Material.PBRMetallicRoughness.RoughnessFactor;
+    Result.SpecularColor := Vector3(
+      Lerp(MetallicFactor, 0.04, BaseColorFactor.X),
+      Lerp(MetallicFactor, 0.04, BaseColorFactor.Y),
+      Lerp(MetallicFactor, 0.04, BaseColorFactor.Z)
+    );
+    Result.Shininess := 1 - RoughnessFactor;
+    *)
+
+    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
+      BaseColorTexture, BaseColorTextureChannel);
+    Result.DiffuseTexture := BaseColorTexture;
+    Result.DiffuseTextureChannel := BaseColorTextureChannel;
+
+    ReadTexture(Material.NormalTexture,
+      NormalTexture, NormalTextureChannel);
+    Result.NormalTexture := NormalTexture;
+    Result.NormalTextureChannel := NormalTextureChannel;
+
+    ReadTexture(Material.EmissiveTexture,
+      EmissiveTexture, EmissiveTextureChannel);
+    Result.EmissiveTexture := EmissiveTexture;
+    Result.EmissiveTextureChannel := EmissiveTextureChannel;
+  end;
+
   function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
   var
     BaseColorFactor: TVector4;
@@ -701,6 +758,9 @@ var
 
     if Material.Extensions.Properties['KHR_materials_unlit'] <> nil then
       Result.Material := ReadUnlitMaterial(Material)
+    else
+    if GltfForcePhongMaterials then
+      Result.Material := ReadPhongMaterial(Material)
     else
       Result.Material := ReadPhysicalMaterial(Material);
 
