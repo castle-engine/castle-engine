@@ -39,12 +39,21 @@
   preferred_distance="3.5"
   move_speed="1.75"
 >
+  <!--
   <model>
     <idle   url="idle.castle-anim-frames"  />
     <walk   url="walk.castle-anim-frames"  />
     <attack url="attack.castle-anim-frames"/>
     <die    url="die.castle-anim-frames"   />
     <hurt   url="hurt.castle-anim-frames"  />
+  </model>
+  -->
+  <model url="knight.gltf">
+    <idle   animation_name="Idle"    />
+    <walk   animation_name="Walk"    />
+    <attack animation_name="Attack"  />
+    <die    animation_name="Die"     />
+    <hurt   animation_name="Damaged" />
   </model>
 
   <!-- Note that time="xxx" attribute should be synchronized with attack.castle-anim-frames
