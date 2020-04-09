@@ -646,7 +646,7 @@ var
     BaseColorFactor: TVector4;
     BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
     BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
-    MetallicFactor, RoughnessFactor: Single;
+    // MetallicFactor, RoughnessFactor: Single;
   begin
     BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
 
