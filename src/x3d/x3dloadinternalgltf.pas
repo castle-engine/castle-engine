@@ -385,6 +385,12 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
       TInv := TransformMatrixInverse.Ptr(RootNodeIndex);
       T^ := TMatrix4.Identity;
       TInv^ := TMatrix4.Identity;
+      TransformMatricesMult(T^, TInv^, TVector3.Zero,
+        CurrentRotation[RootNodeIndex],
+        CurrentScale[RootNodeIndex],
+        TVector4.Zero,
+        CurrentTranslation[RootNodeIndex]);
+
       for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
         UpdateChildMatrix(ChildNodeIndex, T^, TInv^);
     end;
@@ -1587,7 +1593,7 @@ var
     Interpolator: TCoordinateInterpolatorNode;
     Route: TX3DRoute;
     I: Integer;
-    // OldParent: TAbstractX3DGroupingNode;
+    OldParent: TAbstractX3DGroupingNode;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -1623,16 +1629,14 @@ var
       """
       Just reparent the mesh under skeleton root.
 
-      TODO: This is wrong, visible on
-      demo-models/blender/skinned_animation/skinned_anim.glb,
-      model gets pushed into floor. }
-    // if (Shape.ParentFieldsCount = 1) and
-    //    (Shape.ParentFieldsNode[0] <> SkeletonRoot) then
-    // begin
-    //   OldParent := Shape.ParentFieldsNode[0] as TAbstractX3DGroupingNode;
-    //   SkeletonRoot.AddChildren(Shape);
-    //   OldParent.RemoveChildren(Shape);
-    // end;
+      Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+    if (Shape.ParentFieldsCount = 1) and
+       (Shape.ParentFieldsNode[0] <> SkeletonRoot) then
+    begin
+      OldParent := Shape.ParentFieldsNode[0] as TAbstractX3DGroupingNode;
+      SkeletonRoot.AddChildren(Shape);
+      OldParent.RemoveChildren(Shape);
+    end;
 
     for Anim in Animations do
     begin
