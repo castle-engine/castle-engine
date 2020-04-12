@@ -264,8 +264,10 @@ type
     and where is it facing. Used by the @link(TCastleTransform.Orientation)
     and @link(TCastleTransform.DefaultOrientation). }
   TOrientationType = (
-    { Orientation sensible for models oriented around Y axis.
-      That is when gravity pulls in -Y and GravityUp vector is +Y.
+    { Orientation sensible for models oriented around Y axis,
+      using default export from Blender to X3D.
+
+      Gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
       This matches default direction/up of OpenGL and VRML/X3D cameras.
@@ -273,11 +275,31 @@ type
       For example, using this value for @link(TCastleTransform.Orientation) (or even
       @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
       Blender X3D exporter, and you let the exporter to make
-      a transformation (to make +Z up into +Y up). This is the default setting.
+      a default transformation (to make +Z up into +Y up). This is the default setting.
       Then you can follow the standard Blender view names
       ("front", "top" and such) when modelling, and Blender tools like
       "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
+
+    { Orientation sensible for models oriented around Y axis,
+      using default export from Blender to glTF or Wavefront OBJ.
+
+      Gravity pulls in -Y and GravityUp vector is +Y.
+      Transformation makes +Z and +Y match (respectively) Direction and Up.
+
+      This does not match default direction/up of OpenGL and VRML/X3D cameras.
+      When viewed from the default direction/up of OpenGL and VRML/X3D cameras,
+      you will see the front of the model,
+      which means that the model's direction is the opposite of the camera direction.
+
+      For example, using this value for @link(TCastleTransform.Orientation) (or even
+      @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
+      Blender glTF or OBJ exporter, and you let the exporter to make
+      a default transformation (to make +Z up into +Y up). This is the default setting.
+      Then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling, and Blender tools like
+      "X-axis mirror" will work best. }
+    otUpYDirectionZ,
 
     { Orientation sensible for models oriented around Z axis.
       Transformation makes -Y and +Z match (respectively) Direction and Up.
@@ -677,10 +699,12 @@ type
       DefaultMiddleHeight = 0.5;
       DefaultDirection: array [TOrientationType] of TVector3 = (
         (Data: (0,  0, -1)),
+        (Data: (0,  0, +1)),
         (Data: (0, -1,  0)),
         (Data: (1,  0,  0))
       );
       DefaultUp: array [TOrientationType] of TVector3 = (
+        (Data: (0, 1, 0)),
         (Data: (0, 1, 0)),
         (Data: (0, 0, 1)),
         (Data: (0, 0, 1))
