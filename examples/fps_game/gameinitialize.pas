@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2018 Michalis Kamburelis.
+  Copyright 2012-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -168,7 +168,7 @@ end;
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
 begin
   ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
-  Player.Camera.MouseLook := ToggleMouseLookButton.Pressed;
+  Player.Navigation.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
 procedure TButtons.ExitButtonClick(Sender: TObject);
@@ -573,10 +573,6 @@ begin
     "placeholders" on the level, see TLevel.Load documentation. }
   Level.Load('example_level');
 
-  { Maybe adjust some rendering properties?
-    (Viewport.Items.MainScene was initialized by Level.Load) }
-  // Viewport.Items.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
-
   { Add some buttons }
   Buttons := TButtons.Create(Application);
 
@@ -620,7 +616,7 @@ initialization
   InitializeLog;
 
   { Create a window. }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;
