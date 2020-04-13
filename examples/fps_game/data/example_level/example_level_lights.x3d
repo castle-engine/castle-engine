@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
+	<head>
+		<meta name="filename" content="example_level.x3d" />
+		<meta name="generator" content="Blender 2.78 (sub 0)" />
+	</head>
+	<Scene>
+		<Transform DEF="Lamp_003_TRANSFORM"
+		           translation="1.510598 1.961322 89.304077"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_003"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="200.0000" 
+			            location="0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_002_TRANSFORM"
+		           translation="-16.126831 5.443605 55.235947"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_002"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="200.0000" 
+			            location="0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_001_TRANSFORM"
+		           translation="14.323019 5.443605 55.235947"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_001"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="200.0000" 
+			            location="0.0000 0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_TRANSFORM"
+		           translation="-11.901731 18.696014 -12.657037"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="200.0000" 
+			            location="0.0000 -0.0000 -0.0000"
+			            />
+		</Transform>
+	</Scene>
+</X3D>
