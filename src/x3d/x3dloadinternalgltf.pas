@@ -142,6 +142,8 @@ type
     Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node that are TShapeNode should have skinning applied. }
     Shapes: TAbstractX3DGroupingNode;
+    { Immediate parent of the Shapes node (it always has only one parent). }
+    ShapesParent: TAbstractX3DGroupingNode;
   end;
 
   TSkinToInitializeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinToInitialize>;
@@ -1198,8 +1200,10 @@ var
       // Shapes.FdChildren.Add(UncollidableShapes);
 
       // SkinToInitialize.Shapes := UncollidableShapes;
+      // SkinToInitialize.ShapesParent := Shapes;
 
       SkinToInitialize.Shapes := Shapes;
+      SkinToInitialize.ShapesParent := Transform;
       SkinToInitialize.Skin := Skin;
     end;
 
@@ -1593,7 +1597,6 @@ var
     Interpolator: TCoordinateInterpolatorNode;
     Route: TX3DRoute;
     I: Integer;
-    OldParent: TAbstractX3DGroupingNode;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -1620,22 +1623,6 @@ var
         Shape.Geometry.NiceName
       ]);
       Exit;
-    end;
-
-    { To satisfy glTF requirements
-      """
-      Client implementations should apply only the transform of the skeleton root
-      node to the skinned mesh while ignoring the transform of the skinned mesh node.
-      """
-      Just reparent the mesh under skeleton root.
-
-      Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
-    if (Shape.ParentFieldsCount = 1) and
-       (Shape.ParentFieldsNode[0] <> SkeletonRoot) then
-    begin
-      OldParent := Shape.ParentFieldsNode[0] as TAbstractX3DGroupingNode;
-      SkeletonRoot.AddChildren(Shape);
-      OldParent.RemoveChildren(Shape);
     end;
 
     for Anim in Animations do
@@ -1667,8 +1654,7 @@ var
   end;
 
   { Apply Skin to deform shapes list. }
-  procedure ReadSkin(const Skin: TPasGLTF.TSkin;
-    const Shapes: TAbstractX3DGroupingNode;
+  procedure ReadSkin(const SkinToInitialize: TSkinToInitialize;
     const ParentGroup: TAbstractX3DGroupingNode);
   var
     SkeletonRootIndex: Integer;
@@ -1676,7 +1662,12 @@ var
     Joints: TX3DNodeList;
     InverseBindMatrices: TMatrix4List;
     I: Integer;
+    Skin: TPasGLTF.TSkin;
+    Shapes: TAbstractX3DGroupingNode;
   begin
+    Skin := SkinToInitialize.Skin;
+    Shapes := SkinToInitialize.Shapes;
+
     SkeletonRootIndex := Skin.Skeleton;
     if SkeletonRootIndex = -1 then
       SkeletonRoot := Result // root node created by LoadGLTF
@@ -1728,6 +1719,21 @@ var
 
       JointMatrix.Count := Joints.Count;
 
+      { To satisfy glTF requirements
+        """
+        Client implementations should apply only the transform of the skeleton root
+        node to the skinned mesh while ignoring the transform of the skinned mesh node.
+        """
+        Just reparent the meshes under skeleton root.
+
+        Testcase: demo-models/blender/skinned_animation/skinned_anim.glb . }
+      if SkinToInitialize.ShapesParent <> SkeletonRoot then
+      begin
+        SkeletonRoot.AddChildren(Shapes);
+        SkinToInitialize.ShapesParent.RemoveChildren(Shapes);
+        SkinToInitialize.ShapesParent := SkeletonRoot;
+      end;
+
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
           CalculateSkinInterpolators(TShapeNode(Shapes.FdChildren[I]),
@@ -1751,7 +1757,7 @@ var
     AnimationSampler.TransformNodesGltf := Document.Nodes;
 
     for SkinToInitialize in SkinsToInitialize do
-      ReadSkin(SkinToInitialize.Skin, SkinToInitialize.Shapes, ParentGroup);
+      ReadSkin(SkinToInitialize, ParentGroup);
   end;
 
 var
