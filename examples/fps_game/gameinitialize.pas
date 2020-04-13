@@ -504,9 +504,9 @@ begin
 
   { Initialize ExtraViewport.Camera to nicely see the level from above. }
   ExtraViewport.Camera.SetView(
-    { position } Vector3(0, 55, 44),
+    { position } Vector3(0, 55, -44),
     { direction } Vector3(0, -1, 0),
-    { up } Vector3(0, 0, -1), false
+    { up } Vector3(0, 0, 1), false
   );
   { Allow user to actually edit this view, e.g. by mouse scroll. }
   ExtraViewport.NavigationType := ntExamine;
