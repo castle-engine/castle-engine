@@ -3709,7 +3709,15 @@ begin
       Note that we assume X3D exporter from Blender >= 2.57.
       Earlier Blender X3D exporters were a little different (it seems,
       probably because of mesh splitting added in 2.57),
-      we don't handle them. }
+      we don't handle them.
+
+      This also works for glTF exporter in Blender 2.82a,
+      imported to X3D nodes by CGE.
+      In this case, the name comes from Blender mesh name (not Blender object name),
+      and has no prefixes/suffixes.
+      It is still in GeometryGrandGrandParentNodeName, because of how
+      x3dloadinternalgltf organizes data.
+    }
 
     // not needed:
     // BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNodeName, false);
