@@ -3716,7 +3716,7 @@ begin
       In this case, the name comes from Blender mesh name (not Blender object name),
       and has no prefixes/suffixes.
       It is still in GeometryGrandGrandParentNodeName, because of how
-      x3dloadinternalgltf organizes data.
+      X3DLoadInternalGltf organizes data.
     }
 
     // not needed:

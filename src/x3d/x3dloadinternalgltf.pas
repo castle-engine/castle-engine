@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Load 3D models in the glTF 2.0 format (@link(LoadGLTF)). }
-unit X3DLoadInternalGLTF;
+{ Load 3D models in the glTF 2.0 format (@link(LoadGltf)). }
+unit X3DLoadInternalGltf;
 
 {$I castleconf.inc}
 
@@ -23,27 +23,13 @@ interface
 uses Classes,
   X3DNodes, X3DFields;
 
-{ Load 3D model in the GLTF format, converting it to an X3D nodes graph.
-  This routine is internally used by the @link(LoadNode) to load an GLTF file.
+{ Load 3D model in the Gltf format, converting it to an X3D nodes graph.
+  This routine is internally used by the @link(LoadNode) to load an Gltf file.
 
   The overloaded version without an explicit Stream will open the URL
   using @link(Download). }
-function LoadGLTF(const URL: string): TX3DRootNode;
-function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
-
-var
-  { Makes model loaded from glTF use Phong materials (TMaterialNode) instead of
-    Physically-Based Rendering materials (TPhysicalMaterialNode).
-
-    Phong is a worse lighting model in general (less realistic, and most authoring
-    tools now expose parameters closer to PBR, like Blender).
-    However Phong lighting model is cheaper to compute, and it allows both
-    Gouraud and Phong shading. And Phong lighting model combined with Gouraud shading
-    is very cheap to render, which in effect means that your models render fast.
-
-    We just interpret glTF pbrMetallicRoughness parameter "baseColor" (RGB part)
-    as Phong "diffuseColor". }
-  GltfForcePhongMaterials: Boolean;
+function LoadGltf(const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
 
 implementation
 
@@ -51,7 +37,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
-  X3DLoadInternalUtils;
+  CastleLoadGltf, X3DLoadInternalUtils;
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -412,10 +398,10 @@ begin
   UpdateMatrix;
 end;
 
-{ LoadGLTF ------------------------------------------------------------------- }
+{ LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGLTF(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
 var
   BaseUrl: String;
   Document: TPasGLTF.TDocument;
@@ -1670,7 +1656,7 @@ var
 
     SkeletonRootIndex := Skin.Skeleton;
     if SkeletonRootIndex = -1 then
-      SkeletonRoot := Result // root node created by LoadGLTF
+      SkeletonRoot := Result // root node created by LoadGltf
     else
     begin
       if not Between(SkeletonRootIndex, 0, Nodes.Count - 1) then
@@ -1827,7 +1813,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadGLTF(const URL: string): TX3DRootNode;
+function LoadGltf(const URL: string): TX3DRootNode;
 var
   Stream: TStream;
 begin
@@ -1835,7 +1821,7 @@ begin
     otherwise reading glTF from Android assets (TReadAssetStream) would fail. }
   Stream := Download(URL, [soForceMemoryStream]);
   try
-    Result := LoadGLTF(Stream, URL);
+    Result := LoadGltf(Stream, URL);
   finally FreeAndNil(Stream) end;
 end;
 

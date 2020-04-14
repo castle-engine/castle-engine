@@ -100,7 +100,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="692">
+    <Files Count="693">
       <Item1>
         <Filename Value="../src/3d/castleboxes.pas"/>
         <UnitName Value="CastleBoxes"/>
@@ -2578,7 +2578,7 @@ See https://castle-engine.io/license.php for details.
       </Item615>
       <Item616>
         <Filename Value="../src/x3d/x3dloadinternalgltf.pas"/>
-        <UnitName Value="X3DLoadInternalGLTF"/>
+        <UnitName Value="X3DLoadInternalGltf"/>
       </Item616>
       <Item617>
         <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
@@ -2885,6 +2885,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castletestfairy.pas"/>
         <UnitName Value="CastleTestFairy"/>
       </Item692>
+      <Item693>
+        <Filename Value="../src/x3d/castleloadgltf.pas"/>
+        <UnitName Value="CastleLoadGltf"/>
+      </Item693>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

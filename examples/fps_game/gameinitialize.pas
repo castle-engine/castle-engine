@@ -30,7 +30,8 @@ uses SysUtils, Classes,
   CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
+  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
+  CastleLoadGltf;
 
 var
   Window: TCastleWindowBase;
@@ -461,6 +462,10 @@ begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
+
+  { force using Phong lighting model instead of PBR (physically-based rendering) model.
+    Faster, less realistic. }
+  // GltfForcePhongMaterials := true;
 
   { Load user preferences file.
     You can use it for your own user persistent data
