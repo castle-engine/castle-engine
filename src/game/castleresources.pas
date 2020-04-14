@@ -32,19 +32,21 @@ type
   { Animation defined by T3DResource. }
   T3DResourceAnimation = class
   private
-    FName: string;
-    FRequired: boolean;
-    FOwner: T3DResource;
-    FSceneForAnimation: TCastleScene;
-    FDuration: Single;
-    FURL: string;
-    FAnimationName: string;
-
-    LastForcedScene: TCastleScene;
-    LastForcedAnimationName: string;
-    LastForcedLoop: boolean;
-    LastForcedActualTime: TFloatTime;
-
+    type
+      TSceneState = record
+        ForcedAnimationName: string;
+        ForcedLoop: boolean;
+        ForcedActualTime: TFloatTime;
+      end;
+    var
+      FName: string;
+      FRequired: boolean;
+      FOwner: T3DResource;
+      FSceneForAnimation: TCastleScene;
+      FSceneForAnimationState: TSceneState;
+      FDuration: Single;
+      FURL: string;
+      FAnimationName: string;
     procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
@@ -162,6 +164,7 @@ type
     FModelURL: string;
     { Model loaded from ModelURL }
     Model: TCastleScene;
+    ModelState: T3DResourceAnimation.TSceneState;
   protected
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
@@ -467,20 +470,12 @@ var
 
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
-var
-  GoodAnimationName: string;
-  ActualTime: TFloatTime;
-  ForceNecessary: boolean;
-begin
-  if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation
-  else
-  if Owner.Model <> nil then
-    Result := Owner.Model
-  else
-    Result := nil;
 
-  if Result <> nil then
+  procedure ForceTime(const Scene: TCastleScene; var SceneState: TSceneState);
+  var
+    GoodAnimationName: string;
+    ActualTime: TFloatTime;
+    ForceNecessary: boolean;
   begin
     if AnimationName <> '' then
       GoodAnimationName := AnimationName
@@ -491,7 +486,8 @@ begin
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',
     //     [GoodAnimationName, Owner.Name]);
 
-    { Calculate Time with looping/clamping applied.
+    { Calculate Time with looping/clamping applied, because we want to have
+      ForceNecessary = false as often as possible (to avoid doing work).
       Test Duration <> 0 to avoid dividing by 0 in FloatModulo(Time, 0)
       (testcase: fps_game debug build on Android) }
     if Loop and (Duration <> 0) then
@@ -501,17 +497,15 @@ begin
 
     // call (costly) ForceAnimationPose only if necessary
     ForceNecessary :=
-      (LastForcedScene <> Result) or
-      (LastForcedAnimationName <> AnimationName) or
-      (LastForcedLoop <> Loop) or
-      (LastForcedActualTime <> ActualTime);
+      (SceneState.ForcedAnimationName <> GoodAnimationName) or
+      (SceneState.ForcedLoop <> Loop) or
+      (SceneState.ForcedActualTime <> ActualTime);
     if ForceNecessary then
     begin
-      LastForcedScene := Result;
-      LastForcedAnimationName := AnimationName;
-      LastForcedLoop := Loop;
-      LastForcedActualTime := ActualTime;
-      Result.ForceAnimationPose(GoodAnimationName, Time, Loop);
+      SceneState.ForcedAnimationName := GoodAnimationName;
+      SceneState.ForcedLoop := Loop;
+      SceneState.ForcedActualTime := ActualTime;
+      Scene.ForceAnimationPose(GoodAnimationName, ActualTime, Loop);
     end;
 
     {$ifdef STATISTICS_FORCING_OPTIMIZATION}
@@ -524,14 +518,29 @@ begin
         [Necessary, Avoided, Avoided / (Necessary + Avoided)]);
     {$endif}
   end;
+
+begin
+  if FSceneForAnimation <> nil then
+  begin
+    ForceTime(FSceneForAnimation, FSceneForAnimationState);
+    Result := FSceneForAnimation;
+  end else
+  if Owner.Model <> nil then
+  begin
+    ForceTime(Owner.Model, Owner.ModelState);
+    Result := Owner.Model;
+  end else
+    Result := nil;
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
 begin
   if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation.BoundingBox else
+    Result := FSceneForAnimation.BoundingBox
+  else
   if Owner.Model <> nil then
-    Result := Owner.Model.BoundingBox else
+    Result := Owner.Model.BoundingBox
+  else
     { animation 3D model not loaded }
     Result := TBox3D.Empty;
 end;
