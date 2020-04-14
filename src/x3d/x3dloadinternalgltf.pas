@@ -1217,7 +1217,7 @@ var
 
       Transform := TTransformNode.Create;
       Transform.X3DName := Node.Name;
-      // needs name, to save to file animations with ROUTEs to this node
+      { Assign name to more easily recognize this in X3D output. }
       if Transform.X3DName = '' then
         Transform.X3DName := 'Node' + IntToStr(NodeIndex);
       Transform.Translation := Translation;
@@ -1407,9 +1407,7 @@ var
 
     TimeSensor := TTimeSensorNode.Create;
     if Animation.Name = '' then
-      { Needs a name, otherwise
-        1. TCastleSceneCore.AnimationsList ignores this,
-        2. saving ROUTEs using it to a file would be impossible }
+      { Needs a name, otherwise TCastleSceneCore.AnimationsList would ignore it. }
       TimeSensor.X3DName := 'unnamed'
     else
       TimeSensor.X3DName := Animation.Name;
