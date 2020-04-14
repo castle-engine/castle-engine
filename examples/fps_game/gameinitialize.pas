@@ -465,7 +465,7 @@ begin
 
   { force using Phong lighting model instead of PBR (physically-based rendering) model.
     Faster, less realistic. }
-  // GltfForcePhongMaterials := true;
+  GltfForcePhongMaterials := true;
 
   { Load user preferences file.
     You can use it for your own user persistent data
