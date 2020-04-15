@@ -233,6 +233,15 @@
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
 
+    { Node's "normal" field where you can place TCoordinateNode, or @nil if not available. }
+    function NormalField: TSFNode; virtual;
+
+    { Returns normal vectors that are specified explicitly.
+      The vectors are taken from the Normal node inside our FdNormal field.
+      In case of problems (no Normal node specified, invalid node specified etc.)
+      returns @nil. }
+    function InternalNormal: TVector3List;
+
     { Node's list of coordinate indexes.
 
       In base TAbstractGeometryNode class this always returns @nil.
@@ -533,14 +542,9 @@
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
     function InternalFogCoord: TMFFloat; override;
-
-    { Returns normal vectors that are specified explicitly.
-      The vectors are taken from the Normal node inside our FdNormal field.
-      In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
-    function InternalNormal: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
@@ -1265,6 +1269,20 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.NormalField: TSFNode;
+begin
+  Result := nil;
+end;
+
+function TAbstractGeometryNode.InternalNormal: TVector3List;
+begin
+  if (NormalField <> nil) and
+     (NormalField.Value is TNormalNode) then
+    Result := TNormalNode(NormalField.Value).FdVector.Items
+  else
+    Result := nil;
+end;
+
 { Normal X3D spec nodes ------------------------------------------------------ }
 
 procedure TAbstractComposedGeometryNode.CreateNode;
@@ -1368,12 +1386,9 @@ begin
   Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
-function TAbstractComposedGeometryNode.InternalNormal: TVector3List;
+function TAbstractComposedGeometryNode.NormalField: TSFNode;
 begin
-  if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNormalNode) then
-    Result := TNormalNode(FdNormal.Value).FdVector.Items else
-    Result := nil;
+  Result := FdNormal;
 end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

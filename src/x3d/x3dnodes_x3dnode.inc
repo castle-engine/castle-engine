@@ -872,6 +872,7 @@
     property Routes [Index: Integer]: TX3DRoute read GetRoutes;
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute);
+    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent);
 
     property ImportsList [Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
@@ -3342,6 +3343,16 @@ begin
   if FRoutes = nil then
     FRoutes := TX3DRouteList.Create(true);
   FRoutes.Add(Value);
+end;
+
+procedure TX3DNode.AddRoute(const Source, Destination: TX3DFieldOrEvent);
+var
+  Route: TX3DRoute;
+begin
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(Source);
+  Route.SetDestinationDirectly(Destination);
+  AddRoute(Route);
 end;
 
 function TX3DNode.GetImports(const Index: Integer): TX3DImport;

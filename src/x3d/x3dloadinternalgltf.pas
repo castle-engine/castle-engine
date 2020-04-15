@@ -1503,10 +1503,14 @@ var
   { Sample animation Anim at time TimeFraction (in 0..1 range)
     to determine how does a skin look like at this moment of time.
     OriginalCoords contains original (not animated) coords.
-    To the AnimatedCoords, we will add OriginalCoords.Count vertexes. }
+    To the AnimatedCoords, we will add OriginalCoords.Count vertexes.
+
+    We also add to AnimatedNormals if they are <> nil.
+    Both OriginalNormals and AnimatedNormals must be nil or both must be <> nil. }
   procedure SampleSkinAnimation(const Anim: TAnimation;
     const TimeFraction: Single;
     const OriginalCoords, AnimatedCoords: TVector3List;
+    const OriginalNormals, AnimatedNormals: TVector3List;
     const Joints: TX3DNodeList; const JointsGltf: TPasGLTF.TSkin.TJoints;
     const InverseBindMatrices: TMatrix4List;
     const SkeletonRootIndex: Integer;
@@ -1518,6 +1522,9 @@ var
     VertexJoints: TVector4Integer;
     VertexWeights: TVector4;
   begin
+    Assert((AnimatedNormals = nil) = (OriginalNormals = nil));
+    Assert((OriginalNormals = nil) or (OriginalNormals.Count = OriginalCoords.Count));
+
     AnimationSampler.Animation := Anim;
     AnimationSampler.SetTime(TimeFraction);
 
@@ -1562,6 +1569,8 @@ var
           JointMatrix.List^[VertexJoints.Data[3]] * VertexWeights.Data[3];
       end;
       AnimatedCoords.Add(SkinMatrix.MultPoint(OriginalCoords[I]));
+      if AnimatedNormals <> nil then
+        AnimatedNormals.Add(SkinMatrix.MultDirection(OriginalNormals[I]));
     end;
   end;
 
@@ -1577,10 +1586,12 @@ var
   var
     CoordField: TSFNode;
     Coord: TCoordinateNode;
+    Normal: TNormalNode;
     Anim: TAnimation;
-    Interpolator: TCoordinateInterpolatorNode;
-    Route: TX3DRoute;
+    CoordInterpolator: TCoordinateInterpolatorNode;
+    NormalInterpolator: TCoordinateInterpolatorNode;
     I: Integer;
+    OriginalNormals, AnimatedNormals: TVector3List;
   begin
     CoordField := Shape.Geometry.CoordField;
     if CoordField = nil then
@@ -1600,6 +1611,21 @@ var
     end;
     Coord := CoordField.Value as TCoordinateNode;
 
+    Normal := nil;
+    if (Shape.Geometry.NormalField <> nil) and
+       (Shape.Geometry.NormalField.Value is TNormalNode) then
+    begin
+      Normal := TNormalNode(Shape.Geometry.NormalField.Value);
+      // SampleSkinAnimation assumes that normals and coords counts are equal
+      if Normal.FdVector.Count <> Coord.FdPoint.Count then
+      begin
+        WritelnWarning('When animating using skin geometry %s, coords and normals counts different', [
+          Shape.Geometry.NiceName
+        ]);
+        Normal := nil;
+      end;
+    end;
+
     if (Shape.Geometry.InternalSkinJoints = nil) or
        (Shape.Geometry.InternalSkinWeights = nil) then
     begin
@@ -1611,29 +1637,44 @@ var
 
     for Anim in Animations do
     begin
-      Interpolator := TCoordinateInterpolatorNode.Create;
-      Interpolator.X3DName := 'SkinInterpolator_' + Anim.TimeSensor.X3DName;
-      GatherAnimationKeysToSample(Interpolator.FdKey.Items, Anim.Interpolators);
-      for I := 0 to Interpolator.FdKey.Items.Count - 1 do
+      CoordInterpolator := TCoordinateInterpolatorNode.Create;
+      CoordInterpolator.X3DName := 'SkinCoordInterpolator_' + Anim.TimeSensor.X3DName;
+      GatherAnimationKeysToSample(CoordInterpolator.FdKey.Items, Anim.Interpolators);
+
+      ParentGroup.AddChildren(CoordInterpolator);
+      ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, CoordInterpolator.EventSet_fraction);
+      ParentGroup.AddRoute(CoordInterpolator.EventValue_changed, Coord.FdPoint);
+
+      if Normal <> nil then
       begin
-        SampleSkinAnimation(Anim, Interpolator.FdKey.Items[I],
-          Coord.FdPoint.Items, Interpolator.FdKeyValue.Items,
+        NormalInterpolator := TCoordinateInterpolatorNode.Create;
+        NormalInterpolator.X3DName := 'SkinNormalInterpolator_' + Anim.TimeSensor.X3DName;
+        //GatherAnimationKeysToSample(NormalInterpolator.FdKey.Items, Anim.Interpolators);
+        // faster:
+        NormalInterpolator.FdKey.Assign(CoordInterpolator.FdKey);
+
+        ParentGroup.AddChildren(NormalInterpolator);
+        ParentGroup.AddRoute(Anim.TimeSensor.EventFraction_changed, NormalInterpolator.EventSet_fraction);
+        ParentGroup.AddRoute(NormalInterpolator.EventValue_changed, Normal.FdVector);
+
+        OriginalNormals := Normal.FdVector.Items;
+        AnimatedNormals := NormalInterpolator.FdKeyValue.Items;
+      end else
+      begin
+        OriginalNormals := nil;
+        AnimatedNormals := nil;
+      end;
+
+      for I := 0 to CoordInterpolator.FdKey.Items.Count - 1 do
+      begin
+        SampleSkinAnimation(Anim, CoordInterpolator.FdKey.Items[I],
+          Coord.FdPoint.Items, CoordInterpolator.FdKeyValue.Items,
+          OriginalNormals, AnimatedNormals,
           Joints, JointsGltf, InverseBindMatrices,
           SkeletonRootIndex,
           Shape.Geometry.InternalSkinJoints,
           Shape.Geometry.InternalSkinWeights);
       end;
-      ParentGroup.AddChildren(Interpolator);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Anim.TimeSensor.EventFraction_changed);
-      Route.SetDestinationDirectly(Interpolator.EventSet_fraction);
-      ParentGroup.AddRoute(Route);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Interpolator.EventValue_changed);
-      Route.SetDestinationDirectly(Coord.FdPoint);
-      ParentGroup.AddRoute(Route);
     end;
   end;
 
