@@ -256,6 +256,10 @@ type
 
     { Make box larger, if necessary, to contain given Point. }
     procedure Include(const Point: TVector3); overload;
+    procedure Include(const Points: TVector3List); overload;
+
+    { Make a box that contains given points. }
+    class function FromPoints(const Points: TVector3List): TBox3D; static;
 
     { Three box sizes. }
     function Sizes: TVector3; deprecated 'use Size';
@@ -1026,6 +1030,55 @@ begin
     MaxVar(Data[1].Data[1], Point.Data[1]);
     MinVar(Data[0].Data[2], Point.Data[2]);
     MaxVar(Data[1].Data[2], Point.Data[2]);
+  end;
+end;
+
+procedure TBox3D.Include(const Points: TVector3List);
+var
+  V: TVector3;
+  I, StartIndex: Integer;
+begin
+  if IsEmpty then
+  begin
+    Data[0] := Points.List^[0];
+    Data[1] := Points.List^[0];
+    StartIndex := 1;
+  end else
+    StartIndex := 0;
+
+  for I := StartIndex to Points.Count - 1 do
+  begin
+    V := Points.List^[I];
+    MinVar(Data[0].Data[0], V.Data[0]);
+    MaxVar(Data[1].Data[0], V.Data[0]);
+    MinVar(Data[0].Data[1], V.Data[1]);
+    MaxVar(Data[1].Data[1], V.Data[1]);
+    MinVar(Data[0].Data[2], V.Data[2]);
+    MaxVar(Data[1].Data[2], V.Data[2]);
+  end;
+end;
+
+class function TBox3D.FromPoints(const Points: TVector3List): TBox3D;
+var
+  V: TVector3;
+  I: Integer;
+begin
+  if Points.Count = 0 then
+    Result := TBox3D.Empty
+  else
+  begin
+    Result.Data[0] := Points.List^[0];
+    Result.Data[1] := Points.List^[0];
+    for I := 1 to Points.Count - 1 do
+    begin
+      V := Points.List^[I];
+      MinVar(Result.Data[0].Data[0], V.Data[0]);
+      MaxVar(Result.Data[1].Data[0], V.Data[0]);
+      MinVar(Result.Data[0].Data[1], V.Data[1]);
+      MaxVar(Result.Data[1].Data[1], V.Data[1]);
+      MinVar(Result.Data[0].Data[2], V.Data[2]);
+      MaxVar(Result.Data[1].Data[2], V.Data[2]);
+    end;
   end;
 end;
 

@@ -135,19 +135,26 @@ function TAbstractGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
 var
   C: TMFVec3f;
 begin
+  if (State.ShapeNode <> nil) and
+     (not State.ShapeNode.BBox.IsEmpty) then
+  begin
+    Result := State.ShapeNode.BBox.Transform(State.Transform); // use precalculated bounding box, fastest
+  end else
   if InternalCoord(State, C) then
   begin
     if C <> nil then
     begin
       if CoordIndexField <> nil then
-        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndexField) else
+        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndexField)
+      else
         Result := Coords_BoundingBox(State, C);
     end else
       Result := TBox3D.Empty;
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := CallProxyBoundingBox(ProxyGeometry, ProxyState) else
+      Result := CallProxyBoundingBox(ProxyGeometry, ProxyState)
+    else
       Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transform);
   end;
 end;
@@ -164,6 +171,11 @@ var
   NewState: TX3DGraphTraverseState;
   C: TMFVec3f;
 begin
+  if (State.ShapeNode <> nil) and
+     (not State.ShapeNode.BBox.IsEmpty) then
+  begin
+    Result := State.ShapeNode.BBox; // use precalculated bounding box, fastest
+  end else
   if InternalCoord(State, C) then
   begin
     if C <> nil then

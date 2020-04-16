@@ -37,7 +37,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
-  CastleLoadGltf, X3DLoadInternalUtils;
+  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes;
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -1043,6 +1043,7 @@ var
         Coord := TCoordinateNode.Create;
         AccessorToVector3(Primitive.Attributes[AttributeName], Coord.FdPoint, true);
         Geometry.CoordField.Value := Coord;
+        Shape.BBox := TBox3D.FromPoints(Coord.FdPoint.Items);
       end else
       if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
       begin
@@ -1675,6 +1676,9 @@ var
           Shape.Geometry.InternalSkinJoints,
           Shape.Geometry.InternalSkinWeights);
       end;
+
+      // update Shape.BBox, helpful for optimization later
+      Shape.BBox := Shape.BBox + TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items);
     end;
   end;
 
