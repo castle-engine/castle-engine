@@ -26,10 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-{$ifndef CASTLE_SLIM_NODES}
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
@@ -37,10 +35,8 @@
     function GetRender: Boolean;
     procedure SetRender(const Value: Boolean);
   public
-{$ifndef CASTLE_SLIM_NODES}
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "octreeTriangles". } { }
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
@@ -54,7 +50,6 @@
 
 { TAbstractShapeNode ----------------------------------------------- }
 
-{$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetBBox: TBox3D;
 begin
   Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
@@ -69,7 +64,6 @@ begin
   FdBBoxSize.Send(ValueSize);
 end;
 
-{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetOctreeTriangles: TKambiOctreePropertiesNode;
 begin
