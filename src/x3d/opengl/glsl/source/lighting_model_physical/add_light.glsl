@@ -53,7 +53,10 @@ uniform float castle_LightSource<Light>Radius;
 
 // In case of OpenGLES, all shader code is glued, so this is already declared
 #ifndef GL_ES
-vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view);
+vec3 getPointShade(const in vec3 pointToLight,
+  const in MaterialInfo materialInfo,
+  const in vec3 normal,
+  const in vec3 view);
 #endif
 
 /* Add light contribution.

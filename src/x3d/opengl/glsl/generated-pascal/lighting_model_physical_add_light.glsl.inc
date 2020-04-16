@@ -55,7 +55,10 @@
 '' + LineEnding +
 '// In case of OpenGLES, all shader code is glued, so this is already declared' + LineEnding +
 '#ifndef GL_ES' + LineEnding +
-'vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view);' + LineEnding +
+'vec3 getPointShade(const in vec3 pointToLight,' + LineEnding +
+'  const in MaterialInfo materialInfo,' + LineEnding +
+'  const in vec3 normal,' + LineEnding +
+'  const in vec3 view);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '/* Add light contribution.' + LineEnding +

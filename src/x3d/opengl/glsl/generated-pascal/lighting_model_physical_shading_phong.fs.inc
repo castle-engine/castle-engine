@@ -48,7 +48,7 @@
 '' + LineEnding +
 '// Calculate AngularInfo structure' + LineEnding +
 '// pointToLight is assumed to be already normalized.' + LineEnding +
-'AngularInfo getAngularInfo(vec3 pointToLight, vec3 normal, vec3 view)' + LineEnding +
+'AngularInfo getAngularInfo(const in vec3 pointToLight, const in vec3 normal, const in vec3 view)' + LineEnding +
 '{' + LineEnding +
 '  // Standard one-letter names' + LineEnding +
 '  vec3 n = normalize(normal);           // Outward direction of surface point' + LineEnding +
@@ -74,14 +74,14 @@
 '' + LineEnding +
 '// Lambert lighting' + LineEnding +
 '// see https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/' + LineEnding +
-'vec3 diffuse(MaterialInfo materialInfo)' + LineEnding +
+'vec3 diffuse(const in MaterialInfo materialInfo)' + LineEnding +
 '{' + LineEnding +
 '  return materialInfo.diffuseColor / M_PI;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 '// The following equation models the Fresnel reflectance term of the spec equation (aka F())' + LineEnding +
 '// Implementation of fresnel from [4], Equation 15' + LineEnding +
-'vec3 specularReflection(MaterialInfo materialInfo, AngularInfo angularInfo)' + LineEnding +
+'vec3 specularReflection(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)' + LineEnding +
 '{' + LineEnding +
 '  return materialInfo.reflectance0 + (materialInfo.reflectance90 - materialInfo.reflectance0) * pow(clamp(1.0 - angularInfo.VdotH, 0.0, 1.0), 5.0);' + LineEnding +
 '}' + LineEnding +
@@ -91,7 +91,7 @@
 '// see Eric Heitz. 2014. Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs. Journal of Computer Graphics Techniques, 3' + LineEnding +
 '// see Real-Time Rendering. Page 331 to 336.' + LineEnding +
 '// see https://google.github.io/filament/Filament.md.html#materialsystem/specularbrdf/geometricshadowing(specularg)' + LineEnding +
-'float visibilityOcclusion(MaterialInfo materialInfo, AngularInfo angularInfo)' + LineEnding +
+'float visibilityOcclusion(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)' + LineEnding +
 '{' + LineEnding +
 '  float NdotL = angularInfo.NdotL;' + LineEnding +
 '  float NdotV = angularInfo.NdotV;' + LineEnding +
@@ -111,7 +111,7 @@
 '// The following equation(s) model the distribution of microfacet normals across the area being drawn (aka D())' + LineEnding +
 '// Implementation from "Average Irregularity Representation of a Roughened Surface for Ray Reflection" by T. S. Trowbridge, and K. P. Reitz' + LineEnding +
 '// Follows the distribution function recommended in the SIGGRAPH 2013 course notes from EPIC Games [1], Equation 3.' + LineEnding +
-'float microfacetDistribution(MaterialInfo materialInfo, AngularInfo angularInfo)' + LineEnding +
+'float microfacetDistribution(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)' + LineEnding +
 '{' + LineEnding +
 '  float alphaRoughnessSq = materialInfo.alphaRoughness * materialInfo.alphaRoughness;' + LineEnding +
 '  float f = (angularInfo.NdotH * alphaRoughnessSq - angularInfo.NdotH) * angularInfo.NdotH + 1.0;' + LineEnding +
@@ -129,7 +129,10 @@
 '   already normalized.' + LineEnding +
 '   IOW, "normalize(- vertex_eye)" because camera position is zero in eye-space.' + LineEnding +
 '*/' + LineEnding +
-'vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view)' + LineEnding +
+'vec3 getPointShade(const in vec3 pointToLight,' + LineEnding +
+'  const in MaterialInfo materialInfo,' + LineEnding +
+'  const in vec3 normal,' + LineEnding +
+'  const in vec3 view)' + LineEnding +
 '{' + LineEnding +
 '  AngularInfo angularInfo = getAngularInfo(pointToLight, normal, view);' + LineEnding +
 '' + LineEnding +

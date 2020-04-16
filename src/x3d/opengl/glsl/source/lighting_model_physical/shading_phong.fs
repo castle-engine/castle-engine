@@ -46,7 +46,7 @@ const float M_PI = 3.141592653589793;
 
 // Calculate AngularInfo structure
 // pointToLight is assumed to be already normalized.
-AngularInfo getAngularInfo(vec3 pointToLight, vec3 normal, vec3 view)
+AngularInfo getAngularInfo(const in vec3 pointToLight, const in vec3 normal, const in vec3 view)
 {
   // Standard one-letter names
   vec3 n = normalize(normal);           // Outward direction of surface point
@@ -72,14 +72,14 @@ AngularInfo getAngularInfo(vec3 pointToLight, vec3 normal, vec3 view)
 
 // Lambert lighting
 // see https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
-vec3 diffuse(MaterialInfo materialInfo)
+vec3 diffuse(const in MaterialInfo materialInfo)
 {
   return materialInfo.diffuseColor / M_PI;
 }
 
 // The following equation models the Fresnel reflectance term of the spec equation (aka F())
 // Implementation of fresnel from [4], Equation 15
-vec3 specularReflection(MaterialInfo materialInfo, AngularInfo angularInfo)
+vec3 specularReflection(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)
 {
   return materialInfo.reflectance0 + (materialInfo.reflectance90 - materialInfo.reflectance0) * pow(clamp(1.0 - angularInfo.VdotH, 0.0, 1.0), 5.0);
 }
@@ -89,7 +89,7 @@ vec3 specularReflection(MaterialInfo materialInfo, AngularInfo angularInfo)
 // see Eric Heitz. 2014. Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs. Journal of Computer Graphics Techniques, 3
 // see Real-Time Rendering. Page 331 to 336.
 // see https://google.github.io/filament/Filament.md.html#materialsystem/specularbrdf/geometricshadowing(specularg)
-float visibilityOcclusion(MaterialInfo materialInfo, AngularInfo angularInfo)
+float visibilityOcclusion(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)
 {
   float NdotL = angularInfo.NdotL;
   float NdotV = angularInfo.NdotV;
@@ -109,7 +109,7 @@ float visibilityOcclusion(MaterialInfo materialInfo, AngularInfo angularInfo)
 // The following equation(s) model the distribution of microfacet normals across the area being drawn (aka D())
 // Implementation from "Average Irregularity Representation of a Roughened Surface for Ray Reflection" by T. S. Trowbridge, and K. P. Reitz
 // Follows the distribution function recommended in the SIGGRAPH 2013 course notes from EPIC Games [1], Equation 3.
-float microfacetDistribution(MaterialInfo materialInfo, AngularInfo angularInfo)
+float microfacetDistribution(const in MaterialInfo materialInfo, const in AngularInfo angularInfo)
 {
   float alphaRoughnessSq = materialInfo.alphaRoughness * materialInfo.alphaRoughness;
   float f = (angularInfo.NdotH * alphaRoughnessSq - angularInfo.NdotH) * angularInfo.NdotH + 1.0;
@@ -127,7 +127,10 @@ float microfacetDistribution(MaterialInfo materialInfo, AngularInfo angularInfo)
    already normalized.
    IOW, "normalize(- vertex_eye)" because camera position is zero in eye-space.
 */
-vec3 getPointShade(vec3 pointToLight, MaterialInfo materialInfo, vec3 normal, vec3 view)
+vec3 getPointShade(const in vec3 pointToLight,
+  const in MaterialInfo materialInfo,
+  const in vec3 normal,
+  const in vec3 view)
 {
   AngularInfo angularInfo = getAngularInfo(pointToLight, normal, view);
 
