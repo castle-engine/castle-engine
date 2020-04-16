@@ -27,23 +27,15 @@
 
   strict private
 {$ifndef CASTLE_SLIM_NODES}
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
 {$endif not CASTLE_SLIM_NODES}
   public
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
 {$ifndef CASTLE_SLIM_NODES}
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 {$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
@@ -65,26 +57,18 @@ begin
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
-function TAbstractX3DGroupingNode.GetBboxCenter: TVector3;
+function TAbstractX3DGroupingNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TAbstractX3DGroupingNode.SetBboxCenter(const Value: TVector3);
+procedure TAbstractX3DGroupingNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-{$endif not CASTLE_SLIM_NODES}
-{$ifndef CASTLE_SLIM_NODES}
-function TAbstractX3DGroupingNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TAbstractX3DGroupingNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif not CASTLE_SLIM_NODES}

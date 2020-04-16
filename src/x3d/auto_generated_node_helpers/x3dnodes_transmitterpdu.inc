@@ -94,10 +94,8 @@
     procedure SetWhichGeometry(const Value: Integer);
     function GetWriteInterval: Single;
     procedure SetWriteInterval(const Value: Single);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "address". } { }
     property Address: String read GetAddress write SetAddress;
@@ -167,10 +165,8 @@
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
     { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -518,24 +514,18 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TTransmitterPduNode.GetBboxCenter: TVector3;
+function TTransmitterPduNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TTransmitterPduNode.SetBboxCenter(const Value: TVector3);
+procedure TTransmitterPduNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TTransmitterPduNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TTransmitterPduNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

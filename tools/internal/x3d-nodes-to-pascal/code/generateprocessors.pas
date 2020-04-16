@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -916,6 +916,7 @@ begin
      (Field.X3DName = 'repeatT') or
      (Field.X3DName = 'cycleInterval') or
      (Field.X3DName = 'linetype') or
+     (Field.X3DName = 'bboxSize') or // this is accounted already by writing out bboxCenter as public BBox
 
      (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'OrthoViewpoint.position') or
@@ -939,9 +940,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.up') or
 
      false // keep this line, to allow easily rearranging lines above
-
-     // TODO: bboxCenter and bboxSize should also be removed from here someday,
-     // we should convert them manually to BBox: TBox3D to support our TBox3D type.
      then
   begin
     WritelnVerbose('Not processing, this field has special implementation: ' + Field.X3DName);
@@ -1023,6 +1021,37 @@ begin
           Field.ConditionsEnd;
       end;
     end;
+  end else
+  if Field.X3DName = 'bboxCenter' then
+  begin
+    { Define BBox property that gets/sets both bboxCenter and bboxSize at the same time }
+    OutputPrivateInterface +=
+      Field.ConditionsBegin +
+      '    function GetBBox: TBox3D;' + NL +
+      '    procedure SetBBox(const Value: TBox3D);' + NL +
+      Field.ConditionsEnd;
+    OutputPublicInterface +=
+      Field.ConditionsBegin +
+      '    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }' + NL +
+      '    property BBox: TBox3D read GetBBox write SetBBox;' + NL +
+      Field.ConditionsEnd;
+    OutputImplementation +=
+      Field.ConditionsBegin +
+      'function ' + Node.PascalType + '.GetBBox: TBox3D;' + NL +
+      'begin' + NL +
+      '  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);' + NL +
+      'end;' + NL +
+      NL +
+      'procedure ' + Node.PascalType + '.SetBBox(const Value: TBox3D);' + NL +
+      'var' + NL +
+      '  ValueCenter, ValueSize: TVector3;' + NL +
+      'begin' + NL +
+      '  Value.ToCenterSize(ValueCenter, ValueSize);' + NL +
+      '  FdBBoxCenter.Send(ValueCenter);' + NL +
+      '  FdBBoxSize.Send(ValueSize);' + NL +
+      'end;' + NL +
+      NL +
+      Field.ConditionsEnd;
   end else
   begin
     if Field.PascalHelperType <> '' then

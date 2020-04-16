@@ -32,10 +32,8 @@
     procedure SetRotation(const Value: TVector4);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "enabled". } { }
     property Enabled: Boolean read GetEnabled write SetEnabled;
@@ -43,10 +41,8 @@
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -84,24 +80,18 @@ begin
   FdTranslation.Send(Value);
 end;
 
-function TAbstractNBodyCollidableNode.GetBboxCenter: TVector3;
+function TAbstractNBodyCollidableNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TAbstractNBodyCollidableNode.SetBboxCenter(const Value: TVector3);
+procedure TAbstractNBodyCollidableNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TAbstractNBodyCollidableNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TAbstractNBodyCollidableNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

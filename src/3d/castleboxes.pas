@@ -549,6 +549,11 @@ type
     class operator {$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
     class operator {$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
     class operator {$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+
+    { Convert from center and size vector. Empty box has size (-1,-1,-1). }
+    class function FromCenterSize(const ACenter, ASize: TVector3): TBox3D; static;
+    { Convert to center and size vector. Empty box has size (-1,-1,-1). }
+    procedure ToCenterSize(out ACenter, ASize: TVector3);
   end;
 
   TBox3DBool = array [boolean] of TVector3;
@@ -2181,6 +2186,24 @@ end;
 class operator TBox3D.{$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D;
 begin
   Result := B.Translate(V);
+end;
+
+class function TBox3D.FromCenterSize(const ACenter, ASize: TVector3): TBox3D;
+begin
+  Result := Box3DAroundPoint(ACenter, ASize);
+end;
+
+procedure TBox3D.ToCenterSize(out ACenter, ASize: TVector3);
+begin
+  if IsEmpty then
+  begin
+    ACenter := TVector3.Zero;
+    ASize := Vector3(-1, -1, -1);
+  end else
+  begin
+    ACenter := Center;
+    ASize := Size;
+  end;
 end;
 
 { Routines ------------------------------------------------------------------- }
