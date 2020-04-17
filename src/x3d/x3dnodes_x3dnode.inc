@@ -1027,7 +1027,6 @@
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); virtual;
 
     { Add to node InterfaceDeclarations given field.
-      Sets the field's exposed to given Exposed parameter, for comfort.
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(AField: TX3DField);
