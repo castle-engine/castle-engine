@@ -95,6 +95,7 @@ type
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
   protected
+    function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
@@ -239,13 +240,9 @@ implementation
 
 { TShapeOctreeNode ---------------------------------------- }
 
-procedure TShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
-var
-  BoxLo, BoxHi: TOctreeSubnodeIndex;
-  SubnodesBox: TBox3D;
-  B0, B1, B2: boolean;
+function TShapeOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
 begin
-  SubnodesBox := ParentTree.ShapesList[ItemIndex].BoundingBox;
+  Result := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
   { We assume below that SubnodesBox is not empty.
     Only such shapes can be added to TShapeOctree. }
@@ -255,8 +252,16 @@ begin
     3 orthogonal planes determined by MiddlePoint then
     this ItemIndex will be said to collide with both sides
     of this plane. }
-  SubnodesBox.ExpandMe(SingleEpsilon);
+  Result.ExpandMe(SingleEpsilon);
+end;
 
+procedure TShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  SubnodesBox: TBox3D;
+  B0, B1, B2: boolean;
+begin
+  SubnodesBox := ItemBoundingBox(ItemIndex);
   SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
   for B0 := BoxLo[0] to BoxHi[0] do

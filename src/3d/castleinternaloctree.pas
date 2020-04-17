@@ -25,6 +25,7 @@
 
     TMyOctreeNode = class(TOctreeNode)
     protected
+      function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
       procedure PutItemIntoSubNodes(ItemIndex: integer); override;
     public
       function ParentTree: TMyOctree;
@@ -38,6 +39,11 @@
     end;
 
   { implementation }
+
+  function TMyOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
+  begin
+    Result := ...;
+  end;
 
   procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
   begin
@@ -110,19 +116,20 @@ type
     FBoundingSphereCenter: TVector3;
 
     FItemsIndices: TIntegerList;
-    FIsLeaf: boolean;
-    StatisticsAdded: boolean;
+    FIsLeaf: Boolean;
+    StatisticsAdded: Boolean;
+    SplitNotSensible: Boolean;
 
     { Neither CreateTreeSubNodes nor CreateLeafItems call
       Items.Free or Subnodes[].Free, that is they don't cleanup after their
       previous calls. If you want, you have to cleanup yourself. }
     { Create TreeSubNodes. }
-    procedure CreateTreeSubNodes(AsLeaves: boolean);
+    procedure CreateTreeSubNodes(AsLeaves: Boolean);
     { Create ItemsIndices. }
     procedure CreateLeafItems;
     procedure FreeAndNilTreeSubNodes;
 
-    procedure SetLeaf(value: boolean);
+    procedure SetLeaf(value: Boolean);
 
     procedure EnumerateCollidingOctreeItems(
       const Frustum: TFrustum;
@@ -130,6 +137,8 @@ type
     procedure StatisticsRemove;
     procedure StatisticsAdd;
   protected
+    function ItemBoundingBox(const ItemIndex: integer): TBox3D; virtual; abstract;
+
     { Insert given index into appropriate subnodes.
       This should call SubNode.AddItem(ItemIndex) for chosen TreeSubNodes
       (maybe all, maybe none). It all depends on what is your definition of
@@ -510,6 +519,7 @@ begin
   if value <> FIsLeaf then
   begin
     StatisticsRemove;
+    SplitNotSensible := false;
     if Value then
     begin
       CreateLeafItems;
@@ -538,9 +548,39 @@ begin
 end;
 
 procedure TOctreeNode.AddItem(ItemIndex: integer);
+
+  { If we would split leaf into non-leaf, can we redistribute the existing
+    items into subleafs sensibly? (If all items would go into all leafs,
+    e.g. because their bboxes are equal, then splitting makes no sense,
+    even when LeafCapacity is reached.) }
+  function SplitSensible: Boolean;
+  var
+    M: TVector3;
+    I: Integer;
+  begin
+    if SplitNotSensible then
+      Exit(false);
+
+    M := MiddlePoint;
+    for I := 0 to ItemsIndices.Count - 1 do
+      if not ItemBoundingBox(ItemsIndices[I]).Contains(M) then
+        Exit(true);
+
+    Result := false;
+    { Cache, to return SplitSensible = false faster next time.
+      This caching relies on the fact that SplitSensible is called only when
+      LeafCapacity is reached. So we have at least LeafCapacity items containing M.
+
+      Otherwise (if SplitSensible was called earlier) then caching this would
+      not be correct. Newly added items could make splitting sensible then. }
+    SplitNotSensible := true;
+  end;
+
 begin
-  if IsLeaf and (ItemsCount = FParentTree.LeafCapacity) and
-    (Depth < FParentTree.MaxDepth) then
+  if IsLeaf and
+    (ItemsCount = FParentTree.LeafCapacity) and
+    (Depth < FParentTree.MaxDepth) and
+    SplitSensible then
     IsLeaf := false;
 
   if not IsLeaf then
