@@ -238,6 +238,16 @@
     {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
   end;
 
+  { Generate events upon receiving a boolean TRUE value. }
+  TValueTriggerNode = class(TAbstractTriggerNode)
+  strict private
+    procedure EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+      const Time: TX3DTime);
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    {$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -574,6 +584,37 @@ begin
   EventTriggerTime.Send(Time.Seconds, Time, Value.InternalPartialSend);
 end;
 
+{ TValueTriggerNode ---------------------------------------------------------- }
+
+constructor TValueTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+begin
+  inherited;
+  FEventTrigger.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTriggerReceive);
+  HasInterfaceDeclarations := AllAccessTypes;
+end;
+
+procedure TValueTriggerNode.EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+  const Time: TX3DTime);
+var
+  B: Boolean;
+  I: Integer;
+  F: TX3DField;
+begin
+  B := (Value as TSFBool).Value;
+  if B and Enabled then
+  begin
+    for I := 0 to FieldsCount - 1 do
+    begin
+      F := Fields[I];
+      { For "dynamic" (coming from "interface declaration") and exposed fields,
+        send an event with their current value. }
+      if (F.ParentInterfaceDeclaration <> nil) and
+         (F.EventOut <> nil) then
+        F.EventOut.Send(F, Time {TODO:, Value.InternalPartialSend} );
+    end;
+  end;
+end;
+
 procedure RegisterEventUtilitiesNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -583,7 +624,8 @@ begin
     TBooleanTriggerNode,
     TIntegerSequencerNode,
     TIntegerTriggerNode,
-    TTimeTriggerNode
+    TTimeTriggerNode,
+    TValueTriggerNode
   ]);
 end;
 

@@ -162,7 +162,7 @@ begin
       OutputImplementation +=
         NL +
         Field.ConditionsBegin +
-        '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(''' + Field.X3DName + ''', ' + Field.PascalClass + ', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
+        '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
         '  AddEvent(F' + Field.PascalNamePrefixed + ');' + NL +
         Field.ConditionsEnd;
     end;

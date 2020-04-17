@@ -147,7 +147,7 @@
     { For fields contained in TX3DInterfaceDeclaration.
 
       This should always be @nil (if the field is normal, standard field,
-      not coming from interface declaration in VRML file) or an instance of
+      not coming from interface declaration in X3D file) or an instance of
       TX3DInterfaceDeclaration. (But it cannot be declared such,
       since TX3DInterfaceDeclaration is not known in this unit). }
     property ParentInterfaceDeclaration: TX3DFileItem
