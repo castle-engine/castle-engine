@@ -1575,6 +1575,34 @@ var
     end;
   end;
 
+  (* Unused for now, changing BBox at runtime is not allowed,
+     as it is cached at TShape level.
+     Also, it would not work perfectly in case of cross-fading animations,
+     where the intermediate bounding box is *not always exactly* the linear
+     interpolation of 2 animations bboxes.
+
+  { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
+  procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
+    const Shape: TShapeNode; const BBox: TBox3D);
+  var
+    ValueTrigger: TValueTriggerNode;
+    Center, Size: TVector3;
+    F: TX3DField;
+  begin
+    BBox.ToCenterSize(Center, Size);
+
+    F := TSFVec3f.Create(nil, true, 'bboxCenter', Center);
+    ValueTrigger := TValueTriggerNode.Create;
+    ValueTrigger.AddCustomField(F);
+    Shape.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
+
+    F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
+    ValueTrigger := TValueTriggerNode.Create;
+    ValueTrigger.AddCustomField(F);
+    Shape.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
+  end;
+  *)
+
   { Calculate skin interpolator nodes to deform this one shape.
 
     Note that ParentGroup can be really any grouping node,
@@ -1677,8 +1705,26 @@ var
           Shape.Geometry.InternalSkinWeights);
       end;
 
-      // update Shape.BBox, helpful for optimization later
+      { We want to use Shape.BBox for optimization (to avoid recalculating bbox). }
       Shape.BBox := Shape.BBox + TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items);
+
+      (*Unused alternative:
+
+        It's even more efficient to set bbox for specific animation
+        once the animation starts.
+        It also looks a bit more intuitive when you view bbox
+        (otherwise you would see a large bbox accounting for *all* animations,
+        but with mesh transformed with current animation, testcase: Bee, Monster).
+
+        But this has problems:
+        - BBox is cached at TShape now
+        - ValueTrigger doesn't support cross-fading animations
+        - Even if it did, cross-fading animations would still be non-perfect,
+          as bbox is not necessarily a linear interpolattion of 2 boxes.
+
+      SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape,
+        TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items));
+      *)
     end;
   end;
 
