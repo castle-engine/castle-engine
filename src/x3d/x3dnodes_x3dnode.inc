@@ -3225,6 +3225,7 @@ begin
   IDecl := TX3DInterfaceDeclaration.Create(Self);
   IDecl.FieldOrEvent := AFieldOrEvent;
   AFieldOrEvent.ParentInterfaceDeclaration := IDecl;
+  AFieldOrEvent.ParentNode := Self;
   InterfaceDeclarations.Add(IDecl);
   PostAddInterfaceDeclaration(IDecl);
 end;
