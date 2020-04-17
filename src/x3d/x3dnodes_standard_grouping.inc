@@ -58,10 +58,8 @@
   { Basis for all node types that have bounds specified as part of the definition. }
   IAbstractBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
-    {$ifndef CASTLE_SLIM_NODES}
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
-    {$endif}
   end;
 
   { Base node that contains children nodes, in X3D and VRML 2.0. }
@@ -88,13 +86,13 @@
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRender: TSFBool;
     { This is an extension from InstantReality, see
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
@@ -321,13 +319,11 @@
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
-    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
   end;
@@ -546,7 +542,6 @@ begin
    FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
-  {$ifndef CASTLE_SLIM_NODES}
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -555,6 +550,7 @@ begin
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdRender := TSFBool.Create(Self, true, 'render', true);
   AddField(FFdRender);
   {$endif}
@@ -887,7 +883,6 @@ begin
    FdChildren.ChangesAlways := [chChildren];
   AddField(FFdChildren);
 
-  {$ifndef CASTLE_SLIM_NODES}
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -895,7 +890,6 @@ begin
   FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
-  {$endif}
 
   DefaultContainerField := 'children';
 end;
