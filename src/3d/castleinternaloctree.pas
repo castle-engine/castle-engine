@@ -165,7 +165,7 @@ type
     { Child octree nodes, only if this is an internal node (IsLeaf = @false).
       When this is a leaf (IsLeaf = @true), these are all @nil.
 
-      Indexed by booleans, "true" means that given coordinate
+      Indexed by Booleans, "true" means that given coordinate
       is >= than corresponding MiddlePoint coordinate.
       For example TreeSubNodes[true, true, true] are coordinates
       between MiddlePoint and Box[1].
@@ -173,7 +173,7 @@ type
       Subnodes class is always the same as our (Self) class.
 
       This field is read-only from outside of this unit. }
-    TreeSubNodes: array [boolean, boolean, boolean] of TOctreeNode;
+    TreeSubNodes: array [Boolean, Boolean, Boolean] of TOctreeNode;
 
     { Items stored at the octree node.
       Items are stored here (and ItemsIndices <> nil) only
@@ -211,7 +211,7 @@ type
       are correctly gathered and stored in our ItemsIndices.
       If you change this from @true to @false then subnodes are created
       and we insert to them our items, following the MiddlePoint rule. }
-    property IsLeaf: boolean read fIsLeaf write SetLeaf;
+    property IsLeaf: Boolean read fIsLeaf write SetLeaf;
 
     { Middle point of the octree node, determines how our subnodes divide
       the space. This is defined for leaf nodes too, since leaf nodes
@@ -259,7 +259,7 @@ type
       or as (0, 0, 0) if ABox is empty. }
     constructor Create(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
-      ADepth: integer; AsLeaf: boolean);
+      ADepth: integer; AsLeaf: Boolean);
 
     { Virtual constructor, not to be called directly, only to be overridden.
       (But a constructor should be public, not protected.)
@@ -274,7 +274,7 @@ type
       @exclude }
     constructor CreateBase(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
-      ADepth: integer; AsLeaf: boolean;
+      ADepth: integer; AsLeaf: Boolean;
       const AMiddlePoint: TVector3); virtual;
 
     destructor Destroy; override;
@@ -294,7 +294,7 @@ type
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 
     { Simple check for frustum collision. }
-    function FrustumCollisionPossible(const Frustum: TFrustum): boolean;
+    function FrustumCollisionPossible(const Frustum: TFrustum): Boolean;
 
     { Push children nodes (use this only for non-leafs) into the List.
       @groupBegin }
@@ -321,7 +321,7 @@ type
   private
     FTreeRoot: TOctreeNode;
     FOctreeNodeFinalClass: TOctreeNodeClass;
-    FItemsInNonLeafNodes: boolean;
+    FItemsInNonLeafNodes: Boolean;
     FMaxDepth: integer;
     FLeafCapacity: Integer;
 
@@ -372,7 +372,7 @@ type
       Disadvantages: if you have many items in your octree
       (as is typical with e.g. @link(TTriangleOctree))
       then this property can cost you a @italic(lot) of memory. }
-    property ItemsInNonLeafNodes: boolean
+    property ItemsInNonLeafNodes: Boolean
       read FItemsInNonLeafNodes;
 
     { The actual (non-abstract) TOctreeNode descendant class for this octree.
@@ -388,7 +388,7 @@ type
 
     constructor Create(const Limits: TOctreeLimits;
       const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean);
+      AItemsInNonLeafNodes: Boolean);
     destructor Destroy; override;
 
     { Traverse octree seeking for nodes that (possibly) collide
@@ -458,7 +458,7 @@ type
   end;
 
 function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string; deprecated;
-function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;
+function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): Boolean;
 
 implementation
 
@@ -467,18 +467,18 @@ uses Math,
 
 { TOctreeNode ------------------------------------------------------------ }
 
-procedure TOctreeNode.CreateTreeSubNodes(AsLeaves: boolean);
+procedure TOctreeNode.CreateTreeSubNodes(AsLeaves: Boolean);
 var
   b: TOctreeSubnodeIndex;
-  b_0, b_1, b_2: boolean;
+  b_0, b_1, b_2: Boolean;
   SubBox: TBox3D;
   i: integer;
 begin
-  { we can't do "for b[0] := Low(boolean) ... " in FPC 1.9.5,
+  { we can't do "for b[0] := Low(Boolean) ... " in FPC 1.9.5,
     so we're using variables b_0, b_1, b_2. }
-  for b_0 := Low(boolean) to High(boolean) do
-    for b_1 := Low(boolean) to High(boolean) do
-      for b_2 := Low(boolean) to High(boolean) do
+  for b_0 := Low(Boolean) to High(Boolean) do
+    for b_1 := Low(Boolean) to High(Boolean) do
+      for b_2 := Low(Boolean) to High(Boolean) do
       begin
         b[0] := b_0;
         b[1] := b_1;
@@ -504,15 +504,15 @@ begin
 end;
 
 procedure TOctreeNode.FreeAndNilTreeSubNodes;
-var b1, b2, b3: boolean;
+var b1, b2, b3: Boolean;
 begin
-  for b1 := Low(boolean) to High(boolean) do
-    for b2 := Low(boolean) to High(boolean) do
-      for b3 := Low(boolean) to High(boolean) do
+  for b1 := Low(Boolean) to High(Boolean) do
+    for b2 := Low(Boolean) to High(Boolean) do
+      for b3 := Low(Boolean) to High(Boolean) do
         FreeAndNil(TreeSubNodes[b1, b2, b3]);
 end;
 
-procedure TOctreeNode.SetLeaf(value: boolean);
+procedure TOctreeNode.SetLeaf(value: Boolean);
 var
   I: integer;
 begin
@@ -552,7 +552,14 @@ procedure TOctreeNode.AddItem(ItemIndex: integer);
   { If we would split leaf into non-leaf, can we redistribute the existing
     items into subleafs sensibly? (If all items would go into all leafs,
     e.g. because their bboxes are equal, then splitting makes no sense,
-    even when LeafCapacity is reached.) }
+    even when LeafCapacity is reached.)
+
+    Testcase: BrainStem glTF with 59 materials, so 59 shapes, with equal bbox.
+    Since 59 > LeafCapacity, a naive implementation would fill entire octree
+    to max depth with all items...
+    But it would be a waste of time and memory, as all 59 shapes are all in all nodes,
+    because they all have equal bbox.
+  }
   function SplitSensible: Boolean;
   var
     M: TVector3;
@@ -598,7 +605,7 @@ end;
 
 constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   AParentNode: TOctreeNode;
-  ADepth: integer; AsLeaf: boolean);
+  ADepth: integer; AsLeaf: Boolean);
 var
   AMiddlePoint: TVector3;
 begin
@@ -615,7 +622,7 @@ end;
 
 constructor TOctreeNode.CreateBase(const ABox: TBox3D;
   AParentTree: TOctree; AParentNode: TOctreeNode;
-  ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3);
+  ADepth: integer; AsLeaf: Boolean; const AMiddlePoint: TVector3);
 begin
   inherited Create;
 
@@ -721,7 +728,7 @@ procedure TOctreeNode.EnumerateCollidingOctreeItems(
   const Frustum: TFrustum;
   EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
 
-  procedure EnumerateAllItems(CollidesForSure: boolean);
+  procedure EnumerateAllItems(CollidesForSure: Boolean);
   var i: Integer;
   begin
    for i := 0 to ItemsIndices.Count - 1 do
@@ -778,7 +785,7 @@ begin
         1) So first I tried to implement passing the calculations of
            points versus frustum down the recursive calls.
            I.e. EnumerateCollidingOctreeItems gets from it's caller
-           8 * 6 boolean results for it's 8 corner point.
+           8 * 6 Boolean results for it's 8 corner point.
            Then before recursive calls below it calculates
            8 + 6 + 1 points versus frustum and passes them down
            to children. This way instead of evaluating
@@ -822,7 +829,7 @@ begin
  end;
 end;
 
-function TOctreeNode.FrustumCollisionPossible(const Frustum: TFrustum): boolean;
+function TOctreeNode.FrustumCollisionPossible(const Frustum: TFrustum): Boolean;
 begin
   Result :=
     Frustum.SphereCollisionPossibleSimple(
@@ -898,7 +905,7 @@ end;
 
 constructor TOctree.Create(const Limits: TOctreeLimits;
   const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-  AItemsInNonLeafNodes: boolean);
+  AItemsInNonLeafNodes: Boolean);
 begin
   inherited Create;
   FMaxDepth := Limits.MaxDepth;
@@ -940,7 +947,7 @@ var
 
   procedure StatNode(TreeNode: TOctreeNode);
   var
-    B0, B1, B2: boolean;
+    B0, B1, B2: Boolean;
   begin
     if TreeNode.IsLeaf then
     begin
@@ -949,9 +956,9 @@ var
     end else
     begin
       Inc(NonLeafNodes.List^[TreeNode.Depth]);
-      for b0 := Low(boolean) to High(boolean) do
-        for b1 := Low(boolean) to High(boolean) do
-          for b2 := Low(boolean) to High(boolean) do
+      for b0 := Low(Boolean) to High(Boolean) do
+        for b1 := Low(Boolean) to High(Boolean) do
+          for b2 := Low(Boolean) to High(Boolean) do
             StatNode(TreeNode.TreeSubNodes[b0, b1, b2]);
     end;
   end;
@@ -1020,7 +1027,7 @@ begin
    BoolToStr(SI[2], true);
 end;
 
-function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;
+function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): Boolean;
 begin
  result := (SI1[0] = SI2[0]) and
            (SI1[1] = SI2[1]) and
