@@ -176,16 +176,22 @@
     strict private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
 
-    { Setup this Collision node to show VisibleNode, but collide as
-      a Box. This sets VisibleNode as the only child of this collision node,
-      and sets the @link(Proxy) field to a simple box with given bounds.
+    { Setup this Collision node to collide as a Box.
+
+      This sets the @link(Proxy) field to a simple box with given bounds.
+
       The @code(Enabled) field is unchanged (by default @true).
+
+      The overloaded version with VisibleNode also sets VisibleNode
+      as the only displayed child of this collision node.
+      The overloaded version without VisibleNode doesn't modify the displayed children.
 
       It honors the case of Box being empty correctly. Proxy is then
       non-nil, but without any geometry. So the collisions are
       effectively disabled, in a consistent way (without changing the
       @code(Enabled) field).
     }
+    procedure CollideAsBox(const Box: TBox3D);
     procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
 
     {$I auto_generated_node_helpers/x3dnodes_collision.inc}
@@ -805,7 +811,7 @@ begin
   end;
 end;
 
-procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+procedure TCollisionNode.CollideAsBox(const Box: TBox3D);
 var
   ProxyTransform: TTransformNode;
   ProxyShape: TShapeNode;
@@ -827,7 +833,11 @@ begin
     ProxyTransform.AddChildren(ProxyShape);
   end;
   Proxy := ProxyTransform;
+end;
 
+procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+begin
+  CollideAsBox(Box);
   FdChildren.Clear;
   FdChildren.Add(VisibleNode);
 end;
