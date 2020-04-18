@@ -1992,7 +1992,7 @@ function TShape.CreateTriangleOctree(
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
-    procedure LocalTriangulateRect(constCoord: integer;
+    procedure LocalTriangulateRect(const constCoord: integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
       Position, Normal: TTriangle3;
@@ -2034,6 +2034,10 @@ function TShape.CreateTriangleOctree(
       LocalTriangulateRect(I, Box.Data[0][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
       LocalTriangulateRect(I, Box.Data[1][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
     end;
+    { We have 12 triangles, DefTriangleOctreeLeafCapacity should be at least 12,
+      and tree root should remain leaf.
+      This should be a simple tree. }
+    Assert(Result.TreeRoot.IsLeaf);
   end;
 
 begin
