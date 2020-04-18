@@ -57,10 +57,6 @@
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   strict private
-    function GetGeometry: TAbstractGeometryNode;
-    procedure SetGeometry(const Value: TAbstractGeometryNode);
-    function GetAppearance: TAppearanceNode;
-    procedure SetAppearance(const Value: TAppearanceNode);
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);
     function GetTexture: TAbstractTextureNode;
@@ -69,55 +65,12 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-    function GetShading: TShading;
-    procedure SetShading(const Value: TShading);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    type
-      TSFShading = class(TSFStringEnum)
-      strict private
-        WireframeChanged: boolean;
-      public
-        class function ExposedEventsFieldClass: TX3DFieldClass; override;
-        procedure ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime); override;
-        function ExecuteChanges: TX3DChanges; override;
-      end;
-
-    procedure CreateNode; override;
-
-    strict private FFdAppearance: TSFNode;
-    public property FdAppearance: TSFNode read FFdAppearance;
-
-    strict private FFdGeometry: TSFNode;
-    public property FdGeometry: TSFNode read FFdGeometry;
-
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    { Whether to render this shape.
-      See https://castle-engine.io/x3d_implementation_shape_extensions.php }
-    strict private FFdRender: TSFBool;
-    public property FdRender: TSFBool read FFdRender;
-
-    strict private FFdShading: TSFShading;
-    public property FdShading: TSFShading read FFdShading;
-    property Shading: TShading read GetShading write SetShading;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-
-    { Geometry of this shape. }
-    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
-
-    { Apperance of this shape.
-
-      This is a comfortable shortcut for FdAppearance.Value,
-      checking whether it's class is appropriate. }
-    property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
 
     { The texture of this shape.
       This is a shortcut for accessing "texture" field of Apperance,
@@ -145,14 +98,10 @@
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
 
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdOctreeTriangles: TSFNode;
-    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
-    {$endif}
-
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
+      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
@@ -272,6 +221,7 @@
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
+      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
 
     { Texture that determines the primary RGB color of the material,
       and transparency of the material.
@@ -669,6 +619,11 @@ end;
 
 { TSFShading ----------------------------------------------------------------- }
 
+(*TODO:
+  If wireframe changes, then ExecuteChanges should include chWireframe.
+  Below there's a convoluted way to do this.
+  Not used for now, as FdShading is now just TSFStringEnum.
+
 class function TAbstractShapeNode.TSFShading.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFString;
@@ -695,42 +650,20 @@ begin
     WireframeChanged := false;
   end;
 end;
+*)
 
 { TAbstractShapeNode --------------------------------------------------------- }
 
-procedure TAbstractShapeNode.CreateNode;
 const
   ShadingNames: array [TShading] of string = ('DEFAULT', 'GOURAUD', 'PHONG', 'WIREFRAME');
+
+constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdAppearance := TSFNode.Create(Self, true, 'appearance', [TAbstractAppearanceNode]);
-   FdAppearance.ChangesAlways := [chEverything];
-  AddField(FFdAppearance);
-
-  FFdGeometry := TSFNode.Create(Self, true, 'geometry', [TAbstractGeometryNode]);
-   FdGeometry.ChangesAlways := [chEverything];
-  AddField(FFdGeometry);
-
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  FFdRender := TSFBool.Create(Self, true, 'render', true);
-  AddField(FFdRender);
-
-  FFdShading := TSFShading.Create(Self, true, 'shading', ShadingNames, Ord(shDefault));
-   FdShading.ChangesAlways := [chVisibleNonGeometry];
-  AddField(FFdShading);
-
+  FdAppearance.ChangesAlways := [chEverything];
+  FdGeometry.ChangesAlways := [chEverything];
   {$ifndef CASTLE_SLIM_NODES}
-  FFdOctreeTriangles := TSFNode.Create(Self, false, 'octreeTriangles', [TKambiOctreePropertiesNode]);
-   FdOctreeTriangles.ChangesAlways := [chEverything];
-  AddField(FFdOctreeTriangles);
+  FdOctreeTriangles.ChangesAlways := [chEverything];
   {$endif}
 end;
 
@@ -738,11 +671,10 @@ function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFuncti
 begin
   Result := nil;
 
-  { According to VRML spec, when geometry is NULL then object is not
+  { According to X3D spec, when geometry is NULL then object is not
     drawn so appearance doesn't matter. }
 
-  if FdGeometry.CurrentChildAllowed and
-     (FdGeometry.Value <> nil) then
+  if Geometry <> nil then // checks that FdGeometry has value with correct class
   begin
     Result := FdAppearance.Enumerate(Func);
     if Result <> nil then Exit;
@@ -764,32 +696,6 @@ begin
   inherited;
 end;
 
-function TAbstractShapeNode.GetGeometry: TAbstractGeometryNode;
-begin
-  if FdGeometry.Value is TAbstractGeometryNode then
-    Result := TAbstractGeometryNode(FdGeometry.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractGeometryNode);
-begin
-  FdGeometry.Send(Value);
-end;
-
-function TAbstractShapeNode.GetAppearance: TAppearanceNode;
-begin
-  if FdAppearance.Value is TAppearanceNode then
-    Result := TAppearanceNode(FdAppearance.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
-begin
-  FdAppearance.Send(Value);
-end;
-
 function TAbstractShapeNode.GetMaterial: TAbstractMaterialNode;
 var
   App: TAppearanceNode;
@@ -807,7 +713,9 @@ var
 begin
   App := Appearance;
   if App <> nil then
+    {$warnings off} // using deprecated in deprecated
     Result := App.CommonSurfaceShader
+    {$warnings on}
   else
     Result := nil;
 end;
@@ -911,16 +819,6 @@ begin
     App.LineProperties := Value;
     Appearance := App;
   end;
-end;
-
-function TAbstractShapeNode.GetShading: TShading;
-begin
-  Result := TShading(FdShading.EnumValue);
-end;
-
-procedure TAbstractShapeNode.SetShading(const Value: TShading);
-begin
-  FdShading.SendEnumValue(Ord(Value));
 end;
 
 procedure TAppearanceNode.CreateNode;
@@ -1117,7 +1015,9 @@ var
 begin
   Result := nil;
   Mapping := -1;
+  {$warnings off} // using deprecated to keep backward compatibility
   SurfaceShader := CommonSurfaceShader;
+  {$warnings on}
   if SurfaceShader <> nil then
   begin
     if SurfaceShader.MultiDiffuseAlphaTexture <> nil then

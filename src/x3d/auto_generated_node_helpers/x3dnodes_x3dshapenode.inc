@@ -26,8 +26,14 @@
 {$ifdef read_interface}
 
   strict private
+    function GetAppearance: TAppearanceNode;
+    procedure SetAppearance(const Value: TAppearanceNode);
+    function GetGeometry: TAbstractGeometryNode;
+    procedure SetGeometry(const Value: TAbstractGeometryNode);
     function GetBBox: TBox3D;
     procedure SetBBox(const Value: TBox3D);
+    function GetShading: TShading;
+    procedure SetShading(const Value: TShading);
 {$ifndef CASTLE_SLIM_NODES}
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
@@ -35,12 +41,50 @@
     function GetRender: Boolean;
     procedure SetRender(const Value: Boolean);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAppearance: TSFNode;
+    { X3D field "appearance". } { }
+    public property FdAppearance: TSFNode read FFdAppearance;
+    { X3D field "appearance". } { }
+    property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
+
+    strict private FFdGeometry: TSFNode;
+    { X3D field "geometry". } { }
+    public property FdGeometry: TSFNode read FFdGeometry;
+    { X3D field "geometry". } { }
+    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
+
+    strict private FFdBboxCenter: TSFVec3f;
+    { X3D field "bboxCenter". } { }
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
     property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
+    { X3D field "bboxSize". } { }
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    strict private FFdShading: TSFStringEnum;
+    { X3D field "shading". } { }
+    public property FdShading: TSFStringEnum read FFdShading;
+    { X3D field "shading". } { }
+    property Shading: TShading read GetShading write SetShading;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdOctreeTriangles: TSFNode;
+    { X3D field "octreeTriangles". } { }
+    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
+{$endif not CASTLE_SLIM_NODES}
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "octreeTriangles". } { }
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
 {$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdRender: TSFBool;
+    { X3D field "render". } { }
+    public property FdRender: TSFBool read FFdRender;
     { X3D field "render". } { }
     property Render: Boolean read GetRender write SetRender;
 
@@ -49,6 +93,32 @@
 {$ifdef read_implementation}
 
 { TAbstractShapeNode ----------------------------------------------- }
+
+function TAbstractShapeNode.GetAppearance: TAppearanceNode;
+begin
+  if FdAppearance.Value is TAppearanceNode then
+    Result := TAppearanceNode(FdAppearance.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
+begin
+  FdAppearance.Send(Value);
+end;
+
+function TAbstractShapeNode.GetGeometry: TAbstractGeometryNode;
+begin
+  if FdGeometry.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdGeometry.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractGeometryNode);
+begin
+  FdGeometry.Send(Value);
+end;
 
 function TAbstractShapeNode.GetBBox: TBox3D;
 begin
@@ -62,6 +132,16 @@ begin
   Value.ToCenterSize(ValueCenter, ValueSize);
   FdBBoxCenter.Send(ValueCenter);
   FdBBoxSize.Send(ValueSize);
+end;
+
+function TAbstractShapeNode.GetShading: TShading;
+begin
+  Result := TShading(FdShading.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetShading(const Value: TShading);
+begin
+  FdShading.SendEnumValue(Ord(Value));
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
@@ -87,6 +167,50 @@ end;
 procedure TAbstractShapeNode.SetRender(const Value: Boolean);
 begin
   FdRender.Send(Value);
+end;
+
+class function TAbstractShapeNode.ClassX3DType: String;
+begin
+  Result := 'X3DShapeNode';
+end;
+
+procedure TAbstractShapeNode.CreateNode;
+begin
+  inherited;
+
+  FFdAppearance := TSFNode.Create(Self, True, 'appearance', [TAppearanceNode]);
+   FdAppearance.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdAppearance);
+
+  FFdGeometry := TSFNode.Create(Self, True, 'geometry', [TAbstractGeometryNode]);
+   FdGeometry.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdGeometry);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, True, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdBboxCenter);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdBboxSize := TSFVec3f.Create(Self, True, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdBboxSize);
+  { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdShading := TSFStringEnum.Create(Self, True, 'shading', ShadingNames, Ord(shDefault));
+   FdShading.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdShading);
+  { X3D specification comment: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"] enumerated-type: TShading ShadingNames shDefault }
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdOctreeTriangles := TSFNode.Create(Self, False, 'octreeTriangles', [TKambiOctreePropertiesNode]);
+   FdOctreeTriangles.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdOctreeTriangles);
+  { X3D specification comment: # NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdRender := TSFBool.Create(Self, True, 'render', true);
+   FdRender.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdRender);
 end;
 
 {$endif read_implementation}

@@ -924,8 +924,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.orientation') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
-     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.appearance') or
-     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.geometry') or
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
      (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or

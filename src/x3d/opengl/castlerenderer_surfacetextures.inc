@@ -78,7 +78,9 @@ begin
   Result := false;
   if Shape.Node <> nil then
   begin
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := Shape.Node.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
     begin
       Result :=
@@ -169,7 +171,9 @@ var
 begin
   if State.ShapeNode <> nil then
   begin
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
     begin
       Enable(
@@ -319,7 +323,9 @@ var
 begin
   if State.ShapeNode <> nil then
   begin
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
     begin
       EmissiveTextureEnable(

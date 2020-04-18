@@ -495,7 +495,9 @@ var
 begin
   if ShapeNode <> nil then
   begin
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := ShapeNode.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
       Result := SurfaceShader.MaterialInfo
     else

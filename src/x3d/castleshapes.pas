@@ -1728,7 +1728,9 @@ var
        (S.ShapeNode.Appearance <> nil) then
     begin
       // CommonSurfaceShader can only be non-nil if Appearance is non-nil
+      {$warnings off} // using deprecated to keep backward compatibility
       SurfaceShader := S.ShapeNode.CommonSurfaceShader;
+      {$warnings on}
       if SurfaceShader <> nil then
       begin
         if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
@@ -2689,7 +2691,9 @@ begin
     HandleIDecls(App.FdEffects);
 
     { CommonSurfaceShader can be non-nil only when App is non-nil }
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
     begin
       HandleCommonSurfaceShader(SurfaceShader);
