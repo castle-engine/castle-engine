@@ -610,7 +610,12 @@ begin
         send an event with their current value. }
       if (F.ParentInterfaceDeclaration <> nil) and
          (F.EventOut <> nil) then
-        F.EventOut.Send(F, Time {TODO:, Value.InternalPartialSend} );
+      begin
+        // since we send F, it must have Value.InternalPartialSend set, to account for cross-fading
+        F.InternalPartialSend := Value.InternalPartialSend;
+        F.EventOut.Send(F, Time);
+        F.InternalPartialSend := nil;
+      end;
     end;
   end;
 end;
