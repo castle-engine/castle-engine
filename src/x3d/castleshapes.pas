@@ -353,9 +353,6 @@ type
 
     FShadowVolumes: TShapeShadowVolumes;
 
-    { TODO: expose as public property, if needed, some day. }
-    CollideAsBox: Boolean;
-
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
       @groupBegin }
@@ -2042,7 +2039,7 @@ function TShape.CreateTriangleOctree(
 begin
   Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
-    if CollideAsBox then
+    if (Node <> nil) and (Node.Collision = scBox) then
     begin
       { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
         No point in progress here, as this is always fast. }

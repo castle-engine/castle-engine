@@ -127,7 +127,7 @@ type
   TSkinToInitialize = class
     Skin: TPasGLTF.TSkin;
     { Direct children of this grouping node that are TShapeNode should have skinning applied. }
-    Shapes: TCollisionNode;
+    Shapes: TAbstractX3DGroupingNode;
     { Immediate parent of the Shapes node (it always has only one parent). }
     ShapesParent: TAbstractX3DGroupingNode;
   end;
@@ -1172,25 +1172,26 @@ var
     var
       SkinToInitialize: TSkinToInitialize;
       Shapes: TAbstractX3DGroupingNode;
-      Collision: TCollisionNode;
+      I: Integer;
+      ShapeNode: TShapeNode;
     begin
       SkinToInitialize := TSkinToInitialize.Create;
       SkinsToInitialize.Add(SkinToInitialize);
       // Shapes is the group created inside ReadMesh
       Shapes := Transform.FdChildren.InternalItems.Last as TAbstractX3DGroupingNode;
-
-      { Put Collision node inside Shapes, to make them uncollidable }
-      Collision := TCollisionNode.Create;
-      Collision.FdChildren.AssignItems(Shapes.FdChildren.InternalItems);
-      Shapes.FdChildren.Clear;
-      Shapes.FdChildren.Add(Collision);
-
-      SkinToInitialize.Shapes := Collision;
-      SkinToInitialize.ShapesParent := Shapes;
-
-      // SkinToInitialize.Shapes := Shapes;
-      // SkinToInitialize.ShapesParent := Transform;
+      SkinToInitialize.Shapes := Shapes;
+      SkinToInitialize.ShapesParent := Transform;
       SkinToInitialize.Skin := Skin;
+
+      { Make shapes collide as simple boxes.
+        We don't want to recalculate octree of their triangles each frame,
+        and their boxes are easy, since we fill shape's bbox. }
+      for I := 0 to Shapes.FdChildren.Count - 1 do
+        if Shapes.FdChildren[I] is TShapeNode then
+        begin
+          ShapeNode := TShapeNode(Shapes.FdChildren[I]);
+          ShapeNode.Collision := scBox;
+        end;
     end;
 
   var
@@ -1728,8 +1729,7 @@ var
     InverseBindMatrices: TMatrix4List;
     I: Integer;
     Skin: TPasGLTF.TSkin;
-    Shapes: TCollisionNode;
-    AllShapesBox: TBox3D;
+    Shapes: TAbstractX3DGroupingNode;
     ShapeNode: TShapeNode;
   begin
     Skin := SkinToInitialize.Skin;
@@ -1801,8 +1801,6 @@ var
         SkinToInitialize.ShapesParent := SkeletonRoot;
       end;
 
-      AllShapesBox := TBox3D.Empty;
-
       for I := 0 to Shapes.FdChildren.Count - 1 do
         if Shapes.FdChildren[I] is TShapeNode then
         begin
@@ -1810,12 +1808,7 @@ var
           CalculateSkinInterpolators(ShapeNode,
             Joints, Skin.Joints, InverseBindMatrices,
             SkeletonRoot, SkeletonRootIndex, ParentGroup);
-          AllShapesBox := AllShapesBox + ShapeNode.BBox;
         end;
-
-      { Setup collisions for the shapes, to collide as simple box.
-        We don't want to recalculate octree each frame. }
-      Shapes.CollideAsBox(AllShapesBox);
     finally
       FreeAndNil(Joints);
       FreeAndNil(InverseBindMatrices);

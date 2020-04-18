@@ -51,6 +51,7 @@
   TCommonSurfaceShaderNode = class;
 
   TShading = (shDefault, shGouraud, shPhong, shWireframe);
+  TShapeCollision = (scDefault, scBox);
 
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
@@ -638,7 +639,16 @@ end;
 { TAbstractShapeNode --------------------------------------------------------- }
 
 const
-  ShadingNames: array [TShading] of string = ('DEFAULT', 'GOURAUD', 'PHONG', 'WIREFRAME');
+  ShadingNames: array [TShading] of String = (
+    'DEFAULT',
+    'GOURAUD',
+    'PHONG',
+    'WIREFRAME'
+  );
+  ShapeCollisionNames: array [TShapeCollision] of String = (
+    'DEFAULT',
+    'BOX'
+  );
 
 constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin

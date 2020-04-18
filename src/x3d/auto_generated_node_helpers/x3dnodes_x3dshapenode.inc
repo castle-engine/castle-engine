@@ -40,6 +40,8 @@
 {$endif not CASTLE_SLIM_NODES}
     function GetRender: Boolean;
     procedure SetRender(const Value: Boolean);
+    function GetCollision: TShapeCollision;
+    procedure SetCollision(const Value: TShapeCollision);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -87,6 +89,12 @@
     public property FdRender: TSFBool read FFdRender;
     { X3D field "render". } { }
     property Render: Boolean read GetRender write SetRender;
+
+    strict private FFdCollision: TSFStringEnum;
+    { X3D field "collision". } { }
+    public property FdCollision: TSFStringEnum read FFdCollision;
+    { X3D field "collision". } { }
+    property Collision: TShapeCollision read GetCollision write SetCollision;
 
 {$endif read_interface}
 
@@ -169,6 +177,16 @@ begin
   FdRender.Send(Value);
 end;
 
+function TAbstractShapeNode.GetCollision: TShapeCollision;
+begin
+  Result := TShapeCollision(FdCollision.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetCollision(const Value: TShapeCollision);
+begin
+  FdCollision.SendEnumValue(Ord(Value));
+end;
+
 class function TAbstractShapeNode.ClassX3DType: String;
 begin
   Result := 'X3DShapeNode';
@@ -211,6 +229,11 @@ begin
   FFdRender := TSFBool.Create(Self, True, 'render', true);
    FdRender.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdRender);
+
+  FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
+   FdCollision.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdCollision);
+  { X3D specification comment: ["DEFAULT"|"BOX"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
 end;
 
 {$endif read_implementation}
