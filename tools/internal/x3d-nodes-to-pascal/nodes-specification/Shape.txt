@@ -5,6 +5,10 @@ X3DAppearanceNode : X3DNode {
 }
 
 X3DMaterialNode : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  # This is not actually specified anywhere (X3D XML encoding spec
+  # doesn't specify containerField for abstract X3DXxxNode classes)
+  # but it seems most sensible to have all X3DMaterialNode with containerField=material.
   x3d-nodes-to-pascal: default-container-field material
 }
 

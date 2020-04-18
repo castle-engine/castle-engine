@@ -34,8 +34,6 @@
   { Base node type for all Material nodes. }
   TAbstractMaterialNode = class(TAbstractAppearanceChildNode)
   public
-    procedure CreateNode; override;
-
     { Material information based on this node.
       It is automatically updated when properties of this material change.
       Do not free it yourself, it will be automatically freed when
@@ -601,21 +599,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{ TAbstractMaterialNode ------------------------------------------------------ }
-
-procedure TAbstractMaterialNode.CreateNode;
-begin
-  inherited;
-
-  { This is not actually specified anywhere (X3D XML encoding spec
-    doesn't specify containerField for abstract X3DXxxNode classes)
-    but it seems most sensible. }
-
-  DefaultContainerField := 'material';
-end;
-
-{ TAbstractOneSidedMaterialNode ---------------------------------------------- }
 
 { TSFShading ----------------------------------------------------------------- }
 
