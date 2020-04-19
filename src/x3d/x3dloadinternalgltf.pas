@@ -33,7 +33,7 @@ function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
+uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
@@ -77,6 +77,38 @@ uses SysUtils, TypInfo, Math, PasGLTF, Generics.Collections,
 
   - See https://castle-engine.io/planned_features.php .
 }
+
+{ Convert simple types ------------------------------------------------------- }
+
+function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
+begin
+  // as it happens, both structures have the same memory layout, so copy by a fast Move
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+function Vector4FromGltf(const V: TPasGLTF.TVector4): TVector4;
+begin
+  // as it happens, both structures have the same memory layout, so copy by a fast Move
+  Assert(SizeOf(V) = SizeOf(Result));
+  Move(V, Result, SizeOf(Result));
+end;
+
+function Matrix4FromGltf(const M: TPasGLTF.TMatrix4x4): TMatrix4;
+begin
+  // as it happens, both structures have the same memory layout, so copy by a fast Move
+  Assert(SizeOf(M) = SizeOf(Result));
+  Move(M, Result, SizeOf(Result));
+end;
+
+{ Convert glTF rotation (quaternion) to X3D (axis-angle). }
+function RotationFromGltf(const V: TPasGLTF.TVector4): TVector4;
+var
+  RotationQuaternion: TQuaternion;
+begin
+  RotationQuaternion.Data.Vector4 := Vector4FromGltf(V);
+  Result := RotationQuaternion.ToAxisAngle;
+end;
 
 { TMyGltfDocument ------------------------------------------------------------ }
 
@@ -398,6 +430,106 @@ begin
   UpdateMatrix;
 end;
 
+{ TTexture ------------------------------------------------------------------- }
+
+type
+  { Texture from glTF information.
+    Simpler to initialize than TPasGLTF.TMaterial.TTexture.
+    ( https://github.com/BeRo1985/pasgltf/blob/master/src/viewer/UnitGLTFOpenGL.pas
+    also does it like this, with TTexture record to handle PBRSpecularGlossiness. ) }
+  TTexture = record
+    Index: TPasGLTFSizeInt;
+    TexCoord: TPasGLTFSizeInt;
+    procedure Init;
+    function Empty: Boolean;
+  end;
+
+procedure TTexture.Init;
+begin
+  Index := -1;
+  TexCoord := 0;
+end;
+
+function TTexture.Empty: Boolean;
+begin
+  Result := Index < 0;
+end;
+
+{ TPbrMetallicRoughness ------------------------------------------------------ }
+
+type
+  TPbrMetallicRoughness = record
+    BaseColorFactor: TVector4;
+    BaseColorTexture: TTexture;
+    MetallicFactor, RoughnessFactor: Single;
+    MetallicRoughnessTexture: TTexture;
+    { Read glTF material parameters into PBR metallic-roughness model.
+
+      This internally handles PBR specular-glossiness model, converting
+      it into metallic-roughness. See
+      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+      https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness/examples/convert-between-workflows/js/three.pbrUtilities.js
+    }
+    procedure Read(const Material: TPasGLTF.TMaterial);
+  end;
+
+procedure TPbrMetallicRoughness.Read(const Material: TPasGLTF.TMaterial);
+var
+  JsonSpecGlossItem, JSONItem: TPasJSONItem;
+  JsonSpecGloss: TPasJSONItemObject;
+begin
+  BaseColorTexture.Init;
+  MetallicRoughnessTexture.Init;
+
+  BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+  BaseColorTexture.Index := Material.PBRMetallicRoughness.BaseColorTexture.Index;
+  BaseColorTexture.TexCoord := Material.PBRMetallicRoughness.BaseColorTexture.TexCoord;
+  MetallicFactor := Material.PBRMetallicRoughness.MetallicFactor;
+  RoughnessFactor := Material.PBRMetallicRoughness.RoughnessFactor;
+  MetallicRoughnessTexture.Index := Material.PBRMetallicRoughness.MetallicRoughnessTexture.Index;
+  MetallicRoughnessTexture.TexCoord := Material.PBRMetallicRoughness.MetallicRoughnessTexture.TexCoord;
+
+  { Read PBR specular-glossiness }
+
+  JsonSpecGlossItem := Material.Extensions.Properties['KHR_materials_pbrSpecularGlossiness'];
+  if Material.PBRMetallicRoughness.Empty and
+     (JsonSpecGlossItem is TPasJSONItemObject) then
+  begin
+    WritelnWarning('Material "%s" has only PBR specular-glossiness parameters. We support it only partially (diffuseFactor, diffuseTexture are just used for baseFactor, baseTexture). Better use metallic-roughness model.', [
+      Material.Name
+    ]);
+
+    { Read PBR specular-glossiness subset.
+      As we only read subset, we use it only when
+      Material.PBRMetallicRoughness is empty, despite
+      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+      advising to use specular-glossiness if you can.
+
+      Code below, to read specular-glossiness from JSON, is based on PasGLTF UnitGLTFOpenGL. }
+    JsonSpecGloss := TPasJSONItemObject(JsonSpecGlossItem);
+
+    JSONItem := JsonSpecGloss.Properties['diffuseFactor'];
+    if Assigned(JSONItem) and
+       (JSONItem is TPasJSONItemArray) and
+       (TPasJSONItemArray(JSONItem).Count = 4) then
+    begin
+      BaseColorFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], TPasGLTF.TDefaults.IdentityVector4[0]);
+      BaseColorFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], TPasGLTF.TDefaults.IdentityVector4[1]);
+      BaseColorFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], TPasGLTF.TDefaults.IdentityVector4[2]);
+      BaseColorFactor[3] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], TPasGLTF.TDefaults.IdentityVector4[3]);
+    end;
+
+    JSONItem := JsonSpecGloss.Properties['diffuseTexture'];
+    if Assigned(JSONItem) and
+       (JSONItem is TPasJSONItemObject) then
+    begin
+      BaseColorTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
+      BaseColorTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
+      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions']);
+    end;
+  end;
+end;
+
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
@@ -467,36 +599,6 @@ var
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
 
-  function Vector3FromGltf(const V: TPasGLTF.TVector3): TVector3;
-  begin
-    // as it happens, both structures have the same memory layout, so copy by a fast Move
-    Assert(SizeOf(V) = SizeOf(Result));
-    Move(V, Result, SizeOf(Result));
-  end;
-
-  function Vector4FromGltf(const V: TPasGLTF.TVector4): TVector4;
-  begin
-    // as it happens, both structures have the same memory layout, so copy by a fast Move
-    Assert(SizeOf(V) = SizeOf(Result));
-    Move(V, Result, SizeOf(Result));
-  end;
-
-  function Matrix4FromGltf(const M: TPasGLTF.TMatrix4x4): TMatrix4;
-  begin
-    // as it happens, both structures have the same memory layout, so copy by a fast Move
-    Assert(SizeOf(M) = SizeOf(Result));
-    Move(M, Result, SizeOf(Result));
-  end;
-
-  { Convert glTF rotation (quaternion) to X3D (axis-angle). }
-  function RotationFromGltf(const V: TPasGLTF.TVector4): TVector4;
-  var
-    RotationQuaternion: TQuaternion;
-  begin
-    RotationQuaternion.Data.Vector4 := Vector4FromGltf(V);
-    Result := RotationQuaternion.ToAxisAngle;
-  end;
-
   function ReadTextureRepeat(const Wrap: TPasGLTF.TSampler.TWrappingMode): Boolean;
   begin
     Result :=
@@ -530,7 +632,7 @@ var
     end;
   end;
 
-  procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
+  procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
     out Texture: TAbstractX3DTexture2DNode; out TexChannel: Integer);
   var
     GltfTexture: TPasGLTF.TTexture;
@@ -635,25 +737,36 @@ var
     end;
   end;
 
+  procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
+    out Texture: TAbstractX3DTexture2DNode; out TexChannel: Integer);
+  var
+    TextureRec: TTexture;
+  begin
+    TextureRec.Init;
+    TextureRec.Index := GltfTextureAtMaterial.Index;
+    TextureRec.TexCoord := GltfTextureAtMaterial.TexCoord;
+    ReadTexture(TextureRec, Texture, TexChannel);
+  end;
+
   function ReadPhongMaterial(const Material: TPasGLTF.TMaterial): TMaterialNode;
   var
-    BaseColorFactor: TVector4;
+    PbrMetallicRoughness: TPbrMetallicRoughness;
     BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
     BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
     // MetallicFactor, RoughnessFactor: Single;
   begin
-    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+    PbrMetallicRoughness.Read(Material);
 
     Result := TMaterialNode.Create;
-    Result.DiffuseColor := BaseColorFactor.XYZ;
-    Result.Transparency := 1 - BaseColorFactor.W;
+    Result.DiffuseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
+    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
     // Metallic/roughness conversion idea from X3DOM.
     // Gives weird artifacts on some samples (Duck, FlightHelmet) so not used now.
     (*
-    MetallicFactor := Material.PBRMetallicRoughness.MetallicFactor;
-    RoughnessFactor := Material.PBRMetallicRoughness.RoughnessFactor;
+    MetallicFactor := PbrMetallicRoughness.MetallicFactor;
+    RoughnessFactor := PbrMetallicRoughness.RoughnessFactor;
     Result.SpecularColor := Vector3(
       Lerp(MetallicFactor, 0.04, BaseColorFactor.X),
       Lerp(MetallicFactor, 0.04, BaseColorFactor.Y),
@@ -662,8 +775,7 @@ var
     Result.Shininess := 1 - RoughnessFactor;
     *)
 
-    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureChannel);
+    ReadTexture(PbrMetallicRoughness.BaseColorTexture, BaseColorTexture, BaseColorTextureChannel);
     Result.DiffuseTexture := BaseColorTexture;
     Result.DiffuseTextureChannel := BaseColorTextureChannel;
 
@@ -680,20 +792,20 @@ var
 
   function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
   var
-    BaseColorFactor: TVector4;
+    PbrMetallicRoughness: TPbrMetallicRoughness;
     BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture: TAbstractX3DTexture2DNode;
     BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel: Integer;
   begin
-    BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
+    PbrMetallicRoughness.Read(Material);
 
     Result := TPhysicalMaterialNode.Create;
-    Result.BaseColor := BaseColorFactor.XYZ;
-    Result.Transparency := 1 - BaseColorFactor.W;
-    Result.Metallic := Material.PBRMetallicRoughness.MetallicFactor;
-    Result.Roughness := Material.PBRMetallicRoughness.RoughnessFactor;
+    Result.BaseColor := PbrMetallicRoughness.BaseColorFactor.XYZ;
+    Result.Transparency := 1 - PbrMetallicRoughness.BaseColorFactor.W;
+    Result.Metallic := PbrMetallicRoughness.MetallicFactor;
+    Result.Roughness := PbrMetallicRoughness.RoughnessFactor;
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
-    ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
+    ReadTexture(PbrMetallicRoughness.BaseColorTexture,
       BaseColorTexture, BaseColorTextureChannel);
     Result.BaseTexture := BaseColorTexture;
     Result.BaseTextureChannel := BaseColorTextureChannel;
@@ -708,7 +820,7 @@ var
     Result.EmissiveTexture := EmissiveTexture;
     Result.EmissiveTextureChannel := EmissiveTextureChannel;
 
-    ReadTexture(Material.PBRMetallicRoughness.MetallicRoughnessTexture,
+    ReadTexture(PbrMetallicRoughness.MetallicRoughnessTexture,
       MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
     Result.MetallicRoughnessTexture := MetallicRoughnessTexture;
     Result.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
