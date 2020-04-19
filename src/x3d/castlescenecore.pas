@@ -5104,7 +5104,11 @@ end;
 procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
-  SomeLocalGeometryChanged, MaybeBoundingBoxChanged: boolean;
+  MaybeBoundingBoxChanged: boolean;
+const
+  { Whether LocalGeometryChanged was called, which means that octree and/or
+    bounding box/sphere of some shape changed. }
+  SomeLocalGeometryChanged = [gcAll, gcLocalGeometryChanged, gcLocalGeometryChangedCoord];
 begin
   MaybeBoundingBoxChanged := not (
     { Box stayed the same if we changed shape geometry,
@@ -5128,20 +5132,12 @@ begin
   begin
     Validities := Validities - [fvLocalBoundingBox];
 
-    { Calculate SomeLocalGeometryChanged (= if any
-      LocalGeometryChanged was called, which means that octree and
-      bounding box/sphere of some shape changed). }
-    SomeLocalGeometryChanged := (Change = gcAll) or
-      (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]);
-
     if (FOctreeRendering <> nil) and
-       ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
-        SomeLocalGeometryChanged) then
+       (Change in [gcVisibleTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
       FreeAndNil(FOctreeRendering);
 
     if (FOctreeDynamicCollisions <> nil) and
-       ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
-        SomeLocalGeometryChanged) then
+       (Change in [gcCollidableTransformChanged, gcActiveShapesChanged] + SomeLocalGeometryChanged) then
       FreeAndNil(FOctreeDynamicCollisions);
   end;
 
@@ -5152,7 +5148,7 @@ begin
   end;
 
   if Assigned(OnGeometryChanged) then
-    OnGeometryChanged(Self, SomeLocalGeometryChanged,
+    OnGeometryChanged(Self, Change in SomeLocalGeometryChanged,
       { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
