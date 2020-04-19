@@ -3,6 +3,10 @@
 
 MODE:=debug
 
+.PHONY: default
+default: prebuild
+	castle-engine compile
+
 .PHONY: prebuild
 prebuild:
 	castle-engine auto-generate-textures
