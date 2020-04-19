@@ -15,7 +15,7 @@
   image="inventory_image.png"
 >
   <model>
-    <base   url="base.x3d"/>
+    <base   url="base.gltf"/>
     <attack url="ready.gltf"/> <!-- No fancy animation when shooting for now -->
     <ready  url="ready.gltf"/>
   </model>
