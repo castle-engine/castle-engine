@@ -2112,7 +2112,16 @@ begin
   end else
     Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
 
-  if FOctreeTriangles <> nil then
+  if (FOctreeTriangles <> nil) and
+     { Do not recreate octree if it's based only on our bounding box,
+       and our bounding box is stored in TShapeNode.Box (so it doesn't change when
+       geometry changes).
+       This is the case with glTF skinned animation. }
+     not (
+       (Node <> nil) and
+       (Node.Collision = scBox) and
+       (not Node.BBox.IsEmpty)
+     ) then
     FreeOctreeTriangles;
 
   { Remove cached normals }

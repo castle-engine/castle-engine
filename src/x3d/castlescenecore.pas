@@ -5104,27 +5104,46 @@ end;
 procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
-  SomeLocalGeometryChanged: boolean;
+  SomeLocalGeometryChanged, MaybeBoundingBoxChanged: boolean;
 begin
-  Validities := Validities - [fvLocalBoundingBox,
-    fvVerticesCountNotOver, fvVerticesCountOver,
-    fvTrianglesCountNotOver, fvTrianglesCountOver];
+  MaybeBoundingBoxChanged := not (
+    { Box stayed the same if we changed shape geometry,
+      but TShapeNode provides explicit bbox information,
+      so this shape has still the same bbox.
+      This is the case with glTF skinned animation. }
+    (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]) and
+    (LocalGeometryShape <> nil) and
+    (LocalGeometryShape.Node <> nil) and
+    (not LocalGeometryShape.Node.BBox.IsEmpty)
+  );
 
-  { Calculate SomeLocalGeometryChanged (= if any
-    LocalGeometryChanged was called, which means that octree and
-    bounding box/sphere of some shape changed). }
-  SomeLocalGeometryChanged := (Change = gcAll) or
-    (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]);
+  Validities := Validities - [
+    fvVerticesCountNotOver,
+    fvVerticesCountOver,
+    fvTrianglesCountNotOver,
+    fvTrianglesCountOver
+  ];
 
-  if (FOctreeRendering <> nil) and
-     ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
-      SomeLocalGeometryChanged) then
-    FreeAndNil(FOctreeRendering);
+  if MaybeBoundingBoxChanged then
+  begin
+    Validities := Validities - [fvLocalBoundingBox];
 
-  if (FOctreeDynamicCollisions <> nil) and
-     ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
-      SomeLocalGeometryChanged) then
-    FreeAndNil(FOctreeDynamicCollisions);
+    { Calculate SomeLocalGeometryChanged (= if any
+      LocalGeometryChanged was called, which means that octree and
+      bounding box/sphere of some shape changed). }
+    SomeLocalGeometryChanged := (Change = gcAll) or
+      (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]);
+
+    if (FOctreeRendering <> nil) and
+       ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
+        SomeLocalGeometryChanged) then
+      FreeAndNil(FOctreeRendering);
+
+    if (FOctreeDynamicCollisions <> nil) and
+       ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
+        SomeLocalGeometryChanged) then
+      FreeAndNil(FOctreeDynamicCollisions);
+  end;
 
   if FOctreeStaticCollisions <> nil then
   begin
