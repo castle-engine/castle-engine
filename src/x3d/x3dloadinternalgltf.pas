@@ -537,6 +537,7 @@ const
       RoughnessFactor := Max(RoughnessFactor, 0.5);
     end;
 
+    (*
     Writeln('PBR specular-glossiness to metallic-roughness:' + NL +
       '  Input Diffuse ' + Diffuse.ToString + NL +
       '  Input Specular ' + Specular.ToString + NL +
@@ -545,7 +546,7 @@ const
       '  Output Base ' + BaseColorFactor.ToString + NL +
       '  Output Metallic ', MetallicFactor:1:2, NL +
       '  Output Roughness ', RoughnessFactor:1:2
-    );
+    ); *)
   end;
 
   procedure ReadSpecularGlossiness(const JsonSpecGloss: TPasJSONItemObject);
