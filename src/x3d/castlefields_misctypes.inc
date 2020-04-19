@@ -278,7 +278,10 @@
     chWireframe,
 
     { Children of X3D (or VRML 2) grouping node have been added or removed. }
-    chChildren);
+    chChildren,
+
+    { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
+    chBBox);
   TX3DChanges = set of TX3DChange;
 
 {$endif read_interface}

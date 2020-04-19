@@ -5019,6 +5019,18 @@ var
     HandleChangeEverything;
   end;
 
+  procedure HandleChangeBBox;
+  var
+    C, I: Integer;
+  begin
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
+    end;
+  end;
+
 begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
@@ -5082,6 +5094,7 @@ begin
     if chShadowMaps in Changes then HandleChangeShadowMaps;
     if chWireframe in Changes then HandleChangeWireframe;
     if chChildren in Changes then HandleChangeChildren;
+    if chBBox in Changes then HandleChangeBBox;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] <> [] then
       HandleVisibleChange;

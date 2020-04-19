@@ -653,6 +653,8 @@ const
 constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
+  FdBboxCenter.ChangesAlways := [chBBox];
+  FdBboxSize.ChangesAlways := [chBBox];
   FdAppearance.ChangesAlways := [chEverything];
   FdGeometry.ChangesAlways := [chEverything];
   {$ifndef CASTLE_SLIM_NODES}

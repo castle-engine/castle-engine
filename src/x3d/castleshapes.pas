@@ -1912,6 +1912,13 @@ begin
   if Changes * [chGeometry, chGeometryVRML1State, chWireframe] <> [] then
     LocalGeometryChanged(false, false);
 
+  if Changes * [chBBox] <> [] then
+  begin
+    Validities := Validities - [svLocalBBox, svBBox];
+    if (Node <> nil) and (Node.Collision = scBox) then
+      FreeOctreeTriangles; // bbox changed, so simple octree based on bbox also changed
+  end;
+
   if not InactiveOnly then
     TCastleSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
