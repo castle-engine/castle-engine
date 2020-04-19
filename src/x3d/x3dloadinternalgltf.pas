@@ -37,7 +37,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
   CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
-  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes;
+  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors;
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/
@@ -474,9 +474,151 @@ type
   end;
 
 procedure TPbrMetallicRoughness.Read(const Material: TPasGLTF.TMaterial);
+const
+  { Dielectric specular is RGB color with (0.04,0.04,0.04) defined by glTF spec. }
+  DielectricSpecular = 0.04;
+
+  { Equations to convert from specular-glossiness to metallic-roughness from
+    https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness/examples/convert-between-workflows/js
+  }
+
+  function SolveMetallic(const Diffuse, Specular, OneMinusSpecularStrength: Single): Single;
+  var
+    A, B, C, D: Single;
+  begin
+    if Specular < DielectricSpecular then
+      Exit(0);
+
+    A := DielectricSpecular;
+    B := Diffuse * OneMinusSpecularStrength / (1 - DielectricSpecular) + Specular - 2 * DielectricSpecular;
+    C := DielectricSpecular - Specular;
+    D := Max(B * B - 4 * A * C, 0);
+    Result := Clamped((-B + Sqrt(D)) / (2 * A), 0, 1);
+  end;
+
+  function GetPerceivedBrightness(const C: TCastleColorRGB): Single;
+  begin
+    Result := Sqrt(0.299 * Sqr(C[0]) + 0.587 * Sqr(C[1]) + 0.114 * Sqr(C[2]));
+  end;
+
+  procedure ConvertSpecularGlossinessToMetallicRoughness(
+    const Diffuse: TVector4; const Specular: TVector3;
+    const Glossiness: Single; const HasSpecularGlossinessTexture: Boolean);
+  var
+    Diffuse3: TVector3;
+    OneMinusSpecularStrength: Single;
+    BaseColorFromDiffuse, BaseColorFromSpecular: TVector3;
+  begin
+    OneMinusSpecularStrength := 1 - Specular.Max;
+    Diffuse3 := Diffuse.XYZ;
+    MetallicFactor := SolveMetallic(GetPerceivedBrightness(Diffuse3), GetPerceivedBrightness(Specular),
+      OneMinusSpecularStrength);
+    BaseColorFromDiffuse := Diffuse3 * (OneMinusSpecularStrength / (1 - DielectricSpecular) / Max(1 - MetallicFactor, SingleEpsilon));
+    BaseColorFromSpecular := (Specular -
+      (Vector3(DielectricSpecular, DielectricSpecular, DielectricSpecular) * (1 - MetallicFactor))) *
+      (1 / Max(MetallicFactor, SingleEpsilon));
+    BaseColorFactor := Vector4(
+      TVector3.Lerp(Sqr(MetallicFactor), BaseColorFromDiffuse, BaseColorFromSpecular),
+      Diffuse.W { BaseColor.alpha is just copied from Diffuse.alpha }
+    );
+    RoughnessFactor := 1 - Glossiness;
+
+    if HasSpecularGlossinessTexture then
+    begin
+      { This whole conversion isn't really correct if material has SpecularGlossinessTexture,
+        since this changes specular/glossiness per-pixel,
+        and we cannot account for that without shader.
+
+        In particular glossiness may be left as 1 (default),
+        causing roughness 0, which results in black material,
+        for Bee from https://github.com/castle-engine/view3dscene/issues/27 .
+
+        For now just avoid having RoughnessFactor ridiculously low. }
+      RoughnessFactor := Max(RoughnessFactor, 0.5);
+    end;
+
+    Writeln('PBR specular-glossiness to metallic-roughness:' + NL +
+      '  Input Diffuse ' + Diffuse.ToString + NL +
+      '  Input Specular ' + Specular.ToString + NL +
+      '  Input Glossiness ', Glossiness:1:2, NL +
+      '  ->' + NL +
+      '  Output Base ' + BaseColorFactor.ToString + NL +
+      '  Output Metallic ', MetallicFactor:1:2, NL +
+      '  Output Roughness ', RoughnessFactor:1:2
+    );
+  end;
+
+  procedure ReadSpecularGlossiness(const JsonSpecGloss: TPasJSONItemObject);
+  var
+    JSONItem: TPasJSONItem;
+    DiffuseFactor: TVector4;
+    SpecularFactor: TVector3;
+    GlossinessFactor: Single;
+    DiffuseTexture, SpecularGlossinessTexture: TTexture;
+  begin
+    { Read PBR specular-glossiness subset.
+      As we only read subset, we use it only when
+      Material.PBRMetallicRoughness is empty, despite
+      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
+      advising to use specular-glossiness if you can.
+
+      Code below, to read specular-glossiness from JSON, is based on PasGLTF UnitGLTFOpenGL. }
+
+    DiffuseFactor := Vector4(1, 1, 1, 1); // default
+    JSONItem := JsonSpecGloss.Properties['diffuseFactor'];
+    if Assigned(JSONItem) and
+       (JSONItem is TPasJSONItemArray) and
+       (TPasJSONItemArray(JSONItem).Count = 4) then
+    begin
+      DiffuseFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      DiffuseFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      DiffuseFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+      DiffuseFactor[3] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], 1);
+    end;
+
+    DiffuseTexture.Init;
+    JSONItem := JsonSpecGloss.Properties['diffuseTexture'];
+    if Assigned(JSONItem) and
+       (JSONItem is TPasJSONItemObject) then
+    begin
+      DiffuseTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
+      DiffuseTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
+      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions'], DiffuseTexture);
+    end;
+
+    GlossinessFactor := TPasJSON.GetNumber(JsonSpecGloss.Properties['glossinessFactor'], 1);
+
+    SpecularFactor := Vector3(1, 1, 1); // default
+    JSONItem := JsonSpecGloss.Properties['specularFactor'];
+    if Assigned(JSONItem) and
+       (JSONItem is TPasJSONItemArray) and
+       (TPasJSONItemArray(JSONItem).Count = 3) then
+    begin
+      SpecularFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], 1);
+      SpecularFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], 1);
+      SpecularFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], 1);
+    end;
+
+    SpecularGlossinessTexture.Init;
+    JSONItem := JsonSpecGloss.Properties['specularGlossinessTexture'];
+    if Assigned(JSONItem) and
+      (JSONItem is TPasJSONItemObject) then
+    begin
+      SpecularGlossinessTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
+      SpecularGlossinessTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
+      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions'], SpecularGlossinessTexture);
+    end;
+
+    // convert to metallic-roughness
+    ConvertSpecularGlossinessToMetallicRoughness(
+      DiffuseFactor, SpecularFactor, GlossinessFactor,
+      not SpecularGlossinessTexture.Empty);
+    BaseColorTexture := DiffuseTexture;
+    // ignore SpecularSpecularGlossinessTexture
+  end;
+
 var
-  JsonSpecGlossItem, JSONItem: TPasJSONItem;
-  JsonSpecGloss: TPasJSONItemObject;
+  JsonSpecGlossItem: TPasJSONItem;
 begin
   BaseColorTexture.Init;
   MetallicRoughnessTexture.Init;
@@ -498,35 +640,7 @@ begin
     WritelnWarning('Material "%s" has only PBR specular-glossiness parameters. We support it only partially (diffuseFactor, diffuseTexture are just used for baseFactor, baseTexture). Better use metallic-roughness model.', [
       Material.Name
     ]);
-
-    { Read PBR specular-glossiness subset.
-      As we only read subset, we use it only when
-      Material.PBRMetallicRoughness is empty, despite
-      https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_pbrSpecularGlossiness
-      advising to use specular-glossiness if you can.
-
-      Code below, to read specular-glossiness from JSON, is based on PasGLTF UnitGLTFOpenGL. }
-    JsonSpecGloss := TPasJSONItemObject(JsonSpecGlossItem);
-
-    JSONItem := JsonSpecGloss.Properties['diffuseFactor'];
-    if Assigned(JSONItem) and
-       (JSONItem is TPasJSONItemArray) and
-       (TPasJSONItemArray(JSONItem).Count = 4) then
-    begin
-      BaseColorFactor[0] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[0], TPasGLTF.TDefaults.IdentityVector4[0]);
-      BaseColorFactor[1] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[1], TPasGLTF.TDefaults.IdentityVector4[1]);
-      BaseColorFactor[2] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[2], TPasGLTF.TDefaults.IdentityVector4[2]);
-      BaseColorFactor[3] := TPasJSON.GetNumber(TPasJSONItemArray(JSONItem).Items[3], TPasGLTF.TDefaults.IdentityVector4[3]);
-    end;
-
-    JSONItem := JsonSpecGloss.Properties['diffuseTexture'];
-    if Assigned(JSONItem) and
-       (JSONItem is TPasJSONItemObject) then
-    begin
-      BaseColorTexture.Index := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['index'], -1);
-      BaseColorTexture.TexCoord := TPasJSON.GetInt64(TPasJSONItemObject(JSONItem).Properties['texCoord'], 0);
-      // TODO: LoadTextureTransform(TPasJSONItemObject(JSONItem).Properties['extensions']);
-    end;
+    ReadSpecularGlossiness(TPasJSONItemObject(JsonSpecGlossItem));
   end;
 end;
 
