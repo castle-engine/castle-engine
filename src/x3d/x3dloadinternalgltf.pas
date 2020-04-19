@@ -638,7 +638,7 @@ begin
   if Material.PBRMetallicRoughness.Empty and
      (JsonSpecGlossItem is TPasJSONItemObject) then
   begin
-    WritelnWarning('Material "%s" has only PBR specular-glossiness parameters. We support it only partially (diffuseFactor, diffuseTexture are just used for baseFactor, baseTexture). Better use metallic-roughness model.', [
+    WritelnWarning('Material "%s" has only PBR specular-glossiness parameters. We support it only partially (in particular specularGlossinessTexture is ignored). Better use metallic-roughness model.', [
       Material.Name
     ]);
     ReadSpecularGlossiness(TPasJSONItemObject(JsonSpecGlossItem));
