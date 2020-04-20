@@ -1085,7 +1085,8 @@ begin
       if N is TAbstractColorNode then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if N.Fields[J].X3DName <> 'metadata' then
+          if (N.Fields[J].X3DName <> 'metadata') and
+             (N.Fields[J].X3DName <> 'mode') then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chColorNode]);
           except
