@@ -531,6 +531,7 @@ begin
   CheckForceDirectories(ExportPath);
 
   RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
     '-workspace', Project.Name + '.xcworkspace',
     '-scheme', Project.Caption,
     '-destination', 'generic/platform=iOS',
