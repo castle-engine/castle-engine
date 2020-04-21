@@ -13,4 +13,9 @@
       <service name="vibrate" />
     </services>
   </android>
+  <ios uses_non_exempt_encryption="false">
+    <services>
+      <service name="vibrate" />
+    </services>
+  </ios>
 </project>
