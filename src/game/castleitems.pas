@@ -1165,7 +1165,7 @@ procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemove
   procedure UpdateResourceFrame;
   begin
     if Item = nil then Exit;
-    FResourceFrame.SetFrame(Item.Resource.BaseAnimation, LifeTime, true);
+    FResourceFrame.SetFrame(Level, Item.Resource.BaseAnimation, LifeTime, true);
   end;
 
 var

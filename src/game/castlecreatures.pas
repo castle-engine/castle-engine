@@ -1830,24 +1830,24 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
 
     case FState of
       csIdle:
-        FResourceFrame.SetFrame(Resource.IdleAnimation, StateTime, true);
+        FResourceFrame.SetFrame(Level, Resource.IdleAnimation, StateTime, true);
       csWalk:
         if Resource.IdleToWalkAnimation.Defined and
            (StateTime < Resource.IdleToWalkAnimation.Duration) then
-          FResourceFrame.SetFrame(Resource.IdleToWalkAnimation, StateTime, false)
+          FResourceFrame.SetFrame(Level, Resource.IdleToWalkAnimation, StateTime, false)
         else
-          FResourceFrame.SetFrame(Resource.WalkAnimation,
+          FResourceFrame.SetFrame(Level, Resource.WalkAnimation,
             StateTime - Resource.IdleToWalkAnimation.Duration, true);
       csAttack:
-        FResourceFrame.SetFrame(Resource.AttackAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.AttackAnimation, StateTime, false);
       csFireMissile:
-        FResourceFrame.SetFrame(Resource.FireMissileAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.FireMissileAnimation, StateTime, false);
       csDie:
-        FResourceFrame.SetFrame(Resource.DieAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.DieAnimation, StateTime, false);
       csDieBack:
-        FResourceFrame.SetFrame(Resource.DieBackAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.DieBackAnimation, StateTime, false);
       csHurt:
-        FResourceFrame.SetFrame(Resource.HurtAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.HurtAnimation, StateTime, false);
       else raise EInternalError.Create('FState ?');
     end;
   end;
@@ -2676,9 +2676,9 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
   procedure UpdateResourceFrame;
   begin
     if Dead and Resource.DieAnimation.Defined then
-      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
+      FResourceFrame.SetFrame(Level, Resource.DieAnimation, LifeTime - DieTime, false)
     else
-      FResourceFrame.SetFrame(Resource.FlyAnimation, LifeTime, true);
+      FResourceFrame.SetFrame(Level, Resource.FlyAnimation, LifeTime, true);
   end;
 
 var
@@ -2828,9 +2828,9 @@ procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemo
   procedure UpdateResourceFrame;
   begin
     if Dead and Resource.DieAnimation.Defined then
-      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
+      FResourceFrame.SetFrame(Level, Resource.DieAnimation, LifeTime - DieTime, false)
     else
-      FResourceFrame.SetFrame(Resource.IdleAnimation, LifeTime, true);
+      FResourceFrame.SetFrame(Level, Resource.IdleAnimation, LifeTime, true);
   end;
 
 begin

@@ -895,18 +895,15 @@ type
         the names should be self-explanatory (they refer to appropriate
         methods of TCastleTransform, TCastleSceneCore or TCastleScene).)
 
-      @param(ProgressStep Says that we should make this many Progress.Step calls
-        during preparation.
-        Useful to show progress bar to the user during long preparation.
-
-        TODO: for now, do not include prSpatial if you use ProgressStep.
-        Reason: octree preparations have a separate mechanism
-        that may want to show progress.)
+      @param(ProgressStep Says that we should call Progress.Step.
+        It will be called PrepareResourcesSteps times.
+        Useful to show progress bar to the user during long preparation.)
 
       @param(Params
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
-      ) }
+      )
+    }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); virtual;
 

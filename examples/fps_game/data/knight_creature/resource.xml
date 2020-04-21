@@ -37,7 +37,7 @@
   preferred_distance="3.5"
   move_speed="1.75"
 >
-  <model url="knight.gltf">
+  <model url="knight.gltf" pool="10">
     <idle   animation_name="Idle"    />
     <walk   animation_name="Walk"    />
     <attack animation_name="Attack"  />
