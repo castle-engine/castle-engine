@@ -21,7 +21,7 @@ interface
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleWindowTouch, CastleWindow, CastleControls, CastleUIControls,
   CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
@@ -204,6 +204,19 @@ begin
   Application.Terminate;
 end;
 
+type
+  // Larger button, with padding, to make it easier to click on mobile
+  TCastleButtonLarge = class(TCastleButton)
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+constructor TCastleButtonLarge.Create(AOwner: TComponent);
+begin
+  inherited;
+  PaddingHorizontal := 20;
+  PaddingVertical := 20;
+end;
+
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
@@ -214,6 +227,12 @@ end;
 procedure ApplicationInitialize;
 const
   Margin = 10;
+  { Some platforms do not support Application.ProcessMessages, which means you
+    cannot just write a function like MessageYesNo that waits until user clicks
+    something.
+    You *have* to implement modal boxes then using states,
+    e.g. using CastleDialogStates or your own TUIState descendants. }
+  PlatformAllowsModalRoutines = {$if defined(CASTLE_IOS) or defined(CASTLE_NINTENDO_SWITCH)} false {$else} true {$endif};
 var
   ButtonsRight: TCastleVerticalGroup;
   ButtonsMiddle: TCastleVerticalGroup;
@@ -244,19 +263,19 @@ begin
   ButtonsMiddle.Alignment := hpMiddle;
   Window.Controls.InsertFront(ButtonsMiddle);
 
-  ToggleShaderButton := TCastleButton.Create(Window);
+  ToggleShaderButton := TCastleButtonLarge.Create(Window);
   ToggleShaderButton.Caption := 'Toggle Shader Effect';
   ToggleShaderButton.OnClick := @TEventsHandler(nil).ToggleShaderClick;
   ToggleShaderButton.Toggle := true;
   ButtonsMiddle.InsertFront(ToggleShaderButton);
 
-  ToggleScreenEffectButton := TCastleButton.Create(Window);
+  ToggleScreenEffectButton := TCastleButtonLarge.Create(Window);
   ToggleScreenEffectButton.Caption := 'Toggle Screen Effect';
   ToggleScreenEffectButton.OnClick := @TEventsHandler(nil).ToggleScreenEffectClick;
   ToggleScreenEffectButton.Toggle := true;
   ButtonsMiddle.InsertFront(ToggleScreenEffectButton);
 
-  ToggleSSAOButton := TCastleButton.Create(Window);
+  ToggleSSAOButton := TCastleButtonLarge.Create(Window);
   ToggleSSAOButton.Caption := 'Toggle SSAO';
   ToggleSSAOButton.OnClick := @TEventsHandler(nil).ToggleSSAOClick;
   ToggleSSAOButton.Toggle := true;
@@ -272,47 +291,49 @@ begin
   ButtonsRight.Alignment := hpRight;
   Window.Controls.InsertFront(ButtonsRight);
 
-  TouchUIButton := TCastleButton.Create(Window);
+  TouchUIButton := TCastleButtonLarge.Create(Window);
   TouchUIButton.Caption := 'Next Touch UI';
   TouchUIButton.OnClick := @TEventsHandler(nil).TouchUIClick;
   ButtonsRight.InsertFront(TouchUIButton);
 
-  MessageButton := TCastleButton.Create(Window);
+  MessageButton := TCastleButtonLarge.Create(Window);
   MessageButton.Caption := 'Test Modal Message';
   MessageButton.OnClick := @TEventsHandler(nil).MessageClick;
+  MessageButton.Exists := PlatformAllowsModalRoutines;
   ButtonsRight.InsertFront(MessageButton);
 
-  ProgressButton := TCastleButton.Create(Window);
+  ProgressButton := TCastleButtonLarge.Create(Window);
   ProgressButton.Caption := 'Test Progress Bar';
   ProgressButton.OnClick := @TEventsHandler(nil).ProgressClick;
+  ProgressButton.Exists := PlatformAllowsModalRoutines;
   ButtonsRight.InsertFront(ProgressButton);
 
-  ReopenContextButton := TCastleButton.Create(Window);
+  ReopenContextButton := TCastleButtonLarge.Create(Window);
   ReopenContextButton.Caption := 'Test Reopening OpenGL Context';
   ReopenContextButton.OnClick := @TEventsHandler(nil).ReopenContextClick;
   ButtonsRight.InsertFront(ReopenContextButton);
 
-  ToggleTextureUpdatesButton := TCastleButton.Create(Window);
+  ToggleTextureUpdatesButton := TCastleButtonLarge.Create(Window);
   ToggleTextureUpdatesButton.Caption := 'Toggle CubeMap Texture Updates';
   ToggleTextureUpdatesButton.OnClick := @TEventsHandler(nil).ToggleTextureUpdates;
   ButtonsRight.InsertFront(ToggleTextureUpdatesButton);
 
-  PlaySoundWavButton := TCastleButton.Create(Window);
+  PlaySoundWavButton := TCastleButtonLarge.Create(Window);
   PlaySoundWavButton.Caption := 'Play Sound (Wav)';
   PlaySoundWavButton.OnClick := @TEventsHandler(nil).PlaySoundWav;
   ButtonsRight.InsertFront(PlaySoundWavButton);
 
-  PlaySoundOggButton := TCastleButton.Create(Window);
+  PlaySoundOggButton := TCastleButtonLarge.Create(Window);
   PlaySoundOggButton.Caption := 'Play Sound (Ogg Vorbis)';
   PlaySoundOggButton.OnClick := @TEventsHandler(nil).PlaySoundOgg;
   ButtonsRight.InsertFront(PlaySoundOggButton);
 
-  VibrateButton := TCastleButton.Create(Window);
+  VibrateButton := TCastleButtonLarge.Create(Window);
   VibrateButton.Caption := 'Vibrate';
   VibrateButton.OnClick := @TEventsHandler(nil).Vibrate;
   ButtonsRight.InsertFront(VibrateButton);
 
-  TerminateButton := TCastleButton.Create(Window);
+  TerminateButton := TCastleButtonLarge.Create(Window);
   TerminateButton.Caption := 'Terminate Application';
   TerminateButton.OnClick := @TEventsHandler(nil).TerminateClick;
   TerminateButton.Exists := {$if (defined(ANDROID) and not defined(CASTLE_NINTENDO_SWITCH)) or defined(CASTLE_IOS)} false {$else} true {$endif};

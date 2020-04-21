@@ -77,7 +77,8 @@ procedure OpenApplicationStore(const ApplicationId: string);
 
 { Vibrate the device.
 
-  This is available only on Android right now, ignored elsewhere.
+  Available on Android, iOS and Nintendo Switch now. Ignored on other platforms.
+
   To include the necessary integration code in your Android project,
   declare your Android project type as "integrated" with
   the "vibrate" service inside CastleEngineManifest.xml.
