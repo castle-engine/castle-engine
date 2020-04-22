@@ -3272,7 +3272,7 @@ begin
 
   { Keep FTransformState up-to-date.
     This is not necessary when OptimizeExtensiveTransformations = true,
-    so we don't do it to converve speed. }
+    so we don't do it to conserve speed. }
   if not OptimizeExtensiveTransformations then
   begin
     FTransformState.Transform := ParentTransform;

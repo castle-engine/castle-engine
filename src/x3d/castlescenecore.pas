@@ -2435,7 +2435,7 @@ var
   { Set this to optimize animating transformations for scenes where you
     have many transformations (many Transform nodes), and many of them
     are animated at the same time. Often particularly effective for
-    skeletal animations of characters, 3D and 2D (e.g. from Spine). }
+    skeletal animations of characters, 3D and 2D (e.g. from Spine or glTF). }
   OptimizeExtensiveTransformations: boolean = false;
 
   { Experimental optimization of Transform animation.

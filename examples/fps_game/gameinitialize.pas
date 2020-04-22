@@ -31,7 +31,7 @@ uses SysUtils, Classes,
   CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
-  CastleLoadGltf;
+  CastleLoadGltf, CastleSceneCore, CastleScene;
 
 var
   Window: TCastleWindowBase;
@@ -458,6 +458,12 @@ end;
   This is assigned to Application.OnInitialize, and will be called only once. }
 procedure ApplicationInitialize;
 begin
+  { Turn on some engine optimizations not enabled by default.
+    TODO: In the future they should be default, and these variables should be ignored.
+    See their docs for description why they aren't default yet. }
+  OptimizeExtensiveTransformations := true;
+  InternalFastTransformUpdate := true;
+
   { automatically scale user interface to reference sizes }
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
