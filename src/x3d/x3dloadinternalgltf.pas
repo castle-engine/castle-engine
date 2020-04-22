@@ -1875,6 +1875,11 @@ var
         ]);
         Normal := nil;
       end;
+    end else
+    begin
+      if (Shape.Material is TMaterialNode) or
+         (Shape.Material is TPhysicalMaterialNode) then
+        WritelnWarning('TODO: Normal vectors are not provided for a skinned geometry (using lit material), and in effect the resulting animation will be slow as we''ll recalculate normals more often than necessary. For now it is adviced to generate glTF with normals included for skinned meshes.');
     end;
 
     if (Shape.Geometry.InternalSkinJoints = nil) or
