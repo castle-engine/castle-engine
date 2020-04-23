@@ -1673,7 +1673,15 @@ begin
   begin
     Assert((Color <> nil) or (ColorRGBA <> nil));
     Arrays.AddColor(ColorNode.Mode);
-    if (ColorIndex <> nil) or (not ColorPerVertex) then
+    { In case of X3D primitives like IndexedTriangle[Fan/Strip]Set,
+      ColorIndex is set but always equal to CoordIndex.
+      This means we don't have to disable AllowIndexed (which is beneficial for speed).
+
+      Testcase: test examples/fps_game/data/knight_creature/knight.gltf
+      with LogShapes, observe it should have AllowIndexed=true
+      and CoordinatePreserveGeometryOrder=true. }
+    if ((ColorIndex <> nil) and (ColorIndex <> CoordIndex)) or
+       (not ColorPerVertex) then
       AllowIndexed := false;
   end;
 end;
