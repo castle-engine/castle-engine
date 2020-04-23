@@ -1033,9 +1033,7 @@ var
   DisableAutoDynamicGeometry: Cardinal;
 
   { Log various information about shapes. This displays quite a lot of non-critical
-    information when opening non-trivial models.
-
-    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+    information when opening non-trivial models. }
   LogShapes: boolean = false;
 
 type
