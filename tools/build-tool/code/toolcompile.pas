@@ -435,13 +435,22 @@ begin
       FpcOptions.Add('-vm5071');
     end;
 
-    if FpcVer.AtLeast(3, 3, 1) then
+    if FpcVer.AtLeast(3, 2, 0) then
     begin
       // do not show
-      // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
-      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-      FpcOptions.Add('-vm6058');
+      // Warning: function result variable of a managed type does not seem to be initialized
+      // (a lot of false warnings since FPC 3.3.1)
+      FpcOptions.Add('-vm5093');
 
+      // do not show
+      // Note: Call to subroutine "$1" marked as inline is not inlined
+      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
+      // (flood of notes after using Generics.Collections)
+      FpcOptions.Add('-vm6058');
+    end;
+
+    if FpcVer.AtLeast(3, 3, 1) then
+    begin
       // do not show
       // Warning: Local variable "$1" of a managed type does not seem to be initialized
       // (a lot of false warnings since FPC 3.3.1)
@@ -451,11 +460,6 @@ begin
       // Warning: Variable "OutputFace" of a managed type does not seem to be initialized
       // (3 false warnings since FPC 3.3.1 in Kraft)
       FpcOptions.Add('-vm5090');
-
-      // do not show
-      // Warning: function result variable of a managed type does not seem to be initialized
-      // (a lot of false warnings since FPC 3.3.1)
-      FpcOptions.Add('-vm5093');
     end;
 
     FpcOptions.Add('-T' + OSToString(OS));
