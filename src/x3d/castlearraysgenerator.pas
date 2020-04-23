@@ -793,11 +793,8 @@ begin
     PrepareAttributes(AllowIndexed);
 
     try
-      if LogShapes then
-        WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-          [Shape.NiceName, BoolToStr(AllowIndexed, true)]));
-
-      if AllowIndexed or (IndexesFromCoordIndex = nil) then
+      Arrays.CoordinatePreserveGeometryOrder := AllowIndexed or (IndexesFromCoordIndex = nil);
+      if Arrays.CoordinatePreserveGeometryOrder then
       begin
         Arrays.Indexes := IndexesFromCoordIndex;
         IndexesFromCoordIndex := nil;
@@ -812,6 +809,17 @@ begin
         { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
         AssignToInterleavedIndexed(Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
       end;
+
+      if LogShapes then
+        WritelnLog('Renderer', Format('Shape %s rendered:' + NL +
+          '- using original indexes (desired, makes more compact GPU representation (array count)): %s' + NL +
+          '- preserving geometry order (desired, makes updating CoordinateInterpolator faster): %s' + NL +
+          '- array count: %d', [
+          Shape.NiceName,
+          BoolToStr(AllowIndexed, true),
+          BoolToStr(Arrays.CoordinatePreserveGeometryOrder, true),
+          Arrays.Count
+        ]));
 
       GenerateCoordinateBegin;
       try
@@ -1311,23 +1319,34 @@ begin
           TexImplementation := tcNonIndexed;
           Assert(CoordIndex = nil);
         end else
-        if TexCoordIndex.Count >= CoordIndex.Count then
+        if { Use texIndexed if texture coordinates are indexed by *something else*
+             than CoordIndex. So check "TexCoordIndex <> CoordIndex".
+
+             In case of X3D primitives like IndexedTriangle[Fan/Strip]Set, QuadSet,
+             they always have TexCoordIndex = CoordIndex (just taken from "index" field).
+             And we don't want to use tcTexIndexed for them (because it is less optimal,
+             as sets AllowIndexed=false, CoordinatePreserveGeometryOrder=false). }
+           (TexCoordIndex <> CoordIndex) and
+           (TexCoordIndex.Count >= CoordIndex.Count) then
         begin
           TexImplementation := tcTexIndexed;
         end else
         begin
-          { If TexCoord <> nil (non-zero Arrays.TexCoords.Count guarantees this)
-            but TexCoordIndex is empty then
-            - VRML 2.0 spec says that coordIndex is used
-              to index texture coordinates for IndexedFaceSet.
+          { X3D primitives like IndexedTriangle[Fan/Strip]Set, QuadSet
+            will arrive here, because they always have TexCoordIndex = CoordIndex.
+
+            Others will arrive here when TexCoord <> nil
+            (non-zero Arrays.TexCoords.Count guarantees this)
+            but TexCoordIndex is empty. Then:
+
+            - VRML 2.0 spec of IndexedFaceSet says that coordIndex is used
+              to index texture coordinates.
+
             - VRML 1.0 spec says that in this case default texture
               coordinates should be generated (that's because for
               VRML 1.0 there is always some TexCoord <> nil,
               so it cannot be used to produce different behavior).
               We handled this case in code above.
-            - Note that this cannot happen at all for X3D primitives
-              like IndexedTriangle[Fan/Strip]Set, QuadSet, since they
-              have TexCoordIndex = CoordIndex (just taken from "index" field).
           }
           Assert(State.ShapeNode <> nil);
           TexImplementation := tcCoordIndexed;

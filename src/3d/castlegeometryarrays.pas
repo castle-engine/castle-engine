@@ -131,6 +131,7 @@ type
 
     FCoordinateArray: Pointer;
     FCoordinateSize: Cardinal;
+    FCoordinatePreserveGeometryOrder: Boolean;
 
     FHasColor: boolean;
     FColorMode: TColorMode;
@@ -225,6 +226,13 @@ type
     property CoordinateArray: Pointer read FCoordinateArray;
     property CoordinateSize: Cardinal read FCoordinateSize;
     { @groupEnd }
+
+    { Does the order of data in CoordinateArray preserves the order
+      of geometry (order of vectors in TCoordinateNode.Coord
+      in TAbstractGeometryNode.CoordField). }
+    property CoordinatePreserveGeometryOrder: Boolean
+      read FCoordinatePreserveGeometryOrder
+      write FCoordinatePreserveGeometryOrder default false;
 
     { Memory containing everything other vertex attribute, like color,
       texture coordinates and GLSL attributes.
