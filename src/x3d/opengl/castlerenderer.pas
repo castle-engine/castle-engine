@@ -550,6 +550,7 @@ type
     Vbo: TVboArrays;
     VboAllocatedUsage: TGLenum;
     VboAllocatedSize: array [TVboType] of Cardinal;
+    VboCoordinatePreserveGeometryOrder: Boolean; //< copied from TGeometryArrays.CoordinatePreserveGeometryOrder
 
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
@@ -561,6 +562,13 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
     { Debug description of this shape cache. }
     function ToString: String; override;
+    { If possible, update the coordinate/normal data in VBO fast.
+
+      This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
+      It optimizes the case of animating coordinates/normals using CoordinateInterpolator,
+      which is very important to optimize, since that's how glTF skinned animations
+      are done. }
+    function FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -2259,6 +2267,8 @@ begin
   else
     DataUsage := GL_STATIC_DRAW;
 
+  VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
+
   BufferData(vtCoordinate, GL_ARRAY_BUFFER,
     Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
@@ -2278,6 +2288,55 @@ begin
     work even if you call FreeArrays multiple times, the needed updates
     are summed). }
   VboToReload := [];
+end;
+
+function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
+type
+  TCoordinateNormal = packed record
+    Coord, Normal: TVector3;
+  end;
+var
+  NewCoordinates: array of TCoordinateNormal;
+  Count, Size: Cardinal;
+  I: Integer;
+begin
+  Result := false;
+
+  if { VBO of coordinates was initialized.
+       This also means that Arrays.FreeData was called, as LoadArraysToVbo does it. }
+     (Vbo[vtCoordinate] <> 0) and
+     VboCoordinatePreserveGeometryOrder and
+     (Normals.Count = Coords.Count) then
+  begin
+    Count := Coords.Count;
+    Size := Count * SizeOf(TCoordinateNormal);
+    if (VboAllocatedUsage = GL_STREAM_DRAW) and
+       { Comparing the byte sizes also makes sure that previous and new coordinates
+         count stayed the same.
+         Right now we always pack into TCoordinateNormal record (2 vectors, 3x floats)
+         so VboAllocatedSize[vtCoordinate] just determines the count.
+       }
+       (VboAllocatedSize[vtCoordinate] = Size) then
+    begin
+      Result := true;
+      if Count <> 0 then
+      begin
+        VboToReload := VboToReload + [vtCoordinate];
+
+        // calculate NewCoordinates
+        SetLength(NewCoordinates, Count);
+        for I := 0 to Count - 1 do
+        begin
+          NewCoordinates[I].Coord := Coords.List^[I];
+          NewCoordinates[I].Normal := Normals.List^[I];
+        end;
+
+        // load NewCoordinates to GPU
+        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, Size, Pointer(NewCoordinates));
+      end;
+    end;
+  end;
 end;
 
 function TShapeCache.ToString: String;
