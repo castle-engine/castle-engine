@@ -1113,6 +1113,10 @@ begin
     ColorRGBA := NodeLS.InternalColorRGBA;
     ColorPerVertex := true; { always true for LineSet }
   end;
+
+  { do not leave NorImplementation as niNone,
+    only because niNone forces less optimal rendering AllowIndexed=false. }
+  NorImplementation := niUnlit;
 end;
 
 procedure TLineSetGenerator.GenerateCoordinateBegin;

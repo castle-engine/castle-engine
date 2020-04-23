@@ -543,12 +543,17 @@ type
   end;
 
   TNormalsImplementation = (
-    { Do nothing about normals (in TAbstractNormalGenerator)
-      class. Passing normals to OpenGL is left for descendants. }
+    { TAbstractNormalGenerator does nothing about normals.
+      Descendants must override GetNormal and GenerateVertex to provide normals
+      calculated using a custom method. }
     niNone,
     { The first item of Normals specifies the one and only normal
       for the whole geometry. }
     niOverall,
+    { Shape does not have any way to define reasonable normals, and so is rendered unlit
+      (e.g. LineSet, IndexedLineSet, PointSet, at least when no explicit
+      normals are provided (X3D v4 may allow providing normals for them)). }
+    niUnlit,
     { Each vertex has it's normal vector, IndexNum specifies direct index
       to Normals. }
     niPerVertexNonIndexed,
@@ -561,7 +566,8 @@ type
     { Face number is the index to Normals. }
     niPerFace,
     { Face number is the index to NormalIndex, and this indexes Normals. }
-    niPerFaceNormalIndexed);
+    niPerFaceNormalIndexed
+  );
 
   { Handle normals, both taken from user data (that is, stored in VRML file)
     and generated.
@@ -585,13 +591,13 @@ type
 
     - If and only if NorImplementation = niNone (either you left it as
       default, or NorImplementationFromVRML1Binding returned this,
-      or you set this...)
-      you have to make appropriate glNormal calls yourself.
+      or you set this...) you have to
 
-      Normals will always point from side set as NormalsCcw.
+      - Override GetNormal and return correct normals.
+        GetNormal results (vectors) must point from side set as NormalsCcw.
+        When NorImplementation <> niNone then GetNormal should return inherited.
 
-      If NorImplementation <> niNone then we handle everything
-      related to normals in this class.
+      - Override GenerateVertex and set Arrays.Normal(ArrayIndexNum)^ := ...;
 
     Note that PerVertexXxx normals require smooth shading to work Ok. }
   TAbstractNormalGenerator = class(TAbstractColorGenerator)
@@ -1761,8 +1767,10 @@ begin
       { When IndexNum for normal works exactly like for position,
         then normals can be indexed. This is true in two cases:
         - there is no coordIndex, and normal vectors are not indexed
-        - there is coordIndex, and normal vectors are indexed by coordIndex }
-      (NorImplementation = niPerVertexCoordIndexed) or
+        - there is coordIndex, and normal vectors are indexed by coordIndex
+        - also niOverall, niUnlit can work in every possible case
+          (they just set the same value always). }
+      (NorImplementation in [niPerVertexCoordIndexed, niOverall, niUnlit]) or
      ((NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil)) ) then
     AllowIndexed := false;
 end;
@@ -1813,6 +1821,8 @@ begin
   case NorImplementation of
     niOverall:
       N := Normals.L[0];
+    niUnlit:
+      N := TVector3.Zero; // return anything defined
     niPerVertexNonIndexed:
       N := Normals.L[IndexNum];
     niPerVertexCoordIndexed:
@@ -1831,7 +1841,7 @@ end;
 
 function TAbstractNormalGenerator.NormalsFlat: boolean;
 begin
-  Result := NorImplementation in [niOverall, niPerFace, niPerFaceNormalIndexed];
+  Result := NorImplementation in [niUnlit, niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
 
 procedure TAbstractNormalGenerator.GenerateVertex(IndexNum: Integer);
@@ -1876,20 +1886,22 @@ procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
-  if NorImplementation = niPerVertexCoordIndexed then
-  begin
-    if Arrays.Indexes <> nil then
-      AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
-      AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
-  end else
-  if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
-  begin
-    Assert(Arrays.Indexes = nil);
-    AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
-  end else
-  if NorImplementation = niOverall then
-  begin
-    SetAllNormals(NormalsSafe(0));
+  case NorImplementation of
+    niPerVertexCoordIndexed:
+      begin
+        if Arrays.Indexes <> nil then
+          AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count)
+        else
+          AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      end;
+    niPerVertexNonIndexed:
+      if CoordIndex = nil then
+      begin
+        Assert(Arrays.Indexes = nil);
+        AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+      end;
+    niOverall: SetAllNormals(NormalsSafe(0));
+    niUnlit: SetAllNormals(TVector3.Zero);
   end;
 end;
 
