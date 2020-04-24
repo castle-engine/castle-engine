@@ -46,7 +46,12 @@
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
       This means that VisibleChangeHere with vcVisibleGeometry included should
-      be called. }
+      be called.
+
+      See TVisibleChange for the difference between "geometry" and "non-geometry"
+      change. In short, "geometry" change means that shape of something changed,
+      so even rendering it with some special shader (e.g. only to depth buffer)
+      is affected (makes different result). }
     chVisibleGeometry,
 
     { Something visible changed, but not geometry.

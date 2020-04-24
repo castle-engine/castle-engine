@@ -51,7 +51,8 @@ type
 
     { Something visible, but not the geometry shape, changes.
       For example, material or texture on a visible surface changed. }
-    vcVisibleNonGeometry);
+    vcVisibleNonGeometry
+  );
   TVisibleChanges = set of TVisibleChange;
 
   TVisibleChangeEvent = procedure (const Sender: TCastleTransform; const Changes: TVisibleChanges) of object;

@@ -429,6 +429,25 @@ type
       PointingDeviceClear on ParentScene (since some PTriangle pointers
       were freed). }
     procedure FreeOctreeTriangles;
+
+    { @exclude
+      Called when local geometry changed. Internally used to communicate
+      between TCastleSceneCore and TShape.
+
+      "Local" means that we're concerned here about changes visible
+      in shape local coordinate system. E.g. things that only change our
+      transformation (State.Transform) do not cause "local" geometry changes.
+
+      "Geometry" means that we're concerned only about changes to topology
+      --- vertexes, edges, faces, how they connect each other.
+      Things that affect only appearance (e.g. whole Shape.appearance content
+      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
+      material color does not cause "local" geometry changes.
+
+      This frees the octree (will be recreated on Octree* call).
+      Also removes cached normals.
+      Also notifies parent scene about this change (unless CalledFromParentScene). }
+    procedure LocalGeometryChanged(const CalledFromParentScene, ChangedOnlyCoord: boolean);
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
@@ -535,25 +554,6 @@ type
       EqualsNoTransform). }
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TX3DChanges); virtual;
-
-    { @exclude
-      Called when local geometry changed. Internally used to communicate
-      between TCastleSceneCore and TShape.
-
-      "Local" means that we're concerned here about changes visible
-      in shape local coordinate system. E.g. things that only change our
-      transformation (State.Transform) do not cause "local" geometry changes.
-
-      "Geometry" means that we're concerned only about changes to topology
-      --- vertexes, edges, faces, how they connect each other.
-      Things that affect only appearance (e.g. whole Shape.appearance content
-      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
-      material color does not cause "local" geometry changes.
-
-      This frees the octree (will be recreated on Octree* call).
-      Also removes cached normals.
-      Also notifies parent scene about this change (unless CalledFromParentScene). }
-    procedure LocalGeometryChanged(const CalledFromParentScene, ChangedOnlyCoord: boolean);
 
     { The dynamic octree containing all triangles.
       It contains only triangles within this shape.
