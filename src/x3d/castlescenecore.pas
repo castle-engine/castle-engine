@@ -4573,13 +4573,14 @@ var
     end;
   end;
 
-  procedure HandleChangeMaterial;
+  procedure HandleChangeAlphaChannel;
   var
     C, I: Integer;
   begin
     C := TShapeTree.AssociatedShapesCount(ANode);
     if C <> 0 then
     begin
+      // pass Changes (with chAlphaChannel) to TGLShape.Changed
       for I := 0 to C - 1 do
         TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, Changes);
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -5064,7 +5065,7 @@ begin
     if chCoordinate in Changes then HandleChangeCoordinate;
     if Changes * [chVisibleVRML1State, chGeometryVRML1State] <> [] then
       HandleVRML1State;
-    if chMaterial2 in Changes then HandleChangeMaterial;
+    if chAlphaChannel in Changes then HandleChangeAlphaChannel;
     if chLightInstanceProperty  in Changes then HandleChangeLightInstanceProperty;
     if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
     if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;

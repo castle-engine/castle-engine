@@ -1399,7 +1399,7 @@ begin
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, true, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangesAlways := [chVisibleVRML1State, chAlphaChannel];
+   FdTransparency.ChangesAlways := [chAlphaChannel];
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, true, 'mirror', [0.0]);

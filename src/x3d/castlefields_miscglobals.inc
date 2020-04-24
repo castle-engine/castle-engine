@@ -38,7 +38,6 @@ const
     'Coordinate',
     'VRML 1.0 State (but not affecting geometry or Coordinate)',
     'VRML 1.0 State (affecting geometry, but not Coordinate)',
-    'Material',
     'Blending',
     'Light active property',
     'Light location/direction',

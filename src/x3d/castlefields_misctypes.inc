@@ -105,18 +105,10 @@
       don't include other flags with this. }
     chGeometryVRML1State,
 
-    { Something visible in VRML >= 2.0 Material (or TwoSidedMaterial) changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: you can (and should) include chAlphaChannel for appropriate
-      Material changes. }
-    chMaterial2,
-
     { Something that may affect TShape.AlphaChannel calculation possibly changed.
-      This is guaranteed to work only when used together with
-      chVisibleVRML1State and chMaterial2. It's understood that only
-      shapes that use given material need AlphaChannel recalculated. }
+      It's understood that only shapes that use given material
+      need AlphaChannel recalculated.
+      No need to pass chVisibleNonGeometry or chVisibleGeometry with this, it is implied. }
     chAlphaChannel,
 
     { Light property that is also reflected in TLightInstance structure.
