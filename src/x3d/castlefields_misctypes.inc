@@ -41,8 +41,11 @@
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
 
   { Possible things that happen when given field is changed.
-    Used by TX3DField.ExecuteChanges. }
+    Used by @link(TX3DField.ExecuteChange) and @link(TX3DField.ChangeAlways). }
   TX3DChange = (
+    { This field has no effect on the rendering/behaviour of anything. }
+    chNone,
+
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
       This means that VisibleChangeHere with vcVisibleGeometry included should
@@ -61,23 +64,16 @@
     chVisibleNonGeometry,
 
     { Call VisibleChangeHere to redisplay the scene.
-
-      If you include one of the chVisibleGeometry or chVisibleNonGeometry
-      then this flag (chRedisplay) makes no effect.
-      Otherwise, this flag should be used if your change requires
-      redisplay of the 3D view for some other reason. }
+      In contrast to chVisibleGeometry or chVisibleNonGeometry,
+      this flag should be used if your change requires
+      redisplay of the 3D view for some other reason
+      (e.g. need to update rendered texture). }
     chRedisplay,
 
-    { Transformation of children of this node changed.
-
-      Caller will analyze the scene (your children) to know what this implicates,
-      don't include other flags with this. }
+    { Transformation of children of this node changed. }
     chTransform,
 
-    { Coordinate (both VRML 1.0 and >= 2.0) node "point" field changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { Coordinate (both VRML 1.0 and >= 2.0) node "point" field changed. }
     chCoordinate,
 
     { Something visible in VRML 1.0 state node (that may be present
@@ -93,148 +89,82 @@
       This is allowed, and ignored, on nodes that are not part of VRML 1.0
       state. (This is useful for alphaChannel field, that is declared
       in TAbstractGeometryNode, and so is part of some VRML 1.0 state nodes
-      but is also part of VRML >= 2.0 nodes.)
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: you can (and should) include chAlphaChannel and
-      chTextureImage for appropriate changes. }
+      but is also part of VRML >= 2.0 nodes.) }
     chVisibleVRML1State,
 
     { Some visible geometry changed because of VRML 1.0 state node change.
       This is for VRML 1.0 state node changes, excluding non-geometry changes
       (these go to chVisibleVRML1State) and Coordinate changes (these go to
-      chCoordinate).
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      chCoordinate). }
     chGeometryVRML1State,
 
     { Something that may affect TShape.AlphaChannel calculation possibly changed.
       It's understood that only shapes that use given material
-      need AlphaChannel recalculated.
-      No need to pass chVisibleNonGeometry or chVisibleGeometry with this, it is implied. }
+      need AlphaChannel recalculated. }
     chAlphaChannel,
 
     { Light property that is also reflected in TLightInstance structure.
-      Only allowed on node's descending from TAbstractLightNode.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: include also chLightLocationDirection when appropriate. }
+      Only allowed on node's descending from TAbstractLightNode. }
     chLightInstanceProperty,
 
     { Light's location and/or direction changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: include also chLightInstanceProperty when appropriate. }
+      Implies also chLightInstanceProperty change. }
     chLightLocationDirection,
 
-    { TCastleSceneCore.MainLightForShadows possibly changed because of this change.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { TCastleSceneCore.MainLightForShadows possibly changed because of this change. }
     chLightForShadowVolumes,
 
-    { Switch.whichChoice changed, for VRML >= 2.0.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { Switch.whichChoice changed, for VRML >= 2.0. }
     chSwitch2,
 
-    { X3DColorNode colors changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { X3DColorNode colors changed. }
     chColorNode,
 
-    { X3DTextureCoordinateNode coords changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { X3DTextureCoordinateNode coords changed. }
     chTextureCoordinate,
 
     { VRML >= 2.0 TextureTransform changed.
-      Not for multi-texture node changes, only the simple nodes changes.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      Not for multi-texture node changes, only the simple nodes changes. }
     chTextureTransform,
 
     { Geometry node visible (or collidable) changed.
-      Use for fields of the geometry node.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      Use for fields of the geometry node. }
     chGeometry,
 
-    { X3DEnvironmentalSensorNode bounds (size/center) changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { X3DEnvironmentalSensorNode bounds (size/center) changed. }
     chEnvironmentalSensorBounds,
 
-    { TimeDependent node is start/stop/pause/resume time changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { TimeDependent node is start/stop/pause/resume time changed. }
     chTimeStopStart,
 
-    { Viewpoint vectors (position, direction, up, gravity up) changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { Viewpoint vectors (position, direction, up, gravity up) changed. }
     chViewpointVectors,
 
-    { Viewpoint projection changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { Viewpoint projection changed. }
     chViewpointProjection,
 
     { Texture image (data) needs reloading (url or source SFImage
-      data changed). This is for TAbstractTexture2DNode, or TAbstractTexture3DNode.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      data changed). This is for TAbstractTexture2DNode, or TAbstractTexture3DNode. }
     chTextureImage,
 
     { Texture properties used by the renderer changed (something other than
-      only the texture data). This is for fields contained in X3DTextureNode.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: you can mix it with chTextureImage. }
+      only the texture data). This is for fields contained in X3DTextureNode. }
     chTextureRendererProperties,
 
-    { Texture properties inside TextureProperties node changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { Texture properties inside TextureProperties node changed. }
     chTexturePropertiesNode,
 
-    { What is considered a shadow caster changed.
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { What is considered a shadow caster changed. }
     chShadowCasters,
 
     { Mark the generated texture node (parent of this field) as requiring update
-      (assuming it's "update" field value wants it too).
-
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      (assuming it's "update" field value wants it too). }
     chGeneratedTextureUpdateNeeded,
 
-    { VRML >= 2.0 FontStyle changed.
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { VRML >= 2.0 FontStyle changed. }
     chFontStyle,
 
-    { HeadLight on status changed.
-      Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+    { HeadLight on status changed. }
     chHeadLightOn,
 
     { Clip plane visible change (enabled or plane equation). }
@@ -246,8 +176,7 @@
 
     { NavigationInfo field value used in
       TCastleSceneCore.NavigationTypeFromNavigationInfo or
-      TCastleSceneCore.UpdateNavigation
-      changed. }
+      TCastleSceneCore.UpdateNavigation changed. }
     chNavigationInfo,
 
     { ScreenEffect.enabled changed. }
@@ -263,16 +192,12 @@
       as one of above flags.
 
       Use only as a last resort, as this is very costly!
-      (And in an ideal implementation, should not be needed.)
-
-      Don't include other flags with this. }
+      (And in an ideal implementation, should not be needed.) }
     chEverything,
 
     { Higher-level shadow maps fields changed.
       They have to be processed to lower-level fields by calling
-      TCastleSceneCore.ProcessShadowMapsReceivers.
-
-      Don't include other flags with this. }
+      TCastleSceneCore.ProcessShadowMapsReceivers. }
     chShadowMaps,
 
     { Shading changed from wireframe to non-wireframe. }
@@ -282,7 +207,8 @@
     chChildren,
 
     { Shape.bboxCenter/Size changed, so TShape.LocalBoundingBox changed. }
-    chBBox);
+    chBBox
+  );
   TX3DChanges = set of TX3DChange;
 
 {$endif read_interface}

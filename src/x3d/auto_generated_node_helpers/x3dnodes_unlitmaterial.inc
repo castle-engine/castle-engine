@@ -64,7 +64,7 @@ begin
   inherited;
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chVisibleNonGeometry];
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 

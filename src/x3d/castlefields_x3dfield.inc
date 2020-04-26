@@ -76,7 +76,7 @@
   TX3DField = class(TX3DFieldOrEvent)
   strict private
     FExposedEvents: array [boolean] of TX3DEvent;
-    FChangesAlways: TX3DChanges;
+    FChangeAlways: TX3DChange;
 
     // keep booleans together, to pack them together in memory
     FExposed: boolean;
@@ -493,18 +493,13 @@
 
     { What always happens when the value of this field changes.
 
-      This is included in the @link(ExecuteChanges) method result. So instead of
-      using this property, you could always override @link(ExecuteChanges)
+      This is included in the @link(ExecuteChange) method result. So instead of
+      using this property, you could always override @link(ExecuteChange)
       method. But often it's easier to use the property.
 
-      By default this is an empty set. This is suitable for
-      things that aren't *directly* an actual content (but only an
-      intermediate value to change other stuff). This includes
-      all metadata fields and nodes, all fields in event utilities,
-      Script node, interpolators...
-
+      By default this is chNone.
       See TX3DChange for possible values. }
-    property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
+    property ChangeAlways: TX3DChange read FChangeAlways write FChangeAlways default chNone;
 
     { What happens when the value of this field changes.
       This is called, exactly once, by TCastleSceneCore.InternalChangedField
@@ -527,7 +522,7 @@
 
       So overridding this is closer to "do something when field value changes"
       than registering notification by @link(TX3DEvent.AddNotification EventOut.AddNotification). }
-    function ExecuteChanges: TX3DChanges; virtual;
+    function ExecuteChange: TX3DChange; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
@@ -566,7 +561,7 @@
       about the field value change (before TCastleSceneCore.InternalChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
-      Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
+      Inline.load or Inline.url changes), and let the TX3DField.ChangeAlways
       cause appropriate action on this change. }
     procedure AddNotification(const Notification: TX3DEventReceive);
     procedure RemoveNotification(const Notification: TX3DEventReceive);
@@ -736,9 +731,9 @@ begin
   end;
 end;
 
-function TX3DField.ExecuteChanges: TX3DChanges;
+function TX3DField.ExecuteChange: TX3DChange;
 begin
-  Result := ChangesAlways;
+  Result := ChangeAlways;
 end;
 
 function TX3DField.SendsByEvent: boolean;

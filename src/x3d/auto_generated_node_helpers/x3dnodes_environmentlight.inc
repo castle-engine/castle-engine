@@ -88,11 +88,11 @@ begin
   inherited;
 
   FFdDiffuseTexture := TSFNode.Create(Self, True, 'diffuseTexture', [TAbstractEnvironmentTextureNode]);
-   FdDiffuseTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTexture);
 
   FFdSpecularTexture := TSFNode.Create(Self, True, 'specularTexture', [TAbstractEnvironmentTextureNode]);
-   FdSpecularTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTexture);
 end;
 

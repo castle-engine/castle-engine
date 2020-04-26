@@ -604,7 +604,7 @@
 { TSFShading ----------------------------------------------------------------- }
 
 (*TODO:
-  If wireframe changes, then ExecuteChanges should include chWireframe.
+  If wireframe changes, then ExecuteChange should be chWireframe.
   Below there's a convoluted way to do this.
   Not used for now, as FdShading is now just TSFStringEnum.
 
@@ -625,13 +625,13 @@ begin
   inherited;
 end;
 
-function TAbstractShapeNode.TSFShading.ExecuteChanges: TX3DChanges;
+function TAbstractShapeNode.TSFShading.ExecuteChange: TX3DChange;
 begin
   Result := inherited;
   if WireframeChanged then
   begin
-    System.Include(Result, chWireframe);
     WireframeChanged := false;
+    Exit(chWireframe);
   end;
 end;
 *)
@@ -653,12 +653,12 @@ const
 constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-  FdBboxCenter.ChangesAlways := [chBBox];
-  FdBboxSize.ChangesAlways := [chBBox];
-  FdAppearance.ChangesAlways := [chEverything];
-  FdGeometry.ChangesAlways := [chEverything];
+  FdBboxCenter.ChangeAlways := chBBox;
+  FdBboxSize.ChangeAlways := chBBox;
+  FdAppearance.ChangeAlways := chEverything;
+  FdGeometry.ChangeAlways := chEverything;
   {$ifndef CASTLE_SLIM_NODES}
-  FdOctreeTriangles.ChangesAlways := [chEverything];
+  FdOctreeTriangles.ChangeAlways := chEverything;
   {$endif}
 end;
 
@@ -822,62 +822,62 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
-   FdFillProperties.ChangesAlways := [chEverything];
+   FdFillProperties.ChangeAlways := chEverything;
   AddField(FFdFillProperties);
   {$endif}
 
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
-   FdLineProperties.ChangesAlways := [chEverything];
+   FdLineProperties.ChangeAlways := chEverything;
   AddField(FFdLineProperties);
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
-   FdMaterial.ChangesAlways := [chEverything];
+   FdMaterial.ChangeAlways := chEverything;
   AddField(FFdMaterial);
 
   FFdBackMaterial := TSFNode.Create(Self, true, 'backMaterial', [TAbstractMaterialNode]);
-   FdBackMaterial.ChangesAlways := []; // not used now
+   FdBackMaterial.ChangeAlways := chNone; // not used now
   AddField(FFdBackMaterial);
 
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangesAlways := [chEverything];
+   FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 
   FFdTexture := TSFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
-   FdTexture.ChangesAlways := [chEverything];
+   FdTexture.ChangeAlways := chEverything;
   AddField(FFdTexture);
 
   FFdTextureTransform := TSFNode.Create(Self, true, 'textureTransform', [TAbstractTextureTransformNode]);
-   FdTextureTransform.ChangesAlways := [chEverything];
+   FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
 
   FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractPunctualLightNode]);
-   FdReceiveShadows.ChangesAlways := [chShadowMaps];
+   FdReceiveShadows.ChangeAlways := chShadowMaps;
   AddField(FFdReceiveShadows);
 
   FFdShadowCaster := TSFBool.Create(Self, true, 'shadowCaster', true);
-   FdShadowCaster.ChangesAlways := [chShadowCasters];
+   FdShadowCaster.ChangeAlways := chShadowCasters;
   AddField(FFdShadowCaster);
 
   FFdNormalMap := TSFNode.Create(Self, true, 'normalMap', [TAbstractTextureNode]);
-   FdNormalMap.ChangesAlways := [chEverything];
+   FdNormalMap.ChangeAlways := chEverything;
   AddField(FFdNormalMap);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdHeightMap := TSFNode.Create(Self, true, 'heightMap', [TAbstractTextureNode]);
-   FdHeightMap.ChangesAlways := [chEverything];
+   FdHeightMap.ChangeAlways := chEverything;
   AddField(FFdHeightMap);
   {$endif CASTLE_SLIM_NODES}
 
   FFdHeightMapScale := TSFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'heightMapScale', DefaultHeightMapScale);
-   FdHeightMapScale.ChangesAlways := [chEverything];
+   FdHeightMapScale.ChangeAlways := chEverything;
   AddField(FFdHeightMapScale);
 
   FFdBlendMode := TSFNode.Create(Self, true, 'blendMode', [TBlendModeNode]);
-   FdBlendMode.ChangesAlways := [chEverything];
+   FdBlendMode.ChangeAlways := chEverything;
   AddField(FFdBlendMode);
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangesAlways := [chEverything];
+   FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
@@ -1185,95 +1185,95 @@ begin
   inherited;
 
   FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', TPhongMaterialInfo.DefaultAmbientIntensity);
-   FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdAmbientTexture := TSFNode.Create(Self, true, 'ambientTexture', [TAbstractTextureNode]);
-   FdAmbientTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientTexture);
 
   FFdAmbientTextureChannel := TSFInt32.Create(Self, true, 'ambientTextureChannel', 0);
-   FdAmbientTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientTextureChannel);
 
   FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', TPhongMaterialInfo.DefaultDiffuseColor);
-   FdDiffuseColor.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdDiffuseTexture := TSFNode.Create(Self, true, 'diffuseTexture', [TAbstractTextureNode]);
-   FdDiffuseTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTexture);
 
   FFdDiffuseTextureChannel := TSFInt32.Create(Self, true, 'diffuseTextureChannel', 0);
-   FdDiffuseTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTextureChannel);
 
   FFdShininess := TSFFloat.Create(Self, true, 'shininess', TPhongMaterialInfo.DefaultShininess);
-   FdShininess.ChangesAlways := [chVisibleNonGeometry];
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
   { X3D specification comment: [0,1] }
 
   FFdShininessTexture := TSFNode.Create(Self, true, 'shininessTexture', [TAbstractTextureNode]);
-   FdShininessTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininessTexture);
 
   FFdShininessTextureChannel := TSFInt32.Create(Self, true, 'shininessTextureChannel', 0);
-   FdShininessTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdShininessTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininessTextureChannel);
 
   FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', TPhongMaterialInfo.DefaultSpecularColor);
-   FdSpecularColor.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdSpecularTexture := TSFNode.Create(Self, true, 'specularTexture', [TAbstractTextureNode]);
-   FdSpecularTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTexture);
 
   FFdSpecularTextureChannel := TSFInt32.Create(Self, true, 'specularTextureChannel', 0);
-   FdSpecularTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTextureChannel);
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', TMaterialInfo.DefaultTransparency);
-   FdTransparency.ChangesAlways := [chAlphaChannel];
+   FdTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangesAlways := [chVisibleNonGeometry];
+   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFogImmune);
   {$endif}
 
   FFdMirror := TSFFloat.Create(Self, true, 'mirror', 0.0);
-   FdMirror.ChangesAlways := [chVisibleNonGeometry];
+   FdMirror.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMirror);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangesAlways := [chVisibleNonGeometry];
+   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecular);
 
   FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangesAlways := [chVisibleNonGeometry];
+   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflDiffuse);
 
   FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangesAlways := [chVisibleNonGeometry];
+   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecular);
 
   FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangesAlways := [chVisibleNonGeometry];
+   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransDiffuse);
 
   FFdReflSpecularExp := TSFFloat.Create(Self, true, 'reflSpecularExp', TPhongMaterialInfo.DefaultReflSpecularExp);
-   FdReflSpecularExp.ChangesAlways := [chVisibleNonGeometry];
+   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecularExp);
 
   FFdTransSpecularExp := TSFFloat.Create(Self, true, 'transSpecularExp', TPhongMaterialInfo.DefaultTransSpecularExp);
-   FdTransSpecularExp.ChangesAlways := [chVisibleNonGeometry];
+   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecularExp);
   {$endif}
 end;
@@ -1574,66 +1574,66 @@ begin
   inherited;
 
   FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0.2);
-   FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdBackAmbientIntensity := TSFFloat.Create(Self, true, 'backAmbientIntensity', 0.2);
-   FdBackAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
+   FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdBackDiffuseColor := TSFColor.Create(Self, true, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdBackDiffuseColor.ChangesAlways := [chVisibleNonGeometry];
+   FdBackDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdBackEmissiveColor := TSFColor.Create(Self, true, 'backEmissiveColor', Vector3(0, 0, 0));
-   FdBackEmissiveColor.ChangesAlways := [chVisibleNonGeometry];
+   FdBackEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackEmissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdBackShininess := TSFFloat.Create(Self, true, 'backShininess', 0.2);
-   FdBackShininess.ChangesAlways := [chVisibleNonGeometry];
+   FdBackShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackShininess);
   { X3D specification comment: [0,1] }
 
   FFdBackSpecularColor := TSFColor.Create(Self, true, 'backSpecularColor', Vector3(0, 0, 0));
-   FdBackSpecularColor.ChangesAlways := [chVisibleNonGeometry];
+   FdBackSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdBackTransparency := TSFFloat.Create(Self, true, 'backTransparency', 0);
-   FdBackTransparency.ChangesAlways := [chAlphaChannel];
+   FdBackTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdBackTransparency);
   { X3D specification comment: [0,1] }
 
   FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdDiffuseColor.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdEmissiveColor := TSFColor.Create(Self, true, 'emissiveColor', Vector3(0, 0, 0));
-   FdEmissiveColor.ChangesAlways := [chVisibleNonGeometry];
+   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdShininess := TSFFloat.Create(Self, true, 'shininess', 0.2);
-   FdShininess.ChangesAlways := [chVisibleNonGeometry];
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
   { X3D specification comment: [0,1] }
 
   FFdSeparateBackColor := TSFBool.Create(Self, true, 'separateBackColor', false);
-   FdSeparateBackColor.ChangesAlways := [chVisibleNonGeometry];
+   FdSeparateBackColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSeparateBackColor);
 
   FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', Vector3(0, 0, 0));
-   FdSpecularColor.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chAlphaChannel];
+   FdTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 end;

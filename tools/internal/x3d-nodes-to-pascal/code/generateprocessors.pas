@@ -185,7 +185,7 @@ begin
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 
-      FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry];' + NL;
+      FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangeAlways := chVisibleNonGeometry;' + NL;
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
       if Field.Comment <> '' then
         FieldImplementationComment := '  { X3D specification comment: ' + Field.Comment + ' }' + NL

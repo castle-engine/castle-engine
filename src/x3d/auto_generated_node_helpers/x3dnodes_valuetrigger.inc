@@ -68,7 +68,7 @@ begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, True, 'enabled', true);
-   FdEnabled.ChangesAlways := [chVisibleNonGeometry];
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabled);
 
   FEventTrigger := TSFBoolEvent.Create(Self, 'trigger', true);

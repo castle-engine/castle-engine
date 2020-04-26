@@ -353,7 +353,7 @@ begin
   FEventTrackPoint_changed := TSFVec3fEvent.Create(Self, 'trackPoint_changed', false);
   AddEvent(FEventTrackPoint_changed);
 
-  Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
+  FdEnabled.ChangeAlways := chDragSensorEnabled;
 end;
 
 procedure TAbstractDragSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3);

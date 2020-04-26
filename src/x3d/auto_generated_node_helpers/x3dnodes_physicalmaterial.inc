@@ -196,38 +196,38 @@ begin
   inherited;
 
   FFdBaseColor := TSFColor.Create(Self, True, 'baseColor', Vector3(1, 1, 1));
-   FdBaseColor.ChangesAlways := [chVisibleNonGeometry];
+   FdBaseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBaseColor);
   { X3D specification comment: [0,1] }
 
   FFdBaseTexture := TSFNode.Create(Self, True, 'baseTexture', [TAbstractSingleTextureNode]);
-   FdBaseTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdBaseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBaseTexture);
 
   FFdBaseTextureChannel := TSFInt32.Create(Self, True, 'baseTextureChannel', 0);
-   FdBaseTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdBaseTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBaseTextureChannel);
 
   FFdMetallic := TSFFloat.Create(Self, True, 'metallic', 1);
-   FdMetallic.ChangesAlways := [chVisibleNonGeometry];
+   FdMetallic.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallic);
   { X3D specification comment: [0,1] }
 
   FFdMetallicRoughnessTexture := TSFNode.Create(Self, True, 'metallicRoughnessTexture', [TAbstractSingleTextureNode]);
-   FdMetallicRoughnessTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdMetallicRoughnessTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallicRoughnessTexture);
 
   FFdMetallicRoughnessTextureChannel := TSFInt32.Create(Self, True, 'metallicRoughnessTextureChannel', 0);
-   FdMetallicRoughnessTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdMetallicRoughnessTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallicRoughnessTextureChannel);
 
   FFdRoughness := TSFFloat.Create(Self, True, 'roughness', 1);
-   FdRoughness.ChangesAlways := [chVisibleNonGeometry];
+   FdRoughness.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRoughness);
   { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chVisibleNonGeometry];
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 

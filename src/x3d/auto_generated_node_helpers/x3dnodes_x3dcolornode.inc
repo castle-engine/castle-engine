@@ -64,7 +64,7 @@ begin
   inherited;
 
   FFdMode := TSFStringEnum.Create(Self, False, 'mode', ColorModeNames, Ord(cmReplace));
-   FdMode.ChangesAlways := [chVisibleNonGeometry];
+   FdMode.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMode);
   { X3D specification comment: ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace }
 

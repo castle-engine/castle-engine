@@ -30,8 +30,9 @@ procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 const
-  X3DChangeToStr: array [TX3DChange] of string =
-  ( 'Visible Geometry',
+  X3DChangeToStr: array [TX3DChange] of string = (
+    'None',
+    'Visible Geometry',
     'Visible Non-Geometry',
     'Redisplay',
     'Transform',

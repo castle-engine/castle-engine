@@ -394,23 +394,23 @@ begin
   inherited;
 
   FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
-   FdcontrolPoint.ChangesAlways := [chGeometry];
+   FdcontrolPoint.ChangeAlways := chGeometry;
   AddField(FFdcontrolPoint);
 
   FFdweight := TMFFloat.Create(Self, true, 'weight', []);
-   Fdweight.ChangesAlways := [chGeometry];
+   Fdweight.ChangeAlways := chGeometry;
   AddField(FFdweight);
 
   FFdtessellation := TSFInt32.Create(Self, true, 'tessellation', 0);
-   Fdtessellation.ChangesAlways := [chGeometry];
+   Fdtessellation.ChangeAlways := chGeometry;
   AddField(FFdtessellation);
 
   FFdknot := TMFFloat.Create(Self, false, 'knot', []);
-   Fdknot.ChangesAlways := [chGeometry];
+   Fdknot.ChangeAlways := chGeometry;
   AddField(FFdknot);
 
   FFdorder := TSFInt32.Create(Self, false, 'order', 3);
-   Fdorder.ChangesAlways := [chGeometry];
+   Fdorder.ChangeAlways := chGeometry;
   AddField(FFdorder);
 end;
 
@@ -564,55 +564,55 @@ begin
   inherited;
 
   FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
-   FdcontrolPoint.ChangesAlways := [chGeometry];
+   FdcontrolPoint.ChangeAlways := chGeometry;
   AddField(FFdcontrolPoint);
 
   FFdtexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateNode, TNurbsTextureSurfaceNode]);
-   FdtexCoord.ChangesAlways := [chGeometry];
+   FdtexCoord.ChangeAlways := chGeometry;
   AddField(FFdtexCoord);
 
   FFduTessellation := TSFInt32.Create(Self, true, 'uTessellation', 0);
-   FduTessellation.ChangesAlways := [chGeometry];
+   FduTessellation.ChangeAlways := chGeometry;
   AddField(FFduTessellation);
 
   FFdvTessellation := TSFInt32.Create(Self, true, 'vTessellation', 0);
-   FdvTessellation.ChangesAlways := [chGeometry];
+   FdvTessellation.ChangeAlways := chGeometry;
   AddField(FFdvTessellation);
 
   FFdweight := TMFFloat.Create(Self, true, 'weight', []);
-   Fdweight.ChangesAlways := [chGeometry];
+   Fdweight.ChangeAlways := chGeometry;
   AddField(FFdweight);
 
   FFdccw := TSFBool.Create(Self, false, 'ccw', TRUE);
-   Fdccw.ChangesAlways := [chGeometry];
+   Fdccw.ChangeAlways := chGeometry;
   AddField(FFdccw);
 
   FFdsolid := TSFBool.Create(Self, false, 'solid', TRUE);
-   Fdsolid.ChangesAlways := [chGeometry];
+   Fdsolid.ChangeAlways := chGeometry;
   AddField(FFdsolid);
 
   FFduDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
-   FduDimension.ChangesAlways := [chGeometry];
+   FduDimension.ChangeAlways := chGeometry;
   AddField(FFduDimension);
 
   FFduKnot := TMFFloat.Create(Self, false, 'uKnot', []);
-   FduKnot.ChangesAlways := [chGeometry];
+   FduKnot.ChangeAlways := chGeometry;
   AddField(FFduKnot);
 
   FFduOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
-   FduOrder.ChangesAlways := [chGeometry];
+   FduOrder.ChangeAlways := chGeometry;
   AddField(FFduOrder);
 
   FFdvDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
-   FdvDimension.ChangesAlways := [chGeometry];
+   FdvDimension.ChangeAlways := chGeometry;
   AddField(FFdvDimension);
 
   FFdvKnot := TMFFloat.Create(Self, false, 'vKnot', []);
-   FdvKnot.ChangesAlways := [chGeometry];
+   FdvKnot.ChangeAlways := chGeometry;
   AddField(FFdvKnot);
 
   FFdvOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
-   FdvOrder.ChangesAlways := [chGeometry];
+   FdvOrder.ChangeAlways := chGeometry;
   AddField(FFdvOrder);
 end;
 
@@ -751,11 +751,11 @@ begin
   AddEvent(FEventremoveTrimmingContour);
 
   FFdtrimmingContour := TMFNode.Create(Self, true, 'trimmingContour', [TContour2DNode_2]);
-   FdtrimmingContour.ChangesAlways := [chGeometry];
+   FdtrimmingContour.ChangeAlways := chGeometry;
   AddField(FFdtrimmingContour);
 
   FFdsurface := TSFNode.Create(Self, true, 'surface', [TNurbsSurfaceNode]);
-   Fdsurface.ChangesAlways := [chGeometry];
+   Fdsurface.ChangeAlways := chGeometry;
   AddField(FFdsurface);
 end;
 
@@ -800,7 +800,7 @@ begin
   FFdChildren := TMFNode.Create(Self, true, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
     { In VRML 97 these are allowed children too: }
     TPolyline2DNode, TContour2DNode_2 ]);
-   FdChildren.ChangesAlways := [chGeometry];
+   FdChildren.ChangeAlways := chGeometry;
   AddField(FFdChildren);
 
   DefaultContainerField := 'trimmingContour';

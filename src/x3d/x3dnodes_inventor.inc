@@ -64,11 +64,11 @@ begin
   inherited;
 
   FFdAxis := TSFEnum.Create(Self, true, 'axis' , ['X', 'Y', 'Z'], 0);
-   FdAxis.ChangesAlways := [chEverything];
+   FdAxis.ChangeAlways := chEverything;
   AddField(FFdAxis);
 
   FFdAngle := TSFFloat.Create(Self, true, 'angle', 0);
-   FdAngle.ChangesAlways := [chEverything];
+   FdAngle.ChangeAlways := chEverything;
   AddField(FFdAngle);
 end;
 

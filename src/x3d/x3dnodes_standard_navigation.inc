@@ -457,20 +457,20 @@ begin
     In our engine, X3DViewpointNode descends from TAbstractViewpointNode
     inheriting "orientation" field this way. }
   FFdOrientation := TSFRotation.Create(Self, true, 'orientation', Vector3(0, 0, 1), 0);
-   FdOrientation.ChangesAlways := [chViewpointVectors];
+   FdOrientation.ChangeAlways := chViewpointVectors;
   AddField(FFdOrientation);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
   FFdDirection := TMFVec3f.Create(Self, true, 'direction', []);
-   FdDirection.ChangesAlways := [chViewpointVectors];
+   FdDirection.ChangeAlways := chViewpointVectors;
   AddField(FFdDirection);
 
   FFdUp := TMFVec3f.Create(Self, true, 'up', []);
-   FdUp.ChangesAlways := [chViewpointVectors];
+   FdUp.ChangeAlways := chViewpointVectors;
   AddField(FFdUp);
 
   FFdGravityUp := TSFVec3f.Create(Self, true, 'gravityUp', DefaultX3DGravityUp);
-   FdGravityUp.ChangesAlways := [chViewpointVectors];
+   FdGravityUp.ChangeAlways := chViewpointVectors;
   AddField(FFdGravityUp);
 
   FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
@@ -739,7 +739,7 @@ begin
     special field "collide". In X3D, "enabled" is used for the exact
     same purpose. }
    FdEnabled.AddAlternativeName('collide', 2);
-   FdEnabled.ChangesAlways := [chEverything];
+   FdEnabled.ChangeAlways := chEverything;
   AddField(FFdEnabled);
 
   FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
@@ -749,7 +749,7 @@ begin
   AddEvent(FEventIsActive);
 
   FFdProxy := TSFNode.Create(Self, false, 'proxy', IAbstractChildNode);
-   FdProxy.ChangesAlways := [chEverything];
+   FdProxy.ChangeAlways := chEverything;
   AddField(FFdProxy);
 
   DefaultContainerField := 'children';
@@ -850,12 +850,12 @@ begin
 
   FFdCenter := TSFVec3f.Create(Self, false, 'center', TVector3.Zero);
    { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdCenter.ChangesAlways := [chRedisplay];
+   FdCenter.ChangeAlways := chRedisplay;
   AddField(FFdCenter);
 
   FFdRange := TMFFloat.Create(Self, false, 'range', []);
    { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdRange.ChangesAlways := [chRedisplay];
+   FdRange.ChangeAlways := chRedisplay;
   AddField(FFdRange);
   { X3D specification comment: [0,Inf) or -1 }
 
@@ -941,16 +941,16 @@ begin
   inherited;
 
   FFdAvatarSize := TMFFloat.Create(Self, true, 'avatarSize', [0.25, 1.6, 0.75]);
-   FdAvatarSize.ChangesAlways := [chNavigationInfo];
+   FdAvatarSize.ChangeAlways := chNavigationInfo;
   AddField(FFdAvatarSize);
   { X3D specification comment: [0,Inf) }
 
   FFdHeadlight := TSFBool.Create(Self, true, 'headlight', true);
-   FdHeadlight.ChangesAlways := [chHeadLightOn];
+   FdHeadlight.ChangeAlways := chHeadLightOn;
   AddField(FFdHeadlight);
 
   FFdSpeed := TSFFloat.Create(Self, true, 'speed', 1.0);
-   FdSpeed.ChangesAlways := [chNavigationInfo];
+   FdSpeed.ChangeAlways := chNavigationInfo;
   AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
@@ -965,7 +965,7 @@ begin
   { TODO: default value was ["WALK", "ANY"] in VRML 97.
     X3D changed default value. }
   FFdType := TMFString.Create(Self, true, 'type', ['EXAMINE', 'ANY']);
-   FdType.ChangesAlways := [chNavigationInfo];
+   FdType.ChangeAlways := chNavigationInfo;
   AddField(FFdType);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
@@ -977,7 +977,7 @@ begin
   AddEvent(FEventTransitionComplete);
 
   FFdBlendingSort := TSFStringEnum.Create(Self, true, 'blendingSort', BlendingSortNames, Ord(obsDefault));
-   FdBlendingSort.ChangesAlways := [];
+   FdBlendingSort.ChangeAlways := chRedisplay;
   AddField(FFdBlendingSort);
 
   DefaultContainerField := 'children';
@@ -1014,12 +1014,12 @@ begin
   inherited;
 
   FFdFieldOfView := TMFFloat.Create(Self, true, 'fieldOfView', [-1, -1, 1, 1]);
-   FdFieldOfView.ChangesAlways := [chViewpointProjection];
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
   AddField(FFdFieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangesAlways := [chViewpointVectors];
+   FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1160,16 +1160,16 @@ begin
   inherited;
 
   FFdFieldOfView := TSFFloat.Create(Self, true, 'fieldOfView', DefaultViewpointFieldOfView);
-   FdFieldOfView.ChangesAlways := [chViewpointProjection];
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
   AddField(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
   FFdFieldOfViewForceVertical := TSFBool.Create(Self, true, 'fieldOfViewForceVertical', false);
-   FdFieldOfViewForceVertical.ChangesAlways := [chViewpointProjection];
+   FdFieldOfViewForceVertical.ChangeAlways := chViewpointProjection;
   AddField(FdFieldOfViewForceVertical);
 
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangesAlways := [chViewpointVectors];
+   FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 

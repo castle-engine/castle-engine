@@ -1291,51 +1291,51 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangesAlways := [chGeometry];
+   FdNormal.ChangeAlways := chGeometry;
   AddField(FFdNormal);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangesAlways := [chGeometry];
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangesAlways := [chGeometry];
+   FdCcw.ChangeAlways := chGeometry;
   AddField(FFdCcw);
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangesAlways := [chGeometry];
+   FdNormalPerVertex.ChangeAlways := chGeometry;
   AddField(FFdNormalPerVertex);
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangesAlways := [chGeometry];
+   FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
   {$endif}
 end;
@@ -1430,11 +1430,11 @@ begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangesAlways := [chClipPlane];
+   FdEnabled.ChangeAlways := chClipPlane;
   AddField(FFdEnabled);
 
   FFdPlane := TSFVec4f.Create(Self, true, 'plane', Vector4(0, 1, 0, 0));
-   FdPlane.ChangesAlways := [chClipPlane];
+   FdPlane.ChangeAlways := chClipPlane;
   AddField(FFdPlane);
   { X3D specification comment: [0,1] }
 
@@ -1464,7 +1464,7 @@ begin
   inherited;
 
   FFdColor := TMFColor.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1479,7 +1479,7 @@ begin
   inherited;
 
   FFdColor := TMFColorRGBA.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1494,7 +1494,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chCoordinate];
+   FdPoint.ChangeAlways := chCoordinate;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -1523,37 +1523,37 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.ChangesAlways := [chGeometry];
+   FdColorIndex.ChangeAlways := chGeometry;
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangesAlways := [chGeometry];
+   FdCoordIndex.ChangeAlways := chGeometry;
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1638,7 +1638,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1675,7 +1675,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
@@ -1712,7 +1712,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1746,26 +1746,26 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
-   FdVertexCount.ChangesAlways := [chGeometry];
+   FdVertexCount.ChangeAlways := chGeometry;
   AddField(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
 end;
@@ -1853,7 +1853,7 @@ begin
   inherited;
 
   FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
-   FdVector.ChangesAlways := [chVisibleVRML1State];
+   FdVector.ChangeAlways := chVisibleVRML1State;
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
 
@@ -1871,21 +1871,21 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 end;
@@ -1965,7 +1965,7 @@ begin
   inherited;
 
   FFdFanCount := TMFInt32.Create(Self, true, 'fanCount', []);
-   FdFanCount.ChangesAlways := [chGeometry];
+   FdFanCount.ChangeAlways := chGeometry;
   AddField(FFdFanCount);
   { X3D specification comment: [3,Inf) }
 end;
@@ -2002,7 +2002,7 @@ begin
   inherited;
 
   FFdStripCount := TMFInt32.Create(Self, true, 'stripCount', []);
-   FdStripCount.ChangesAlways := [chGeometry];
+   FdStripCount.ChangeAlways := chGeometry;
   AddField(FFdStripCount);
   { X3D specification comment: [3,Inf) }
 end;

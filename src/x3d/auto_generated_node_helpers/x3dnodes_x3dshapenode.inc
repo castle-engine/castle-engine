@@ -197,41 +197,41 @@ begin
   inherited;
 
   FFdAppearance := TSFNode.Create(Self, True, 'appearance', [TAppearanceNode]);
-   FdAppearance.ChangesAlways := [chVisibleNonGeometry];
+   FdAppearance.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAppearance);
 
   FFdGeometry := TSFNode.Create(Self, True, 'geometry', [TAbstractGeometryNode]);
-   FdGeometry.ChangesAlways := [chVisibleNonGeometry];
+   FdGeometry.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdGeometry);
 
   FFdBboxCenter := TSFVec3f.Create(Self, True, 'bboxCenter', Vector3(0, 0, 0));
-   FdBboxCenter.ChangesAlways := [chVisibleNonGeometry];
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, True, 'bboxSize', Vector3(-1, -1, -1));
-   FdBboxSize.ChangesAlways := [chVisibleNonGeometry];
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   FFdShading := TSFStringEnum.Create(Self, True, 'shading', ShadingNames, Ord(shDefault));
-   FdShading.ChangesAlways := [chVisibleNonGeometry];
+   FdShading.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShading);
   { X3D specification comment: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"] enumerated-type: TShading ShadingNames shDefault }
 
 {$ifndef CASTLE_SLIM_NODES}
   FFdOctreeTriangles := TSFNode.Create(Self, False, 'octreeTriangles', [TKambiOctreePropertiesNode]);
-   FdOctreeTriangles.ChangesAlways := [chVisibleNonGeometry];
+   FdOctreeTriangles.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOctreeTriangles);
   { X3D specification comment: # NOT-SLIM }
 {$endif not CASTLE_SLIM_NODES}
 
   FFdRender := TSFBool.Create(Self, True, 'render', true);
-   FdRender.ChangesAlways := [chVisibleNonGeometry];
+   FdRender.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdRender);
 
   FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
-   FdCollision.ChangesAlways := [chVisibleNonGeometry];
+   FdCollision.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCollision);
   { X3D specification comment: ["DEFAULT"|"BOX"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
 end;

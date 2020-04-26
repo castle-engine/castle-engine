@@ -216,7 +216,7 @@ begin
   AddEvent(FEventIsValid);
 
   FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.ChangesAlways := [chEverything];
+   FdLanguage.ChangeAlways := chEverything;
   AddField(FFdLanguage);
 
   DefaultContainerField := 'shaders';
@@ -237,11 +237,11 @@ begin
   inherited;
 
   FFdParts := TMFNode.Create(Self, true, 'parts', [TShaderPartNode]);
-   FdParts.ChangesAlways := [chEverything];
+   FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
 
   { Note that additional ComposedShader fields should have
-      ChangesAlways := [chVisibleGeometry, chVisibleNonGeometry]
+      ChangeAlways := chVisibleGeometry
     because you want to redisplay when they change.
 
     But CastleRenderer takes care of it already. When shaders'
@@ -341,13 +341,13 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangesAlways := [chEverything]; { TODO - something more optimized }
+   FdUrl.ChangeAlways := chEverything; { TODO - something more optimized }
    FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.ChangesAlways := [chEverything];
+   FdType.ChangeAlways := chEverything;
   AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
