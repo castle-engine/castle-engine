@@ -847,6 +847,12 @@ begin
   Result := Version.Major <= 1;
 end;
 
+const
+  { Constants for @link(TAsciiTextNode_1.FdJustification).Value. }
+  JUSTIFICATION_LEFT = 0;
+  JUSTIFICATION_CENTER = 1;
+  JUSTIFICATION_RIGHT = 2;
+
 procedure TAsciiTextNode_1.CreateNode;
 begin
   inherited;
@@ -859,9 +865,7 @@ begin
    FdSpacing.ChangesAlways := [chGeometry];
   AddField(FFdSpacing);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdJustification := TSFEnum.Create(Self, true, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
-  {$warnings on}
    FdJustification.ChangesAlways := [chGeometry];
   AddField(FFdJustification);
 
@@ -891,11 +895,9 @@ end;
 function TAsciiTextNode_1.Justify: TX3DFontJustify;
 begin
   case FdJustification.Value of
-    {$warnings off} // using deprecated knowingly, it should be internal
     JUSTIFICATION_LEFT  : Result := fjBegin;
     JUSTIFICATION_CENTER: Result := fjMiddle;
     JUSTIFICATION_RIGHT : Result := fjEnd;
-    {$warnings on}
     else
       { something default }
       Result := fjBegin;
@@ -1379,23 +1381,23 @@ begin
   inherited;
 
   FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TPhongMaterialInfo.DefaultAmbientColor]);
-   FdAmbientColor.ChangesAlways := [chVisibleVRML1State];
+   FdAmbientColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAmbientColor);
 
   FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TPhongMaterialInfo.DefaultDiffuseColor]);
-   FdDiffuseColor.ChangesAlways := [chVisibleVRML1State];
+   FdDiffuseColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDiffuseColor);
 
   FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TPhongMaterialInfo.DefaultSpecularColor]);
-   FdSpecularColor.ChangesAlways := [chVisibleVRML1State];
+   FdSpecularColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdSpecularColor);
 
   FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TPhongMaterialInfo.DefaultEmissiveColor]);
-   FdEmissiveColor.ChangesAlways := [chVisibleVRML1State];
+   FdEmissiveColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdEmissiveColor);
 
   FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TPhongMaterialInfo.DefaultShininess]);
-   FdShininess.ChangesAlways := [chVisibleVRML1State];
+   FdShininess.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, true, 'transparency', [TMaterialInfo.DefaultTransparency]);
@@ -1403,35 +1405,35 @@ begin
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, true, 'mirror', [0.0]);
-   FdMirror.ChangesAlways := [chVisibleVRML1State];
+   FdMirror.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdMirror);
 
   FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangesAlways := [chVisibleVRML1State];
+   FdReflSpecular.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdReflSpecular);
 
   FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangesAlways := [chVisibleVRML1State];
+   FdReflDiffuse.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdReflDiffuse);
 
   FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangesAlways := [chVisibleVRML1State];
+   FdTransSpecular.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdTransSpecular);
 
   FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangesAlways := [chVisibleVRML1State];
+   FdTransDiffuse.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdTransDiffuse);
 
   FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TPhongMaterialInfo.DefaultReflSpecularExp]);
-   FdReflSpecularExp.ChangesAlways := [chVisibleVRML1State];
+   FdReflSpecularExp.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdReflSpecularExp);
 
   FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TPhongMaterialInfo.DefaultTransSpecularExp]);
-   FdTransSpecularExp.ChangesAlways := [chVisibleVRML1State];
+   FdTransSpecularExp.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdTransSpecularExp);
 
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangesAlways := [chVisibleVRML1State];
+   FdFogImmune.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdFogImmune);
 end;
 
@@ -1673,36 +1675,37 @@ begin
   Result := 'NormalBinding';
 end;
 
+const
+  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value. }
+  TEXWRAP_REPEAT = 0;
+  TEXWRAP_CLAMP = 1;
+
 procedure TTexture2Node_1.CreateNode;
 begin
   inherited;
 
   FFdFilename := TSFString.Create(Self, true, 'filename', '');
-   FdFilename.ChangesAlways := [chVisibleVRML1State, chTextureImage];
+   FdFilename.ChangesAlways := [chTextureImage];
   AddField(FFdFilename);
 
   FFdImage := TSFImage.Create(Self, true, 'image', nil);
-   FdImage.ChangesAlways := [chVisibleVRML1State, chTextureImage];
+   FdImage.ChangesAlways := [chTextureImage];
   AddField(FFdImage);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapS := TSFEnum.Create(Self, true, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
-  {$warnings on}
-   FdWrapS.ChangesAlways := [chVisibleVRML1State];
+   FdWrapS.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdWrapS);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapT := TSFEnum.Create(Self, true, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
-  {$warnings on}
-   FdWrapT.ChangesAlways := [chVisibleVRML1State];
+   FdWrapT.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdWrapT);
 
   FFdModel := TSFEnum.Create(Self, true, 'model', ['DECAL'], 0);
-   FdModel.ChangesAlways := [chVisibleVRML1State];
+   FdModel.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdModel);
 
   FFdBlendColor := TSFVec3f.Create(Self, true, 'blendColor', Vector3(0, 0, 0));
-   FdBlendColor.ChangesAlways := [chVisibleVRML1State];
+   FdBlendColor.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdBlendColor);
 end;
 
@@ -1762,8 +1765,6 @@ begin
     Result := 'none';
 end;
 
-{$warnings off} // using deprecated TEXWRAP_xxx knowingly, it should be internal
-
 function TTexture2Node_1.GetRepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
@@ -1789,8 +1790,6 @@ begin
   else
     FdWrapT.Send(TEXWRAP_CLAMP);
 end;
-
-{$warnings on}
 
 procedure TTexture2TransformNode_1.CreateNode;
 begin

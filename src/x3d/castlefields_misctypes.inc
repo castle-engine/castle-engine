@@ -82,8 +82,13 @@
 
     { Something visible in VRML 1.0 state node (that may be present
       in TX3DGraphTraverseState.VRML1State) changed, but not geometry.
-      Excluding Coordinate node change (this one should go through chCoordinate
-      only).
+
+      - Do not call this for Coordinate node change
+        (this one should go through chCoordinate only, even for VRML 1.0).
+        Actually Coordinate node change would be chGeometryVRML1State anyway.
+
+      - Do not call this for changes that don't require recreating Proxy,
+        and only require redisplay (chVisibleNonGeometry is enough for them).
 
       This is allowed, and ignored, on nodes that are not part of VRML 1.0
       state. (This is useful for alphaChannel field, that is declared
@@ -158,6 +163,7 @@
     chTextureTransform,
 
     { Geometry node visible (or collidable) changed.
+      Use for fields of the geometry node.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
@@ -191,9 +197,7 @@
       data changed). This is for TAbstractTexture2DNode, or TAbstractTexture3DNode.
 
       Caller will analyze the scene to know what this implicates,
-      don't include other flags with this.
-      Exception: you can mix it with chVisibleVRML1State or
-      chTextureRendererProperties. }
+      don't include other flags with this. }
     chTextureImage,
 
     { Texture properties used by the renderer changed (something other than
