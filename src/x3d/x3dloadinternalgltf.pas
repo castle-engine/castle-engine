@@ -1804,7 +1804,8 @@ var
 
   { When animation TimeSensor starts, set Shape.BBox using X3D routes. }
   procedure SetBBoxWhenAnimationStarts(const TimeSensor: TTimeSensorNode;
-    const Shape: TShapeNode; const BBox: TBox3D);
+    const Shape: TShapeNode; const BBox: TBox3D;
+    const ParentGroup: TAbstractX3DGroupingNode);
   var
     ValueTrigger: TValueTriggerNode;
     Center, Size: TVector3;
@@ -1812,17 +1813,18 @@ var
   begin
     BBox.ToCenterSize(Center, Size);
 
-    F := TSFVec3f.Create(nil, true, 'bboxCenter', Center);
     ValueTrigger := TValueTriggerNode.Create;
+    ValueTrigger.X3DName := 'ValueTrigger_setBBox_' + TimeSensor.X3DName;
+    ParentGroup.AddChildren(ValueTrigger);
+    ParentGroup.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
+
+    F := TSFVec3f.Create(nil, true, 'bboxCenter', Center);
     ValueTrigger.AddCustomField(F);
-    Shape.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
-    Shape.AddRoute(F, Shape.FdBboxCenter);
+    ParentGroup.AddRoute(F, Shape.FdBboxCenter);
 
     F := TSFVec3f.Create(nil, true, 'bboxSize', Size);
-    ValueTrigger := TValueTriggerNode.Create;
     ValueTrigger.AddCustomField(F);
-    Shape.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
-    Shape.AddRoute(F, Shape.FdBboxSize);
+    ParentGroup.AddRoute(F, Shape.FdBboxSize);
   end;
 
   { Calculate skin interpolator nodes to deform this one shape.
@@ -1947,7 +1949,8 @@ var
         E.g. knight in fps_game when Walking should not have huge bbox
         because of Dying animation. }
       SetBBoxWhenAnimationStarts(Anim.TimeSensor, Shape,
-        TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items));
+        TBox3D.FromPoints(CoordInterpolator.FdKeyValue.Items),
+        ParentGroup);
     end;
   end;
 
