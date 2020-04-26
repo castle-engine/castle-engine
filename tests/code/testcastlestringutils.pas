@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleStringUtils" -*-
 {
   Copyright 2004-2018 Michalis Kamburelis.
 
@@ -23,7 +24,7 @@ uses
   Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
-  TTestCastleStringUtils= class(TTestCase)
+  TTestCastleStringUtils = class(TTestCase)
   published
     procedure TestIntToStrBase;
     procedure TestDeFormat;

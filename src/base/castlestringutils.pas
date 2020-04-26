@@ -2234,6 +2234,8 @@ var
   {$endif}
 begin
   {$ifdef FPC}
+  if NamePattern = '' then
+    Exit(''); // avoid error TRegExpr exec: empty input string
   R := TRegExpr.Create;
   R.Expression := '@counter\(([\d]+)\)';
   {$else}
