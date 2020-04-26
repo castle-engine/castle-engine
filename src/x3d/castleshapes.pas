@@ -274,6 +274,7 @@ type
         TShapeNode,
         TAbstractGeometryNode,
         TCoordinateNode (anything that can be inside TAbstractGeometryNode.CoordField),
+        TNormalNode (anything that can be inside TAbstractGeometryNode.CoordField),
         TColorNode, TColorRGBANode  (anything that can be inside TAbstractGeometryNode.ColorField),
         TMaterialNode (anything that can be in TShapeNode.Material),
         TTextureCoordinateNode and other stuff that can be inside TAbstractGeometryNode.InternalTexCoord,
@@ -1462,6 +1463,9 @@ begin
     if (AGeometry.CoordField <> nil) and
        (AGeometry.CoordField.Value <> nil) then
       AssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.NormalField <> nil) and
+       (AGeometry.NormalField.Value <> nil) then
+      AssociateNode(AGeometry.NormalField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        { TODO: This workarounds assertion failure in UnAssociateNode
@@ -1511,6 +1515,9 @@ begin
     if (AGeometry.CoordField <> nil) and
        (AGeometry.CoordField.Value <> nil) then
       UnAssociateNode(AGeometry.CoordField.Value);
+    if (AGeometry.NormalField <> nil) and
+       (AGeometry.NormalField.Value <> nil) then
+      UnAssociateNode(AGeometry.NormalField.Value);
     if (AGeometry.TexCoordField <> nil) and
        (AGeometry.TexCoordField.Value <> nil) and
        (not (AGeometry.TexCoordField.Value is TMultiTextureCoordinateNode)) then
@@ -1891,7 +1898,7 @@ begin
   { When Proxy needs to be recalculated.
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
     proxies. }
-  if Changes * [chCoordinate, chVisibleVRML1State, chGeometryVRML1State,
+  if Changes * [chCoordinate, chNormal, chVisibleVRML1State, chGeometryVRML1State,
     chTextureCoordinate, chGeometry, chWireframe] <> [] then
     FreeProxy;
 

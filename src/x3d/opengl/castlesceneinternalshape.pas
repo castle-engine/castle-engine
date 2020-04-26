@@ -91,7 +91,7 @@ procedure TGLShape.Changed(const InactiveOnly: boolean;
     Result := false;
 
     if { We only changed Cooordinate.coord or Normal.vector. }
-       (Changes * [chCoordinate, chVisibleVRML1State] = Changes) and
+       (Changes * [chCoordinate, chNormal] = Changes) and
        { Shape has coordinates and normals exposed in most common way,
          by Coordinate and Normal nodes. }
        (Geometry.CoordField <> nil) and
@@ -115,7 +115,7 @@ begin
     { Ignore changes that don't affect prepared arrays,
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
-    if Changes * [chCoordinate] <> [] then
+    if Changes * [chCoordinate, chNormal] <> [] then
       Cache.FreeArrays([vtCoordinate]);
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
       (e.g. in case of batching)

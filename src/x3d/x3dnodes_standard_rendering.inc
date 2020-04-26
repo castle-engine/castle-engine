@@ -816,7 +816,6 @@
   end;
 
   { Normal (information for lighting) node.
-
     Note: It's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
   TNormalNode = class(TAbstractNormalNode)
@@ -1853,7 +1852,7 @@ begin
   inherited;
 
   FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
-   FdVector.ChangeAlways := chVisibleVRML1State;
+   FdVector.ChangeAlways := chNormal;
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
 

@@ -73,8 +73,11 @@
     { Transformation of children of this node changed. }
     chTransform,
 
-    { Coordinate (both VRML 1.0 and >= 2.0) node "point" field changed. }
+    { Coordinate node (both VRML 1.0 and >= 2.0) node "point" field changed. }
     chCoordinate,
+
+    { Normal node (both VRML 1.0 and >= 2.0) node "vector" field changed. }
+    chNormal,
 
     { Something visible in VRML 1.0 state node (that may be present
       in TX3DGraphTraverseState.VRML1State) changed, but not geometry.
@@ -82,6 +85,9 @@
       - Do not call this for Coordinate node change
         (this one should go through chCoordinate only, even for VRML 1.0).
         Actually Coordinate node change would be chGeometryVRML1State anyway.
+
+      - Do not call this for Normal node change
+        (this one should go through chNormal only, even for VRML 1.0).
 
       - Do not call this for changes that don't require recreating Proxy,
         and only require redisplay (chVisibleNonGeometry is enough for them).
@@ -93,9 +99,10 @@
     chVisibleVRML1State,
 
     { Some visible geometry changed because of VRML 1.0 state node change.
-      This is for VRML 1.0 state node changes, excluding non-geometry changes
-      (these go to chVisibleVRML1State) and Coordinate changes (these go to
-      chCoordinate). }
+      This is for VRML 1.0 state node changes, excluding
+      - non-geometry changes (these go to chVisibleVRML1State)
+      - Coordinate changes (these go to chCoordinate)
+      - Normal changes (these go to chNormal, they are non-geometry anyway). }
     chGeometryVRML1State,
 
     { Something that may affect TShape.AlphaChannel calculation possibly changed.

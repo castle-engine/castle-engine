@@ -4543,6 +4543,21 @@ var
     end;
   end;
 
+  procedure HandleChangeNormal;
+  var
+    C, I: Integer;
+  begin
+    { Similar to chCoordinate, this takes into account both VRML 1.0 and VRML 2.0/X3D.
+      So performing chVisibleVRML1State after this is not necessary. }
+    C := TShapeTree.AssociatedShapesCount(ANode);
+    if C <> 0 then
+    begin
+      for I := 0 to C - 1 do
+        TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, [Change]);
+      VisibleChangeHere([vcVisibleNonGeometry]);
+    end;
+  end;
+
   { Good for both chVisibleVRML1State and chGeometryVRML1State
     (TShape.Changed actually cares about the difference between these two.) }
   procedure HandleVRML1State;
@@ -5060,6 +5075,7 @@ begin
     case Change of
       chTransform: HandleChangeTransform;
       chCoordinate: HandleChangeCoordinate;
+      chNormal: HandleChangeNormal;
       chVisibleVRML1State, chGeometryVRML1State: HandleVRML1State;
       chAlphaChannel: HandleChangeAlphaChannel;
       chLightInstanceProperty: HandleChangeLightInstanceProperty;
