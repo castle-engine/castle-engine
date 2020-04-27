@@ -5039,6 +5039,14 @@ var
     begin
       for I := 0 to C - 1 do
         TShape(TShapeTree.AssociatedShape(ANode, I)).Changed(false, [Change]);
+
+      { Bounding box of the scene changed, and rendering octree changed,
+        because bbox of shape changed.
+        Testcase: knight.gltf (from examples/fps_game/ ) animations or
+        lizardman.gltf (from demo-models/bump_mapping/ ) animations.
+        We deliberately pass Shape=nil, to cause MaybeBoundingBoxChanged=true
+        inside DoGeometryChanged. }
+      DoGeometryChanged(gcLocalGeometryChanged, nil);
     end;
   end;
 
