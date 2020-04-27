@@ -63,12 +63,14 @@ begin
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
   AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
   {$else}
-    {$if defined(VER3_0) or defined(VER3_1)}
-    AssertTrue(FileExists(URIToFilenameSafe('castle-data:/')));
-    AssertTrue(FileExists(URIToFilenameSafe('castle-data:/images/')));
-    {$else}
-    AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
-    AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
+    {$if not defined(VER3_3)} // For FPC 3.3.1, the behaviour depends on exact revision...
+      {$if defined(VER3_0) or defined(VER3_1)}
+      AssertTrue(FileExists(URIToFilenameSafe('castle-data:/')));
+      AssertTrue(FileExists(URIToFilenameSafe('castle-data:/images/')));
+      {$else}
+      AssertFalse(FileExists(URIToFilenameSafe('castle-data:/')));
+      AssertFalse(FileExists(URIToFilenameSafe('castle-data:/images/')));
+      {$endif}
     {$endif}
   {$endif}
   AssertTrue(FileExists(URIToFilenameSafe('castle-data:/test.xml')));
