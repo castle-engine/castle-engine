@@ -430,25 +430,6 @@ type
       PointingDeviceClear on ParentScene (since some PTriangle pointers
       were freed). }
     procedure FreeOctreeTriangles;
-
-    { @exclude
-      Called when local geometry changed. Internally used to communicate
-      between TCastleSceneCore and TShape.
-
-      "Local" means that we're concerned here about changes visible
-      in shape local coordinate system. E.g. things that only change our
-      transformation (State.Transform) do not cause "local" geometry changes.
-
-      "Geometry" means that we're concerned only about changes to topology
-      --- vertexes, edges, faces, how they connect each other.
-      Things that affect only appearance (e.g. whole Shape.appearance content
-      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
-      material color does not cause "local" geometry changes.
-
-      This frees the octree (will be recreated on Octree* call).
-      Also removes cached normals.
-      Also notifies parent scene about this change (unless CalledFromParentScene). }
-    procedure LocalGeometryChanged(const CalledFromParentScene, ChangedOnlyCoord: boolean);
   private
     function MaxShapesCountCore: Integer; override;
     procedure TraverseCore(const Func: TShapeTraverseFunc;
@@ -1890,6 +1871,70 @@ end;
 
 procedure TShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
+
+  { Called when local geometry changed.
+
+    "Local" means that we're concerned here about changes visible
+    in shape local coordinate system. E.g. things that only change our
+    transformation (State.Transform) do not cause "local" geometry changes.
+
+    "Geometry" means that we're concerned only about changes to topology
+    --- vertexes, edges, faces, how they connect each other.
+    Things that affect only appearance (e.g. whole Shape.appearance content
+    in stuff for VRML >= 2.0) is not relevant here. E.g. changing
+    material color does not cause "local" geometry changes.
+
+    This frees the octree (will be recreated on Octree* call).
+    Also removes cached normals.
+    Also notifies parent scene about this change. }
+  procedure LocalGeometryChanged(const ChangedOnlyCoord: boolean);
+  begin
+    if FLocalGeometryChangedCount <> 0 then
+    begin
+      if DisableAutoDynamicGeometry = 0 then
+        FDynamicGeometry := true;
+    end else
+      Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
+
+    if (FOctreeTriangles <> nil) and
+       { Do not recreate octree if it's based only on our bounding box,
+         and our bounding box is stored in TShapeNode.Box (so it doesn't change when
+         geometry changes).
+         This is the case with glTF skinned animation. }
+       not (
+         (Node <> nil) and
+         (Node.Collision = scBox) and
+         (not Node.BBox.IsEmpty)
+       ) then
+      FreeOctreeTriangles;
+
+    { Remove cached normals }
+    FreeAndNil(FNormals);
+    Exclude(Validities, svNormals);
+
+    { Remove from Validities things that depend on geometry.
+      Local geometry change means that also global (world-space) geometry changed. }
+    Validities := Validities - [svLocalBBox, svBBox,
+      svVerticesCountNotOver,  svVerticesCountOver,
+      svTrianglesCountNotOver, svTrianglesCountOver,
+      svBoundingSphere,
+      svNormals];
+
+    { Clear variables after removing fvTrianglesList* }
+    FShadowVolumes.InvalidateTrianglesListShadowCasters;
+
+    { Edges topology possibly changed. }
+    if not ChangedOnlyCoord then
+      { When ChangedOnlyCoord, we don't do InvalidateManifoldAndBorderEdges,
+        and this an important optimization (makes mesh deformation cheaper). }
+      FShadowVolumes.InvalidateManifoldAndBorderEdges;
+
+    if ChangedOnlyCoord then
+      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self)
+    else
+      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+  end;
+
 begin
   { Remember to code everything here to act only when some stuff
     is included inside Changed value. For example, when
@@ -1912,10 +1957,10 @@ begin
 
   if chCoordinate in Changes then
     { Coordinate changes actual geometry. }
-    LocalGeometryChanged(false, true);
+    LocalGeometryChanged(true);
 
   if Changes * [chGeometry, chGeometryVRML1State, chWireframe] <> [] then
-    LocalGeometryChanged(false, false);
+    LocalGeometryChanged(false);
 
   if Changes * [chBBox] <> [] then
   begin
@@ -2104,57 +2149,6 @@ begin
       FreeOctreeTriangles;
 
     FSpatial := Value;
-  end;
-end;
-
-procedure TShape.LocalGeometryChanged(
-  const CalledFromParentScene, ChangedOnlyCoord: boolean);
-begin
-  if FLocalGeometryChangedCount <> 0 then
-  begin
-    if DisableAutoDynamicGeometry = 0 then
-      FDynamicGeometry := true;
-  end else
-    Inc(FLocalGeometryChangedCount); // for now, only increase FLocalGeometryChangedCount to 1
-
-  if (FOctreeTriangles <> nil) and
-     { Do not recreate octree if it's based only on our bounding box,
-       and our bounding box is stored in TShapeNode.Box (so it doesn't change when
-       geometry changes).
-       This is the case with glTF skinned animation. }
-     not (
-       (Node <> nil) and
-       (Node.Collision = scBox) and
-       (not Node.BBox.IsEmpty)
-     ) then
-    FreeOctreeTriangles;
-
-  { Remove cached normals }
-  FreeAndNil(FNormals);
-  Exclude(Validities, svNormals);
-
-  { Remove from Validities things that depend on geometry.
-    Local geometry change means that also global (world-space) geometry changed. }
-  Validities := Validities - [svLocalBBox, svBBox,
-    svVerticesCountNotOver,  svVerticesCountOver,
-    svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere,
-    svNormals];
-
-  { Clear variables after removing fvTrianglesList* }
-  FShadowVolumes.InvalidateTrianglesListShadowCasters;
-
-  { Edges topology possibly changed. }
-  if not ChangedOnlyCoord then
-    { When ChangedOnlyCoord, we don't do InvalidateManifoldAndBorderEdges,
-      and this an important optimization (makes mesh deformation cheaper). }
-    FShadowVolumes.InvalidateManifoldAndBorderEdges;
-
-  if not CalledFromParentScene then
-  begin
-    if ChangedOnlyCoord then
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
-      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
   end;
 end;
 
