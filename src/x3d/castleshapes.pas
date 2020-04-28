@@ -192,8 +192,7 @@ type
       const OnlyVisible: boolean;
       const OnlyCollidable: boolean); virtual; abstract;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); virtual; abstract;
+      const ParentTransformation: TTransformation); virtual; abstract;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -437,8 +436,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); override;
+      const ParentTransformation: TTransformation); override;
   public
     { Constructor.
       @param(ParentInfo Recursive information about parents,
@@ -765,8 +763,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); override;
+      const ParentTransformation: TTransformation); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -829,8 +826,7 @@ type
     procedure SetTransformNode(const Value: TX3DNode);
   private
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); override;
+      const ParentTransformation: TTransformation); override;
   public
     constructor Create(const AParentScene: TX3DEventsEngine);
     destructor Destroy; override;
@@ -859,7 +855,7 @@ type
 
     To choose which child is active we need to know the LOD node,
     with it's transformation in VRML graph.
-    This information is in LODNode and LODInvertedTransform properties.
+    This information is in LODNode and LODInverseTransform properties.
 
     Also, we need to know the current camera position.
     This is passed as CameraPosition to CalculateLevel.
@@ -871,7 +867,7 @@ type
   TShapeTreeLOD = class(TShapeTreeGroup)
   strict private
     FLODNode: TAbstractLODNode;
-    FLODInvertedTransform: TMatrix4;
+    FLODInverseTransform: TMatrix4;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   private
@@ -881,7 +877,7 @@ type
       const OnlyCollidable: boolean = false); override;
   public
     property LODNode: TAbstractLODNode read FLODNode write FLODNode;
-    function LODInvertedTransform: PMatrix4;
+    function LODInverseTransform: PMatrix4;
 
     { Calculate @link(Level). This only calculates level, doesn't
       assign @link(Level) property or send level_changed event. }
@@ -917,10 +913,9 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); override;
+      const ParentTransformation: TTransformation); override;
   public
-    InvertedTransform: TMatrix4;
+    InverseTransform: TMatrix4;
     IsActive: boolean;
 
     property Node: TProximitySensorNode read FNode write FNode;
@@ -939,8 +934,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false); override;
     procedure FastTransformUpdateCore(var AnythingChanged: Boolean;
-      const ParentTransform, ParentInvertedTransform: TMatrix4;
-      const ParentTransformScale: Single); override;
+      const ParentTransformation: TTransformation); override;
   public
     { Bounding box of this visibility sensor instance,
       already transformed to global VRML/X3D scene coordinates.
@@ -1096,7 +1090,7 @@ end;
 
 procedure TTriangleHelper.UpdateWorld;
 begin
-  World.Triangle := Local.Triangle.Transform(State.Transform);
+  World.Triangle := Local.Triangle.Transform(State.Transformation.Transform);
   {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
   World.Plane := World.Triangle.NormalizedPlane;
   World.Area := World.Triangle.Area;
@@ -1169,7 +1163,7 @@ end;
 {$ifndef CONSERVE_TRIANGLE_MEMORY}
 function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
 begin
-  Result := State.Transform.MultDirection(INormalCore(Point)).Normalize;
+  Result := State.Transformation.Transform.MultDirection(INormalCore(Point)).Normalize;
 end;
 {$endif not CONSERVE_TRIANGLE_MEMORY}
 
@@ -1373,8 +1367,11 @@ begin
 end;
 
 procedure TShapeTree.FastTransformUpdate(var AnythingChanged: Boolean);
+var
+  T: TTransformation;
 begin
-  FastTransformUpdateCore(AnythingChanged, TMatrix4.Identity, TMatrix4.Identity, 1);
+  T.Init;
+  FastTransformUpdateCore(AnythingChanged, T);
 end;
 
 { TShape -------------------------------------------------------------- }
@@ -2280,12 +2277,9 @@ begin
 end;
 
 procedure TShape.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransform, ParentInvertedTransform: TMatrix4;
-  const ParentTransformScale: Single);
+  const ParentTransformation: TTransformation);
 begin
-  State.Transform := ParentTransform;
-  State.InvertedTransform := ParentInvertedTransform;
-  State.TransformScale := ParentTransformScale;
+  State.Transformation := ParentTransformation;
 
   // Changed(false, [chTransform]);
   // a bit faster:
@@ -3013,7 +3007,7 @@ var
 begin
   TR := TTriangulateRedirect.Create;
   try
-    TR.Transform := @(State.Transform);
+    TR.Transform := @(State.Transformation.Transform);
     TR.TriangleEvent := TriangleEvent;
     LocalTriangulate(OverTriangulate, @TR.LocalNewTriangle);
   finally FreeAndNil(TR) end;
@@ -3118,14 +3112,12 @@ begin
 end;
 
 procedure TShapeTreeGroup.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransform, ParentInvertedTransform: TMatrix4;
-  const ParentTransformScale: Single);
+  const ParentTransformation: TTransformation);
 var
   I: Integer;
 begin
   for I := 0 to FChildren.Count - 1 do
-    FChildren.Items[I].FastTransformUpdateCore(AnythingChanged,
-      ParentTransform, ParentInvertedTransform, ParentTransformScale);
+    FChildren.Items[I].FastTransformUpdateCore(AnythingChanged, ParentTransformation);
 end;
 
 function TShapeTreeGroup.MaxShapesCountCore: Integer;
@@ -3250,56 +3242,41 @@ end;
 
 procedure TShapeTreeTransform.FastTransformUpdate(var AnythingChanged: Boolean);
 begin
-  FastTransformUpdateCore(AnythingChanged,
-    FTransformState.Transform,
-    FTransformState.InvertedTransform,
-    FTransformState.TransformScale
-  );
+  FastTransformUpdateCore(AnythingChanged, FTransformState.Transformation);
 end;
 
 procedure TShapeTreeTransform.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransform, ParentInvertedTransform: TMatrix4;
-  const ParentTransformScale: Single);
+  const ParentTransformation: TTransformation);
 var
-  NewTransform, NewInvertedTransform: TMatrix4;
-  NewTransformScale: Single;
-  T: TTransformNode;
+  NewTransformation: TTransformation;
 begin
-  NewTransform := ParentTransform;
-  NewInvertedTransform := ParentInvertedTransform;
-  NewTransformScale := ParentTransformScale;
+  NewTransformation := ParentTransformation;
 
   { Keep FTransformState up-to-date.
     This is not necessary when OptimizeExtensiveTransformations = true,
     so we don't do it to conserve speed. }
   if not OptimizeExtensiveTransformations then
   begin
-    FTransformState.Transform := ParentTransform;
-    FTransformState.InvertedTransform := ParentInvertedTransform;
-    FTransformState.TransformScale := ParentTransformScale;
+    FTransformState.Transformation := ParentTransformation;
   end;
+
+  // TODO: use TransformFunctionality to handle this nicely
+  // and ApplyTransform should remain private then
 
   if FTransformNode is TTransformNode then
-  begin
-    T := TTransformNode(FTransformNode);
-    TransformMatricesMult(NewTransform, NewInvertedTransform,
-      T.Center,
-      T.Rotation,
-      T.Scale,
-      T.ScaleOrientation,
-      T.Translation);
-    NewTransformScale := NewTransformScale * Approximate3DScale(T.Scale);
-  end;
+    TTransformNode(FTransformNode).ApplyTransform(NewTransformation)
+  else
+  if FTransformNode is TMatrixTransformNode then
+    TMatrixTransformNode(FTransformNode).ApplyTransform(NewTransformation);
 
-  inherited FastTransformUpdateCore(AnythingChanged,
-    NewTransform, NewInvertedTransform, NewTransformScale);
+  inherited FastTransformUpdateCore(AnythingChanged, NewTransformation);
 end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
 
-function TShapeTreeLOD.LODInvertedTransform: PMatrix4;
+function TShapeTreeLOD.LODInverseTransform: PMatrix4;
 begin
-  Result := @FLODInvertedTransform;
+  Result := @FLODInverseTransform;
 end;
 
 function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3): Cardinal;
@@ -3312,7 +3289,7 @@ begin
     Result := 0 else
   begin
     try
-      Camera := LODInvertedTransform^.MultPoint(CameraPosition);
+      Camera := LODInverseTransform^.MultPoint(CameraPosition);
       Result := KeyRange(LODNode.FdRange.Items,
         PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
       { Now we know Result is between 0..LODNode.FdRange.Count.
@@ -3379,8 +3356,7 @@ begin
 end;
 
 procedure TProximitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransform, ParentInvertedTransform: TMatrix4;
-  const ParentTransformScale: Single);
+  const ParentTransformation: TTransformation);
 begin
   { Nothing to do: This is not a TShape instance, and has no TShape children. }
 end;
@@ -3405,8 +3381,7 @@ begin
 end;
 
 procedure TVisibilitySensorInstance.FastTransformUpdateCore(var AnythingChanged: Boolean;
-  const ParentTransform, ParentInvertedTransform: TMatrix4;
-  const ParentTransformScale: Single);
+  const ParentTransformation: TTransformation);
 begin
   { Nothing to do: This is not a TShape instance, and has no TShape children. }
 end;

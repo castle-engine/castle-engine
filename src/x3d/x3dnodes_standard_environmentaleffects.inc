@@ -805,7 +805,7 @@ end;
 procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  FTransformScale := StateStack.Top.TransformScale;
+  FTransformScale := StateStack.Top.Transformation.Scale;
 end;
 
 procedure TLocalFogNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);

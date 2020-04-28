@@ -29,8 +29,8 @@
 
   { Base class for all the light nodes. }
   TAbstractLightNode = class(TAbstractChildNode)
-  strict private
-    FTransform, FInvertedTransform: TMatrix4;
+  private
+    FTransformation: TTransformation;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -96,8 +96,8 @@
       node sets this property. By default, it represents identity transformation.
 
       @groupBegin }
-    property Transform: TMatrix4 read FTransform;
-    property InvertedTransform: TMatrix4 read FInvertedTransform;
+    function Transform: TMatrix4;
+    function InverseTransform: TMatrix4;
     { @groupEnd }
 
     function TransformationChange: TNodeTransformationChange; override;
@@ -467,8 +467,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  FTransform := TMatrix4.Identity;
-  FInvertedTransform := TMatrix4.Identity;
+  FTransformation.Init;
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(
@@ -476,8 +475,7 @@ procedure TAbstractLightNode.BeforeTraverse(
 begin
   inherited;
 
-  FTransform := StateStack.Top.Transform;
-  FInvertedTransform := StateStack.Top.InvertedTransform;
+  FTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -577,8 +575,8 @@ procedure TAbstractLightNode.UpdateLightInstanceState(
   var LightInstance: TLightInstance;
   State: TX3DGraphTraverseState);
 begin
-  LightInstance.Transform := State.Transform;
-  LightInstance.TransformScale := State.TransformScale;
+  LightInstance.Transform := State.Transformation.Transform;
+  LightInstance.TransformScale := State.Transformation.Scale;
   UpdateLightInstance(LightInstance);
 end;
 
@@ -587,6 +585,16 @@ procedure TAbstractLightNode.UpdateLightInstance(
 begin
   { Nothing to do in this class. }
   Assert(LightInstance.Node = Self);
+end;
+
+function TAbstractLightNode.Transform: TMatrix4;
+begin
+  Result := FTransformation.Transform;
+end;
+
+function TAbstractLightNode.InverseTransform: TMatrix4;
+begin
+  Result := FTransformation.InverseTransform;
 end;
 
 function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
@@ -680,12 +688,12 @@ end;
 
 function TAbstractPunctualLightNode.GetProjectionSceneLocation: TVector3;
 begin
-  Result := Transform.MultPoint(ProjectionLocationLocal);
+  Result := FTransformation.Transform.MultPoint(ProjectionLocationLocal);
 end;
 
 procedure TAbstractPunctualLightNode.SetProjectionSceneLocation(const Value: TVector3);
 begin
-  ProjectionLocationLocal := InvertedTransform.MultPoint(Value);
+  ProjectionLocationLocal := FTransformation.InverseTransform.MultPoint(Value);
 end;
 
 function TAbstractPunctualLightNode.GetProjectionSceneDirection: TVector3;
@@ -695,7 +703,7 @@ end;
 
 procedure TAbstractPunctualLightNode.SetProjectionSceneDirection(const Value: TVector3);
 begin
-  ProjectionDirectionLocal := InvertedTransform.MultDirection(Value);
+  ProjectionDirectionLocal := FTransformation.InverseTransform.MultDirection(Value);
 end;
 
 procedure TAbstractPunctualLightNode.GetView(out Pos, Dir, Side, Up: TVector3);
@@ -971,7 +979,7 @@ end;
 
 procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3);
 begin
-  Location := InvertedTransform.MultPoint(Value);
+  Location := FTransformation.InverseTransform.MultPoint(Value);
 end;
 
 function TAbstractPositionalLightNode.GetRadius: Single;

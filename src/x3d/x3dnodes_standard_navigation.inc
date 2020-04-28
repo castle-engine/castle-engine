@@ -136,7 +136,7 @@
     FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -640,7 +640,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TBillboardNode.ApplyTransform(var Transformation: TTransformation);
 var
   NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3;
   Angle: Single;
@@ -652,10 +652,10 @@ begin
   begin
     if FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := State.InvertedTransform.MultDirection(FCameraVectors.Direction);
-      LocalUp        := State.InvertedTransform.MultDirection(FCameraVectors.Up);
+      LocalDirection := Transformation.InverseTransform.MultDirection(FCameraVectors.Direction);
+      LocalUp        := Transformation.InverseTransform.MultDirection(FCameraVectors.Up);
       { although FCameraVectors.Direction/Up are for sure normalized and orthogonal,
-        but State.InvertedTransform may contain scaling,
+        but Transformation.InverseTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
       LocalDirection.NormalizeMe;
@@ -667,12 +667,12 @@ begin
       NewZ := -LocalDirection;
 
       TransformCoordsMatrices(NewX, NewY, NewZ, M, IM);
-      State.Transform := State.Transform * M;
-      State.InvertedTransform := IM * State.InvertedTransform;
+      Transformation.Transform := Transformation.Transform * M;
+      Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := State.InvertedTransform.MultPoint(FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(FCameraVectors.Position);
 
       { plane of axisOfRotation }
       PlaneAxisDir := FdAxisOfRotation.Value;
@@ -711,8 +711,8 @@ begin
       end;
 
       RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
-      State.Transform := State.Transform * M;
-      State.InvertedTransform := IM * State.InvertedTransform;
+      Transformation.Transform := Transformation.Transform * M;
+      Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end;
   end;
 end;

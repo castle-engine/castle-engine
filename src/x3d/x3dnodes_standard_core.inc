@@ -363,8 +363,8 @@ procedure TAbstractBindableNode.BeforeTraverse(
 begin
   inherited;
 
-  FTransform := StateStack.Top.Transform;
-  FTransformScale := StateStack.Top.TransformScale;
+  FTransform := StateStack.Top.Transformation.Transform;
+  FTransformScale := StateStack.Top.Transformation.Scale;
 end;
 
 procedure TAbstractBindableNode.EventIsBoundReceive(

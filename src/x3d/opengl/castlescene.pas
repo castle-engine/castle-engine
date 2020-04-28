@@ -1941,8 +1941,9 @@ begin
         if SVRenderer.CasterShadowPossiblyVisible then
         begin
           if ParentTransformIsIdentity then
-            T :=                   Shape.State.Transform else
-            T := ParentTransform * Shape.State.Transform;
+            T :=                   Shape.State.Transformation.Transform
+          else
+            T := ParentTransform * Shape.State.Transformation.Transform;
           Shape.InternalShadowVolumes.RenderSilhouetteShadowVolume(
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,

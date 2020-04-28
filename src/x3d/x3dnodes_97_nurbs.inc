@@ -461,7 +461,7 @@ end;
 function TNurbsCurveNode_2.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
-  Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transform);
+  Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transformation.Transform);
 end;
 
 function TNurbsCurveNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -683,7 +683,7 @@ end;
 function TNurbsSurfaceNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
-  Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transform);
+  Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transformation.Transform);
 end;
 
 function TNurbsSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;

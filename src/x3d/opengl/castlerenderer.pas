@@ -3303,11 +3303,11 @@ begin
   if GLFeatures.EnableFixedFunction then
   begin
     glPushMatrix;
-      glMultMatrix(Shape.State.Transform);
+      glMultMatrix(Shape.State.Transformation.Transform);
   end;
   {$endif}
 
-    Shape.ModelView := Shape.ModelView * Shape.State.Transform;
+    Shape.ModelView := Shape.ModelView * Shape.State.Transformation.Transform;
     RenderShapeCreateMeshRenderer(Shape, Shader, MaterialOpacity, Lighting);
 
   {$ifndef OpenGLES}
@@ -3849,7 +3849,7 @@ var
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
           Shape.BoundingBox,
-          Shape.State.Transform,
+          Shape.State.Transformation.Transform,
           GeometryCoords,
           Shape.MirrorPlaneUniforms);
 

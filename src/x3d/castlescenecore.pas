@@ -3457,7 +3457,7 @@ function TChangedAllTraverser.Traverse(
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
-    LODTree.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
+    LODTree.LODInverseTransform^ := StateStack.Top.Transformation.InverseTransform;
     ShapesGroup.Children.Add(LODTree);
     ParentScene.ShapeLODs.Add(LODTree);
 
@@ -3496,7 +3496,7 @@ function TChangedAllTraverser.Traverse(
   begin
     PSI := TProximitySensorInstance.Create(ParentScene);
     PSI.Node := Node;
-    PSI.InvertedTransform := StateStack.Top.InvertedTransform;
+    PSI.InverseTransform := StateStack.Top.Transformation.InverseTransform;
     PSI.IsActive := false; { IsActive = false initially }
 
     ShapesGroup.Children.Add(PSI);
@@ -3510,7 +3510,7 @@ function TChangedAllTraverser.Traverse(
   begin
     VSI := TVisibilitySensorInstance.Create(ParentScene);
     VSI.Node := Node;
-    VSI.Transform := StateStack.Top.Transform;
+    VSI.Transform := StateStack.Top.Transformation.Transform;
     VSI.Box := Node.Box.Transform(VSI.Transform);
 
     ShapesGroup.Children.Add(VSI);
@@ -4113,10 +4113,10 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
     Inc(Shapes^.Index);
 
-    { by the way, update LODInvertedTransform, since it changed }
+    { by the way, update LODInverseTransform, since it changed }
     if Inside then
     begin
-      ShapeLOD.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
+      ShapeLOD.LODInverseTransform^ := StateStack.Top.Transformation.InverseTransform;
       if ParentScene.ProcessEvents and
          ParentScene.GetCameraLocal(CameraLocalPosition) then
         ParentScene.UpdateLODLevel(ShapeLOD, CameraLocalPosition);
@@ -4203,7 +4203,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     Instance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
     Inc(Shapes^.Index);
 
-    Instance.InvertedTransform := StateStack.Top.InvertedTransform;
+    Instance.InverseTransform := StateStack.Top.Transformation.InverseTransform;
 
     { We only care about ProximitySensor in active graph parts.
 
@@ -4232,7 +4232,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
       'Missing shape in Shapes tree');
     Instance := Shapes^.Group.Children[Shapes^.Index] as TVisibilitySensorInstance;
     Inc(Shapes^.Index);
-    Instance.Transform := StateStack.Top.Transform;
+    Instance.Transform := StateStack.Top.Transformation.Transform;
     Instance.Box := Node.Box.Transform(Instance.Transform);
   end;
 
@@ -6005,8 +6005,8 @@ begin
             begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
-                  we can get this by InvertedTransform. }
-                OverItem^.State.InvertedTransform.MultPoint(Pick.Point), NextEventTime);
+                  we can get this by InverseTransform. }
+                OverItem^.State.Transformation.InverseTransform.MultPoint(Pick.Point), NextEventTime);
 
               {$ifndef CONSERVE_TRIANGLE_MEMORY}
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
@@ -6119,7 +6119,9 @@ var
       PointingDeviceActiveSensors.Add(Sensor);
       { We do this only when PointingDeviceOverItem <> nil,
         so we know that PointingDeviceOverPoint is meaningful. }
-      Sensor.Activate(NextEventTime, Sensors.Transform, Sensors.InvertedTransform,
+      Sensor.Activate(NextEventTime,
+        Sensors.Transformation.Transform,
+        Sensors.Transformation.InverseTransform,
         PointingDeviceOverPoint);
     end;
   end;
@@ -6780,10 +6782,10 @@ begin
         - changes to ProximitySensor center and size must only produce
           new ProximitySensorUpdate to eventually activate/deactivate ProximitySensor
         - changes to transforms affecting ProximitySensor must only update
-          it's InvertedTransform and call ProximitySensorUpdate.
+          it's InverseTransform and call ProximitySensorUpdate.
       }
 
-      APosition := PSI.InvertedTransform.MultPoint(CameraVectors.Position);
+      APosition := PSI.InverseTransform.MultPoint(CameraVectors.Position);
 
       NewIsActive :=
         (APosition[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
@@ -6819,8 +6821,8 @@ begin
         ProxNode.EventPosition_Changed.Send(APosition, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
-          ADirection := PSI.InvertedTransform.MultDirection(CameraVectors.Direction);
-          AUp        := PSI.InvertedTransform.MultDirection(CameraVectors.Up);
+          ADirection := PSI.InverseTransform.MultDirection(CameraVectors.Direction);
+          AUp        := PSI.InverseTransform.MultDirection(CameraVectors.Up);
           ProxNode.EventOrientation_Changed.Send(
             OrientationFromDirectionUp(ADirection, AUp), NextEventTime);
         end;
@@ -7387,7 +7389,7 @@ begin
      L.FdShadowVolumesMain.Value then
   begin
     FMainLightForShadowsNode := L;
-    FMainLightForShadowsTransform := StateStack.Top.Transform;
+    FMainLightForShadowsTransform := StateStack.Top.Transformation.Transform;
     FMainLightForShadowsExists := true;
     CalculateMainLightForShadowsPosition;
     Result := Node; // anything non-nil to break traversing

@@ -41,15 +41,19 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
-    { Change State.Transform for children nodes.
+    { Change State.Transformation for children nodes.
 
       This should be done here, not in overriden BeforeTraverse.
       Reason: for storing ClipPlanes transformations, we need to know
       transformed matrix inside TAbstractGroupingNode.BeforeTraverse implementation.
       And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
       implementation... So ApplyTransform must happen in the middle of
-      TAbstractGroupingNode.BeforeTraverse call. }
-    procedure ApplyTransform(State: TX3DGraphTraverseState); virtual;
+      TAbstractGroupingNode.BeforeTraverse call.
+
+      Almost all descendants should override only the overload changing
+      TTransformation. }
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); virtual;
+    procedure ApplyTransform(var Transformation: TTransformation); virtual;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -216,7 +220,7 @@
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
 
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     ForceVersion: TX3DVersion;
 
@@ -377,13 +381,13 @@
   protected
     { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -427,8 +431,7 @@ begin
   if not WasPointingDeviceSensor then
   begin
     State.PointingDeviceSensors.Clear;
-    State.PointingDeviceSensors.Transform := State.Transform;
-    State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
+    State.PointingDeviceSensors.Transformation := State.Transformation;
     WasPointingDeviceSensor := true;
   end;
 
@@ -511,7 +514,12 @@ begin
   end;
 end;
 
-procedure TAbstractGroupingNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TAbstractGroupingNode.ApplyTransform(const State: TX3DGraphTraverseState);
+begin
+  ApplyTransform(State.Transformation);
+end;
+
+procedure TAbstractGroupingNode.ApplyTransform(var Transformation: TTransformation);
 begin
 end;
 
@@ -836,7 +844,7 @@ begin
       [Child.X3DType]));
 end;
 
-procedure TX3DRootNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TX3DRootNode.ApplyTransform(var Transformation: TTransformation);
 var
   M, IM: TMatrix4;
 begin
@@ -845,9 +853,9 @@ begin
   if Scale <> 1 then
   begin
     ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
-    State.Transform := State.Transform * M;
-    State.InvertedTransform := IM * State.InvertedTransform;
-    State.TransformScale := State.TransformScale * Scale;
+    Transformation.Transform := Transformation.Transform * M;
+    Transformation.InverseTransform := IM * Transformation.InverseTransform;
+    Transformation.Scale := Transformation.Scale * Scale;
   end;
 end;
 
@@ -997,70 +1005,16 @@ begin
   Result := ntcTransform;
 end;
 
-procedure TransformState(State: TX3DGraphTraverseState;
-  const Center: TVector3;
-  const Rotation: TVector4;
-  const Scale: TVector3;
-  const ScaleOrientation: TVector4;
-  const Translation: TVector3);
-{ Workaround FPC bug on Darwin for AArch64 (not on other platforms),
-  causes "Fatal: Internal error 2014121702".
-  Occurs with 3.0.4 and with 3.3.1 (r44333 from 2020/03/22). }
-{$if defined(DARWIN) and defined(CPUAARCH64)}
-
-  type
-    TTransformData = record
-      Transform, InverseTransform: TMatrix4;
-      Center: TVector3;
-      Rotation: TVector4;
-      Scale: TVector3;
-      ScaleOrientation: TVector4;
-      Translation: TVector3;
-    end;
-
-  procedure TransformMatricesMultWorkaround(var TransformData: TTransformData);
-  begin
-    CastleTransform.TransformMatricesMult(
-      TransformData.Transform,
-      TransformData.InverseTransform,
-      TransformData.Center,
-      TransformData.Rotation,
-      TransformData.Scale,
-      TransformData.ScaleOrientation,
-      TransformData.Translation);
-  end;
-
-var
-  TransformData: TTransformData;
+procedure TTransformNode.ApplyTransform(var Transformation: TTransformation);
 begin
-  TransformData.Transform := State.Transform;
-  TransformData.InverseTransform := State.InvertedTransform;
-  TransformData.Center := Center;
-  TransformData.Rotation := Rotation;
-  TransformData.Scale := Scale;
-  TransformData.ScaleOrientation := ScaleOrientation;
-  TransformData.Translation := Translation;
+  // inherited; // no need to call, conserve speed in this critical place
 
-  // Doing it like this avoids
-  // Fatal: Internal error 2014121702
-  // from FPC 3.0.3 for 64-bit iPhone (Darwin for AArch64)
-  TransformMatricesMultWorkaround(TransformData);
-
-  State.Transform := TransformData.Transform;
-  State.InvertedTransform := TransformData.InverseTransform;
-{$else}
-begin
-  TransformMatricesMult(State.Transform, State.InvertedTransform,
-    Center, Rotation, Scale, ScaleOrientation, Translation);
-{$endif}
-  State.TransformScale := State.TransformScale * Approximate3DScale(Scale);
-end;
-
-procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
-begin
-  inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 
   {
   if ((Fdscale.Value[0] < 0) or

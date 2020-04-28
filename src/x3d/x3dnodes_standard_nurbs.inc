@@ -858,7 +858,7 @@ function TNurbsCurveNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
-    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform)
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transformation.Transform)
   else
     Result := TBox3D.Empty;
 end;
@@ -1346,7 +1346,7 @@ function TAbstractNurbsSurfaceGeometryNode.BoundingBox(State: TX3DGraphTraverseS
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
-    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform)
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transformation.Transform)
   else
     Result := TBox3D.Empty;
 end;

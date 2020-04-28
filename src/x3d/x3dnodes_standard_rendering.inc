@@ -1450,7 +1450,7 @@ begin
   inherited;
   CP := State.AddClipPlane;
   CP^.Node := Self;
-  CP^.Transform := State.Transform;
+  CP^.Transform := State.Transformation.Transform;
 end;
 
 class function TClipPlaneNode.ClassX3DType: string;

@@ -19,9 +19,9 @@
   TPointingDeviceSensorList = class(TX3DNodeList)
   public
     { Transformation (and inverse) of all the sensors on this list.
-      VRML/X3D specification guarantees that all sensors within a single state
+      X3D specification guarantees that all sensors within a single state
       have the same transform. }
-    Transform, InvertedTransform: TMatrix4;
+    Transformation: TTransformation;
 
     function EnabledCount: Integer;
     function Enabled(Index: Integer): boolean;
@@ -307,8 +307,7 @@ end;
 procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
 begin
   inherited Assign(Source);
-  Transform := Source.Transform;
-  InvertedTransform := Source.InvertedTransform;
+  Transformation := Source.Transformation;
 end;
 
 { Rest of nodes -------------------------------------------------------------- }

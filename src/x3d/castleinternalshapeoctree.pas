@@ -298,7 +298,7 @@ begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
-        Shape.State.InvertedTransform);
+        Shape.State.Transformation.InverseTransform);
       Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -351,8 +351,8 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPos := Shape.State.InvertedTransform.MultPoint(Pos);
-      LocalRadius := Radius / Shape.State.TransformScale;
+      LocalPos := Shape.State.Transformation.InverseTransform.MultPoint(Pos);
+      LocalRadius := Radius / Shape.State.Transformation.Scale;
       Result := Shape.InternalOctreeTriangles.SphereCollision2D(
         LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -403,7 +403,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPoint := Shape.State.InvertedTransform.MultPoint(Point);
+      LocalPoint := Shape.State.Transformation.InverseTransform.MultPoint(Point);
       Result := Shape.InternalOctreeTriangles.PointCollision2D(
         LocalPoint, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -453,7 +453,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := ABox.Transform(Shape.State.InvertedTransform);
+      LocalBox := ABox.Transform(Shape.State.Transformation.InverseTransform);
       Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -513,8 +513,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
-        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
+        LocalPos1 := Shape.State.Transformation.InverseTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.Transformation.InverseTransform.MultPoint(Pos2);
         Result := Shape.SegmentCollision(Tag,
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -525,7 +525,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := Result^.State.Transform.MultPoint(Intersection);
+        Intersection := Result^.State.Transformation.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -539,8 +539,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
-        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
+        LocalPos1 := Shape.State.Transformation.InverseTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.Transformation.InverseTransform.MultPoint(Pos2);
         ThisResult := Shape.SegmentCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -559,7 +559,7 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := Result^.State.Transform.MultPoint(Intersection);
+      Intersection := Result^.State.Transformation.Transform.MultPoint(Intersection);
   end;
 end;
 
@@ -650,8 +650,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
-        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
+        LocalRayOrigin := Shape.State.Transformation.InverseTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.Transformation.InverseTransform.MultDirection(RayDirection);
         Result := Shape.RayCollision(Tag,
           Intersection, IntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -662,7 +662,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := Result^.State.Transform.MultPoint(Intersection);
+        Intersection := Result^.State.Transformation.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -677,8 +677,8 @@ begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       Assert(Shape.InternalOctreeTriangles <> nil);
       try
-        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
-        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
+        LocalRayOrigin := Shape.State.Transformation.InverseTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.Transformation.InverseTransform.MultDirection(RayDirection);
         ThisResult := Shape.RayCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -697,7 +697,7 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := Result^.State.Transform.MultPoint(Intersection);
+      Intersection := Result^.State.Transformation.Transform.MultPoint(Intersection);
   end;
 end;
 

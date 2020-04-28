@@ -798,8 +798,7 @@
 
   TTransformSeparatorNode_1 = class(TAbstractChildNode)
   strict private
-    OriginalTransform, OriginalInvertedTransform: TMatrix4;
-    OriginalTransformScale: Single;
+    OriginalTransformation: TTransformation;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -1915,10 +1914,9 @@ begin
   inherited;
 
   Transformation(M, IM);
-  StateStack.Top.Transform := StateStack.Top.Transform * M;
-  StateStack.Top.InvertedTransform := IM * StateStack.Top.InvertedTransform;
-
-  StateStack.Top.TransformScale := StateStack.Top.TransformScale * TransformScale;
+  StateStack.Top.Transformation.Transform := StateStack.Top.Transformation.Transform * M;
+  StateStack.Top.Transformation.InverseTransform := IM * StateStack.Top.Transformation.InverseTransform;
+  StateStack.Top.Transformation.Scale := StateStack.Top.Transformation.Scale * TransformScale;
 end;
 
 procedure TMatrixTransformNode_1.CreateNode;
@@ -2503,18 +2501,15 @@ procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverse
 begin
   inherited;
 
-  { We don't copy whole State here, as changes to other properties of
+  { We don't copy whole State.Top here, as changes to other properties of
     state should "leak out" from TransformSeparator node. }
-  OriginalTransform := StateStack.Top.Transform;
-  OriginalInvertedTransform := StateStack.Top.InvertedTransform;
-  OriginalTransformScale := StateStack.Top.TransformScale;
+
+  OriginalTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TTransformSeparatorNode_1.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  StateStack.Top.Transform := OriginalTransform;
-  StateStack.Top.InvertedTransform := OriginalInvertedTransform;
-  StateStack.Top.TransformScale := OriginalTransformScale;
+  StateStack.Top.Transformation := OriginalTransformation;
   inherited;
 end;
 

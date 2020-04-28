@@ -34,6 +34,12 @@
     procedure SetMass(const Value: Single);
     function GetNameField: String;
     procedure SetNameField(const Value: String);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
   public
     { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
@@ -49,6 +55,12 @@
     procedure SetMomentsOfInertia(const Value: TSingleList);
     { X3D field "name". } { }
     property NameField: String read GetNameField write SetNameField;
+    { X3D field "rotation". } { }
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    { X3D field "scale". } { }
+    property Scale: TVector3 read GetScale write SetScale;
+    { X3D field "translation". } { }
+    property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -119,6 +131,36 @@ end;
 procedure THAnimSegmentNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
+end;
+
+function THAnimSegmentNode.GetRotation: TVector4;
+begin
+  Result := FdRotation.Value;
+end;
+
+procedure THAnimSegmentNode.SetRotation(const Value: TVector4);
+begin
+  FdRotation.Send(Value);
+end;
+
+function THAnimSegmentNode.GetScale: TVector3;
+begin
+  Result := FdScale.Value;
+end;
+
+procedure THAnimSegmentNode.SetScale(const Value: TVector3);
+begin
+  FdScale.Send(Value);
+end;
+
+function THAnimSegmentNode.GetTranslation: TVector3;
+begin
+  Result := FdTranslation.Value;
+end;
+
+procedure THAnimSegmentNode.SetTranslation(const Value: TVector3);
+begin
+  FdTranslation.Send(Value);
 end;
 
 {$endif read_implementation}

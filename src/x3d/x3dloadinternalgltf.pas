@@ -227,7 +227,7 @@ type
       Has the same size as TransformNodes, contains accumulated transformation matrix
       for each node.
       Contains undefined value for nodes that are @nil. }
-    TransformMatrix, TransformMatrixInverse: TMatrix4List;
+    Transformations: TTransformationList;
     TransformNodesRoots: TPasGLTF.TScene.TNodes;
     TransformNodesGltf: TPasGLTF.TNodes;
     constructor Create;
@@ -238,8 +238,7 @@ type
 constructor TAnimationSampler.Create;
 begin
   inherited;
-  TransformMatrix := TMatrix4List.Create;
-  TransformMatrixInverse := TMatrix4List.Create;
+  Transformations := TTransformationList.Create;
   CurrentTranslation := TVector3List.Create;
   CurrentRotation := TVector4List.Create;
   CurrentScale := TVector3List.Create;
@@ -247,8 +246,7 @@ end;
 
 destructor TAnimationSampler.Destroy;
 begin
-  FreeAndNil(TransformMatrix);
-  FreeAndNil(TransformMatrixInverse);
+  FreeAndNil(Transformations);
   FreeAndNil(CurrentTranslation);
   FreeAndNil(CurrentRotation);
   FreeAndNil(CurrentScale);
@@ -361,66 +359,54 @@ procedure TAnimationSampler.SetTime(const Time: TFloatTime);
     end;
   end;
 
-  { Calculate contents of TransformMatrix, based on CurrentXxx and parent-child relationships. }
+  { Calculate contents of Transformations, based on CurrentXxx and parent-child relationships. }
   procedure UpdateMatrix;
 
     procedure UpdateChildMatrix(const NodeIndex: Integer;
-      const ParentT, ParentTInv: TMatrix4);
+      const ParentT: TTransformation);
     var
-      T, TInv: PMatrix4;
+      T: PTransformation;
       ChildNodeIndex: Integer;
     begin
-      if not Between(NodeIndex, 0, TransformMatrix.Count - 1) then
+      if not Between(NodeIndex, 0, Transformations.Count - 1) then
         Exit; // warning about it was already done by ReadNodes
 
-      T := TransformMatrix.Ptr(NodeIndex);
-      TInv := TransformMatrixInverse.Ptr(NodeIndex);
+      T := Transformations.Ptr(NodeIndex);
       T^ := ParentT;
-      TInv^ := ParentTInv;
-      { TODO: is it efficient to use TransformMatricesMult?
-        We could instead have simplified TransformMatrix,
-        that ignores center/scaleOrientation,
-        and doesn't calculate inverse (would have to be calculated later once for skeleton root).
-        Test is this faster? }
-      TransformMatricesMult(T^, TInv^, TVector3.Zero,
+      T^.Multiply(
         CurrentRotation[NodeIndex],
         CurrentScale[NodeIndex],
-        TVector4.Zero,
         CurrentTranslation[NodeIndex]);
 
       for ChildNodeIndex in TransformNodesGltf[NodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^, TInv^);
+        UpdateChildMatrix(ChildNodeIndex, T^);
     end;
 
   var
-    T, TInv: PMatrix4;
+    T: PTransformation;
     RootNodeIndex, ChildNodeIndex: Integer;
   begin
     for RootNodeIndex in TransformNodesRoots do
     begin
-      if not Between(RootNodeIndex, 0, TransformMatrix.Count - 1) then
+      if not Between(RootNodeIndex, 0, Transformations.Count - 1) then
         Continue; // warning about it was already done by ReadScene
 
-      T := TransformMatrix.Ptr(RootNodeIndex);
-      TInv := TransformMatrixInverse.Ptr(RootNodeIndex);
-      T^ := TMatrix4.Identity;
-      TInv^ := TMatrix4.Identity;
-      TransformMatricesMult(T^, TInv^, TVector3.Zero,
+      T := Transformations.Ptr(RootNodeIndex);
+      T^.Init;
+      T^.Multiply(
         CurrentRotation[RootNodeIndex],
         CurrentScale[RootNodeIndex],
-        TVector4.Zero,
         CurrentTranslation[RootNodeIndex]);
 
       for ChildNodeIndex in TransformNodesGltf[RootNodeIndex].Children do
-        UpdateChildMatrix(ChildNodeIndex, T^, TInv^);
+        UpdateChildMatrix(ChildNodeIndex, T^);
     end;
   end;
 
 begin
   { Since in practice TransformNodes.Count is constant during glTF file reading,
     this sets the size only at first SetTime call (for this glTF model). }
-  TransformMatrix.Count := TransformNodes.Count;
-  TransformMatrixInverse.Count := TransformNodes.Count;
+  Transformations.Count := TransformNodes.Count;
   CurrentTranslation.Count := TransformNodes.Count;
   CurrentRotation.Count := TransformNodes.Count;
   CurrentScale.Count := TransformNodes.Count;
@@ -1757,7 +1743,7 @@ var
     AnimationSampler.SetTime(TimeFraction);
 
     if SkeletonRootIndex <> -1 then
-      SkeletonRootInverse := AnimationSampler.TransformMatrixInverse[SkeletonRootIndex]
+      SkeletonRootInverse := AnimationSampler.Transformations.List^[SkeletonRootIndex].InverseTransform
     else
       SkeletonRootInverse := TMatrix4.Identity;
 
@@ -1765,7 +1751,7 @@ var
       https://www.slideshare.net/Khronos_Group/gltf-20-reference-guide }
     for I := 0 to Joints.Count - 1 do
       JointMatrix[I] := SkeletonRootInverse *
-        AnimationSampler.TransformMatrix[JointsGltf[I]] *
+        AnimationSampler.Transformations.List^[JointsGltf[I]].Transform *
         InverseBindMatrices[I];
 
     { For each vertex, calculate SkinMatrix as linear combination of JointMatrix[...]

@@ -798,7 +798,7 @@ const
     Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
-    Direction := Shape.State.Transform.MultDirection(Direction);
+    Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
 
     Resource.InstantiatePlaceholder(Self, Position, Direction,
       ResourceNumberPresent, ResourceNumber);

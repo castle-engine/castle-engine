@@ -87,7 +87,7 @@
   TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -304,11 +304,15 @@ begin
   Result := ntcTransform;
 end;
 
-procedure TCADPartNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TCADPartNode.ApplyTransform(var Transformation: TTransformation);
 begin
   inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 end;
 
 procedure TIndexedQuadSetNode.CreateNode;

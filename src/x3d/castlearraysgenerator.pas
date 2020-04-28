@@ -2000,7 +2000,7 @@ procedure TAbstractFogGenerator.GenerateVertex(
     if CoordIndex <> nil then
       Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
       Position := Coord.Items.L[IndexNum];
-    Position := State.Transform.MultPoint(Position);
+    Position := State.Transformation.Transform.MultPoint(Position);
 
     Projected := PointOnLineClosestToPoint(
       TVector3.Zero, FogVolumetricDirection, Position);

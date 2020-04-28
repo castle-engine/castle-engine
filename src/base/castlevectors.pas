@@ -170,6 +170,7 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_miscellaneous.inc}
 {$I castlevectors_persistent.inc}
+{$I castlevectors_transformation.inc}
 
 {$undef read_interface}
 
@@ -193,5 +194,6 @@ uses Math, CastleStringUtils, CastleColors, CastleLog;
 {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_persistent.inc}
+{$I castlevectors_transformation.inc}
 
 end.

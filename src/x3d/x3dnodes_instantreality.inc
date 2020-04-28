@@ -27,13 +27,13 @@
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
 
     strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
@@ -608,7 +608,7 @@ begin
   end;
 end;
 
-procedure TMatrixTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TMatrixTransformNode.ApplyTransform(var Transformation: TTransformation);
 var
   M, InvertedMatrix: TMatrix4;
 begin
@@ -616,12 +616,11 @@ begin
 
   M := Matrix;
 
-  { Inherited TAbstractGroupingNode already saved State.Transform and such. }
-  State.Transform := State.Transform * M;
+  Transformation.Transform := Transformation.Transform * M;
 
   if TryInverseHarder(M, InvertedMatrix) then
   begin
-    State.InvertedTransform := InvertedMatrix * State.InvertedTransform;
+    Transformation.InverseTransform := InvertedMatrix * Transformation.InverseTransform;
   end else
   begin
     WritelnLogMultiline('Matrix',
@@ -629,10 +628,10 @@ begin
 
     { When determinant is zero, we treat inverted matrix
       like identity (like in TMatrixTransformNode_1.Transformation).
-      So no need to multiply State.InvertedTransform by anything. }
+      So no need to multiply Transformation.InverseTransform by anything. }
   end;
 
-  State.TransformScale := State.TransformScale * FdMatrix.TransformScale;
+  Transformation.Scale := Transformation.Scale * FdMatrix.TransformScale;
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;

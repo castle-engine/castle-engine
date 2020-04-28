@@ -2397,8 +2397,8 @@ var
 begin
   Res := TTryFindNodeTransformResult.Create;
   Res.Node := ANode;
-  Res.Transform := StateStack.Top.Transform;
-  Res.TransformScale := StateStack.Top.TransformScale;
+  Res.Transform := StateStack.Top.Transformation.Transform;
+  Res.TransformScale := StateStack.Top.Transformation.Scale;
   Result := Res;
 end;
 
