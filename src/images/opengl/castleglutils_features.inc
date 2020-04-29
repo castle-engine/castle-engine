@@ -298,6 +298,8 @@ begin
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
+
+  WritelnLogMultiline('Rendering Context Initialization', GLInformationString);
 end;
 
 {$ifdef OpenGLES}

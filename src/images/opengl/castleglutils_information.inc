@@ -244,7 +244,7 @@ begin
       +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
     {$endif}
-    '  Multisampling (full-screen antialiasing): ' + BoolToStr(GLFeatures.Multisample, true) + NL +
+    '  Multi-sampling (full-screen anti-aliasing) possible: ' + BoolToStr(GLFeatures.Multisample, true) + NL +
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 
