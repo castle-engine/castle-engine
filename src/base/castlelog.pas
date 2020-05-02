@@ -39,53 +39,42 @@ function Log: boolean;
   deprecated 'do not check is Log initialized';
 
 type
-  { Log date&time prefix style. }
+  { Prefix each log line with optional date/time. }
   TLogTimePrefix = (
-    { Default: no DateTime prefix is added. }
+    { No prefix. }
     ltNone,
-    { Add time prefix to each log record. }
+    { Record a time for each log record. }
     ltTime,
-    { Add date&time prefix to each log record. }
-    ltDateTime);
+    { Record date and time for each log record. }
+    ltDateTime
+  );
 
 { Initialize logging.
-  The default log output is documented on
-  https://castle-engine.io/manual_log.php .
+  See https://castle-engine.io/manual_log.php for more documentation about logging.
 
-  @param(ALogStream Where to generate the log.
+  Where do we write the log:
 
-    If you leave ALogStream as @nil (default), the default log output
-    is determined as follows:
+  @unorderedList(
+    @item(To the ALogStream, if you provide this parameter and it has non-nil value.)
 
-    @unorderedList(
-      @item(To a file called LogFileName, if you set this.)
+    @item(Otherwise, to the LogFileName, if you set this global variable to non-empty value.)
 
-      @item(On Unix and on console Windows applications,
-        the output goes to the standard output, StdOut.
-        This is most useful and common behavior on Unix, where most programs
-        log to StdOut, and StdOut is always available.
+    @item(Otherwise, we detect the best place to store the log automatically.
+      This detection depends on various factors -- the operating system,
+      whether the application is GUI/console (matters for Windows),
+      whether we are inside a shared library etc.
+      The exact algorithm is described on https://castle-engine.io/manual_log.php .
 
-        This approach avoids any questions from users asking "where can I find
-        the log file?". And it avoids technical questions like "should
-        we create a new log file with new number when old log file exists,
-        or just overwrite old file, or append to it?" or "which directory
-        is user-writeable". Since the user must explicitly redirect the output
-        to the file, (s)he knows where the log file is.
-      )
-
-      @item(On Windows GUI applications, we create a file xxx.log
-        in the current directory. Where xxx is from @code(ApplicationName).
-
-        GUI programs (with apptype GUI) do not have StdOut available
-        under Windows (at least not always).
-      )
+      You can always check @link(LogOutput) value to see where the output is going now.
+      You can e.g. display @link(LogOutput) somewhere in UI.
     )
-
-    Note that on Android, we also automatically log to Android-specific
-    log facility (that you can browse using "adb logcat").
-    This happens regardless of the ALogStream or LogFileName variables,
-    all log entries *always* go to Android log.
   )
+
+  In case of some platforms (Android and Nintendo Switch, now)
+  the log also @italic(always) goes to the device-specific log facility.
+  In case of Android, this is just "adb logcat", visible also if you run
+  "castle-engine run --target=android".
+  This is done regardless of the ALogStream or LogFileName values.
 
   @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
 }
@@ -146,10 +135,12 @@ procedure WritelnWarning(const MessageBase: string;
 
 var
   { Dump backtrace (call stack) with each log.
-    Displaying line info requires compiling your program with -gl. }
+    Displaying line info requires compiling your program with -gl.
+    Note that displaying a backtrace may slow down logging considerably,
+    so use this only when you really need it, and disable for the final build. }
   BacktraceOnLog: boolean = false;
 
-  { Current log date&time prefix style. Can be changed runtime. }
+  { Current log date/time prefix style. Can be changed at runtime. }
   LogTimePrefix: TLogTimePrefix;
 
   { Set this to a filename that should contain log,
