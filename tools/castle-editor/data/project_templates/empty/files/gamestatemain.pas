@@ -1,5 +1,4 @@
-{ Main user interface class.
-  This implements the majority of this application functionality.
+{ Main state, where most of the application logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
@@ -13,8 +12,7 @@ uses Classes,
   CastleKeysMouse;
 
 type
-  { Main user interface class.
-    This implements the majority of this application functionality. }
+  { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
     ClickCount: Cardinal;
@@ -46,7 +44,7 @@ begin
   { Load designed user interface }
   InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
 
-  { Find a label to show frames per second information }
+  { Find a label to show "frames per second" information }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
 
   { Find a button, and assign OnClick handler }
@@ -65,8 +63,8 @@ end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
+  inherited;
   { This virtual method is executed every frame.}
-
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 

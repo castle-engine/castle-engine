@@ -1,7 +1,6 @@
 { Game initialization.
-
-  This code is independent from mobile / standalone platforms.
-  It will be used by the appropriate .lpr file for desktop, Android or iOS.
+  This unit is cross-platform.
+  It will be used by the platform-specific program or library file.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
@@ -60,5 +59,6 @@ initialization
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.
     In particular, it is not allowed to read files before ApplicationInitialize
-    (in case of non-desktop platforms, some necessary may not be prepared yet). }
+    (because in case of non-desktop platforms,
+    some necessary resources may not be prepared yet). }
 end.
