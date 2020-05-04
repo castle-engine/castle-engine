@@ -145,10 +145,13 @@ begin
       if NewProjectForm.ButtonTemplateEmpty.Down then
         TemplateName := 'empty'
       else
-      if NewProjectForm.ButtonTemplate3D.Down then
-        TemplateName := '3d'
+      if NewProjectForm.ButtonTemplate3dModelViewer.Down then
+        TemplateName := '3d_model_viewer'
       else
-      if NewProjectForm.ButtonTemplate2D.Down then
+      if NewProjectForm.ButtonTemplate3dFps.Down then
+        TemplateName := '3d_fps'
+      else
+      if NewProjectForm.ButtonTemplate2d.Down then
         TemplateName := '2d'
       else
         raise EInternalError.Create('Unknown project template selected');

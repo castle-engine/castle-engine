@@ -1,24 +1,24 @@
 object ChooseProjectForm: TChooseProjectForm
   Left = 743
-  Height = 713
+  Height = 652
   Top = 99
-  Width = 628
+  Width = 574
   BorderWidth = 40
   Caption = 'Choose Project | Castle Game Engine Editor'
-  ClientHeight = 713
-  ClientWidth = 628
-  DesignTimePPI = 140
+  ClientHeight = 652
+  ClientWidth = 574
+  DesignTimePPI = 128
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.9.0'
   object ImageLogo: TImage
     AnchorSideRight.Side = asrBottom
     Left = 2
-    Height = 268
-    Top = 8
-    Width = 622
+    Height = 245
+    Top = 7
+    Width = 568
     Anchors = [akTop, akLeft, akRight]
     Center = True
     Picture.Data = {
@@ -457,15 +457,15 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ImageLogo
     AnchorSideTop.Side = asrBottom
-    Left = 139
-    Height = 36
-    Top = 286
-    Width = 348
+    Left = 125
+    Height = 33
+    Top = 261
+    Width = 322
     Align = alCustom
     Alignment = taCenter
-    BorderSpacing.Top = 10
+    BorderSpacing.Top = 9
     Caption = 'Castle Game Engine Editor'
-    Font.Height = -29
+    Font.Height = -27
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
@@ -475,15 +475,16 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = LabelTitle
     AnchorSideTop.Side = asrBottom
-    Left = 230
-    Height = 77
-    Top = 332
-    Width = 167
+    Left = 211
+    Height = 71
+    Top = 303
+    Width = 151
     AutoSize = True
-    BorderSpacing.Top = 10
-    BorderSpacing.InnerBorder = 20
+    BorderSpacing.Top = 9
+    BorderSpacing.InnerBorder = 18
     Caption = 'New Project'
     OnClick = ButtonNewClick
+    ParentFont = False
     TabOrder = 0
   end
   object ButtonOpen: TBitBtn
@@ -491,15 +492,16 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ButtonNew
     AnchorSideTop.Side = asrBottom
-    Left = 226
-    Height = 77
-    Top = 419
-    Width = 174
+    Left = 207
+    Height = 71
+    Top = 383
+    Width = 158
     AutoSize = True
-    BorderSpacing.Top = 10
-    BorderSpacing.InnerBorder = 20
+    BorderSpacing.Top = 9
+    BorderSpacing.InnerBorder = 18
     Caption = 'Open Project'
     OnClick = ButtonOpenClick
+    ParentFont = False
     TabOrder = 1
   end
   object ButtonOpenRecent: TBitBtn
@@ -507,25 +509,26 @@ object ChooseProjectForm: TChooseProjectForm
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ButtonOpen
     AnchorSideTop.Side = asrBottom
-    Left = 191
-    Height = 77
-    Top = 506
-    Width = 245
+    Left = 175
+    Height = 71
+    Top = 463
+    Width = 222
     AutoSize = True
-    BorderSpacing.Top = 10
-    BorderSpacing.InnerBorder = 20
+    BorderSpacing.Top = 9
+    BorderSpacing.InnerBorder = 18
     Caption = 'Open Recent Project'
     OnClick = ButtonOpenRecentClick
+    ParentFont = False
     TabOrder = 2
   end
   object ButtonPreferences: TBitBtn
-    Left = 8
-    Height = 58
-    Top = 651
-    Width = 174
+    Left = 7
+    Height = 56
+    Top = 592
+    Width = 162
     Anchors = [akLeft, akBottom]
     AutoSize = True
-    BorderSpacing.InnerBorder = 8
+    BorderSpacing.InnerBorder = 7
     Caption = 'Preferences'
     Glyph.Data = {
       36100000424D3610000000000000360000002800000020000000200000000100
@@ -660,30 +663,32 @@ object ChooseProjectForm: TChooseProjectForm
       0000000000000000000000000000000000000000000000000000
     }
     OnClick = ButtonPreferencesClick
+    ParentFont = False
     TabOrder = 3
   end
   object PanelWarningFpcLazarus: TPanel
     AnchorSideLeft.Control = ButtonPreferences
     AnchorSideLeft.Side = asrBottom
-    Left = 190
-    Height = 72
-    Top = 637
-    Width = 415
+    Left = 176
+    Height = 66
+    Top = 582
+    Width = 376
     Anchors = [akLeft, akBottom]
     AutoSize = True
-    BorderSpacing.Left = 8
-    ClientHeight = 72
-    ClientWidth = 415
+    BorderSpacing.Left = 7
+    ClientHeight = 66
+    ClientWidth = 376
+    ParentFont = False
     TabOrder = 4
     object Image1: TImage
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Side = asrCenter
-      Left = 9
+      Left = 8
       Height = 32
-      Top = 21
+      Top = 19
       Width = 32
       AutoSize = True
-      BorderSpacing.Around = 8
+      BorderSpacing.Around = 7
       Picture.Data = {
         1754506F727461626C654E6574776F726B477261706869638902000089504E47
         0D0A1A0A0000000D4948445200000020000000200806000000737A7AF4000000
@@ -710,24 +715,25 @@ object ChooseProjectForm: TChooseProjectForm
       }
     end
     object Label1: TLabel
-      Left = 68
-      Height = 54
-      Top = 9
-      Width = 338
-      BorderSpacing.Around = 8
+      Left = 62
+      Height = 50
+      Top = 8
+      Width = 306
+      BorderSpacing.Around = 7
       Caption = 'Warning: FPC or Lazarus not found.'#10'Configure them in "Preferences".'
       ParentColor = False
+      ParentFont = False
     end
   end
   object OpenProject: TCastleOpenDialog
     Title = 'Open existing project (select CastleEngineManifest.xml file)'
     Filter = 'CastleEngineManifest.xml|CastleEngineManifest.xml|All files (*)|*'
     FilterIndex = 0
-    left = 464
-    top = 416
+    Left = 424
+    Top = 380
   end
   object PopupMenuRecentProjects: TPopupMenu
-    left = 464
-    top = 344
+    Left = 424
+    Top = 315
   end
 end

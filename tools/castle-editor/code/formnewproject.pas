@@ -28,6 +28,7 @@ type
   { Determine new project settings. }
   TNewProjectForm = class(TForm)
     ButtonPanel1: TButtonPanel;
+    ButtonTemplate2d: TSpeedButton;
     EditLocation: TEditButton;
     EditProjectName: TEdit;
     GroupProjectTemplate: TGroupBox;
@@ -36,8 +37,8 @@ type
     LabelProjectName: TLabel;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     ButtonTemplateEmpty: TSpeedButton;
-    ButtonTemplate3D: TSpeedButton;
-    ButtonTemplate2D: TSpeedButton;
+    ButtonTemplate3dModelViewer: TSpeedButton;
+    ButtonTemplate3dFps: TSpeedButton;
     procedure EditLocationButtonClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormShow(Sender: TObject);
