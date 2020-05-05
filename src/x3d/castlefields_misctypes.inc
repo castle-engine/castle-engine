@@ -118,7 +118,7 @@
       Implies also chLightInstanceProperty change. }
     chLightLocationDirection,
 
-    { TCastleSceneCore.MainLightForShadows possibly changed because of this change. }
+    { TCastleSceneCore.InternalMainLightForShadows possibly changed because of this change. }
     chLightForShadowVolumes,
 
     { Switch.whichChoice changed, for VRML >= 2.0. }

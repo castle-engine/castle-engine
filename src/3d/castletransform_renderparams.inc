@@ -176,9 +176,7 @@
     procedure Assign(const Source: TRenderingCamera);
   end;
 
-  { @exclude Internal.
-
-    Information that a TCastleTransform object needs to render.
+  { Information that a TCastleTransform object needs to render.
     Read-only for @link(TCastleTransform.LocalRender)
     (except @link(Statistics), which should be updated during rendering).
 

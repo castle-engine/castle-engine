@@ -222,12 +222,8 @@ type
     procedure RenderShadowVolume;
 
     { Detect position/direction of the main light that produces shadows.
-      The default implementation in this class looks at
-      MainScene.MainLightForShadows.
-
-      @seealso TCastleSceneCore.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4): boolean;
+      Looks at MainScene.InternalMainLightForShadows. }
+    function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
     { Pass pointing device (mouse) activation/deactivation event to 3D world. }
     function PointingDeviceActivate(const Active: boolean): boolean;
@@ -259,11 +255,8 @@ type
 
     { Prepare lights shining on everything.
       BaseLights contents should be initialized here.
-
       The implementation in this class adds headlight determined
-      by the @link(Headlight) method. By default, this looks at the MainScene,
-      and follows NavigationInfo.headlight and
-      KambiNavigationInfo.headlightNode properties. }
+      by the @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight) value. }
     procedure InitializeLights(const Lights: TLightInstancesList); virtual;
 
     { Render everything from given camera view (as TRenderingCamera).
@@ -553,12 +546,14 @@ type
     function TriangleHit: PTriangle;
 
     { Instance for headlight that should be used for this scene.
-      Uses @link(Headlight) method, applies appropriate camera position/direction.
-      Returns @true only if @link(Headlight) method returned @true
+      Uses @link(InternalHeadlight) method, applies appropriate camera position/direction.
+      Returns @true only if @link(InternalHeadlight) method returned @true
       and a suitable camera was present.
 
       Instance should be considered undefined ("out" parameter)
-      when we return @false. }
+      when we return @false.
+
+      @exclude }
     function HeadlightInstance(out Instance: TLightInstance): boolean;
       deprecated 'internal information, do not use this';
 
@@ -761,7 +756,7 @@ type
       read FAvoidNavigationCollisions
       write SetAvoidNavigationCollisions;
 
-    { See @link(TCastleRootTransform.Paused). }
+    { See @link(TCastleAbstractRootTransform.Paused). }
     property Paused: boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
 
@@ -1054,9 +1049,9 @@ type
 
     procedure Render; override;
 
-    { Limit the movement allowed by @link(WorldMoveAllowed).
+    { Limit the movement allowed by @link(TCastleAbstractRootTransform.WorldMoveAllowed).
       Ignored when empty (default).
-      @seealso TCastleRootTransform.MoveLimit }
+      @seealso TCastleAbstractRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
       deprecated 'use Items.MoveLimit';
 
@@ -1081,11 +1076,11 @@ type
       read GetHeadlightNode write SetHeadlightNode;
       deprecated 'use Items.HeadlightNode';
 
-    { See @link(TCastleRootTransform.MainCamera). }
+    { See @link(TCastleAbstractRootTransform.MainCamera). }
     property MainCamera: TCastleCamera read GetMainCamera write SetMainCamera;
       deprecated 'use Items.MainCamera';
 
-    { See @link(TCastleRootTransform.PhysicsProperties). }
+    { See @link(TCastleAbstractRootTransform.PhysicsProperties). }
     function PhysicsProperties: TPhysicsProperties;
       deprecated 'use Items.PhysicsProperties';
 
@@ -1878,11 +1873,10 @@ begin
     Result := nil;
 end;
 
-function TCastleViewport.MainLightForShadows(
-  out AMainLightPosition: TVector4): boolean;
+function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
-    Result := Items.MainScene.MainLightForShadows(AMainLightPosition)
+    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition)
   else
     Result := false;
 end;

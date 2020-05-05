@@ -670,7 +670,7 @@ type
       access X3D background nodes in @code(BackgroundStack).
       You can modify existing background node by @code(BackgroundStack.Top),
       or you can push a different background node by adding @link(TBackgroundNode)
-      to @link(RootNode) and setting @link(TBackgroundNode.Bound) to @true.
+      to @link(RootNode) and setting @link(TAbstractBindableNode.Bound Background.Bound) to @true.
 
       Returns @nil if there is no currently bound (and supported) background node
       in this scene.
@@ -679,7 +679,9 @@ type
       and so on) by this TCastleScene instance. It is cached
       (so that it's recreated only when relevant things change,
       like VRML/X3D nodes affecting this background,
-      or changes to BackgroundSkySphereRadius, or OpenGL context is closed). }
+      or changes to BackgroundSkySphereRadius, or OpenGL context is closed).
+
+      @exclude }
     function InternalBackground: TBackground;
 
     { Rendering attributes.

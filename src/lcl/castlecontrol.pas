@@ -551,7 +551,7 @@ type
     with a default @code(TCastle2DSceneManager) instance already created for you.
     This is the simplest way to render a game world with 2D controls above.
     Add your
-    game stuff (like @link(TCastle2DScene))
+    game stuff (like @code(TCastle2DScene))
     to the scene manager
     available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
     to the @link(TCastleControlBase.Controls) property (from ancestor TCastleControlBase).

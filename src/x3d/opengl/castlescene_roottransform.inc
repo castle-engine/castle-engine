@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TCastleRootTransform (with MainScene property that TCastleScene). }
+{ TCastleRootTransform (with MainScene property that refers to TCastleScene). }
 
 {$ifdef read_interface}
 
@@ -98,9 +98,11 @@ type
     { Headlight used to light the scene.
 
       Returns non-nil headlight node
-      if the algorithm described at @link(TCastleViewport.UseHeadlight) and
+      if the algorithm described at @link(UseHeadlight) and
       @link(TUseHeadlight) indicates we should use a headlight.
-      Otherwise returns @nil, to indicate we do not show a headlight now. }
+      Otherwise returns @nil, to indicate we do not show a headlight now.
+
+      @exclude }
     function InternalHeadlight: TAbstractLightNode;
   published
     { The main scene of the world. It's not necessary to set this.
@@ -140,7 +142,7 @@ type
           nor from @link(TCastleViewport.BackgroundColor)).
         )
 
-        @item(Determines whether headlight is used if @link(TCastleViewport.UseHeadlight)
+        @item(Determines whether headlight is used if @link(UseHeadlight)
           is hlMainScene. The value of
           @link(TCastleSceneCore.HeadlightOn MainScene.HeadlightOn)
           then determines the headlight.

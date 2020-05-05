@@ -1803,7 +1803,7 @@ type
       deprecated 'use overloaded version with TCastleCamera';
     { @groupEnd }
 
-    { Detect position/direction of the main light that produces shadows.
+    { Detect position/direction of the main light that produces shadow volumes.
       This is useful when you want to make shadows on the scene
       from only a single light, but your scene has many lights.
 
@@ -1818,9 +1818,9 @@ type
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TCastleViewport.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4): boolean;
+      @exclude
+      Should only be used internally by TCastleViewport. }
+    function InternalMainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
     { Light node that should be used for headlight, or @nil if default
       directional headlight is suitable.
@@ -7414,7 +7414,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.MainLightForShadows(
+function TCastleSceneCore.InternalMainLightForShadows(
   out AMainLightPosition: TVector4): boolean;
 begin
   ValidateMainLightForShadows;

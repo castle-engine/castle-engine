@@ -579,20 +579,28 @@ type
   { }
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
-  { Handle user input to modify viewport camera.
+  { Handle user input to modify viewport's camera.
 
-    You will usually set it using @link(TCastleViewport.Navigation).
-    But really it's a normal @link(TCastleUserInterface) descendant,
-    you can add it as a child of any other UI control,
-    and just assign @link(Viewport) to any @link(TCastleViewport).
-    You can always treat it as a normal @link(TCastleUserInterface) descendant,
-    e.g. you can use @link(Exists) property and so on.
+    Create an instance of this class, and set it as @link(TCastleViewport.Navigation) value.
+    It will become a child control of the associated @link(TCastleViewport).
 
-    The only purpose of the class @link(TCastleNavigation)
-    is to allow to remove other @link(TCastleNavigation) children when assigning
-    @link(TCastleViewport.Navigation).
-    Otherwise, it's really a completely normal @link(TCastleUserInterface),
-    i.e. it receives input events and reacts to them as all other UI controls.
+    In many ways, this is just a normal @link(TCastleUserInterface) descendant.
+    E.g. it processes input just like any other @link(TCastleUserInterface) descendant
+    (there isn't any special mechanism through which @link(TCastleViewport) passes
+    input to the navigation),
+    the @link(Exists) property works and so on.
+    Setting it as @link(TCastleViewport.Navigation)
+    (as opposed to just adding it manually by @link(TCastleUserInterface.InsertFront)
+    to the viewport) serves just two purposes: we set internal link to the viewport,
+    and we make sure to remove previous @link(TCastleViewport.Navigation) value
+    from children.
+
+    The point of the above explanation is that you can modify
+    @link(TCastleViewport.Camera) (move, rotate and do other stuff with camera)
+    from any place in the code.
+    You don't @italic(need) to use an ancestor of TCastleNavigation to manipulate
+    the camera. TCastleNavigation is a comfortable way to encapsulate
+    common navigation methods, but it's not the only way to move the camera.
 
     Various TCastleNavigation descendants implement various navigation
     methods, for example TCastleExamineNavigation allows the user to rotate
@@ -762,7 +770,7 @@ type
 
       Initially (after creating this object) they are equal to
       InitialPosition, InitialDirection, InitialUp.
-      Also @link(Init) and @link(GoToInitial) methods reset them to these
+      Also @link(GoToInitial) methods reset them to these
       initial values.
 
       The @link(Direction) and @link(Up) vectors should always be normalized

@@ -1937,7 +1937,7 @@ type
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
 
-      By default this is set to @link(Camera) of the @link(TCastleViewport)
+      By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
