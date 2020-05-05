@@ -62,14 +62,14 @@
     function Texture2: TTexture2Node_1;
     function TextureCoordinate2: TTextureCoordinate2Node_1;
 
-    { Destructor automatically frees and nils all @link(Nodes) that are @link(Owned). }
+    { Destructor automatically frees and nils all @link(Nodes) that are owned. }
     destructor Destroy; override;
 
     { Last nodes that occured when visiting this VRML 1.0 graph,
       indexed by TVRML1StateNode. }
     property Nodes [const StateNode: TVRML1StateNode]: TX3DNode read GetNode write SetNode;
 
-    { Create and assign all @link(Nodes). All nodes become @link(Owned). }
+    { Create and assign all @link(Nodes). All nodes become owned. }
     procedure CreateNodes;
 
     { Assign from Source.

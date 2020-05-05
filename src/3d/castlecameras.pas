@@ -355,10 +355,10 @@ type
 
     { Camera position, looking direction and up vector.
 
-      After calling @link(Init) they are equal to
-      InitialPosition, InitialDirection, InitialUp.
-      Calling @link(Init) and @link(GoToInitial) resets them to these
-      initial values.
+      Call @link(GoToInitial) to set the current vectors to initial vectors,
+      making them equal to InitialPosition, InitialDirection, InitialUp.
+      You can also use @code(Init) method on some navigation descendants
+      like @link(TCastleExamineNavigation.Init) and @link(TCastleWalkNavigation.Init).
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -386,13 +386,13 @@ type
 
       This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
 
-      This is also the "normal" value for both @link(TCastleWalkNavigation.Up) and
+      This is also the "normal" value for both @link(Up) and
       @link(InitialUp) --- one that means that player is looking
       straight foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
-      @link(TCastleWalkNavigation.Up) and
+      @link(Up) and
       @link(InitialUp) vectors). }
     property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
@@ -470,8 +470,11 @@ type
       key/mouse handling in TCastleWalkNavigation shoult not work etc. }
     function Animation: boolean;
 
-    { Initial camera values. Can be set by @link(Init) or @link(SetInitialView).
-      Camera vectors are reset to these values by @link(Init) and @link(GoToInitial).
+    { Initial camera values. Can be set by @link(SetInitialView).
+      Camera vectors are reset to these values by @link(GoToInitial).
+      You can also use @code(Init) method on some navigation descendants
+      like @link(TCastleExamineNavigation.Init) and @link(TCastleWalkNavigation.Init)
+      to set initial vectors @italic(and) current vectors at the same time.
 
       InitialDirection and InitialUp must be always normalized,
       and orthogonal.
@@ -782,13 +785,13 @@ type
 
       This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
 
-      This is also the "normal" value for both @link(TCastleWalkNavigation.Up) and
+      This is also the "normal" value for both @link(Up) and
       @link(InitialUp) --- one that means that player is looking
       straight foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
-      @link(TCastleWalkNavigation.Up) and
+      @link(Up) and
       @link(InitialUp) vectors). }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp; deprecated 'use Viewport.Camera.GravityUp';
 

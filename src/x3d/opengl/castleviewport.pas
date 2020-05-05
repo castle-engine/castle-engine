@@ -1089,7 +1089,7 @@ type
     function PhysicsProperties: TPhysicsProperties;
       deprecated 'use Items.PhysicsProperties';
 
-    { See @link(TCastleRootTransform.TimeScale). }
+    { See @link(TCastleAbstractRootTransform.TimeScale). }
     property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
       deprecated 'use Items.TimeScale';
 
@@ -2674,7 +2674,7 @@ begin
 
   Proj := Projection;
   if Proj.ProjectionType <> ptOrthographic then
-    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
+    raise Exception.Create('TCastleViewport.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
   ProjRect := Proj.Dimensions;
 
   if Navigation <> nil then

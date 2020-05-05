@@ -394,7 +394,7 @@ type
     pgBox
   );
 
-  { Possible options for @link(TCasteSceneCore.Load). }
+  { Possible options for @link(TCastleSceneCore.Load). }
   TSceneLoadOption = (
     slDisableResetTime
   );

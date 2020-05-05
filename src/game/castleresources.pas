@@ -369,7 +369,7 @@ type
       Our resources mechanism is prepared to handle it efficiently, in 2 ways:
 
       @orderedList(
-        @param(
+        @item(
           Without pool: We have a single TCastleScene, which is internally continuosly changed
           back-and-forth to show various animations (and various moment of these animations),
           to display all resource instances correctly.
@@ -380,7 +380,7 @@ type
           Worse FPS (need to switch back-and-forth) and no animation blending support.
         )
 
-        @param(
+        @item(
           With pool: Each resource instance gets a copy of TCastleScene.
           This avoids switching one scene back-and-forth.
           It's particularly beneficial for animations like from glTF or Spine JSON

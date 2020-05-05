@@ -145,7 +145,6 @@ type
     function Middle: TVector3; deprecated 'use Center';
 
     { Center of the box.
-      Name consistent with e.g. @link(TAbstractX3DGroupingNode.BboxCenter).
       @raises(EBox3DEmpty If the Box is empty.) }
     function Center: TVector3;
 

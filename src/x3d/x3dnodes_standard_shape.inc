@@ -324,7 +324,7 @@
     side).
     To have a two-sided material, either use TTwoSidedMaterialNode,
     or set the shading to Phong using @link(TRenderingAttributes.PhongShading)
-    or @link(TShapeNode.Shading). }
+    or @link(TAbstractShapeNode.Shading). }
   TMaterialNode = class(TAbstractOneSidedMaterialNode)
   strict private
     type

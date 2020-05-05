@@ -548,7 +548,7 @@ type
   end;
 
   { Control to render 2D games with Castle Game Engine,
-    with a default @link(TCastle2DSceneManager) instance already created for you.
+    with a default @code(TCastle2DSceneManager) instance already created for you.
     This is the simplest way to render a game world with 2D controls above.
     Add your
     game stuff (like @link(TCastle2DScene))
@@ -563,8 +563,8 @@ type
     of this class.
 
     The difference between this and @link(TCastleControl) is that this provides
-    a scene manager descending from @link(TCastle2DSceneManager), which is a little more
-    comfortable for typical 2D games. See @link(TCastle2DSceneManager) description
+    a scene manager descending from @code(TCastle2DSceneManager), which is a little more
+    comfortable for typical 2D games. See @code(TCastle2DSceneManager) description
     for details. But in principle, you can use any of these control classes
     to develop any mix of 3D or 2D game. }
   TCastle2DControl = class(TCastleControlBase)

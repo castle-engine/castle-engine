@@ -167,7 +167,7 @@ type
       This rendering method will be called regardless if we have
       or not some screen effects.
       When no screen effects are actually used (e.g. @link(AddScreenEffect)
-      wasn't used, @link(ExtraScreenEffectsCount) is zero), then our @link(Render)
+      wasn't used, @code(InternalExtraScreenEffectsCount) is zero), then our @link(Render)
       trivially calls this method without doing anything else. }
     procedure RenderWithoutScreenEffects; virtual;
 
@@ -246,7 +246,7 @@ type
       May be 0 to stop time passing.
       This has deliberately long name, instead of simple TimeScale,
       to make it clear that it's completely independent from
-      @link(TCastleRootTransform.TimeScale). }
+      @link(TCastleAbstractRootTransform.TimeScale). }
     property ScreenEffectsTimeScale: Single
       read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
 

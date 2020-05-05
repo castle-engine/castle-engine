@@ -801,9 +801,9 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean): string; overload;
 { @groupEnd }
 
-{ Does this NamePattern contain @counter in a format understood
+{ Does this NamePattern contain @code(@@counter) in a format understood
   by @link(FormatNameCounter). When @true, you can be sure @link(FormatNameCounter)
-  actually changes the argument by replacing some @counter. }
+  actually changes the argument by replacing some @code(@@counter). }
 function HasNameCounter(const NamePattern: string;
   const AllowOldPercentSyntax: Boolean = false): Boolean;
 
