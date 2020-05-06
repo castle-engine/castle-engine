@@ -3,5 +3,8 @@
   standalone_source="activity_recognition_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="io.castleengine.activity.recognition"
+  caption="Activity Recognition CGE"
+  author="Castle Game Engine Devs"
+  screen_orientation="portrait"
 >
 </project>
