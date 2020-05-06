@@ -77,7 +77,7 @@ var
   S: String;
 begin
   S := 'Started:' + BoolToStr(ActivityRecognition.Started, true) + NL + NL;
-  if ActivityRecognition.ActivityValid then
+  if not ActivityRecognition.ActivityValid then
     S += 'Not yet detected anything.' + NL
   else
     S += 'Detected:' + NL +
