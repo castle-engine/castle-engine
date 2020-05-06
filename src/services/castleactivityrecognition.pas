@@ -36,6 +36,8 @@ type
     uaUnknown
   );
 
+  TUserActivities = set of TUserActivity;
+
   { Current user activity, used by @link(TActivityRecognition.ActivityConfidence).
     See https://developer.apple.com/documentation/coremotion/cmmotionactivity
     for the underlying iOS docs. }
@@ -72,10 +74,12 @@ type
   TActivityRecognition = class(TComponent)
   private
     FStarted: Boolean;
+    FActivityValid: Boolean;
     FActivity: TUserActivity;
     FPossibleActivities: TUserActivities;
     FActivityTime: TDateTime;
     FActivityConfidence: TUserActivityConfidence;
+    FOnChange: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList): boolean;
   public
     constructor Create(AOwner: TComponent); override;
@@ -85,7 +89,7 @@ type
     procedure Start;
 
     { Stop recognizing activity. }
-    procedure Start;
+    procedure Stop;
 
     { Was @link(Start) called (not followed by @link(Stop)). }
     property Started: Boolean read FStarted;
@@ -135,7 +139,7 @@ function ActivityConfidenceToStr(const Value: TUserActivityConfidence): String;
   @raises Exception In case of invalid String. }
 function StrToActivityConfidence(const Value: String): TUserActivityConfidence;
 { Convert TUserActivities to a String, using Delimiter to separate items. }
-function PossibleActivitiesToStr(const Value: TUserActivities; const Delimiter: String);
+function PossibleActivitiesToStr(const Value: TUserActivities; const Delimiter: String): String;
 
 implementation
 
@@ -168,7 +172,7 @@ end;
 
 function ActivityConfidenceToStr(const Value: TUserActivityConfidence): String;
 const
-  Names: array [TUserActivity] of String = (
+  Names: array [TUserActivityConfidence] of String = (
     'low',
     'medium',
     'high'
@@ -207,7 +211,9 @@ begin
 end;
 
 { Public, uses configurable delimiter. }
-function PossibleActivitiesToStr(const Value: TUserActivities; const Delimiter: String);
+function PossibleActivitiesToStr(const Value: TUserActivities; const Delimiter: String): String;
+var
+  A: TUserActivity;
 begin
   Result := '';
   for A in Value do
@@ -241,7 +247,7 @@ function TActivityRecognition.MessageReceived(const Received: TCastleStringList)
     A, LastA: TUserActivity;
     C: Cardinal;
   begin
-    Exclude(uaUnknown, Activities);
+    Exclude(Activities, uaUnknown);
 
     C := 0;
     for A in Activities do
@@ -256,8 +262,6 @@ function TActivityRecognition.MessageReceived(const Received: TCastleStringList)
       Result := uaUnknown;
   end;
 
-var
-  StatusInt: Int64;
 begin
   Result := false;
 
@@ -275,8 +279,8 @@ begin
   begin
     FActivityValid := true;
     FPossibleActivities := StrToPossibleActivities(Received[1]);
-    FActivity := MostPossibleActivity(FPossibleActivities);
-    FActivityTime := Now;
+    FActivity := MostUsefulActivity(FPossibleActivities);
+    FActivityTime := CastleNow;
     FActivityConfidence := StrToActivityConfidence(Received[2]);
     if Assigned(OnChange) then
       OnChange(Self);

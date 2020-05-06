@@ -9,11 +9,12 @@
         "Red" : 1.0000000000000000E+000,
         "$ClassName" : "TCastleColorPersistent"
       },
-      "FontSize" : 1.0000000000000000E+002,
+      "FontSize" : 4.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
+      "MaxWidth" : 8.0000000000000000E+002,
       "Name" : "LabelStatus",
-      "Text" : "Current Activity:\nxxx\nLast Changed:\nxxx\n",
+      "Text" : "Started: False\nDetected:\nPossible Activities:\nwalking,running,cyclink\nMost Useful Activity (from the above set):\nunknown\nConfidence:\nmedium\nChanged at: yyyy\"-\"mm\"-\"dd\" \"tt\n",
       "VerticalAnchorDelta" : -1.0000000000000000E+002,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
@@ -35,7 +36,7 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "FontSize" : 1.5000000000000000E+002,
+      "FontSize" : 8.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Image" : {
@@ -44,7 +45,7 @@
       "Name" : "ButtonStartListening",
       "PaddingHorizontal" : 1.0000000000000000E+002,
       "PaddingVertical" : 1.0000000000000000E+002,
-      "VerticalAnchorDelta" : 1.0000000000000000E+002,
+      "VerticalAnchorDelta" : 4.0000000000000000E+001,
       "$Children" : [
       ],
       "$ClassName" : "TCastleButton"
@@ -63,8 +64,7 @@
       "CustomBackgroundPressed" : {
         "$ClassName" : "TCastleImagePersistent"
       },
-      "FontSize" : 1.5000000000000000E+002,
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "FontSize" : 8.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Image" : {
@@ -73,7 +73,7 @@
       "Name" : "ButtonStopListening",
       "PaddingHorizontal" : 1.0000000000000000E+002,
       "PaddingVertical" : 1.0000000000000000E+002,
-      "VerticalAnchorDelta" : 5.9000000000000000E+002,
+      "VerticalAnchorDelta" : 3.5000000000000000E+002,
       "$Children" : [
       ],
       "$ClassName" : "TCastleButton"

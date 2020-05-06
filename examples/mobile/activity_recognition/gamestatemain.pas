@@ -19,18 +19,21 @@ unit GameStateMain;
 interface
 
 uses CastleUIState, CastleScene, CastleControls,
-  CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls;
+  CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls,
+  CastleActivityRecognition;
 
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
+    ActivityRecognition: TActivityRecognition;
     LabelStatus: TCastleLabel;
     ButtonStartListening: TCastleButton;
     ButtonStopListening: TCastleButton;
     procedure ClickStartListening(Sender: TObject);
     procedure ClickStopListening(Sender: TObject);
     procedure ActivityRecognitionChange(Sender: TObject);
+    procedure UpdateStatus;
   public
     procedure Start; override;
   end;
@@ -39,6 +42,9 @@ var
   StateMain: TStateMain;
 
 implementation
+
+uses SysUtils, Classes,
+  CastleUtils, CastleComponentSerialize;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -59,6 +65,7 @@ begin
   ButtonStartListening.OnClick := @ClickStartListening;
   ButtonStopListening.OnClick := @ClickStopListening;
 
+  ActivityRecognition := TActivityRecognition.Create(FreeAtStop);
   ActivityRecognition.OnChange := @ActivityRecognitionChange;
   ActivityRecognition.Start;
 
@@ -66,19 +73,27 @@ begin
 end;
 
 procedure TStateMain.UpdateStatus;
+var
+  S: String;
 begin
-  S := 'Started:' + BoolToStr(ActivityRecognition.Active, true) + NL;
+  S := 'Started:' + BoolToStr(ActivityRecognition.Started, true) + NL + NL;
   if ActivityRecognition.ActivityValid then
     S += 'Not yet detected anything.' + NL
   else
-    S + 'Detected:' + NL +
+    S += 'Detected:' + NL +
+      NL +
       'Possible Activities:' + NL +
-      PossibleActivitiesToStr(ActivityRecognition.PossibleActivities) + NL +
-      'Most Useful Activity (from the above set):' + NL +
+      PossibleActivitiesToStr(ActivityRecognition.PossibleActivities, ',') + NL +
+      NL +
+      'Most Useful Activity' + NL +
+      '(from the Possible set):' + NL +
       ActivityToStr(ActivityRecognition.Activity) + NL +
+      NL +
       'Confidence:' + NL +
       ActivityConfidenceToStr(ActivityRecognition.ActivityConfidence) + NL +
-      'Changed at: ' + DateTimeToStr(ActivityRecognition.ActivityTime) + NL;
+      NL +
+      'Changed at: ' + FormatDateTime('yyyy"-"mm"-"dd" "tt', ActivityRecognition.ActivityTime) + NL;
+  LabelStatus.Caption := S;
 end;
 
 procedure TStateMain.ClickStartListening(Sender: TObject);

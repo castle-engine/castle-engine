@@ -44,6 +44,13 @@ initialization
   Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
+  { On desktops, change the initial window size to simulate a tall screen,
+    like mobile in a "portrait" orientation. }
+  {$if not (defined(CASTLE_IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
+  Window.Height := Application.ScreenHeight * 5 div 6;
+  Window.Width := Window.Height * 900 div 1600;
+  {$endif}
+
   { You should not need to do *anything* more in the unit "initialization" section.
     Most of your game initialization should happen inside ApplicationInitialize.
     In particular, it is not allowed to read files before ApplicationInitialize
