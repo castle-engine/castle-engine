@@ -151,6 +151,10 @@ var
     (you can e.g. use GetAppConfigDir function from FPC RTL). }
   LogFileName: String = '';
 
+  { Enable logging to StdOut, used on some platforms in some cases (like on Unix).
+    If @false, we will always log to some file. }
+  LogEnableStandardOutput: Boolean = true;
+
 {$ifdef CASTLE_NINTENDO_SWITCH}
 { Send a log message using platform-specific logging on NX.
 
@@ -249,6 +253,7 @@ procedure InitializeLog(
 
 var
   InsideEditor: Boolean;
+  EnableStandardOutput: Boolean;
 begin
   LogTimePrefix := ALogTimePrefix;
 
@@ -258,6 +263,7 @@ begin
   FLogOutput := '';
 
   InsideEditor := GetEnvironmentVariable('CASTLE_ENGINE_INSIDE_EDITOR') = 'true';
+  EnableStandardOutput := LogEnableStandardOutput and (not IsLibrary);
 
   if ALogStream <> nil then
   begin
@@ -266,7 +272,7 @@ begin
   end
   {$ifndef CASTLE_NINTENDO_SWITCH}
   else
-  if InsideEditor and (not IsLibrary) and (StdOutStream <> nil) then
+  if InsideEditor and EnableStandardOutput and (StdOutStream <> nil) then
   begin
     { In this case, we know we have StdOutStream initialized OK,
       even when IsConsole = false (because "castle-engine run"
@@ -298,7 +304,7 @@ begin
     but we cannot rely on it. It's better to always write to file in case of IsConsole=false.
   }
   {$ifdef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
-  if IsLibrary or (not IsConsole) then
+  if (not EnableStandardOutput) or (not IsConsole) then
   begin
     if not InitializeLogFile(ApplicationConfigPath + ApplicationName + '.log') then
       Exit;
@@ -331,7 +337,7 @@ begin
     This way following WritelnLog will not again cause the same exception. }
   FLog := true;
 
-  if InsideEditor and (not IsLibrary) and (StdOutStream = nil) then
+  if InsideEditor and EnableStandardOutput and (StdOutStream = nil) then
     WritelnWarning('Cannot send logs to the Castle Game Engine Editor through pipes.');
 end;
 

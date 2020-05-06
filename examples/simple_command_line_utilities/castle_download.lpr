@@ -24,14 +24,19 @@
     castle_download http://downloads.sourceforge.net/castle-engine/view3dscene-3.12.0-linux-i386.tar.gz > output.tar.gz
 }
 
-uses SysUtils, Classes, CastleDownload, CastleParameters, CastleClassUtils,
+uses SysUtils, Classes,
+  {$ifndef VER3_0} OpenSSLSockets, {$endif} // support HTTPS
+  CastleDownload, CastleParameters, CastleClassUtils,
   CastleLog, CastleProgress, CastleProgressConsole;
 var
   Stream: TStream;
 begin
   EnableNetwork := true;
+  LogEnableStandardOutput := false; // do not put log in stdout, it would be mixed with downloaded output
   InitializeLog;
+
   Progress.UserInterface := ProgressConsoleInterface;
+
   Parameters.CheckHigh(1);
   Stream := Download(Parameters[1]);
   try
