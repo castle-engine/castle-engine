@@ -1,0 +1,5 @@
+<!-- This will be inserted inside the larger xxx-Info.plist file
+     by the Castle Game Engine build tool. -->
+
+<key>NSMotionUsageDescription</key>
+<string>${IOS.ACTIVITY_RECOGNITION.DESCRIPTION}</string>
