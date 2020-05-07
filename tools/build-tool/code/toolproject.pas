@@ -369,6 +369,8 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
+    { iOS requires version display to be <> '' }
+    DefautVersionDisplayValue = '0.1';
     DefaultAndroidCompileSdkVersion = 28;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
@@ -466,6 +468,7 @@ constructor TCastleProject.Create(const APath: string);
       FFullscreenImmersive := true; // default value if not specified in manifest
       FVersion := TProjectVersion.Create(OwnerComponent);
       FVersion.Code := DefautVersionCode;
+      FVersion.DisplayValue := DefautVersionDisplayValue;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
@@ -566,6 +569,7 @@ constructor TCastleProject.Create(const APath: string);
         begin
           FVersion := TProjectVersion.Create(OwnerComponent);
           FVersion.Code := DefautVersionCode;
+          FVersion.DisplayValue := DefautVersionDisplayValue;
         end;
 
         Element := Doc.DocumentElement.ChildElement('dependencies', false);
