@@ -77,7 +77,7 @@
 
     [self messageSend:@[
         @"activity-recognition-change",
-        possibleActivitiesNames,
+        possibleActivitiesStr,
         confidenceName
     ]];
 }
