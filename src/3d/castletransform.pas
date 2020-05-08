@@ -2021,24 +2021,66 @@ uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 
 { TransformMatricesMult ------------------------------------------------------ }
 
+{ Workaround FPC bug on Darwin for AArch64 (not on other platforms),
+  causes "Fatal: Internal error 2014121702".
+  Occurs with 3.0.4 and with 3.3.1 (r44333 from 2020/03/22). }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
+  {$define COMPILER_BUGGY_PARAMETERS}
+{$endif}
+
 procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const Center: TVector3;
   const Rotation: TVector4;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
+
+{$ifdef COMPILER_BUGGY_PARAMETERS}
+  type
+    TTransformData = record
+      Transform, InverseTransform: TMatrix4;
+      Center: TVector3;
+      Rotation: TVector4;
+      Scale: TVector3;
+      ScaleOrientation: TVector4;
+      Translation: TVector3;
+    end;
+
+  procedure MultiplyWorkaround(var T: TTransformation; const TransformData: TTransformData);
+  begin
+    T.Multiply(
+      TransformData.Center,
+      TransformData.Rotation,
+      TransformData.Scale,
+      TransformData.ScaleOrientation,
+      TransformData.Translation);
+  end;
+
+var
+  TransformData: TTransformData;
+{$endif COMPILER_BUGGY_PARAMETERS}
+
 var
   T: TTransformation;
 begin
   T.Transform := Transform;
   T.InverseTransform := InverseTransform;
   // T.Scale := 1; // doesn't matter
+{$ifdef COMPILER_BUGGY_PARAMETERS}
+  TransformData.Center := Center;
+  TransformData.Rotation := Rotation;
+  TransformData.Scale := Scale;
+  TransformData.ScaleOrientation := ScaleOrientation;
+  TransformData.Translation := Translation;
+  MultiplyWorkaround(T, TransformData);
+{$else}
   T.Multiply(
     Center,
     Rotation,
     Scale,
     ScaleOrientation,
     Translation);
+{$endif}
   Transform := T.Transform;
   InverseTransform := T.InverseTransform;
 end;
@@ -2857,6 +2899,38 @@ begin
 end;
 
 procedure TCastleTransform.InternalTransformationMult(var T: TTransformation);
+
+{$ifdef COMPILER_BUGGY_PARAMETERS}
+  type
+    TTransformData = record
+      Transform, InverseTransform: TMatrix4;
+      Center: TVector3;
+      Rotation: TVector4;
+      Scale: TVector3;
+      ScaleOrientation: TVector4;
+      Translation: TVector3;
+    end;
+
+  procedure MultiplyWorkaround(var T: TTransformation; const TransformData: TTransformData);
+  begin
+    T.Multiply(
+      TransformData.Center,
+      TransformData.Rotation,
+      TransformData.Scale,
+      TransformData.ScaleOrientation,
+      TransformData.Translation);
+  end;
+
+var
+  TransformData: TTransformData;
+begin
+  TransformData.Center := FCenter;
+  TransformData.Rotation := FRotation;
+  TransformData.Scale := FScale;
+  TransformData.ScaleOrientation := FScaleOrientation;
+  TransformData.Translation := FTranslation;
+  MultiplyWorkaround(T, TransformData);
+{$else}
 begin
   T.Multiply(
     FCenter,
@@ -2864,6 +2938,7 @@ begin
     FScale,
     FScaleOrientation,
     FTranslation);
+{$endif}
 end;
 
 procedure TCastleTransform.InternalTransformation(out T: TTransformation);
