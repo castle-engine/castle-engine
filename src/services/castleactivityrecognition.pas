@@ -266,6 +266,7 @@ begin
   Result := false;
 
   { Just a quick auto-test of MostUsefulActivity }
+  (*
   Assert(MostUsefulActivity([uaUnknown]) = uaUnknown);
   Assert(MostUsefulActivity([]) = uaUnknown);
   Assert(MostUsefulActivity([uaUnknown, uaRunning]) = uaRunning);
@@ -273,6 +274,7 @@ begin
   Assert(MostUsefulActivity([uaRunning]) = uaRunning);
   Assert(MostUsefulActivity([uaWalking]) = uaWalking);
   Assert(MostUsefulActivity([uaUnknown, uaWalking, uaRunning]) = uaUnknown);
+  *)
 
   if (Received.Count = 3) and
      (Received[0] = 'activity-recognition-change') then
