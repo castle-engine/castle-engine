@@ -26,6 +26,7 @@
 */
 
 #import "GameCenterService.h"
+#import "../CgeUtils.h"
 
 @implementation GameCenterService
 

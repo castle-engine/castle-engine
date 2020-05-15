@@ -18,6 +18,7 @@
 */
 
 #import "ActivityRecognitionService.h"
+#import "../CgeUtils.h"
 
 @implementation ActivityRecognitionService
 

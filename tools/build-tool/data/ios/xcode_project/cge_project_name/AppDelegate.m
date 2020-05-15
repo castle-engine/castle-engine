@@ -18,6 +18,7 @@
 #import "OpenGLController.h"
 #import "ServiceAbstract.h"
 #import "MiscellaneousService.h"
+#import "CgeUtils.h"
 
 // import services
 /* IOS-SERVICES-IMPORT */

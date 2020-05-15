@@ -16,6 +16,7 @@
 
 #import "OpenGLController.h"
 #include "castleiosappglue.h"
+#import "CgeUtils.h"
 
 #define MAX_TOUCHES 12
 
