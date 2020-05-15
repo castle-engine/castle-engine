@@ -31,8 +31,7 @@
 
     if (@available(iOS 11.0, *)) {
         if ([CMMotionActivityManager authorizationStatus] != CMAuthorizationStatusAuthorized) {
-            NSLog(@"Not authorized to reaad motion activity.");
-            return;
+            NSLog(@"Not authorized to read motion activity. Trying to read anyway (will ask for permission)...");
         }
     }
 
