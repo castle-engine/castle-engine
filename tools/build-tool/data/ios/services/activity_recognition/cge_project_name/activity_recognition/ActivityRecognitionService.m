@@ -65,6 +65,12 @@
         [possibleActivitiesNames addObject:@"unknown"];
     }
 
+    if ([possibleActivitiesNames count] == 0) {
+        /* iOS often updates us when no activity is detected, and it is rather useless,
+           it practically means that previously detected activity was OK. */
+        return;
+    }
+
     NSString* possibleActivitiesStr = [possibleActivitiesNames componentsJoinedByString:@"\2"];
 
     NSString* confidenceName;
