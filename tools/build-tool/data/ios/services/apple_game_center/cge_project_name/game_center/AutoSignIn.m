@@ -15,6 +15,7 @@
 */
 
 #import "AutoSignIn.h"
+#import "../CgeUtils.h"
 
 @implementation AutoSignIn
 

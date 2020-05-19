@@ -24,6 +24,7 @@
 */
 
 #import "Achievements.h"
+#import "../CgeUtils.h"
 
 @implementation Achievements
 

@@ -204,6 +204,9 @@ var
   Values: TCastleStringList;
   S: String;
 begin
+  if Value = '' then // otherwise SplitString('', ...) would return one value, equal ''
+    Exit([]);
+
   Values := SplitString(Value, PossibleActivitiesDelimiter);
   Result := [];
   for S in Values do
