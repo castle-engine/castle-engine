@@ -264,6 +264,7 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleresources.pas');
+    P.Targets.AddUnit('castletransformextra.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castlecompositeimage.pas');
@@ -374,6 +375,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castleglcubemaps.pas');
     P.Targets.AddUnit('castleinternalbackground.pas');
+    P.Targets.AddUnit('castleinternalbatchshapes.pas');
     P.Targets.AddUnit('castlerenderer.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');
