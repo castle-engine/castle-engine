@@ -71,12 +71,22 @@ build-using-fpmake:
 	fpc fpmake.pp
 	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
 # Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
-	if [ '(' -n "$(FPCDIR)" ')' -a \
-	     '(' $(shell fpc -iV) '!=' '2.6.4' ')' -a \
-	     '(' $(shell fpc -iV) '!=' '2.6.2' ')' ]; then \
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
 	   ./fpmake --globalunitdir="$(FPCDIR)"; \
 	else \
 	   ./fpmake; \
+	fi
+
+# Full test that fpmake compilation process works
+# (see https://github.com/castle-engine/castle-engine/wiki/FpMake )
+.PHONY: test-fpmake
+test-fpmake: build-using-fpmake
+# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
+	./fpmake clean --verbose
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
+	else \
+	   ./fpmake --nofpccfg --verbose; \
 	fi
 
 # install / uninstall --------------------------------------------------------

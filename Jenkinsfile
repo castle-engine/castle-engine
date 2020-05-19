@@ -41,7 +41,7 @@ pipeline {
     }
     stage('Build Using FpMake (Default FPC)') {
       steps {
-	sh 'make clean build-using-fpmake'
+	sh 'make clean test-fpmake'
       }
     }
 
@@ -72,7 +72,7 @@ pipeline {
     }
     stage('Build Using FpMake (FPC 3.0.2)') {
       steps {
-	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean build-using-fpmake'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean test-fpmake'
       }
     }
 
@@ -103,7 +103,7 @@ pipeline {
     }
     stage('Build Using FpMake (FPC trunk)') {
       steps {
-	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
       }
     }
 

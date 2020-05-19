@@ -58,6 +58,7 @@ begin
     if Defaults.OS in AllWindowsOSes then
     begin
       P.Dependencies.Add('winunits-base');
+      P.Dependencies.Add('winunits-jedi'); // our CastleWindow uses JwaWinUser
       P.Dependencies.Add('fcl-registry');
     end;
     {$ifndef VER2}
