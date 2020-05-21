@@ -1,4 +1,16 @@
-# Most useful targets:
+# Makefile to build and perform other useful operations on the Castle Game Engine.
+#
+# Requires using GNU make.
+# - On Linux and most other Unixes, just call "make".
+# - On FreeBSD call "gmake".
+# - On Windows, install Cygwin ( http://www.cygwin.com/ ) with "make" package.
+#   Make sure that when you type "make" it executes Cygwin's "make":
+#   Cygwin's directory (like c:/cygwin64/bin/) should be on $PATH environment variable
+#   *before* other directories with "make" implementations, like
+#   - FPC directory that includes "make" from MinGW (it is GNU make but cannot execute bash scripts)
+#   - Delphi directory that includes Embarcadero "make" (it's not GNU make and will fail).
+#
+# Most useful targets of this Makefile:
 #
 #   all (default target) --
 #     Compile all units, uses fpmake.
