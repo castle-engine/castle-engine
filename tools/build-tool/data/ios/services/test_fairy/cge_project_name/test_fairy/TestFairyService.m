@@ -33,12 +33,26 @@ void TestFairyInitialize()
     }
 }
 
+void CGE_TestFairyLog_NSString(NSString* message)
+{
+    // TestFairy cuts off too long messages, to send them in parts
+    const int MAX_SEND_LENGTH = 2048;
+    int done = 0;
+    int length = [message length];
+    while (done < length) {
+        NSRange range = NSMakeRange(done, MIN(MAX_SEND_LENGTH, length - done));
+        NSString* messagePart = [message substringWithRange: range];
+        done += range.length;
+        [TestFairy log: messagePart];
+    }
+}
+
 /* We are using special callback for this, not our messaging system,
    to receive messages even before application finished initializing. */
 void CGE_TestFairyLog(const char *message)
 {
     TestFairyInitialize();
-    [TestFairy log: [NSString stringWithUTF8String: message]];
+    CGE_TestFairyLog_NSString([NSString stringWithUTF8String: message]);
 }
 
 @implementation TestFairyService
