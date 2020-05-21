@@ -31,12 +31,12 @@ pipeline {
     }
     stage('Build And Run Auto-Tests') {
       steps {
-        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+        sh 'export PATH="${PATH};${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake') {
       steps {
-        sh 'make clean build-using-fpmake'
+        sh 'make clean test-fpmake'
       }
     }
   }

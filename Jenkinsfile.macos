@@ -26,9 +26,17 @@ pipeline {
     }
     stage('Build Examples') {
       steps {
-        //sh 'make examples'
-        // Faster check for now:
-        sh 'cd examples/fps_game/ && castle-engine compile'
+        sh 'make clean examples'
+      }
+    }
+    stage('Build And Run Auto-Tests') {
+      steps {
+        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake') {
+      steps {
+        sh 'make clean test-fpmake'
       }
     }
   }
