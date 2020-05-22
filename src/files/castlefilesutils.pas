@@ -618,6 +618,18 @@ function ApplicationData(const Path: string): string;
       Result := BundlePath + 'Contents/Resources/data/';
       {$endif}
       if DirectoryExists(Result) then Exit;
+
+      {$ifndef IOS}
+      Result := BundlePath + '../data/';
+      if DirectoryExists(Result) then
+      begin
+        WritelnLog('"Contents/Resources/data/" subdirectory not found inside the macOS application bundle: ' + BundlePath + NL +
+          '  Using instead "data/" directory that is sibling to the application bundle.' + NL +
+          '  This makes sense only for debug.' + NL +
+          '  The released application version should instead include the data inside the bundle.');
+        Exit;
+      end;
+      {$endif}
     end;
     {$endif DARWIN}
 
