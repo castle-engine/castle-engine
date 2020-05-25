@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,6 +181,11 @@ begin
     CleanDirectory(CastleEnginePath + 'src' + PathDelim);
     CleanDirectory(CastleEnginePath + 'packages' + PathDelim + 'lib' + PathDelim);
   end;
+end;
+
+function FilterFpcOutput(var Line: String; const Data: Pointer): Boolean;
+begin
+  Result := true;
 end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -619,14 +624,14 @@ begin
     Writeln('FPC executing...');
     FpcExe := FindExeFpcCompiler;
 
-    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then
     begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
-        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
@@ -649,7 +654,7 @@ var
     LazbuildExitStatus: Integer;
   begin
     RunCommandIndirPassthrough(WorkingDirectory,
-      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
     if LazbuildExitStatus <> 0 then
     begin
       { Old lazbuild can fail with exception like this:
@@ -667,7 +672,7 @@ var
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
         RunCommandIndirPassthrough(WorkingDirectory,
-          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
         if LazbuildExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');

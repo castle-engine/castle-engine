@@ -42,10 +42,22 @@ function FindExeCastleTool(const ExeName: String): String;
   and always exists. }
 function CastleEnginePath: String;
 
-{ Run command in given directory with given arguments,
-  gathering output and status to string.
-  Also gathers error output to the same string.
-  Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output.
+type
+  { Line filtering used by MyRunCommandIndir and friends.
+    You can process the variable Line in any way.
+    Return whether to pass it (return @false to completely discard it,
+    any edits to Line don't matter then). }
+  TLineFiltering = function (var Line: String; const Data: Pointer): Boolean;
+
+{ Run command in the given directory with the given arguments,
+  gathering the output (including error output, i.e. stdout and stderr)
+  to a string.
+
+  Allows for filtering the gathered output too.
+
+  Like Process.RunCommandIndir in FPC >= 2.6.4,
+  but also captures error output,
+  and enables filtering.
 
   @param(ExeName Executable name, should be an absolute filename
     e.g. found by FindExe. This will avoid FPC errors (the default FPC
@@ -54,11 +66,18 @@ function CastleEnginePath: String;
 
   @param(OutputString Standard output (stdout) and standard error output
     (stderr) of the command.)
+
+  @param(LineFiltering Allows to filter the gathered lines, see TLineFiltering docs.)
+
+  @param(LineFilteringData Passed to the LineFiltering callback.
+    Ignored if LineFiltering is nil.)
 }
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  out OutputString: string; out ExitStatus: integer);
+  out OutputString: string; out ExitStatus: integer;
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
@@ -76,9 +95,11 @@ procedure MyRunCommandIndir(
 procedure RunCommandIndirPassthrough(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  var OutputString:string; var ExitStatus:integer;
+  var OutputString: String; var ExitStatus: Integer;
   const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
+  const OverrideEnvironmentValue: string = '';
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil);
 
 { Run command in given (or current) directory with given arguments,
   letting output (stdout and stderr) to go to our stdout.
@@ -225,89 +246,187 @@ begin
   end;
 end;
 
+{ Output capturing, with and without filtering ------------------------------- }
+
+type
+  { Read from Source stream (with the option to read without blocking) all contents.
+
+    Collected contents can be obtained by calling @link(Collected)
+    (it can be called at any point,
+    but it's best to not call it every time after ReadAvailable
+    as it would make internal buffer resized often).
+
+    This doesn't process the contents in any way.
+    When it reads newline characters (#10, #13) they are treated
+    just like any other character. }
+  TCaptureOutput = class
+  strict private
+    const
+     { Original code for this adjusted from fpc/trunk/packages/fcl-process/src/process.pp ,
+       although reworked many times.
+       MaxReadBytes is not too small to avoid fragmentation when reading large files. }
+      MaxReadBytes = 65536;
+    var
+      OutputUsefulCount: Integer;
+      OutputString: String;
+  public
+    Source: TStream;
+
+    { Also write everything you collect to out output (stdout).
+      Note that it's not a perfect "passthrough": we collect both stdout and stderr
+      from the child process, and output it always on our stdout.
+      So we redirect child's stdout to our stderr. }
+    Passthrough: Boolean;
+
+    { Read from Source stream as much bytes as possible (without blocking waiting for more). }
+    procedure ReadAvailable; virtual;
+
+    { Read from Source stream all remaining bytes. }
+    procedure ReadEverything; virtual;
+
+    { Return read contents so far. }
+    function Collected: String; virtual;
+
+    { Create new instance of TCaptureOutput or a descendant,
+      like TCaptureOutputFilter, suitable for given parameters. }
+    class function Construct(const ASource: TStream;
+      const ALineFiltering: TLineFiltering;
+      const ALineFilteringData: Pointer): TCaptureOutput; static;
+  end;
+
+  TCaptureOutputFilter = class(TCaptureOutput)
+  public
+    LineFiltering: TLineFiltering; //< Never @nil
+    LineFilteringData: Pointer;
+  end;
+
+procedure TCaptureOutput.ReadAvailable;
+var
+  NumBytes: Integer;
+begin
+  SetLength(OutputString, OutputUsefulCount + MaxReadBytes);
+  NumBytes := Source.Read(OutputString[1 + OutputUsefulCount], MaxReadBytes);
+  if Passthrough then
+    Write(Copy(OutputString, 1 + OutputUsefulCount, NumBytes));
+  if NumBytes > 0 then
+    Inc(OutputUsefulCount, NumBytes)
+  else
+    Sleep(100); // when no data, wait a bit instead of wasting CPU trying to query stream
+end;
+
+procedure TCaptureOutput.ReadEverything;
+var
+  NumBytes: Integer;
+begin
+  repeat
+    SetLength(OutputString, OutputUsefulCount + MaxReadBytes);
+    NumBytes := Source.Read(OutputString[1 + OutputUsefulCount], MaxReadBytes);
+    if Passthrough then
+      Write(Copy(OutputString, 1 + OutputUsefulCount, NumBytes));
+    if NumBytes > 0 then
+      Inc(OutputUsefulCount, NumBytes);
+  until NumBytes <= 0;
+end;
+
+function TCaptureOutput.Collected: String;
+begin
+  SetLength(OutputString, OutputUsefulCount);
+  Result := OutputString;
+end;
+
+class function TCaptureOutput.Construct(const ASource: TStream;
+  const ALineFiltering: TLineFiltering;
+  const ALineFilteringData: Pointer): TCaptureOutput; static;
+begin
+  if Assigned(ALineFiltering) then
+  begin
+    Result := TCaptureOutputFilter.Create;
+    TCaptureOutputFilter(Result).LineFiltering := ALineFiltering;
+    TCaptureOutputFilter(Result).LineFilteringData := ALineFilteringData;
+  end else
+  begin
+    Result := TCaptureOutput.Create;
+  end;
+  Result.Source := ASource;
+end;
+
 procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
-  out OutputString: string; out ExitStatus: integer);
-{ Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
-Const
-  READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
+  out OutputString: string; out ExitStatus: integer;
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil);
 var
-  p : TProcess;
-  i : integer;
-  numbytes,bytesread : integer;
+  P: TProcess;
+  I: Integer;
+  Capture: TCaptureOutput;
 begin
   // default out values
   OutputString := '';
   ExitStatus := 0;
 
-  p:=TProcess.create(nil);
-  p.Executable:=exename;
-  if curdir<>'' then
-    p.CurrentDirectory:=curdir;
-  if high(Options)>=0 then
-   for i:=low(Options) to high(Options) do
-     p.Parameters.add(Options[i]);
-  WritelnVerbose('Calling ' + ExeName);
-  WritelnVerbose(P.Parameters.Text);
-
+  { Set to nil variables that will be later freed in the "finally" clause.
+    This makes code a bit simpler, no need for nesting multiple try..finally clauses. }
+  Capture := nil;
+  P := nil;
   try
-    try
-      p.Options := [poUsePipes, poStderrToOutPut];
-      bytesread := 0;
-      p.Execute;
-      while p.Running do
-      begin
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes) else
-          Sleep(100);
-      end;
-      repeat
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes);
-      until NumBytes <= 0;
-      setlength(OutputString,BytesRead);
-      ExitStatus:=p.ExitStatus;
-    except
-      on e : Exception do
-      begin
-        setlength(OutputString,BytesRead);
-        raise;
-      end;
-    end;
-  finally p.free end;
+    P := TProcess.Create(nil);
+    P.Executable := ExeName;
+    if CurDir <> '' then
+      P.CurrentDirectory := CurDir;
+    if High(Options) >= 0 then
+      for I := Low(Options) to High(Options) do
+        P.Parameters.Add(Options[I]);
+    WritelnVerbose('Calling ' + ExeName);
+    WritelnVerbose(P.Parameters.Text);
+
+    P.Options := [poUsePipes, poStderrToOutPut];
+    P.Execute;
+
+    Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);
+
+    // wait until P finishes, read OutputString
+    while P.Running do
+      Capture.ReadAvailable;
+    Capture.ReadEverything;
+    OutputString := Capture.Collected;
+
+    ExitStatus := P.ExitStatus;
+  finally
+    FreeAndNil(Capture);
+    FreeAndNil(P);
+  end;
 end;
 
 procedure RunCommandIndirPassthrough(const CurDir: string;
   const ExeName: string;
   const Options: array of string;
-  var OutputString:string; var ExitStatus:integer;
+  var OutputString: String; var ExitStatus: Integer;
   const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
-{ Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
-Const
-  READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
+  const OverrideEnvironmentValue: string = '';
+  const LineFiltering: TLineFiltering = nil;
+  const LineFilteringData: Pointer = nil);
 var
-  p : TProcess;
-  i : integer;
-  numbytes,bytesread : integer;
+  P: TProcess;
+  I: Integer;
   NewEnvironment: TStringList;
+  Capture: TCaptureOutput;
 begin
-  p:=TProcess.create(nil);
-  p.Executable:=exename;
-  if curdir<>'' then
-    p.CurrentDirectory:=curdir;
-  if high(Options)>=0 then
-   for i:=low(Options) to high(Options) do
-     p.Parameters.add(Options[i]);
-  WritelnVerbose('Calling ' + ExeName);
-  WritelnVerbose(P.Parameters.Text);
-
+  { Set to nil variables that will be later freed in the "finally" clause.
+    This makes code a bit simpler, no need for nesting multiple try..finally clauses. }
+  Capture := nil;
+  P := nil;
   NewEnvironment := nil;
   try
+    P := TProcess.Create(nil);
+    P.Executable := ExeName;
+    if CurDir <> '' then
+      P.CurrentDirectory := CurDir;
+    if High(Options) >= 0 then
+     for I := Low(Options) to High(Options) do
+       P.Parameters.Add(Options[I]);
+    WritelnVerbose('Calling ' + ExeName);
+    WritelnVerbose(P.Parameters.Text);
+
     if OverrideEnvironmentName <> '' then
     begin
       NewEnvironment := TStringList.Create;
@@ -318,37 +437,22 @@ begin
       // WritelnVerbose('Environment: ' + P.Environment.Text);
     end;
 
-    try
-      p.Options := [poUsePipes, poStderrToOutPut];
-      bytesread := 0;
-      p.Execute;
-      while p.Running do
-      begin
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes) else
-          Sleep(100);
-      end;
-      repeat
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes);
-      until NumBytes <= 0;
-      setlength(OutputString,BytesRead);
-      ExitStatus:=p.ExitStatus;
-    except
-      on e : Exception do
-      begin
-        setlength(OutputString,BytesRead);
-        raise;
-      end;
-    end;
+    P.Options := [poUsePipes, poStderrToOutPut];
+    P.Execute;
+
+    Capture := TCaptureOutput.Construct(P.Output, LineFiltering, LineFilteringData);
+    Capture.Passthrough := true;
+
+    // wait until P finishes, read OutputString
+    while P.Running do
+      Capture.ReadAvailable;
+    Capture.ReadEverything;
+    OutputString := Capture.Collected;
+
+    ExitStatus := P.ExitStatus;
   finally
-    FreeAndNil(p);
+    FreeAndNil(Capture);
+    FreeAndNil(P);
     FreeAndNil(NewEnvironment);
   end;
 end;
