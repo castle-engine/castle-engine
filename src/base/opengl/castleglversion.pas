@@ -91,6 +91,8 @@ type
     FBuggyGLSLFrontFacing: boolean;
     FBuggyGLSLReadVarying: boolean;
     FBuggyPureShaderPipeline: boolean;
+    FBuggyTextureSizeAbove2048: Boolean;
+    function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -207,6 +209,9 @@ type
     { Various problems when trying to use shaders to render everything.
       See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
     property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
+
+    { MaxTextureSize above 2048 shall not be trusted. }
+    property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
   end;
 
 var
@@ -649,6 +654,28 @@ begin
       (Release <= 13571) )
     {$else} false
     {$endif};
+
+  { On old iPhones, OpenGLES reports it can handle 4096 texture size,
+    but actually it can crash on them.
+    Testcase: Unholy on iOS with Wedding (ice texture).
+    Tested: it works OK on 'Apple A12 GPU' and 'Apple A13 GPU', and crashes on 'Apple A10 GPU'.
+    For safety, assume it crashes too on 'Apple A11 GPU' (not tested). }
+  FBuggyTextureSizeAbove2048 :=
+    {$ifdef IOS}
+    AppleRendererOlderThan(12)
+    {$else}
+    false
+    {$endif};
+end;
+
+function TGLVersion.AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to VersionNumber - 1 do
+    if Renderer = 'Apple A' + IntToStr(I) + ' GPU' then
+      Exit(true);
+  Result := false;
 end;
 
 const
