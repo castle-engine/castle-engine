@@ -2833,7 +2833,7 @@ begin
   FSoundGroups.Clear;
   FSounds.Clear;
   { add stNone sound }
-  FSounds.Add(TSoundInfo.Create);
+  FSounds.Add(TSoundInfoBuffer.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
   if RepositoryURL = '' then Exit;
