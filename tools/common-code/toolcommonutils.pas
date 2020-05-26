@@ -420,7 +420,7 @@ begin
       When this assumption will break, we'll just cause an additional newline,
       which is acceptable for now. }
 
-    if (NewlinePos + 1 < Length(PendingLine)) and
+    if (NewlinePos + 1 <= Length(PendingLine)) and
        { check we have #13 followed by #10 or #10 followed by #13.
          Be careful to *not* eat #10 followed by #10, as that would
          make us silently consume empty lines in files with Unix line ending. }
