@@ -184,8 +184,17 @@ begin
 end;
 
 function FilterFpcOutput(var Line: String; const Data: Pointer): Boolean;
+var
+  LineLower: String;
 begin
-  Result := true;
+  { Lowercase once and later use IsPrefix many times with IgnoreCase=false (faster). }
+  LineLower := LowerCase(Line);
+  Result := not (
+    IsPrefix('generics.collections.pas(', LineLower, false) or
+    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+  );
+  // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
+  // Line := '<begin>' + Line + '<end>';
 end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -425,19 +434,20 @@ begin
     // do not show
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crcBD4794B2" with abstract method "DoMoveNext"
-    // TODO: This is a pity, we also hide useful warnings this way.
-    FpcOptions.Add('-vm04046');
+    // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+    // FpcOptions.Add('-vm04046');
 
     if FpcVer.AtLeast(3, 1, 1) then
     begin
       // do not show Warning: Symbol "TArrayHelper$1" is experimental
       // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
-      // TODO: This is a pity, we also hide useful warnings this way.
-      FpcOptions.Add('-vm05063');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm05063');
 
       // do not show
       // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
-      FpcOptions.Add('-vm5071');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm5071');
     end;
 
     if FpcVer.AtLeast(3, 2, 0) then
@@ -450,7 +460,7 @@ begin
       // do not show
       // Note: Call to subroutine "$1" marked as inline is not inlined
       // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-      // (flood of notes after using Generics.Collections)
+      // (flood of notes after using Generics.Collections, but also from other units)
       FpcOptions.Add('-vm6058');
     end;
 

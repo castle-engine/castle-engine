@@ -246,19 +246,18 @@ begin
   end;
 end;
 
-{ Output capturing, with and without filtering ------------------------------- }
+{ Output capturing interface -------------------------------- }
 
 type
   { Read from Source stream (with the option to read without blocking) all contents.
 
     Collected contents can be obtained by calling @link(Collected)
-    (it can be called at any point,
-    but it's best to not call it every time after ReadAvailable
-    as it would make internal buffer resized often).
+    (it should be used only once all ReadAvailable and ReadEverything calls are done).
 
-    This doesn't process the contents in any way.
+    The TCaptureOutput class doesn't process the contents in any way.
     When it reads newline characters (#10, #13) they are treated
-    just like any other character. }
+    just like any other character.
+    Descendants like TCaptureOutputFilter may have different behaviour. }
   TCaptureOutput = class
   strict private
     const
@@ -269,6 +268,8 @@ type
     var
       OutputUsefulCount: Integer;
       OutputString: String;
+  protected
+    function ReadCore: Integer; virtual;
   public
     Source: TStream;
 
@@ -279,12 +280,12 @@ type
     Passthrough: Boolean;
 
     { Read from Source stream as much bytes as possible (without blocking waiting for more). }
-    procedure ReadAvailable; virtual;
+    procedure ReadAvailable;
 
     { Read from Source stream all remaining bytes. }
-    procedure ReadEverything; virtual;
+    procedure ReadEverything;
 
-    { Return read contents so far. }
+    { Return read contents so far. Call this only after all the reading is done. }
     function Collected: String; virtual;
 
     { Create new instance of TCaptureOutput or a descendant,
@@ -294,24 +295,50 @@ type
       const ALineFilteringData: Pointer): TCaptureOutput; static;
   end;
 
+  { API just like ancestor, but filters the read lines through LineFiltering callback.
+    Output line endings are also converted to native (LineEnding) along the way. }
   TCaptureOutputFilter = class(TCaptureOutput)
+  strict private
+    { Note that TCaptureOutputFilter has entirely different implementation than
+      ancestor. While it also defines private MaxReadBytes and OutputString,
+      they are used in very different way. }
+    const
+      MaxReadBytes = 65536;
+    var
+      OutputString: String;
+      Buffer: String;
+      PendingLine: String;
+  protected
+    function ReadCore: Integer; override;
   public
     LineFiltering: TLineFiltering; //< Never @nil
     LineFilteringData: Pointer;
+    constructor Create;
+    function Collected: String; override;
   end;
+
+{ Output capturing: TCaptureOutput -------------------------------- }
+
+function TCaptureOutput.ReadCore: Integer;
+begin
+  SetLength(OutputString, OutputUsefulCount + MaxReadBytes);
+  Result := Source.Read(OutputString[1 + OutputUsefulCount], MaxReadBytes);
+  if Passthrough then
+    Write(Copy(OutputString, 1 + OutputUsefulCount, Result));
+  if Result > 0 then
+    Inc(OutputUsefulCount, Result);
+end;
 
 procedure TCaptureOutput.ReadAvailable;
 var
   NumBytes: Integer;
 begin
-  SetLength(OutputString, OutputUsefulCount + MaxReadBytes);
-  NumBytes := Source.Read(OutputString[1 + OutputUsefulCount], MaxReadBytes);
-  if Passthrough then
-    Write(Copy(OutputString, 1 + OutputUsefulCount, NumBytes));
-  if NumBytes > 0 then
-    Inc(OutputUsefulCount, NumBytes)
-  else
+  NumBytes := ReadCore;
+  if NumBytes = 0 then
+  begin
     Sleep(100); // when no data, wait a bit instead of wasting CPU trying to query stream
+    Exit;
+  end;
 end;
 
 procedure TCaptureOutput.ReadEverything;
@@ -319,12 +346,7 @@ var
   NumBytes: Integer;
 begin
   repeat
-    SetLength(OutputString, OutputUsefulCount + MaxReadBytes);
-    NumBytes := Source.Read(OutputString[1 + OutputUsefulCount], MaxReadBytes);
-    if Passthrough then
-      Write(Copy(OutputString, 1 + OutputUsefulCount, NumBytes));
-    if NumBytes > 0 then
-      Inc(OutputUsefulCount, NumBytes);
+    NumBytes := ReadCore;
   until NumBytes <= 0;
 end;
 
@@ -349,6 +371,77 @@ begin
   end;
   Result.Source := ASource;
 end;
+
+{ Output capturing: TCaptureOutputFilter ------------------------------------- }
+
+constructor TCaptureOutputFilter.Create;
+begin
+  inherited;
+  SetLength(Buffer, MaxReadBytes);
+end;
+
+function TCaptureOutputFilter.ReadCore: Integer;
+var
+  NewlinePos, PreviousPendingLineLength, NextLineStart: Integer;
+  Line: String;
+  LineAllow: Boolean;
+begin
+  Result := Source.Read(Buffer[1], MaxReadBytes);
+
+  if Result = 0 then
+    Exit;
+
+  PreviousPendingLineLength := Length(PendingLine);
+  PendingLine := PendingLine + Copy(Buffer, 1, Result);
+
+  // in a loop, remove as much lines from PendingLine as possible
+  repeat
+    // Using here CharsPosEx instead of CharsPos
+    // is just optimization to not search entire PendingLine every time.
+    NewlinePos := CharsPosEx([#10, #13], PendingLine, PreviousPendingLineLength + 1);
+
+    if NewlinePos = 0 then Break;
+
+    // we have a line -- filter it and possibly add to OutputString
+    Line := Copy(PendingLine, 1, NewlinePos - 1);
+    LineAllow := LineFiltering(Line, LineFilteringData);
+    if LineAllow then
+    begin
+      OutputString := OutputString + Line + LineEnding;
+      if Passthrough then
+        Writeln(Line);
+    end;
+
+    { If this is followed by 2nd newline character, we want to consume it.
+
+      TODO: We here assume that both newline characters will be returned by Source.Read,
+      which may not be true (when newline is 2-character, like on #13#10,
+      it is possible that line break will be split across MaxReadBytes borders).
+      When this assumption will break, we'll just cause an additional newline,
+      which is acceptable for now. }
+
+    if (NewlinePos + 1 < Length(PendingLine)) and
+       { check we have #13 followed by #10 or #10 followed by #13.
+         Be careful to *not* eat #10 followed by #10, as that would
+         make us silently consume empty lines in files with Unix line ending. }
+       ( ( (PendingLine[NewlinePos] = #10) and (PendingLine[NewlinePos + 1] = #13) ) or
+         ( (PendingLine[NewlinePos] = #13) and (PendingLine[NewlinePos + 1] = #10) ) ) then
+      NextLineStart := NewlinePos + 2
+    else
+      NextLineStart := NewlinePos + 1;
+
+    PendingLine := SEnding(PendingLine, NextLineStart);
+    PreviousPendingLineLength := 0; // reset for next CharsPosEx search
+  until false;
+end;
+
+function TCaptureOutputFilter.Collected: String;
+begin
+  Result := OutputString + PendingLine;
+  PendingLine := '';
+end;
+
+{ Running processes ---------------------------------------------------------- }
 
 procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
