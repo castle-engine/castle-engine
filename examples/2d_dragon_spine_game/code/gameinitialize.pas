@@ -145,7 +145,7 @@ begin
   // AddItem(4300, 30, TreeZ, 0.7, 'castle-data:/trees/tree1.json');
   // AddItem(4600, 10, TreeZ, 0.7, 'castle-data:/trees/tree2.json');
   { z = 50 to place between background tower and background trees }
-  AddItem(0,    0,  50, 1, 'castle-data:/background/smoktlo2.json');
+  AddItem(0,    0,  50, 1, 'castle-data:/background/clouds.json');
   AddItem(0,    0, 100, 1, 'castle-data:/background_front.x3dv', false);
 
   Viewport.Items.SortBackToFront2D;
