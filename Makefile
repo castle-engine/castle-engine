@@ -127,12 +127,12 @@ DATADIR=$(DATAROOTDIR)
 .PHONY: install
 install:
 	install -d $(BINDIR)
-	install tools/texture-font-to-pascal/texture-font-to-pascal $(BINDIR)
-	install tools/image-to-pascal/image-to-pascal $(BINDIR)
-	install tools/castle-curves/castle-curves $(BINDIR)
-	install tools/build-tool/castle-engine $(BINDIR)
-	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d $(BINDIR)
-	install tools/to-data-uri/to-data-uri $(BINDIR)
+	install tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	install tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	install tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
+	install tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
+	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d$(EXE_EXTENSION) $(BINDIR)
+	install tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	install -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
@@ -140,11 +140,12 @@ install:
 
 .PHONY: uninstall
 uninstall:
-	rm -f  $(BINDIR)/texture-font-to-pascal \
-	       $(BINDIR)/image-to-pascal \
-	       $(BINDIR)/castle-curves \
-	       $(BINDIR)/castle-engine \
-	       $(BINDIR)/sprite-sheet-to-x3d
+	rm -f  $(BINDIR)/texture-font-to-pascal$(EXE_EXTENSION) \
+	       $(BINDIR)/image-to-pascal$(EXE_EXTENSION) \
+	       $(BINDIR)/castle-curves$(EXE_EXTENSION) \
+	       $(BINDIR)/castle-engine$(EXE_EXTENSION) \
+	       $(BINDIR)/sprite-sheet-to-x3d$(EXE_EXTENSION) \
+	       $(BINDIR)/to-data-uri$(EXE_EXTENSION)
 	rm -Rf $(DATADIR)/castle-engine
 
 # Strip libraries that cannot be distributed in Debian package of CGE.

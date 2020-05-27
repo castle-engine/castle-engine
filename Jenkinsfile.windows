@@ -16,7 +16,7 @@ pipeline {
        According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
-    PATH = "${PATH};${WORKSPACE}/tools/build-tool/" // Note: on Windows, PATH is separated by ;
+    PATH = "${PATH};${CASTLE_ENGINE_PATH}/installed/bin/" // Note: on Windows, PATH is separated by ;
   }
   stages {
     stage('Info') {
@@ -29,7 +29,9 @@ pipeline {
     }
     stage('Build Tools') {
       steps {
-        sh 'make clean tools'
+        sh 'rm -Rf installed/'
+        sh 'mkdir -p installed/'
+        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/installed/'
       }
     }
     stage('Build Examples') {
@@ -39,7 +41,7 @@ pipeline {
     }
     stage('Build And Run Auto-Tests') {
       steps {
-        sh 'export PATH="${PATH};${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+        sh 'make tests'
       }
     }
     stage('Build Using FpMake') {
