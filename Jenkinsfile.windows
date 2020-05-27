@@ -19,6 +19,14 @@ pipeline {
     PATH = "${PATH};${WORKSPACE}/tools/build-tool/" // Note: on Windows, PATH is separated by ;
   }
   stages {
+    stage('Info') {
+      steps {
+        // check versions (and availability) of our requirements early
+        sh 'fpc -iV'
+        sh 'lazbuild --version'
+        sh 'make --version'
+      }
+    }
     stage('Build Tools') {
       steps {
         sh 'make clean tools'
