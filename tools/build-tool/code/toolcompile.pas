@@ -726,6 +726,34 @@ begin
     else
       LazbuildOptions.Add('--build-mode=Release');
     }
+
+    { For historic reasons, Lazarus defaults to Carbon on macOS,
+      even on 64-bit macOS where you cannot link with Carbon.
+      And since macOS Catalina (10.15) all applications *must* be 64-bit
+      (32-bit is no longer supported) so this is important.
+      So we change it to cocoa.
+
+      TODO: This likely prevents the project from using it's own,
+      custom widgetset in case of macOS.
+
+      But there doesn't seem any better way of fixing this per-project.
+      I cannot use "Custom Options",
+
+        if (TargetOS='darwin') and (TargetCPU='x86_64') then
+          LCLWidgetType := 'cocoa';
+
+      -- it looks like LCLWidgetType is ignored in "Custom Options".
+
+      I cannot use "Additions and Overrides", as it doesn't seem to allow
+      to choose widgetset per-platform (like per-OS, or per-OS-and-CPU).
+      It would only allow to set Cocoa always.
+      Or in a specific build mode, but then I would need to
+      - maintain this build mode in my examples,
+      - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
+      - and require it in all user projects (this is not acceptable).
+    }
+    if (OS = darwin) and (CPU = X86_64) then
+      LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 
     RunLazbuild;
