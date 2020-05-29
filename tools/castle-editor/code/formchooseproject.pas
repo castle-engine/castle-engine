@@ -149,10 +149,10 @@ begin
         TemplateName := '3d_model_viewer'
       else
       if NewProjectForm.ButtonTemplate3dFps.Down then
-        TemplateName := '3d_fps'
+        TemplateName := '3d_fps_game'
       else
       if NewProjectForm.ButtonTemplate2d.Down then
-        TemplateName := '2d'
+        TemplateName := '2d_game'
       else
         raise EInternalError.Create('Unknown project template selected');
 

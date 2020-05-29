@@ -1,0 +1,174 @@
+{
+  "FullSize" : true,
+  "Name" : "RootGroup",
+  "$Children" : [
+    {
+      "Camera" : {
+        "InitialDirectionPersistent" : {
+          "X" : 7.8108817338943481E-001,
+          "Z" : 6.2442082166671753E-001,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialPositionPersistent" : {
+          "X" : -2.3280322551727295E+000,
+          "Y" : 1.2986346483230591E+000,
+          "Z" : -4.7566490173339844E+000,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "InitialUpPersistent" : {
+          "X" : -5.6091272426783689E-007,
+          "Z" : 6.3164281982608372E-007,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "Name" : "Camera",
+        "Orthographic" : {
+          "Name" : "Orthographic",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleOrthographic"
+        },
+        "Perspective" : {
+          "Name" : "Perspective",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastlePerspective"
+        },
+        "$Children" : [
+        ],
+        "$ClassName" : "TCastleCamera"
+      },
+      "FullSize" : true,
+      "Items" : {
+        "Name" : "Items",
+        "PhysicsProperties" : {
+          "Name" : "PhysicsProperties",
+          "$Children" : [
+          ],
+          "$ClassName" : "TPhysicsProperties"
+        },
+        "UseHeadlight" : "hlOn",
+        "$Children" : [
+          {
+            "Name" : "SceneLevel",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/level/level-dungeon.x3d",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "SceneSoldier1",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/character/soldier1.castle-anim-frames",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "SceneSoldier2",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "X" : 2.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/character/soldier1.castle-anim-frames",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "SceneSoldier3",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "X" : 3.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/character/soldier1.castle-anim-frames",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "SceneSoldier4",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "TranslationPersistent" : {
+              "X" : 4.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/character/soldier1.castle-anim-frames",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          }
+        ],
+        "$ClassName" : "TCastleRootTransform"
+      },
+      "Name" : "MainViewport",
+      "Navigation" : "WalkNavigation",
+      "$Children" : [
+        {
+          "FullSize" : true,
+          "Gravity" : false,
+          "Name" : "WalkNavigation",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleWalkNavigation"
+        }
+      ],
+      "$ClassName" : "TCastleViewport"
+    },
+    {
+      "ColorPersistent" : {
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : -2.0000000000000000E+001,
+      "HorizontalAnchorParent" : "hpRight",
+      "HorizontalAnchorSelf" : "hpRight",
+      "Name" : "LabelFps",
+      "Text" : "FPS: xxx\n",
+      "VerticalAnchorDelta" : -2.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    },
+    {
+      "ColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 2.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "LabelInfo",
+      "Text" : "Move with AWSD and mouse dragging.\nPress Ctrl + M to toggle \"Mouse Look\" mode.\nPress F5 to make a screenshot.\n",
+      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleLabel"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
