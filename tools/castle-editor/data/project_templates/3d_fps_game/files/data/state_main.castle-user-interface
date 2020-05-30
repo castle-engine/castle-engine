@@ -5,8 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 7.8108817338943481E-001,
-          "Z" : 6.2442082166671753E-001,
+          "X" : 7.0203870534896851E-001,
+          "Y" : -9.9746330306516029E-008,
+          "Z" : 7.1213883161544800E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -143,7 +144,9 @@
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
-      "Text" : "FPS: xxx\n",
+      "Text" : [
+        "FPS: xxx"
+      ],
       "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
@@ -161,7 +164,11 @@
       "FontSize" : 2.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelInfo",
-      "Text" : "Move with AWSD and mouse dragging.\nPress Ctrl + M to toggle \"Mouse Look\" mode.\nPress F5 to make a screenshot.\n",
+      "Text" : [
+        "Move with AWSD and mouse dragging.",
+        "Press Ctrl + M to toggle \"Mouse Look\" mode.",
+        "Press F5 to make a screenshot."
+      ],
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",

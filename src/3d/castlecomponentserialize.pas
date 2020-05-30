@@ -739,7 +739,17 @@ var
 begin
   JsonWriter := TJSONStreamer.Create(nil);
   try
-    JsonWriter.Options := [jsoStreamChildren];
+    JsonWriter.Options := [
+      jsoStreamChildren,
+      { Otherwise TStrings (like TCastleLabel.Text) is written
+        as a single String, and newlines are written as "\n" or "\r\n"
+        depending on OS used to write the file.
+        This causes needless differences in version control later. }
+      jsoTStringsAsArray,
+      { Makes TDateTime more readable }
+      jsoDateTimeAsString,
+      jsoCheckEmptyDateTime
+    ];
     JsonWriter.AfterStreamObject := @TCastleComponentWriter(nil).AfterStreamObject;
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
     JsonWriter.ChildProperty := '$Children';
