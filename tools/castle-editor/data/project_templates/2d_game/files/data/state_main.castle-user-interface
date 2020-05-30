@@ -4,6 +4,10 @@
   "$Children" : [
     {
       "Camera" : {
+        "InitialDirectionPersistent" : {
+          "Y" : -1.7151265217091316E-015,
+          "$ClassName" : "TCastleVector3Persistent"
+        },
         "InitialPositionPersistent" : {
           "Z" : 5.0000000000000000E+002,
           "$ClassName" : "TCastleVector3Persistent"
@@ -53,7 +57,7 @@
               "Y" : 1.5000000000000000E+003,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/blender/background/background.gltf",
+            "URL" : "castle-data:/background/background.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -67,7 +71,7 @@
               "Z" : 1.0000000000000000E+000,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/spine/clouds/clouds.json",
+            "URL" : "castle-data:/clouds/clouds.json",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -82,7 +86,7 @@
               "Z" : 1.0000000000000000E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/spine/dragon/dragon.json",
+            "URL" : "castle-data:/dragon/dragon.json",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -97,7 +101,7 @@
               "Z" : 2.0000000000000000E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/spine/trees/tree1.json",
+            "URL" : "castle-data:/trees/tree1.json",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -113,7 +117,7 @@
               "Z" : 2.0000000000000000E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/spine/trees/tree1.json",
+            "URL" : "castle-data:/trees/tree1.json",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -128,7 +132,7 @@
               "Z" : 2.0000000000000000E+002,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/example_2d_assets/spine/trees/tree2.json",
+            "URL" : "castle-data:/trees/tree2.json",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
