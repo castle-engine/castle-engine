@@ -446,6 +446,9 @@ begin
     Anim := FCustomAnimations.Items[FCurrentAnimation];
     while (FTime - FCustomAnimTimestamp) >= Anim.Frames[FCustomFrame].Duration do
     begin
+      // set FFrame before Inc(FCustomFrame) to allow first frame to play on first loop
+      FCustomAnimTimestamp := FCustomAnimTimestamp + Anim.Frames[FCustomFrame].Duration;
+      FFrame := Anim.Frames[FCustomFrame].Frame;
       // todo: custom animation loops
       if FCustomFrame = High(Anim.Frames) then
       begin
@@ -455,8 +458,6 @@ begin
           Stop;
       end else
         Inc(FCustomFrame);
-      FCustomAnimTimestamp := FCustomAnimTimestamp + Anim.Frames[FCustomFrame].Duration;
-      FFrame := Anim.Frames[FCustomFrame].Frame;
     end;
   end else
     FFrame := TVideo.FrameIndexFromTime(FTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
