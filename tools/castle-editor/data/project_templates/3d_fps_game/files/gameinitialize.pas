@@ -33,10 +33,6 @@ begin
     But no harm in specifying it explicitly, anyway. }
   TCastleTransform.DefaultOrientation := otUpYDirectionZ;
 
-  { Force using Phong lighting model instead of PBR (physically-based rendering) model.
-    Faster, less realistic. }
-  GltfForcePhongMaterials := true;
-
   { Create TStateMain that will handle "main" state of the game.
     Larger games may use multiple states,
     e.g. TStateMainMenu ("main menu state"),
