@@ -741,9 +741,18 @@ type
       const DisplayProgressTitle: string = '';
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); virtual;
 
-    { Current 3D objects under the mouse cursor.
-      Updated in every mouse move. May be @nil. }
+    { Current object (TCastleTransform hierarchy) under the mouse cursor.
+      Updated in every mouse move. May be @nil.
+
+      The returned list (if not @nil) contains TCastleTransform instances
+      that collided with the ray (from the deepest instance in the @link(Items) tree
+      to the root), along with some additional information.
+      See TRayCollision for details. }
     property MouseRayHit: TRayCollision read FMouseRayHit;
+
+    { Current object (TCastleTransform instance) under the mouse cursor.
+      Updated in every mouse move. May be @nil. }
+    function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
@@ -1428,11 +1437,7 @@ begin
   begin
     if Navigation <> nil then
     begin
-      if (MouseRayHit <> nil) and
-         (MouseRayHit.Count <> 0) then
-        TopMostScene := MouseRayHit.First.Item
-      else
-        TopMostScene := nil;
+      TopMostScene := TransformUnderMouse;
 
       { Test if dragging TTouchSensorNode. In that case cancel its dragging
         and let navigation move instead. }
@@ -1488,7 +1493,18 @@ begin
   PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
+function TCastleViewport.TransformUnderMouse: TCastleTransform;
+begin
+  if (MouseRayHit <> nil) and
+     (MouseRayHit.Count <> 0) then
+    Result := MouseRayHit.First.Item
+  else
+    Result := nil;
+end;
+
 procedure TCastleViewport.RecalculateCursor(Sender: TObject);
+var
+  T: TCastleTransform;
 begin
   if { This may be called from TCastleViewport without SceneManager assigned. }
      (Items = nil) or
@@ -1517,9 +1533,9 @@ begin
     the MouseRayHit list. Maybe we should browse Cursor values along the way,
     and choose the first non-none? }
 
-  if (MouseRayHit <> nil) and
-     (MouseRayHit.Count <> 0) then
-    Cursor := MouseRayHit.First.Item.Cursor
+  T := TransformUnderMouse;
+  if T <> nil then
+    Cursor := T.Cursor
   else
     Cursor := mcDefault;
 end;

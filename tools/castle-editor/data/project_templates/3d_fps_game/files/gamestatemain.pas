@@ -105,19 +105,18 @@ begin
     SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
 
     { We clicked on enemy if
-      - MainViewport.MouseRayHit indicates we hit something
+      - TransformUnderMouse indicates we hit something
       - This something has, as 1st child, a TEnemy instance.
 
       We depend here on our TEnemy behaviour:
       - TEnemy instance adds itself as child of TCastleScene
       - TEnemy has no collidable things by itself, so it's not listed among MouseRayHit.
     }
-    if (MainViewport.MouseRayHit <> nil) and
-       (MainViewport.MouseRayHit.Count > 0) and
-       (MainViewport.MouseRayHit.First.Item.Count > 0) and
-       (MainViewport.MouseRayHit.First.Item.Items[0] is TEnemy) then
+    if (MainViewport.TransformUnderMouse <> nil) and
+       (MainViewport.TransformUnderMouse.Count > 0) and
+       (MainViewport.TransformUnderMouse.Items[0] is TEnemy) then
     begin
-      HitEnemy := MainViewport.MouseRayHit.First.Item.Items[0] as TEnemy;
+      HitEnemy := MainViewport.TransformUnderMouse.Items[0] as TEnemy;
       HitEnemy.Hurt;
     end;
 
