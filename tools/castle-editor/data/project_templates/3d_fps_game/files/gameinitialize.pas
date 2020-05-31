@@ -15,6 +15,7 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState, CastleSoundEngine,
+  CastleTransform, CastleLoadGltf,
   GameStateMain;
 
 var
@@ -25,6 +26,16 @@ procedure ApplicationInitialize;
 begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  { Orientation matching Blender glTF exporter default behaviour.
+    This makes the "TCastleTransform.Direction" property behave naturally.
+    TODO: This will be the default in CGE soon.
+    But no harm in specifying it explicitly, anyway. }
+  TCastleTransform.DefaultOrientation := otUpYDirectionZ;
+
+  { Force using Phong lighting model instead of PBR (physically-based rendering) model.
+    Faster, less realistic. }
+  GltfForcePhongMaterials := true;
 
   { Create TStateMain that will handle "main" state of the game.
     Larger games may use multiple states,
