@@ -2056,6 +2056,11 @@ type
       Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
       read FGravity write FGravity default true;
+
+    property PreferredHeight;
+    property MoveHorizontalSpeed;
+    property MoveVerticalSpeed;
+    property MoveSpeed;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
