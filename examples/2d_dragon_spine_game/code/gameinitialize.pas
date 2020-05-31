@@ -371,7 +371,7 @@ var
   WorldPosition: TVector3;
 begin
   if Event.IsKey(K_F5) then
-    Window.SaveScreenToDefaultFile;
+    Window.Container.SaveScreenToDefaultFile;
   if Event.IsKey(K_Escape) then
     Application.Terminate;
 

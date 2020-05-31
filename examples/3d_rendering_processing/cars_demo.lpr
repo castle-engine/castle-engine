@@ -60,7 +60,7 @@ begin
 
   { capture a screenshot }
   if Event.IsKey(K_F5) then
-    Window.SaveScreenToDefaultFile;
+    Window.Container.SaveScreenToDefaultFile;
 end;
 
 function CreateBoxesScene: TCastleScene;
