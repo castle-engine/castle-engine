@@ -135,6 +135,12 @@ begin
 
     Exit(true); // click was handled
   end;
+
+  if Event.IsKey(keyF5) then
+  begin
+    Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
 end;
 
 end.

@@ -86,7 +86,6 @@ end;
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 var
   HitEnemy: TEnemy;
-  ScreenFileName: String;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -133,8 +132,7 @@ begin
 
   if Event.IsKey(keyF5) then
   begin
-    ScreenFileName := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-    Container.SaveScreen(ScreenFileName);
+    Container.SaveScreenToDefaultFile;
     Exit(true);
   end;
 end;
