@@ -100,11 +100,15 @@ begin
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
     NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.EffectiveHeight + ControlsMargin);
+  end;
 
-    { Do not show this on touch device, as Application.Terminate
-      (or Window.Close, or anything similar) doesn't make sense on mobile devices.
-      Users do not press "exit" button on mobile devices, they just switch
-      to home/other application.
+  if ApplicationProperties.ShowUserInterfaceToQuit then
+  begin
+    { Do not show this on mobile devices / consoles, as
+      - Application.Terminate (or Window.Close, or anything similar)
+        doesn't make sense on these devices,
+      - and users are not accustomed to pressing "Quit" on these devices,
+        they just switch to home/other application.
       See also https://castle-engine.io/manual_cross_platform.php }
     ExitButton := TCastleButton.Create(Application);
     ExitButton.Caption := 'Exit (Escape)';
