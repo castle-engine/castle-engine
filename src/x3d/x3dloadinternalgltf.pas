@@ -651,6 +651,8 @@ var
 
   procedure ReadHeader;
   begin
+    // too verbose to be done by default
+    (*
     WritelnLogMultiline('glTF', Format(
       'Asset.Copyright: %s' + NL +
       'Asset.Generator: %s' + NL +
@@ -696,6 +698,7 @@ var
         Document.ExtensionsRequired.Text
       ])
     );
+    *)
     if Document.ExtensionsRequired.IndexOf('KHR_draco_mesh_compression') <> -1 then
       WritelnWarning('Required extension KHR_draco_mesh_compression not supported by glTF reader');
   end;
