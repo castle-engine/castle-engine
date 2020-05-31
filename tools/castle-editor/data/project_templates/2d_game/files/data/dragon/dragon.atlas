@@ -1,6 +1,6 @@
 
 dragon.png
-size: 1022,854
+size: 1024,1024
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
@@ -188,20 +188,20 @@ wing_feather2
   index: -1
 
 dragon2.png
-size: 736,531
+size: 1024,512
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 wing_feather3
-  rotate: true
-  xy: 411, 2
+  rotate: false
+  xy: 484, 86
   size: 527, 323
   orig: 527, 323
   offset: 0, 0
   index: -1
 wing_feather4
-  rotate: true
-  xy: 2, 49
+  rotate: false
+  xy: 2, 2
   size: 480, 407
   orig: 480, 407
   offset: 0, 0
