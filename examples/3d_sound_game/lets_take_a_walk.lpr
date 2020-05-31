@@ -208,7 +208,7 @@ begin
           // crosshair makes sense only with mouse look
           Crosshair.Exists := Navigation.MouseLook;
         end;
-      K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
+      K_F5: Window.Container.SaveScreenToDefaultFile;
     end;
 end;
 

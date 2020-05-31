@@ -613,6 +613,20 @@ type
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
     { @groupEnd }
 
+    { Capture the current container (window) contents to an image and save it to file,
+      following the current platform/user preferred directory to store screenshots.
+
+      On Windows, this saves files to user's "My Pictures" directory.
+      On Unix (using freedesktop standard) this saves files to directory like ~/Pictures .
+      On macOS, this saves files to the home directory right now.
+      On other platforms, it may follow the most established convention,
+      or abort if no place (where we have permissions to store screenshots) exists.
+
+      You can use SaveScreenPath yourself to have more control over the target location.
+
+      Returns the saved file URL, so that you can e.g. show it to user. }
+    function SaveScreenToDefaultFile: String;
+
     { This is internal, and public only for historic reasons.
       @exclude
 
@@ -2317,7 +2331,7 @@ implementation
 
 uses DOM, TypInfo, Math,
   CastleLog, CastleComponentSerialize, CastleXMLUtils, CastleStringUtils,
-  CastleInternalSettings,
+  CastleInternalSettings, CastleFilesUtils, CastleURIUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL {$else} GL, GLExt {$endif};
 
 { TTouchList ----------------------------------------------------------------- }
@@ -3750,6 +3764,20 @@ end;
 function TUIContainer.SaveScreen(const SaveRect: TFloatRectangle): TRGBImage;
 begin
   Result := SaveScreen(SaveRect.Round);
+end;
+
+function TUIContainer.SaveScreenToDefaultFile: String;
+var
+  Path: String;
+begin
+  Path := SaveScreenPath;
+  if Path <> '' then
+  begin
+    Result := FilenameToURISafe(FileNameAutoInc(Path + ApplicationName, '_screen_%d.png'));
+    SaveScreen(Result);
+    WritelnLog('Screen saved to ' + Result);
+  end else
+    Result := '';
 end;
 
 function TUIContainer.Dpi: Single;

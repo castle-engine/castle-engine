@@ -371,7 +371,7 @@ var
   WorldPosition: TVector3;
 begin
   if Event.IsKey(K_F5) then
-    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
+    Window.SaveScreenToDefaultFile;
   if Event.IsKey(K_Escape) then
     Application.Terminate;
 
