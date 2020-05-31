@@ -1,9 +1,9 @@
-{ Main state, where most of the application logic takes place.
+{ Main "playing game" state, where most of the game logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
   is covered by the LGPL license variant, see the COPYING.txt file.) }
-unit GameStateMain;
+unit GameStatePlay;
 
 interface
 
@@ -12,8 +12,8 @@ uses Classes,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main "playing game" state, where most of the game logic takes place. }
+  TStatePlay = class(TUIState)
   private
     { DragonFlying and DragonFlyingTarget manage currect dragon (SceneDragon)
       animation and it's movement. }
@@ -32,22 +32,23 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  StatePlay: TStatePlay;
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math,
+  GameStateMenu;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TStatePlay ----------------------------------------------------------------- }
 
-procedure TStateMain.Start;
+procedure TStatePlay.Start;
 var
   UiOwner: TComponent;
 begin
   inherited;
 
   { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
@@ -56,7 +57,7 @@ begin
   CheckboxCameraFollow := UiOwner.FindRequiredComponent('CheckboxCameraFollow') as TCastleCheckbox;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 const
   DragonSpeed: TVector2 = (Data: (3000, 1500));
 var
@@ -109,7 +110,7 @@ begin
   end;
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit; // allow the ancestor to handle keys
@@ -120,7 +121,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
+    The TStatePlay.Press method should be used to handle keys
     not handled in children controls.
   }
 
@@ -139,6 +140,12 @@ begin
   if Event.IsKey(keyF5) then
   begin
     Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyEscape) then
+  begin
+    TUIState.Current := StateMenu;
     Exit(true);
   end;
 end;

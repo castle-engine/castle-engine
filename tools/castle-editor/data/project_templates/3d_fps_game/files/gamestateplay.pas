@@ -1,9 +1,9 @@
-{ Main state, where most of the application logic takes place.
+{ Main "playing game" state, where most of the game logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
   is covered by the LGPL license variant, see the COPYING.txt file.) }
-unit GameStateMain;
+unit GameStatePlay;
 
 interface
 
@@ -14,8 +14,8 @@ uses Classes,
   GameEnemy;
 
 type
-  { Main state, where most of the application logic takes place. }
-  TStateMain = class(TUIState)
+  { Main "playing game" state, where most of the game logic takes place. }
+  TStatePlay = class(TUIState)
   private
     { Enemies behaviours }
     Enemies: TEnemyList;
@@ -32,16 +32,17 @@ type
   end;
 
 var
-  StateMain: TStateMain;
+  StatePlay: TStatePlay;
 
 implementation
 
 uses SysUtils, Math,
-  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils;
+  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
+  GameStateMenu;
 
-{ TStateMain ----------------------------------------------------------------- }
+{ TStatePlay ----------------------------------------------------------------- }
 
-procedure TStateMain.Start;
+procedure TStatePlay.Start;
 var
   UiOwner: TComponent;
   SoldierScene: TCastleScene;
@@ -51,14 +52,12 @@ begin
   inherited;
 
   { Load designed user interface }
-  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
+  InsertUserInterface('castle-data:/state_play.castle-user-interface', FreeAtStop, UiOwner);
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   WalkNavigation := UiOwner.FindRequiredComponent('WalkNavigation') as TCastleWalkNavigation;
-
-  WalkNavigation.MoveSpeed := 10;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
@@ -70,20 +69,20 @@ begin
   end;
 end;
 
-procedure TStateMain.Stop;
+procedure TStatePlay.Stop;
 begin
   FreeAndNil(Enemies);
   inherited;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
   HitEnemy: TEnemy;
 begin
@@ -96,7 +95,7 @@ begin
     Note that each UI control has also events like OnPress and OnClick.
     These events can be used to handle the "press", if it should do something
     specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
+    The TStatePlay.Press method should be used to handle keys
     not handled in children controls.
   }
 
@@ -132,6 +131,12 @@ begin
   if Event.IsKey(keyF5) then
   begin
     Container.SaveScreenToDefaultFile;
+    Exit(true);
+  end;
+
+  if Event.IsKey(keyEscape) then
+  begin
+    TUIState.Current := StateMenu;
     Exit(true);
   end;
 end;
