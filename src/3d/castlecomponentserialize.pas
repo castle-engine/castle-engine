@@ -412,9 +412,10 @@ begin
     R.InstanceProperty := Info;
     R.PropertyValue := DataName;
     ResolveObjectProperties.Add(R);
-    WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
-      DataName
-    ]);
+    // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
+    // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
+    //   DataName
+    // ]);
   end;
 end;
 
