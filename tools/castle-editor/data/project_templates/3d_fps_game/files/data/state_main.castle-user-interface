@@ -5,20 +5,20 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 7.0203870534896851E-001,
-          "Y" : -9.9746330306516029E-008,
-          "Z" : 7.1213883161544800E-001,
+          "X" : 8.5947251319885254E-001,
+          "Y" : -2.4878335125322337E-007,
+          "Z" : 5.1118201017379761E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
-          "X" : -2.3280322551727295E+000,
-          "Y" : 1.2986346483230591E+000,
-          "Z" : -4.7566490173339844E+000,
+          "X" : -6.5783720016479492E+000,
+          "Y" : 1.9696136713027954E+000,
+          "Z" : -5.7269501686096191E+000,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialUpPersistent" : {
-          "X" : -5.6091272426783689E-007,
-          "Z" : 6.3164281982608372E-007,
+          "X" : -2.7529964086170366E-007,
+          "Z" : 8.6404537569251261E-007,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "Name" : "Camera",
@@ -66,7 +66,12 @@
               "ssRendering",
               "ssDynamicCollisions"
             ],
-            "URL" : "castle-data:/character/soldier1.gltf",
+            "TranslationPersistent" : {
+              "X" : 2.0000000000000000E+000,
+              "Z" : 4.0000000000000000E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "URL" : "castle-data:/enemy/soldier1.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -78,10 +83,11 @@
               "ssDynamicCollisions"
             ],
             "TranslationPersistent" : {
-              "X" : 2.0000000000000000E+000,
+              "X" : 5.0000000000000000E+000,
+              "Z" : 3.0000000000000000E+000,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/character/soldier1.gltf",
+            "URL" : "castle-data:/enemy/soldier1.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -93,10 +99,11 @@
               "ssDynamicCollisions"
             ],
             "TranslationPersistent" : {
-              "X" : 3.0000000000000000E+000,
+              "X" : 8.0000000000000000E+000,
+              "Z" : 2.0000000000000000E+000,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/character/soldier1.gltf",
+            "URL" : "castle-data:/enemy/soldier1.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -108,10 +115,11 @@
               "ssDynamicCollisions"
             ],
             "TranslationPersistent" : {
-              "X" : 4.0000000000000000E+000,
+              "X" : 1.1000000000000000E+001,
+              "Z" : 1.0000000000000000E+000,
               "$ClassName" : "TCastleVector3Persistent"
             },
-            "URL" : "castle-data:/character/soldier1.gltf",
+            "URL" : "castle-data:/enemy/soldier1.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
@@ -124,8 +132,9 @@
       "$Children" : [
         {
           "FullSize" : true,
-          "Gravity" : false,
+          "MoveSpeed" : 1.0000000000000000E+001,
           "Name" : "WalkNavigation",
+          "PreferredHeight" : 2.0000000000000000E+000,
           "$Children" : [
           ],
           "$ClassName" : "TCastleWalkNavigation"
