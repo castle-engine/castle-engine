@@ -513,7 +513,8 @@ function SaveScreenPath: String;
 
 implementation
 
-uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, Process,
+uses {$ifdef MSWINDOWS} ShlObj, {$endif}
+  {$ifdef DARWIN} MacOSAll, {$endif} Classes, Process,
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
@@ -1062,7 +1063,7 @@ end;
   unless it is not possible to get then returns ''.
   Checks that directory exists.
 }
-function GetUserPath(const DirectoryId: CInt): String;
+function GetUserPath(const DirectoryId: LongInt): String;
 var
   Dir: array [0 .. MAX_PATH] of AnsiChar;
 begin
