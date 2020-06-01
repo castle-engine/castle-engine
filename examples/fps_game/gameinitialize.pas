@@ -550,9 +550,6 @@ begin
     to define our MedKit item. }
   RegisterResourceClass(TMedKitResource, 'MedKit');
 
-  { Orientation matching Blender glTF exporter default behaviour. }
-  TCastleTransform.DefaultOrientation := otUpYDirectionZ;
-
   { Load resources (creatures and items) from resource.xml files. }
   Resources.LoadFromFiles;
 

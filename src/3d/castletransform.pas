@@ -713,7 +713,8 @@ type
       );
 
     var
-      { Default value of @link(TCastleTransform.Orientation) for new instances. }
+      { Default value of @link(TCastleTransform.Orientation) for new instances.
+        By default @link(otUpYDirectionZ), matching e.g. Blender exporter to glTF. }
       DefaultOrientation: TOrientationType; static;
 
     constructor Create(AOwner: TComponent); override;
@@ -3635,6 +3636,7 @@ begin
 end;
 
 initialization
+  TCastleTransform.DefaultOrientation := otUpYDirectionZ;
   GlobalIdentityMatrix := TMatrix4.Identity;
   RegisterSerializableComponent(TCastleTransform, 'Transform');
 end.

@@ -27,12 +27,6 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { Orientation matching Blender glTF exporter default behaviour.
-    This makes the "TCastleTransform.Direction" property behave naturally.
-    TODO: This will be the default in CGE soon.
-    But no harm in specifying it explicitly, anyway. }
-  TCastleTransform.DefaultOrientation := otUpYDirectionZ;
-
   { Create game states and set initial state }
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
