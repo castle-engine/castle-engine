@@ -54,13 +54,28 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if it's somewhat hard to recreate.
 
+# detect platform-specific things --------------------------------------------
+
+# FIND := Unix/Cygwin "find" utility (*not* Windows "find" command which has completely different use)
+# SED := GNU sed (*not* other sed implementations)
+# EXE_EXTENSION := extension of executable files (with leading dot, if any)
+
+SED := sed
+FIND := find
+EXE_EXTENSION :=
+
 ifeq ($(OS),Windows_NT)
-  # Hack for Cygwin, to avoid using Windows built-in "find" program.
-  FIND:=`cygpath --mixed /bin/find`
-  EXE_EXTENSION:=.exe
+  # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
+  FIND := `cygpath --mixed /bin/find`
+  EXE_EXTENSION := .exe
 else
-  FIND:=find
-  EXE_EXTENSION:=
+  # Only on Unix, you can use "uname" to further detect Unix variants,
+  # see https://stackoverflow.com/questions/714100/os-detecting-makefile
+  UNAME_S := $(shell uname -s)
+  # On macOS, use gsed (e.g. from Homebrew)
+  ifeq ($(UNAME_S),Darwin)
+    SED := gsed
+  endif
 endif
 
 # compile ------------------------------------------------------------
@@ -282,6 +297,31 @@ EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
 EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .res,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
+# Test compiling single CGE editor template.
+# Requires EDITOR_TEMPLATE_PATH to be defined.
+.PHONY: editor-template
+editor-template:
+	$(SED) --in-place=.backup \
+	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.lpr"||' \
+	  -e 's|qualified_name="$${PROJECT_QUALIFIED_NAME}"||' \
+	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
+	$(SED)  --in-place=.backup \
+	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
+	castle-engine --project $(EDITOR_TEMPLATE_PATH) compile
+	castle-engine --project $(EDITOR_TEMPLATE_PATH) clean
+	mv -f $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml.backup $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
+	mv -f $(EDITOR_TEMPLATE_PATH)gameinitialize.pas.backup $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
+
+# Test compiling CGE editor templates
+.PHONY: editor-templates
+editor-templates:
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/3d_fps_game/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/2d_game/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/empty/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/3d_model_viewer/files/
+
 .PHONY: examples
 examples:
 # Compile tools, in particular build tool, first
@@ -306,6 +346,9 @@ examples:
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
 	  xargs -0 -n1 tools/build-tool/castle-engine-copy$(EXE_EXTENSION) \
 	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+
+# Compile editor templates
+	 $(MAKE) editor-templates
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
