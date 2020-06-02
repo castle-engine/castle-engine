@@ -309,8 +309,8 @@ editor-template:
 	$(SED)  --in-place=.backup \
 	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
 	  $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
-	castle-engine --project $(EDITOR_TEMPLATE_PATH) compile
-	castle-engine --project $(EDITOR_TEMPLATE_PATH) clean
+	tools/build-tool/castle-engine$(EXE_EXTENSION) --project $(EDITOR_TEMPLATE_PATH) compile
+	tools/build-tool/castle-engine$(EXE_EXTENSION) --project $(EDITOR_TEMPLATE_PATH) clean
 	mv -f $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml.backup $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
 	mv -f $(EDITOR_TEMPLATE_PATH)gameinitialize.pas.backup $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
 
