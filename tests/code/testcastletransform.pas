@@ -41,7 +41,8 @@ type
     procedure TestWorldFull;
     procedure TestWorldPrematureFree;
     procedure TestWorldFreeBeforeItem;
-    procedure TestDirectionUp;
+    procedure TestDirectionUp_UpYDirectionMinusZ;
+    procedure TestDirectionUp_UpYDirectionZ;
     procedure TestTransformingScene;
     procedure TestPhysicsWorldOwner;
     procedure TestPhysicsWorldOwnerEmptyBox;
@@ -1046,33 +1047,65 @@ begin
   FreeAndNil(O1List);
 end;
 
-procedure TTestCastleTransform.TestDirectionUp;
+procedure TTestCastleTransform.TestDirectionUp_UpYDirectionMinusZ;
 var
   T: TCastleTransform;
 begin
   T := TCastleTransform.Create(nil);
   try
+    T.Orientation := otUpYDirectionMinusZ;
+
     AssertVectorEquals(Vector3(1, 2, 3),
       RotatePointAroundAxis(Vector4(0, 0, 0, 0), Vector3(1, 2, 3)));
 
     AssertVectorEquals(Vector4(0, 0, 0, 0), T.Rotation);
-    AssertVectorEquals(T.Direction, Vector3(0, 0, -1));
-    AssertVectorEquals(T.Up, Vector3(0, 1, 0));
+    AssertVectorEquals(Vector3(0, 0, -1), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up);
 
     T.Orientation := otUpZDirectionX;
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Direction := Vector3(1, 0, 0);
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Up := Vector3(0, 0, 1);
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Direction := Vector3(1, 1, 1);
     AssertVectorEquals(T.Direction, Vector3(1, 1, 1).Normalize);
+  finally FreeAndNil(T) end;
+end;
+
+procedure TTestCastleTransform.TestDirectionUp_UpYDirectionZ;
+var
+  T: TCastleTransform;
+begin
+  T := TCastleTransform.Create(nil);
+  try
+    //T.Orientation := otUpYDirectionZ; // should be default
+    Assert(TCastleTransform.DefaultOrientation = otUpYDirectionZ);
+    Assert(T.Orientation = otUpYDirectionZ);
+
+    AssertVectorEquals(Vector3(1, 2, 3),
+      RotatePointAroundAxis(Vector4(0, 0, 0, 0), Vector3(1, 2, 3)));
+
+    AssertVectorEquals(Vector4(0, 0, 0, 0), T.Rotation);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up);
+
+    T.Direction := Vector3(1, 0, 0);
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up, 0.01);
+
+    T.Up := Vector3(0, 0, 1);
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
+
+    T.Direction := Vector3(1, 1, 1);
+    AssertVectorEquals(Vector3(1, 1, 1).Normalize, T.Direction);
   finally FreeAndNil(T) end;
 end;
 
