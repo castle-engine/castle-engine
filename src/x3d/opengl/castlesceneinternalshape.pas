@@ -117,10 +117,20 @@ begin
       by renderer every time, and doesn't affect TGeometryArrays. }
     if Changes * [chCoordinate, chNormal] <> [] then
       Cache.FreeArrays([vtCoordinate]);
+
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
       (e.g. in case of batching)
-      in which case both "if" clauses should be entered. }
-    if Changes * [chVisibleVRML1State, chGeometryVRML1State,
+      in which case both "if" clauses should be entered.
+
+      About chTextureImage:
+      We regenerate arrays when chTextureImage occurred,
+      because it means that potentially non-existing texture (e.g. ImageTexture
+      with empty url, or invalid url) changed to existing (if you set correct
+      ImageTexture.url). This means that number of texture coordinates
+      we need to make has changed.
+      Testcase "animate_symbols", using Unholy spell effect animations.
+    }
+    if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
       Cache.FreeArrays(AllVboTypes);
   end;
