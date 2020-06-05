@@ -550,7 +550,7 @@ begin
     //Make FRoot contain fully qualified pathname, we need it later in GetPathFromNode()
     FRoot := ExpandFileNameUtf8(FRoot);
     //Set RootNode.Text to AValue so user can choose if text is fully qualified path or not
-    RootNode := Items.AddChild(nil, AValue);
+    RootNode := Items.AddChild(nil, ExtractFileName(ExcludeTrailingPathDelimiter(AValue)));
     TShellTreeNode(RootNode).FFileInfo.Attr := FileGetAttr(FRoot);
     TShellTreeNode(RootNode).FFileInfo.Name := FRoot;
     TShellTreeNode(RootNode).SetBasePath('');
