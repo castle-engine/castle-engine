@@ -335,6 +335,7 @@ object ProjectForm: TProjectForm
     top = 114
   end
   object ShellListPopupMenu: TPopupMenu
+    OnPopup = ShellListPopupMenuPopup
     left = 104
     top = 312
     object MenuItemOpenDefault: TMenuItem
@@ -345,6 +346,13 @@ object ProjectForm: TProjectForm
     object MenuItemOpenDirFromFile: TMenuItem
       Caption = 'Open Containing Folder'
       OnClick = MenuItemOpenDirFromFileClick
+    end
+    object MenuItemSeparator2303403o: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemRefreshDir: TMenuItem
+      Caption = 'Refresh'
+      OnClick = MenuItemRefreshDirClick
     end
     object MenuItemSeparator123123213: TMenuItem
       Caption = '-'

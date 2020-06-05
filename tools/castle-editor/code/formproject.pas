@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemSeparator2303403o: TMenuItem;
+    MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
     MenuItemOpenDirFromFile: TMenuItem;
     MenuItemDeleteFile: TMenuItem;
@@ -133,6 +135,7 @@ type
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
+    procedure MenuItemRefreshDirClick(Sender: TObject);
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
@@ -140,6 +143,7 @@ type
     procedure MenuItemSupportClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
+    procedure ShellListPopupMenuPopup(Sender: TObject);
   private
     ProjectName: String;
     ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
@@ -206,6 +210,11 @@ procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
 begin
   BuildMode := bmRelease;
   MenuItemModeRelease.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
+begin
+  ShellListView1.RefreshContents;
 end;
 
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
@@ -466,14 +475,8 @@ begin
 end;
 
 procedure TProjectForm.MenuItemOpenDirFromFileClick(Sender: TObject);
-var
-  SelectedFileName: String;
 begin
-  if ShellListView1.Selected <> nil then
-  begin
-    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
-    OpenDocument(ExtractFilePath(SelectedFileName));
-  end;
+  OpenDocument(ShellListView1.Root);
 end;
 
 procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
@@ -651,6 +654,12 @@ begin
     if not RunningProcess.Running then
       FreeProcess;
   end;
+end;
+
+procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
+begin
+  MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
+  MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
 end;
 
 procedure TProjectForm.FreeProcess;
