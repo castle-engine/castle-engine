@@ -129,6 +129,10 @@ begin
       ImageTexture.url). This means that number of texture coordinates
       we need to make has changed.
       Testcase "animate_symbols", using Unholy spell effect animations.
+
+      TODO: Actually Cache.FreeArrays is often not necessary in case of chTextureImage.
+      It's only necessary when texture existence changed.
+      This could be optiized more.
     }
     if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
