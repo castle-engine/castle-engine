@@ -382,7 +382,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    RootNode.ManuallyExportNode(Items[I].Node);
+    RootNode.ExportNode(Items[I].Node);
 end;
 
 {$endif}

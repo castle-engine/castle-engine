@@ -297,14 +297,15 @@
       complete node graph keep the assumption 1 unit = 1 meter). }
     property Scale: Single read FScale write FScale default 1.0;
 
-    { Export node without using X3D parser. Use if you build X3D graph by hand,
-      and you want do add the EXPORT X3D clause (see X3D specification about EXPORT
-      to know what it does), such that it's not only serializable, but also
-      works (is recognized by models that Inline this one).
+    { Export node, to have its name known by X3D graph that includes this graph by "Inline" node.
+
+      Use this if you build X3D graph by hand, and you want do add the EXPORT X3D clause.
+      It adds the clause (using @link(AddExport), so it can be saved back to X3D file
+      reliably) and also makes it immediately working (adding it to the proper namespace).
 
       @groupBegin }
-    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
-    procedure ManuallyExportNode(const Node: TX3DNode); overload;
+    procedure ExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
+    procedure ExportNode(const Node: TX3DNode); overload;
     { @groupEnd }
   end;
 
@@ -859,7 +860,7 @@ begin
   end;
 end;
 
-procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string);
+procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: string);
 var
   ExportItem: TX3DExport;
 begin
@@ -878,9 +879,9 @@ begin
   ExportedNames.Bind(Node, true, ExportedAlias);
 end;
 
-procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode);
+procedure TX3DRootNode.ExportNode(const Node: TX3DNode);
 begin
-  ManuallyExportNode(Node, Node.X3DName);
+  ExportNode(Node, Node.X3DName);
 end;
 
 procedure TStaticGroupNode.CreateNode;

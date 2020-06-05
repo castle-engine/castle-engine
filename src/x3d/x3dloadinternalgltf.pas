@@ -2054,6 +2054,16 @@ var
       ReadSkin(SkinToInitialize, ParentGroup);
   end;
 
+  { EXPORT animations, so that using glTF animations in X3D is possible, like on
+    demo-models/blender/skinned_animation/skinned_anim_run_animations_from_x3d.x3dv }
+  procedure ExportAnimations;
+  var
+    Anim: TAnimation;
+  begin
+    for Anim in Animations do
+      Result.ExportNode(Anim.TimeSensor);
+  end;
+
 var
   Material: TPasGLTF.TMaterial;
   Animation: TPasGLTF.TAnimation;
@@ -2109,6 +2119,7 @@ begin
       for Animation in Document.Animations do
         ReadAnimation(Animation, Result);
       ReadSkins(Result);
+      ExportAnimations;
     finally
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);

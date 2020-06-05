@@ -1073,7 +1073,7 @@ var
     Route.SetDestinationDirectly(Switch.FdWhichChoice);
     RootNode.AddRoute(Route);
 
-    RootNode.ManuallyExportNode(TimeSensor);
+    RootNode.ExportNode(TimeSensor);
 
     AddAnimationVisibilityRoutes(TimeSensor);
 
