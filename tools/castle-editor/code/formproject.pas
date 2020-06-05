@@ -736,7 +736,9 @@ end;
 
 procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 
-  procedure OpenWithCastleTool(const ToolName: String; const SelectedURL: String);
+  procedure OpenWithCastleTool(const ToolName: String;
+    const SelectedURL: String;
+    const Arguments: array of String);
   var
     Exe: String;
   begin
@@ -748,7 +750,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
+    RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
   procedure OpenPascal(const FileName: String);
@@ -819,13 +821,14 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWithCastleTool('view3dscene', SelectedURL);
+      OpenWithCastleTool('view3dscene', SelectedURL,
+        ['--project', ProjectPathUrl, SelectedURL]);
       Exit;
     end;
 
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWithCastleTool('castle-view-image', SelectedURL);
+      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
