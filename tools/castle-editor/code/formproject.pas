@@ -32,6 +32,11 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemSeparator123123213: TMenuItem;
+    MenuItemOpenDirFromFile: TMenuItem;
+    MenuItemDeleteFile: TMenuItem;
+    MenuItemOpenDefault: TMenuItem;
+    MenuItemShellTreeOpenDir: TMenuItem;
     MenuItemPreferences: TMenuItem;
     N1: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
@@ -55,6 +60,8 @@ type
     MenuItemSeparator201: TMenuItem;
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
+    ShellListPopupMenu: TPopupMenu;
+    ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
     MenuItemSaveDesign: TMenuItem;
@@ -98,6 +105,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemDeleteFileClick(Sender: TObject);
+    procedure MenuItemOpenDefaultClick(Sender: TObject);
+    procedure MenuItemOpenDirFromFileClick(Sender: TObject);
     procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
@@ -126,6 +136,7 @@ type
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
+    procedure MenuItemShellTreeOpenDirClick(Sender: TObject);
     procedure MenuItemSupportClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
@@ -228,6 +239,17 @@ begin
     MenuItemSaveAsDesignClick(Sender)
   else
     Design.SaveDesign(Design.DesignUrl);
+end;
+
+procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
+var
+  Dir: String;
+begin
+  if ShellTreeView1.Selected <> nil then
+  begin
+    Dir := ShellTreeView1.GetPathFromNode(ShellTreeView1.Selected);
+    OpenDocument(Dir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
@@ -368,6 +390,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellTreeView1.Options := [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw];
     ShellTreeView1.ObjectTypes := [otFolders];
     ShellTreeView1.ExcludeMask := ExcludeMask;
+    ShellTreeView1.PopupMenu := ShellTreePopupMenu;
 
     ShellListView1 := TCastleShellListView.Create(Self);
     ShellListView1.Parent := TabFiles;
@@ -395,6 +418,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Design opens in this editor window.' + NL +
       '- Pascal files open in Lazarus.' + NL +
       '- Other files open in external applications.';
+    ShellListView1.PopupMenu := ShellListPopupMenu;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -418,6 +442,38 @@ end;
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
   // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemDeleteFileClick(Sender: TObject);
+var
+  SelectedFileName: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
+      mtConfirmation, mbYesNo, 0) = mrYes then
+    begin
+      CheckDeleteFile(SelectedFileName, true);
+      ShellListView1.RefreshContents;
+    end;
+  end;
+end;
+
+procedure TProjectForm.MenuItemOpenDefaultClick(Sender: TObject);
+begin
+  ShellListViewDoubleClick(ShellListView1);
+end;
+
+procedure TProjectForm.MenuItemOpenDirFromFileClick(Sender: TObject);
+var
+  SelectedFileName: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    OpenDocument(ExtractFilePath(SelectedFileName));
+  end;
 end;
 
 procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);

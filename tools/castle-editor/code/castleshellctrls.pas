@@ -217,7 +217,6 @@ type
     procedure SetExcludeMask(const AValue: string);
     procedure SetShellTreeView(const Value: TCustomCastleShellTreeView);
     procedure SetRoot(const Value: string);
-    procedure RefreshContents;
     procedure ExcludedCountChanged;
   protected
     { Methods specific to Lazarus }
@@ -230,6 +229,7 @@ type
     destructor Destroy; override;
     { Methods specific to Lazarus }
     function GetPathFromItem(ANode: TListItem): string;
+    procedure RefreshContents;
     { Properties }
     property Mask: string read FMask write SetMask;
     property ExcludeMask: string read FExcludeMask write SetExcludeMask;
