@@ -182,6 +182,10 @@
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
 
+      Note that when image failed to load, or URL was just empty,
+      we can have IsTextureLoaded = @true but both IsTextureImage = @false
+      and IsTextureVideo = @false.
+
       TextureImage may have any class allowed by LoadTextureImage.
 
       @groupBegin }
