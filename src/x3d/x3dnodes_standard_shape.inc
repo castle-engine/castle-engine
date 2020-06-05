@@ -1478,6 +1478,8 @@ end;
 constructor TPhysicalMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
+  { Changing Transparency must also update shape's Blending. }
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TPhysicalMaterialNode.Destroy;
@@ -1682,6 +1684,9 @@ begin
   // default is different
   FdEmissiveColor.DefaultValue := Vector3(1, 1, 1);
   FdEmissiveColor.Value := Vector3(1, 1, 1);
+  { Changing Transparency must also update shape's Blending.
+    Testcase: data/gui/fight/spell_effect/spell_2_symbols.json in Unholy. }
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TUnlitMaterialNode.Destroy;
