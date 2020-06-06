@@ -631,6 +631,181 @@ begin
   end;
 end;
 
+{ TPunctualLights ------------------------------------------------------------------ }
+
+type
+  { Load glTF punctual lights.
+    Following glTF https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
+    extension.
+    Code was reworked from PasGLTF LoadLights in
+    https://github.com/BeRo1985/pasgltf/blob/master/src/viewer/UnitGLTFOpenGL.pas }
+  TPunctualLights = class
+  strict private
+    { Only instances of TAbstractLightNode here. }
+    Lights: TX3DNodeList;
+    procedure ReadLight(const LightObject: TPasJSONItemObject);
+  public
+    destructor Destroy; override;
+    { Read document header. }
+    procedure ReadHeader(const Document: TPasGLTF.TDocument);
+    { Read glTF node, and optionally add stuff to given TTransformNode for this node. }
+    procedure ReadNode(const Node: TPasGLTF.TNode; const Transform: TTransformNode);
+  end;
+
+destructor TPunctualLights.Destroy;
+var
+  I: Integer;
+begin
+  if Lights <> nil then
+  begin
+    for I := 0 to Lights.Count - 1 do
+      Lights[I].FreeIfUnused;
+    FreeAndNil(Lights);
+  end;
+  inherited;
+end;
+
+procedure TPunctualLights.ReadHeader(const Document: TPasGLTF.TDocument);
+var
+  KHRLightsPunctualItem, LightsItem, LightItem: TPasJSONItem;
+  KHRLightsPunctualObject: TPasJSONItemObject;
+  LightsArray: TPasJSONItemArray;
+  LightIndex: Integer;
+begin
+  if Assigned(Document.Extensions) then
+  begin
+    KHRLightsPunctualItem := Document.Extensions.Properties['KHR_lights_punctual'];
+    if Assigned(KHRLightsPunctualItem) and
+       (KHRLightsPunctualItem is TPasJSONItemObject) then
+    begin
+      KHRLightsPunctualObject := TPasJSONItemObject(KHRLightsPunctualItem);
+      LightsItem := KHRLightsPunctualObject.Properties['lights'];
+      if Assigned(LightsItem) and
+         (LightsItem is TPasJSONItemArray) then
+      begin
+        Lights := TX3DNodeList.Create(false);
+        LightsArray := TPasJSONItemArray(LightsItem);
+        for LightIndex := 0 to LightsArray.Count - 1 do
+        begin
+          LightItem := LightsArray.Items[LightIndex];
+          if Assigned(LightItem) and
+             (LightItem is TPasJSONItemObject) then
+          begin
+            ReadLight(TPasJSONItemObject(LightItem));
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TPunctualLights.ReadLight(const LightObject: TPasJSONItemObject);
+
+  { Read color from JSON, specified like light's color spec on
+    https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
+    dictates. }
+  function ReadColor(const Item: TPasJSONItem; const DefaultColor: TCastleColorRGB): TCastleColorRGB;
+  var
+    ColorArray: TPasJSONItemArray;
+    I: Integer;
+  begin
+    Result := DefaultColor;
+    if Assigned(Item) and
+       (Item is TPasJSONItemArray) then
+    begin
+      ColorArray := TPasJSONItemArray(Item);
+      for I := 0 to Min(2, ColorArray.Count - 1) do
+        Result[I] := TPasJSON.GetNumber(ColorArray.Items[I], DefaultColor[I]);
+    end;
+  end;
+
+const
+  DefaultBeamWidth = 0.0;
+  DefaultCutOffAngle = Pi * 0.25;
+var
+  SpotItem: TPasJSONItem;
+  SpotObject: TPasJSONItemObject;
+  TypeString: String;
+  Light: TAbstractLightNode;
+begin
+  TypeString := TPasJSON.GetString(LightObject.Properties['type'], '');
+
+  case TypeString of
+    'directional':
+      begin
+        Light := TDirectionalLightNode.Create;
+        TDirectionalLightNode(Light).Direction := Vector3(0, 0, -1);
+      end;
+
+    'point':
+      Light := TPointLightNode.Create;
+
+    'spot':
+      begin
+        Light := TSpotLightNode.Create;
+        TSpotLightNode(Light).Direction := Vector3(0, 0, -1);
+
+        SpotItem := LightObject.Properties['spot'];
+        if Assigned(SpotItem) and
+           (SpotItem is TPasJSONItemObject) then
+        begin
+          SpotObject := TPasJSONItemObject(SpotItem);
+          TSpotLightNode(Light).BeamWidth := TPasJSON.GetNumber(SpotObject.Properties['innerConeAngle'], DefaultBeamWidth);
+          TSpotLightNode(Light).CutOffAngle := TPasJSON.GetNumber(SpotObject.Properties['outerConeAngle'], DefaultCutOffAngle);
+        end else
+        begin
+          TSpotLightNode(Light).BeamWidth := DefaultBeamWidth;
+          TSpotLightNode(Light).CutOffAngle := DefaultCutOffAngle;
+        end;
+      end;
+
+    else
+      begin
+        WritelnWarning('Invalid glTF light type "%s"', [TypeString]);
+        Exit;
+      end;
+  end;
+
+  Light.Global := true;
+  Light.X3DName := TPasJSON.GetString(LightObject.Properties['name'], '');
+  // We divide glTF value by 100 otherwise Blender lights are crazy bright
+  Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 100) / 100;
+  Light.Color := ReadColor(LightObject.Properties['color'], WhiteRGB);
+
+  if Light is TAbstractPositionalLightNode then
+  begin
+    // TODO: falloff to this range will not be as specified by glTF
+    TAbstractPositionalLightNode(Light).Radius := TPasJSON.GetNumber(LightObject.Properties['range'], 0);
+    // glTF expresses "no range" as 0, we express it as -1 in X3D
+    if TAbstractPositionalLightNode(Light).Radius = 0 then
+      TAbstractPositionalLightNode(Light).Radius := -1;
+  end;
+
+  Lights.Add(Light);
+end;
+
+procedure TPunctualLights.ReadNode(const Node: TPasGLTF.TNode; const Transform: TTransformNode);
+var
+  LightIndex: Int64;
+  KHRLightsPunctualItem: TPasJSONItem;
+  KHRLightsPunctualObject: TPasJSONItemObject;
+begin
+  if (Lights <> nil) and Assigned(Node.Extensions) then
+  begin
+    KHRLightsPunctualItem := Node.Extensions.Properties['KHR_lights_punctual'];
+    if Assigned(KHRLightsPunctualItem) and
+       (KHRLightsPunctualItem is TPasJSONItemObject) then
+    begin
+      KHRLightsPunctualObject := TPasJSONItemObject(KHRLightsPunctualItem);
+      LightIndex := TPasJSON.GetInt64(KHRLightsPunctualObject.Properties['light'], -1);
+      if Between(LightIndex, 0, Lights.Count - 1) then
+        Transform.AddChildren(Lights[LightIndex] as TAbstractLightNode)
+      else
+        WritelnWarning('Invalid light index %d', [LightIndex]);
+    end;
+  end;
+end;
+
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
@@ -648,6 +823,7 @@ var
   Animations: TAnimationList;
   AnimationSampler: TAnimationSampler;
   JointMatrix: TMatrix4List; //< local for SampleSkinAnimation, but created once to avoid wasting time on allocation
+  Lights: TPunctualLights;
 
   procedure ReadHeader;
   begin
@@ -1458,6 +1634,8 @@ var
       if Node.Camera <> -1 then
         ReadCamera(Node.Camera, Transform);
 
+      Lights.ReadNode(Node, Transform);
+
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);
 
@@ -2088,14 +2266,17 @@ begin
     Animations := nil;
     AnimationSampler := nil;
     JointMatrix := nil;
+    Lights := nil;
     try
       Document := TMyGltfDocument.Create(Stream, BaseUrl);
       SkinsToInitialize := TSkinToInitializeList.Create(true);
       Animations := TAnimationList.Create(true);
       AnimationSampler := TAnimationSampler.Create;
       JointMatrix := TMatrix4List.Create;
+      Lights := TPunctualLights.Create;
 
       ReadHeader;
+      Lights.ReadHeader(Document);
 
       // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
       DefaultAppearance := TGltfAppearanceNode.Create;
@@ -2127,6 +2308,7 @@ begin
       FreeIfUnusedAndNil(DefaultAppearance);
       X3DNodeList_FreeUnusedAndNil(Appearances);
       X3DNodeList_FreeUnusedAndNil(Nodes);
+      FreeAndNil(Lights);
       FreeAndNil(Document);
     end;
   except FreeAndNil(Result); raise end;

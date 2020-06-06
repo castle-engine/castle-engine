@@ -908,7 +908,9 @@ end;
 
 function TAbstractPositionalLightNode.HasRadius: boolean;
 begin
-  Result := true;
+  { When radius < 0, behave like radius is infinite.
+    Useful for implementing glTF punctual lights. }
+  Result := Radius >= 0;
 end;
 
 procedure TAbstractPositionalLightNode.UpdateLightInstance(
