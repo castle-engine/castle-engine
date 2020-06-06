@@ -768,8 +768,13 @@ begin
 
   Light.Global := true;
   Light.X3DName := TPasJSON.GetString(LightObject.Properties['name'], '');
-  // We divide glTF value by 100 otherwise Blender lights are crazy bright
-  Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 100) / 100;
+  { Note that glTF intensity may be very large according to KHR_lights_punctual
+    (there is no upper limit, since in physics it has no upper limit).
+    And Blender can indeed set it to a very large value, like 1000,
+    see castle-engine/examples/fps_game/data/example_level/ .
+    This is not a problem for CGE,
+    so we just ignore the X3D specification limit of intensity in [0..1]. }
+  Light.Intensity := TPasJSON.GetNumber(LightObject.Properties['intensity'], 1);
   Light.Color := ReadColor(LightObject.Properties['color'], WhiteRGB);
 
   if Light is TAbstractPositionalLightNode then
@@ -779,6 +784,19 @@ begin
     // glTF expresses "no range" as 0, we express it as -1 in X3D
     if TAbstractPositionalLightNode(Light).Radius = 0 then
       TAbstractPositionalLightNode(Light).Radius := -1;
+
+    { Following KHR_lights_punctual: """When undefined, range is assumed
+      to be infinite and the light should attenuate according to inverse square law."""
+      Simply using this attenuation makes us correct, e.g. rendering matches
+      https://gltf-viewer.donmccurdy.com/ (testcase: fps_game level,
+      demo-models/gltf/punctual_lights/ ).
+
+      Note that without this, X3D by default makes no attenuation,
+      which would be bad with large intensity of lights (the scene would be incredibly bright).
+
+      TODO: When range is defined, we should make a different falloff according to
+      KHR_lights_punctual. }
+    TAbstractPositionalLightNode(Light).Attenuation := Vector3(0, 0, 1);
   end;
 
   Lights.Add(Light);
@@ -1634,7 +1652,7 @@ var
       if Node.Camera <> -1 then
         ReadCamera(Node.Camera, Transform);
 
-      //Lights.ReadNode(Node, Transform);
+      Lights.ReadNode(Node, Transform);
 
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);
