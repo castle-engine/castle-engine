@@ -166,6 +166,7 @@ type
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
+    FDefaultAnimationTransition: Single;
     FModelURL: string;
     { Model loaded from ModelURL }
     Model: TCastleScene;
@@ -185,6 +186,7 @@ type
       const Params: TPrepareParams; const DoProgress: Boolean);
     function AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
     procedure ReleaseSceneFromPool(const Scene: TCastleScene);
+    function CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
   const
     ScenePrepareResources = [prRenderSelf, prBoundingBox, prShadowVolume];
   protected
@@ -354,6 +356,9 @@ type
     property CastShadowVolumes: boolean
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
+    { See @link(TCastleSceneCore.DefaultAnimationTransition) }
+    property DefaultAnimationTransition: Single
+      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
@@ -800,6 +805,13 @@ begin
   inherited;
 end;
 
+function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
+begin
+  Result := Model.Clone(nil);
+  Result.DefaultAnimationTransition := DefaultAnimationTransition;
+  Result.PrepareResources(ScenePrepareResources, false, Params);
+end;
+
 procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
@@ -815,10 +827,7 @@ begin
     ScenePool := TCastleSceneList.Create(true);
     ScenePool.Count := Pool;
     for I := 0 to ScenePool.Count - 1 do
-    begin
-      ScenePool[I] := Model.Clone(nil);
-      ScenePool[I].PrepareResources(ScenePrepareResources, false, Params);
-    end;
+      ScenePool[I] := CreateSceneForPool(Params);
     ScenePoolUsed := 0;
   end;
 
@@ -856,6 +865,7 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
+  FDefaultAnimationTransition := ResourceConfig.GetFloat('model/default_animation_transition', 0.0);
   if ResourceConfig.GetValue('model/file_name', '') <> '' then
   begin
     FModelURL := ResourceConfig.GetURL('model/file_name', true);
@@ -954,8 +964,7 @@ begin
       Name,
       ScenePoolUsed + 1
     ]);
-    Result := Model.Clone(nil);
-    Result.PrepareResources(ScenePrepareResources, false, Level.PrepareParams);
+    Result := CreateSceneForPool(Level.PrepareParams);
     ScenePool.Add(Result);
   end;
 

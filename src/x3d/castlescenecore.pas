@@ -507,6 +507,8 @@ type
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
     LastUpdateFrameId: Int64;
+    FDefaultAnimationTransition: Single;
+
     { All InternalUpdateCamera calls will disable smooth (animated)
       transitions when this is true.
       This is set to true by @link(Load),
@@ -2166,6 +2168,14 @@ type
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
   published
+    { When using @link(PlayAnimation) without TPlayAnimationParameters,
+      this value is used as the duration (in seconds) of animation cross-fade
+      (blending of animations).
+      Zero (default value) disables the smooth transition, animations
+      will change without any transition by default. }
+    property DefaultAnimationTransition: Single
+      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
       Our @link(Update) is usually automatically called (if you added this
@@ -7865,7 +7875,6 @@ function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping;
   const Forward: boolean): boolean;
 var
-  Params: TPlayAnimationParameters;
   Loop: boolean;
   TimeNode: TTimeSensorNode;
 begin
@@ -7880,13 +7889,7 @@ begin
     end;
   end;
 
-  Params := TPlayAnimationParameters.Create;
-  try
-    Params.Name := AnimationName;
-    Params.Loop := Loop;
-    Params.Forward := Forward;
-    Result := PlayAnimation(Params);
-  finally FreeAndNil(Params) end;
+  Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
@@ -7899,6 +7902,7 @@ begin
     Params.Name := AnimationName;
     Params.Loop := Loop;
     Params.Forward := Forward;
+    Params.TransitionDuration := DefaultAnimationTransition;
     Result := PlayAnimation(Params);
   finally FreeAndNil(Params) end;
 end;
@@ -8112,7 +8116,7 @@ function TCastleSceneCore.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
   case PropertyName of
-    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop':
+    'URL', 'ProcessEvents', 'AutoAnimation', 'AutoAnimationLoop', 'DefaultAnimationTransition':
       Result := psBasic;
     else
       Result := inherited PropertySection(PropertyName);

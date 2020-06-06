@@ -78,6 +78,7 @@
           },
           {
             "AutoAnimation" : "idle",
+            "DefaultAnimationTransition" : 1.0000000149011612E-001,
             "Name" : "SceneDragon",
             "ProcessEvents" : true,
             "TranslationPersistent" : {
@@ -156,7 +157,9 @@
       "HorizontalAnchorParent" : "hpRight",
       "HorizontalAnchorSelf" : "hpRight",
       "Name" : "LabelFps",
-      "Text" : "FPS: xxx\n",
+      "Text" : [
+        "FPS: xxx"
+      ],
       "VerticalAnchorDelta" : -2.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
