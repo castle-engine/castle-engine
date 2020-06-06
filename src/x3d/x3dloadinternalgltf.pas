@@ -1634,7 +1634,7 @@ var
       if Node.Camera <> -1 then
         ReadCamera(Node.Camera, Transform);
 
-      Lights.ReadNode(Node, Transform);
+      //Lights.ReadNode(Node, Transform);
 
       for ChildNodeIndex in Node.Children do
         ReadNode(ChildNodeIndex, Transform);
