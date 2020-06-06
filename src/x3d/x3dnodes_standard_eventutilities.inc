@@ -536,9 +536,13 @@ begin
   AddEvent(FEventSet_boolean);
   FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
 
-  { X3D specification mistakenly omitted default value for this field...
-    I guess it's 0? }
-  FFdIntegerKey := TSFInt32.Create(Self, true, 'integerKey', 0);
+  { The default is not given in X3D 3.2 spec, but X3D 3.0 and 3.3 specs specify default as -1.
+    See
+    https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/utils.html#IntegerTrigger
+    https://www.web3d.org/documents/specifications/19775-1/V3.2/Part01/components/utils.html#IntegerTrigger
+    https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#IntegerTrigger
+  }
+  FFdIntegerKey := TSFInt32.Create(Self, true, 'integerKey', -1);
   AddField(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
