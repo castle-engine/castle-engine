@@ -55,7 +55,7 @@
               "ssRendering",
               "ssDynamicCollisions"
             ],
-            "URL" : "castle-data:/level/level-dungeon-final.x3dv",
+            "URL" : "castle-data:/level/level-dungeon.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"

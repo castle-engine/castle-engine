@@ -3,6 +3,38 @@
         "generator" : "Khronos glTF Blender I/O v1.1.46",
         "version" : "2.0"
     },
+    "extensionsUsed" : [
+        "KHR_lights_punctual"
+    ],
+    "extensionsRequired" : [
+        "KHR_lights_punctual"
+    ],
+    "extensions" : {
+        "KHR_lights_punctual" : {
+            "lights" : [
+                {
+                    "color" : [
+                        1,
+                        1,
+                        1
+                    ],
+                    "intensity" : 0.800000011920929,
+                    "type" : "directional",
+                    "name" : "Sun"
+                },
+                {
+                    "color" : [
+                        1,
+                        1,
+                        0.029356954619288445
+                    ],
+                    "intensity" : 20,
+                    "type" : "point",
+                    "name" : "Point"
+                }
+            ]
+        }
+    },
     "scene" : 0,
     "scenes" : [
         {
@@ -30,7 +62,11 @@
                 19,
                 20,
                 23,
-                24
+                24,
+                26,
+                28,
+                30,
+                32
             ]
         }
     ],
@@ -394,6 +430,130 @@
                 -16.600000381469727,
                 0.04105261340737343,
                 -2.113792896270752
+            ]
+        },
+        {
+            "extensions" : {
+                "KHR_lights_punctual" : {
+                    "light" : 0
+                }
+            },
+            "name" : "Sun.001_Orientation",
+            "rotation" : [
+                -0.7071067690849304,
+                0,
+                0,
+                0.7071067690849304
+            ]
+        },
+        {
+            "children" : [
+                25
+            ],
+            "name" : "Sun.001",
+            "rotation" : [
+                0.38127076625823975,
+                -0.20118629932403564,
+                0.16827407479286194,
+                0.886476457118988
+            ],
+            "translation" : [
+                7.145876884460449,
+                48.557533264160156,
+                23.126142501831055
+            ]
+        },
+        {
+            "extensions" : {
+                "KHR_lights_punctual" : {
+                    "light" : 0
+                }
+            },
+            "name" : "Sun_Orientation",
+            "rotation" : [
+                -0.7071067690849304,
+                0,
+                0,
+                0.7071067690849304
+            ]
+        },
+        {
+            "children" : [
+                27
+            ],
+            "name" : "Sun",
+            "rotation" : [
+                0.1847446858882904,
+                0.8768571019172668,
+                -0.3735678791999817,
+                0.2396623194217682
+            ],
+            "translation" : [
+                22.160797119140625,
+                48.557533264160156,
+                18.83616828918457
+            ]
+        },
+        {
+            "extensions" : {
+                "KHR_lights_punctual" : {
+                    "light" : 1
+                }
+            },
+            "name" : "Point_Orientation",
+            "rotation" : [
+                -0.7071067690849304,
+                0,
+                0,
+                0.7071067690849304
+            ]
+        },
+        {
+            "children" : [
+                29
+            ],
+            "name" : "Point",
+            "rotation" : [
+                0,
+                1,
+                0,
+                7.549790126404332e-08
+            ],
+            "translation" : [
+                20.727432250976562,
+                1.4613921642303467,
+                2.5473995208740234
+            ]
+        },
+        {
+            "extensions" : {
+                "KHR_lights_punctual" : {
+                    "light" : 1
+                }
+            },
+            "name" : "Point.001_Orientation",
+            "rotation" : [
+                -0.7071067690849304,
+                0,
+                0,
+                0.7071067690849304
+            ]
+        },
+        {
+            "children" : [
+                31
+            ],
+            "name" : "Point.001",
+            "rotation" : [
+                0,
+                1,
+                0,
+                7.549790126404332e-08
+            ],
+            "translation" : [
+                20.820531845092773,
+                1.4613921642303467,
+                -1.735128402709961
             ]
         }
     ],
