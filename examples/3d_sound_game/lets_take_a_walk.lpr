@@ -287,6 +287,7 @@ begin
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
   Viewport.AutoCamera := true;
+  Viewport.PreventInfiniteFallingDown := true;
   Window.Controls.InsertFront(Viewport);
 
   Viewport.OnCameraChanged := @TDummy(nil).CameraChanged;
