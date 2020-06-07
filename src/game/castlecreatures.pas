@@ -2086,22 +2086,35 @@ var
     AlternativeTargetTime := LifeTime;
   end;
 
-  procedure DoIdle;
+  { Assuming current state is idle (the actual State value ignored),
+    - perform  "idle" AI
+    - and tell whether you changed the state to something else (returns @true if remained idle). }
+  function DoIdle: Boolean;
   var
     DirectionToEnemy: TVector3;
     AngleRadBetweenDirectionToEnemy: Single;
   begin
+    Result := true;
     if HasLastSensedEnemy then
     begin
       CalculateDirectionToEnemy(DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
 
       if FireMissileAllowed then
-        SetState(csFireMissile) else
+      begin
+        SetState(csFireMissile);
+        Result := false;
+      end else
       if AttackAllowed then
-        SetState(csAttack) else
+      begin
+        SetState(csAttack);
+        Result := false;
+      end else
       if WantToRunAway or
          WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
-        SetState(csWalk) else
+      begin
+        SetState(csWalk);
+        Result := false;
+      end else
       if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
          BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
@@ -2116,6 +2129,7 @@ var
           So we move a little --- just for the sake of moving. }
         SetState(csWalk);
         InitAlternativeTarget;
+        Result := false;
       end else
       begin
         { Continue csIdle state }
@@ -2385,6 +2399,17 @@ var
       SetState(csAttack);
   end;
 
+  { Go to the default state, like "idle".
+    Doing this instead of SetState(csIdle) avoids switching to "idle" just for
+    a single frame, which looks bad (animation visibly jumps for 1 frame,
+    and also animation blending is broken by such 1-frame change,
+    since our animation blending now can only transition from last to next animation). }
+  procedure BackToDefaultState;
+  begin
+    if DoIdle then
+      SetState(csIdle);
+  end;
+
   procedure DoAttack;
   var
     StateTime: Single;
@@ -2396,8 +2421,7 @@ var
       Attack;
     end;
     if StateTime > Resource.AttackAnimation.Duration then
-      { csIdle will quickly change to csWalk if it will want to walk. }
-      SetState(csIdle);
+      BackToDefaultState;
   end;
 
   procedure DoFireMissile;
@@ -2411,8 +2435,7 @@ var
       FireMissile;
     end;
     if StateTime > Resource.FireMissileAnimation.Duration then
-      { csIdle will quickly change to csWalk if it will want to walk. }
-      SetState(csIdle);
+      BackToDefaultState;
   end;
 
   procedure DoHurt;
@@ -2424,7 +2447,7 @@ var
     if StateTime > Resource.HurtAnimation.Duration then
     begin
       CancelKnockback;
-      SetState(csIdle);
+      BackToDefaultState;
     end;
   end;
 
