@@ -184,6 +184,11 @@ type
     procedure SetNavigation(const Value: TCastleNavigation);
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
     procedure SetSceneManager(const Value: TCastleSceneManager);
+    { Get current Container.MousePosition.
+      Secured in case Container not assigned (returns @false)
+      or when Navigation uses MouseLook (in which case, returns the middle of our area,
+      the actual mouse position should not be even visible to the user). }
+    function GetMousePosition(out MousePosition: TVector2): Boolean;
   private
     var
       FNavigation: TCastleNavigation;
@@ -1488,9 +1493,13 @@ end;
 procedure TCastleViewport.UpdateMouseRayHit;
 var
   RayOrigin, RayDirection: TVector3;
+  MousePosition: TVector2;
 begin
-  Camera.CustomRay(RenderRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
-  PointingDeviceMove(RayOrigin, RayDirection);
+  if GetMousePosition(MousePosition) then
+  begin
+    Camera.CustomRay(RenderRect, MousePosition, FProjection, RayOrigin, RayDirection);
+    PointingDeviceMove(RayOrigin, RayDirection);
+  end;
 end;
 
 function TCastleViewport.TransformUnderMouse: TCastleTransform;
@@ -2918,6 +2927,22 @@ begin
   end;
 end;
 
+function TCastleViewport.GetMousePosition(out MousePosition: TVector2): Boolean;
+var
+  C: TUIContainer;
+begin
+  C := Container;
+  Result := C <> nil;
+  if Result then
+  begin
+    if (Navigation is TCastleWalkNavigation) and
+       TCastleWalkNavigation(Navigation).MouseLook then
+      MousePosition := RenderRect.Center
+    else
+      MousePosition := C.MousePosition;
+  end;
+end;
+
 function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
 
   { Try PointingDeviceActivate on 3D stuff hit by RayHit }
@@ -2986,22 +3011,11 @@ var
               TryActivateAround(Vector2(+Change,       0));
   end;
 
-  { If Container assigned, set local MousePosition. }
-  function GetMousePosition: boolean;
-  var
-    C: TUIContainer;
-  begin
-    C := Container;
-    Result := C <> nil;
-    if Result then
-      MousePosition := C.MousePosition;
-  end;
-
 begin
   Result := TryActivate(MouseRayHit);
   if not Result then
   begin
-    if ApproximateActivation and GetMousePosition then
+    if ApproximateActivation and GetMousePosition(MousePosition) then
       Result := TryActivateAroundSquare(25) or
                 TryActivateAroundSquare(50) or
                 TryActivateAroundSquare(100) or
