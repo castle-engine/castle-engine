@@ -2717,11 +2717,11 @@ begin
 
   Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
 
-  Plane := Vector4(RayDirection,
-    { We know that RayDirection, which is used as Plane.XYZ, is normalized.
-      Calculate Plane[3] such that point RayOrigin + RayDirection * Depth
+  Plane := Vector4(Camera.Direction,
+    { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
+      Calculate Plane[3] such that point RayOrigin + Camera.Direction * Depth
       satisfies the plane equation. }
-    - TVector3.DotProduct(RayOrigin + RayDirection * Depth, RayDirection));
+    - TVector3.DotProduct(RayOrigin + Camera.Direction * Depth, Camera.Direction));
 
   Result := TryPlaneRayIntersection(PlanePosition, Plane, RayOrigin, RayDirection);
 end;
