@@ -661,11 +661,56 @@ type
       read GetNavigationType write SetNavigationType
       default ntNone;
 
-    { Convert 2D position on the viewport into "world coordinates",
-      which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+    { Convert 2D position on the viewport into 3D "world coordinates",
+      by colliding camera ray with a plane parallel to the viewport at given Depth.
+      "World coordinates" are coordinates
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items).
+      Use Depth > 0 for positions in front of the camera.
+
+      This is similar to "Unproject" GLU routine.
+      It allows to map points from the screen back to the 3D space inside viewport.
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindowBase or TCastleControlBase).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      Returns true and sets 3D PlanePosition if such intersection is found.
+      Returns false if it's not possible to determine such point (which
+      should not be possible, unless camera field of view is larger than 180 degrees).
+    }
+    function PositionToCameraPlane(const Position: TVector2;
+      const ScreenCoordinates: Boolean;
+      const Depth: Single; out PlanePosition: TVector3): Boolean;
+
+    { Convert 2D position on the viewport into 3D "world coordinates",
+      by colliding camera ray with a plane at constant Z.
+      "World coordinates" are coordinates
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items).
+
       This is a more general version of @link(PositionTo2DWorld),
       that works with any projection (perspective or orthographic).
+      This is often useful if your game is "close to 2D", which means that you
+      use 3D (and maybe even perspective camera),
+      but most of the game world is placed around some plane with constant Z.
 
       The interpretation of Position depends on ScreenCoordinates,
       and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
@@ -2652,6 +2697,33 @@ begin
   Camera.ProjectionFar := Default2DProjectionFar;
   Camera.ProjectionType := ptOrthographic;
   AutoCamera := false;
+end;
+
+function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const Depth: Single; out PlanePosition: TVector3): Boolean;
+var
+  R: TFloatRectangle;
+  ScreenPosition: TVector2;
+  RayOrigin, RayDirection, CameraForward: TVector3;
+  Plane: TVector4;
+begin
+  R := RenderRect;
+
+  if ScreenCoordinates then
+    ScreenPosition := Position
+  else
+    ScreenPosition := Position * UIScale + R.LeftBottom;
+
+  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+
+  Plane := Vector4(RayDirection,
+    { We know that RayDirection, which is used as Plane.XYZ, is normalized.
+      Calculate Plane[3] such that point RayOrigin + RayDirection * Depth
+      satisfies the plane equation. }
+    - TVector3.DotProduct(RayOrigin + RayDirection * Depth, RayDirection));
+
+  Result := TryPlaneRayIntersection(PlanePosition, Plane, RayOrigin, RayDirection);
 end;
 
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
