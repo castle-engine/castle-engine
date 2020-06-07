@@ -30,6 +30,7 @@
                     ],
                     "intensity" : 20,
                     "type" : "point",
+                    "range" : 4,
                     "name" : "Point"
                 }
             ]
