@@ -2705,7 +2705,7 @@ function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
 var
   R: TFloatRectangle;
   ScreenPosition: TVector2;
-  RayOrigin, RayDirection, CameraForward: TVector3;
+  RayOrigin, RayDirection: TVector3;
   Plane: TVector4;
 begin
   R := RenderRect;
