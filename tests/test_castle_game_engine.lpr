@@ -93,7 +93,8 @@ uses
   TestCastleComponentSerialize,
   TestX3DLoadInternalUtils,
   TestCastleLevels,
-  TestCastleDownload
+  TestCastleDownload,
+  TestCastleUnicode
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
