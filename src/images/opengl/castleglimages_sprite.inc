@@ -444,6 +444,7 @@ begin
   begin
     Assert(FCurrentAnimation < FCustomAnimations.Count);
     Anim := FCustomAnimations.Items[FCurrentAnimation];
+    FFrame := Anim.Frames[FCustomFrame].Frame;
     while (FTime - FCustomAnimTimestamp) >= Anim.Frames[FCustomFrame].Duration do
     begin
       // todo: custom animation loops
