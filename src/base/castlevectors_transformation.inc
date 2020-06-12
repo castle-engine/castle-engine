@@ -58,11 +58,11 @@ type
       const Rotation: TVector4;
       const ScaleVector: TVector3;
       const ScaleOrientation: TVector4;
-      const Translation: TVector3);
+      const Translation: TVector3); overload;
     procedure Multiply(
       const Rotation: TVector4;
       const ScaleVector: TVector3;
-      const Translation: TVector3);
+      const Translation: TVector3); overload;
 
     { Modify transformation by an additional translation. }
     procedure Translate(const Translation: TVector3);

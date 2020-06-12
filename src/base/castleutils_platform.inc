@@ -78,7 +78,7 @@ end;
 
 function StrToPlatform(const S: String): TCastlePlatform;
 begin
-  for Result in TCastlePlatform do
+  for Result := Low(TCastlePlatform) to High(TCastlePlatform) do
     if AnsiSameText(PlatformToStr(Result), S) then
       Exit;
   raise Exception.CreateFmt('Invalid platform name "%s"', [S]);

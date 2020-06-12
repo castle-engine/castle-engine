@@ -100,10 +100,10 @@ type
       @link(Start), @link(Stop) are ignored then. }
     property Enabled: Boolean read FEnabled write FEnabled;
     procedure StartFrame;
-    procedure Start(const Metric: TFrameMetric);
-    procedure Stop(const Metric: TFrameMetric);
-    procedure Start(const UserMetric: String);
-    procedure Stop(const UserMetric: String);
+    procedure Start(const Metric: TFrameMetric); overload;
+    procedure Stop(const Metric: TFrameMetric); overload;
+    procedure Start(const UserMetric: String); overload;
+    procedure Stop(const UserMetric: String); overload;
   end;
 
 { Single instance of @link(TCastleFrameProfiler) that you can use for frame profiling.
@@ -157,7 +157,8 @@ begin
   if not FEnabled then Exit;
 
   Assert(CurrentFrameStarted[Metric]);
-  FramesTimes[CurrentFrame, Metric] += CurrentFrameStart[Metric].ElapsedTime;
+  FramesTimes[CurrentFrame, Metric] := FramesTimes[CurrentFrame, Metric] +
+    CurrentFrameStart[Metric].ElapsedTime;
   CurrentFrameStarted[Metric] := false;
 end;
 
@@ -174,7 +175,7 @@ procedure TCastleFrameProfiler.StartFrame;
       Result := '';
       for I := 0 to MaxUserMetrics - 1 do
         if Names[I] <> '' then
-          Result += Format('  - %s: %d%%' + NL, [
+          Result := Result + Format('  - %s: %d%%' + NL, [
             Names[I],
             Round(100 * FramesTimes[CurrentFrame, InitialIndex + I] / TotalTime)
           ]);
@@ -234,14 +235,15 @@ begin
     FramesTimes[CurrentFrame, IndexTotalMetric] := CurrentFrameStart[IndexTotalMetric].ElapsedTime;
 
     // check do have any other time started in this frame, and not stopped
-    for OtherMetric in TMetricIndex do
+    for OtherMetric := Low(TMetricIndex) to High(TMetricIndex) do
       if (OtherMetric <> IndexTotalMetric) and
          CurrentFrameStarted[OtherMetric] then
         begin
           WritelnWarning('Frame metric %d not stopped within this frame. Possible causes: mismatched Start/Stop calls, or broken by exception', [
             OtherMetric
           ]);
-          FramesTimes[CurrentFrame, OtherMetric] += CurrentFrameStart[OtherMetric].ElapsedTime;
+          FramesTimes[CurrentFrame, OtherMetric] := FramesTimes[CurrentFrame, OtherMetric] +
+            CurrentFrameStart[OtherMetric].ElapsedTime;
         end;
 
     // until we have a proper TCastleFrameProfilerDisplay, just dump it in the log every second
@@ -266,16 +268,22 @@ end;
 function TCastleFrameProfiler.IndexUserMetric(const Name: String; out Metric: TMetricIndex): Boolean;
 
   function FindUserMetricName(var Names: array of String; out Index: TUserMetric): Boolean;
+  var
+    Idx: TUserMetric;
   begin
-    for Index in TUserMetric do
-      if Names[Index] = Name then
+    for Idx := Low(TUserMetric) to High(TUserMetric) do
+      if Names[Idx] = Name then
+      begin
+        Index := Idx;
         Exit(true);
+      end;
 
     // otherwise look for an empty slot
-    for Index in TUserMetric do
-      if Names[Index] = '' then
+    for Idx := Low(TUserMetric) to High(TUserMetric) do
+      if Names[Idx] = '' then
       begin
-        Names[Index] := Name;
+        Names[Idx] := Name;
+        Index := Idx;
         Exit(true);
       end;
 

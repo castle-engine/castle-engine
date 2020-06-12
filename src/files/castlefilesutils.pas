@@ -514,7 +514,8 @@ function SaveScreenPath: String;
 implementation
 
 uses {$ifdef MSWINDOWS} ShlObj, {$endif}
-  {$ifdef DARWIN} MacOSAll, {$endif} Classes, Process,
+  {$ifdef DARWIN} MacOSAll, {$endif} Classes,
+  {$ifdef FPC} Process, {$endif}
   CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
@@ -879,7 +880,7 @@ begin
   try
     Handler.SourcePath := SourcePath;
     Handler.DestinationPath := DestinationPath;
-    FindFiles(SourcePath, '*', false, @Handler.FoundFile, [ffRecursive]);
+    FindFiles(SourcePath, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} Handler.FoundFile, [ffRecursive]);
   finally FreeAndNil(Handler) end;
 end;
 

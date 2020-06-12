@@ -262,7 +262,7 @@ begin
 
     {$endif} {$endif} {$endif};
 
-  Result += ', platform: ' + PlatformToStr(Platform);
+  Result := Result + ', platform: ' + PlatformToStr(Platform);
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
