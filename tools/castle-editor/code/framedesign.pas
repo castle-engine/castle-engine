@@ -32,7 +32,9 @@ uses
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
   CastleCameras, CastleBoxes,
-  FrameAnchors;
+  // Castle-editor units
+  FrameAnchors,
+  UndoSystem;
 
 type
   { Frame to visually design component hierarchy. }
