@@ -81,7 +81,7 @@ begin
       {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
       {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
-      State.Transform);
+      State.Transformation.Transform);
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
   finally Calculator.Free end;
@@ -112,7 +112,7 @@ function Coords_BoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
   Result := CalculateBoundingBox(Coord.Items.L,
-    Coord.Items.Count, 0, State.Transform);
+    Coord.Items.Count, 0, State.Transformation.Transform);
 end;
 
 function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -135,20 +135,27 @@ function TAbstractGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
 var
   C: TMFVec3f;
 begin
+  if (State.ShapeNode <> nil) and
+     (not State.ShapeNode.BBox.IsEmpty) then
+  begin
+    Result := State.ShapeNode.BBox.Transform(State.Transformation.Transform); // use precalculated bounding box, fastest
+  end else
   if InternalCoord(State, C) then
   begin
     if C <> nil then
     begin
       if CoordIndexField <> nil then
-        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndexField) else
+        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndexField)
+      else
         Result := Coords_BoundingBox(State, C);
     end else
       Result := TBox3D.Empty;
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := CallProxyBoundingBox(ProxyGeometry, ProxyState) else
-      Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transform);
+      Result := CallProxyBoundingBox(ProxyGeometry, ProxyState)
+    else
+      Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transformation.Transform);
   end;
 end;
 
@@ -164,6 +171,11 @@ var
   NewState: TX3DGraphTraverseState;
   C: TMFVec3f;
 begin
+  if (State.ShapeNode <> nil) and
+     (not State.ShapeNode.BBox.IsEmpty) then
+  begin
+    Result := State.ShapeNode.BBox; // use precalculated bounding box, fastest
+  end else
   if InternalCoord(State, C) then
   begin
     if C <> nil then
@@ -180,7 +192,7 @@ begin
     begin
       NewState := TX3DGraphTraverseState.CreateCopy(State);
       try
-        NewState.Transform := TMatrix4.Identity;
+        NewState.Transformation.Init;
         result := BoundingBox(NewState, ProxyGeometry, ProxyState);
       finally NewState.Free end;
     end;
@@ -282,7 +294,7 @@ begin
     or in "The Unholy Society") doesn't change the text bounding box,
     making camera and all derived sizes "constant" regardless of maxDisplayChars. }
 
-  Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transform);
+  Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transformation.Transform);
 end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;
@@ -307,8 +319,9 @@ begin
   begin result := TBox3D.Empty; exit end;
 
  if Local then
-   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0) else
-   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transform);
+   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0)
+ else
+   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transformation.Transform);
 end;
 
 function TConeNode_1.BoundingBox(State: TX3DGraphTraverseState;
@@ -369,14 +382,14 @@ function TCubeNode_1.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 function TBoxNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 function Cylinder_LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -422,14 +435,14 @@ function TCylinderNode_1.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 function TCylinderNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 function Sphere_LocalBoundingBox(const Radius: Single): TBox3D;
@@ -455,14 +468,14 @@ function TSphereNode_1.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 function TSphereNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transformation.Transform);
 end;
 
 { TElevationGridNode --------------------------------------------------------- }
@@ -543,7 +556,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := FdCrossSection.Items.Ptr(J);
-        Result.Include(State.Transform.MultPoint(
+        Result.Include(State.Transformation.Transform.MultPoint(
           Transform.MultPoint(
             Vector3(Point2d^[0], 0, Point2d^[1]))));
       end;

@@ -1,5 +1,4 @@
-{ Main user interface class.
-  This implements the majority of this application functionality.
+{ Main state, where most of the application logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
@@ -13,14 +12,10 @@ uses Classes,
   CastleKeysMouse;
 
 type
-  { Main user interface class.
-    This implements the majority of this application functionality. }
+  { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    ClickCount: Cardinal;
-    Button1: TCastleButton;
-    Label1, LabelFps: TCastleLabel;
-    procedure Button1Click(Sender: TObject);
+    LabelFps: TCastleLabel;
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
@@ -32,8 +27,7 @@ var
 
 implementation
 
-uses SysUtils,
-  CastleWindow;
+uses SysUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -46,27 +40,14 @@ begin
   { Load designed user interface }
   InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
 
-  { Find a label to show frames per second information }
+  { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
-
-  { Find a button, and assign OnClick handler }
-  Button1 := UiOwner.FindRequiredComponent('Button1') as TCastleButton;
-  Button1.OnClick := @Button1Click;
-
-  { Find another label (will be used by Button1Click) }
-  Label1 := UiOwner.FindRequiredComponent('Label1') as TCastleLabel;
-end;
-
-procedure TStateMain.Button1Click(Sender: TObject);
-begin
-  Inc(ClickCount);
-  Label1.Caption := Format('You clicked the button %d times', [ClickCount]);
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
+  inherited;
   { This virtual method is executed every frame.}
-
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
@@ -85,11 +66,14 @@ begin
     not handled in children controls.
   }
 
-  if Event.IsKey(keyEscape) then
+  // Use this to handle keys:
+  {
+  if Event.IsKey(keyXxx) then
   begin
-    Application.Terminate;
+    // DoSomething;
     Exit(true); // key was handled
   end;
+  }
 end;
 
 end.

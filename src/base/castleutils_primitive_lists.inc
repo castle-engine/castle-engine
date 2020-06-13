@@ -81,6 +81,10 @@ type
 
     { Multiply all items by Factor. }
     procedure MultiplyAll(const Factor: Single);
+
+    { Sort and remove (exact) duplicates.
+      Removal of duplicates is very fast, utilizing the fact that the list is sorted. }
+    procedure SortAndRemoveDuplicates;
   end;
 
   TDoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>)
@@ -345,6 +349,31 @@ var
 begin
   for I := 0 to Count - 1 do
     Items[I] := Items[I] * Factor;
+end;
+
+procedure TSingleList.SortAndRemoveDuplicates;
+var
+  NewPosition, SourcePosition: Integer;
+begin
+  Sort;
+
+  { Both numbers NewPosition and SourcePosition move from 0 to Count.
+    While SourcePosition always increases (and will definitely reach Count),
+    NewPosition may grow slower, it indicates where should the Items[SourcePosition]
+    be placed in the output list.
+    Always NewPosition <= SourcePosition. }
+  NewPosition := 0;
+  SourcePosition := 0;
+  while SourcePosition + 1 < Count do
+  begin
+    if Items[SourcePosition] <> Items[SourcePosition + 1] then
+    begin
+      Inc(NewPosition);
+      Items[NewPosition] := Items[SourcePosition + 1];
+    end;
+    Inc(SourcePosition);
+  end;
+  Count := NewPosition + 1;
 end;
 
 { TDoubleList ------------------------------------------------------------ }

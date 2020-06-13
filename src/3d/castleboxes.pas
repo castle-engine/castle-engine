@@ -145,7 +145,6 @@ type
     function Middle: TVector3; deprecated 'use Center';
 
     { Center of the box.
-      Name consistent with e.g. @link(TAbstractX3DGroupingNode.BboxCenter).
       @raises(EBox3DEmpty If the Box is empty.) }
     function Center: TVector3;
 
@@ -256,6 +255,10 @@ type
 
     { Make box larger, if necessary, to contain given Point. }
     procedure Include(const Point: TVector3); overload;
+    procedure Include(const Points: TVector3List); overload;
+
+    { Make a box that contains given points. }
+    class function FromPoints(const Points: TVector3List): TBox3D; static;
 
     { Three box sizes. }
     function Sizes: TVector3; deprecated 'use Size';
@@ -549,6 +552,11 @@ type
     class operator {$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
     class operator {$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
     class operator {$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+
+    { Convert from center and size vector. Empty box has size (-1,-1,-1). }
+    class function FromCenterSize(const ACenter, ASize: TVector3): TBox3D; static;
+    { Convert to center and size vector. Empty box has size (-1,-1,-1). }
+    procedure ToCenterSize(out ACenter, ASize: TVector3);
   end;
 
   TBox3DBool = array [boolean] of TVector3;
@@ -1021,6 +1029,55 @@ begin
     MaxVar(Data[1].Data[1], Point.Data[1]);
     MinVar(Data[0].Data[2], Point.Data[2]);
     MaxVar(Data[1].Data[2], Point.Data[2]);
+  end;
+end;
+
+procedure TBox3D.Include(const Points: TVector3List);
+var
+  V: TVector3;
+  I, StartIndex: Integer;
+begin
+  if IsEmpty then
+  begin
+    Data[0] := Points.List^[0];
+    Data[1] := Points.List^[0];
+    StartIndex := 1;
+  end else
+    StartIndex := 0;
+
+  for I := StartIndex to Points.Count - 1 do
+  begin
+    V := Points.List^[I];
+    MinVar(Data[0].Data[0], V.Data[0]);
+    MaxVar(Data[1].Data[0], V.Data[0]);
+    MinVar(Data[0].Data[1], V.Data[1]);
+    MaxVar(Data[1].Data[1], V.Data[1]);
+    MinVar(Data[0].Data[2], V.Data[2]);
+    MaxVar(Data[1].Data[2], V.Data[2]);
+  end;
+end;
+
+class function TBox3D.FromPoints(const Points: TVector3List): TBox3D;
+var
+  V: TVector3;
+  I: Integer;
+begin
+  if Points.Count = 0 then
+    Result := TBox3D.Empty
+  else
+  begin
+    Result.Data[0] := Points.List^[0];
+    Result.Data[1] := Points.List^[0];
+    for I := 1 to Points.Count - 1 do
+    begin
+      V := Points.List^[I];
+      MinVar(Result.Data[0].Data[0], V.Data[0]);
+      MaxVar(Result.Data[1].Data[0], V.Data[0]);
+      MinVar(Result.Data[0].Data[1], V.Data[1]);
+      MaxVar(Result.Data[1].Data[1], V.Data[1]);
+      MinVar(Result.Data[0].Data[2], V.Data[2]);
+      MaxVar(Result.Data[1].Data[2], V.Data[2]);
+    end;
   end;
 end;
 
@@ -2181,6 +2238,24 @@ end;
 class operator TBox3D.{$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D;
 begin
   Result := B.Translate(V);
+end;
+
+class function TBox3D.FromCenterSize(const ACenter, ASize: TVector3): TBox3D;
+begin
+  Result := Box3DAroundPoint(ACenter, ASize);
+end;
+
+procedure TBox3D.ToCenterSize(out ACenter, ASize: TVector3);
+begin
+  if IsEmpty then
+  begin
+    ACenter := TVector3.Zero;
+    ASize := Vector3(-1, -1, -1);
+  end else
+  begin
+    ACenter := Center;
+    ASize := Size;
+  end;
 end;
 
 { Routines ------------------------------------------------------------------- }

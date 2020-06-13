@@ -25,11 +25,27 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetLanguage: TShaderLanguage;
+    procedure SetLanguage(const Value: TShaderLanguage);
+  public
+    { X3D field "language". } { }
+    property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractShaderNode ----------------------------------------------- }
+
+function TAbstractShaderNode.GetLanguage: TShaderLanguage;
+begin
+  Result := TShaderLanguage(FdLanguage.EnumValue);
+end;
+
+procedure TAbstractShaderNode.SetLanguage(const Value: TShaderLanguage);
+begin
+  FdLanguage.SendEnumValue(Ord(Value));
+end;
 
 {$endif read_implementation}

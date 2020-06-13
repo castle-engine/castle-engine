@@ -27,15 +27,15 @@
 
   strict private
 {$ifndef CASTLE_SLIM_NODES}
-    function GetCrossOrigin: string;
-    procedure SetCrossOrigin(const Value: string);
+    function GetCrossOrigin: String;
+    procedure SetCrossOrigin(const Value: String);
 {$endif not CASTLE_SLIM_NODES}
   public
     { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
 {$ifndef CASTLE_SLIM_NODES}
     { X3D field "crossOrigin". } { }
-    property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
+    property CrossOrigin: String read GetCrossOrigin write SetCrossOrigin;
 {$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
@@ -57,12 +57,12 @@ begin
 end;
 
 {$ifndef CASTLE_SLIM_NODES}
-function TAbstractSingleTextureNode.GetCrossOrigin: string;
+function TAbstractSingleTextureNode.GetCrossOrigin: String;
 begin
   Result := FdCrossOrigin.Value;
 end;
 
-procedure TAbstractSingleTextureNode.SetCrossOrigin(const Value: string);
+procedure TAbstractSingleTextureNode.SetCrossOrigin(const Value: String);
 begin
   FdCrossOrigin.Send(Value);
 end;

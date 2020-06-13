@@ -111,13 +111,13 @@ begin
 
   { Calculate (and possibly visualize later) vectors E1, E2, E3 exactly
     like the ones calculated in TriangulateFace algorithm. }
-  EarNormal := TriangleDir(V0, V1, V2);
-  Assert(not ZeroVector(EarNormal));
+  EarNormal := TriangleDirection(V0, V1, V2);
+  Assert(not EarNormal.IsZero);
   EarNormal.NormalizeMe;
 
-  E1 := VectorProduct(EarNormal, V0 - V1);
-  E2 := VectorProduct(EarNormal, V1 - V2);
-  E3 := VectorProduct(EarNormal, V2 - V0);
+  E1 := TVector3.CrossProduct(EarNormal, V0 - V1);
+  E2 := TVector3.CrossProduct(EarNormal, V1 - V2);
+  E3 := TVector3.CrossProduct(EarNormal, V2 - V0);
 
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := RandomLightFPColor;
@@ -217,20 +217,20 @@ begin
   MaxV := Vertexes[0];
   for I := 1 to Vertexes.Count - 1 do
   begin
-    MinVar(MinV[0], Vertexes[I][0]);
-    MinVar(MinV[1], Vertexes[I][1]);
-    MinVar(MinV[2], Vertexes[I][2]);
-    MaxVar(MaxV[0], Vertexes[I][0]);
-    MaxVar(MaxV[1], Vertexes[I][1]);
-    MaxVar(MaxV[2], Vertexes[I][2]);
+    MinVar(MinV.Data[0], Vertexes[I][0]);
+    MinVar(MinV.Data[1], Vertexes[I][1]);
+    MinVar(MinV.Data[2], Vertexes[I][2]);
+    MaxVar(MaxV.Data[0], Vertexes[I][0]);
+    MaxVar(MaxV.Data[1], Vertexes[I][1]);
+    MaxVar(MaxV.Data[2], Vertexes[I][2]);
   end;
 
   { make MinV/MaxV even slightly more distant, to have some margin around
     visualized polygon }
   for I := 0 to 2 do
   begin
-    MinV[I] -= (MaxV[I] - MinV[I]) / 10;
-    MaxV[I] += (MaxV[I] - MinV[I]) / 10;
+    MinV.Data[I] -= (MaxV.Data[I] - MinV.Data[I]) / 10;
+    MaxV.Data[I] += (MaxV.Data[I] - MinV.Data[I]) / 10;
   end;
 end;
 
@@ -258,7 +258,7 @@ end;
 
 procedure TVisualizeTriangulation.VisualizeTriangulation;
 begin
-  TriangulateFace(nil, Vertexes.Count, Vertexes.L, Vertexes.Count, @Face, 0);
+  TriangulateFace(nil, Vertexes.Count, Vertexes.List, Vertexes.Count, @Face, 0);
 end;
 
 destructor TVisualizeTriangulation.Destroy;
@@ -274,26 +274,25 @@ end;
 const
   { Hardcoded polygon from https://sourceforge.net/p/castle-engine/tickets/13/ }
   Polygon: array [0..17] of TVector3 = (
-    (1, 0, -2.44921e-016),
-    (0.932472, 0, -0.361242),
-    (0.739009, 0, -0.673696),
-    (0.445738, 0, -0.895164),
-    (0.00838485, 0, 0.0251547),
-    (-0.273664, 0, -0.961825),
-    (-0.602635, 0, -0.798017),
-    (-0.850218, 0, -0.526432),
-    (-0.982973, 0, -0.183749),
-    (-0.982973, 0, 0.18375),
-    (-0.850217, 0, 0.526433),
-    (-0.602634, 0, 0.798018),
-    (-0.273663, 0, 0.961826),
-    (0.0922688, 0, 0.995734),
-    (0.445739, 0, 0.895163),
-    (0.739009, 0, 0.673695),
-    (0.932472, 0, 0.361241),
-    (1, 0, -2.44921e-016)
+    (Data: (1, 0, -2.44921e-016)),
+    (Data: (0.932472, 0, -0.361242)),
+    (Data: (0.739009, 0, -0.673696)),
+    (Data: (0.445738, 0, -0.895164)),
+    (Data: (0.00838485, 0, 0.0251547)),
+    (Data: (-0.273664, 0, -0.961825)),
+    (Data: (-0.602635, 0, -0.798017)),
+    (Data: (-0.850218, 0, -0.526432)),
+    (Data: (-0.982973, 0, -0.183749)),
+    (Data: (-0.982973, 0, 0.18375)),
+    (Data: (-0.850217, 0, 0.526433)),
+    (Data: (-0.602634, 0, 0.798018)),
+    (Data: (-0.273663, 0, 0.961826)),
+    (Data: (0.0922688, 0, 0.995734)),
+    (Data: (0.445739, 0, 0.895163)),
+    (Data: (0.739009, 0, 0.673695)),
+    (Data: (0.932472, 0, 0.361241)),
+    (Data: (1, 0, -2.44921e-016))
   );
-
 var
   URL: string;
   Vis: TVisualizeTriangulation;

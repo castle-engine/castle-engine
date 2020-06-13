@@ -356,7 +356,8 @@ begin
 
   FaceConvex := ANode.FdConvex.Value;
 
-  { calculate Color, ColorPerVertex, ColorIndex fields }
+  { calculate ColorXxx fields }
+  ColorNode := ANode.Color;
   Color := ANode.InternalColor;
   ColorRGBA := ANode.InternalColorRGBA;
   ColorPerVertex := ANode.FdColorPerVertex.Value;

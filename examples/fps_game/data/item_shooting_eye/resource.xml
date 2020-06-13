@@ -15,9 +15,9 @@
   image="inventory_image.png"
 >
   <model>
-    <base   url="base.x3d"/>
-    <attack url="ready.x3d"/> <!-- No fancy animation when shooting for now -->
-    <ready  url="ready.x3d"/>
+    <base   url="base.gltf"/>
+    <attack url="ready.gltf"/> <!-- No fancy animation when shooting for now -->
+    <ready  url="ready.gltf"/>
   </model>
   <attack time="0.0" shoot="True"
     sound_start="eye_shoot" knockback_distance="4.0">

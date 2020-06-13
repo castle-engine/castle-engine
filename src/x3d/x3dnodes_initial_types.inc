@@ -65,6 +65,7 @@
   TAbstractTextureCoordinateNode = class;
   TAbstractEnvironmentTextureNode = class;
   TAbstractPunctualLightNode = class;
+  TAbstractColorNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

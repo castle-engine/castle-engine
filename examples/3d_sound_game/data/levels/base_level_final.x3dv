@@ -5,7 +5,7 @@ PointLight {
   ambientIntensity 1
   location 2.6485183238983154 1.7994731664657593 2.1180229187011719
   global TRUE
-  radius 10000 # infinity
+  radius -1 # infinity
 }
 
 PointLight {
@@ -13,7 +13,7 @@ PointLight {
   location -1.4864876270294189 -1.3643914461135864 2.1502542495727539
   color 0.2 0.2 0.5
   global TRUE
-  radius 10000 # infinity
+  radius -1 # infinity
 }
 
 # Camera settings "encoded" in the VRML/X3D declaration below :

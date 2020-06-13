@@ -1,46 +1,13 @@
 ## TODO
 
 ------------------------------------------------------------------------------
-Before 6.6 release:
-
-* warning when project with editor_units opened in vanilla editor
+Before 7.0 release:
 
 * when trying to drag to resize, we could show a hint from EditorAllowResize
   (ResizeDisabledReason) somewhere
   (at tooltip)?
 
-* Define EditorAllowResize for
-  castledialogstates_dialog.inc
-  castlecontrols_progressbar.inc
-  castleonscreenmenu.pas
-  castleinspectorcontrol.pas
-  castlenotifications.pas
-  castlecontrols_touchcontrol.inc
-  castlecontrols_groups.inc
-  castlecontrols_crosshair.inc
-
-* Anchors tab keeps getting deselected for some reason when moving UI control
-  RETEST, probably fixed, it no longer blinks out-in.
-
-* TCastleButton:
-  - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
-  - Test a way to upgrade names in design files while doing above?
-
-* build tool integration:
-    * Detect lack of FPC / Delphi and make a nice error message
-
-* Show on recent list %20 as spaces, use URICaption or such ready function?
-
-* rename TUIState -> TCastleState? (best)
-  TCastleUserInterfaceState?
-  TCastleForm?
-
 * 3d gizmos to translate / rotate / scale
-
-* force non-empty Name on all, to have wokring streaming?
-
-  unless it's already forced, is it possible to set name='' without
-  exception from SetName?
 
 * templates:
     * Create other than "empty" project templates
@@ -52,6 +19,26 @@ Before 6.6 release:
 ------------------------------------------------------------------------------
 Lower priority:
 OK if after nearest release:
+
+* Define EditorAllowResize for
+  castledialogstates_dialog.inc
+  castlecontrols_progressbar.inc
+  castleonscreenmenu.pas
+  castleinspectorcontrol.pas
+  castlenotifications.pas
+  castlecontrols_touchcontrol.inc
+  castlecontrols_groups.inc
+  castlecontrols_crosshair.inc
+
+* rename TUIState -> TCastleState? (best)
+  TCastleUserInterfaceState?
+  TCastleForm?
+
+* TCastleButton:
+  - Simplify property names, just Color and UseColor and BackgroundImage, less usage of "Custom" prefix
+  - Test a way to upgrade names in design files while doing above?
+
+* component class display with grayed-out color, to be visually separate from name
 
 * TEditDirectory use at "new project"
 
@@ -203,12 +190,6 @@ OK if after nearest release:
 
 ------------------------------------------------------------------------------
 "castle-engine editor" improvements:
-
-- Make editor warn when opening project with editor_units, but castle_editor_automatic_package not compiled in. (Known registered packages? Or just unit castleeditorcustomcomponents.pas can set some global variable?)
-
-  """
-  Warning: You are opening a project with possible custom components (editor_units attribute in CastleEngineManifest.xml), but these custom components are not compiled-in in this editor version. Use menu item "Restart editor in this project" to get the correct editor version.
-  """
 
 - Do not rebuild "castle-engine editor" when not needed. It seems we should compare generated lpi/lpk, and *do not* overwrite (to not change timestamp) when equal. This way Lazarus xxx.compiled files will work.
 

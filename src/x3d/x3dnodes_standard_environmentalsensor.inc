@@ -105,12 +105,12 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
+   FdCenter.ChangeAlways := chEnvironmentalSensorBounds;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(0, 0, 0));
-   FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
+   FdSize.ChangeAlways := chEnvironmentalSensorBounds;
   AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 

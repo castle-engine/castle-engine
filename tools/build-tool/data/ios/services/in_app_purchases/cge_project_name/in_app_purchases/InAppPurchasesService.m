@@ -27,6 +27,7 @@
 
 #import "InAppPurchasesService.h"
 #import "../AppDelegate.h"
+#import "../CgeUtils.h"
 
 @implementation InAppPurchasesService
 

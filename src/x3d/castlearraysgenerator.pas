@@ -229,7 +229,7 @@ implementation
 
 uses SysUtils, Math, Generics.Collections,
   CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
-  CastleStringUtils;
+  CastleStringUtils, CastleRendererBaseTypes;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
@@ -534,6 +534,7 @@ type
     ColorRGBA: TMFColorRGBA;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
+    ColorNode: TAbstractColorNode;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
@@ -542,12 +543,17 @@ type
   end;
 
   TNormalsImplementation = (
-    { Do nothing about normals (in TAbstractNormalGenerator)
-      class. Passing normals to OpenGL is left for descendants. }
+    { TAbstractNormalGenerator does nothing about normals.
+      Descendants must override GetNormal and GenerateVertex to provide normals
+      calculated using a custom method. }
     niNone,
     { The first item of Normals specifies the one and only normal
       for the whole geometry. }
     niOverall,
+    { Shape does not have any way to define reasonable normals, and so is rendered unlit
+      (e.g. LineSet, IndexedLineSet, PointSet, at least when no explicit
+      normals are provided (X3D v4 may allow providing normals for them)). }
+    niUnlit,
     { Each vertex has it's normal vector, IndexNum specifies direct index
       to Normals. }
     niPerVertexNonIndexed,
@@ -560,7 +566,8 @@ type
     { Face number is the index to Normals. }
     niPerFace,
     { Face number is the index to NormalIndex, and this indexes Normals. }
-    niPerFaceNormalIndexed);
+    niPerFaceNormalIndexed
+  );
 
   { Handle normals, both taken from user data (that is, stored in VRML file)
     and generated.
@@ -584,13 +591,13 @@ type
 
     - If and only if NorImplementation = niNone (either you left it as
       default, or NorImplementationFromVRML1Binding returned this,
-      or you set this...)
-      you have to make appropriate glNormal calls yourself.
+      or you set this...) you have to
 
-      Normals will always point from side set as NormalsCcw.
+      - Override GetNormal and return correct normals.
+        GetNormal results (vectors) must point from side set as NormalsCcw.
+        When NorImplementation <> niNone then GetNormal should return inherited.
 
-      If NorImplementation <> niNone then we handle everything
-      related to normals in this class.
+      - Override GenerateVertex and set Arrays.Normal(ArrayIndexNum)^ := ...;
 
     Note that PerVertexXxx normals require smooth shading to work Ok. }
   TAbstractNormalGenerator = class(TAbstractColorGenerator)
@@ -786,11 +793,8 @@ begin
     PrepareAttributes(AllowIndexed);
 
     try
-      if LogShapes then
-        WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-          [Shape.NiceName, BoolToStr(AllowIndexed, true)]));
-
-      if AllowIndexed or (IndexesFromCoordIndex = nil) then
+      Arrays.CoordinatePreserveGeometryOrder := AllowIndexed or (IndexesFromCoordIndex = nil);
+      if Arrays.CoordinatePreserveGeometryOrder then
       begin
         Arrays.Indexes := IndexesFromCoordIndex;
         IndexesFromCoordIndex := nil;
@@ -805,6 +809,17 @@ begin
         { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
         AssignToInterleavedIndexed(Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
       end;
+
+      if LogShapes then
+        WritelnLog('Renderer', Format('Shape %s rendered:' + NL +
+          '- using original indexes (desired, makes more compact GPU representation (array count)): %s' + NL +
+          '- preserving geometry order (desired, makes updating CoordinateInterpolator faster): %s' + NL +
+          '- array count: %d', [
+          Shape.NiceName,
+          BoolToStr(AllowIndexed, true),
+          BoolToStr(Arrays.CoordinatePreserveGeometryOrder, true),
+          Arrays.Count
+        ]));
 
       GenerateCoordinateBegin;
       try
@@ -1304,23 +1319,34 @@ begin
           TexImplementation := tcNonIndexed;
           Assert(CoordIndex = nil);
         end else
-        if TexCoordIndex.Count >= CoordIndex.Count then
+        if { Use texIndexed if texture coordinates are indexed by *something else*
+             than CoordIndex. So check "TexCoordIndex <> CoordIndex".
+
+             In case of X3D primitives like IndexedTriangle[Fan/Strip]Set, QuadSet,
+             they always have TexCoordIndex = CoordIndex (just taken from "index" field).
+             And we don't want to use tcTexIndexed for them (because it is less optimal,
+             as sets AllowIndexed=false, CoordinatePreserveGeometryOrder=false). }
+           (TexCoordIndex <> CoordIndex) and
+           (TexCoordIndex.Count >= CoordIndex.Count) then
         begin
           TexImplementation := tcTexIndexed;
         end else
         begin
-          { If TexCoord <> nil (non-zero Arrays.TexCoords.Count guarantees this)
-            but TexCoordIndex is empty then
-            - VRML 2.0 spec says that coordIndex is used
-              to index texture coordinates for IndexedFaceSet.
+          { X3D primitives like IndexedTriangle[Fan/Strip]Set, QuadSet
+            will arrive here, because they always have TexCoordIndex = CoordIndex.
+
+            Others will arrive here when TexCoord <> nil
+            (non-zero Arrays.TexCoords.Count guarantees this)
+            but TexCoordIndex is empty. Then:
+
+            - VRML 2.0 spec of IndexedFaceSet says that coordIndex is used
+              to index texture coordinates.
+
             - VRML 1.0 spec says that in this case default texture
               coordinates should be generated (that's because for
               VRML 1.0 there is always some TexCoord <> nil,
               so it cannot be used to produce different behavior).
               We handled this case in code above.
-            - Note that this cannot happen at all for X3D primitives
-              like IndexedTriangle[Fan/Strip]Set, QuadSet, since they
-              have TexCoordIndex = CoordIndex (just taken from "index" field).
           }
           Assert(State.ShapeNode <> nil);
           TexImplementation := tcCoordIndexed;
@@ -1556,7 +1582,7 @@ begin
     [ miPerFace, miPerFaceMatIndexed,
       miPerVertexCoordIndexed, miPerVertexMatIndexed ] then
   begin
-    Arrays.AddColor;
+    Arrays.AddColor(cmReplace);
     if Mat1Implementation in
       [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
       AllowIndexed := false;
@@ -1640,13 +1666,22 @@ begin
   if Assigned(OnVertexColor) or
      (RadianceTransfer <> nil) then
   begin
-    Arrays.AddColor;
+    Arrays.AddColor(cmReplace);
     AllowIndexed := false;
   end else
-  if (Color <> nil) or (ColorRGBA <> nil) then
+  if ColorNode <> nil then
   begin
-    Arrays.AddColor;
-    if (ColorIndex <> nil) or (not ColorPerVertex) then
+    Assert((Color <> nil) or (ColorRGBA <> nil));
+    Arrays.AddColor(ColorNode.Mode);
+    { In case of X3D primitives like IndexedTriangle[Fan/Strip]Set,
+      ColorIndex is set but always equal to CoordIndex.
+      This means we don't have to disable AllowIndexed (which is beneficial for speed).
+
+      Testcase: test examples/fps_game/data/knight_creature/knight.gltf
+      with LogShapes, observe it should have AllowIndexed=true
+      and CoordinatePreserveGeometryOrder=true. }
+    if ((ColorIndex <> nil) and (ColorIndex <> CoordIndex)) or
+       (not ColorPerVertex) then
       AllowIndexed := false;
   end;
 end;
@@ -1759,8 +1794,10 @@ begin
       { When IndexNum for normal works exactly like for position,
         then normals can be indexed. This is true in two cases:
         - there is no coordIndex, and normal vectors are not indexed
-        - there is coordIndex, and normal vectors are indexed by coordIndex }
-      (NorImplementation = niPerVertexCoordIndexed) or
+        - there is coordIndex, and normal vectors are indexed by coordIndex
+        - also niOverall, niUnlit can work in every possible case
+          (they just set the same value always). }
+      (NorImplementation in [niPerVertexCoordIndexed, niOverall, niUnlit]) or
      ((NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil)) ) then
     AllowIndexed := false;
 end;
@@ -1811,6 +1848,8 @@ begin
   case NorImplementation of
     niOverall:
       N := Normals.L[0];
+    niUnlit:
+      N := TVector3.Zero; // return anything defined
     niPerVertexNonIndexed:
       N := Normals.L[IndexNum];
     niPerVertexCoordIndexed:
@@ -1829,7 +1868,7 @@ end;
 
 function TAbstractNormalGenerator.NormalsFlat: boolean;
 begin
-  Result := NorImplementation in [niOverall, niPerFace, niPerFaceNormalIndexed];
+  Result := NorImplementation in [niUnlit, niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
 
 procedure TAbstractNormalGenerator.GenerateVertex(IndexNum: Integer);
@@ -1874,20 +1913,22 @@ procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
-  if NorImplementation = niPerVertexCoordIndexed then
-  begin
-    if Arrays.Indexes <> nil then
-      AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
-      AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
-  end else
-  if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
-  begin
-    Assert(Arrays.Indexes = nil);
-    AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
-  end else
-  if NorImplementation = niOverall then
-  begin
-    SetAllNormals(NormalsSafe(0));
+  case NorImplementation of
+    niPerVertexCoordIndexed:
+      begin
+        if Arrays.Indexes <> nil then
+          AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count)
+        else
+          AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      end;
+    niPerVertexNonIndexed:
+      if CoordIndex = nil then
+      begin
+        Assert(Arrays.Indexes = nil);
+        AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+      end;
+    niOverall: SetAllNormals(NormalsSafe(0));
+    niUnlit: SetAllNormals(TVector3.Zero);
   end;
 end;
 
@@ -1959,7 +2000,7 @@ procedure TAbstractFogGenerator.GenerateVertex(
     if CoordIndex <> nil then
       Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
       Position := Coord.Items.L[IndexNum];
-    Position := State.Transform.MultPoint(Position);
+    Position := State.Transformation.Transform.MultPoint(Position);
 
     Projected := PointOnLineClosestToPoint(
       TVector3.Zero, FogVolumetricDirection, Position);

@@ -53,25 +53,10 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="6">
+    <Exceptions Count="1">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
-      <Item2>
-        <Name Value="EFOpenError"/>
-      </Item2>
-      <Item3>
-        <Name Value="BreakIsNodePresent"/>
-      </Item3>
-      <Item4>
-        <Name Value="BreakTryFindNode"/>
-      </Item4>
-      <Item5>
-        <Name Value="BreakFirstViewpointFound"/>
-      </Item5>
-      <Item6>
-        <Name Value="BreakMainLightForShadows"/>
-      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>

@@ -27,13 +27,6 @@ const
   DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultReflSpecularExp';
   DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultTransSpecularExp';
 
-  { Constants for @link(TAsciiTextNode_1.FdJustification).Value.
-    @groupBegin }
-  JUSTIFICATION_LEFT = 0 deprecated 'use fjBegin (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  JUSTIFICATION_CENTER = 1 deprecated 'use fjMiddle (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  JUSTIFICATION_RIGHT = 2 deprecated 'use fjEnd (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  { @groupEnd }
-
   { Constants for
     @link(TMaterialBindingNode_1.FdValue).Value and
     @link(TNormalBindingNode_1.FdValue).Value.
@@ -91,12 +84,6 @@ const
   CYLINDER_PARTS_SIDES = 0;
   CYLINDER_PARTS_TOP = 1;
   CYLINDER_PARTS_BOTTOM = 2;
-  { @groupEnd }
-
-  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value.
-    @groupBegin }
-  TEXWRAP_REPEAT = 0 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
-  TEXWRAP_CLAMP = 1 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
   { @groupEnd }
 
   DefaultHeightMapScale = 0.01;

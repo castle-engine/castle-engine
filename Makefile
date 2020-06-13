@@ -1,4 +1,16 @@
-# Most useful targets:
+# Makefile to build and perform other useful operations on the Castle Game Engine.
+#
+# Requires using GNU make.
+# - On Linux and most other Unixes, just call "make".
+# - On FreeBSD call "gmake".
+# - On Windows, install Cygwin ( http://www.cygwin.com/ ) with "make" package.
+#   Make sure that when you type "make" it executes Cygwin's "make":
+#   Cygwin's directory (like c:/cygwin64/bin/) should be on $PATH environment variable
+#   *before* other directories with "make" implementations, like
+#   - FPC directory that includes "make" from MinGW (it is GNU make but cannot execute bash scripts)
+#   - Delphi directory that includes Embarcadero "make" (it's not GNU make and will fail).
+#
+# Most useful targets of this Makefile:
 #
 #   all (default target) --
 #     Compile all units, uses fpmake.
@@ -42,11 +54,28 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if it's somewhat hard to recreate.
 
+# detect platform-specific things --------------------------------------------
+
+# FIND := Unix/Cygwin "find" utility (*not* Windows "find" command which has completely different use)
+# SED := GNU sed (*not* other sed implementations)
+# EXE_EXTENSION := extension of executable files (with leading dot, if any)
+
+SED := sed
+FIND := find
+EXE_EXTENSION :=
+
 ifeq ($(OS),Windows_NT)
-  # Hack for Cygwin, to avoid using Windows built-in "find" program.
-  FIND:=`cygpath --mixed /bin/find`
+  # On Windows avoid using Windows built-in "find" program. Use the Cygwin "find".
+  FIND := `cygpath --mixed /bin/find`
+  EXE_EXTENSION := .exe
 else
-  FIND:=find
+  # Only on Unix, you can use "uname" to further detect Unix variants,
+  # see https://stackoverflow.com/questions/714100/os-detecting-makefile
+  UNAME_S := $(shell uname -s)
+  # On macOS, use gsed (e.g. from Homebrew)
+  ifeq ($(UNAME_S),Darwin)
+    SED := gsed
+  endif
 endif
 
 # compile ------------------------------------------------------------
@@ -71,12 +100,22 @@ build-using-fpmake:
 	fpc fpmake.pp
 	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
 # Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
-	if [ '(' -n "$(FPCDIR)" ')' -a \
-	     '(' $(shell fpc -iV) '!=' '2.6.4' ')' -a \
-	     '(' $(shell fpc -iV) '!=' '2.6.2' ')' ]; then \
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
 	   ./fpmake --globalunitdir="$(FPCDIR)"; \
 	else \
 	   ./fpmake; \
+	fi
+
+# Full test that fpmake compilation process works
+# (see https://github.com/castle-engine/castle-engine/wiki/FpMake )
+.PHONY: test-fpmake
+test-fpmake: build-using-fpmake
+# Test fpmake with --nofpccfg, to make sure our dependencies in fpmake.pp are correct
+	./fpmake clean --verbose
+	if [ '(' -n "$(FPCDIR)" ')' ]; then \
+	   ./fpmake --globalunitdir="$(FPCDIR)" --nofpccfg --verbose; \
+	else \
+	   ./fpmake --nofpccfg --verbose; \
 	fi
 
 # install / uninstall --------------------------------------------------------
@@ -103,12 +142,12 @@ DATADIR=$(DATAROOTDIR)
 .PHONY: install
 install:
 	install -d $(BINDIR)
-	install tools/texture-font-to-pascal/texture-font-to-pascal $(BINDIR)
-	install tools/image-to-pascal/image-to-pascal $(BINDIR)
-	install tools/castle-curves/castle-curves $(BINDIR)
-	install tools/build-tool/castle-engine $(BINDIR)
-	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d $(BINDIR)
-	install tools/to-data-uri/to-data-uri $(BINDIR)
+	install tools/texture-font-to-pascal/texture-font-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	install tools/image-to-pascal/image-to-pascal$(EXE_EXTENSION) $(BINDIR)
+	install tools/castle-curves/castle-curves$(EXE_EXTENSION) $(BINDIR)
+	install tools/build-tool/castle-engine$(EXE_EXTENSION) $(BINDIR)
+	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d$(EXE_EXTENSION) $(BINDIR)
+	install tools/to-data-uri/to-data-uri$(EXE_EXTENSION) $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	install -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
@@ -116,11 +155,12 @@ install:
 
 .PHONY: uninstall
 uninstall:
-	rm -f  $(BINDIR)/texture-font-to-pascal \
-	       $(BINDIR)/image-to-pascal \
-	       $(BINDIR)/castle-curves \
-	       $(BINDIR)/castle-engine \
-	       $(BINDIR)/sprite-sheet-to-x3d
+	rm -f  $(BINDIR)/texture-font-to-pascal$(EXE_EXTENSION) \
+	       $(BINDIR)/image-to-pascal$(EXE_EXTENSION) \
+	       $(BINDIR)/castle-curves$(EXE_EXTENSION) \
+	       $(BINDIR)/castle-engine$(EXE_EXTENSION) \
+	       $(BINDIR)/sprite-sheet-to-x3d$(EXE_EXTENSION) \
+	       $(BINDIR)/to-data-uri$(EXE_EXTENSION)
 	rm -Rf $(DATADIR)/castle-engine
 
 # Strip libraries that cannot be distributed in Debian package of CGE.
@@ -257,6 +297,31 @@ EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
 EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .res,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
+# Test compiling single CGE editor template.
+# Requires EDITOR_TEMPLATE_PATH to be defined.
+.PHONY: editor-template
+editor-template:
+	$(SED) --in-place=.backup \
+	  -e 's|standalone_source="$${PROJECT_PASCAL_NAME}_standalone.lpr"||' \
+	  -e 's|qualified_name="$${PROJECT_QUALIFIED_NAME}"||' \
+	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
+	$(SED)  --in-place=.backup \
+	  -e 's|$${PROJECT_NAME}|test_template_project_name|' \
+	  $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
+	tools/build-tool/castle-engine$(EXE_EXTENSION) --project $(EDITOR_TEMPLATE_PATH) compile
+	tools/build-tool/castle-engine$(EXE_EXTENSION) --project $(EDITOR_TEMPLATE_PATH) clean
+	mv -f $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml.backup $(EDITOR_TEMPLATE_PATH)CastleEngineManifest.xml
+	mv -f $(EDITOR_TEMPLATE_PATH)gameinitialize.pas.backup $(EDITOR_TEMPLATE_PATH)gameinitialize.pas
+
+# Test compiling CGE editor templates
+.PHONY: editor-templates
+editor-templates:
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/3d_fps_game/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/2d_game/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/empty/files/
+	$(MAKE) --no-print-directory editor-template EDITOR_TEMPLATE_PATH=tools/castle-editor/data/project_templates/3d_model_viewer/files/
+
 .PHONY: examples
 examples:
 # Compile tools, in particular build tool, first
@@ -268,14 +333,22 @@ examples:
 # Compile all examples with CastleEngineManifest.xml inside.
 # Use xargs (not "find ... -execdir") because we want the "make examples" to fail
 # if something failed to compile.
-# We do not compile examples/tcp_connection/ here,
-# as it requires Indy which may not be installed.
+# We make a copy of castle-engine, otherwise it would fail on Windows
+# (as you cannot replace your own exe).
+# Exceptions:
+# - We do not compile examples/tcp_connection/ here,
+#   as it requires Indy which may not be installed.
+	cp -f tools/build-tool/castle-engine$(EXE_EXTENSION) tools/build-tool/castle-engine-copy$(EXE_EXTENSION)
 	$(FIND) . \
 	  '(' -path ./examples/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
-	  xargs -0 -n1 tools/build-tool/castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+	  xargs -0 -n1 tools/build-tool/castle-engine-copy$(EXE_EXTENSION) \
+	    $(CASTLE_ENGINE_TOOL_OPTIONS) compile --project
+
+# Compile editor templates
+	 $(MAKE) editor-templates
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:

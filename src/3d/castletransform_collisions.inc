@@ -288,7 +288,7 @@ function TCastleTransform.MoveCollision(
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 var
   T: TVector3;
-  M, MInverse: TMatrix4;
+  Tr: TTransformation;
 begin
   { LocalMoveCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -312,16 +312,16 @@ begin
       NewPos := NewPos + T;
   end else
   begin
-    InternalTransformMatrices(M, MInverse);
+    InternalTransformation(Tr);
     Result := LocalMoveCollision(
-      MInverse.MultPoint(OldPos),
-      MInverse.MultPoint(ProposedNewPos), NewPos,
+      Tr.InverseTransform.MultPoint(OldPos),
+      Tr.InverseTransform.MultPoint(ProposedNewPos), NewPos,
       IsRadius, Radius / AverageScale,
-      OldBox.Transform(MInverse),
-      NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
+      OldBox.Transform(Tr.InverseTransform),
+      NewBox.Transform(Tr.InverseTransform), TrianglesToIgnoreFunc);
     { transform calculated NewPos back }
     if Result then
-      NewPos := M.MultPoint(NewPos);
+      NewPos := Tr.Transform.MultPoint(NewPos);
   end;
 end;
 
@@ -470,8 +470,8 @@ function TCastleTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var
   T: TVector3;
-  M, MInverse: TMatrix4;
   LastNode: PRayCollisionNode;
+  Tr: TTransformation;
 begin
   { LocalRayCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -491,14 +491,14 @@ begin
     end;
   end else
   begin
-    InternalTransformMatrices(M, MInverse);
+    InternalTransformation(Tr);
     Result := LocalRayCollision(
-      MInverse.MultPoint(RayOrigin),
-      MInverse.MultDirection(RayDirection), TrianglesToIgnoreFunc);
+      Tr.InverseTransform.MultPoint(RayOrigin),
+      Tr.InverseTransform.MultDirection(RayDirection), TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
-      LastNode^.Point := M.MultPoint(LastNode^.Point);
+      LastNode^.Point := Tr.Transform.MultPoint(LastNode^.Point);
       { untransform the ray }
       LastNode^.RayOrigin := RayOrigin;
       LastNode^.RayDirection := RayDirection;

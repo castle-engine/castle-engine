@@ -16,6 +16,7 @@
 
 #import "ServiceAbstract.h"
 #include "castleiosappglue.h"
+#import "CgeUtils.h"
 
 @implementation ServiceAbstract
 

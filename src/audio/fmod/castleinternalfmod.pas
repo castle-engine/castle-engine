@@ -803,7 +803,7 @@ procedure FmodLibraryUsingEnd;
   That's good, because castle_base.lpk has to include the FMOD unit,
   and including FMOD unit on platforms where static compilation is used
   *forces* the presense of FMOD libraries. }
-{$if not (defined(NINTENDO_SWITCH) or defined(IOS))}
+{$if not (defined(CASTLE_NINTENDO_SWITCH) or defined(CASTLE_IOS))}
   {$define FMOD_DYNAMIC_LINK}
 {$endif}
 {$ifdef FMOD_DYNAMIC_LINK}

@@ -765,10 +765,13 @@ const
     IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
-    { PlaceholderName is now <resource_name>[<resource_number>][_<ignored>] }
+    { PlaceholderName is now <resource_name>[<resource_number>][_<ignored>][.<ignored>] }
 
     { cut off optional [_<ignored>] suffix }
     IgnoredBegin := Pos('_', PlaceholderName);
+    if IgnoredBegin <> 0 then
+      PlaceholderName := Copy(PlaceholderName, 1, IgnoredBegin - 1);
+    IgnoredBegin := Pos('.', PlaceholderName);
     if IgnoredBegin <> 0 then
       PlaceholderName := Copy(PlaceholderName, 1, IgnoredBegin - 1);
 
@@ -795,7 +798,7 @@ const
     Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
-    Direction := Shape.State.Transform.MultDirection(Direction);
+    Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
 
     Resource.InstantiatePlaceholder(Self, Position, Direction,
       ResourceNumberPresent, ResourceNumber);

@@ -142,24 +142,24 @@ begin
   inherited;
 
   FFdEmissiveColor := TSFColor.Create(Self, True, 'emissiveColor', Vector3(0, 0, 0));
-   FdEmissiveColor.ChangesAlways := [chVisibleNonGeometry];
+   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
   { X3D specification comment: [0, 1] }
 
   FFdEmissiveTexture := TSFNode.Create(Self, True, 'emissiveTexture', [TAbstractSingleTextureNode]);
-   FdEmissiveTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdEmissiveTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveTexture);
 
   FFdEmissiveTextureChannel := TSFInt32.Create(Self, True, 'emissiveTextureChannel', 0);
-   FdEmissiveTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdEmissiveTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveTextureChannel);
 
   FFdNormalTexture := TSFNode.Create(Self, True, 'normalTexture', [TAbstractTexture2DNode]);
-   FdNormalTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdNormalTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdNormalTexture);
 
   FFdNormalTextureChannel := TSFInt32.Create(Self, True, 'normalTextureChannel', 0);
-   FdNormalTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdNormalTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdNormalTextureChannel);
 
   DefaultContainerField := 'material';

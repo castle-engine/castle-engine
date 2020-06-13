@@ -67,6 +67,7 @@ type
     FVersion: String;
     FTouchDevice: boolean;
     FLimitFPS: Single;
+    FShowUserInterfaceToQuit: Boolean;
     function GetApplicationName: String;
     procedure SetApplicationName(const Value: String);
   public
@@ -89,7 +90,7 @@ type
       @link(TCastleApplication.ParseStandardParameters). }
     property Version: String read FVersion write FVersion;
 
-    { Initialized to @true on touch devices (Android, iOS).
+    { Initialized to @true on touch devices (Android, iOS, Nintendo Switch).
 
       A "touch device" means that:
 
@@ -117,8 +118,7 @@ type
       this boolean property. So an application may do this:
 
       @longCode(#
-      Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
-      Window.ScenaManager.WalkCamera.MouseLook := not ApplicationProperties.TouchDevice;
+      Viewport.WalkCamera.MouseLook := not ApplicationProperties.TouchDevice;
       #)
 
       And to test on desktop whether everything behaves OK on mobile,
@@ -130,6 +130,16 @@ type
       #)
     }
     property TouchDevice: boolean read FTouchDevice write FTouchDevice;
+
+    { Is it common, on current platform, to show the "Quit" button in your application.
+      E.g. it is normal to show "Quit" on PC (Windows, Linux etc.).
+      But on mobile devices and consoles (like Nintendo Switch) you should not
+      show "Quit", it is expected that user knows how to use OS-specific
+      mechanism to just switch to a different application.
+
+      Just like the @link(TouchDevice), you can change this at runtime
+      for debug purposes (to e.g. easily test mobile UI on PC). }
+    property ShowUserInterfaceToQuit: Boolean read FShowUserInterfaceToQuit write FShowUserInterfaceToQuit;
 
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -361,6 +371,16 @@ begin
       true
     {$else}
       false
+    {$endif};
+  { Note: for now, FShowUserInterfaceToQuit starts just as a negation of FTouchDevice.
+    But it will not always be like that.
+    E.g. on other consoles, FTouchDevice may be false,
+    but FShowUserInterfaceToQuit may be true. }
+  FShowUserInterfaceToQuit :=
+    {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+      false
+    {$else}
+      true
     {$endif};
   FLimitFPS := DefaultLimitFPS;
 end;

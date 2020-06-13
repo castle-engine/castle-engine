@@ -87,7 +87,7 @@
   TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -258,7 +258,7 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTransform];
+   FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -266,22 +266,22 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chTransform];
+   FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -304,11 +304,15 @@ begin
   Result := ntcTransform;
 end;
 
-procedure TCADPartNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TCADPartNode.ApplyTransform(var Transformation: TTransformation);
 begin
   inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 end;
 
 procedure TIndexedQuadSetNode.CreateNode;
@@ -321,7 +325,7 @@ begin
   {$endif}
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;

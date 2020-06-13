@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TCastleRootTransform (with MainScene property that TCastleScene). }
+{ TCastleRootTransform (with MainScene property that refers to TCastleScene). }
 
 {$ifdef read_interface}
 
@@ -98,9 +98,11 @@ type
     { Headlight used to light the scene.
 
       Returns non-nil headlight node
-      if the algorithm described at @link(TCastleViewport.UseHeadlight) and
+      if the algorithm described at @link(UseHeadlight) and
       @link(TUseHeadlight) indicates we should use a headlight.
-      Otherwise returns @nil, to indicate we do not show a headlight now. }
+      Otherwise returns @nil, to indicate we do not show a headlight now.
+
+      @exclude }
     function InternalHeadlight: TAbstractLightNode;
   published
     { The main scene of the world. It's not necessary to set this.
@@ -112,19 +114,19 @@ type
       The MainScene is used for a couple of things:
 
       @unorderedList(
-        @item(Determines initial @link(Camera) (if @link(AutoCamera))
-          and @link(Navigation) (if @link(AutoNavigation)) properties.
+        @item(Determines initial @link(TCastleViewport.Camera) (if @link(TCastleViewport.AutoCamera))
+          and @link(TCastleViewport.Navigation) (if @link(TCastleViewport.AutoNavigation)) properties.
           This includes camera position, orientation, projection.
           This includes navigation type (examine, walk, fly), move speed.
           These follow the X3D Viewpoint, OrthoViewpoint
           and NavigationInfo nodes defined inside the MainScene.
 
           Later changes to nodes Viewpoint/NavigatioInfo using X3D events inside
-          MainScene may also influence the @link(Camera) and @link(Navigation).
+          MainScene may also influence the @link(TCastleViewport.Camera) and @link(TCastleViewport.Navigation).
           For example in X3D you can animate the Viewpoint position,
-          and it will actually animate our @link(Camera) position.
+          and it will actually animate our @link(TCastleViewport.Camera) position.
 
-          If both @link(AutoCamera) and @link(AutoNavigation) are @false,
+          If both @link(TCastleViewport.AutoCamera) and @link(TCastleViewport.AutoNavigation) are @false,
           none of these things are applied.
         )
 
@@ -133,11 +135,11 @@ type
           node descending from TAbstractBackgroundNode),
           it will be used.
 
-          Otherwise we render a background using @link(BackgroundColor).
+          Otherwise we render a background using @link(TCastleViewport.BackgroundColor).
 
-          Note that when @link(Transparent) is @true,
+          Note that when @link(TCastleViewport.Transparent) is @true,
           we never render any background (neither from MainScene,
-          nor from @link(BackgroundColor)).
+          nor from @link(TCastleViewport.BackgroundColor)).
         )
 
         @item(Determines whether headlight is used if @link(UseHeadlight)
@@ -150,14 +152,14 @@ type
 
         @item(Determines the main light casting shadow volumes.)
 
-        @item(Determines lights shining on all scenes, if @link(UseGlobalLights).)
+        @item(Determines lights shining on all scenes, if @link(TCastleViewport.UseGlobalLights).)
 
-        @item(Determines fog on all scenes, if @link(UseGlobalFog).)
+        @item(Determines fog on all scenes, if @link(TCastleViewport.UseGlobalFog).)
 
-        @link(The screen effects defined inside MainScene (TScreenEffectNode)
+        @item(The screen effects defined inside MainScene (TScreenEffectNode)
           are automatically used.)
 
-        @link(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
+        @item(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
           even if mouse cursor is not pointing at the MainScene.
           This way MainScene reliably knows when you move mouse such that it
           @italic(no longer) points at the MainScene.)

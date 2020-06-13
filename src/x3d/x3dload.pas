@@ -194,11 +194,71 @@ var
 
 implementation
 
-uses CastleClassUtils, CastleURIUtils,
+uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF,
   CastleInternalNodeInterpolator;
+
+{ Load a sequence of nodes to an animation suitable for TNodeInterpolator.
+  Allows to read sequence of static models as an animation,
+  e.g. Blender can export Wavefront OBJ like that. }
+function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
+
+  function LoadAnimationUsingCounter(const URL: string): TNodeInterpolator.TAnimationList;
+  const
+    FramesPerSecond = 30;
+  var
+    FrameIndex, FirstFrameIndex: Integer;
+    Animation: TNodeInterpolator.TAnimation;
+    FrameUrl: String;
+  begin
+    Result := TNodeInterpolator.TAnimationList.Create(true);
+    try
+      Animation := TNodeInterpolator.TAnimation.Create;
+      Result.Add(Animation);
+      Animation.Name := TNodeInterpolator.DefaultAnimationName;
+      Animation.ScenesPerTime := TNodeInterpolator.DefaultScenesPerTime;
+      Animation.Epsilon := TNodeInterpolator.DefaultEpsilon;
+      Animation.Loop := false;
+      Animation.Backwards := false;
+
+      FrameIndex := 0;
+      FrameUrl := FormatNameCounter(URL, FrameIndex, false);
+      if not URIFileExists(FrameUrl) then
+      begin
+        FrameIndex := 1;
+        FrameUrl := FormatNameCounter(URL, FrameIndex, false);
+        if not URIFileExists(FrameUrl) then
+          raise Exception.CreateFmt('First model in a sequence ("%s" or "%s") cannot be found', [
+            FormatNameCounter(URL, 0, false),
+            FormatNameCounter(URL, 1, false)
+          ]);
+      end;
+
+      FirstFrameIndex := FrameIndex;
+
+      repeat
+        Animation.KeyNodes.Add(LoadNode(FrameUrl));
+        Animation.KeyTimes.Add((FrameIndex - FirstFrameIndex) / FramesPerSecond);
+        Inc(FrameIndex);
+        FrameUrl := FormatNameCounter(URL, FrameIndex, false);
+      until not URIFileExists(FrameUrl);
+    except
+      Result.FreeKeyNodesContents;
+      FreeAndNil(Result);
+      raise;
+    end;
+  end;
+
+var
+  Animations: TNodeInterpolator.TAnimationList;
+begin
+  Animations := LoadAnimationUsingCounter(URL);
+  try
+    Result := TNodeInterpolator.LoadToX3D(Animations);
+  finally FreeAndNil(Animations) end;
+end;
 
 function LoadNode(const URL: string;
   const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
@@ -229,25 +289,35 @@ var
 begin
   MimeType := URIMimeType(URL, Gzipped);
 
+  if HasNameCounter(URL, false) then
+    Result := LoadSequenceUsingCounter(URL)
+  else
+
   if (MimeType = 'application/x-inventor') or
      (MimeType = 'model/vrml') or
      (MimeType = 'model/x3d+vrml') then
-    Result := LoadX3DClassic(URL, Gzipped) else
+    Result := LoadX3DClassic(URL, Gzipped)
+  else
 
   if MimeType = 'model/x3d+xml' then
-    Result := LoadX3DXml(URL, Gzipped) else
+    Result := LoadX3DXml(URL, Gzipped)
+  else
 
   if MimeType = 'application/x-geo' then
-    Result := LoadGEO(URL) else
+    Result := LoadGEO(URL)
+  else
 
   if MimeType = 'image/x-3ds' then
-    Result := Load3DS(URL) else
+    Result := Load3DS(URL)
+  else
 
   if MimeType = 'application/x-wavefront-obj' then
-    Result := LoadWavefrontOBJ(URL) else
+    Result := LoadWavefrontOBJ(URL)
+  else
 
   if MimeType = 'model/vnd.collada+xml' then
-    Result := LoadCollada(URL) else
+    Result := LoadCollada(URL)
+  else
 
   if (MimeType = 'application/json') or
      { For Spine, we will strip anchor in LoadSpine, so we can guess MIME
@@ -257,30 +327,34 @@ begin
        as it depends on reader implementation whether anchor is understood
        (and stripped). }
      (URIMimeType(URIDeleteAnchor(URL, true), Gzipped) = 'application/json') then
-    Result := LoadSpine(URL) else
+    Result := LoadSpine(URL)
+  else
 
   if MimeType = 'application/x-castle-anim-frames' then
-    Result := LoadAnimFrames(URL) else
+    Result := LoadAnimFrames(URL)
+  else
 
   if MimeType = 'application/x-md3' then
-    Result := LoadMD3(URL) else
+    Result := LoadMD3(URL)
+  else
 
   if (MimeType = 'application/x-stl') or
      { try also other STL mime types }
      (MimeType = 'application/wavefront-stl') or
      (MimeType = 'application/vnd.ms-pki.stl') or
      (MimeType = 'application/x-navistyle') then
-    Result := LoadSTL(URL) else
+    Result := LoadSTL(URL)
+  else
 
   if (MimeType = 'model/gltf+json') or
      (MimeType = 'model/gltf-binary') then
-    Result := LoadGLTF(URL) else
+    Result := LoadGLTF(URL)
+  else
 
   if NilOnUnrecognizedFormat then
     Result := nil
   else
-    raise Exception.CreateFmt(
-      'Unrecognized file type "%s" for scene "%s"',
+    raise Exception.CreateFmt('Unrecognized file type "%s" for scene "%s"',
       [MimeType, URIDisplay(URL)]);
 end;
 

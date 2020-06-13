@@ -51,7 +51,8 @@ type
 
     { Something visible, but not the geometry shape, changes.
       For example, material or texture on a visible surface changed. }
-    vcVisibleNonGeometry);
+    vcVisibleNonGeometry
+  );
   TVisibleChanges = set of TVisibleChange;
 
   TVisibleChangeEvent = procedure (const Sender: TCastleTransform; const Changes: TVisibleChanges) of object;
@@ -264,8 +265,10 @@ type
     and where is it facing. Used by the @link(TCastleTransform.Orientation)
     and @link(TCastleTransform.DefaultOrientation). }
   TOrientationType = (
-    { Orientation sensible for models oriented around Y axis.
-      That is when gravity pulls in -Y and GravityUp vector is +Y.
+    { Orientation sensible for models oriented around Y axis,
+      using default export from Blender to X3D.
+
+      Gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
       This matches default direction/up of OpenGL and VRML/X3D cameras.
@@ -273,11 +276,31 @@ type
       For example, using this value for @link(TCastleTransform.Orientation) (or even
       @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
       Blender X3D exporter, and you let the exporter to make
-      a transformation (to make +Z up into +Y up). This is the default setting.
+      a default transformation (to make +Z up into +Y up). This is the default setting.
       Then you can follow the standard Blender view names
       ("front", "top" and such) when modelling, and Blender tools like
       "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
+
+    { Orientation sensible for models oriented around Y axis,
+      using default export from Blender to glTF or Wavefront OBJ.
+
+      Gravity pulls in -Y and GravityUp vector is +Y.
+      Transformation makes +Z and +Y match (respectively) Direction and Up.
+
+      This does not match default direction/up of OpenGL and VRML/X3D cameras.
+      When viewed from the default direction/up of OpenGL and VRML/X3D cameras,
+      you will see the front of the model,
+      which means that the model's direction is the opposite of the camera direction.
+
+      For example, using this value for @link(TCastleTransform.Orientation) (or even
+      @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
+      Blender glTF or OBJ exporter, and you let the exporter to make
+      a default transformation (to make +Z up into +Y up). This is the default setting.
+      Then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling, and Blender tools like
+      "X-axis mirror" will work best. }
+    otUpYDirectionZ,
 
     { Orientation sensible for models oriented around Z axis.
       Transformation makes -Y and +Z match (respectively) Direction and Up.
@@ -366,15 +389,15 @@ type
       FOrientation: TOrientationType;
       FOnlyTranslation: boolean;
 
-      FTransform, FInverseTransform: TMatrix4;
-      FTransformAndInverseValid: boolean;
+      FTransformation: TTransformation;
+      FTransformationValid: boolean;
 
-      FWorldTransform, FWorldInverseTransform: TMatrix4;
-      FWorldTransformAndInverseId: Cardinal;
-      FWorldTransformAndInverseValid: boolean;
+      FWorldTransformation: TTransformation;
+      FWorldTransformationId: Cardinal;
+      FWorldTransformationValid: boolean;
 
-      FLastParentWorldTransform, FLastParentWorldInverseTransform: TMatrix4;
-      FLastParentWorldTransformAndInverseId: Cardinal;
+      FLastParentWorldTransformation: TTransformation;
+      FLastParentWorldTransformationId: Cardinal;
 
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
@@ -400,10 +423,10 @@ type
     procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
     procedure PhysicsChangeWorldDetach;
     procedure PhysicsChangeWorldAttach;
-    procedure InternalTransformMatricesMult(var M, MInverse: TMatrix4);
-    procedure InternalTransformMatrices(out M, MInverse: TMatrix4);
-    { Update our FWorldTransform, FWorldInverseTransform, FWorldTransformAndInverseId. }
-    procedure UpdateWorldTransformAndInverse;
+    procedure InternalTransformationMult(var T: TTransformation);
+    procedure InternalTransformation(out T: TTransformation);
+    { Update our FWorldTransformation, FWorldTransformationId. }
+    procedure UpdateWorldTransformation;
     { Return non-nil parent, making sure it's valid. }
     function Parent: TCastleTransform;
     procedure WarningMatrixNan(const NewParamsInverseTransformValue: TMatrix4);
@@ -640,7 +663,8 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4); virtual;
 
-    { Can we use simple @link(Translation) instead of full TransformMatricesMult.
+    { Can we use simple @link(Translation) to express our whole transformation
+      (IOW, we have no scaling, no rotation).
       Returning @true allows optimization in some cases.
       @bold(Internal. Protected instead of private only for testing.)
       @exclude }
@@ -677,17 +701,20 @@ type
       DefaultMiddleHeight = 0.5;
       DefaultDirection: array [TOrientationType] of TVector3 = (
         (Data: (0,  0, -1)),
+        (Data: (0,  0, +1)),
         (Data: (0, -1,  0)),
         (Data: (1,  0,  0))
       );
       DefaultUp: array [TOrientationType] of TVector3 = (
+        (Data: (0, 1, 0)),
         (Data: (0, 1, 0)),
         (Data: (0, 0, 1)),
         (Data: (0, 0, 1))
       );
 
     var
-      { Default value of @link(TCastleTransform.Orientation) for new instances. }
+      { Default value of @link(TCastleTransform.Orientation) for new instances.
+        By default @link(otUpYDirectionZ), matching e.g. Blender exporter to glTF. }
       DefaultOrientation: TOrientationType; static;
 
     constructor Create(AOwner: TComponent); override;
@@ -871,18 +898,15 @@ type
         the names should be self-explanatory (they refer to appropriate
         methods of TCastleTransform, TCastleSceneCore or TCastleScene).)
 
-      @param(ProgressStep Says that we should make this many Progress.Step calls
-        during preparation.
-        Useful to show progress bar to the user during long preparation.
-
-        TODO: for now, do not include prSpatial if you use ProgressStep.
-        Reason: octree preparations have a separate mechanism
-        that may want to show progress.)
+      @param(ProgressStep Says that we should call Progress.Step.
+        It will be called PrepareResourcesSteps times.
+        Useful to show progress bar to the user during long preparation.)
 
       @param(Params
         Rendering parameters to prepare for.
         It is used only if Options contains prRenderSelf or prRenderClones.
-      ) }
+      )
+    }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
       const ProgressStep: boolean; const Params: TPrepareParams); virtual;
 
@@ -1914,7 +1938,7 @@ type
       e.g. mirror textures (like GeneratedCubeMapTexture)
       would need different contents in different viewpoints.
 
-      By default this is set to @link(Camera) of the @link(TCastleViewport)
+      By default this is set to @link(TCastleViewport.Camera) of the @link(TCastleViewport)
       that created this @link(TCastleAbstractRootTransform) instance.
       So in simple cases (when you just create one @link(TCastleViewport)
       and add your scenes to it's already-created @link(TCastleViewport.Items))
@@ -1975,24 +1999,13 @@ type
   {$I castletransform_physics.inc}
   {$undef read_interface}
 
-{ Apply transformation to a matrix.
-  Calculates at the same time transformation matrix, and it's inverse,
-  and multiplies given Transform, InverseTransform appropriately.
-  The precise meaning of Center, Translation and such parameters
-  follows exactly the X3D Transform node definition (see
-  http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/group.html#Transform ).
-
-  @param(Rotation Rotation is expressed as a 4D vector,
-    in which the first 3 components
-    specify the rotation axis (does not need to be normalized, but must be non-zero),
-    and the last component is the rotation angle @italic(in radians).)
-}
 procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const Center: TVector3;
   const Rotation: TVector4;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
+  deprecated 'use TTransformation.Multiply';
 
 const
   rfOffScreen = rfRenderedTexture deprecated 'use rfRenderedTexture';
@@ -2009,65 +2022,68 @@ uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
 
 { TransformMatricesMult ------------------------------------------------------ }
 
+{ Workaround FPC bug on Darwin for AArch64 (not on other platforms),
+  causes "Fatal: Internal error 2014121702".
+  Occurs with 3.0.4 and with 3.3.1 (r44333 from 2020/03/22). }
+{$if defined(DARWIN) and defined(CPUAARCH64)}
+  {$define COMPILER_BUGGY_PARAMETERS}
+{$endif}
+
 procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const Center: TVector3;
   const Rotation: TVector4;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
+
+{$ifdef COMPILER_BUGGY_PARAMETERS}
+  type
+    TTransformData = record
+      Transform, InverseTransform: TMatrix4;
+      Center: TVector3;
+      Rotation: TVector4;
+      Scale: TVector3;
+      ScaleOrientation: TVector4;
+      Translation: TVector3;
+    end;
+
+  procedure MultiplyWorkaround(var T: TTransformation; const TransformData: TTransformData);
+  begin
+    T.Multiply(
+      TransformData.Center,
+      TransformData.Rotation,
+      TransformData.Scale,
+      TransformData.ScaleOrientation,
+      TransformData.Translation);
+  end;
+
 var
-  M, IM: TMatrix4;
-  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
+  TransformData: TTransformData;
+{$endif COMPILER_BUGGY_PARAMETERS}
+
+var
+  T: TTransformation;
 begin
-  { To make InverseTransform, we multiply inverted matrices in inverted order
-    below. }
-
-  MultMatricesTranslation(Transform, InverseTransform, Translation + Center);
-
-  { We avoid using RotationMatricesRad when angle = 0, since this
-    is often the case, and it makes TransformState much faster
-    (which is important --- TransformState is important for traversing state). }
-  if Rotation[3] <> 0 then
-  begin
-    { Note that even rotation Axis = zero is OK, both M and IM will be
-      identity in this case. }
-    RotationMatricesRad(Rotation, M, IM);
-    Transform := Transform * M;
-    InverseTransform := IM * InverseTransform;
-  end;
-
-  if (Scale[0] <> 1) or
-     (Scale[1] <> 1) or
-     (Scale[2] <> 1) then
-  begin
-    if ScaleOrientation[3] <> 0 then
-    begin
-      RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
-      Transform := Transform * MRotateScaleOrient;
-      InverseTransform := IMRotateScaleOrient * InverseTransform;
-    end;
-
-    { For scaling, we explicitly request that if ScalingFactor contains
-      zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
-      is "true"). That's because X3D allows
-      scaling factor to have 0 components (we need InverseTransform only
-      for special tricks). }
-
-    ScalingMatrices(Scale, true, M, IM);
-    Transform := Transform * M;
-    InverseTransform := IM * InverseTransform;
-
-    if ScaleOrientation[3] <> 0 then
-    begin
-      { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
-        matrices below. Since we want to reverse them now, so normal
-        Transform is multiplied by IM and InverseTransform is multiplied by M. }
-      Transform := Transform * IMRotateScaleOrient;
-      InverseTransform := MRotateScaleOrient * InverseTransform;
-    end;
-  end;
-
-  MultMatricesTranslation(Transform, InverseTransform, -Center);
+  T.Transform := Transform;
+  T.InverseTransform := InverseTransform;
+  // T.Scale := 1; // doesn't matter
+{$ifdef COMPILER_BUGGY_PARAMETERS}
+  TransformData.Center := Center;
+  TransformData.Rotation := Rotation;
+  TransformData.Scale := Scale;
+  TransformData.ScaleOrientation := ScaleOrientation;
+  TransformData.Translation := Translation;
+  MultiplyWorkaround(T, TransformData);
+{$else}
+  T.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
+{$endif}
+  Transform := T.Transform;
+  InverseTransform := T.InverseTransform;
 end;
 
 { TRayCollision --------------------------------------------------------------- }
@@ -2742,34 +2758,34 @@ end;
 
 function TCastleTransform.Transform: TMatrix4;
 begin
-  if not FTransformAndInverseValid then
+  if not FTransformationValid then
   begin
-    InternalTransformMatrices(FTransform, FInverseTransform);
-    FTransformAndInverseValid := true;
+    InternalTransformation(FTransformation);
+    FTransformationValid := true;
   end;
-  Result := FTransform;
+  Result := FTransformation.Transform;
 end;
 
 function TCastleTransform.InverseTransform: TMatrix4;
 begin
-  if not FTransformAndInverseValid then
+  if not FTransformationValid then
   begin
-    InternalTransformMatrices(FTransform, FInverseTransform);
-    FTransformAndInverseValid := true;
+    InternalTransformation(FTransformation);
+    FTransformationValid := true;
   end;
-  Result := FInverseTransform;
+  Result := FTransformation.InverseTransform;
 end;
 
 function TCastleTransform.WorldTransform: TMatrix4;
 begin
-  UpdateWorldTransformAndInverse;
-  Result := FWorldTransform;
+  UpdateWorldTransformation;
+  Result := FWorldTransformation.Transform;
 end;
 
 function TCastleTransform.WorldInverseTransform: TMatrix4;
 begin
-  UpdateWorldTransformAndInverse;
-  Result := FWorldInverseTransform;
+  UpdateWorldTransformation;
+  Result := FWorldTransformation.InverseTransform;
 end;
 
 function TCastleTransform.Parent: TCastleTransform;
@@ -2796,20 +2812,20 @@ begin
   Result := (Self = World) or ((FWorldReferences = 1) and (FParent <> nil));
 end;
 
-procedure TCastleTransform.UpdateWorldTransformAndInverse;
+procedure TCastleTransform.UpdateWorldTransformation;
 var
   Par: TCastleTransform;
   IsWorld: boolean;
 begin
   { The main feature that enables to optimize this (usually reuse previously
-    calculated FWorldTransform and FWorldInverseTransform) is that we keep
-    FWorldTransformAndInverseId.
+    calculated FWorldTransformation) is that we keep
+    FWorldTransformationId.
     This id changes every time the FWorldTransform or FWorldInverseTransform changes.
-    So a child can save this id, and know that as long as FWorldTransformAndInverseId
-    didn't change, so also FWorldTransform or FWorldInverseTransform didn't change.
+    So a child can save this id, and know that as long as FWorldTransformationId
+    didn't change, so also FWorldTransformation didn't change.
 
-    The FWorldTransformAndInverseId is never zero after UpdateWorldTransformAndInverse.
-    So you can safely use FLastParentWorldTransformAndInverseId = 0
+    The FWorldTransformationId is never zero after UpdateWorldTransformation.
+    So you can safely use FLastParentWorldTransformationId = 0
     as a value that "will never be considered equal". }
 
   IsWorld := Self = World;
@@ -2818,65 +2834,74 @@ begin
   begin
     // first, update FLastParentWorldTransform*
     Par := Parent;
-    Par.UpdateWorldTransformAndInverse;
-    if FLastParentWorldTransformAndInverseId <> Par.FWorldTransformAndInverseId then
+    Par.UpdateWorldTransformation;
+    if FLastParentWorldTransformationId <> Par.FWorldTransformationId then
     begin
-      FLastParentWorldTransformAndInverseId := Par.FWorldTransformAndInverseId;
-      FLastParentWorldTransform             := Par.FWorldTransform;
-      FLastParentWorldInverseTransform      := Par.FWorldInverseTransform;
-      // need to recalculate our FWorldTransform*
-      FWorldTransformAndInverseValid := false;
+      FLastParentWorldTransformationId := Par.FWorldTransformationId;
+      FLastParentWorldTransformation   := Par.FWorldTransformation;
+      // need to recalculate our FWorldTransformation
+      FWorldTransformationValid := false;
     end;
   end;
 
-  { Note that FWorldTransformAndInverseValid is set to false
+  { Note that FWorldTransformationValid is set to false
     - when Par.WorldTransform changes or
     - when our Transform changes
     Both situations imply that our WorldTransform should change.
   }
 
-  if not FWorldTransformAndInverseValid then
+  if not FWorldTransformationValid then
   begin
     // update NextTransformId
     if NextTransformId = High(NextTransformId) then
     begin
-      WritelnLog('Watch out, UpdateWorldTransformAndInverse overflows the NextTransformId');
+      WritelnLog('Watch out, UpdateWorldTransformation overflows the NextTransformId');
       NextTransformId := 1; // skip over 0
     end else
       Inc(NextTransformId);
 
-    FWorldTransformAndInverseId := NextTransformId;
+    FWorldTransformationId := NextTransformId;
 
     // actually calculate World[Inverse]Transform here
     if IsWorld then
     begin
-      FWorldTransform := Transform;
-      FWorldInverseTransform := InverseTransform;
+      FWorldTransformation.Transform := Transform;
+      FWorldTransformation.InverseTransform := InverseTransform;
     end else
     begin
-      FWorldTransform := FLastParentWorldTransform * Transform;
-      FWorldInverseTransform := InverseTransform * FLastParentWorldInverseTransform;
+      FWorldTransformation.Transform := FLastParentWorldTransformation.Transform * Transform;
+      FWorldTransformation.InverseTransform := InverseTransform * FLastParentWorldTransformation.InverseTransform;
     end;
-    FWorldTransformAndInverseValid := true;
+    FWorldTransformationValid := true;
   end;
 end;
 
 procedure TCastleTransform.TransformMatricesMult(var M, MInverse: TMatrix4);
+var
+  T: TTransformation;
 begin
-  // just call private (non-deprecated) versions
-  InternalTransformMatricesMult(M, MInverse);
+  // call InternalTransformationMult (non-deprecated)
+  T.Transform := M;
+  T.InverseTransform := MInverse;
+  // T.Scale := 1; // doesn't matter
+  InternalTransformationMult(T);
+  M := T.Transform;
+  MInverse := T.InverseTransform;
 end;
 
 procedure TCastleTransform.TransformMatrices(out M, MInverse: TMatrix4);
+var
+  T: TTransformation;
 begin
-  // just call private (non-deprecated) versions
-  InternalTransformMatrices(M, MInverse);
+  // call InternalTransformation (non-deprecated)
+  InternalTransformation(T);
+  M := T.Transform;
+  MInverse := T.InverseTransform;
 end;
 
-procedure TCastleTransform.InternalTransformMatricesMult(
-  var M, MInverse: TMatrix4);
+procedure TCastleTransform.InternalTransformationMult(var T: TTransformation);
 
-{$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
+{$ifdef COMPILER_BUGGY_PARAMETERS}
   type
     TTransformData = record
       Transform, InverseTransform: TMatrix4;
@@ -2887,11 +2912,9 @@ procedure TCastleTransform.InternalTransformMatricesMult(
       Translation: TVector3;
     end;
 
-  procedure TransformMatricesMultWorkaround(var TransformData: TTransformData);
+  procedure MultiplyWorkaround(var T: TTransformation; const TransformData: TTransformData);
   begin
-    CastleTransform.TransformMatricesMult(
-      TransformData.Transform,
-      TransformData.InverseTransform,
+    T.Multiply(
       TransformData.Center,
       TransformData.Rotation,
       TransformData.Scale,
@@ -2902,34 +2925,27 @@ procedure TCastleTransform.InternalTransformMatricesMult(
 var
   TransformData: TTransformData;
 begin
-  TransformData.Transform := M;
-  TransformData.InverseTransform := MInverse;
   TransformData.Center := FCenter;
   TransformData.Rotation := FRotation;
   TransformData.Scale := FScale;
   TransformData.ScaleOrientation := FScaleOrientation;
   TransformData.Translation := FTranslation;
-
-  // Doing it like this avoids
-  // Fatal: Internal error 2014121702
-  // from FPC 3.0.3 for 64-bit iPhone (Darwin for AArch64)
-  TransformMatricesMultWorkaround(TransformData);
-
-  M := TransformData.Transform;
-  MInverse := TransformData.InverseTransform;
+  MultiplyWorkaround(T, TransformData);
 {$else}
 begin
-  CastleTransform.TransformMatricesMult(M, MInverse,
-    FCenter, FRotation, FScale, FScaleOrientation, FTranslation);
+  T.Multiply(
+    FCenter,
+    FRotation,
+    FScale,
+    FScaleOrientation,
+    FTranslation);
 {$endif}
 end;
 
-procedure TCastleTransform.InternalTransformMatrices(
-  out M, MInverse: TMatrix4);
+procedure TCastleTransform.InternalTransformation(out T: TTransformation);
 begin
-  M := TMatrix4.Identity;
-  MInverse := TMatrix4.Identity;
-  InternalTransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
+  T.Init;
+  InternalTransformationMult(T);
 end;
 
 function TCastleTransform.AverageScale: Single;
@@ -2990,7 +3006,7 @@ procedure TCastleTransform.Render(const Params: TRenderParams);
 var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
-  NewParamsTransformValue, NewParamsInverseTransformValue: TMatrix4;
+  NewParamsTransformation: TTransformation;
   OldParamsTransformIdentity: boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
@@ -3007,13 +3023,13 @@ begin
     OldParamsInverseTransform  := Params.InverseTransform;
     OldFrustum                 := Params.Frustum;
 
-    NewParamsTransformValue        := OldParamsTransform^;
-    NewParamsInverseTransformValue := OldParamsInverseTransform^;
-    NewFrustumValue                := OldFrustum^;
+    NewParamsTransformation.Transform        := OldParamsTransform^;
+    NewParamsTransformation.InverseTransform := OldParamsInverseTransform^;
+    NewFrustumValue                          := OldFrustum^;
 
     Params.TransformIdentity := false;
-    Params.Transform        := @NewParamsTransformValue;
-    Params.InverseTransform := @NewParamsInverseTransformValue;
+    Params.Transform        := @NewParamsTransformation.Transform;
+    Params.InverseTransform := @NewParamsTransformation.InverseTransform;
     Params.Frustum          := @NewFrustumValue;
 
     { Update NewXxx to apply the transformation defined by this TCastleTransform.
@@ -3021,13 +3037,13 @@ begin
       so we subtract transformation below. }
     if FOnlyTranslation then
     begin
-      MultMatricesTranslation(NewParamsTransformValue, NewParamsInverseTransformValue, T);
+      NewParamsTransformation.Translate(T);
       NewFrustumValue.MoveVar(-T);
     end else
     begin
-      InternalTransformMatricesMult(NewParamsTransformValue, NewParamsInverseTransformValue);
-      if IsNan(NewParamsInverseTransformValue.Data[0, 0]) then
-        WarningMatrixNan(NewParamsInverseTransformValue);
+      InternalTransformationMult(NewParamsTransformation);
+      if IsNan(NewParamsTransformation.Transform.Data[0, 0]) then
+        WarningMatrixNan(NewParamsTransformation.Transform);
       NewFrustumValue := NewFrustumValue.TransformByInverse(Transform);
       // 2x slower: NewFrustumValue := NewFrustumValue.Transform(InverseTransform);
     end;
@@ -3275,8 +3291,8 @@ end;
 
 procedure TCastleTransform.ChangedTransform;
 begin
-  FTransformAndInverseValid := false;
-  FWorldTransformAndInverseValid := false;
+  FTransformationValid := false;
+  FWorldTransformationValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
@@ -3620,6 +3636,7 @@ begin
 end;
 
 initialization
+  TCastleTransform.DefaultOrientation := otUpYDirectionZ;
   GlobalIdentityMatrix := TMatrix4.Identity;
   RegisterSerializableComponent(TCastleTransform, 'Transform');
 end.

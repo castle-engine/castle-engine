@@ -23,11 +23,7 @@
 
   { Touch user interface to navigate in a 3D world.
     Shows one "lever", that can be moved up/down/left/right,
-    and controls the movement while Walking or Flying.
-
-    Usually, this control is created and used through the @link(TCastleWindowTouch)
-    properties. There is no need to directly create TCastleTouchControl instance
-    in this case. }
+    and controls the movement while Walking or Flying. }
   TCastleTouchControl = class(TCastleUserInterface)
   strict private
     FTouchMode: TCastleTouchCtlMode;

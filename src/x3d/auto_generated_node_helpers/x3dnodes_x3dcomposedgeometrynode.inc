@@ -38,12 +38,12 @@
     procedure SetNormal(const Value: TAbstractNormalNode);
     function GetTexCoord: TAbstractTextureCoordinateNode;
     procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
-    function GetColorPerVertex: boolean;
-    procedure SetColorPerVertex(const Value: boolean);
-    function GetNormalPerVertex: boolean;
-    procedure SetNormalPerVertex(const Value: boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
+    function GetColorPerVertex: Boolean;
+    procedure SetColorPerVertex(const Value: Boolean);
+    function GetNormalPerVertex: Boolean;
+    procedure SetNormalPerVertex(const Value: Boolean);
   public
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
@@ -62,11 +62,11 @@
     { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
     { X3D field "colorPerVertex". } { }
-    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { X3D field "normalPerVertex". } { }
-    property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
 {$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "radianceTransfer". } { }
     procedure SetRadianceTransfer(const Value: array of TVector3);
@@ -163,32 +163,32 @@ begin
   FdTexCoord.Send(Value);
 end;
 
-function TAbstractComposedGeometryNode.GetCcw: boolean;
+function TAbstractComposedGeometryNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TAbstractComposedGeometryNode.SetCcw(const Value: boolean);
+procedure TAbstractComposedGeometryNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;
 
-function TAbstractComposedGeometryNode.GetColorPerVertex: boolean;
+function TAbstractComposedGeometryNode.GetColorPerVertex: Boolean;
 begin
   Result := FdColorPerVertex.Value;
 end;
 
-procedure TAbstractComposedGeometryNode.SetColorPerVertex(const Value: boolean);
+procedure TAbstractComposedGeometryNode.SetColorPerVertex(const Value: Boolean);
 begin
   FdColorPerVertex.Send(Value);
 end;
 
-function TAbstractComposedGeometryNode.GetNormalPerVertex: boolean;
+function TAbstractComposedGeometryNode.GetNormalPerVertex: Boolean;
 begin
   Result := FdNormalPerVertex.Value;
 end;
 
-procedure TAbstractComposedGeometryNode.SetNormalPerVertex(const Value: boolean);
+procedure TAbstractComposedGeometryNode.SetNormalPerVertex(const Value: Boolean);
 begin
   FdNormalPerVertex.Send(Value);
 end;

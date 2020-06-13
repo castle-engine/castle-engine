@@ -1,5 +1,4 @@
-{ Main user interface class.
-  This implements the majority of this application functionality.
+{ Main state, where most of the application logic takes place.
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
@@ -13,8 +12,7 @@ uses CastleUIState, CastleScene, CastleControls,
   CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls;
 
 type
-  { Main user interface class.
-    This implements the majority of this application functionality. }
+  { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
     Viewport: TCastleViewport;

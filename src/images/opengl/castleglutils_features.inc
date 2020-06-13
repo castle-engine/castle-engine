@@ -298,6 +298,8 @@ begin
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;
+
+  WritelnLogMultiline('Rendering Context Initialization', GLInformationString);
 end;
 
 {$ifdef OpenGLES}
@@ -386,6 +388,8 @@ begin
   {$endif}
 
   MaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+  if GLVersion.BuggyTextureSizeAbove2048 then
+    MaxTextureSize := Min(MaxTextureSize, 2048);
 
   { TODO: for OpenGLES, as well as non-shader pipeline, this can be actually
     infinite (in theory, of course even 8 lights at the same shape is slow).

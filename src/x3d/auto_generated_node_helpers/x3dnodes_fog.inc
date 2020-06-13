@@ -30,8 +30,8 @@
     procedure SetColor(const Value: TCastleColorRGB);
     function GetVisibilityRange: Single;
     procedure SetVisibilityRange(const Value: Single);
-    function GetVolumetric: boolean;
-    procedure SetVolumetric(const Value: boolean);
+    function GetVolumetric: Boolean;
+    procedure SetVolumetric(const Value: Boolean);
     function GetVolumetricDirection: TVector3;
     procedure SetVolumetricDirection(const Value: TVector3);
     function GetVolumetricVisibilityStart: Single;
@@ -42,7 +42,7 @@
     { X3D field "visibilityRange". } { }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
     { X3D field "volumetric". } { }
-    property Volumetric: boolean read GetVolumetric write SetVolumetric;
+    property Volumetric: Boolean read GetVolumetric write SetVolumetric;
     { X3D field "volumetricDirection". } { }
     property VolumetricDirection: TVector3 read GetVolumetricDirection write SetVolumetricDirection;
     { X3D field "volumetricVisibilityStart". } { }
@@ -74,12 +74,12 @@ begin
   FdVisibilityRange.Send(Value);
 end;
 
-function TFogNode.GetVolumetric: boolean;
+function TFogNode.GetVolumetric: Boolean;
 begin
   Result := FdVolumetric.Value;
 end;
 
-procedure TFogNode.SetVolumetric(const Value: boolean);
+procedure TFogNode.SetVolumetric(const Value: Boolean);
 begin
   FdVolumetric.Send(Value);
 end;

@@ -1,12 +1,12 @@
 (******************************************************************************
  *                                 PasGLTF                                    *
  ******************************************************************************
- *                          Version 2018-08-13-18-87                          *
+ *                          Version 2020-02-12-00-29                          *
  ******************************************************************************
  *                                zlib license                                *
  *============================================================================*
  *                                                                            *
- * Copyright (C) 2018, Benjamin Rosseaux (benjamin@rosseaux.de)               *
+ * Copyright (C) 2018-2020, Benjamin Rosseaux (benjamin@rosseaux.de)          *
  *                                                                            *
  * This software is provided 'as-is', without any express or implied          *
  * warranty. In no event will the authors be held liable for any damages      *
@@ -235,6 +235,18 @@ unit PasGLTF;
     {$define Delphi10Berlin}
    {$ifend}
    {$define Delphi10BerlinAndUp}
+  {$ifend}
+  {$if CompilerVersion>=32.0}
+   {$if CompilerVersion=32.0}
+    {$define Delphi10Tokyo}
+   {$ifend}
+   {$define Delphi10TokyoAndUp}
+  {$ifend}
+  {$if CompilerVersion>=33.0}
+   {$if CompilerVersion=33.0}
+    {$define Delphi10Rio}
+   {$ifend}
+   {$define Delphi10RioAndUp}
   {$ifend}
  {$endif}
  {$ifndef Delphi4or5}
@@ -3300,10 +3312,10 @@ end;
 constructor TPasGLTF.TCamera.TPerspective.Create(const aDocument:TDocument);
 begin
  inherited Create(aDocument);
- fAspectRatio:=0.0;
- fYFov:=0.0;
- fZNear:=0.0;
- fZFar:=0.0;
+ fAspectRatio:=1.778;
+ fYFov:=0.252;
+ fZNear:=0.1;
+ fZFar:=1000.0;
  fEmpty:=false;
 end;
 
@@ -3720,13 +3732,13 @@ procedure TPasGLTF.TDocument.LoadFromJSON(const aJSONRootItem:TPasJSONItem);
   JSONObject:=TPasJSONItemObject(aJSONItem);
   begin
    JSONObjectItem:=JSONObject.Properties['extensions'];
-   if assigned(JSONObjectItem) then begin
+   if assigned(JSONObjectItem) and (JSONObjectItem is TPasJSONItemObject) then begin
     aBaseExtensionsExtrasObject.fExtensions.Merge(JSONObjectItem);
    end;
   end;
   begin
    JSONObjectItem:=JSONObject.Properties['extras'];
-   if assigned(JSONObjectItem) then begin
+   if assigned(JSONObjectItem) and (JSONObjectItem is TPasJSONItemObject) then begin
     aBaseExtensionsExtrasObject.fExtras.Merge(JSONObjectItem);
    end;
   end;
@@ -4673,7 +4685,7 @@ var GLBHeader:TGLBHeader;
 var RawJSONRawByteString:TPasJSONRawByteString;
     ChunkHeader:TChunkHeader;
     Stream:TMemoryStream;
-    Parsed:TPasJSONItem;
+    JSONItem:TPasJSONItem;
 begin
  if not (assigned(aStream) and (aStream.Size>=GLBHeaderSize)) then begin
   raise EPasGLTFInvalidDocument.Create('Invalid GLB document');
@@ -4702,12 +4714,14 @@ begin
  RawJSONRawByteString:='';
  SetLength(RawJSONRawByteString,GLBHeader.JSONChunkHeader.ChunkLength);
  aStream.ReadBuffer(RawJSONRawByteString[1],length(RawJSONRawByteString));
- // CGE modified to free Parse result, otherwise we have memory leak
- // This is also applied upstream, after https://github.com/BeRo1985/pasgltf/pull/2
- Parsed := TPasJSON.Parse(RawJSONRawByteString,[],TPasJSONEncoding.UTF8);
- try
-  LoadFromJSON(Parsed);
- finally FreeAndNil(Parsed) end;
+ JSONItem:=TPasJSON.Parse(RawJSONRawByteString,[],TPasJSONEncoding.UTF8);
+ if assigned(JSONItem) then begin
+  try
+   LoadFromJSON(JSONItem);
+  finally
+   FreeAndNil(JSONItem);
+  end;
+ end; 
  if aStream.Position<aStream.Size then begin
   if aStream.Read(ChunkHeader,SizeOf(TChunkHeader))<>SizeOf(ChunkHeader) then begin
    raise EPasGLTFInvalidDocument.Create('Invalid GLB document');
@@ -4729,7 +4743,7 @@ end;
 
 procedure TPasGLTF.TDocument.LoadFromStream(const aStream:TStream);
 var FirstFourBytes:array[0..3] of TPasGLTFUInt8;
-    Parsed:TPasJSONItem;
+    JSONItem:TPasJSONItem;
 begin
  aStream.ReadBuffer(FirstFourBytes,SizeOf(FirstFourBytes));
  aStream.Seek(-SizeOf(FirstFourBytes),soCurrent);
@@ -4739,12 +4753,14 @@ begin
     (FirstFourBytes[3]=ord('F')) then begin
   LoadFromBinary(aStream);
  end else begin
-  // CGE modified to free Parse result, otherwise we have memory leak
-  // This is also applied upstream, after https://github.com/BeRo1985/pasgltf/pull/2
-  Parsed := TPasJSON.Parse(aStream,[],TPasJSONEncoding.AutomaticDetection);
-  try
-   LoadFromJSON(Parsed);
-  finally FreeAndNil(Parsed) end;
+  JSONItem:=TPasJSON.Parse(aStream,[],TPasJSONEncoding.AutomaticDetection);
+  if assigned(JSONItem) then begin
+   try
+    LoadFromJSON(JSONItem);
+   finally
+    FreeAndNil(JSONItem);
+   end;
+  end; 
  end;
 end;
 

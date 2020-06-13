@@ -14,7 +14,7 @@ You can use it to develop commercial (including closed-source) games and applica
 
 - The code is covered by our copyrights. E.g. if you distribute the "Castle Game Engine" sources yourself (modified or not), you must clearly specify our copyrights to the original code.
 
-- Some of the examples graphic data, and some tools (in particular, the upcoming castle-editor), are covered by a more strict GPL license. To put it simply, you *cannot* make a closed-source fork of our (upcoming) "Castle Game Engine" visual editor.
+- Some of the examples graphic data, and some tools (in particular, the castle-editor), are covered by a more strict GPL license. To put it simply, you *cannot* make a closed-source fork of our "Castle Game Engine" visual editor.
 
 The above is a quick summary of our licensing terms.
 

@@ -172,7 +172,7 @@ begin
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
     20: with Scene.Attributes do Lighting := not Lighting;
-    100: Window.SaveScreenDialog(FileNameAutoInc(SUnformattable(ApplicationName) + '_screen_%d.png'));
+    100: Window.Container.SaveScreenToDefaultFile;
     200: Window.Close;
     else Exit;
   end;

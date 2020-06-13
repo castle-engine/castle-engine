@@ -34,7 +34,11 @@
   { Base node type for all Material nodes. }
   TAbstractMaterialNode = class(TAbstractAppearanceChildNode)
   public
-    procedure CreateNode; override;
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
+    function MaterialInfo: TMaterialInfo; virtual; abstract;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
   end;
@@ -47,14 +51,11 @@
   TCommonSurfaceShaderNode = class;
 
   TShading = (shDefault, shGouraud, shPhong, shWireframe);
+  TShapeCollision = (scDefault, scBox);
 
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   strict private
-    function GetGeometry: TAbstractGeometryNode;
-    procedure SetGeometry(const Value: TAbstractGeometryNode);
-    function GetAppearance: TAppearanceNode;
-    procedure SetAppearance(const Value: TAppearanceNode);
     function GetMaterial: TAbstractMaterialNode;
     procedure SetMaterial(const Value: TAbstractMaterialNode);
     function GetTexture: TAbstractTextureNode;
@@ -63,57 +64,12 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-    function GetShading: TShading;
-    procedure SetShading(const Value: TShading);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    type
-      TSFShading = class(TSFStringEnum)
-      strict private
-        WireframeChanged: boolean;
-      public
-        class function ExposedEventsFieldClass: TX3DFieldClass; override;
-        procedure ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime); override;
-        function ExecuteChanges: TX3DChanges; override;
-      end;
-
-    procedure CreateNode; override;
-
-    strict private FFdAppearance: TSFNode;
-    public property FdAppearance: TSFNode read FFdAppearance;
-
-    strict private FFdGeometry: TSFNode;
-    public property FdGeometry: TSFNode read FFdGeometry;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    strict private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-    {$endif}
-
-    { Whether to render this shape.
-      See https://castle-engine.io/x3d_implementation_shape_extensions.php }
-    strict private FFdRender: TSFBool;
-    public property FdRender: TSFBool read FFdRender;
-
-    strict private FFdShading: TSFShading;
-    public property FdShading: TSFShading read FFdShading;
-    property Shading: TShading read GetShading write SetShading;
-
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-
-    { Geometry of this shape. }
-    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
-
-    { Apperance of this shape.
-
-      This is a comfortable shortcut for FdAppearance.Value,
-      checking whether it's class is appropriate. }
-    property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
 
     { The texture of this shape.
       This is a shortcut for accessing "texture" field of Apperance,
@@ -141,14 +97,10 @@
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
 
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdOctreeTriangles: TSFNode;
-    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
-    {$endif}
-
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
+      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
@@ -198,6 +150,9 @@
 
     strict private FFdMaterial: TSFNode;
     public property FdMaterial: TSFNode read FFdMaterial;
+
+    strict private FFdBackMaterial: TSFNode;
+    public property FdBackMaterial: TSFNode read FFdBackMaterial;
 
     strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
@@ -265,6 +220,7 @@
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
     function CommonSurfaceShader: TCommonSurfaceShaderNode;
+      deprecated 'use TMaterialNode instead of TCommonSurfaceShaderNode (it has the same functionality and is standardized in X3D v4)';
 
     { Texture that determines the primary RGB color of the material,
       and transparency of the material.
@@ -282,8 +238,15 @@
       This is also the texture which is affected by @link(FdTexture)
       field (if appropriate material slot is empty).
 
+      The overloaded version with Mapping parameter also specifies which
+      texture coordinates / transformations should be used for this texture.
+      It returns -1 when we should use standard MultiTexture specification for this,
+      which also covers the case when MainTexture is a MultiTexture node,
+      and should use appropriate texture coordinates for MultiTexture children.
+
       Returns @nil if none. }
     function MainTexture: TAbstractTextureNode;
+    function MainTexture(out Mapping: Integer): TAbstractTextureNode;
 
     function InternalMaterialProperty: TMaterialProperty;
     function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
@@ -361,7 +324,7 @@
     side).
     To have a two-sided material, either use TTwoSidedMaterialNode,
     or set the shading to Phong using @link(TRenderingAttributes.PhongShading)
-    or @link(TShapeNode.Shading). }
+    or @link(TAbstractShapeNode.Shading). }
   TMaterialNode = class(TAbstractOneSidedMaterialNode)
   strict private
     type
@@ -465,11 +428,7 @@
       value of shininess field. }
     function ShininessExp: Single;
 
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     { Only the emissiveColor is not black (zero),
       which means that the material behaves like unlit.
@@ -530,12 +489,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     {$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
   end;
@@ -578,12 +532,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
@@ -643,12 +592,7 @@
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-
-    { Material information based on this node.
-      It is automatically updated when properties of this material change.
-      Do not free it yourself, it will be automatically freed when
-      this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo: TMaterialInfo; override;
 
     {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
   end;
@@ -657,22 +601,12 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractMaterialNode ------------------------------------------------------ }
-
-procedure TAbstractMaterialNode.CreateNode;
-begin
-  inherited;
-
-  { This is not actually specified anywhere (X3D XML encoding spec
-    doesn't specify containerField for abstract X3DXxxNode classes)
-    but it seems most sensible. }
-
-  DefaultContainerField := 'material';
-end;
-
-{ TAbstractOneSidedMaterialNode ---------------------------------------------- }
-
 { TSFShading ----------------------------------------------------------------- }
+
+(*TODO:
+  If wireframe changes, then ExecuteChange should be chWireframe.
+  Below there's a convoluted way to do this.
+  Not used for now, as FdShading is now just TSFStringEnum.
 
 class function TAbstractShapeNode.TSFShading.ExposedEventsFieldClass: TX3DFieldClass;
 begin
@@ -691,53 +625,40 @@ begin
   inherited;
 end;
 
-function TAbstractShapeNode.TSFShading.ExecuteChanges: TX3DChanges;
+function TAbstractShapeNode.TSFShading.ExecuteChange: TX3DChange;
 begin
   Result := inherited;
   if WireframeChanged then
   begin
-    System.Include(Result, chWireframe);
     WireframeChanged := false;
+    Exit(chWireframe);
   end;
 end;
+*)
 
 { TAbstractShapeNode --------------------------------------------------------- }
 
-procedure TAbstractShapeNode.CreateNode;
 const
-  ShadingNames: array [TShading] of string = ('DEFAULT', 'GOURAUD', 'PHONG', 'WIREFRAME');
+  ShadingNames: array [TShading] of String = (
+    'DEFAULT',
+    'GOURAUD',
+    'PHONG',
+    'WIREFRAME'
+  );
+  ShapeCollisionNames: array [TShapeCollision] of String = (
+    'DEFAULT',
+    'BOX'
+  );
+
+constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  FFdAppearance := TSFNode.Create(Self, true, 'appearance', [TAbstractAppearanceNode]);
-   FdAppearance.ChangesAlways := [chEverything];
-  AddField(FFdAppearance);
-
-  FFdGeometry := TSFNode.Create(Self, true, 'geometry', [TAbstractGeometryNode]);
-   FdGeometry.ChangesAlways := [chEverything];
-  AddField(FFdGeometry);
-
+  FdBboxCenter.ChangeAlways := chBBox;
+  FdBboxSize.ChangeAlways := chBBox;
+  FdAppearance.ChangeAlways := chEverything;
+  FdGeometry.ChangeAlways := chEverything;
   {$ifndef CASTLE_SLIM_NODES}
-  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
-  AddField(FFdBboxCenter);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
-  AddField(FFdBboxSize);
-  { X3D specification comment: [0,Inf) or -1 -1 -1 }
-  {$endif}
-
-  FFdRender := TSFBool.Create(Self, true, 'render', true);
-  AddField(FFdRender);
-
-  FFdShading := TSFShading.Create(Self, true, 'shading', ShadingNames, Ord(shDefault));
-   FdShading.ChangesAlways := [chVisibleNonGeometry];
-  AddField(FFdShading);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdOctreeTriangles := TSFNode.Create(Self, false, 'octreeTriangles', [TKambiOctreePropertiesNode]);
-   FdOctreeTriangles.ChangesAlways := [chEverything];
-  AddField(FFdOctreeTriangles);
+  FdOctreeTriangles.ChangeAlways := chEverything;
   {$endif}
 end;
 
@@ -745,11 +666,10 @@ function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFuncti
 begin
   Result := nil;
 
-  { According to VRML spec, when geometry is NULL then object is not
+  { According to X3D spec, when geometry is NULL then object is not
     drawn so appearance doesn't matter. }
 
-  if FdGeometry.CurrentChildAllowed and
-     (FdGeometry.Value <> nil) then
+  if Geometry <> nil then // checks that FdGeometry has value with correct class
   begin
     Result := FdAppearance.Enumerate(Func);
     if Result <> nil then Exit;
@@ -771,32 +691,6 @@ begin
   inherited;
 end;
 
-function TAbstractShapeNode.GetGeometry: TAbstractGeometryNode;
-begin
-  if FdGeometry.Value is TAbstractGeometryNode then
-    Result := TAbstractGeometryNode(FdGeometry.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractGeometryNode);
-begin
-  FdGeometry.Send(Value);
-end;
-
-function TAbstractShapeNode.GetAppearance: TAppearanceNode;
-begin
-  if FdAppearance.Value is TAppearanceNode then
-    Result := TAppearanceNode(FdAppearance.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
-begin
-  FdAppearance.Send(Value);
-end;
-
 function TAbstractShapeNode.GetMaterial: TAbstractMaterialNode;
 var
   App: TAppearanceNode;
@@ -814,7 +708,9 @@ var
 begin
   App := Appearance;
   if App <> nil then
+    {$warnings off} // using deprecated in deprecated
     Result := App.CommonSurfaceShader
+    {$warnings on}
   else
     Result := nil;
 end;
@@ -920,74 +816,68 @@ begin
   end;
 end;
 
-function TAbstractShapeNode.GetShading: TShading;
-begin
-  Result := TShading(FdShading.EnumValue);
-end;
-
-procedure TAbstractShapeNode.SetShading(const Value: TShading);
-begin
-  FdShading.SendEnumValue(Ord(Value));
-end;
-
 procedure TAppearanceNode.CreateNode;
 begin
   inherited;
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFillProperties := TSFNode.Create(Self, true, 'fillProperties', [TFillPropertiesNode]);
-   FdFillProperties.ChangesAlways := [chEverything];
+   FdFillProperties.ChangeAlways := chEverything;
   AddField(FFdFillProperties);
   {$endif}
 
   FFdLineProperties := TSFNode.Create(Self, true, 'lineProperties', [TLinePropertiesNode]);
-   FdLineProperties.ChangesAlways := [chEverything];
+   FdLineProperties.ChangeAlways := chEverything;
   AddField(FFdLineProperties);
 
   FFdMaterial := TSFNode.Create(Self, true, 'material', [TAbstractMaterialNode]);
-   FdMaterial.ChangesAlways := [chEverything];
+   FdMaterial.ChangeAlways := chEverything;
   AddField(FFdMaterial);
 
+  FFdBackMaterial := TSFNode.Create(Self, true, 'backMaterial', [TAbstractMaterialNode]);
+   FdBackMaterial.ChangeAlways := chNone; // not used now
+  AddField(FFdBackMaterial);
+
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangesAlways := [chEverything];
+   FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 
   FFdTexture := TSFNode.Create(Self, true, 'texture', [TAbstractTextureNode]);
-   FdTexture.ChangesAlways := [chEverything];
+   FdTexture.ChangeAlways := chEverything;
   AddField(FFdTexture);
 
   FFdTextureTransform := TSFNode.Create(Self, true, 'textureTransform', [TAbstractTextureTransformNode]);
-   FdTextureTransform.ChangesAlways := [chEverything];
+   FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
 
   FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractPunctualLightNode]);
-   FdReceiveShadows.ChangesAlways := [chShadowMaps];
+   FdReceiveShadows.ChangeAlways := chShadowMaps;
   AddField(FFdReceiveShadows);
 
   FFdShadowCaster := TSFBool.Create(Self, true, 'shadowCaster', true);
-   FdShadowCaster.ChangesAlways := [chShadowCasters];
+   FdShadowCaster.ChangeAlways := chShadowCasters;
   AddField(FFdShadowCaster);
 
   FFdNormalMap := TSFNode.Create(Self, true, 'normalMap', [TAbstractTextureNode]);
-   FdNormalMap.ChangesAlways := [chEverything];
+   FdNormalMap.ChangeAlways := chEverything;
   AddField(FFdNormalMap);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdHeightMap := TSFNode.Create(Self, true, 'heightMap', [TAbstractTextureNode]);
-   FdHeightMap.ChangesAlways := [chEverything];
+   FdHeightMap.ChangeAlways := chEverything;
   AddField(FFdHeightMap);
   {$endif CASTLE_SLIM_NODES}
 
   FFdHeightMapScale := TSFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'heightMapScale', DefaultHeightMapScale);
-   FdHeightMapScale.ChangesAlways := [chEverything];
+   FdHeightMapScale.ChangeAlways := chEverything;
   AddField(FFdHeightMapScale);
 
   FFdBlendMode := TSFNode.Create(Self, true, 'blendMode', [TBlendModeNode]);
-   FdBlendMode.ChangesAlways := [chEverything];
+   FdBlendMode.ChangeAlways := chEverything;
   AddField(FFdBlendMode);
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangesAlways := [chEverything];
+   FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
@@ -1109,27 +999,52 @@ end;
 
 function TAppearanceNode.MainTexture: TAbstractTextureNode;
 var
+  IgnoredMapping: Integer;
+begin
+  Result := MainTexture(IgnoredMapping);
+end;
+
+function TAppearanceNode.MainTexture(out Mapping: Integer): TAbstractTextureNode;
+var
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
   Result := nil;
+  Mapping := -1;
+  {$warnings off} // using deprecated to keep backward compatibility
   SurfaceShader := CommonSurfaceShader;
+  {$warnings on}
   if SurfaceShader <> nil then
   begin
     if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+    begin
+      Mapping := SurfaceShader.DiffuseTextureCoordinatesId; // TODO: is this what X3DOM/InstantReality are doing? test.
       Exit(SurfaceShader.MultiDiffuseAlphaTexture);
+    end;
     if SurfaceShader.DiffuseTexture <> nil then
+    begin
+      Mapping := SurfaceShader.DiffuseTextureCoordinatesId;
       Exit(SurfaceShader.DiffuseTexture);
+    end;
   end else
   begin
     if (Material is TMaterialNode) and
        (TMaterialNode(Material).DiffuseTexture <> nil) then
+    begin
+      Mapping := TMaterialNode(Material).DiffuseTextureChannel;
       Exit(TMaterialNode(Material).DiffuseTexture);
+    end;
     if (Material is TPhysicalMaterialNode) and
        (TPhysicalMaterialNode(Material).BaseTexture <> nil) then
+    begin
+      Mapping := TPhysicalMaterialNode(Material).BaseTextureChannel;
       Exit(TPhysicalMaterialNode(Material).BaseTexture);
+    end;
     if (Material is TUnlitMaterialNode) and
        (TUnlitMaterialNode(Material).EmissiveTexture <> nil) then
+    begin
+      Mapping := TUnlitMaterialNode(Material).EmissiveTextureChannel;
       Exit(TUnlitMaterialNode(Material).EmissiveTexture);
+    end;
     Result := Texture;
   end;
 end;
@@ -1270,95 +1185,95 @@ begin
   inherited;
 
   FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', TPhongMaterialInfo.DefaultAmbientIntensity);
-   FdAmbientIntensity.ChangesAlways := [chMaterial2];
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdAmbientTexture := TSFNode.Create(Self, true, 'ambientTexture', [TAbstractTextureNode]);
-   FdAmbientTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientTexture);
 
   FFdAmbientTextureChannel := TSFInt32.Create(Self, true, 'ambientTextureChannel', 0);
-   FdAmbientTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientTextureChannel);
 
   FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', TPhongMaterialInfo.DefaultDiffuseColor);
-   FdDiffuseColor.ChangesAlways := [chMaterial2];
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdDiffuseTexture := TSFNode.Create(Self, true, 'diffuseTexture', [TAbstractTextureNode]);
-   FdDiffuseTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTexture);
 
   FFdDiffuseTextureChannel := TSFInt32.Create(Self, true, 'diffuseTextureChannel', 0);
-   FdDiffuseTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdDiffuseTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTextureChannel);
 
   FFdShininess := TSFFloat.Create(Self, true, 'shininess', TPhongMaterialInfo.DefaultShininess);
-   FdShininess.ChangesAlways := [chMaterial2];
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
   { X3D specification comment: [0,1] }
 
   FFdShininessTexture := TSFNode.Create(Self, true, 'shininessTexture', [TAbstractTextureNode]);
-   FdShininessTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininessTexture);
 
   FFdShininessTextureChannel := TSFInt32.Create(Self, true, 'shininessTextureChannel', 0);
-   FdShininessTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdShininessTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininessTextureChannel);
 
   FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', TPhongMaterialInfo.DefaultSpecularColor);
-   FdSpecularColor.ChangesAlways := [chMaterial2];
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdSpecularTexture := TSFNode.Create(Self, true, 'specularTexture', [TAbstractTextureNode]);
-   FdSpecularTexture.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTexture);
 
   FFdSpecularTextureChannel := TSFInt32.Create(Self, true, 'specularTextureChannel', 0);
-   FdSpecularTextureChannel.ChangesAlways := [chVisibleNonGeometry];
+   FdSpecularTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTextureChannel);
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', TMaterialInfo.DefaultTransparency);
-   FdTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
+   FdTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangesAlways := [chMaterial2];
+   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFogImmune);
   {$endif}
 
   FFdMirror := TSFFloat.Create(Self, true, 'mirror', 0.0);
-   FdMirror.ChangesAlways := [chMaterial2];
+   FdMirror.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMirror);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangesAlways := [chMaterial2];
+   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecular);
 
   FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangesAlways := [chMaterial2];
+   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflDiffuse);
 
   FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangesAlways := [chMaterial2];
+   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecular);
 
   FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangesAlways := [chMaterial2];
+   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransDiffuse);
 
   FFdReflSpecularExp := TSFFloat.Create(Self, true, 'reflSpecularExp', TPhongMaterialInfo.DefaultReflSpecularExp);
-   FdReflSpecularExp.ChangesAlways := [chMaterial2];
+   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecularExp);
 
   FFdTransSpecularExp := TSFFloat.Create(Self, true, 'transSpecularExp', TPhongMaterialInfo.DefaultTransSpecularExp);
-   FdTransSpecularExp.ChangesAlways := [chMaterial2];
+   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecularExp);
   {$endif}
 end;
@@ -1563,6 +1478,8 @@ end;
 constructor TPhysicalMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
+  { Changing Transparency must also update shape's Blending. }
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TPhysicalMaterialNode.Destroy;
@@ -1659,66 +1576,66 @@ begin
   inherited;
 
   FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0.2);
-   FdAmbientIntensity.ChangesAlways := [chMaterial2];
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdBackAmbientIntensity := TSFFloat.Create(Self, true, 'backAmbientIntensity', 0.2);
-   FdBackAmbientIntensity.ChangesAlways := [chMaterial2];
+   FdBackAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdBackDiffuseColor := TSFColor.Create(Self, true, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdBackDiffuseColor.ChangesAlways := [chMaterial2];
+   FdBackDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdBackEmissiveColor := TSFColor.Create(Self, true, 'backEmissiveColor', Vector3(0, 0, 0));
-   FdBackEmissiveColor.ChangesAlways := [chMaterial2];
+   FdBackEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackEmissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdBackShininess := TSFFloat.Create(Self, true, 'backShininess', 0.2);
-   FdBackShininess.ChangesAlways := [chMaterial2];
+   FdBackShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackShininess);
   { X3D specification comment: [0,1] }
 
   FFdBackSpecularColor := TSFColor.Create(Self, true, 'backSpecularColor', Vector3(0, 0, 0));
-   FdBackSpecularColor.ChangesAlways := [chMaterial2];
+   FdBackSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBackSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdBackTransparency := TSFFloat.Create(Self, true, 'backTransparency', 0);
-   FdBackTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
+   FdBackTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdBackTransparency);
   { X3D specification comment: [0,1] }
 
   FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
-   FdDiffuseColor.ChangesAlways := [chMaterial2];
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdEmissiveColor := TSFColor.Create(Self, true, 'emissiveColor', Vector3(0, 0, 0));
-   FdEmissiveColor.ChangesAlways := [chMaterial2];
+   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdShininess := TSFFloat.Create(Self, true, 'shininess', 0.2);
-   FdShininess.ChangesAlways := [chMaterial2];
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
   { X3D specification comment: [0,1] }
 
   FFdSeparateBackColor := TSFBool.Create(Self, true, 'separateBackColor', false);
-   FdSeparateBackColor.ChangesAlways := [chMaterial2];
+   FdSeparateBackColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSeparateBackColor);
 
   FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', Vector3(0, 0, 0));
-   FdSpecularColor.ChangesAlways := [chMaterial2];
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chMaterial2, chAlphaChannel];
+   FdTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 end;
@@ -1767,6 +1684,9 @@ begin
   // default is different
   FdEmissiveColor.DefaultValue := Vector3(1, 1, 1);
   FdEmissiveColor.Value := Vector3(1, 1, 1);
+  { Changing Transparency must also update shape's Blending.
+    Testcase: data/gui/fight/spell_effect/spell_2_symbols.json in Unholy. }
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TUnlitMaterialNode.Destroy;

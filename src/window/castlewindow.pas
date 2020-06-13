@@ -1959,7 +1959,7 @@ type
         @item(Create OpenGL context associated with it's OpenGL area.)
         @item(Show the window.)
         @item(Call GLInformationInitialize to initialize GLVersion,
-          GLUVersion, GLFeatures.)
+          GLUVersion, GLFeatures, show them in log.)
 
         @item(Initial events called:
           @unorderedList(
@@ -3169,13 +3169,11 @@ procedure TCastleWindowBase.OpenCore;
 
     GLInformationInitialize;
 
-    WritelnLogMultiline('OpenGL context initialization', GLInformationString);
-
     if GLVersion.BuggyDepth32 and
       (glGetInteger(GL_DEPTH_BITS) >= 32) and
       (StencilBits = 0) then
     begin
-      WritelnLog('OpenGL context initialization',
+      WritelnLog('Rendering Context Initialization',
         'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
       { Close the window, increase StencilBits to try to force 24-bit
         depth buffer, and call ourselves again.

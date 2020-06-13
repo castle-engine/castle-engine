@@ -28,6 +28,7 @@ void main_texture_apply(inout vec4 fragment_color,
   const in vec3 normal_eye)
 {
   /* PLUG: main_texture_apply (fragment_color, normal_eye) */
+  /* PLUG: texture_apply (fragment_color, normal_eye) */ // deprecated
 }
 
 /* CASTLE-LIGHTING-MODEL */

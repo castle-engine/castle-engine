@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -614,6 +614,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
+{$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
 {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}

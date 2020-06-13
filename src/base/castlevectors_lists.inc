@@ -149,6 +149,19 @@ type
     function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
+  { List of @link(TVector4Integer).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
+  TVector4IntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Integer>)
+  public
+    procedure AddRange(const Source: TVector4IntegerList);
+    procedure AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    { Does the SecondValue have equal length and content. }
+    function Equals(SecondValue: TObject): boolean; override;
+  end;
+
   { List of @link(TMatrix3).
     Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
     and AddSubRange (for maximum speed). }
@@ -560,6 +573,46 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not TVector4.PerfectlyEquals(TVector4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
+
+{ TVector4IntegerList ----------------------------------------------------- }
+
+procedure TVector4IntegerList.AddRange(const Source: TVector4IntegerList);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector4IntegerList.AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if AddCount <> 0 then
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4Integer) * AddCount);
+end;
+
+procedure TVector4IntegerList.AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+begin
+  AddSubRange(Source, Index, AddCount);
+end;
+
+function TVector4IntegerList.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector4IntegerList;
+  if Result then
+  begin
+    Result := Count = TVector4IntegerList(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector4Integer.Equals(TVector4IntegerList(SecondValue).List^[I], List^[I]) then
         begin
           Result := false;
           Exit;

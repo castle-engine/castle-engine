@@ -413,8 +413,16 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   or a second copy of your own program, will write to the FileName
   between FileNameAutoInc determined it doesn't exist and you opened the file.
   So using this cannot guarantee that you really always write to a new file
-  (use proper file open modes for this). }
-function FileNameAutoInc(const FileNamePattern: string): string;
+  (use proper file open modes for this).
+
+  The overloaded version with separate Prefix and SuffixWithPattern
+  replaces %d in SuffixWithPattern, and then appends (unmodified) Prefix.
+  This is useful when you have a user-specified path,
+  where you don't want to perform %d substitution.
+  Alternative is to wrap the string in @link(SUnformattable).
+}
+function FileNameAutoInc(const FileNamePattern: string): string; overload;
+function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string; overload;
 
 function FnameAutoInc(const FileNamePattern: string): string;
   deprecated 'use FileNameAutoInc';
@@ -494,9 +502,21 @@ function FileToString(const URL: string): AnsiString; overload;
 
 procedure StringToFile(const URL: String; const Contents: AnsiString);
 
+{ Recommended path where to put screenshots on the current platform.
+  Always ends with PathDelim and returns a directory that exists.
+
+  Empty string means that we cannot recommend any safe path to store screenshots
+  (on some platforms, like mobile or console, it's not so easy to just store a file
+  in the filesystem, without any permissions;
+  and on some platforms they may have special API for this stuff). }
+function SaveScreenPath: String;
+
 implementation
 
-uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
+uses {$ifdef MSWINDOWS} ShlObj, {$endif}
+  {$ifdef DARWIN} MacOSAll, {$endif} Classes,
+  {$ifdef FPC} Process, {$endif}
+  CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
   CastleApplicationProperties;
@@ -618,6 +638,18 @@ function ApplicationData(const Path: string): string;
       Result := BundlePath + 'Contents/Resources/data/';
       {$endif}
       if DirectoryExists(Result) then Exit;
+
+      {$ifndef IOS}
+      Result := BundlePath + '../data/';
+      if DirectoryExists(Result) then
+      begin
+        WritelnLog('"Contents/Resources/data/" subdirectory not found inside the macOS application bundle: ' + BundlePath + NL +
+          '  Using instead "data/" directory that is sibling to the application bundle.' + NL +
+          '  This makes sense only for debug.' + NL +
+          '  The released application version should instead include the data inside the bundle.');
+        Exit;
+      end;
+      {$endif}
     end;
     {$endif DARWIN}
 
@@ -848,19 +880,24 @@ begin
   try
     Handler.SourcePath := SourcePath;
     Handler.DestinationPath := DestinationPath;
-    FindFiles(SourcePath, '*', false, @Handler.FoundFile, [ffRecursive]);
+    FindFiles(SourcePath, '*', false, {$ifdef CASTLE_OBJFPC}@{$endif} Handler.FoundFile, [ffRecursive]);
   finally FreeAndNil(Handler) end;
 end;
 
 { dir handling -------------------------------------------------------- }
 
 function FileNameAutoInc(const FileNamePattern: string): string;
+begin
+  Result := FileNameAutoInc('', FileNamePattern);
+end;
+
+function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string;
 var
   I: Integer;
 begin
   I := 0;
   repeat
-    result := Format(FileNamePattern, [I]);
+    Result := Prefix + Format(SuffixWithPattern, [I]);
     if URIExists(Result) in [ueNotExists, ueUnknown] then
       Exit;
     Inc(I);
@@ -1019,12 +1056,62 @@ begin
   {$endif}
 end;
 
+{$ifdef MSWINDOWS}
+{ Get preferred user directory.
+  The DirectoryId is a CSIDL_xxx constant, https://docs.microsoft.com/pl-pl/windows/win32/shell/csidl .
+
+  Returns always a directory with trailing path delimiter,
+  unless it is not possible to get then returns ''.
+  Checks that directory exists.
+}
+function GetUserPath(const DirectoryId: LongInt): String;
+var
+  Dir: array [0 .. MAX_PATH] of AnsiChar;
+begin
+  if (SHGetFolderPath(0, DirectoryId, 0, 0, @Dir) = S_OK) and
+     DirectoryExists(Dir) then
+    Result := InclPathDelim(Dir)
+  else
+    Result := '';
+end;
+{$endif}
+
+{$if defined(UNIX) and (not (defined(DARWIN) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH) or defined(IOS)))}
+{ Get preferred user directory, by calling xdg-user-dir
+  ( https://jlk.fjfi.cvut.cz/arch/manpages/man/xdg-user-dir.1.en ).
+
+  Returns always a directory with trailing path delimiter,
+  unless it is not possible to get then returns HomePath
+  (a safe default on normal Unix to store stuff).
+  Checks that directory exists.
+}
+function GetUserPath(const DirectoryId: String): String;
+var
+  Exe, Dir: String;
+begin
+  Result := HomePath;
+
+  Exe := FindExe('xdg-user-dir');
+  if Exe = '' then
+    Exit;
+
+  Dir := '';
+  if RunCommand(Exe, [DirectoryId], Dir) then
+  begin
+    Dir := Trim(Dir);
+    if (Dir <> '') and DirectoryExists(Dir) then
+      Result := InclPathDelim(Dir);
+  end else
+    WritelnWarning('xdg-user-dir call failed');
+end;
+{$endif}
+
 {$ifndef FPC}
 { Get temporary FileName, also creating this file, using WinAPI.
   There seems to be no cross-platform function for this in Delphi. }
 function GetTempFileNameWindows(const Prefix: AnsiString): AnsiString;
 var
-  MyPath, MyFileName: array[0..MAX_PATH] of AnsiChar;
+  MyPath, MyFileName: array [0..MAX_PATH] of AnsiChar;
 begin
   FillChar(MyPath, MAX_PATH, 0);
   FillChar(MyFileName, MAX_PATH, 0);
@@ -1143,6 +1230,40 @@ begin
     if Length(Contents) <> 0 then
       F.WriteBuffer(Contents[1], Length(Contents));
   finally FreeAndNil(F) end;
+end;
+
+var
+  CachedSaveScreenPath: String;
+  HasCachedSaveScreenPath: Boolean;
+
+function SaveScreenPath: String;
+begin
+  if HasCachedSaveScreenPath then
+    Exit(CachedSaveScreenPath);
+
+  {$if defined(ANDROID) or defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
+  { These platforms require special treatment. Although we could use
+
+      Result := URIToFilenameSafe(ApplicationConfig(''));
+
+    but then we risk storing more data than expected (users/OS don't expect us
+    to fill this space uncontrollably, and users also don't have direct
+    access to the ApplicationConfig space). }
+  Result := '';
+  {$else}
+    {$if defined(DARWIN)}
+    Result := HomePath; // TODO: probably there's some macOS specific API to get this
+    {$elseif defined(UNIX)}
+    Result := GetUserPath('PICTURES');
+    {$elseif defined(MSWINDOWS)}
+    Result := GetUserPath(CSIDL_MYPICTURES);
+    {$else}
+    Result := '';
+    {$endif}
+  {$endif}
+
+  CachedSaveScreenPath := Result;
+  HasCachedSaveScreenPath := true;
 end;
 
 procedure InitializeExeName;

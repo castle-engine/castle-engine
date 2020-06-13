@@ -453,8 +453,8 @@ end;
 procedure TSoundNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  FTransform := StateStack.Top.Transform;
-  FTransformScale := StateStack.Top.TransformScale;
+  FTransform := StateStack.Top.Transformation.Transform;
+  FTransformScale := StateStack.Top.Transformation.Scale;
   UpdateSourcePosition;
 end;
 

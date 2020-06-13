@@ -165,7 +165,7 @@ type
       instance. You can use a special creature placeholder with
       a specific starting life value
       (see TLevel.Load for placeholders docs,
-      and see https://castle-engine.io/castle-development.php
+      and see https://castle-engine.io/manual_high_level_3d_classes.php
       about the creature placeholders).
       Or you can use CreateCreature overloaded version that takes extra MaxLife
       parameter.
@@ -1830,24 +1830,24 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
 
     case FState of
       csIdle:
-        FResourceFrame.SetFrame(Resource.IdleAnimation, StateTime, true);
+        FResourceFrame.SetFrame(Level, Resource.IdleAnimation, StateTime, true);
       csWalk:
         if Resource.IdleToWalkAnimation.Defined and
            (StateTime < Resource.IdleToWalkAnimation.Duration) then
-          FResourceFrame.SetFrame(Resource.IdleToWalkAnimation, StateTime, false)
+          FResourceFrame.SetFrame(Level, Resource.IdleToWalkAnimation, StateTime, false)
         else
-          FResourceFrame.SetFrame(Resource.WalkAnimation,
+          FResourceFrame.SetFrame(Level, Resource.WalkAnimation,
             StateTime - Resource.IdleToWalkAnimation.Duration, true);
       csAttack:
-        FResourceFrame.SetFrame(Resource.AttackAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.AttackAnimation, StateTime, false);
       csFireMissile:
-        FResourceFrame.SetFrame(Resource.FireMissileAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.FireMissileAnimation, StateTime, false);
       csDie:
-        FResourceFrame.SetFrame(Resource.DieAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.DieAnimation, StateTime, false);
       csDieBack:
-        FResourceFrame.SetFrame(Resource.DieBackAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.DieBackAnimation, StateTime, false);
       csHurt:
-        FResourceFrame.SetFrame(Resource.HurtAnimation, StateTime, false);
+        FResourceFrame.SetFrame(Level, Resource.HurtAnimation, StateTime, false);
       else raise EInternalError.Create('FState ?');
     end;
   end;
@@ -2086,22 +2086,35 @@ var
     AlternativeTargetTime := LifeTime;
   end;
 
-  procedure DoIdle;
+  { Assuming current state is idle (the actual State value ignored),
+    - perform  "idle" AI
+    - and tell whether you changed the state to something else (returns @true if remained idle). }
+  function DoIdle: Boolean;
   var
     DirectionToEnemy: TVector3;
     AngleRadBetweenDirectionToEnemy: Single;
   begin
+    Result := true;
     if HasLastSensedEnemy then
     begin
       CalculateDirectionToEnemy(DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
 
       if FireMissileAllowed then
-        SetState(csFireMissile) else
+      begin
+        SetState(csFireMissile);
+        Result := false;
+      end else
       if AttackAllowed then
-        SetState(csAttack) else
+      begin
+        SetState(csAttack);
+        Result := false;
+      end else
       if WantToRunAway or
          WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
-        SetState(csWalk) else
+      begin
+        SetState(csWalk);
+        Result := false;
+      end else
       if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
          BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
@@ -2116,6 +2129,7 @@ var
           So we move a little --- just for the sake of moving. }
         SetState(csWalk);
         InitAlternativeTarget;
+        Result := false;
       end else
       begin
         { Continue csIdle state }
@@ -2385,6 +2399,17 @@ var
       SetState(csAttack);
   end;
 
+  { Go to the default state, like "idle".
+    Doing this instead of SetState(csIdle) avoids switching to "idle" just for
+    a single frame, which looks bad (animation visibly jumps for 1 frame,
+    and also animation blending is broken by such 1-frame change,
+    since our animation blending now can only transition from last to next animation). }
+  procedure BackToDefaultState;
+  begin
+    if DoIdle then
+      SetState(csIdle);
+  end;
+
   procedure DoAttack;
   var
     StateTime: Single;
@@ -2396,8 +2421,7 @@ var
       Attack;
     end;
     if StateTime > Resource.AttackAnimation.Duration then
-      { csIdle will quickly change to csWalk if it will want to walk. }
-      SetState(csIdle);
+      BackToDefaultState;
   end;
 
   procedure DoFireMissile;
@@ -2411,8 +2435,7 @@ var
       FireMissile;
     end;
     if StateTime > Resource.FireMissileAnimation.Duration then
-      { csIdle will quickly change to csWalk if it will want to walk. }
-      SetState(csIdle);
+      BackToDefaultState;
   end;
 
   procedure DoHurt;
@@ -2424,7 +2447,7 @@ var
     if StateTime > Resource.HurtAnimation.Duration then
     begin
       CancelKnockback;
-      SetState(csIdle);
+      BackToDefaultState;
     end;
   end;
 
@@ -2676,9 +2699,9 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
   procedure UpdateResourceFrame;
   begin
     if Dead and Resource.DieAnimation.Defined then
-      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
+      FResourceFrame.SetFrame(Level, Resource.DieAnimation, LifeTime - DieTime, false)
     else
-      FResourceFrame.SetFrame(Resource.FlyAnimation, LifeTime, true);
+      FResourceFrame.SetFrame(Level, Resource.FlyAnimation, LifeTime, true);
   end;
 
 var
@@ -2828,9 +2851,9 @@ procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemo
   procedure UpdateResourceFrame;
   begin
     if Dead and Resource.DieAnimation.Defined then
-      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
+      FResourceFrame.SetFrame(Level, Resource.DieAnimation, LifeTime - DieTime, false)
     else
-      FResourceFrame.SetFrame(Resource.IdleAnimation, LifeTime, true);
+      FResourceFrame.SetFrame(Level, Resource.IdleAnimation, LifeTime, true);
   end;
 
 begin

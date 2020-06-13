@@ -81,26 +81,6 @@ const
   DragonSpeedY =  500.0;
   DragonScale = 0.5;
 
-{ Change the curent animation played by the Dragon scene. }
-procedure DragonChangeAnimation(const AnimationName: String;
-  const AnimationBlending: Boolean = true);
-var
-  Parameters: TPlayAnimationParameters;
-begin
-  { Without blending, this could be called simpler:
-      Dragon.PlayAnimation(AnimationName, true);
-  }
-
-  Parameters := TPlayAnimationParameters.Create;
-  try
-    Parameters.Name := AnimationName;
-    Parameters.Loop := true;
-    if AnimationBlending then
-      Parameters.TransitionDuration := 0.5;
-    Dragon.PlayAnimation(Parameters);
-  finally FreeAndNil(Parameters) end;
-end;
-
 procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
@@ -145,7 +125,7 @@ begin
   // AddItem(4300, 30, TreeZ, 0.7, 'castle-data:/trees/tree1.json');
   // AddItem(4600, 10, TreeZ, 0.7, 'castle-data:/trees/tree2.json');
   { z = 50 to place between background tower and background trees }
-  AddItem(0,    0,  50, 1, 'castle-data:/background/smoktlo2.json');
+  AddItem(0,    0,  50, 1, 'castle-data:/background/clouds.json');
   AddItem(0,    0, 100, 1, 'castle-data:/background_front.x3dv', false);
 
   Viewport.Items.SortBackToFront2D;
@@ -202,7 +182,8 @@ begin
   Dragon.Load('castle-data:/dragon/dragon.json');
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
-  DragonChangeAnimation('idle', false);
+  Dragon.DefaultAnimationTransition := 0.5;
+  Dragon.PlayAnimation('idle', true);
   Dragon.Pickable := false;
   Dragon.Scale := Vector3(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
@@ -343,7 +324,7 @@ begin
        (T[1] = DragonFlyingTarget[1]) then
     begin
       DragonFlying := false;
-      DragonChangeAnimation('idle');
+      Dragon.PlayAnimation('idle', true);
     end;
 
     if (T[0] < 1000) and not AchievementSeeLeftSubmitted then
@@ -371,7 +352,7 @@ var
   WorldPosition: TVector3;
 begin
   if Event.IsKey(K_F5) then
-    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
+    Window.Container.SaveScreenToDefaultFile;
   if Event.IsKey(K_Escape) then
     Application.Terminate;
 
@@ -380,7 +361,7 @@ begin
     if Viewport.PositionToWorldPlane(Event.Position, true, 0, WorldPosition) then
     begin
       if not DragonFlying then
-        DragonChangeAnimation('flying');
+        Dragon.PlayAnimation('flying', true);
       DragonFlying := true;
       DragonFlyingTarget := WorldPosition.XY;
 

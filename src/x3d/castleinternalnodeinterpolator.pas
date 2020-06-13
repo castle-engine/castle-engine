@@ -22,7 +22,7 @@ unit CastleInternalNodeInterpolator;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUtils, X3DNodes, CastleBoxes;
+  CastleUtils, X3DNodes, CastleBoxes, X3DLoadInternalGLTF;
 
 type
   TGetKeyNodeWithTime = procedure (const Index: Cardinal;
@@ -754,6 +754,16 @@ end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
 
+  function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
+  var
+    SStream: TStringStream;
+  begin
+    SStream := TStringStream.Create(Contents);
+    try
+      Result := LoadGLTF(SStream, BaseUrl);
+    finally FreeAndNil(SStream) end;
+  end;
+
   { Load <animation> data from a given XML element to a set of variables.
 
     @param(BaseUrl The URL from which relative
@@ -770,7 +780,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL: string;
+    FrameURL, MimeType: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -838,7 +848,17 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
             NewNode := LoadNode(FrameURL);
           end else
           begin
-            NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+            MimeType := FrameElement.AttributeStringDef('mime_type', '');
+            case MimeType of
+              '', 'model/x3d+xml':
+                NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+              'model/gltf+json':
+                NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl);
+              else
+                raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
+                  MimeType
+                ]);
+            end;
           end;
 
           if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
@@ -1053,7 +1073,7 @@ var
     Route.SetDestinationDirectly(Switch.FdWhichChoice);
     RootNode.AddRoute(Route);
 
-    RootNode.ManuallyExportNode(TimeSensor);
+    RootNode.ExportNode(TimeSensor);
 
     AddAnimationVisibilityRoutes(TimeSensor);
 

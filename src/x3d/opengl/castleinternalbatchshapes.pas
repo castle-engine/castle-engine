@@ -716,7 +716,7 @@ begin
   CoordTarget := MeshTarget.InternalCoordinates(StateTarget);
   CoordSource := MeshSource.InternalCoordinates(StateSource);
   OldCoordCount := CoordTarget.Count;
-  CoordTarget.Items.AddRangeTransformed(CoordSource.Items, StateSource.Transform);
+  CoordTarget.Items.AddRangeTransformed(CoordSource.Items, StateSource.Transformation.Transform);
 
   if P = mpTexCoord then
   begin

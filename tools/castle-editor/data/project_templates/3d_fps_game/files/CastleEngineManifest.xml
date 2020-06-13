@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="${PROJECT_NAME}"
+  standalone_source="${PROJECT_PASCAL_NAME}_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="${PROJECT_QUALIFIED_NAME}"
+>
+  <!--
+    Need to compile with threading,
+    to support music streaming, requested in data/audio/index.xml
+  -->
+  <compiler_options>
+    <custom_options>
+      <option>-dCASTLE_THREADS</option>
+    </custom_options>
+  </compiler_options>
+</project>

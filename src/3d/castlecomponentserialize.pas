@@ -172,8 +172,14 @@ type
   TInternalTranslateDesignCallback = procedure (const C: TComponent; const GroupName: String);
 
 var
-  { Internal, used by TranslateAllDesigns. @exclude }
+  { Internal, used by TranslateAllDesigns.
+    @exclude }
   OnInternalTranslateDesign: TInternalTranslateDesignCallback;
+
+var
+  { Set by custom editor template (used when project defines editor_units).
+    @exclude }
+  InternalHasCustomComponents: Boolean;
 
 implementation
 
@@ -406,9 +412,10 @@ begin
     R.InstanceProperty := Info;
     R.PropertyValue := DataName;
     ResolveObjectProperties.Add(R);
-    WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
-      DataName
-    ]);
+    // This is too verbose (and alarming) for normal user. Everything is OK when you see this log.
+    // WritelnLog('Delaying resolving of component name "%s" (we will create a new empty instance, and resolve it at the end of loading)', [
+    //   DataName
+    // ]);
   end;
 end;
 
@@ -733,7 +740,17 @@ var
 begin
   JsonWriter := TJSONStreamer.Create(nil);
   try
-    JsonWriter.Options := [jsoStreamChildren];
+    JsonWriter.Options := [
+      jsoStreamChildren,
+      { Otherwise TStrings (like TCastleLabel.Text) is written
+        as a single String, and newlines are written as "\n" or "\r\n"
+        depending on OS used to write the file.
+        This causes needless differences in version control later. }
+      jsoTStringsAsArray,
+      { Makes TDateTime more readable }
+      jsoDateTimeAsString,
+      jsoCheckEmptyDateTime
+    ];
     JsonWriter.AfterStreamObject := @TCastleComponentWriter(nil).AfterStreamObject;
     JsonWriter.OnStreamProperty := @TCastleComponentWriter(nil).StreamProperty;
     JsonWriter.ChildProperty := '$Children';

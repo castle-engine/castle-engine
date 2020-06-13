@@ -13,6 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleDownload unit. }
 unit TestCastleDownload;
 
 interface

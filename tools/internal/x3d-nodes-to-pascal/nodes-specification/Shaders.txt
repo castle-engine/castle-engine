@@ -2,11 +2,11 @@ X3DShaderNode : X3DAppearanceChildNode {
   SFBool   [in]     activate
   SFBool   [out]    isSelected
   SFBool   [out]    isValid
-  SFString []       language   ""   ["CG"|"GLSL"|"HLSL"|...]
+  SFString []       language   ""   ["CG"|"GLSL"|"HLSL"|...] enumerated-type: TShaderLanguage ShaderLanguageNames slDefault
 }
 
 X3DVertexAttributeNode : X3DGeometricPropertyNode {
-  SFString []       name     "" 
+  SFString []       name     ""
 }
 
 ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
@@ -38,7 +38,7 @@ ProgramShader : X3DShaderNode {
 
 ShaderPart : X3DNode, X3DUrlObject {
   MFString [in,out] url      []         [URI]
-  SFString []       type     "VERTEX"   ["VERTEX"|"FRAGMENT"]
+  SFString []       type     "VERTEX"   ["VERTEX"|"FRAGMENT"] enumerated-type: TShaderType ShaderTypeNameX3D stVertex
 }
 
 ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
@@ -46,4 +46,3 @@ ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
   SFString  []       type      "VERTEX"     ["VERTEX"|"FRAGMENT"]
   # And any number of:
 }
-

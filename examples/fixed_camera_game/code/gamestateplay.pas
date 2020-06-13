@@ -143,9 +143,9 @@ begin
             not CurrentLocation.Scene.RenderInternalModel;
         K_F5:
           begin
-            URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-            Container.SaveScreen(URL);
-            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+            URL := Container.SaveScreenToDefaultFile;
+            if URL <> '' then
+              Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
           end;
       end;
     itMouseButton:

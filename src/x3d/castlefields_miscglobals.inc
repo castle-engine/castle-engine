@@ -30,15 +30,16 @@ procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 const
-  X3DChangeToStr: array [TX3DChange] of string =
-  ( 'Visible Geometry',
+  X3DChangeToStr: array [TX3DChange] of string = (
+    'None',
+    'Visible Geometry',
     'Visible Non-Geometry',
     'Redisplay',
     'Transform',
     'Coordinate',
+    'Normal',
     'VRML 1.0 State (but not affecting geometry or Coordinate)',
     'VRML 1.0 State (affecting geometry, but not Coordinate)',
-    'Material',
     'Blending',
     'Light active property',
     'Light location/direction',
@@ -67,7 +68,9 @@ const
     'Everything',
     'Shadow maps',
     'Wireframe',
-    'Children');
+    'Children',
+    'BBox'
+  );
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
 

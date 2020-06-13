@@ -1,0 +1,14 @@
+The model in knight.blend and texture in knight.png:
+
+  from http://opengameart.org/content/animated-knight
+  by Clement Wu, Nikolaus & Botanic,
+  licensed on
+    CC-BY 3.0
+    CC-BY-SA 3.0
+    GPL 3.0
+    GPL 2.0
+  or above versions of these.
+
+  It was somewhat retouched by Michalis Kamburelis.
+  It's the same model we use in examples/animations/resource_animations/,
+  here exported to glTF.

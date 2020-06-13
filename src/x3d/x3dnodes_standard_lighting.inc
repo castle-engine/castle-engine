@@ -29,8 +29,8 @@
 
   { Base class for all the light nodes. }
   TAbstractLightNode = class(TAbstractChildNode)
-  strict private
-    FTransform, FInvertedTransform: TMatrix4;
+  private
+    FTransformation: TTransformation;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -96,8 +96,8 @@
       node sets this property. By default, it represents identity transformation.
 
       @groupBegin }
-    property Transform: TMatrix4 read FTransform;
-    property InvertedTransform: TMatrix4 read FInvertedTransform;
+    function Transform: TMatrix4;
+    function InverseTransform: TMatrix4;
     { @groupEnd }
 
     function TransformationChange: TNodeTransformationChange; override;
@@ -437,38 +437,37 @@ begin
   inherited;
 
   FFdGlobal := TSFBool.Create(Self, true, 'global', false);
-   FdGlobal.ChangesAlways := [chEverything];
+   FdGlobal.ChangeAlways := chEverything;
   AddField(FFdGlobal);
 
   FFdOn := TSFBool.Create(Self, true, 'on', true);
-   FdOn.ChangesAlways := [chVisibleNonGeometry];
+   FdOn.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOn);
 
   FFdIntensity := TSFFloat.Create(Self, true, 'intensity', 1);
-   FdIntensity.ChangesAlways := [chVisibleNonGeometry];
+   FdIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdIntensity);
 
   FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangesAlways := [chVisibleNonGeometry];
+   FdColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdColor);
 
   FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0);
-   FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientIntensity);
 
   FFdShadowVolumes := TSFBool.Create(Self, true, 'shadowVolumes', false);
    FdShadowVolumes.AddAlternativeName('kambiShadows', 0);
-   FdShadowVolumes.ChangesAlways := [chLightForShadowVolumes];
+   FdShadowVolumes.ChangeAlways := chLightForShadowVolumes;
   AddField(FFdShadowVolumes);
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangesAlways := [chEverything];
+   FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
 
   DefaultContainerField := 'children';
 
-  FTransform := TMatrix4.Identity;
-  FInvertedTransform := TMatrix4.Identity;
+  FTransformation.Init;
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(
@@ -476,8 +475,7 @@ procedure TAbstractLightNode.BeforeTraverse(
 begin
   inherited;
 
-  FTransform := StateStack.Top.Transform;
-  FInvertedTransform := StateStack.Top.InvertedTransform;
+  FTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -577,8 +575,8 @@ procedure TAbstractLightNode.UpdateLightInstanceState(
   var LightInstance: TLightInstance;
   State: TX3DGraphTraverseState);
 begin
-  LightInstance.Transform := State.Transform;
-  LightInstance.TransformScale := State.TransformScale;
+  LightInstance.Transform := State.Transformation.Transform;
+  LightInstance.TransformScale := State.Transformation.Scale;
   UpdateLightInstance(LightInstance);
 end;
 
@@ -587,6 +585,16 @@ procedure TAbstractLightNode.UpdateLightInstance(
 begin
   { Nothing to do in this class. }
   Assert(LightInstance.Node = Self);
+end;
+
+function TAbstractLightNode.Transform: TMatrix4;
+begin
+  Result := FTransformation.Transform;
+end;
+
+function TAbstractLightNode.InverseTransform: TMatrix4;
+begin
+  Result := FTransformation.InverseTransform;
 end;
 
 function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
@@ -602,7 +610,7 @@ begin
 
   FFdShadowVolumesMain := TSFBool.Create(Self, true, 'shadowVolumesMain', false);
    FdShadowVolumesMain.AddAlternativeName('kambiShadowsMain', 0);
-   FdShadowVolumesMain.ChangesAlways := [chLightForShadowVolumes];
+   FdShadowVolumesMain.ChangeAlways := chLightForShadowVolumes;
   AddField(FFdShadowVolumesMain);
 
   FFdShowProxyGeometry := TSFBool.Create(Self, true, 'showProxyGeometry', false);
@@ -612,29 +620,29 @@ begin
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdProjectionNear.ChangesAlways := [chVisibleGeometry];
+   FdProjectionNear.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionNear);
 
   FFdProjectionFar := TSFFloat.Create(Self, true, 'projectionFar', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdProjectionFar.ChangesAlways := [chVisibleGeometry];
+   FdProjectionFar.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionFar);
 
   FFdUp := TSFVec3f.Create(Self, true, 'up', TVector3.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdUp.ChangesAlways := [chVisibleGeometry];
+   FdUp.ChangeAlways := chVisibleGeometry;
   AddField(FFdUp);
 
   FFdDefaultShadowMap := TSFNode.Create(Self, false, 'defaultShadowMap', [TGeneratedShadowMapNode]);
-   FdDefaultShadowMap.ChangesAlways := [chEverything];
+   FdDefaultShadowMap.ChangeAlways := chEverything;
   AddField(FFdDefaultShadowMap);
 
   FFdShadows := TSFBool.Create(Self, false, 'shadows', false);
-   FdShadows.ChangesAlways := [chShadowMaps];
+   FdShadows.ChangeAlways := chShadowMaps;
   AddField(FFdShadows);
 end;
 
@@ -680,12 +688,12 @@ end;
 
 function TAbstractPunctualLightNode.GetProjectionSceneLocation: TVector3;
 begin
-  Result := Transform.MultPoint(ProjectionLocationLocal);
+  Result := FTransformation.Transform.MultPoint(ProjectionLocationLocal);
 end;
 
 procedure TAbstractPunctualLightNode.SetProjectionSceneLocation(const Value: TVector3);
 begin
-  ProjectionLocationLocal := InvertedTransform.MultPoint(Value);
+  ProjectionLocationLocal := FTransformation.InverseTransform.MultPoint(Value);
 end;
 
 function TAbstractPunctualLightNode.GetProjectionSceneDirection: TVector3;
@@ -695,7 +703,7 @@ end;
 
 procedure TAbstractPunctualLightNode.SetProjectionSceneDirection(const Value: TVector3);
 begin
-  ProjectionDirectionLocal := InvertedTransform.MultDirection(Value);
+  ProjectionDirectionLocal := FTransformation.InverseTransform.MultDirection(Value);
 end;
 
 procedure TAbstractPunctualLightNode.GetView(out Pos, Dir, Side, Up: TVector3);
@@ -730,21 +738,21 @@ begin
   inherited;
 
   FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+   FdDirection.ChangeAlways := chLightLocationDirection;
   AddField(FFdDirection);
 
   FFdProjectionRectangle := TSFVec4f.Create(Self, true, 'projectionRectangle', TVector4.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdProjectionRectangle.ChangesAlways := [chVisibleGeometry];
+   FdProjectionRectangle.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionRectangle);
 
   FFdProjectionLocation := TSFVec3f.Create(Self, true, 'projectionLocation', TVector3.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdProjectionLocation.ChangesAlways := [chVisibleGeometry];
+   FdProjectionLocation.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionLocation);
 end;
 
@@ -869,17 +877,17 @@ begin
   inherited;
 
   FFdLocation := TSFVec3f.Create(Self, true, 'location', Vector3(0, 0, 0));
-   FdLocation.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+   FdLocation.ChangeAlways := chLightLocationDirection;
   AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdAttenuation := TSFVec3f.Create(Self, true, 'attenuation', Vector3(1, 0, 0));
-   FdAttenuation.ChangesAlways := [chVisibleNonGeometry];
+   FdAttenuation.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAttenuation);
   { X3D specification comment: [0,Inf) }
 
   FFdRadius := TSFFloat.Create(Self, true, 'radius', 100);
-   FdRadius.ChangesAlways := [chLightInstanceProperty];
+   FdRadius.ChangeAlways := chLightInstanceProperty;
   AddField(FFdRadius);
   { X3D specification comment: [0,Inf) }
 end;
@@ -900,7 +908,9 @@ end;
 
 function TAbstractPositionalLightNode.HasRadius: boolean;
 begin
-  Result := true;
+  { When radius < 0, behave like radius is infinite.
+    Useful for implementing glTF punctual lights. }
+  Result := Radius >= 0;
 end;
 
 procedure TAbstractPositionalLightNode.UpdateLightInstance(
@@ -971,7 +981,7 @@ end;
 
 procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3);
 begin
-  Location := InvertedTransform.MultPoint(Value);
+  Location := FTransformation.InverseTransform.MultPoint(Value);
 end;
 
 function TAbstractPositionalLightNode.GetRadius: Single;
@@ -1044,17 +1054,17 @@ begin
   inherited;
 
   FFdBeamWidth := TSFFloat.Create(Self, true, 'beamWidth', Pi / 2);
-   FdBeamWidth.ChangesAlways := [chVisibleNonGeometry];
+   FdBeamWidth.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBeamWidth);
   { X3D specification comment: (0,Pi/2] }
 
   FFdCutOffAngle := TSFFloat.Create(Self, true, 'cutOffAngle', Pi / 4);
-   FdCutOffAngle.ChangesAlways := [chVisibleNonGeometry];
+   FdCutOffAngle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCutOffAngle);
   { X3D specification comment: (0,Pi/2] }
 
   FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+   FdDirection.ChangeAlways := chLightLocationDirection;
   AddField(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1064,7 +1074,7 @@ begin
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdProjectionAngle.ChangesAlways := [chVisibleGeometry];
+   FdProjectionAngle.ChangeAlways := chVisibleGeometry;
   AddField(FFdProjectionAngle);
 
   DefaultContainerField := 'children';

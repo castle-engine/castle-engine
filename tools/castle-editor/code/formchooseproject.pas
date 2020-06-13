@@ -67,7 +67,7 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
-  CastleFilesUtils, CastleParameters, CastleLog,
+  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
   ToolCompilerInfo, ToolFpcVersion;
 
@@ -145,11 +145,14 @@ begin
       if NewProjectForm.ButtonTemplateEmpty.Down then
         TemplateName := 'empty'
       else
-      if NewProjectForm.ButtonTemplate3D.Down then
-        TemplateName := '3d'
+      if NewProjectForm.ButtonTemplate3dModelViewer.Down then
+        TemplateName := '3d_model_viewer'
       else
-      if NewProjectForm.ButtonTemplate2D.Down then
-        TemplateName := '2d'
+      if NewProjectForm.ButtonTemplate3dFps.Down then
+        TemplateName := '3d_fps_game'
+      else
+      if NewProjectForm.ButtonTemplate2d.Down then
+        TemplateName := '2d_game'
       else
         raise EInternalError.Create('Unknown project template selected');
 
@@ -182,14 +185,22 @@ procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
 var
   MenuItem: TMenuItem;
   I: Integer;
-  Url: String;
+  Url, S: String;
 begin
   PopupMenuRecentProjects.Items.Clear;
   for I := 0 to RecentProjects.URLs.Count - 1 do
   begin
     Url := RecentProjects.URLs[I];
     MenuItem := TMenuItem.Create(Self);
-    MenuItem.Caption := SQuoteLCLCaption(Url);
+
+    // show file URLs simpler, esp to avoid showing space as %20
+    Url := SuffixRemove('/CastleEngineManifest.xml', Url, true);
+    if URIProtocol(Url) = 'file' then
+      S := URIToFilenameSafeUTF8(Url)
+    else
+      S := URIDisplay(Url);
+    MenuItem.Caption := SQuoteLCLCaption(S);
+
     MenuItem.Tag := I;
     MenuItem.OnClick := @MenuItemRecentClick;
     PopupMenuRecentProjects.Items.Add(MenuItem);

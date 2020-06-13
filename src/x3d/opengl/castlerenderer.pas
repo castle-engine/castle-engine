@@ -550,6 +550,7 @@ type
     Vbo: TVboArrays;
     VboAllocatedUsage: TGLenum;
     VboAllocatedSize: array [TVboType] of Cardinal;
+    VboCoordinatePreserveGeometryOrder: Boolean; //< copied from TGeometryArrays.CoordinatePreserveGeometryOrder
 
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
@@ -561,6 +562,13 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
     { Debug description of this shape cache. }
     function ToString: String; override;
+    { If possible, update the coordinate/normal data in VBO fast.
+
+      This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
+      It optimizes the case of animating coordinates/normals using CoordinateInterpolator,
+      which is very important to optimize, since that's how glTF skinned animations
+      are done. }
+    function FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -2259,6 +2267,8 @@ begin
   else
     DataUsage := GL_STATIC_DRAW;
 
+  VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
+
   BufferData(vtCoordinate, GL_ARRAY_BUFFER,
     Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
@@ -2278,6 +2288,55 @@ begin
     work even if you call FreeArrays multiple times, the needed updates
     are summed). }
   VboToReload := [];
+end;
+
+function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
+type
+  TCoordinateNormal = packed record
+    Coord, Normal: TVector3;
+  end;
+var
+  NewCoordinates: array of TCoordinateNormal;
+  Count, Size: Cardinal;
+  I: Integer;
+begin
+  Result := false;
+
+  if { VBO of coordinates was initialized.
+       This also means that Arrays.FreeData was called, as LoadArraysToVbo does it. }
+     (Vbo[vtCoordinate] <> 0) and
+     VboCoordinatePreserveGeometryOrder and
+     (Normals.Count = Coords.Count) then
+  begin
+    Count := Coords.Count;
+    Size := Count * SizeOf(TCoordinateNormal);
+    if (VboAllocatedUsage = GL_STREAM_DRAW) and
+       { Comparing the byte sizes also makes sure that previous and new coordinates
+         count stayed the same.
+         Right now we always pack into TCoordinateNormal record (2 vectors, 3x floats)
+         so VboAllocatedSize[vtCoordinate] just determines the count.
+       }
+       (VboAllocatedSize[vtCoordinate] = Size) then
+    begin
+      Result := true;
+      if Count <> 0 then
+      begin
+        VboToReload := VboToReload + [vtCoordinate];
+
+        // calculate NewCoordinates
+        SetLength(NewCoordinates, Count);
+        for I := 0 to Count - 1 do
+        begin
+          NewCoordinates[I].Coord := Coords.List^[I];
+          NewCoordinates[I].Normal := Normals.List^[I];
+        end;
+
+        // load NewCoordinates to GPU
+        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, Size, Pointer(NewCoordinates));
+      end;
+    end;
+  end;
 end;
 
 function TShapeCache.ToString: String;
@@ -2807,7 +2866,8 @@ begin
   if ShapeMaybeUsesSurfaceTexture(Shape) or
      ShapeMaybeUsesShadowMaps(Shape) or
      ShapeMaterialRequiresPhongShading(Shape) or
-     ShapeUsesEnvironmentLight(Shape) then
+     ShapeUsesEnvironmentLight(Shape) or
+     (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);
@@ -3243,11 +3303,11 @@ begin
   if GLFeatures.EnableFixedFunction then
   begin
     glPushMatrix;
-      glMultMatrix(Shape.State.Transform);
+      glMultMatrix(Shape.State.Transformation.Transform);
   end;
   {$endif}
 
-    Shape.ModelView := Shape.ModelView * Shape.State.Transform;
+    Shape.ModelView := Shape.ModelView * Shape.State.Transformation.Transform;
     RenderShapeCreateMeshRenderer(Shape, Shader, MaterialOpacity, Lighting);
 
   {$ifndef OpenGLES}
@@ -3463,6 +3523,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     AlphaTest: boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
+    MainTextureMapping: Integer;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3472,10 +3533,12 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.MainTexture;
+    TextureNode := Shape.State.MainTexture(MainTextureMapping);
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
+
+    Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
     GLFontTextureNode := GLTextureNodes.TextureNode(FontTextureNode);
@@ -3786,7 +3849,7 @@ var
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
           Shape.BoundingBox,
-          Shape.State.Transform,
+          Shape.State.Transformation.Transform,
           GeometryCoords,
           Shape.MirrorPlaneUniforms);
 

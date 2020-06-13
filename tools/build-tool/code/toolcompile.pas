@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -181,6 +181,20 @@ begin
     CleanDirectory(CastleEnginePath + 'src' + PathDelim);
     CleanDirectory(CastleEnginePath + 'packages' + PathDelim + 'lib' + PathDelim);
   end;
+end;
+
+function FilterFpcOutput(var Line: String; const Data: Pointer): Boolean;
+var
+  LineLower: String;
+begin
+  { Lowercase once and later use IsPrefix many times with IgnoreCase=false (faster). }
+  LineLower := LowerCase(Line);
+  Result := not (
+    IsPrefix('generics.collections.pas(', LineLower, false) or
+    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+  );
+  // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
+  // Line := '<begin>' + Line + '<end>';
 end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -420,28 +434,38 @@ begin
     // do not show
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crcBD4794B2" with abstract method "DoMoveNext"
-    // TODO: This is a pity, we also hide useful warnings this way.
-    FpcOptions.Add('-vm04046');
+    // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+    // FpcOptions.Add('-vm04046');
 
     if FpcVer.AtLeast(3, 1, 1) then
     begin
       // do not show Warning: Symbol "TArrayHelper$1" is experimental
       // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
-      // TODO: This is a pity, we also hide useful warnings this way.
-      FpcOptions.Add('-vm05063');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm05063');
 
       // do not show
       // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
-      FpcOptions.Add('-vm5071');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm5071');
+    end;
+
+    if FpcVer.AtLeast(3, 2, 0) then
+    begin
+      // do not show
+      // Warning: function result variable of a managed type does not seem to be initialized
+      // (a lot of false warnings since FPC 3.3.1)
+      FpcOptions.Add('-vm5093');
+
+      // do not show
+      // Note: Call to subroutine "$1" marked as inline is not inlined
+      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
+      // (flood of notes after using Generics.Collections, but also from other units)
+      FpcOptions.Add('-vm6058');
     end;
 
     if FpcVer.AtLeast(3, 3, 1) then
     begin
-      // do not show
-      // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
-      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-      FpcOptions.Add('-vm6058');
-
       // do not show
       // Warning: Local variable "$1" of a managed type does not seem to be initialized
       // (a lot of false warnings since FPC 3.3.1)
@@ -451,11 +475,6 @@ begin
       // Warning: Variable "OutputFace" of a managed type does not seem to be initialized
       // (3 false warnings since FPC 3.3.1 in Kraft)
       FpcOptions.Add('-vm5090');
-
-      // do not show
-      // Warning: function result variable of a managed type does not seem to be initialized
-      // (a lot of false warnings since FPC 3.3.1)
-      FpcOptions.Add('-vm5093');
     end;
 
     FpcOptions.Add('-T' + OSToString(OS));
@@ -615,14 +634,14 @@ begin
     Writeln('FPC executing...');
     FpcExe := FindExeFpcCompiler;
 
-    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then
     begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
-        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
@@ -645,7 +664,7 @@ var
     LazbuildExitStatus: Integer;
   begin
     RunCommandIndirPassthrough(WorkingDirectory,
-      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
     if LazbuildExitStatus <> 0 then
     begin
       { Old lazbuild can fail with exception like this:
@@ -663,7 +682,7 @@ var
       begin
         FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
         RunCommandIndirPassthrough(WorkingDirectory,
-          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus);
+          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
         if LazbuildExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
@@ -707,6 +726,34 @@ begin
     else
       LazbuildOptions.Add('--build-mode=Release');
     }
+
+    { For historic reasons, Lazarus defaults to Carbon on macOS,
+      even on 64-bit macOS where you cannot link with Carbon.
+      And since macOS Catalina (10.15) all applications *must* be 64-bit
+      (32-bit is no longer supported) so this is important.
+      So we change it to cocoa.
+
+      TODO: This likely prevents the project from using it's own,
+      custom widgetset in case of macOS.
+
+      But there doesn't seem any better way of fixing this per-project.
+      I cannot use "Custom Options",
+
+        if (TargetOS='darwin') and (TargetCPU='x86_64') then
+          LCLWidgetType := 'cocoa';
+
+      -- it looks like LCLWidgetType is ignored in "Custom Options".
+
+      I cannot use "Additions and Overrides", as it doesn't seem to allow
+      to choose widgetset per-platform (like per-OS, or per-OS-and-CPU).
+      It would only allow to set Cocoa always.
+      Or in a specific build mode, but then I would need to
+      - maintain this build mode in my examples,
+      - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
+      - and require it in all user projects (this is not acceptable).
+    }
+    if (OS = darwin) and (CPU = X86_64) then
+      LazbuildOptions.Add('--widgetset=cocoa');
     LazbuildOptions.Add(LazarusProjectFile);
 
     RunLazbuild;

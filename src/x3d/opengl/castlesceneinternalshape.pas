@@ -72,26 +72,69 @@ type
 
 implementation
 
-uses CastleScene;
+uses CastleScene, CastleVectors;
 
 { TGLShape --------------------------------------------------------------- }
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
+
+  { Assuming Cache <> nil, try to update the Cache VBOs fast
+    (without the need to recreate them).
+
+    This detects now for changes limited to coordinate/normal,
+    and tries using FastCoordinateNormalUpdate. }
+  function FastCacheUpdate: Boolean;
+  var
+    Coords, Normals: TVector3List;
+  begin
+    Result := false;
+
+    if { We only changed Cooordinate.coord or Normal.vector. }
+       (Changes * [chCoordinate, chNormal] = Changes) and
+       { Shape has coordinates and normals exposed in most common way,
+         by Coordinate and Normal nodes. }
+       (Geometry.CoordField <> nil) and
+       (Geometry.CoordField.Value <> nil) and
+       (Geometry.CoordField.Value is TCoordinateNode) and
+       (Geometry.NormalField <> nil) and
+       (Geometry.NormalField.Value <> nil) and
+       (Geometry.NormalField.Value is TNormalNode) then
+    begin
+      Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
+      Normals := TNormalNode(Geometry.NormalField.Value).FdVector.Items;
+      Result := Cache.FastCoordinateNormalUpdate(Coords, Normals);
+    end;
+  end;
+
 begin
   inherited;
 
-  if Cache <> nil then
+  if (Cache <> nil) and (not FastCacheUpdate) then
   begin
     { Ignore changes that don't affect prepared arrays,
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
-    if Changes * [chCoordinate] <> [] then
+    if Changes * [chCoordinate, chNormal] <> [] then
       Cache.FreeArrays([vtCoordinate]);
+
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
       (e.g. in case of batching)
-      in which case both "if" clauses should be entered. }
-    if Changes * [chVisibleVRML1State, chGeometryVRML1State,
+      in which case both "if" clauses should be entered.
+
+      About chTextureImage:
+      We regenerate arrays when chTextureImage occurred,
+      because it means that potentially non-existing texture (e.g. ImageTexture
+      with empty url, or invalid url) changed to existing (if you set correct
+      ImageTexture.url). This means that number of texture coordinates
+      we need to make has changed.
+      Testcase "animate_symbols", using Unholy spell effect animations.
+
+      TODO: Actually Cache.FreeArrays is often not necessary in case of chTextureImage.
+      It's only necessary when texture existence changed.
+      This could be optiized more.
+    }
+    if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
       Cache.FreeArrays(AllVboTypes);
   end;

@@ -340,7 +340,7 @@ var
   { Copy project data into Xcode project. }
   procedure GenerateData;
   begin
-    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data');
+    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data', cpIOS);
   end;
 
   (* Add a large auto-generated chunk into the pbx file, replacing a special macro
@@ -354,17 +354,22 @@ var
     try
       PbxProject.AddTopLevelDir(XcodeProject, Project.Name);
 
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('Foundation'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('CoreGraphics'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UIKit'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenGLES'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('Foundation.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('CoreGraphics.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UIKit.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenGLES.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL.framework'));
 
       if Project.IOSServices.HasService('apple_game_center') then
-        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit.framework'));
       if Project.IOSServices.HasService('in_app_purchases') then
-        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit.framework'));
+      if Project.IOSServices.HasService('fmod') then
+      begin
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('libfmod_iphoneos.a'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('libc++.tbd'));
+      end;
 
       PBXContentsGenerated := PbxProject.PBXContents;
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
@@ -381,18 +386,34 @@ var
   { Copy compiled library into Xcode project. }
   procedure GenerateLibrary;
   var
-    OutputFile: string;
+    OutputFileBase: string;
   begin
-    OutputFile := ExtractFileName(Project.IOSLibraryFile);
-    SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFile);
+    OutputFileBase := ExtractFileName(Project.IOSLibraryFile);
+    SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFileBase);
     if Verbose then
-      Writeln('Packaging library file: ' + OutputFile);
+      Writeln('Packaging library file: ' + OutputFileBase);
   end;
 
   procedure GenerateCocoaPods;
   begin
     if UsesCocoaPods then
       RunCommandSimple(XcodeProject, 'pod', ['install']);
+  end;
+
+  procedure CopyExternalLibraries;
+  var
+    InputFile, OutputFile, OutputFileBase: String;
+  begin
+    if Project.IOSServices.HasService('fmod') then
+    begin
+      if not Project.IOSServices.Service('fmod').Parameters.TryGetValue('library_file', InputFile) then
+        raise Exception.Create('Cannot find "library_file" parameter in "fmod" service in CastleEngineManifest.xml');
+      OutputFileBase := ExtractFileName(InputFile);
+      OutputFile := XcodeProject + OutputFileBase;
+      SmartCopyFile(InputFile, OutputFile);
+      if Verbose then
+        Writeln('Packaging FMOD library file: ' + OutputFileBase);
+    end;
   end;
 
 begin
@@ -419,6 +440,7 @@ begin
     GenerateLaunchImages;
     GenerateData;
     GenerateLibrary;
+    CopyExternalLibraries;
     GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
 
     Writeln('Xcode project has been created in:');
@@ -509,6 +531,7 @@ begin
   CheckForceDirectories(ExportPath);
 
   RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
     '-workspace', Project.Name + '.xcworkspace',
     '-scheme', Project.Caption,
     '-destination', 'generic/platform=iOS',

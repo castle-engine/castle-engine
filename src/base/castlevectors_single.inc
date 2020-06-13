@@ -2310,8 +2310,12 @@ begin
 
   Expanded and optimized version below. *)
 
+  {$ifdef FPC}
   Assert(SizeOf(Result) mod SizeOf(DWord) = 0);
   FillDWord(Result, SizeOf(Result) div SizeOf(DWord), 0);
+  {$else}
+  FillChar(Result, SizeOf(Result), 0);
+  {$endif}
 
   Result.Data[0, 0] := Sqr(V.Data[0]);
   Result.Data[1, 1] := Sqr(V.Data[1]);

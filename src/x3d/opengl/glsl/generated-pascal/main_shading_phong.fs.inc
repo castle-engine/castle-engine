@@ -30,6 +30,7 @@
 '  const in vec3 normal_eye)' + LineEnding +
 '{' + LineEnding +
 '  /* PLUG: main_texture_apply (fragment_color, normal_eye) */' + LineEnding +
+'  /* PLUG: texture_apply (fragment_color, normal_eye) */ // deprecated' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 '/* CASTLE-LIGHTING-MODEL */' + LineEnding +

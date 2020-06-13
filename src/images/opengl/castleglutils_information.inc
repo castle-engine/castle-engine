@@ -47,10 +47,15 @@ const
 
   function VersionReport(Version: TGenericGLVersion): string;
   begin
-    Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
-      'release: %d, vendor-specific information: "%s"',
-      [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists, true),
-        Version.Release, Version.VendorInfo ]);
+    Result := Format(
+      '  Version parsed: major: %d, minor: %d, release exists: %s, ' +
+      'release: %d, vendor-specific information: "%s"', [
+        Version.Major,
+        Version.Minor,
+        BoolToStr(Version.ReleaseExists, true),
+        Version.Release,
+        Version.VendorVersion
+      ]);
   end;
 
   function VendorReport(Version: TGLVersion): string;
@@ -75,7 +80,8 @@ const
         '  Buggy 32-bit depth buffer: %s' + NL +
         '  Buggy GLSL gl_FrontFacing: %s' + NL +
         '  Buggy GLSL read varying: %s' + NL +
-        '  Buggy Pure Shader Pipeline: %s',
+        '  Buggy Pure Shader Pipeline: %s' + NL +
+        '  Buggy Texture Size Above 2048: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
           PChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
@@ -93,7 +99,8 @@ const
           BoolToStr(Version.BuggyDepth32, true),
           BoolToStr(Version.BuggyGLSLFrontFacing, true),
           BoolToStr(Version.BuggyGLSLReadVarying, true),
-          BoolToStr(Version.BuggyPureShaderPipeline, true)
+          BoolToStr(Version.BuggyPureShaderPipeline, true),
+          BoolToStr(Version.BuggyTextureSizeAbove2048, true)
         ]);
   end;
 
@@ -239,7 +246,7 @@ begin
       +GetInteger(GL_ACCUM_ALPHA_BITS) + NL +
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) + NL +
     {$endif}
-    '  Multisampling (full-screen antialiasing): ' + BoolToStr(GLFeatures.Multisample, true) + NL +
+    '  Multi-sampling (full-screen anti-aliasing) possible: ' + BoolToStr(GLFeatures.Multisample, true) + NL +
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' + NL +
     NL +
 

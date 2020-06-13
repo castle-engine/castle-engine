@@ -13,7 +13,14 @@
 # to avoid the need to specify many include paths.
 # It just seems easier to extend and reorganize the source/ directory freely this way.
 
-ALL_SOURCES := $(shell find source/ \
+ifeq ($(OS),Windows_NT)
+  # Hack for Cygwin, to avoid using Windows built-in "find" program.
+  FIND:=`cygpath --mixed /bin/find`
+else
+  FIND:=find
+endif
+
+ALL_SOURCES := $(shell $(FIND) source/ \
   -iname '*.fs' -or \
   -iname '*.vs' -or \
   -iname '*.gs' -or \

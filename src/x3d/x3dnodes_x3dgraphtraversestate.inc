@@ -14,7 +14,6 @@
 }
 
 {$ifdef read_interface}
-
   { Current state (transformation and such) when traversing VRML/X3D graph.
 
     For VRML/X3D >= 2.0 this could be simpler, as VRML/X3D >= 2.0 doesn't need
@@ -43,43 +42,17 @@
 
     procedure AddLight(const Light: TLightInstance);
   public
-    { Current transformation. }
-    Transform: TMatrix4;
-
-    { Inverted @link(Transform) matrix. This matrix is crucial for some
-      special effects (for example, it's needed for calculating in tangent space
-      for bump mapping).
-
-      This is not calculated using any complex matrix inversion algorithms.
-      Instead, this is calculated by updating this along the way, just like
-      we calculate normal @link(Transform). So it's simple, quick, and
-      guaranteed to be correct @italic(assuming that user didn't use
-      VRML 1.0 MatrixTransform along the way). That's why MatrixTransform node
-      was removed from VRML 2.0, it breaks such things.
-
-      Also, any scale with zero component along the way will make this
-      partially invalid (we'll substitute identity in place of inverted scaling
-      matrix). This is unavoidable, there's no reverse matrix for scaling
-      with zero factor, since one resulting point may correpond to infinitely many
-      source points (i.e., it's natural that such scaling function cannot be
-      reversed). }
-    InvertedTransform: TMatrix4;
-
-    { A uniform scale of the matrix @link(Transform). If the matrix
-      causes non-uniform scaling, this value represents an average scale.
-
-      This is updated while traversing the VRML graph, just like
-      the @link(Transform) matrix is updated. This way it's calculated
-      fast and easy --- we do not actually extract it from a matrix
-      (as long as you don't use explicit MatrixTransform in the VRML/X3D file). }
-    TransformScale: Single;
+    { Transformation of this state.
+      Calculated efficiently while traversing the X3D graph. }
+    Transformation: TTransformation;
 
     { Copy transformation-related fields from Source.
-      Copies @link(Transform) matrix, along with related information
-      like InvertedTransform and TransformScale.
-      Copies also the @link(ClipPlanes) list, as it contains the transformation
-      information. }
+      Copies @link(Transformation).
+      Copies also the @link(ClipPlanes) list, as it contains the transformation information. }
     procedure AssignTransform(Source: TX3DGraphTraverseState);
+
+    function Transform: TMatrix4; deprecated 'use Transformation.Transform';
+    function InvertedTransform: TMatrix4; deprecated 'use Transformation.InverseTransform';
 
   public
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
@@ -115,6 +88,7 @@
     { Primary texture that determines RGB color and opacity.
       See @link(TAppearanceNode.MainTexture) for definition. }
     function MainTexture: TAbstractTextureNode;
+    function MainTexture(out Mapping: Integer): TAbstractTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -183,7 +157,7 @@
     PointingDeviceSensors: TPointingDeviceSensorList;
 
     { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransform, HumanoidInvertedTransform: TMatrix4;
+    HumanoidTransformation: TTransformation;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
 
@@ -307,9 +281,7 @@ constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
 
-  Transform := TMatrix4.Identity;
-  TransformScale := 1.0;
-  InvertedTransform := TMatrix4.Identity;
+  Transformation.Init;
 
   { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
     But set it also here, just in case we have Joint without surrounding
@@ -317,8 +289,7 @@ begin
     THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
     testcase is
     view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransform := TMatrix4.Identity;
-  HumanoidInvertedTransform := TMatrix4.Identity;
+  HumanoidTransformation.Init;
 
   TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
@@ -336,12 +307,8 @@ end;
 
 procedure TX3DGraphTraverseState.Clear;
 begin
-  Transform := TMatrix4.Identity;
-  TransformScale := 1.0;
-  InvertedTransform := TMatrix4.Identity;
-
-  HumanoidTransform := TMatrix4.Identity;
-  HumanoidInvertedTransform := TMatrix4.Identity;
+  Transformation.Init;
+  HumanoidTransformation.Init;
 
   TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
@@ -400,17 +367,11 @@ end;
 procedure TX3DGraphTraverseState.AssignTransform(
   Source: TX3DGraphTraverseState);
 begin
-  Transform := Source.Transform;
-  TransformScale := Source.TransformScale;
-  InvertedTransform := Source.InvertedTransform;
-  HumanoidTransform := Source.HumanoidTransform;
-  HumanoidInvertedTransform := Source.HumanoidInvertedTransform;
+  Transformation := Source.Transformation;
+  HumanoidTransformation := Source.HumanoidTransformation;
 
   if PointingDeviceSensors.Count <> 0 then
-  begin
-    PointingDeviceSensors.Transform := Source.PointingDeviceSensors.Transform;
-    PointingDeviceSensors.InvertedTransform := Source.PointingDeviceSensors.InvertedTransform;
-  end;
+    PointingDeviceSensors.Transformation := Source.PointingDeviceSensors.Transformation;
 
   if Source.ClipPlanes <> nil then
   begin
@@ -429,6 +390,16 @@ begin
     FreeAndNil(Effects);
 end;
 
+function TX3DGraphTraverseState.Transform: TMatrix4;
+begin
+  Result := Transformation.Transform;
+end;
+
+function TX3DGraphTraverseState.InvertedTransform: TMatrix4;
+begin
+  Result := Transformation.InverseTransform;
+end;
+
 function TX3DGraphTraverseState.Equals(SecondValue: TX3DGraphTraverseState;
   const IgnoreTransform: boolean): boolean;
 var
@@ -439,7 +410,9 @@ begin
     others. }
 
   Result :=
-    (IgnoreTransform or TMatrix4.PerfectlyEquals(Transform, SecondValue.Transform)) and
+    (IgnoreTransform or TMatrix4.PerfectlyEquals(
+      Transformation.Transform,
+      SecondValue.Transformation.Transform)) and
     TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
@@ -453,13 +426,21 @@ begin
 end;
 
 function TX3DGraphTraverseState.MainTexture: TAbstractTextureNode;
+var
+  IgnoredMapping: Integer;
+begin
+  Result := MainTexture(IgnoredMapping);
+end;
+
+function TX3DGraphTraverseState.MainTexture(out Mapping: Integer): TAbstractTextureNode;
 begin
   Result := nil;
+  Mapping := -1;
   if ShapeNode = nil then
     Result := VRML1State.Texture2
   else
   if ShapeNode.Appearance <> nil then
-    Result := ShapeNode.Appearance.MainTexture;
+    Result := ShapeNode.Appearance.MainTexture(Mapping);
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
@@ -486,23 +467,16 @@ var
 begin
   if ShapeNode <> nil then
   begin
+    {$warnings off} // using deprecated to keep backward compatibility
     SurfaceShader := ShapeNode.CommonSurfaceShader;
+    {$warnings on}
     if SurfaceShader <> nil then
       Result := SurfaceShader.MaterialInfo
     else
     begin
       Mat := ShapeNode.Material;
-      if Mat is TMaterialNode then // also checks Mat <> nil
-        Result := TMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TPhysicalMaterialNode then // also checks Mat <> nil
-        Result := TPhysicalMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TTwoSidedMaterialNode then // also checks Mat <> nil
-        Result := TTwoSidedMaterialNode(Mat).MaterialInfo
-      else
-      if Mat is TUnlitMaterialNode then // also checks Mat <> nil
-        Result := TUnlitMaterialNode(Mat).MaterialInfo
+      if Mat <> nil then
+        Result := Mat.MaterialInfo
       else
         Result := nil;
     end;

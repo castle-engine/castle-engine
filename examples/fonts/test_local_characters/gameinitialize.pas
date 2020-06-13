@@ -160,6 +160,7 @@ var
   Y: Single;
   ButtonExternalFont, ButtonExternalFontChinese: TCastleButton;
   ButtonEmbeddedFont, ButtonEmbeddedFontChinese: TCastleButton;
+  SampleEdit: TCastleEdit;
   Doc: TXMLDocument;
   TextReader: TTextReader;
   StringList: TStringList;
@@ -299,6 +300,12 @@ begin
     Window.Controls.InsertFront(TestLabel);
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(StringList) end;
+
+  SampleEdit := TCastleEdit.Create(Application);
+  SampleEdit.Width := 300;
+  SampleEdit.Anchor(vpBottom, 20);
+  SampleEdit.Anchor(hpRight, -20);
+  Window.Controls.InsertFront(SampleEdit);
 end;
 
 initialization

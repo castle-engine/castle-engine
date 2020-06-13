@@ -283,7 +283,21 @@ end;
 function FindLinkRes(const Path: String): String;
 var
   Handler: TFindLinkResHandler;
+  LinkFilesRes: String;
 begin
+  LinkFilesRes := CombinePaths(Path, 'linkfiles.res');
+  if FileExists(LinkFilesRes) then
+  begin
+    { Latest FPC 3.3.1 introduced linkfiles.res file
+      (see FPC sources compiler/systems/t_bsd.pas , started in commit
+      https://github.com/graemeg/freepascal/commit/36d634bd87427e480d4f82344c5f7e5c7d6b57eb
+      it seems ).
+      It contains what we need: the list of .o files.
+      The link<some-process-id>.res is also generated, but it is no longer useful for us.
+      So exit with "linkfiles.res", without causing "Multiple linker input files..." error. }
+    Exit(LinkFilesRes);
+  end;
+
   Handler := TFindLinkResHandler.Create;
   try
     FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);

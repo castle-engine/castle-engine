@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,7 @@ unit GenerateProcessors;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Classes,
   CastleClassUtils, CastleStringUtils, CastleTimeUtils, CastleLog,
   CastleColors, CastleUtils, CastleApplicationProperties, CastleFilesUtils,
   CastleDownload;
@@ -59,7 +59,8 @@ type
     X3DType: string;
     X3DName, PascalName, PascalNamePrefixed: string;
     X3DAccessType: string;
-    IsEnumString: boolean;
+    IsEnumString: Boolean;
+    EnumType, EnumNames, EnumDefault: String;
     DefaultValue, Comment: string;
     AllowedChildrenNodes: TX3DNodeInformationList;
     NotSlim: Boolean;
@@ -87,7 +88,9 @@ type
   TProcessor = class abstract
   strict private
     { Field is SFString with a strictly limited set of values. }
-    class function FieldIsEnumString(const Line: string; const X3DFieldType: string): boolean;
+    class function FieldIsEnumString(const LineComment: string;
+      const X3DFieldType: string;
+      out AnEnumType, AnEnumNames, AnEnumDefault: String): boolean;
   public
     procedure ProcessFile(const InputFileName: string);
     procedure NodeBegin(const Node: TX3DNodeInformation); virtual;
@@ -159,7 +162,7 @@ begin
       OutputImplementation +=
         NL +
         Field.ConditionsBegin +
-        '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(''' + Field.X3DName + ''', ' + Field.PascalClass + ', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
+        '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
         '  AddEvent(F' + Field.PascalNamePrefixed + ');' + NL +
         Field.ConditionsEnd;
     end;
@@ -182,7 +185,7 @@ begin
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL +
         Field.ConditionsEnd;
 
-      FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry];' + NL;
+      FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangeAlways := chVisibleNonGeometry;' + NL;
       FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
       if Field.Comment <> '' then
         FieldImplementationComment := '  { X3D specification comment: ' + Field.Comment + ' }' + NL
@@ -204,7 +207,9 @@ begin
         OutputImplementation +=
           NL +
           Field.ConditionsBegin +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
+          Iff(Field.IsEnumString,
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.EnumNames + ', Ord(' + Field.EnumDefault + '));',
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');') + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL +
           FieldImplementationComment +
@@ -332,49 +337,69 @@ end;
 
 function TX3DFieldInformation.PascalHelperType: string;
 begin
+  if IsEnumString and (EnumType <> '') then
+    Result := EnumType
+  else
   if X3DType = 'SFFloat' then
-    Result := 'Single' else
+    Result := 'Single'
+  else
   if X3DType = 'SFDouble' then
-    Result := 'Double' else
+    Result := 'Double'
+  else
   if X3DType = 'SFTime' then
-    Result := 'TFloatTime' else
+    Result := 'TFloatTime'
+  else
   if X3DType = 'SFVec2f' then
-    Result := 'TVector2' else
+    Result := 'TVector2'
+  else
   if X3DType = 'SFVec3f' then
-    Result := 'TVector3' else
+    Result := 'TVector3'
+  else
   if X3DType = 'SFVec4f' then
-    Result := 'TVector4' else
+    Result := 'TVector4'
+  else
   if X3DType = 'SFVec2d' then
-    Result := 'TVector2Double' else
+    Result := 'TVector2Double'
+  else
   if X3DType = 'SFVec3d' then
-    Result := 'TVector3Double' else
+    Result := 'TVector3Double'
+  else
   if X3DType = 'SFVec4d' then
-    Result := 'TVector4Double' else
+    Result := 'TVector4Double'
+  else
   if X3DType = 'SFInt32' then
-    Result := 'Integer' else
+    Result := 'Integer'
+  else
   if X3DType = 'SFBool' then
-    Result := 'boolean' else
+    Result := 'Boolean'
+  else
   if X3DType = 'SFRotation' then
-    Result := 'TVector4' else
+    Result := 'TVector4'
+  else
   if X3DType = 'SFColor' then
-    Result := 'TCastleColorRGB' else
+    Result := 'TCastleColorRGB'
+  else
   if X3DType = 'SFColorRGBA' then
-    Result := 'TCastleColor' else
-  // Note that many SFString are enums, and they should be converted to enums
-  // in ObjectPascal. We capture enums outside of this function.
-  if X3DType = 'SFString' then
-    Result := 'string' else
+    Result := 'TCastleColor'
+  else
+  if X3DType = 'SFString'then
+    Result := 'String'
+  else
   if X3DType = 'SFMatrix3f' then
-    Result := 'TMatrix3' else
+    Result := 'TMatrix3'
+  else
   if X3DType = 'SFMatrix4f' then
-    Result := 'TMatrix4' else
+    Result := 'TMatrix4'
+  else
   if X3DType = 'SFMatrix3d' then
-    Result := 'TMatrix3Double' else
+    Result := 'TMatrix3Double'
+  else
   if X3DType = 'SFMatrix4d' then
-    Result := 'TMatrix4Double' else
-
-//  if X3DType = 'SFNode' then // nope, because these should be typed accordingly in ObjectPascal
-//    Result := 'TXxx' else
+    Result := 'TMatrix4Double'
+  else
+//  if X3DType = 'SFNode' then // these are converted to Pascal using AllowedPascalClass
+//    Result := 'TXxx'
+//  else
     Result := '';
 end;
 
@@ -495,19 +520,48 @@ end;
 
 { TProcessor ----------------------------------------------------------------- }
 
-class function TProcessor.FieldIsEnumString(const Line: string; const X3DFieldType: string): boolean;
+class function TProcessor.FieldIsEnumString(const LineComment: string;
+  const X3DFieldType: string;
+  out AnEnumType, AnEnumNames, AnEnumDefault: String): boolean;
+var
+  Tokens: TStringList;
+  StartToken: Integer;
 begin
   Result :=
     (X3DFieldType = 'SFString') and
-    (Pos('["', Line) <> 0) and
-   ((Pos('"]', Line) <> 0) or (Pos('...]', Line) <> 0));
+    (Pos('["', LineComment) <> 0) and
+   ((Pos('"]', LineComment) <> 0) or (Pos('...]', LineComment) <> 0));
+
+  if Result then
+  begin
+    Tokens := CreateTokens(LineComment);
+    try
+      StartToken := Tokens.IndexOf('enumerated-type:');
+      if StartToken = -1 then
+      begin
+        AnEnumType := '';
+        AnEnumNames := '';
+        AnEnumDefault := '';
+      end else
+      if StartToken + 3 >= Tokens.Count then
+        raise EInvalidSpecificationFile.Create('Not enough arguments after "enumerated-type:" on: ' + LineComment)
+      else
+      begin
+        AnEnumType := Tokens[StartToken + 1];
+        AnEnumNames := Tokens[StartToken + 2];
+        AnEnumDefault := Tokens[StartToken + 3];
+      end;
+    finally FreeAndNil(Tokens) end;
+  end;
 end;
 
 procedure TProcessor.ProcessFile(const InputFileName: string);
 
   { Parse field information.
-    Note that the Line parameters should receive the LineWithComment value. }
-  procedure ParseField(const Field: TX3DFieldInformation; const Line: string);
+    Note that the Line parameters should receive the LineWithComment value.
+    Node contents are read-only in this routine. }
+  procedure ParseField(const Field: TX3DFieldInformation;
+    const Node: TX3DNodeInformation; const Line: string);
   var
     SeekPos, I: Integer;
     AllowedChildrenNodesSplitted: TCastleStringList;
@@ -533,6 +587,10 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     if Field.PascalName = 'on' then
       Field.PascalName := 'IsOn'
     else
+    if (Field.PascalName = 'type') and
+       (Node.X3DType = 'ShaderPart') then
+      Field.PascalName := 'ShaderType'
+    else
     if Field.PascalName = 'name' then
       Field.PascalName := 'NameField';
     Field.PascalName[1] := UpCase(Field.PascalName[1]);
@@ -544,7 +602,8 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     else
       Field.PascalNamePrefixed := 'Fd' + Field.PascalNamePrefixed;
 
-    Field.IsEnumString := FieldIsEnumString(Line, Field.X3DType);
+    Field.IsEnumString := FieldIsEnumString(Line,
+      Field.X3DType, Field.EnumType, Field.EnumNames, Field.EnumDefault);
 
     { Parsing field's default value is a bit tricky.
       We can't just parse the field using parsing routines in TX3DField unit,
@@ -776,7 +835,7 @@ begin
           begin
             Field := TX3DFieldInformation.Create;
             try
-              ParseField(Field, LineWithComment);
+              ParseField(Field, Node, LineWithComment);
               if Node = nil then
               begin
                 WritelnWarning('Input', 'Field found, but not inside a node: ' + Field.X3DName);
@@ -850,13 +909,14 @@ begin
   if Node.AutoGenerateMore then
     AddAutoGeneratedField(Node, Field, OutputPublicInterface, OutputCreateImplementation);
 
-  if Field.IsEnumString then
+  if Field.IsEnumString and (Field.EnumType = '') then
     Exit;
   if (Field.X3DName = 'solid') or
      (Field.X3DName = 'repeatS') or
      (Field.X3DName = 'repeatT') or
      (Field.X3DName = 'cycleInterval') or
      (Field.X3DName = 'linetype') or
+     (Field.X3DName = 'bboxSize') or // this is accounted already by writing out bboxCenter as public BBox
 
      (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'OrthoViewpoint.position') or
@@ -864,8 +924,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.orientation') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
-     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.appearance') or
-     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.geometry') or
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
      (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
@@ -880,9 +938,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.up') or
 
      false // keep this line, to allow easily rearranging lines above
-
-     // TODO: bboxCenter and bboxSize should also be removed from here someday,
-     // we should convert them manually to BBox: TBox3D to support our TBox3D type.
      then
   begin
     WritelnVerbose('Not processing, this field has special implementation: ' + Field.X3DName);
@@ -965,6 +1020,37 @@ begin
       end;
     end;
   end else
+  if Field.X3DName = 'bboxCenter' then
+  begin
+    { Define BBox property that gets/sets both bboxCenter and bboxSize at the same time }
+    OutputPrivateInterface +=
+      Field.ConditionsBegin +
+      '    function GetBBox: TBox3D;' + NL +
+      '    procedure SetBBox(const Value: TBox3D);' + NL +
+      Field.ConditionsEnd;
+    OutputPublicInterface +=
+      Field.ConditionsBegin +
+      '    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }' + NL +
+      '    property BBox: TBox3D read GetBBox write SetBBox;' + NL +
+      Field.ConditionsEnd;
+    OutputImplementation +=
+      Field.ConditionsBegin +
+      'function ' + Node.PascalType + '.GetBBox: TBox3D;' + NL +
+      'begin' + NL +
+      '  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);' + NL +
+      'end;' + NL +
+      NL +
+      'procedure ' + Node.PascalType + '.SetBBox(const Value: TBox3D);' + NL +
+      'var' + NL +
+      '  ValueCenter, ValueSize: TVector3;' + NL +
+      'begin' + NL +
+      '  Value.ToCenterSize(ValueCenter, ValueSize);' + NL +
+      '  FdBBoxCenter.Send(ValueCenter);' + NL +
+      '  FdBBoxSize.Send(ValueSize);' + NL +
+      'end;' + NL +
+      NL +
+      Field.ConditionsEnd;
+  end else
   begin
     if Field.PascalHelperType <> '' then
     begin
@@ -982,12 +1068,16 @@ begin
         Field.ConditionsBegin +
         'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
         'begin' + NL +
-        '  Result := ' + Field.PascalNamePrefixed + '.Value;' + NL +
+        Iff(Field.IsEnumString,
+        '  Result := ' + Field.EnumType + '(' + Field.PascalNamePrefixed + '.EnumValue);',
+        '  Result := ' + Field.PascalNamePrefixed + '.Value;') + NL +
         'end;' + NL +
         NL +
         'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
         'begin' + NL +
-        '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+        Iff(Field.IsEnumString,
+        '  ' + Field.PascalNamePrefixed + '.SendEnumValue(Ord(Value));',
+        '  ' + Field.PascalNamePrefixed + '.Send(Value);') + NL +
         'end;' + NL +
         NL +
         Field.ConditionsEnd;

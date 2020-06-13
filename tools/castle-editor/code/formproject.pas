@@ -32,6 +32,13 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemSeparator2303403o: TMenuItem;
+    MenuItemRefreshDir: TMenuItem;
+    MenuItemSeparator123123213: TMenuItem;
+    MenuItemOpenDirFromFile: TMenuItem;
+    MenuItemDeleteFile: TMenuItem;
+    MenuItemOpenDefault: TMenuItem;
+    MenuItemShellTreeOpenDir: TMenuItem;
     MenuItemPreferences: TMenuItem;
     N1: TMenuItem;
     MenuItemDuplicateComponent: TMenuItem;
@@ -55,6 +62,8 @@ type
     MenuItemSeparator201: TMenuItem;
     MenuItemDesignNewTransform: TMenuItem;
     MenuItemDesignNewUserInterfaceRect: TMenuItem;
+    ShellListPopupMenu: TPopupMenu;
+    ShellTreePopupMenu: TPopupMenu;
     SaveDesignDialog: TCastleSaveDialog;
     MenuItemSaveAsDesign: TMenuItem;
     MenuItemSaveDesign: TMenuItem;
@@ -98,6 +107,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemDeleteFileClick(Sender: TObject);
+    procedure MenuItemOpenDefaultClick(Sender: TObject);
+    procedure MenuItemOpenDirFromFileClick(Sender: TObject);
     procedure MenuItemPreferencesClick(Sender: TObject);
     procedure MenuItemAutoGenerateCleanClick(Sender: TObject);
     procedure MenuItemAboutClick(Sender: TObject);
@@ -123,12 +135,15 @@ type
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
+    procedure MenuItemRefreshDirClick(Sender: TObject);
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
     procedure MenuItemSaveDesignClick(Sender: TObject);
+    procedure MenuItemShellTreeOpenDirClick(Sender: TObject);
     procedure MenuItemSupportClick(Sender: TObject);
     procedure MenuItemSwitchProjectClick(Sender: TObject);
     procedure ProcessUpdateTimerTimer(Sender: TObject);
+    procedure ShellListPopupMenuPopup(Sender: TObject);
   private
     ProjectName: String;
     ProjectPath, ProjectPathUrl, ProjectStandaloneSource, ProjectLazarus: String;
@@ -197,6 +212,11 @@ begin
   MenuItemModeRelease.Checked := true;
 end;
 
+procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
+begin
+  ShellListView1.RefreshContents;
+end;
+
 procedure TProjectForm.MenuItemRestartRebuildEditorClick(Sender: TObject);
 begin
   BuildToolCall(['editor'], true);
@@ -228,6 +248,17 @@ begin
     MenuItemSaveAsDesignClick(Sender)
   else
     Design.SaveDesign(Design.DesignUrl);
+end;
+
+procedure TProjectForm.MenuItemShellTreeOpenDirClick(Sender: TObject);
+var
+  Dir: String;
+begin
+  if ShellTreeView1.Selected <> nil then
+  begin
+    Dir := ShellTreeView1.GetPathFromNode(ShellTreeView1.Selected);
+    OpenDocument(Dir);
+  end;
 end;
 
 procedure TProjectForm.MenuItemSupportClick(Sender: TObject);
@@ -368,6 +399,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellTreeView1.Options := [tvoAutoItemHeight, tvoHideSelection, tvoHotTrack, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips, tvoThemedDraw];
     ShellTreeView1.ObjectTypes := [otFolders];
     ShellTreeView1.ExcludeMask := ExcludeMask;
+    ShellTreeView1.PopupMenu := ShellTreePopupMenu;
 
     ShellListView1 := TCastleShellListView.Create(Self);
     ShellListView1.Parent := TabFiles;
@@ -395,6 +427,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Design opens in this editor window.' + NL +
       '- Pascal files open in Lazarus.' + NL +
       '- Other files open in external applications.';
+    ShellListView1.PopupMenu := ShellListPopupMenu;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -418,6 +451,32 @@ end;
 procedure TProjectForm.ListOutputClick(Sender: TObject);
 begin
   // TODO: just to source code line in case of error message here
+end;
+
+procedure TProjectForm.MenuItemDeleteFileClick(Sender: TObject);
+var
+  SelectedFileName: String;
+begin
+  if ShellListView1.Selected <> nil then
+  begin
+    SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    if MessageDlg('Delete File', 'Delete file "' + SelectedFileName + '"?',
+      mtConfirmation, mbYesNo, 0) = mrYes then
+    begin
+      CheckDeleteFile(SelectedFileName, true);
+      ShellListView1.RefreshContents;
+    end;
+  end;
+end;
+
+procedure TProjectForm.MenuItemOpenDefaultClick(Sender: TObject);
+begin
+  ShellListViewDoubleClick(ShellListView1);
+end;
+
+procedure TProjectForm.MenuItemOpenDirFromFileClick(Sender: TObject);
+begin
+  OpenDocument(ShellListView1.Root);
 end;
 
 procedure TProjectForm.MenuItemPreferencesClick(Sender: TObject);
@@ -597,6 +656,12 @@ begin
   end;
 end;
 
+procedure TProjectForm.ShellListPopupMenuPopup(Sender: TObject);
+begin
+  MenuItemOpenDefault.Enabled := ShellListView1.Selected <> nil;
+  MenuItemDeleteFile.Enabled := ShellListView1.Selected <> nil;
+end;
+
 procedure TProjectForm.FreeProcess;
 begin
   FreeAndNil(RunningProcess);
@@ -671,7 +736,9 @@ end;
 
 procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
 
-  procedure OpenWithCastleTool(const ToolName: String; const SelectedURL: String);
+  procedure OpenWithCastleTool(const ToolName: String;
+    const SelectedURL: String;
+    const Arguments: array of String);
   var
     Exe: String;
   begin
@@ -683,7 +750,7 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       Exit;
     end;
 
-    RunCommandNoWait(CreateTemporaryDir, Exe, [SelectedURL]);
+    RunCommandNoWait(CreateTemporaryDir, Exe, Arguments);
   end;
 
   procedure OpenPascal(const FileName: String);
@@ -754,13 +821,14 @@ begin
 
     if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
     begin
-      OpenWithCastleTool('view3dscene', SelectedURL);
+      OpenWithCastleTool('view3dscene', SelectedURL,
+        ['--project', ProjectPathUrl, SelectedURL]);
       Exit;
     end;
 
     if LoadImage_FileFilters.Matches(SelectedURL) then
     begin
-      OpenWithCastleTool('castle-view-image', SelectedURL);
+      OpenWithCastleTool('castle-view-image', SelectedURL, [SelectedURL]);
       Exit;
     end;
 
@@ -883,7 +951,10 @@ begin
     S := Design.FormCaption
   else
     S := '';
-  Caption := S + SQuoteLCLCaption(ProjectName) + ' | Castle Game Engine';
+  S := S + SQuoteLCLCaption(ProjectName);
+  if InternalHasCustomComponents then
+    S := S + ' (With Custom Components)';
+  Caption := S + ' | Castle Game Engine';
 end;
 
 function TProjectForm.ProposeSaveDesign: Boolean;
@@ -931,6 +1002,9 @@ begin
       DefaultLazarusProject := '';
     ProjectLazarus := ManifestDoc.DocumentElement.AttributeStringDef(
       'lazarus_project', DefaultLazarusProject);
+    if (ManifestDoc.DocumentElement.AttributeStringDef('editor_units', '') <> '') and
+       (not InternalHasCustomComponents) then
+      WritelnWarning('Project uses custom components (declares editor_units in CastleEngineManifest.xml), but this is not a custom editor build.' + NL + 'Use the menu item "Project -> Restart Editor (With Custom Components)" to build and run correct editor.');
   finally FreeAndNil(ManifestDoc) end;
 
   { Below we assume ManifestUrl contains an absolute path,

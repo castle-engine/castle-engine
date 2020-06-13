@@ -30,17 +30,20 @@
   {$I castlewindow_wgl.inc}
 {$endif}
 
+{ Create WinAPI window as Unicode (RegisterClassW). }
+{.$define CASTLE_WINAPI_UNICODE}
+
 {$ifdef read_interface_uses}
 { note: this unit's definitions conflict with other definitions used in this file
   But we need it for RegisterDeviceNotification, therefore adding it to the very
-  first position in the uses list to be overwritten by subsequent used units}
+  first position in the uses list to be overwritten by subsequent used units }
 JwaWinUser, JwaDbt,
 { /note }
 Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleMessages, CastleJoysticks,
+CastleWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -83,7 +86,7 @@ private
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
-  wndClassName: string;
+  WndClassName: {$ifdef CASTLE_WINAPI_UNICODE} UnicodeString {$else} String {$endif};
 
   { A private array, initialized in CreateBackend.
     NameForLoadCursor are actually constant, taken from Windows unit,
@@ -351,6 +354,33 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
 
+  { Convert WM_CHAR's wParam value to a String in UTF-8 encoding,
+    corresponding to key pressed. Empty if none. }
+  function ConvertWmCharToString(const CharMsgWParam: WPARAM): String;
+  begin
+    { According to WM_CHAR docs, wParam is already a single character in UTF-16 encoding.
+      This is true if we peeked it using PeekMessageW, not PeekMessage.
+      So just convert it using UTF8Encode.
+
+      Notes:
+
+      - Doing "Exit(UnicodeToUTF8(WParm))" also seems to work for Polish chars.
+        But it's not necessarily correct, I think: UTF-16 character number
+        is not necessarily equal to just Unicode number.
+
+      - At one point we did here
+
+          MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsgWParam, SizeOf(CharMsgWParam), ...)
+
+        But this was a hack: we treated CharMsgWParam as string
+        (4 bytes, so 2 characters) in local Windows ANSI code page.
+        We then hackishly ignored MultiByteToWideChar result,
+        and used first returned WideChar.
+    }
+
+    Exit(UTF8Encode(WideChar(CharMsgWParam)));
+  end;
+
   { Handle WinAPI WM_KEYDOWN message by calling DoKeyDown method.
     We also handle (peek and remove) WM_CHAR message here. }
   procedure Handle_WM_KEYDOWN;
@@ -370,30 +400,24 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   var
     Key: TKey;
     CharMsg: TMsg;
-    KeyChar: WideChar;
     KeyString: string;
   begin
     { WM_CHAR is placed in our message queue by TranslateMessage.
-      Always in WM_KEYDOWN we do this PeekMessage(..., WM_CHAR, WM_CHAR, PM_REMOVE).
+      Always in WM_KEYDOWN we do this PeekMessageW(..., WM_CHAR, WM_CHAR, PM_REMOVE).
       This means that now we have
       1. no WM_CHAR messages in our message queue (which means that this
          WM_KEYDOWN message is not translatable as WM_CHAR) OR
       2. we have exactly one WM_CHAR message in our queue, and this is WM_CHAR
-         message corresponding to current WM_KEYDOWN message. }
+         message corresponding to current WM_KEYDOWN message.
 
-    if PeekMessage(@CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
-    begin
-      { Now we do some unsafe magic.
-        MultiByteToWideChar converts wParam:longint to a KeyChar:WideChar
-        which should be UTF-16. "Should" doesn't mean it is.
-        First problem here is that not all characters can fit into UTF-16.
-        Second, we suggest that system-wide default encoding CP_ACP is the default
-        for current thread, however CP_THREAD_ACP should be used better,
-        thou it is unavailable in defines.inc }
-      MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsg.wParam, SizeOf(CharMsg.wParam), @KeyChar, SizeOf(KeyChar));
-      { Now, hopefully convert WideChar to UTF8Char }
-      KeyString := UTF8Encode(KeyChar);
-    end
+      Note PeekMessageW, not PeekMessage.
+      This is necessary (regardless of CASTLE_WINAPI_UNICODE being defined or not)
+      to receive UTF-16 for e.g. Polish chars. Otherwise looks like WM_CHAR
+      gets characters in ANSI encoding.
+    }
+
+    if PeekMessageW(@CharMsg, h_Wnd, WM_CHAR, WM_CHAR, PM_REMOVE) then
+      KeyString := ConvertWmCharToString(CharMsg.wParam)
     else
       KeyString := '';
 
@@ -435,6 +459,87 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   begin
     Key := VirtualKeyToKey(wParm);
     if Key <> keyNone then DoKeyUp(Key);
+  end;
+
+  { Handle WM_CHAR that arrived without WM_KEYDOWN.
+
+    - In case of input in Western languages (English, Polish etc.):
+
+      This should never happen.
+
+      The only way we can get WM_CHAR message is when we get WM_KEYDOWN
+      message and TranslateMessage (called from castlewindow_winsystem.inc)
+      translates it to WM_CHAR message.
+      But actually always in WM_KEYDOWN handler we do
+      PeekMessageW(..., WM_CHAR, WM_CHAR, PM_REMOVE) so all WM_CHAR messages
+      are removed from queue immediately after they are put there by TranslateMessage.
+
+      So no WM_CHAR message should be ever dispatched by DispatchMessage.
+      So no WM_CHAR message should ever get here.
+
+    - In case of Chinese, where input arrives only through WM_CHAR,
+      this can definitely happen.
+
+      For Chinese you have a special window that allows to compose Chinese characters.
+      Looks like they don't result in WM_KEYDOWN, only WM_CHAR.
+      Tested with simplified Chinese input on Windows 10.
+      Note: It does *not* make WM_UNICHAR (regardless of CASTLE_WINAPI_UNICODE).
+
+    - A minor thing about Wine compatibility:
+      It seems wine-1.5.30-1 lets WM_CHAR arrive without WM_KEYDOWN
+      in one special case too: when pressing escape to unfocus menu bar.
+  }
+  procedure Handle_WM_CHAR;
+  var
+    KeyString: String;
+  begin
+    KeyString := ConvertWmCharToString(WParm);
+    if KeyString <> '' then
+      DoKeyDown(keyNone, KeyString);
+    WritelnLog('Received WM_CHAR. Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm) + ' string: ' + UTF8ToHtmlEntities(KeyString));
+  end;
+
+  { Handle WM_UNICHAR that reports a key press as 32-bit Unicode character.
+
+    WM_UNICHAR seems to never happen in practice.
+
+    See also
+    https://stackoverflow.com/questions/378296/why-is-my-wm-unichar-handler-never-called
+    https://stackoverflow.com/questions/5844689/winapi-how-to-process-keyboard-input-in-custom-edit-control
+
+    """
+    - WM_KEYDOWN is sent to the window with the focus when a non-system key has been pressed. When the message is translated by the TranslateMessage function, a WM_CHAR message is sent to the window.
+    - WM_CHAR uses UTF-16.
+    - WM_UNICHAR is similat to WM_CHAR, except that it uses UTF-32.
+
+      It's purpose is to send/post Unicode characters to ANSI windows.
+      If the window is ANSI (created with CreateWindowA), when WM_CHAR is generated.
+      If it is Unicode (created with CreateWindowW) then WM_UNICHAR is generated.
+
+      So your control should probably handle both.
+      Other applications can send us WM_UNICHAR, according to WinAPI docs.
+    """
+
+    This means that we need to handle WM_CHAR in ANSI window (without CASTLE_WINAPI_UNICODE).
+    Only WM_CHAR will ever happen in such case.
+    Testing in practice: I didn't find a way to cause WM_UNICHAR in either
+    ANSI or Unicode window.
+  }
+  procedure Handle_WM_UNICHAR;
+  var
+    KeyString: String;
+  begin
+    WritelnLog('Received WM_UNICHAR. This may work but is UNTESTED in CGE (please post a report if you know how to cause this message). Test information for https://github.com/castle-engine/castle-engine/issues/159 : WParam ' + IntToStr(WParm));
+    if wParm <> UNICODE_NOCHAR then // ignore UNICODE_NOCHAR, which is used only to test do we handle WM_UNICHAR
+    begin
+      { Treat UTF-32 character code as just Unicode code.
+        This is the same: https://en.wikipedia.org/wiki/UTF-32,
+        """Each 32-bit value in UTF-32 represents one Unicode code point and is exactly equal to that code point's numerical value. """
+      }
+      KeyString := UnicodeToUTF8(WParm);
+      if KeyString <> '' then
+        DoKeyDown(keyNone, KeyString);
+    end;
   end;
 
   procedure HandleMouseDown(const Button: TMouseButton);
@@ -495,26 +600,9 @@ begin
 
     WM_KEYDOWN: begin Handle_WM_KEYDOWN; Exit end;
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
-
-    { The only way we can get WM_CHAR message is when we get WM_KEYDOWN
-      message and TranslateMessage (called from castlewindow_winsystem.inc)
-      translates it to WM_CHAR message.
-      But always in WM_KEYDOWN handler (a few lines above) we do
-      PeekMessage(..., WM_CHAR, WM_CHAR, PM_REMOVE) so all WM_CHAR messages
-      are removed from queue immediately after they are put there by
-      TranslateMessage.
-
-      So no WM_CHAR message should be ever dispatched by DispatchMessage.
-      So no WM_CHAR message should ever get here.
-
-      Except: It seems wine-1.5.30-1 doesn't implement something correctly,
-      and let's WM_CHAR arrive sometimes (when pressing escape to unfocus
-      menu bar). So this is just commented out now.
-
-    WM_CHAR:
-       raise EInternalError.Create(
-         'All WM_CHAR messages should be handled while handling WM_KEYDOWN');
-    }
+    WM_CHAR: begin Handle_WM_CHAR; Exit end;
+    // WM_UNICHAR answers true, and doesn't call DefWindowProc, because we handled the message
+    WM_UNICHAR: begin Handle_WM_UNICHAR; Exit(1); end;
 
     WM_SIZE:
       if not InCloseBackend then
@@ -945,6 +1033,9 @@ var
   H_Menu: HMenu;
   {$endif}
   ClientRect: TRect;
+  {$ifdef CASTLE_WINAPI_UNICODE}
+  CaptionUtf16: UnicodeString;
+  {$endif}
 begin
   {$ifdef CASTLE_ENGINE_PLUGIN}
   FLeft := PluginWindow.X;
@@ -1026,8 +1117,15 @@ begin
     H_Menu := 0;
 
   { main point : create the window }
+  {$ifdef CASTLE_WINAPI_UNICODE}
+  CaptionUtf16 := UTF8Decode(GetWholeCaption);
+  H_wnd := CreateWindowExW(dwExStyle,
+    PWideChar(Application.WndClassName), PWideChar(CaptionUtf16),
+    {$else}
   H_wnd := CreateWindowEx(dwExStyle,
-    PChar(Application.wndClassName), PChar(GetWholeCaption), dwStyle,
+    PChar(Application.WndClassName), PChar(GetWholeCaption),
+    {$endif}
+    dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
@@ -1622,7 +1720,7 @@ const
     IDC_SIZENWSE  // no IDC_SIZESE in Windows, // mcResizeBottomRight
   );
 var
-  WindowClass: TWndClass;
+  WindowClass: {$ifdef CASTLE_WINAPI_UNICODE} TWndClassW {$else} TWndClass {$endif};
   C: TMouseCursor;
 begin
   RegisterClipboard(TWinApiClipboard.Create);
@@ -1662,13 +1760,22 @@ begin
   WindowClass.hIcon := LoadIcon(hInstance, 'MAINICON');
   if WindowClass.hIcon = 0 then WindowClass.hIcon := LoadIcon(0, IDI_APPLICATION);
   WindowClass.hCursor := LoadCursor(0, IDC_ARROW);
+  {$ifdef CASTLE_WINAPI_UNICODE}
+  WindowClass.lpszClassName := PWideChar(WndClassName);
+  OSCheck( Windows.RegisterClassW(WindowClass) <> 0, 'RegisterClassW');
+  {$else}
   WindowClass.lpszClassName := PChar(WndClassName);
   OSCheck( Windows.RegisterClass(WindowClass) <> 0, 'RegisterClass');
+  {$endif}
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  OSCheck( Windows.UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
+  {$ifdef CASTLE_WINAPI_UNICODE}
+  OSCheck( Windows.UnregisterClassW(PWideChar(WndClassName), hInstance), 'UnregisterClassW');
+  {$else}
+  OSCheck( Windows.UnregisterClass(PChar(WndClassName), hInstance), 'UnregisterClass');
+  {$endif}
 end;
 
 procedure TCastleApplication.VideoReset;

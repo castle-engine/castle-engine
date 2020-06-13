@@ -305,6 +305,10 @@ var
     end;
 
   begin
+    if Attributes.CustomShader <> nil then
+      // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
+      MaterialUnlitExplicit(White)
+    else
     if Attributes.Mode = rmSolidColor then
       { In case of rmSolidColor, force using unlit with Attributes.SolidColor.
         Note that castlerenderer_materials.inc made sure that Lightning = false
@@ -936,7 +940,8 @@ begin
     { Note that the shader implementation of color-per-vertex is enabled regardless
       if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
       feature, which works regardless if we're lit or unlit. }
-    Shader.EnableColorPerVertex;
+    Assert(Arrays.HasColor); // PerVertexColor = true should guarantee this
+    Shader.EnableColorPerVertex(Arrays.ColorMode);
 
     {$ifndef OpenGLES}
     { For fixed-function pipeline, GL_COLOR_MATERIAL is needed only if Lighting. }
@@ -973,6 +978,9 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
+    if Attributes.CustomShader <> nil then
+      Shader.LightingModel := lmUnlit
+    else
     if Attributes.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
@@ -1000,6 +1008,8 @@ var
 begin
   inherited;
 
+  InitializeLightingModel;
+
   if Attributes.CustomShader <> nil then
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
@@ -1022,8 +1032,6 @@ begin
 
     if UseShaderRendering then
     begin
-      InitializeLightingModel;
-
       { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
       if (Shape.ProgramCache[Renderer.Pass] = nil) or
          (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then

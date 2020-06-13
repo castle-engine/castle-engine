@@ -65,10 +65,16 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinJoints: TVector4IntegerList;
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinWeights: TVector4List;
+
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
       for all X3D nodes descending from TAbstractGeometryNode. }
     procedure CreateNode; override;
+    destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
       They require State of this node during VRML traverse state --- this
@@ -227,6 +233,15 @@
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
 
+    { Node's "normal" field where you can place TCoordinateNode, or @nil if not available. }
+    function NormalField: TSFNode; virtual;
+
+    { Returns normal vectors that are specified explicitly.
+      The vectors are taken from the Normal node inside our FdNormal field.
+      In case of problems (no Normal node specified, invalid node specified etc.)
+      returns @nil. }
+    function InternalNormal: TVector3List;
+
     { Node's list of coordinate indexes.
 
       In base TAbstractGeometryNode class this always returns @nil.
@@ -339,6 +354,7 @@
       @groupBegin }
     function InternalColor: TMFVec3f;
     function InternalColorRGBA: TMFColorRGBA;
+    function InternalColorNode: TAbstractColorNode;
     { @groupEnd }
 
     function InternalFogCoord: TMFFloat; virtual;
@@ -467,9 +483,6 @@
 
   { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
-  public
-    procedure CreateNode; override;
-
     {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
@@ -529,14 +542,9 @@
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
     function InternalFogCoord: TMFFloat; override;
-
-    { Returns normal vectors that are specified explicitly.
-      The vectors are taken from the Normal node inside our FdNormal field.
-      In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
-    function InternalNormal: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
@@ -808,7 +816,6 @@
   end;
 
   { Normal (information for lighting) node.
-
     Note: It's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
   TNormalNode = class(TAbstractNormalNode)
@@ -935,6 +942,10 @@
 
 {$ifdef read_implementation}
 
+const
+  ColorModeNames: array [TColorMode] of string =
+  ('REPLACE', 'MODULATE');
+
 { TAbstractGeometryNode ---------------------------------------------------------- }
 
 procedure TAbstractGeometryNode.CreateNode;
@@ -942,9 +953,20 @@ begin
   inherited;
 
   DefaultContainerField := 'geometry';
-  { to make notes with and without FdSolid behave consistent }
+
+  { To make nodes without FdSolid and FdConvex field behave consistently,
+    we keep the value you set by SetValue to return it in GetSolid.
+    The defaults are "true", which are more efficient (e.g. solid=true
+    doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
+end;
+
+destructor TAbstractGeometryNode.Destroy;
+begin
+  FreeAndNil(InternalSkinJoints);
+  FreeAndNil(InternalSkinWeights);
+  inherited;
 end;
 
 constructor TAbstractGeometryNode.CreateWithShape(out Shape: TShapeNode);
@@ -1205,6 +1227,18 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.InternalColorNode: TAbstractColorNode;
+var
+  F: TSFNode;
+begin
+  F := ColorField;
+  if (F <> nil) and
+     (F.Value is TAbstractColorNode) then
+    Result := TAbstractColorNode(F.Value)
+  else
+    Result := nil;
+end;
+
 function TAbstractGeometryNode.InternalColor: TMFVec3f;
 var
   F: TSFNode;
@@ -1234,14 +1268,21 @@ begin
   Result := nil;
 end;
 
-{ Normal X3D spec nodes ------------------------------------------------------ }
-
-procedure TAbstractColorNode.CreateNode;
+function TAbstractGeometryNode.NormalField: TSFNode;
 begin
-  inherited;
-
-  DefaultContainerField := 'color';
+  Result := nil;
 end;
+
+function TAbstractGeometryNode.InternalNormal: TVector3List;
+begin
+  if (NormalField <> nil) and
+     (NormalField.Value is TNormalNode) then
+    Result := TNormalNode(NormalField.Value).FdVector.Items
+  else
+    Result := nil;
+end;
+
+{ Normal X3D spec nodes ------------------------------------------------------ }
 
 procedure TAbstractComposedGeometryNode.CreateNode;
 begin
@@ -1249,51 +1290,51 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangesAlways := [chGeometry];
+   FdNormal.ChangeAlways := chGeometry;
   AddField(FFdNormal);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangesAlways := [chGeometry];
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangesAlways := [chGeometry];
+   FdCcw.ChangeAlways := chGeometry;
   AddField(FFdCcw);
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangesAlways := [chGeometry];
+   FdNormalPerVertex.ChangeAlways := chGeometry;
   AddField(FFdNormalPerVertex);
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangesAlways := [chGeometry];
+   FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
   {$endif}
 end;
@@ -1344,12 +1385,9 @@ begin
   Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
-function TAbstractComposedGeometryNode.InternalNormal: TVector3List;
+function TAbstractComposedGeometryNode.NormalField: TSFNode;
 begin
-  if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNormalNode) then
-    Result := TNormalNode(FdNormal.Value).FdVector.Items else
-    Result := nil;
+  Result := FdNormal;
 end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1391,11 +1429,11 @@ begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangesAlways := [chClipPlane];
+   FdEnabled.ChangeAlways := chClipPlane;
   AddField(FFdEnabled);
 
   FFdPlane := TSFVec4f.Create(Self, true, 'plane', Vector4(0, 1, 0, 0));
-   FdPlane.ChangesAlways := [chClipPlane];
+   FdPlane.ChangeAlways := chClipPlane;
   AddField(FFdPlane);
   { X3D specification comment: [0,1] }
 
@@ -1412,7 +1450,7 @@ begin
   inherited;
   CP := State.AddClipPlane;
   CP^.Node := Self;
-  CP^.Transform := State.Transform;
+  CP^.Transform := State.Transformation.Transform;
 end;
 
 class function TClipPlaneNode.ClassX3DType: string;
@@ -1425,7 +1463,7 @@ begin
   inherited;
 
   FFdColor := TMFColor.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1440,7 +1478,7 @@ begin
   inherited;
 
   FFdColor := TMFColorRGBA.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1455,7 +1493,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chCoordinate];
+   FdPoint.ChangeAlways := chCoordinate;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -1484,37 +1522,37 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.ChangesAlways := [chGeometry];
+   FdColorIndex.ChangeAlways := chGeometry;
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangesAlways := [chGeometry];
+   FdCoordIndex.ChangeAlways := chGeometry;
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1599,7 +1637,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1636,7 +1674,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
@@ -1673,7 +1711,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1707,26 +1745,26 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 
   FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
-   FdVertexCount.ChangesAlways := [chGeometry];
+   FdVertexCount.ChangeAlways := chGeometry;
   AddField(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
 end;
@@ -1814,7 +1852,7 @@ begin
   inherited;
 
   FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
-   FdVector.ChangesAlways := [chVisibleVRML1State];
+   FdVector.ChangeAlways := chNormal;
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
 
@@ -1832,21 +1870,21 @@ begin
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
   {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
   {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
   {$endif}
 end;
@@ -1926,7 +1964,7 @@ begin
   inherited;
 
   FFdFanCount := TMFInt32.Create(Self, true, 'fanCount', []);
-   FdFanCount.ChangesAlways := [chGeometry];
+   FdFanCount.ChangeAlways := chGeometry;
   AddField(FFdFanCount);
   { X3D specification comment: [3,Inf) }
 end;
@@ -1963,7 +2001,7 @@ begin
   inherited;
 
   FFdStripCount := TMFInt32.Create(Self, true, 'stripCount', []);
-   FdStripCount.ChangesAlways := [chGeometry];
+   FdStripCount.ChangeAlways := chGeometry;
   AddField(FFdStripCount);
   { X3D specification comment: [3,Inf) }
 end;

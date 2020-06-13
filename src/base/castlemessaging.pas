@@ -62,7 +62,7 @@ type
     the call to @link(TGameService.OnStatusChanged) will always happen at a later time.
 
     This is used automatically by various engine classes like
-    @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
+    @link(TGameService), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
   TMessaging = class
   private
     {$ifdef ANDROID}

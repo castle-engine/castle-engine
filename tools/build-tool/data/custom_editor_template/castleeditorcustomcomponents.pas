@@ -22,4 +22,8 @@ uses ${EDITOR_UNITS};
 
 implementation
 
+uses CastleComponentSerialize;
+
+initialization
+  InternalHasCustomComponents := true;
 end.

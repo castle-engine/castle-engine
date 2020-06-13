@@ -184,6 +184,11 @@ type
     procedure SetNavigation(const Value: TCastleNavigation);
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
     procedure SetSceneManager(const Value: TCastleSceneManager);
+    { Get current Container.MousePosition.
+      Secured in case Container not assigned (returns @false)
+      or when Navigation uses MouseLook (in which case, returns the middle of our area,
+      the actual mouse position should not be even visible to the user). }
+    function GetMousePosition(out MousePosition: TVector2): Boolean;
   private
     var
       FNavigation: TCastleNavigation;
@@ -222,12 +227,8 @@ type
     procedure RenderShadowVolume;
 
     { Detect position/direction of the main light that produces shadows.
-      The default implementation in this class looks at
-      MainScene.MainLightForShadows.
-
-      @seealso TCastleSceneCore.MainLightForShadows }
-    function MainLightForShadows(
-      out AMainLightPosition: TVector4): boolean;
+      Looks at MainScene.InternalMainLightForShadows. }
+    function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
     { Pass pointing device (mouse) activation/deactivation event to 3D world. }
     function PointingDeviceActivate(const Active: boolean): boolean;
@@ -259,11 +260,8 @@ type
 
     { Prepare lights shining on everything.
       BaseLights contents should be initialized here.
-
       The implementation in this class adds headlight determined
-      by the @link(Headlight) method. By default, this looks at the MainScene,
-      and follows NavigationInfo.headlight and
-      KambiNavigationInfo.headlightNode properties. }
+      by the @link(TCastleRootTransform.UseHeadlight Items.UseHeadlight) value. }
     procedure InitializeLights(const Lights: TLightInstancesList); virtual;
 
     { Render everything from given camera view (as TRenderingCamera).
@@ -553,12 +551,14 @@ type
     function TriangleHit: PTriangle;
 
     { Instance for headlight that should be used for this scene.
-      Uses @link(Headlight) method, applies appropriate camera position/direction.
-      Returns @true only if @link(Headlight) method returned @true
+      Uses @link(InternalHeadlight) method, applies appropriate camera position/direction.
+      Returns @true only if @link(InternalHeadlight) method returned @true
       and a suitable camera was present.
 
       Instance should be considered undefined ("out" parameter)
-      when we return @false. }
+      when we return @false.
+
+      @exclude }
     function HeadlightInstance(out Instance: TLightInstance): boolean;
       deprecated 'internal information, do not use this';
 
@@ -661,11 +661,56 @@ type
       read GetNavigationType write SetNavigationType
       default ntNone;
 
-    { Convert 2D position on the viewport into "world coordinates",
-      which is the coordinate
-      space seen by TCastleTransform / TCastleScene inside scene manager @link(Items).
+    { Convert 2D position on the viewport into 3D "world coordinates",
+      by colliding camera ray with a plane parallel to the viewport at given Depth.
+      "World coordinates" are coordinates
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items).
+      Use Depth > 0 for positions in front of the camera.
+
+      This is similar to "Unproject" GLU routine.
+      It allows to map points from the screen back to the 3D space inside viewport.
+
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindowBase or TCastleControlBase).
+
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
+      )
+
+      Returns true and sets 3D PlanePosition if such intersection is found.
+      Returns false if it's not possible to determine such point (which
+      should not be possible, unless camera field of view is larger than 180 degrees).
+    }
+    function PositionToCameraPlane(const Position: TVector2;
+      const ScreenCoordinates: Boolean;
+      const Depth: Single; out PlanePosition: TVector3): Boolean;
+
+    { Convert 2D position on the viewport into 3D "world coordinates",
+      by colliding camera ray with a plane at constant Z.
+      "World coordinates" are coordinates
+      space seen by TCastleTransform / TCastleScene inside viewport @link(Items).
+
       This is a more general version of @link(PositionTo2DWorld),
       that works with any projection (perspective or orthographic).
+      This is often useful if your game is "close to 2D", which means that you
+      use 3D (and maybe even perspective camera),
+      but most of the game world is placed around some plane with constant Z.
 
       The interpretation of Position depends on ScreenCoordinates,
       and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
@@ -746,9 +791,18 @@ type
       const DisplayProgressTitle: string = '';
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); virtual;
 
-    { Current 3D objects under the mouse cursor.
-      Updated in every mouse move. May be @nil. }
+    { Current object (TCastleTransform hierarchy) under the mouse cursor.
+      Updated in every mouse move. May be @nil.
+
+      The returned list (if not @nil) contains TCastleTransform instances
+      that collided with the ray (from the deepest instance in the @link(Items) tree
+      to the root), along with some additional information.
+      See TRayCollision for details. }
     property MouseRayHit: TRayCollision read FMouseRayHit;
+
+    { Current object (TCastleTransform instance) under the mouse cursor.
+      Updated in every mouse move. May be @nil. }
+    function TransformUnderMouse: TCastleTransform;
 
     { Do not collide with this object when moving by @link(Navigation).
       It makes sense to put here player avatar (in 3rd person view)
@@ -761,7 +815,7 @@ type
       read FAvoidNavigationCollisions
       write SetAvoidNavigationCollisions;
 
-    { See @link(TCastleRootTransform.Paused). }
+    { See @link(TCastleAbstractRootTransform.Paused). }
     property Paused: boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
 
@@ -1054,9 +1108,9 @@ type
 
     procedure Render; override;
 
-    { Limit the movement allowed by @link(WorldMoveAllowed).
+    { Limit the movement allowed by @link(TCastleAbstractRootTransform.WorldMoveAllowed).
       Ignored when empty (default).
-      @seealso TCastleRootTransform.MoveLimit }
+      @seealso TCastleAbstractRootTransform.MoveLimit }
     property MoveLimit: TBox3D read GetMoveLimit write SetMoveLimit;
       deprecated 'use Items.MoveLimit';
 
@@ -1081,15 +1135,15 @@ type
       read GetHeadlightNode write SetHeadlightNode;
       deprecated 'use Items.HeadlightNode';
 
-    { See @link(TCastleRootTransform.MainCamera). }
+    { See @link(TCastleAbstractRootTransform.MainCamera). }
     property MainCamera: TCastleCamera read GetMainCamera write SetMainCamera;
       deprecated 'use Items.MainCamera';
 
-    { See @link(TCastleRootTransform.PhysicsProperties). }
+    { See @link(TCastleAbstractRootTransform.PhysicsProperties). }
     function PhysicsProperties: TPhysicsProperties;
       deprecated 'use Items.PhysicsProperties';
 
-    { See @link(TCastleRootTransform.TimeScale). }
+    { See @link(TCastleAbstractRootTransform.TimeScale). }
     property TimeScale: Single read GetTimeScale write SetTimeScale default 1;
       deprecated 'use Items.TimeScale';
 
@@ -1433,11 +1487,7 @@ begin
   begin
     if Navigation <> nil then
     begin
-      if (MouseRayHit <> nil) and
-         (MouseRayHit.Count <> 0) then
-        TopMostScene := MouseRayHit.First.Item
-      else
-        TopMostScene := nil;
+      TopMostScene := TransformUnderMouse;
 
       { Test if dragging TTouchSensorNode. In that case cancel its dragging
         and let navigation move instead. }
@@ -1488,12 +1538,27 @@ end;
 procedure TCastleViewport.UpdateMouseRayHit;
 var
   RayOrigin, RayDirection: TVector3;
+  MousePosition: TVector2;
 begin
-  Camera.CustomRay(RenderRect, Container.MousePosition, FProjection, RayOrigin, RayDirection);
-  PointingDeviceMove(RayOrigin, RayDirection);
+  if GetMousePosition(MousePosition) then
+  begin
+    Camera.CustomRay(RenderRect, MousePosition, FProjection, RayOrigin, RayDirection);
+    PointingDeviceMove(RayOrigin, RayDirection);
+  end;
+end;
+
+function TCastleViewport.TransformUnderMouse: TCastleTransform;
+begin
+  if (MouseRayHit <> nil) and
+     (MouseRayHit.Count <> 0) then
+    Result := MouseRayHit.First.Item
+  else
+    Result := nil;
 end;
 
 procedure TCastleViewport.RecalculateCursor(Sender: TObject);
+var
+  T: TCastleTransform;
 begin
   if { This may be called from TCastleViewport without SceneManager assigned. }
      (Items = nil) or
@@ -1522,9 +1587,9 @@ begin
     the MouseRayHit list. Maybe we should browse Cursor values along the way,
     and choose the first non-none? }
 
-  if (MouseRayHit <> nil) and
-     (MouseRayHit.Count <> 0) then
-    Cursor := MouseRayHit.First.Item.Cursor
+  T := TransformUnderMouse;
+  if T <> nil then
+    Cursor := T.Cursor
   else
     Cursor := mcDefault;
 end;
@@ -1845,6 +1910,10 @@ begin
      ShadowVolumes then
     Result.ProjectionFar := ZFarInfinity;
 
+  Camera.InternalSetEffectiveProjection(
+    Result.ProjectionNear,
+    Result.ProjectionFar);
+
   { Calculate Result.Dimensions regardless of Result.ProjectionType,
     this way OnProjection can easily change projection type to orthographic. }
   UpdateOrthographicDimensions;
@@ -1874,11 +1943,10 @@ begin
     Result := nil;
 end;
 
-function TCastleViewport.MainLightForShadows(
-  out AMainLightPosition: TVector4): boolean;
+function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
-    Result := Items.MainScene.MainLightForShadows(AMainLightPosition)
+    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition)
   else
     Result := false;
 end;
@@ -2631,6 +2699,33 @@ begin
   AutoCamera := false;
 end;
 
+function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const Depth: Single; out PlanePosition: TVector3): Boolean;
+var
+  R: TFloatRectangle;
+  ScreenPosition: TVector2;
+  RayOrigin, RayDirection: TVector3;
+  Plane: TVector4;
+begin
+  R := RenderRect;
+
+  if ScreenCoordinates then
+    ScreenPosition := Position
+  else
+    ScreenPosition := Position * UIScale + R.LeftBottom;
+
+  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+
+  Plane := Vector4(Camera.Direction,
+    { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
+      Calculate Plane[3] such that point RayOrigin + Camera.Direction * Depth
+      satisfies the plane equation. }
+    - TVector3.DotProduct(RayOrigin + Camera.Direction * Depth, Camera.Direction));
+
+  Result := TryPlaneRayIntersection(PlanePosition, Plane, RayOrigin, RayDirection);
+end;
+
 function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
   const ScreenCoordinates: Boolean;
   const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
@@ -2670,7 +2765,7 @@ begin
 
   Proj := Projection;
   if Proj.ProjectionType <> ptOrthographic then
-    raise Exception.Create('TCastle2DSceneManager.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
+    raise Exception.Create('TCastleViewport.PositionTo2DWorld assumes an orthographic projection, like the one set by TCastle2DSceneManager.CalculateProjection');
   ProjRect := Proj.Dimensions;
 
   if Navigation <> nil then
@@ -2904,6 +2999,22 @@ begin
   end;
 end;
 
+function TCastleViewport.GetMousePosition(out MousePosition: TVector2): Boolean;
+var
+  C: TUIContainer;
+begin
+  C := Container;
+  Result := C <> nil;
+  if Result then
+  begin
+    if (Navigation is TCastleWalkNavigation) and
+       TCastleWalkNavigation(Navigation).MouseLook then
+      MousePosition := RenderRect.Center
+    else
+      MousePosition := C.MousePosition;
+  end;
+end;
+
 function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
 
   { Try PointingDeviceActivate on 3D stuff hit by RayHit }
@@ -2972,22 +3083,11 @@ var
               TryActivateAround(Vector2(+Change,       0));
   end;
 
-  { If Container assigned, set local MousePosition. }
-  function GetMousePosition: boolean;
-  var
-    C: TUIContainer;
-  begin
-    C := Container;
-    Result := C <> nil;
-    if Result then
-      MousePosition := C.MousePosition;
-  end;
-
 begin
   Result := TryActivate(MouseRayHit);
   if not Result then
   begin
-    if ApproximateActivation and GetMousePosition then
+    if ApproximateActivation and GetMousePosition(MousePosition) then
       Result := TryActivateAroundSquare(25) or
                 TryActivateAroundSquare(50) or
                 TryActivateAroundSquare(100) or

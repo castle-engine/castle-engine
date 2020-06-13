@@ -64,7 +64,7 @@ begin
   inherited;
 
   FFdDistanceFromShape := TSFFloat.Create(Self, True, 'distanceFromShape', 0.01);
-   FdDistanceFromShape.ChangesAlways := [chVisibleNonGeometry];
+   FdDistanceFromShape.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDistanceFromShape);
 
   DefaultContainerField := 'viewpoint';

@@ -238,6 +238,16 @@
     {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
   end;
 
+  { Generate events upon receiving a boolean TRUE value. }
+  TValueTriggerNode = class(TAbstractTriggerNode)
+  strict private
+    procedure EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+      const Time: TX3DTime);
+  public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    {$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -526,9 +536,13 @@ begin
   AddEvent(FEventSet_boolean);
   FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
 
-  { X3D specification mistakenly omitted default value for this field...
-    I guess it's 0? }
-  FFdIntegerKey := TSFInt32.Create(Self, true, 'integerKey', 0);
+  { The default is not given in X3D 3.2 spec, but X3D 3.0 and 3.3 specs specify default as -1.
+    See
+    https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/utils.html#IntegerTrigger
+    https://www.web3d.org/documents/specifications/19775-1/V3.2/Part01/components/utils.html#IntegerTrigger
+    https://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#IntegerTrigger
+  }
+  FFdIntegerKey := TSFInt32.Create(Self, true, 'integerKey', -1);
   AddField(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -574,6 +588,42 @@ begin
   EventTriggerTime.Send(Time.Seconds, Time, Value.InternalPartialSend);
 end;
 
+{ TValueTriggerNode ---------------------------------------------------------- }
+
+constructor TValueTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+begin
+  inherited;
+  FEventTrigger.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTriggerReceive);
+  HasInterfaceDeclarations := AllAccessTypes;
+end;
+
+procedure TValueTriggerNode.EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
+  const Time: TX3DTime);
+var
+  B: Boolean;
+  I: Integer;
+  F: TX3DField;
+begin
+  B := (Value as TSFBool).Value;
+  if B and Enabled then
+  begin
+    for I := 0 to FieldsCount - 1 do
+    begin
+      F := Fields[I];
+      { For "dynamic" (coming from "interface declaration") and exposed fields,
+        send an event with their current value. }
+      if (F.ParentInterfaceDeclaration <> nil) and
+         (F.EventOut <> nil) then
+      begin
+        // since we send F, it must have Value.InternalPartialSend set, to account for cross-fading
+        F.InternalPartialSend := Value.InternalPartialSend;
+        F.EventOut.Send(F, Time);
+        F.InternalPartialSend := nil;
+      end;
+    end;
+  end;
+end;
+
 procedure RegisterEventUtilitiesNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -583,7 +633,8 @@ begin
     TBooleanTriggerNode,
     TIntegerSequencerNode,
     TIntegerTriggerNode,
-    TTimeTriggerNode
+    TTimeTriggerNode,
+    TValueTriggerNode
   ]);
 end;
 

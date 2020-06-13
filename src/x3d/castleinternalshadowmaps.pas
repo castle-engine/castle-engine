@@ -571,7 +571,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         ProjectionLocation, Dir, Side, Up);
       LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
       LightNode.FdProjectionLocation.Value :=
-        LightNode.InvertedTransform.MultPoint(ProjectionLocation);
+        LightNode.InverseTransform.MultPoint(ProjectionLocation);
 
       WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
         [Light.Light.NiceName,

@@ -30,29 +30,29 @@
     procedure SetAmbientIntensity(const Value: Single);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
-    function GetGlobal: boolean;
-    procedure SetGlobal(const Value: boolean);
+    function GetGlobal: Boolean;
+    procedure SetGlobal(const Value: Boolean);
     function GetIntensity: Single;
     procedure SetIntensity(const Value: Single);
-    function GetIsOn: boolean;
-    procedure SetIsOn(const Value: boolean);
-    function GetShadowVolumes: boolean;
-    procedure SetShadowVolumes(const Value: boolean);
+    function GetIsOn: Boolean;
+    procedure SetIsOn(const Value: Boolean);
+    function GetShadowVolumes: Boolean;
+    procedure SetShadowVolumes(const Value: Boolean);
   public
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { X3D field "global". } { }
-    property Global: boolean read GetGlobal write SetGlobal;
+    property Global: Boolean read GetGlobal write SetGlobal;
     { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
     { X3D field "on". } { }
-    property IsOn: boolean read GetIsOn write SetIsOn;
+    property IsOn: Boolean read GetIsOn write SetIsOn;
     { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
     { X3D field "shadowVolumes". } { }
-    property ShadowVolumes: boolean read GetShadowVolumes write SetShadowVolumes;
+    property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;
 
 {$endif read_interface}
 
@@ -80,12 +80,12 @@ begin
   FdColor.Send(Value);
 end;
 
-function TAbstractLightNode.GetGlobal: boolean;
+function TAbstractLightNode.GetGlobal: Boolean;
 begin
   Result := FdGlobal.Value;
 end;
 
-procedure TAbstractLightNode.SetGlobal(const Value: boolean);
+procedure TAbstractLightNode.SetGlobal(const Value: Boolean);
 begin
   FdGlobal.Send(Value);
 end;
@@ -100,12 +100,12 @@ begin
   FdIntensity.Send(Value);
 end;
 
-function TAbstractLightNode.GetIsOn: boolean;
+function TAbstractLightNode.GetIsOn: Boolean;
 begin
   Result := FdOn.Value;
 end;
 
-procedure TAbstractLightNode.SetIsOn(const Value: boolean);
+procedure TAbstractLightNode.SetIsOn(const Value: Boolean);
 begin
   FdOn.Send(Value);
 end;
@@ -122,12 +122,12 @@ begin
   FdEffects.Send(A);
 end;
 
-function TAbstractLightNode.GetShadowVolumes: boolean;
+function TAbstractLightNode.GetShadowVolumes: Boolean;
 begin
   Result := FdShadowVolumes.Value;
 end;
 
-procedure TAbstractLightNode.SetShadowVolumes(const Value: boolean);
+procedure TAbstractLightNode.SetShadowVolumes(const Value: Boolean);
 begin
   FdShadowVolumes.Send(Value);
 end;

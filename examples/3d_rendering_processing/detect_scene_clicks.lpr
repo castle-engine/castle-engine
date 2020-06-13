@@ -62,11 +62,7 @@ var
 begin
   if Event.IsMouseButton(mbLeft) then
   begin
-    if Viewport.MouseRayHit <> nil then
-      TopMostScene := Viewport.MouseRayHit.First.Item
-    else
-      TopMostScene := nil;
-
+    TopMostScene := Viewport.TransformUnderMouse;
     if TopMostScene <> nil then
       Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag))
     else

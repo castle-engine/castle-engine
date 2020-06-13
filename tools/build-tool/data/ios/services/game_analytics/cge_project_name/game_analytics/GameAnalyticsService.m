@@ -26,6 +26,7 @@
 
 #import "GameAnalyticsService.h"
 #import "../AvailableProduct.h"
+#import "../CgeUtils.h"
 
 #import <GameAnalytics/GameAnalytics.h>
 

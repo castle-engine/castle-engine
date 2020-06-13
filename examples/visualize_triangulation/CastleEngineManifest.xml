@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  Manifest to compile this application using Castle Game Engine build tool,
+  see
+  - https://github.com/castle-engine/castle-engine/wiki/Build-Tool
+  - https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples
+-->
+
+<project name="visualize_triangulation" standalone_source="visualize_triangulation.lpr">
+</project>

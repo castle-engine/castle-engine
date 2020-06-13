@@ -66,13 +66,13 @@
     property X3DName: string read FX3DName;
     property Name: string read FX3DName; deprecated 'use X3DName';
 
-    { VRML node containing this field/event.
+    { X3D node containing this field/event.
       This must always contain an instance
       of TX3DNode class (although it cannot be declared such, since X3DFields
       unit cannot depend on X3DNodes interface).
 
       It may be @nil for special fields/events when parent node is unknown. }
-    property ParentNode: TX3DFileItem read FParentNode;
+    property ParentNode: TX3DFileItem read FParentNode write FParentNode;
 
     { "IS" clauses of this field/event, used when this field/event
       is inside prototype definition.
@@ -147,7 +147,7 @@
     { For fields contained in TX3DInterfaceDeclaration.
 
       This should always be @nil (if the field is normal, standard field,
-      not coming from interface declaration in VRML file) or an instance of
+      not coming from interface declaration in X3D file) or an instance of
       TX3DInterfaceDeclaration. (But it cannot be declared such,
       since TX3DInterfaceDeclaration is not known in this unit). }
     property ParentInterfaceDeclaration: TX3DFileItem

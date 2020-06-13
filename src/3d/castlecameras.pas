@@ -277,6 +277,7 @@ type
     FInitialPosition, FInitialDirection, FInitialUp: TVector3;
     FProjectionMatrix: TMatrix4;
     FProjectionNear, FProjectionFar: Single;
+    FEffectiveProjectionNear, FEffectiveProjectionFar: Single;
     FProjectionType: TProjectionType;
 
     FAnimation: boolean;
@@ -354,10 +355,10 @@ type
 
     { Camera position, looking direction and up vector.
 
-      After calling @link(Init) they are equal to
-      InitialPosition, InitialDirection, InitialUp.
-      Calling @link(Init) and @link(GoToInitial) resets them to these
-      initial values.
+      Call @link(GoToInitial) to set the current vectors to initial vectors,
+      making them equal to InitialPosition, InitialDirection, InitialUp.
+      You can also use @code(Init) method on some navigation descendants
+      like @link(TCastleExamineNavigation.Init) and @link(TCastleWalkNavigation.Init).
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -385,13 +386,13 @@ type
 
       This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
 
-      This is also the "normal" value for both @link(TCastleWalkNavigation.Up) and
+      This is also the "normal" value for both @link(Up) and
       @link(InitialUp) --- one that means that player is looking
       straight foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
-      @link(TCastleWalkNavigation.Up) and
+      @link(Up) and
       @link(InitialUp) vectors). }
     property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
@@ -469,8 +470,11 @@ type
       key/mouse handling in TCastleWalkNavigation shoult not work etc. }
     function Animation: boolean;
 
-    { Initial camera values. Can be set by @link(Init) or @link(SetInitialView).
-      Camera vectors are reset to these values by @link(Init) and @link(GoToInitial).
+    { Initial camera values. Can be set by @link(SetInitialView).
+      Camera vectors are reset to these values by @link(GoToInitial).
+      You can also use @code(Init) method on some navigation descendants
+      like @link(TCastleExamineNavigation.Init) and @link(TCastleWalkNavigation.Init)
+      to set initial vectors @italic(and) current vectors at the same time.
 
       InitialDirection and InitialUp must be always normalized,
       and orthogonal.
@@ -526,6 +530,16 @@ type
 
     procedure Free; deprecated 'do not Free camera instance explicitly, only the TCastleViewport should create and destroy TCastleViewport.Camera; this method does nothing now';
 
+    { Currently used projection near.
+      Derived from @link(ProjectionNear) and possibly scene sizes. }
+    property EffectiveProjectionNear: Single read FEffectiveProjectionNear;
+    { Currently used projection far.
+      Derived from @link(ProjectionFar) and possibly scene sizes.
+      May be equal ZFarInfinity. }
+    property EffectiveProjectionFar: Single read FEffectiveProjectionFar;
+    // @exclude
+    procedure InternalSetEffectiveProjection(
+      const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
   published
     { Projection near plane distance.
 
@@ -565,20 +579,28 @@ type
   { }
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
-  { Handle user input to modify viewport camera.
+  { Handle user input to modify viewport's camera.
 
-    You will usually set it using @link(TCastleViewport.Navigation).
-    But really it's a normal @link(TCastleUserInterface) descendant,
-    you can add it as a child of any other UI control,
-    and just assign @link(Viewport) to any @link(TCastleViewport).
-    You can always treat it as a normal @link(TCastleUserInterface) descendant,
-    e.g. you can use @link(Exists) property and so on.
+    Create an instance of this class, and set it as @link(TCastleViewport.Navigation) value.
+    It will become a child control of the associated @link(TCastleViewport).
 
-    The only purpose of the class @link(TCastleNavigation)
-    is to allow to remove other @link(TCastleNavigation) children when assigning
-    @link(TCastleViewport.Navigation).
-    Otherwise, it's really a completely normal @link(TCastleUserInterface),
-    i.e. it receives input events and reacts to them as all other UI controls.
+    In many ways, this is just a normal @link(TCastleUserInterface) descendant.
+    E.g. it processes input just like any other @link(TCastleUserInterface) descendant
+    (there isn't any special mechanism through which @link(TCastleViewport) passes
+    input to the navigation),
+    the @link(Exists) property works and so on.
+    Setting it as @link(TCastleViewport.Navigation)
+    (as opposed to just adding it manually by @link(TCastleUserInterface.InsertFront)
+    to the viewport) serves just two purposes: we set internal link to the viewport,
+    and we make sure to remove previous @link(TCastleViewport.Navigation) value
+    from children.
+
+    The point of the above explanation is that you can modify
+    @link(TCastleViewport.Camera) (move, rotate and do other stuff with camera)
+    from any place in the code.
+    You don't @italic(need) to use an ancestor of TCastleNavigation to manipulate
+    the camera. TCastleNavigation is a comfortable way to encapsulate
+    common navigation methods, but it's not the only way to move the camera.
 
     Various TCastleNavigation descendants implement various navigation
     methods, for example TCastleExamineNavigation allows the user to rotate
@@ -612,7 +634,7 @@ type
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
-      was initialized on viewport (since the viewport passed events to camera).
+      was initialized on viewport (since the viewport passed events to navigation).
       MouseDraggingStarted -1 means none, otherwise it's the finder index
       (to support multitouch). }
     MouseDraggingStarted: Integer;
@@ -678,8 +700,8 @@ type
 
     { Things related to frustum ---------------------------------------- }
 
-    { The current camera (viewing frustum, based on
-      @link(ProjectionMatrix) (set by you) and @link(Matrix) (calculated here).
+    { The current camera viewing frustum, based on
+      @link(ProjectionMatrix) (set by the outside) and @link(Matrix) (calculated here).
       This is recalculated whenever one of these two properties change.
       Be sure to set @link(ProjectionMatrix) before using this. }
     property Frustum: TFrustum read GetFrustum; deprecated 'use Viewport.Camera.Frustum';
@@ -702,19 +724,15 @@ type
         @item(It determines the projection near plane (that must be slightly
           smaller than this radius) for 3D rendering.)
         @item(
-          Walk camera uses this for automatically correcting
+          Walk navigation uses this for automatically correcting
           PreferredHeight, otherwise weird things could happen
-          if your avatar height is too small compared to camera radius.
+          if your avatar height is too small compared to the camera radius.
           See @link(CorrectPreferredHeight).
 
           Especially useful if you let
           user change PreferredHeight at runtime by
           Input_IncreasePreferredHeight, Input_DecreasePreferredHeight.
-
-          This is actually the whole use of @link(Radius) inside @link(CastleCameras) unit
-          and classes. But the code all around the engine also looks for
-          this @link(Radius), and the camera is a natural place to keep this
-          information.)
+        )
       ) }
     property Radius: Single read FRadius write SetRadius default DefaultRadius;
 
@@ -748,7 +766,7 @@ type
 
       Initially (after creating this object) they are equal to
       InitialPosition, InitialDirection, InitialUp.
-      Also @link(Init) and @link(GoToInitial) methods reset them to these
+      Also @link(GoToInitial) methods reset them to these
       initial values.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
@@ -771,20 +789,23 @@ type
 
       This determines in which direction @link(TCastleWalkNavigation.Gravity) works.
 
-      This is also the "normal" value for both @link(TCastleWalkNavigation.Up) and
+      This is also the "normal" value for both @link(Up) and
       @link(InitialUp) --- one that means that player is looking
       straight foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
-      @link(TCastleWalkNavigation.Up) and
+      @link(Up) and
       @link(InitialUp) vectors). }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp; deprecated 'use Viewport.Camera.GravityUp';
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
-      Uses current Container, which means that you have to add this camera
-      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
-      using this method.
+
+      Uses current container size, which means that it assumes that viewport
+      fills the whole window,
+      and requires that it's added to @link(TCastleViewport.Navigation)
+      and this @link(TCastleViewport) must be part of
+      TCastleWindowBase.Controls or TCastleControlBase.Controls.
 
       Projection (read-only here) describe your projection,
       required for calculating the ray properly.
@@ -797,10 +818,12 @@ type
       out RayOrigin, RayDirection: TVector3); deprecated 'use Viewport.Camera.CustomRay with proper viewport sizes, or use higher-level utilities like Viewport.MouseRayHit instead';
 
     { Calculate a ray picked by current mouse position on the window.
-      Uses current Container (both to get it's size and to get current
-      mouse position), which means that you have to add this camera
-      to TCastleWindowBase.Controls or TCastleControlBase.Controls before
-      using this method.
+
+      Uses current container size, which means that it assumes that viewport
+      fills the whole window,
+      and requires that it's added to @link(TCastleViewport.Navigation)
+      and this @link(TCastleViewport) must be part of
+      TCastleWindowBase.Controls or TCastleControlBase.Controls.
 
       @seealso Ray
       @seealso CustomRay }
@@ -987,7 +1010,7 @@ type
       See @link(TCastleWalkNavigation.JumpMaxHeight) for a way to control jumping.
 
       For a 100% reliable way to prevent user from reaching some point,
-      that does not rely on specific camera/gravity settings,
+      that does not rely on specific navigation settings,
       you should build actual walls in 3D (invisible walls
       can be created by Collision.proxy in VRML/X3D). }
     property ClimbHeight: Single read FClimbHeight write FClimbHeight;
@@ -1002,7 +1025,7 @@ type
     { Input methods available to user. See documentation of TNavigationInput
       type for possible values and their meaning.
 
-      To disable any user interaction with camera
+      To disable any user interaction with this navigation
       you can simply set this to empty.
       You can also leave @link(TCastleViewport.Navigation) as @nil. }
     property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
@@ -1110,8 +1133,6 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    { Current camera properties ---------------------------------------------- }
-
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
 
@@ -1138,10 +1159,15 @@ type
 
     { Drag with this mouse button to rotate the model.
 
-      See the discussion in castlecameras_default_examine_mouse_buttons.txt
-      why these defaults were chosen for MouseButtonRotate (left),
-      MouseButtonMove (middle), MouseButtonZoom (right).
-      Also note that for this camera:
+      The default values for MouseButtonRotate (left),
+      MouseButtonMove (middle), MouseButtonZoom (right)
+      were chosen to 1. match as much as possible behaviour
+      of other programs (like Blender) and
+      2. be accessible to all users (e.g. not everyone has middle
+      mouse button in comfortable place, like laptop+touchpad users).
+      See castlecameras_default_examine_mouse_buttons.txt for more in-depth analysis.
+
+      Also note that for this navigation:
 
       @unorderedList(
         @item(pressing left mouse button with Ctrl is considered like
@@ -1297,16 +1323,17 @@ type
     const BecauseOfGravity: boolean): boolean of object;
 
   { See @link(TCastleWalkNavigation.OnFall). }
-  TFallNotifyFunc = procedure (Camera: TCastleWalkNavigation;
+  TFallNotifyFunc = procedure (Navigation: TCastleWalkNavigation;
     const FallHeight: Single) of object;
 
-  THeightEvent = function (Camera: TCastleWalkNavigation;
+  THeightEvent = function (Navigation: TCastleWalkNavigation;
     const Position: TVector3;
     out AboveHeight: Single; out AboveGround: PTriangle): boolean of object;
 
-  { Navigation by walking (first-person-shooter-like moving) in 3D scene.
-    Camera is defined by it's position, looking direction
-    and up vector, user can rotate and move camera using various keys. }
+  { Navigation by walking or flying (classic first-person shooter navigation)
+    in a 3D scene.
+    User can rotate and move camera using various keys, like arrows or AWSD.
+    Mouse dragging and mouse look are also supported. }
   TCastleWalkNavigation = class(TCastleNavigation)
   private
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
@@ -1503,7 +1530,7 @@ type
       so you can calculate move direction by ProposedNewPos - Position).
 
       This is the place to "plug in" your collision detection
-      into camera.
+      into navigation.
 
       Returns false if no move is allowed.
       Otherwise returns true and sets NewPos to the position
@@ -1527,7 +1554,7 @@ type
       of DoMoveAllowed.
 
       BecauseOfGravity says whether this move is caused by gravity
-      dragging the camera down. Can happen only if @link(Gravity)
+      dragging the player down. Can happen only if @link(Gravity)
       is @true. You can use BecauseOfGravity to control DoMoveAllowed
       behavior --- e.g. view3dscene will not allow camera to move
       lower that some minimal plane when BecauseOfGravity
@@ -1569,37 +1596,20 @@ type
       you just in the @link(Direction). Which is usually more handy when
       e.g. simulating flying.
 
-      It's a delicate decision how to set them, because generally
-      all the decisions are "somewhat correct" --- they just sometimes
-      "feel incorrect" for player.
-
       @unorderedList(
         @item(
-          First of all, if the scene is not "naturally oriented"
-          around GravityUp, then you @bold(may) set
+          When there is no "natural" up-or-down feeling in the scene,
+          e.g. outer space environment without any gravity,
+          then you @bold(may) set
           PreferGravityUpForRotations as @false and you @bold(should)
           leave PreferGravityUpForMoving and @link(Gravity) to @false.
-
-          By the scene "naturally oriented around GravityUp"
-          I mean that we have some proper GravityUp,
-          not just some guessed GravityUp that may
-          be incorrect. For example when view3dscene loads a VRML model
-          without any camera definition then it assumes that "up vector"
-          is (0, 1, 0), because this is more-or-less VRML standard
-          suggested by VRML spec. But this may be very inappopriate,
-          for example the scene may be actually oriented with (0, 0, 1)
-          up vector in mind.
-
-          Other examples of the scenes without any
-          "naturally oriented around GravityUp" may be some
-          "outer space" scene without any gravity.)
+        )
 
         @item(
           With PreferGravityUpForRotations the "feeling" of GravityUp
-          is stronger for user, because GravityUp, @link(Up) and @link(Direction)
-          always define the same plane in 3D space (i.e. along with the
-          4th point, (0, 0, 0), for camera eye). Raising/bowing the head
-          doesn't break this assumption.
+          is stronger. Raising/bowing the head doesn't mess with "the general
+          sense that there's some vertical axis independent of my movement,
+          that doesn't change, and affects how I move".
 
           Without PreferGravityUpForRotations, we quickly start to do rotations
           in an awkward way --- once you do some vertical rotation,
@@ -1644,7 +1654,7 @@ type
       we can't project @link(Direction) on the horizontal plane. }
     function DirectionInGravityPlane: TVector3;
 
-    { Set the most important properties of this camera, in one call.
+    { Set the most important properties of this navigation, in one call.
       Sets initial camera properties (InitialPosition, InitialDirection,
       InitialUp),
       sets current camera properties to them (Position := InitialPosition
@@ -1692,8 +1702,6 @@ type
       default DefaultMinAngleRadFromGravityUp;
 
     function Motion(const Event: TInputMotion): boolean; override;
-
-    { Things related to gravity ---------------------------------------- }
 
     { Assign here the callback (or override @link(Height))
       to say what is the current height of camera above the ground.
@@ -1803,7 +1811,7 @@ type
       see JumpMaxHeight for explanation. }
     function MaxJumpDistance: Single;
 
-    { Camera is in the middle of a "jump" move right now. }
+    { We are in the middle of a "jump" move right now. }
     property IsJumping: boolean read FIsJumping;
 
     { Scales the speed of horizontal moving during jump. }
@@ -1872,7 +1880,7 @@ type
       We do not (and, currently, cannot) track here if
       AboveGround pointer will be eventually released (which may happen
       if you release your 3D scene, or rebuild scene causing octree rebuild).
-      This is not a problem for camera class, since we do not use this
+      This is not a problem for navigation class, since we do not use this
       pointer for anything. But if you use this pointer,
       then you may want to take care to eventually set it to @nil when
       your octree or such is released.
@@ -2048,6 +2056,11 @@ type
       Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
       read FGravity write FGravity default true;
+
+    property PreferredHeight;
+    property MoveHorizontalSpeed;
+    property MoveVerticalSpeed;
+    property MoveSpeed;
   end;
 
   TUniversalCamera = TCastleNavigation deprecated 'complicated TUniversalCamera class is removed; use TCastleNavigation as base class, or TCastleWalkNavigation or TCastleExamineNavigation for particular type, and Viewport.NavigationType to switch type';
@@ -2652,6 +2665,13 @@ end;
 
 procedure TCastleCamera.Free;
 begin
+end;
+
+procedure TCastleCamera.InternalSetEffectiveProjection(
+  const AEffectiveProjectionNear, AEffectiveProjectionFar: Single);
+begin
+  FEffectiveProjectionNear := AEffectiveProjectionNear;
+  FEffectiveProjectionFar := AEffectiveProjectionFar;
 end;
 
 {$define read_implementation_methods}

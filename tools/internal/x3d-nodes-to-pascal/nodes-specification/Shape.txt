@@ -5,6 +5,10 @@ X3DAppearanceNode : X3DNode {
 }
 
 X3DMaterialNode : X3DAppearanceChildNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  # This is not actually specified anywhere (X3D XML encoding spec
+  # doesn't specify containerField for abstract X3DXxxNode classes)
+  # but it seems most sensible to have all X3DMaterialNode with containerField=material.
   x3d-nodes-to-pascal: default-container-field material
 }
 
@@ -21,23 +25,33 @@ X3DOneSidedMaterialNode : X3DMaterialNode {
 }
 
 X3DShapeNode : X3DChildNode, X3DBoundedObject {
-  SFNode  [in,out] appearance NULL     [X3DAppearanceNode]
+  x3d-nodes-to-pascal: auto-generate-more true
+
+  # In X3D specificaction, appearance can be [X3DAppearanceNode].
+  # But X3DAppearanceNode type is not useful, asthe only possible descendant of it is Appearance,
+  # so we change the type to allow Appearance.
+  # This makes accessing it easier, like "Shape.Appearance.Texture := xxx".
+  SFNode  [in,out] appearance NULL     [Appearance]
   SFNode  [in,out] geometry   NULL     [X3DGeometryNode]
-  SFVec3f []       bboxCenter 0 0 0    (-Inf,Inf)           # NOT-SLIM
-  SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1  # NOT-SLIM
+  # As Castle Game Engine extension, we allow bboxCenter/Size to be modified,
+  # i.e. they are [in,out] not only [].
+  SFVec3f [in,out] bboxCenter 0 0 0    (-Inf,Inf)
+  SFVec3f [in,out] bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
 
   # EXTENSIONS:
-  SFString [in,out]    shading            "DEFAULT" # ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
-  SFNode  []           octreeTriangles    NULL      # [KambiOctreeProperties] # NOT-SLIM
-  # InstantReality extension, http://doc.instantreality.org/documentation/nodetype/Shape/
-  SFBool  [in,out]     render             TRUE
-
+  SFString [in,out]     shading            "DEFAULT" # ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"] enumerated-type: TShading ShadingNames shDefault
+  SFNode   []           octreeTriangles    NULL      # [KambiOctreeProperties] # NOT-SLIM
+  # Whether to render this shape.
+  # See https://castle-engine.io/x3d_implementation_shape_extensions.php .
+  SFBool   [in,out]     render             TRUE
+  SFString []           collision          "DEFAULT" # ["DEFAULT"|"BOX"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault
 }
 
 Appearance : X3DAppearanceNode {
   SFNode [in,out] fillProperties   NULL [FillProperties] # NOT-SLIM
   SFNode [in,out] lineProperties   NULL [LineProperties]
   SFNode [in,out] material         NULL [X3DMaterialNode]
+  SFNode [in,out] backMaterial     NULL [X3DMaterialNode]
   MFNode [in,out] shaders          []   [X3DShaderNode]
   SFNode [in,out] texture          NULL [X3DTextureNode]
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
