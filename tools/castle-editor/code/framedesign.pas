@@ -214,11 +214,11 @@ type
     function SelectedViewport: TCastleViewport;
 
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: boolean);
+      var aShow: Boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: boolean);
+      var aShow: Boolean);
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
-      var aShow: boolean);
+      var aShow: Boolean);
     procedure MarkModified;
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
@@ -237,13 +237,13 @@ type
     procedure ChangeMode(const NewMode: TMode);
     procedure ModifiedOutsideObjectInspector;
     procedure InspectorFilter(Sender: TObject;
-      AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
+      AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure SaveDesign(const Url: string);
+    procedure SaveDesign(const Url: String);
     { Changes DesignRoot, DesignUrl and all the associated user-interface. }
     procedure OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
       const NewDesignUrl: String);
@@ -345,7 +345,7 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
     - uses RenderRectWithBorder (to be able to drag complete control)
     - doesn't need "if the control covers the whole Container" hack. }
   function SimpleCapturesEventsAtPosition(const UI: TCastleUserInterface;
-    const Position: TVector2): boolean;
+    const Position: TVector2): Boolean;
   begin
     Result := UI.RenderRectWithBorder.Contains(Position);
   end;
@@ -865,7 +865,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TDesignFrame.SaveDesign(const Url: string);
+procedure TDesignFrame.SaveDesign(const Url: String);
 begin
   if DesignRoot is TCastleUserInterface then
     UserInterfaceSave(TCastleUserInterface(DesignRoot), Url)
@@ -1421,7 +1421,7 @@ begin
 end;
 
 procedure TDesignFrame.InspectorFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
+  AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
 var
   PropertyName: String;
   Instance: TPersistent;
@@ -1449,19 +1449,19 @@ begin
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: boolean);
+  AEditor: TPropertyEditor; var aShow: Boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psBasic);
 end;
 
 procedure TDesignFrame.InspectorLayoutFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: boolean);
+  AEditor: TPropertyEditor; var aShow: Boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psLayout);
 end;
 
 procedure TDesignFrame.InspectorOtherFilter(Sender: TObject;
-  AEditor: TPropertyEditor; var aShow: boolean);
+  AEditor: TPropertyEditor; var aShow: Boolean);
 begin
   InspectorFilter(Sender, AEditor, AShow, psOther);
 end;
