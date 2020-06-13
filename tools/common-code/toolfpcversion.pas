@@ -113,4 +113,7 @@ begin
   Result := FpcVersionCached;
 end;
 
+finalization
+  FreeAndNil(FpcVersionCached);
+
 end.
