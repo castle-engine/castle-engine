@@ -72,6 +72,8 @@ var
     See https://castle-engine.io/manual_gamma_correction.php . }
   GammaCorrection: TGammaCorrection = gcPhysicalMaterial;
 
+  { Change the colors you render, to make them visually better.
+    See https://castle-engine.io/manual_gamma_correction.php . }
   ToneMapping: TToneMapping = tmNone;
 
 implementation
