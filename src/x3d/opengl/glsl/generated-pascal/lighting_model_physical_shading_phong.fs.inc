@@ -232,7 +232,5 @@
 '  // TODO: No need for this in PBR?' + LineEnding +
 '  // TODO: No need for this in Phong lighting with Phong shading, too?' + LineEnding +
 '  // result.rgb = min(result.rgb, 1.0);' + LineEnding +
-'' + LineEnding +
-'  result.rgb = pow(result.rgb, vec3(1.0 / 2.2));' + LineEnding +
 '}' + LineEnding +
 ''

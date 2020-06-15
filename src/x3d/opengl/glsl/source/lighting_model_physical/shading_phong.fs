@@ -230,6 +230,4 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
   // TODO: No need for this in PBR?
   // TODO: No need for this in Phong lighting with Phong shading, too?
   // result.rgb = min(result.rgb, 1.0);
-
-  result.rgb = pow(result.rgb, vec3(1.0 / 2.2));
 }
