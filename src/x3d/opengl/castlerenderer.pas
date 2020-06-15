@@ -1071,7 +1071,7 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape;
+  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes;
 
 {$define read_implementation}
 

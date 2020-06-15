@@ -500,6 +500,8 @@ type
 
     MainTextureMapping: Integer;
 
+    GammaCorrection: Boolean;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -1807,7 +1809,7 @@ begin
         { Optimization to not call castle_texture_color_to_linear when not needed.
           Although it should do nothing when GammaCorrection=false,
           but to make sure it takes zero time we just not call it at all. }
-        if GammaCorrection and (TextureType <> tt2DShadow) then
+        if Shader.GammaCorrection and (TextureType <> tt2DShadow) then
           TextureSampleCall := 'castle_texture_color_to_linear(' + TextureSampleCall + ')';
         Code[stFragment].Add(Format(
           'texture_color = ' + TextureSampleCall + ';' +NL+
@@ -1985,6 +1987,7 @@ begin
   FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
+  GammaCorrection := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);

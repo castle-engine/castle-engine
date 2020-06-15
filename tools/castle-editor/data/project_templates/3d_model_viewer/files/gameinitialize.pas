@@ -26,9 +26,6 @@ begin
   { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
   Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
 
-  { More correct colors, see https://github.com/michaliskambi/x3d-tests/wiki/Gamma-correction-in-X3D-and-glTF }
-  GammaCorrection := true;
-
   { Create TStateMain that will handle "main" state of the game.
     Larger games may use multiple states,
     e.g. TStateMainMenu ("main menu state"),
