@@ -72,7 +72,11 @@ vec3 toneMapUncharted(in vec3 color)
   const float W = 11.2;
   color = toneMapUncharted2Impl(color * 2.0);
   vec3 whiteScale = 1.0 / toneMapUncharted2Impl(vec3(W));
-  return LINEARtoSRGB(color * whiteScale);
+  color = color * whiteScale;
+  #ifdef CASTLE_GAMMA_CORRECTION
+  color = LINEARtoSRGB(color);
+  #endif
+  return color;
 }
 
 // Hejl Richard tone map
@@ -80,19 +84,29 @@ vec3 toneMapUncharted(in vec3 color)
 vec3 toneMapHejlRichard(in vec3 color)
 {
   color = max(vec3(0.0), color - vec3(0.004));
-  return (color*(6.2*color+.5))/(color*(6.2*color+1.7)+0.06);
+  color = (color*(6.2*color+.5))/(color*(6.2*color+1.7)+0.06);
+  #ifndef CASTLE_GAMMA_CORRECTION
+  // The above calculation did equivalent of "pow(color, vec3(1 / 2.2))" already.
+  // So invert it, if no gamma correction.
+  color = pow(color, vec3(GAMMA));
+  #endif
+  return color;
 }
 
 // ACES tone map
 // see: https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
-vec3 toneMapACES(const in vec3 color)
+vec3 toneMapACES(in vec3 color)
 {
   const float A = 2.51;
   const float B = 0.03;
   const float C = 2.43;
   const float D = 0.59;
   const float E = 0.14;
-  return LINEARtoSRGB(clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0));
+  color = clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0);
+  #ifdef CASTLE_GAMMA_CORRECTION
+  color = LINEARtoSRGB(color);
+  #endif
+  return color;
 }
 
 vec3 castle_linear_to_screen(const in vec3 color)

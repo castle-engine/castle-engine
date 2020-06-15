@@ -74,7 +74,11 @@
 '  const float W = 11.2;' + LineEnding +
 '  color = toneMapUncharted2Impl(color * 2.0);' + LineEnding +
 '  vec3 whiteScale = 1.0 / toneMapUncharted2Impl(vec3(W));' + LineEnding +
-'  return LINEARtoSRGB(color * whiteScale);' + LineEnding +
+'  color = color * whiteScale;' + LineEnding +
+'  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
+'  color = LINEARtoSRGB(color);' + LineEnding +
+'  #endif' + LineEnding +
+'  return color;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 '// Hejl Richard tone map' + LineEnding +
@@ -82,19 +86,29 @@
 'vec3 toneMapHejlRichard(in vec3 color)' + LineEnding +
 '{' + LineEnding +
 '  color = max(vec3(0.0), color - vec3(0.004));' + LineEnding +
-'  return (color*(6.2*color+.5))/(color*(6.2*color+1.7)+0.06);' + LineEnding +
+'  color = (color*(6.2*color+.5))/(color*(6.2*color+1.7)+0.06);' + LineEnding +
+'  #ifndef CASTLE_GAMMA_CORRECTION' + LineEnding +
+'  // The above calculation did equivalent of "pow(color, vec3(1 / 2.2))" already.' + LineEnding +
+'  // So invert it, if no gamma correction.' + LineEnding +
+'  color = pow(color, vec3(GAMMA));' + LineEnding +
+'  #endif' + LineEnding +
+'  return color;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 '// ACES tone map' + LineEnding +
 '// see: https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/' + LineEnding +
-'vec3 toneMapACES(const in vec3 color)' + LineEnding +
+'vec3 toneMapACES(in vec3 color)' + LineEnding +
 '{' + LineEnding +
 '  const float A = 2.51;' + LineEnding +
 '  const float B = 0.03;' + LineEnding +
 '  const float C = 2.43;' + LineEnding +
 '  const float D = 0.59;' + LineEnding +
 '  const float E = 0.14;' + LineEnding +
-'  return LINEARtoSRGB(clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0));' + LineEnding +
+'  color = clamp((color * (A * color + B)) / (color * (C * color + D) + E), 0.0, 1.0);' + LineEnding +
+'  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
+'  color = LINEARtoSRGB(color);' + LineEnding +
+'  #endif' + LineEnding +
+'  return color;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'vec3 castle_linear_to_screen(const in vec3 color)' + LineEnding +
