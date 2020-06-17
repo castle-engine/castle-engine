@@ -102,15 +102,13 @@ end;
 
 procedure CopyTemplate(const ProjectDirUrl: String;
   const TemplateName, ProjectName: String);
-const
-  AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
-  { See ToolProject constant in CGE build tool. }
-  QualifiedNameAllowedChars = AlphaNum + ['.'];
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
 begin
+  Assert(ProjectName <> '');
+
   TemplateUrl := 'castle-data:/project_templates/' + TemplateName + '/files/';
   { Logic in TTemplateCopyProcess.FoundFile assumes that
     TemplateUrl does not any longer start with castle-data:/ }
@@ -120,8 +118,8 @@ begin
     raise Exception.CreateFmt('Cannot find template directory %s, make sure that $CASTLE_ENGINE_PATH is configured correctly',
       [TemplateUrl]);
 
-  ProjectQualifiedName := 'com.mycompany.' + SDeleteChars(ProjectName, AllChars - QualifiedNameAllowedChars);
-  ProjectPascalName := SReplaceChars(ProjectName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
+  ProjectQualifiedName := MakeQualifiedName(ProjectName);
+  ProjectPascalName := MakeProjectPascalName(ProjectName);
 
   Macros := TStringStringMap.Create;
   try

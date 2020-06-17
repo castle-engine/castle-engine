@@ -106,8 +106,8 @@ end;
 
 procedure TNewProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 const
-  AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
-  ValidProjectNameChars = AlphaNum + ['_','-'];
+  AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
+  ValidProjectNameChars = AlphaNum + ['_', '-'];
   InvalidProjectNameChars = AllChars - ValidProjectNameChars;
 var
   ProjectDir: String;
@@ -118,6 +118,13 @@ begin
   begin
     ProjectName := EditProjectName.Text;
     ProjectLocation := EditLocation.Text;
+
+    if ProjectName = '' then
+    begin
+      ErrorBox('Project name cannot be empty.');
+      CanClose := false;
+      Exit;
+    end;
 
     InvalidIndex := CharsPos(InvalidProjectNameChars, ProjectName);
     if InvalidIndex <> 0 then

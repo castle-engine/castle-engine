@@ -381,8 +381,8 @@ constructor TCastleProject.Create(const APath: string);
     DefaultDataExists = true;
 
     { character sets }
-    ControlChars = [#0..Chr(Ord(' ')-1)];
-    AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+    ControlChars = [#0 .. Chr(Ord(' ') - 1)];
+    AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
 
     { qualified_name is also a Java package name for Android, so it
       cannot contain dash character.
@@ -399,7 +399,7 @@ constructor TCastleProject.Create(const APath: string);
       Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
       { On Android, package name cannot be just a word, it must have some dot. }
       if Pos('.', Result) = 0 then
-        Result := 'application.' + Result;
+        Result := 'com.mycompany.' + Result;
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -1487,7 +1487,7 @@ end;
 
 function TCastleProject.NamePascal: string;
 begin
-  Result := SReplaceChars(Name, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
+  Result := MakeProjectPascalName(Name);
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
