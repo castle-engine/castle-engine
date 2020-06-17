@@ -25,11 +25,15 @@ interface
 
 { Use this to set sound engine backend to FMOD.
   You can call this at any point of your application.
-  If you call it before any sound loading/playing,
-  then the previous sound backend wil not even be initialized.
+  If you plan to use FMOD for your entire application,
+  then it is beneficial to call this before any sound loading/playing,
+  as then the default sound backend (OpenAL on most platforms)
+  wil not even be initialized.
 
-  This does nothing (and shows a warning) if the FMOD library
-  is dynamic on this platform (like Windows, Linux) and it could not be found. }
+  This does nothing (and shows a warning) if the dynamic FMOD library
+  could not be found. Therefore, applications on platforms where FMOD
+  is dynamic (all platforms except iOS and Nintendo Switch now)
+  gracefully fallback from FMOD to the default backend, if FMOD library cannot be found. }
 procedure UseFMODSoundBackend;
 
 implementation
