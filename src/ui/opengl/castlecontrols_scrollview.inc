@@ -327,12 +327,14 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollBarVisible and HandleInput then
     begin
-      if Container.Pressed[K_Up  ] then
+      if Container.Pressed[      keyUp] or
+         Container.Pressed[keyNumpadUp] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      if Container.Pressed[K_Down] then
+      if Container.Pressed[      keyDown] or
+         Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
@@ -460,36 +462,35 @@ begin
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
     This way we allow TStateDialog (that uses TDialog that uses TCastleScrollViewCustom)
-    descendants like TStateDialogKey to handle
-    K_PageDown, K_PageUp, K_Home and K_End keys and mouse wheel.
+    descendants like TStateDialogKey to handle keys and mouse wheel.
     And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
-    K_PageDown, K_PageUp, etc. keys. }
+    keyPageDown, keyPageUp, etc. keys. }
 
   if ScrollBarVisible then
     case Event.EventType of
       itKey:
         case Event.Key of
-          K_PageUp:
+          keyPageUp, keyNumpadPageUp:
             begin
               Scroll := Scroll - GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_PageDown:
+          keyPageDown, keyNumpadPageDown:
             begin
               Scroll := Scroll + GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_Home:
+          keyHome, keyNumpadHome:
             begin
               Scroll := ScrollMin;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_End:
+          keyEnd, keyNumpadEnd:
             begin
               Scroll := ScrollMax;
               ResetInertialForce;
