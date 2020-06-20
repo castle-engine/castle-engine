@@ -82,6 +82,11 @@ var
   I: Integer;
   NewUndoHistorySize: Integer;
 begin
+  if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
+  begin
+    WriteLnLog('New Undo is identical to previous Undo record. Not saving.');
+    Exit;
+  end;
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
   //Clean all next undo recoreds if available;
   for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
