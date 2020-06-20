@@ -60,6 +60,7 @@ var
   NewUndoElement: TUndoHistoryElement;
   I: Integer;
 begin
+  WriteLnLog('Record Undo data: ' + UndoData);
   //Clean all next undo recoreds if available;
   for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
     UndoHistory.Delete(I);
@@ -76,7 +77,7 @@ begin
   if IsUndoPossible then
   begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
-
+    //TODO and perform the Undo actually
     Dec(CurrentUndo);
   end;
 end;
@@ -85,8 +86,8 @@ procedure TUndoSystem.Redo;
 begin
   if IsRedoPossible then
   begin
-    WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
-
+    WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
+    //TODO and perform the Redo actually
     Inc(CurrentUndo);
   end;
 end;
@@ -105,6 +106,7 @@ procedure TUndoSystem.ClearUndoHistory;
 begin
   UndoHistory.Clear;
   CurrentUndo := -1;
+  WriteLnLog('Clearing Undo hisotry.');
 end;
 
 var

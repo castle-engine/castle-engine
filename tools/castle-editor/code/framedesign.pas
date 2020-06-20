@@ -34,7 +34,7 @@ uses
   CastleCameras, CastleBoxes,
   // Castle-editor units
   FrameAnchors,
-  UndoSystem;
+  CastleUndoSystem;
 
 type
   { Frame to visually design component hierarchy. }
@@ -898,6 +898,7 @@ var
   TempViewport: TCastleViewport;
 begin
   ClearDesign;
+  UndoSystem.ClearUndoHistory;
 
   { We use CastleControl.Controls.InsertBack here, to keep DesignerLayer
     in the front. }
@@ -1502,6 +1503,7 @@ procedure TDesignFrame.MarkModified;
 begin
   // mark modified
   FDesignModified := true;
+  UndoSystem.RecordUndo('');
   OnUpdateFormCaption(Self);
 end;
 
