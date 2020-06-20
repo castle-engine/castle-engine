@@ -133,7 +133,7 @@ end;
 
 function TUndoSystem.IsUndoPossible: Boolean;
 begin
-  Result := CurrentUndo >= 0;
+  Result := CurrentUndo > 0;
 end;
 
 function TUndoSystem.IsRedoPossible: Boolean;
