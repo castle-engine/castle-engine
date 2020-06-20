@@ -1,7 +1,7 @@
 { An undo system that handles
   Recording the changes made to the designed Scene
   Performing Undo/Redo actions based on current undo history }
-unit UndoSystem;
+unit CastleUndoSystem;
 
 {$mode objfpc}{$H+}
 
