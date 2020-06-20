@@ -1503,7 +1503,7 @@ procedure TDesignFrame.MarkModified;
 begin
   // mark modified
   FDesignModified := true;
-  UndoSystem.RecordUndo('');
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot));
   OnUpdateFormCaption(Self);
 end;
 
