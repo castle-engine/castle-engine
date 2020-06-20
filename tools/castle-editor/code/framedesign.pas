@@ -38,7 +38,12 @@ uses
 
 type
   { Frame to visually design component hierarchy. }
+
+  { TDesignFrame }
+
   TDesignFrame = class(TFrame)
+    RedoButton: TButton;
+    UndoButton: TButton;
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
     LabelEventsInfo: TLabel;
@@ -113,6 +118,10 @@ type
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
+    procedure UpdateUndoRedoButtons;
+    procedure ClearDesign;
+    procedure RedoButtonClick(Sender: TObject);
+    procedure UndoButtonClick(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
   private
@@ -879,26 +888,48 @@ begin
   OnUpdateFormCaption(Self);
 end;
 
+procedure TDesignFrame.UpdateUndoRedoButtons;
+begin
+  UndoButton.Enabled := UndoSystem.IsUndoPossible;
+  RedoButton.Enabled := UndoSystem.IsRedoPossible;
+end;
+
+procedure TDesignFrame.ClearDesign;
+begin
+  ControlsTree.Items.Clear;
+  UpdateSelectedControl;
+  //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
+  FDesignRoot := nil;
+
+  // this actually frees everything inside DesignRoot
+  FreeAndNil(DesignOwner);
+end;
+
+procedure TDesignFrame.RedoButtonClick(Sender: TObject);
+var
+  NewDesignOwner: TComponent;
+begin
+  NewDesignOwner := TComponent.Create(Self);
+  OpenDesign(StringToComponent(UndoSystem.Redo, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  UpdateUndoRedoButtons;
+end;
+
+procedure TDesignFrame.UndoButtonClick(Sender: TObject);
+var
+  NewDesignOwner: TComponent;
+begin
+  NewDesignOwner := TComponent.Create(Self);
+  OpenDesign(StringToComponent(UndoSystem.Undo, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  UpdateUndoRedoButtons;
+end;
+
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
   const NewDesignUrl: String);
-
-  procedure ClearDesign;
-  begin
-    ControlsTree.Items.Clear;
-    UpdateSelectedControl;
-    //CastleControl.Controls.Clear; // don't clear it, leave DesignerLayer
-    FDesignRoot := nil;
-
-    // this actually frees everything inside DesignRoot
-    FreeAndNil(DesignOwner);
-  end;
-
 var
   Background: TCastleRectangleControl;
   TempViewport: TCastleViewport;
 begin
   ClearDesign;
-  UndoSystem.ClearUndoHistory;
 
   { We use CastleControl.Controls.InsertBack here, to keep DesignerLayer
     in the front. }
@@ -955,6 +986,9 @@ begin
   else
     raise Exception.CreateFmt('Unrecognized file extension %s (MIME type %s)',
       [ExtractFileExt(NewDesignUrl), Mime]);
+
+  UndoSystem.ClearUndoHistory;
+  UpdateUndoRedoButtons;
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 end;
@@ -1504,6 +1538,7 @@ begin
   // mark modified
   FDesignModified := true;
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot));
+  UpdateUndoRedoButtons;
   OnUpdateFormCaption(Self);
 end;
 
@@ -2466,6 +2501,9 @@ begin
   if (ComponentClass = TCastleUserInterface) or
      (ComponentClass = TCastleRectangleControl) then
     (NewRoot as TCastleUserInterface).FullSize := true;
+
+  UndoSystem.ClearUndoHistory;
+  UpdateUndoRedoButtons;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 end;

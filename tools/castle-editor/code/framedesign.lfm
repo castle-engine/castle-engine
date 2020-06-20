@@ -300,6 +300,24 @@ object DesignFrame: TDesignFrame
         ParentFont = False
       end
     end
+    object RedoButton: TButton
+      Left = 208
+      Height = 25
+      Top = 8
+      Width = 43
+      Caption = 'Redo'
+      OnClick = RedoButtonClick
+      TabOrder = 1
+    end
+    object UndoButton: TButton
+      Left = 160
+      Height = 25
+      Top = 8
+      Width = 43
+      Caption = 'Undo'
+      OnClick = UndoButtonClick
+      TabOrder = 2
+    end
   end
   object PanelLeft: TPanel
     Left = 0
