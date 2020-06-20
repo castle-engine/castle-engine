@@ -16,6 +16,7 @@ type
 type
   TUndoHistoryElement = class(TObject)
     Data: TUndoData;
+    function Size: Integer;
   end;
 
 type
@@ -23,9 +24,12 @@ type
 
 type
   TUndoSystem = class(TComponent)
+  //private const MaxUndo = 50;
+  private const MaxUndoHistorySize = 128 * 1024 * 1024; //128 Mb
   private
     CurrentUndo: Integer;
     UndoHistory: TUndoHistory;
+    function UndoHistorySize: Integer;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -45,6 +49,11 @@ uses
   SysUtils,
   CastleComponentSerialize, CastleLog, CastleUtils;
 
+function TUndoHistoryElement.Size: Integer;
+begin
+  Result := Data.Length;
+end;
+
 constructor TUndoSystem.Create(AOwner: TComponent);
 begin
   inherited;
@@ -58,10 +67,20 @@ begin
   inherited;
 end;
 
+function TUndoSystem.UndoHistorySize: Integer;
+var
+  U: TUndoHistoryElement;
+begin
+  Result := 0;
+  for U in UndoHistory do
+    Result += U.Size;
+end;
+
 procedure TUndoSystem.RecordUndo(UndoData: String);
 var
   NewUndoElement: TUndoHistoryElement;
   I: Integer;
+  NewUndoHistorySize: Integer;
 begin
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
   //Clean all next undo recoreds if available;
@@ -73,7 +92,21 @@ begin
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);
   Assert(UndoHistory.Count - 1 = CurrentUndo);
-  WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo));
+  //make sure Undo doesn't consume too much RAM
+  {if CurrentUndo > MaxUndo then
+  begin
+    UndoHistory.Delete(0);
+    Dec(CurrentUndo);
+  end;}
+  NewUndoHistorySize := UndoHistorySize;
+  while (NewUndoHistorySize > MaxUndoHistorySize) and (UndoHistory.Count > 1) do
+  begin
+    NewUndoHistorySize -= UndoHistory[0].Size;
+    UndoHistory.Delete(0);
+    Dec(CurrentUndo);
+  end;
+  Assert(UndoHistorySize = NewUndoHistorySize);
+  WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + IntToStr(NewUndoHistorySize div 1024) + 'kb.');
 end;
 
 function TUndoSystem.Undo: TUndoData;
