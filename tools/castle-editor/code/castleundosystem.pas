@@ -8,21 +8,22 @@ unit CastleUndoSystem;
 interface
 
 uses
-  Classes, Generics.Collections;
+  Classes, Generics.Collections,
+  CastleUtils;
 
 type
   TUndoData = string;
   TSelectedComponent = string;
 
 type
-  TUndoHistoryElement = class(TObject)
+  TUndoHistoryElement = object
     Data: TUndoData;
     Selected: TSelectedComponent;
     function Size: SizeInt;
   end;
 
 type
-  TUndoHistory = specialize TObjectList<TUndoHistoryElement>;
+  TUndoHistory = specialize TStructList<TUndoHistoryElement>;
 
 type
   TUndoSystem = class(TComponent)
@@ -49,7 +50,7 @@ function UndoSystem: TUndoSystem;
 implementation
 uses
   SysUtils,
-  CastleComponentSerialize, CastleLog, CastleUtils;
+  CastleComponentSerialize, CastleLog;
 
 function TUndoHistoryElement.Size: SizeInt;
 
@@ -62,13 +63,13 @@ function TUndoHistoryElement.Size: SizeInt;
   end;
 
 begin
-  Result := Self.InstanceSize + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected);
+  Result := SizeOf(Self) + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected);
 end;
 
 constructor TUndoSystem.Create(AOwner: TComponent);
 begin
   inherited;
-  UndoHistory := TUndoHistory.Create(true);
+  UndoHistory := TUndoHistory.Create;
   ClearUndoHistory;
 end;
 
@@ -103,7 +104,7 @@ begin
   for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
     UndoHistory.Delete(I);
   //add new UndoElement
-  NewUndoElement := TUndoHistoryElement.Create;
+  //NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
   NewUndoElement.Selected := SelectedComponent;
   UndoHistory.Add(NewUndoElement);
@@ -131,8 +132,9 @@ begin
   if IsUndoPossible then
   begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
+    Result.Data := UndoHistory[CurrentUndo - 1].Data;
+    Result.Selected := UndoHistory[CurrentUndo].Selected;
     Dec(CurrentUndo);
-    Result := UndoHistory[CurrentUndo];
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
 end;
@@ -142,8 +144,12 @@ begin
   if IsRedoPossible then
   begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
+    Result.Data := UndoHistory[CurrentUndo + 1].Data;
+    if CurrentUndo < UndoHistory.Count - 2 then
+      Result.Selected := UndoHistory[CurrentUndo + 2].Selected
+    else
+      Result.Selected := UndoHistory[CurrentUndo + 1].Selected;
     Inc(CurrentUndo);
-    Result := UndoHistory[CurrentUndo];
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
 end;
