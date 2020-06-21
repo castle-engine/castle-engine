@@ -38,9 +38,6 @@ uses
 
 type
   { Frame to visually design component hierarchy. }
-
-  { TDesignFrame }
-
   TDesignFrame = class(TFrame)
     RedoButton: TButton;
     UndoButton: TButton;
@@ -285,7 +282,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
-  CastleProjection, CastleScene,
+  CastleProjection, CastleScene, CastleLog,
   EditorUtils;
 
 {$R *.lfm}
@@ -1534,10 +1531,14 @@ begin
 end;
 
 procedure TDesignFrame.MarkModified;
+var
+  T: TDateTime;
 begin
   // mark modified
   FDesignModified := true;
+  T := Now;
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot));
+  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's');
   UpdateUndoRedoButtons;
   OnUpdateFormCaption(Self);
 end;
