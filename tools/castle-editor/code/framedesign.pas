@@ -989,6 +989,8 @@ begin
   UpdateUndoRedoButtons;
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
+
+  RecordUndo;
 end;
 
 function TDesignFrame.FormCaption: String;
@@ -2522,6 +2524,8 @@ begin
   UpdateUndoRedoButtons;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
+
+  RecordUndo;
 end;
 
 initialization

@@ -99,7 +99,7 @@ begin
     Exit;
   end;
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
-  //Clean all next undo recoreds if available;
+  //Clean all next undo records if available;
   for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
     UndoHistory.Delete(I);
   //add new UndoElement
