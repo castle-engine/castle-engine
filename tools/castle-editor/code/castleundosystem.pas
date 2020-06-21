@@ -19,6 +19,7 @@ type
   TUndoHistoryElement = object
     Data: TUndoData;
     Selected: TSelectedComponent;
+    Comment: String;
     function Size: SizeInt;
   end;
 
@@ -37,11 +38,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Should be called after every significant change, including initial loading of the design }
-    procedure RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent);
+    procedure RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent; UndoComment: String);
     function Undo: TUndoHistoryElement;
     function Redo: TUndoHistoryElement;
     function IsUndoPossible: Boolean;
     function IsRedoPossible: Boolean;
+    function RedoComment: String;
+    function UndoComment: String;
     procedure ClearUndoHistory;
   end;
 
@@ -63,7 +66,7 @@ function TUndoHistoryElement.Size: SizeInt;
   end;
 
 begin
-  Result := SizeOf(Self) + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected);
+  Result := SizeOf(Self) + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected) + SizeOfAnsiString(Comment);
 end;
 
 constructor TUndoSystem.Create(AOwner: TComponent);
@@ -88,7 +91,7 @@ begin
     Result += U.Size;
 end;
 
-procedure TUndoSystem.RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent);
+procedure TUndoSystem.RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent; UndoComment: String);
 var
   NewUndoElement: TUndoHistoryElement;
   I: Integer;
@@ -113,6 +116,7 @@ begin
   //NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
   NewUndoElement.Selected := SelectedComponent;
+  NewUndoElement.Comment := UndoComment;
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);
   Assert(UndoHistory.Count - 1 = CurrentUndo);
@@ -163,6 +167,22 @@ end;
 function TUndoSystem.IsRedoPossible: Boolean;
 begin
   Result := CurrentUndo < UndoHistory.Count - 1;
+end;
+
+function TUndoSystem.RedoComment: String;
+begin
+  if IsRedoPossible then
+    Result := UndoHistory[CurrentUndo + 1].Comment
+  else
+    Result := '';
+end;
+
+function TUndoSystem.UndoComment: String;
+begin
+  if IsUndoPossible then
+    Result := UndoHistory[CurrentUndo - 1].Comment
+  else
+    Result := '';
 end;
 
 procedure TUndoSystem.ClearUndoHistory;

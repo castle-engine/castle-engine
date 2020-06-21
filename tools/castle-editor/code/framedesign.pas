@@ -273,7 +273,7 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
-    procedure RecordUndo;
+    procedure RecordUndo(UndoComment: String);
   end;
 
 implementation
@@ -594,7 +594,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     end;
 
     Frame.ModifiedOutsideObjectInspector;
-    Frame.RecordUndo;
+    Frame.RecordUndo('Drag');
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -890,7 +890,11 @@ end;
 procedure TDesignFrame.UpdateUndoRedoButtons;
 begin
   UndoButton.Enabled := UndoSystem.IsUndoPossible;
+  UndoButton.Hint := UndoSystem.UndoComment;
+  UndoButton.ShowHint := true;
   RedoButton.Enabled := UndoSystem.IsRedoPossible;
+  RedoButton.Hint := UndoSystem.RedoComment;
+  RedoButton.ShowHint := true;
 end;
 
 procedure TDesignFrame.ClearDesign;
@@ -1004,7 +1008,7 @@ begin
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 
-  RecordUndo;
+  RecordUndo('Open design');
 end;
 
 function TDesignFrame.FormCaption: String;
@@ -1047,7 +1051,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo;
+    RecordUndo('Add component');
   end;
 
   procedure AddTransform(const ParentComponent: TCastleTransform);
@@ -1157,7 +1161,7 @@ begin
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }
       ModifiedOutsideObjectInspector;
-      RecordUndo;
+      RecordUndo('Delete component');
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -1184,7 +1188,7 @@ procedure TDesignFrame.PasteComponent;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo;
+    RecordUndo('Paste component');
   end;
 
 var
@@ -1249,7 +1253,7 @@ procedure TDesignFrame.DuplicateComponent;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo;
+    RecordUndo('Duplicate component');
   end;
 
   procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
@@ -1548,23 +1552,30 @@ begin
     end;
   end;
 
-  RecordUndo;
+  RecordUndo('Modify value');
   MarkModified;
 end;
 
-procedure TDesignFrame.RecordUndo;
+procedure TDesignFrame.RecordUndo(UndoComment: String);
 var
   T: TDateTime;
   SelectedName: String;
+  UndoCommentString: String;
   SelectedC: TComponent;
 begin
   T := Now;
   SelectedC := GetSelectedComponent;
   if (SelectedC <> nil) then
-    SelectedName := SelectedC.Name
-  else
+  begin
+    SelectedName := SelectedC.Name;
+    UndoCommentString := SelectedName + ': ' + UndoComment;
+  end else
+  begin
     SelectedName := '';
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName);
+    UndoCommentString := UndoComment;
+  end;
+
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, UndoCommentString);
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
   UpdateUndoRedoButtons;
 end;
@@ -1887,7 +1898,7 @@ begin
   end;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo;
+  RecordUndo('Adjust anchors');
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -1924,7 +1935,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
 
     ModifiedOutsideObjectInspector;
     UpdateDesign;
-    RecordUndo;
+    RecordUndo('Drag''n''drop');
   end;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -2152,7 +2163,7 @@ begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
     ModifiedOutsideObjectInspector;
-    RecordUndo;
+    RecordUndo('Clear anchor deltas');
   end;
 end;
 
@@ -2218,7 +2229,7 @@ begin
   V := SelectedViewport;
   V.Setup2D;
   ModifiedOutsideObjectInspector;
-  RecordUndo;
+  RecordUndo('MenuItemViewportCamera2DViewInitialClick'); //whatever that means?
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
@@ -2232,7 +2243,7 @@ begin
     V.Camera.InitialDirection,
     V.Camera.InitialUp);
   ModifiedOutsideObjectInspector;
-  RecordUndo;
+  RecordUndo('MenuItemViewportCameraCurrentFromInitialClick'); //whatever that means?
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -2273,7 +2284,7 @@ begin
     V.Navigation.ModelBox := Box;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo;
+  RecordUndo('MenuItemViewportCameraViewAllClick'); //whatever that means?
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
@@ -2288,7 +2299,7 @@ begin
   V.AutoCamera := false;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo;
+  RecordUndo('MenuItemViewportCameraSetInitialClick'); //whatever that means?
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
@@ -2301,7 +2312,7 @@ begin
 
   ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order
-  RecordUndo;
+  RecordUndo('MenuItemViewportSort2DClick'); //whatever that means?
 end;
 
 {
@@ -2355,7 +2366,7 @@ begin
     SelectedUserInterface := NewNavigation
   else
     SelectedUserInterface := V;
-  RecordUndo;
+  RecordUndo('Change viewport navigation');
 end;
 
 procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
@@ -2551,7 +2562,7 @@ begin
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
-  RecordUndo;
+  RecordUndo('Start new design');
 end;
 
 initialization
