@@ -922,6 +922,11 @@ var
   UHE: TUndoHistoryElement;
 begin
   NewDesignOwner := TComponent.Create(Self);
+  if not UndoSystem.IsRedoPossible then
+  begin
+    RecordUndo;
+    UndoSystem.Undo;
+  end;
   UHE := UndoSystem.Undo;
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
   if UHE.Selected <> '' then

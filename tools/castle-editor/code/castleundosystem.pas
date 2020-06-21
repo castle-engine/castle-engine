@@ -94,7 +94,7 @@ var
   I: Integer;
   NewUndoHistorySize: Integer;
 begin
-  if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
+  if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) and (SelectedComponent = UndoHistory[CurrentUndo].Selected) then
   begin
     if (SelectedComponent = UndoHistory[CurrentUndo].Selected) or (UndoHistory[CurrentUndo].Selected = '') then
       WriteLnLog('New Undo is identical to previous Undo record. Not saving.')
