@@ -34,6 +34,7 @@ type
     CurrentUndo: Integer;
     UndoHistory: TUndoHistory;
     function UndoHistorySize: Integer;
+    function GetUndoComment(const UndoI: Integer): String;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -106,6 +107,11 @@ begin
       //UndoHistory.List^[CurrentUndo].Selected := SelectedComponent;
       WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory.List^[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
     end;
+    if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
+    begin
+      WriteLnLog('The last undo comment was set to generic "Edit value", overwriting with better reason: ' + UndoComment);
+      UndoHistory.List^[CurrentUndo].Comment := UndoComment;
+    end;
     Exit;
   end;
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
@@ -169,10 +175,27 @@ begin
   Result := CurrentUndo < UndoHistory.Count - 1;
 end;
 
+function TUndoSystem.GetUndoComment(const UndoI: Integer): String;
+begin
+  if UndoHistory[UndoI].Comment = '' then
+  begin
+    if UndoHistory[UndoI].Selected = '' then
+      Result := 'Modify global variable'
+    else
+      Result := 'Modify ' + UndoHistory[UndoI].Selected;
+  end else
+  begin
+    if UndoHistory[UndoI].Selected = '' then
+      Result := UndoHistory[UndoI].Comment
+    else
+      Result := UndoHistory[UndoI].Comment + ' (' + UndoHistory[UndoI].Selected + ')';
+  end;
+end;
+
 function TUndoSystem.RedoComment: String;
 begin
   if IsRedoPossible then
-    Result := UndoHistory[CurrentUndo + 1].Comment
+    Result := 'Redo: ' + GetUndoComment(CurrentUndo + 1)
   else
     Result := '';
 end;
@@ -180,7 +203,7 @@ end;
 function TUndoSystem.UndoComment: String;
 begin
   if IsUndoPossible then
-    Result := UndoHistory[CurrentUndo - 1].Comment
+    Result := 'Undo: ' + GetUndoComment(CurrentUndo)
   else
     Result := '';
 end;

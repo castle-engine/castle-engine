@@ -594,7 +594,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     end;
 
     Frame.ModifiedOutsideObjectInspector;
-    Frame.RecordUndo('Drag');
+    Frame.RecordUndo('');
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1552,7 +1552,7 @@ begin
     end;
   end;
 
-  RecordUndo('Modify value');
+  RecordUndo('');
   MarkModified;
 end;
 
@@ -1560,22 +1560,16 @@ procedure TDesignFrame.RecordUndo(UndoComment: String);
 var
   T: TDateTime;
   SelectedName: String;
-  UndoCommentString: String;
   SelectedC: TComponent;
 begin
   T := Now;
   SelectedC := GetSelectedComponent;
   if (SelectedC <> nil) then
-  begin
-    SelectedName := SelectedC.Name;
-    UndoCommentString := SelectedName + ': ' + UndoComment;
-  end else
-  begin
+    SelectedName := SelectedC.Name
+  else
     SelectedName := '';
-    UndoCommentString := UndoComment;
-  end;
 
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, UndoCommentString);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, UndoComment);
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
   UpdateUndoRedoButtons;
 end;
@@ -1898,7 +1892,7 @@ begin
   end;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo('Adjust anchors');
+  RecordUndo('');
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -2163,7 +2157,7 @@ begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
     ModifiedOutsideObjectInspector;
-    RecordUndo('Clear anchor deltas');
+    RecordUndo('');
   end;
 end;
 
