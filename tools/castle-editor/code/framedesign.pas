@@ -1535,10 +1535,17 @@ end;
 procedure TDesignFrame.RecordUndo;
 var
   T: TDateTime;
+  SelectedName: String;
+  SelectedC: TComponent;
 begin
   T := Now;
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), GetSelectedUserInterface.Name);
-  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + GetSelectedUserInterface.Name);
+  SelectedC := GetSelectedComponent;
+  if (SelectedC <> nil) then
+    SelectedName := SelectedC.Name
+  else
+    SelectedName := '';
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName);
+  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
   UpdateUndoRedoButtons;
 end;
 
