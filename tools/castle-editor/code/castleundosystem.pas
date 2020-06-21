@@ -12,11 +12,13 @@ uses
 
 type
   TUndoData = string;
+  TSelectedComponent = string;
 
 type
   TUndoHistoryElement = class(TObject)
     Data: TUndoData;
-    function Size: Integer;
+    Selected: TSelectedComponent;
+    function Size: SizeInt;
   end;
 
 type
@@ -34,7 +36,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Should be called after every significant change, including initial loading of the design }
-    procedure RecordUndo(UndoData: TUndoData);
+    procedure RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent);
     function Undo: TUndoData;
     function Redo: TUndoData;
     function IsUndoPossible: Boolean;
@@ -49,9 +51,18 @@ uses
   SysUtils,
   CastleComponentSerialize, CastleLog, CastleUtils;
 
-function TUndoHistoryElement.Size: Integer;
+function TUndoHistoryElement.Size: SizeInt;
+
+  //see https://www.freepascal.org/docs-html/ref/refsu13.html
+  function SizeOfAnsiString(const S: String): SizeInt;
+  const
+    HS = 16;
+  begin
+    Result := Length(S) + 1 + HS;
+  end;
+
 begin
-  Result := Data.Length;
+  Result := Self.InstanceSize + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected);
 end;
 
 constructor TUndoSystem.Create(AOwner: TComponent);
@@ -76,7 +87,7 @@ begin
     Result += U.Size;
 end;
 
-procedure TUndoSystem.RecordUndo(UndoData: String);
+procedure TUndoSystem.RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent);
 var
   NewUndoElement: TUndoHistoryElement;
   I: Integer;
@@ -94,6 +105,7 @@ begin
   //add new UndoElement
   NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
+  NewUndoElement.Selected := SelectedComponent;
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);
   Assert(UndoHistory.Count - 1 = CurrentUndo);

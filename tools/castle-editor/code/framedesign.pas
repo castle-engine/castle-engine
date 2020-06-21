@@ -1537,8 +1537,8 @@ var
   T: TDateTime;
 begin
   T := Now;
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot));
-  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's');
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), GetSelectedUserInterface.Name);
+  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + GetSelectedUserInterface.Name);
   UpdateUndoRedoButtons;
 end;
 
