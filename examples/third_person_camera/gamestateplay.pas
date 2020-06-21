@@ -262,7 +262,10 @@ begin
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
     if Avatar <> nil then
+    begin
       Avatar.PlayAnimation('idle', true);
+      Avatar.ForceInitialAnimationPose;
+    end;
   end;
 
   MouseLook := true; // always use mouse look
