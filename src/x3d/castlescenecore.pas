@@ -2172,7 +2172,11 @@ type
       this value is used as the duration (in seconds) of animation cross-fade
       (blending of animations).
       Zero (default value) disables the smooth transition, animations
-      will change without any transition by default. }
+      will change without any transition by default.
+
+      This default transition is only used if some previous animation
+      was playing. Otherwise, it would be applied even when starting
+      the initial animation. }
     property DefaultAnimationTransition: Single
       read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
 
@@ -7902,7 +7906,8 @@ begin
     Params.Name := AnimationName;
     Params.Loop := Loop;
     Params.Forward := Forward;
-    Params.TransitionDuration := DefaultAnimationTransition;
+    if PlayingAnimationNode <> nil then
+      Params.TransitionDuration := DefaultAnimationTransition;
     Result := PlayAnimation(Params);
   finally FreeAndNil(Params) end;
 end;
