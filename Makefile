@@ -49,10 +49,14 @@ FIND:=find
 .PHONY: all
 all:
 	$(MAKE) --no-print-directory build-using-fpmake
+	$(MAKE) tools
+
+.PHONY: tools
+tools:
+	tools/build-tool/castle-engine_compile.sh
 	tools/texture-font-to-pascal/texture-font-to-pascal_compile.sh
 	tools/image-to-pascal/image-to-pascal_compile.sh
 	tools/castle-curves/castle-curves_compile.sh
-	tools/build-tool/castle-engine_compile.sh
 	tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d_compile.sh
 
 .PHONY: build-using-fpmake
