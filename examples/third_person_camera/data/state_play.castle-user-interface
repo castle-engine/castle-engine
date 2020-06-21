@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 7.8687745332717896E-001,
-          "Y" : -3.6029479133503628E-007,
-          "Z" : 6.1710935831069946E-001,
+          "X" : 7.0783740282058716E-001,
+          "Y" : -4.5918443447590107E-007,
+          "Z" : 7.0637542009353638E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -77,7 +77,14 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "DefaultAnimationTransition" : 1.0000000149011612E-001,
             "Name" : "SceneAvatar",
+            "ProcessEvents" : true,
+            "RotationPersistent" : {
+              "W" : 5.0000000000000000E-001,
+              "Y" : 1.0000000000000000E+000,
+              "$ClassName" : "TCastleVector4Persistent"
+            },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"

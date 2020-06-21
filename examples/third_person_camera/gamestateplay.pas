@@ -29,17 +29,63 @@ type
     Using the mouse wheel you can get closer / further to the avatar.
   }
   // TODO: add this to CastleCameras to be automatically in editor
-  TThirdPersonCameraNavigation = class(TCastleNavigation)
+  // TODO expose TVector3 to be published
+  // TODO setting related properties during design, should update camera
+  TCastleThirdPersonNavigation = class(TCastleNavigation)
+  strict private
+    FAvatar: TCastleScene;
+    FAvatarHierarchy: TCastleTransform;
+    FMaxAvatarRotationSpeed: Single;
+    FMaxCameraRotationSpeed: Single;
+    FInitialHeightAboveTarget: Single;
+    FDistanceToAvatarTarget: Single;
+    FAimAvatar: Boolean;
+    FAvatarTarget: TVector3;
+    FAvatarTargetForward: TVector3;
+    function RealAvatarHierarchy: TCastleTransform;
+    procedure SetAvatar(const Value: TCastleScene);
+    procedure SetAvatarHierarchy(const Value: TCastleTransform);
   public
     const
-      DefaultDistanceToAvatarTarget = 1.0;
+      DefaultInitialHeightAboveTarget = 1.0;
+      DefaultDistanceToAvatarTarget = 4.0;
+      DefaultMaxAvatarRotationSpeed = 0.1;
+      DefaultMaxCameraRotationSpeed = 0.2;
+      DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
+      DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
+
+    constructor Create(AOwner: TComponent); override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
       Use this after setting properties like @link(Avatar),
       @link(AvatarHierarchy), @link(DistanceToAvatarTarget),
-      @link(InitialHeightAboveTarget). }
+      @link(InitialHeightAboveTarget).
+
+      TODO: At design-time (in CGE editor), this is automatically called after
+      changing relevant properties of this navigation. }
     procedure Init;
+
+    { Translation, from the avatar origin, to the "target" of the avatar where camera
+      looks at. This is usually head, and this vector should just describe the height
+      of head above the ground.
+      By default this is DefaultAvatarTarget = (0, 2, 0). }
+    property AvatarTarget: TVector3 read FAvatarTarget write FAvatarTarget;
+
+    { When the camera looks directly behind the avatar's back,
+      it points at AvatarTargetForward, not AvatarTarget.
+      This allows to place AvatarTargetForward more in forward (and maybe higher/lower)
+      than avatar's head.
+      This allows to look more "ahead".
+
+      The effective target is a result of lerp between
+      AvatarTargetForward and AvatarTarget, depending on how much is camera now close to
+      the initial position "looking from the back of avatar".
+
+      The camera is still always rotating around AvatarTarget
+      (so you rotate around avatar's head, even if you look far ahead).
+      By default this is DefaultAvatarTargetForward = (0, 2, 0). }
+    property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
   published
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
       When this is @nil, we just move and rotate the @link(Avatar).
@@ -54,37 +100,19 @@ type
       This navigation component will just call @code(Avatar.PlayAnimation('xxx')) when necessary.
       Currently we require the following animations to exist: walk, idle.
 
-      When AvatarHierarchy is @nil, this is also directly moved and rotated
+      When AvatarHierarchy is @nil, then @name is directly moved and rotated
       to move avatar.
       Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy. }
     property Avatar: TCastleScene read FAvatar write SetAvatar;
 
-    { Translation, from the avatar origin, to the "target" of the avatar where camera
-      looks at. This is usually head, and this vector should just describe the height
-      of head above the ground.
-      By default (0, 2, 0). }
-    property AvatarTarget: TVector3
-
-    { When the camera looks directly behind the avatar's back,
-      it points at AvatarTargetForward, not AvatarTarget.
-      This allows to place AvatarTargetForward more in forward (and maybe higher/lower)
-      than avatar's head.
-      This allows to look more "ahead".
-
-      The effective target is a result of lerp between
-      AvatarTargetForward and AvatarTarget, depending on how much is camera now close to
-      the initial position "looking from the back of avatar".
-
-      The camera is still always rotating around AvatarTarget
-      (so you rotate around avatar's head, even if you look far ahead). }
-    property AvatarTargetForward: TVector3
-
     { When @link(AimAvatar), this is avatar's rotation speed.
       Should be < MaxCameraRotationSpeed to make avatar rotation "catch up" with some delay. }
-    property MaxAvatarRotationSpeed
+    property MaxAvatarRotationSpeed: Single read FMaxAvatarRotationSpeed write FMaxAvatarRotationSpeed
+      default DefaultMaxAvatarRotationSpeed;
 
     { Camera rotation speed. }
-    property MaxCameraRotationSpeed
+    property MaxCameraRotationSpeed: Single read FMaxCameraRotationSpeed write FMaxCameraRotationSpeed
+      default DefaultMaxCameraRotationSpeed;
 
     { If @true (default) then rotating the camera also rotates (with some delay) the avatar,
       to face the same direction as the camera.
@@ -96,19 +124,59 @@ type
       Together with DistanceToAvatarTarget this determines the initial camera position,
       set by @link(Init).
       It is not used outside of @link(Init). }
-    property InitialHeightAboveTarget default 1
+    property InitialHeightAboveTarget: Single read FInitialHeightAboveTarget write FInitialHeightAboveTarget
+      default DefaultInitialHeightAboveTarget;
 
     { Preferred distance from camera to the avatar target (head).
       By default user can change it with mouse wheel. }
-    property DistanceToAvatarTarget read FDistanceToAvatarTarget write FDistanceToAvatarTarget
+    property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write FDistanceToAvatarTarget
       default DefaultDistanceToAvatarTarget;
   end;
 
-constructor Create(
-  FAvatarTarget := Vector3(0, 2, 0);
-  FAimAvatar := true;
+  { Main "playing game" state, where most of the game logic takes place. }
+  TStatePlay = class(TUIState)
+  private
+    { Enemies behaviours }
+    Enemies: TEnemyList;
 
-function RealAvatarHierarchy: TCastleTransform;
+    ThirdPersonNavigation: TCastleThirdPersonNavigation;
+
+    { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
+    LabelFps: TCastleLabel;
+    MainViewport: TCastleViewport;
+    WalkNavigation: TCastleWalkNavigation;
+    SceneAvatar: TCastleScene;
+  public
+    procedure Start; override;
+    procedure Stop; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+  end;
+
+var
+  StatePlay: TStatePlay;
+
+implementation
+
+uses SysUtils, Math,
+  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
+  GameStateMenu;
+
+{ TCastleThirdPersonNavigation ----------------------------------------------- }
+
+constructor TCastleThirdPersonNavigation.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAvatarTarget := DefaultAvatarTarget;
+  FAvatarTargetForward := DefaultAvatarTargetForward;
+  FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
+  FMaxCameraRotationSpeed := DefaultMaxCameraRotationSpeed;
+  FAimAvatar := true;
+  FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
+  FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
+end;
+
+function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
 begin
   if AvatarHierarchy <> nil then
     Result := AvatarHierarchy
@@ -116,7 +184,7 @@ begin
     Result := Avatar;
 end;
 
-SetAvatar
+procedure TCastleThirdPersonNavigation.SetAvatar(const Value: TCastleScene);
 begin
   if FAvatar <> Value then
   begin
@@ -125,7 +193,7 @@ begin
   end;
 end;
 
-SetAvatarHierarchy
+procedure TCastleThirdPersonNavigation.SetAvatarHierarchy(const Value: TCastleTransform);
 begin
   if FAvatarHierarchy <> Value then
   begin
@@ -134,15 +202,48 @@ begin
   end;
 end;
 
-procedure Init;
+procedure TCastleThirdPersonNavigation.Init;
+var
+  GravUp: TVector3;
+
+  { Return V rotated such that it is
+    orthogonal to GravUp. This way it returns V projected
+    on the gravity horizontal plane.
+    Result is always normalized (length 1).
+
+    Note that when V and GravUp are parallel,
+    this just returns current V --- because in such case
+    we can't project V on the horizontal plane. }
+  function ToGravityPlane(const V: TVector3): TVector3;
+  begin
+    Result := V;
+    if not VectorsParallel(Result, GravUp) then
+      MakeVectorsOrthoOnTheirPlane(Result, GravUp);
+  end;
+
 var
   A: TCastleTransform;
+  CameraPos, CameraDir, CameraUp, TargetWorldPos, TargetWorldDir: TVector3;
+  HorizontalShiftFromTarget: Single;
 begin
   A := RealAvatarHierarchy;
-  if A <> nil then
+  if (A <> nil) and (InternalViewport <> nil) then
   begin
-    TargetWorld := A.WorldTransform(AvatarTarget);
-    // TODO: position Viewport.Camera around TargetWorld
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+    TargetWorldDir := A.WorldTransform.MultDirection(TCastleTransform.DefaultDirection[A.Orientation]);
+
+    { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
+      create a right triangle, so
+      InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
+    }
+    HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+    GravUp := Camera.GravityUp;
+    CameraPos := TargetWorldPos
+      + GravUp * InitialHeightAboveTarget
+      - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
+    CameraDir := TargetWorldPos - CameraPos;
+    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+    Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
 end;
 
@@ -166,36 +267,11 @@ end;
     changes animation too
 
   - in demo:
-    remember to use DefaultAnimationTransition
     expose AimAvatar
     describe keys in label
+
+  - document / show a way to use this with TPlayer and TLevel
 *)
-
-  { Main "playing game" state, where most of the game logic takes place. }
-  TStatePlay = class(TUIState)
-  private
-    { Enemies behaviours }
-    Enemies: TEnemyList;
-
-    { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
-    LabelFps: TCastleLabel;
-    MainViewport: TCastleViewport;
-    WalkNavigation: TCastleWalkNavigation;
-  public
-    procedure Start; override;
-    procedure Stop; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
-  end;
-
-var
-  StatePlay: TStatePlay;
-
-implementation
-
-uses SysUtils, Math,
-  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
-  GameStateMenu;
 
 { TStatePlay ----------------------------------------------------------------- }
 
@@ -215,6 +291,7 @@ begin
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   WalkNavigation := UiOwner.FindRequiredComponent('WalkNavigation') as TCastleWalkNavigation;
+  SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
@@ -224,6 +301,12 @@ begin
     Enemy := TEnemy.Create(SoldierScene);
     Enemies.Add(Enemy);
   end;
+
+  { Initialize 3rd-person camera initialization }
+  ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
+  MainViewport.Navigation := ThirdPersonNavigation;
+  ThirdPersonNavigation.Avatar := SceneAvatar;
+  ThirdPersonNavigation.Init;
 end;
 
 procedure TStatePlay.Stop;

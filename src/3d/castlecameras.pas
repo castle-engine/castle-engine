@@ -871,7 +871,11 @@ type
       deprecated 'use Viewport.Camera.SetInitialView';
     procedure GoToInitial; deprecated 'use Viewport.Camera.GoToInitial';
 
-    function GetNavigationType: TNavigationType; virtual; abstract;
+    { By default this returns ntNone.
+      Internal navigation descendants can return something else,
+      to cooperate with @link(TCastleViewport.NavigationType).
+      Your custom navigation descendants can just return ntNone. }
+    function GetNavigationType: TNavigationType; virtual;
 
     { Height above the ground, only used by @link(TCastleWalkNavigation) descendant
       when @link(TCastleWalkNavigation.Gravity) is @true.
@@ -2697,6 +2701,11 @@ begin
   MouseDraggingStarted := -1;
 
   FullSize := true;
+end;
+
+function TCastleNavigation.GetNavigationType: TNavigationType;
+begin
+  Result := ntNone;
 end;
 
 function TCastleNavigation.Camera: TCastleCamera;
