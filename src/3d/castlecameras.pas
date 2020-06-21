@@ -1334,12 +1334,59 @@ type
     const Position: TVector3;
     out AboveHeight: Single; out AboveGround: PTriangle): boolean of object;
 
+  { Abstract navigation class that can utilize @italic(mouse look),
+    during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
+  TCastleMouseLookNavigation = class(TCastleNavigation)
+  strict private
+    FMouseLookHorizontalSensitivity: Single;
+    FMouseLookVerticalSensitivity: Single;
+    FInvertVerticalMouseLook: boolean;
+    FMouseLook: boolean;
+    procedure SetMouseLook(const Value: boolean);
+  protected
+    procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
+  public
+    const
+      DefaultMouseLookHorizontalSensitivity = 0.09;
+      DefaultMouseLookVerticalSensitivity = 0.09;
+
+    constructor Create(AOwner: TComponent); override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
+    function Motion(const Event: TInputMotion): boolean; override;
+
+    { Use mouse look to navigate (rotate the camera).
+
+      This also makes mouse cursor of Container hidden, and forces
+      mouse position to the middle of the window
+      (to avoid the situation when mouse movement is blocked by screen borders). }
+    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
+
+    { Mouse look sensitivity, if @link(MouseLook) is working.
+      These properties specify how much angle change is produced by moving mouse by 1 pixel.
+      @groupBegin }
+    property MouseLookHorizontalSensitivity: Single
+      read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
+      default DefaultMouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity: Single
+      read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
+      default DefaultMouseLookVerticalSensitivity;
+    { @groupEnd }
+
+    { If this is @true and MouseLook works, then the meaning of vertical mouse
+      movement is inverted: when user moves mouse up, he looks down.
+      Some players are more comfortable with such configuration. }
+    property InvertVerticalMouseLook: boolean
+      read FInvertVerticalMouseLook write FInvertVerticalMouseLook
+      default false;
+  end;
+
   { Navigation by walking or flying (classic first-person shooter navigation)
     in a 3D scene.
     User can rotate and move camera using various keys, like arrows or AWSD.
     Mouse dragging and mouse look are also supported. }
-  TCastleWalkNavigation = class(TCastleNavigation)
-  private
+  TCastleWalkNavigation = class(TCastleMouseLookNavigation)
+  strict private
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FRotationHorizontalPivot: Single;
     FPreferGravityUpForRotations: boolean;
@@ -1347,10 +1394,7 @@ type
     FIsAbove: boolean;
     FAboveHeight: Single;
     FAboveGround: PTriangle;
-    FMouseLook: boolean;
     FMouseDragMode: TMouseDragMode;
-    procedure SetMouseLook(const Value: boolean);
-  private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
     FInput_RightRot: TInputShortcut;
@@ -1372,9 +1416,6 @@ type
     FCheckModsDown: boolean;
 
     FMinAngleRadFromGravityUp: Single;
-
-    FMouseLookHorizontalSensitivity: Single;
-    FMouseLookVerticalSensitivity: Single;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Update call.
@@ -1476,7 +1517,6 @@ type
     FIsOnTheGround: boolean;
     FIsWalkingOnTheGround: boolean;
 
-    FInvertVerticalMouseLook: boolean;
     FOnMoveAllowed, FOnInternalMoveAllowed: TMoveAllowedFunc;
     FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
     FMouseDraggingMoveSpeed: Single;
@@ -1488,8 +1528,8 @@ type
     procedure Height(const APosition: TVector3;
       out AIsAbove: boolean;
       out AnAboveHeight: Single; out AnAboveGround: PTriangle); virtual;
-
     function ReallyEnableMouseDragging: boolean; override;
+    procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -1499,8 +1539,6 @@ type
       DefaultRotationHorizontalSpeed = 150;
       DefaultRotationVerticalSpeed = 100;
       DefaultFallSpeedIncrease = 13/12;
-      DefaultMouseLookHorizontalSensitivity = 0.09;
-      DefaultMouseLookVerticalSensitivity = 0.09;
       DefaultJumpHorizontalSpeedMultiply = 2.0;
       DefaultJumpTime = 1.0 / 8.0;
       DefaultMouseDraggingHorizontalRotationSpeed = 0.1;
@@ -1962,14 +2000,12 @@ type
       OnMoveAllowed. }
     property RotationHorizontalPivot: Single
       read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
-
-    { Use mouse look to navigate (rotate the camera).
-
-      This also makes mouse cursor of Container hidden, and forces
-      mouse position to the middle of the window
-      (to avoid the situation when mouse movement is blocked by screen borders). }
-    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
   published
+    property MouseLook;
+    property MouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity;
+    property InvertVerticalMouseLook;
+
     { Rotation keys speed, in degrees per second.
       @groupBegin }
     property RotationHorizontalSpeed: Single
@@ -2001,28 +2037,6 @@ type
     property MouseDraggingMoveSpeed: Single
       read FMouseDraggingMoveSpeed write FMouseDraggingMoveSpeed
       default DefaultMouseDraggingMoveSpeed;
-
-    { These control mouse look sensitivity.
-      They say how much angle change is produced by moving mouse by 1 pixel.
-      You can change this, to better adjust to user.
-
-      @groupBegin }
-    property MouseLookHorizontalSensitivity: Single
-      read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
-      default DefaultMouseLookHorizontalSensitivity;
-    property MouseLookVerticalSensitivity: Single
-      read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
-      default DefaultMouseLookVerticalSensitivity;
-    { @groupEnd }
-
-    { If this is @true and MouseLook works, then the meaning of vertical mouse
-      movement is inverted: when user moves mouse up, he looks down.
-      Many players are more comfortable with such configuration,
-      and many games implement it (usually by calling it "Invert mouse"
-      for short). }
-    property InvertVerticalMouseLook: boolean
-      read FInvertVerticalMouseLook write FInvertVerticalMouseLook
-      default false;
 
     { What mouse dragging does. Used only when niMouseDragging in @link(Input). }
     property MouseDragMode: TMouseDragMode
@@ -2895,7 +2909,7 @@ begin
     SourceNav := TCastleNavigation(Source);
     Radius              := SourceNav.Radius             ;
     Input               := SourceNav.Input              ;
-    { The Cursor should be synchronized with TCastleWalkNavigation.MouseLook,
+    { The Cursor should be synchronized with TCastleMouseLookNavigation.MouseLook,
       do not blindly copy it from TCastleWalkNavigation to TCastleExamineNavigation. }
     // Cursor              := SourceNav.Cursor             ;
     PreferredHeight     := SourceNav.PreferredHeight    ;
@@ -3779,6 +3793,83 @@ begin
     Result := ntExamine;
 end;
 
+{ TCastleMouseLookNavigation ------------------------------------------------- }
+
+constructor TCastleMouseLookNavigation.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
+  FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
+  FInvertVerticalMouseLook := false;
+end;
+
+procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+
+  procedure MouseLookUpdate;
+  begin
+    if MouseLook and (Container <> nil) then
+      Container.MouseLookUpdate;
+  end;
+
+begin
+  inherited;
+  MouseLookUpdate;
+end;
+
+procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);
+begin
+  if FMouseLook <> Value then
+  begin
+    FMouseLook := Value;
+    if FMouseLook then
+      Cursor := mcForceNone
+    else
+      Cursor := mcDefault;
+    if Container <> nil then
+      Container.MouseLookPress;
+  end;
+end;
+
+procedure TCastleMouseLookNavigation.ProcessMouseLookDelta(const Delta: TVector2);
+begin
+  // nothing in this class
+end;
+
+function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
+
+  procedure HandleMouseLook;
+  var
+    MouseChange: TVector2;
+  begin
+    MouseChange := Container.MouseLookDelta(Event);
+
+    if not MouseChange.IsPerfectlyZero then
+    begin
+      if InvertVerticalMouseLook then
+        MouseChange.Data[1] := -MouseChange.Data[1];
+      MouseChange.Data[0] := MouseChange.Data[0] * MouseLookHorizontalSensitivity;
+      MouseChange.Data[1] := MouseChange.Data[1] * MouseLookVerticalSensitivity;
+      ProcessMouseLookDelta(MouseChange);
+      Result := ExclusiveEvents;
+    end;
+  end;
+
+begin
+  Result := inherited;
+  if Result or (Event.FingerIndex <> 0) then Exit;
+
+  if (niNormal in Input) and
+    MouseLook and
+    Container.Focused and
+    ContainerSizeKnown and
+    (not Camera.Animation) then
+  begin
+    HandleMouseLook;
+    Exit;
+  end;
+end;
+
 { TCastleWalkNavigation ---------------------------------------------------------------- }
 
 constructor TCastleWalkNavigation.Create(AOwner: TComponent);
@@ -3799,11 +3890,8 @@ begin
   FMinAngleRadFromGravityUp := DefaultMinAngleRadFromGravityUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
-  FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
-  FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
   FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
   FJumpTime := DefaultJumpTime;
-  FInvertVerticalMouseLook := false;
   FMouseDraggingHorizontalRotationSpeed := DefaultMouseDraggingHorizontalRotationSpeed;
   FMouseDraggingVerticalRotationSpeed := DefaultMouseDraggingVerticalRotationSpeed;
   FMouseDraggingMoveSpeed := DefaultMouseDraggingMoveSpeed;
@@ -4773,12 +4861,6 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     CorrectPreferredHeight;
   end;
 
-  procedure MouseLookUpdate;
-  begin
-    if MouseLook and (Container <> nil) then
-      Container.MouseLookUpdate;
-  end;
-
   procedure MoveViaMouseDragging(Delta: TVector2);
   var
     MoveSizeX, MoveSizeY: Single;
@@ -4834,8 +4916,6 @@ var
   ModsDown: TModifierKeys;
 begin
   inherited;
-
-  MouseLookUpdate;
 
   { Do not handle keys or gravity etc. }
   if Camera.Animation then Exit;
@@ -5182,42 +5262,14 @@ begin
   FFalling := false;
 end;
 
-procedure TCastleWalkNavigation.SetMouseLook(const Value: boolean);
+procedure TCastleWalkNavigation.ProcessMouseLookDelta(const Delta: TVector2);
 begin
-  if FMouseLook <> Value then
-  begin
-    FMouseLook := Value;
-    if FMouseLook then
-      Cursor := mcForceNone
-    else
-      Cursor := mcDefault;
-    if Container <> nil then
-      Container.MouseLookPress;
-  end;
+  inherited;
+  RotateHorizontal(-Delta[0]);
+  RotateVertical(Delta[1]);
 end;
 
 function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
-
-  procedure HandleMouseLook;
-  var
-    MouseChange: TVector2;
-  begin
-    MouseChange := Container.MouseLookDelta(Event);
-
-    if MouseChange[0] <> 0 then
-    begin
-      RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
-      Result := ExclusiveEvents;
-    end;
-
-    if MouseChange[1] <> 0 then
-    begin
-      if InvertVerticalMouseLook then
-        MouseChange[1] := -MouseChange[1];
-      RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
-      Result := ExclusiveEvents;
-    end;
-  end;
 
   procedure HandleMouseDrag;
   var
@@ -5233,16 +5285,6 @@ function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
-
-  if (niNormal in Input) and
-    MouseLook and
-    Container.Focused and
-    ContainerSizeKnown and
-    (not Camera.Animation) then
-  begin
-    HandleMouseLook;
-    Exit;
-  end;
 
   if (MouseDraggingStarted <> -1) and
     // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1

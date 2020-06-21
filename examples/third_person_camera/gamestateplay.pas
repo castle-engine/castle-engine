@@ -1,8 +1,19 @@
-{ Main "playing game" state, where most of the game logic takes place.
+{
+  Copyright 2020-2020 Michalis Kamburelis.
 
-  Feel free to use this code as a starting point for your own projects.
-  (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.) }
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main "playing game" state, where most of the game logic takes place. }
 unit GameStatePlay;
 
 interface
@@ -31,7 +42,7 @@ type
   // TODO: add this to CastleCameras to be automatically in editor
   // TODO expose TVector3 to be published
   // TODO setting related properties during design, should update camera
-  TCastleThirdPersonNavigation = class(TCastleNavigation)
+  TCastleThirdPersonNavigation = class(TCastleMouseLookNavigation)
   strict private
     FAvatar: TCastleScene;
     FAvatarHierarchy: TCastleTransform;
@@ -45,6 +56,8 @@ type
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
+  protected
+    procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
     const
       DefaultInitialHeightAboveTarget = 1.0;
@@ -87,6 +100,10 @@ type
       By default this is DefaultAvatarTargetForward = (0, 2, 0). }
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
   published
+    property MouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity;
+    property InvertVerticalMouseLook;
+
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
       When this is @nil, we just move and rotate the @link(Avatar).
       When this is non-nil, then we only move and rotate this AvatarHierarchy.
@@ -144,7 +161,6 @@ type
     { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
-    WalkNavigation: TCastleWalkNavigation;
     SceneAvatar: TCastleScene;
   public
     procedure Start; override;
@@ -244,7 +260,17 @@ begin
     CameraDir := TargetWorldPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
     Camera.SetView(CameraPos, CameraDir, CameraUp);
+
+    if Avatar <> nil then
+      Avatar.PlayAnimation('idle', true);
   end;
+
+  MouseLook := true; // always use mouse look
+end;
+
+procedure TCastleThirdPersonNavigation.ProcessMouseLookDelta(const Delta: TVector2);
+begin
+  inherited;
 end;
 
 (*TODO:
@@ -256,8 +282,6 @@ end;
      10)
 
     this immediately moves camera
-
-  - activate mouse look (make sure viewport acounts for ot , just like in TCastleWalkNavigation
 
   - moving mouse left / right / up / down orbits around TargetWorld
 
@@ -290,7 +314,6 @@ begin
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
-  WalkNavigation := UiOwner.FindRequiredComponent('WalkNavigation') as TCastleWalkNavigation;
   SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
 
   { Create TEnemy instances, add them to Enemies list }
@@ -359,12 +382,6 @@ begin
       HitEnemy.Hurt;
     end;
 
-    Exit(true);
-  end;
-
-  if Event.IsKey(CtrlM) then
-  begin
-    WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
     Exit(true);
   end;
 

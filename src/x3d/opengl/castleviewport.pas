@@ -968,7 +968,7 @@ type
       PointingDeviceActivate. If there's nothing interesting under mouse,
       we will retry a couple of other positions arount the current mouse.
 
-      This should be usually used when you use TCastleWalkNavigation.MouseLook,
+      This should be usually used when you use TCastleMouseLookNavigation.MouseLook,
       or other navigation when mouse cursor is hidden.
       It allows user to only approximately look at interesting item and hit
       interaction button or key.
@@ -3007,8 +3007,8 @@ begin
   Result := C <> nil;
   if Result then
   begin
-    if (Navigation is TCastleWalkNavigation) and
-       TCastleWalkNavigation(Navigation).MouseLook then
+    if (Navigation is TCastleMouseLookNavigation) and
+       TCastleMouseLookNavigation(Navigation).MouseLook then
       MousePosition := RenderRect.Center
     else
       MousePosition := C.MousePosition;

@@ -686,7 +686,7 @@ type
         begin
           Drag := true;
           Cursor := mcForceNone;
-          MouseLookPress;
+          Container.MouseLookPress;
         end;
       end;
 
