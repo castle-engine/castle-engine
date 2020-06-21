@@ -37,8 +37,8 @@ type
     destructor Destroy; override;
     { Should be called after every significant change, including initial loading of the design }
     procedure RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent);
-    function Undo: TUndoData;
-    function Redo: TUndoData;
+    function Undo: TUndoHistoryElement;
+    function Redo: TUndoHistoryElement;
     function IsUndoPossible: Boolean;
     function IsRedoPossible: Boolean;
     procedure ClearUndoHistory;
@@ -126,24 +126,24 @@ begin
   WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + IntToStr(NewUndoHistorySize div 1024) + 'kb.');
 end;
 
-function TUndoSystem.Undo: TUndoData;
+function TUndoSystem.Undo: TUndoHistoryElement;
 begin
   if IsUndoPossible then
   begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
-    Result := UndoHistory[CurrentUndo].Data;
+    Result := UndoHistory[CurrentUndo];
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
 end;
 
-function TUndoSystem.Redo: TUndoData;
+function TUndoSystem.Redo: TUndoHistoryElement;
 begin
   if IsRedoPossible then
   begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
-    Result := UndoHistory[CurrentUndo].Data;
+    Result := UndoHistory[CurrentUndo];
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
 end;

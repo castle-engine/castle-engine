@@ -906,18 +906,26 @@ end;
 procedure TDesignFrame.RedoButtonClick(Sender: TObject);
 var
   NewDesignOwner: TComponent;
+  UHE: TUndoHistoryElement;
 begin
   NewDesignOwner := TComponent.Create(Self);
-  OpenDesign(StringToComponent(UndoSystem.Redo, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  UHE := UndoSystem.Redo;
+  OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  if UHE.Selected <> '' then
+    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
   UpdateUndoRedoButtons;
 end;
 
 procedure TDesignFrame.UndoButtonClick(Sender: TObject);
 var
   NewDesignOwner: TComponent;
+  UHE: TUndoHistoryElement;
 begin
   NewDesignOwner := TComponent.Create(Self);
-  OpenDesign(StringToComponent(UndoSystem.Undo, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  UHE := UndoSystem.Undo;
+  OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
+  if UHE.Selected <> '' then
+    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
   UpdateUndoRedoButtons;
 end;
 
