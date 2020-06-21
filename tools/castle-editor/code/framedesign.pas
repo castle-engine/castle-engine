@@ -1552,7 +1552,11 @@ begin
     end;
   end;
 
-  RecordUndo('');
+  if Sender is TOICustomPropertyGrid then
+    RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue)
+  else
+    RecordUndo('');
+
   MarkModified;
 end;
 
