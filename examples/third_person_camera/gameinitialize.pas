@@ -41,10 +41,10 @@ begin
   { Create game states and set initial state }
   StatePlay := TStatePlay.Create(Application);
   StateMenu := TStateMenu.Create(Application);
-  TUIState.Current := StatePlay;//StateMenu;
+  TUIState.Current := StateMenu;
 
   SoundEngine.RepositoryURL := 'castle-data:/audio/index.xml';
-//  SoundEngine.MusicPlayer.Sound := SoundEngine.SoundFromName('dark_music');
+  SoundEngine.MusicPlayer.Sound := SoundEngine.SoundFromName('dark_music');
 end;
 
 initialization
