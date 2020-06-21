@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 8.5947251319885254E-001,
-          "Y" : -2.4878335125322337E-007,
-          "Z" : 5.1118201017379761E-001,
+          "X" : 7.8687745332717896E-001,
+          "Y" : -3.6029479133503628E-007,
+          "Z" : 6.1710935831069946E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -72,6 +72,17 @@
               "$ClassName" : "TCastleVector3Persistent"
             },
             "URL" : "castle-data:/enemy/soldier1.gltf",
+            "$Children" : [
+            ],
+            "$ClassName" : "TCastleScene"
+          },
+          {
+            "Name" : "SceneAvatar",
+            "Spatial" : [
+              "ssRendering",
+              "ssDynamicCollisions"
+            ],
+            "URL" : "castle-data:/avatar/avatar.gltf",
             "$Children" : [
             ],
             "$ClassName" : "TCastleScene"
