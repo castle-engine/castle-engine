@@ -226,7 +226,6 @@ type
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
-    procedure RecordUndo;
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
@@ -274,6 +273,7 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
+    procedure RecordUndo;
   end;
 
 implementation
@@ -594,6 +594,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     end;
 
     Frame.ModifiedOutsideObjectInspector;
+    Frame.RecordUndo;
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -922,11 +923,11 @@ var
   UHE: TUndoHistoryElement;
 begin
   NewDesignOwner := TComponent.Create(Self);
-  if not UndoSystem.IsRedoPossible then
+  {if not UndoSystem.IsRedoPossible then
   begin
     RecordUndo;
     UndoSystem.Undo;
-  end;
+  end;}
   UHE := UndoSystem.Undo;
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
   if UHE.Selected <> '' then
@@ -1046,6 +1047,7 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+    RecordUndo;
   end;
 
   procedure AddTransform(const ParentComponent: TCastleTransform);
@@ -1155,6 +1157,7 @@ begin
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }
       ModifiedOutsideObjectInspector;
+      RecordUndo;
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -1181,6 +1184,7 @@ procedure TDesignFrame.PasteComponent;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+    RecordUndo;
   end;
 
 var
@@ -1245,6 +1249,7 @@ procedure TDesignFrame.DuplicateComponent;
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
+    RecordUndo;
   end;
 
   procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
@@ -1882,6 +1887,7 @@ begin
   end;
 
   ModifiedOutsideObjectInspector;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -1918,6 +1924,7 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
 
     ModifiedOutsideObjectInspector;
     UpdateDesign;
+    RecordUndo;
   end;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -2145,6 +2152,7 @@ begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
     ModifiedOutsideObjectInspector;
+    RecordUndo;
   end;
 end;
 
@@ -2210,6 +2218,7 @@ begin
   V := SelectedViewport;
   V.Setup2D;
   ModifiedOutsideObjectInspector;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
@@ -2223,6 +2232,7 @@ begin
     V.Camera.InitialDirection,
     V.Camera.InitialUp);
   ModifiedOutsideObjectInspector;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -2263,6 +2273,7 @@ begin
     V.Navigation.ModelBox := Box;
 
   ModifiedOutsideObjectInspector;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
@@ -2277,6 +2288,7 @@ begin
   V.AutoCamera := false;
 
   ModifiedOutsideObjectInspector;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
@@ -2289,6 +2301,7 @@ begin
 
   ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order
+  RecordUndo;
 end;
 
 {
@@ -2342,6 +2355,7 @@ begin
     SelectedUserInterface := NewNavigation
   else
     SelectedUserInterface := V;
+  RecordUndo;
 end;
 
 procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
@@ -2509,7 +2523,6 @@ begin
   if ControlsTree.Selected <> nil then
     PropertyGridModified(nil);
 
-  RecordUndo;
   MarkModified;
 end;
 

@@ -139,7 +139,7 @@ begin
   begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Result.Data := UndoHistory[CurrentUndo - 1].Data;
-    Result.Selected := UndoHistory[CurrentUndo].Selected;
+    Result.Selected := UndoHistory[CurrentUndo - 1].Selected;
     Dec(CurrentUndo);
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
@@ -151,10 +151,7 @@ begin
   begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Result.Data := UndoHistory[CurrentUndo + 1].Data;
-    if CurrentUndo < UndoHistory.Count - 2 then
-      Result.Selected := UndoHistory[CurrentUndo + 2].Selected
-    else
-      Result.Selected := UndoHistory[CurrentUndo + 1].Selected;
+    Result.Selected := UndoHistory[CurrentUndo + 1].Selected;
     Inc(CurrentUndo);
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
