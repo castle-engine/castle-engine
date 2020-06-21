@@ -166,7 +166,7 @@ unit X3DNodes;
 interface
 
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
-  CastleVectors, CastleInternalDoubleLists, CastleRectangles,
+  CastleVectors, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,

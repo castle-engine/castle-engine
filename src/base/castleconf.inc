@@ -176,11 +176,6 @@
 // in the future to not make this optional.
 {.$define ENABLE_SELF_RECORD_CONSTANTS}
 
-// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
-{$ifdef VER3_0_0}
-  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-{$endif}
-
 {$ifdef FPC}
   {$ifndef VER3_0}
     {$ifndef VER3_1}

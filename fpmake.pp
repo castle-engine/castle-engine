@@ -159,7 +159,6 @@ begin
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
-    P.Targets.AddUnit('castleinternaldoublelists.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');

@@ -164,9 +164,7 @@ uses SysUtils, Generics.Collections, Classes,
 {$I castlevectors_cardinal.inc}
 {$I castlevectors_smallint.inc}
 {$I castlevectors_lists.inc}
-{$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-  {$I castlevectors_lists_double.inc}
-{$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$I castlevectors_lists_double.inc}
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_miscellaneous.inc}
 {$I castlevectors_persistent.inc}
@@ -189,9 +187,7 @@ uses Math, CastleStringUtils, CastleColors, CastleLog;
 {$I castlevectors_cardinal.inc}
 {$I castlevectors_smallint.inc}
 {$I castlevectors_lists.inc}
-{$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-  {$I castlevectors_lists_double.inc}
-{$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$I castlevectors_lists_double.inc}
 {$I castlevectors_compatibility_deprecated.inc}
 {$I castlevectors_persistent.inc}
 {$I castlevectors_transformation.inc}
