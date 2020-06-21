@@ -226,6 +226,7 @@ type
     procedure InspectorOtherFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: Boolean);
     procedure MarkModified;
+    procedure RecordUndo;
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
@@ -1527,19 +1528,24 @@ begin
     end;
   end;
 
+  RecordUndo;
   MarkModified;
 end;
 
-procedure TDesignFrame.MarkModified;
+procedure TDesignFrame.RecordUndo;
 var
   T: TDateTime;
 begin
-  // mark modified
-  FDesignModified := true;
   T := Now;
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot));
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's');
   UpdateUndoRedoButtons;
+end;
+
+procedure TDesignFrame.MarkModified;
+begin
+  // mark modified
+  FDesignModified := true;
   OnUpdateFormCaption(Self);
 end;
 
@@ -2480,6 +2486,8 @@ begin
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
   if ControlsTree.Selected <> nil then
     PropertyGridModified(nil);
+
+  RecordUndo;
   MarkModified;
 end;
 
