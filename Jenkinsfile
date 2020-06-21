@@ -76,6 +76,37 @@ pipeline {
       }
     }
 
+    /* Same with FPC 3.0.4.
+       We could use a script to reuse the code,
+       but then the detailed time breakdown/statistics would not be available in Jenkins. */
+
+    stage('Build Tools (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean tools'
+      }
+    }
+    stage('Build Examples (FPC 3.0.4)') {
+      steps {
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean examples'
+      }
+    }
+    stage('Build Examples Using Lazarus (FPC 3.0.4/Lazarus)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean examples-laz'
+      }
+    }
+    stage('Build And Run Auto-Tests (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean test-fpmake'
+      }
+    }
+
     /* Same with FPC trunk.
        We could use a script to reuse the code,
        but then the detailed time breakdown/statistics would not be available in Jenkins. */
