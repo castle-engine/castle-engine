@@ -32,10 +32,6 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector2Integer = (Data: (0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
@@ -49,9 +45,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Integer): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Integer; static; inline;
-    {$endif}
   end;
 
   { Vector of 3 Integer values. }
@@ -67,10 +61,6 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector3Integer = (Data: (0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
@@ -85,9 +75,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Integer): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Integer; static; inline;
-    {$endif}
   end;
 
   { Vector of 4 Integer values. }
@@ -103,10 +91,6 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector4Integer = (Data: (0, 0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
@@ -122,9 +106,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Integer): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Integer; static; inline;
-    {$endif}
   end;
 
   PVector2Integer = ^TVector2Integer;
@@ -218,12 +200,10 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Integer.Zero: TVector2Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector3Integer ------------------------------------------------------------ }
 
@@ -285,12 +265,10 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Integer.Zero: TVector3Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector4Integer ------------------------------------------------------------ }
 
@@ -356,12 +334,10 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Integer.Zero: TVector4Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { global routines ------------------------------------------------------------ }
 

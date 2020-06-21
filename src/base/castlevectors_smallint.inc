@@ -31,10 +31,6 @@ type
   public
     var
       Data: array [TIndex] of SmallInt;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector2SmallInt = (Data: (0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
@@ -46,9 +42,7 @@ type
     property X: SmallInt index 0 read GetItemsInt write SetItemsInt;
     property Y: SmallInt index 1 read GetItemsInt write SetItemsInt;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2SmallInt; static; inline;
-    {$endif}
   end;
 
   PVector2SmallInt = ^TVector2SmallInt;
@@ -104,12 +98,10 @@ begin
   Data[Index] := Value;
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2SmallInt.Zero: TVector2SmallInt;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { global routines ------------------------------------------------------------ }
 

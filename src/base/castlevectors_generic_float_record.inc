@@ -52,21 +52,10 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function GetOne(const Index: TIndex): TGenericVector2; inline; static;
-    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TGenericVector2 = (Data: (0, 0));
-      { Vectors with a single component equal 1, others equal 0. }
-      One: array [TIndex] of TGenericVector2 = (
-        (Data: (1, 0)),
-        (Data: (0, 1))
-      );
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
@@ -136,10 +125,8 @@ type
       @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector2; static; inline;
     class property One [const Index: TIndex]: TGenericVector2 read GetOne;
-    {$endif}
   end;
 
   { Vector of 3 floating-point values.
@@ -165,22 +152,10 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function GetOne(const Index: TIndex): TGenericVector3; inline; static;
-    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TGenericVector3 = (Data: (0, 0, 0));
-      { Vectors with a single component equal 1, others equal 0. }
-      One: array [TIndex] of TGenericVector3 = (
-        (Data: (1, 0, 0)),
-        (Data: (0, 1, 0)),
-        (Data: (0, 0, 1))
-      );
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
@@ -290,10 +265,8 @@ type
       ) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector3; static; inline;
     class property One [const Index: TIndex]: TGenericVector3 read GetOne;
-    {$endif}
   end;
 
   { Vector of 4 floating-point values.
@@ -307,23 +280,10 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function GetOne(const Index: TIndex): TGenericVector4; inline; static;
-    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TGenericVector4 = (Data: (0, 0, 0, 0));
-      { Vectors with a single component equal 1, others equal 0. }
-      One: array [TIndex] of TGenericVector4 = (
-        (Data: (1, 0, 0, 0)),
-        (Data: (0, 1, 0, 0)),
-        (Data: (0, 0, 1, 0)),
-        (Data: (0, 0, 0, 1))
-      );
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
@@ -400,10 +360,8 @@ type
       Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector4; static; inline;
     class property One [const Index: TIndex]: TGenericVector4 read GetOne;
-    {$endif}
   end;
 
   { 2x2 matrix of floating-point values.
@@ -422,11 +380,6 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero    : TGenericMatrix2 = (Data: ((0, 0), (0, 0)));
-      Identity: TGenericMatrix2 = (Data: ((1, 0), (0, 1)));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
@@ -479,10 +432,8 @@ type
       @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix2): TGenericMatrix2; static;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix2; static;
     class function Identity: TGenericMatrix2; static;
-    {$endif}
   end;
 
   { 3x3 matrix of floating-point values.
@@ -516,11 +467,6 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero    : TGenericMatrix3 = (Data: ((0, 0, 0), (0, 0, 0), (0, 0, 0)));
-      Identity: TGenericMatrix3 = (Data: ((1, 0, 0), (0, 1, 0), (0, 0, 1)));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
@@ -573,10 +519,8 @@ type
       @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix3): TGenericMatrix3; static;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix3; static;
     class function Identity: TGenericMatrix3; static;
-    {$endif}
   end;
 
   { 4x4 matrix of floating-point values.
@@ -601,11 +545,6 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero    : TGenericMatrix4 = (Data: ((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)));
-      Identity: TGenericMatrix4 = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
@@ -694,10 +633,8 @@ type
       @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix4): TGenericMatrix4; static;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix4; static;
     class function Identity: TGenericMatrix4; static;
-    {$endif}
   end;
 
 implementation
@@ -895,7 +832,6 @@ begin
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector2.Zero: TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -906,7 +842,6 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result[Index] := 1.0;
 end;
-{$endif}
 
 { TGenericVector3 ------------------------------------------------------------ }
 
@@ -1147,7 +1082,6 @@ begin
   Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector3.Zero: TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1158,7 +1092,6 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result[Index] := 1.0;
 end;
-{$endif}
 
 { TGenericVector4 ------------------------------------------------------------ }
 
@@ -1377,7 +1310,6 @@ begin
   Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector4.Zero: TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1388,7 +1320,6 @@ begin
   FillChar(Result, SizeOf(Result), 0);
   Result[Index] := 1.0;
 end;
-{$endif}
 
 { TGenericMatrix2 ------------------------------------------------------------ }
 
@@ -1602,7 +1533,6 @@ begin
   Result.Data[1, 1] := M1.Data[1, 1] + A * (M2.Data[1, 1] - M1.Data[1, 1]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix2.Zero: TGenericMatrix2;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1614,7 +1544,6 @@ begin
   Result[0, 0] := 1;
   Result[1, 1] := 1;
 end;
-{$endif}
 
 { TGenericMatrix3 ------------------------------------------------------------ }
 
@@ -1889,7 +1818,6 @@ begin
   Result.Data[2, 2] := M1.Data[2, 2] + A * (M2.Data[2, 2] - M1.Data[2, 2]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix3.Zero: TGenericMatrix3;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1902,7 +1830,6 @@ begin
   Result[1, 1] := 1;
   Result[2, 2] := 1;
 end;
-{$endif}
 
 { TGenericMatrix4 ------------------------------------------------------------ }
 
@@ -2461,7 +2388,6 @@ begin
   Result.Data[3, 3] := M1.Data[3, 3] + A * (M2.Data[3, 3] - M1.Data[3, 3]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix4.Zero: TGenericMatrix4;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -2475,6 +2401,5 @@ begin
   Result[2, 2] := 1;
   Result[3, 3] := 1;
 end;
-{$endif}
 
 end.
