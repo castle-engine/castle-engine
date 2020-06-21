@@ -1347,8 +1347,8 @@ type
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
     const
-      DefaultMouseLookHorizontalSensitivity = 0.09;
-      DefaultMouseLookVerticalSensitivity = 0.09;
+      DefaultMouseLookHorizontalSensitivity = 0.1;
+      DefaultMouseLookVerticalSensitivity = 0.1;
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
