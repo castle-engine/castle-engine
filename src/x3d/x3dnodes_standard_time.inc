@@ -195,12 +195,13 @@
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   strict private
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
-    { To satify IAbstractTimeDependentNode }
-    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
     { CycleInterval that is always > 0. }
     function SafeCycleInterval: TFloatTime;
   public
+    { To satify IAbstractTimeDependentNode }
+    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
+
     procedure CreateNode; override;
     destructor Destroy; override;
 

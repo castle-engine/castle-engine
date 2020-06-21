@@ -113,12 +113,11 @@ type
   public
     Data: array [0..1] of TVector3;
 
-    const
-      { Special TBox3D value meaning "bounding box is empty".
-        This is different than just bounding box with zero sizes,
-        as bounding box with zero sizes still has some position.
-        Empty bounding box doesn't contain any portion of 3D space. }
-      Empty: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1))));
+    { Special TBox3D value meaning "bounding box is empty".
+      This is different than just bounding box with zero sizes,
+      as bounding box with zero sizes still has some position.
+      Empty bounding box doesn't contain any portion of 3D space. }
+    class function Empty: TBox3D; static;
 
     { Check is box empty.
       You can think of this function as "compare Box with TBox3D.Empty".
@@ -701,6 +700,13 @@ procedure TBox3D.SetMax(const Value: TVector3);
 begin
   if IsEmpty then RaiseSetMax;
   Data[1] := Value;
+end;
+
+class function TBox3D.Empty: TBox3D;
+const
+  R: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1))));
+begin
+  Result := R;
 end;
 
 function TBox3D.IsEmpty: boolean;
