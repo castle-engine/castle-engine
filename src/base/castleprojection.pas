@@ -34,7 +34,7 @@ type
     ProjectionType: TProjectionTypeCore;
 
     { If ProjectionType is ptPerspective, this property specifies
-      angles of view (horizontal and vertical), in degrees.
+      angles of view (horizontal and vertical), in radians.
 
       Note that when overriding the @link(TCastleViewport.CalculateProjection),
       you are expected to provide both angles calculated, even though some routines
@@ -42,7 +42,7 @@ type
       to the aspect ratio).
       Use the AdjustViewAngleDegToAspectRatio to calculate the angles as necessary.
     }
-    PerspectiveAngles: TVector2;
+    PerspectiveAnglesRad: TVector2;
 
     { If ProjectionType is ptOrthographic or ptFrustum, this property specifies
       dimensions of the visible window. }
@@ -137,8 +137,8 @@ function TProjection.Matrix(const AspectRatio: Single): TMatrix4;
 begin
   case ProjectionType of
     ptPerspective:
-      Result := PerspectiveProjectionMatrixDeg(
-        PerspectiveAngles.Data[1],
+      Result := PerspectiveProjectionMatrixRad(
+        PerspectiveAnglesRad.Data[1],
         AspectRatio,
         ProjectionNear,
         ProjectionFar);

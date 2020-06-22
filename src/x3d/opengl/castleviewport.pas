@@ -1696,7 +1696,7 @@ begin
 
   { take into account InternalDistort* properties }
   AspectRatio := InternalDistortViewAspect * Viewport.Width / Viewport.Height;
-  FProjection.PerspectiveAngles[1] := InternalDistortFieldOfViewY * FProjection.PerspectiveAngles[1];
+  FProjection.PerspectiveAnglesRad[1] := InternalDistortFieldOfViewY * FProjection.PerspectiveAnglesRad[1];
 
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);
@@ -1858,21 +1858,17 @@ var
     Result := Box.AverageSize(false, 1) * WorldBoxSizeToProjectionFar;
   end;
 
-var
-  PerspectiveAnglesRad: TVector2;
 begin
   Box := ItemsBoundingBox;
   Viewport := RenderRect;
 
   Result.ProjectionType := Camera.ProjectionType;
 
-  PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
+  Result.PerspectiveAnglesRad := TViewpointNode.InternalFieldOfView(
     Camera.Perspective.FieldOfView,
     Camera.Perspective.FieldOfViewAxis,
     Viewport.Width,
     Viewport.Height);
-  Result.PerspectiveAngles[0] := RadToDeg(PerspectiveAnglesRad[0]);
-  Result.PerspectiveAngles[1] := RadToDeg(PerspectiveAnglesRad[1]);
 
   { calculate Result.ProjectionNear }
   Result.ProjectionNear := Camera.ProjectionNear;

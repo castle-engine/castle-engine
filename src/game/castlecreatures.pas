@@ -423,7 +423,7 @@ type
       DefaultPreferredDistance = 2.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
-      DefaultVisibilityAngle = Pi * 2 / 3; //< 120 degrees.
+      DefaultVisibilityAngle = Pi * 120 / 180;
       DefaultSmellDistance = 0.0;
 
       DefaultAttackTime = 0.0;
@@ -1859,7 +1859,7 @@ var
   function ActionAllowed(const Animation: T3DResourceAnimation;
     const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
   var
-    AngleRadBetweenTheDirectionToEnemy: Single;
+    AngleBetweenTheDirectionToEnemy: Single;
   begin
     Result := EnemySensedNow and
       Animation.Defined and
@@ -1868,10 +1868,10 @@ var
 
     if Result then
     begin
-      { Calculate and check AngleRadBetweenTheDirectionToEnemy. }
-      AngleRadBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
+      { Calculate and check AngleBetweenTheDirectionToEnemy. }
+      AngleBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
         LastSensedEnemy - Middle, Direction);
-      Result := AngleRadBetweenTheDirectionToEnemy <= MaxAngle;
+      Result := AngleBetweenTheDirectionToEnemy <= MaxAngle;
     end;
   end;
 
@@ -1890,57 +1890,57 @@ var
   procedure CalculateDirectionToTarget(
     const Target: TVector3;
     out DirectionToTarget: TVector3;
-    out AngleRadBetweenDirectionToTarget: Single);
+    out AngleBetweenDirectionToTarget: Single);
   begin
     { calculate DirectionToTarget }
     DirectionToTarget := Target - Middle;
     if Gravity then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
-    { calculate AngleRadBetweenDirectionToTarget }
-    AngleRadBetweenDirectionToTarget :=
+    { calculate AngleBetweenDirectionToTarget }
+    AngleBetweenDirectionToTarget :=
       AngleRadBetweenVectors(DirectionToTarget, Direction);
   end;
 
   { Call this only when HasLastSensedEnemy }
   procedure CalculateDirectionToEnemy(out DirectionToEnemy: TVector3;
-    out AngleRadBetweenDirectionToEnemy: Single);
+    out AngleBetweenDirectionToEnemy: Single);
   begin
     CalculateDirectionToTarget(LastSensedEnemy,
-      DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
+      DirectionToEnemy, AngleBetweenDirectionToEnemy);
   end;
 
   procedure CalculateDirectionFromEnemy(
     var DirectionFromEnemy: TVector3;
-    var AngleRadBetweenDirectionFromEnemy: Single);
+    var AngleBetweenDirectionFromEnemy: Single);
   begin
     CalculateDirectionToEnemy(
-      DirectionFromEnemy, AngleRadBetweenDirectionFromEnemy);
+      DirectionFromEnemy, AngleBetweenDirectionFromEnemy);
     DirectionFromEnemy := -DirectionFromEnemy;
-    AngleRadBetweenDirectionFromEnemy :=
-      Pi - AngleRadBetweenDirectionFromEnemy;
+    AngleBetweenDirectionFromEnemy :=
+      Pi - AngleBetweenDirectionFromEnemy;
   end;
 
   { This changes Direction to be closer to DirectionToTarget.
-    Note that it requires the value of AngleRadBetweenDirectionToTarget
+    Note that it requires the value of AngleBetweenDirectionToTarget
     effectively }
   procedure RotateDirectionToFaceTarget(const DirectionToTarget: TVector3;
-    const AngleRadBetweenDirectionToTarget: Single);
+    const AngleBetweenDirectionToTarget: Single);
   const
-    AngleRadChangeSpeed = 5.0;
+    AngleChangeSpeed = 5.0;
   var
-    AngleRadChange: Single;
+    AngleChange: Single;
     NewDirection: TVector3;
   begin
     if not VectorsParallel(DirectionToTarget, Direction) then
     begin
       { Rotate Direction, to be closer to DirectionToTarget }
 
-      { calculate AngleRadChange }
-      AngleRadChange := AngleRadChangeSpeed * SecondsPassed;
-      MinVar(AngleRadChange, AngleRadBetweenDirectionToTarget);
+      { calculate AngleChange }
+      AngleChange := AngleChangeSpeed * SecondsPassed;
+      MinVar(AngleChange, AngleBetweenDirectionToTarget);
 
-      NewDirection := RotatePointAroundAxisRad(AngleRadChange, Direction,
+      NewDirection := RotatePointAroundAxisRad(AngleChange, Direction,
         TVector3.CrossProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
@@ -1981,14 +1981,14 @@ var
   { Assuming that I want to walk in DesiredDirection direction,
     is it sensible to do this by moving along current Direction ? }
   function WantToWalkInDesiredDirection(
-    const AngleRadBetweenDesiredDirection: Single): boolean;
+    const AngleBetweenDesiredDirection: Single): boolean;
   const
-    MaxAngleToMoveForward = Pi / 3 { 60 degrees };
+    MaxAngleToMoveForward = Pi * 60 / 180;
   begin
     Result :=
-      { If AngleRadBetweenDesiredDirection is too large, there is not much point
+      { If AngleBetweenDesiredDirection is too large, there is not much point
         in moving in given direction anyway. We should just change our Direction. }
-      (AngleRadBetweenDesiredDirection <= MaxAngleToMoveForward);
+      (AngleBetweenDesiredDirection <= MaxAngleToMoveForward);
   end;
 
   { Assuming that I want to get to Target position, is it sensible
@@ -1998,10 +1998,10 @@ var
     to Target. }
   function WantToWalkToTarget(
     const Target: TVector3;
-    const AngleRadBetweenDirectionToTarget: Single): boolean;
+    const AngleBetweenDirectionToTarget: Single): boolean;
   begin
     Result :=
-      WantToWalkInDesiredDirection(AngleRadBetweenDirectionToTarget) and
+      WantToWalkInDesiredDirection(AngleBetweenDirectionToTarget) and
       { See comments in CloseEnoughToTarget for reasoning why this is needed. }
       (not CloseEnoughToTarget(Target));
   end;
@@ -2043,10 +2043,10 @@ var
     along current Direction ?
     Call this only if HasLastSensedEnemy. }
   function WantToWalkToEnemy(
-    const AngleRadBetweenDirectionToEnemy: Single): boolean;
+    const AngleBetweenDirectionToEnemy: Single): boolean;
   begin
     Result := WantToShortenDistanceToEnemy and
-      WantToWalkToTarget(LastSensedEnemy, AngleRadBetweenDirectionToEnemy);
+      WantToWalkToTarget(LastSensedEnemy, AngleBetweenDirectionToEnemy);
   end;
 
   function WantToRunAway: boolean;
@@ -2092,12 +2092,12 @@ var
   function DoIdle: Boolean;
   var
     DirectionToEnemy: TVector3;
-    AngleRadBetweenDirectionToEnemy: Single;
+    AngleBetweenDirectionToEnemy: Single;
   begin
     Result := true;
     if HasLastSensedEnemy then
     begin
-      CalculateDirectionToEnemy(DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
+      CalculateDirectionToEnemy(DirectionToEnemy, AngleBetweenDirectionToEnemy);
 
       if FireMissileAllowed then
       begin
@@ -2110,13 +2110,13 @@ var
         Result := false;
       end else
       if WantToRunAway or
-         WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
+         WantToWalkToEnemy(AngleBetweenDirectionToEnemy) then
       begin
         SetState(csWalk);
         Result := false;
       end else
       if Gravity and
-         (AngleRadBetweenDirectionToEnemy < 0.01) and
+         (AngleBetweenDirectionToEnemy < 0.01) and
          BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
         { Then the enemy (or it's last known position) is right above or below us.
@@ -2134,7 +2134,7 @@ var
       begin
         { Continue csIdle state }
         RotateDirectionToFaceTarget(DirectionToEnemy,
-          AngleRadBetweenDirectionToEnemy);
+          AngleBetweenDirectionToEnemy);
       end;
     end;
   end;
@@ -2195,12 +2195,12 @@ var
     procedure WalkNormal;
     var
       DirectionToTarget: TVector3;
-      AngleRadBetweenDirectionToTarget: Single;
+      AngleBetweenDirectionToTarget: Single;
     begin
       CalculateDirectionToEnemy(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
 
-      if WantToWalkToEnemy(AngleRadBetweenDirectionToTarget) then
+      if WantToWalkToEnemy(AngleBetweenDirectionToTarget) then
       begin
         if not MoveAlongTheDirection then
         begin
@@ -2217,16 +2217,16 @@ var
       end;
 
       RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
     end;
 
     procedure WalkToWaypoint(const Target: TVector3);
     var
       DirectionToTarget: TVector3;
-      AngleRadBetweenDirectionToTarget: Single;
+      AngleBetweenDirectionToTarget: Single;
     begin
       CalculateDirectionToTarget(Target, DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
 
       if WantToShortenDistanceToEnemy then
       begin
@@ -2245,16 +2245,16 @@ var
       end;
 
       RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
     end;
 
   const
     ProbabilityToTryAnotherAlternativeTarget = 0.5;
-    AngleRadBetweenDirectionToTargetToResign = Pi / 180 { 1 degree };
+    AngleBetweenDirectionToTargetToResign = Pi * 1 / 180;
     MaxTimeForAlternativeTarget = 5.0;
   var
     DirectionToTarget: TVector3;
-    AngleRadBetweenDirectionToTarget: Single;
+    AngleBetweenDirectionToTarget: Single;
     SectorNow: TSector;
     UseWalkNormal: boolean;
   begin
@@ -2268,10 +2268,10 @@ var
       end;
 
       CalculateDirectionToTarget(AlternativeTarget,
-        DirectionToTarget, AngleRadBetweenDirectionToTarget);
+        DirectionToTarget, AngleBetweenDirectionToTarget);
 
       if WantToWalkToTarget(AlternativeTarget,
-        AngleRadBetweenDirectionToTarget) then
+        AngleBetweenDirectionToTarget) then
       begin
         { Note that MoveAlongTheDirection returns false when
           moving along the current Direction is not good.
@@ -2279,15 +2279,15 @@ var
           So we shouldn't just resign from current AlternativeTarget
           so fast --- maybe it's good, but we have to adjust
           our Direction a little more. That's why I use
-          AngleRadBetweenDirectionToTargetToResign.
+          AngleBetweenDirectionToTargetToResign.
 
           Note that for normal moving (i.e. toward LastSensedEnemy,
           not AlternativeTarget) we in this case just change state
           to csIdle, and this allows creature to rotate in csIdle
           state. }
         if (not MoveAlongTheDirection) and
-           (AngleRadBetweenDirectionToTarget <=
-             AngleRadBetweenDirectionToTargetToResign) then
+           (AngleBetweenDirectionToTarget <=
+             AngleBetweenDirectionToTargetToResign) then
         begin
           if Random <= ProbabilityToTryAnotherAlternativeTarget then
           begin
@@ -2312,18 +2312,18 @@ var
       end;
 
       RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
     end else
     if WantToRunAway then
     begin
       CalculateDirectionFromEnemy(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
 
-      if WantToWalkInDesiredDirection(AngleRadBetweenDirectionToTarget) then
+      if WantToWalkInDesiredDirection(AngleBetweenDirectionToTarget) then
       begin
         if (not MoveAlongTheDirection) and
-           (AngleRadBetweenDirectionToTarget <=
-             AngleRadBetweenDirectionToTargetToResign) then
+           (AngleBetweenDirectionToTarget <=
+             AngleBetweenDirectionToTargetToResign) then
         begin
           { Maybe there exists some alternative way, not straight. Lets try. }
           InitAlternativeTarget;
@@ -2332,7 +2332,7 @@ var
       end;
 
       RotateDirectionToFaceTarget(DirectionToTarget,
-        AngleRadBetweenDirectionToTarget);
+        AngleBetweenDirectionToTarget);
     end else
     begin
       if not HasLastSensedEnemy then

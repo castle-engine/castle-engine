@@ -1406,8 +1406,8 @@ type
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
     const
-      DefaultMouseLookHorizontalSensitivity = 0.1;
-      DefaultMouseLookVerticalSensitivity = 0.1;
+      DefaultMouseLookHorizontalSensitivity = Pi * 0.1 / 180;
+      DefaultMouseLookVerticalSensitivity = Pi * 0.1 / 180;
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
@@ -1474,7 +1474,7 @@ type
     FAllowSlowerRotations: boolean;
     FCheckModsDown: boolean;
 
-    FMinAngleRadFromGravityUp: Single;
+    FMinAngleFromGravityUp: Single;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Update call.
@@ -1498,10 +1498,10 @@ type
 
     FMoveForward, FMoveBackward: boolean;
 
-    procedure RotateAroundGravityUp(const AngleDeg: Single);
-    procedure RotateAroundUp(const AngleDeg: Single);
-    procedure RotateHorizontal(const AngleDeg: Single);
-    procedure RotateVertical(const AngleDeg: Single);
+    procedure RotateAroundGravityUp(const Angle: Single);
+    procedure RotateAroundUp(const Angle: Single);
+    procedure RotateHorizontal(const Angle: Single);
+    procedure RotateVertical(AngleRad: Single);
 
     { Like Move, but you pass here final ProposedNewPos. }
     function MoveTo(const ProposedNewPos: TVector3;
@@ -1526,7 +1526,7 @@ type
       move in GravityUp plane, and then rotate back versus GravityUp.
       If not PreferGravityUpForMoving, then we do all this versus Up.
       And so everything works. }
-    procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
+    procedure RotateHorizontalForStrafeMove(const Angle: Single);
 
     { Call always after horizontal rotation change.
       This will return new Position, applying effect of RotationHorizontalPivot. }
@@ -1587,14 +1587,14 @@ type
       DefaultFallSpeedStart = 0.5;
       DefaultGrowSpeed = 1.0;
       DefaultJumpMaxHeight = 1.0;
-      DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
-      DefaultRotationHorizontalSpeed = 150;
-      DefaultRotationVerticalSpeed = 100;
+      DefaultMinAngleFromGravityUp = Pi * 10 / 180;
+      DefaultRotationHorizontalSpeed = Pi * 150 / 180;
+      DefaultRotationVerticalSpeed = Pi * 100 / 180;
       DefaultFallSpeedIncrease = 13/12;
       DefaultJumpHorizontalSpeedMultiply = 2.0;
       DefaultJumpTime = 1.0 / 8.0;
-      DefaultMouseDraggingHorizontalRotationSpeed = 0.1;
-      DefaultMouseDraggingVerticalRotationSpeed = 0.1;
+      DefaultMouseDraggingHorizontalRotationSpeed = Pi * 0.1 / 180;
+      DefaultMouseDraggingVerticalRotationSpeed = Pi * 0.1 / 180;
       DefaultMouseDraggingMoveSpeed = 0.01;
 
     constructor Create(AOwner: TComponent); override;
@@ -1615,7 +1615,7 @@ type
       With PreferGravityUpForRotations, this affects rotations:
       horizontal rotations (Input_LeftRotate and Input_RightRotate)
       and rotations caused by MouseLook.
-      Also vertical rotations are bounded by MinAngleRadFromGravityUp
+      Also vertical rotations are bounded by MinAngleFromGravityUp
       when PreferGravityUpForRotations.
 
       Note that you can change it freely at runtime,
@@ -1623,7 +1623,7 @@ type
       then in nearest Update
       calls @link(Up) will be gradually fixed, so that @link(Direction) and @link(Up)
       and GravityUp are on the same plane. Also @link(Direction) may be adjusted
-      to honour MinAngleRadFromGravityUp.
+      to honour MinAngleFromGravityUp.
 
       With PreferGravityUpForMoving, this affects moving:
       horizontal moving (forward, backward, strafe),
@@ -1735,9 +1735,9 @@ type
       This must be always between 0 and Pi/2. Value of Pi/2 will effectively
       disallow vertical rotations (although you should rather do this in
       a "cleaner way" by calling MakeClear on Input_UpRotate and Input_DownRotate). }
-    property MinAngleRadFromGravityUp: Single
-      read FMinAngleRadFromGravityUp write FMinAngleRadFromGravityUp
-      default DefaultMinAngleRadFromGravityUp;
+    property MinAngleFromGravityUp: Single
+      read FMinAngleFromGravityUp write FMinAngleFromGravityUp
+      default DefaultMinAngleFromGravityUp;
 
     function Motion(const Event: TInputMotion): boolean; override;
 
@@ -1976,7 +1976,7 @@ type
     property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
 
-    { Rotation keys speed, in degrees per second.
+    { Rotation keys speed, in radians per second.
       @groupBegin }
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
@@ -1987,7 +1987,7 @@ type
       default DefaultRotationVerticalSpeed;
     { @groupEnd }
 
-    { Speed (degrees per pixel delta) of rotations by mouse dragging.
+    { Speed (radians per pixel delta) of rotations by mouse dragging.
       Relevant only if niMouseDragging in @link(Input), and MouseDragMode is mdRotate or mdWalk.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
@@ -3362,7 +3362,7 @@ begin
   Result := true;
 
   Moved := false;
-  RotationSize := SecondsPassed * Angle / 50;
+  RotationSize := SecondsPassed * Angle;
   V := ExamineVectors;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
@@ -3887,7 +3887,7 @@ begin
   FFallingEffect := true;
   FIsJumping := false;
   FJumpMaxHeight := DefaultJumpMaxHeight;
-  FMinAngleRadFromGravityUp := DefaultMinAngleRadFromGravityUp;
+  FMinAngleFromGravityUp := DefaultMinAngleFromGravityUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
   FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
@@ -4058,7 +4058,7 @@ begin
   end;
 end;
 
-procedure TCastleWalkNavigation.RotateAroundGravityUp(const AngleDeg: Single);
+procedure TCastleWalkNavigation.RotateAroundGravityUp(const Angle: Single);
 var
   Axis, OldDirection, NewPosition, NewDirection, NewUp: TVector3;
 begin
@@ -4080,43 +4080,42 @@ begin
   else
     Axis := Camera.GravityUp;
 
-  NewUp := RotatePointAroundAxisDeg(AngleDeg, Camera.Up, Axis);
+  NewUp := RotatePointAroundAxisRad(Angle, Camera.Up, Axis);
 
   OldDirection := Camera.Direction;
-  NewDirection := RotatePointAroundAxisDeg(AngleDeg, Camera.Direction, Axis);
+  NewDirection := RotatePointAroundAxisRad(Angle, Camera.Direction, Axis);
 
   NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
 
   Camera.SetView(NewPosition, NewDirection, NewUp);
 end;
 
-procedure TCastleWalkNavigation.RotateAroundUp(const AngleDeg: Single);
+procedure TCastleWalkNavigation.RotateAroundUp(const Angle: Single);
 var
   OldDirection, NewPosition, NewDirection: TVector3;
 begin
-  { We know that RotatePointAroundAxisDeg below doesn't change the length
+  { We know that RotatePointAroundAxisRad below doesn't change the length
     of the Direction (so it will remain normalized) and it will keep
     Direction and Up vectors orthogonal. }
   OldDirection := Camera.Direction;
-  NewDirection := RotatePointAroundAxisDeg(AngleDeg, Camera.Direction, Camera.Up);
+  NewDirection := RotatePointAroundAxisRad(Angle, Camera.Direction, Camera.Up);
 
   NewPosition := AdjustPositionForRotationHorizontalPivot(OldDirection, NewDirection);
 
   Camera.SetView(NewPosition, NewDirection, Camera.Up);
 end;
 
-procedure TCastleWalkNavigation.RotateHorizontal(const AngleDeg: Single);
+procedure TCastleWalkNavigation.RotateHorizontal(const Angle: Single);
 begin
   if PreferGravityUpForRotations then
-    RotateAroundGravityUp(AngleDeg)
+    RotateAroundGravityUp(Angle)
   else
-    RotateAroundUp(AngleDeg);
+    RotateAroundUp(Angle);
 end;
 
-procedure TCastleWalkNavigation.RotateVertical(const AngleDeg: Single);
+procedure TCastleWalkNavigation.RotateVertical(AngleRad: Single);
 var
   Side: TVector3;
-  AngleRad: Single;
   NewDirection, NewUp: TVector3;
 
   procedure DoRealRotate;
@@ -4130,19 +4129,17 @@ var
 var
   AngleRadBetween: Single;
 begin
-  AngleRad := DegToRad(AngleDeg);
-
-  if PreferGravityUpForRotations and (MinAngleRadFromGravityUp <> 0.0) then
+  if PreferGravityUpForRotations and (MinAngleFromGravityUp <> 0.0) then
   begin
     Side := TVector3.CrossProduct(Camera.Direction, Camera.GravityUp);
     if Side.IsZero then
     begin
       { Brutally adjust Direction and Up to be correct.
         This should happen only if your code was changing values of
-        PreferGravityUpForRotations and MinAngleRadFromGravityUp at runtime.
+        PreferGravityUpForRotations and MinAngleFromGravityUp at runtime.
         E.g. first you let Direction and Up to be incorrect,
         and then you set PreferGravityUpForRotations to @true and
-        MinAngleRadFromGravityUp
+        MinAngleFromGravityUp
         to > 0 --- and suddenly we find that Up can be temporarily bad. }
       NewDirection := Camera.InitialDirection;
       NewUp := Camera.InitialUp;
@@ -4150,7 +4147,7 @@ begin
       { Now check Side again. If it's still bad, this means that the
         InitialDirection is parallel to GravityUp. This shouldn't
         happen if you correctly set InitialDirection and GravityUp.
-        So just pick any sensible NewDirection to satisfy MinAngleRadFromGravityUp
+        So just pick any sensible NewDirection to satisfy MinAngleFromGravityUp
         for sure.
 
         This is a common problem on some VRML models:
@@ -4172,10 +4169,10 @@ begin
     begin
       { Calculate AngleRadBetween, and possibly adjust AngleRad. }
       AngleRadBetween := AngleRadBetweenVectors(Camera.Direction, Camera.GravityUp);
-      if AngleRadBetween - AngleRad < MinAngleRadFromGravityUp then
-        AngleRad := AngleRadBetween - MinAngleRadFromGravityUp else
-      if AngleRadBetween - AngleRad > Pi - MinAngleRadFromGravityUp then
-        AngleRad := AngleRadBetween - (Pi - MinAngleRadFromGravityUp);
+      if AngleRadBetween - AngleRad < MinAngleFromGravityUp then
+        AngleRad := AngleRadBetween - MinAngleFromGravityUp else
+      if AngleRadBetween - AngleRad > Pi - MinAngleFromGravityUp then
+        AngleRad := AngleRadBetween - (Pi - MinAngleFromGravityUp);
 
       DoRealRotate;
     end;
@@ -4280,12 +4277,12 @@ begin
   end;
 end;
 
-procedure TCastleWalkNavigation.RotateHorizontalForStrafeMove(const AngleDeg: Single);
+procedure TCastleWalkNavigation.RotateHorizontalForStrafeMove(const Angle: Single);
 begin
   if PreferGravityUpForMoving then
-    RotateAroundGravityUp(AngleDeg)
+    RotateAroundGravityUp(Angle)
   else
-    RotateAroundUp(AngleDeg);
+    RotateAroundUp(Angle);
 end;
 
 function TCastleWalkNavigation.ReallyEnableMouseDragging: boolean;
@@ -4560,8 +4557,8 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
             begin
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
-              RotateAroundGravityUp(Fde_RotateHorizontal *
-                Fde_HorizontalRotateDeviation * SecondsPassed);
+              RotateAroundGravityUp(DegToRad(Fde_RotateHorizontal *
+                Fde_HorizontalRotateDeviation * SecondsPassed));
             end;
 
             if Fde_UpRotate < 0 then
@@ -4763,7 +4760,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
   begin
     if PreferGravityUp then
     begin
-      { TODO: Correcting MinAngleRadFromGravityUp }
+      { TODO: Correcting MinAngleFromGravityUp }
 
       { Correct Up such that GravityUp, Direction and Up
         are on the same plane.
@@ -4864,15 +4861,15 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     begin
       if Delta[0] < -Tolerance then
       begin
-        RotateHorizontalForStrafeMove(90);
+        RotateHorizontalForStrafeMove(HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
-        RotateHorizontalForStrafeMove(-90);
+        RotateHorizontalForStrafeMove(-HalfPi);
       end;
       if Delta[0] > Tolerance then
       begin
-        RotateHorizontalForStrafeMove(-90);
+        RotateHorizontalForStrafeMove(-HalfPi);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
-        RotateHorizontalForStrafeMove(90);
+        RotateHorizontalForStrafeMove(HalfPi);
       end;
 
       if Delta[1] < -5 then
@@ -4914,25 +4911,25 @@ begin
 
         if Input_RightStrafe.IsPressed(Container) then
         begin
-          RotateHorizontalForStrafeMove(-90);
+          RotateHorizontalForStrafeMove(-HalfPi);
           MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(90);
+          RotateHorizontalForStrafeMove(HalfPi);
         end;
 
         if Input_LeftStrafe.IsPressed(Container) then
         begin
-          RotateHorizontalForStrafeMove(90);
+          RotateHorizontalForStrafeMove(HalfPi);
           MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(-90);
+          RotateHorizontalForStrafeMove(-HalfPi);
         end;
 
         { A simple implementation of Input_Jump was
-            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-90)
+            RotateVertical(HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-HalfPi)
           Similarly, simple implementation of Input_Crouch was
-            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(90)
+            RotateVertical(-HalfPi); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(HalfPi)
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
-          MinAngleRadFromGravityUp). }
+          MinAngleFromGravityUp). }
 
         if Input_Jump.IsPressed(Container) then
           MoveVertical(SecondsPassed, 1);
@@ -5111,15 +5108,15 @@ begin
 
   if X > 5 then
   begin
-    RotateHorizontalForStrafeMove(-90);
+    RotateHorizontalForStrafeMove(-HalfPi);
     MoveHorizontal(X * MoveSize, 1);  { right }
-    RotateHorizontalForStrafeMove(90);
+    RotateHorizontalForStrafeMove(HalfPi);
   end;
   if X < -5 then
   begin
-    RotateHorizontalForStrafeMove(90);
+    RotateHorizontalForStrafeMove(HalfPi);
     MoveHorizontal(-X * MoveSize, 1); { left }
-    RotateHorizontalForStrafeMove(-90);
+    RotateHorizontalForStrafeMove(-HalfPi);
   end;
 
   if Y > 5 then
@@ -5130,14 +5127,16 @@ end;
 
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
+const
+  SpeedSensor = 100;
 begin
   if not (ni3dMouse in Input) then Exit(false);
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
-    RotateVertical(X * Angle * 2 * SecondsPassed);
+    RotateVertical(X * Angle * SpeedSensor * SecondsPassed);
   if Abs(Y) > 0.4 then      { rotate }
-    RotateHorizontal(Y * Angle * 2 * SecondsPassed);
+    RotateHorizontal(Y * Angle * SpeedSensor * SecondsPassed);
   {if Abs(Z) > 0.4 then ?} { tilt sidewards }
 end;
 
