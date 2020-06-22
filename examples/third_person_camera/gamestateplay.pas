@@ -76,9 +76,6 @@ type
       DefaultMaxAvatarRotationSpeed = 0.1;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
-      { Much smaller defaults than TCastleMouseLookNavigation, as they affect camera differently. }
-      DefaultThirdPersonMouseLookHorizontalSensitivity = 0.001;
-      DefaultThirdPersonMouseLookVerticalSensitivity = 0.001;
       DefaultMoveSpeed = 1.0;
       DefaultRotationSpeed = Pi * 150 / 180;
 
@@ -127,8 +124,8 @@ type
     property Input_CameraCloser: TInputShortcut read FInput_CameraCloser;
     property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
   published
-    property MouseLookHorizontalSensitivity default DefaultThirdPersonMouseLookHorizontalSensitivity;
-    property MouseLookVerticalSensitivity default DefaultThirdPersonMouseLookVerticalSensitivity;
+    property MouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
 
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
@@ -223,8 +220,6 @@ begin
   FAimAvatar := true;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
-  MouseLookHorizontalSensitivity := DefaultThirdPersonMouseLookHorizontalSensitivity;
-  MouseLookVerticalSensitivity := DefaultThirdPersonMouseLookVerticalSensitivity;
   FMoveSpeed := DefaultMoveSpeed;
   FRotationSpeed := DefaultRotationSpeed;
 
