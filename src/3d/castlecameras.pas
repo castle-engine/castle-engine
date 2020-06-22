@@ -1397,8 +1397,8 @@ type
     FMouseDragMode: TMouseDragMode;
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
-    FInput_RightRot: TInputShortcut;
-    FInput_LeftRot: TInputShortcut;
+    FInput_RightRotate: TInputShortcut;
+    FInput_LeftRotate: TInputShortcut;
     FInput_RightStrafe: TInputShortcut;
     FInput_LeftStrafe: TInputShortcut;
     FInput_UpRotate: TInputShortcut;
@@ -1617,7 +1617,7 @@ type
       respect to current @link(Up).
 
       With PreferGravityUpForRotations, this affects rotations:
-      horizontal rotations (Input_LeftRot and Input_RightRot)
+      horizontal rotations (Input_LeftRotate and Input_RightRotate)
       and rotations caused by MouseLook.
       Also vertical rotations are bounded by MinAngleRadFromGravityUp
       when PreferGravityUpForRotations.
@@ -1938,8 +1938,10 @@ type
     { }
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
-    property Input_LeftRot: TInputShortcut read FInput_LeftRot;
-    property Input_RightRot: TInputShortcut read FInput_RightRot;
+    property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
+    property Input_RightRotate: TInputShortcut read FInput_RightRotate;
+    property Input_LeftRot: TInputShortcut read FInput_LeftRotate; deprecated 'use Input_LeftRotate';
+    property Input_RightRot: TInputShortcut read FInput_RightRotate; deprecated 'use Input_RightRotate';
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
     property Input_UpRotate: TInputShortcut read FInput_UpRotate;
@@ -1968,7 +1970,7 @@ type
     property MoveBackward: boolean read FMoveBackward write FMoveBackward;
 
     { If @true then all rotation keys
-      (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
+      (Input_RightRotate, Input_LeftRotate, Input_UpRotate, Input_DownRotate)
       will work 10x slower when Ctrl modified is pressed. }
     property AllowSlowerRotations: boolean
       read FAllowSlowerRotations write FAllowSlowerRotations
@@ -3898,8 +3900,8 @@ begin
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
-  FInput_LeftRot                 := TInputShortcut.Create(Self);
-  FInput_RightRot                := TInputShortcut.Create(Self);
+  FInput_LeftRotate              := TInputShortcut.Create(Self);
+  FInput_RightRotate             := TInputShortcut.Create(Self);
   FInput_LeftStrafe              := TInputShortcut.Create(Self);
   FInput_RightStrafe             := TInputShortcut.Create(Self);
   FInput_UpRotate                := TInputShortcut.Create(Self);
@@ -3915,8 +3917,8 @@ begin
 
   Input_Forward                 .Assign(K_W, K_Up);
   Input_Backward                .Assign(K_S, K_Down);
-  Input_LeftRot                 .Assign(K_Left);
-  Input_RightRot                .Assign(K_Right);
+  Input_LeftRotate              .Assign(K_Left);
+  Input_RightRotate             .Assign(K_Right);
   Input_LeftStrafe              .Assign(K_A);
   Input_RightStrafe             .Assign(K_D);
   Input_UpRotate                .Assign(K_None);
@@ -3934,8 +3936,8 @@ begin
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
-  Input_LeftRot                .SetSubComponent(true);
-  Input_RightRot               .SetSubComponent(true);
+  Input_LeftRotate             .SetSubComponent(true);
+  Input_RightRotate            .SetSubComponent(true);
   Input_LeftStrafe             .SetSubComponent(true);
   Input_RightStrafe            .SetSubComponent(true);
   Input_UpRotate               .SetSubComponent(true);
@@ -3951,8 +3953,8 @@ begin
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
-  Input_LeftRot                .Name := 'Input_LeftRot';
-  Input_RightRot               .Name := 'Input_RightRot';
+  Input_LeftRotate             .Name := 'Input_LeftRotate';
+  Input_RightRotate            .Name := 'Input_RightRotate';
   Input_LeftStrafe             .Name := 'Input_LeftStrafe';
   Input_RightStrafe            .Name := 'Input_RightStrafe';
   Input_UpRotate               .Name := 'Input_UpRotate';
@@ -4331,9 +4333,9 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     the rotation speed to specific purposes. }
   procedure CheckRotates(SpeedScale: Single);
   begin
-    if Input_RightRot.IsPressed(Container) then
+    if Input_RightRotate.IsPressed(Container) then
       RotateHorizontal(-RotationHorizontalSpeed * SecondsPassed * SpeedScale);
-    if Input_LeftRot.IsPressed(Container) then
+    if Input_LeftRotate.IsPressed(Container) then
       RotateHorizontal(+RotationHorizontalSpeed * SecondsPassed * SpeedScale);
     if Input_UpRotate.IsPressed(Container) then
       RotateVertical(+RotationVerticalSpeed * SecondsPassed * SpeedScale);

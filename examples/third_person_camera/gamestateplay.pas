@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform,
+  CastleTransform, CastleInputs,
   GameEnemy;
 
 type
@@ -52,6 +52,15 @@ type
     FAimAvatar: Boolean;
     FAvatarTarget: TVector3;
     FAvatarTargetForward: TVector3;
+    Walking: Boolean;
+    FMoveSpeed: Single;
+    FRotationSpeed: Single;
+    FInput_Forward: TInputShortcut;
+    FInput_Backward: TInputShortcut;
+    FInput_RightRotate: TInputShortcut;
+    FInput_LeftRotate: TInputShortcut;
+    FInput_RightStrafe: TInputShortcut;
+    FInput_LeftStrafe: TInputShortcut;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -68,6 +77,8 @@ type
       { Much smaller defaults than TCastleMouseLookNavigation, as they affect camera differently. }
       DefaultThirdPersonMouseLookHorizontalSensitivity = 0.001;
       DefaultThirdPersonMouseLookVerticalSensitivity = 0.001;
+      DefaultMoveSpeed = 1.0;
+      DefaultRotationSpeed = Pi * 150 / 180;
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
@@ -103,6 +114,13 @@ type
       (so you rotate around avatar's head, even if you look far ahead).
       By default this is DefaultAvatarTargetForward = (0, 2, 0). }
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
+
+    property Input_Forward: TInputShortcut read FInput_Forward;
+    property Input_Backward: TInputShortcut read FInput_Backward;
+    property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
+    property Input_RightRotate: TInputShortcut read FInput_RightRotate;
+    property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
+    property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
   published
     property MouseLookHorizontalSensitivity default DefaultThirdPersonMouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity default DefaultThirdPersonMouseLookVerticalSensitivity;
@@ -149,6 +167,12 @@ type
       By default user can change it with mouse wheel. }
     property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write FDistanceToAvatarTarget
       default DefaultDistanceToAvatarTarget;
+
+    { Speed of movement by keys. }
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    { Speed of rotating by keys, in radians per second. }
+    property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
+      default DefaultRotationSpeed;
   end;
 
   { Main "playing game" state, where most of the game logic takes place. }
@@ -192,6 +216,36 @@ begin
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
   MouseLookHorizontalSensitivity := DefaultThirdPersonMouseLookHorizontalSensitivity;
   MouseLookVerticalSensitivity := DefaultThirdPersonMouseLookVerticalSensitivity;
+  FMoveSpeed := DefaultMoveSpeed;
+  FRotationSpeed := DefaultRotationSpeed;
+
+  FInput_Forward                 := TInputShortcut.Create(Self);
+  FInput_Backward                := TInputShortcut.Create(Self);
+  FInput_LeftRotate              := TInputShortcut.Create(Self);
+  FInput_RightRotate             := TInputShortcut.Create(Self);
+  FInput_LeftStrafe              := TInputShortcut.Create(Self);
+  FInput_RightStrafe             := TInputShortcut.Create(Self);
+
+  Input_Forward                 .Assign(keyW, keyUp);
+  Input_Backward                .Assign(keyS, keyDown);
+  Input_LeftRotate              .Assign(keyLeft, keyA);
+  Input_RightRotate             .Assign(keyRight, keyD);
+  Input_LeftStrafe              .Assign(keyNone);
+  Input_RightStrafe             .Assign(keyNone);
+
+  Input_Forward                .SetSubComponent(true);
+  Input_Backward               .SetSubComponent(true);
+  Input_LeftRotate             .SetSubComponent(true);
+  Input_RightRotate            .SetSubComponent(true);
+  Input_LeftStrafe             .SetSubComponent(true);
+  Input_RightStrafe            .SetSubComponent(true);
+
+  Input_Forward                .Name := 'Input_Forward';
+  Input_Backward               .Name := 'Input_Backward';
+  Input_LeftRotate             .Name := 'Input_LeftRotate';
+  Input_RightRotate            .Name := 'Input_RightRotate';
+  Input_LeftStrafe             .Name := 'Input_LeftStrafe';
+  Input_RightStrafe            .Name := 'Input_RightStrafe';
 end;
 
 function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
@@ -304,7 +358,7 @@ var
     Side: TVector3;
     AngleToUp, AngleToDown, MaxChange: Single;
   begin
-    Side := TVector3.CrossProduct(ToCamera, GravUp);
+    Side := -TVector3.CrossProduct(ToCamera, GravUp);
     if DeltaY > 0 then
     begin
       AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
@@ -323,7 +377,7 @@ var
 
   procedure ProcessHorizontal(const DeltaX: Single);
   begin
-    ToCamera := RotatePointAroundAxisRad(DeltaX, ToCamera, GravUp);
+    ToCamera := RotatePointAroundAxisRad(-DeltaX, ToCamera, GravUp);
   end;
 
   function ForwardInfluence(const TargetWorldPos, CameraPos: TVector3): Single;
@@ -369,8 +423,72 @@ end;
 
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+var
+  A: TCastleTransform;
+  NewWalking: Boolean;
+  T: TVector3;
 begin
   inherited;
+
+  // TODO running with shift
+  // TODO crouching with ctrl
+  // TODO jumping with space
+  // similar to TCastleWalkNavigation mechanics
+
+  A := RealAvatarHierarchy;
+  if (A <> nil) and (InternalViewport <> nil) then
+  begin
+    NewWalking := false;
+    T := TVector3.Zero;
+    if Input_Forward.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      T := T + A.Direction * MoveSpeed * SecondsPassed;
+    end;
+    if Input_Backward.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      T := T - A.Direction * MoveSpeed * SecondsPassed;
+    end;
+    if Input_RightStrafe.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      T := T + TVector3.CrossProduct(A.Direction, A.Up) * MoveSpeed * SecondsPassed;
+    end;
+    if Input_LeftStrafe.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      T := T - TVector3.CrossProduct(A.Direction, A.Up) * MoveSpeed * SecondsPassed;
+    end;
+    if Input_RightRotate.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, Camera.GravityUp);
+    end;
+    if Input_LeftRotate.IsPressed(Container) then
+    begin
+      NewWalking := true;
+      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, Camera.GravityUp);
+    end;
+
+    A.Translation := A.Translation + T;
+    Camera.Position := Camera.Position + T;
+
+    if Walking <> NewWalking then
+    begin
+      Walking := NewWalking;
+      if Avatar <> nil then
+      begin
+        if Walking then
+          Avatar.PlayAnimation('walk', true)
+        else
+          Avatar.PlayAnimation('idle', true);
+      end;
+    end;
+
+    // TODO: let camera drag after it with delay, not instantly
+    // TODO: drag camera after rotation also, if AimAvatar
+  end;
 end;
 
 
@@ -384,18 +502,11 @@ end;
 
     this immediately moves camera
 
-  - AWSD moves charaters left / right / forward / back (in avatar space,
-    looking at avatar Direction and Up)
-
-    changes animation too
-
   - in demo:
     expose AimAvatar
     describe keys in label
 
   - document / show a way to use this with TPlayer and TLevel
-
-  - are my controls inverted? compare with other games.
 *)
 
 { TStatePlay ----------------------------------------------------------------- }
@@ -433,6 +544,7 @@ begin
   { TODO: remove AvatarTargetForward idea completely?
     It breaks the feeling of control over the camera. }
   // ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 4);
+  ThirdPersonNavigation.MoveSpeed := 2;
   ThirdPersonNavigation.Init;
 end;
 

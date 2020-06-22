@@ -468,8 +468,8 @@ var
     @groupBegin }
   PlayerInput_Forward: TInputShortcut;
   PlayerInput_Backward: TInputShortcut;
-  PlayerInput_LeftRot: TInputShortcut;
-  PlayerInput_RightRot: TInputShortcut;
+  PlayerInput_LeftRotate: TInputShortcut;
+  PlayerInput_RightRotate: TInputShortcut;
   PlayerInput_LeftStrafe: TInputShortcut;
   PlayerInput_RightStrafe: TInputShortcut;
   PlayerInput_UpRotate: TInputShortcut;
@@ -825,8 +825,8 @@ begin
       let them work. They work a little strangely (because Up
       is orthogonal to GravityUp), but they still work and player
       can figure it out. }
-    Navigation.Input_LeftRot.Assign(PlayerInput_LeftRot, false);
-    Navigation.Input_RightRot.Assign(PlayerInput_RightRot, false);
+    Navigation.Input_LeftRotate.Assign(PlayerInput_LeftRotate, false);
+    Navigation.Input_RightRotate.Assign(PlayerInput_RightRotate, false);
     Navigation.Input_UpRotate.Assign(PlayerInput_UpRotate, false);
     Navigation.Input_DownRotate.Assign(PlayerInput_DownRotate, false);
     Navigation.Input_GravityUp.Assign(PlayerInput_GravityUp, false);
@@ -1533,10 +1533,10 @@ initialization
   PlayerInput_Forward.Assign(K_W, K_Up);
   PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
   PlayerInput_Backward.Assign(K_S, K_Down);
-  PlayerInput_LeftRot := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
-  PlayerInput_LeftRot.Assign(K_Left);
-  PlayerInput_RightRot := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
-  PlayerInput_RightRot.Assign(K_Right);
+  PlayerInput_LeftRotate := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
+  PlayerInput_LeftRotate.Assign(K_Left);
+  PlayerInput_RightRotate := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
+  PlayerInput_RightRotate.Assign(K_Right);
   PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
   PlayerInput_LeftStrafe.Assign(K_A);
   PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);

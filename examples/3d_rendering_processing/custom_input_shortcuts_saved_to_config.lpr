@@ -141,8 +141,8 @@ begin
   { clear other Navigation inputs }
   Navigation.Input_Forward.MakeClear;
   Navigation.Input_Backward.MakeClear;
-  Navigation.Input_LeftRot.MakeClear;
-  Navigation.Input_RightRot.MakeClear;
+  Navigation.Input_LeftRotate.MakeClear;
+  Navigation.Input_RightRotate.MakeClear;
   Navigation.Input_UpRotate.MakeClear;
   Navigation.Input_DownRotate.MakeClear;
   Navigation.Input_IncreasePreferredHeight.MakeClear;
