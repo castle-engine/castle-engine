@@ -370,6 +370,7 @@ type
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FParent: TCastleTransform;
+      FMoveSphereRadius: Single;
 
       // transformation
       FCenter: TVector3;
@@ -819,9 +820,11 @@ type
       is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
     procedure SortBackToFront2D;
 
-    { Bounding box of the 3D object.
+    { Bounding box of this object, taking into account current transformation
+      (like @link(Translation), @link(Rotation))
+      although not parent transformations (for this, see @link(WorldBoundingBox)).
 
-      Should take into account both collidable and visible objects.
+      Takes into account both collidable and visible objects.
       For example, invisible walls (not visible) and fake walls
       (not collidable) should all be accounted here.
 
@@ -830,8 +833,12 @@ type
       as "tight" as it can, to make various optimizations work best. }
     function BoundingBox: TBox3D;
 
-    { Bounding box assuming that the scene is not transformed. }
+    { Bounding box of this object, ignoring the transformations of this scene and parents. }
     function LocalBoundingBox: TBox3D; virtual;
+
+    { Bounding box of this object, taking into account
+      all transformations of this and parents. }
+    function WorldBoundingBox: TBox3D;
 
     { Render given object.
       Should check and immediately exit when @link(GetVisible) is @false.
@@ -1067,12 +1074,12 @@ type
     function Dragging: boolean; virtual;
 
     { Middle point, usually "eye point", of the 3D model.
-      This is used for sphere center (if overriden Sphere returns @true)
+      This is used for sphere center
+      (if @link(MoveSphereRadius) is non-zero or @link(Sphere) returns @true)
       and is the central point from which collisions of this object
       are checked (Move, MoveAllowed, Height, LineOfSight).
-      For 3D things like level scene this is mostly useless (as you will leave
-      Sphere at default @false then, and the scene itself doesn't move),
-      but it's crucial for dynamic 3D things like player and moving creatures.
+      It's useful for dynamic objects like player and moving creatures,
+      which rely on @link(MoveAllowed) and gravity.
 
       In short, it's usually most comfortable to think about this as
       a position of the eye, or the middle of the creature's head.
@@ -1103,8 +1110,8 @@ type
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
 
-      By default, in TCastleTransform class, this always returns @false
-      and @link(Sphere) is undefined.
+      By default, in TCastleTransform class, this returns @true if @link(MoveSphereRadius)
+      is non-zero.
 
       The advantages of using a sphere, that does not have to be a perfect
       bounding sphere (it may be smaller than necessary, and only
@@ -1195,7 +1202,7 @@ type
 
       Some other 3D moving objects may push this object.
       Like elevators (vertical, or horizontal moving platforms).
-      We may use sphere (see @link(TCastleTransform.Sphere)) for checking
+      We may use sphere (see @link(MoveSphereRadius) and @link(Sphere)) for checking
       collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
@@ -1217,11 +1224,16 @@ type
       Overloaded version without ProposedNewPos doesn't do wall-sliding,
       and only answers if exactly this move is allowed.
 
-      If this 3D object allows to use sphere as the bounding volume,
-      if will be used (see @link(Sphere)).
+      If this object allows to use sphere for collisions
+      (see @link(MoveSphereRadius) and @link(Sphere)) then sphere will be used.
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
+
+      The given OldPos, ProposedNewPos, NewPos are in "world space"
+      e.g. after all transformations (including our parent transformations)
+      are applied.
+
       @groupBegin }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
       out NewPos: TVector3;
@@ -1258,12 +1270,17 @@ type
     function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
 
+    { When non-zero, we can approximate collisions with this object using a sphere
+      in certain situations (@link(MoveAllowed), @link(Gravity)).
+      This usually makes dynamic objects, like player and creatures, collide better. }
+    property MoveSphereRadius: Single read FMoveSphereRadius write FMoveSphereRadius;
+
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
 
       Special notes for TPlayer: player doesn't use this (TPlayer.Gravity
       should remain @false), instead player relies on
-      TPlayer.Camera.Gravity = @true, that does a similar thing (with some
+      TPlayer.Navigation.Gravity = @true, that does a similar thing (with some
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
@@ -1279,7 +1296,7 @@ type
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
       0 means no falling.
 
-      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      TODO: In CGE 7.x this will be deprecated, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
@@ -2274,8 +2291,8 @@ end;
 
 function TCastleTransform.Sphere(out Radius: Single): boolean;
 begin
-  Result := false;
-  Radius := 0;
+  Radius := MoveSphereRadius;
+  Result := Radius <> 0;
 end;
 
 procedure TCastleTransform.Disable;
@@ -2440,7 +2457,7 @@ begin
   Sp := Sphere(SpRadius);
   if not Sp then
     SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
+  OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(ProposedNewPos - OldPos);
 
   Disable;
@@ -2463,7 +2480,7 @@ begin
   Sp := Sphere(SpRadius);
   if not Sp then
     SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
+  OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(NewPos - OldPos);
 
   Disable;
@@ -2974,6 +2991,11 @@ begin
     Result := LocalBoundingBox.Translate(Translation)
   else
     Result := LocalBoundingBox.Transform(Transform);
+end;
+
+function TCastleTransform.WorldBoundingBox: TBox3D;
+begin
+  Result := LocalBoundingBox.Transform(WorldTransform);
 end;
 
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
