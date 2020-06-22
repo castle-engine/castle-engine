@@ -188,11 +188,15 @@
         "Red" : 1.0000000000000000E+000,
         "$ClassName" : "TCastleColorPersistent"
       },
-      "FontSize" : 2.0000000000000000E+001,
+      "FontSize" : 3.0000000000000000E+001,
       "HorizontalAnchorDelta" : 1.0000000000000000E+001,
       "Name" : "LabelInfo",
       "Text" : [
-        "Move with AWSD and mouse look.",
+        "Move with AWSD and arrow keys.",
+        "Rotate with mouse to orbit around the avatar.",
+        "Hold right mouse button to rotate avatar along with camera.",
+        "Use mouse wheel to get closer / further to the avatar.",
+        "",
         "Press F5 to make a screenshot."
       ],
       "VerticalAnchorDelta" : -1.0000000000000000E+001,
@@ -201,6 +205,30 @@
       "$Children" : [
       ],
       "$ClassName" : "TCastleLabel"
+    },
+    {
+      "Caption" : "Aim Avatar (Rotating Camera Rotates Also Avatar)",
+      "CheckboxColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "FontSize" : 3.0000000000000000E+001,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Name" : "CheckboxAimAvatar",
+      "TextColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "VerticalAnchorDelta" : -2.2000000000000000E+002,
+      "VerticalAnchorParent" : "vpTop",
+      "VerticalAnchorSelf" : "vpTop",
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleCheckbox"
     }
   ],
   "$ClassName" : "TCastleUserInterface"

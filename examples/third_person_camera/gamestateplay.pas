@@ -61,6 +61,8 @@ type
     FInput_LeftRotate: TInputShortcut;
     FInput_RightStrafe: TInputShortcut;
     FInput_LeftStrafe: TInputShortcut;
+    FInput_CameraCloser: TInputShortcut;
+    FInput_CameraFurther: TInputShortcut;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -82,7 +84,8 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
@@ -121,6 +124,8 @@ type
     property Input_RightRotate: TInputShortcut read FInput_RightRotate;
     property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
+    property Input_CameraCloser: TInputShortcut read FInput_CameraCloser;
+    property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
   published
     property MouseLookHorizontalSensitivity default DefaultThirdPersonMouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity default DefaultThirdPersonMouseLookVerticalSensitivity;
@@ -187,6 +192,10 @@ type
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SceneAvatar: TCastleScene;
+    CheckboxAimAvatar: TCastleCheckbox;
+    { Since we use mouse look always, user cannot really operate CheckboxAimAvatar.
+      So it only serves to visualize whether the mouse button is pressed now. }
+    //procedure ChangeCheckboxAimAvatar(Sender: TObject);
   public
     procedure Start; override;
     procedure Stop; override;
@@ -225,6 +234,8 @@ begin
   FInput_RightRotate             := TInputShortcut.Create(Self);
   FInput_LeftStrafe              := TInputShortcut.Create(Self);
   FInput_RightStrafe             := TInputShortcut.Create(Self);
+  FInput_CameraCloser            := TInputShortcut.Create(Self);
+  FInput_CameraFurther           := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(keyW, keyUp);
   Input_Backward                .Assign(keyS, keyDown);
@@ -232,6 +243,8 @@ begin
   Input_RightRotate             .Assign(keyRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
+  Input_CameraCloser            .Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
+  Input_CameraFurther           .Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -239,6 +252,8 @@ begin
   Input_RightRotate            .SetSubComponent(true);
   Input_LeftStrafe             .SetSubComponent(true);
   Input_RightStrafe            .SetSubComponent(true);
+  Input_CameraCloser           .SetSubComponent(true);
+  Input_CameraFurther          .SetSubComponent(true);
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
@@ -246,6 +261,8 @@ begin
   Input_RightRotate            .Name := 'Input_RightRotate';
   Input_LeftStrafe             .Name := 'Input_LeftStrafe';
   Input_RightStrafe            .Name := 'Input_RightStrafe';
+  Input_CameraCloser           .Name := 'Input_CameraCloser';
+  Input_CameraFurther          .Name := 'Input_CameraFurther';
 end;
 
 function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
@@ -339,6 +356,12 @@ begin
     end;
   end;
 
+  // TODO: make it toggable.
+  // It is necessary for various UI to be able to toggle it.
+  // Control it using CtrlM, like in FPS game, and document in LabelInfo lke in FPS game.
+  // Decide then whether CheckboxAimAvatar reflects the mbRight, or pressing it makes something.
+  // (if not, we need to set CheckboxAimAvatar.Enabled = false)
+
   MouseLook := true; // always use mouse look
 end;
 
@@ -418,11 +441,58 @@ begin
     CameraDir := LookTarget - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
     Camera.SetView(CameraPos, CameraDir, CameraUp);
+
+    // TODO AimAvatar
+  end;
+end;
+
+function TCastleThirdPersonNavigation.Press(const Event: TInputPressRelease): Boolean;
+var
+  A: TCastleTransform;
+
+  procedure CameraDistanceChange(DistanceChange: Single);
+  const
+    // TODO expose properties
+    CameraDistanceChangeSpeed = 0.1;
+    MinDistanceToAvatarTarget = 0.5;
+    MaxDistanceToAvatarTarget = 10;
+  var
+    TargetWorldPos, ToCamera: TVector3;
+  begin
+    DistanceChange := DistanceChange * CameraDistanceChangeSpeed;
+    DistanceToAvatarTarget := Clamped(DistanceToAvatarTarget + DistanceChange,
+      MinDistanceToAvatarTarget, MaxDistanceToAvatarTarget);
+
+    // TODO: why does zooming-in causes assertion in CastleRays, saying CamDirection is NaN?
+
+    // update Camera.Position
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+    ToCamera := Camera.Position - TargetWorldPos;
+    Camera.Position := TargetWorldPos + ToCamera.AdjustToLength(DistanceToAvatarTarget);
+  end;
+
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  A := RealAvatarHierarchy;
+  if (A <> nil) and (InternalViewport <> nil) then
+  begin
+    if Input_CameraCloser.IsEvent(Event) then
+    begin
+      CameraDistanceChange(-1);
+      Result := ExclusiveEvents;
+    end;
+    if Input_CameraFurther.IsEvent(Event) then
+    begin
+      CameraDistanceChange(1);
+      Result := ExclusiveEvents;
+    end;
   end;
 end;
 
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   A: TCastleTransform;
   NewWalking: Boolean;
@@ -491,21 +561,7 @@ begin
   end;
 end;
 
-
 (*TODO:
-
-  - on mouse wheel, decrease / increase DistanceToAvatarTarget within some bounds
-    (MinDistanceToAvatarTarget, MaxDistanceToAvatarTarget, default
-     DefaultMinDistanceToAvatarTarget, DefaultMaxDistanceToAvatarTarget
-     0.1
-     10)
-
-    this immediately moves camera
-
-  - in demo:
-    expose AimAvatar
-    describe keys in label
-
   - document / show a way to use this with TPlayer and TLevel
 *)
 
@@ -527,6 +583,7 @@ begin
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
+  CheckboxAimAvatar := UiOwner.FindRequiredComponent('CheckboxAimAvatar') as TCastleCheckbox;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
@@ -536,6 +593,8 @@ begin
     Enemy := TEnemy.Create(SoldierScene);
     Enemies.Add(Enemy);
   end;
+
+  //CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
 
   { Initialize 3rd-person camera initialization }
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
@@ -555,10 +614,20 @@ begin
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
+
+  procedure UpdateAimAvatar;
+  begin
+    ThirdPersonNavigation.AimAvatar := mbRight in Container.MousePressed;
+    { Since we use mouse look always, user cannot really operate CheckboxAimAvatar.
+      So it only serves to visualize whether the mouse button is pressed now. }
+    CheckboxAimAvatar.Checked := ThirdPersonNavigation.AimAvatar;
+  end;
+
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
+  UpdateAimAvatar;
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
@@ -613,5 +682,12 @@ begin
     Exit(true);
   end;
 end;
+
+{
+procedure TStatePlay.ChangeCheckboxAimAvatar(Sender: TObject);
+begin
+  ThirdPersonNavigation.AimAvatar := CheckboxAimAvatar.Checked;
+end;
+}
 
 end.
