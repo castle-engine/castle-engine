@@ -70,6 +70,8 @@ type
       DefaultThirdPersonMouseLookVerticalSensitivity = 0.001;
 
     constructor Create(AOwner: TComponent); override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
@@ -303,7 +305,6 @@ var
     AngleToUp, AngleToDown, MaxChange: Single;
   begin
     Side := TVector3.CrossProduct(ToCamera, GravUp);
-    DeltaY := DeltaY;
     if DeltaY > 0 then
     begin
       AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
@@ -320,10 +321,15 @@ var
     ToCamera := RotatePointAroundAxisRad(DeltaY, ToCamera, Side);
   end;
 
+  procedure ProcessHorizontal(const DeltaX: Single);
+  begin
+    ToCamera := RotatePointAroundAxisRad(DeltaX, ToCamera, GravUp);
+  end;
+
   function ForwardInfluence(const TargetWorldPos, CameraPos: TVector3): Single;
   // TODO: expose as properties
   const
-    AngleForward = 0.1;
+    AngleForward = 0.05;
     AngleNonForward = 0.5;
   var
     Angle: Single;
@@ -348,6 +354,7 @@ begin
     GravUp := Camera.GravityUp;
 
     ProcessVertical(Delta[1]);
+    ProcessHorizontal(Delta[0]);
 
     // TODO: check collisions
     CameraPos := TargetWorldPos + ToCamera;
@@ -360,6 +367,13 @@ begin
   end;
 end;
 
+procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+end;
+
+
 (*TODO:
 
   - on mouse wheel, decrease / increase DistanceToAvatarTarget within some bounds
@@ -369,8 +383,6 @@ end;
      10)
 
     this immediately moves camera
-
-  - moving mouse left / right / up / down orbits around TargetWorld
 
   - AWSD moves charaters left / right / forward / back (in avatar space,
     looking at avatar Direction and Up)
@@ -382,6 +394,8 @@ end;
     describe keys in label
 
   - document / show a way to use this with TPlayer and TLevel
+
+  - are my controls inverted? compare with other games.
 *)
 
 { TStatePlay ----------------------------------------------------------------- }
@@ -416,7 +430,9 @@ begin
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
   MainViewport.Navigation := ThirdPersonNavigation;
   ThirdPersonNavigation.Avatar := SceneAvatar;
-  ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 5);
+  { TODO: remove AvatarTargetForward idea completely?
+    It breaks the feeling of control over the camera. }
+  // ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 4);
   ThirdPersonNavigation.Init;
 end;
 
