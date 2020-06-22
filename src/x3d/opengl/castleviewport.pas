@@ -66,9 +66,10 @@ type
 
     Viewport may also have a @link(Navigation) that allows to move
     camera by keyboard, mouse and other inputs.
-    You can use TCastleExamineNavigation or TCastleWalkNavigation instances.
-    You can also implement your own navigation method
-    (as a TCastleNavigation descendant,
+    You can use any navigation method implemented in the engine
+    (TCastleExamineNavigation, TCastleWalkNavigation, TCastleThirdPersonNavigation)
+    or implement your own
+    (you can create your own descendants of @link(TCastleNavigation),
     or just move/rotate the camera by calling @link(TCastleCamera.SetView) from anywhere).
     The inital navigation method may be auto-detected if @link(AutoNavigation).
 
@@ -174,11 +175,12 @@ type
 
     { Handle navigation events by checking collisions with @link(Items).
       @groupBegin }
-    function NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
-      const ProposedNewPos: TVector3; out NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean;
-    function NavigationHeight(ANavigation: TCastleWalkNavigation; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+    function NavigationMoveAllowed(const Sender: TCastleNavigation;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+      const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
+    function NavigationHeight(const Sender: TCastleNavigation;
+      const Position: TVector3;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
     { @groupEnd }
 
     procedure SetNavigation(const Value: TCastleNavigation);
@@ -1059,9 +1061,9 @@ type
       This is a nice thing for general model viewers (like view3dscene),
       to prevent from accidentally falling down when using "Walk" mode.
 
-      For now, the only thing doing gravity on camera is TCastleWalkNavigation
-      when TCastleWalkNavigation.Gravity = @true, so this is the only case
-      when this property is relevant. }
+      This is only used by navigations performing gravity,
+      like @link(TCastleWalkNavigation) (when @link(TCastleWalkNavigation.Gravity) = @true)
+      or @link(TCastleThirdPersonNavigation) (when @link(TCastleThirdPersonNavigation.Gravity) = @true). }
     property PreventInfiniteFallingDown: Boolean
       read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
 
@@ -1348,12 +1350,8 @@ begin
       after freed it's fields. }
     if (FNavigation <> nil) and not (csDestroying in FNavigation.ComponentState) then
     begin
-      if FNavigation is TCastleWalkNavigation then
-      begin
-        TCastleWalkNavigation(FNavigation).OnInternalMoveAllowed := nil;
-        TCastleWalkNavigation(FNavigation).OnHeight := nil;
-      end;
-
+      FNavigation.OnInternalMoveAllowed := nil;
+      FNavigation.OnInternalHeight := nil;
       FNavigation.RemoveFreeNotification(Self);
       { For easy backward-compatibility, leave Viewport assigned on
         FInternalWalkNavigation and FInternalExamineNavigation. }
@@ -1371,12 +1369,8 @@ begin
 
     if FNavigation <> nil then
     begin
-      if FNavigation is TCastleWalkNavigation then
-      begin
-        TCastleWalkNavigation(FNavigation).OnInternalMoveAllowed := @NavigationMoveAllowed;
-        TCastleWalkNavigation(FNavigation).OnHeight := @NavigationHeight;
-      end;
-
+      FNavigation.OnInternalMoveAllowed := @NavigationMoveAllowed;
+      FNavigation.OnInternalHeight := @NavigationHeight;
       FNavigation.FreeNotification(Self);
       FNavigation.InternalViewport := Self;
       { Check IndexOfControl first, in case the FNavigation is already part
@@ -3189,31 +3183,29 @@ begin
     CameraChange;
 end;
 
-function TCastleViewport.NavigationMoveAllowed(ANavigation: TCastleWalkNavigation;
-  const ProposedNewPos: TVector3; out NewPos: TVector3;
-  const BecauseOfGravity: boolean): boolean;
+function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+  const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
 
   function PositionOutsideBoundingBox: Boolean;
   var
-    CameraPos: TVector3;
     Box: TBox3D;
     GravityCoordinate, Coord1, Coord2: Integer;
   begin
-    CameraPos := Camera.Position;
     Box := ItemsBoundingBox;
     if Box.IsEmpty then Exit(false);
-    GravityCoordinate := MaxAbsVectorCoord(NewPos - CameraPos);
+    GravityCoordinate := MaxAbsVectorCoord(NewPos - OldPos);
     RestOf3DCoords(GravityCoordinate, Coord1, Coord2);
-    { Do not fall down if CamePos is outside of Box.
-      But in case camera is *above* Box, consider it *inside* the box
+    { Do not fall down if OldPos is outside of Box.
+      But in case OldPos is *above* Box, consider it *inside* the box
       (gravity will work there).
       This is useful to allow jumping on top of the scene work naturally. }
     Result :=
-      (CameraPos[Coord1] < Box.Data[0][Coord1]) or
-      (CameraPos[Coord1] > Box.Data[1][Coord1]) or
-      (CameraPos[Coord2] < Box.Data[0][Coord2]) or
-      (CameraPos[Coord2] > Box.Data[1][Coord2]) or
-      (CameraPos[GravityCoordinate] < Box.Data[0][GravityCoordinate]);
+      (OldPos[Coord1] < Box.Data[0][Coord1]) or
+      (OldPos[Coord1] > Box.Data[1][Coord1]) or
+      (OldPos[Coord2] < Box.Data[0][Coord2]) or
+      (OldPos[Coord2] > Box.Data[1][Coord2]) or
+      (OldPos[GravityCoordinate] < Box.Data[0][GravityCoordinate]);
   end;
 
 begin
@@ -3227,17 +3219,16 @@ begin
     Exit(false);
 
   if AvoidNavigationCollisions <> nil then
-    Result := AvoidNavigationCollisions.MoveAllowed(Camera.Position, ProposedNewPos, NewPos, BecauseOfGravity)
+    Result := AvoidNavigationCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos, BecauseOfGravity)
   else
-    Result := Items.WorldMoveAllowed(Camera.Position, ProposedNewPos, NewPos,
-      true, ANavigation.Radius,
+    Result := Items.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos, true, Radius,
       { We prefer to resolve collisions with navigation using sphere.
         But for TCastleTransform implementations that can't use sphere, we can construct box. }
-      Box3DAroundPoint(Camera.Position, ANavigation.Radius * 2),
-      Box3DAroundPoint(ProposedNewPos, ANavigation.Radius * 2), BecauseOfGravity);
+      Box3DAroundPoint(OldPos, Radius * 2),
+      Box3DAroundPoint(ProposedNewPos, Radius * 2), BecauseOfGravity);
 end;
 
-function TCastleViewport.NavigationHeight(ANavigation: TCastleWalkNavigation;
+function TCastleViewport.NavigationHeight(const Sender: TCastleNavigation;
   const Position: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin

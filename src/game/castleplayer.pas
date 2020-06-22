@@ -165,7 +165,7 @@ type
       or @link(Swimming) or @link(Blocked) change. }
     procedure UpdateNavigation;
 
-    procedure NavigationFall(ANavigation: TCastleWalkNavigation; const FallHeight: Single);
+    procedure NavigationFall(const Sender: TCastleNavigation; const FallHeight: Single);
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
@@ -1187,7 +1187,7 @@ begin
   FFadeOutIntensity := 1;
 end;
 
-procedure TPlayer.NavigationFall(ANavigation: TCastleWalkNavigation; const FallHeight: Single);
+procedure TPlayer.NavigationFall(const Sender: TCastleNavigation; const FallHeight: Single);
 begin
   Fall(FallHeight);
 end;

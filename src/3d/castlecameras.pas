@@ -105,6 +105,7 @@ type
   );
 
   TCastleCamera = class;
+  TCastleNavigation = class;
 
   { Subcomponent used in @link(TCastleCamera.Perspective) to set perspective
     projection parameters.
@@ -579,6 +580,21 @@ type
   { }
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
+  { See @link(TCastleNavigation.MoveAllowed) and
+    @link(TCastleNavigation.OnMoveAllowed) }
+  TMoveAllowedFunc = function (const Sender: TCastleNavigation;
+    const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+    const Radius: Single; const BecauseOfGravity: Boolean): boolean of object;
+
+  { See @link(TCastleNavigation.OnFall). }
+  TFallNotifyFunc = procedure (const Sender: TCastleNavigation;
+    const FallHeight: Single) of object;
+
+  { See @link(TCastleNavigation.OnInternalHeight). }
+  THeightEvent = function (const Sender: TCastleNavigation;
+    const Position: TVector3;
+    out AboveHeight: Single; out AboveGround: PTriangle): Boolean of object;
+
   { Handle user input to modify viewport's camera.
 
     Create an instance of this class, and set it as @link(TCastleViewport.Navigation) value.
@@ -619,6 +635,9 @@ type
     FClimbHeight: Single;
     FModelBox: TBox3D;
     FCrouchHeight: Single;
+    FOnMoveAllowed, FOnInternalMoveAllowed: TMoveAllowedFunc;
+    FOnInternalHeight: THeightEvent;
+    FOnFall: TFallNotifyFunc;
 
     function GetPosition: TVector3;
     function GetDirection: TVector3;
@@ -648,6 +667,41 @@ type
     function ReallyEnableMouseDragging: boolean; virtual;
 
     procedure SetModelBox(const B: TBox3D);
+
+    { Check collisions to determine how high above ground is given point.
+      Calls OnInternalHeight callback. }
+    procedure Height(const APosition: TVector3;
+      out AIsAbove: Boolean;
+      out AnAboveHeight: Single; out AnAboveGround: PTriangle);
+
+    { Check collisions to determine can the object move.
+      Object wants to move from OldPos to ProposedNewPos.
+
+      Returns @false if no move is allowed.
+      Otherwise returns @true and sets NewPos to the position
+      where user should be moved.
+
+      If you're doing a simple
+      check for collisions, you will always
+      want to set NewPos to ProposedNewPos when returning @true.
+
+      But you can also do more sophisticated calculations and
+      sometimes not allow user to move to ProposedNewPos, but allow
+      him to move instead to some other close position.
+      For example when doing "wall sliding" (common in FPS games):
+      when you're trying to walk "into the wall", you move along the wall instead.
+
+      It's allowed to modify NewPos when returning @false.
+      It makes no effect.
+
+      BecauseOfGravity says whether this move is caused by gravity
+      dragging the player down. You can use BecauseOfGravity e.g. to implement
+      @link(TCastleViewport.PreventInfiniteFallingDown).
+
+      Implementation calls OnMoveAllowed and OnInternalMoveAllowed. }
+    function MoveAllowed(
+      const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
+      const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
   public
     const
       { Default value for TCastleNavigation.Radius.
@@ -667,6 +721,33 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
     function GetExists: boolean; override;
+
+    { Used by @link(MoveAllowed), see there for description.
+      You can assign this property. }
+    property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
+
+    { Used by @link(MoveAllowed), see there for description.
+      This property is used internally by TCastleViewport. }
+    property OnInternalMoveAllowed: TMoveAllowedFunc
+      read FOnInternalMoveAllowed write FOnInternalMoveAllowed;
+
+    { Assign here the callback to check collisions
+      and determine what is the current height of position above the ground.
+      This should be calculated like collision of ray from @link(Position)
+      in direction -GravityUp with the world.
+      See @link(TCastleTransform.Height) for specification what returned parameters
+      mean. }
+    property OnInternalHeight: THeightEvent read FOnInternalHeight write FOnInternalHeight;
+
+    { Notification that we have been falling down for some time due to gravity,
+      and suddenly stopped (which means we "hit the ground").
+
+      This event can be useful in games, for example to lower player's health,
+      and/or make a visual effect (like a "red out" indicating pain)
+      and/or make a sound effect ("Ouch!" or "Thud!" or such sounds).
+      You can look at FallHeight parameter, given to the callback,
+      e.g. to gauge how much health decreases. }
+    property OnFall: TFallNotifyFunc read FOnFall write FOnFall;
 
     { Associated TCastleCamera of the viewport.
       @raises EViewportNotAssigned If Viewport not assigned yet. }
@@ -885,16 +966,15 @@ type
 
       This must always be >= 0.
       You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(TCastleWalkNavigation.Gravity),
-      and also you should set OnHeight.
+      behavior of some things related to @link(TCastleWalkNavigation.Gravity).
 
       See CorrectPreferredHeight for important property
       of PreferredHeight that you should keep. }
     property PreferredHeight: Single
       read FPreferredHeight write FPreferredHeight default 0.0;
 
-    { Correct PreferredHeight based on your Radius
-      and on current HeadBobbing.
+    { Correct PreferredHeight based on @link(Radius)
+      and on current @link(HeadBobbing).
 
       Exactly what and why is done: if you do any kind of collision
       detection with some Radius, then
@@ -918,15 +998,9 @@ type
       Reasoning: otherwise this class would "want camera to fall down"
       (because we will always be higher than RealPreferredHeight)
       but your OnMoveAllowed would not allow it (because Radius
-      would not allow it). Note that this class doesn't keep value
-      of your Radius, because collision detection
-      is (by design) never done by this class --- it's always
-      delegated to OnHeight and OnMoveAllowed.
-      Also, it's not exactly forced @italic(how) you should force this
-      condition to hold. Sometimes the good solution is to adjust
-      Radius, not to adjust PreferredHeight.
+      would not allow it).
 
-      Anyway, this method will make sure that this condition
+      This method will make sure that this condition
       holds by eventually adjusting (making larger) PreferredHeight.
       Note that for Radius = 0.0 this will always leave
       PreferredHeight as it is. }
@@ -1319,21 +1393,6 @@ type
     { Ignores the dragging. }
     mdNone);
 
-  { See @link(TCastleWalkNavigation.DoMoveAllowed) and
-    @link(TCastleWalkNavigation.OnMoveAllowed) }
-  TMoveAllowedFunc = function(Navigation: TCastleWalkNavigation;
-    const ProposedNewPos: TVector3;
-    out NewPos: TVector3;
-    const BecauseOfGravity: boolean): boolean of object;
-
-  { See @link(TCastleWalkNavigation.OnFall). }
-  TFallNotifyFunc = procedure (Navigation: TCastleWalkNavigation;
-    const FallHeight: Single) of object;
-
-  THeightEvent = function (Navigation: TCastleWalkNavigation;
-    const Position: TVector3;
-    out AboveHeight: Single; out AboveGround: PTriangle): boolean of object;
-
   { Abstract navigation class that can utilize @italic(mouse look),
     during which mouse cursor is hidden and we look at MouseLookDelta every frame. }
   TCastleMouseLookNavigation = class(TCastleNavigation)
@@ -1448,7 +1507,7 @@ type
     function MoveTo(const ProposedNewPos: TVector3;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Try to move from current Position to Position + MoveVector.
-      Checks DoMoveAllowed, also (if CheckClimbHeight is @true)
+      Checks MoveAllowed, also (if CheckClimbHeight is @true)
       checks the ClimbHeight limit.
 
       Returns @false if move was not possible and Position didn't change.
@@ -1485,12 +1544,10 @@ type
 
     FFalling: boolean;
     FFallingStartPosition: TVector3;
-    FOnFall: TFallNotifyFunc;
     FFallSpeedStart: Single;
     FFallSpeed: Single;
     FFallSpeedIncrease: Single;
     FGravity: boolean;
-    FOnHeight: THeightEvent;
     FGrowSpeed: Single;
     { This is used by FallingEffect to temporary modify Matrix result
       by rotating Up around Direction. In degress. }
@@ -1517,17 +1574,12 @@ type
     FIsOnTheGround: boolean;
     FIsWalkingOnTheGround: boolean;
 
-    FOnMoveAllowed, FOnInternalMoveAllowed: TMoveAllowedFunc;
     FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
     FMouseDraggingMoveSpeed: Single;
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
   protected
-    { Call OnHeight callback. }
-    procedure Height(const APosition: TVector3;
-      out AIsAbove: boolean;
-      out AnAboveHeight: Single; out AnAboveGround: PTriangle); virtual;
     function ReallyEnableMouseDragging: boolean; override;
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -1554,62 +1606,6 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
-
-    { Used by @link(DoMoveAllowed), see there for description.
-      You can assign this property. }
-    property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
-
-    { Used by @link(DoMoveAllowed), see there for description.
-      This property is used internally by TCastleViewport. }
-    property OnInternalMoveAllowed: TMoveAllowedFunc
-      read FOnInternalMoveAllowed write FOnInternalMoveAllowed;
-
-    { @abstract(DoMoveAllowed will be used when user will move in the scene,
-      i.e. when user will want to change @link(Position).)
-
-      ProposedNewPos is the position where the user wants to move
-      (current user position is always stored in Position,
-      so you can calculate move direction by ProposedNewPos - Position).
-
-      This is the place to "plug in" your collision detection
-      into navigation.
-
-      Returns false if no move is allowed.
-      Otherwise returns true and sets NewPos to the position
-      where user should be moved. E.g. if you're doing a simple
-      test for collisions (with yes/no results), you will always
-      want to set NewPos to ProposedNewPos when returning true.
-      But you can also do more sophisticated calculations and
-      sometimes not allow user to move to ProposedNewPos, but allow
-      him to move instead to some other close position.
-      E.g. look what's happening in quake (or just any first-person
-      3d game) when you're trying to walk "into the wall"
-      at angle like 30 degrees: you're blocked,
-      i.e. you obviously can't walk into the wall, but your position
-      changes a bit and you're slowly moving alongside the wall.
-      That's how you can use NewPos: you can return true and set
-      NewPos to something that is not exactly ProposedNewPos
-      (but is close to ProposedNewPos).
-
-      Note that it's allowed to modify NewPos when returning false.
-      This is meaningless, but may be comfortable for implementor
-      of DoMoveAllowed.
-
-      BecauseOfGravity says whether this move is caused by gravity
-      dragging the player down. Can happen only if @link(Gravity)
-      is @true. You can use BecauseOfGravity to control DoMoveAllowed
-      behavior --- e.g. view3dscene will not allow camera to move
-      lower that some minimal plane when BecauseOfGravity
-      (because this would mean that camera falls down infinitely),
-      on the other hand when BecauseOfGravity is @false moving
-      outside bounding box is allowed (to allow camera to look at the
-      scene from "the outside").
-
-      Basic implementation of DoMoveAllowed in this class
-      checks OnMoveAllowed and OnInternalMoveAllowed. }
-    function DoMoveAllowed(ProposedNewPos: TVector3;
-      out NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean; virtual;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
@@ -1745,34 +1741,6 @@ type
 
     function Motion(const Event: TInputMotion): boolean; override;
 
-    { Assign here the callback (or override @link(Height))
-      to say what is the current height of camera above the ground.
-      This should be calculated like collision of ray from @link(Position)
-      in direction -GravityUp with the scene.
-      See @link(TCastleTransform.Height) for specification what returned parameters
-      mean.
-
-      Implementation of @link(Height) in this class
-      calls OnHeight, if assigned. (If not assigned,
-      we assume no collision: IsAbove = @false, AboveHeight = MaxSingle,
-      AboveGround = @nil). }
-    property OnHeight: THeightEvent read FOnHeight write FOnHeight;
-
-    { Notification that we have been falling down for some time,
-      and suddenly stopped (which means we "hit the ground").
-      Of course this is used only when @link(Gravity) is @true
-      (it can also be called shortly after you changed
-      @link(Gravity) from @true to @false, so don't simply assert
-      here that @link(Gravity) is @true).
-
-      This event can be useful in games, for example to lower player's health,
-      and/or make a visual effect (like a "red out" indicating pain)
-      and/or make a sound effect ("Ouch!" or "Thud!" or such sounds).
-      You can look at FallHeight parameter, given to the callback,
-      e.g. to gauge how much health decreases. }
-    property OnFall: TFallNotifyFunc
-      read FOnFall write FOnFall;
-
     { Initial speed of falling down.
       Of course this is used only when @link(Gravity) is true.
 
@@ -1807,11 +1775,11 @@ type
       @bold(without calling OnFallenDown). It's much like forcing
       the opinion that "camera is not falling down right now".
 
-      Of course, if in the nearest Update we will find out (using
-      OnHeight) that camera is too high above the ground,
-      then we will start falling down again, setting Falling
-      back to true. (but then we will start falling down from the beginning,
-      starting at given @link(Position) and with initial falling down speed).
+      Note that if we will find out (e.g. in nearest @link(Update))
+      that camera is still too high above the ground,
+      then we will start falling down again, setting @link(Falling)
+      back to true. (but then we will start falling down from the beginning
+      with initial falling down speed).
 
       This is useful to call if you just changed @link(Position) because
       e.g. the player teleported somewhere (or e.g. game levels changed).
@@ -1913,11 +1881,11 @@ type
 
     { Last known information about whether camera is over the ground.
       Updated by using @link(Height) call. For normal TCastleNavigation descendants,
-      this means using OnHeight callback.
+      this means using OnInternalHeight callback,
+      which is handled by @link(TCastleViewport) if you assigned @link(TCastleViewport.Navigation)
+      to this navigation.
 
-      These are updated only when @link(Height)
-      is continuously called, which in practice means:
-      only when @link(Gravity) is @true.
+      These are updated continuously only when @link(Gravity) is @true.
 
       We do not (and, currently, cannot) track here if
       AboveGround pointer will be eventually released (which may happen
@@ -2050,7 +2018,7 @@ type
 
       Summary of things done by gravity:
       @unorderedList(
-        @item(It uses OnHeight to get camera height above the ground.)
+        @item(It uses OnInternalHeight to get camera height above the ground.)
         @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
           JumpHorizontalSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
@@ -2066,8 +2034,7 @@ type
 
       While there are many properties allowing you to control
       gravity behavior, most of them have initial values that should be
-      sensible in all cases. The only things that you really want to take
-      care of are: OnHeight and PreferredHeight.
+      sensible in all cases. The most important property you need to set yourself is PreferredHeight.
       Everything else should basically work auto-magically.
 
       Note that Gravity setting is independent from
@@ -2717,6 +2684,37 @@ begin
   MouseDraggingStarted := -1;
 
   FullSize := true;
+end;
+
+function TCastleNavigation.MoveAllowed(
+  const OldPos: TVector3; ProposedNewPos: TVector3; out NewPos: TVector3;
+  const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
+begin
+  Result := true;
+  NewPos := ProposedNewPos;
+
+  if Result and Assigned(OnInternalMoveAllowed) then
+  begin
+    Result := OnInternalMoveAllowed(Self, Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+    // update ProposedNewPos for OnMoveAllowed call
+    if Result then
+      ProposedNewPos := NewPos;
+  end;
+  if Result and Assigned(OnMoveAllowed) then
+    Result := OnMoveAllowed(Self, Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
+end;
+
+procedure TCastleNavigation.Height(const APosition: TVector3;
+  out AIsAbove: Boolean;
+  out AnAboveHeight: Single; out AnAboveGround: PTriangle);
+begin
+  if Assigned(OnInternalHeight) then
+    AIsAbove := OnInternalHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
+  begin
+    AIsAbove := false;
+    AnAboveHeight := MaxSingle;
+    AnAboveGround := nil;
+  end;
 end;
 
 function TCastleNavigation.GetNavigationType: TNavigationType;
@@ -3974,36 +3972,6 @@ begin
   inherited;
 end;
 
-function TCastleWalkNavigation.DoMoveAllowed(ProposedNewPos: TVector3;
-  out NewPos: TVector3; const BecauseOfGravity: boolean): boolean;
-begin
-  Result := true;
-  NewPos := ProposedNewPos;
-
-  if Result and Assigned(OnInternalMoveAllowed) then
-  begin
-    Result := OnInternalMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity);
-    // update ProposedNewPos for OnMoveAllowed call
-    if Result then
-      ProposedNewPos := NewPos;
-  end;
-  if Result and Assigned(OnMoveAllowed) then
-    Result := OnMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity);
-end;
-
-procedure TCastleWalkNavigation.Height(const APosition: TVector3;
-  out AIsAbove: boolean;
-  out AnAboveHeight: Single; out AnAboveGround: PTriangle);
-begin
-  if Assigned(OnHeight) then
-    AIsAbove := OnHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
-  begin
-    AIsAbove := false;
-    AnAboveHeight := MaxSingle;
-    AnAboveGround := nil;
-  end;
-end;
-
 function TCastleWalkNavigation.UseHeadBobbing: boolean;
 begin
   Result := Gravity and (HeadBobbing <> 0.0);
@@ -4228,7 +4196,7 @@ var
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
   NewAboveGround: PTriangle;
 begin
-  Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
+  Result := MoveAllowed(Camera.Position, ProposedNewPos, NewPos, Radius, BecauseOfGravity);
 
   if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
     { if we're already below ClimbHeight then do not check if new position
@@ -4414,7 +4382,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       Result := false;
 
       { Note that if we got here, then TryGrow returned false,
-        which means that (assuming OnHeight is correctly assigned)
+        which means that (assuming OnInternalHeight is correctly assigned)
         we are not above the ground, or
           AboveHeight >=
             RealPreferredHeight - RealPreferredHeightMargin
