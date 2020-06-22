@@ -47,7 +47,6 @@ type
     FAvatar: TCastleScene;
     FAvatarHierarchy: TCastleTransform;
     FMaxAvatarRotationSpeed: Single;
-    FMaxCameraRotationSpeed: Single;
     FInitialHeightAboveTarget: Single;
     FDistanceToAvatarTarget: Single;
     FAimAvatar: Boolean;
@@ -56,6 +55,7 @@ type
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
+    function CameraPositionInitial(const A: TCastleTransform): TVector3;
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -63,9 +63,11 @@ type
       DefaultInitialHeightAboveTarget = 1.0;
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultMaxAvatarRotationSpeed = 0.1;
-      DefaultMaxCameraRotationSpeed = 0.2;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
+      { Much smaller defaults than TCastleMouseLookNavigation, as they affect camera differently. }
+      DefaultThirdPersonMouseLookHorizontalSensitivity = 0.001;
+      DefaultThirdPersonMouseLookVerticalSensitivity = 0.001;
 
     constructor Create(AOwner: TComponent); override;
 
@@ -100,8 +102,8 @@ type
       By default this is DefaultAvatarTargetForward = (0, 2, 0). }
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
   published
-    property MouseLookHorizontalSensitivity;
-    property MouseLookVerticalSensitivity;
+    property MouseLookHorizontalSensitivity default DefaultThirdPersonMouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity default DefaultThirdPersonMouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
 
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
@@ -123,13 +125,10 @@ type
     property Avatar: TCastleScene read FAvatar write SetAvatar;
 
     { When @link(AimAvatar), this is avatar's rotation speed.
-      Should be < MaxCameraRotationSpeed to make avatar rotation "catch up" with some delay. }
+      Should be small enough to make avatar rotation "catch up" with some delay after camera
+      rotation. }
     property MaxAvatarRotationSpeed: Single read FMaxAvatarRotationSpeed write FMaxAvatarRotationSpeed
       default DefaultMaxAvatarRotationSpeed;
-
-    { Camera rotation speed. }
-    property MaxCameraRotationSpeed: Single read FMaxCameraRotationSpeed write FMaxCameraRotationSpeed
-      default DefaultMaxCameraRotationSpeed;
 
     { If @true (default) then rotating the camera also rotates (with some delay) the avatar,
       to face the same direction as the camera.
@@ -175,7 +174,7 @@ var
 implementation
 
 uses SysUtils, Math,
-  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils,
+  CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils, CastleUtils,
   GameStateMenu;
 
 { TCastleThirdPersonNavigation ----------------------------------------------- }
@@ -186,10 +185,11 @@ begin
   FAvatarTarget := DefaultAvatarTarget;
   FAvatarTargetForward := DefaultAvatarTargetForward;
   FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
-  FMaxCameraRotationSpeed := DefaultMaxCameraRotationSpeed;
   FAimAvatar := true;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
+  MouseLookHorizontalSensitivity := DefaultThirdPersonMouseLookHorizontalSensitivity;
+  MouseLookVerticalSensitivity := DefaultThirdPersonMouseLookVerticalSensitivity;
 end;
 
 function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
@@ -218,7 +218,7 @@ begin
   end;
 end;
 
-procedure TCastleThirdPersonNavigation.Init;
+function TCastleThirdPersonNavigation.CameraPositionInitial(const A: TCastleTransform): TVector3;
 var
   GravUp: TVector3;
 
@@ -238,26 +238,41 @@ var
   end;
 
 var
-  A: TCastleTransform;
-  CameraPos, CameraDir, CameraUp, TargetWorldPos, TargetWorldDir: TVector3;
+  TargetWorldPos, TargetWorldDir: TVector3;
   HorizontalShiftFromTarget: Single;
+begin
+  TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+  TargetWorldDir := A.WorldTransform.MultDirection(TCastleTransform.DefaultDirection[A.Orientation]);
+
+  { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
+    create a right triangle, so
+    InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
+  }
+  HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+  GravUp := Camera.GravityUp;
+
+  Result := TargetWorldPos
+    + GravUp * InitialHeightAboveTarget
+    - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
+end;
+
+procedure TCastleThirdPersonNavigation.Init;
+var
+  GravUp: TVector3;
+  A: TCastleTransform;
+  CameraPos, CameraDir, CameraUp, TargetWorldPosForward: TVector3;
 begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    TargetWorldDir := A.WorldTransform.MultDirection(TCastleTransform.DefaultDirection[A.Orientation]);
-
-    { InitialHeightAboveTarget, HorizontalShiftFromTarget, DistanceToAvatarTarget
-      create a right triangle, so
-      InitialHeightAboveTarget^2 + HorizontalShiftFromTarget^2 = DistanceToAvatarTarget^2
-    }
-    HorizontalShiftFromTarget := Sqrt(Sqr(DistanceToAvatarTarget) - Sqr(InitialHeightAboveTarget));
+    TargetWorldPosForward := A.WorldTransform.MultPoint(AvatarTargetForward);
     GravUp := Camera.GravityUp;
-    CameraPos := TargetWorldPos
-      + GravUp * InitialHeightAboveTarget
-      - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
-    CameraDir := TargetWorldPos - CameraPos;
+
+    CameraPos := CameraPositionInitial(A);
+    { We know that AvatarTargetForward influence on direction is 100%,
+      AvatarTarget is 0%,
+      since camera is positioned precisely at the back of avatar. }
+    CameraDir := TargetWorldPosForward - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
@@ -272,8 +287,77 @@ begin
 end;
 
 procedure TCastleThirdPersonNavigation.ProcessMouseLookDelta(const Delta: TVector2);
+var
+  ToCamera, GravUp: TVector3;
+  A: TCastleTransform;
+
+  { Change ToCamera by applying DeltaY from mouse look. }
+  procedure ProcessVertical(DeltaY: Single);
+  const
+    { Do not allow to look exactly up or exactly down,
+      as then further vertical moves would be undefined,
+      so you would not be able to "get out" of such rotation. }
+    MinimalAngleFromZenith = 0.1;
+  var
+    Side: TVector3;
+    AngleToUp, AngleToDown, MaxChange: Single;
+  begin
+    Side := TVector3.CrossProduct(ToCamera, GravUp);
+    DeltaY := DeltaY;
+    if DeltaY > 0 then
+    begin
+      AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
+      MaxChange := Max(0, AngleToUp - MinimalAngleFromZenith);
+      if DeltaY > MaxChange then
+        DeltaY := MaxChange;
+    end else
+    begin
+      AngleToDown := AngleRadBetweenVectors(ToCamera, -GravUp);
+      MaxChange := Max(0, AngleToDown - MinimalAngleFromZenith);
+      if DeltaY < -MaxChange then
+        DeltaY := -MaxChange;
+    end;
+    ToCamera := RotatePointAroundAxisRad(DeltaY, ToCamera, Side);
+  end;
+
+  function ForwardInfluence(const TargetWorldPos, CameraPos: TVector3): Single;
+  // TODO: expose as properties
+  const
+    AngleForward = 0.1;
+    AngleNonForward = 0.5;
+  var
+    Angle: Single;
+  begin
+    Angle := AngleRadBetweenVectors(
+      CameraPos - TargetWorldPos,
+      CameraPositionInitial(A) - TargetWorldPos);
+    Result := MapRangeClamped(Angle, AngleForward, AngleNonForward, 1, 0);
+  end;
+
+var
+  CameraPos, CameraDir, CameraUp,
+    TargetWorldPos, TargetWorldPosForward, LookTarget: TVector3;
 begin
   inherited;
+  A := RealAvatarHierarchy;
+  if (A <> nil) and (InternalViewport <> nil) then
+  begin
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+    TargetWorldPosForward := A.WorldTransform.MultPoint(AvatarTargetForward);
+    ToCamera := Camera.Position - TargetWorldPos;
+    GravUp := Camera.GravityUp;
+
+    ProcessVertical(Delta[1]);
+
+    // TODO: check collisions
+    CameraPos := TargetWorldPos + ToCamera;
+
+    LookTarget := Lerp(SmoothStep(0, 1, ForwardInfluence(TargetWorldPos, CameraPos)),
+      TargetWorldPos, TargetWorldPosForward);
+    CameraDir := LookTarget - CameraPos;
+    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+    Camera.SetView(CameraPos, CameraDir, CameraUp);
+  end;
 end;
 
 (*TODO:
@@ -332,6 +416,7 @@ begin
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
   MainViewport.Navigation := ThirdPersonNavigation;
   ThirdPersonNavigation.Avatar := SceneAvatar;
+  ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 5);
   ThirdPersonNavigation.Init;
 end;
 
