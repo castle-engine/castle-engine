@@ -353,7 +353,7 @@ procedure SaveSchemeToFile(const Scheme: TEmulationSettings; const Filename: str
 implementation
 
 uses
-   IniFiles;
+   IniFiles, Math;
 
 const
   {$EXTERNALSYM MOUSEEVENTF_HWHEEL}
