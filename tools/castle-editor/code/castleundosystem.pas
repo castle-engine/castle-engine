@@ -98,13 +98,13 @@ var
   I: Integer;
   NewUndoHistorySize: Integer;
 begin
-  if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) and (SelectedComponent = UndoHistory[CurrentUndo].Selected) then
+  if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
   begin
     if (SelectedComponent = UndoHistory[CurrentUndo].Selected) or (UndoHistory[CurrentUndo].Selected = '') then
       WriteLnLog('New Undo is identical to previous Undo record. Not saving.')
     else
     begin
-      //UndoHistory.List^[CurrentUndo].Selected := SelectedComponent;
+      UndoHistory[CurrentUndo].Selected := SelectedComponent;
       WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
     end;
     if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
