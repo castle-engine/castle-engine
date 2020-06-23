@@ -16,7 +16,7 @@ type
   TSelectedComponent = string;
 
 type
-  TUndoHistoryElement = object
+  TUndoHistoryElement = class(TObject)
     Data: TUndoData;
     Selected: TSelectedComponent;
     Comment: String;
@@ -24,7 +24,7 @@ type
   end;
 
 type
-  TUndoHistory = specialize TStructList<TUndoHistoryElement>;
+  TUndoHistory = specialize TObjectList<TUndoHistoryElement>;
 
 type
   TUndoSystem = class(TComponent)
@@ -67,13 +67,13 @@ function TUndoHistoryElement.Size: SizeInt;
   end;
 
 begin
-  Result := SizeOf(Self) + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected) + SizeOfAnsiString(Comment);
+  Result := Self.InstanceSize + SizeOfAnsiString(Data) + SizeOfAnsiString(Selected) + SizeOfAnsiString(Comment);
 end;
 
 constructor TUndoSystem.Create(AOwner: TComponent);
 begin
   inherited;
-  UndoHistory := TUndoHistory.Create;
+  UndoHistory := TUndoHistory.Create(true);
   ClearUndoHistory;
 end;
 
@@ -105,12 +105,12 @@ begin
     else
     begin
       //UndoHistory.List^[CurrentUndo].Selected := SelectedComponent;
-      WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory.List^[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
+      WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
     end;
     if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
     begin
       WriteLnLog('The last undo comment was set to generic "Edit value", overwriting with better reason: ' + UndoComment);
-      UndoHistory.List^[CurrentUndo].Comment := UndoComment;
+      UndoHistory[CurrentUndo].Comment := UndoComment;
     end;
     Exit;
   end;
@@ -119,7 +119,7 @@ begin
   for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
     UndoHistory.Delete(I);
   //add new UndoElement
-  //NewUndoElement := TUndoHistoryElement.Create;
+  NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
   NewUndoElement.Selected := SelectedComponent;
   NewUndoElement.Comment := UndoComment;
