@@ -40,7 +40,7 @@ type
       you are expected to provide both angles calculated, even though some routines
       for now will only use the vertical angle (and automatically adjust the other
       to the aspect ratio).
-      Use the AdjustViewAngleDegToAspectRatio to calculate the angles as necessary.
+      Use the AdjustViewAngleRadToAspectRatio to calculate the angles as necessary.
     }
     PerspectiveAnglesRad: TVector2;
 
@@ -82,7 +82,7 @@ type
 
   @groupBegin }
 function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg,
-  SecondToFirstRatio: Single): Single;
+  SecondToFirstRatio: Single): Single; deprecated 'use radians for everything throughout CGE';
 function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
   SecondToFirstRatio: Single): Single;
 { @groupEnd }
