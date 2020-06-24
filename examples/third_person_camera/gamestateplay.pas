@@ -170,6 +170,8 @@ type
       e.g. you cannot look at avatar's face for a long time anymore. }
     property AimAvatar: Boolean read FAimAvatar write FAimAvatar default true;
 
+    // TODO AimAvatarVerticalToo
+
     { Initial height of camera above the AvatarTarget.
       Together with DistanceToAvatarTarget this determines the initial camera position,
       set by @link(Init).
