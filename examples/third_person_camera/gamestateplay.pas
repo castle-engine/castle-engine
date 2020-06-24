@@ -54,8 +54,7 @@ type
     {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
     {$endif}
-    Walking: Boolean;
-    FMoveSpeed: Single;
+    FMoveSpeed, FCrouchSpeed, FRunSpeed: Single;
     FRotationSpeed: Single;
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -65,6 +64,8 @@ type
     FInput_LeftStrafe: TInputShortcut;
     FInput_CameraCloser: TInputShortcut;
     FInput_CameraFurther: TInputShortcut;
+    FInput_Crouch: TInputShortcut;
+    FInput_Run: TInputShortcut;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -82,6 +83,8 @@ type
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
       {$endif}
       DefaultMoveSpeed = 1.0;
+      DefaultCrouchSpeed = 0.5;
+      DefaultRunSpeed = 2.0;
       DefaultRotationSpeed = Pi * 150 / 180;
 
     constructor Create(AOwner: TComponent); override;
@@ -135,6 +138,8 @@ type
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
     property Input_CameraCloser: TInputShortcut read FInput_CameraCloser;
     property Input_CameraFurther: TInputShortcut read FInput_CameraFurther;
+    property Input_Crouch: TInputShortcut read FInput_Crouch;
+    property Input_Run: TInputShortcut read FInput_Run;
   published
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
@@ -185,7 +190,11 @@ type
       default DefaultDistanceToAvatarTarget;
 
     { Speed of movement by keys. }
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default DefaultMoveSpeed;
+    { Speed of movement by keys, when crouching. }
+    property CrouchSpeed: Single read FCrouchSpeed write FCrouchSpeed default DefaultCrouchSpeed;
+    { Speed of movement by keys, when running. }
+    property RunSpeed: Single read FRunSpeed write FRunSpeed default DefaultRunSpeed;
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
       default DefaultRotationSpeed;
@@ -219,7 +228,7 @@ var
 
 implementation
 
-uses SysUtils, Math,
+uses SysUtils, Math, StrUtils,
   CastleSoundEngine, CastleLog, CastleStringUtils, CastleFilesUtils, CastleUtils,
   GameStateMenu;
 
@@ -237,6 +246,8 @@ begin
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
   FMoveSpeed := DefaultMoveSpeed;
+  FCrouchSpeed := DefaultCrouchSpeed;
+  FRunSpeed := DefaultRunSpeed;
   FRotationSpeed := DefaultRotationSpeed;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
@@ -247,6 +258,8 @@ begin
   FInput_RightStrafe             := TInputShortcut.Create(Self);
   FInput_CameraCloser            := TInputShortcut.Create(Self);
   FInput_CameraFurther           := TInputShortcut.Create(Self);
+  FInput_Crouch                  := TInputShortcut.Create(Self);
+  FInput_Run                     := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(keyW, keyUp);
   Input_Backward                .Assign(keyS, keyDown);
@@ -254,8 +267,10 @@ begin
   Input_RightRotate             .Assign(keyRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
-  Input_CameraCloser            .Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
-  Input_CameraFurther           .Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
+  Input_CameraCloser            .Assign(keyNone);
+  Input_CameraFurther           .Assign(keyNone);
+  Input_Crouch                  .Assign(keyCtrl);
+  Input_Run                     .Assign(keyShift);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -265,6 +280,8 @@ begin
   Input_RightStrafe            .SetSubComponent(true);
   Input_CameraCloser           .SetSubComponent(true);
   Input_CameraFurther          .SetSubComponent(true);
+  Input_Crouch                 .SetSubComponent(true);
+  Input_Run                    .SetSubComponent(true);
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
@@ -274,6 +291,8 @@ begin
   Input_RightStrafe            .Name := 'Input_RightStrafe';
   Input_CameraCloser           .Name := 'Input_CameraCloser';
   Input_CameraFurther          .Name := 'Input_CameraFurther';
+  Input_Crouch                 .Name := 'Input_Crouch';
+  Input_Run                    .Name := 'Input_Run';
 end;
 
 function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
@@ -366,7 +385,7 @@ begin
 
     if Avatar <> nil then
     begin
-      Avatar.PlayAnimation('idle', true);
+      Avatar.AutoAnimation := 'idle';
       Avatar.ForceInitialAnimationPose;
     end;
   end;
@@ -502,67 +521,78 @@ var
     Camera.Position := TargetWorldPos - Camera.Direction.AdjustToLength(DistanceToAvatarTarget);
   end;
 
+type
+  TSpeedType = (stNormal, stCrouch, stRun);
 var
-  NewWalking: Boolean;
+  SpeedType: TSpeedType;
+  Speed: Single;
+  Moving: Boolean;
   T: TVector3;
 begin
   inherited;
 
-  // TODO running with shift
-  // TODO crouching with ctrl
-  // TODO jumping with space
-  // similar to TCastleWalkNavigation mechanics
+  // TODO jumping with space, similar to TCastleWalkNavigation mechanics
 
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    NewWalking := false;
+    if Input_Run.IsPressed(Container) then
+    begin
+      SpeedType := stRun;
+      Speed := RunSpeed;
+    end else
+    if Input_Crouch.IsPressed(Container) then
+    begin
+      SpeedType := stCrouch;
+      Speed := CrouchSpeed;
+    end else
+    begin
+      SpeedType := stNormal;
+      Speed := MoveSpeed;
+    end;
+
     T := TVector3.Zero;
     if Input_Forward.IsPressed(Container) then
     begin
-      NewWalking := true;
-      T := T + A.Direction * MoveSpeed * SecondsPassed;
+      Moving := true;
+      T := T + A.Direction * Speed * SecondsPassed;
     end;
     if Input_Backward.IsPressed(Container) then
     begin
-      NewWalking := true;
-      T := T - A.Direction * MoveSpeed * SecondsPassed;
+      Moving := true;
+      T := T - A.Direction * Speed * SecondsPassed;
     end;
     if Input_RightStrafe.IsPressed(Container) then
     begin
-      NewWalking := true;
-      T := T + TVector3.CrossProduct(A.Direction, A.Up) * MoveSpeed * SecondsPassed;
+      Moving := true;
+      T := T + TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
     end;
     if Input_LeftStrafe.IsPressed(Container) then
     begin
-      NewWalking := true;
-      T := T - TVector3.CrossProduct(A.Direction, A.Up) * MoveSpeed * SecondsPassed;
+      Moving := true;
+      T := T - TVector3.CrossProduct(A.Direction, A.Up) * Speed * SecondsPassed;
     end;
     if Input_RightRotate.IsPressed(Container) then
     begin
-      NewWalking := true;
+      Moving := true;
       A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up)
     end;
     if Input_LeftRotate.IsPressed(Container) then
     begin
-      NewWalking := true;
+      Moving := true;
       A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
     end;
 
     if not T.IsPerfectlyZero then
       A.Move(T, false);
 
-    if Walking <> NewWalking then
-    begin
-      Walking := NewWalking;
-      if Avatar <> nil then
-      begin
-        if Walking then
-          Avatar.PlayAnimation('walk', true)
-        else
-          Avatar.PlayAnimation('idle', true);
+    if Avatar <> nil then
+      case SpeedType of
+        stNormal: Avatar.AutoAnimation := Iff(Moving, 'walk', 'idle');
+        stRun   : Avatar.AutoAnimation := Iff(Moving, 'run', 'idle');
+        stCrouch: Avatar.AutoAnimation := Iff(Moving, 'crouch', 'crouch'); // both when moving and not moving
+        // else raise EInternalError.Create('Unhandled SpeedType'); // new FPC will warn in case of unhandled "else"
       end;
-    end;
 
     // TODO: drag camera after rotation also, if AimAvatar
 
@@ -625,8 +655,17 @@ begin
   { Initialize 3rd-person camera initialization }
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
   MainViewport.Navigation := ThirdPersonNavigation;
+
+  // Assign some keys that are not assigned by default
+  ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
+  ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
+  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
+  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
+
   ThirdPersonNavigation.Avatar := SceneAvatar;
+  ThirdPersonNavigation.CrouchSpeed := 2;
   ThirdPersonNavigation.MoveSpeed := 2;
+  ThirdPersonNavigation.RunSpeed := 8;
   // TODO: as test: Allow to put camera on right / left shoulder
   ThirdPersonNavigation.Init;
 

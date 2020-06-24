@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 5.6851106882095337E-001,
-          "Y" : -5.9802954410770326E-007,
-          "Z" : 8.2267558574676514E-001,
+          "X" : 5.1497107744216919E-001,
+          "Y" : -6.4260632370860549E-007,
+          "Z" : 8.5720759630203247E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -195,11 +195,13 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "FontSize" : 3.0000000000000000E+001,
+          "FontSize" : 2.0000000000000000E+001,
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "LabelInfo",
           "Text" : [
             "Move with AWSD and arrow keys.",
+            "Hold Shift to run when moving.",
+            "Hold Ctrl to crouch.",
             "",
             "Rotate with mouse to orbit around the avatar.",
             "( Only when mouse look. Press Ctrl + M to toggle. )",
@@ -224,7 +226,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "FontSize" : 3.0000000000000000E+001,
+          "FontSize" : 2.0000000000000000E+001,
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "CheckboxAimAvatar",
           "TextColorPersistent" : {
@@ -233,7 +235,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.9699996948242188E+002,
+          "VerticalAnchorDelta" : -3.5800000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
