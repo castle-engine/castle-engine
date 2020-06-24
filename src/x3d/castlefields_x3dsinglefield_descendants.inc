@@ -1488,14 +1488,7 @@ end;
 
 function TSFMatrix4f.TransformScale: Single;
 begin
-  { This is a simple method of extracting average scaling factor from
-    a matrix. Works OK for combination of identity, scaling,
-    translation matrices.
-    Fails awfully on rotation (and possibly many other) matrices. }
-  Result := Approximate3DScale(
-    Value[0, 0],
-    Value[1, 1],
-    Value[2, 2]);
+  Result := Approximate3DScale(Value);
 end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }

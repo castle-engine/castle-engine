@@ -486,6 +486,31 @@ begin
   Result := WorldTransform.MultDirection(Dir);
 end;
 
+function TCastleTransform.LocalToWorldDistance(const Distance: Single): Single;
+var
+  S: Single;
+begin
+  S := Approximate3DScale(WorldTransform);
+  Result := Distance * S;
+end;
+
+function TCastleTransform.WorldToLocalDistance(const Distance: Single): Single;
+var
+  S: Single;
+begin
+  S := 1 / Approximate3DScale(WorldTransform);
+
+  { In principle, this should be the same:
+  S := Approximate3DScale(WorldInverseTransform);
+    Except there may be some edge cases in case of e.g. zero scale.
+    So WorldInverseTransform and WorldTransform do not transform everything perfectly
+    in both directions without any loss.
+    And we want to satisfy the common expectation that
+    LocalToWorldDistance and WorldToLocalDistance invert each other. }
+
+  Result := Distance * S;
+end;
+
 function TCastleTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var

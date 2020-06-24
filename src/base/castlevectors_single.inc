@@ -696,6 +696,7 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
+function Approximate3DScale(const M: TMatrix4): Single; overload;
 
 function Approximate2DScale(const X, Y: Single): Single; overload;
 function Approximate2DScale(const V: TVector2): Single; overload;
@@ -2522,6 +2523,18 @@ end;
 function Approximate3DScale(const V: TVector3): Single;
 begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
+end;
+
+function Approximate3DScale(const M: TMatrix4): Single;
+begin
+  Result := Approximate3DScale(
+    { This is a simple method of extracting average scaling factor from a matrix.
+      Works OK for combination of scaling, translation matrices.
+      Will fail on rotation (and possibly many other) matrices. }
+    M.Data[0, 0],
+    M.Data[1, 1],
+    M.Data[2, 2]
+  );
 end;
 
 function Approximate2DScale(const X, Y: Single): Single;

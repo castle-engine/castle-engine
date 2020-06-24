@@ -1234,9 +1234,11 @@ type
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
 
-      The given OldPos, ProposedNewPos, NewPos are in "world space"
-      e.g. after all transformations (including our parent transformations)
-      are applied.
+      The given OldPos, ProposedNewPos, NewPos are in the parent
+      coordinate system of this TCastleTransform, assuming zero translation.
+      Intuitively, you are asking "Can I do this without causing collision:
+      @code(Translation := Translation + TranslationChange)".
+      So this method is consistent with @link(Move), @link(Translate).
 
       @groupBegin }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
@@ -1288,6 +1290,14 @@ type
       @groupBegin }
     function WorldToLocalDirection(const Dir: TVector3): TVector3;
     function LocalToWorldDirection(const Dir: TVector3): TVector3;
+    { @groupEnd }
+
+    { Convert distance, like sphere radius, between local and world coordinate system.
+      This applies all the scaling on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function LocalToWorldDistance(const Distance: Single): Single;
+    function WorldToLocalDistance(const Distance: Single): Single;
     { @groupEnd }
 
     { When non-zero, we can approximate collisions with this object using a sphere
@@ -1480,10 +1490,15 @@ type
     }
     function WorldInverseTransform: TMatrix4;
 
-    { Unconditionally move this 3D object by given vector.
-      You usually don't want to use this directly, instead use @link(Move)
-      method to move checking collisions (and with optional wall sliding). }
-    procedure Translate(const T: TVector3);
+    { Unconditionally move this object by a given vector.
+
+      To move and check collisions, use @link(Move) instead of this method.
+
+      The provided TranslationChange should be a direction in the parent
+      coordinate system of this TCastleTransform.
+      Using this routine is exactly equivalent to
+      @code(Translation := Translation + TranslationChange). }
+    procedure Translate(const TranslationChange: TVector3);
 
     { Move, if possible (checking collisions with other objects in world).
       This is the simplest way to move an object,
@@ -1492,7 +1507,7 @@ type
       Checks move possibility by MoveAllowed, using @link(Middle) point.
       Actual move is done using @link(Translate).
 
-      The provided TranslationChange should be a direction in the local
+      The provided TranslationChange should be a direction in the parent
       coordinate system of this TCastleTransform,
       so using this routine is consistent with doing
       @code(Translation := Translation + TranslationChange)
@@ -2469,32 +2484,41 @@ begin
   finally Enable end;
 end;
 
-function TCastleTransform.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3;
+function TCastleTransform.MoveAllowed(const OldPos, ProposedNewPos: TVector3;
   out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
-  SpRadius: Single;
+  SpRadius, SpRadiusWorld: Single;
   OldBox, NewBox: TBox3D;
+  OldPosWorld, ProposedNewPosWorld, NewPosWorld: TVector3;
 begin
-  { save bounding volume information before calling Disable, as Disable makes
+  Assert(UniqueParent <> nil, 'Need to know world transformation before MoveAllowed');
+
+  OldPosWorld := UniqueParent.LocalToWorld(OldPos);
+  ProposedNewPosWorld := UniqueParent.LocalToWorld(ProposedNewPos);
+
+  { Save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
   Sp := Sphere(SpRadius);
   if not Sp then
     SpRadius := 0; { something predictable, for safety }
   OldBox := WorldBoundingBox;
-  NewBox := OldBox.Translate(ProposedNewPos - OldPos);
+  NewBox := OldBox.Translate(ProposedNewPosWorld - OldPosWorld);
+
+  SpRadiusWorld := UniqueParent.LocalToWorldDistance(SpRadius);
 
   Disable;
   try
-    Result := World.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos,
-      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+    Result := World.WorldMoveAllowed(OldPosWorld, ProposedNewPosWorld, NewPosWorld,
+      Sp, SpRadiusWorld, OldBox, NewBox, BecauseOfGravity);
   finally Enable end;
+
+  if Result then
+    NewPos := UniqueParent.WorldToLocal(NewPosWorld);
 end;
 
-function TCastleTransform.MoveAllowed(
-  const OldPos, NewPos: TVector3;
+function TCastleTransform.MoveAllowed(const OldPos, NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
@@ -3322,26 +3346,22 @@ end;
 function TCastleTransform.Move(const TranslationChange: TVector3;
   const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
 var
-  OldMiddle, ProposedNewMiddle, NewMiddle, TranslationChangeWorld, ActualTranslationChangeWorld: TVector3;
+  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
 begin
-  OldMiddle := Middle(true);
-  TranslationChangeWorld := LocalToWorldDirection(TranslationChange);
+  OldMiddle := Middle;
 
   if EnableWallSliding then
   begin
-    ProposedNewMiddle := OldMiddle + TranslationChangeWorld;
+    ProposedNewMiddle := OldMiddle + TranslationChange;
     Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
   end else
   begin
-    NewMiddle := OldMiddle + TranslationChangeWorld;
+    NewMiddle := OldMiddle + TranslationChange;
     Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
   end;
 
   if Result then
-  begin
-    ActualTranslationChangeWorld := NewMiddle - OldMiddle;
-    Translate(WorldToLocalDirection(ActualTranslationChangeWorld));
-  end;
+    Translate(NewMiddle - OldMiddle);
 end;
 
 procedure TCastleTransform.ChangedTransform;
@@ -3443,9 +3463,9 @@ begin
   Translation := Vector3(Value, Translation.Data[2]);
 end;
 
-procedure TCastleTransform.Translate(const T: TVector3);
+procedure TCastleTransform.Translate(const TranslationChange: TVector3);
 begin
-  Translation := Translation + T;
+  Translation := Translation + TranslationChange;
 end;
 
 procedure TCastleTransform.Identity;
