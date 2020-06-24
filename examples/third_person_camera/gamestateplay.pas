@@ -608,10 +608,15 @@ begin
 
   SceneAvatar.MiddleHeight := 0.9;
   SceneAvatar.CollisionSphereRadius := 0.5;
-  // TODO
-  // SceneAvatar.Gravity := true;
-  // SceneAvatar.GrowSpeed := 1.0;
-  // SceneAvatar.FallSpeed := 1.0;
+
+  { Gravity means that object tries to maintain a constant height
+    (SceneAvatar.PreferredHeight) above the ground.
+    GrowSpeed means that object raises properly (makes walking up the stairs work).
+    FallSpeed means that object falls properly (makes walking down the stairs,
+    falling down pit etc. work). }
+  SceneAvatar.Gravity := true;
+  SceneAvatar.GrowSpeed := 10.0;
+  SceneAvatar.FallSpeed := 10.0;
 
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
   DebugAvatar.Attach(SceneAvatar);
