@@ -51,7 +51,9 @@ type
     FDistanceToAvatarTarget: Single;
     FAimAvatar: Boolean;
     FAvatarTarget: TVector3;
+    {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
+    {$endif}
     Walking: Boolean;
     FMoveSpeed: Single;
     FRotationSpeed: Single;
@@ -67,6 +69,7 @@ type
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3;
+    function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -75,7 +78,9 @@ type
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultMaxAvatarRotationSpeed = 0.1;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
+      {$ifdef AVATAR_TARGET_FORWARD}
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
+      {$endif}
       DefaultMoveSpeed = 1.0;
       DefaultRotationSpeed = Pi * 150 / 180;
 
@@ -100,6 +105,7 @@ type
       By default this is DefaultAvatarTarget = (0, 2, 0). }
     property AvatarTarget: TVector3 read FAvatarTarget write FAvatarTarget;
 
+    {$ifdef AVATAR_TARGET_FORWARD}
     { When the camera looks directly behind the avatar's back,
       it points at AvatarTargetForward, not AvatarTarget.
       This allows to place AvatarTargetForward more in forward (and maybe higher/lower)
@@ -112,8 +118,14 @@ type
 
       The camera is still always rotating around AvatarTarget
       (so you rotate around avatar's head, even if you look far ahead).
-      By default this is DefaultAvatarTargetForward = (0, 2, 0). }
+      By default this is DefaultAvatarTargetForward = (0, 2, 0).
+
+      TODO: Not implemented now. I made initial implementation using Lerp,
+      and it just works awful -- camera rotates unexpectedly, the user feels
+      losing control of the camera at certain angles.
+    }
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
+    {$endif}
 
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
@@ -215,7 +227,9 @@ constructor TCastleThirdPersonNavigation.Create(AOwner: TComponent);
 begin
   inherited;
   FAvatarTarget := DefaultAvatarTarget;
+  {$ifdef AVATAR_TARGET_FORWARD}
   FAvatarTargetForward := DefaultAvatarTargetForward;
+  {$endif}
   FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
   FAimAvatar := true;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
@@ -286,7 +300,15 @@ begin
   end;
 end;
 
+
 function TCastleThirdPersonNavigation.CameraPositionInitial(const A: TCastleTransform): TVector3;
+var
+  TargetWorldPos: TVector3;
+begin
+  Result := CameraPositionInitial(A, TargetWorldPos); // ignore resulting TargetWorldPos
+end;
+
+function TCastleThirdPersonNavigation.CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
 var
   GravUp: TVector3;
 
@@ -306,7 +328,7 @@ var
   end;
 
 var
-  TargetWorldPos, TargetWorldDir: TVector3;
+  TargetWorldDir: TVector3;
   HorizontalShiftFromTarget: Single;
 begin
   TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
@@ -328,19 +350,15 @@ procedure TCastleThirdPersonNavigation.Init;
 var
   GravUp: TVector3;
   A: TCastleTransform;
-  CameraPos, CameraDir, CameraUp, TargetWorldPosForward: TVector3;
+  CameraPos, CameraDir, CameraUp, TargetWorldPos: TVector3;
 begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    TargetWorldPosForward := A.WorldTransform.MultPoint(AvatarTargetForward);
     GravUp := Camera.GravityUp;
 
-    CameraPos := CameraPositionInitial(A);
-    { We know that AvatarTargetForward influence on direction is 100%,
-      AvatarTarget is 0%,
-      since camera is positioned precisely at the back of avatar. }
-    CameraDir := TargetWorldPosForward - CameraPos;
+    CameraPos := CameraPositionInitial(A, TargetWorldPos);
+    CameraDir := TargetWorldPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
@@ -391,30 +409,14 @@ var
     ToCamera := RotatePointAroundAxisRad(-DeltaX, ToCamera, GravUp);
   end;
 
-  function ForwardInfluence(const TargetWorldPos, CameraPos: TVector3): Single;
-  // TODO: expose as properties
-  const
-    AngleForward = 0.05;
-    AngleNonForward = 0.5;
-  var
-    Angle: Single;
-  begin
-    Angle := AngleRadBetweenVectors(
-      CameraPos - TargetWorldPos,
-      CameraPositionInitial(A) - TargetWorldPos);
-    Result := MapRangeClamped(Angle, AngleForward, AngleNonForward, 1, 0);
-  end;
-
 var
-  CameraPos, CameraDir, CameraUp,
-    TargetWorldPos, TargetWorldPosForward, LookTarget: TVector3;
+  CameraPos, CameraDir, CameraUp, TargetWorldPos: TVector3;
 begin
   inherited;
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    TargetWorldPosForward := A.WorldTransform.MultPoint(AvatarTargetForward);
     ToCamera := Camera.Position - TargetWorldPos;
     GravUp := Camera.GravityUp;
 
@@ -423,10 +425,7 @@ begin
 
     // TODO: check collisions
     CameraPos := TargetWorldPos + ToCamera;
-
-    LookTarget := Lerp(SmoothStep(0, 1, ForwardInfluence(TargetWorldPos, CameraPos)),
-      TargetWorldPos, TargetWorldPosForward);
-    CameraDir := LookTarget - CameraPos;
+    CameraDir := TargetWorldPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
@@ -620,9 +619,6 @@ begin
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
   MainViewport.Navigation := ThirdPersonNavigation;
   ThirdPersonNavigation.Avatar := SceneAvatar;
-  { TODO: remove AvatarTargetForward idea completely?
-    It breaks the feeling of control over the camera. }
-  // ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 4);
   ThirdPersonNavigation.MoveSpeed := 2;
   // TODO: as test: Allow to put camera on right / left shoulder
   ThirdPersonNavigation.Init;
