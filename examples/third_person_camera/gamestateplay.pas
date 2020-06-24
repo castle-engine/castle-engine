@@ -21,7 +21,7 @@ interface
 uses Classes,
   CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
   CastleKeysMouse, CastleViewport, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleInputs,
+  CastleTransform, CastleInputs, CastleDebugTransform,
   GameEnemy;
 
 type
@@ -350,14 +350,6 @@ begin
       Avatar.ForceInitialAnimationPose;
     end;
   end;
-
-  // TODO: make it toggable.
-  // It is necessary for various UI to be able to toggle it.
-  // Control it using CtrlM, like in FPS game, and document in LabelInfo lke in FPS game.
-  // Decide then whether CheckboxAimAvatar reflects the mbRight, or pressing it makes something.
-  // (if not, we need to set CheckboxAimAvatar.Enabled = false)
-
-  MouseLook := true; // always use mouse look
 end;
 
 procedure TCastleThirdPersonNavigation.ProcessMouseLookDelta(const Delta: TVector2);
@@ -371,6 +363,7 @@ var
     { Do not allow to look exactly up or exactly down,
       as then further vertical moves would be undefined,
       so you would not be able to "get out" of such rotation. }
+    // TODO: this does't work reliably enough, we can still jump
     MinimalAngleFromZenith = 0.1;
   var
     Side: TVector3;
@@ -490,6 +483,25 @@ procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
   var HandleInput: Boolean);
 var
   A: TCastleTransform;
+
+  // TODO add test level geoemetry to allow avatar fall
+
+  { Make camera follow the A.Translation.
+    Does not follow instantly, which makes a nice effect when character is moving fast.
+    Following the character also makes sure that camera stays updated
+    (keeps DistanceToAvatarTarget)
+    when the avatar is being moved by other routines (e.g. because A.Gravity is working). }
+  procedure UpdateCamera;
+  var
+    TargetWorldPos: TVector3;
+  begin
+    // TODO: add delay with SmoothTowards
+
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+    Camera.Position := TargetWorldPos - Camera.Direction.AdjustToLength(DistanceToAvatarTarget);
+  end;
+
+var
   NewWalking: Boolean;
   T: TVector3;
 begin
@@ -528,16 +540,16 @@ begin
     if Input_RightRotate.IsPressed(Container) then
     begin
       NewWalking := true;
-      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, Camera.GravityUp);
+      A.Direction := RotatePointAroundAxisRad(-RotationSpeed * SecondsPassed, A.Direction, A.Up)
     end;
     if Input_LeftRotate.IsPressed(Container) then
     begin
       NewWalking := true;
-      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, Camera.GravityUp);
+      A.Direction := RotatePointAroundAxisRad(RotationSpeed * SecondsPassed, A.Direction, A.Up);
     end;
 
-    A.Translation := A.Translation + T;
-    Camera.Position := Camera.Position + T;
+    if not T.IsPerfectlyZero then
+      A.Move(T, false);
 
     if Walking <> NewWalking then
     begin
@@ -551,8 +563,9 @@ begin
       end;
     end;
 
-    // TODO: let camera drag after it with delay, not instantly
     // TODO: drag camera after rotation also, if AimAvatar
+
+    UpdateCamera;
   end;
 end;
 
@@ -568,6 +581,7 @@ var
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
   I: Integer;
+  DebugAvatar: TDebugTransform;
 begin
   inherited;
 
@@ -591,6 +605,17 @@ begin
 
   //CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
 
+  SceneAvatar.MiddleHeight := 0.9;
+  SceneAvatar.CollisionSphereRadius := 0.5;
+  // TODO
+  // SceneAvatar.Gravity := true;
+  // SceneAvatar.GrowSpeed := 1.0;
+  // SceneAvatar.FallSpeed := 1.0;
+
+  DebugAvatar := TDebugTransform.Create(FreeAtStop);
+  DebugAvatar.Attach(SceneAvatar);
+  DebugAvatar.Exists := true;
+
   { Initialize 3rd-person camera initialization }
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
   MainViewport.Navigation := ThirdPersonNavigation;
@@ -599,7 +624,14 @@ begin
     It breaks the feeling of control over the camera. }
   // ThirdPersonNavigation.AvatarTargetForward := Vector3(0, 2, 4);
   ThirdPersonNavigation.MoveSpeed := 2;
+  // TODO: as test: Allow to put camera on right / left shoulder
   ThirdPersonNavigation.Init;
+
+  // TODO:
+  // Decide then whether CheckboxAimAvatar reflects the mbRight, or pressing it makes something.
+  // (if not, we need to set CheckboxAimAvatar.Enabled = false)
+
+  ThirdPersonNavigation.MouseLook := true; // by default use mouse look
 end;
 
 procedure TStatePlay.Stop;
@@ -662,6 +694,12 @@ begin
       HitEnemy.Hurt;
     end;
 
+    Exit(true);
+  end;
+
+  if Event.IsKey(CtrlM) then
+  begin
+    ThirdPersonNavigation.MouseLook := not ThirdPersonNavigation.MouseLook;
     Exit(true);
   end;
 

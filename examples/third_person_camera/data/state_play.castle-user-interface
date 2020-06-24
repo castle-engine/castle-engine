@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 6.3310921192169189E-001,
-          "Y" : -5.3824169299332425E-007,
-          "Z" : 7.7406245470046997E-001,
+          "X" : 5.6851106882095337E-001,
+          "Y" : -5.9802954410770326E-007,
+          "Z" : 8.2267558574676514E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -182,53 +182,66 @@
       "$ClassName" : "TCastleLabel"
     },
     {
-      "ColorPersistent" : {
-        "Blue" : 1.0000000000000000E+000,
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
-      },
-      "FontSize" : 3.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-      "Name" : "LabelInfo",
-      "Text" : [
-        "Move with AWSD and arrow keys.",
-        "Rotate with mouse to orbit around the avatar.",
-        "Hold right mouse button to rotate avatar along with camera.",
-        "Use mouse wheel to get closer / further to the avatar.",
-        "",
-        "Press F5 to make a screenshot."
-      ],
-      "VerticalAnchorDelta" : -1.0000000000000000E+001,
+      "Name" : "VerticalGroup1",
+      "Padding" : 1.0000000000000000E+001,
+      "Spacing" : 1.0000000000000000E+001,
       "VerticalAnchorParent" : "vpTop",
       "VerticalAnchorSelf" : "vpTop",
       "$Children" : [
+        {
+          "ColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "LabelInfo",
+          "Text" : [
+            "Move with AWSD and arrow keys.",
+            "",
+            "Rotate with mouse to orbit around the avatar.",
+            "( Only when mouse look. Press Ctrl + M to toggle. )",
+            "",
+            "Hold right mouse button to rotate avatar along with camera.",
+            "Use mouse wheel to get closer / further to the avatar.",
+            "",
+            "Press F5 to make a screenshot."
+          ],
+          "VerticalAnchorDelta" : -1.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        },
+        {
+          "Caption" : "Aim Avatar (Rotating Camera Rotates Also Avatar)",
+          "CheckboxColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "FontSize" : 3.0000000000000000E+001,
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "CheckboxAimAvatar",
+          "TextColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "VerticalAnchorDelta" : -2.9699996948242188E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleCheckbox"
+        }
       ],
-      "$ClassName" : "TCastleLabel"
-    },
-    {
-      "Caption" : "Aim Avatar (Rotating Camera Rotates Also Avatar)",
-      "CheckboxColorPersistent" : {
-        "Blue" : 1.0000000000000000E+000,
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
-      },
-      "FontSize" : 3.0000000000000000E+001,
-      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-      "Name" : "CheckboxAimAvatar",
-      "TextColorPersistent" : {
-        "Blue" : 1.0000000000000000E+000,
-        "Green" : 1.0000000000000000E+000,
-        "Red" : 1.0000000000000000E+000,
-        "$ClassName" : "TCastleColorPersistent"
-      },
-      "VerticalAnchorDelta" : -2.2000000000000000E+002,
-      "VerticalAnchorParent" : "vpTop",
-      "VerticalAnchorSelf" : "vpTop",
-      "$Children" : [
-      ],
-      "$ClassName" : "TCastleCheckbox"
+      "$ClassName" : "TCastleVerticalGroup"
     }
   ],
   "$ClassName" : "TCastleUserInterface"
