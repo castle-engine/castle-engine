@@ -3159,9 +3159,9 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   if WorldSpace then
-    Result := Translation
+    Result := WorldTransform.MultPoint(Translation)
   else
-    Result := WorldTransform.MultPoint(Translation);
+    Result := Translation;
   Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 
