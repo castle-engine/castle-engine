@@ -466,6 +466,26 @@ begin
     Result := Transform.MultPoint(Pos);
 end;
 
+function TCastleTransform.WorldToLocal(const Pos: TVector3): TVector3;
+begin
+  Result := WorldInverseTransform.MultPoint(Pos);
+end;
+
+function TCastleTransform.LocalToWorld(const Pos: TVector3): TVector3;
+begin
+  Result := WorldTransform.MultPoint(Pos);
+end;
+
+function TCastleTransform.WorldToLocalDirection(const Dir: TVector3): TVector3;
+begin
+  Result := WorldInverseTransform.MultDirection(Dir);
+end;
+
+function TCastleTransform.LocalToWorldDirection(const Dir: TVector3): TVector3;
+begin
+  Result := WorldTransform.MultDirection(Dir);
+end;
+
 function TCastleTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var

@@ -370,7 +370,7 @@ type
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FParent: TCastleTransform;
-      FMoveSphereRadius: Single;
+      FCollisionSphereRadius: Single;
 
       // transformation
       FCenter: TVector3;
@@ -1075,7 +1075,7 @@ type
 
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center
-      (if @link(MoveSphereRadius) is non-zero or @link(Sphere) returns @true)
+      (if @link(CollisionSphereRadius) is non-zero or @link(Sphere) returns @true)
       and is the central point from which collisions of this object
       are checked (Move, MoveAllowed, Height, LineOfSight).
       It's useful for dynamic objects like player and moving creatures,
@@ -1095,8 +1095,12 @@ type
       (so only when @link(TCastleTransform.Translation) can change).
 
       In this class this returns something sensible above the bottom
-      of the box. See @link(TCastleTransform.MiddleHeight). }
-    function Middle: TVector3; virtual;
+      of the box. See @link(TCastleTransform.MiddleHeight).
+
+      When WorldSpace = @false, this is expressed ignoring parent transformations.
+      When WorldSpace = @true this is expressed accounting for parent transformations
+      using @link(WorldTransform). }
+    function Middle(const WorldSpace: Boolean = false): TVector3; virtual;
 
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
@@ -1110,7 +1114,7 @@ type
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
 
-      By default, in TCastleTransform class, this returns @true if @link(MoveSphereRadius)
+      By default, in TCastleTransform class, this returns @true if @link(CollisionSphereRadius)
       is non-zero.
 
       The advantages of using a sphere, that does not have to be a perfect
@@ -1202,7 +1206,7 @@ type
 
       Some other 3D moving objects may push this object.
       Like elevators (vertical, or horizontal moving platforms).
-      We may use sphere (see @link(MoveSphereRadius) and @link(Sphere)) for checking
+      We may use sphere (see @link(CollisionSphereRadius) and @link(Sphere)) for checking
       collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
@@ -1225,7 +1229,7 @@ type
       and only answers if exactly this move is allowed.
 
       If this object allows to use sphere for collisions
-      (see @link(MoveSphereRadius) and @link(Sphere)) then sphere will be used.
+      (see @link(CollisionSphereRadius) and @link(Sphere)) then sphere will be used.
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
@@ -1270,10 +1274,26 @@ type
     function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
 
+    { Convert position between local and world coordinate system.
+      This applies all the transformations on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function WorldToLocal(const Pos: TVector3): TVector3;
+    function LocalToWorld(const Pos: TVector3): TVector3;
+    { @groupEnd }
+
+    { Convert direction between local and world coordinate system.
+      This applies all the transformations on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function WorldToLocalDirection(const Dir: TVector3): TVector3;
+    function LocalToWorldDirection(const Dir: TVector3): TVector3;
+    { @groupEnd }
+
     { When non-zero, we can approximate collisions with this object using a sphere
       in certain situations (@link(MoveAllowed), @link(Gravity)).
       This usually makes dynamic objects, like player and creatures, collide better. }
-    property MoveSphereRadius: Single read FMoveSphereRadius write FMoveSphereRadius;
+    property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
 
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
@@ -1465,13 +1485,19 @@ type
       method to move checking collisions (and with optional wall sliding). }
     procedure Translate(const T: TVector3);
 
-    { Move, if possible (no collisions). This is the simplest way to move
-      a 3D object, and a basic building block for artificial intelligence
-      of creatures.
+    { Move, if possible (checking collisions with other objects in world).
+      This is the simplest way to move an object,
+      and a basic building block for artificial intelligence of creatures.
 
       Checks move possibility by MoveAllowed, using @link(Middle) point.
-      Actual move is done using @link(Translate). }
-    function Move(const ATranslation: TVector3;
+      Actual move is done using @link(Translate).
+
+      The provided TranslationChange should be a direction in the local
+      coordinate system of this TCastleTransform,
+      so using this routine is consistent with doing
+      @code(Translation := Translation + TranslationChange)
+      however this checks collisions. }
+    function Move(const TranslationChange: TVector3;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
 
@@ -2291,7 +2317,7 @@ end;
 
 function TCastleTransform.Sphere(out Radius: Single): boolean;
 begin
-  Radius := MoveSphereRadius;
+  Radius := CollisionSphereRadius;
   Result := Radius <> 0;
 end;
 
@@ -3114,7 +3140,7 @@ begin
     Result := BoundingBox.Data[0].Data[GravityCoordinate];
 end;
 
-function TCastleTransform.Middle: TVector3;
+function TCastleTransform.Middle(const WorldSpace: Boolean): TVector3;
 var
   GC: Integer;
   B: TBox3D;
@@ -3132,7 +3158,10 @@ begin
     (which is Ok if you think e.g. about a non-flying creature that,
     besides moving, only rotates around it's own up axis). }
 
-  Result := Translation;
+  if WorldSpace then
+    Result := Translation
+  else
+    Result := WorldTransform.MultPoint(Translation);
   Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 
@@ -3290,25 +3319,29 @@ begin
   { Nothing to do in this class }
 end;
 
-function TCastleTransform.Move(const ATranslation: TVector3;
+function TCastleTransform.Move(const TranslationChange: TVector3;
   const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
 var
-  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
+  OldMiddle, ProposedNewMiddle, NewMiddle, TranslationChangeWorld, ActualTranslationChangeWorld: TVector3;
 begin
-  OldMiddle := Middle;
+  OldMiddle := Middle(true);
+  TranslationChangeWorld := LocalToWorldDirection(TranslationChange);
 
   if EnableWallSliding then
   begin
-    ProposedNewMiddle := OldMiddle + ATranslation;
+    ProposedNewMiddle := OldMiddle + TranslationChangeWorld;
     Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
   end else
   begin
-    NewMiddle := OldMiddle + ATranslation;
+    NewMiddle := OldMiddle + TranslationChangeWorld;
     Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
   end;
 
   if Result then
-    Translate(NewMiddle - OldMiddle);
+  begin
+    ActualTranslationChangeWorld := NewMiddle - OldMiddle;
+    Translate(WorldToLocalDirection(ActualTranslationChangeWorld));
+  end;
 end;
 
 procedure TCastleTransform.ChangedTransform;

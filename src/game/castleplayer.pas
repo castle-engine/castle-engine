@@ -282,7 +282,7 @@ type
     property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    function Middle: TVector3; override;
+    function Middle(const WorldSpace: Boolean): TVector3; override;
 
     { Cause a fade-out effect on the screen, tinting the screen to the given Color.
       The TPlayer class doesn't do the actual drawing of the fade-out effect
@@ -1503,7 +1503,7 @@ begin
     RenderContext.DepthRange := drFar;
 end;
 
-function TPlayer.Middle: TVector3;
+function TPlayer.Middle(const WorldSpace: Boolean): TVector3;
 begin
   { For player, our Translation is already the suitable "eye position"
     above the ground.
@@ -1513,7 +1513,10 @@ begin
     CastleTransform unit, so there's no point in overriding methods like PreferredHeight.
     TCastleWalkNavigation.Gravity does all the work now. }
 
-  Result := Translation;
+  if WorldSpace then
+    Result := LocalToWorld(TVector3.Zero)
+  else
+    Result := Translation;
 end;
 
 procedure TPlayer.SetEnableNavigationDragging(const AValue: boolean);
