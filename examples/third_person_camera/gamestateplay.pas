@@ -489,7 +489,6 @@ var
     { Do not allow to look exactly up or exactly down,
       as then further vertical moves would be undefined,
       so you would not be able to "get out" of such rotation. }
-    // TODO: this does't work reliably enough, we can still jump
     MinimalAngleFromZenith = 0.1;
   var
     Side: TVector3;
@@ -498,14 +497,14 @@ var
     Side := -TVector3.CrossProduct(ToCamera, GravUp);
     if DeltaY > 0 then
     begin
-      AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
-      MaxChange := Max(0, AngleToUp - MinimalAngleFromZenith);
+      AngleToDown := AngleRadBetweenVectors(ToCamera, -GravUp);
+      MaxChange := Max(0, AngleToDown - MinimalAngleFromZenith);
       if DeltaY > MaxChange then
         DeltaY := MaxChange;
     end else
     begin
-      AngleToDown := AngleRadBetweenVectors(ToCamera, -GravUp);
-      MaxChange := Max(0, AngleToDown - MinimalAngleFromZenith);
+      AngleToUp := AngleRadBetweenVectors(ToCamera, GravUp);
+      MaxChange := Max(0, AngleToUp - MinimalAngleFromZenith);
       if DeltaY < -MaxChange then
         DeltaY := -MaxChange;
     end;
