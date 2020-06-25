@@ -452,23 +452,19 @@ function TCastleThirdPersonNavigation.CameraMaxDistanceToTarget(
   const A: TCastleTransform; const CameraLookPos: TVector3;
   const CameraDir: TVector3): Single;
 var
-  RayCollision: TRayCollision;
+  CollisionDistance: Single;
 begin
   Result := MaxSingle;
   A.Disable;
   try
-    RayCollision := A.World.WorldRay(CameraLookPos, -CameraDir);
-    if RayCollision <> nil then
-    try
-      if RayCollision.Count <> 0 then
-      begin
-        { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
-          (RayCollision.First.Distance - CameraRadius negative)
-          or just to close to head.
-          Then use MinDistanceToAvatarTarget. }
-        Result := Max(MinDistanceToAvatarTarget, RayCollision.Distance - CameraRadius);
-      end;
-    finally FreeAndNil(RayCollision) end;
+    if A.World.WorldRayCast(CameraLookPos, -CameraDir, CollisionDistance) <> nil then
+    begin
+      { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
+        (CollisionDistance - CameraRadius negative)
+        or just to close to head.
+        Then use MinDistanceToAvatarTarget. }
+      Result := Max(MinDistanceToAvatarTarget, CollisionDistance - CameraRadius);
+    end;
   finally A.Enable end;
 end;
 

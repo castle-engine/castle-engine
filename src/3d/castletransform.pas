@@ -1919,6 +1919,14 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
+    { What is hit by this ray.
+      Returns the TCastleTransform that is hit (this is the "left" TCastleTransform
+      in the TCastleTransform tree that is hit)
+      and a distance from RayOrigin to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      Use @link(WorldRay) for a more advanced version of this, with more complicated result. }
+    function WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+    function WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
     function WorldBoxCollision(const Box: TBox3D): boolean;
     function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
@@ -3648,6 +3656,31 @@ function TCastleAbstractRootTransform.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection, nil);
+end;
+
+function TCastleAbstractRootTransform.WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+var
+  RayColl: TRayCollision;
+begin
+  Result := nil;
+  Distance := 0; // just to make it defined
+
+  RayColl := WorldRay(RayOrigin, RayDirection);
+  if RayColl <> nil then
+  try
+    if RayColl.Count <> 0 then
+    begin
+      Result := RayColl.First.Item;
+      Distance := RayColl.Distance;
+    end;
+  finally FreeAndNil(RayColl) end;
+end;
+
+function TCastleAbstractRootTransform.WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+var
+  IgnoredDistance: Single;
+begin
+  Result := WorldRayCast(RayOrigin, RayDirection, IgnoredDistance);
 end;
 
 function TCastleAbstractRootTransform.WorldMoveAllowed(
