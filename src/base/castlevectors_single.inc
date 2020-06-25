@@ -89,6 +89,7 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; 
   @groupBegin }
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
 function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+  deprecated 'use radians for everything throughout CGE';
 { @groupEnd }
 
 { Rotate Point around the given axis by a given angle.
@@ -667,9 +668,9 @@ procedure ScalingMatrices(const ScaleFactor: TVector3;
   out Matrix, InvertedMatrix: TMatrix4);
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3;
   out Matrix, InvertedMatrix: TMatrix4); overload;
