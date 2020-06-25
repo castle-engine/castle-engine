@@ -1097,10 +1097,11 @@ type
       In this class this returns something sensible above the bottom
       of the box. See @link(TCastleTransform.MiddleHeight).
 
-      When WorldSpace = @false, this is expressed ignoring parent transformations.
-      When WorldSpace = @true this is expressed accounting for parent transformations
-      using @link(WorldTransform). }
-    function Middle(const WorldSpace: Boolean = false): TVector3; virtual;
+      This is expressed in the parent coordinate system
+      (so it is close to the @link(Translation) value, but moved up, following GravityUp).
+      It ignores parent transformations (using @code(Transform.UniqueParent.LocalToWorld(Transform.Middle))
+      to convert this to world coordinates. }
+    function Middle: TVector3; virtual;
 
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
@@ -3173,14 +3174,15 @@ begin
     Result := BoundingBox.Data[0].Data[GravityCoordinate];
 end;
 
-function TCastleTransform.Middle(const WorldSpace: Boolean): TVector3;
+function TCastleTransform.Middle: TVector3;
 var
   GC: Integer;
   B: TBox3D;
 begin
   GC := World.GravityCoordinate;
   if MiddleForceBox then
-    B := MiddleForceBoxValue else
+    B := MiddleForceBoxValue
+  else
     B := LocalBoundingBox;
 
   { More correct version would be to take B bottom point, add PreferredHeight,
@@ -3191,10 +3193,7 @@ begin
     (which is Ok if you think e.g. about a non-flying creature that,
     besides moving, only rotates around it's own up axis). }
 
-  if WorldSpace then
-    Result := WorldTransform.MultPoint(Translation)
-  else
-    Result := Translation;
+  Result := Translation;
   Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 

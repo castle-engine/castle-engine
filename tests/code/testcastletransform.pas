@@ -68,7 +68,7 @@ type
   public
     constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
     function LocalBoundingBox: TBox3D; override;
-    function Middle(const WorldSpace: Boolean): TVector3; override;
+    function Middle: TVector3; override;
   end;
 
 constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
@@ -105,7 +105,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-function TMy3D.Middle(const WorldSpace: Boolean): TVector3;
+function TMy3D.Middle: TVector3;
 begin
   // do not require World.GravityCoordinate for Middle implementation
   Result := TVector3.Zero;
