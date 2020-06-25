@@ -70,15 +70,18 @@ type
     FCameraDistanceChangeSpeed: Single;
     FMinDistanceToAvatarTarget: Single;
     FMaxDistanceToAvatarTarget: Single;
+    FImmediatelyFixBlockedCamera: Boolean;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3;
     function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
-    { Returns MaxSingle if no limit. }
-    function CameraMaxDistanceToTarget(const A: TCastleTransform; const TargetWorldPos: TVector3;
+    { Returns MaxSingle if no limit.
+      Note that CameraDir doesn't have to be normalized. }
+    function CameraMaxDistanceToTarget(const A: TCastleTransform; const CameraLookPos: TVector3;
       const CameraDir: TVector3): Single;
-    { Update camera, to avoid having something collidable between camera position and AvatarTarget. }
+    { Update camera, to avoid having something collidable between camera position and AvatarTarget.
+      Note that CameraDir doesn't have to be normalized. }
     procedure FixCameraForCollisions(var CameraPos: TVector3; const CameraDir: TVector3);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
@@ -96,7 +99,7 @@ type
       DefaultCrouchSpeed = 0.5;
       DefaultRunSpeed = 2.0;
       DefaultRotationSpeed = Pi * 150 / 180;
-      DefaultCameraDistanceChangeSpeed = 0.1;
+      DefaultCameraDistanceChangeSpeed = 1;
       DefaultMinDistanceToAvatarTarget = 0.5;
       DefaultMaxDistanceToAvatarTarget = 10;
 
@@ -199,6 +202,14 @@ type
       It is not used outside of @link(Init). }
     property InitialHeightAboveTarget: Single read FInitialHeightAboveTarget write FInitialHeightAboveTarget
       default DefaultInitialHeightAboveTarget;
+
+    { Immediately (not with delay of CameraSpeed) update camera to never block avatar
+      view by a wall, enemy etc. When it is @true, we avoid seeing an invalid geometry
+      (e.g. from the wrong side of the wall or inside a creature) @italic(ever),
+      but in exchange the camera sometimes has to be adjusted very abrtupty (testcase:
+      third_person_camera demo, stand in the middle of moving enemies, and look around). }
+    property ImmediatelyFixBlockedCamera: Boolean read FImmediatelyFixBlockedCamera write FImmediatelyFixBlockedCamera
+      default false;
 
     { Preferred distance from camera to the avatar target (head).
       User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
@@ -413,12 +424,13 @@ begin
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
     MaxDistance := CameraMaxDistanceToTarget(A, TargetWorldPos, CameraDir);
     if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
-      CameraPos := TargetWorldPos - CameraDir * MaxDistance;
+      // Note that CameraDir is not necessarily normalized now
+      CameraPos := TargetWorldPos - CameraDir.AdjustToLength(MaxDistance);
   end;
 end;
 
 function TCastleThirdPersonNavigation.CameraMaxDistanceToTarget(
-  const A: TCastleTransform; const TargetWorldPos: TVector3;
+  const A: TCastleTransform; const CameraLookPos: TVector3;
   const CameraDir: TVector3): Single;
 var
   RayCollision: TRayCollision;
@@ -426,7 +438,7 @@ begin
   Result := MaxSingle;
   A.Disable;
   try
-    RayCollision := A.World.WorldRay(TargetWorldPos, -CameraDir);
+    RayCollision := A.World.WorldRay(CameraLookPos, -CameraDir);
     if RayCollision <> nil then
     try
       if RayCollision.Count <> 0 then
@@ -506,23 +518,28 @@ var
   end;
 
 var
-  CameraPos, CameraDir, CameraUp, TargetWorldPos: TVector3;
+  CameraPos, CameraDir, CameraUp, TargetWorldPos, LookPos: TVector3;
 begin
   inherited;
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
+    Camera.GetView(CameraPos, CameraDir, CameraUp, GravUp);
+
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    ToCamera := Camera.Position - TargetWorldPos;
-    GravUp := Camera.GravityUp;
+    // Since camera may update with some delay, we may not look exactly at TargetWorldPos if avatar moved
+    LookPos := PointOnLineClosestToPoint(CameraPos, CameraDir, TargetWorldPos);
+
+    ToCamera := CameraPos - LookPos;
 
     ProcessVertical(Delta[1]);
     ProcessHorizontal(Delta[0]);
 
-    CameraPos := TargetWorldPos + ToCamera;
-    CameraDir := TargetWorldPos - CameraPos;
+    CameraPos := LookPos + ToCamera;
+    CameraDir := LookPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
-    FixCameraForCollisions(CameraPos, CameraDir);
+    if ImmediatelyFixBlockedCamera then
+      FixCameraForCollisions(CameraPos, CameraDir);
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
     // TODO AimAvatar
@@ -534,23 +551,13 @@ var
   A: TCastleTransform;
 
   procedure CameraDistanceChange(DistanceChange: Single);
-  var
-    TargetWorldPos, ToCamera, CameraPos, CameraDir, CameraUp: TVector3;
   begin
     DistanceChange := DistanceChange * CameraDistanceChangeSpeed;
     DistanceToAvatarTarget := Clamped(DistanceToAvatarTarget + DistanceChange,
       MinDistanceToAvatarTarget, MaxDistanceToAvatarTarget);
 
-    // TODO: why does zooming-in causes assertion in CastleRays, saying CamDirection is NaN?
-
-    Camera.GetView(CameraPos, CameraDir, CameraUp);
-
-    // update Camera.Position
-    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    ToCamera := CameraPos - TargetWorldPos;
-    CameraPos := TargetWorldPos + ToCamera.AdjustToLength(DistanceToAvatarTarget);
-    FixCameraForCollisions(CameraPos, CameraDir);
-    Camera.SetView(CameraPos, CameraDir, CameraUp);
+    { The actual change in Camera.Position, caused by changing DistanceToAvatarTarget,
+      will be done smoothly in UpdateCamera. }
   end;
 
 begin
@@ -593,29 +600,38 @@ var
   }
   procedure UpdateCamera;
   const
+    // TODO expose property
     CameraSpeed = 10;
   var
-    TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget: TVector3;
+    TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget, CameraDirToTarget: TVector3;
     MaxDistance: Single;
   begin
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
 
     Camera.GetView(CameraPos, CameraDir, CameraUp);
 
+    { We use CameraDirToTarget, not CameraDir, because (since we update with delay)
+      camera may look at a slightly shifted point.
+      But we still adjust camera position to look (without blockers) at avatar. }
+    CameraDirToTarget := TargetWorldPos - CameraPos;
+
     { We need to check both CameraPosTarget and final CameraPos for collisions.
       But it would be wasteful to call FixCameraForCollisions 2 times,
       to calculate mostly the same.
       So we use one call to CameraMaxDistanceToTarget. }
-    MaxDistance := CameraMaxDistanceToTarget(A, TargetWorldPos, CameraDir);
+    MaxDistance := CameraMaxDistanceToTarget(A, TargetWorldPos, CameraDirToTarget);
 
-    { No need to use CameraDir.AdjustToLength(xxx) as we know CameraDir is normalized. }
+    { No need to use CameraDir.AdjustToLength(xxx) as we know CameraDir is normalized.
+      Note that this is not entirely correct: we use distance we obtained with CameraDirToTarget,
+      but our desired camera direction is CameraDir (i.e. unchanged from current camera direction). }
     CameraPosTarget := TargetWorldPos - CameraDir * Min(MaxDistance, DistanceToAvatarTarget);
 
-    // TODO: causes weird artifacts
-    // CameraPos := SmoothTowards(CameraPos, CameraPosTarget, SecondsPassed, CameraSpeed);
-    // if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
-    //   CameraPos := TargetWorldPos - CameraDir * MaxDistance;
-    CameraPos := CameraPosTarget;
+    CameraPos := SmoothTowards(CameraPos, CameraPosTarget, SecondsPassed, CameraSpeed);
+    if ImmediatelyFixBlockedCamera then
+    begin
+      if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
+        CameraPos := TargetWorldPos - CameraDir * MaxDistance;
+    end;
 
     Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
