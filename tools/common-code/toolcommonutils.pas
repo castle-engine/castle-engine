@@ -566,8 +566,60 @@ procedure RunCommandSimple(
   const CurDir: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
+
+  { Run the given command, wait for it.
+    The stdout/stderr is not captured to any string,
+    it is only passed-through as our stdout/stderr.
+
+    ( Use RunCommandIndirPassthrough to capture output to String and pass-through,
+    use RunCommandIndir to only capture output to String. ) }
+  procedure RunCommandNoPipes(const CurDir: string;
+    const ExeName: string;
+    const Options: array of string;
+    var ExitStatus: Integer;
+    const OverrideEnvironmentName: string = '';
+    const OverrideEnvironmentValue: string = '');
+  var
+    P: TProcess;
+    I: Integer;
+    NewEnvironment: TStringList;
+  begin
+    { Set to nil variables that will be later freed in the "finally" clause.
+      This makes code a bit simpler, no need for nesting multiple try..finally clauses. }
+    P := nil;
+    NewEnvironment := nil;
+    try
+      P := TProcess.Create(nil);
+      P.Executable := ExeName;
+      if CurDir <> '' then
+        P.CurrentDirectory := CurDir;
+      if High(Options) >= 0 then
+       for I := Low(Options) to High(Options) do
+         P.Parameters.Add(Options[I]);
+      WritelnVerbose('Calling ' + ExeName);
+      WritelnVerbose(P.Parameters.Text);
+
+      if OverrideEnvironmentName <> '' then
+      begin
+        NewEnvironment := TStringList.Create;
+        for I := 1 to GetEnvironmentVariableCount do
+          NewEnvironment.Add(GetEnvironmentString(I));
+        NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
+        P.Environment := NewEnvironment;
+        // WritelnVerbose('Environment: ' + P.Environment.Text);
+      end;
+
+      P.Execute;
+      P.WaitOnExit;
+
+      ExitStatus := P.ExitStatus;
+    finally
+      FreeAndNil(P);
+      FreeAndNil(NewEnvironment);
+    end;
+  end;
+
 var
-  ProcessOutput: string;
   ProcessStatus: Integer;
   AbsoluteExeName: string;
 begin
@@ -583,10 +635,12 @@ begin
         [ExeName, ExeName]);
   end;
 
-  RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Options,
-    ProcessOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
+  RunCommandNoPipes(CurDir, AbsoluteExeName, Options,
+    ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
+
+  // this will cause our own status be non-zero
   if ProcessStatus <> 0 then
-    raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',
+    raise Exception.CreateFmt('Process "%s" (absolute path "%s") failed with exit status %d',
       [ExeName, AbsoluteExeName, ProcessStatus]);
 end;
 

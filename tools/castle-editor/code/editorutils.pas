@@ -251,11 +251,10 @@ var
   S, LogLine: String;
   I: Integer;
 begin
-  { copy environment and set $CASTLE_ENGINE_INSIDE_EDITOR }
+  { copy environment }
   Environment := TStringList.Create;
   for I := 1 to GetEnvironmentVariableCount do
     Environment.Add(GetEnvironmentString(I));
-  Environment.Values['CASTLE_ENGINE_INSIDE_EDITOR'] := 'true';
 
   { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
     in the build tool.

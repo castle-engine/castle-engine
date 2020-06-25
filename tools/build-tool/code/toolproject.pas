@@ -1382,7 +1382,6 @@ procedure TCastleProject.DoRun(const Target: TTarget;
 
 var
   ExeName: string;
-  ProcessStatus: Integer;
 begin
   Writeln(Format('Running project "%s" for %s.',
     [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
@@ -1401,18 +1400,8 @@ begin
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
-    { Run through ExecuteProcess, because we don't want to capture output,
-      we want to immediately pass it to user.
-      Note that we set current path to Path, not OutputPath,
-      because data/ subdirectory is under Path. }
-    SetCurrentDir(Path);
-    { [ExecInheritsHandles] is necessary on Windows, to inherit our StdOut / StdErr,
-      to in turn enable CastleLog to write to StdOut / StdErr when
-      $CASTLE_ENGINE_INSIDE_EDITOR = true. }
-    ProcessStatus := ExecuteProcess(ExeName, Params.ToArray, [ExecInheritsHandles]);
-    // this will cause our own status be non-zero
-    if ProcessStatus <> 0 then
-      raise Exception.CreateFmt('Process returned non-zero (failure) status %d', [ProcessStatus]);
+    { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
+    RunCommandSimple(Path, ExeName, Params.ToArray, 'CASTLE_LOG', 'stdout');
   end else
     raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
