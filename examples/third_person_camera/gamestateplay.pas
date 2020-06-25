@@ -264,8 +264,10 @@ type
     SceneAvatar: TCastleScene;
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
+    CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
+    procedure ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
   public
     procedure Start; override;
     procedure Stop; override;
@@ -823,6 +825,7 @@ begin
   SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
   CheckboxAimAvatar := UiOwner.FindRequiredComponent('CheckboxAimAvatar') as TCastleCheckbox;
   CheckboxDebugAvatarColliders := UiOwner.FindRequiredComponent('CheckboxDebugAvatarColliders') as TCastleCheckbox;
+  CheckboxImmediatelyFixBlockedCamera := UiOwner.FindRequiredComponent('CheckboxImmediatelyFixBlockedCamera') as TCastleCheckbox;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
@@ -835,6 +838,7 @@ begin
 
   CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
   CheckboxDebugAvatarColliders.OnChange := @ChangeCheckboxDebugAvatarColliders;
+  CheckboxImmediatelyFixBlockedCamera.OnChange := @ChangeCheckboxImmediatelyFixBlockedCamera;
 
   SceneAvatar.MiddleHeight := 0.9;
   SceneAvatar.CollisionSphereRadius := 0.5;
@@ -973,6 +977,11 @@ end;
 procedure TStatePlay.ChangeCheckboxDebugAvatarColliders(Sender: TObject);
 begin
   DebugAvatar.Exists := CheckboxDebugAvatarColliders.Checked;
+end;
+
+procedure TStatePlay.ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
+begin
+  ThirdPersonNavigation.ImmediatelyFixBlockedCamera := CheckboxImmediatelyFixBlockedCamera.Checked;
 end;
 
 end.
