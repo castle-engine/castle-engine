@@ -1920,6 +1920,7 @@ type
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
     function WorldBoxCollision(const Box: TBox3D): boolean;
+    function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
@@ -3602,6 +3603,11 @@ end;
 function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
 begin
   Result := BoxCollision(Box, nil);
+end;
+
+function TCastleAbstractRootTransform.WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
+begin
+  Result := SegmentCollision(Pos1, Pos2, nil, false);
 end;
 
 function TCastleAbstractRootTransform.WorldSphereCollision(const Pos: TVector3;
