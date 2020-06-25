@@ -28,13 +28,16 @@ type
   TAimAvatar = (aaNone, aaHorizontal, aaFlying);
 
   { 3rd-person camera navigation.
-    Create an instance of this and assign to @link(TCastleViewport.Navigation) to use.
+    Create an instance of this and assign it to @link(TCastleViewport.Navigation) to use.
     Be sure to also assign @link(Avatar).
+    Call @link(Init) once the parameters that determine initial camera location are all set.
 
-    Moving the mouse allows to orbit with the camera around the avatar.
-    When AimAvatar is not aaNone, it also allows to point the avatar at the appropriate direction.
-    When AimAvatar is aaNone, it allows to look at the avatar easily from any side
-    (e.g. you can then see avatar's face easily).
+    Turn on @link(MouseLook TCastleNavigation.MouseLook) to allow user to move
+    the mouse to orbit with the camera around the avatar.
+    When AimAvatar is aaNone (default), it allows to look at the avatar easily
+    from any side (e.g. you can then see avatar's face easily).
+    When @link(AimAvatar) is aaHorizontal or aaFlying, rotating allows to point
+    the avatar at the appropriate direction.
 
     Using keys AWSD and arrows you can move and rotate the avatar,
     and the camera will follow.
@@ -185,7 +188,7 @@ type
     property AvatarHierarchy: TCastleTransform read FAvatarHierarchy write SetAvatarHierarchy;
 
     { Avatar scene, that is animated, moved and rotated when this navigation changes.
-      This navigation component will just call @code(Avatar.PlayAnimation('xxx')) when necessary.
+      This navigation component will just call @code(Avatar.AutoAnimation := 'xxx') when necessary.
       Currently we require the following animations to exist: walk, idle.
 
       When AvatarHierarchy is @nil, then @name is directly moved and rotated
