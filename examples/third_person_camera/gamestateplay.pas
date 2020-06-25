@@ -207,15 +207,16 @@ type
     Enemies: TEnemyList;
 
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
+    DebugAvatar: TDebugTransform;
 
     { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     SceneAvatar: TCastleScene;
     CheckboxAimAvatar: TCastleCheckbox;
-    { Since we use mouse look always, user cannot really operate CheckboxAimAvatar.
-      So it only serves to visualize whether the mouse button is pressed now. }
-    //procedure ChangeCheckboxAimAvatar(Sender: TObject);
+    CheckboxDebugAvatarColliders: TCastleCheckbox;
+    procedure ChangeCheckboxAimAvatar(Sender: TObject);
+    procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
   public
     procedure Start; override;
     procedure Stop; override;
@@ -612,7 +613,6 @@ var
   SoldierScene: TCastleScene;
   Enemy: TEnemy;
   I: Integer;
-  DebugAvatar: TDebugTransform;
 begin
   inherited;
 
@@ -624,6 +624,7 @@ begin
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
   CheckboxAimAvatar := UiOwner.FindRequiredComponent('CheckboxAimAvatar') as TCastleCheckbox;
+  CheckboxDebugAvatarColliders := UiOwner.FindRequiredComponent('CheckboxDebugAvatarColliders') as TCastleCheckbox;
 
   { Create TEnemy instances, add them to Enemies list }
   Enemies := TEnemyList.Create(true);
@@ -634,7 +635,8 @@ begin
     Enemies.Add(Enemy);
   end;
 
-  //CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
+  CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
+  CheckboxDebugAvatarColliders.OnChange := @ChangeCheckboxDebugAvatarColliders;
 
   SceneAvatar.MiddleHeight := 0.9;
   SceneAvatar.CollisionSphereRadius := 0.5;
@@ -650,7 +652,6 @@ begin
 
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
   DebugAvatar.Attach(SceneAvatar);
-  DebugAvatar.Exists := true;
 
   { Initialize 3rd-person camera initialization }
   ThirdPersonNavigation := TCastleThirdPersonNavigation.Create(FreeAtStop);
@@ -666,14 +667,9 @@ begin
   ThirdPersonNavigation.CrouchSpeed := 2;
   ThirdPersonNavigation.MoveSpeed := 2;
   ThirdPersonNavigation.RunSpeed := 8;
+  ThirdPersonNavigation.MouseLook := true; // by default use mouse look
   // TODO: as test: Allow to put camera on right / left shoulder
   ThirdPersonNavigation.Init;
-
-  // TODO:
-  // Decide then whether CheckboxAimAvatar reflects the mbRight, or pressing it makes something.
-  // (if not, we need to set CheckboxAimAvatar.Enabled = false)
-
-  ThirdPersonNavigation.MouseLook := true; // by default use mouse look
 end;
 
 procedure TStatePlay.Stop;
@@ -684,19 +680,19 @@ end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 
-  procedure UpdateAimAvatar;
-  begin
-    ThirdPersonNavigation.AimAvatar := mbRight in Container.MousePressed;
-    { Since we use mouse look always, user cannot really operate CheckboxAimAvatar.
-      So it only serves to visualize whether the mouse button is pressed now. }
-    CheckboxAimAvatar.Checked := ThirdPersonNavigation.AimAvatar;
-  end;
+  // procedure UpdateAimAvatar;
+  // begin
+  //   ThirdPersonNavigation.AimAvatar := mbRight in Container.MousePressed;
+  //   { Since we use mouse look always, user cannot really operate CheckboxAimAvatar.
+  //     So it only serves to visualize whether the mouse button is pressed now. }
+  //   CheckboxAimAvatar.Checked := ThirdPersonNavigation.AimAvatar;
+  // end;
 
 begin
   inherited;
   { This virtual method is executed every frame.}
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
-  UpdateAimAvatar;
+  // UpdateAimAvatar;
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
@@ -739,7 +735,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsKey(CtrlM) then
+  if Event.IsKey(keyM) then
   begin
     ThirdPersonNavigation.MouseLook := not ThirdPersonNavigation.MouseLook;
     Exit(true);
@@ -758,11 +754,14 @@ begin
   end;
 end;
 
-{
 procedure TStatePlay.ChangeCheckboxAimAvatar(Sender: TObject);
 begin
   ThirdPersonNavigation.AimAvatar := CheckboxAimAvatar.Checked;
 end;
-}
+
+procedure TStatePlay.ChangeCheckboxDebugAvatarColliders(Sender: TObject);
+begin
+  DebugAvatar.Exists := CheckboxDebugAvatarColliders.Checked;
+end;
 
 end.
