@@ -51,6 +51,7 @@ type
     FDistanceToAvatarTarget: Single;
     FAimAvatar: Boolean;
     FAvatarTarget: TVector3;
+    FCameraRadius: Single;
     {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
     {$endif}
@@ -66,11 +67,16 @@ type
     FInput_CameraFurther: TInputShortcut;
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
+    FCameraDistanceChangeSpeed: Single;
+    FMinDistanceToAvatarTarget: Single;
+    FMaxDistanceToAvatarTarget: Single;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3;
     function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
+    { Update camera, to avoid having something collidable between camera position and AvatarTarget. }
+    procedure FixCameraForCollisions(var CameraPos, CameraDir: TVector3);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -79,6 +85,7 @@ type
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultMaxAvatarRotationSpeed = 0.1;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
+      DefaultCameraRadius = 0.25;
       {$ifdef AVATAR_TARGET_FORWARD}
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
       {$endif}
@@ -86,6 +93,9 @@ type
       DefaultCrouchSpeed = 0.5;
       DefaultRunSpeed = 2.0;
       DefaultRotationSpeed = Pi * 150 / 180;
+      DefaultCameraDistanceChangeSpeed = 0.1;
+      DefaultMinDistanceToAvatarTarget = 0.5;
+      DefaultMaxDistanceToAvatarTarget = 10;
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
@@ -129,6 +139,9 @@ type
     }
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
     {$endif}
+
+    { Camera will keep at least this distance from walls. }
+    property CameraRadius: Single read FCameraRadius write FCameraRadius default DefaultCameraRadius;
 
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
@@ -185,9 +198,21 @@ type
       default DefaultInitialHeightAboveTarget;
 
     { Preferred distance from camera to the avatar target (head).
-      By default user can change it with mouse wheel. }
+      User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
+      to some key/mouse button/mouse wheel. }
     property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write FDistanceToAvatarTarget
       default DefaultDistanceToAvatarTarget;
+    { Speed with which Input_CameraCloser, Input_CameraFurther can change DistanceToAvatarTarget. }
+    property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
+      default DefaultCameraDistanceChangeSpeed;
+    { Limit of the distance to avatar, used when changing DistanceToAvatarTarget,
+      and also when deciding how to adjust camera to avoid collisions.
+      @groupBegin }
+    property MinDistanceToAvatarTarget: Single read FMinDistanceToAvatarTarget write FMinDistanceToAvatarTarget
+      default DefaultMinDistanceToAvatarTarget;
+    property MaxDistanceToAvatarTarget: Single read FMaxDistanceToAvatarTarget write FMaxDistanceToAvatarTarget
+      default DefaultMaxDistanceToAvatarTarget;
+    { @groupEnd }
 
     { Speed of movement by keys. }
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default DefaultMoveSpeed;
@@ -244,12 +269,16 @@ begin
   {$endif}
   FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
   FAimAvatar := true;
+  FCameraRadius := DefaultCameraRadius;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
   FMoveSpeed := DefaultMoveSpeed;
   FCrouchSpeed := DefaultCrouchSpeed;
   FRunSpeed := DefaultRunSpeed;
   FRotationSpeed := DefaultRotationSpeed;
+  FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
+  FMinDistanceToAvatarTarget := DefaultMinDistanceToAvatarTarget;
+  FMaxDistanceToAvatarTarget := DefaultMaxDistanceToAvatarTarget;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -368,6 +397,37 @@ begin
     - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
 end;
 
+procedure TCastleThirdPersonNavigation.FixCameraForCollisions(var CameraPos, CameraDir: TVector3);
+var
+  A: TCastleTransform;
+  TargetWorldPos: TVector3;
+  RayCollision: TRayCollision;
+  MaxDistance: Single;
+begin
+  A := RealAvatarHierarchy;
+  if (A <> nil) and (InternalViewport <> nil) then
+  begin
+    A.Disable;
+    try
+      TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+      RayCollision := A.World.WorldRay(TargetWorldPos, -CameraDir);
+      if RayCollision <> nil then
+      try
+        if RayCollision.Count <> 0 then
+        begin
+          { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
+            (RayCollision.First.Distance - CameraRadius negative)
+            or just to close to head.
+            Then use MinDistanceToAvatarTarget. }
+          MaxDistance := Max(MinDistanceToAvatarTarget, RayCollision.Distance - CameraRadius);
+          if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
+            CameraPos := TargetWorldPos - CameraDir * MaxDistance;
+        end;
+      finally FreeAndNil(RayCollision) end;
+    finally A.Enable end;
+  end;
+end;
+
 procedure TCastleThirdPersonNavigation.Init;
 var
   GravUp: TVector3;
@@ -382,6 +442,7 @@ begin
     CameraPos := CameraPositionInitial(A, TargetWorldPos);
     CameraDir := TargetWorldPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+    FixCameraForCollisions(CameraPos, CameraDir);
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
     if Avatar <> nil then
@@ -445,10 +506,10 @@ begin
     ProcessVertical(Delta[1]);
     ProcessHorizontal(Delta[0]);
 
-    // TODO: check collisions
     CameraPos := TargetWorldPos + ToCamera;
     CameraDir := TargetWorldPos - CameraPos;
     CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+    FixCameraForCollisions(CameraPos, CameraDir);
     Camera.SetView(CameraPos, CameraDir, CameraUp);
 
     // TODO AimAvatar
@@ -460,13 +521,8 @@ var
   A: TCastleTransform;
 
   procedure CameraDistanceChange(DistanceChange: Single);
-  const
-    // TODO expose properties
-    CameraDistanceChangeSpeed = 0.1;
-    MinDistanceToAvatarTarget = 0.5;
-    MaxDistanceToAvatarTarget = 10;
   var
-    TargetWorldPos, ToCamera: TVector3;
+    TargetWorldPos, ToCamera, CameraPos, CameraDir, CameraUp: TVector3;
   begin
     DistanceChange := DistanceChange * CameraDistanceChangeSpeed;
     DistanceToAvatarTarget := Clamped(DistanceToAvatarTarget + DistanceChange,
@@ -474,10 +530,14 @@ var
 
     // TODO: why does zooming-in causes assertion in CastleRays, saying CamDirection is NaN?
 
+    Camera.GetView(CameraPos, CameraDir, CameraUp);
+
     // update Camera.Position
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    ToCamera := Camera.Position - TargetWorldPos;
-    Camera.Position := TargetWorldPos + ToCamera.AdjustToLength(DistanceToAvatarTarget);
+    ToCamera := CameraPos - TargetWorldPos;
+    CameraPos := TargetWorldPos + ToCamera.AdjustToLength(DistanceToAvatarTarget);
+    FixCameraForCollisions(CameraPos, CameraDir);
+    Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
 
 begin
@@ -508,18 +568,29 @@ var
   // TODO add test level geoemetry to allow avatar fall
 
   { Make camera follow the A.Translation.
-    Does not follow instantly, which makes a nice effect when character is moving fast.
     Following the character also makes sure that camera stays updated
     (keeps DistanceToAvatarTarget)
-    when the avatar is being moved by other routines (e.g. because A.Gravity is working). }
+    when the avatar is being moved by other routines (e.g. because A.Gravity is working).
+
+    Also avoid camera being blocked by some wall.
+    This needs to be redone, in case some wall blocks us e.g. because of collisions.
+
+    TODO: Does not follow instantly, which makes a nice effect when character is moving fast.
+    It's inportant to avoid sudden camera moves on sudden avatar moves,
+    e.g. changing Y when going up/down stairs.
+  }
   procedure UpdateCamera;
   var
-    TargetWorldPos: TVector3;
+    TargetWorldPos, CameraPos, CameraDir, CameraUp: TVector3;
   begin
     // TODO: add delay with SmoothTowards
 
+    Camera.GetView(CameraPos, CameraDir, CameraUp);
+
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    Camera.Position := TargetWorldPos - Camera.Direction.AdjustToLength(DistanceToAvatarTarget);
+    CameraPos := TargetWorldPos - CameraDir.AdjustToLength(DistanceToAvatarTarget);
+    FixCameraForCollisions(CameraPos, CameraDir);
+    Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
 
 type
