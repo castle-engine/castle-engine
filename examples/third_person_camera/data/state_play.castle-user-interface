@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 3.7985995411872864E-001,
-          "Y" : -7.3841607672875398E-007,
-          "Z" : 9.2504400014877319E-001,
+          "X" : 3.5837873816490173E-001,
+          "Y" : -7.5170220270592836E-007,
+          "Z" : 9.3357634544372559E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -190,7 +190,6 @@
       "$Children" : [
         {
           "ColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
@@ -199,12 +198,16 @@
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "LabelInfo",
           "Text" : [
-            "Move with AWSD and arrow keys.",
+            "Move with AWSD QE and arrow keys.",
             "Hold Shift to run when moving.",
             "Hold Ctrl to crouch.",
             "",
-            "Rotate with mouse to orbit around the avatar.",
-            "( Only when mouse look. Press M to toggle. )",
+            "Rotate camera by moving the mouse.",
+            "Press M to toggle \"mouse look\" (to be able to e.g. click on checkboxes).",
+            "",
+            "Click to shoot at the enemies.",
+            "Shoots with the avatar direction.",
+            "Use \"Debug Avatar\" to see a blue arrow indicating avatar direction.",
             "",
             "Use mouse wheel to get closer / further to the avatar.",
             "",
@@ -234,7 +237,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.3100001525878906E+002,
+          "VerticalAnchorDelta" : -3.1500000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -258,7 +261,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.6500000000000000E+002,
+          "VerticalAnchorDelta" : -3.4900000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -282,7 +285,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.9900000000000000E+002,
+          "VerticalAnchorDelta" : -3.8300000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [

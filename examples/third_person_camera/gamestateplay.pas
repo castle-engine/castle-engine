@@ -897,7 +897,23 @@ begin
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
+
+  function AvatarRayCast: TCastleTransform;
+  var
+    AvatarMiddle: TVector3;
+  begin
+    { Make avatar temporarily non-existing for ray-cast,
+      to avoid hitting SceneAvatar geometry with the WorldRayCast.
+      Save SceneAvatar.Middle value first, as non-existing avatar would have lower Middle. }
+    AvatarMiddle := SceneAvatar.Middle;
+    SceneAvatar.Disable;
+    try
+      Result := MainViewport.Items.WorldRayCast(AvatarMiddle, SceneAvatar.Direction);
+    finally SceneAvatar.Enable end;
+  end;
+
 var
+  HitByAvatar: TCastleTransform;
   HitEnemy: TEnemy;
 begin
   Result := inherited;
@@ -918,18 +934,19 @@ begin
     SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
 
     { We clicked on enemy if
-      - TransformUnderMouse indicates we hit something
+      - HitByAvatar indicates we hit something
       - This something has, as 1st child, a TEnemy instance.
 
       We depend here on our TEnemy behaviour:
       - TEnemy instance adds itself as child of TCastleScene
-      - TEnemy has no collidable things by itself, so it's not listed among MouseRayHit.
+      - TEnemy has no collidable things by itself, so it's not returned itself by WorldRayCast.
     }
-    if (MainViewport.TransformUnderMouse <> nil) and
-       (MainViewport.TransformUnderMouse.Count > 0) and
-       (MainViewport.TransformUnderMouse.Items[0] is TEnemy) then
+    HitByAvatar := AvatarRayCast;
+    if (HitByAvatar <> nil) and
+       (HitByAvatar.Count <> 0) and
+       (HitByAvatar.Items[0] is TEnemy) then
     begin
-      HitEnemy := MainViewport.TransformUnderMouse.Items[0] as TEnemy;
+      HitEnemy := HitByAvatar.Items[0] as TEnemy;
       HitEnemy.Hurt;
     end;
 

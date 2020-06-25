@@ -3206,9 +3206,13 @@ var
 begin
   GC := World.GravityCoordinate;
   if MiddleForceBox then
-    B := MiddleForceBoxValue else
+    B := MiddleForceBoxValue
+  else
     B := LocalBoundingBox;
-  Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
+  if B.IsEmpty then
+    Result := 0
+  else
+    Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
