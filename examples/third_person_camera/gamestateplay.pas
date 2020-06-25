@@ -25,13 +25,15 @@ uses Classes,
   GameEnemy;
 
 type
+  TAimAvatar = (aaNone, aaHorizontal, aaFlying);
+
   { 3rd-person camera navigation.
     Create an instance of this and assign to @link(TCastleViewport.Navigation) to use.
     Be sure to also assign @link(Avatar).
 
     Moving the mouse allows to orbit with the camera around the avatar.
-    When AimAvatar, it also allows to point the avatar at the appropriate direction.
-    When not AimAvatar, it allows to look at the avatar easily from any side
+    When AimAvatar is not aaNone, it also allows to point the avatar at the appropriate direction.
+    When AimAvatar is aaNone, it allows to look at the avatar easily from any side
     (e.g. you can then see avatar's face easily).
 
     Using keys AWSD and arrows you can move and rotate the avatar,
@@ -49,7 +51,7 @@ type
     FMaxAvatarRotationSpeed: Single;
     FInitialHeightAboveTarget: Single;
     FDistanceToAvatarTarget: Single;
-    FAimAvatar: Boolean;
+    FAimAvatar: TAimAvatar;
     FAvatarTarget: TVector3;
     FCameraRadius: Single;
     {$ifdef AVATAR_TARGET_FORWARD}
@@ -83,6 +85,15 @@ type
     { Update camera, to avoid having something collidable between camera position and AvatarTarget.
       Note that CameraDir doesn't have to be normalized. }
     procedure FixCameraForCollisions(var CameraPos: TVector3; const CameraDir: TVector3);
+    { Return V rotated such that it is
+      orthogonal to GravUp. This way it returns V projected
+      on the gravity horizontal plane.
+      Result retains the V length (so it is always normalized if V is normalized).
+
+      Note that when V and GravUp are parallel,
+      this just returns current V --- because in such case
+      we can't project V on the horizontal plane. }
+    function ToGravityPlane(const V: TVector3; const GravUp: TVector3): TVector3;
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -188,13 +199,12 @@ type
     property MaxAvatarRotationSpeed: Single read FMaxAvatarRotationSpeed write FMaxAvatarRotationSpeed
       default DefaultMaxAvatarRotationSpeed;
 
-    { If @true (default) then rotating the camera also rotates (with some delay) the avatar,
+    { If not aaNone then rotating the camera also rotates (with some delay) the avatar,
       to face the same direction as the camera.
-      This is easier to use for players, on the other hand it takes away some flexibility,
+      This allows to rotate the avatar with mouse look (which is comfortable),
+      on the other hand it takes away some flexibility,
       e.g. you cannot look at avatar's face for a long time anymore. }
-    property AimAvatar: Boolean read FAimAvatar write FAimAvatar default true;
-
-    // TODO AimAvatarVerticalToo
+    property AimAvatar: TAimAvatar read FAimAvatar write FAimAvatar default aaNone;
 
     { Initial height of camera above the AvatarTarget.
       Together with DistanceToAvatarTarget this determines the initial camera position,
@@ -274,6 +284,23 @@ uses SysUtils, Math, StrUtils,
 
 { TCastleThirdPersonNavigation ----------------------------------------------- }
 
+const
+  { Default animation when character is not moving, not rotating and not crouching. }
+  AnimationIdle = 'idle';
+  { Default animation when character is rotating, but otherwise remains in place
+    (not moving) and it is not crouching. }
+  AnimationRotate = 'rotate';
+  { Animation when character is walking. }
+  AnimationWalk = 'walk';
+  { Animation when character is running. }
+  AnimationRun = 'run';
+  { Animation when character is moving while crouching. }
+  AnimationCrouch = 'crouch';
+  { Animation when character is crouching (Input_Crouch is pressed) but not moving or rotating. }
+  AnimationCrouchIdle = 'crouch_idle';
+  { Animation when character is crouching (Input_Crouch is pressed) and rotating, but not moving. }
+  AnimationCrouchRotate = 'crouch_rotate';
+
 constructor TCastleThirdPersonNavigation.Create(AOwner: TComponent);
 begin
   inherited;
@@ -282,7 +309,7 @@ begin
   FAvatarTargetForward := DefaultAvatarTargetForward;
   {$endif}
   FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
-  FAimAvatar := true;
+  FAimAvatar := aaNone;
   FCameraRadius := DefaultCameraRadius;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
@@ -373,26 +400,16 @@ begin
   Result := CameraPositionInitial(A, TargetWorldPos); // ignore resulting TargetWorldPos
 end;
 
+function TCastleThirdPersonNavigation.ToGravityPlane(const V: TVector3; const GravUp: TVector3): TVector3;
+begin
+  Result := V;
+  if not VectorsParallel(Result, GravUp) then
+    MakeVectorsOrthoOnTheirPlane(Result, GravUp);
+end;
+
 function TCastleThirdPersonNavigation.CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
 var
   GravUp: TVector3;
-
-  { Return V rotated such that it is
-    orthogonal to GravUp. This way it returns V projected
-    on the gravity horizontal plane.
-    Result is always normalized (length 1).
-
-    Note that when V and GravUp are parallel,
-    this just returns current V --- because in such case
-    we can't project V on the horizontal plane. }
-  function ToGravityPlane(const V: TVector3): TVector3;
-  begin
-    Result := V;
-    if not VectorsParallel(Result, GravUp) then
-      MakeVectorsOrthoOnTheirPlane(Result, GravUp);
-  end;
-
-var
   TargetWorldDir: TVector3;
   HorizontalShiftFromTarget: Single;
 begin
@@ -408,7 +425,7 @@ begin
 
   Result := TargetWorldPos
     + GravUp * InitialHeightAboveTarget
-    - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
+    - ToGravityPlane(TargetWorldDir, GravUp) * HorizontalShiftFromTarget;
 end;
 
 procedure TCastleThirdPersonNavigation.FixCameraForCollisions(
@@ -472,7 +489,7 @@ begin
 
     if Avatar <> nil then
     begin
-      Avatar.AutoAnimation := 'idle';
+      Avatar.AutoAnimation := AnimationIdle;
       Avatar.ForceInitialAnimationPose;
     end;
   end;
@@ -540,8 +557,6 @@ begin
     if ImmediatelyFixBlockedCamera then
       FixCameraForCollisions(CameraPos, CameraDir);
     Camera.SetView(CameraPos, CameraDir, CameraUp);
-
-    // TODO AimAvatar
   end;
 end;
 
@@ -635,12 +650,62 @@ var
     Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
 
+  { Rotate avatar if needed by AimAvatar.
+    Returns are we rotating now. }
+  function UpdateAimAvatar: Boolean;
+  const
+    // TODO expose property
+    AvatarRotationSpeed = 10; // rotation speed, in radians per second
+    AngleEpsilon = 0.01;
+  var
+    TargetDir: TVector3;
+    Angle: Single;
+  begin
+    Result := false;
+    if AimAvatar = aaNone then Exit;
+
+    // calculate TargetDir, in the same coordinate space as A.Direction
+    TargetDir := Camera.Direction;
+    if AimAvatar = aaHorizontal then
+      TargetDir := ToGravityPlane(TargetDir, Camera.GravityUp);
+    TargetDir := A.UniqueParent.WorldToLocalDirection(TargetDir);
+
+    Angle := AngleRadBetweenVectors(TargetDir, A.Direction);
+    if Angle > AngleEpsilon then
+    begin
+      MinVar(Angle, AvatarRotationSpeed * SecondsPassed);
+      A.Direction := RotatePointAroundAxisRad(Angle, A.Direction, -TVector3.CrossProduct(TargetDir, A.Direction));
+      Result := true;
+    end;
+  end;
+
+  procedure SetAnimation(const AnimationNames: array of String);
+  var
+    AnimName: String;
+  begin
+    if Avatar <> nil then
+    begin
+      Assert(High(AnimationNames) >= 0); // at least one animation name provided
+      for AnimName in AnimationNames do
+        if Avatar.HasAnimation(AnimName) then
+        begin
+          Avatar.AutoAnimation := AnimName;
+          Exit;
+        end;
+      WritelnWarning('No useful animation exists on the avatar to show in the current state.' +NL +
+        'Tried: %s.' +NL +
+        'Add the animations to your model, or set the TCastleThirdPersonNavigation.AnimationXxx properties to point to the existing animations.', [
+        GlueStrings(AnimationNames, ', ')
+      ]);
+    end;
+  end;
+
 type
   TSpeedType = (stNormal, stCrouch, stRun);
 var
   SpeedType: TSpeedType;
   Speed: Single;
-  Moving: Boolean;
+  Moving, Rotating: Boolean;
   T: TVector3;
 begin
   inherited;
@@ -700,15 +765,35 @@ begin
     if not T.IsPerfectlyZero then
       A.Move(T, false);
 
-    if Avatar <> nil then
+    Rotating := UpdateAimAvatar;
+
+    // change Avatar.AutoAnimation
+    if Moving then
+    begin
       case SpeedType of
-        stNormal: Avatar.AutoAnimation := Iff(Moving, 'walk', 'idle');
-        stRun   : Avatar.AutoAnimation := Iff(Moving, 'run', 'idle');
-        stCrouch: Avatar.AutoAnimation := Iff(Moving, 'crouch', 'crouch'); // both when moving and not moving
+        stNormal: SetAnimation([AnimationWalk, AnimationIdle]);
+        stRun   : SetAnimation([AnimationRun, AnimationIdle]);
+        stCrouch: SetAnimation([AnimationCrouch, AnimationCrouchIdle, AnimationIdle]);
         // else raise EInternalError.Create('Unhandled SpeedType'); // new FPC will warn in case of unhandled "else"
       end;
-
-    // TODO: drag camera after rotation also, if AimAvatar
+    end else
+    begin
+      if SpeedType = stCrouch then
+      begin
+        if Rotating then
+          SetAnimation([AnimationCrouchRotate, AnimationCrouch, AnimationCrouchIdle, AnimationIdle])
+        else
+          SetAnimation([AnimationCrouchIdle, AnimationCrouch, AnimationIdle]);
+      end else
+      begin
+        { Note that stRun behaves the same as ssNormal when Moving = false.
+          This just means user holds Shift (Input_Run) but not actually moving by AWSD. }
+        if Rotating then
+          SetAnimation([AnimationRotate, AnimationWalk, AnimationIdle])
+        else
+          SetAnimation([AnimationIdle]);
+      end;
+    end;
 
     UpdateCamera;
   end;
@@ -865,11 +950,24 @@ begin
     TUIState.Current := StateMenu;
     Exit(true);
   end;
+
+  if Event.IsMouseButton(mbRight) then
+  begin
+    CheckboxAimAvatar.Checked := not CheckboxAimAvatar.Checked;
+    ChangeCheckboxAimAvatar(CheckboxAimAvatar); // update ThirdPersonNavigation.AimAvatar
+    Exit(true);
+  end;
 end;
 
 procedure TStatePlay.ChangeCheckboxAimAvatar(Sender: TObject);
 begin
-  ThirdPersonNavigation.AimAvatar := CheckboxAimAvatar.Checked;
+  if CheckboxAimAvatar.Checked then
+    ThirdPersonNavigation.AimAvatar := aaHorizontal
+  else
+    ThirdPersonNavigation.AimAvatar := aaNone;
+
+  { The 3rd option, aaFlying, doesn't make sense for this case,
+    when avatar walks on the ground and has Gravity = true. }
 end;
 
 procedure TStatePlay.ChangeCheckboxDebugAvatarColliders(Sender: TObject);

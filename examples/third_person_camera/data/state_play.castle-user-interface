@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 4.3504315614700317E-001,
-          "Y" : -7.0193891588132828E-007,
-          "Z" : 9.0040957927703857E-001,
+          "X" : 4.0507408976554871E-001,
+          "Y" : -7.2217738988911151E-007,
+          "Z" : 9.1428387165069580E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -206,7 +206,6 @@
             "Rotate with mouse to orbit around the avatar.",
             "( Only when mouse look. Press M to toggle. )",
             "",
-            "Hold right mouse button to rotate avatar along with camera.",
             "Use mouse wheel to get closer / further to the avatar.",
             "",
             "Press F5 to make a screenshot."
@@ -219,7 +218,7 @@
           "$ClassName" : "TCastleLabel"
         },
         {
-          "Caption" : "Aim Avatar (Rotating Camera Rotates Also Avatar)",
+          "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar) (Click with right mouse button to toggle)",
           "CheckboxColorPersistent" : {
             "Blue" : 1.0000000000000000E+000,
             "Green" : 1.0000000000000000E+000,
@@ -235,7 +234,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.5200001525878906E+002,
+          "VerticalAnchorDelta" : -2.3100001525878906E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -259,7 +258,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.8600000000000000E+002,
+          "VerticalAnchorDelta" : -2.6500000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
