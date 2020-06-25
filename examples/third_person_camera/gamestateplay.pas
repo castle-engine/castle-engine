@@ -75,8 +75,11 @@ type
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
     function CameraPositionInitial(const A: TCastleTransform): TVector3;
     function CameraPositionInitial(const A: TCastleTransform; out TargetWorldPos: TVector3): TVector3;
+    { Returns MaxSingle if no limit. }
+    function CameraMaxDistanceToTarget(const A: TCastleTransform; const TargetWorldPos: TVector3;
+      const CameraDir: TVector3): Single;
     { Update camera, to avoid having something collidable between camera position and AvatarTarget. }
-    procedure FixCameraForCollisions(var CameraPos, CameraDir: TVector3);
+    procedure FixCameraForCollisions(var CameraPos: TVector3; const CameraDir: TVector3);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -397,35 +400,45 @@ begin
     - ToGravityPlane(TargetWorldDir) * HorizontalShiftFromTarget;
 end;
 
-procedure TCastleThirdPersonNavigation.FixCameraForCollisions(var CameraPos, CameraDir: TVector3);
+procedure TCastleThirdPersonNavigation.FixCameraForCollisions(
+  var CameraPos: TVector3; const CameraDir: TVector3);
 var
+  MaxDistance: Single;
   A: TCastleTransform;
   TargetWorldPos: TVector3;
-  RayCollision: TRayCollision;
-  MaxDistance: Single;
 begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    A.Disable;
-    try
-      TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-      RayCollision := A.World.WorldRay(TargetWorldPos, -CameraDir);
-      if RayCollision <> nil then
-      try
-        if RayCollision.Count <> 0 then
-        begin
-          { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
-            (RayCollision.First.Distance - CameraRadius negative)
-            or just to close to head.
-            Then use MinDistanceToAvatarTarget. }
-          MaxDistance := Max(MinDistanceToAvatarTarget, RayCollision.Distance - CameraRadius);
-          if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
-            CameraPos := TargetWorldPos - CameraDir * MaxDistance;
-        end;
-      finally FreeAndNil(RayCollision) end;
-    finally A.Enable end;
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
+    MaxDistance := CameraMaxDistanceToTarget(A, TargetWorldPos, CameraDir);
+    if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
+      CameraPos := TargetWorldPos - CameraDir * MaxDistance;
   end;
+end;
+
+function TCastleThirdPersonNavigation.CameraMaxDistanceToTarget(
+  const A: TCastleTransform; const TargetWorldPos: TVector3;
+  const CameraDir: TVector3): Single;
+var
+  RayCollision: TRayCollision;
+begin
+  Result := MaxSingle;
+  A.Disable;
+  try
+    RayCollision := A.World.WorldRay(TargetWorldPos, -CameraDir);
+    if RayCollision <> nil then
+    try
+      if RayCollision.Count <> 0 then
+      begin
+        { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
+          (RayCollision.First.Distance - CameraRadius negative)
+          or just to close to head.
+          Then use MinDistanceToAvatarTarget. }
+        Result := Max(MinDistanceToAvatarTarget, RayCollision.Distance - CameraRadius);
+      end;
+    finally FreeAndNil(RayCollision) end;
+  finally A.Enable end;
 end;
 
 procedure TCastleThirdPersonNavigation.Init;
@@ -565,8 +578,6 @@ procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
 var
   A: TCastleTransform;
 
-  // TODO add test level geoemetry to allow avatar fall
-
   { Make camera follow the A.Translation.
     Following the character also makes sure that camera stays updated
     (keeps DistanceToAvatarTarget)
@@ -575,21 +586,37 @@ var
     Also avoid camera being blocked by some wall.
     This needs to be redone, in case some wall blocks us e.g. because of collisions.
 
-    TODO: Does not follow instantly, which makes a nice effect when character is moving fast.
+    Does not follow the perfect location instantly,
+    which makes a nice effect when character is moving fast.
     It's inportant to avoid sudden camera moves on sudden avatar moves,
     e.g. changing Y when going up/down stairs.
   }
   procedure UpdateCamera;
+  const
+    CameraSpeed = 10;
   var
-    TargetWorldPos, CameraPos, CameraDir, CameraUp: TVector3;
+    TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget: TVector3;
+    MaxDistance: Single;
   begin
-    // TODO: add delay with SmoothTowards
+    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
 
     Camera.GetView(CameraPos, CameraDir, CameraUp);
 
-    TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
-    CameraPos := TargetWorldPos - CameraDir.AdjustToLength(DistanceToAvatarTarget);
-    FixCameraForCollisions(CameraPos, CameraDir);
+    { We need to check both CameraPosTarget and final CameraPos for collisions.
+      But it would be wasteful to call FixCameraForCollisions 2 times,
+      to calculate mostly the same.
+      So we use one call to CameraMaxDistanceToTarget. }
+    MaxDistance := CameraMaxDistanceToTarget(A, TargetWorldPos, CameraDir);
+
+    { No need to use CameraDir.AdjustToLength(xxx) as we know CameraDir is normalized. }
+    CameraPosTarget := TargetWorldPos - CameraDir * Min(MaxDistance, DistanceToAvatarTarget);
+
+    // TODO: causes weird artifacts
+    // CameraPos := SmoothTowards(CameraPos, CameraPosTarget, SecondsPassed, CameraSpeed);
+    // if PointsDistanceSqr(CameraPos, TargetWorldPos) > Sqr(MaxDistance) then
+    //   CameraPos := TargetWorldPos - CameraDir * MaxDistance;
+    CameraPos := CameraPosTarget;
+
     Camera.SetView(CameraPos, CameraDir, CameraUp);
   end;
 

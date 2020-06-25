@@ -702,6 +702,30 @@ function Approximate2DScale(const X, Y: Single): Single; overload;
 function Approximate2DScale(const V: TVector2): Single; overload;
 { @groupEnd }
 
+{ Smoothly change Source to Target.
+
+  The speed decreases as Source is closer to Target,
+  so the animation ends smoothly.
+
+  Note: Initially the argument Speed was represented by 2 values:
+    MaxChangeSpeed, MaxDistance: Single
+  The intended meaning of MaxChangeSpeed was the speed
+  with which Source changes to Target,
+  so that MaxChangeSpeed = 1.0 means that it changes in 1 second,
+  MaxChangeSpeed = 0.5 means that it changes in 2 seconds,
+  MaxChangeSpeed = 2 means that it changes in 0.5 seconds.
+
+  Later: now it's just Speed.
+  You can just passs Speed = MaxChangeSpeed / MaxDistance to get the
+  same logic as above.
+}
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -2551,6 +2575,27 @@ end;
 function Approximate2DScale(const V: TVector2): Single;
 begin
   Result := Approximate2DScale(V.Data[0], V.Data[1]);
+end;
+
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
 end;
 
 {$endif read_implementation}
