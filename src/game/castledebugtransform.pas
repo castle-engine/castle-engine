@@ -325,6 +325,10 @@ begin
 
   FGeometry.Coord := Coord;
   FGeometry.SetVertexCount([2, 2, 2, 2, 2]);
+
+  { Make the initial geometry. Although it is useless, this will avoid warning
+    "Too much lines (not enough coordinates) in LineSet". }
+  UpdateGeometry;
 end;
 
 procedure TDebugArrow.SetOrigin(const Value: TVector3);
