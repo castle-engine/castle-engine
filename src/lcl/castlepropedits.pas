@@ -35,7 +35,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, TypInfo,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
@@ -51,6 +51,7 @@ uses SysUtils, Classes,
 {$I castlepropedits_image.inc}
 {$I castlepropedits_unused_controls.inc}
 {$I castlepropedits_viewport_navigation.inc}
+{$I castlepropedits_float.inc}
 
 procedure Register;
 begin
@@ -65,6 +66,13 @@ begin
     'URL', TDesignURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleTiledMapControl,
     'URL', TTiledMapURLPropertyEditor);
+
+  { Improved float properties }
+  RegisterPropertyEditor(TypeInfo(Single), nil, '', TCastleFloatPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Double), nil, '', TCastleFloatPropertyEditor);
+  {$ifndef EXTENDED_EQUALS_DOUBLE}
+  RegisterPropertyEditor(TypeInfo(Extended), nil, '', TCastleFloatPropertyEditor);
+  {$endif}
 
   { Properties that simply use TSubPropertiesEditor.
     Registering properties that use TSubPropertiesEditor
