@@ -59,6 +59,8 @@ type
     { Construct human-readable comment for this Undo record }
     function GetUndoComment(const UndoI: Integer): String;
   public
+    { Called when Undo information displayed to the User should be changed }
+    OnUpdateUndo: TNotifyEvent;
     { Should the Undo be recorded on Release event?
       Note, that we rely here on Release event, which may never come in case
       user has switched a window (e.g. with Alt-Tab) while dragging
@@ -145,11 +147,13 @@ begin
     begin
       UndoHistory[CurrentUndo].Selected := SelectedComponent;
       WriteLnLog('New Undo is identical to previous Undo record. Only selection has changed from ' + UndoHistory[CurrentUndo].Selected + ' to ' + SelectedComponent + '. Not saving.');
+      OnUpdateUndo(Self);
     end;
     if (UndoComment <> '') and (UndoHistory[CurrentUndo].Comment = '') then
     begin
       WriteLnLog('The last undo comment was set to generic "Edit value", overwriting with better reason: ' + UndoComment);
       UndoHistory[CurrentUndo].Comment := UndoComment;
+      OnUpdateUndo(Self);
     end;
     Exit;
   end;
@@ -179,6 +183,7 @@ begin
     Dec(CurrentUndo);
   end;
   Assert(UndoHistorySize = NewUndoHistorySize);
+  OnUpdateUndo(Self);
   WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + IntToStr(NewUndoHistorySize div 1024) + 'kb.');
 end;
 
@@ -190,6 +195,7 @@ begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
     Dec(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
+    //OnUpdateUndo; The caller itself should better take care of that
   end else
     raise EInternalError.Create('Undo was requested but undo is not possible');
 end;
@@ -202,6 +208,7 @@ begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
     Inc(CurrentUndo);
     Result := UndoHistory[CurrentUndo];
+    //OnUpdateUndo; The caller itself should better take care of that
   end else
     raise EInternalError.Create('Redo was requested but redo is not possible');
 end;
@@ -254,6 +261,8 @@ begin
   ScheduleRecordUndoOnRelease := false;
   UndoHistory.Clear;
   CurrentUndo := -1;
+  if Assigned(OnUpdateUndo) then
+    OnUpdateUndo(Self);
   WriteLnLog('Clearing Undo hisotry.');
 end;
 
