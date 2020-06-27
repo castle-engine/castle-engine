@@ -112,6 +112,9 @@ type
     function AnimationCrouchRotateStored: Boolean;
     { Change Avatar.AutoAnimation to the 1st animation that is possible. }
     procedure SetAnimation(const AnimationNames: array of String);
+    procedure SetInitialHeightAboveTarget(const Value: Single);
+    procedure SetDistanceToAvatarTarget(const Value: Single);
+    procedure MySetAvatarTargetForPersistent(const AValue: TVector3);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -241,7 +244,7 @@ type
       Together with DistanceToAvatarTarget this determines the initial camera position,
       set by @link(Init).
       It is not used outside of @link(Init). }
-    property InitialHeightAboveTarget: Single read FInitialHeightAboveTarget write FInitialHeightAboveTarget
+    property InitialHeightAboveTarget: Single read FInitialHeightAboveTarget write SetInitialHeightAboveTarget
       default DefaultInitialHeightAboveTarget;
 
     { Immediately (not with delay of CameraSpeed) update camera to never block avatar
@@ -255,7 +258,7 @@ type
     { Preferred distance from camera to the avatar target (head).
       User can change it with Input_CameraCloser, Input_CameraFurther if you set these inputs
       to some key/mouse button/mouse wheel. }
-    property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write FDistanceToAvatarTarget
+    property DistanceToAvatarTarget: Single read FDistanceToAvatarTarget write SetDistanceToAvatarTarget
       default DefaultDistanceToAvatarTarget;
     { Speed with which Input_CameraCloser, Input_CameraFurther can change DistanceToAvatarTarget. }
     property CameraDistanceChangeSpeed: Single read FCameraDistanceChangeSpeed write FCameraDistanceChangeSpeed
@@ -389,6 +392,16 @@ begin
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_implementation_constructor}
+
+  // override vector change method, to call Init in design mode when this changes
+  AvatarTargetPersistent.InternalSetValue := @MySetAvatarTargetForPersistent
+end;
+
+procedure TCastleThirdPersonNavigation.MySetAvatarTargetForPersistent(const AValue: TVector3);
+begin
+  SetAvatarTargetForPersistent(AValue);
+  if CastleDesignMode then
+    Init;
 end;
 
 destructor TCastleThirdPersonNavigation.Destroy;
@@ -412,6 +425,7 @@ begin
   if FAvatar <> Value then
   begin
     FAvatar := Value;
+    if CastleDesignMode then Init;
     // TODO free notification for Avatar, AvatarHierarchy
   end;
 end;
@@ -421,6 +435,7 @@ begin
   if FAvatarHierarchy <> Value then
   begin
     FAvatarHierarchy := Value;
+    if CastleDesignMode then Init;
     // TODO free notification for Avatar, AvatarHierarchy
   end;
 end;
@@ -819,7 +834,12 @@ begin
       end;
     end;
 
-    UpdateCamera;
+    if CastleDesignMode then
+      { In design mode, update immediately both position and direction of the camera.
+        This reflects that Init should be done at the beginning of actual game. }
+      Init
+    else
+      UpdateCamera;
   end;
 end;
 
@@ -859,6 +879,24 @@ end;
 function TCastleThirdPersonNavigation.AnimationCrouchRotateStored: Boolean;
 begin
   Result := FAnimationCrouchRotate <> DefaultAnimationCrouchRotate;
+end;
+
+procedure TCastleThirdPersonNavigation.SetInitialHeightAboveTarget(const Value: Single);
+begin
+  if FInitialHeightAboveTarget <> Value then
+  begin
+    FInitialHeightAboveTarget := Value;
+    if CastleDesignMode then Init;
+  end;
+end;
+
+procedure TCastleThirdPersonNavigation.SetDistanceToAvatarTarget(const Value: Single);
+begin
+  if FDistanceToAvatarTarget <> Value then
+  begin
+    FDistanceToAvatarTarget := Value;
+    if CastleDesignMode then Init;
+  end;
 end;
 
 {$define read_implementation_methods}

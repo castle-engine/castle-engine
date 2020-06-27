@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 2.9693773388862610E-001,
-          "Y" : -7.8703874351049308E-007,
-          "Z" : 9.5489686727523804E-001,
+          "X" : 2.5798556208610535E-001,
+          "Y" : -8.0748446862344281E-007,
+          "Z" : 9.6614879369735718E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -81,14 +81,22 @@
             "Name" : "SceneAvatar",
             "ProcessEvents" : true,
             "RotationPersistent" : {
-              "W" : 5.0000000000000000E-001,
-              "Y" : 1.0000000000000000E+000,
+              "W" : 1.4555264711380005E+000,
+              "X" : 1.5471658844035119E-004,
+              "Y" : 9.9999994039535522E-001,
+              "Z" : 1.9377481658011675E-004,
               "$ClassName" : "TCastleVector4Persistent"
             },
             "Spatial" : [
               "ssRendering",
               "ssDynamicCollisions"
             ],
+            "TranslationPersistent" : {
+              "X" : -8.6034564971923828E+000,
+              "Y" : -5.5395960807800293E-003,
+              "Z" : 2.1127820014953613E+000,
+              "$ClassName" : "TCastleVector3Persistent"
+            },
             "URL" : "castle-data:/avatar/avatar.gltf",
             "$Children" : [
             ],
@@ -150,6 +158,10 @@
       "$Children" : [
         {
           "Avatar" : "SceneAvatar",
+          "AvatarTargetPersistent" : {
+            "Y" : 1.7500000000000000E+000,
+            "$ClassName" : "TCastleVector3Persistent"
+          },
           "CrouchSpeed" : 2.0000000000000000E+000,
           "MoveSpeed" : 2.0000000000000000E+000,
           "Name" : "ThirdPersonNavigation",
