@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 3.2372671365737915E-001,
-          "Y" : -7.7210665949678514E-007,
-          "Z" : 9.4615066051483154E-001,
+          "X" : 2.9693773388862610E-001,
+          "Y" : -7.8703874351049308E-007,
+          "Z" : 9.5489686727523804E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -77,7 +77,6 @@
             "$ClassName" : "TCastleScene"
           },
           {
-            "AutoAnimation" : "walk",
             "DefaultAnimationTransition" : 1.0000000149011612E-001,
             "Name" : "SceneAvatar",
             "ProcessEvents" : true,

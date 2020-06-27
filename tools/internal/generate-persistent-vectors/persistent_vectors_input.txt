@@ -60,6 +60,7 @@
 ../../../src/3d/ TCastleCamera InitialDirection TVector3
 ../../../src/3d/ TCastleCamera InitialUp TVector3
 ../../../src/3d/ TCastleCamera GravityUp TVector3
+../../../src/3d/ TCastleThirdPersonNavigation AvatarTarget TVector3
 
 ../../../src/3d/ TCastleOrthographic Origin TVector2
 

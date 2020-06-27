@@ -49,12 +49,13 @@ type
   strict private
     FAvatar: TCastleScene;
     FAvatarHierarchy: TCastleTransform;
-    FMaxAvatarRotationSpeed: Single;
+    FAvatarRotationSpeed: Single;
     FInitialHeightAboveTarget: Single;
     FDistanceToAvatarTarget: Single;
     FAimAvatar: TAimAvatar;
     FAvatarTarget: TVector3;
     FCameraRadius: Single;
+    FCameraSpeed: Single;
     {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
     {$endif}
@@ -74,6 +75,13 @@ type
     FMinDistanceToAvatarTarget: Single;
     FMaxDistanceToAvatarTarget: Single;
     FImmediatelyFixBlockedCamera: Boolean;
+    FAnimationIdle: String;
+    FAnimationRotate: String;
+    FAnimationWalk: String;
+    FAnimationRun: String;
+    FAnimationCrouch: String;
+    FAnimationCrouchIdle: String;
+    FAnimationCrouchRotate: String;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -95,15 +103,25 @@ type
       this just returns current V --- because in such case
       we can't project V on the horizontal plane. }
     function ToGravityPlane(const V: TVector3; const GravUp: TVector3): TVector3;
+    function AnimationIdleStored: Boolean;
+    function AnimationRotateStored: Boolean;
+    function AnimationWalkStored: Boolean;
+    function AnimationRunStored: Boolean;
+    function AnimationCrouchStored: Boolean;
+    function AnimationCrouchIdleStored: Boolean;
+    function AnimationCrouchRotateStored: Boolean;
+    { Change Avatar.AutoAnimation to the 1st animation that is possible. }
+    procedure SetAnimation(const AnimationNames: array of String);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
     const
       DefaultInitialHeightAboveTarget = 1.0;
       DefaultDistanceToAvatarTarget = 4.0;
-      DefaultMaxAvatarRotationSpeed = 0.1;
+      DefaultAvatarRotationSpeed = 10;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
       DefaultCameraRadius = 0.25;
+      DefaultCameraSpeed = 10;
       {$ifdef AVATAR_TARGET_FORWARD}
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
       {$endif}
@@ -114,8 +132,16 @@ type
       DefaultCameraDistanceChangeSpeed = 1;
       DefaultMinDistanceToAvatarTarget = 0.5;
       DefaultMaxDistanceToAvatarTarget = 10;
+      DefaultAnimationIdle = 'idle';
+      DefaultAnimationRotate = 'rotate';
+      DefaultAnimationWalk = 'walk';
+      DefaultAnimationRun = 'run';
+      DefaultAnimationCrouch = 'crouch';
+      DefaultAnimationCrouchIdle = 'crouch_idle';
+      DefaultAnimationCrouchRotate = 'crouch_rotate';
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -158,9 +184,6 @@ type
     property AvatarTargetForward: TVector3 read FAvatarTargetForward write FAvatarTargetForward;
     {$endif}
 
-    { Camera will keep at least this distance from walls. }
-    property CameraRadius: Single read FCameraRadius write FCameraRadius default DefaultCameraRadius;
-
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
     property Input_LeftRotate: TInputShortcut read FInput_LeftRotate;
@@ -194,11 +217,18 @@ type
       Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy. }
     property Avatar: TCastleScene read FAvatar write SetAvatar;
 
-    { When @link(AimAvatar), this is avatar's rotation speed.
-      Should be small enough to make avatar rotation "catch up" with some delay after camera
-      rotation. }
-    property MaxAvatarRotationSpeed: Single read FMaxAvatarRotationSpeed write FMaxAvatarRotationSpeed
-      default DefaultMaxAvatarRotationSpeed;
+    { When @link(AimAvatar), this is avatar's rotation speed (in radians per second).
+      Should make avatar rotation "catch up" (with some delay after camera rotation. }
+    property AvatarRotationSpeed: Single read FAvatarRotationSpeed write FAvatarRotationSpeed
+      default DefaultAvatarRotationSpeed;
+
+    { Camera will keep at least this distance from walls. }
+    property CameraRadius: Single read FCameraRadius write FCameraRadius default DefaultCameraRadius;
+
+    { Camera position tracks the desired position with given speed (in units per second).
+      This makes camera adjust to avatar moving (because of input, or because of gravity
+      or other external code) and to not being blocked by the collider. }
+    property CameraSpeed: Single read FCameraSpeed write FCameraSpeed default DefaultCameraSpeed;
 
     { If not aaNone then rotating the camera also rotates (with some delay) the avatar,
       to face the same direction as the camera.
@@ -248,6 +278,33 @@ type
     { Speed of rotating by keys, in radians per second. }
     property RotationSpeed: Single read FRotationSpeed write FRotationSpeed
       default DefaultRotationSpeed;
+
+    { Animation when character is not moving, not rotating and not crouching.
+      Default 'idle'. }
+    property AnimationIdle: String read FAnimationIdle write FAnimationIdle stored AnimationIdleStored nodefault;
+    { Animation when character is rotating, but otherwise remains in place
+      (not moving) and it is not crouching.
+      Default 'rotate'. }
+    property AnimationRotate: String read FAnimationRotate write FAnimationRotate stored AnimationRotateStored nodefault;
+    { Animation when character is walking.
+      Default 'walk'. }
+    property AnimationWalk: String read FAnimationWalk write FAnimationWalk stored AnimationWalkStored nodefault;
+    { Animation when character is running.
+      Default 'run'. }
+    property AnimationRun: String read FAnimationRun write FAnimationRun stored AnimationRunStored nodefault;
+    { Animation when character is moving while crouching.
+      Default 'crouch'. }
+    property AnimationCrouch: String read FAnimationCrouch write FAnimationCrouch stored AnimationCrouchStored nodefault;
+    { Animation when character is crouching (Input_Crouch is pressed) but not moving or rotating.
+      Default 'crouch_idle'. }
+    property AnimationCrouchIdle: String read FAnimationCrouchIdle write FAnimationCrouchIdle stored AnimationCrouchIdleStored nodefault;
+    { Animation when character is crouching (Input_Crouch is pressed) and rotating, but not moving.
+      Default 'crouch_rotate'.}
+    property AnimationCrouchRotate: String read FAnimationCrouchRotate write FAnimationCrouchRotate stored AnimationCrouchRotateStored nodefault;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
 implementation
@@ -257,23 +314,6 @@ uses Math,
 
 { TCastleThirdPersonNavigation ----------------------------------------------- }
 
-const
-  { Default animation when character is not moving, not rotating and not crouching. }
-  AnimationIdle = 'idle';
-  { Default animation when character is rotating, but otherwise remains in place
-    (not moving) and it is not crouching. }
-  AnimationRotate = 'rotate';
-  { Animation when character is walking. }
-  AnimationWalk = 'walk';
-  { Animation when character is running. }
-  AnimationRun = 'run';
-  { Animation when character is moving while crouching. }
-  AnimationCrouch = 'crouch';
-  { Animation when character is crouching (Input_Crouch is pressed) but not moving or rotating. }
-  AnimationCrouchIdle = 'crouch_idle';
-  { Animation when character is crouching (Input_Crouch is pressed) and rotating, but not moving. }
-  AnimationCrouchRotate = 'crouch_rotate';
-
 constructor TCastleThirdPersonNavigation.Create(AOwner: TComponent);
 begin
   inherited;
@@ -281,9 +321,10 @@ begin
   {$ifdef AVATAR_TARGET_FORWARD}
   FAvatarTargetForward := DefaultAvatarTargetForward;
   {$endif}
-  FMaxAvatarRotationSpeed := DefaultMaxAvatarRotationSpeed;
+  FAvatarRotationSpeed := DefaultAvatarRotationSpeed;
   FAimAvatar := aaNone;
   FCameraRadius := DefaultCameraRadius;
+  FCameraSpeed := DefaultCameraSpeed;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
   FMoveSpeed := DefaultMoveSpeed;
@@ -293,6 +334,13 @@ begin
   FCameraDistanceChangeSpeed := DefaultCameraDistanceChangeSpeed;
   FMinDistanceToAvatarTarget := DefaultMinDistanceToAvatarTarget;
   FMaxDistanceToAvatarTarget := DefaultMaxDistanceToAvatarTarget;
+  FAnimationIdle := DefaultAnimationIdle;
+  FAnimationRotate := DefaultAnimationRotate;
+  FAnimationWalk := DefaultAnimationWalk;
+  FAnimationRun := DefaultAnimationRun;
+  FAnimationCrouch := DefaultAnimationCrouch;
+  FAnimationCrouchIdle := DefaultAnimationCrouchIdle;
+  FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -337,6 +385,18 @@ begin
   Input_CameraFurther          .Name := 'Input_CameraFurther';
   Input_Crouch                 .Name := 'Input_Crouch';
   Input_Run                    .Name := 'Input_Run';
+
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+end;
+
+destructor TCastleThirdPersonNavigation.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 function TCastleThirdPersonNavigation.RealAvatarHierarchy: TCastleTransform;
@@ -457,7 +517,7 @@ begin
 
     if Avatar <> nil then
     begin
-      Avatar.AutoAnimation := AnimationIdle;
+      SetAnimation([AnimationIdle]);
       Avatar.ForceInitialAnimationPose;
     end;
   end;
@@ -562,6 +622,28 @@ begin
   end;
 end;
 
+procedure TCastleThirdPersonNavigation.SetAnimation(const AnimationNames: array of String);
+var
+  AnimName: String;
+begin
+  if Avatar <> nil then
+  begin
+    Assert(High(AnimationNames) >= 0); // at least one animation name provided
+    for AnimName in AnimationNames do
+      if Avatar.HasAnimation(AnimName) then
+      begin
+        if not CastleDesignMode then
+          Avatar.AutoAnimation := AnimName; // do not change serialized AutoAnimation
+        Exit;
+      end;
+    WritelnWarning('No useful animation exists on the avatar to show in the current state.' +NL +
+      'Tried: %s.' +NL +
+      'Add the animations to your model, or set the TCastleThirdPersonNavigation.AnimationXxx properties to point to the existing animations.', [
+      GlueStrings(AnimationNames, ', ')
+    ]);
+  end;
+end;
+
 procedure TCastleThirdPersonNavigation.Update(const SecondsPassed: Single;
   var HandleInput: Boolean);
 var
@@ -581,9 +663,6 @@ var
     e.g. changing Y when going up/down stairs.
   }
   procedure UpdateCamera;
-  const
-    // TODO expose property
-    CameraSpeed = 10;
   var
     TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget, CameraDirToTarget: TVector3;
     MaxDistance: Single;
@@ -622,8 +701,6 @@ var
     Returns are we rotating now. }
   function UpdateAimAvatar: Boolean;
   const
-    // TODO expose property
-    AvatarRotationSpeed = 10; // rotation speed, in radians per second
     AngleEpsilon = 0.01;
   var
     TargetDir: TVector3;
@@ -644,27 +721,6 @@ var
       MinVar(Angle, AvatarRotationSpeed * SecondsPassed);
       A.Direction := RotatePointAroundAxisRad(Angle, A.Direction, -TVector3.CrossProduct(TargetDir, A.Direction));
       Result := true;
-    end;
-  end;
-
-  procedure SetAnimation(const AnimationNames: array of String);
-  var
-    AnimName: String;
-  begin
-    if Avatar <> nil then
-    begin
-      Assert(High(AnimationNames) >= 0); // at least one animation name provided
-      for AnimName in AnimationNames do
-        if Avatar.HasAnimation(AnimName) then
-        begin
-          Avatar.AutoAnimation := AnimName;
-          Exit;
-        end;
-      WritelnWarning('No useful animation exists on the avatar to show in the current state.' +NL +
-        'Tried: %s.' +NL +
-        'Add the animations to your model, or set the TCastleThirdPersonNavigation.AnimationXxx properties to point to the existing animations.', [
-        GlueStrings(AnimationNames, ', ')
-      ]);
     end;
   end;
 
@@ -766,6 +822,48 @@ begin
     UpdateCamera;
   end;
 end;
+
+{ Since String values cannot have default properties,
+  we use "stored" methods to avoid storing default value. }
+
+function TCastleThirdPersonNavigation.AnimationIdleStored: Boolean;
+begin
+  Result := FAnimationIdle <> DefaultAnimationIdle;
+end;
+
+function TCastleThirdPersonNavigation.AnimationRotateStored: Boolean;
+begin
+  Result := FAnimationRotate <> DefaultAnimationRotate;
+end;
+
+function TCastleThirdPersonNavigation.AnimationWalkStored: Boolean;
+begin
+  Result := FAnimationWalk <> DefaultAnimationWalk;
+end;
+
+function TCastleThirdPersonNavigation.AnimationRunStored: Boolean;
+begin
+  Result := FAnimationRun <> DefaultAnimationRun;
+end;
+
+function TCastleThirdPersonNavigation.AnimationCrouchStored: Boolean;
+begin
+  Result := FAnimationCrouch <> DefaultAnimationCrouch;
+end;
+
+function TCastleThirdPersonNavigation.AnimationCrouchIdleStored: Boolean;
+begin
+  Result := FAnimationCrouchIdle <> DefaultAnimationCrouchIdle;
+end;
+
+function TCastleThirdPersonNavigation.AnimationCrouchRotateStored: Boolean;
+begin
+  Result := FAnimationCrouchRotate <> DefaultAnimationCrouchRotate;
+end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 initialization
   RegisterSerializableComponent(TCastleThirdPersonNavigation, 'Third-Person Navigation');
