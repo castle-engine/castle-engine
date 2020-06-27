@@ -82,8 +82,6 @@ type
     procedure ClearUndoHistory;
   end;
 
-function UndoSystem: TUndoSystem;
-
 implementation
 uses
   SysUtils,
@@ -250,17 +248,5 @@ begin
   WriteLnLog('Clearing Undo hisotry.');
 end;
 
-var
-  FUndoSystem: TUndoSystem;
-
-function UndoSystem: TUndoSystem;
-begin
-  if FUndoSystem = nil then
-    FUndoSystem := TUndoSystem.Create(nil); //should be owned by castle-editor, I guess
-  Result := FUndoSystem;
-end;
-
-finalization
-  FreeAndNil(FUndoSystem); //temporary
 end.
 

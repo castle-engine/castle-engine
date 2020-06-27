@@ -167,6 +167,7 @@ type
 
     var
       Inspector: array [TInspectorType] of TOIPropertyGrid;
+      FUndoSystem: TUndoSystem;
       PropertyEditorHook: TPropertyEditorHook;
       FDesignUrl: String;
       FDesignRoot: TComponent;
@@ -269,6 +270,7 @@ type
     procedure UIScaling(const UIScaling: TUIScaling;
       const UIReferenceWidth, UIReferenceHeight: Single);
 
+    property UndoSystem: TUndoSystem read FUndoSystem;
     property DesignUrl: String read FDesignUrl;
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
@@ -817,6 +819,8 @@ begin
   inherited;
 
   PropertyEditorHook := TPropertyEditorHook.Create(Self);
+
+  FUndoSystem := TUndoSystem.Create(Self);
 
   Inspector[itBasic] := CommonInspectorCreate;
   Inspector[itBasic].Parent := TabBasic;
