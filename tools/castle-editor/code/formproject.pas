@@ -29,9 +29,6 @@ uses
 
 type
   { Main project management. }
-
-  { TProjectForm }
-
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
