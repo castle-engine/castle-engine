@@ -914,7 +914,11 @@ procedure TDesignFrame.PerformRedo;
 var
   NewDesignOwner: TComponent;
   UHE: TUndoHistoryElement;
+  InspectorType: TInspectorType;
 begin
+  for InspectorType in TInspectorType do
+    Inspector[InspectorType].SaveChanges;
+
   NewDesignOwner := TComponent.Create(Self);
   UHE := UndoSystem.Redo;
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
@@ -926,7 +930,11 @@ procedure TDesignFrame.PerformUndo;
 var
   NewDesignOwner: TComponent;
   UHE: TUndoHistoryElement;
+  InspectorType: TInspectorType;
 begin
+  for InspectorType in TInspectorType do
+    Inspector[InspectorType].SaveChanges;
+
   NewDesignOwner := TComponent.Create(Self);
   {if not UndoSystem.IsRedoPossible then
   begin
