@@ -39,8 +39,6 @@ uses
 type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
-    RedoButton: TButton;
-    UndoButton: TButton;
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
     LabelEventsInfo: TLabel;
@@ -115,10 +113,9 @@ type
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
-    procedure UpdateUndoRedoButtons;
     procedure ClearDesign;
-    procedure RedoButtonClick(Sender: TObject);
-    procedure UndoButtonClick(Sender: TObject);
+    procedure PerformRedo;
+    procedure PerformUndo;
   protected
     procedure SetParent(AParent: TWinControl); override;
   private
@@ -902,16 +899,6 @@ begin
   OnUpdateFormCaption(Self);
 end;
 
-procedure TDesignFrame.UpdateUndoRedoButtons;
-begin
-  UndoButton.Enabled := UndoSystem.IsUndoPossible;
-  UndoButton.Hint := UndoSystem.UndoComment;
-  UndoButton.ShowHint := true;
-  RedoButton.Enabled := UndoSystem.IsRedoPossible;
-  RedoButton.Hint := UndoSystem.RedoComment;
-  RedoButton.ShowHint := true;
-end;
-
 procedure TDesignFrame.ClearDesign;
 begin
   ControlsTree.Items.Clear;
@@ -923,7 +910,7 @@ begin
   FreeAndNil(DesignOwner);
 end;
 
-procedure TDesignFrame.RedoButtonClick(Sender: TObject);
+procedure TDesignFrame.PerformRedo;
 var
   NewDesignOwner: TComponent;
   UHE: TUndoHistoryElement;
@@ -933,10 +920,9 @@ begin
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
   if UHE.Selected <> '' then
     SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
-  UpdateUndoRedoButtons;
 end;
 
-procedure TDesignFrame.UndoButtonClick(Sender: TObject);
+procedure TDesignFrame.PerformUndo;
 var
   NewDesignOwner: TComponent;
   UHE: TUndoHistoryElement;
@@ -951,7 +937,6 @@ begin
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
   if UHE.Selected <> '' then
     SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
-  UpdateUndoRedoButtons;
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
@@ -1019,7 +1004,6 @@ begin
       [ExtractFileExt(NewDesignUrl), Mime]);
 
   UndoSystem.ClearUndoHistory;
-  UpdateUndoRedoButtons;
 
   OpenDesign(NewDesignRoot, NewDesignOwner, NewDesignUrl);
 
@@ -1596,7 +1580,6 @@ begin
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, UndoComment);
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
-  UpdateUndoRedoButtons;
 end;
 
 procedure TDesignFrame.MarkModified;
@@ -2577,7 +2560,6 @@ begin
     (NewRoot as TCastleUserInterface).FullSize := true;
 
   UndoSystem.ClearUndoHistory;
-  UpdateUndoRedoButtons;
 
   OpenDesign(NewRoot, NewDesignOwner, '');
 
