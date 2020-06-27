@@ -190,10 +190,12 @@ object ProjectForm: TProjectForm
       end
       object MenuItemUndo: TMenuItem
         Caption = 'Undo'
+        ShortCut = 49242
         OnClick = MenuItemUndoClick
       end
       object MenuItemRedo: TMenuItem
         Caption = 'Redo'
+        ShortCut = 57434
         OnClick = MenuItemRedoClick
       end
       object MenuItemCopyComponent: TMenuItem
