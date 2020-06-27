@@ -38,9 +38,11 @@ type
     MainViewport: TCastleViewport;
     ThirdPersonNavigation: TCastleThirdPersonNavigation;
     SceneAvatar: TCastleScene;
+    CheckboxCameraFollows: TCastleCheckbox;
     CheckboxAimAvatar: TCastleCheckbox;
     CheckboxDebugAvatarColliders: TCastleCheckbox;
     CheckboxImmediatelyFixBlockedCamera: TCastleCheckbox;
+    procedure ChangeCheckboxCameraFollows(Sender: TObject);
     procedure ChangeCheckboxAimAvatar(Sender: TObject);
     procedure ChangeCheckboxDebugAvatarColliders(Sender: TObject);
     procedure ChangeCheckboxImmediatelyFixBlockedCamera(Sender: TObject);
@@ -79,6 +81,7 @@ begin
   MainViewport := UiOwner.FindRequiredComponent('MainViewport') as TCastleViewport;
   ThirdPersonNavigation := UiOwner.FindRequiredComponent('ThirdPersonNavigation') as TCastleThirdPersonNavigation;
   SceneAvatar := UiOwner.FindRequiredComponent('SceneAvatar') as TCastleScene;
+  CheckboxCameraFollows := UiOwner.FindRequiredComponent('CheckboxCameraFollows') as TCastleCheckbox;
   CheckboxAimAvatar := UiOwner.FindRequiredComponent('CheckboxAimAvatar') as TCastleCheckbox;
   CheckboxDebugAvatarColliders := UiOwner.FindRequiredComponent('CheckboxDebugAvatarColliders') as TCastleCheckbox;
   CheckboxImmediatelyFixBlockedCamera := UiOwner.FindRequiredComponent('CheckboxImmediatelyFixBlockedCamera') as TCastleCheckbox;
@@ -92,6 +95,7 @@ begin
     Enemies.Add(Enemy);
   end;
 
+  CheckboxCameraFollows.OnChange := @ChangeCheckboxCameraFollows;
   CheckboxAimAvatar.OnChange := @ChangeCheckboxAimAvatar;
   CheckboxDebugAvatarColliders.OnChange := @ChangeCheckboxDebugAvatarColliders;
   CheckboxImmediatelyFixBlockedCamera.OnChange := @ChangeCheckboxImmediatelyFixBlockedCamera;
@@ -236,6 +240,11 @@ begin
     ChangeCheckboxAimAvatar(CheckboxAimAvatar); // update ThirdPersonNavigation.AimAvatar
     Exit(true);
   end;
+end;
+
+procedure TStatePlay.ChangeCheckboxCameraFollows(Sender: TObject);
+begin
+  ThirdPersonNavigation.CameraFollows := CheckboxCameraFollows.Checked;
 end;
 
 procedure TStatePlay.ChangeCheckboxAimAvatar(Sender: TObject);

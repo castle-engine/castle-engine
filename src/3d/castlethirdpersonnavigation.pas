@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes,
   CastleKeysMouse, CastleScene, CastleVectors, CastleCameras,
-  CastleTransform, CastleInputs;
+  CastleTransform, CastleInputs, CastleClassUtils;
 
 type
   { Used by TCastleThirdPersonNavigation.AimAvatar. }
@@ -82,6 +82,7 @@ type
     FAnimationCrouch: String;
     FAnimationCrouchIdle: String;
     FAnimationCrouchRotate: String;
+    FCameraFollows: Boolean;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -115,6 +116,7 @@ type
     procedure SetInitialHeightAboveTarget(const Value: Single);
     procedure SetDistanceToAvatarTarget(const Value: Single);
     procedure MySetAvatarTargetForPersistent(const AValue: TVector3);
+    procedure SetCameraFollows(const Value: Boolean);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -148,6 +150,7 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
+    function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Makes camera be positioned with respect to the current properties and avatar.
       Always call this explicitly once.
@@ -201,6 +204,15 @@ type
     property MouseLookHorizontalSensitivity;
     property MouseLookVerticalSensitivity;
     property InvertVerticalMouseLook;
+
+    { Does camera follow the avatar, by default yes.
+
+      When this is @false, camera remains unchanged by anything here
+      (avatar movement/rotations, mouse look, even by calling @link(Init)).
+      Some properties of this then are meaningless (e.g. @link(DistanceToAvatarTarget)).
+
+      However, all the inputs to control the avatar continue to work. }
+    property CameraFollows: Boolean read FCameraFollows write SetCameraFollows default true;
 
     { Optional avatar hierarchy that is moved and rotated when this navigation changes.
       When this is @nil, we just move and rotate the @link(Avatar).
@@ -320,6 +332,7 @@ uses Math,
 constructor TCastleThirdPersonNavigation.Create(AOwner: TComponent);
 begin
   inherited;
+  FCameraFollows := true;
   FAvatarTarget := DefaultAvatarTarget;
   {$ifdef AVATAR_TARGET_FORWARD}
   FAvatarTargetForward := DefaultAvatarTargetForward;
@@ -522,13 +535,16 @@ begin
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
-    GravUp := Camera.GravityUp;
+    if CameraFollows then
+    begin
+      GravUp := Camera.GravityUp;
 
-    CameraPos := CameraPositionInitial(A, TargetWorldPos);
-    CameraDir := TargetWorldPos - CameraPos;
-    CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
-    FixCameraForCollisions(CameraPos, CameraDir);
-    Camera.SetView(CameraPos, CameraDir, CameraUp);
+      CameraPos := CameraPositionInitial(A, TargetWorldPos);
+      CameraDir := TargetWorldPos - CameraPos;
+      CameraUp := GravUp; // will be adjusted to be orthogonal to Dir by SetView
+      FixCameraForCollisions(CameraPos, CameraDir);
+      Camera.SetView(CameraPos, CameraDir, CameraUp);
+    end;
 
     if Avatar <> nil then
     begin
@@ -580,6 +596,9 @@ var
   CameraPos, CameraDir, CameraUp, TargetWorldPos, LookPos: TVector3;
 begin
   inherited;
+  if not CameraFollows then
+   Exit;
+
   A := RealAvatarHierarchy;
   if (A <> nil) and (InternalViewport <> nil) then
   begin
@@ -682,6 +701,9 @@ var
     TargetWorldPos, CameraPos, CameraDir, CameraUp, CameraPosTarget, CameraDirToTarget: TVector3;
     MaxDistance: Single;
   begin
+    if not CameraFollows then
+      Exit;
+
     TargetWorldPos := A.WorldTransform.MultPoint(AvatarTarget);
 
     Camera.GetView(CameraPos, CameraDir, CameraUp);
@@ -896,6 +918,25 @@ begin
   begin
     FDistanceToAvatarTarget := Value;
     if CastleDesignMode then Init;
+  end;
+end;
+
+procedure TCastleThirdPersonNavigation.SetCameraFollows(const Value: Boolean);
+begin
+  if FCameraFollows <> Value then
+  begin
+    FCameraFollows := Value;
+    if CastleDesignMode then Init;
+  end;
+end;
+
+function TCastleThirdPersonNavigation.PropertySection(const PropertyName: String): TPropertySection;
+begin
+  case PropertyName of
+    'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'CameraRadius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
+      Result := psBasic;
+    else
+      Result := inherited PropertySection(PropertyName);
   end;
 end;
 

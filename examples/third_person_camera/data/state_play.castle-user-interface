@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 2.5798556208610535E-001,
-          "Y" : -8.0748446862344281E-007,
-          "Z" : 9.6614879369735718E-001,
+          "X" : 2.5032672286033630E-001,
+          "Y" : -8.1133197227245546E-007,
+          "Z" : 9.6816146373748779E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -81,10 +81,9 @@
             "Name" : "SceneAvatar",
             "ProcessEvents" : true,
             "RotationPersistent" : {
-              "W" : 1.4555264711380005E+000,
-              "X" : 1.5471658844035119E-004,
+              "W" : 1.6077821254730225E+000,
+              "X" : -1.4490212197415531E-004,
               "Y" : 9.9999994039535522E-001,
-              "Z" : 1.9377481658011675E-004,
               "$ClassName" : "TCastleVector4Persistent"
             },
             "Spatial" : [
@@ -92,9 +91,9 @@
               "ssDynamicCollisions"
             ],
             "TranslationPersistent" : {
-              "X" : -8.6034564971923828E+000,
-              "Y" : -5.5395960807800293E-003,
-              "Z" : 2.1127820014953613E+000,
+              "X" : -3.7523124217987061E+000,
+              "Y" : -5.2440762519836426E-003,
+              "Z" : 8.0470532178878784E-001,
               "$ClassName" : "TCastleVector3Persistent"
             },
             "URL" : "castle-data:/avatar/avatar.gltf",
@@ -234,6 +233,31 @@
           "$ClassName" : "TCastleLabel"
         },
         {
+          "Caption" : "Camera Follows Avatar",
+          "CheckboxColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "Checked" : true,
+          "FontSize" : 2.0000000000000000E+001,
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "Name" : "CheckboxCameraFollows",
+          "TextColorPersistent" : {
+            "Blue" : 1.0000000000000000E+000,
+            "Green" : 1.0000000000000000E+000,
+            "Red" : 1.0000000000000000E+000,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "VerticalAnchorDelta" : -3.1500000000000000E+002,
+          "VerticalAnchorParent" : "vpTop",
+          "VerticalAnchorSelf" : "vpTop",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleCheckbox"
+        },
+        {
           "Caption" : "Aim Avatar Horizontally (Rotating Camera Will Rotate Also Avatar) (Click with right mouse button to toggle)",
           "CheckboxColorPersistent" : {
             "Blue" : 1.0000000000000000E+000,
@@ -250,7 +274,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -3.1500000000000000E+002,
+          "VerticalAnchorDelta" : -3.4900000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -274,7 +298,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -3.4900000000000000E+002,
+          "VerticalAnchorDelta" : -3.8300000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -298,7 +322,7 @@
             "Red" : 1.0000000000000000E+000,
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -3.8300000000000000E+002,
+          "VerticalAnchorDelta" : -4.1700000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
