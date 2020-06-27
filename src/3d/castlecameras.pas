@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Cameras to navigate in 3D space (TCastleExamineNavigation, TCastleWalkNavigation). }
+{ Camera and navigation (TCastleCamera, TCastleExamineNavigation, TCastleWalkNavigation). }
 unit CastleCameras;
 
 {$I castleconf.inc}
@@ -753,9 +753,6 @@ type
       @raises EViewportNotAssigned If Viewport not assigned yet. }
     function Camera: TCastleCamera;
 
-    // By default this captures events from whole parent, which should be whole Viewport.
-    property FullSize default true;
-
     { Camera matrix, transforming from world space into camera space. }
     function Matrix: TMatrix4; deprecated 'use Viewport.Camera.Matrix';
 
@@ -1107,6 +1104,9 @@ type
       you can simply set this to empty.
       You can also leave @link(TCastleViewport.Navigation) as @nil. }
     property Input: TNavigationInputs read FInput write SetInput default DefaultInput;
+  published
+    // By default this captures events from whole parent, which should be whole Viewport.
+    property FullSize default true;
   end;
 
   { Navigate the 3D model in examine mode, like you would hold

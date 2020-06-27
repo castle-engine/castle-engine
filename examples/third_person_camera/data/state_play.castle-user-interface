@@ -5,9 +5,9 @@
     {
       "Camera" : {
         "InitialDirectionPersistent" : {
-          "X" : 3.5837873816490173E-001,
-          "Y" : -7.5170220270592836E-007,
-          "Z" : 9.3357634544372559E-001,
+          "X" : 3.2372671365737915E-001,
+          "Y" : -7.7210665949678514E-007,
+          "Z" : 9.4615066051483154E-001,
           "$ClassName" : "TCastleVector3Persistent"
         },
         "InitialPositionPersistent" : {
@@ -77,6 +77,7 @@
             "$ClassName" : "TCastleScene"
           },
           {
+            "AutoAnimation" : "walk",
             "DefaultAnimationTransition" : 1.0000000149011612E-001,
             "Name" : "SceneAvatar",
             "ProcessEvents" : true,
@@ -146,16 +147,17 @@
         "$ClassName" : "TCastleRootTransform"
       },
       "Name" : "MainViewport",
-      "Navigation" : "WalkNavigation",
+      "Navigation" : "ThirdPersonNavigation",
       "$Children" : [
         {
-          "FullSize" : true,
-          "MoveSpeed" : 1.0000000000000000E+001,
-          "Name" : "WalkNavigation",
-          "PreferredHeight" : 2.0000000000000000E+000,
+          "Avatar" : "SceneAvatar",
+          "CrouchSpeed" : 2.0000000000000000E+000,
+          "MoveSpeed" : 2.0000000000000000E+000,
+          "Name" : "ThirdPersonNavigation",
+          "RunSpeed" : 8.0000000000000000E+000,
           "$Children" : [
           ],
-          "$ClassName" : "TCastleWalkNavigation"
+          "$ClassName" : "TCastleThirdPersonNavigation"
         }
       ],
       "$ClassName" : "TCastleViewport"

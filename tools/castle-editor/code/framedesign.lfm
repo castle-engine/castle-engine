@@ -1468,6 +1468,10 @@ object DesignFrame: TDesignFrame
       Caption = 'Set Navigation to Walk (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
       OnClick = MenuViewportNavigationWalkClick
     end
+    object MenuViewportNavigationThirdPerson: TMenuItem
+      Caption = 'Set Navigation to Third-Person (Viewport.Navigation := TCastleThirdPersonNavigation.Create)'
+      OnClick = MenuViewportNavigationThirdPersonClick
+    end
     object MenuItemSeparator1: TMenuItem
       Caption = '-'
     end
