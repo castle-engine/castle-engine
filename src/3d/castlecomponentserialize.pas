@@ -643,27 +643,29 @@ var
   FloatValue, DefFloatValue: Extended;
 {$endif}
   MethodValue, DefMethodValue: TMethod;
-  VarValue, DefVarValue : tvardata;
-  BoolValue, DefBoolValue: boolean;
+  VarValue, DefVarValue: tvardata;
+  BoolValue, DefBoolValue, DefValueUse: Boolean;
   C: TObject;
 begin
   Result := false; // for unknown types, assume false
 
   PropType := PropInfo^.PropType;
+  DefValue := PropInfo^.Default;
+  { $80000000 means that there's no default value (in case of Single or String,
+    you need to specify it by "nodefault") }
+  DefValueUse := DefValue <> LongInt($80000000);
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
       begin
         Value := GetOrdProp(Instance, PropInfo);
-        DefValue := PropInfo^.Default;
-        Result := (Value = DefValue) and (DefValue <> longint($80000000));
+        Result := (Value = DefValue) and DefValueUse;
       end;
 {$ifndef FPUNONE}
     tkFloat:
       begin
         FloatValue := GetFloatProp(Instance, PropInfo);
-        DefValue := PropInfo^.Default;
         DefFloatValue := PSingle(@PropInfo^.Default)^;
-        Result := (FloatValue = DefFloatValue) and (DefValue <> longint($80000000));
+        Result := (FloatValue = DefFloatValue) and DefValueUse;
       end;
 {$endif}
     tkMethod:
@@ -675,15 +677,15 @@ begin
       end;
     tkSString, tkLString, tkAString:
       begin
-        Result := GetStrProp(Instance, PropInfo) = '';
+        Result := (GetStrProp(Instance, PropInfo) = '') and DefValueUse;
       end;
     tkWString:
       begin
-        Result := GetWideStrProp(Instance, PropInfo) = '';
+        Result := (GetWideStrProp(Instance, PropInfo) = '') and DefValueUse;
       end;
     tkUString:
       begin
-        Result := GetUnicodeStrProp(Instance, PropInfo) = '';
+        Result := (GetUnicodeStrProp(Instance, PropInfo) = '') and DefValueUse;
       end;
     tkVariant:
       begin
@@ -725,9 +727,8 @@ begin
     tkBool:
       begin
         BoolValue := GetOrdProp(Instance, PropInfo)<>0;
-        DefBoolValue := PropInfo^.Default<>0;
-        DefValue := PropInfo^.Default;
-        Result := (BoolValue = DefBoolValue) and (DefValue <> longint($80000000));
+        DefBoolValue := DefValue <> 0;
+        Result := (BoolValue = DefBoolValue) and DefValueUse;
       end;
     else ;
   end;
