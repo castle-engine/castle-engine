@@ -479,7 +479,15 @@ begin
   if Result then Exit;
 
   if (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
+  begin
     DraggingMode := dmNone;
+
+    //Note, that we may want to have better comment message here,
+    //especially when we start adding gizmos and motion event can change
+    //a lot of different values
+    if Frame.UndoSystem.ScheduleRecordUndoOnRelease then
+      Frame.RecordUndo('');
+  end;
 end;
 
 function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
@@ -527,6 +535,10 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     MinHeight = 10;
   begin
     if not DragAllowed(UI, Vector2(X, Y)) then Exit;
+
+    //this will schedule recording Undo OnRelease
+    //and will prevent from recording Undo by applying changes below
+    Frame.UndoSystem.ScheduleRecordUndoOnRelease := true;
 
     case DraggingMode of
       dmTranslate:
@@ -596,7 +608,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     end;
 
     Frame.ModifiedOutsideObjectInspector;
-    Frame.RecordUndo('');
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1556,10 +1567,16 @@ begin
     end;
   end;
 
-  if Sender is TOICustomPropertyGrid then
-    RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue)
-  else
-    RecordUndo('');
+  if not UndoSystem.ScheduleRecordUndoOnRelease then
+  begin
+    { here we have PropertyGridModified conflict with Schedule Record Undo OnRelease
+      So we should ignore changes to PropertyGrid in case the change is caused
+      by dragging, otherwise we'll record an undo for every OnMotion of dragging }
+    if Sender is TOICustomPropertyGrid then
+      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue)
+    else
+      RecordUndo('');
+  end;
 
   MarkModified;
 end;

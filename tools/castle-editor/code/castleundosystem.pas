@@ -59,6 +59,11 @@ type
     { Construct human-readable comment for this Undo record }
     function GetUndoComment(const UndoI: Integer): String;
   public
+    { Should the Undo be recorded on Release event?
+      Note, that we rely here on Release event, which may never come in case
+      user has switched a window (e.g. with Alt-Tab) while dragging
+      This value will be purged when recording a new Undo record }
+    ScheduleRecordUndoOnRelease: Boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     { Should be called after every significant change, including initial loading of the design }
@@ -131,6 +136,7 @@ var
   I: Integer;
   NewUndoHistorySize: Integer;
 begin
+  ScheduleRecordUndoOnRelease := false;
   if (UndoHistory.Count > 0) and (UndoData = UndoHistory[CurrentUndo].Data) then
   begin
     if (SelectedComponent = UndoHistory[CurrentUndo].Selected) or (UndoHistory[CurrentUndo].Selected = '') then
@@ -178,6 +184,7 @@ end;
 
 function TUndoSystem.Undo: TUndoHistoryElement;
 begin
+  ScheduleRecordUndoOnRelease := false;
   if IsUndoPossible then
   begin
     WriteLnLog('Performing Undo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo - 1));
@@ -189,6 +196,7 @@ end;
 
 function TUndoSystem.Redo: TUndoHistoryElement;
 begin
+  ScheduleRecordUndoOnRelease := false;
   if IsRedoPossible then
   begin
     WriteLnLog('Performing Redo from ' + IntToStr(CurrentUndo) + ' to ' + IntToStr(CurrentUndo + 1));
@@ -243,6 +251,7 @@ end;
 
 procedure TUndoSystem.ClearUndoHistory;
 begin
+  ScheduleRecordUndoOnRelease := false;
   UndoHistory.Clear;
   CurrentUndo := -1;
   WriteLnLog('Clearing Undo hisotry.');
