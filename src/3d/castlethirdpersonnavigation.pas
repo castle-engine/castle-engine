@@ -54,7 +54,6 @@ type
     FDistanceToAvatarTarget: Single;
     FAimAvatar: TAimAvatar;
     FAvatarTarget: TVector3;
-    FCameraRadius: Single;
     FCameraSpeed: Single;
     {$ifdef AVATAR_TARGET_FORWARD}
     FAvatarTargetForward: TVector3;
@@ -130,7 +129,6 @@ type
       DefaultDistanceToAvatarTarget = 4.0;
       DefaultAvatarRotationSpeed = 10;
       DefaultAvatarTarget: TVector3 = (Data: (0, 2, 0));
-      DefaultCameraRadius = 0.25;
       DefaultCameraSpeed = 10;
       {$ifdef AVATAR_TARGET_FORWARD}
       DefaultAvatarTargetForward: TVector3 = (Data: (0, 2, 0));
@@ -242,9 +240,6 @@ type
     property AvatarRotationSpeed: Single read FAvatarRotationSpeed write FAvatarRotationSpeed
       default DefaultAvatarRotationSpeed;
 
-    { Camera will keep at least this distance from walls. }
-    property CameraRadius: Single read FCameraRadius write FCameraRadius default DefaultCameraRadius;
-
     { Camera position tracks the desired position with given speed (in units per second).
       This makes camera adjust to avatar moving (because of input, or because of gravity
       or other external code) and to not being blocked by the collider. }
@@ -322,6 +317,9 @@ type
       Default 'crouch_rotate'.}
     property AnimationCrouchRotate: String read FAnimationCrouchRotate write FAnimationCrouchRotate stored AnimationCrouchRotateStored nodefault;
 
+    { Camera will keep at least this distance from walls. }
+    property Radius;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -344,7 +342,6 @@ begin
   {$endif}
   FAvatarRotationSpeed := DefaultAvatarRotationSpeed;
   FAimAvatar := aaNone;
-  FCameraRadius := DefaultCameraRadius;
   FCameraSpeed := DefaultCameraSpeed;
   FInitialHeightAboveTarget := DefaultInitialHeightAboveTarget;
   FDistanceToAvatarTarget := DefaultDistanceToAvatarTarget;
@@ -575,11 +572,11 @@ begin
   try
     if A.World.WorldRayCast(CameraLookPos, -CameraDir, CollisionDistance) <> nil then
     begin
-      { Use MinDistanceToAvatarTarget to secure in case wall is closer than CameraRadius
-        (CollisionDistance - CameraRadius negative)
+      { Use MinDistanceToAvatarTarget to secure in case wall is closer than Radius
+        (CollisionDistance - Radius negative)
         or just to close to head.
         Then use MinDistanceToAvatarTarget. }
-      Result := Max(MinDistanceToAvatarTarget, CollisionDistance - CameraRadius);
+      Result := Max(MinDistanceToAvatarTarget, CollisionDistance - Radius);
     end;
   finally A.Enable end;
 end;
@@ -1006,7 +1003,7 @@ end;
 function TCastleThirdPersonNavigation.PropertySection(const PropertyName: String): TPropertySection;
 begin
   case PropertyName of
-    'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'CameraRadius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
+    'CameraFollows', 'AvatarTarget', 'Avatar', 'AvatarHierarchy', 'Radius', 'AimAvatar', 'InitialHeightAboveTarget', 'DistanceToAvatarTarget':
       Result := psBasic;
     else
       Result := inherited PropertySection(PropertyName);
