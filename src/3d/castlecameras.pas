@@ -707,6 +707,9 @@ type
       { Default value for TCastleNavigation.Radius.
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
+      { Default value for TCastleNavigation.PreferredHeight.
+        Matches the default VRML/X3D NavigationInfo.avatarSize[1]. }
+      DefaultPreferredHeight = 1.6;
       DefaultInput = [niNormal, niMouseDragging, ni3dMouse, niGesture];
       DefaultHeadBobbingTime = 0.5;
       DefaultHeadBobbing = 0.02;
@@ -968,7 +971,7 @@ type
       See CorrectPreferredHeight for important property
       of PreferredHeight that you should keep. }
     property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight default 0.0;
+      read FPreferredHeight write FPreferredHeight default DefaultPreferredHeight;
 
     { Correct PreferredHeight based on @link(Radius)
       and on current @link(HeadBobbing).
@@ -2176,8 +2179,15 @@ const
     We need to make "preferred height" much larger than Radius * 2, to allow some
     space to decrease (e.g. by Input_DecreasePreferredHeight).
     Remember that CorrectPreferredHeight
-    adds a limit to PreferredHeight, around Radius * 2. }
-  RadiusToPreferredHeight = 4.0;
+    adds a limit to PreferredHeight, around Radius * 2.
+
+    This determines minimal PreferredHeight, it should be used always like
+      Max(DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin)
+    This way, in case of models that are small, but still follow the standard "1 unit = 1 meter",
+    the PreferredHeight will not get weirdly small, it will be DefaultPreferredHeight.
+    Testcase: examples/third_person_camera/data/level/level-dungeon.gltf open with view3dscene.
+  }
+  RadiusToPreferredHeightMin = 4.0;
 
   { Multiply world bounding box AverageSize by this to get sensible radius. }
   WorldBoxSizeToRadius = 0.005;
@@ -2671,6 +2681,7 @@ constructor TCastleNavigation.Create(AOwner: TComponent);
 begin
   inherited;
   FRadius := DefaultRadius;
+  FPreferredHeight := DefaultPreferredHeight;
   FInput := DefaultInput;
   FModelBox := TBox3D.Empty;
   FHeadBobbing := DefaultHeadBobbing;
@@ -5162,7 +5173,7 @@ begin
   if Box.IsEmptyOrZero then
   begin
     Radius := ARadius;
-    PreferredHeight := RadiusToPreferredHeight * ARadius;
+    PreferredHeight := Max(DefaultPreferredHeight, RadiusToPreferredHeightMin * ARadius);
     CorrectPreferredHeight;
 
     Camera.ProjectionNear := Radius * RadiusToProjectionNear;

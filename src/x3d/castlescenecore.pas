@@ -7206,7 +7206,7 @@ begin
      (NavigationNode.FdAvatarSize.Count >= 2) then
     Navigation.PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
   else
-    Navigation.PreferredHeight := Radius * RadiusToPreferredHeight;
+    Navigation.PreferredHeight := Max(TCastleNavigation.DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin);
 
   Navigation.CorrectPreferredHeight;
 
