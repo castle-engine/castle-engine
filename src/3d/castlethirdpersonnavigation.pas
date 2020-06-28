@@ -894,6 +894,13 @@ begin
 
     Rotating := UpdateAimAvatar;
 
+    { TODO: In case we use AimAvatar and you move mouse very slowly for short amounts,
+      we may switch very quickly between AnimationIdle and AnimationRotate.
+      This makes somewhat bad look in third_person_navigation, and though it uses
+      DefaultAnimationTransition <> 0.
+      Should we protect from it here, to introduce minimal time to change
+      animation between rotating/non-rotating variant? }
+
     // change Avatar.AutoAnimation
     if Moving then
     begin
