@@ -83,6 +83,9 @@ type
     FAnimationCrouchIdle: String;
     FAnimationCrouchRotate: String;
     FCameraFollows: Boolean;
+    FAvatarFreeObserver: TFreeNotificationObserver;
+    FAvatarHierarchyFreeObserver: TFreeNotificationObserver;
+    SetAnimationWarningsDone: Cardinal;
     function RealAvatarHierarchy: TCastleTransform;
     procedure SetAvatar(const Value: TCastleScene);
     procedure SetAvatarHierarchy(const Value: TCastleTransform);
@@ -117,6 +120,8 @@ type
     procedure SetDistanceToAvatarTarget(const Value: Single);
     procedure MySetAvatarTargetForPersistent(const AValue: TVector3);
     procedure SetCameraFollows(const Value: Boolean);
+    procedure AvatarFreeNotification(const Sender: TFreeNotificationObserver);
+    procedure AvatarHierarchyFreeNotification(const Sender: TFreeNotificationObserver);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
@@ -358,6 +363,11 @@ begin
   FAnimationCrouchIdle := DefaultAnimationCrouchIdle;
   FAnimationCrouchRotate := DefaultAnimationCrouchRotate;
 
+  FAvatarFreeObserver := TFreeNotificationObserver.Create(Self);
+  FAvatarFreeObserver.OnFreeNotification := @AvatarFreeNotification;
+  FAvatarHierarchyFreeObserver := TFreeNotificationObserver.Create(Self);
+  FAvatarHierarchyFreeObserver.OnFreeNotification := @AvatarHierarchyFreeNotification;
+
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
   FInput_LeftRotate              := TInputShortcut.Create(Self);
@@ -419,6 +429,10 @@ end;
 
 destructor TCastleThirdPersonNavigation.Destroy;
 begin
+  { set to nil by SetXxx, to detach free notification }
+  Avatar := nil;
+  AvatarHierarchy := nil;
+
   {$define read_implementation_destructor}
   {$I auto_generated_persistent_vectors/tcastlethirdpersonnavigation_persistent_vectors.inc}
   {$undef read_implementation_destructor}
@@ -438,8 +452,32 @@ begin
   if FAvatar <> Value then
   begin
     FAvatar := Value;
-    if CastleDesignMode then Init;
-    // TODO free notification for Avatar, AvatarHierarchy
+    FAvatarFreeObserver.Observed := Value;
+    SetAnimationWarningsDone := 0;
+
+    (* This code is not needed at all, our Update will call Init
+       if RealAvatarHierarchy remains non-nil.
+
+    { When we change Value to nil because object is being destroyed,
+      we cannot call Init.
+
+      Reason: In case FAvatarHierarchy (the other TCastleTransform
+      reference in TCastleThirdPersonNavigation)
+      remains non-nil, Init would call FixCameraForCollisions,
+      which accesses World, and the World still contains the TCastleTransform
+      that is right now in csDestroying state and has no octree.
+
+      Testcase: third_person_camera, assign non-nil (different) values to both
+      Avatar and AvatarHierarchy, then free the referenced component
+      (either Avatar or AvatarHierarchy). Without check "(Value <> nil)"
+      there would be a crash.
+
+      This also secures us in case Avatar and AvatarHierarchy refer to
+      the same object. In this case, we have a dangling pointer,
+      before *both* free notifications run. }
+    if (Value <> nil) and CastleDesignMode then
+      Init;
+    *)
   end;
 end;
 
@@ -448,8 +486,28 @@ begin
   if FAvatarHierarchy <> Value then
   begin
     FAvatarHierarchy := Value;
-    if CastleDesignMode then Init;
-    // TODO free notification for Avatar, AvatarHierarchy
+    FAvatarHierarchyFreeObserver.Observed := Value;
+
+    (* This code is not needed at all, our Update will call Init
+       if RealAvatarHierarchy remains non-nil.
+
+    { Same comments as in SetAvatar about the "(Value <> nil)" condition.
+      It is necessary.
+
+      Note about one edge-case:
+
+      If you assign both Avatar and AvatarHierarchy
+      to some different non-nil values, and then set AvatarHierarchy to nil,
+      we should call Init to change camera (because RealAvatarHierarchy changed,
+      it now points to Avatar). But we don't, because of this "(Value <> nil)"
+      condition.
+
+      However, no problem - it will be called by Update anyway,
+      because RealAvatarHierarchy <> nil.
+      So user will not notice the problem. }
+    if (Value <> nil) and CastleDesignMode then
+      Init;
+    *)
   end;
 end;
 
@@ -657,6 +715,8 @@ begin
 end;
 
 procedure TCastleThirdPersonNavigation.SetAnimation(const AnimationNames: array of String);
+const
+  MaxSetAnimationWarnings = 10;
 var
   AnimName: String;
 begin
@@ -670,11 +730,17 @@ begin
           Avatar.AutoAnimation := AnimName; // do not change serialized AutoAnimation
         Exit;
       end;
-    WritelnWarning('No useful animation exists on the avatar to show in the current state.' +NL +
-      'Tried: %s.' +NL +
-      'Add the animations to your model, or set the TCastleThirdPersonNavigation.AnimationXxx properties to point to the existing animations.', [
-      GlueStrings(AnimationNames, ', ')
-    ]);
+    if SetAnimationWarningsDone < MaxSetAnimationWarnings then
+    begin
+      WritelnWarning('No useful animation exists on the avatar to show in the current state.' +NL +
+        'Tried: %s.' +NL +
+        'Add the animations to your model, or set the TCastleThirdPersonNavigation.AnimationXxx properties to point to the existing animations.', [
+        GlueStrings(AnimationNames, ', ')
+      ]);
+      Inc(SetAnimationWarningsDone);
+      if SetAnimationWarningsDone = MaxSetAnimationWarnings then
+        WritelnWarning('Further warnings about avatar animations will not be done, to not flood the log, until you assign new Avatar value');
+    end;
   end;
 end;
 
@@ -938,6 +1004,18 @@ begin
     else
       Result := inherited PropertySection(PropertyName);
   end;
+end;
+
+procedure TCastleThirdPersonNavigation.AvatarFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  Avatar := nil;
+end;
+
+procedure TCastleThirdPersonNavigation.AvatarHierarchyFreeNotification(
+  const Sender: TFreeNotificationObserver);
+begin
+  AvatarHierarchy := nil;
 end;
 
 {$define read_implementation_methods}
