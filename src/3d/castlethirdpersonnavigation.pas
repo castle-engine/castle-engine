@@ -217,23 +217,33 @@ type
       However, all the inputs to control the avatar continue to work. }
     property CameraFollows: Boolean read FCameraFollows write SetCameraFollows default true;
 
-    { Optional avatar hierarchy that is moved and rotated when this navigation changes.
-      When this is @nil, we just move and rotate the @link(Avatar).
-      When this is non-nil, then we only move and rotate this AvatarHierarchy.
-
-      If @link(AvatarHierarchy) is non-nil, then it should contain
-      @link(Avatar) as a child. @link(AvatarHierarchy) can even be equal to @link(Avatar)
-      (it is equivalent to just leaving @link(AvatarHierarchy) as @nil). }
-    property AvatarHierarchy: TCastleTransform read FAvatarHierarchy write SetAvatarHierarchy;
-
     { Avatar scene, that is animated, moved and rotated when this navigation changes.
       This navigation component will just call @code(Avatar.AutoAnimation := 'xxx') when necessary.
       Currently we require the following animations to exist: walk, idle.
 
       When AvatarHierarchy is @nil, then @name is directly moved and rotated
       to move avatar.
-      Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy. }
+      Otherwise, AvatarHierarchy is moved, and @name should be inside AvatarHierarchy.
+
+      This scene should be part of @link(TCastleViewport.Items)
+      to make this navigation work, in particular when you call @link(Init).
+      Only in a special case of using @link(TPlayer.ThirdPersonNavigation)
+      with @link(TLevel), the contents of this property will be automatically added to the viewport. }
     property Avatar: TCastleScene read FAvatar write SetAvatar;
+
+    { Optional avatar hierarchy that is moved and rotated when this navigation changes.
+      When this is @nil, we just move and rotate the @link(Avatar).
+      When this is non-nil, then we only move and rotate this AvatarHierarchy.
+
+      If @link(AvatarHierarchy) is non-nil, then it should contain
+      @link(Avatar) as a child. @link(AvatarHierarchy) can even be equal to @link(Avatar)
+      (it is equivalent to just leaving @link(AvatarHierarchy) as @nil).
+
+      This object should be part of @link(TCastleViewport.Items)
+      to make this navigation work, in particular when you call @link(Init).
+      Only in a special case of using @link(TPlayer.ThirdPersonNavigation)
+      with @link(TLevel), the contents of this property will be automatically added to the viewport. }
+    property AvatarHierarchy: TCastleTransform read FAvatarHierarchy write SetAvatarHierarchy;
 
     { When @link(AimAvatar), this is avatar's rotation speed (in radians per second).
       Should make avatar rotation "catch up" (with some delay after camera rotation. }

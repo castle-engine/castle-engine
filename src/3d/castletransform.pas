@@ -1213,6 +1213,11 @@ type
 
     { Get height of my point above the rest of the 3D world.
 
+      The given MyPosition, and returned AboveHeight, are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.Height(MyTransform.Translation, ...)).
+
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
@@ -1222,6 +1227,16 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
     { @groupEnd }
 
+    { Whether there is line of sight (the line segment does not collide with anything)
+      between these 2 points.
+
+      The given Pos1, Pos2 are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.LineOfSight(MyTransform.Translation, MyTransform.Translation + MyTransform.Direction * 10)).
+
+      This ignores the geometry of this 3D object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world. }
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
 
     { Is the move from OldPos to ProposedNewPos possible for me.
@@ -1236,7 +1251,7 @@ type
       with your own geometry), and checks collisions with the rest of the world.
 
       The given OldPos, ProposedNewPos, NewPos are in the parent
-      coordinate system of this TCastleTransform, assuming zero translation.
+      coordinate system of this TCastleTransform.
       Intuitively, you are asking "Can I do this without causing collision:
       @code(Translation := Translation + TranslationChange)".
       So this method is consistent with @link(Move), @link(Translate).
@@ -1249,11 +1264,38 @@ type
       const BecauseOfGravity: boolean): boolean; overload;
     { @groupEnd }
 
-    { Cast a ray from myself to the world, see what is hit.
+    { Cast a ray, see what is hit.
 
-      This ignores the geometry of this 3D object (to not accidentaly collide
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.Ray(MyTransform.Translation, MyTransform.Direction)).
+
+      This ignores the geometry of this object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
+
+    { Cast a ray, see what is hit.
+
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.RayCast(MyTransform.Translation, MyTransform.Direction)).
+      In case of the overloaded version with Distance parameter,
+      the Distance is consistently in the same, parent coordinate system.
+
+      This ignores the geometry of this object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world.
+
+      This returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
+      in the TCastleTransform tree that is hit)
+      and a distance from RayOrigin to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      Use @link(Ray) for a more advanced version of this, with more complicated result.
+      @groupBegin }
+    function RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+    function RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+    { @groupEnd }
 
     { Is this object's bounding volume (@link(BoundingBox))
       included in parent bounding volume.
@@ -1921,7 +1963,7 @@ type
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
     { What is hit by this ray.
-      Returns the TCastleTransform that is hit (this is the "left" TCastleTransform
+      Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
       in the TCastleTransform tree that is hit)
       and a distance from RayOrigin to the hit point.
       Returns @nil (Distance is undefined in this case) if nothing was hit.
@@ -2479,18 +2521,27 @@ end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+var
+  MyPositionWorld: TVector3;
 begin
+  MyPositionWorld := UniqueParent.LocalToWorld(MyPosition);
   Disable;
   try
-    Result := World.WorldHeight(MyPosition, AboveHeight, AboveGround);
+    Result := World.WorldHeight(MyPositionWorld, AboveHeight, AboveGround);
+    if Result then
+      AboveHeight := UniqueParent.WorldToLocalDistance(AboveHeight);
   finally Enable end;
 end;
 
 function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
+var
+  Pos1World, Pos2World: TVector3;
 begin
+  Pos1World := UniqueParent.LocalToWorld(Pos1);
+  Pos2World := UniqueParent.LocalToWorld(Pos2);
   Disable;
   try
-    Result := World.WorldLineOfSight(Pos1, Pos2);
+    Result := World.WorldLineOfSight(Pos1World, Pos2World);
   finally Enable end;
 end;
 
@@ -2552,10 +2603,40 @@ end;
 
 function TCastleTransform.Ray(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
 begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
   Disable;
   try
-    Result := World.WorldRay(RayOrigin, RayDirection);
+    Result := World.WorldRay(RayOriginWorld, RayDirectionWorld);
+  finally Enable end;
+end;
+
+function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
+begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  Disable;
+  try
+    Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld);
+  finally Enable end;
+end;
+
+function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
+begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  Disable;
+  try
+    Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld, Distance);
+    if Result <> nil then
+      Distance := UniqueParent.WorldToLocalDistance(Distance);
   finally Enable end;
 end;
 

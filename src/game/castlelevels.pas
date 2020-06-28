@@ -645,7 +645,7 @@ implementation
 uses SysUtils, Generics.Defaults, Math,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleXMLUtils, CastleLog,
-  X3DCameraUtils, CastleGLVersion, CastleURIUtils, CastleDownload;
+  X3DCameraUtils, CastleGLVersion, CastleURIUtils, CastleDownload, CastleThirdPersonNavigation;
 
 { globals -------------------------------------------------------------------- }
 
@@ -971,6 +971,7 @@ var
     ProjectionNear: Single;
     NavigationNode: TNavigationInfoNode;
     WalkNavigation: TCastleWalkNavigation;
+    ThirdPersonNavigation: TCastleThirdPersonNavigation;
   begin
     if Items.MainScene.ViewpointStack.Top <> nil then
       Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
@@ -996,18 +997,25 @@ var
 
     // calculate ProjectionNear
     ProjectionNear := Radius * RadiusToProjectionNear;
+    Viewport.Camera.ProjectionNear := ProjectionNear;
 
     if (NavigationNode <> nil) and
       (NavigationNode.FdAvatarSize.Count >= 2) then
       PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
     else
-      PreferredHeight := Radius * RadiusToPreferredHeight;
+      PreferredHeight := Max(TCastleNavigation.DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin);
     CorrectPreferredHeight(PreferredHeight, Radius,
       TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
 
+    WalkNavigation := nil;
+    ThirdPersonNavigation := nil;
     if Player <> nil then
-      WalkNavigation := Player.Navigation
-    else
+    begin
+      if Player.UseThirdPerson then
+        ThirdPersonNavigation := Player.ThirdPersonNavigation
+      else
+        WalkNavigation := Player.WalkNavigation;
+    end else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
       WalkNavigation := TCastleWalkNavigation.Create(Self);
@@ -1021,6 +1029,7 @@ var
         Player.DefaultMoveHorizontalSpeed := 1.0;
       Player.DefaultMoveVerticalSpeed := 20;
     end else
+    if WalkNavigation <> nil then
     begin
       { if you use TCastlePlayer, then it will automatically update navigation
         speed properties. But if not (when Player = nil), we have to set them
@@ -1032,15 +1041,36 @@ var
       WalkNavigation.MoveVerticalSpeed := 20;
     end;
 
-    WalkNavigation.PreferredHeight := PreferredHeight;
-    WalkNavigation.Radius := Radius;
-    WalkNavigation.CorrectPreferredHeight;
-    WalkNavigation.CancelFalling;
-
-    Viewport.Navigation := WalkNavigation;
-
     Viewport.Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
-    Viewport.Camera.ProjectionNear := ProjectionNear;
+    // will be overridden by ThirdPersonNavigation.Init, possibly
+
+    if WalkNavigation <> nil then
+    begin
+      WalkNavigation.PreferredHeight := PreferredHeight;
+      WalkNavigation.Radius := Radius;
+      WalkNavigation.CorrectPreferredHeight;
+      WalkNavigation.CancelFalling;
+
+      Viewport.Navigation := WalkNavigation;
+    end else
+    begin
+      Viewport.Navigation := ThirdPersonNavigation;
+
+      { Use InitialXxx vectors to position avatar, camera will be derived from it.
+        Also add the avatar to Items (avatar needs to be part of hierarchy when
+        ThirdPersonNavigation.Init is called). }
+      if ThirdPersonNavigation.AvatarHierarchy <> nil then
+      begin
+        ThirdPersonNavigation.AvatarHierarchy.SetView(InitialPosition, InitialDirection, InitialUp);
+        Items.Add(ThirdPersonNavigation.AvatarHierarchy);
+      end else
+      if ThirdPersonNavigation.Avatar <> nil then
+      begin
+        ThirdPersonNavigation.Avatar.SetView(InitialPosition, InitialDirection, InitialUp);
+        Items.Add(ThirdPersonNavigation.Avatar);
+      end;
+      ThirdPersonNavigation.Init;
+    end;
   end;
 
 var
@@ -1120,8 +1150,13 @@ begin
 
       IOW, TPlayer now requires that you let SynchronizeFromNavigation to happen
       in each frame, before any SynchronizeToNavigation.
+
+      Do not add Player if was already added.
+      This happens if UseThirdPerson was used,
+      then ThirdPersonNavigation.AvatarHierarchy is already added to world,
+      and it is equal to Player.
     }
-    if Player <> nil then
+    if (Player <> nil) and (Player.World = nil) then
       Items.Add(Player);
 
     { add FInternalLogic to Items }

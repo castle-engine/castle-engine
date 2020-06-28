@@ -162,17 +162,11 @@ end;
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 
   function AvatarRayCast: TCastleTransform;
-  var
-    AvatarMiddle: TVector3;
   begin
-    { Make avatar temporarily non-existing for ray-cast,
-      to avoid hitting SceneAvatar geometry with the WorldRayCast.
-      Save SceneAvatar.Middle value first, as non-existing avatar would have lower Middle. }
-    AvatarMiddle := SceneAvatar.Middle;
-    SceneAvatar.Disable;
-    try
-      Result := MainViewport.Items.WorldRayCast(AvatarMiddle, SceneAvatar.Direction);
-    finally SceneAvatar.Enable end;
+    { SceneAvatar.RayCast tests a ray collision,
+      ignoring the collisions with SceneAvatar itself (so we don't detect our own
+      geometry as colliding). }
+    Result := SceneAvatar.RayCast(SceneAvatar.Middle, SceneAvatar.Direction);
   end;
 
 var
