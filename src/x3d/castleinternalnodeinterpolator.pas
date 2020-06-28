@@ -956,33 +956,17 @@ var
 
     procedure AddAnimationVisibilityRoutes(TimeSensor: TTimeSensorNode);
     var
-      BooleanFilter: TBooleanFilterNode;
-      IntegerTrigger: TIntegerTriggerNode;
-      Route: TX3DRoute;
+      ValueTrigger: TValueTriggerNode;
+      F: TX3DField;
     begin
-      BooleanFilter := TBooleanFilterNode.Create(
-        AnimationX3DName + '_BooleanFilter', BaseUrl);
-      RootNode.AddChildren(BooleanFilter);
+      ValueTrigger := TValueTriggerNode.Create;
+      ValueTrigger.X3DName := AnimationX3DName + '_ValueTrigger';
+      RootNode.AddChildren(ValueTrigger);
+      RootNode.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
 
-      IntegerTrigger := TIntegerTriggerNode.Create(
-        AnimationX3DName + '_IntegerTrigger', BaseUrl);
-      IntegerTrigger.IntegerKey := AnimationIndex;
-      RootNode.AddChildren(IntegerTrigger);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(TimeSensor.EventIsActive);
-      Route.SetDestinationDirectly(BooleanFilter.EventSet_boolean);
-      RootNode.AddRoute(Route);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(BooleanFilter.EventInputTrue);
-      Route.SetDestinationDirectly(IntegerTrigger.EventSet_boolean);
-      RootNode.AddRoute(Route);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(IntegerTrigger.EventTriggerValue);
-      Route.SetDestinationDirectly(SwitchChooseAnimation.FdWhichChoice.EventIn);
-      RootNode.AddRoute(Route);
+      F := TSFInt32.Create(nil, true, 'whichChoice', AnimationIndex);
+      ValueTrigger.AddCustomField(F);
+      RootNode.AddRoute(F, SwitchChooseAnimation.FdWhichChoice.EventIn);
     end;
 
   var
@@ -990,7 +974,6 @@ var
     IntSequencer: TIntegerSequencerNode;
     Switch: TSwitchNode;
     I, NodesCount: Integer;
-    Route: TX3DRoute;
     Group: TGroupNode;
   begin
     AnimationX3DName := BakedAnimation.Name;
@@ -1063,15 +1046,8 @@ var
     TimeSensor.Loop := BakedAnimation.Loop;
     RootNode.AddChildren(TimeSensor);
 
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
-    Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
-    RootNode.AddRoute(Route);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(IntSequencer.EventValue_changed);
-    Route.SetDestinationDirectly(Switch.FdWhichChoice);
-    RootNode.AddRoute(Route);
+    RootNode.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
+    RootNode.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
 
     RootNode.ExportNode(TimeSensor);
 
