@@ -2844,7 +2844,7 @@ type
   strict private
     ParentScene: TCastleSceneCore;
     AllRoutes: TX3DRouteList;
-    AffectedInterpolators: TX3DNodeList;
+    AffectedInterpolators, AffectedTriggers: TX3DNodeList;
     procedure FindRoutesAndInterpolatorsEnumerate(Node: TX3DNode);
     function IsInterpolator(const Node: TX3DNode): Boolean;
   public
@@ -2860,11 +2860,13 @@ begin
   ParentScene := AParentScene;
   AllRoutes := TX3DRouteList.Create(false);
   AffectedInterpolators := TX3DNodeList.Create(false);
+  AffectedTriggers := TX3DNodeList.Create(false);
 end;
 
 destructor TDetectAffectedFields.Destroy;
 begin
   FreeAndNil(AffectedInterpolators);
+  FreeAndNil(AffectedTriggers);
   FreeAndNil(AllRoutes);
   inherited;
 end;
@@ -2887,15 +2889,36 @@ begin
       to AllRoutes list below. }
     AllRoutes.Add(Route);
 
-    { Found route from some TimeSensor.fraction_changed to some interpolator.set_fraction,
-      and TimeSensor has detectAffectedFields. }
+    { Found route from TimeSensor, and check if TimeSensor has detectAffectedFields. }
     if (Route.SourceNode is TTimeSensorNode) and
-       TTimeSensorNode(Route.SourceNode).DetectAffectedFields and
-       (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventFraction_Changed) and
-       IsInterpolator(Route.DestinationNode) and
-       (Route.DestinationEvent.X3DName = 'set_fraction') then
-      { Note that it's OK to add the same interpolator instance multiple times below. }
-      AffectedInterpolators.Add(Route.DestinationNode);
+       TTimeSensorNode(Route.SourceNode).DetectAffectedFields then
+    begin
+      { Found route from some TimeSensor.fraction_changed to some interpolator/sequencer.set_fraction. }
+      if (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventFraction_Changed) then
+      begin
+        if IsInterpolator(Route.DestinationNode) and
+           (Route.DestinationEvent.X3DName = 'set_fraction') then
+        begin
+          { Note that it's OK to add the same interpolator instance multiple times below. }
+          AffectedInterpolators.Add(Route.DestinationNode);
+        end;
+      end else
+
+      { Found route from some TimeSensor.isActive to some trigger input. }
+      if (Route.SourceEvent = TTimeSensorNode(Route.SourceNode).EventIsActive) then
+      begin
+        if ( (Route.DestinationNode is TValueTriggerNode) and
+             (Route.DestinationEvent = TValueTriggerNode(Route.DestinationNode).EventTrigger) ) or
+           ( (Route.DestinationNode is TIntegerTriggerNode) and
+             (Route.DestinationEvent = TIntegerTriggerNode(Route.DestinationNode).EventSet_boolean) ) or
+           ( (Route.DestinationNode is TTimeTriggerNode) and
+             (Route.DestinationEvent = TTimeTriggerNode(Route.DestinationNode).EventSet_boolean) ) then
+        begin
+          { Note that it's OK to add the same trigger instance multiple times below. }
+          AffectedTriggers.Add(Route.DestinationNode);
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -2907,24 +2930,68 @@ begin
 end;
 
 procedure TDetectAffectedFields.FindAnimationAffectedFields;
-var
-  Route: TX3DRoute;
-  Field: TX3DField;
-begin
-  for Route in AllRoutes do
-    if IsInterpolator(Route.SourceNode) and
-       (Route.SourceEvent.X3DName = 'value_changed') and
-       (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) and
-       { Route.DestinationNode may be nil if node was freed, e.g. delete shape in view3dscene }
-       (Route.DestinationNode <> nil) then
+
+  { Does this event come from an exposed field interface declaration?
+    This is used to detect ValueTrigger fields that send information.
+    See TValueTriggerNode.EventTriggerReceive how TValueTriggerNode does it. }
+  function ExposedCustomField(const Node: TX3DNode; const Event: TX3DEvent): Boolean;
+  var
+    Field: TX3DField;
+  begin
+    Field := Node.FieldSendingEvent(Event);
+    Result :=
+      (Field <> nil) and
+      (Field.ParentInterfaceDeclaration <> nil);
+  end;
+
+  { Add to the "affected" list the field indicated by given route destination
+    (as Node and Event of this node).
+    Node = nil is allowed here (Route.DestinationNode may be nil if node was freed,
+    e.g. delete shape in view3dscene). }
+  procedure RouteDestinationAffectsField(const Node: TX3DNode; const Event: TX3DEvent);
+  var
+    Field: TX3DField;
+  begin
+    if Node <> nil then
     begin
-      Field := Route.DestinationNode.FieldSetByEvent(Route.DestinationEvent);
+      Field := Node.FieldSetByEvent(Event);
       if (Field <> nil) and
          (not ParentScene.AnimationAffectedFields.Contains(Field)) then
       begin
+        // WritelnLog('Found affected field %s', [Field.NiceName]);
         Field.InternalSaveResetValue;
         ParentScene.AnimationAffectedFields.Add(Field);
       end;
+    end;
+  end;
+
+var
+  Route: TX3DRoute;
+begin
+  for Route in AllRoutes do
+    if IsInterpolator(Route.SourceNode) then
+    begin
+      if (Route.SourceEvent.X3DName = 'value_changed') and
+         (AffectedInterpolators.IndexOf(Route.SourceNode) <> -1) then
+        RouteDestinationAffectsField(Route.DestinationNode, Route.DestinationEvent);
+    end else
+    if Route.SourceNode is TValueTriggerNode then
+    begin
+      if ExposedCustomField(Route.SourceNode, Route.SourceEvent) and
+         (AffectedTriggers.IndexOf(Route.SourceNode) <> -1) then
+        RouteDestinationAffectsField(Route.DestinationNode, Route.DestinationEvent);
+    end else
+    if Route.SourceNode is TIntegerTriggerNode then
+    begin
+      if (Route.SourceEvent = TIntegerTriggerNode(Route.SourceNode).EventTriggerValue) and
+         (AffectedTriggers.IndexOf(Route.SourceNode) <> -1) then
+        RouteDestinationAffectsField(Route.DestinationNode, Route.DestinationEvent);
+    end else
+    if Route.SourceNode is TTimeTriggerNode then
+    begin
+      if (Route.SourceEvent = TTimeTriggerNode(Route.SourceNode).EventTriggerTime) and
+         (AffectedTriggers.IndexOf(Route.SourceNode) <> -1) then
+        RouteDestinationAffectsField(Route.DestinationNode, Route.DestinationEvent);
     end;
 end;
 

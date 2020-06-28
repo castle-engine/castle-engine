@@ -1086,6 +1086,10 @@
       @nil if not found (including when this Event doesn't actually belong to this node). }
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; virtual;
 
+    { Find field that sends given event of this node.
+      @nil if not found (including when this Event doesn't actually belong to this node). }
+    function FieldSendingEvent(const Event: TX3DEvent): TX3DField; virtual;
+
     { Return an instance performing given functionality of this class
       (like a fog, transformation, material...), or @nil if none.
       This implements a simple component system inside TX3DNode,
@@ -3418,6 +3422,20 @@ begin
   begin
     F := Fields[I];
     if F.EventIn = Event then
+      Exit(F);
+  end;
+  Result := nil;
+end;
+
+function TX3DNode.FieldSendingEvent(const Event: TX3DEvent): TX3DField;
+var
+  F: TX3DField;
+  I: Integer;
+begin
+  for I := 0 to FieldsCount - 1 do
+  begin
+    F := Fields[I];
+    if F.EventOut = Event then
       Exit(F);
   end;
   Result := nil;
