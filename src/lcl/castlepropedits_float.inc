@@ -16,9 +16,22 @@
 
 { Improved float property editor. }
 
+{ Require 2.0.8.
+
+  With older LCL (1.6.4, at the time of FPC 3.0.2) we get
+    src/lcl/castlepropedits_float.inc(37,10) Error: (5000) Identifier not found "HasDefaultValue"
+    src/lcl/castlepropedits_float.inc(46,13) Error: (5000) Identifier not found "FormatValue"
+  Possibly this could be defined for more versions, not only >= 2.0.8
+  -- testing needed.
+}
+{$if LCL_FULLVERSION >= 02000800}
+  {$define LCL_HAS_DEFAULT_VALUE}
+{$endif}
+
 type
   { Property editor for floats, improves standard TFloatPropertyEditor. }
   TCastleFloatPropertyEditor = class(TFloatPropertyEditor)
+    {$ifdef LCL_HAS_DEFAULT_VALUE}
     { Determines whether the object inspector shows
       the current property state as default or not (bold).
 
@@ -27,8 +40,10 @@ type
 
       TODO: Submit to fix on LCL. }
     function GetDefaultValue: String; override;
+    {$endif}
   end;
 
+{$ifdef LCL_HAS_DEFAULT_VALUE}
 function TCastleFloatPropertyEditor.GetDefaultValue: String;
 var
   PropInfo: PPropInfo;
@@ -45,3 +60,5 @@ begin
   DefFloatValue := PSingle(@PropInfo^.Default)^;
   Result := FormatValue(DefFloatValue);
 end;
+{$endif}
+
