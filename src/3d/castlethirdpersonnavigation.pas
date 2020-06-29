@@ -44,6 +44,9 @@ type
     and the camera will follow.
 
     Using the mouse wheel you can get closer / further to the avatar.
+
+    See also the news post with demo movie about this component:
+    https://castle-engine.io/wp/2020/06/29/third-person-navigation-with-avatar-component-in-castle-game-engine/
   }
   TCastleThirdPersonNavigation = class(TCastleMouseLookNavigation)
   strict private
