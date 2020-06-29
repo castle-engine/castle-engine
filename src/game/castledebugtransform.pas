@@ -102,6 +102,29 @@ type
     property Radius: Single {read GetRadius} {} write SetRadius;
   end;
 
+  { 3D arrow, as an X3D node, to easily visualize debug things.
+
+    This is useful in connection with your custom TDebugTransform descendants,
+    to show an arrow to visualize something.
+
+    Create it and add the @link(Root) to your X3D scene graph
+    within some @link(TCastleSceneCore.RootNode). }
+  TDebugArrow = class(TComponent)
+  strict private
+    FTransform: TTransformNode;
+    FShape: TShapeNode;
+    FOrigin, FDirection: TVector3;
+    Coord: TCoordinateNode;
+    procedure SetOrigin(const Value: TVector3);
+    procedure SetDirection(const Value: TVector3);
+    procedure UpdateGeometry;
+  public
+    constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
+    property Root: TTransformNode read FTransform;
+    property Origin: TVector3 read FOrigin write SetOrigin;
+    property Direction: TVector3 read FDirection write SetDirection;
+  end;
+
   { Visualization of a bounding volume (and maybe other properties)
     of a TCastleTransform instance.
     After constructing this, call @link(Attach) to attach this to some
@@ -121,6 +144,7 @@ type
       end;
     var
       FBox: TDebugBox;
+      FDirectionArrow: TDebugArrow;
       FTransform: TMatrixTransformNode;
       FWorldSpace: TAbstractX3DGroupingNode;
       FSphere: TDebugSphere;
@@ -282,6 +306,73 @@ begin
   FGeometry.Radius := Value;
 end;
 
+{ TDebugArrow ----------------------------------------------------------------- }
+
+constructor TDebugArrow.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+var
+  Material: TUnlitMaterialNode;
+  FGeometry: TLineSetNode;
+begin
+  inherited Create(AOwner);
+
+  FGeometry := TLineSetNode.CreateWithTransform(FShape, FTransform);
+
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := Color;
+  FShape.Material := Material;
+
+  Coord := TCoordinateNode.Create;
+
+  FGeometry.Coord := Coord;
+  FGeometry.SetVertexCount([2, 2, 2, 2, 2]);
+
+  { Make the initial geometry. Although it is useless, this will avoid warning
+    "Too much lines (not enough coordinates) in LineSet". }
+  UpdateGeometry;
+end;
+
+procedure TDebugArrow.SetOrigin(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FOrigin, Value) then
+  begin
+    FOrigin := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TDebugArrow.SetDirection(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FDirection, Value) then
+  begin
+    FDirection := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TDebugArrow.UpdateGeometry;
+var
+  OrthoDirection, OrthoDirection2: TVector3;
+begin
+  OrthoDirection := AnyOrthogonalVector(Direction);
+  OrthoDirection2 := TVector3.CrossProduct(Direction, OrthoDirection);
+
+  OrthoDirection := OrthoDirection.AdjustToLength(Direction.Length / 4);
+  OrthoDirection2 := OrthoDirection2.AdjustToLength(Direction.Length / 4);
+
+  Coord.SetPoint([
+    Origin,
+    Origin + Direction,
+    Origin + Direction,
+    Origin + Direction * 0.75 + OrthoDirection,
+    Origin + Direction,
+    Origin + Direction * 0.75 - OrthoDirection,
+    Origin + Direction,
+    Origin + Direction * 0.75 + OrthoDirection2,
+    Origin + Direction,
+    Origin + Direction * 0.75 - OrthoDirection2
+  ]);
+end;
+
 { TDebugTransform.TInternalScene ---------------------------------------------------- }
 
 procedure TDebugTransform.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -301,6 +392,9 @@ begin
 
   FBox := TDebugBox.Create(Self, GrayRGB);
   WorldSpace.AddChildren(FBox.Root);
+
+  FDirectionArrow := TDebugArrow.Create(Self, BlueRGB);
+  WorldSpace.AddChildren(FDirectionArrow.Root);
 
   FSphere := TDebugSphere.Create(Self, GrayRGB);
   WorldSpace.AddChildren(FSphere.Root);
@@ -375,6 +469,10 @@ begin
     FSphere.Position := FParent.Middle;
     FSphere.Radius := R;
   end;
+
+  // show FParent.Direction
+  FDirectionArrow.Origin := FParent.Middle;
+  FDirectionArrow.Direction := FParent.Direction;
 
   // show FParent.Middle
   FMiddleAxis.Position := FParent.Middle;

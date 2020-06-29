@@ -14,7 +14,7 @@ implementation
 uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleUIControls, CastleApplicationProperties, CastleUIState,
+  CastleUIControls, CastleApplicationProperties, CastleUIState, CastleRendererBaseTypes,
   GameStateMain;
 
 var

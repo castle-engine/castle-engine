@@ -323,6 +323,7 @@ type
       procedure PollTranslation;
       procedure PollKeys;
       procedure Poll;
+      { Get current rotation, with angle in radians. }
       procedure GetSensorRotation(var X, Y, Z, Angle: Double);
       procedure GetSensorTranslation(var X, Y, Z, Length: Double);
       procedure SetExampleCustomEmulations;
@@ -352,7 +353,7 @@ procedure SaveSchemeToFile(const Scheme: TEmulationSettings; const Filename: str
 implementation
 
 uses
-   IniFiles;
+   IniFiles, Math;
 
 const
   {$EXTERNALSYM MOUSEEVENTF_HWHEEL}
@@ -761,7 +762,7 @@ begin
    X := rotation.X;
    Y := rotation.Y;
    Z := rotation.Z;
-   Angle := rotation.Angle;
+   Angle := DegToRad(rotation.Angle);
 end;
 
 procedure T3DConnexionDevice.GetSensorTranslation(var X, Y, Z, Length: Double);

@@ -34,15 +34,15 @@ type
     ProjectionType: TProjectionTypeCore;
 
     { If ProjectionType is ptPerspective, this property specifies
-      angles of view (horizontal and vertical), in degrees.
+      angles of view (horizontal and vertical), in radians.
 
       Note that when overriding the @link(TCastleViewport.CalculateProjection),
       you are expected to provide both angles calculated, even though some routines
       for now will only use the vertical angle (and automatically adjust the other
       to the aspect ratio).
-      Use the AdjustViewAngleDegToAspectRatio to calculate the angles as necessary.
+      Use the AdjustViewAngleRadToAspectRatio to calculate the angles as necessary.
     }
-    PerspectiveAngles: TVector2;
+    PerspectiveAnglesRad: TVector2;
 
     { If ProjectionType is ptOrthographic or ptFrustum, this property specifies
       dimensions of the visible window. }
@@ -82,7 +82,7 @@ type
 
   @groupBegin }
 function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg,
-  SecondToFirstRatio: Single): Single;
+  SecondToFirstRatio: Single): Single; deprecated 'use radians for everything throughout CGE';
 function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
   SecondToFirstRatio: Single): Single;
 { @groupEnd }
@@ -137,8 +137,8 @@ function TProjection.Matrix(const AspectRatio: Single): TMatrix4;
 begin
   case ProjectionType of
     ptPerspective:
-      Result := PerspectiveProjectionMatrixDeg(
-        PerspectiveAngles.Data[1],
+      Result := PerspectiveProjectionMatrixRad(
+        PerspectiveAnglesRad.Data[1],
         AspectRatio,
         ProjectionNear,
         ProjectionFar);

@@ -278,28 +278,41 @@ end;
 function CPUOptionHelp: string;
 var
   CPU: TCPU;
-  Description: String;
+  Description, Extra: String;
 begin
   Description := 'Set the target processor for which we build/package.' +NL+
     'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
     'Available <cpu> values: ' +NL;
   for CPU in TCPU do
     if CPU <> cpuNone then
-      Description += '  ' + CPUToString(CPU) + NL;
+    begin
+      case CPU of
+        aarch64: Extra := ' (64-bit ARM)';
+        else Extra := '';
+      end;
+      Description += '  ' + CPUToString(CPU) + Extra + NL;
+    end;
   Result := OptionDescription('--cpu=<cpu>', Description);
 end;
 
 function OSOptionHelp: string;
 var
   OS: TOS;
-  Description: String;
+  Description, Extra: String;
 begin
   Description := 'Set the target operating system for which we build/package.' +NL+
     'This is ignored if you used --target=<target>, with <target> being something else than "custom".' +NL+
     'Available <os> values: ' +NL;
   for OS in TOS do
     if OS <> osNone then
-      Description += '  ' + OSToString(OS) + NL;
+    begin
+      case OS of
+        macos: Extra := ' (classic MacOS, that ended with MacOS 9)';
+        darwin: Extra := ' (modern macOS 10.x, caled also Mac OS X)';
+        else Extra := '';
+      end;
+      Description += '  ' + OSToString(OS) + Extra + NL;
+    end;
   Result := OptionDescription('--os=<os>', Description);
 end;
 

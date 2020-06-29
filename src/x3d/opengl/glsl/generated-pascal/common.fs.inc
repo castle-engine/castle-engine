@@ -12,4 +12,9 @@
 '  /* PLUG: texture_coord_shift (tex_coord) */' + LineEnding +
 '  return tex_coord;' + LineEnding +
 '}' + LineEnding +
+'' + LineEnding +
+'// Declare functions defined in tone_mapping.fs' + LineEnding +
+'vec4 castle_texture_color_to_linear(const in vec4 srgbIn);' + LineEnding +
+'vec3 castle_texture_color_to_linear(const in vec3 srgbIn);' + LineEnding +
+'vec3 castle_linear_to_screen(const in vec3 color);' + LineEnding +
 ''

@@ -193,6 +193,7 @@ examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
 examples/tcp_connection/client/client
 examples/tcp_connection/server/server
 examples/terrain/terrain
+examples/third_person_camera/third_person_camera
 examples/tiled/map_viewer/tiled_demo
 examples/tiled/map_viewer/tiled_demo_standalone
 examples/tiled/map_viewer/tiled_demo_standalone.lps

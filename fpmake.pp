@@ -92,6 +92,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
+    P.Targets.AddUnit('castlethirdpersonnavigation.pas');
     P.Targets.AddUnit('castlecomponentserialize.pas');
     P.Targets.AddUnit('castlecubemaps.pas');
     P.Targets.AddUnit('castlefrustum.pas');
@@ -159,7 +160,6 @@ begin
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
-    P.Targets.AddUnit('castleinternaldoublelists.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
     P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castleinternalzstream.pas');

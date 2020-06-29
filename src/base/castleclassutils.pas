@@ -686,6 +686,53 @@ function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
 {$endif}
 
+type
+  TFreeNotificationObserver = class;
+
+  { Notification from TFreeNotificationObserver.
+    Note that it doesn't specify the freed component,
+    because you can get it from @code(Sender.Observed) if needed. }
+  TFreeNotificationEvent = procedure (const Sender: TFreeNotificationObserver) of object;
+
+  { Observe when something is freed, call an event then.
+    You need to set @link(Observed) of this component
+    to make it notified about freeing of something.
+    (It will use standard FreeNotification / RemoveFreeNotification under the hood.)
+    When the @link(Observed) is freed, this component will make OnFreeNotification event.
+
+    Using this is useful if one class wants to observe freeing of multiple properties,
+    and some of those properties may be sometimes equal.
+    In this case using FreeNotification / RemoveFreeNotification with the main class
+    would be unreliable (as RemoveFreeNotification removes the notification,
+    even if you registered to it twice by FreeNotification), and requires complicated
+    code to handles these special cases.
+
+    Using this component as a "proxy" to track each property is simpler.
+    See e.g. TCastleThirdPersonNavigation implementation for example. }
+  TFreeNotificationObserver = class(TComponent)
+  strict private
+    FObserved: TComponent;
+    FOnFreeNotification: TFreeNotificationEvent;
+    procedure SetObserved(const Value: TComponent);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    destructor Destroy; override;
+
+    { Called when we receive notification that something was freed. }
+    property OnFreeNotification: TFreeNotificationEvent read FOnFreeNotification write FOnFreeNotification;
+
+    { Setting this property makes the given component observed, freeing it will make
+      OnFreeNotification.
+      When setting, the previous value of this property stops being observed.
+
+      Note that this property will be automatically changed to @nil after OnFreeNotification,
+      if the OnFreeNotification will not change it. This is necessary (we need to detach
+      our "free notification" from a component that will be freed) and makes it safer
+      (we will not expose dangling pointer). }
+    property Observed: TComponent read FObserved write SetObserved;
+  end;
+
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
@@ -1747,6 +1794,60 @@ begin
 {$endif}
 end;
 {$endif}
+
+{ TFreeNotificationObserver -------------------------------------------------- }
+
+destructor TFreeNotificationObserver.Destroy;
+begin
+  { detach free notification, if any remains }
+  Observed := nil;
+  inherited;
+end;
+
+procedure TFreeNotificationObserver.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  { Note: initially I tried implementing this class without tracking FObserved,
+    instead user needed to call
+      Xxx.FreeNotification(MyFreeNotificationObserver),
+      Xxx.RemoveFreeNotification(MyFreeNotificationObserver)
+    explicitly. But this was bad: even on TFreeNotificationObserver,
+    we also get notification about freeing of some unrelated components
+    (TCustomHintAction, THintWindow, TCustomTimer...) when using LCL.
+
+    Using Observed property also makes usage simpler:
+    - No need to use RemoveFreeNotification and FreeNotification.
+      Instead just set Observed.
+    - It is obvious that this component observes only *one* component at a time.
+      (Since this is its purpose). }
+
+  if (Operation = opRemove) and
+     (AComponent <> nil) and // should not happen, but better be secure
+     (AComponent = FObserved) and
+     Assigned(OnFreeNotification) then
+  begin
+    OnFreeNotification(Self);
+
+    { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
+      But if it didn't... then let's fix it.
+      We know FObserved will be freed, so we can stop watching. }
+    if AComponent = FObserved then
+      Observed := nil;
+  end;
+end;
+
+procedure TFreeNotificationObserver.SetObserved(const Value: TComponent);
+begin
+  if FObserved <> Value then
+  begin
+    if FObserved <> nil then
+      FObserved.RemoveFreeNotification(Self);
+    FObserved := Value;
+    if FObserved <> nil then
+      FObserved.FreeNotification(Self);
+  end;
+end;
 
 initialization
   InitStdStreams;

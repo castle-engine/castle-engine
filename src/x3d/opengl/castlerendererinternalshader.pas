@@ -500,6 +500,8 @@ type
 
     MainTextureMapping: Integer;
 
+    GammaCorrection: Boolean;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -1803,10 +1805,17 @@ begin
     Code := TShaderSource.Create;
     try
       if TextureType <> ttShader then
+      begin
+        { Optimization to not call castle_texture_color_to_linear when not needed.
+          Although it should do nothing when GammaCorrection=false,
+          but to make sure it takes zero time we just not call it at all. }
+        if Shader.GammaCorrection and (TextureType <> tt2DShadow) then
+          TextureSampleCall := 'castle_texture_color_to_linear(' + TextureSampleCall + ')';
         Code[stFragment].Add(Format(
           'texture_color = ' + TextureSampleCall + ';' +NL+
           '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-          [UniformName, TexCoordName])) else
+          [UniformName, TexCoordName]))
+      end else
         Code[stFragment].Add(Format(
           'texture_color = ' + TextureSampleCall + ';' +NL+
           '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
@@ -1978,6 +1987,7 @@ begin
   FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
+  GammaCorrection := false;
 end;
 
 procedure TShader.Initialize(const APhongShading: boolean);
@@ -2507,6 +2517,7 @@ const
      '#define PCF4_BILINEAR' + NL + {$I shadow_map_common.fs.inc},
      '#define PCF16'         + NL + {$I shadow_map_common.fs.inc},
      {$I variance_shadow_map_common.fs.inc});
+    ToneMappingFunctions = {$I tone_mapping.fs.inc};
   var
     UniformsDeclare, TextureApplyPoint: string;
     I: Integer;
@@ -2559,7 +2570,10 @@ const
       (SelectedNode not set). }
     if (Source[stFragment].Count <> 0) and
        (SelectedNode = nil) then
+    begin
       Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
+      Source[stFragment].Add(ToneMappingFunctions);
+    end;
   end;
 
 var
@@ -2710,9 +2724,12 @@ var
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
       begin
         Plug(stFragment, SReplacePatterns(
-          'uniform sampler2D {uniform_texture_name};' +NL+
-          {$ifndef OpenGLES} // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
-          'varying vec4 {coord_name};' + NL+
+          'uniform sampler2D {uniform_texture_name};' + NL +
+          {$ifndef OpenGLES} // avoid redeclaring stuff when no "separate compilation units" (OpenGLES)
+          'varying vec4 {coord_name};' + NL +
+          '// Declare functions defined in tone_mapping.fs' + NL +
+          'vec4 castle_texture_color_to_linear(const in vec4 srgbIn);' + NL +
+          'vec3 castle_texture_color_to_linear(const in vec3 srgbIn);' + NL +
           {$endif}
           FSurfaceTextureShaders[SurfaceTexture].PlugCode,
           [
@@ -2928,6 +2945,25 @@ begin
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
   if HasEmissiveOrAmbientTexture then
     Define('HAS_EMISSIVE_OR_AMBIENT_TEXTURE', stFragment);
+  if GammaCorrection then
+    Define('CASTLE_GAMMA_CORRECTION', stFragment);
+  case ToneMapping of
+    tmUncharted:
+      begin
+        Define('CASTLE_TONE_MAPPING', stFragment);
+        Define('CASTLE_TONE_MAPPING_UNCHARTED', stFragment);
+      end;
+    tmHejlRichard:
+      begin
+        Define('CASTLE_TONE_MAPPING', stFragment);
+        Define('CASTLE_TONE_MAPPING_HEJLRICHARD', stFragment);
+      end;
+    tmACES:
+      begin
+        Define('CASTLE_TONE_MAPPING', stFragment);
+        Define('CASTLE_TONE_MAPPING_ACES', stFragment);
+      end;
+  end;
 
   if LogShaders then
     DoLogShaders;
@@ -2999,6 +3035,8 @@ function TShader.CodeHash: TShaderCodeHash;
   begin
     FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
     FCodeHash.AddInteger(Ord(LightingModel) * 503);
+    FCodeHash.AddInteger(Ord(GammaCorrection) * 347);
+    FCodeHash.AddInteger(Ord(ToneMapping) * 331);
     FCodeHash.AddInteger(Ord(MainTextureMapping) * 839);
   end;
 

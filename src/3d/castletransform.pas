@@ -370,6 +370,7 @@ type
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
       FParent: TCastleTransform;
+      FCollisionSphereRadius: Single;
 
       // transformation
       FCenter: TVector3;
@@ -819,9 +820,11 @@ type
       is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
     procedure SortBackToFront2D;
 
-    { Bounding box of the 3D object.
+    { Bounding box of this object, taking into account current transformation
+      (like @link(Translation), @link(Rotation))
+      although not parent transformations (for this, see @link(WorldBoundingBox)).
 
-      Should take into account both collidable and visible objects.
+      Takes into account both collidable and visible objects.
       For example, invisible walls (not visible) and fake walls
       (not collidable) should all be accounted here.
 
@@ -830,8 +833,12 @@ type
       as "tight" as it can, to make various optimizations work best. }
     function BoundingBox: TBox3D;
 
-    { Bounding box assuming that the scene is not transformed. }
+    { Bounding box of this object, ignoring the transformations of this scene and parents. }
     function LocalBoundingBox: TBox3D; virtual;
+
+    { Bounding box of this object, taking into account
+      all transformations of this and parents. }
+    function WorldBoundingBox: TBox3D;
 
     { Render given object.
       Should check and immediately exit when @link(GetVisible) is @false.
@@ -1067,12 +1074,12 @@ type
     function Dragging: boolean; virtual;
 
     { Middle point, usually "eye point", of the 3D model.
-      This is used for sphere center (if overriden Sphere returns @true)
+      This is used for sphere center
+      (if @link(CollisionSphereRadius) is non-zero or @link(Sphere) returns @true)
       and is the central point from which collisions of this object
       are checked (Move, MoveAllowed, Height, LineOfSight).
-      For 3D things like level scene this is mostly useless (as you will leave
-      Sphere at default @false then, and the scene itself doesn't move),
-      but it's crucial for dynamic 3D things like player and moving creatures.
+      It's useful for dynamic objects like player and moving creatures,
+      which rely on @link(MoveAllowed) and gravity.
 
       In short, it's usually most comfortable to think about this as
       a position of the eye, or the middle of the creature's head.
@@ -1088,7 +1095,12 @@ type
       (so only when @link(TCastleTransform.Translation) can change).
 
       In this class this returns something sensible above the bottom
-      of the box. See @link(TCastleTransform.MiddleHeight). }
+      of the box. See @link(TCastleTransform.MiddleHeight).
+
+      This is expressed in the parent coordinate system
+      (so it is close to the @link(Translation) value, but moved up, following GravityUp).
+      It ignores parent transformations (using @code(Transform.UniqueParent.LocalToWorld(Transform.Middle))
+      to convert this to world coordinates. }
     function Middle: TVector3; virtual;
 
     { Can the approximate sphere (around Middle point)
@@ -1103,8 +1115,8 @@ type
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
 
-      By default, in TCastleTransform class, this always returns @false
-      and @link(Sphere) is undefined.
+      By default, in TCastleTransform class, this returns @true if @link(CollisionSphereRadius)
+      is non-zero.
 
       The advantages of using a sphere, that does not have to be a perfect
       bounding sphere (it may be smaller than necessary, and only
@@ -1195,11 +1207,16 @@ type
 
       Some other 3D moving objects may push this object.
       Like elevators (vertical, or horizontal moving platforms).
-      We may use sphere (see @link(TCastleTransform.Sphere)) for checking
+      We may use sphere (see @link(CollisionSphereRadius) and @link(Sphere)) for checking
       collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
+
+      The given MyPosition, and returned AboveHeight, are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.Height(MyTransform.Translation, ...)).
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
@@ -1210,6 +1227,16 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
     { @groupEnd }
 
+    { Whether there is line of sight (the line segment does not collide with anything)
+      between these 2 points.
+
+      The given Pos1, Pos2 are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.LineOfSight(MyTransform.Translation, MyTransform.Translation + MyTransform.Direction * 10)).
+
+      This ignores the geometry of this 3D object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world. }
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
 
     { Is the move from OldPos to ProposedNewPos possible for me.
@@ -1217,11 +1244,18 @@ type
       Overloaded version without ProposedNewPos doesn't do wall-sliding,
       and only answers if exactly this move is allowed.
 
-      If this 3D object allows to use sphere as the bounding volume,
-      if will be used (see @link(Sphere)).
+      If this object allows to use sphere for collisions
+      (see @link(CollisionSphereRadius) and @link(Sphere)) then sphere will be used.
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
+
+      The given OldPos, ProposedNewPos, NewPos are in the parent
+      coordinate system of this TCastleTransform.
+      Intuitively, you are asking "Can I do this without causing collision:
+      @code(Translation := Translation + TranslationChange)".
+      So this method is consistent with @link(Move), @link(Translate).
+
       @groupBegin }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
       out NewPos: TVector3;
@@ -1230,11 +1264,38 @@ type
       const BecauseOfGravity: boolean): boolean; overload;
     { @groupEnd }
 
-    { Cast a ray from myself to the world, see what is hit.
+    { Cast a ray, see what is hit.
 
-      This ignores the geometry of this 3D object (to not accidentaly collide
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.Ray(MyTransform.Translation, MyTransform.Direction)).
+
+      This ignores the geometry of this object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
+
+    { Cast a ray, see what is hit.
+
+      The given RayOrigin, RayDirection are in the parent
+      coordinate system of this TCastleTransform.
+      So for example query like this works naturally:
+      @code(MyTransform.RayCast(MyTransform.Translation, MyTransform.Direction)).
+      In case of the overloaded version with Distance parameter,
+      the Distance is consistently in the same, parent coordinate system.
+
+      This ignores the geometry of this object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world.
+
+      This returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
+      in the TCastleTransform tree that is hit)
+      and a distance from RayOrigin to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      Use @link(Ray) for a more advanced version of this, with more complicated result.
+      @groupBegin }
+    function RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+    function RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+    { @groupEnd }
 
     { Is this object's bounding volume (@link(BoundingBox))
       included in parent bounding volume.
@@ -1258,12 +1319,41 @@ type
     function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
 
+    { Convert position between local and world coordinate system.
+      This applies all the transformations on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function WorldToLocal(const Pos: TVector3): TVector3;
+    function LocalToWorld(const Pos: TVector3): TVector3;
+    { @groupEnd }
+
+    { Convert direction between local and world coordinate system.
+      This applies all the transformations on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function WorldToLocalDirection(const Dir: TVector3): TVector3;
+    function LocalToWorldDirection(const Dir: TVector3): TVector3;
+    { @groupEnd }
+
+    { Convert distance, like sphere radius, between local and world coordinate system.
+      This applies all the scaling on the way to root,
+      so it looks at this object as well as all parents' transformations.
+      @groupBegin }
+    function LocalToWorldDistance(const Distance: Single): Single;
+    function WorldToLocalDistance(const Distance: Single): Single;
+    { @groupEnd }
+
+    { When non-zero, we can approximate collisions with this object using a sphere
+      in certain situations (@link(MoveAllowed), @link(Gravity)).
+      This usually makes dynamic objects, like player and creatures, collide better. }
+    property CollisionSphereRadius: Single read FCollisionSphereRadius write FCollisionSphereRadius;
+
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
 
       Special notes for TPlayer: player doesn't use this (TPlayer.Gravity
       should remain @false), instead player relies on
-      TPlayer.Camera.Gravity = @true, that does a similar thing (with some
+      TPlayer.Navigation.Gravity = @true, that does a similar thing (with some
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
@@ -1279,7 +1369,7 @@ type
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
       0 means no falling.
 
-      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      TODO: In CGE 7.x this will be deprecated, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
@@ -1443,18 +1533,29 @@ type
     }
     function WorldInverseTransform: TMatrix4;
 
-    { Unconditionally move this 3D object by given vector.
-      You usually don't want to use this directly, instead use @link(Move)
-      method to move checking collisions (and with optional wall sliding). }
-    procedure Translate(const T: TVector3);
+    { Unconditionally move this object by a given vector.
 
-    { Move, if possible (no collisions). This is the simplest way to move
-      a 3D object, and a basic building block for artificial intelligence
-      of creatures.
+      To move and check collisions, use @link(Move) instead of this method.
+
+      The provided TranslationChange should be a direction in the parent
+      coordinate system of this TCastleTransform.
+      Using this routine is exactly equivalent to
+      @code(Translation := Translation + TranslationChange). }
+    procedure Translate(const TranslationChange: TVector3);
+
+    { Move, if possible (checking collisions with other objects in world).
+      This is the simplest way to move an object,
+      and a basic building block for artificial intelligence of creatures.
 
       Checks move possibility by MoveAllowed, using @link(Middle) point.
-      Actual move is done using @link(Translate). }
-    function Move(const ATranslation: TVector3;
+      Actual move is done using @link(Translate).
+
+      The provided TranslationChange should be a direction in the parent
+      coordinate system of this TCastleTransform,
+      so using this routine is consistent with doing
+      @code(Translation := Translation + TranslationChange)
+      however this checks collisions. }
+    function Move(const TranslationChange: TVector3;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
 
@@ -1861,7 +1962,16 @@ type
       out AboveHeight: Single; out AboveGround: PTriangle): boolean;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
+    { What is hit by this ray.
+      Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
+      in the TCastleTransform tree that is hit)
+      and a distance from RayOrigin to the hit point.
+      Returns @nil (Distance is undefined in this case) if nothing was hit.
+      Use @link(WorldRay) for a more advanced version of this, with more complicated result. }
+    function WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+    function WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
     function WorldBoxCollision(const Box: TBox3D): boolean;
+    function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
@@ -2274,8 +2384,8 @@ end;
 
 function TCastleTransform.Sphere(out Radius: Single): boolean;
 begin
-  Result := false;
-  Radius := 0;
+  Radius := CollisionSphereRadius;
+  Result := Radius <> 0;
 end;
 
 procedure TCastleTransform.Disable;
@@ -2411,47 +2521,65 @@ end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
   out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+var
+  MyPositionWorld: TVector3;
 begin
+  MyPositionWorld := UniqueParent.LocalToWorld(MyPosition);
   Disable;
   try
-    Result := World.WorldHeight(MyPosition, AboveHeight, AboveGround);
+    Result := World.WorldHeight(MyPositionWorld, AboveHeight, AboveGround);
+    if Result then
+      AboveHeight := UniqueParent.WorldToLocalDistance(AboveHeight);
   finally Enable end;
 end;
 
 function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
+var
+  Pos1World, Pos2World: TVector3;
 begin
+  Pos1World := UniqueParent.LocalToWorld(Pos1);
+  Pos2World := UniqueParent.LocalToWorld(Pos2);
   Disable;
   try
-    Result := World.WorldLineOfSight(Pos1, Pos2);
+    Result := World.WorldLineOfSight(Pos1World, Pos2World);
   finally Enable end;
 end;
 
-function TCastleTransform.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3;
+function TCastleTransform.MoveAllowed(const OldPos, ProposedNewPos: TVector3;
   out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
-  SpRadius: Single;
+  SpRadius, SpRadiusWorld: Single;
   OldBox, NewBox: TBox3D;
+  OldPosWorld, ProposedNewPosWorld, NewPosWorld: TVector3;
 begin
-  { save bounding volume information before calling Disable, as Disable makes
+  Assert(UniqueParent <> nil, 'Need to know world transformation before MoveAllowed');
+
+  OldPosWorld := UniqueParent.LocalToWorld(OldPos);
+  ProposedNewPosWorld := UniqueParent.LocalToWorld(ProposedNewPos);
+
+  { Save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
   Sp := Sphere(SpRadius);
   if not Sp then
     SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
-  NewBox := OldBox.Translate(ProposedNewPos - OldPos);
+  OldBox := WorldBoundingBox;
+  NewBox := OldBox.Translate(ProposedNewPosWorld - OldPosWorld);
+
+  SpRadiusWorld := UniqueParent.LocalToWorldDistance(SpRadius);
 
   Disable;
   try
-    Result := World.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos,
-      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+    Result := World.WorldMoveAllowed(OldPosWorld, ProposedNewPosWorld, NewPosWorld,
+      Sp, SpRadiusWorld, OldBox, NewBox, BecauseOfGravity);
   finally Enable end;
+
+  if Result then
+    NewPos := UniqueParent.WorldToLocal(NewPosWorld);
 end;
 
-function TCastleTransform.MoveAllowed(
-  const OldPos, NewPos: TVector3;
+function TCastleTransform.MoveAllowed(const OldPos, NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
@@ -2463,7 +2591,7 @@ begin
   Sp := Sphere(SpRadius);
   if not Sp then
     SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
+  OldBox := WorldBoundingBox;
   NewBox := OldBox.Translate(NewPos - OldPos);
 
   Disable;
@@ -2475,10 +2603,40 @@ end;
 
 function TCastleTransform.Ray(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
 begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
   Disable;
   try
-    Result := World.WorldRay(RayOrigin, RayDirection);
+    Result := World.WorldRay(RayOriginWorld, RayDirectionWorld);
+  finally Enable end;
+end;
+
+function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
+begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  Disable;
+  try
+    Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld);
+  finally Enable end;
+end;
+
+function TCastleTransform.RayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+var
+  RayOriginWorld, RayDirectionWorld: TVector3;
+begin
+  RayOriginWorld := UniqueParent.LocalToWorld(RayOrigin);
+  RayDirectionWorld := UniqueParent.LocalToWorldDirection(RayDirection);
+  Disable;
+  try
+    Result := World.WorldRayCast(RayOriginWorld, RayDirectionWorld, Distance);
+    if Result <> nil then
+      Distance := UniqueParent.WorldToLocalDistance(Distance);
   finally Enable end;
 end;
 
@@ -2976,6 +3134,11 @@ begin
     Result := LocalBoundingBox.Transform(Transform);
 end;
 
+function TCastleTransform.WorldBoundingBox: TBox3D;
+begin
+  Result := LocalBoundingBox.Transform(WorldTransform);
+end;
+
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   OldFrustum: PFrustum;
@@ -3099,7 +3262,8 @@ var
 begin
   GC := World.GravityCoordinate;
   if MiddleForceBox then
-    B := MiddleForceBoxValue else
+    B := MiddleForceBoxValue
+  else
     B := LocalBoundingBox;
 
   { More correct version would be to take B bottom point, add PreferredHeight,
@@ -3123,9 +3287,13 @@ var
 begin
   GC := World.GravityCoordinate;
   if MiddleForceBox then
-    B := MiddleForceBoxValue else
+    B := MiddleForceBoxValue
+  else
     B := LocalBoundingBox;
-  Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
+  if B.IsEmpty then
+    Result := 0
+  else
+    Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
@@ -3268,7 +3436,7 @@ begin
   { Nothing to do in this class }
 end;
 
-function TCastleTransform.Move(const ATranslation: TVector3;
+function TCastleTransform.Move(const TranslationChange: TVector3;
   const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
@@ -3277,11 +3445,11 @@ begin
 
   if EnableWallSliding then
   begin
-    ProposedNewMiddle := OldMiddle + ATranslation;
+    ProposedNewMiddle := OldMiddle + TranslationChange;
     Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
   end else
   begin
-    NewMiddle := OldMiddle + ATranslation;
+    NewMiddle := OldMiddle + TranslationChange;
     Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
   end;
 
@@ -3388,9 +3556,9 @@ begin
   Translation := Vector3(Value, Translation.Data[2]);
 end;
 
-procedure TCastleTransform.Translate(const T: TVector3);
+procedure TCastleTransform.Translate(const TranslationChange: TVector3);
 begin
-  Translation := Translation + T;
+  Translation := Translation + TranslationChange;
 end;
 
 procedure TCastleTransform.Identity;
@@ -3529,6 +3697,11 @@ begin
   Result := BoxCollision(Box, nil);
 end;
 
+function TCastleAbstractRootTransform.WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
+begin
+  Result := SegmentCollision(Pos1, Pos2, nil, false);
+end;
+
 function TCastleAbstractRootTransform.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
@@ -3567,6 +3740,31 @@ function TCastleAbstractRootTransform.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection, nil);
+end;
+
+function TCastleAbstractRootTransform.WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
+var
+  RayColl: TRayCollision;
+begin
+  Result := nil;
+  Distance := 0; // just to make it defined
+
+  RayColl := WorldRay(RayOrigin, RayDirection);
+  if RayColl <> nil then
+  try
+    if RayColl.Count <> 0 then
+    begin
+      Result := RayColl.First.Item;
+      Distance := RayColl.Distance;
+    end;
+  finally FreeAndNil(RayColl) end;
+end;
+
+function TCastleAbstractRootTransform.WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
+var
+  IgnoredDistance: Single;
+begin
+  Result := WorldRayCast(RayOrigin, RayDirection, IgnoredDistance);
 end;
 
 function TCastleAbstractRootTransform.WorldMoveAllowed(

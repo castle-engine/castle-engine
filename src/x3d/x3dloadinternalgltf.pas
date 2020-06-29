@@ -1692,7 +1692,6 @@ var
     InterpolatePosition: TPositionInterpolatorNode;
     InterpolateOrientation: TOrientationInterpolatorNode;
     Interpolator: TAbstractInterpolatorNode;
-    Route: TX3DRoute;
     InterpolatorOutputEvent: TX3DEvent;
     TargetField: TX3DField;
     I: Integer;
@@ -1733,15 +1732,8 @@ var
 
     ParentGroup.AddChildren(Interpolator);
 
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
-    Route.SetDestinationDirectly(Interpolator.EventSet_fraction);
-    ParentGroup.AddRoute(Route);
-
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(InterpolatorOutputEvent);
-    Route.SetDestinationDirectly(TargetField);
-    ParentGroup.AddRoute(Route);
+    ParentGroup.AddRoute(TimeSensor.EventFraction_changed, Interpolator.EventSet_fraction);
+    ParentGroup.AddRoute(InterpolatorOutputEvent, TargetField);
 
     Result := Interpolator;
 

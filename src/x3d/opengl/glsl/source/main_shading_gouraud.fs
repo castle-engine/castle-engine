@@ -33,6 +33,16 @@ void main(void)
 
 #undef normal_eye_fragment
 
+  #ifdef CASTLE_GAMMA_CORRECTION
+  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);
+  #else
+  #ifdef CASTLE_TONE_MAPPING
+  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);
+  #endif
+  /* Optimization to not call castle_linear_to_screen always:
+     it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */
+  #endif
+
   gl_FragColor = fragment_color;
 
   /* PLUG: fragment_end (gl_FragColor) */

@@ -35,6 +35,16 @@
 '' + LineEnding +
 '#undef normal_eye_fragment' + LineEnding +
 '' + LineEnding +
+'  #ifdef CASTLE_GAMMA_CORRECTION' + LineEnding +
+'  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +
+'  #else' + LineEnding +
+'  #ifdef CASTLE_TONE_MAPPING' + LineEnding +
+'  fragment_color.rgb = castle_linear_to_screen(fragment_color.rgb);' + LineEnding +
+'  #endif' + LineEnding +
+'  /* Optimization to not call castle_linear_to_screen always:' + LineEnding +
+'     it does nothing when neither CASTLE_GAMMA_CORRECTION nor CASTLE_TONE_MAPPING */' + LineEnding +
+'  #endif' + LineEnding +
+'' + LineEnding +
 '  gl_FragColor = fragment_color;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: fragment_end (gl_FragColor) */' + LineEnding +

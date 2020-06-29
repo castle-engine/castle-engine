@@ -15,7 +15,7 @@ uses SysUtils,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleUIControls, CastleApplicationProperties, CastleUIState, CastleSoundEngine,
-  CastleTransform, CastleLoadGltf,
+  CastleTransform, CastleRendererBaseTypes,
   GameStateMenu, GameStatePlay;
 
 var

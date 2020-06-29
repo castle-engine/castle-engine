@@ -54,6 +54,7 @@ type
     MenuItemSeparator1: TMenuItem;
     MenuItemViewportSort2D: TMenuItem;
     MenuViewportNavigationWalk: TMenuItem;
+    MenuViewportNavigationThirdPerson: TMenuItem;
     MenuViewportNavigationExamine: TMenuItem;
     MenuViewportNavigationNone: TMenuItem;
     PanelEventsInfo: TPanel;
@@ -113,6 +114,7 @@ type
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
+    procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
     procedure ClearDesign;
     procedure PerformRedo;
     procedure PerformUndo;
@@ -282,7 +284,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
-  CastleProjection, CastleScene, CastleLog,
+  CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
   EditorUtils;
 
 {$R *.lfm}
@@ -2405,6 +2407,14 @@ begin
   W := TCastleWalkNavigation.Create(DesignOwner);
   W.Gravity := true;
   ChangeViewportNavigation(W);
+end;
+
+procedure TDesignFrame.MenuViewportNavigationThirdPersonClick(Sender: TObject);
+var
+  N: TCastleThirdPersonNavigation;
+begin
+  N := TCastleThirdPersonNavigation.Create(DesignOwner);
+  ChangeViewportNavigation(N);
 end;
 
 procedure TDesignFrame.SetParent(AParent: TWinControl);

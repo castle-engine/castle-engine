@@ -595,8 +595,8 @@ var
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures;
+uses SysUtils, Math,
+  CastleFilesUtils, CastlePlayer, CastleGameNotifications, CastleConfig, CastleCreatures;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -688,10 +688,10 @@ var
 begin
   B := FBaseAnimation.BoundingBox;
   Result :=
-    B.Transform(RotationMatrixDeg(45         , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
+    B.Transform(RotationMatrixRad(DegToRad(45         ), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90    ), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90 * 2), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90 * 3), GravityUp));
 end;
 
 { TItemWeaponResource ------------------------------------------------------------ }

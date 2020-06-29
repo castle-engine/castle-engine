@@ -158,7 +158,7 @@ begin
   case Projection.ProjectionType of
     ptPerspective:
       Result := TPerspectiveRaysWindow.Create(
-        ACamPosition, ACamDirection, ACamUp, Projection.PerspectiveAngles);
+        ACamPosition, ACamDirection, ACamUp, Projection.PerspectiveAnglesRad);
     ptOrthographic:
       Result := TOrthographicRaysWindow.Create(
         ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
@@ -187,8 +187,8 @@ begin
     of this class).
     We know that WindowWidth / 2 = Tan(ViewAngleX / 2).
     From this, equations below follow. }
-  WindowWidth  := Tan(DegToRad(PerspectiveAngles.Data[0]) / 2) * 2;
-  WindowHeight := Tan(DegToRad(PerspectiveAngles.Data[1]) / 2) * 2;
+  WindowWidth  := Tan(PerspectiveAngles.Data[0] / 2) * 2;
+  WindowHeight := Tan(PerspectiveAngles.Data[1] / 2) * 2;
 end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;

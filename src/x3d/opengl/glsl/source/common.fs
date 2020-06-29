@@ -10,3 +10,8 @@ vec2 texture_coord_shifted(in vec2 tex_coord)
   /* PLUG: texture_coord_shift (tex_coord) */
   return tex_coord;
 }
+
+// Declare functions defined in tone_mapping.fs
+vec4 castle_texture_color_to_linear(const in vec4 srgbIn);
+vec3 castle_texture_color_to_linear(const in vec3 srgbIn);
+vec3 castle_linear_to_screen(const in vec3 color);

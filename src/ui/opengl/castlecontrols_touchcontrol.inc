@@ -234,17 +234,17 @@ procedure TCastleTouchControl.GetSensorRotation(var X, Y, Z, Angle: Double);
 var
   FxConst: Double;
 begin
-  FxConst := 10/MaxOffsetDist;
+  FxConst := 10 / MaxOffsetDist;
   if FTouchMode = ctcmHeadRotation then
   begin
     X :=  FLeverOffset[1] * FxConst;
     Y := -FLeverOffset[0] * FxConst;
-    Angle := 1;
+    Angle := Pi * 1 / 180;
   end else
   if FTouchMode = ctcmWalkWithSideRot then
   begin
     Y := -FLeverOffset[0] * FxConst;
-    Angle := 1;
+    Angle := Pi * 1 / 180;
   end;
 end;
 

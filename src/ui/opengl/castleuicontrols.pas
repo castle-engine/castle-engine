@@ -686,7 +686,7 @@ type
         begin
           Drag := true;
           Cursor := mcForceNone;
-          MouseLookPress;
+          Container.MouseLookPress;
         end;
       end;
 
@@ -965,7 +965,7 @@ type
       @param X   X axis (tilt forward/backwards)
       @param Y   Y axis (rotate)
       @param Z   Z axis (tilt sidewards)
-      @param Angle   Angle of rotation
+      @param Angle   Angle of rotation (in radians)
       @param(SecondsPassed The time passed since last SensorRotation call.
         This is necessary because some sensors, e.g. 3Dconnexion,
         may *not* reported as often as normal @link(Update) calls.) }

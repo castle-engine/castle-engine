@@ -89,6 +89,7 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; 
   @groupBegin }
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
 function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+  deprecated 'use radians for everything throughout CGE';
 { @groupEnd }
 
 { Rotate Point around the given axis by a given angle.
@@ -667,9 +668,9 @@ procedure ScalingMatrices(const ScaleFactor: TVector3;
   out Matrix, InvertedMatrix: TMatrix4);
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3;
   out Matrix, InvertedMatrix: TMatrix4); overload;
@@ -696,10 +697,35 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
+function Approximate3DScale(const M: TMatrix4): Single; overload;
 
 function Approximate2DScale(const X, Y: Single): Single; overload;
 function Approximate2DScale(const V: TVector2): Single; overload;
 { @groupEnd }
+
+{ Smoothly change Source to Target.
+
+  The speed decreases as Source is closer to Target,
+  so the animation ends smoothly.
+
+  Note: Initially the argument Speed was represented by 2 values:
+    MaxChangeSpeed, MaxDistance: Single
+  The intended meaning of MaxChangeSpeed was the speed
+  with which Source changes to Target,
+  so that MaxChangeSpeed = 1.0 means that it changes in 1 second,
+  MaxChangeSpeed = 0.5 means that it changes in 2 seconds,
+  MaxChangeSpeed = 2 means that it changes in 0.5 seconds.
+
+  Later: now it's just Speed.
+  You can just passs Speed = MaxChangeSpeed / MaxDistance to get the
+  same logic as above.
+}
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
 
 {$endif read_interface}
 
@@ -2524,6 +2550,18 @@ begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
 end;
 
+function Approximate3DScale(const M: TMatrix4): Single;
+begin
+  Result := Approximate3DScale(
+    { This is a simple method of extracting average scaling factor from a matrix.
+      Works OK for combination of scaling, translation matrices.
+      Will fail on rotation (and possibly many other) matrices. }
+    M.Data[0, 0],
+    M.Data[1, 1],
+    M.Data[2, 2]
+  );
+end;
+
 function Approximate2DScale(const X, Y: Single): Single;
 begin
   if (X * Y < 0) then
@@ -2538,6 +2576,27 @@ end;
 function Approximate2DScale(const V: TVector2): Single;
 begin
   Result := Approximate2DScale(V.Data[0], V.Data[1]);
+end;
+
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
 end;
 
 {$endif read_implementation}

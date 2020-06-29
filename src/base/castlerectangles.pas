@@ -84,12 +84,7 @@ type
     Left, Bottom: Integer;
     Width, Height: Cardinal;
 
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
-    {$else}
     class function Empty: TRectangle; static; inline;
-    {$endif}
 
     function IsEmpty: boolean;
 
@@ -283,12 +278,7 @@ type
     Left, Bottom: Single;
     Width, Height: Single;
 
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: -1; Height: -1);
-    {$else}
     class function Empty: TFloatRectangle; static; inline;
-    {$endif}
 
     function IsEmpty: boolean;
 
@@ -502,12 +492,10 @@ begin
   Result.Height := Height;
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TRectangle.Empty: TRectangle;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 function TRectangle.IsEmpty: boolean;
 begin
@@ -995,14 +983,12 @@ begin
   Result.Height := Height;
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TFloatRectangle.Empty: TFloatRectangle;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Width := -1;
   Result.Height := -1;
 end;
-{$endif}
 
 function TFloatRectangle.IsEmpty: boolean;
 begin

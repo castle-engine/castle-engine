@@ -279,10 +279,6 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/base/castleinterfaces.pas"/>
         <UnitName Value="CastleInterfaces"/>
       </Item43>
-      <Item44>
-        <Filename Value="../src/base/castleinternaldoublelists.pas"/>
-        <UnitName Value="CastleInternalDoubleLists"/>
-      </Item44>
       <Item45>
         <Filename Value="../src/base/castleinternalgzio.pas"/>
         <UnitName Value="CastleInternalGzio"/>
@@ -2888,9 +2884,13 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/services/castletestfairy.pas"/>
         <UnitName Value="CastleTestFairy"/>
       </Item692>
-      <Item693>
+      <Item44>
         <Filename Value="../src/x3d/castleloadgltf.pas"/>
         <UnitName Value="CastleLoadGltf"/>
+      </Item44>
+      <Item693>
+        <Filename Value="../src/3d/castlethirdpersonnavigation.pas"/>
+        <UnitName Value="CastleThirdPersonNavigation"/>
       </Item693>
     </Files>
     <RequiredPkgs Count="1">

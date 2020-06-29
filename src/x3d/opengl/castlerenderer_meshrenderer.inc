@@ -1019,11 +1019,16 @@ begin
       CurrentMeshShader := Attributes.CustomShader;
   end else
   begin
+    { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and
        (Shape.Node.Appearance <> nil) then
       Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
+    Shader.GammaCorrection :=
+      (GammaCorrection = gcAlways) or
+      ((GammaCorrection = gcPhysicalMaterial) and
+       (Shader.Material is TPhysicalMaterialInfo));
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}
       (not GLFeatures.EnableFixedFunction) or
