@@ -340,7 +340,8 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           MaterialTexturesEqual(M1.FdNormalTexture           .Value, M2.FdNormalTexture           .Value, M1.FdNormalTextureChannel           .Value, M2.FdNormalTextureChannel           .Value) and
           MaterialTexturesEqual(M1.FdEmissiveTexture         .Value, M2.FdEmissiveTexture         .Value, M1.FdEmissiveTextureChannel         .Value, M2.FdEmissiveTextureChannel         .Value) and
           MaterialTexturesEqual(M1.FdBaseTexture             .Value, M2.FdBaseTexture             .Value, M1.FdBaseTextureChannel             .Value, M2.FdBaseTextureChannel             .Value) and
-          MaterialTexturesEqual(M1.FdMetallicRoughnessTexture.Value, M2.FdMetallicRoughnessTexture.Value, M1.FdMetallicRoughnessTextureChannel.Value, M2.FdMetallicRoughnessTextureChannel.Value)
+          MaterialTexturesEqual(M1.FdMetallicRoughnessTexture.Value, M2.FdMetallicRoughnessTexture.Value, M1.FdMetallicRoughnessTextureChannel.Value, M2.FdMetallicRoughnessTextureChannel.Value) and
+          MaterialTexturesEqual(M1.FdOcclusionTexture        .Value, M2.FdOcclusionTexture        .Value, M1.FdOcclusionTextureChannel        .Value, M2.FdOcclusionTextureChannel        .Value)
         );
     end;
 

@@ -1091,8 +1091,8 @@ var
   function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
   var
     PbrMetallicRoughness: TPbrMetallicRoughness;
-    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel: Integer;
+    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture, OcclusionTexture: TAbstractX3DTexture2DNode;
+    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel, OcclusionTextureChannel: Integer;
   begin
     PbrMetallicRoughness.Read(Material);
 
@@ -1122,6 +1122,12 @@ var
       MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
     Result.MetallicRoughnessTexture := MetallicRoughnessTexture;
     Result.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
+
+    ReadTexture(Material.OcclusionTexture,
+      OcclusionTexture, OcclusionTextureChannel);
+    Result.OcclusionTexture := OcclusionTexture;
+    Result.OcclusionTextureChannel := OcclusionTextureChannel;
+    Result.OcclusionStrength := Material.OcclusionTexture.Strength;
   end;
 
   { Read glTF unlit material, see

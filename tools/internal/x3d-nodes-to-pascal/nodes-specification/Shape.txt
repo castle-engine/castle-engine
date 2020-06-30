@@ -127,6 +127,10 @@ PhysicalMaterial : X3DOneSidedMaterialNode {
   SFNode  [in,out] metallicRoughnessTexture        NULL   [X3DSingleTextureNode]
   SFInt32 [in,out] metallicRoughnessTextureChannel 0
 
+  SFFloat [in,out] occlusionStrength               1      [0,1]
+  SFNode  [in,out] occlusionTexture                NULL   [X3DTexture2DNode]
+  SFInt32 [in,out] occlusionTextureChannel         0
+
   SFFloat [in,out] roughness                       1      [0,1]
 
   SFFloat [in,out] transparency                    0      [0,1]

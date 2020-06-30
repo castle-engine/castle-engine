@@ -117,7 +117,8 @@ begin
       begin
         MatPhysical := TPhysicalMaterialNode(Shape.Node.Appearance.Material);
         if // (MatPhysical.BaseTexture <> nil) or // this is OK for Gouraud shading? Actually PhysicalMaterial always requires Phong shading anyway.
-           (MatPhysical.MetallicRoughnessTexture <> nil) then
+           (MatPhysical.MetallicRoughnessTexture <> nil) or
+           (MatPhysical.OcclusionTexture <> nil) then
           Exit(true);
       end;
     end;
@@ -315,6 +316,30 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       '}');
   end;
 
+  procedure OcclusionTextureEnable(
+    const Texture: TAbstractTextureNode;
+    const TextureChannel: Integer;
+    const Strength: Single);
+  var
+    USingle: TDynamicUniformSingle;
+  begin
+    SurfaceTextureEnable(stOcclusion,
+      Texture,
+      TextureChannel,
+      'castle_SurfaceTexture_occlusion',
+      'uniform float castle_MaterialOcclusionStrength;' + NL +
+      'void PLUG_material_occlusion(inout vec4 color)' + NL +
+      '{' + NL +
+      '  float occlusion = texture2D({uniform_texture_name}, {coord_name}.st).r;' + NL +
+      '  color = mix(color, color * occlusion, castle_MaterialOcclusionStrength);' + NL +
+      '}');
+
+    USingle := TDynamicUniformSingle.Create;
+    USingle.Name := 'castle_MaterialOcclusionStrength';
+    USingle.Value := Strength;
+    Shader.DynamicUniforms.Add(USingle);
+  end;
+
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatPhong: TMaterialNode;
@@ -379,6 +404,10 @@ begin
         MetallicRoughnessTextureEnable(
           MatPhysical.MetallicRoughnessTexture,
           MatPhysical.MetallicRoughnessTextureChannel);
+        OcclusionTextureEnable(
+          MatPhysical.OcclusionTexture,
+          MatPhysical.OcclusionTextureChannel,
+          MatPhysical.OcclusionStrength);
         // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
         if MatPhysical.BaseTexture <> nil then
           RequireTexCoord(MatPhysical.BaseTextureChannel);

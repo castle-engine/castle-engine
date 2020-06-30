@@ -1756,6 +1756,8 @@ var
             MaxVar(Result, MatPhysical.BaseTextureChannel + 1);
           if MatPhysical.MetallicRoughnessTexture <> nil then
             MaxVar(Result, MatPhysical.MetallicRoughnessTextureChannel + 1);
+          if MatPhysical.OcclusionTexture <> nil then
+            MaxVar(Result, MatPhysical.OcclusionTextureChannel + 1);
         end;
       end;
     end;
@@ -2656,6 +2658,8 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     Result := HandleTextureNode(Mat.FdBaseTexture.Value);
     if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdMetallicRoughnessTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdOcclusionTexture.Value);
     if Result <> nil then Exit;
   end;
 

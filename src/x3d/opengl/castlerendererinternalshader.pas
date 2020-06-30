@@ -34,7 +34,8 @@ type
     stAmbient,
     stSpecular,
     stShininess,
-    stMetallicRoughness
+    stMetallicRoughness,
+    stOcclusion
   );
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -416,7 +417,6 @@ type
     FFogExpDensity: Single;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
-    DynamicUniforms: TDynamicUniformList;
     TextureMatrix: TCardinalList;
     NeedsCameraInverseMatrix: Boolean;
     NeedsMirrorPlaneTexCoords: Boolean;
@@ -474,6 +474,9 @@ type
     { Material parameters for current shape.
       Must be set before EnableLight, and be constant later. }
     Material: TMaterialInfo;
+
+    { Uniforms that will be set on this shader every frame (not just once after linking). }
+    DynamicUniforms: TDynamicUniformList;
 
     { We use a callback, instead of storing TBox3D result, because
       1. in many cases, we will not need to call it (so we don't need to recalculate

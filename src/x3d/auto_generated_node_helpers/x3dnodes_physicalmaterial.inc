@@ -38,6 +38,12 @@
     procedure SetMetallicRoughnessTexture(const Value: TAbstractSingleTextureNode);
     function GetMetallicRoughnessTextureChannel: Integer;
     procedure SetMetallicRoughnessTextureChannel(const Value: Integer);
+    function GetOcclusionStrength: Single;
+    procedure SetOcclusionStrength(const Value: Single);
+    function GetOcclusionTexture: TAbstractTexture2DNode;
+    procedure SetOcclusionTexture(const Value: TAbstractTexture2DNode);
+    function GetOcclusionTextureChannel: Integer;
+    procedure SetOcclusionTextureChannel(const Value: Integer);
     function GetRoughness: Single;
     procedure SetRoughness(const Value: Single);
     function GetTransparency: Single;
@@ -81,6 +87,24 @@
     public property FdMetallicRoughnessTextureChannel: TSFInt32 read FFdMetallicRoughnessTextureChannel;
     { X3D field "metallicRoughnessTextureChannel". } { }
     property MetallicRoughnessTextureChannel: Integer read GetMetallicRoughnessTextureChannel write SetMetallicRoughnessTextureChannel;
+
+    strict private FFdOcclusionStrength: TSFFloat;
+    { X3D field "occlusionStrength". } { }
+    public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
+    { X3D field "occlusionStrength". } { }
+    property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
+
+    strict private FFdOcclusionTexture: TSFNode;
+    { X3D field "occlusionTexture". } { }
+    public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
+    { X3D field "occlusionTexture". } { }
+    property OcclusionTexture: TAbstractTexture2DNode read GetOcclusionTexture write SetOcclusionTexture;
+
+    strict private FFdOcclusionTextureChannel: TSFInt32;
+    { X3D field "occlusionTextureChannel". } { }
+    public property FdOcclusionTextureChannel: TSFInt32 read FFdOcclusionTextureChannel;
+    { X3D field "occlusionTextureChannel". } { }
+    property OcclusionTextureChannel: Integer read GetOcclusionTextureChannel write SetOcclusionTextureChannel;
 
     strict private FFdRoughness: TSFFloat;
     { X3D field "roughness". } { }
@@ -166,6 +190,39 @@ begin
   FdMetallicRoughnessTextureChannel.Send(Value);
 end;
 
+function TPhysicalMaterialNode.GetOcclusionStrength: Single;
+begin
+  Result := FdOcclusionStrength.Value;
+end;
+
+procedure TPhysicalMaterialNode.SetOcclusionStrength(const Value: Single);
+begin
+  FdOcclusionStrength.Send(Value);
+end;
+
+function TPhysicalMaterialNode.GetOcclusionTexture: TAbstractTexture2DNode;
+begin
+  if FdOcclusionTexture.Value is TAbstractTexture2DNode then
+    Result := TAbstractTexture2DNode(FdOcclusionTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TPhysicalMaterialNode.SetOcclusionTexture(const Value: TAbstractTexture2DNode);
+begin
+  FdOcclusionTexture.Send(Value);
+end;
+
+function TPhysicalMaterialNode.GetOcclusionTextureChannel: Integer;
+begin
+  Result := FdOcclusionTextureChannel.Value;
+end;
+
+procedure TPhysicalMaterialNode.SetOcclusionTextureChannel(const Value: Integer);
+begin
+  FdOcclusionTextureChannel.Send(Value);
+end;
+
 function TPhysicalMaterialNode.GetRoughness: Single;
 begin
   Result := FdRoughness.Value;
@@ -220,6 +277,19 @@ begin
   FFdMetallicRoughnessTextureChannel := TSFInt32.Create(Self, True, 'metallicRoughnessTextureChannel', 0);
    FdMetallicRoughnessTextureChannel.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallicRoughnessTextureChannel);
+
+  FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
+   FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionStrength);
+  { X3D specification comment: [0,1] }
+
+  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractTexture2DNode]);
+   FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTexture);
+
+  FFdOcclusionTextureChannel := TSFInt32.Create(Self, True, 'occlusionTextureChannel', 0);
+   FdOcclusionTextureChannel.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTextureChannel);
 
   FFdRoughness := TSFFloat.Create(Self, True, 'roughness', 1);
    FdRoughness.ChangeAlways := chVisibleNonGeometry;
