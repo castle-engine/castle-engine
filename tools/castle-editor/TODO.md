@@ -9,11 +9,6 @@ Before 7.0 release:
 
 * 3d gizmos to translate / rotate / scale
 
-* templates:
-    * Create other than "empty" project templates
-    * Proper screenshots of all project templates
-    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
-
 * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
 
 ------------------------------------------------------------------------------
