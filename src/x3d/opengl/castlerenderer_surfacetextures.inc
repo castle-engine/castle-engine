@@ -287,7 +287,7 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
   procedure ShininessTextureEnable(
     const Texture: TAbstractTextureNode;
     const TextureChannel: Integer;
-    const ChannelMask: String = 'r');
+    const ChannelMask: String = 'a');
   begin
     SurfaceTextureEnable(stShininess,
       Texture,
