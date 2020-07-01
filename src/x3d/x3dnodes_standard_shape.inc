@@ -357,61 +357,8 @@
     var
       FMaterialInfo: TMyMaterialInfo;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
-
-    strict private FFdAmbientIntensity: TSFFloat;
-    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-
-    strict private FFdAmbientTexture: TSFNode;
-    public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
-
-    strict private FFdAmbientTextureChannel: TSFInt32;
-    public property FdAmbientTextureChannel: TSFInt32 read FFdAmbientTextureChannel;
-
-    strict private FFdDiffuseColor: TSFColor;
-    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
-
-    strict private FFdDiffuseTexture: TSFNode;
-    public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
-
-    strict private FFdDiffuseTextureChannel: TSFInt32;
-    public property FdDiffuseTextureChannel: TSFInt32 read FFdDiffuseTextureChannel;
-
-    strict private FFdShininess: TSFFloat;
-    public property FdShininess: TSFFloat read FFdShininess;
-
-    strict private FFdShininessTexture: TSFNode;
-    public property FdShininessTexture: TSFNode read FFdShininessTexture;
-
-    strict private FFdShininessTextureChannel: TSFInt32;
-    public property FdShininessTextureChannel: TSFInt32 read FFdShininessTextureChannel;
-
-    strict private FFdSpecularColor: TSFColor;
-    public property FdSpecularColor: TSFColor read FFdSpecularColor;
-
-    strict private FFdSpecularTexture: TSFNode;
-    public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
-
-    strict private FFdSpecularTextureChannel: TSFInt32;
-    public property FdSpecularTextureChannel: TSFInt32 read FFdSpecularTextureChannel;
-
-    strict private FFdTransparency: TSFFloat;
-    public property FdTransparency: TSFFloat read FFdTransparency;
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdFogImmune: TSFBool;
-    { Make the object not affected by fog.
-      This is a Castle Game Engine extension, not present in X3D standard. }
-    public property FdFogImmune: TSFBool read FFdFogImmune;
-    {$endif}
-
-    strict private FFdMirror: TSFFloat;
-    { Make the object a mirror.
-      Right now used only by the classic ray-tracer, not by interactive renderer.
-      This is a Castle Game Engine extension, not present in X3D standard. }
-    public property FdMirror: TSFFloat read FFdMirror;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -445,26 +392,6 @@
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
     procedure ForcePureEmissive; deprecated 'use TUnlitMaterialNode for unlit materials';
-
-    {$ifndef CASTLE_SLIM_NODES}
-    strict private FFdReflSpecular: TMFColor;
-    public property FdReflSpecular: TMFColor read FFdReflSpecular;
-
-    strict private FFdReflDiffuse: TMFColor;
-    public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
-
-    strict private FFdTransSpecular: TMFColor;
-    public property FdTransSpecular: TMFColor read FFdTransSpecular;
-
-    strict private FFdTransDiffuse: TMFColor;
-    public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
-
-    strict private FFdReflSpecularExp: TSFFloat;
-    public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
-
-    strict private FFdTransSpecularExp: TSFFloat;
-    public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
-    {$endif}
 
     {$I auto_generated_node_helpers/x3dnodes_material.inc}
   end;
@@ -1180,113 +1107,19 @@ begin
   end;
 end;
 
-procedure TMaterialNode.CreateNode;
+{ TMaterialNode -------------------------------------------------------------- }
+
+constructor TMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
 begin
   inherited;
-
-  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', TPhongMaterialInfo.DefaultAmbientIntensity);
-   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientIntensity);
-  { X3D specification comment: [0,1] }
-
-  FFdAmbientTexture := TSFNode.Create(Self, true, 'ambientTexture', [TAbstractTextureNode]);
-   FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientTexture);
-
-  FFdAmbientTextureChannel := TSFInt32.Create(Self, true, 'ambientTextureChannel', 0);
-   FdAmbientTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientTextureChannel);
-
-  FFdDiffuseColor := TSFColor.Create(Self, true, 'diffuseColor', TPhongMaterialInfo.DefaultDiffuseColor);
-   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseColor);
-  { X3D specification comment: [0,1] }
-
-  FFdDiffuseTexture := TSFNode.Create(Self, true, 'diffuseTexture', [TAbstractTextureNode]);
-   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseTexture);
-
-  FFdDiffuseTextureChannel := TSFInt32.Create(Self, true, 'diffuseTextureChannel', 0);
-   FdDiffuseTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseTextureChannel);
-
-  FFdShininess := TSFFloat.Create(Self, true, 'shininess', TPhongMaterialInfo.DefaultShininess);
-   FdShininess.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininess);
-  { X3D specification comment: [0,1] }
-
-  FFdShininessTexture := TSFNode.Create(Self, true, 'shininessTexture', [TAbstractTextureNode]);
-   FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininessTexture);
-
-  FFdShininessTextureChannel := TSFInt32.Create(Self, true, 'shininessTextureChannel', 0);
-   FdShininessTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininessTextureChannel);
-
-  FFdSpecularColor := TSFColor.Create(Self, true, 'specularColor', TPhongMaterialInfo.DefaultSpecularColor);
-   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularColor);
-  { X3D specification comment: [0,1] }
-
-  FFdSpecularTexture := TSFNode.Create(Self, true, 'specularTexture', [TAbstractTextureNode]);
-   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularTexture);
-
-  FFdSpecularTextureChannel := TSFInt32.Create(Self, true, 'specularTextureChannel', 0);
-   FdSpecularTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularTextureChannel);
-
-  FFdTransparency := TSFFloat.Create(Self, true, 'transparency', TMaterialInfo.DefaultTransparency);
-   FdTransparency.ChangeAlways := chAlphaChannel;
-  AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdFogImmune);
-  {$endif}
-
-  FFdMirror := TSFFloat.Create(Self, true, 'mirror', 0.0);
-   FdMirror.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdMirror);
-
-  {$ifndef CASTLE_SLIM_NODES}
-  FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflSpecular);
-
-  FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflDiffuse);
-
-  FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransSpecular);
-
-  FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransDiffuse);
-
-  FFdReflSpecularExp := TSFFloat.Create(Self, true, 'reflSpecularExp', TPhongMaterialInfo.DefaultReflSpecularExp);
-   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdReflSpecularExp);
-
-  FFdTransSpecularExp := TSFFloat.Create(Self, true, 'transSpecularExp', TPhongMaterialInfo.DefaultTransSpecularExp);
-   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdTransSpecularExp);
-  {$endif}
+  { Changing Transparency must also update shape's Blending. }
+  FdTransparency.ChangeAlways := chAlphaChannel;
 end;
 
 destructor TMaterialNode.Destroy;
 begin
   FreeAndNil(FMaterialInfo);
   inherited;
-end;
-
-class function TMaterialNode.ClassX3DType: string;
-begin
-  Result := 'Material';
 end;
 
 class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

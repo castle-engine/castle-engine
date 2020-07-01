@@ -307,11 +307,12 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           (M1.FdAmbientIntensity.Value = M2.FdAmbientIntensity.Value) and
           (M1.FdTransparency    .Value = M2.FdTransparency    .Value) and
 
-          MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureChannel  .Value, M2.FdNormalTextureChannel  .Value) and
-          MaterialTexturesEqual(M1.FdDiffuseTexture .Value, M2.FdDiffuseTexture .Value, M1.FdDiffuseTextureChannel .Value, M2.FdDiffuseTextureChannel .Value) and
-          MaterialTexturesEqual(M1.FdSpecularTexture.Value, M2.FdSpecularTexture.Value, M1.FdSpecularTextureChannel.Value, M2.FdSpecularTextureChannel.Value) and
-          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureChannel.Value, M2.FdEmissiveTextureChannel.Value) and
-          MaterialTexturesEqual(M1.FdAmbientTexture .Value, M2.FdAmbientTexture .Value, M1.FdAmbientTextureChannel .Value, M2.FdAmbientTextureChannel .Value)
+          MaterialTexturesEqual(M1.FdNormalTexture   .Value, M2.FdNormalTexture   .Value, M1.FdNormalTextureChannel   .Value, M2.FdNormalTextureChannel   .Value) and
+          MaterialTexturesEqual(M1.FdDiffuseTexture  .Value, M2.FdDiffuseTexture  .Value, M1.FdDiffuseTextureChannel  .Value, M2.FdDiffuseTextureChannel  .Value) and
+          MaterialTexturesEqual(M1.FdSpecularTexture .Value, M2.FdSpecularTexture .Value, M1.FdSpecularTextureChannel .Value, M2.FdSpecularTextureChannel .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture .Value, M2.FdEmissiveTexture .Value, M1.FdEmissiveTextureChannel .Value, M2.FdEmissiveTextureChannel .Value) and
+          MaterialTexturesEqual(M1.FdAmbientTexture  .Value, M2.FdAmbientTexture  .Value, M1.FdAmbientTextureChannel  .Value, M2.FdAmbientTextureChannel  .Value) and
+          MaterialTexturesEqual(M1.FdOcclusionTexture.Value, M2.FdOcclusionTexture.Value, M1.FdOcclusionTextureChannel.Value, M2.FdOcclusionTextureChannel.Value)
         );
     end;
 

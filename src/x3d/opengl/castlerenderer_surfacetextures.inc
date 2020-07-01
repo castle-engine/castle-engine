@@ -109,7 +109,8 @@ begin
         if (MatPhong.AmbientTexture <> nil) or
            // (MatPhong.DiffuseTexture <> nil) or // this is OK for Gouraud shading
            (MatPhong.ShininessTexture <> nil) or
-           (MatPhong.SpecularTexture <> nil) then
+           (MatPhong.SpecularTexture <> nil) or
+           (MatPhong.OcclusionTexture <> nil) then
           Exit(true);
       end;
 
@@ -396,6 +397,10 @@ begin
         ShininessTextureEnable(
           MatPhong.ShininessTexture,
           MatPhong.ShininessTextureChannel);
+        OcclusionTextureEnable(
+          MatPhong.OcclusionTexture,
+          MatPhong.OcclusionTextureChannel,
+          MatPhong.OcclusionStrength);
         // These textures will be rendered using the MainTexture mechanism, but they still need tex coords
         if MatPhong.DiffuseTexture <> nil then
           RequireTexCoord(MatPhong.DiffuseTextureChannel);

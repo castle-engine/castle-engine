@@ -444,7 +444,6 @@ type
     GroupEffects: TX3DNodeList;
     Lighting, ColorPerVertex: Boolean;
     ColorPerVertexMode: TColorMode;
-    FHasEmissiveOrAmbientTexture: Boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -638,9 +637,6 @@ type
     procedure Initialize(const APhongShading: boolean);
 
     property PhongShading: boolean read FPhongShading;
-
-    { Calculated based on EnableSurfaceTexture calls. }
-    property HasEmissiveOrAmbientTexture: Boolean read FHasEmissiveOrAmbientTexture;
 
     { Set uniforms that should be set each time before using shader
       (because changes to their values may happen at any time,
@@ -1987,7 +1983,6 @@ begin
   NeedsMirrorPlaneTexCoords := false;
   NeedsNormalsForTexGen := false;
   RenderingCamera := nil;
-  FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
   GammaCorrection := false;
@@ -2946,8 +2941,6 @@ begin
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
-  if HasEmissiveOrAmbientTexture then
-    Define('HAS_EMISSIVE_OR_AMBIENT_TEXTURE', stFragment);
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
@@ -3437,10 +3430,6 @@ begin
     to account that PlugCode may change?
     But in reality it never changes, only in case of CommonSurfaceShader
     the ChannelMask is configurable. }
-
-  // update HasEmissiveOrAmbientTexture value
-  if SurfaceTexture in [stAmbient, stEmissive] then
-    FHasEmissiveOrAmbientTexture := true;
 end;
 
 procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);

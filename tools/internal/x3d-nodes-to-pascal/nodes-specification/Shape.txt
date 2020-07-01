@@ -86,6 +86,7 @@ LineProperties : X3DAppearanceChildNode {
 
 Material : X3DOneSidedMaterialNode {
   x3d-nodes-to-pascal: default-container-field material
+  x3d-nodes-to-pascal: auto-generate-more true
 
   SFFloat [in,out] ambientIntensity         0.2          [0,1]
   SFNode  [in,out] ambientTexture           NULL         [X3DSingleTextureNode]
@@ -95,18 +96,23 @@ Material : X3DOneSidedMaterialNode {
   SFNode  [in,out] diffuseTexture           NULL         [X3DSingleTextureNode]
   SFInt32 [in,out] diffuseTextureChannel    0
 
-  SFColor [in,out] specularColor            0 0 0        [0,1]
-  SFNode  [in,out] specularTexture          NULL         [X3DSingleTextureNode]
-  SFInt32 [in,out] specularTextureChannel   0
+  SFFloat [in,out] occlusionStrength               1      [0,1]
+  SFNode  [in,out] occlusionTexture                NULL   [X3DTexture2DNode]
+  SFInt32 [in,out] occlusionTextureChannel         0
 
   SFFloat [in,out] shininess                0.2          [0,1]
   SFNode  [in,out] shininessTexture         NULL         [X3DSingleTextureNode]
   SFInt32 [in,out] shininessTextureChannel  0
 
+  SFColor [in,out] specularColor            0 0 0        [0,1]
+  SFNode  [in,out] specularTexture          NULL         [X3DSingleTextureNode]
+  SFInt32 [in,out] specularTextureChannel   0
+
   SFFloat [in,out] transparency             0            [0,1]
 
   # EXTENSIONS:
-  SFFloat    [in,out]      mirror      0.0         # [0.0; 1.0]
+  SFBool     [in,out]      fogImmune             FALSE       # NOT-SLIM
+  SFFloat    [in,out]      mirror                0.0         # [0.0; 1.0]
   MFColor    [in,out]      reflSpecular          []          # specular reflectance; NOT-SLIM
   MFColor    [in,out]      reflDiffuse           []          # diffuse reflectance; NOT-SLIM
   MFColor    [in,out]      transSpecular         []          # specular transmittance; NOT-SLIM

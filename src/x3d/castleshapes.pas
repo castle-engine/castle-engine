@@ -1748,6 +1748,8 @@ var
             MaxVar(Result, MatPhong.ShininessTextureChannel + 1);
           if MatPhong.SpecularTexture <> nil then
             MaxVar(Result, MatPhong.SpecularTextureChannel + 1);
+          if MatPhong.OcclusionTexture <> nil then
+            MaxVar(Result, MatPhong.OcclusionTextureChannel + 1);
         end;
         if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
         begin
@@ -2650,6 +2652,8 @@ function TShape.EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFuncti
     Result := HandleTextureNode(Mat.FdShininessTexture.Value);
     if Result <> nil then Exit;
     Result := HandleTextureNode(Mat.FdSpecularTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(Mat.FdOcclusionTexture.Value);
     if Result <> nil then Exit;
   end;
 
