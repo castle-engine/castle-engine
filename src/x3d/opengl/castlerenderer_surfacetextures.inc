@@ -334,10 +334,15 @@ procedure TGLRenderer.SurfaceTexturesEnable(State: TX3DGraphTraverseState;
       '  color = mix(color, color * occlusion, castle_MaterialOcclusionStrength);' + NL +
       '}');
 
-    USingle := TDynamicUniformSingle.Create;
-    USingle.Name := 'castle_MaterialOcclusionStrength';
-    USingle.Value := Strength;
-    Shader.DynamicUniforms.Add(USingle);
+    { This procedure is called even with Texture = nil.
+      In this case SurfaceTextureEnable, so we also don't need to add this uniform. }
+    if Texture <> nil then
+    begin
+      USingle := TDynamicUniformSingle.Create;
+      USingle.Name := 'castle_MaterialOcclusionStrength';
+      USingle.Value := Strength;
+      Shader.DynamicUniforms.Add(USingle);
+    end;
   end;
 
 var
