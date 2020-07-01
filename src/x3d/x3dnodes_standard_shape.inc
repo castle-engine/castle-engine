@@ -19,6 +19,7 @@
   { }
   TKambiOctreePropertiesNode = class;
   TAbstractShaderNode = class;
+  TAbstractOneSidedMaterialNode = class;
   TAbstractSingleTextureNode = class;
 
   { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
