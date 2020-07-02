@@ -125,7 +125,7 @@
   end;
 
   { 3D texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate3DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate3DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -137,7 +137,7 @@
   end;
 
   { 4D (homogeneous 3D) texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate4DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate4DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -150,7 +150,7 @@
 
   { Transformation of texture coordinates by a 4x4 matrix,
     particularly useful with 3D textures. }
-  TTextureTransformMatrix3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransformMatrix3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -165,7 +165,7 @@
 
   { Transformation of texture coordinates in 3D,
     partcularly useful with 3D textures. }
-  TTextureTransform3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransform3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

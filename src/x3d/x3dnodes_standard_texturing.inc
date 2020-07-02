@@ -22,6 +22,12 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
   end;
 
+  { Base for all nodes which specify a texture coordinate, but not MultiTextureCoordinate. }
+  TAbstractSingleTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
+  public
+    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
+  end;
+
   { Base for all nodes which specify a texture, possibly multi-texture. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   strict protected
@@ -77,8 +83,6 @@
 
     {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
   end;
-
-  TTexturePropertiesNode = class;
 
   { VRML/X3D texture that is 2D and can be loaded (from file or some other stream).
 
@@ -274,6 +278,12 @@
     procedure CreateNode; override;
     function TransformMatrix: TMatrix4; virtual; abstract;
     {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
+  end;
+
+  { Base for all nodes which specify a texture coordinate transform, but not MultiTextureTransform. }
+  TAbstractSingleTextureTransformNode = class(TAbstractTextureTransformNode)
+  public
+    {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
   end;
 
   { Texture image loaded from a file. }
@@ -484,7 +494,7 @@
   end;
 
   { 2D texture coordinates used by vertex-based geometry nodes. }
-  TTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -496,7 +506,7 @@
   end;
 
   { Automatic generation of texture coordinates. }
-  TTextureCoordinateGeneratorNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinateGeneratorNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -578,7 +588,7 @@
 
   { 2D transformation that can be applied to texture coordinates (e.g. from
     @link(TTextureCoordinateNode). }
-  TTextureTransformNode = class(TAbstractTextureTransformNode)
+  TTextureTransformNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -1153,7 +1163,7 @@ procedure TMultiTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
-  FFdTexCoord := TMFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
+  FFdTexCoord := TMFNode.Create(Self, true, 'texCoord', [TAbstractSingleTextureCoordinateNode]);
    FdTexCoord.ChangeAlways := chTextureCoordinate;
   AddField(FFdTexCoord);
 end;
@@ -1167,7 +1177,7 @@ procedure TMultiTextureTransformNode.CreateNode;
 begin
   inherited;
 
-  FFdTextureTransform := TMFNode.Create(Self, true, 'textureTransform', [TAbstractTextureTransformNode]);
+  FFdTextureTransform := TMFNode.Create(Self, true, 'textureTransform', [TAbstractSingleTextureTransformNode]);
    FdTextureTransform.ChangeAlways := chEverything;
   AddField(FFdTextureTransform);
 end;

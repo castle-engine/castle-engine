@@ -45,7 +45,6 @@
   end;
 
   TAppearanceNode = class;
-  TAbstractTextureTransformNode = class;
   TMaterialNode = class;
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
