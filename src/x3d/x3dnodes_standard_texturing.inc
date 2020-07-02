@@ -25,6 +25,7 @@
   { Base for all nodes which specify a texture coordinate, but not MultiTextureCoordinate. }
   TAbstractSingleTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
   end;
 
@@ -283,6 +284,7 @@
   { Base for all nodes which specify a texture coordinate transform, but not MultiTextureTransform. }
   TAbstractSingleTextureTransformNode = class(TAbstractTextureTransformNode)
   public
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
   end;
 
@@ -614,6 +616,14 @@
 
 {$ifdef read_implementation}
 
+{ TAbstractSingleTextureCoordinateNode --------------------------------------- }
+
+constructor TAbstractSingleTextureCoordinateNode.Create(const AX3DName: string; const ABaseUrl: string);
+begin
+  inherited;
+  FdMapping.ChangeAlways := chTextureCoordinate;
+end;
+
 { TAbstractTextureCoordinateNode ---------------------------------------------- }
 
 procedure TAbstractTextureCoordinateNode.CreateNode;
@@ -856,6 +866,16 @@ begin
 
   DefaultContainerField := 'textureTransform';
 end;
+
+{ TAbstractSingleTextureTransformNode --------------------------------------- }
+
+constructor TAbstractSingleTextureTransformNode.Create(const AX3DName: string; const ABaseUrl: string);
+begin
+  inherited;
+  FdMapping.ChangeAlways := chTextureTransform; // TODO is this enough? chTextureTransform will not free proxy?
+end;
+
+{ TImageTextureNode ---------------------------------------------------------- }
 
 procedure TImageTextureNode.CreateNode;
 begin
