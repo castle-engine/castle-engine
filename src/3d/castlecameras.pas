@@ -5060,6 +5060,8 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
       Camera.Up := Camera.GravityUp;
   end;
 
+const
+  MouseWheelScrollSpeed = 0.03;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5083,7 +5085,7 @@ begin
      (MouseDragMode <> mdRotate) and
      Event.MouseWheelVertical then
   begin
-    RotateVertical(-Event.MouseWheelScroll * 3);
+    RotateVertical(-Event.MouseWheelScroll * MouseWheelScrollSpeed);
     Result := true;
     Exit;
   end;
