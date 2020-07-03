@@ -68,6 +68,7 @@
   TAbstractColorNode = class;
   TTexturePropertiesNode = class;
   TAbstractTextureTransformNode = class;
+  TAbstractSingleTextureCoordinateNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

@@ -30,32 +30,32 @@
     procedure SetAmbientIntensity(const Value: Single);
     function GetAmbientTexture: TAbstractSingleTextureNode;
     procedure SetAmbientTexture(const Value: TAbstractSingleTextureNode);
-    function GetAmbientTextureChannel: Integer;
-    procedure SetAmbientTextureChannel(const Value: Integer);
+    function GetAmbientTextureMapping: String;
+    procedure SetAmbientTextureMapping(const Value: String);
     function GetDiffuseColor: TCastleColorRGB;
     procedure SetDiffuseColor(const Value: TCastleColorRGB);
     function GetDiffuseTexture: TAbstractSingleTextureNode;
     procedure SetDiffuseTexture(const Value: TAbstractSingleTextureNode);
-    function GetDiffuseTextureChannel: Integer;
-    procedure SetDiffuseTextureChannel(const Value: Integer);
+    function GetDiffuseTextureMapping: String;
+    procedure SetDiffuseTextureMapping(const Value: String);
     function GetOcclusionStrength: Single;
     procedure SetOcclusionStrength(const Value: Single);
-    function GetOcclusionTexture: TAbstractTexture2DNode;
-    procedure SetOcclusionTexture(const Value: TAbstractTexture2DNode);
-    function GetOcclusionTextureChannel: Integer;
-    procedure SetOcclusionTextureChannel(const Value: Integer);
+    function GetOcclusionTexture: TAbstractSingleTextureNode;
+    procedure SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
+    function GetOcclusionTextureMapping: String;
+    procedure SetOcclusionTextureMapping(const Value: String);
     function GetShininess: Single;
     procedure SetShininess(const Value: Single);
     function GetShininessTexture: TAbstractSingleTextureNode;
     procedure SetShininessTexture(const Value: TAbstractSingleTextureNode);
-    function GetShininessTextureChannel: Integer;
-    procedure SetShininessTextureChannel(const Value: Integer);
+    function GetShininessTextureMapping: String;
+    procedure SetShininessTextureMapping(const Value: String);
     function GetSpecularColor: TCastleColorRGB;
     procedure SetSpecularColor(const Value: TCastleColorRGB);
     function GetSpecularTexture: TAbstractSingleTextureNode;
     procedure SetSpecularTexture(const Value: TAbstractSingleTextureNode);
-    function GetSpecularTextureChannel: Integer;
-    procedure SetSpecularTextureChannel(const Value: Integer);
+    function GetSpecularTextureMapping: String;
+    procedure SetSpecularTextureMapping(const Value: String);
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
 {$ifndef CASTLE_SLIM_NODES}
@@ -88,11 +88,11 @@
     { X3D field "ambientTexture". } { }
     property AmbientTexture: TAbstractSingleTextureNode read GetAmbientTexture write SetAmbientTexture;
 
-    strict private FFdAmbientTextureChannel: TSFInt32;
-    { X3D field "ambientTextureChannel". } { }
-    public property FdAmbientTextureChannel: TSFInt32 read FFdAmbientTextureChannel;
-    { X3D field "ambientTextureChannel". } { }
-    property AmbientTextureChannel: Integer read GetAmbientTextureChannel write SetAmbientTextureChannel;
+    strict private FFdAmbientTextureMapping: TSFString;
+    { X3D field "ambientTextureMapping". } { }
+    public property FdAmbientTextureMapping: TSFString read FFdAmbientTextureMapping;
+    { X3D field "ambientTextureMapping". } { }
+    property AmbientTextureMapping: String read GetAmbientTextureMapping write SetAmbientTextureMapping;
 
     strict private FFdDiffuseColor: TSFColor;
     { X3D field "diffuseColor". } { }
@@ -106,11 +106,11 @@
     { X3D field "diffuseTexture". } { }
     property DiffuseTexture: TAbstractSingleTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
-    strict private FFdDiffuseTextureChannel: TSFInt32;
-    { X3D field "diffuseTextureChannel". } { }
-    public property FdDiffuseTextureChannel: TSFInt32 read FFdDiffuseTextureChannel;
-    { X3D field "diffuseTextureChannel". } { }
-    property DiffuseTextureChannel: Integer read GetDiffuseTextureChannel write SetDiffuseTextureChannel;
+    strict private FFdDiffuseTextureMapping: TSFString;
+    { X3D field "diffuseTextureMapping". } { }
+    public property FdDiffuseTextureMapping: TSFString read FFdDiffuseTextureMapping;
+    { X3D field "diffuseTextureMapping". } { }
+    property DiffuseTextureMapping: String read GetDiffuseTextureMapping write SetDiffuseTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
     { X3D field "occlusionStrength". } { }
@@ -122,13 +122,13 @@
     { X3D field "occlusionTexture". } { }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     { X3D field "occlusionTexture". } { }
-    property OcclusionTexture: TAbstractTexture2DNode read GetOcclusionTexture write SetOcclusionTexture;
+    property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
-    strict private FFdOcclusionTextureChannel: TSFInt32;
-    { X3D field "occlusionTextureChannel". } { }
-    public property FdOcclusionTextureChannel: TSFInt32 read FFdOcclusionTextureChannel;
-    { X3D field "occlusionTextureChannel". } { }
-    property OcclusionTextureChannel: Integer read GetOcclusionTextureChannel write SetOcclusionTextureChannel;
+    strict private FFdOcclusionTextureMapping: TSFString;
+    { X3D field "occlusionTextureMapping". } { }
+    public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
+    { X3D field "occlusionTextureMapping". } { }
+    property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdShininess: TSFFloat;
     { X3D field "shininess". } { }
@@ -142,11 +142,11 @@
     { X3D field "shininessTexture". } { }
     property ShininessTexture: TAbstractSingleTextureNode read GetShininessTexture write SetShininessTexture;
 
-    strict private FFdShininessTextureChannel: TSFInt32;
-    { X3D field "shininessTextureChannel". } { }
-    public property FdShininessTextureChannel: TSFInt32 read FFdShininessTextureChannel;
-    { X3D field "shininessTextureChannel". } { }
-    property ShininessTextureChannel: Integer read GetShininessTextureChannel write SetShininessTextureChannel;
+    strict private FFdShininessTextureMapping: TSFString;
+    { X3D field "shininessTextureMapping". } { }
+    public property FdShininessTextureMapping: TSFString read FFdShininessTextureMapping;
+    { X3D field "shininessTextureMapping". } { }
+    property ShininessTextureMapping: String read GetShininessTextureMapping write SetShininessTextureMapping;
 
     strict private FFdSpecularColor: TSFColor;
     { X3D field "specularColor". } { }
@@ -160,11 +160,11 @@
     { X3D field "specularTexture". } { }
     property SpecularTexture: TAbstractSingleTextureNode read GetSpecularTexture write SetSpecularTexture;
 
-    strict private FFdSpecularTextureChannel: TSFInt32;
-    { X3D field "specularTextureChannel". } { }
-    public property FdSpecularTextureChannel: TSFInt32 read FFdSpecularTextureChannel;
-    { X3D field "specularTextureChannel". } { }
-    property SpecularTextureChannel: Integer read GetSpecularTextureChannel write SetSpecularTextureChannel;
+    strict private FFdSpecularTextureMapping: TSFString;
+    { X3D field "specularTextureMapping". } { }
+    public property FdSpecularTextureMapping: TSFString read FFdSpecularTextureMapping;
+    { X3D field "specularTextureMapping". } { }
+    property SpecularTextureMapping: String read GetSpecularTextureMapping write SetSpecularTextureMapping;
 
     strict private FFdTransparency: TSFFloat;
     { X3D field "transparency". } { }
@@ -293,14 +293,14 @@ begin
   FdAmbientTexture.Send(Value);
 end;
 
-function TMaterialNode.GetAmbientTextureChannel: Integer;
+function TMaterialNode.GetAmbientTextureMapping: String;
 begin
-  Result := FdAmbientTextureChannel.Value;
+  Result := FdAmbientTextureMapping.Value;
 end;
 
-procedure TMaterialNode.SetAmbientTextureChannel(const Value: Integer);
+procedure TMaterialNode.SetAmbientTextureMapping(const Value: String);
 begin
-  FdAmbientTextureChannel.Send(Value);
+  FdAmbientTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetDiffuseColor: TCastleColorRGB;
@@ -326,14 +326,14 @@ begin
   FdDiffuseTexture.Send(Value);
 end;
 
-function TMaterialNode.GetDiffuseTextureChannel: Integer;
+function TMaterialNode.GetDiffuseTextureMapping: String;
 begin
-  Result := FdDiffuseTextureChannel.Value;
+  Result := FdDiffuseTextureMapping.Value;
 end;
 
-procedure TMaterialNode.SetDiffuseTextureChannel(const Value: Integer);
+procedure TMaterialNode.SetDiffuseTextureMapping(const Value: String);
 begin
-  FdDiffuseTextureChannel.Send(Value);
+  FdDiffuseTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetOcclusionStrength: Single;
@@ -346,27 +346,27 @@ begin
   FdOcclusionStrength.Send(Value);
 end;
 
-function TMaterialNode.GetOcclusionTexture: TAbstractTexture2DNode;
+function TMaterialNode.GetOcclusionTexture: TAbstractSingleTextureNode;
 begin
-  if FdOcclusionTexture.Value is TAbstractTexture2DNode then
-    Result := TAbstractTexture2DNode(FdOcclusionTexture.Value)
+  if FdOcclusionTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdOcclusionTexture.Value)
   else
     Result := nil;
 end;
 
-procedure TMaterialNode.SetOcclusionTexture(const Value: TAbstractTexture2DNode);
+procedure TMaterialNode.SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
 begin
   FdOcclusionTexture.Send(Value);
 end;
 
-function TMaterialNode.GetOcclusionTextureChannel: Integer;
+function TMaterialNode.GetOcclusionTextureMapping: String;
 begin
-  Result := FdOcclusionTextureChannel.Value;
+  Result := FdOcclusionTextureMapping.Value;
 end;
 
-procedure TMaterialNode.SetOcclusionTextureChannel(const Value: Integer);
+procedure TMaterialNode.SetOcclusionTextureMapping(const Value: String);
 begin
-  FdOcclusionTextureChannel.Send(Value);
+  FdOcclusionTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetShininess: Single;
@@ -392,14 +392,14 @@ begin
   FdShininessTexture.Send(Value);
 end;
 
-function TMaterialNode.GetShininessTextureChannel: Integer;
+function TMaterialNode.GetShininessTextureMapping: String;
 begin
-  Result := FdShininessTextureChannel.Value;
+  Result := FdShininessTextureMapping.Value;
 end;
 
-procedure TMaterialNode.SetShininessTextureChannel(const Value: Integer);
+procedure TMaterialNode.SetShininessTextureMapping(const Value: String);
 begin
-  FdShininessTextureChannel.Send(Value);
+  FdShininessTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetSpecularColor: TCastleColorRGB;
@@ -425,14 +425,14 @@ begin
   FdSpecularTexture.Send(Value);
 end;
 
-function TMaterialNode.GetSpecularTextureChannel: Integer;
+function TMaterialNode.GetSpecularTextureMapping: String;
 begin
-  Result := FdSpecularTextureChannel.Value;
+  Result := FdSpecularTextureMapping.Value;
 end;
 
-procedure TMaterialNode.SetSpecularTextureChannel(const Value: Integer);
+procedure TMaterialNode.SetSpecularTextureMapping(const Value: String);
 begin
-  FdSpecularTextureChannel.Send(Value);
+  FdSpecularTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetTransparency: Single;
@@ -565,9 +565,9 @@ begin
    FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientTexture);
 
-  FFdAmbientTextureChannel := TSFInt32.Create(Self, True, 'ambientTextureChannel', 0);
-   FdAmbientTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdAmbientTextureChannel);
+  FFdAmbientTextureMapping := TSFString.Create(Self, True, 'ambientTextureMapping', '');
+   FdAmbientTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientTextureMapping);
 
   FFdDiffuseColor := TSFColor.Create(Self, True, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
    FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
@@ -578,22 +578,22 @@ begin
    FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseTexture);
 
-  FFdDiffuseTextureChannel := TSFInt32.Create(Self, True, 'diffuseTextureChannel', 0);
-   FdDiffuseTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdDiffuseTextureChannel);
+  FFdDiffuseTextureMapping := TSFString.Create(Self, True, 'diffuseTextureMapping', '');
+   FdDiffuseTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiffuseTextureMapping);
 
   FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
    FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOcclusionStrength);
   { X3D specification comment: [0,1] }
 
-  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractTexture2DNode]);
+  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
    FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOcclusionTexture);
 
-  FFdOcclusionTextureChannel := TSFInt32.Create(Self, True, 'occlusionTextureChannel', 0);
-   FdOcclusionTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdOcclusionTextureChannel);
+  FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
+   FdOcclusionTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTextureMapping);
 
   FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
    FdShininess.ChangeAlways := chVisibleNonGeometry;
@@ -604,9 +604,9 @@ begin
    FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininessTexture);
 
-  FFdShininessTextureChannel := TSFInt32.Create(Self, True, 'shininessTextureChannel', 0);
-   FdShininessTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdShininessTextureChannel);
+  FFdShininessTextureMapping := TSFString.Create(Self, True, 'shininessTextureMapping', '');
+   FdShininessTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShininessTextureMapping);
 
   FFdSpecularColor := TSFColor.Create(Self, True, 'specularColor', Vector3(0, 0, 0));
    FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
@@ -617,9 +617,9 @@ begin
    FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularTexture);
 
-  FFdSpecularTextureChannel := TSFInt32.Create(Self, True, 'specularTextureChannel', 0);
-   FdSpecularTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdSpecularTextureChannel);
+  FFdSpecularTextureMapping := TSFString.Create(Self, True, 'specularTextureMapping', '');
+   FdSpecularTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpecularTextureMapping);
 
   FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
    FdTransparency.ChangeAlways := chVisibleNonGeometry;

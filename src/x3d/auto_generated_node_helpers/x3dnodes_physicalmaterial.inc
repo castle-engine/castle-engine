@@ -30,20 +30,20 @@
     procedure SetBaseColor(const Value: TCastleColorRGB);
     function GetBaseTexture: TAbstractSingleTextureNode;
     procedure SetBaseTexture(const Value: TAbstractSingleTextureNode);
-    function GetBaseTextureChannel: Integer;
-    procedure SetBaseTextureChannel(const Value: Integer);
+    function GetBaseTextureMapping: String;
+    procedure SetBaseTextureMapping(const Value: String);
     function GetMetallic: Single;
     procedure SetMetallic(const Value: Single);
     function GetMetallicRoughnessTexture: TAbstractSingleTextureNode;
     procedure SetMetallicRoughnessTexture(const Value: TAbstractSingleTextureNode);
-    function GetMetallicRoughnessTextureChannel: Integer;
-    procedure SetMetallicRoughnessTextureChannel(const Value: Integer);
+    function GetMetallicRoughnessTextureMapping: String;
+    procedure SetMetallicRoughnessTextureMapping(const Value: String);
     function GetOcclusionStrength: Single;
     procedure SetOcclusionStrength(const Value: Single);
-    function GetOcclusionTexture: TAbstractTexture2DNode;
-    procedure SetOcclusionTexture(const Value: TAbstractTexture2DNode);
-    function GetOcclusionTextureChannel: Integer;
-    procedure SetOcclusionTextureChannel(const Value: Integer);
+    function GetOcclusionTexture: TAbstractSingleTextureNode;
+    procedure SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
+    function GetOcclusionTextureMapping: String;
+    procedure SetOcclusionTextureMapping(const Value: String);
     function GetRoughness: Single;
     procedure SetRoughness(const Value: Single);
     function GetTransparency: Single;
@@ -64,11 +64,11 @@
     { X3D field "baseTexture". } { }
     property BaseTexture: TAbstractSingleTextureNode read GetBaseTexture write SetBaseTexture;
 
-    strict private FFdBaseTextureChannel: TSFInt32;
-    { X3D field "baseTextureChannel". } { }
-    public property FdBaseTextureChannel: TSFInt32 read FFdBaseTextureChannel;
-    { X3D field "baseTextureChannel". } { }
-    property BaseTextureChannel: Integer read GetBaseTextureChannel write SetBaseTextureChannel;
+    strict private FFdBaseTextureMapping: TSFString;
+    { X3D field "baseTextureMapping". } { }
+    public property FdBaseTextureMapping: TSFString read FFdBaseTextureMapping;
+    { X3D field "baseTextureMapping". } { }
+    property BaseTextureMapping: String read GetBaseTextureMapping write SetBaseTextureMapping;
 
     strict private FFdMetallic: TSFFloat;
     { X3D field "metallic". } { }
@@ -82,11 +82,11 @@
     { X3D field "metallicRoughnessTexture". } { }
     property MetallicRoughnessTexture: TAbstractSingleTextureNode read GetMetallicRoughnessTexture write SetMetallicRoughnessTexture;
 
-    strict private FFdMetallicRoughnessTextureChannel: TSFInt32;
-    { X3D field "metallicRoughnessTextureChannel". } { }
-    public property FdMetallicRoughnessTextureChannel: TSFInt32 read FFdMetallicRoughnessTextureChannel;
-    { X3D field "metallicRoughnessTextureChannel". } { }
-    property MetallicRoughnessTextureChannel: Integer read GetMetallicRoughnessTextureChannel write SetMetallicRoughnessTextureChannel;
+    strict private FFdMetallicRoughnessTextureMapping: TSFString;
+    { X3D field "metallicRoughnessTextureMapping". } { }
+    public property FdMetallicRoughnessTextureMapping: TSFString read FFdMetallicRoughnessTextureMapping;
+    { X3D field "metallicRoughnessTextureMapping". } { }
+    property MetallicRoughnessTextureMapping: String read GetMetallicRoughnessTextureMapping write SetMetallicRoughnessTextureMapping;
 
     strict private FFdOcclusionStrength: TSFFloat;
     { X3D field "occlusionStrength". } { }
@@ -98,13 +98,13 @@
     { X3D field "occlusionTexture". } { }
     public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
     { X3D field "occlusionTexture". } { }
-    property OcclusionTexture: TAbstractTexture2DNode read GetOcclusionTexture write SetOcclusionTexture;
+    property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
 
-    strict private FFdOcclusionTextureChannel: TSFInt32;
-    { X3D field "occlusionTextureChannel". } { }
-    public property FdOcclusionTextureChannel: TSFInt32 read FFdOcclusionTextureChannel;
-    { X3D field "occlusionTextureChannel". } { }
-    property OcclusionTextureChannel: Integer read GetOcclusionTextureChannel write SetOcclusionTextureChannel;
+    strict private FFdOcclusionTextureMapping: TSFString;
+    { X3D field "occlusionTextureMapping". } { }
+    public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
+    { X3D field "occlusionTextureMapping". } { }
+    property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
 
     strict private FFdRoughness: TSFFloat;
     { X3D field "roughness". } { }
@@ -147,14 +147,14 @@ begin
   FdBaseTexture.Send(Value);
 end;
 
-function TPhysicalMaterialNode.GetBaseTextureChannel: Integer;
+function TPhysicalMaterialNode.GetBaseTextureMapping: String;
 begin
-  Result := FdBaseTextureChannel.Value;
+  Result := FdBaseTextureMapping.Value;
 end;
 
-procedure TPhysicalMaterialNode.SetBaseTextureChannel(const Value: Integer);
+procedure TPhysicalMaterialNode.SetBaseTextureMapping(const Value: String);
 begin
-  FdBaseTextureChannel.Send(Value);
+  FdBaseTextureMapping.Send(Value);
 end;
 
 function TPhysicalMaterialNode.GetMetallic: Single;
@@ -180,14 +180,14 @@ begin
   FdMetallicRoughnessTexture.Send(Value);
 end;
 
-function TPhysicalMaterialNode.GetMetallicRoughnessTextureChannel: Integer;
+function TPhysicalMaterialNode.GetMetallicRoughnessTextureMapping: String;
 begin
-  Result := FdMetallicRoughnessTextureChannel.Value;
+  Result := FdMetallicRoughnessTextureMapping.Value;
 end;
 
-procedure TPhysicalMaterialNode.SetMetallicRoughnessTextureChannel(const Value: Integer);
+procedure TPhysicalMaterialNode.SetMetallicRoughnessTextureMapping(const Value: String);
 begin
-  FdMetallicRoughnessTextureChannel.Send(Value);
+  FdMetallicRoughnessTextureMapping.Send(Value);
 end;
 
 function TPhysicalMaterialNode.GetOcclusionStrength: Single;
@@ -200,27 +200,27 @@ begin
   FdOcclusionStrength.Send(Value);
 end;
 
-function TPhysicalMaterialNode.GetOcclusionTexture: TAbstractTexture2DNode;
+function TPhysicalMaterialNode.GetOcclusionTexture: TAbstractSingleTextureNode;
 begin
-  if FdOcclusionTexture.Value is TAbstractTexture2DNode then
-    Result := TAbstractTexture2DNode(FdOcclusionTexture.Value)
+  if FdOcclusionTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdOcclusionTexture.Value)
   else
     Result := nil;
 end;
 
-procedure TPhysicalMaterialNode.SetOcclusionTexture(const Value: TAbstractTexture2DNode);
+procedure TPhysicalMaterialNode.SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
 begin
   FdOcclusionTexture.Send(Value);
 end;
 
-function TPhysicalMaterialNode.GetOcclusionTextureChannel: Integer;
+function TPhysicalMaterialNode.GetOcclusionTextureMapping: String;
 begin
-  Result := FdOcclusionTextureChannel.Value;
+  Result := FdOcclusionTextureMapping.Value;
 end;
 
-procedure TPhysicalMaterialNode.SetOcclusionTextureChannel(const Value: Integer);
+procedure TPhysicalMaterialNode.SetOcclusionTextureMapping(const Value: String);
 begin
-  FdOcclusionTextureChannel.Send(Value);
+  FdOcclusionTextureMapping.Send(Value);
 end;
 
 function TPhysicalMaterialNode.GetRoughness: Single;
@@ -261,9 +261,9 @@ begin
    FdBaseTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdBaseTexture);
 
-  FFdBaseTextureChannel := TSFInt32.Create(Self, True, 'baseTextureChannel', 0);
-   FdBaseTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdBaseTextureChannel);
+  FFdBaseTextureMapping := TSFString.Create(Self, True, 'baseTextureMapping', '');
+   FdBaseTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBaseTextureMapping);
 
   FFdMetallic := TSFFloat.Create(Self, True, 'metallic', 1);
    FdMetallic.ChangeAlways := chVisibleNonGeometry;
@@ -274,22 +274,22 @@ begin
    FdMetallicRoughnessTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMetallicRoughnessTexture);
 
-  FFdMetallicRoughnessTextureChannel := TSFInt32.Create(Self, True, 'metallicRoughnessTextureChannel', 0);
-   FdMetallicRoughnessTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdMetallicRoughnessTextureChannel);
+  FFdMetallicRoughnessTextureMapping := TSFString.Create(Self, True, 'metallicRoughnessTextureMapping', '');
+   FdMetallicRoughnessTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMetallicRoughnessTextureMapping);
 
   FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
    FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOcclusionStrength);
   { X3D specification comment: [0,1] }
 
-  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractTexture2DNode]);
+  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
    FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdOcclusionTexture);
 
-  FFdOcclusionTextureChannel := TSFInt32.Create(Self, True, 'occlusionTextureChannel', 0);
-   FdOcclusionTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdOcclusionTextureChannel);
+  FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
+   FdOcclusionTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTextureMapping);
 
   FFdRoughness := TSFFloat.Create(Self, True, 'roughness', 1);
    FdRoughness.ChangeAlways := chVisibleNonGeometry;

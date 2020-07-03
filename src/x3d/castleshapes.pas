@@ -1684,6 +1684,14 @@ var
       Result := 1;
   end;
 
+  procedure TexCoordsNeededForMapping(var Needed: Cardinal; const Mapping: String);
+  var
+    Index: Integer;
+  begin
+    if G.FindTextureMapping(Mapping, Index, false) <> nil then
+      MaxVar(Needed, Index + 1);
+  end;
+
   function TexCoordsNeeded: Cardinal;
   var
     Tex: TAbstractTextureNode;
@@ -1733,33 +1741,33 @@ var
         begin
           MatOne := TAbstractOneSidedMaterialNode(S.ShapeNode.Appearance.Material);
           if MatOne.EmissiveTexture <> nil then
-            MaxVar(Result, MatOne.EmissiveTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatOne.EmissiveTextureMapping);
           if MatOne.NormalTexture <> nil then
-            MaxVar(Result, MatOne.NormalTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatOne.NormalTextureMapping);
         end;
         if S.ShapeNode.Appearance.Material is TMaterialNode then
         begin
           MatPhong := TMaterialNode(S.ShapeNode.Appearance.Material);
           if MatPhong.AmbientTexture <> nil then
-            MaxVar(Result, MatPhong.AmbientTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhong.AmbientTextureMapping);
           if MatPhong.DiffuseTexture <> nil then
-            MaxVar(Result, MatPhong.DiffuseTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhong.DiffuseTextureMapping);
           if MatPhong.ShininessTexture <> nil then
-            MaxVar(Result, MatPhong.ShininessTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhong.ShininessTextureMapping);
           if MatPhong.SpecularTexture <> nil then
-            MaxVar(Result, MatPhong.SpecularTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhong.SpecularTextureMapping);
           if MatPhong.OcclusionTexture <> nil then
-            MaxVar(Result, MatPhong.OcclusionTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhong.OcclusionTextureMapping);
         end;
         if S.ShapeNode.Appearance.Material is TPhysicalMaterialNode then
         begin
           MatPhysical := TPhysicalMaterialNode(S.ShapeNode.Appearance.Material);
           if MatPhysical.BaseTexture <> nil then
-            MaxVar(Result, MatPhysical.BaseTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhysical.BaseTextureMapping);
           if MatPhysical.MetallicRoughnessTexture <> nil then
-            MaxVar(Result, MatPhysical.MetallicRoughnessTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhysical.MetallicRoughnessTextureMapping);
           if MatPhysical.OcclusionTexture <> nil then
-            MaxVar(Result, MatPhysical.OcclusionTextureChannel + 1);
+            TexCoordsNeededForMapping(Result, MatPhysical.OcclusionTextureMapping);
         end;
       end;
     end;
