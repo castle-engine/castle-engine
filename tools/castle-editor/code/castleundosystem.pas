@@ -27,6 +27,10 @@ type
     Data: TUndoData;
     { Compopent, selected at the time of undo recording }
     Selected: TSelectedComponent;
+    { Index of the value selected/edited in the ObjectInspector }
+    ItemIndex: Integer;
+    { Index of the tab, opened at the moment of the Undo recording }
+    TabIndex: Integer;
     { Human-readable explanation of what action is recorded in this undo record }
     Comment: String;
     { Estimate of this undo record size;
@@ -72,7 +76,7 @@ type
     { Try to record a new Undo record
       If several actions have been undone before, all the redo history will be cleared at this moment
       If the new Undo record is equal to the recorded one then nothing will be recorded }
-    procedure RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent; UndoComment: String);
+    procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
     { Get a recent state change and move one step backwards in Undo History }
     function Undo: TUndoHistoryElement;
     { Get a state change following current state and move one step fowrard in Undo History }
@@ -132,7 +136,7 @@ begin
     Result += U.Size;
 end;
 
-procedure TUndoSystem.RecordUndo(UndoData: TUndoData; SelectedComponent: TSelectedComponent; UndoComment: String);
+procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
 var
   NewUndoElement: TUndoHistoryElement;
   I: Integer;
@@ -165,6 +169,8 @@ begin
   NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
   NewUndoElement.Selected := SelectedComponent;
+  NewUndoElement.ItemIndex := ItemIndex;
+  NewUndoElement.TabIndex := TabIndex;
   NewUndoElement.Comment := UndoComment;
   UndoHistory.Add(NewUndoElement);
   Inc(CurrentUndo);
