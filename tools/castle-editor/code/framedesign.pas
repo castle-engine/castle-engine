@@ -274,7 +274,7 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
-    procedure RecordUndo(UndoComment: String);
+    procedure RecordUndo(const UndoComment: String; const EditorValue: String = '');
   end;
 
 implementation
@@ -1567,7 +1567,7 @@ begin
       So we should ignore changes to PropertyGrid in case the change is caused
       by dragging, otherwise we'll record an undo for every OnMotion of dragging }
     if Sender is TOICustomPropertyGrid then
-      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue)
+      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue, TOICustomPropertyGrid(Sender).GetActiveRow.Name)
     else
       RecordUndo('');
   end;
@@ -1575,7 +1575,7 @@ begin
   MarkModified;
 end;
 
-procedure TDesignFrame.RecordUndo(UndoComment: String);
+procedure TDesignFrame.RecordUndo(const UndoComment: String; const EditorValue: String = '');
 var
   T: TDateTime;
   SelectedName: String;
@@ -1588,7 +1588,7 @@ begin
   else
     SelectedName := '';
 
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, UndoComment);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, EditorValue, ControlProperties.TabIndex, UndoComment);
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
 end;
 
