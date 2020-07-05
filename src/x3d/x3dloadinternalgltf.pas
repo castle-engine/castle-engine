@@ -940,7 +940,7 @@ var
     Stream: TMemoryStream;
   begin
     Texture := nil;
-    TexMapping := 'TEXCOORD_' + IntToStr(GltfTextureAtMaterial.TexCoord);
+    TexMapping := ''; // for no texture, use empty mapping, to keep output X3D simple
 
     if not GltfTextureAtMaterial.Empty then
     begin
@@ -1015,20 +1015,26 @@ var
           end;
         end;
 
-        if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
+        if Texture <> nil then // above clause succeded in reading Texture
         begin
-          GltfSampler := Document.Samplers[GltfTexture.Sampler];
+          TexMapping := 'TEXCOORD_' + IntToStr(GltfTextureAtMaterial.TexCoord);
 
-          Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-          Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
-
-          if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
-             (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+          // read wrap and filtering options
+          if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
           begin
-            TextureProperties := TTexturePropertiesNode.Create;
-            TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
-            TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
-            Texture.TextureProperties := TextureProperties;
+            GltfSampler := Document.Samplers[GltfTexture.Sampler];
+
+            Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
+            Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
+
+            if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+               (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+            begin
+              TextureProperties := TTexturePropertiesNode.Create;
+              TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
+              TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+              Texture.TextureProperties := TextureProperties;
+            end;
           end;
         end;
       end;
