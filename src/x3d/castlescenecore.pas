@@ -2770,7 +2770,7 @@ begin
 
       if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
-        WritelnWarning('VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        WritelnWarning('X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;
@@ -7129,7 +7129,7 @@ function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
        (S = 'LOOKAT') then
     begin
       if S = 'LOOKAT' then
-        WritelnWarning('VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+        WritelnWarning('X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       Result := true;
       NavigationType := ntExamine;
     end else
@@ -7143,7 +7143,7 @@ function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      WritelnWarning('VRML/X3D', 'Unknown NavigationInfo.type "%s"', [S]);
+      WritelnWarning('X3D', 'Unknown NavigationInfo.type "%s"', [S]);
   end;
 
 var
@@ -7380,7 +7380,7 @@ begin
       if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
         { Leave TransitionAnimate as true }
         Break else
-        WritelnWarning('VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
+        WritelnWarning('X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
     end;
 
   { calculate TransitionTime }

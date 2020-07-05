@@ -211,7 +211,7 @@ end;
   be correctly parsed by pure Lexer.NextToken calls. All valid VRML >= 2.0
   files are like that, although parser in practice has to use NextTokenForceXxx
   methods because of unfortunately
-  1. invalid VRML files (that use some funny node names)
+  1. invalid X3D files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
 procedure TX3DTokenInfoList.ReadFromFile(const FileName: string);
 var

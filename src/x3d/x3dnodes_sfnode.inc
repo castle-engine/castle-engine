@@ -293,7 +293,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
       [Child.X3DType, X3DName]);
     if ParentNode <> nil then
       S := S + Format(' of the node "%s"', [ParentNode.X3DType]);
-    WritelnWarning('VRML/X3D', S);
+    WritelnWarning('X3D', S);
   end;
 
 begin
@@ -312,7 +312,7 @@ begin
     FValue.FreeIfUnused; // we know it will be freed now
     FValue := nil;
     { do a warning after freeing FValue, to avoid memory leaks in case OnWarning makes exception }
-    WritelnWarning('VRML/X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
+    WritelnWarning('X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
       [NiceName]));
   end;
 end;
@@ -350,7 +350,7 @@ begin
   V := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
-    WritelnWarning('VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    WritelnWarning('X3D', Format('Cycles in X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
     Value := nil;
     Exit;
   end;
@@ -359,7 +359,7 @@ begin
   if Value = nil then
   begin
     if AttributeValue <> SNull then
-      WritelnWarning('VRML/X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
+      WritelnWarning('X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
   end else
   begin
     WarningIfChildNotAllowed(Value);
@@ -386,7 +386,7 @@ begin
       end;
 
       if I.GetNext then
-        WritelnWarning('VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
+        WritelnWarning('X3D', Format('Field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
           [X3DName, I.Current.TagName]));
     end;
   finally FreeAndNil(I) end;
