@@ -116,6 +116,7 @@ type
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
     procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
     procedure ClearDesign;
+    procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
   protected
@@ -274,7 +275,7 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
-    procedure RecordUndo(const UndoComment: String; const EditorValue: String = '');
+    procedure RecordUndo(const UndoComment: String; const ItemIndex: Integer = -1);
   end;
 
 implementation
@@ -912,41 +913,53 @@ begin
   FreeAndNil(DesignOwner);
 end;
 
-procedure TDesignFrame.PerformRedo;
+procedure TDesignFrame.PerformUndoRedo(const UHE: TUndoHistoryElement);
+
+  function GetInspectorForActiveTab: TOIPropertyGrid;
+  var
+    InspectorType: TInspectorType;
+  begin
+    for InspectorType in TInspectorType do
+    begin
+      if Inspector[InspectorType].Parent = ControlProperties.ActivePage then
+        Exit(Inspector[InspectorType]);
+    end;
+    Result := nil;
+  end;
+
 var
   NewDesignOwner: TComponent;
-  UHE: TUndoHistoryElement;
   InspectorType: TInspectorType;
 begin
   for InspectorType in TInspectorType do
     Inspector[InspectorType].SaveChanges;
 
   NewDesignOwner := TComponent.Create(Self);
-  UHE := UndoSystem.Redo;
   OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
+
   if UHE.Selected <> '' then
     SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
+  if UHE.ItemIndex >= 0 then
+  begin
+    ControlProperties.TabIndex := UHE.TabIndex;
+    GetInspectorForActiveTab.SetItemIndexAndFocus(UHE.ItemIndex);
+  end;
+end;
+
+procedure TDesignFrame.PerformRedo;
+begin
+  PerformUndoRedo(UndoSystem.Redo);
 end;
 
 procedure TDesignFrame.PerformUndo;
-var
-  NewDesignOwner: TComponent;
-  UHE: TUndoHistoryElement;
-  InspectorType: TInspectorType;
 begin
-  for InspectorType in TInspectorType do
-    Inspector[InspectorType].SaveChanges;
-
-  NewDesignOwner := TComponent.Create(Self);
-  {if not UndoSystem.IsRedoPossible then
+  {//save current edited value and
+  if not UndoSystem.IsRedoPossible then
   begin
     RecordUndo;
     UndoSystem.Undo;
   end;}
-  UHE := UndoSystem.Undo;
-  OpenDesign(StringToComponent(UHE.Data, NewDesignOwner), NewDesignOwner, FDesignUrl);
-  if UHE.Selected <> '' then
-    SetSelectedComponent(NewDesignOwner.FindRequiredComponent(UHE.Selected));
+  PerformUndoRedo(UndoSystem.Undo);
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
@@ -1567,7 +1580,7 @@ begin
       So we should ignore changes to PropertyGrid in case the change is caused
       by dragging, otherwise we'll record an undo for every OnMotion of dragging }
     if Sender is TOICustomPropertyGrid then
-      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue, TOICustomPropertyGrid(Sender).GetActiveRow.Name)
+      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue, TOICustomPropertyGrid(Sender).ItemIndex)
     else
       RecordUndo('');
   end;
@@ -1575,7 +1588,7 @@ begin
   MarkModified;
 end;
 
-procedure TDesignFrame.RecordUndo(const UndoComment: String; const EditorValue: String = '');
+procedure TDesignFrame.RecordUndo(const UndoComment: String; const ItemIndex: Integer = -1);
 var
   T: TDateTime;
   SelectedName: String;
@@ -1588,7 +1601,7 @@ begin
   else
     SelectedName := '';
 
-  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, EditorValue, ControlProperties.TabIndex, UndoComment);
+  UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment);
   WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
 end;
 
