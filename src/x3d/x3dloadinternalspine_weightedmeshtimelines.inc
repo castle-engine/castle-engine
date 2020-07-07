@@ -21,7 +21,6 @@
 
   TWeightedMeshTimeline = class
     Name: String;
-    Slots: TSlotList;
     Attachment: TMeshAttachment;
     AffectedBoneTimelines: TBoneTimelineList;
     Vertices: TWeightedMeshVertexList;
@@ -106,7 +105,7 @@ procedure TWeightedMeshTimeline.Parse;
           if Timeframe = BoneTimeline.Time[K] then
           begin
             IsExists := True;
-            break;
+            Break;
           end;
         end;
         // If timeframe does not exist, we insert it into bone timeline and then
@@ -193,8 +192,6 @@ procedure TWeightedMeshTimeline.Parse;
     VertexList: TSingleList;
     BoneParent: TBone;
     Bones: TBoneList;
-    Slot: TSlot;
-    IsBoneAndAttachmentBelongToSlot: Boolean;
   begin
     Bones := TBoneList.Create;
     Bones.OwnsObjects := False;
@@ -209,19 +206,6 @@ procedure TWeightedMeshTimeline.Parse;
           for K := 0 to Attachment.Weights[J].Bones.Count - 1 do
           begin
             VB := Attachment.Weights[J].Bones[K];
-            // Is this bone in the same slot with attachment?
-            IsBoneAndAttachmentBelongToSlot := False;
-            for L := 0 to Slots.Count - 1 do
-            begin
-              Slot := Slots[L];
-              if Slot.Bone.Name = VB.Bone.Name then
-              begin
-                IsBoneAndAttachmentBelongToSlot := True;
-                break;
-              end;
-            end;
-            if IsBoneAndAttachmentBelongToSlot then
-              continue;
             //
             Bones.Clear;
             BoneParent := VB.Bone;
@@ -234,18 +218,19 @@ procedure TWeightedMeshTimeline.Parse;
                 if AffectedBoneTimelines[L].Bone.Name = BoneParent.Name then
                 begin
                   if AffectedBoneTimelines[L] is TBoneTimelineTranslate then
-                    BoneParent.XY := (AffectedBoneTimelines[L] as TBoneTimelineTranslate).Vectors[I];
+                    BoneParent.XY := BoneParent.XY + (AffectedBoneTimelines[L] as TBoneTimelineTranslate).Vectors[I];
                   if AffectedBoneTimelines[L] is TBoneTimelineRotate then
-                    // TODO: Wh do we need to add 90 degree?
                     BoneParent.Rotation := BoneParent.Rotation + (AffectedBoneTimelines[L] as TBoneTimelineRotate).Angles[I];
                   if AffectedBoneTimelines[L] is TBoneTimelineScale then
-                    BoneParent.Scale := (AffectedBoneTimelines[L] as TBoneTimelineScale).Vectors[I];
+                    BoneParent.Scale := BoneParent.Scale * (AffectedBoneTimelines[L] as TBoneTimelineScale).Vectors[I];
                 end;
               end;
               BoneParent := BoneParent.Parent;
             end;
             for L := Bones.Count - 1 downto 0 do
+            begin
               Bones[L].UpdateWorldTransform;
+            end;
             //
             V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
             //

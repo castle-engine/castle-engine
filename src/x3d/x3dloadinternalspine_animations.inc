@@ -191,6 +191,14 @@ procedure TAnimation.Parse(const Json: TJSONObject;
         ]);
         Continue;
       end;
+      if (Attachment as TMeshAttachment).Weights.Count > 0 then
+      begin
+        WritelnWarning('Attachment "%s" in slot "%s" cannot be animated: Weighted mesh with deform timeline is not supported', [
+          AttachmentName,
+          SlotName
+        ]);
+        Continue;
+      end;
       DeformTimeline := TDeformTimeline.Create;
       DeformTimeline.Slot := Slots.Find(SlotName);
       DeformTimeline.Attachment := Attachment as TMeshAttachment;
@@ -205,12 +213,9 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     those bones }
   procedure ReadWeightedMeshTimelines;
   var
-    I, J, K: Integer;
+    I, J: Integer;
     Attachment: TAttachment;
-    AffectedBones: TBoneList;
     AffectedBoneTimelines: TBoneTimelineList;
-    MeshVertex: TMeshVertex;
-    Bone: TBone;
     BoneTimeline: TBoneTimeline;
     WeightedMeshTimeline: TWeightedMeshTimeline;
   begin
@@ -220,34 +225,15 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       // Make sure this attachment is a weighted mesh
       if (Attachment is TMeshAttachment) and ((Attachment as TMeshAttachment).Weights.Count > 0) then
       begin
-        AffectedBones := TBoneList.Create;
         AffectedBoneTimelines := TBoneTimelineList.Create;
+        AffectedBoneTimelines.OwnsObjects := False;
         try
-          AffectedBones.OwnsObjects := False;
-          AffectedBoneTimelines.OwnsObjects := False;
-          // Loop through mesh to get list of affected bones
-          for J := 0 to (Attachment as TMeshAttachment).Weights.Count - 1 do
-          begin
-            MeshVertex := (Attachment as TMeshAttachment).Weights[J];
-            for K := 0 to MeshVertex.Bones.Count - 1 do
-            begin
-              Bone := MeshVertex.Bones[K].Bone;
-              if AffectedBones.FindByName(Bone.Name) = nil then
-              begin
-                AffectedBones.Add(Bone);
-              end
-            end;
-          end;
-          // Now we loop through bone timelines to find those that affect this mesh
+          // We loop through bone timelines to find those that affect this mesh
           for J := 0 to BoneTimelines.Count - 1 do
           begin
             BoneTimeline := BoneTimelines[J];
-            if AffectedBones.FindByName(BoneTimeline.Bone.Name) <> nil then
-            begin
-              AffectedBoneTimelines.Add(BoneTimeline);
-              // Backup bone timeline properties
-              BoneTimeline.Backup;
-            end;
+            AffectedBoneTimelines.Add(BoneTimeline);
+            BoneTimeline.Backup;
           end;
           // We generate timeline if the number of affected bone timelines > 0
           if AffectedBoneTimelines.Count > 0 then
@@ -255,7 +241,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
             WeightedMeshTimeline := TWeightedMeshTimeline.Create;
             // TODO: We need a better way to determine this timeline's unique name
             WeightedMeshTimeline.Name := IntToStr(I);
-            WeightedMeshTimeline.Slots := Slots;
             WeightedMeshTimeline.Attachment := Attachment as TMeshAttachment;
             WeightedMeshTimeline.AffectedBoneTimelines := AffectedBoneTimelines;
             WeightedMeshTimeline.Parse;
@@ -265,7 +250,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
           for J := 0 to AffectedBoneTimelines.Count - 1 do
             AffectedBoneTimelines[J].Restore;
         finally
-          FreeAndNil(AffectedBones);
           FreeAndNil(AffectedBoneTimelines);
         end;
       end;
@@ -398,19 +382,6 @@ begin
     Container.AddRoute(Route);
   end;
 
-  for I := 0 to WeightedMeshTimelines.Count - 1 do
-  begin
-    WeightedMeshTimelines[I].BuildNodes(MaxTime, Container);
-    { add animation name to weighted mesh timeline, to make it unique in case
-      we have many animations }
-    WeightedMeshTimelines[I].Node.X3DName := Node.X3DName + '_' +
-      WeightedMeshTimelines[I].Node.X3DName;
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(Node.EventFraction_changed);
-    Route.SetDestinationDirectly(WeightedMeshTimelines[I].Node.EventSet_fraction);
-    Container.AddRoute(Route);
-  end;
-
   for I := 0 to DeformTimelines.Count - 1 do
   begin
     DeformTimelines[I].BuildNodes(MaxTime, Container);
@@ -421,6 +392,19 @@ begin
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(Node.EventFraction_changed);
     Route.SetDestinationDirectly(DeformTimelines[I].Node.EventSet_fraction);
+    Container.AddRoute(Route);
+  end;
+
+  for I := 0 to WeightedMeshTimelines.Count - 1 do
+  begin
+    WeightedMeshTimelines[I].BuildNodes(MaxTime, Container);
+    { add animation name to weighted mesh timeline, to make it unique in case
+      we have many animations }
+    WeightedMeshTimelines[I].Node.X3DName := Node.X3DName + '_' +
+      WeightedMeshTimelines[I].Node.X3DName;
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(WeightedMeshTimelines[I].Node.EventSet_fraction);
     Container.AddRoute(Route);
   end;
 end;

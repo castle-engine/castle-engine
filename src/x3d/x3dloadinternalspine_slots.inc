@@ -107,7 +107,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
   var
-    A: TAttachment;
+    A: TAttachment;k:integer;
   begin
     Result := nil;
 
@@ -131,6 +131,18 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
             [A.Node.X3DName]);
         end;
 
+        // TODO: This is a hackjob and need a better way to handle this issue.
+        // If attachment is a weighted mesh, we will "push" it to global by finding
+        // the root bone and use that bone for this attachment instead.
+        if (A is TMeshAttachment) and ((A as TMeshAttachment).Weights.Count > 0) then
+        begin
+          while Bone.Parent <> nil do
+          begin
+            Bone := Bone.Parent;
+          end;
+        end;
+
+        // TODO: Is this still useful?
         A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
         A.NodeUsedAsChild := true;
         Result := A.Node;
@@ -159,7 +171,6 @@ var
 begin
   Node := TTransformNode.Create('SlotTransform_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
-  Bone.Node.AddChildren(Node);
   NodeUsedAsChild := true;
 
   SwitchNode := TSwitchNode.Create('SlotSwitch_' + Name, BaseUrl);
@@ -170,6 +181,7 @@ begin
 
   for I := 0 to AttachmentNames.Count - 1 do
     SwitchNode.AddChildren(AttachmentNode(AttachmentNames[I]));
+  Bone.Node.AddChildren(Node);
 end;
 
 { TSlotList ------------------------------------------------------------------ }
