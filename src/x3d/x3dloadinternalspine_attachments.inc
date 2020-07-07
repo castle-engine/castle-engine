@@ -77,31 +77,28 @@
       const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
 
-  TMeshAttachment = class(TAbstractMeshAttachment)
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-  end;
-
-  TSkinnedMeshVertexBone = class
+  TMeshVertexBone = class
     Bone: TBone;
     V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TSkinnedMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertexBone>;
+  TMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertexBone>;
 
-  TSkinnedMeshVertex = class
-    Bones: TSkinnedMeshVertexBoneList;
+  TMeshVertex = class
+    Offset: Integer; // Offset relative to where this Vertex is loaded from the list
+    Bones: TMeshVertexBoneList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const JsonArray: TJSONArray;
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TSkinnedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertex>)
+  TMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
-  TSkinnedMeshAttachment = class(TAbstractMeshAttachment)
-    Weights: TSkinnedMeshVertexList;
+  TMeshAttachment = class(TAbstractMeshAttachment)
+    Weights: TMeshVertexList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
@@ -147,15 +144,6 @@ begin
   if TypeName = 'mesh' then
   begin
     Result := TMeshAttachment.Create;
-    Result.SlotName := ASlotName;
-    Result.AttachmentName := AnAttachmentName;
-    Result.Parse(Json, Bones);
-  end else
-  if TypeName = 'skinnedmesh' then
-  begin
-    WritelnWarning('Spine', Format('Spine region type "skinnedmesh" is for now not deformed during animation, for attachment "%s"',
-      [AnAttachmentName]));
-    Result := TSkinnedMeshAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
@@ -403,50 +391,32 @@ end;
 
 { TMeshAttachment ------------------------------------------------------------ }
 
-procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+{ TMeshVertex --------------------------------------------------------- }
+
+constructor TMeshVertex.Create;
 begin
   inherited;
-  ReadVector2List(Json, 'vertices', Vertices);
-
-  if Vertices.Count > UVs.Count then
-  begin
-    WritelnWarning('Spine', 'A weighted mesh (when the number of vertices > number of uvs) is not supported');
-    Invalid := true;
-  end else
-  if UVs.Count <> Vertices.Count then
-  begin
-    WritelnWarning('Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
-      [UVs.Count, Vertices.Count, Name]));
-    Invalid := true;
-  end;
+  Bones := TMeshVertexBoneList.Create;
 end;
 
-{ TSkinnedMeshVertex --------------------------------------------------------- }
-
-constructor TSkinnedMeshVertex.Create;
-begin
-  inherited;
-  Bones := TSkinnedMeshVertexBoneList.Create;
-end;
-
-destructor TSkinnedMeshVertex.Destroy;
+destructor TMeshVertex.Destroy;
 begin
   FreeAndNil(Bones);
   inherited;
 end;
 
-procedure TSkinnedMeshVertex.Parse(const JsonArray: TJSONArray;
+procedure TMeshVertex.Parse(const JsonArray: TJSONArray;
   Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
 var
   I, BoneIndex: Integer;
-  B: TSkinnedMeshVertexBone;
+  B: TMeshVertexBone;
 begin
   for I := 0 to Integer(BonesCount) - 1 do
   begin
     BoneIndex := JsonArray[Index].AsInteger; Inc(Index);
     if not Between(BoneIndex, 0, AllBones.Count - 1) then
-      raise Exception.CreateFmt('Invalid bone index in skinnedmesh.vertices: %d', [BoneIndex]);
-    B := TSkinnedMeshVertexBone.Create;
+      raise Exception.CreateFmt('Invalid bone index in Mesh.vertices: %d', [BoneIndex]);
+    B := TMeshVertexBone.Create;
     Bones.Add(B);
     B.Bone := AllBones[BoneIndex];
     B.V[0] := JsonArray[Index].AsFloat; Inc(Index);
@@ -455,12 +425,12 @@ begin
   end;
 end;
 
-{ TSkinnedMeshVertexList ----------------------------------------------------- }
+{ TMeshVertexList ----------------------------------------------------- }
 
-procedure TSkinnedMeshVertexList.Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
+procedure TMeshVertexList.Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
 var
   BonesCount: Cardinal;
-  V: TSkinnedMeshVertex;
+  V: TMeshVertex;
   I: Integer;
 begin
   I := 0;
@@ -470,13 +440,14 @@ begin
     if I + BonesCount * 4 < JsonArray.Count then
     begin
       if BonesCount = 0 then
-        WritelnWarning('Spine', 'skinnedmesh bonesCount is <= 0');
-      V := TSkinnedMeshVertex.Create;
+        WritelnWarning('Spine', 'Mesh bonesCount is <= 0');
+      V := TMeshVertex.Create;
       V.Parse(JsonArray, I + 1, BonesCount, Bones);
+      V.Offset := I;
       Add(V);
     end else
     begin
-      WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
+      WritelnWarning('Spine', Format('Mesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
         [BonesCount]));
       Break;
     end;
@@ -485,55 +456,53 @@ begin
   end;
 end;
 
-{ TSkinnedMeshAttachment ----------------------------------------------------- }
+{ TMeshAttachment ----------------------------------------------------- }
 
-constructor TSkinnedMeshAttachment.Create;
+constructor TMeshAttachment.Create;
 begin
   inherited;
-  Weights := TSkinnedMeshVertexList.Create;
+  Weights := TMeshVertexList.Create;
 end;
 
-destructor TSkinnedMeshAttachment.Destroy;
+destructor TMeshAttachment.Destroy;
 begin
   FreeAndNil(Weights);
   inherited;
 end;
 
-procedure TSkinnedMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 var
   JsonArray: TJSONArray;
   I, J: Integer;
-  VB: TSkinnedMeshVertexBone;
+  VB: TMeshVertexBone;
   V: TVector2;
 begin
   inherited;
-  JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
-  if JsonArray <> nil then
-    Weights.Parse(JsonArray, Bones);
+  ReadVector2List(Json, 'vertices', Vertices);
 
-  if UVs.Count <> Weights.Count then
+  if Vertices.Count > UVs.Count then
   begin
-    WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) and uvs have different number of items, respectively %d and %d, for skinnedmesh attachment %s',
-      [UVs.Count, Vertices.Count, Name]));
-    Exit;
-  end;
-
-  { calculate initial Vertices from Weights.
-    Similar to ComputeWorldVertices in spine-runtimes/spine-csharp/src/Attachments/SkinnedMeshAttachment.cs }
-  Vertices.Count := Weights.Count;
-  for I := 0 to Weights.Count - 1 do
-  begin
-    V := TVector2.Zero;
-    for J := 0 to Weights[I].Bones.Count - 1 do
+    Vertices.Clear;
+    JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
+    if JsonArray <> nil then
+      Weights.Parse(JsonArray, Bones);
+    { calculate initial Vertices from Weights.
+      Similar to ComputeWorldVertices in spine-runtimes/spine-csharp/src/Attachments/SkinnedMeshAttachment.cs }
+    Vertices.Count := Weights.Count;
+    for I := 0 to Weights.Count - 1 do
     begin
-      VB := Weights[I].Bones[J];
-      V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
+      V := TVector2.Zero;
+      for J := 0 to Weights[I].Bones.Count - 1 do
+      begin
+        VB := Weights[I].Bones[J];
+        V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
+      end;
+      Vertices[I] := V;
     end;
-    Vertices[I] := V;
   end;
 end;
 
-procedure TSkinnedMeshAttachment.TransformToBoneSpace(const Bone: TBone);
+procedure TMeshAttachment.TransformToBoneSpace(const Bone: TBone);
 var
   List: TVector3List;
   I: Integer;

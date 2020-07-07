@@ -19,6 +19,9 @@
   TBoneTimeline = class abstract
   strict private
     FMaxTime: Single;
+  protected
+    BackupTime: TSingleList;
+    IsBackup: Boolean;
   public
     Bone: TBone;
     Time: TSingleList;
@@ -34,14 +37,21 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: boolean; virtual; abstract;
+    procedure Backup; virtual;
+    procedure Restore; virtual;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
+  strict private
+    BackupVectors: TVector2List;
+  public
     { Position or scale values on the timeline.
       This always has the same length as @link(Time) list. }
     Vectors: TVector2List;
     constructor Create;
     destructor Destroy; override;
+    procedure Backup; override;
+    procedure Restore; override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -59,6 +69,9 @@
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
+  strict private
+    BackupAngles: TSingleList;
+  public
     { Angle values on the timeline.
       This always has the same length as @link(Time) list. }
     Angles: TSingleList;
@@ -68,6 +81,8 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
+    procedure Backup; override;
+    procedure Restore; override;
   end;
 
   TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
@@ -86,12 +101,14 @@ constructor TBoneTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
+  BackupTime := TSingleList.Create;
   CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TBoneTimeline.Destroy;
 begin
   FreeAndNil(Time);
+  FreeAndNil(BackupTime);
   FreeAndNil(CurveControlPoints);
   inherited;
 end;
@@ -165,18 +182,52 @@ begin
   Container.AddChildren(Node);
 end;
 
+procedure TBoneTimeline.Backup;
+begin
+end;
+
+procedure TBoneTimeline.Restore;
+begin
+end;
+
 { TBoneTimelineVector2 ------------------------------------------------------- }
 
 constructor TBoneTimelineVector2.Create;
 begin
   inherited Create;
   Vectors := TVector2List.Create;
+  BackupVectors := TVector2List.Create;
 end;
 
 destructor TBoneTimelineVector2.Destroy;
 begin
   FreeAndNil(Vectors);
+  FreeAndNil(BackupVectors);
   inherited;
+end;
+
+procedure TBoneTimelineVector2.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupTime.Clear;
+    BackupVectors.Clear;
+    BackupTime.AddRange(Time);
+    BackupVectors.AddRange(Vectors);
+    IsBackup := True;
+  end;
+end;
+
+procedure TBoneTimelineVector2.Restore;
+begin
+  if IsBackup then
+  begin
+    Time.Clear;
+    Vectors.Clear;
+    Time.AddRange(BackupTime);
+    Vectors.AddRange(BackupVectors);
+    IsBackup := False;
+  end;
 end;
 
 { TBoneTimelineTranslate ----------------------------------------------------- }
@@ -333,11 +384,13 @@ constructor TBoneTimelineRotate.Create;
 begin
   inherited;
   Angles := TSingleList.Create;
+  BackupAngles := TSingleList.Create;
 end;
 
 destructor TBoneTimelineRotate.Destroy;
 begin
   FreeAndNil(Angles);
+  FreeAndNil(BackupAngles);
   inherited;
 end;
 
@@ -435,6 +488,30 @@ begin
     if Angles[I] <> 0 then
       Exit(true);
   Result := false;
+end;
+
+procedure TBoneTimelineRotate.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupTime.Clear;
+    BackupAngles.Clear;
+    BackupTime.AddRange(Time);
+    BackupAngles.AddRange(Angles);
+    IsBackup := True;
+  end;
+end;
+
+procedure TBoneTimelineRotate.Restore;
+begin
+  if IsBackup then
+  begin
+    Time.Clear;
+    Angles.Clear;
+    Time.AddRange(BackupTime);
+    Angles.AddRange(BackupAngles);
+    IsBackup := False;
+  end;
 end;
 
 {$endif}
