@@ -69,10 +69,13 @@ procedure TWeightedMeshTimeline.Parse;
   var
     I, J: Integer;
     Value: Single;
+    IsRotationRequired: Boolean = False;
   begin
     // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
+      if AffectedBoneTimelines[I] is TBoneTimelineRotate then
+        IsRotationRequired := True;
       for J := 0 to AffectedBoneTimelines[I].Time.Count - 1 do
       begin
         Value := AffectedBoneTimelines[I].Time[J];
@@ -96,17 +99,17 @@ procedure TWeightedMeshTimeline.Parse;
     end;
     Time.Sort;
     // Smooth the timeframes by adding more steps inbetween time
-    Value := 0;
-    while Value < Time[Time.Count - 1] do
+    if IsRotationRequired then
     begin
-      if Time.IndexOf(Value) < 0 then
+      Value := 0;
+      while Value < Time[Time.Count - 1] do
       begin
-        Time.Insert(0, Value);
+        if Time.IndexOf(Value) < 0 then
+        begin
+          Time.Insert(0, Value);
+        end;
+        Value := Value + 0.1;
       end;
-      if Time[Time.Count - 1] * 0.1 > 0.1 then
-        Value := Value + 0.1
-      else
-        Value := Value + Time[Time.Count - 1] * 0.1;
     end;
     Time.Sort;
   end;
