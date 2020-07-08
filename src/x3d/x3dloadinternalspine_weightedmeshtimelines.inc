@@ -110,8 +110,8 @@ procedure TWeightedMeshTimeline.Parse;
         end;
         Value := Value + 0.1;
       end;
+      Time.Sort;
     end;
-    Time.Sort;
   end;
 
   procedure InterpolateTimeframes;
