@@ -59,9 +59,10 @@ end;
 }
 procedure TWeightedMeshTimeline.Parse;
   { Example:
-    - Time1: [0, 0.2, 0.6, 1]
-    - Time2: [0, 0.3, 0.6, 0.7. 1]
-    - Result: [0, 0.2, 0.3, 0.6, 0.7, 1]
+    - Time1: [0, 0.2, 0.65, 1]
+    - Time2: [0, 0.3, 0.65, 0.7. 1]
+    * smooth the timeframes
+    - Result: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.9, 1]
   }
   procedure CombineTimeframes;
   var
@@ -78,6 +79,17 @@ procedure TWeightedMeshTimeline.Parse;
           Time.Add(Value);
         end;
       end;
+    end;
+    Time.Sort;
+    // Smooth the timeframes by adding more steps inbetween time
+    Value := 0;
+    while Value < Time[Time.Count - 1] do
+    begin
+      if Time.IndexOf(Value) < 0 then
+      begin
+        Time.Insert(0, Value);
+      end;
+      Value += Time[Time.Count - 1] * 0.1;
     end;
     Time.Sort;
   end;
@@ -173,7 +185,7 @@ procedure TWeightedMeshTimeline.Parse;
             if BoneTimeline is TBoneTimelineScale then
             begin
               BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
-              BoneTimelineScale.Vectors.Insert(0,
+              BoneTimelineScale.Vectors.Insert(P,
                   Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
                   BoneTimelineScale.Vectors[P - 1],
                   BoneTimelineScale.Vectors[P]));
