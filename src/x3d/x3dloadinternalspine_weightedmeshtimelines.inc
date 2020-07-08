@@ -87,7 +87,7 @@ procedure TWeightedMeshTimeline.Parse;
     begin
       for I := 0 to AffectedDeformTimeline.Time.Count - 1 do
       begin
-        Value := AffectedDeformTimeline.Time[J];
+        Value := AffectedDeformTimeline.Time[I];
         if Time.IndexOf(Value) < 0 then
         begin
           Time.Add(Value);
