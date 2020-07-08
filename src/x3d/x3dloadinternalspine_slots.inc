@@ -143,7 +143,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
         end;
 
         // TODO: Is this still useful?
-        A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
+        // A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
         A.NodeUsedAsChild := true;
         Result := A.Node;
 

@@ -510,9 +510,9 @@ begin
   inherited;
 
   // TODO: Is this still useful?
-  //List := Coord.FdPoint.Items;
-  //for I := 0 to List.Count - 1 do
-  //  List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
+  List := Coord.FdPoint.Items;
+  for I := 0 to List.Count - 1 do
+    List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
 end;
 
 { TPathAttachment ---------------------------------------------------------- }
