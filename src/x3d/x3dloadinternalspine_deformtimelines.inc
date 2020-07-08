@@ -23,6 +23,8 @@
   strict private
     FMaxTime: Single;
   public
+    { If this is true, then we will ignore this deform during building node }
+    IsHandledByWeightedMeshTimeline: Boolean;
     Slot: TSlot;
     Attachment: TMeshAttachment;
     Time: TSingleList;
@@ -58,12 +60,13 @@ end;
 
 procedure TDeformTimeline.Parse(const Json: TJSONArray);
 var
-  I, J: Integer;
+  I, J, K: Integer;
   Obj: TJSONObject;
   CurveJson: TJSONData;
   VertexJsonArray: TJSONArray;
   VertexList: TSingleList;
   Offset: Integer;
+  VB: TMeshVertexBone;
 begin
   for I := 0 to Json.Count - 1 do
   begin
@@ -89,12 +92,27 @@ begin
       (see https://github.com/castle-engine/demo-models/tree/master/spine/free_form_deformation
       for demo).
     }
-
-    VertexList.Count := Attachment.Vertices.Count * 2;
-    for J := 0 to Attachment.Vertices.Count - 1 do
+    if Attachment.Weights.Count = 0 then
+    // For mesh without weights
     begin
-      VertexList[J * 2    ] := Attachment.Vertices[J].X;
-      VertexList[J * 2 + 1] := Attachment.Vertices[J].Y;
+      VertexList.Count := Attachment.Vertices.Count * 2;
+      for J := 0 to Attachment.Vertices.Count - 1 do
+      begin
+        VertexList[J * 2    ] := Attachment.Vertices[J].X;
+        VertexList[J * 2 + 1] := Attachment.Vertices[J].Y;
+      end;
+    end else
+    // Things are a bit different for weighted mesh
+    begin
+      for J := 0 to Attachment.Weights.Count - 1 do
+      begin
+        for K := 0 to Attachment.Weights[J].Bones.Count - 1 do
+        begin
+          VB := Attachment.Weights[J].Bones[K];
+          VertexList.Add(VB.V.X);
+          VertexList.Add(VB.V.Y);
+        end;
+      end;
     end;
 
     if VertexJsonArray <> nil then

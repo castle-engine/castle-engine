@@ -23,6 +23,7 @@
     Name: String;
     Attachment: TMeshAttachment;
     AffectedBoneTimelines: TBoneTimelineList;
+    AffectedDeformTimeline: TDeformTimeline;
     Vertices: TWeightedMeshVertexList;
     Time: TSingleList;
     Node: TCoordinateInterpolatorNode;
@@ -69,11 +70,24 @@ procedure TWeightedMeshTimeline.Parse;
     I, J: Integer;
     Value: Single;
   begin
+    // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
       for J := 0 to AffectedBoneTimelines[I].Time.Count - 1 do
       begin
         Value := AffectedBoneTimelines[I].Time[J];
+        if Time.IndexOf(Value) < 0 then
+        begin
+          Time.Add(Value);
+        end;
+      end;
+    end;
+    // For deform timeline
+    if AffectedDeformTimeline <> nil then
+    begin
+      for I := 0 to AffectedDeformTimeline.Time.Count - 1 do
+      begin
+        Value := AffectedDeformTimeline.Time[J];
         if Time.IndexOf(Value) < 0 then
         begin
           Time.Add(Value);
@@ -89,7 +103,10 @@ procedure TWeightedMeshTimeline.Parse;
       begin
         Time.Insert(0, Value);
       end;
-      Value += Time[Time.Count - 1] * 0.1;
+      if Time[Time.Count - 1] * 0.1 > 0.1 then
+        Value := Value + 0.1
+      else
+        Value := Value + Time[Time.Count - 1] * 0.1;
     end;
     Time.Sort;
   end;
@@ -103,7 +120,9 @@ procedure TWeightedMeshTimeline.Parse;
     BoneTimelineRotate: TBoneTimelineRotate;
     Timeframe, Timeframe1, Timeframe2: Single;
     IsExists: Boolean;
+    VertexList, VertexList1, VertexList2: TSingleList;
   begin
+    // For bone timeline
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
       BoneTimeline := AffectedBoneTimelines[I];
@@ -194,13 +213,65 @@ procedure TWeightedMeshTimeline.Parse;
         end;
       end;
     end;
+    // For deform timeline
+    if AffectedDeformTimeline <> nil then
+    begin
+      for J := 0 to Time.Count - 1 do
+      begin
+        Timeframe := Time[J];
+        // Check to see if this timeframe exists in bone timeline
+        IsExists := False;
+        for K := 0 to AffectedDeformTimeline.Time.Count - 1 do
+        begin
+          if Timeframe = AffectedDeformTimeline.Time[K] then
+          begin
+            IsExists := True;
+            Break;
+          end;
+        end;
+        // If timeframe does not exist, we insert it into deform timeline and then
+        // generate new values for this timeframe by interpolating 2 values between it
+        if not IsExists then
+        begin
+          AffectedDeformTimeline.Time.Add(Timeframe);
+          AffectedDeformTimeline.Time.Sort;
+          P := AffectedDeformTimeline.Time.IndexOf(Timeframe);
+          VertexList := TSingleList.Create;
+          if P = 0 then
+          begin
+            VertexList.AddRange(AffectedDeformTimeline.Vertices[P]);
+            AffectedDeformTimeline.Vertices.Insert(P, VertexList);
+          end else
+          if P = AffectedDeformTimeline.Time.Count - 1 then
+          begin
+            VertexList.AddRange(AffectedDeformTimeline.Vertices[AffectedDeformTimeline.Vertices.Count - 1]);
+            AffectedDeformTimeline.Vertices.Add(VertexList);
+          end else
+          begin
+            Timeframe1 := AffectedDeformTimeline.Time[P - 1];
+            Timeframe2 := AffectedDeformTimeline.Time[P + 1];
+            VertexList1 := AffectedDeformTimeline.Vertices[P - 1];
+            VertexList2 := AffectedDeformTimeline.Vertices[P];
+            VertexList.Count := VertexList1.Count;
+            for K := 0 to VertexList1.Count - 1 do
+            begin
+              VertexList[K] := Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
+                  VertexList1[K], VertexList2[K]);
+            end;
+            AffectedDeformTimeline.Vertices.Insert(P, VertexList);
+          end;
+        end;
+      end;
+    end;
   end;
 
   procedure CalculateVertices;
   var
     I, J, K, L: Integer;
+    Offset: Integer;
     VB: TMeshVertexBone;
-    V: TVector2;
+    V, V2: TVector2;
+    DeformVertexList,
     VertexList: TSingleList;
     BoneParent: TBone;
     Bones: TBoneList;
@@ -218,9 +289,11 @@ procedure TWeightedMeshTimeline.Parse;
           for K := 0 to Attachment.Weights[J].Bones.Count - 1 do
           begin
             VB := Attachment.Weights[J].Bones[K];
+            Offset := Attachment.Weights[J].Offset;
             //
             Bones.Clear;
             BoneParent := VB.Bone;
+            // Recalculate bone structure based on timeline values
             while BoneParent <> nil do
             begin
               BoneParent.Backup;
@@ -244,8 +317,16 @@ procedure TWeightedMeshTimeline.Parse;
               Bones[L].UpdateWorldTransform;
             end;
             //
-            V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
-            //
+            if AffectedDeformTimeline <> nil then
+            begin
+              DeformVertexList := AffectedDeformTimeline.Vertices[I];
+              V2.X := DeformVertexList[Offset + K * 2];
+              V2.Y := DeformVertexList[Offset + K * 2 + 1];
+              V := V + (VB.Bone.ToWorldSpace(V2) * VB.Weight);
+            end
+            else
+              V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
+            // Restore bone structure
             for L := Bones.Count - 1 downto 0 do
             begin
               Bones[L].Restore;

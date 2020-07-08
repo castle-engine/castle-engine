@@ -191,14 +191,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
         ]);
         Continue;
       end;
-      if (Attachment as TMeshAttachment).Weights.Count > 0 then
-      begin
-        WritelnWarning('Attachment "%s" in slot "%s" cannot be animated: Weighted mesh with deform timeline is not supported', [
-          AttachmentName,
-          SlotName
-        ]);
-        Continue;
-      end;
       DeformTimeline := TDeformTimeline.Create;
       DeformTimeline.Slot := Slots.Find(SlotName);
       DeformTimeline.Attachment := Attachment as TMeshAttachment;
@@ -215,9 +207,8 @@ procedure TAnimation.Parse(const Json: TJSONObject;
   var
     I, J: Integer;
     Attachment: TAttachment;
-    AffectedBoneTimelines: TBoneTimelineList;
-    BoneTimeline: TBoneTimeline;
     WeightedMeshTimeline: TWeightedMeshTimeline;
+    AffectedDeformTimeline: TDeformTimeline;
   begin
     for I := 0 to CurrentSkin.Attachments.Count - 1 do
     begin
@@ -225,33 +216,34 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       // Make sure this attachment is a weighted mesh
       if (Attachment is TMeshAttachment) and ((Attachment as TMeshAttachment).Weights.Count > 0) then
       begin
-        AffectedBoneTimelines := TBoneTimelineList.Create;
-        AffectedBoneTimelines.OwnsObjects := False;
-        try
-          // We loop through bone timelines to find those that affect this mesh
-          for J := 0 to BoneTimelines.Count - 1 do
+        // Backup original bone timeline properties
+        for J := 0 to BoneTimelines.Count - 1 do
+          BoneTimelines[J].Backup;
+        // We generate weightedmesh timeline if the number of bone timeline > 0
+        if BoneTimelines.Count > 0 then
+        begin
+          // Search through deform timeline list to find affected one
+          AffectedDeformTimeline := nil;
+          for J := 0 to DeformTimelines.Count - 1 do
           begin
-            BoneTimeline := BoneTimelines[J];
-            AffectedBoneTimelines.Add(BoneTimeline);
-            BoneTimeline.Backup;
+            if DeformTimelines[J].Attachment.Name = Attachment.Name then
+            begin
+              AffectedDeformTimeline := DeformTimelines[J];
+              AffectedDeformTimeline.IsHandledByWeightedMeshTimeline := True;
+              Break;
+            end;
           end;
-          // We generate timeline if the number of affected bone timelines > 0
-          if AffectedBoneTimelines.Count > 0 then
-          begin
-            WeightedMeshTimeline := TWeightedMeshTimeline.Create;
-            // TODO: We need a better way to determine this timeline's unique name
-            WeightedMeshTimeline.Name := IntToStr(I);
-            WeightedMeshTimeline.Attachment := Attachment as TMeshAttachment;
-            WeightedMeshTimeline.AffectedBoneTimelines := AffectedBoneTimelines;
-            WeightedMeshTimeline.Parse;
-            WeightedMeshTimelines.Add(WeightedMeshTimeline);
-          end;
-          // Restore bone timeline properties
-          for J := 0 to AffectedBoneTimelines.Count - 1 do
-            AffectedBoneTimelines[J].Restore;
-        finally
-          FreeAndNil(AffectedBoneTimelines);
+          WeightedMeshTimeline := TWeightedMeshTimeline.Create;
+          WeightedMeshTimeline.AffectedDeformTimeline := AffectedDeformTimeline;
+          WeightedMeshTimeline.Name := IntToStr(I);
+          WeightedMeshTimeline.Attachment := Attachment as TMeshAttachment;
+          WeightedMeshTimeline.AffectedBoneTimelines := BoneTimelines;
+          WeightedMeshTimeline.Parse;
+          WeightedMeshTimelines.Add(WeightedMeshTimeline);
         end;
+        // Restore bone timeline properties
+        for J := 0 to BoneTimelines.Count - 1 do
+          BoneTimelines[J].Restore;
       end;
     end;
   end;
@@ -384,6 +376,8 @@ begin
 
   for I := 0 to DeformTimelines.Count - 1 do
   begin
+    if DeformTimelines[I].IsHandledByWeightedMeshTimeline then
+      Continue;
     DeformTimelines[I].BuildNodes(MaxTime, Container);
     { add animation name to deform timeline, to make it unique in case
       we have many animations }

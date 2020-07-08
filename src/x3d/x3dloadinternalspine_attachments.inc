@@ -432,6 +432,7 @@ var
   BonesCount: Cardinal;
   V: TMeshVertex;
   I: Integer;
+  Offset: Integer = 0;
 begin
   I := 0;
   while I < JsonArray.Count do
@@ -443,7 +444,8 @@ begin
         WritelnWarning('Spine', 'Mesh bonesCount is <= 0');
       V := TMeshVertex.Create;
       V.Parse(JsonArray, I + 1, BonesCount, Bones);
-      V.Offset := I;
+      V.Offset := Offset;
+      Offset := Offset + BonesCount * 2;
       Add(V);
     end else
     begin
