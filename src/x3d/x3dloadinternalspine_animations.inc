@@ -219,20 +219,21 @@ procedure TAnimation.Parse(const Json: TJSONObject;
         // Backup original bone timeline properties
         for J := 0 to BoneTimelines.Count - 1 do
           BoneTimelines[J].Backup;
-        // We generate weightedmesh timeline if the number of bone timeline > 0
-        if BoneTimelines.Count > 0 then
+        // Search through deform timeline list to find affected one
+        AffectedDeformTimeline := nil;
+        for J := 0 to DeformTimelines.Count - 1 do
         begin
-          // Search through deform timeline list to find affected one
-          AffectedDeformTimeline := nil;
-          for J := 0 to DeformTimelines.Count - 1 do
+          if DeformTimelines[J].Attachment.Name = Attachment.Name then
           begin
-            if DeformTimelines[J].Attachment.Name = Attachment.Name then
-            begin
-              AffectedDeformTimeline := DeformTimelines[J];
-              AffectedDeformTimeline.IsHandledByWeightedMeshTimeline := True;
-              Break;
-            end;
+            AffectedDeformTimeline := DeformTimelines[J];
+            AffectedDeformTimeline.IsHandledByWeightedMeshTimeline := True;
+            Break;
           end;
+        end;
+        // We generate weightedmesh timeline if the number of bone timeline > 0,
+        // or has AffectedDeformTimeline
+        if (BoneTimelines.Count > 0) or (AffectedDeformTimeline <> nil) then
+        begin
           WeightedMeshTimeline := TWeightedMeshTimeline.Create;
           WeightedMeshTimeline.AffectedDeformTimeline := AffectedDeformTimeline;
           WeightedMeshTimeline.Name := IntToStr(I);
