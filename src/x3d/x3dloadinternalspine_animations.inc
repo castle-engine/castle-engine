@@ -227,6 +227,8 @@ procedure TAnimation.Parse(const Json: TJSONObject;
           begin
             AffectedDeformTimeline := DeformTimelines[J];
             AffectedDeformTimeline.IsHandledByWeightedMeshTimeline := True;
+            // Backup the original Time
+            AffectedDeformTimeline.Backup;
             Break;
           end;
         end;

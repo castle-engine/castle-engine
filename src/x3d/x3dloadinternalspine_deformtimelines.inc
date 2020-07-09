@@ -22,13 +22,18 @@
   TDeformTimeline = class
   strict private
     FMaxTime: Single;
+    IsBackup: Boolean;
   public
     { If this is true, then we will ignore this deform during building node }
     IsHandledByWeightedMeshTimeline: Boolean;
     Slot: TSlot;
     Attachment: TMeshAttachment;
     Time: TSingleList;
+    BackupTime: TSingleList;
     Vertices: TDeformVertexList;
+    BackupVertices: TDeformVertexList;
+    Curve: Boolean;
+    CurveControlPoints: TVector4List;
     Node: TCoordinateInterpolatorNode;
     NodeUsedAsChild: Boolean;
     constructor Create;
@@ -36,6 +41,8 @@
     procedure Parse(const Json: TJSONArray);
     procedure BuildNodes(const MaxAnimationTime: Single; const Container: TX3DRootNode);
     property MaxTime: Single read FMaxTime;
+    procedure Backup;
+    procedure Restore;
   end;
 
   TDeformTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDeformTimeline>)
@@ -48,13 +55,20 @@ constructor TDeformTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
-  Vertices := TDeformVertexList.Create(true);
+  BackupTime := TSingleList.Create;
+  Vertices := TDeformVertexList.Create(True);
+  BackupVertices := TDeformVertexList.Create(False);
+  CurveControlPoints := TVector4List.Create;
+  Curve := False;
 end;
 
 destructor TDeformTimeline.Destroy;
 begin
   FreeAndNil(Time);
+  FreeAndNil(BackupTime);
   FreeAndNil(Vertices);
+  FreeAndNil(BackupVertices);
+  FreeAndNil(CurveControlPoints);
   inherited;
 end;
 
@@ -67,18 +81,34 @@ var
   VertexList: TSingleList;
   Offset: Integer;
   VB: TMeshVertexBone;
+  ControlPoints: TVector4;
 begin
   for I := 0 to Json.Count - 1 do
   begin
     Obj := Json.Items[I] as TJSONObject;
     Time.Add(Obj.Get('time', 0.0));
     Offset := Obj.Get('offset', 0);
-    { TODO: Take care of 'curve' field once we implement CubicBezier version of
-      TCoordinateInterpolatorNode }
+    ControlPoints := Vector4(0, 0, 1, 1);
     CurveJson := Obj.Find('curve');
     if CurveJson <> nil then
+    begin
       if CurveJson is TJSONArray then
-        WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported');
+      begin
+        { TODO: Take care of 'curve' field once we implement CubicBezier version of
+          TCoordinateInterpolatorNode }
+        if Attachment.Weights.Count = 0 then
+          WritelnWarning('Spine', 'Deform timeline''s "curve" field is not supported for non-weighted mesh');
+        if TJSONArray(CurveJson).Count <> 4 then
+          WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
+        Curve := True;
+        ControlPoints[0] := TJSONArray(CurveJson).Floats[0];
+        ControlPoints[1] := TJSONArray(CurveJson).Floats[1];
+        ControlPoints[2] := TJSONArray(CurveJson).Floats[2];
+        ControlPoints[3] := TJSONArray(CurveJson).Floats[3];
+      end;
+    end;
+    CurveControlPoints.Add(ControlPoints);
+
     VertexJsonArray := Obj.Get('vertices', TJSONArray(nil));
     VertexList := TSingleList.Create;
 
@@ -152,6 +182,30 @@ begin
   Route.SetSourceDirectly(Node.EventValue_changed);
   Route.SetDestinationDirectly(Attachment.Coord.FdPoint.EventIn);
   Container.AddRoute(Route);
+end;
+
+procedure TDeformTimeline.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupTime.Clear;
+    BackupVertices.Clear;
+    BackupTime.AddRange(Time);
+    BackupVertices.AddRange(Vertices);
+    IsBackup := True;
+  end;
+end;
+
+procedure TDeformTimeline.Restore;
+begin
+  if IsBackup then
+  begin
+    Time.Clear;
+    Vertices.Clear;
+    Time.AddRange(BackupTime);
+    Vertices.AddRange(BackupVertices);
+    IsBackup := False;
+  end;
 end;
 
 {$endif}

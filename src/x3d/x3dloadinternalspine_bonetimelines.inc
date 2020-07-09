@@ -20,11 +20,11 @@
   strict private
     FMaxTime: Single;
   protected
-    BackupTime: TSingleList;
     IsBackup: Boolean;
   public
     Bone: TBone;
     Time: TSingleList;
+    BackupTime: TSingleList;
     Curve: boolean;
     CurveControlPoints: TVector4List;
     Node: TAbstractInterpolatorNode;
@@ -42,12 +42,11 @@
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
-  strict private
-    BackupVectors: TVector2List;
   public
     { Position or scale values on the timeline.
       This always has the same length as @link(Time) list. }
     Vectors: TVector2List;
+    BackupVectors: TVector2List;
     constructor Create;
     destructor Destroy; override;
     procedure Backup; override;
@@ -69,12 +68,10 @@
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
-  strict private
-    BackupAngles: TSingleList;
-  public
     { Angle values on the timeline.
       This always has the same length as @link(Time) list. }
     Angles: TSingleList;
+    BackupAngles: TSingleList;
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;

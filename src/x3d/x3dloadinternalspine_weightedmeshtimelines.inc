@@ -62,20 +62,23 @@ procedure TWeightedMeshTimeline.Parse;
   { Example:
     - Time1: [0, 0.2, 0.65, 1]
     - Time2: [0, 0.3, 0.65, 0.7. 1]
-    * smooth the timeframes
-    - Result: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.9, 1]
+    * Add additional steps to make the animation more accurac, default is 0.15
+    - Result: [0, 0.15, 0.2, 0.3, 0.45, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1]
   }
   procedure CombineTimeframes;
   var
     I, J: Integer;
     Value: Single;
     IsRotationRequired: Boolean = False;
+    IsCurved: Boolean = False;
   begin
     // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
       if AffectedBoneTimelines[I] is TBoneTimelineRotate then
         IsRotationRequired := True;
+      if AffectedBoneTimelines[I].Curve then
+        IsCurved := True;
       for J := 0 to AffectedBoneTimelines[I].Time.Count - 1 do
       begin
         Value := AffectedBoneTimelines[I].Time[J];
@@ -88,6 +91,8 @@ procedure TWeightedMeshTimeline.Parse;
     // For deform timeline
     if AffectedDeformTimeline <> nil then
     begin
+      if AffectedDeformTimeline.Curve then
+        IsCurved := True;
       for I := 0 to AffectedDeformTimeline.Time.Count - 1 do
       begin
         Value := AffectedDeformTimeline.Time[I];
@@ -98,8 +103,9 @@ procedure TWeightedMeshTimeline.Parse;
       end;
     end;
     Time.Sort;
-    // Smooth the timeframes by adding more steps inbetween time
-    if IsRotationRequired or (AffectedBoneTimelines.Count > 0) then
+    // Make the timeframes more accuracy by adding more steps inbetween time
+    // Default step is 0.15
+    if IsCurved or IsRotationRequired or (AffectedBoneTimelines.Count > 0) then
     begin
       Value := 0;
       while Value < Time[Time.Count - 1] do
@@ -108,7 +114,7 @@ procedure TWeightedMeshTimeline.Parse;
         begin
           Time.Insert(0, Value);
         end;
-        Value := Value + 0.1;
+        Value := Value + 0.15;
       end;
       Time.Sort;
     end;
@@ -116,7 +122,8 @@ procedure TWeightedMeshTimeline.Parse;
 
   procedure InterpolateTimeframes;
   var
-    I, J, K, P: Integer;
+    I, J, K: Integer;
+    P, T1, T2, OldT1, OldT2: Integer;
     BoneTimeline: TBoneTimeline;
     BoneTimelineTranslate: TBoneTimelineTranslate;
     BoneTimelineScale: TBoneTimelineScale;
@@ -124,7 +131,14 @@ procedure TWeightedMeshTimeline.Parse;
     Timeframe, Timeframe1, Timeframe2: Single;
     IsExists: Boolean;
     VertexList, VertexList1, VertexList2: TSingleList;
+    T: Single;
+    ControlPoints: TCubicBezier2DPoints;
+    CachedBezierCurve: array [0..19] of TVector2;
   begin
+    ControlPoints[0] := Vector2(0, 0);
+    ControlPoints[3] := Vector2(1, 1);
+    OldT1 := 0;
+    OldT2 := 0;
     // For bone timeline
     for I := 0 to AffectedBoneTimelines.Count - 1 do
     begin
@@ -151,66 +165,141 @@ procedure TWeightedMeshTimeline.Parse;
           P := BoneTimeline.Time.IndexOf(Timeframe);
           if P = 0 then
           begin
+            BoneTimeline.BackupTime.Insert(0, Timeframe);
             if BoneTimeline is TBoneTimelineTranslate then
             begin
               BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
+              // Add missing value to backup values
+              BoneTimelineTranslate.BackupVectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
             end;
             if BoneTimeline is TBoneTimelineRotate then
             begin
               BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Insert(P, BoneTimelineRotate.Angles[P]);
+              // Add missing value to backup values
+              BoneTimelineRotate.BackupAngles.Insert(P, BoneTimelineRotate.BackupAngles[P]);
             end;;
             if BoneTimeline is TBoneTimelineScale then
             begin
               BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Insert(P, BoneTimelineScale.Vectors[P]);
+              // Add missing value to backup values
+              BoneTimelineScale.BackupVectors.Insert(P, BoneTimelineScale.BackupVectors[P]);
             end;
+            BoneTimeline.CurveControlPoints.Insert(P, Vector4(0, 0, 1, 1));
           end else
           if P = BoneTimeline.Time.Count - 1 then
           begin
+            BoneTimeline.BackupTime.Add(Timeframe);
             if BoneTimeline is TBoneTimelineTranslate then
             begin
               BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Add(BoneTimelineTranslate.Vectors[BoneTimelineTranslate.Vectors.Count - 1]);
+              // Add missing value to backup values
+              BoneTimelineTranslate.BackupVectors.Add(BoneTimelineTranslate.BackupVectors[BoneTimelineTranslate.BackupVectors.Count - 1]);
             end;
             if BoneTimeline is TBoneTimelineRotate then
             begin
               BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Add(BoneTimelineRotate.Angles[BoneTimelineRotate.Angles.Count - 1]);
-            end;;
+              // Add missing value to backup values
+              BoneTimelineRotate.BackupAngles.Add(BoneTimelineRotate.BackupAngles[BoneTimelineRotate.BackupAngles.Count - 1]);
+            end;
             if BoneTimeline is TBoneTimelineScale then
             begin
               BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Add(BoneTimelineScale.Vectors[BoneTimelineScale.Vectors.Count - 1]);
+              // Add missing value to backup values
+              BoneTimelineScale.BackupVectors.Add(BoneTimelineScale.BackupVectors[BoneTimelineScale.BackupVectors.Count - 1]);
             end;
+            // Add missing value to backup values
+            BoneTimeline.CurveControlPoints.Add(Vector4(0, 0, 1, 1));
           end else
           begin
-            Timeframe1 := BoneTimeline.Time[P - 1];
-            Timeframe2 := BoneTimeline.Time[P + 1];
-            if BoneTimeline is TBoneTimelineTranslate then
+            // If this timeline has control points, then we need to search timeframe in original
+            // time instead for accurary result
+            if BoneTimeline.Curve then
             begin
-              BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
-              BoneTimelineTranslate.Vectors.Insert(P,
-                  Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
-                  BoneTimelineTranslate.Vectors[P - 1],
-                  BoneTimelineTranslate.Vectors[P]));
-            end;
-            if BoneTimeline is TBoneTimelineRotate then
+              for K := BoneTimeline.BackupTime.Count - 2 downto 0 do
+              begin
+                if (Timeframe > BoneTimeline.BackupTime[K]) then
+                begin
+                  T1 := K;
+                  T2 := K + 1;
+                  Break;
+                end;
+              end;
+              // This is a different timeframe compare to previous one?
+              // Then we need to generate a bezier curve in order to use it
+              // later for finding step value
+              if (T1 <> OldT1) or (T2 <> OldT2) then
+              begin;
+                ControlPoints[1] := Vector2(BoneTimeline.CurveControlPoints[T1][0], BoneTimeline.CurveControlPoints[T1][1]);
+                ControlPoints[2] := Vector2(BoneTimeline.CurveControlPoints[T1][2], BoneTimeline.CurveControlPoints[T1][3]);
+                for K := 0 to High(CachedBezierCurve) do
+                begin
+                  CachedBezierCurve[K] := CubicBezier2D(K / High(CachedBezierCurve), ControlPoints);
+                end;
+                OldT1 := T1;
+                OldT2 := T2;
+              end;
+              Timeframe1 := BoneTimeline.BackupTime[T1];
+              Timeframe2 := BoneTimeline.BackupTime[T2];
+              T := (Timeframe - Timeframe1) / (Timeframe2 - Timeframe1);
+              for K := 1 to High(CachedBezierCurve) do
+              begin
+                if CachedBezierCurve[K].X > T then
+                begin
+                  T := Lerp(
+                       (T - CachedBezierCurve[K - 1].X) / (CachedBezierCurve[K].X - CachedBezierCurve[K - 1].X),
+                       CachedBezierCurve[K - 1].Y, CachedBezierCurve[K].Y);
+                  Break;
+                end;
+              end;
+              if BoneTimeline is TBoneTimelineTranslate then
+              begin
+                BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
+                BoneTimelineTranslate.Vectors.Insert(P,
+                    Lerp(T, BoneTimelineTranslate.BackupVectors[T1], BoneTimelineTranslate.BackupVectors[T2]));
+              end;
+              if BoneTimeline is TBoneTimelineRotate then
+              begin
+                BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
+                BoneTimelineRotate.Angles.Insert(P,
+                    Lerp(T, BoneTimelineRotate.BackupAngles[T1], BoneTimelineRotate.BackupAngles[T2]));
+              end;;
+              if BoneTimeline is TBoneTimelineScale then
+              begin
+                BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
+                BoneTimelineScale.Vectors.Insert(P,
+                    Lerp(T, BoneTimelineScale.BackupVectors[T1], BoneTimelineScale.BackupVectors[T2]));
+              end;
+            end else
             begin
-              BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
-              BoneTimelineRotate.Angles.Insert(P,
-                  Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
-                  BoneTimelineRotate.Angles[P - 1],
-                  BoneTimelineRotate.Angles[P]));
-            end;;
-            if BoneTimeline is TBoneTimelineScale then
-            begin
-              BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
-              BoneTimelineScale.Vectors.Insert(P,
-                  Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
-                  BoneTimelineScale.Vectors[P - 1],
-                  BoneTimelineScale.Vectors[P]));
+              T1 := P - 1;
+              T2 := P + 1;
+              Timeframe1 := BoneTimeline.Time[T1];
+              Timeframe2 := BoneTimeline.Time[T2];
+              T := (Timeframe - Timeframe1) / (Timeframe2 - Timeframe1);
+              if BoneTimeline is TBoneTimelineTranslate then
+              begin
+                BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
+                BoneTimelineTranslate.Vectors.Insert(P,
+                    Lerp(T, BoneTimelineTranslate.Vectors[T1], BoneTimelineTranslate.Vectors[P]));
+              end;
+              if BoneTimeline is TBoneTimelineRotate then
+              begin
+                BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
+                BoneTimelineRotate.Angles.Insert(P,
+                    Lerp(T, BoneTimelineRotate.Angles[T1], BoneTimelineRotate.Angles[P]));
+              end;;
+              if BoneTimeline is TBoneTimelineScale then
+              begin
+                BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
+                BoneTimelineScale.Vectors.Insert(P,
+                    Lerp(T, BoneTimelineScale.Vectors[T1], BoneTimelineScale.Vectors[P]));
+              end;
             end;
           end;
         end;
@@ -222,7 +311,7 @@ procedure TWeightedMeshTimeline.Parse;
       for J := 0 to Time.Count - 1 do
       begin
         Timeframe := Time[J];
-        // Check to see if this timeframe exists in bone timeline
+        // Check to see if this timeframe exists in deform timeline
         IsExists := False;
         for K := 0 to AffectedDeformTimeline.Time.Count - 1 do
         begin
@@ -242,24 +331,80 @@ procedure TWeightedMeshTimeline.Parse;
           VertexList := TSingleList.Create;
           if P = 0 then
           begin
+            AffectedDeformTimeline.BackupTime.Insert(0, Timeframe);
             VertexList.AddRange(AffectedDeformTimeline.Vertices[P]);
             AffectedDeformTimeline.Vertices.Insert(P, VertexList);
+            // Add missing value to backup values
+            AffectedDeformTimeline.BackupVertices.Insert(P, VertexList);
+            AffectedDeformTimeline.CurveControlPoints.Insert(P, Vector4(0, 0, 1, 1));
           end else
           if P = AffectedDeformTimeline.Time.Count - 1 then
           begin
+            AffectedDeformTimeline.BackupTime.Add(Timeframe);
             VertexList.AddRange(AffectedDeformTimeline.Vertices[AffectedDeformTimeline.Vertices.Count - 1]);
             AffectedDeformTimeline.Vertices.Add(VertexList);
+            // Add missing value to backup values
+            AffectedDeformTimeline.BackupVertices.Add(VertexList);
+            AffectedDeformTimeline.CurveControlPoints.Add(Vector4(0, 0, 1, 1));
           end else
           begin
-            Timeframe1 := AffectedDeformTimeline.Time[P - 1];
-            Timeframe2 := AffectedDeformTimeline.Time[P + 1];
-            VertexList1 := AffectedDeformTimeline.Vertices[P - 1];
-            VertexList2 := AffectedDeformTimeline.Vertices[P];
-            VertexList.Count := VertexList1.Count;
+            // If this timeline has control points, then we need to search timeframe in original
+            // time instead for accurary result
+            if AffectedDeformTimeline.Curve then
+            begin
+              for K := AffectedDeformTimeline.BackupTime.Count - 2 downto 0 do
+              begin
+                if (Timeframe > AffectedDeformTimeline.BackupTime[K]) then
+                begin
+                  T1 := K;
+                  T2 := K + 1;
+                  Break;
+                end;
+              end;
+              // This is a different timeframe compare to previous one?
+              // Then we need to generate a bezier curve in order to use it
+              // later for finding step value
+              if (T1 <> OldT1) or (T2 <> OldT2) then
+              begin;
+                ControlPoints[1] := Vector2(AffectedDeformTimeline.CurveControlPoints[T1][0], AffectedDeformTimeline.CurveControlPoints[T1][1]);
+                ControlPoints[2] := Vector2(AffectedDeformTimeline.CurveControlPoints[T1][2], AffectedDeformTimeline.CurveControlPoints[T1][3]);
+                for K := 0 to High(CachedBezierCurve) do
+                begin
+                  CachedBezierCurve[K] := CubicBezier2D(K / High(CachedBezierCurve), ControlPoints);
+                end;
+                OldT1 := T1;
+                OldT2 := T2;
+              end;
+              Timeframe1 := AffectedDeformTimeline.BackupTime[T1];
+              Timeframe2 := AffectedDeformTimeline.BackupTime[T2];
+              VertexList1 := AffectedDeformTimeline.BackupVertices[T1];
+              VertexList2 := AffectedDeformTimeline.BackupVertices[T2];
+              VertexList.Count := VertexList1.Count;
+              T := (Timeframe - Timeframe1) / (Timeframe2 - Timeframe1);
+              for K := 1 to High(CachedBezierCurve) do
+              begin
+                if CachedBezierCurve[K].X > T then
+                begin
+                  T := Lerp(
+                       (T - CachedBezierCurve[K - 1].X) / (CachedBezierCurve[K].X - CachedBezierCurve[K - 1].X),
+                       CachedBezierCurve[K - 1].Y, CachedBezierCurve[K].Y);
+                  Break;
+                end;
+              end;
+            end else
+            begin
+              T1 := P - 1;
+              T2 := P + 1;
+              Timeframe1 := AffectedDeformTimeline.Time[T1];
+              Timeframe2 := AffectedDeformTimeline.Time[T2];
+              VertexList1 := AffectedDeformTimeline.Vertices[T1];
+              VertexList2 := AffectedDeformTimeline.Vertices[P];
+              VertexList.Count := VertexList1.Count;
+              T := (Timeframe - Timeframe1) / (Timeframe2 - Timeframe1);
+            end;
             for K := 0 to VertexList1.Count - 1 do
             begin
-              VertexList[K] := Lerp((Timeframe - Timeframe1) / (Timeframe2 - Timeframe1),
-                  VertexList1[K], VertexList2[K]);
+              VertexList[K] := Lerp(T, VertexList1[K], VertexList2[K]);
             end;
             AffectedDeformTimeline.Vertices.Insert(P, VertexList);
           end;
