@@ -99,7 +99,7 @@ procedure TWeightedMeshTimeline.Parse;
     end;
     Time.Sort;
     // Smooth the timeframes by adding more steps inbetween time
-    if IsRotationRequired then
+    if IsRotationRequired or (AffectedBoneTimelines.Count > 0) then
     begin
       Value := 0;
       while Value < Time[Time.Count - 1] do
