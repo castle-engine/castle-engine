@@ -107,7 +107,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
   var
-    A: TAttachment;k:integer;
+    A: TAttachment;
   begin
     Result := nil;
 
@@ -131,9 +131,9 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
             [A.Node.X3DName]);
         end;
 
-        // TODO: This is a hackjob and need a better way to handle this issue.
-        // If attachment is a weighted mesh, we will "push" it to global by finding
-        // the root bone and use that bone for this attachment instead.
+        { TODO: This is a hackjob and need a better way to handle this issue.
+          Since we "baked" mesh transformation into TCoordinateInterpolatorNode,
+          including bone transformation, we need to move this mesh to root bone. }
         if (A is TMeshAttachment) and ((A as TMeshAttachment).Weights.Count > 0) then
         begin
           while Bone.Parent <> nil do

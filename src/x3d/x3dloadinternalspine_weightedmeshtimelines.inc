@@ -54,8 +54,8 @@ begin
 end;
 
 { We now performing 'parse':
-  - Find all possible timeframes by combining timeframes from every bone timelines
-  - Perform interpolation for those bone timelines that doesnt have necesssary timeframes
+  - Find all possible timeframes by combining timeframes from every bone/deform timelines
+  - Perform interpolation for those bone/deform timelines that doesnt have necesssary timeframes
   - Perform vertex calculation
 }
 procedure TWeightedMeshTimeline.Parse;
@@ -170,21 +170,21 @@ procedure TWeightedMeshTimeline.Parse;
             begin
               BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineTranslate.BackupVectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
             end;
             if BoneTimeline is TBoneTimelineRotate then
             begin
               BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Insert(P, BoneTimelineRotate.Angles[P]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineRotate.BackupAngles.Insert(P, BoneTimelineRotate.BackupAngles[P]);
             end;;
             if BoneTimeline is TBoneTimelineScale then
             begin
               BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Insert(P, BoneTimelineScale.Vectors[P]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineScale.BackupVectors.Insert(P, BoneTimelineScale.BackupVectors[P]);
             end;
             BoneTimeline.CurveControlPoints.Insert(P, Vector4(0, 0, 1, 1));
@@ -196,24 +196,24 @@ procedure TWeightedMeshTimeline.Parse;
             begin
               BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Add(BoneTimelineTranslate.Vectors[BoneTimelineTranslate.Vectors.Count - 1]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineTranslate.BackupVectors.Add(BoneTimelineTranslate.BackupVectors[BoneTimelineTranslate.BackupVectors.Count - 1]);
             end;
             if BoneTimeline is TBoneTimelineRotate then
             begin
               BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Add(BoneTimelineRotate.Angles[BoneTimelineRotate.Angles.Count - 1]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineRotate.BackupAngles.Add(BoneTimelineRotate.BackupAngles[BoneTimelineRotate.BackupAngles.Count - 1]);
             end;
             if BoneTimeline is TBoneTimelineScale then
             begin
               BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Add(BoneTimelineScale.Vectors[BoneTimelineScale.Vectors.Count - 1]);
-              // Add missing value to backup values
+              // Add missing value to backup values as safeguard
               BoneTimelineScale.BackupVectors.Add(BoneTimelineScale.BackupVectors[BoneTimelineScale.BackupVectors.Count - 1]);
             end;
-            // Add missing value to backup values
+            // Add missing value to backup values as safeguard
             BoneTimeline.CurveControlPoints.Add(Vector4(0, 0, 1, 1));
           end else
           begin
@@ -334,7 +334,7 @@ procedure TWeightedMeshTimeline.Parse;
             AffectedDeformTimeline.BackupTime.Insert(0, Timeframe);
             VertexList.AddRange(AffectedDeformTimeline.Vertices[P]);
             AffectedDeformTimeline.Vertices.Insert(P, VertexList);
-            // Add missing value to backup values
+            // Add missing value to backup values as safeguard
             AffectedDeformTimeline.BackupVertices.Insert(P, VertexList);
             AffectedDeformTimeline.CurveControlPoints.Insert(P, Vector4(0, 0, 1, 1));
           end else
@@ -343,7 +343,7 @@ procedure TWeightedMeshTimeline.Parse;
             AffectedDeformTimeline.BackupTime.Add(Timeframe);
             VertexList.AddRange(AffectedDeformTimeline.Vertices[AffectedDeformTimeline.Vertices.Count - 1]);
             AffectedDeformTimeline.Vertices.Add(VertexList);
-            // Add missing value to backup values
+            // Add missing value to backup values as safeguard
             AffectedDeformTimeline.BackupVertices.Add(VertexList);
             AffectedDeformTimeline.CurveControlPoints.Add(Vector4(0, 0, 1, 1));
           end else
