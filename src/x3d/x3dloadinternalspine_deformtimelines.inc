@@ -134,13 +134,15 @@ begin
     end else
     // Things are a bit different for weighted mesh
     begin
+      VertexList.Count := Attachment.Weights[Attachment.Weights.Count - 1].Offset
+          + Attachment.Weights[Attachment.Weights.Count - 1].Bones.Count * 2;
       for J := 0 to Attachment.Weights.Count - 1 do
       begin
         for K := 0 to Attachment.Weights[J].Bones.Count - 1 do
         begin
           VB := Attachment.Weights[J].Bones[K];
-          VertexList.Add(VB.V.X);
-          VertexList.Add(VB.V.Y);
+          VertexList[Attachment.Weights[J].Offset + K * 2    ] := VB.V.X;
+          VertexList[Attachment.Weights[J].Offset + K * 2 + 1] := VB.V.Y;
         end;
       end;
     end;
