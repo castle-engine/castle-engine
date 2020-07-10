@@ -106,6 +106,8 @@ type
     procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
+    procedure ControlsTreeKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
@@ -286,7 +288,7 @@ implementation
 
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
-  TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
+  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
@@ -1958,6 +1960,14 @@ procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
 begin
   ControlsTreeNodeUnderMouse := nil;
   ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+procedure TDesignFrame.ControlsTreeKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_F2 then
+    if ControlsTree.SelectionCount = 1 then
+      ControlsTree.Selected.EditText;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,

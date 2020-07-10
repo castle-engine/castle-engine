@@ -333,6 +333,7 @@ object DesignFrame: TDesignFrame
       OnEditing = ControlsTreeEditing
       OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
+      OnKeyUp = ControlsTreeKeyUp
       OnSelectionChanged = ControlsTreeSelectionChanged
       Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
