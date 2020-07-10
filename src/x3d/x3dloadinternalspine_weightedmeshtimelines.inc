@@ -470,7 +470,6 @@ procedure TWeightedMeshTimeline.Parse;
                   else
                   if AffectedBoneTimelines[L] is TBoneTimelineScale then
                     BoneParent.Scale := BoneParent.Scale * (AffectedBoneTimelines[L] as TBoneTimelineScale).Vectors[I];
-                  Break;
                 end;
               end;
               BoneParent := BoneParent.Parent;
