@@ -103,6 +103,9 @@ end;
 
 procedure TSlot.BuildNodes(const BaseUrl: string;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
+var
+  IsWeightedMeshAttachmentExisted: Boolean = False;
+  IsOtherAttachmentExisted: Boolean = False;
 
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
@@ -136,10 +139,14 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
           including bone transformation, we need to move this mesh to root bone. }
         if (A is TMeshAttachment) and ((A as TMeshAttachment).Weights.Count > 0) then
         begin
+          IsWeightedMeshAttachmentExisted := True;
           while Bone.Parent <> nil do
           begin
             Bone := Bone.Parent;
           end;
+        end else
+        begin
+          IsOtherAttachmentExisted := True;
         end;
 
         // TODO: Is this still useful?
@@ -181,6 +188,8 @@ begin
 
   for I := 0 to AttachmentNames.Count - 1 do
     SwitchNode.AddChildren(AttachmentNode(AttachmentNames[I]));
+  if IsWeightedMeshAttachmentExisted and IsOtherAttachmentExisted then
+    WritelnWarning('Spine', 'Weighted mesh attachment alongside with other types of attachment in the same slot is not supported');
   Bone.Node.AddChildren(Node);
 end;
 
