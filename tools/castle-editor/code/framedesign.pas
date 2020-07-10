@@ -101,6 +101,10 @@ type
     procedure ControlsTreeDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ControlsTreeDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
+    procedure ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
+      var AllowEdit: Boolean);
+    procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
+      Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
@@ -1855,6 +1859,29 @@ begin
   if ControlsTreeNodeUnderMouse <> nil then
     ControlsTreeNodeUnderMouseSide := NodeSide(ControlsTreeNodeUnderMouse, X, Y);
   ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+procedure TDesignFrame.ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
+  var AllowEdit: Boolean);
+begin
+  { this event is fired when calling TCustomListView.CanEdit which itself is called in TCustomListView.ShowEditor
+    therefore this event preceeds initializing and showing of the editor }
+  //here we have to "restore" the pure name of the component (without class name) before starting edit
+  Node.Text := TComponent(ControlsTree.Selected.Data).name;
+end;
+
+procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
+  Cancel: Boolean);
+var
+  S: String;
+  Sel: TComponent;
+begin
+  Sel := TComponent(ControlsTree.Selected.Data);
+  S := 'Rename ' + Sel.name + ' into ' + Node.Text;
+  Sel.name := Node.Text;
+  ModifiedOutsideObjectInspector;
+  RecordUndo(S); //It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+  Node.Text := ComponentCaption(Sel);
 end;
 
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;

@@ -323,7 +323,6 @@ object DesignFrame: TDesignFrame
       MultiSelect = True
       ParentFont = False
       ParentShowHint = False
-      ReadOnly = True
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
@@ -331,9 +330,11 @@ object DesignFrame: TDesignFrame
       OnAdvancedCustomDrawItem = ControlsTreeAdvancedCustomDrawItem
       OnDragDrop = ControlsTreeDragDrop
       OnDragOver = ControlsTreeDragOver
+      OnEditing = ControlsTreeEditing
+      OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
       OnSelectionChanged = ControlsTreeSelectionChanged
-      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object LabelHierarchy: TLabel
       Left = 6
