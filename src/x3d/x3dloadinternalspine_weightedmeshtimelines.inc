@@ -107,7 +107,7 @@ procedure TWeightedMeshTimeline.Parse;
       end;
     end;
     Time.Sort;
-    // Make the timeframes more accuracy by adding more steps inbetween time
+    // Make the animation more accurate by adding more steps inbetween
     // Default step is 0.15
     if IsCurved or IsRotationRequired or (AffectedBoneTimelines.Count > 0) then
     begin
@@ -167,6 +167,10 @@ procedure TWeightedMeshTimeline.Parse;
           BoneTimeline.Time.Add(Timeframe);
           BoneTimeline.Time.Sort;
           P := BoneTimeline.Time.IndexOf(Timeframe);
+          // TODO: If there's missing timeframe at the start of the animation,
+          // we take the value from the next timeframe. This is not correct
+          // as default behavior is to take the setup value and then make a
+          // "sudden jump" to next frame
           if P = 0 then
           begin
             BoneTimeline.BackupTime.Insert(0, Timeframe);
@@ -333,6 +337,10 @@ procedure TWeightedMeshTimeline.Parse;
           AffectedDeformTimeline.Time.Sort;
           P := AffectedDeformTimeline.Time.IndexOf(Timeframe);
           VertexList := TSingleList.Create;
+          // TODO: If there's missing timeframe at the start of the animation,
+          // we take the value from the next timeframe. This is not correct
+          // as default behavior is to take the setup value and then make a
+          // "sudden jump" to next frame
           if P = 0 then
           begin
             AffectedDeformTimeline.BackupTime.Insert(0, Timeframe);
