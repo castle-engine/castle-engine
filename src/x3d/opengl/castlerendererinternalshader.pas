@@ -3423,8 +3423,8 @@ begin
 
   HashMultiplier := 2063 * (1 + Ord(SurfaceTexture));
   FCodeHash.AddInteger(HashMultiplier * (
-    2069 * TextureUnit +
-    2081 * TextureCoordinatesId
+    2069 * (1 + TextureUnit) +
+    2081 * (1 + TextureCoordinatesId)
   ));
   { TODO: add FCodeHash.AddString(PlugCode, 2083 * HashMultiplier);
     to account that PlugCode may change?
