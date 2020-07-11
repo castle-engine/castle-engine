@@ -75,6 +75,7 @@ procedure TWeightedMeshTimeline.Parse;
     Value: Single;
     IsRotationRequired: Boolean = False;
     IsCurved: Boolean = False;
+    IsTimeframeTooLow: Boolean;
   begin
     // For bone timelines
     for I := 0 to AffectedBoneTimelines.Count - 1 do
@@ -114,10 +115,17 @@ procedure TWeightedMeshTimeline.Parse;
       Value := 0;
       while Value < Time[Time.Count - 1] do
       begin
-        if Time.IndexOf(Value) < 0 then
+        IsTimeframeTooLow := False;
+        for I := 0 to Time.Count - 1 do
         begin
-          Time.Insert(0, Value);
+          if Abs(Time[I] - Value) < 0.15 then
+          begin
+            IsTimeframeTooLow := True;
+            Break;
+          end;
         end;
+        if not IsTimeframeTooLow then
+          Time.Insert(0, Value);
         Value := Value + 0.15;
       end;
       Time.Sort;
