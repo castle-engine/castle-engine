@@ -223,8 +223,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
-  examples/audio/simplest_play_sound \
-  examples/audio/doppler_demo \
   examples/castlescript/castle_calculator \
   examples/castlescript/image_make_by_script \
   examples/curves/simplest_curve_read \
@@ -250,7 +248,6 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/simple_command_line_utilities/castle_download \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper \
   examples/space_filling_curve/draw_space_filling_curve \
@@ -269,8 +266,6 @@ EXAMPLES_BASE_NAMES := \
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  examples/audio/audio_player_scrubber/audio_player_scrubber \
-  examples/audio/test_sound_source_allocator/test_sound_source_allocator \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
