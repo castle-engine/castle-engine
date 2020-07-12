@@ -52,6 +52,14 @@ type
   TStringsHelper = class helper for TStrings
     { Convert TStrings to a dynamic string array. }
     function ToArray: TDynamicStringArray;
+
+    { Split the argument into lines (honors any newline convention),
+      and add the resulting lines to the list.
+
+      If the S doesn't contain any newline, then using AddMultiLine(S)
+      is equivalent to trivial Add(S). But when S has some newline characters,
+      then AddMultiLine(S) call Add(...) many times. }
+    procedure AddMultiLine(const S: String);
   end;
 
   { List of strings. This is a slightly extended version of standard TStringList.
@@ -1008,6 +1016,24 @@ begin
   SetLength(Result, Count);
   for I := 0 to Count - 1 do
     Result[I] := Strings[I];
+end;
+
+procedure TStringsHelper.AddMultiLine(const S: String);
+var
+  SList: TStringList;
+  I: Integer;
+begin
+  if S = '' then
+    Add('')
+  else
+  begin
+    SList := TStringList.Create;
+    try
+      SList.Text := S;
+      for I := 0 to SList.Count - 1 do
+        Add(SList[I]);
+    finally FreeAndNil(SList) end;
+  end;
 end;
 
 { TCastleStringList ------------------------------------------------------------- }

@@ -96,10 +96,12 @@ const
     'https://castle-engine.io/latest.zip',
     'https://castle-engine.io/modern_pascal_introduction.html',
     'https://en.wikipedia.org/wiki/Main_Page'
+    // 'file:///d:/cygwin64/home/michalis/sources/castle-engine/castle-engine/examples/network/asynchronous_download/data/gears.blend',
+    // 'castle-data:/gears.gltf'
     // 'https://deliberately-invalid-server.org/deliberately-invalid-url',
     // 'https://castle-engine.io/deliberately-invalid-url',
     // 'http://example.org/'
-    // 'https://github.com/castle-engine/castle-engine/'t
+    // 'https://github.com/castle-engine/castle-engine/'
   );
 var
   I: Integer;
@@ -146,7 +148,7 @@ begin
       LabelDownload[I].Text.Add('Downloading: ' + Download[I].Url);
       LabelDownload[I].Text.Add('Status: ' + StatusToStr[Download[I].Status]);
       if Download[I].Status = dsError then
-        LabelDownload[I].Text.Add('Error message: ' + Download[I].ErrorMessage)
+        LabelDownload[I].Text.AddMultiLine('Error message: ' + Download[I].ErrorMessage)
       else
         // ErrorMessage should only be set if Status is dsError
         Assert(Download[I].ErrorMessage = '');
