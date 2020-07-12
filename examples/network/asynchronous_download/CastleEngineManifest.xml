@@ -4,4 +4,7 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.asynchronous.download"
 >
+  <dependencies>
+    <dependency name="Https" /> <!-- read https links -->
+  </dependencies>
 </project>
