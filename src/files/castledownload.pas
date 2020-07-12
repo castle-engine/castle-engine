@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2018 Michalis Kamburelis.
+  Copyright 2013-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,6 +22,8 @@ interface
 
 uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif},
   CastleVectors;
+
+{$define read_interface}
 
 const
   DefaultEnableNetwork = false;
@@ -138,106 +140,7 @@ function Download(const URL: string; const Options: TStreamOptions = []): TStrea
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream; overload;
 
-(* TODO: API for asynchronous downloader is below, not implemented yet.
-
-type
-  TDownloadStatus = (dsWaiting, dsError, dsSuccess);
-
-  { Download an URL asynchronously, without blocking the application.
-    You can register a callback @link(OnFinished) or watch
-    when the @link(Status) property changes to dsError or dsSuccess
-    to detect when this finished downloading.
-
-    The download starts when you construct the instance of this class.
-    When it ends, the @link(OnFinished) is called and @link(Status) changes.
-    You can also always just free an instance of this class, this will
-    break the download immediately.
-
-    Do not worry whether this uses threads (or not) internally.
-    All the methods and properties of this class should be accessed
-    from the main thread, the same thread you use for all Castle Game Engine
-    functions. And the OnFinished is called in the main thread,
-    so you can handle it without worrying about threading.
-  }
-  TDownload = class
-    { Start the download process. This constructor starts downloading,
-      and immediately returns.
-
-      Note that this constructor never calls OnFinished or changes @link(Status)
-      immediately (this would be quite uncomfortable,
-      as you didn't have a chance to set OnFinished yet...).
-      Even if you provide a URL that is a file:// or data URI
-      (which can be read / decoded immediately). }
-    constructor Create(const AURL: string);
-
-    property URL: string read;
-
-    { Event called when we finish downloading. }
-    property OnFinished: TNotifyEvent read write;
-
-    { Whether we finished the download or not, and if we finished
-      -- whether we finished with an error or a success. }
-    property Status: TDownloadStatus read ;
-
-    { If the @link(Status) is dsError, this contains a detailed error message. }
-    property ErrorMessage: string read ;
-
-    { If the @link(Status) is dsSuccess, this contains the downloaded contents.
-      This stream is owned by default (if ContentOwned) by this TDownload instance,
-      so it will become invalid when the TDownload instance is freed. }
-    property Content: TStream read;
-
-    { Is the @link(Content) owned by this @link(TDownload) instance.
-      Set this to @false to be able to free this TDownload instance
-      (maybe even by setting @link(FreeOnFinish) to @true),
-      and still keep the stream reference.
-      It is your responsibility then to keep and free the @link(Content)
-      stream whenever you want. }
-    // Is this property really much useful? Possibly resign from this.
-    property ContentOwned: boolean read;
-
-    { How many bytes were downloaded.
-      Together with @link(TotalBytes), you can use it e.g. to show a progress bar
-      when downloading. }
-    property DownloadedBytes: Int64;
-
-    { How many bytes are expected to be downloaded, in total.
-      -1 if unknown.
-      Depending on the server answer, this may be known fairly quickly after
-      starting the download, or if may not be known at all (until we finish
-      the download).
-      It's guaranteed that this is know (not -1) when @link(Status) = dsSuccess,
-      in all other cases always be prepared that this may be equal -1. }
-    property TotalBytes: Int64 read;
-
-    { Automatically free the instance of this class when the download is finished
-      (right after @link(OnFinished) is called). This is useful if you don't
-      want to be bothered with managing the memory usage of this TDownload
-      instance.
-
-      Just like with TThread.FreeOnTerminate, be extremely careful after you
-      have set this property to true: the instance of TDownload
-      may become invalid at any moment (even right after when you have set
-      the FreeOnFinish to @true, in case the contents were already downloaded).
-      It is always freed in the main CGE thread (to avoid risk when iterating
-      over @link(Downloads) list).
-
-      You should always register the OnFinished callback before setting
-      this to @true, to be notified when the download finishes.
-      The OnFinished callback will be your last chance to get the downloaded
-      data (unless you set FreeOnFinish := @false inside OnFinished
-      implementation, which is allowed). }
-    // Maybe resign from this property, it is dangerous -- is it really much useful?
-    property FreeOnFinish: boolean read write default false;
-  end;
-
-  TDownloadList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDownload>;
-
-{ List of currently existing TDownload instances.
-  You can use this e.g. to implement a GUI to show ongoing downloads.
-  Remember that some downloads on this list may be
-function Downloads: TDownloadList;
-*)
+{$I castledownload_download.inc}
 
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
@@ -425,6 +328,8 @@ type
     procedure SaveToURL(const URL: string);
   end;
 
+{$undef read_interface}
+
 implementation
 
 uses URIParser, Math, Generics.Collections,
@@ -432,6 +337,9 @@ uses URIParser, Math, Generics.Collections,
   CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
+
+{$define read_implementation}
+{$I castledownload_download.inc}
 
 { registering URL protocols -------------------------------------------------- }
 
@@ -836,6 +744,29 @@ var
 const
   MaxRedirects = 32;
 begin
+{ TODO:
+
+  D := TDownload.Create;
+  try
+    D.OwnsContents := false;
+    D.URL := URL;
+    D.Options := Options;
+    D.Start;
+    D.WaitForFinish;
+    Assert(D.Status in [dsError, dsSuccess]);
+    if D.Status = dsError then
+    begin
+      Assert(D.Contents = nil);
+      raise EDownloadError.Create(D.ErrorMessage);
+    end else
+    begin
+      Assert(D.Status = dsSuccess);
+      Result := D.Contents;
+      MimeType := D.MimeType;
+    end;
+  finally FreeAndNil(D) end;
+}
+
   P := URIProtocol(URL);
 
   // do not log castle-data:/ protocol, as this just causes recursive call to Download
