@@ -15,6 +15,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
+    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
     LabelFps: TCastleLabel;
   public
     procedure Start; override;
