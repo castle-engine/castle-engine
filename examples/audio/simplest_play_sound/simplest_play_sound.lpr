@@ -36,7 +36,8 @@ begin
   if Parameters.High = 1 then
     URL := Parameters[1]
   else
-    URL := 'castle-data:/tone.wav';
+    URL := 'castle-data:/temple-adam-goh.ogg';
+    //'castle-data:/tone.wav';
 
   { Load and play sound, without any spatialization.
     Sound backend (like OpenAL) will be automatically initialized when needed below.

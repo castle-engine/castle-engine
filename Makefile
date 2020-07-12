@@ -331,11 +331,11 @@ examples:
 # We make a copy of castle-engine, otherwise it would fail on Windows
 # (as you cannot replace your own exe).
 # Exceptions:
-# - We do not compile examples/tcp_connection/ here,
+# - We do not compile examples/network/tcp_connection/ here,
 #   as it requires Indy which may not be installed.
 	cp -f tools/build-tool/castle-engine$(EXE_EXTENSION) tools/build-tool/castle-engine-copy$(EXE_EXTENSION)
 	$(FIND) . \
-	  '(' -path ./examples/tcp_connection -prune ')' -o \
+	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
