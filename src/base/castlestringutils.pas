@@ -957,7 +957,7 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 { Remove one newline from the end of the string, if any. }
 function TrimEndingNewline(const S: String): String;
 
-function SizeToStr(const Value: QWord): String;
+function SizeToStr(const Value: Int64): String;
 
 const
   { }
@@ -2579,7 +2579,7 @@ begin
     Result := S;
 end;
 
-function SizeToStr(const Value: QWord): String;
+function SizeToStr(const Value: Int64): String;
 begin
   if Value >= 1024 * 1024 * 1024 then
     Result := FormatDot('%.2f', [Value / (1024 * 1024 * 1024)]) + ' GB'
@@ -2590,7 +2590,11 @@ begin
   if Value >= 1024 then
     Result := FormatDot('%.2f', [Value / 1024]) + ' KB'
   else
-    Result := FormatDot('%d', [Value]) + ' bytes';
+  if Value >= 0 then
+    Result := FormatDot('%d', [Value]) + ' bytes'
+  else
+    // display Value like -1 just as "-1", useful e.g. for TCastleDownload.TotalBytes
+    Result := IntToStr(Value);
 
   // too verbose
   //Result += Format(' (%d bytes)', [Value]);

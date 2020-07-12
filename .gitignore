@@ -159,6 +159,7 @@ examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 examples/mobile/simple_3d_demo/simple_3d_demo
 examples/mobile/simple_3d_demo/simple_3d_demo_standalone
 examples/mobile/test_bump_mapping/test_bump_mapping
+examples/network/asynchronous_download/asynchronous_download
 examples/network/castle_download/castle_download
 examples/network/custom_url_handler/read_game_data_from_zip
 examples/network/remote_logging/remote_logging

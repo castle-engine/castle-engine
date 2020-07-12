@@ -31,14 +31,14 @@ type
     var
       { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
       LabelDownload: array [1..DownloadsCount] of TCastleLabel;
-      ProgressDownload: array [1..DownloadsCount] of TCastleUserInterface;
+      ProgressDownload: array [1..DownloadsCount] of TCastleRectangleControl;
       ButtonStartDownloads, ButtonAbortDownloads: TCastleButton;
       LabelStatus: TCastleLabel;
 
       Download: array [1..DownloadsCount] of TCastleDownload;
     procedure ClickStartDownloads(Sender: TObject);
     procedure ClickAbortDownloads(Sender: TObject);
-    procedure UpdateLabels;
+    procedure UpdateDownloadState;
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
@@ -51,7 +51,7 @@ implementation
 
 uses SysUtils, Classes, Math,
   {$ifndef VER3_0} OpenSSLSockets, {$endif} // https support
-  CastleComponentSerialize, CastleUtils;
+  CastleComponentSerialize, CastleUtils, CastleStringUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -70,9 +70,9 @@ begin
   LabelDownload[1] := UiOwner.FindRequiredComponent('LabelDownload1') as TCastleLabel;
   LabelDownload[2] := UiOwner.FindRequiredComponent('LabelDownload2') as TCastleLabel;
   LabelDownload[3] := UiOwner.FindRequiredComponent('LabelDownload3') as TCastleLabel;
-  ProgressDownload[1] := UiOwner.FindRequiredComponent('ProgressDownload1') as TCastleUserInterface;
-  ProgressDownload[2] := UiOwner.FindRequiredComponent('ProgressDownload2') as TCastleUserInterface;
-  ProgressDownload[3] := UiOwner.FindRequiredComponent('ProgressDownload3') as TCastleUserInterface;
+  ProgressDownload[1] := UiOwner.FindRequiredComponent('ProgressDownload1') as TCastleRectangleControl;
+  ProgressDownload[2] := UiOwner.FindRequiredComponent('ProgressDownload2') as TCastleRectangleControl;
+  ProgressDownload[3] := UiOwner.FindRequiredComponent('ProgressDownload3') as TCastleRectangleControl;
   LabelStatus := UiOwner.FindRequiredComponent('LabelStatus') as TCastleLabel;
 
   ButtonStartDownloads.OnClick := @ClickStartDownloads;
@@ -80,14 +80,14 @@ begin
 
   EnableNetwork := true;
 
-  UpdateLabels;
+  UpdateDownloadState;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
 begin
   inherited;
   LabelStatus.Caption := 'FPS: ' + Container.Fps.ToString;
-  UpdateLabels;
+  UpdateDownloadState;
 end;
 
 procedure TStateMain.ClickStartDownloads(Sender: TObject);
@@ -96,7 +96,10 @@ const
     'https://castle-engine.io/latest.zip',
     'https://castle-engine.io/modern_pascal_introduction.html',
     'https://en.wikipedia.org/wiki/Main_Page'
-//    'https://github.com/castle-engine/castle-engine/'
+    // 'https://deliberately-invalid-server.org/deliberately-invalid-url',
+    // 'https://castle-engine.io/deliberately-invalid-url',
+    // 'http://example.org/'
+    // 'https://github.com/castle-engine/castle-engine/'t
   );
 var
   I: Integer;
@@ -118,7 +121,7 @@ begin
     FreeAndNil(Download[I]);
 end;
 
-procedure TStateMain.UpdateLabels;
+procedure TStateMain.UpdateDownloadState;
 const
   StatusToStr: array [TDownloadStatus] of String = (
     { The "Not Started" from here will never be visible, as we call TCastleDownload.Start
@@ -139,23 +142,39 @@ begin
       ProgressDownload[I].Exists := false;
     end else
     begin
-      LabelDownload[I].Caption := Format(
-        'Downloading: %s' + NL +
-        'Status: %s' + NL +
-        'Error: %s' + NL +
-        'Bytes: %d / %d' + NL +
-        'MIME type: %s', [
-        Download[I].Url,
-        StatusToStr[Download[I].Status],
-        Download[I].ErrorMessage,
+      LabelDownload[I].Text.Clear;
+      LabelDownload[I].Text.Add('Downloading: ' + Download[I].Url);
+      LabelDownload[I].Text.Add('Status: ' + StatusToStr[Download[I].Status]);
+      if Download[I].Status = dsError then
+        LabelDownload[I].Text.Add('Error message: ' + Download[I].ErrorMessage)
+      else
+        // ErrorMessage should only be set if Status is dsError
+        Assert(Download[I].ErrorMessage = '');
+      LabelDownload[I].Text.Add(Format('Downloaded size: %s / %s (bytes: %d / %d)', [
+        SizeToStr(Download[I].DownloadedBytes),
+        SizeToStr(Download[I].TotalBytes),
         Download[I].DownloadedBytes,
-        Download[I].TotalBytes,
-        Download[I].MimeType
-      ]);
+        Download[I].TotalBytes
+      ]));
+      LabelDownload[I].Text.Add('MIME type: ' + Download[I].MimeType);
+
       ProgressDownload[I].Exists := true;
-      { Note that WidthFraction = 0 is ignored, we use Width then.
-        But ProgressDownload[I].Width is always 0, so it reliably hides the bar. }
-      ProgressDownload[I].WidthFraction := Download[I].DownloadedBytes / Download[I].TotalBytes;
+      if Download[I].Status in [dsDownloading, dsSuccess] then
+      begin
+        ProgressDownload[I].Color := HexToColor('399100E6');
+        if Download[I].TotalBytes > 0 then
+          { Note that when WidthFraction = 0, then WidthFraction is ignored,
+            and the Width property determines size.
+            But ProgressDownload[I].Width is always 0 (set in editor).
+            So WidthFraction = 0 reliably hides the bar. }
+          ProgressDownload[I].WidthFraction := Download[I].DownloadedBytes / Download[I].TotalBytes
+        else
+          ProgressDownload[I].WidthFraction := 0;
+      end else
+      begin
+        ProgressDownload[I].Color := HexToColor('FF0000E6');
+        ProgressDownload[I].WidthFraction := 1;
+      end;
     end;
   end;
 end;
