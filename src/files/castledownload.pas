@@ -26,7 +26,7 @@ uses SysUtils, Classes,
 {$define read_interface}
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
-{$I castledownload_download.inc}
+{$I castledownload_asynchronous.inc}
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}
@@ -54,7 +54,7 @@ uses URIParser, Math, Generics.Collections,
 
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
-{$I castledownload_download.inc}
+{$I castledownload_asynchronous.inc}
 {$I castledownload_save.inc}
 {$I castledownload_text.inc}
 {$I castledownload_strings_helper.inc}

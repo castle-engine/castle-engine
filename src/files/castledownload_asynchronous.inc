@@ -16,10 +16,10 @@
 {$ifdef read_interface}
 
 type
-  { See @link(TDownload.Status). }
+  { See @link(TCastleDownload.Status). }
   TDownloadStatus = (dsNotStarted, dsDownloading, dsError, dsSuccess);
 
-  { See @link(TDownload.HttpMethod). }
+  { See @link(TCastleDownload.HttpMethod). }
   THttpMethod = (hmGet, hmPost, hmPut, hmDelete, hmOptions, hmHead);
 
   { Download an URL asynchronously, without blocking the application.
