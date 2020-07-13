@@ -133,298 +133,52 @@ function Download(const URL: string; const Options: TStreamOptions;
 
 {$ifdef read_implementation}
 
-{ TProgressMemoryStream ------------------------------------------------------ }
-
-type
-  { TMemoryStream descendant that shows a progress bar when writing to it. }
-  TProgressMemoryStream = class(TMemoryStream)
-  private
-    // TODO: ParentDownload: TCastleDownload;
-  public
-    function Write(const Buffer; Count: Longint): Longint; override;
-  end;
-
-function TProgressMemoryStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  Result := inherited;
-  // TODO
-  // if ParentDownload <> nil then
-  //   ParentDownload.DownloadedBytes := Max(Size, 0);
-end;
-
-{ TCastleHTTPClient ---------------------------------------------------------- }
-
-{$ifdef HAS_FP_HTTP_CLIENT}
-
-type
-  { HTTP client. In addition to TFPHTTPClient, it handles a progress bar
-    initialization and finalization. }
-  TCastleHTTPClient = class(TFPHTTPClient)
-  private
-    ProgressStream: TProgressMemoryStream;
-  protected
-    function ReadResponseHeaders: Integer; override;
-    procedure DisconnectFromServer; override;
-  public
-    destructor Destroy; override;
-  end;
-
-function TCastleHTTPClient.ReadResponseHeaders: Integer;
-
-  { Read Content-Length from ResponseHeaders.
-    Returns -1 if unknown or invalid. }
-  function CheckContentLength: Integer;
-  { Code copied from TFPHTTPClient.CheckContentLength (it is private there).
-    The license is the same as our engine, so copying is Ok. }
-  const CL = 'content-length:';
-  var
-    S: String;
-    I: Integer;
-  begin
-    Result := -1;
-    I := 0;
-    while (Result = -1) and (I < ResponseHeaders.Count) do
-    begin
-      S := Trim(LowerCase(ResponseHeaders[i]));
-      if Copy(S, 1, Length(Cl)) = Cl then
-      begin
-        System.Delete(S, 1, Length(CL));
-        Result := StrToIntDef(Trim(S), -1);
-      end;
-      Inc(I);
-    end;
-  end;
-
-begin
-  Result := inherited;
-  // TODO
-  // ParentDownload.TotalBytes := CheckContentLength;
-end;
-
-procedure TCastleHTTPClient.DisconnectFromServer;
-begin
-  inherited;
-end;
-
-destructor TCastleHTTPClient.Destroy;
-begin
-  inherited;
-end;
-
-{$endif HAS_FP_HTTP_CLIENT}
-
-{ Global functions to read --------------------------------------------------- }
-
-{$ifdef HAS_FP_HTTP_CLIENT}
-
-{ Just like Download, but
-  - Assumes that the URL is from the network (this prevents network URLs
-    redirecting to local URLs),
-  - Limits the number of redirects to given value.
-  - Guarantees that result is TMemoryStream. Never handles gzip decompression. }
-function NetworkDownload(const URL: string;
-  const MaxRedirects: Cardinal; out MimeType: string): TProgressMemoryStream;
-
-  { Extract MimeType from HTTP Content-Type.
-    Returns empty string if Content-Type is empty (undefined). }
-  function ContentTypeToMimeType(const ContentType: string): string;
-  var
-    P: Integer;
-  begin
-    P := Pos(';', ContentType);
-    if P <> 0 then
-      Result := Trim(Copy(ContentType, 1, P - 1)) else
-      Result := Trim(ContentType);
-  end;
-
-  { Workaround http://bugs.freepascal.org/view.php?id=24332 for FPC <= 2.6.2:
-    sometimes we need to add final slash to URL, otherwise FpHttpClient
-    will cause Access Violation. }
-  function FixURL(const URL: string): string;
-  var
-    URI: TURI;
-  begin
-    URI := ParseUri(URL);
-    { TFPCustomHTTPClient.GetServerURL crashes when URI.Path is empty }
-    if URI.Path = '' then
-    begin
-      URI.Path := '/';
-      Result := EncodeUri(URI);
-    end else
-      Result := URL;
-  end;
-
-var
-  Client: TCastleHTTPClient;
-  RedirectLocation: string;
-  MimeTypeFromContentHeader: boolean;
-begin
-  Result := TProgressMemoryStream.Create;
-  try
-    Client := TCastleHTTPClient.Create(nil);
-    try
-      Client.ProgressStream := Result;
-      { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
-      Client.HTTPMethod('GET', FixURL(URL), Result, [200,
-        { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
-        301, 302, 303, 307]);
-      // Writeln(Client.ResponseHeaders.Text);
-      Client.ResponseHeaders.NameValueSeparator := ':';
-      if Client.ResponseStatusCode <> 200 then
-      begin
-        FreeAndNil(Result);
-        RedirectLocation := Trim(Client.ResponseHeaders.Values['Location']);
-        if RedirectLocation = '' then
-          raise EDownloadError.Create('HTTP redirect location is not set');
-        if MaxRedirects = 0 then
-          raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
-        WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
-          [Client.ResponseStatusCode, RedirectLocation]);
-        Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1, MimeType));
-      end;
-      MimeType := ContentTypeToMimeType(Client.ResponseHeaders.Values['Content-Type']);
-      MimeTypeFromContentHeader := MimeType <> '';
-      if not MimeTypeFromContentHeader then
-        MimeType := URIMimeType(URL);
-      WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", MIME type was specified by server: %s',
-        [URL, MimeType, SysUtils.BoolToStr(MimeTypeFromContentHeader, true)]);
-    finally FreeAndNil(Client) end;
-    Result.Position := 0; { rewind for easy reading }
-  except
-    FreeAndNil(Result); raise;
-  end;
-end;
-
-{$endif HAS_FP_HTTP_CLIENT}
-
-{$ifdef ANDROID}
-type
-  TAndroidDownloadService = class
-    Finished, FinishedSuccess: boolean;
-    TemporaryFileName, ErrorMessage: string;
-    function HandleDownloadMessages(const Received: TCastleStringList): boolean;
-    function Wait(const URL: string): TStream;
-  end;
-
-function TAndroidDownloadService.HandleDownloadMessages(const Received: TCastleStringList): boolean;
-begin
-  if (Received.Count = 2) and (Received[0] = 'download-error') then
-  begin
-    Finished := true;
-    FinishedSuccess := false;
-    ErrorMessage := Received[1];
-    Result := true;
-  end;
-  if (Received.Count = 2) and (Received[0] = 'download-finished') then
-  begin
-    Finished := true;
-    FinishedSuccess := true;
-    TemporaryFileName := Received[1];
-    Result := true;
-  end;
-end;
-
-function TAndroidDownloadService.Wait(const URL: string): TStream;
-begin
-  Finished := false;
-  Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', URL]);
-  try
-    { TODO: introduce download-progress messages,
-       use them to make Progress.Init/Step/Fini calls,
-       allowing to show user progress bar during this loop. }
-    repeat
-      ApplicationProperties._Update; // process CastleMessages
-      Sleep(200)
-    until Finished;
-  finally
-    Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  end;
-  if FinishedSuccess then
-    Result := TFileStream.Create(TemporaryFileName, fmOpenRead)
-  else
-    raise Exception.Create(ErrorMessage);
-end;
-{$endif ANDROID}
-
-{ Load FileName to TMemoryStream. }
-function CreateMemoryStream(const FileName: string): TMemoryStream; overload;
-begin
-  Result := TMemoryStream.Create;
-  try
-    Result.LoadFromFile(FileName);
-    Result.Position := 0; { rewind for easy reading }
-  except
-    FreeAndNil(Result); raise;
-  end;
-end;
-
-{ Load Stream to TMemoryStream.
-  Sets given Stream to @nil (it is freed by this function). }
-function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
-begin
-  Result := TMemoryStream.Create;
-  try
-    Result.LoadFromStream(Stream);
-    FreeAndNil(Stream);
-    Result.Position := 0; { rewind for easy reading }
-  except
-    FreeAndNil(Result); raise;
-  end;
-end;
-
-{ Decompress gzipped FileName.
-  When ForceMemoryStream, always returns TMemoryStream.
-  Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
-function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
-var
-  NewResult: TMemoryStream;
-begin
-  Result := TGZFileStream.Create(Stream, false);
-  try
-    Stream := nil; // Stream is owned by Result now
-
-    if ForceMemoryStream then
-    begin
-      { TODO: our engine never uses both soGzip and soForceMemoryStream
-        for now, so below code path is untested. }
-      NewResult := TMemoryStream.Create;
-      ReadGrowingStream(Result, NewResult, true);
-      FreeAndNil(Result);
-      Result := NewResult;
-    end;
-  except
-    FreeAndNil(Result); raise;
-  end;
-end;
-
-procedure CheckFileAccessSafe(const URL: string);
-begin
-  if not ApplicationProperties._FileAccessSafe then
-    WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. ' +
-      'This is not reliable on mobile platforms (Android, iOS). ' +
-      'This usually happens if you open a file from the "initialization" section of a unit. ' +
-      'You should do it in Application.OnInitialize instead.',
-      [URL]);
-end;
-
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
+
+  { Load Stream to TMemoryStream.
+    Sets given Stream to @nil (it is freed by this function). }
+  function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
+  begin
+    Result := TMemoryStream.Create;
+    try
+      Result.LoadFromStream(Stream);
+      FreeAndNil(Stream);
+      Result.Position := 0; { rewind for easy reading }
+    except
+      FreeAndNil(Result); raise;
+    end;
+  end;
+
+  { Decompress gzipped FileName.
+    When ForceMemoryStream, always returns TMemoryStream.
+    Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
+  function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
+  var
+    NewResult: TMemoryStream;
+  begin
+    Result := TGZFileStream.Create(Stream, false);
+    try
+      Stream := nil; // Stream is owned by Result now
+
+      if ForceMemoryStream then
+      begin
+        { TODO: our engine never uses both soGzip and soForceMemoryStream
+          for now, so below code path is untested. }
+        NewResult := TMemoryStream.Create;
+        ReadGrowingStream(Result, NewResult, true);
+        FreeAndNil(Result);
+        Result := NewResult;
+      end;
+    except
+      FreeAndNil(Result); raise;
+    end;
+  end;
+
 var
-  P, FileName: string;
-  {$ifdef HAS_FP_HTTP_CLIENT}
-  NetworkResult: TMemoryStream;
-  {$endif}
-  FileStream: TFileStream;
-  DataURI: TDataURI;
-  {$ifdef ANDROID}
-  AssetStream: TReadAssetStream;
-  DownloadService: TAndroidDownloadService;
-  {$endif}
+  P: String;
   RegisteredProtocol: TRegisteredProtocol;
   UnderlyingStream: TStream;
-const
-  MaxRedirects = 32;
 begin
 { TODO:
 
@@ -451,148 +205,20 @@ begin
 
   P := URIProtocol(URL);
 
-  // do not log castle-data:/ protocol, as this just causes recursive call to Download
-  if LogAllLoading and (P <> 'castle-data') then
-    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
-
-  RegisteredProtocol := RegisteredProtocols.Find(P);
-
-  {$ifdef ANDROID}
-  if (P = 'http') or (P = 'https') then
-  begin
-    if not EnableNetwork then
-      raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
-
-    CheckFileAccessSafe(URL);
-    WritelnLog('Network', 'Download service started for "%s"', [URIDisplay(URL)]);
-    DownloadService := TAndroidDownloadService.Create;
-    try
-      Result := DownloadService.Wait(URL);
-      MimeType := URIMimeType(URL);
-    finally
-      FreeAndNil(DownloadService);
-    end;
-  end else
-  {$endif ANDROID}
-
-  {$ifdef HAS_FP_HTTP_CLIENT}
-  { network protocols: get data into a new TMemoryStream using FpHttpClient }
-  if (P = 'http') or (P = 'https') then
-  begin
-    if not EnableNetwork then
-      raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
-
-    {$ifdef VER3_0}
-    if P = 'https' then
-      { Testcase: FPC 3.0.4, Linux/x86_64:
-        TFPCustomHTTPClient fails with Access Violation on https URLs.
-        TODO: Test on Windows/x86_64. }
-      raise EDownloadError.Create('Downloading using "https" protocol does not work when the application is compiled with FPC 3.0.x. Use newer FPC (and add OpenSSLSockets unit to the uses clause).');
-    {$endif}
-
-    CheckFileAccessSafe(URL);
-    WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
-    NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
-    try
-      if soGzip in Options then
-        Result := ReadGzipped(TStream(NetworkResult),
-          soForceMemoryStream in Options) else
-        Result := NetworkResult;
-    except
-      FreeAndNil(NetworkResult); raise;
-    end;
-  end else
-  {$endif HAS_FP_HTTP_CLIENT}
-
-  { local filenames are directly handled, without the need for any downloader }
-  if (P = '') or (P = 'file') then
-  begin
-    CheckFileAccessSafe(URL);
-
-    FileName := URIToFilenameSafe(URL);
-    if FileName = '' then
-      raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
-
-    if soGzip in Options then
-    begin
-      FileStream := TFileStream.Create(FileName, fmOpenRead);
-      Result := ReadGzipped(TStream(FileStream), soForceMemoryStream in Options);
-    end else
-    if soForceMemoryStream in Options then
-      Result := CreateMemoryStream(FileName) else
-      Result := TFileStream.Create(FileName, fmOpenRead);
-    MimeType := URIMimeType(URL);
-  end else
-
-  { castle-android-assets: to access Android assets }
-  if (P = 'assets') or (P = 'castle-android-assets') then
-  begin
-    CheckFileAccessSafe(URL);
-    {$ifdef ANDROID}
-    AssetStream := TReadAssetStream.Create(URIToAssetPath(URL));
-    try
-      if soGzip in Options then
-        Result := ReadGzipped(TStream(AssetStream), soForceMemoryStream in Options) else
-      if soForceMemoryStream in Options then
-        Result := CreateMemoryStream(TStream(AssetStream)) else
-        Result := AssetStream;
-    except
-      FreeAndNil(AssetStream); raise;
-    end;
-    MimeType := URIMimeType(URL);
-    {$else}
-    raise EDownloadError.CreateFmt('Cannot download an asset URL, because we are not compiled for Android: %s',
-      [URL]);
-    {$endif}
-  end else
-
-  { castle-data: to access application data, https://castle-engine.io/manual_data_directory.php }
+  { Handle early castle-data:, protocol to access application data,
+    https://castle-engine.io/manual_data_directory.php .
+    Note that we don't even log it if LogAllLoading,
+    as it will cause another recursive Download() call. }
   if P = 'castle-data' then
   begin
     Result := Download(ResolveCastleDataURL(URL), Options, MimeType);
-  end else
+    Exit;
+  end;
 
-  { data: URI scheme }
-  if P = 'data' then
-  begin
-    DataURI := TDataURI.Create;
-    try
-      DataURI.URI := URL;
-      DataURI.ForceMemoryStream := soForceMemoryStream in Options;
-      if not DataURI.Valid then
-        raise EDownloadError.Create('Invalid data: URI scheme');
-      Result := DataURI.ExtractStream;
-      MimeType := DataURI.MimeType;
-      Assert(Result <> nil, 'DataURI.ExtractStream must be non-nil when DataURI.Valid is true');
-    finally FreeAndNil(DataURI) end;
-  end else
+  if LogAllLoading then
+    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
 
-  if (P = 'ecmascript') or
-     (P = 'javascript') then
-  begin
-    { This ignores soGzip in Options, as it's not used by anything. }
-    MimeType := 'application/javascript';
-    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
-  end else
-
-  if (P = 'castlescript') or
-     (P = 'kambiscript') then
-  begin
-    { This ignores soGzip in Options, as it's not used by anything. }
-    MimeType := 'text/x-castlescript';
-    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
-  end else
-
-  if P = 'compiled' then
-  begin
-    { This ignores soGzip in Options, as it's not used by anything. }
-    MimeType := 'text/x-castle-compiled';
-    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
-  end else
-
-  { Check RegisteredProtocol at the end, since above we handle some protocols.
-    TODO: Move all protocol reading to appropriate callbacks registered
-    FRegisteredProtocols.Add. }
+  RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
   begin
     if Assigned(RegisteredProtocol.ReadEvent) then
@@ -609,10 +235,7 @@ begin
     end else
       raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
   end else
-
-  begin
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
-  end;
 end;
 
 function Download(const URL: string; const Options: TStreamOptions): TStream;

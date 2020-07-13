@@ -20,7 +20,7 @@ unit CastleDownload;
 
 interface
 
-uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif},
+uses SysUtils, Classes,
   CastleVectors;
 
 {$define read_interface}
@@ -36,12 +36,22 @@ uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif},
 implementation
 
 uses URIParser, Math, Generics.Collections,
+  {$ifdef HAS_FP_HTTP_CLIENT} FpHttpClient, {$endif}
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
 {$define read_implementation}
+{$I castledownload_url_castleandroidassets.inc}
+{$I castledownload_url_castlescript.inc}
+{$I castledownload_url_compiled.inc}
+{$I castledownload_url_data.inc}
+{$I castledownload_url_ecmascript.inc}
+{$I castledownload_url_file.inc}
+{$I castledownload_url_http_android.inc}
+{$I castledownload_url_http_fphttpclient.inc}
+
 {$I castledownload_register.inc}
 {$I castledownload_synchronous.inc}
 {$I castledownload_download.inc}

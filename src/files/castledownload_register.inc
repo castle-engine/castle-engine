@@ -89,25 +89,27 @@ begin
   begin
     FRegisteredProtocols := TRegisteredProtocols.Create(true);
 
-    // register default protocols, handled internally in Download or URLSaveStream
+    // register default protocols handled in this unit
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('http', nil, nil);
-    FRegisteredProtocols.Add('https', nil, nil);
+    FRegisteredProtocols.Add('http', @TUrlHttpAndroid(nil).Read, nil);
+    FRegisteredProtocols.Add('https', @TUrlHttpAndroid(nil).Read, nil);
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
-    FRegisteredProtocols.Add('http', nil, nil);
-    FRegisteredProtocols.Add('https', nil, nil);
+    FRegisteredProtocols.Add('http', @TUrlHttpFpHttpClient(nil).Read, nil);
+    FRegisteredProtocols.Add('https', @TUrlHttpFpHttpClient(nil).Read, nil);
     {$endif}
-    FRegisteredProtocols.Add('', nil, nil);
-    FRegisteredProtocols.Add('file', nil, nil);
-    FRegisteredProtocols.Add('assets', nil, nil);
-    FRegisteredProtocols.Add('castle-android-assets', nil, nil);
+    FRegisteredProtocols.Add('', @TUrlFile(nil).Read, @TUrlFile(nil).Write);
+    FRegisteredProtocols.Add('file', @TUrlFile(nil).Read, @TUrlFile(nil).Write);
+    {$if defined(ANDROID)}
+    FRegisteredProtocols.Add('assets', @TUrlCastleAndroidAssets(nil).Read, nil);
+    FRegisteredProtocols.Add('castle-android-assets', @TUrlCastleAndroidAssets(nil).Read, nil);
+    {$endif}
     FRegisteredProtocols.Add('castle-data', nil, nil);
-    FRegisteredProtocols.Add('data', nil, nil);
-    FRegisteredProtocols.Add('ecmascript', nil, nil);
-    FRegisteredProtocols.Add('javascript', nil, nil);
-    FRegisteredProtocols.Add('castlescript', nil, nil);
-    FRegisteredProtocols.Add('kambiscript', nil, nil);
-    FRegisteredProtocols.Add('compiled', nil, nil);
+    FRegisteredProtocols.Add('data', @TUrlData(nil).Read, nil);
+    FRegisteredProtocols.Add('ecmascript', @TUrlEcmaScript(nil).Read, nil);
+    FRegisteredProtocols.Add('javascript', @TUrlEcmaScript(nil).Read, nil);
+    FRegisteredProtocols.Add('castlescript', @TUrlCastleScript(nil).Read, nil);
+    FRegisteredProtocols.Add('kambiscript', @TUrlCastleScript(nil).Read, nil);
+    FRegisteredProtocols.Add('compiled', @TUrlCompiled(nil).Read, nil);
   end;
   Result := FRegisteredProtocols;
 end;

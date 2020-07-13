@@ -54,47 +54,22 @@ function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []
 {$ifdef read_implementation}
 
 function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
-
-  function FileSaveStream(const FileName: String; const Options: TSaveStreamOptions): TStream;
-  begin
-    if ssoGzip in Options then
-    begin
-      Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
-    end else
-      Result := TFileStream.Create(FileName, fmCreate);
-  end;
-
 var
-  P, FileName: string;
+  P: String;
   RegisteredProtocol: TRegisteredProtocol;
   UnderlyingStream: TStream;
 begin
   P := URIProtocol(URL);
 
-  RegisteredProtocol := RegisteredProtocols.Find(P);
-
-  if P = '' then
-  begin
-    FileName := URL;
-    Result := FileSaveStream(FileName, Options);
-  end else
-
-  if P = 'file' then
-  begin
-    FileName := URIToFilenameSafe(URL);
-    if FileName = '' then
-      raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
-    Result := FileSaveStream(FileName, Options);
-  end else
-
+  { Handle early castle-data:, protocol to access application data,
+    https://castle-engine.io/manual_data_directory.php }
   if P = 'castle-data' then
   begin
     Result := URLSaveStream(ResolveCastleDataURL(URL), Options);
-  end else
+    Exit;
+  end;
 
-  { Check RegisteredProtocol at the end, since above we handle some protocols.
-    TODO: Move all protocol writing to appropriate callbacks registered
-    FRegisteredProtocols.Add. }
+  RegisteredProtocol := RegisteredProtocols.Find(P);
   if RegisteredProtocol <> nil then
   begin
     if Assigned(RegisteredProtocol.WriteEvent) then
@@ -108,7 +83,6 @@ begin
     end else
       raise EDownloadError.CreateFmt('Cannot write URLs with protocol "%s"', [P]);
   end else
-
     raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
 end;
 
