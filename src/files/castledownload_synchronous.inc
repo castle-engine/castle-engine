@@ -107,9 +107,9 @@ type
   waiting during the "loading" process, and the data just @italic(has)
   to be downloaded in order to continue), and it's really easy to use
   (you just download data exactly the same way like you open a local file).
-  But often you may want to instead use @bold(asynchronous downloading)
-  -- we plan to implement it by the class TDownload (see comments
-  in CastleDownload code), but it's not ready yet!
+
+  You can use @bold(asynchronous downloading) through the @link(TCastleDownload)
+  class instead.
 
   @raises(EDownloadError In case of problems loading from this URL.)
   @raises(EFOpenError If case opening the underlying file fails,
@@ -139,7 +139,7 @@ type
   { TMemoryStream descendant that shows a progress bar when writing to it. }
   TProgressMemoryStream = class(TMemoryStream)
   private
-    UseProgress: boolean;
+    // TODO: ParentDownload: TCastleDownload;
   public
     function Write(const Buffer; Count: Longint): Longint; override;
   end;
@@ -147,7 +147,9 @@ type
 function TProgressMemoryStream.Write(const Buffer; Count: Longint): Longint;
 begin
   Result := inherited;
-  if UseProgress then Progress.Position := Max(Size, 0);
+  // TODO
+  // if ParentDownload <> nil then
+  //   ParentDownload.DownloadedBytes := Max(Size, 0);
 end;
 
 { TCastleHTTPClient ---------------------------------------------------------- }
@@ -159,10 +161,7 @@ type
     initialization and finalization. }
   TCastleHTTPClient = class(TFPHTTPClient)
   private
-    UseProgress: boolean;
     ProgressStream: TProgressMemoryStream;
-    ProgressTitle: string;
-    procedure FinishProgress;
   protected
     function ReadResponseHeaders: Integer; override;
     procedure DisconnectFromServer; override;
@@ -177,65 +176,38 @@ function TCastleHTTPClient.ReadResponseHeaders: Integer;
   function CheckContentLength: Integer;
   { Code copied from TFPHTTPClient.CheckContentLength (it is private there).
     The license is the same as our engine, so copying is Ok. }
-  Const CL ='content-length:';
-  Var
-    S : String;
-    I : integer;
+  const CL = 'content-length:';
+  var
+    S: String;
+    I: Integer;
   begin
-    Result:=-1;
-    I:=0;
-    While (Result=-1) and (I<ResponseHeaders.Count) do
+    Result := -1;
+    I := 0;
+    while (Result = -1) and (I < ResponseHeaders.Count) do
+    begin
+      S := Trim(LowerCase(ResponseHeaders[i]));
+      if Copy(S, 1, Length(Cl)) = Cl then
       begin
-      S:=Trim(LowerCase(ResponseHeaders[i]));
-      If (Copy(S,1,Length(Cl))=Cl) then
-        begin
-        System.Delete(S,1,Length(CL));
-        Result:=StrToIntDef(Trim(S),-1);
-        end;
-      Inc(I);
+        System.Delete(S, 1, Length(CL));
+        Result := StrToIntDef(Trim(S), -1);
       end;
+      Inc(I);
+    end;
   end;
 
 begin
   Result := inherited;
-
-  UseProgress := not Progress.Active;
-  ProgressStream.UseProgress := UseProgress;
-
-  { Initialize progress.
-    We always add 1 step done right after downloading, this way
-    we at least show *something* even when Content-Length is unknown. }
-  if UseProgress then
-    Progress.Init(Max(CheckContentLength, 0) + 2, ProgressTitle, true);
-end;
-
-procedure TCastleHTTPClient.FinishProgress;
-begin
-  if UseProgress then
-  begin
-    UseProgress := false;
-    { Make sure that after TCastleHTTPClient is destroyed,
-      ProgressStream behaves like a regular TMemoryStream.
-      That is because ProgressStream may be returned to the called
-      of Download function, that can do potentially anything with it. }
-    if ProgressStream <> nil then
-      ProgressStream.UseProgress := false;
-    Progress.Fini;
-  end;
+  // TODO
+  // ParentDownload.TotalBytes := CheckContentLength;
 end;
 
 procedure TCastleHTTPClient.DisconnectFromServer;
 begin
-  if UseProgress then Progress.Step;
   inherited;
-  FinishProgress;
 end;
 
 destructor TCastleHTTPClient.Destroy;
 begin
-  { Usually DisconnectFromServer should cause FinishProgress.
-    But in case of some exception, make sure to finalize progress here. }
-  FinishProgress;
   inherited;
 end;
 
@@ -291,7 +263,6 @@ begin
   try
     Client := TCastleHTTPClient.Create(nil);
     try
-      Client.ProgressTitle := 'Downloading ' + URL;
       Client.ProgressStream := Result;
       { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
       Client.HTTPMethod('GET', FixURL(URL), Result, [200,

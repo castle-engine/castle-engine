@@ -37,7 +37,7 @@ implementation
 
 uses URIParser, Math, Generics.Collections,
   CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
-  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
+  CastleClassUtils, CastleDataURI, CastleStringUtils,
   CastleApplicationProperties, CastleFilesUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
