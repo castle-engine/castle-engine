@@ -19,9 +19,8 @@
   any URL to a Stream.
 
   Try from command-line like
-    castle_download http://castle-engine.sf.net/ > output.html
-  or
-    castle_download http://downloads.sourceforge.net/castle-engine/view3dscene-3.12.0-linux-i386.tar.gz > output.tar.gz
+    castle_download https://castle-engine.io/ > output.html
+    castle_download https://castle-engine.io/latest.zip > output.zip
 }
 
 uses SysUtils, Classes,
