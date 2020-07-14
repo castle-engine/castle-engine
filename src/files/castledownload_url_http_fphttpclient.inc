@@ -194,16 +194,16 @@ begin
     raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
 
   {$ifdef VER3_0}
-  if P = 'https' then
+  if URIProtocol(Url) = 'https' then
     { Testcase: FPC 3.0.4, Linux/x86_64:
       TFPCustomHTTPClient fails with Access Violation on https URLs.
       TODO: Test on Windows/x86_64. }
     raise EDownloadError.Create('Downloading using "https" protocol does not work when the application is compiled with FPC 3.0.x. Use newer FPC (and add OpenSSLSockets unit to the uses clause).');
   {$endif}
 
-  CheckFileAccessSafe(URL);
-  WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
-  Result := NetworkDownload(URL, MaxRedirects, MimeType);
+  CheckFileAccessSafe(Url);
+  WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
+  Result := NetworkDownload(Url, MaxRedirects, MimeType);
 end;
 
 {$endif HAS_FP_HTTP_CLIENT}
