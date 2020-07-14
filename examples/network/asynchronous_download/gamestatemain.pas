@@ -38,6 +38,7 @@ type
       Download: array [1..DownloadsCount] of TCastleDownload;
     procedure ClickStartDownloads(Sender: TObject);
     procedure ClickAbortDownloads(Sender: TObject);
+    procedure DownloadFinish(const Sender: TCastleDownload);
     procedure UpdateDownloadState;
   public
     procedure Start; override;
@@ -51,7 +52,8 @@ implementation
 
 uses SysUtils, Classes, Math,
   {$ifndef VER3_0} OpenSSLSockets, {$endif} // https support
-  CastleComponentSerialize, CastleUtils, CastleStringUtils;
+  CastleComponentSerialize, CastleUtils, CastleStringUtils, CastleLog,
+  CastleURIUtils;
 
 { TStateMain ----------------------------------------------------------------- }
 
@@ -111,8 +113,17 @@ begin
     FreeAndNil(Download[I]);
     Download[I] := TCastleDownload.Create(Self);
     Download[I].Url := Urls[I];
+    Download[I].OnFinish := @DownloadFinish;
     Download[I].Start;
   end;
+end;
+
+procedure TStateMain.DownloadFinish(const Sender: TCastleDownload);
+begin
+  if Sender.Status = dsError then
+    WritelnLog('Downloading "%s" failed: %s', [URIDisplay(Sender.Url), Sender.ErrorMessage])
+  else
+    WritelnLog('Downloading "%s" successfull', [URIDisplay(Sender.Url)]);
 end;
 
 procedure TStateMain.ClickAbortDownloads(Sender: TObject);

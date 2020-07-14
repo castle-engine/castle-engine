@@ -19,6 +19,10 @@ type
   { See @link(TCastleDownload.HttpMethod). }
   THttpMethod = (hmGet, hmPost, hmPut, hmDelete, hmOptions, hmHead);
 
+  TCastleDownload = class;
+
+  TDownloadEvent = procedure (const Sender: TCastleDownload) of object;
+
   { Download an URL asynchronously, without blocking the application.
     You can register a callback @link(OnFinish) or watch
     when the @link(Status) property changes from dsDownloading to dsError or dsSuccess
@@ -51,7 +55,7 @@ type
   strict private
     FUrl: String;
     FHttpMethod: THttpMethod;
-    FOnFinish: TNotifyEvent;
+    FOnFinish: TDownloadEvent;
     FStatus: TDownloadStatus;
     FErrorMessage: String;
     FContents: TStream;
@@ -62,7 +66,7 @@ type
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
-    procedure SetOnFinish(const Value: TNotifyEvent);
+    procedure SetOnFinish(const Value: TDownloadEvent);
     procedure SetOptions(const Value: TStreamOptions);
     procedure ReleaseContents;
     { Set Contents from given Stream.
@@ -104,7 +108,7 @@ type
 
       Can only change when there is no download in progress
       (@link(Status) is not dsDownloading). }
-    property OnFinish: TNotifyEvent read FOnFinish write SetOnFinish;
+    property OnFinish: TDownloadEvent read FOnFinish write SetOnFinish;
 
     { Whether we finished the download (and if yes, was it an error or success). }
     property Status: TDownloadStatus read FStatus;
@@ -183,7 +187,7 @@ begin
   end;
 end;
 
-procedure TCastleDownload.SetOnFinish(const Value: TNotifyEvent);
+procedure TCastleDownload.SetOnFinish(const Value: TDownloadEvent);
 begin
   if not SameMethods(TMethod(FOnFinish), TMethod(Value)) then
   begin
