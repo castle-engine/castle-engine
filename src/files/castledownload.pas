@@ -43,6 +43,8 @@ uses URIParser, Math, Generics.Collections,
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream, CastleMessaging {$endif};
 
 {$define read_implementation}
+{$I castledownload_internal_utils.inc}
+
 {$I castledownload_url_castleandroidassets.inc}
 {$I castledownload_url_castlescript.inc}
 {$I castledownload_url_compiled.inc}
