@@ -206,6 +206,26 @@ begin
   Result := NetworkDownload(Url, MaxRedirects, MimeType);
 end;
 
+{ THttpFpHttpClientReader --------------------------------------------------- }
+
+type
+  THttpFpHttpClientReader = class(TUrlAsynchronousReader)
+    constructor Create(const Url: String); override;
+    procedure Update; override;
+  end;
+
+constructor THttpFpHttpClientReader.Create(const Url: String);
+begin
+  inherited;
+  // TODO
+end;
+
+procedure THttpFpHttpClientReader.Update;
+begin
+  inherited;
+  // TODO
+end;
+
 {$endif HAS_FP_HTTP_CLIENT}
 
 {$endif}

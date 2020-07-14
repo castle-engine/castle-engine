@@ -124,68 +124,27 @@ type
     (instead of catching and re-raising).
     So, to be really safe, be ready that this function may raise @italic(any)
     Exception class.)
+
+  @groupBegin
 }
-function Download(const URL: string; const Options: TStreamOptions = []): TStream; overload;
-function Download(const URL: string; const Options: TStreamOptions;
+function Download(const Url: string; const Options: TStreamOptions = []): TStream; overload;
+function Download(const Url: string; const Options: TStreamOptions;
   out MimeType: string): TStream; overload;
+{ @groupEnd }
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function Download(const URL: string; const Options: TStreamOptions;
+function Download(const Url: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
-
-  { Load Stream to TMemoryStream.
-    Sets given Stream to @nil (it is freed by this function). }
-  function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
-  begin
-    Result := TMemoryStream.Create;
-    try
-      Result.LoadFromStream(Stream);
-      FreeAndNil(Stream);
-      Result.Position := 0; { rewind for easy reading }
-    except
-      FreeAndNil(Result); raise;
-    end;
-  end;
-
-  { Decompress gzipped FileName.
-    When ForceMemoryStream, always returns TMemoryStream.
-    Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
-  function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
-  var
-    NewResult: TMemoryStream;
-  begin
-    Result := TGZFileStream.Create(Stream, false);
-    try
-      Stream := nil; // Stream is owned by Result now
-
-      if ForceMemoryStream then
-      begin
-        { TODO: our engine never uses both soGzip and soForceMemoryStream
-          for now, so below code path is untested. }
-        NewResult := TMemoryStream.Create;
-        ReadGrowingStream(Result, NewResult, true);
-        FreeAndNil(Result);
-        Result := NewResult;
-      end;
-    except
-      FreeAndNil(Result); raise;
-    end;
-  end;
-
 var
-  P: String;
-  RegisteredProtocol: TRegisteredProtocol;
-  UnderlyingStream: TStream;
+  D: TCastleDownload;
 begin
-{ TODO:
-
-  D := TDownload.Create;
+  D := TCastleDownload.Create(nil);
   try
     D.OwnsContents := false;
-    D.URL := URL;
+    D.Url := Url;
     D.Options := Options;
     D.Start;
     D.WaitForFinish;
@@ -201,48 +160,13 @@ begin
       MimeType := D.MimeType;
     end;
   finally FreeAndNil(D) end;
-}
-
-  P := URIProtocol(URL);
-
-  { Handle early castle-data:, protocol to access application data,
-    https://castle-engine.io/manual_data_directory.php .
-    Note that we don't even log it if LogAllLoading,
-    as it will cause another recursive Download() call. }
-  if P = 'castle-data' then
-  begin
-    Result := Download(ResolveCastleDataURL(URL), Options, MimeType);
-    Exit;
-  end;
-
-  if LogAllLoading then
-    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
-
-  RegisteredProtocol := RegisteredProtocols.Find(P);
-  if RegisteredProtocol <> nil then
-  begin
-    if Assigned(RegisteredProtocol.ReadEvent) then
-    begin
-      UnderlyingStream := RegisteredProtocol.ReadEvent(URL, MimeType);
-      // unpack gzip if requested
-      if soGzip in Options then
-        Result := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
-      else
-      if soForceMemoryStream in Options then
-        Result := CreateMemoryStream(UnderlyingStream)
-      else
-        Result := UnderlyingStream;
-    end else
-      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
-  end else
-    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
 end;
 
-function Download(const URL: string; const Options: TStreamOptions): TStream;
+function Download(const Url: string; const Options: TStreamOptions): TStream;
 var
   MimeType: string;
 begin
-  Result := Download(URL, Options, MimeType { ignored });
+  Result := Download(Url, Options, MimeType { ignored });
 end;
 
 {$endif}

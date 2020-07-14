@@ -16,9 +16,6 @@
 {$ifdef read_interface}
 
 type
-  { See @link(TCastleDownload.Status). }
-  TDownloadStatus = (dsNotStarted, dsDownloading, dsError, dsSuccess);
-
   { See @link(TCastleDownload.HttpMethod). }
   THttpMethod = (hmGet, hmPost, hmPut, hmDelete, hmOptions, hmHead);
 
@@ -62,11 +59,19 @@ type
     FOptions: TStreamOptions;
     FTotalBytes, FDownloadedBytes: Int64;
     FMimeType: String;
+    Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TNotifyEvent);
     procedure SetOptions(const Value: TStreamOptions);
     procedure ReleaseContents;
+    { Set Contents from given Stream.
+      The passed UnderlyingStream becomes owned by something in this method
+      (like TCastleDownload instance or FContents or it is freed).
+      Consider the reference to UnderlyingStream invalid after this call. }
+    procedure SetContentsApplyOptions(UnderlyingStream: TStream);
+  protected
+    procedure DoFinish; virtual;
   public
     destructor Destroy; override;
 
@@ -120,7 +125,7 @@ type
       and still keep the stream reference.
       It is your responsibility then to keep and free the @link(Contents)
       stream whenever you want. }
-    property OwnsContents: boolean read FOwnsContents;
+    property OwnsContents: boolean read FOwnsContents write FOwnsContents;
 
     { How many bytes were downloaded.
       Together with @link(TotalBytes), you can use it e.g. to show a progress bar
@@ -150,6 +155,11 @@ type
 destructor TCastleDownload.Destroy;
 begin
   ReleaseContents;
+  if Reader <> nil then
+  begin
+    FreeAndNil(Reader.Stream); // Reader doesn't own Stream, so we need to take care of it
+    FreeAndNil(Reader);
+  end;
   inherited;
 end;
 
@@ -201,42 +211,195 @@ begin
     FContents := nil;
 end;
 
-procedure TCastleDownload.Start;
+procedure TCastleDownload.DoFinish;
 begin
-  ReleaseContents;
-  { Reset properties that describe the downloaded result. }
-  FErrorMessage := '';
-  FMimeType := '';
-  FTotalBytes := -1;
-  FDownloadedBytes := 0;
-  FStatus := dsDownloading;
+  if Assigned(OnFinish) then
+    OnFinish(Self);
+end;
 
-  try
-    { TODO of course this is just a testing implementation,
-      - that just does synchronous downloading.
-      - It also ignores HttpMethod
-      - EnableNetwork disables http, https here too. Should it?
-    }
-    FContents := Download(Url, Options, FMimeType);
-    FStatus := dsSuccess;
-    FTotalBytes := FContents.Size;
-    FDownloadedBytes := FContents.Size;
-    if Assigned(OnFinish) then
-      OnFinish(Self);
-  except
-    on E: TObject do
+procedure TCastleDownload.Start;
+
+  { Reset properties that describe the downloaded result. }
+  procedure ClearPreviousDownload;
+  begin
+    ReleaseContents;
+    if Reader <> nil then
     begin
-      FStatus := dsError;
-      FErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(FUrl)]) +
-        ExceptMessage(E);
+      FreeAndNil(Reader.Stream); // Reader doesn't own Stream, so we need to take care of it
+      FreeAndNil(Reader);
     end;
+    FErrorMessage := '';
+    FMimeType := '';
+    FTotalBytes := -1;
+    FDownloadedBytes := 0;
+    FStatus := dsDownloading;
   end;
+
+  procedure SynchronousRead(const ReadEvent: TUrlReadEvent; const RealUrl: String);
+  var
+    Size: Int64;
+  begin
+    try
+      SetContentsApplyOptions(ReadEvent(RealUrl, FMimeType));
+      FStatus := dsSuccess;
+
+      // determine FTotalBytes, FDownloadedBytes from stream Size
+      try
+        Size := FContents.Size;
+        FTotalBytes := Size;
+        FDownloadedBytes := Size;
+      except
+        on E: TObject do
+        begin
+          { Gracefully handle exceptions from Size.
+            E.g. TGZFileStream raises EZlibError: Compression stream seek error,
+            testcase: view3dscene escape_universe/trunk/data/entities/meteorite_4/animations.x3dv }
+          FTotalBytes := -1;
+          FDownloadedBytes := 0;
+          // WritelnLog('Cannot determine Size of %s (the DownloadedBytes/TotalBytes will be 0/-1): %s', [
+          //   FContents.ClassName,
+          //   ExceptMessage(E)
+          // ]);
+        end;
+      end;
+
+    except
+      on E: TObject do
+      begin
+        FStatus := dsError;
+        FErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) +
+          ExceptMessage(E);
+      end;
+    end;
+    DoFinish;
+  end;
+
+var
+  P, RealUrl: String;
+  RegisteredProtocol: TRegisteredProtocol;
+begin
+  ClearPreviousDownload;
+
+  P := URIProtocol(Url);
+
+  { Handle early castle-data:, protocol to access application data,
+    https://castle-engine.io/manual_data_directory.php . }
+  if P = 'castle-data' then
+  begin
+    RealUrl := ResolveCastleDataURL(Url);
+    P := URIProtocol(RealUrl);
+  end else
+    RealUrl := Url;
+
+  if LogAllLoading then
+    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(RealUrl)]);
+
+  RegisteredProtocol := RegisteredProtocols.Find(P);
+  if RegisteredProtocol <> nil then
+  begin
+    if RegisteredProtocol.AsynchronousReader <> nil then
+    begin
+      Reader := RegisteredProtocol.AsynchronousReader.Create(RealUrl);
+    end else
+    if Assigned(RegisteredProtocol.ReadEvent) then
+    begin
+      SynchronousRead(RegisteredProtocol.ReadEvent, RealUrl);
+    end else
+      raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+  end else
+    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
 end;
 
 procedure TCastleDownload.WaitForFinish;
 begin
+  if (Status = dsDownloading) and (Reader = nil) then
+    raise EInternalError.Create('Status is dsDownloading but no asynchronous Reader initialized');
+
   while Status = dsDownloading do
+  begin
+    Assert(Reader <> nil);
+
+    Reader.Update;
+
+    Assert(Reader.Status <> dsNotStarted);
+    FStatus := Reader.Status;
+    FDownloadedBytes := Reader.DownloadedBytes;
+    FTotalBytes := Reader.TotalBytes;
+
+    case FStatus of
+      dsError:
+        begin
+          FErrorMessage := Reader.ErrorMessage;
+          FreeAndNil(Reader.Stream);
+          FreeAndNil(Reader);
+          DoFinish;
+        end;
+      dsSuccess:
+        begin
+          SetContentsApplyOptions(Reader.Stream);
+          Reader.Stream := nil; // not valid anymore, SetContentsApplyOptions took ownership
+          FreeAndNil(Reader);
+          DoFinish;
+        end;
+    end;
+
+    // Reader continues to exist if and only if still dsDownloading
+    Assert((Reader <> nil) = (FStatus = dsDownloading));
+
     Sleep(10);
+  end;
+end;
+
+procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
+
+  { Load Stream to TMemoryStream.
+    Sets given Stream to @nil (it is freed by this function). }
+  function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
+  begin
+    Result := TMemoryStream.Create;
+    try
+      Result.LoadFromStream(Stream);
+      FreeAndNil(Stream);
+      Result.Position := 0; { rewind for easy reading }
+    except
+      FreeAndNil(Result); raise;
+    end;
+  end;
+
+  { Decompress gzipped FileName.
+    When ForceMemoryStream, always returns TMemoryStream.
+    Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
+  function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
+  var
+    NewResult: TMemoryStream;
+  begin
+    Result := TGZFileStream.Create(Stream, false);
+    try
+      Stream := nil; // Stream is owned by Result now
+
+      if ForceMemoryStream then
+      begin
+        { TODO: our engine never uses both soGzip and soForceMemoryStream
+          for now, so below code path is untested. }
+        NewResult := TMemoryStream.Create;
+        ReadGrowingStream(Result, NewResult, true);
+        FreeAndNil(Result);
+        Result := NewResult;
+      end;
+    except
+      FreeAndNil(Result); raise;
+    end;
+  end;
+
+begin
+  // unpack gzip if requested
+  if soGzip in Options then
+    FContents := ReadGzipped(UnderlyingStream, soForceMemoryStream in Options)
+  else
+  if soForceMemoryStream in Options then
+    FContents := CreateMemoryStream(UnderlyingStream)
+  else
+    FContents := UnderlyingStream;
 end;
 
 {$endif}

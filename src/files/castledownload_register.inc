@@ -16,6 +16,36 @@
 {$ifdef read_interface}
 
 type
+  { See @link(TCastleDownload.Status). }
+  TDownloadStatus = (dsNotStarted, dsDownloading, dsError, dsSuccess);
+
+  { Implement this class, and pass to RegisterUrlProtocol,
+    to read protocols asynchronously (such that TCastleDownload can read
+    them asynchronously).
+
+    @bold(There is no point in using this class
+    unless you want to handle custom URL protocols).
+    If you just want to download asynchronously from standard URLs,
+    like file or http, then use TCastleDownload class. }
+  TUrlAsynchronousReader = class
+  public
+    Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.
+    DownloadedBytes, TotalBytes: Int64; //< Will set TCastleDownlad properties of the same name.
+    Stream: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
+    ErrorMessage: String; //< When Status = dsError, download failed with this error.
+
+    { Exceptions inside constructor will make an exception from TCastleDownload.Start.
+      They should be caught if should make Status = dsError instead. }
+    constructor Create(const Url: String); virtual;
+
+    { Exceptions inside Update will make an exception at undefined application point
+      (for now, ApplicationProperties._Update, called by CastleWindow and CastleControl).
+      They should be caught if should make Status = dsError instead. }
+    procedure Update; virtual;
+  end;
+
+  TUrlAsynchronousReaderClass = class of TUrlAsynchronousReader;
+
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
@@ -32,11 +62,23 @@ type
   @raises(EProtocolAlreadyRegistered If the protocol handlers are already registered.) }
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
-  const WriteEvent: TUrlWriteEvent);
+  const WriteEvent: TUrlWriteEvent;
+  const AsynchronousReader: TUrlAsynchronousReaderClass);
 
 {$endif}
 
 {$ifdef read_implementation}
+
+constructor TUrlAsynchronousReader.Create(const Url: String);
+begin
+  inherited Create;
+  Status := dsDownloading;
+  TotalBytes := -1;
+end;
+
+procedure TUrlAsynchronousReader.Update;
+begin
+end;
 
 { registering URL protocols -------------------------------------------------- }
 
@@ -45,6 +87,7 @@ type
     Protocol: String;
     ReadEvent: TUrlReadEvent;
     WriteEvent: TUrlWriteEvent;
+    AsynchronousReader: TUrlAsynchronousReaderClass;
   end;
 
   TRegisteredProtocols = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TRegisteredProtocol>)
@@ -53,7 +96,8 @@ type
 
     procedure Add(const Protocol: String;
       const ReadEvent: TUrlReadEvent;
-      const WriteEvent: TUrlWriteEvent); reintroduce;
+      const WriteEvent: TUrlWriteEvent;
+      const AsynchronousReader: TUrlAsynchronousReaderClass); reintroduce;
   end;
 
 function TRegisteredProtocols.Find(const Protocol: String): TRegisteredProtocol;
@@ -66,7 +110,8 @@ end;
 
 procedure TRegisteredProtocols.Add(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
-  const WriteEvent: TUrlWriteEvent);
+  const WriteEvent: TUrlWriteEvent;
+  const AsynchronousReader: TUrlAsynchronousReaderClass);
 var
   P: TRegisteredProtocol;
 begin
@@ -76,6 +121,7 @@ begin
   P.Protocol := Protocol;
   P.ReadEvent := ReadEvent;
   P.WriteEvent := WriteEvent;
+  P.AsynchronousReader := AsynchronousReader;
   inherited Add(P);
 end;
 
@@ -91,34 +137,38 @@ begin
 
     // register default protocols handled in this unit
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('http', @TUrlHttpAndroid(nil).Read, nil);
-    FRegisteredProtocols.Add('https', @TUrlHttpAndroid(nil).Read, nil);
+    FRegisteredProtocols.Add('http', @TUrlHttpAndroid(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('https', @TUrlHttpAndroid(nil).Read, nil, nil);
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
-    FRegisteredProtocols.Add('http', @TUrlHttpFpHttpClient(nil).Read, nil);
-    FRegisteredProtocols.Add('https', @TUrlHttpFpHttpClient(nil).Read, nil);
+    // TODO
+    // FRegisteredProtocols.Add('http', nil, nil, THttpFpHttpClientReader);
+    // FRegisteredProtocols.Add('https', nil, nil, THttpFpHttpClientReader);
+    FRegisteredProtocols.Add('http', @TUrlHttpFpHttpClient(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('https', @TUrlHttpFpHttpClient(nil).Read, nil, nil);
     {$endif}
-    FRegisteredProtocols.Add('', @TUrlFile(nil).Read, @TUrlFile(nil).Write);
-    FRegisteredProtocols.Add('file', @TUrlFile(nil).Read, @TUrlFile(nil).Write);
+    FRegisteredProtocols.Add('', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);
+    FRegisteredProtocols.Add('file', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('assets', @TUrlCastleAndroidAssets(nil).Read, nil);
-    FRegisteredProtocols.Add('castle-android-assets', @TUrlCastleAndroidAssets(nil).Read, nil);
+    FRegisteredProtocols.Add('assets', @TUrlCastleAndroidAssets(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('castle-android-assets', @TUrlCastleAndroidAssets(nil).Read, nil, nil);
     {$endif}
-    FRegisteredProtocols.Add('castle-data', nil, nil);
-    FRegisteredProtocols.Add('data', @TUrlData(nil).Read, nil);
-    FRegisteredProtocols.Add('ecmascript', @TUrlEcmaScript(nil).Read, nil);
-    FRegisteredProtocols.Add('javascript', @TUrlEcmaScript(nil).Read, nil);
-    FRegisteredProtocols.Add('castlescript', @TUrlCastleScript(nil).Read, nil);
-    FRegisteredProtocols.Add('kambiscript', @TUrlCastleScript(nil).Read, nil);
-    FRegisteredProtocols.Add('compiled', @TUrlCompiled(nil).Read, nil);
+    FRegisteredProtocols.Add('castle-data', nil, nil, nil);
+    FRegisteredProtocols.Add('data', @TUrlData(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('ecmascript', @TUrlEcmaScript(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('javascript', @TUrlEcmaScript(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('castlescript', @TUrlCastleScript(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('kambiscript', @TUrlCastleScript(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('compiled', @TUrlCompiled(nil).Read, nil, nil);
   end;
   Result := FRegisteredProtocols;
 end;
 
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
-  const WriteEvent: TUrlWriteEvent);
+  const WriteEvent: TUrlWriteEvent;
+  const AsynchronousReader: TUrlAsynchronousReaderClass);
 begin
-  RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent);
+  RegisteredProtocols.Add(Protocol, ReadEvent, WriteEvent, AsynchronousReader);
 end;
 
 {$endif}
