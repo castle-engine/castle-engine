@@ -81,7 +81,6 @@ type
 
 class function TUrlHttpAndroid.Read(const Url: string; out MimeType: string): TStream;
 var
-  AssetStream: TReadAssetStream;
   DownloadService: TAndroidDownloadService;
 begin
   if not EnableNetwork then
