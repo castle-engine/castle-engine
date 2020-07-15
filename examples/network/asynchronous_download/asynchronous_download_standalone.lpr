@@ -8,7 +8,12 @@ program asynchronous_download_standalone;
   automatically created by "castle-engine compile". }
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
-uses CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize;
+uses
+  {$ifdef CASTLE_THREADS}
+    {$info Thread support enabled.}
+    {$ifdef UNIX} CThreads, {$endif}
+  {$endif}
+  CastleApplicationProperties, CastleLog, CastleWindow, GameInitialize;
 
 begin
   { Optionally you can specify here your application version.

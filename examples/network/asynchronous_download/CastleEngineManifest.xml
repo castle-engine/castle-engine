@@ -7,4 +7,9 @@
   <dependencies>
     <dependency name="Https" /> <!-- read https links -->
   </dependencies>
+  <compiler_options>
+    <custom_options>
+      <option>-dCASTLE_THREADS</option>
+    </custom_options>
+  </compiler_options>
 </project>

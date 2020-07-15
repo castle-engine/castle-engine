@@ -23,99 +23,113 @@
 
 {$ifdef HAS_FP_HTTP_CLIENT}
 
-{ TProgressMemoryStream ------------------------------------------------------ }
-
 type
-  { TMemoryStream descendant that shows a progress bar when writing to it. }
-  TProgressMemoryStream = class(TMemoryStream)
-  private
-    // TODO: ParentDownload: TCastleDownload;
-  public
-    function Write(const Buffer; Count: Longint): Longint; override;
-  end;
+  TFpHttpClientThread = class;
 
-function TProgressMemoryStream.Write(const Buffer; Count: Longint): Longint;
-begin
-  Result := inherited;
-  // TODO
-  // if ParentDownload <> nil then
-  //   ParentDownload.DownloadedBytes := Max(Size, 0);
-end;
+  { Customized HTTP client. In addition to TFpHttpClient this:
 
-{ TCastleHTTPClient ---------------------------------------------------------- }
+    - Updates ParentThread.DownloadedBytes
+    - Updates ParentThread.TotalBytes
+    - Terminates the client, if thread is terminated
 
-type
-  { HTTP client. In addition to TFPHTTPClient, it handles a progress bar
-    initialization and finalization. }
-  TCastleHTTPClient = class(TFPHTTPClient)
-  private
-    ProgressStream: TProgressMemoryStream;
+    This is used only within thread, in TFpHttpClientThread. }
+  TCastleFpHttpClient = class(TFpHttpClient)
   protected
     function ReadResponseHeaders: Integer; override;
     procedure DisconnectFromServer; override;
     procedure RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
+    procedure DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
   public
+    ParentThread: TFpHttpClientThread;
+    Stream: TMemoryStream;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
-constructor TCastleHTTPClient.Create(AOwner: TComponent);
+  { Thread that downloads using FpHttpClient. }
+  TFpHttpClientThread = class(TThread)
+  public
+    Url: String; //< set before Execute
+
+    DownloadedBytes, TotalBytes: Int64;
+
+    { Once we're finished (Running = false) then StatusSuccess informs about
+      whether we have dsSuccess or dsError.
+      When @true, use Stream and MimeType.
+      (set to @nil Stream, to avoid freeing it here).
+      When @false, StatusErrorMessage is the error message. }
+    Success: Boolean;
+    Stream: TMemoryStream;
+    MimeType: String;
+    ErrorMessage: String;
+    constructor Create(const AUrl: String);
+    destructor Destroy; override;
+    procedure Execute; override;
+  end;
+
+  { TUrlAsynchronousReader descendant that implements http downloading. }
+  TFpHttpClientReader = class(TUrlAsynchronousReader)
+  strict private
+    Thread: TFpHttpClientThread;
+  public
+    constructor Create(const AUrl: String); override;
+    destructor Destroy; override;
+    procedure Update; override;
+  end;
+
+{ TCastleFpHttpClient ---------------------------------------------------------- }
+
+constructor TCastleFpHttpClient.Create(AOwner: TComponent);
 begin
   inherited;
   OnRedirect := @RedirectLog;
+  OnDataReceived := @DataReceived;
 end;
 
-procedure TCastleHTTPClient.RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
+procedure TCastleFpHttpClient.RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
 begin
+  // TODO: Not safe from thread:
   WritelnLog('Network', 'Following HTTP redirect to "%s"', [ADest]);
 end;
 
-function TCastleHTTPClient.ReadResponseHeaders: Integer;
+procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
+begin
+  ParentThread.DownloadedBytes := Max(Stream.Size, 0);
+  { FpHttpClient sets this to -1 if unknown, which is exactly what we want. }
+  ParentThread.TotalBytes := ContentLength;
+end;
 
-  { Read Content-Length from ResponseHeaders.
-    Returns -1 if unknown or invalid. }
-  function CheckContentLength: Integer;
-  { Code copied from TFPHTTPClient.CheckContentLength (it is private there).
-    The license is the same as our engine, so copying is Ok. }
-  const CL = 'content-length:';
-  var
-    S: String;
-    I: Integer;
-  begin
-    Result := -1;
-    I := 0;
-    while (Result = -1) and (I < ResponseHeaders.Count) do
-    begin
-      S := Trim(LowerCase(ResponseHeaders[i]));
-      if Copy(S, 1, Length(Cl)) = Cl then
-      begin
-        System.Delete(S, 1, Length(CL));
-        Result := StrToIntDef(Trim(S), -1);
-      end;
-      Inc(I);
-    end;
-  end;
-
+function TCastleFpHttpClient.ReadResponseHeaders: Integer;
 begin
   Result := inherited;
-  // TODO
-  // ParentDownload.TotalBytes := CheckContentLength;
 end;
 
-procedure TCastleHTTPClient.DisconnectFromServer;
+procedure TCastleFpHttpClient.DisconnectFromServer;
 begin
   inherited;
 end;
 
-destructor TCastleHTTPClient.Destroy;
+destructor TCastleFpHttpClient.Destroy;
 begin
   inherited;
 end;
 
-{ NetworkDownload ------------------------------------------------------------ }
+{ TFpHttpClientThread -------------------------------------------------------- }
 
-{ Download using FpHttpClient. Also updates MimeType. }
-function NetworkDownload(const URL: string; out MimeType: string): TProgressMemoryStream;
+constructor TFpHttpClientThread.Create(const AUrl: String);
+begin
+  Url := AUrl;
+  Stream := TMemoryStream.Create;
+  inherited Create(false);
+end;
+
+destructor TFpHttpClientThread.Destroy;
+begin
+  FreeAndNil(Stream);
+  inherited;
+end;
+
+procedure TFpHttpClientThread.Execute;
 
   { Extract MimeType from HTTP Content-Type.
     Returns empty string if Content-Type is empty (undefined). }
@@ -131,79 +145,127 @@ function NetworkDownload(const URL: string; out MimeType: string): TProgressMemo
   end;
 
 var
-  Client: TCastleHTTPClient;
-  MimeTypeFromContentHeader: boolean;
+  Client: TCastleFpHttpClient;
 begin
-  Result := TProgressMemoryStream.Create;
   try
-    Client := TCastleHTTPClient.Create(nil);
+    Client := TCastleFpHttpClient.Create(nil);
     try
-      Client.ProgressStream := Result;
+      Client.ParentThread := Self;
+      Client.Stream := Stream;
       Client.AllowRedirect := true;
-      { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
-      Client.Get(Url, Result);
+
+      Client.Get(Url, Stream);
 
       // Determine MimeType
-      // TODO: move to TCastleHTTPClient.ReadResponseHeaders, to determine earlier
+      // TODO: move to TCastleFpHttpClient.ReadResponseHeaders, to determine earlier
       // Writeln(Client.ResponseHeaders.Text);
       Client.ResponseHeaders.NameValueSeparator := ':';
       MimeType := ContentTypeToMimeType(Client.ResponseHeaders.Values['Content-Type']);
-      MimeTypeFromContentHeader := MimeType <> '';
-      if not MimeTypeFromContentHeader then
+      if MimeType = '' then
         MimeType := URIMimeType(URL);
-
-      WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", MIME type was specified by server: %s',
-        [URL, MimeType, SysUtils.BoolToStr(MimeTypeFromContentHeader, true)]);
     finally FreeAndNil(Client) end;
-    Result.Position := 0; { rewind for easy reading }
+
+    Stream.Position := 0; { rewind for easy reading }
+
+    Success := true;
   except
-    FreeAndNil(Result); raise;
+    on E: TObject do
+    begin
+      Success := false;
+      ErrorMessage := Format('Error when downloading "%s": ', [URIDisplay(Url)]) + ExceptMessage(E);
+    end;
   end;
 end;
 
-{ TUrlHttpFpHttpClient ------------------------------------------------------- }
+{ TFpHttpClientReader --------------------------------------------------- }
 
-type
-  TUrlHttpFpHttpClient = class
-    class function Read(const Url: string; out MimeType: string): TStream;
-  end;
-
-class function TUrlHttpFpHttpClient.Read(const Url: string; out MimeType: string): TStream;
+constructor TFpHttpClientReader.Create(const AUrl: String);
 begin
+  inherited;
+
   if not EnableNetwork then
-    raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
+  begin
+    Status := dsError;
+    ErrorMessage := 'Downloading network resources (from "http" or "https" protocols) is not enabled';
+    Exit;
+  end;
 
   {$ifdef VER3_0}
   if URIProtocol(Url) = 'https' then
+  begin
     { Testcase: FPC 3.0.4, Linux/x86_64:
       TFPCustomHTTPClient fails with Access Violation on https URLs.
       TODO: Test on Windows/x86_64. }
-    raise EDownloadError.Create('Downloading using "https" protocol does not work when the application is compiled with FPC 3.0.x. Use newer FPC (and add OpenSSLSockets unit to the uses clause).');
+    Status := dsError;
+    ErrorMessage := 'Downloading using "https" protocol does not work when the application is compiled with FPC 3.0.x. Use newer FPC (and add OpenSSLSockets unit to the uses clause).';
+    Exit;
+  end;
   {$endif}
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
-  Result := NetworkDownload(Url, MimeType);
+
+  {$ifdef CASTLE_SUPPORTS_THREADING}
+  Thread := TFpHttpClientThread.Create(Url);
+  {$else}
+  Status := dsError;
+  ErrorMessage := 'Downloading from "http" / "https" on platforms without threads not possible now';
+  {$endif}
 end;
 
-{ THttpFpHttpClientReader --------------------------------------------------- }
-
-type
-  THttpFpHttpClientReader = class(TUrlAsynchronousReader)
-    constructor Create(const Url: String); override;
-    procedure Update; override;
+destructor TFpHttpClientReader.Destroy;
+begin
+  if Thread <> nil then
+  begin
+    Thread.Terminate;
+    if not Thread.Finished then
+    begin
+      { TODO: This will leak memory if Running changed from true to false between these 2 lines.
+        Then thread instance will not be freed, as "OnTerminate" will not occur
+        (unless TThread is smart and accounts for it?). }
+      WritelnLog('Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+      Thread.FreeOnTerminate := true;
+      Thread := nil;
+    end else
+      FreeAndNil(Thread);
   end;
 
-constructor THttpFpHttpClientReader.Create(const Url: String);
-begin
   inherited;
-  // TODO
 end;
 
-procedure THttpFpHttpClientReader.Update;
+procedure TFpHttpClientReader.Update;
 begin
   inherited;
-  // TODO
+
+  if Thread <> nil then // Thread may be nil here if not supported on this platform
+  begin
+    if not Thread.Finished then
+    begin
+      // TODO synchronize safely
+      DownloadedBytes := Thread.DownloadedBytes;
+      TotalBytes := Thread.TotalBytes;
+    end else
+    begin
+      // synchronize one last time from thread
+      DownloadedBytes := Thread.DownloadedBytes;
+      TotalBytes := Thread.TotalBytes;
+      if Thread.Success then
+      begin
+        Status := dsSuccess;
+        MimeType := Thread.MimeType;
+        Stream := Thread.Stream;
+        Thread.Stream := nil; // do not free our Stream inside TFpHttpClientThread destructor anymore
+        WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [
+          Url,
+          MimeType
+        ]);
+      end else
+      begin
+        Status := dsError;
+        ErrorMessage := Thread.ErrorMessage;
+      end;
+    end;
+  end;
 end;
 
 {$endif HAS_FP_HTTP_CLIENT}

@@ -28,15 +28,20 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
+  strict private
+    FUrl: String;
   public
     Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.
     DownloadedBytes, TotalBytes: Int64; //< Will set TCastleDownlad properties of the same name.
     Stream: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
     ErrorMessage: String; //< When Status = dsError, download failed with this error.
+    MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
+
+    property Url: String read FUrl;
 
     { Exceptions inside constructor will make an exception from TCastleDownload.Start.
       They should be caught if should make Status = dsError instead. }
-    constructor Create(const Url: String); virtual;
+    constructor Create(const AUrl: String); virtual;
 
     { Exceptions inside Update will make an exception at undefined application point
       (for now, ApplicationProperties._Update, called by CastleWindow and CastleControl).
@@ -69,9 +74,10 @@ procedure RegisterUrlProtocol(const Protocol: String;
 
 {$ifdef read_implementation}
 
-constructor TUrlAsynchronousReader.Create(const Url: String);
+constructor TUrlAsynchronousReader.Create(const AUrl: String);
 begin
   inherited Create;
+  FUrl := AUrl;
   Status := dsDownloading;
   TotalBytes := -1;
 end;
@@ -140,11 +146,8 @@ begin
     FRegisteredProtocols.Add('http', @TUrlHttpAndroid(nil).Read, nil, nil);
     FRegisteredProtocols.Add('https', @TUrlHttpAndroid(nil).Read, nil, nil);
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
-    // TODO
-    // FRegisteredProtocols.Add('http', nil, nil, THttpFpHttpClientReader);
-    // FRegisteredProtocols.Add('https', nil, nil, THttpFpHttpClientReader);
-    FRegisteredProtocols.Add('http', @TUrlHttpFpHttpClient(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('https', @TUrlHttpFpHttpClient(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader);
+    FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader);
     {$endif}
     FRegisteredProtocols.Add('', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);
     FRegisteredProtocols.Add('file', @TUrlFile(nil).Read, @TUrlFile(nil).Write, nil);

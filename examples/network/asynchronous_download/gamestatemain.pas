@@ -175,6 +175,12 @@ begin
       if Download[I].Status in [dsDownloading, dsSuccess] then
       begin
         ProgressDownload[I].Color := HexToColor('399100E6');
+
+        if Download[I].Status = dsSuccess then
+          { Regardless of TotalBytes (which may remain -1 if server never reported them)
+            report progress as finished when dsSuccess. }
+          ProgressDownload[I].WidthFraction := 1
+        else
         if Download[I].TotalBytes > 0 then
           { Note that when WidthFraction = 0, then WidthFraction is ignored,
             and the Width property determines size.

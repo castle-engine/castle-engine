@@ -64,6 +64,7 @@ type
     FTotalBytes, FDownloadedBytes: Int64;
     FMimeType: String;
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
+    UpdateInitialized: Boolean;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadEvent);
@@ -74,6 +75,7 @@ type
       (like TCastleDownload instance or FContents or it is freed).
       Consider the reference to UnderlyingStream invalid after this call. }
     procedure SetContentsApplyOptions(UnderlyingStream: TStream);
+    procedure Update(Sender: TObject);
   protected
     procedure DoFinish; virtual;
   public
@@ -163,6 +165,11 @@ begin
   begin
     FreeAndNil(Reader.Stream); // Reader doesn't own Stream, so we need to take care of it
     FreeAndNil(Reader);
+  end;
+  if UpdateInitialized then
+  begin
+    ApplicationProperties.OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    UpdateInitialized := false;
   end;
   inherited;
 end;
@@ -286,6 +293,12 @@ begin
 
   P := URIProtocol(Url);
 
+  if not UpdateInitialized then
+  begin
+    ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif}Update);
+    UpdateInitialized := true;
+  end;
+
   { Handle early castle-data:, protocol to access application data,
     https://castle-engine.io/manual_data_directory.php . }
   if P = 'castle-data' then
@@ -309,17 +322,29 @@ begin
     begin
       SynchronousRead(RegisteredProtocol.ReadEvent, RealUrl);
     end else
+    begin
+      FStatus := dsError;
       raise EDownloadError.CreateFmt('Cannot read URLs with protocol "%s"', [P]);
+    end;
   end else
+  begin
+    FStatus := dsError;
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+  end;
 end;
 
 procedure TCastleDownload.WaitForFinish;
 begin
-  if (Status = dsDownloading) and (Reader = nil) then
-    raise EInternalError.Create('Status is dsDownloading but no asynchronous Reader initialized');
-
   while Status = dsDownloading do
+  begin
+    Update(nil);
+    Sleep(10);
+  end;
+end;
+
+procedure TCastleDownload.Update(Sender: TObject);
+begin
+  if Status = dsDownloading then
   begin
     Assert(Reader <> nil);
 
@@ -329,6 +354,7 @@ begin
     FStatus := Reader.Status;
     FDownloadedBytes := Reader.DownloadedBytes;
     FTotalBytes := Reader.TotalBytes;
+    FMimeType := Reader.MimeType;
 
     case FStatus of
       dsError:
@@ -349,8 +375,6 @@ begin
 
     // Reader continues to exist if and only if still dsDownloading
     Assert((Reader <> nil) = (FStatus = dsDownloading));
-
-    Sleep(10);
   end;
 end;
 
