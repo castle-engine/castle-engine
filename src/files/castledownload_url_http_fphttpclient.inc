@@ -98,8 +98,18 @@ end;
 procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
 begin
   ParentThread.DownloadedBytes := Max(Stream.Size, 0);
-  { FpHttpClient sets this to -1 if unknown, which is exactly what we want. }
-  ParentThread.TotalBytes := ContentLength;
+
+  if ContentLength = 0 then
+    { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
+      We want to treat it as -1 (unknown) then.
+      Testcase: examples/network/asynchronous_download/ with
+      https://castle-engine.io/modern_pascal_introduction.html . }
+    ParentThread.TotalBytes := -1
+  else
+    { Otherwise ContentLength is exactly what we need for TotalBytes.
+      Note: FpHttpClient may set ContentLength to -1 if unknown
+      (not specified in headers), which is exactly what we want. }
+    ParentThread.TotalBytes := ContentLength;
 end;
 
 function TCastleFpHttpClient.ReadResponseHeaders: Integer;
