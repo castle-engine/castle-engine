@@ -156,6 +156,7 @@ begin
   if EnableThreading then
     inherited Create(true);
   Stream := TMemoryStream.Create;
+  TotalBytes := -1;
 end;
 
 destructor TFpHttpClientThread.Destroy;
