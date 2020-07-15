@@ -103,7 +103,7 @@ begin
     { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
       We want to treat it as -1 (unknown) then.
       Testcase: examples/network/asynchronous_download/ with
-      https://castle-engine.io/modern_pascal_introduction.html . }
+      https://castle-engine.io/modern_pascal_introduction.html (FPC 3.2.0 on Linux/x86_64). }
     ParentThread.TotalBytes := -1
   else
     { Otherwise ContentLength is exactly what we need for TotalBytes.
@@ -214,17 +214,30 @@ begin
     Exit;
   end;
 
-  {$ifdef VER3_0}
   if URIProtocol(Url) = 'https' then
   begin
+    {$ifdef VER3_0}
     { Testcase: FPC 3.0.4, Linux/x86_64:
       TFPCustomHTTPClient fails with Access Violation on https URLs.
       TODO: Test on Windows/x86_64. }
     Status := dsError;
     ErrorMessage := 'Downloading using "https" protocol does not work when the application is compiled with FPC 3.0.x. Use newer FPC (and add OpenSSLSockets unit to the uses clause).';
     Exit;
+    {$endif}
+
+    { The first download using https initializes OpenSSL library.
+      This is done by TFPCustomHTTPClient accessing TSSLSocketHandler.GetDefaultHandler,
+      and using OpenSSLSockets unit initializes that handler to do MaybeInitSSLInterface
+      at handler creation.
+      However this cannot be done from thread: multiple threads trying to do
+      MaybeInitSSLInterface at the same time, means that only 1 succeeds,
+      others raise "Could not initialize OpenSSL library".
+      Testcase: examples/network/asynchronous_download/ with 3 downloads over https
+      (FPC 3.2.0 on Linux/x86_64).
+
+      Solution is simply to initialize it from main thread here. }
+    TSSLSocketHandler.GetDefaultHandler;
   end;
-  {$endif}
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
