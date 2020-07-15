@@ -42,6 +42,7 @@ type
     procedure DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
   public
     ParentThread: TFpHttpClientThread;
+    SynchronizationCS: TCriticalSection;
     Stream: TMemoryStream;
     MimeTypeFromUrl: String;
     constructor Create(AOwner: TComponent); override;
@@ -51,7 +52,9 @@ type
   { Thread that downloads using FpHttpClient. }
   TFpHttpClientThread = class(TThread)
   public
-    Url: String; //< set before Execute
+    { Set these before Execute }
+    Url: String;
+    SynchronizationCS: TCriticalSection;
 
     { Updated even during downloading. }
     DownloadedBytes, TotalBytes: Int64;
@@ -73,6 +76,7 @@ type
   TFpHttpClientReader = class(TUrlAsynchronousReader)
   strict private
     Thread: TFpHttpClientThread;
+    SynchronizationCS: TCriticalSection;
     procedure SynchronizeFromFinishedThread;
   public
     constructor Create(const AUrl: String; ForceSynchronous: Boolean); override;
@@ -97,19 +101,25 @@ end;
 
 procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
 begin
-  ParentThread.DownloadedBytes := Max(Stream.Size, 0);
+  SynchronizationCS.Acquire;
+  try
+    ParentThread.DownloadedBytes := Max(Stream.Size, 0);
 
-  if ContentLength = 0 then
-    { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
-      We want to treat it as -1 (unknown) then.
-      Testcase: examples/network/asynchronous_download/ with
-      https://castle-engine.io/modern_pascal_introduction.html (FPC 3.2.0 on Linux/x86_64). }
-    ParentThread.TotalBytes := -1
-  else
-    { Otherwise ContentLength is exactly what we need for TotalBytes.
-      Note: FpHttpClient may set ContentLength to -1 if unknown
-      (not specified in headers), which is exactly what we want. }
-    ParentThread.TotalBytes := ContentLength;
+    if ContentLength = 0 then
+      { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
+        We want to treat it as -1 (unknown) then.
+        Testcase: examples/network/asynchronous_download/ with
+        https://castle-engine.io/modern_pascal_introduction.html (FPC 3.2.0 on Linux/x86_64). }
+      ParentThread.TotalBytes := -1
+    else
+      { Otherwise ContentLength is exactly what we need for TotalBytes.
+        Note: FpHttpClient may set ContentLength to -1 if unknown
+        (not specified in headers), which is exactly what we want. }
+      ParentThread.TotalBytes := ContentLength;
+  finally SynchronizationCS.Release end;
+
+  if ParentThread.Terminated then
+    Terminate;
 end;
 
 function TCastleFpHttpClient.ReadResponseHeaders: Integer;
@@ -141,7 +151,10 @@ begin
     MimeType := ContentTypeToMimeType(ResponseHeaders.Values['Content-Type']);
     if MimeType = '' then
       MimeType := MimeTypeFromUrl;
-    ParentThread.MimeType := MimeType;
+    SynchronizationCS.Acquire;
+    try
+      ParentThread.MimeType := MimeType;
+    finally SynchronizationCS.Release end;
   end;
 end;
 
@@ -183,6 +196,7 @@ begin
     Client := TCastleFpHttpClient.Create(nil);
     try
       Client.ParentThread := Self;
+      Client.SynchronizationCS := SynchronizationCS;
       Client.Stream := Stream;
       Client.AllowRedirect := true;
       Client.MimeTypeFromUrl := URIMimeType(Url);
@@ -250,8 +264,11 @@ begin
   ForceSynchronous := true;
   {$endif}
 
+  SynchronizationCS := TCriticalSection.Create;
+
   Thread := TFpHttpClientThread.Create(not ForceSynchronous);
   Thread.Url := Url;
+  Thread.SynchronizationCS := SynchronizationCS;
   if ForceSynchronous then
   begin
     try
@@ -267,17 +284,37 @@ begin
   if Thread <> nil then
   begin
     Thread.Terminate;
+
     if not Thread.Finished then
     begin
       { TODO: This will leak memory if Running changed from true to false between these 2 lines.
-        Then thread instance will not be freed, as "OnTerminate" will not occur
-        (unless TThread is smart and accounts for it?). }
+        Then thread instance will not be freed, as ThreadProc (running Execute,
+        and potentially freeing thread afterwards) has already finished
+        before we set FreeOnTerminate.
+
+        We cannot fix it by doing "Thread.FreeOnTerminate := true" earlier,
+        because then we have a race, and "Thread" reference may no longer be used.
+
+        A potential fix is to do just:
+
+          Thread.Terminate;
+          Thread.WaitFor;
+          FreeAndNil(Thread);
+
+        but this:
+        1. would cause short delay when interrupting downloads
+        2. doesn't work to prevent visible mem leak in examples/network/asynchronous_download/
+           (but that leak seems unrelated? it occurs even if nothing was interrupted?)
+      }
       WritelnLog('Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
       Thread.FreeOnTerminate := true;
       Thread := nil;
+      SynchronizationCS := nil; // do not free it here, let Thread use it
     end else
       FreeAndNil(Thread);
   end;
+
+  FreeAndNil(SynchronizationCS);
 
   inherited;
 end;
@@ -313,10 +350,12 @@ begin
   begin
     if not Thread.Finished then
     begin
-      // TODO synchronize safely
-      DownloadedBytes := Thread.DownloadedBytes;
-      TotalBytes := Thread.TotalBytes;
-      MimeType := Thread.MimeType;
+      SynchronizationCS.Acquire;
+      try
+        DownloadedBytes := Thread.DownloadedBytes;
+        TotalBytes := Thread.TotalBytes;
+        MimeType := Thread.MimeType;
+      finally SynchronizationCS.Release end;
     end else
     begin
       SynchronizeFromFinishedThread;
