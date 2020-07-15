@@ -146,6 +146,7 @@ begin
     D.OwnsContents := false;
     D.Url := Url;
     D.Options := Options;
+    D.ForceSynchronous := true;
     D.Start;
     D.WaitForFinish;
     Assert(D.Status in [dsError, dsSuccess]);

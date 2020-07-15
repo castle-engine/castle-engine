@@ -64,7 +64,7 @@ type
     Success: Boolean;
     Stream: TMemoryStream;
     ErrorMessage: String;
-    constructor Create(const AUrl: String);
+    constructor Create(const EnableThreading: Boolean);
     destructor Destroy; override;
     procedure Execute; override;
   end;
@@ -73,8 +73,9 @@ type
   TFpHttpClientReader = class(TUrlAsynchronousReader)
   strict private
     Thread: TFpHttpClientThread;
+    procedure SynchronizeFromFinishedThread;
   public
-    constructor Create(const AUrl: String); override;
+    constructor Create(const AUrl: String; ForceSynchronous: Boolean); override;
     destructor Destroy; override;
     procedure Update; override;
   end;
@@ -146,11 +147,15 @@ end;
 
 { TFpHttpClientThread -------------------------------------------------------- }
 
-constructor TFpHttpClientThread.Create(const AUrl: String);
+constructor TFpHttpClientThread.Create(const EnableThreading: Boolean);
 begin
-  Url := AUrl;
+  { Using EnableThreading = false is a hack used when ForceSynchronous = true.
+    This is useful to instantiate TFpHttpClientThread when OS doesn't support
+    threads, or they not linked in (e.g. no CThreads on Unix).
+    In this case we can at least download synchronously, which sometimes is enough. }
+  if EnableThreading then
+    inherited Create(true);
   Stream := TMemoryStream.Create;
-  inherited Create(false);
 end;
 
 destructor TFpHttpClientThread.Destroy;
@@ -187,7 +192,7 @@ end;
 
 { TFpHttpClientReader --------------------------------------------------- }
 
-constructor TFpHttpClientReader.Create(const AUrl: String);
+constructor TFpHttpClientReader.Create(const AUrl: String; ForceSynchronous: Boolean);
 begin
   inherited;
 
@@ -213,12 +218,24 @@ begin
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
 
-  {$ifdef CASTLE_SUPPORTS_THREADING}
-  Thread := TFpHttpClientThread.Create(Url);
-  {$else}
-  Status := dsError;
-  ErrorMessage := 'Downloading from "http" / "https" on platforms without threads not possible now';
+  { ForceSynchronous allows to make synchronous Download work,
+    and TCastleDownload "downgrade" to working synchronously (instead of just failing) when
+    - binary has no thread support linked (e.g. no CThreads linked on Unix).
+    - OS has no thread support. }
+  {$ifndef CASTLE_SUPPORTS_THREADING}
+  ForceSynchronous := true;
   {$endif}
+
+  Thread := TFpHttpClientThread.Create(not ForceSynchronous);
+  Thread.Url := Url;
+  if ForceSynchronous then
+  begin
+    try
+      Thread.Execute; // execute without any threads, immediately free afterwards
+      SynchronizeFromFinishedThread;
+    finally FreeAndNil(Thread) end;
+  end else
+    Thread.Start;
 end;
 
 destructor TFpHttpClientReader.Destroy;
@@ -241,6 +258,29 @@ begin
   inherited;
 end;
 
+procedure TFpHttpClientReader.SynchronizeFromFinishedThread;
+begin
+  // synchronize one last time from Thread, when it finished work in Execute
+  DownloadedBytes := Thread.DownloadedBytes;
+  TotalBytes := Thread.TotalBytes;
+  MimeType := Thread.MimeType;
+  if Thread.Success then
+  begin
+    Status := dsSuccess;
+    MimeType := Thread.MimeType;
+    Stream := Thread.Stream;
+    Thread.Stream := nil; // do not free our Stream inside TFpHttpClientThread destructor anymore
+    WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [
+      Url,
+      MimeType
+    ]);
+  end else
+  begin
+    Status := dsError;
+    ErrorMessage := Thread.ErrorMessage;
+  end;
+end;
+
 procedure TFpHttpClientReader.Update;
 begin
   inherited;
@@ -255,25 +295,7 @@ begin
       MimeType := Thread.MimeType;
     end else
     begin
-      // synchronize one last time from thread
-      DownloadedBytes := Thread.DownloadedBytes;
-      TotalBytes := Thread.TotalBytes;
-      MimeType := Thread.MimeType;
-      if Thread.Success then
-      begin
-        Status := dsSuccess;
-        MimeType := Thread.MimeType;
-        Stream := Thread.Stream;
-        Thread.Stream := nil; // do not free our Stream inside TFpHttpClientThread destructor anymore
-        WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [
-          Url,
-          MimeType
-        ]);
-      end else
-      begin
-        Status := dsError;
-        ErrorMessage := Thread.ErrorMessage;
-      end;
+      SynchronizeFromFinishedThread;
     end;
   end;
 end;

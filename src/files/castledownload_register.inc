@@ -40,8 +40,10 @@ type
     property Url: String read FUrl;
 
     { Exceptions inside constructor will make an exception from TCastleDownload.Start.
-      They should be caught if should make Status = dsError instead. }
-    constructor Create(const AUrl: String); virtual;
+      They should be caught if should make Status = dsError instead.
+      ForceSynchronous signals that the user will only call WaitForFinish immediately
+      after Start, which may allow to optimize the job. }
+    constructor Create(const AUrl: String; ForceSynchronous: Boolean); virtual;
 
     { Exceptions inside Update will make an exception at undefined application point
       (for now, ApplicationProperties._Update, called by CastleWindow and CastleControl).
@@ -74,7 +76,7 @@ procedure RegisterUrlProtocol(const Protocol: String;
 
 {$ifdef read_implementation}
 
-constructor TUrlAsynchronousReader.Create(const AUrl: String);
+constructor TUrlAsynchronousReader.Create(const AUrl: String; ForceSynchronous: Boolean);
 begin
   inherited Create;
   FUrl := AUrl;

@@ -76,6 +76,9 @@ type
       Consider the reference to UnderlyingStream invalid after this call. }
     procedure SetContentsApplyOptions(UnderlyingStream: TStream);
     procedure Update(Sender: TObject);
+  private
+    { Set by Download(). }
+    ForceSynchronous: Boolean;
   protected
     procedure DoFinish; virtual;
   public
@@ -316,7 +319,7 @@ begin
   begin
     if RegisteredProtocol.AsynchronousReader <> nil then
     begin
-      Reader := RegisteredProtocol.AsynchronousReader.Create(RealUrl);
+      Reader := RegisteredProtocol.AsynchronousReader.Create(RealUrl, ForceSynchronous);
     end else
     if Assigned(RegisteredProtocol.ReadEvent) then
     begin
