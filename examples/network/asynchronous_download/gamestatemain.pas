@@ -98,11 +98,11 @@ const
     'https://castle-engine.io/latest.zip',
     'https://castle-engine.io/modern_pascal_introduction.html',
     'https://en.wikipedia.org/wiki/Main_Page'
-    // 'file:///d:/cygwin64/home/michalis/sources/castle-engine/castle-engine/examples/network/asynchronous_download/data/gears.blend',
-    // 'castle-data:/gears.gltf'
-    // 'https://deliberately-invalid-server.org/deliberately-invalid-url',
+    // 'file:///home/michalis/sources/castle-engine/castle-engine/examples/network/asynchronous_download/data/gears.blend',
+    // 'castle-data:/gears.gltf',
+    // 'https://deliberately-invalid-server.org/deliberately-invalid-url'
     // 'https://castle-engine.io/deliberately-invalid-url',
-    // 'http://example.org/'
+    // 'http://example.org/',
     // 'https://github.com/castle-engine/castle-engine/'
   );
 var
@@ -114,6 +114,22 @@ begin
     Download[I] := TCastleDownload.Create(Self);
     Download[I].Url := Urls[I];
     Download[I].OnFinish := @DownloadFinish;
+
+    { Without soForceMemoryStream, returns as soon as possible with
+      any stream class. This may give you e.g.:
+
+      - TFileStream for normal files. Which is usually fine for normal reading,
+        but note that underlying TFileStream may prevent from keeping
+        the same file open multiple times in multiple TFileStream instances.
+
+      - If you would use soGzip, then it may give you TGZFileStream
+        which is not "seekable", i.e. you cannot freely move within the stream.
+
+      Using soForceMemoryStream guarantees you get TMemoryStream which is easy
+      to handle, always seekable etc.
+    }
+    //Download[I].Options := [soForceMemoryStream];
+
     Download[I].Start;
   end;
 end;
