@@ -30,6 +30,7 @@ type
 
     - Updates ParentThread.DownloadedBytes
     - Updates ParentThread.TotalBytes
+    - Updates ParentThread.MimeType
     - Terminates the client, if thread is terminated
 
     This is used only within thread, in TFpHttpClientThread. }
@@ -42,6 +43,7 @@ type
   public
     ParentThread: TFpHttpClientThread;
     Stream: TMemoryStream;
+    MimeTypeFromUrl: String;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
@@ -51,16 +53,16 @@ type
   public
     Url: String; //< set before Execute
 
+    { Updated even during downloading. }
     DownloadedBytes, TotalBytes: Int64;
+    MimeType: String;
 
     { Once we're finished (Running = false) then StatusSuccess informs about
       whether we have dsSuccess or dsError.
-      When @true, use Stream and MimeType.
-      (set to @nil Stream, to avoid freeing it here).
-      When @false, StatusErrorMessage is the error message. }
+      When @true, use Stream (set if to @nil Stream, to avoid freeing it here).
+      When @false, ErrorMessage is the error message. }
     Success: Boolean;
     Stream: TMemoryStream;
-    MimeType: String;
     ErrorMessage: String;
     constructor Create(const AUrl: String);
     destructor Destroy; override;
@@ -100,8 +102,36 @@ begin
 end;
 
 function TCastleFpHttpClient.ReadResponseHeaders: Integer;
+
+  { Extract MimeType from HTTP Content-Type.
+    Returns empty string if Content-Type is empty (undefined). }
+  function ContentTypeToMimeType(const ContentType: string): string;
+  var
+    P: Integer;
+  begin
+    P := Pos(';', ContentType);
+    if P <> 0 then
+      Result := Trim(Copy(ContentType, 1, P - 1))
+    else
+      Result := Trim(ContentType);
+  end;
+
+var
+  MimeType: String;
 begin
   Result := inherited;
+
+  { Determine ParentThread.MimeType.
+    Do it only for http status = 200, otherwise we would detect MIME type
+    for intermediate content send with redirection. }
+  if Result = 200 then
+  begin
+    ResponseHeaders.NameValueSeparator := ':';
+    MimeType := ContentTypeToMimeType(ResponseHeaders.Values['Content-Type']);
+    if MimeType = '' then
+      MimeType := MimeTypeFromUrl;
+    ParentThread.MimeType := MimeType;
+  end;
 end;
 
 procedure TCastleFpHttpClient.DisconnectFromServer;
@@ -130,20 +160,6 @@ begin
 end;
 
 procedure TFpHttpClientThread.Execute;
-
-  { Extract MimeType from HTTP Content-Type.
-    Returns empty string if Content-Type is empty (undefined). }
-  function ContentTypeToMimeType(const ContentType: string): string;
-  var
-    P: Integer;
-  begin
-    P := Pos(';', ContentType);
-    if P <> 0 then
-      Result := Trim(Copy(ContentType, 1, P - 1))
-    else
-      Result := Trim(ContentType);
-  end;
-
 var
   Client: TCastleFpHttpClient;
 begin
@@ -153,16 +169,8 @@ begin
       Client.ParentThread := Self;
       Client.Stream := Stream;
       Client.AllowRedirect := true;
-
+      Client.MimeTypeFromUrl := URIMimeType(Url);
       Client.Get(Url, Stream);
-
-      // Determine MimeType
-      // TODO: move to TCastleFpHttpClient.ReadResponseHeaders, to determine earlier
-      // Writeln(Client.ResponseHeaders.Text);
-      Client.ResponseHeaders.NameValueSeparator := ':';
-      MimeType := ContentTypeToMimeType(Client.ResponseHeaders.Values['Content-Type']);
-      if MimeType = '' then
-        MimeType := URIMimeType(URL);
     finally FreeAndNil(Client) end;
 
     Stream.Position := 0; { rewind for easy reading }
@@ -244,11 +252,13 @@ begin
       // TODO synchronize safely
       DownloadedBytes := Thread.DownloadedBytes;
       TotalBytes := Thread.TotalBytes;
+      MimeType := Thread.MimeType;
     end else
     begin
       // synchronize one last time from thread
       DownloadedBytes := Thread.DownloadedBytes;
       TotalBytes := Thread.TotalBytes;
+      MimeType := Thread.MimeType;
       if Thread.Success then
       begin
         Status := dsSuccess;
