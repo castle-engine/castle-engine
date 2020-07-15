@@ -2329,6 +2329,7 @@ begin
       ReadSkins(Result);
       ExportAnimations;
     finally
+      FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
       FreeAndNil(AnimationSampler);

@@ -236,7 +236,7 @@ begin
       (FPC 3.2.0 on Linux/x86_64).
 
       Solution is simply to initialize it from main thread here. }
-    TSSLSocketHandler.GetDefaultHandler;
+    TSSLSocketHandler.GetDefaultHandler.Free;
   end;
 
   CheckFileAccessSafe(Url);
