@@ -137,9 +137,9 @@ procedure TWeightedMeshTimeline.Parse;
     I, J, K: Integer;
     P, T1, T2, OldT1, OldT2: Integer;
     BoneTimeline: TBoneTimeline;
-    BoneTimelineTranslate: TBoneTimelineTranslate;
-    BoneTimelineScale: TBoneTimelineScale;
-    BoneTimelineRotate: TBoneTimelineRotate;
+    BoneTimelineTranslate: TBoneTimelineTranslate absolute BoneTimeline;
+    BoneTimelineScale: TBoneTimelineScale absolute BoneTimeline;
+    BoneTimelineRotate: TBoneTimelineRotate absolute BoneTimeline;
     Timeframe, Timeframe1, Timeframe2: Single;
     IsExists: Boolean;
     VertexList, VertexList1, VertexList2: TSingleList;
@@ -184,21 +184,18 @@ procedure TWeightedMeshTimeline.Parse;
             BoneTimeline.BackupTime.Insert(0, Timeframe);
             if BoneTimeline is TBoneTimelineTranslate then
             begin
-              BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
               // Add missing value to backup values as safeguard
               BoneTimelineTranslate.BackupVectors.Insert(P, BoneTimelineTranslate.Vectors[P]);
             end else
             if BoneTimeline is TBoneTimelineRotate then
             begin
-              BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Insert(P, BoneTimelineRotate.Angles[P]);
               // Add missing value to backup values as safeguard
               BoneTimelineRotate.BackupAngles.Insert(P, BoneTimelineRotate.BackupAngles[P]);
             end else
             if BoneTimeline is TBoneTimelineScale then
             begin
-              BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Insert(P, BoneTimelineScale.Vectors[P]);
               // Add missing value to backup values as safeguard
               BoneTimelineScale.BackupVectors.Insert(P, BoneTimelineScale.BackupVectors[P]);
@@ -210,21 +207,18 @@ procedure TWeightedMeshTimeline.Parse;
             BoneTimeline.BackupTime.Add(Timeframe);
             if BoneTimeline is TBoneTimelineTranslate then
             begin
-              BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
               BoneTimelineTranslate.Vectors.Add(BoneTimelineTranslate.Vectors[BoneTimelineTranslate.Vectors.Count - 1]);
               // Add missing value to backup values as safeguard
               BoneTimelineTranslate.BackupVectors.Add(BoneTimelineTranslate.BackupVectors[BoneTimelineTranslate.BackupVectors.Count - 1]);
             end else
             if BoneTimeline is TBoneTimelineRotate then
             begin
-              BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
               BoneTimelineRotate.Angles.Add(BoneTimelineRotate.Angles[BoneTimelineRotate.Angles.Count - 1]);
               // Add missing value to backup values as safeguard
               BoneTimelineRotate.BackupAngles.Add(BoneTimelineRotate.BackupAngles[BoneTimelineRotate.BackupAngles.Count - 1]);
             end else
             if BoneTimeline is TBoneTimelineScale then
             begin
-              BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
               BoneTimelineScale.Vectors.Add(BoneTimelineScale.Vectors[BoneTimelineScale.Vectors.Count - 1]);
               // Add missing value to backup values as safeguard
               BoneTimelineScale.BackupVectors.Add(BoneTimelineScale.BackupVectors[BoneTimelineScale.BackupVectors.Count - 1]);
@@ -275,19 +269,16 @@ procedure TWeightedMeshTimeline.Parse;
               end;
               if BoneTimeline is TBoneTimelineTranslate then
               begin
-                BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
                 BoneTimelineTranslate.Vectors.Insert(P,
                     Lerp(T, BoneTimelineTranslate.BackupVectors[T1], BoneTimelineTranslate.BackupVectors[T2]));
               end else
               if BoneTimeline is TBoneTimelineRotate then
               begin
-                BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
                 BoneTimelineRotate.Angles.Insert(P,
                     Lerp(T, BoneTimelineRotate.BackupAngles[T1], BoneTimelineRotate.BackupAngles[T2]));
               end else
               if BoneTimeline is TBoneTimelineScale then
               begin
-                BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
                 BoneTimelineScale.Vectors.Insert(P,
                     Lerp(T, BoneTimelineScale.BackupVectors[T1], BoneTimelineScale.BackupVectors[T2]));
               end;
@@ -300,19 +291,16 @@ procedure TWeightedMeshTimeline.Parse;
               T := (Timeframe - Timeframe1) / (Timeframe2 - Timeframe1);
               if BoneTimeline is TBoneTimelineTranslate then
               begin
-                BoneTimelineTranslate := BoneTimeline as TBoneTimelineTranslate;
                 BoneTimelineTranslate.Vectors.Insert(P,
                     Lerp(T, BoneTimelineTranslate.Vectors[T1], BoneTimelineTranslate.Vectors[P]));
               end else
               if BoneTimeline is TBoneTimelineRotate then
               begin
-                BoneTimelineRotate := BoneTimeline as TBoneTimelineRotate;
                 BoneTimelineRotate.Angles.Insert(P,
                     Lerp(T, BoneTimelineRotate.Angles[T1], BoneTimelineRotate.Angles[P]));
               end else
               if BoneTimeline is TBoneTimelineScale then
               begin
-                BoneTimelineScale := BoneTimeline as TBoneTimelineScale;
                 BoneTimelineScale.Vectors.Insert(P,
                     Lerp(T, BoneTimelineScale.Vectors[T1], BoneTimelineScale.Vectors[P]));
               end;
