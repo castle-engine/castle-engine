@@ -70,7 +70,7 @@ type
 procedure RegisterUrlProtocol(const Protocol: String;
   const ReadEvent: TUrlReadEvent;
   const WriteEvent: TUrlWriteEvent;
-  const AsynchronousReader: TUrlAsynchronousReaderClass);
+  const AsynchronousReader: TUrlAsynchronousReaderClass = nil);
 
 {$endif}
 
