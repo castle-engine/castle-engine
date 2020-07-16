@@ -40,8 +40,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CustomOptions Value="-dCASTLE_THREADS
-"/>
     </Other>
   </CompilerOptions>
   <Debugging>

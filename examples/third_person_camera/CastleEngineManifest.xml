@@ -2,15 +2,5 @@
 <project name="third_person_camera"
   standalone_source="third_person_camera_standalone.lpr"
   game_units="GameInitialize"
-  qualified_name="com.mycompany.thirdpersoncamera"
->
-  <!--
-    Need to compile with threading,
-    to support music streaming, requested in data/audio/index.xml
-  -->
-  <compiler_options>
-    <custom_options>
-      <option>-dCASTLE_THREADS</option>
-    </custom_options>
-  </compiler_options>
+  qualified_name="com.mycompany.thirdpersoncamera">
 </project>
