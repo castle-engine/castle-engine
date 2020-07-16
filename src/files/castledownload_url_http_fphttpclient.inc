@@ -239,6 +239,7 @@ begin
     Exit;
     {$endif}
 
+    {$ifdef VER3_2}
     { The first download using https initializes OpenSSL library.
       This is done by TFPCustomHTTPClient accessing TSSLSocketHandler.GetDefaultHandler,
       and using OpenSSLSockets unit initializes that handler to do MaybeInitSSLInterface
@@ -251,6 +252,7 @@ begin
 
       Solution is simply to initialize it from main thread here. }
     TSSLSocketHandler.GetDefaultHandler.Free;
+    {$endif}
   end;
 
   CheckFileAccessSafe(Url);
