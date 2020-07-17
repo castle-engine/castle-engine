@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties;
+uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload;
 
 procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
@@ -42,7 +42,7 @@ begin
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 1');
-  except on ESoundFileError do ; end;
+  except on EDownloadError{ESoundFileError} do ; end;
 
   try
     SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
@@ -50,7 +50,7 @@ begin
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 2');
-  except on ESoundFileError do ; end;
+  except on EDownloadError{ESoundFileError} do ; end;
 
   try
     SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');

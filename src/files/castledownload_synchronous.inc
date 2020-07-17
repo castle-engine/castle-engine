@@ -109,19 +109,11 @@ type
   You can use @bold(asynchronous downloading) through the @link(TCastleDownload)
   class instead.
 
-  @raises(EDownloadError In case of problems loading from this URL.)
-  @raises(EFOpenError If case opening the underlying file fails,
-    raised in case of file:// URLs.)
-  @raises(EStreamError If case reading the stream fails,
-    raised in case of file:// URLs.)
+  @raises(EDownloadError In case of problems loading from this URL.
 
-  @raises(Exception Various TStream classes (used internally by this
-    function) may raise various exceptions in case the stream cannot be created
-    for reading.
-    Right now, we simply let these exceptions to "pass through" from this function
-    (instead of catching and re-raising).
-    So, to be really safe, be ready that this function may raise @italic(any)
-    Exception class.)
+    Any exceptions inside internal loading routines,
+    like EFOpenError or EStreamError, are internally caught and changed
+    to EDownloadError.)
 
   @groupBegin
 }
