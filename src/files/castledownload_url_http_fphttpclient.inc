@@ -221,7 +221,19 @@ constructor TFpHttpClientReader.Create(const AUrl: String; ForceSynchronous: Boo
 begin
   inherited;
 
-  if not EnableNetwork then
+  { ForceSynchronous allows to make synchronous Download work even when
+    - binary has no thread support linked (e.g. no CThreads linked on Unix).
+    - OS has no thread support.
+    Moreover TCastleDownload can "downgrade" to working synchronously
+    (instead of just failing) when OS never supports threads. }
+  {$ifndef CASTLE_SUPPORTS_THREADING}
+  ForceSynchronous := true;
+  {$endif}
+
+  { The main purpose of this is to disable Download from blocking.
+    Additionally, it also disables TCastleDownload from "downgrading" to blocking,
+    when OS doesn't support threads. }
+  if ForceSynchronous and (not EnableBlockingDownloads) then
   begin
     Status := dsError;
     ErrorMessage := 'Downloading network resources (from "http" or "https" protocols) is not enabled';
@@ -257,14 +269,6 @@ begin
 
   CheckFileAccessSafe(Url);
   WritelnLog('Network', 'Downloading "%s"', [URIDisplay(Url)]);
-
-  { ForceSynchronous allows to make synchronous Download work,
-    and TCastleDownload "downgrade" to working synchronously (instead of just failing) when
-    - binary has no thread support linked (e.g. no CThreads linked on Unix).
-    - OS has no thread support. }
-  {$ifndef CASTLE_SUPPORTS_THREADING}
-  ForceSynchronous := true;
-  {$endif}
 
   SynchronizationCS := TCriticalSection.Create;
 

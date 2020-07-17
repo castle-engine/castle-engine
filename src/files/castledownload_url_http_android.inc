@@ -83,7 +83,7 @@ class function TUrlHttpAndroid.Read(const Url: string; out MimeType: string): TS
 var
   DownloadService: TAndroidDownloadService;
 begin
-  if not EnableNetwork then
+  if not EnableBlockingDownloads then
     raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
 
   CheckFileAccessSafe(URL);

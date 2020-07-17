@@ -30,7 +30,7 @@ uses SysUtils, Classes,
 var
   Stream: TStream;
 begin
-  EnableNetwork := true;
+  EnableBlockingDownloads := true;
   LogEnableStandardOutput := false; // do not put log in stdout, it would be mixed with downloaded output
   InitializeLog;
 

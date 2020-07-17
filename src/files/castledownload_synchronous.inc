@@ -21,14 +21,13 @@ var
     during the game (which usually badly affects the performance). }
   LogAllLoading: boolean = false;
 
-const
-  DefaultEnableNetwork = false;
-
 var
-  { Can @link(Download) actually use the network.
-    As all the downloading is blocking for now, this is initially @false.
-    If you want to really use the network, change it to @true. }
-  EnableNetwork: boolean = DefaultEnableNetwork;
+  { Does @link(Download) (synchronous downloading routine) support http and https protocol.
+    This is by default disabled, as it means that a call to @link(Download) may block
+    your application, for arbitrarily long time, and you have no way to interrupt it.
+    It is recommended to use asynchronous downloading, using @link(TCastleDownload),
+    to download resources over the network. }
+  EnableBlockingDownloads: boolean = false;
 
 type
   EDownloadError = class(Exception);
@@ -85,10 +84,9 @@ type
   for ecmascript/javascript), and the returned stream simply contains
   script code.
 
-  Set EnableNetwork to @true to support network protocols.
-  Right now this means http and (in FPC >= 3.2.0) https, handled by FpHttpClient.
+  Set EnableBlockingDownloads to @true to support http and https protocols here.
   The MIME type for such content is usually reported by the http server
-  (but if the server doesn't report MIME type, we still try to guess it,
+  (but if the server doesn't report MIME type, we still try to determine it,
   looking at URL using URIMimeType).
 
   On Android, you should use the "read_external_storage"
@@ -102,7 +100,7 @@ type
   There may be a timeout of the request (so your application will not hang
   indefinitely), but still your code (or user) have no way to cancel or watch
   the progress of this operation.
-  This is why network support is disabled by default (see @link(EnableNetwork)).
+  This is why http/https support is disabled by default (see @link(EnableBlockingDownloads)).
   This is sometimes acceptable (e.g. if you're
   waiting during the "loading" process, and the data just @italic(has)
   to be downloaded in order to continue), and it's really easy to use
@@ -131,6 +129,10 @@ function Download(const Url: string; const Options: TStreamOptions = []): TStrea
 function Download(const Url: string; const Options: TStreamOptions;
   out MimeType: string): TStream; overload;
 { @groupEnd }
+
+function GetEnableNetwork: Boolean; deprecated 'use EnableBlockingDownloads';
+procedure SetEnableNetwork(const Value: Boolean); deprecated 'use EnableBlockingDownloads';
+property EnableNetwork: Boolean read GetEnableNetwork write SetEnableNetwork;
 
 {$endif}
 
@@ -168,6 +170,16 @@ var
   MimeType: string;
 begin
   Result := Download(Url, Options, MimeType { ignored });
+end;
+
+function GetEnableNetwork: Boolean;
+begin
+  Result := EnableBlockingDownloads;
+end;
+
+procedure SetEnableNetwork(const Value: Boolean);
+begin
+  EnableBlockingDownloads := Value;
 end;
 
 {$endif}

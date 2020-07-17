@@ -80,8 +80,6 @@ begin
   ButtonStartDownloads.OnClick := @ClickStartDownloads;
   ButtonAbortDownloads.OnClick := @ClickAbortDownloads;
 
-  EnableNetwork := true;
-
   UpdateDownloadState;
 end;
 
