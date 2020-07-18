@@ -334,6 +334,7 @@ object DesignFrame: TDesignFrame
       OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
       OnKeyUp = ControlsTreeKeyUp
+      OnMouseUp = ControlsTreeMouseUp
       OnSelectionChanged = ControlsTreeSelectionChanged
       Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
@@ -1480,6 +1481,14 @@ object DesignFrame: TDesignFrame
     object MenuItemViewportSort2D: TMenuItem
       Caption = 'Sort Items For Correct 2D Blending'
       OnClick = MenuItemViewportSort2DClick
+    end
+  end
+  object MenuTreeView: TPopupMenu
+    Left = 653
+    Top = 139
+    object Duplicate: TMenuItem
+      Caption = 'Duplicate'
+      OnClick = DuplicateClick
     end
   end
 end

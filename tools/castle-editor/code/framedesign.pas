@@ -44,6 +44,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    Duplicate: TMenuItem;
     MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
@@ -60,6 +61,7 @@ type
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
     MenuViewport: TPopupMenu;
+    MenuTreeView: TPopupMenu;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
@@ -108,9 +110,12 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure ControlsTreeMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
+    procedure DuplicateClick(Sender: TObject);
     procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraCurrentFromInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -1970,6 +1975,17 @@ begin
       ControlsTree.Selected.EditText;
 end;
 
+procedure TDesignFrame.ControlsTreeMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  //if button = mbRight then
+  begin
+    WriteLnLog('Show Menu');
+    MenuTreeView.PopupComponent := ControlsTree; //I'm not sure what it means, something like menu owner?
+    MenuTreeView.PopUp;
+  end;
+end;
+
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 
@@ -2281,6 +2297,11 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moModifyUi);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.DuplicateClick(Sender: TObject);
+begin
+  DuplicateComponent;
 end;
 
 procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(
