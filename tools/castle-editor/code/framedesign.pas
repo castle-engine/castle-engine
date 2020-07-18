@@ -2032,7 +2032,7 @@ procedure TDesignFrame.ControlsTreeMouseUp(Sender: TObject;
 var
   Sel: TComponent;
 begin
-  //if button = mbRight then
+  if button = mbRight then
   begin
     Sel := SelectedComponent;
     MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
