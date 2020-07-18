@@ -47,6 +47,8 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuTreeViewItemAddTransform: TMenuItem;
+    MenuTreeViewItemAddUserInterface: TMenuItem;
     MenuTreeViewItemDelete: TMenuItem;
     MenuTreeViewItemPaste: TMenuItem;
     MenuTreeViewItemCopy: TMenuItem;
@@ -121,6 +123,7 @@ type
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
+    procedure MenuItemAddComponentClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
     procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
@@ -306,7 +309,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
-  EditorUtils;
+  EditorUtils, FormProject;
 
 {$R *.lfm}
 
@@ -844,6 +847,44 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ShowGutter := false;
   end;
 
+  //This is a copy from FormProject - TODO: reuse the code; do not copy it
+  procedure BuildComponentsMenu;
+
+    function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
+    var
+      S: String;
+    begin
+      Result := TMenuItem.Create(Self);
+      S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+    end;
+
+  var
+    MenuItem: TMenuItem;
+    R: TRegisteredComponent;
+  begin
+    for R in RegisteredComponents do
+      if not R.IsDeprecated then
+      begin
+        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          MenuTreeViewItemAddUserInterface.Add(MenuItem);
+        end else
+        if R.ComponentClass.InheritsFrom(TCastleTransform) then
+        begin
+          MenuItem := CreateMenuItemForComponent(R);
+          MenuItem.OnClick := @MenuItemAddComponentClick;
+          MenuTreeViewItemAddTransform.Add(MenuItem);
+        end;
+      end;
+  end;
+
 var
   DesignerLayer: TDesignerLayer;
 begin
@@ -900,6 +941,8 @@ begin
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
+
+  BuildComponentsMenu;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1995,6 +2038,22 @@ begin
     MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
     MenuTreeViewItemCopy.Enabled := Sel <> nil;
     MenuTreeViewItemDelete.Enabled := Sel <> nil;
+    if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
+    begin
+      MenuTreeViewItemAddUserInterface.Visible := true;
+      MenuTreeViewItemAddTransform.Visible := false;
+    end else
+    if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
+    begin
+      MenuTreeViewItemAddUserInterface.Visible := false;
+      MenuTreeViewItemAddTransform.Visible := true;
+    end else
+    begin
+      //That wasn't supposed to happen!
+      MenuTreeViewItemAddUserInterface.Visible := false;
+      MenuTreeViewItemAddTransform.Visible := false;
+    end;
+
 
     MenuTreeView.PopupComponent := ControlsTree; //I'm not sure what it means, something like menu owner?
     MenuTreeView.PopUp;
@@ -2312,6 +2371,14 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moModifyUi);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);
+var
+  R: TRegisteredComponent;
+begin
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+  AddComponent(R.ComponentClass, R.OnCreate);
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDeleteClick(Sender: TObject);

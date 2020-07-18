@@ -1502,5 +1502,11 @@ object DesignFrame: TDesignFrame
       Caption = 'Delete'
       OnClick = MenuTreeViewItemDeleteClick
     end
+    object MenuTreeViewItemAddUserInterface: TMenuItem
+      Caption = 'Add'
+    end
+    object MenuTreeViewItemAddTransform: TMenuItem
+      Caption = 'Add'
+    end
   end
 end
