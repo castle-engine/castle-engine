@@ -49,11 +49,6 @@ OK if after nearest release:
   "Set Size Explicitly From Current Image"
   ? Unsure how much use-case.
 
-* make https://github.com/castle-engine/blaise-pascal-article-examples/
-  version using editor for level,
-  3d_game_alternative_using_editor
-  mention in README
-
 * more colors, vectors published props:
 
   grep for TCastleColor*, TVector* properties and add everything.
@@ -108,7 +103,6 @@ OK if after nearest release:
 
 * Make files browser with features as documented.
     * allow dropping scenes/images on UI design.
-    * "Files" showroot=false doesn't work?
     * own viewer for
         * text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
 	* on audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
