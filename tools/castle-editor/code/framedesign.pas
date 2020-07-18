@@ -37,10 +37,10 @@ uses
   CastleUndoSystem;
 
 type
+  TLclMouseButton = Controls.TMouseButton; // Workaround FPC bug https://bugs.freepascal.org/view.php?id=36189 (actually a more severe one: as TWinControls.Controls indexed property and Controls unit got mixed up badly
+
+type
   { Frame to visually design component hierarchy. }
-
-  { TDesignFrame }
-
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
@@ -118,7 +118,7 @@ type
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeKeyUp(Sender: TObject; var Key: Word;
       Shift: TShiftState);
-    procedure ControlsTreeMouseUp(Sender: TObject; Button: TMouseButton;
+    procedure ControlsTreeMouseUp(Sender: TObject; Button: TLclMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
@@ -2028,11 +2028,11 @@ begin
 end;
 
 procedure TDesignFrame.ControlsTreeMouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: TLclMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   Sel: TComponent;
 begin
-  if (Button = mbRight) or (Button = mbMiddle) then //BUG: for some reason mbRight is reported as mbMiddle and mbMiddle is reported as mbRight here
+  if (Button = TLclMouseButton.mbRight) then
   begin
     Sel := SelectedComponent;
     MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
