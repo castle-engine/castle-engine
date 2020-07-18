@@ -118,8 +118,10 @@ begin
       ParentThread.TotalBytes := ContentLength;
   finally SynchronizationCS.Release end;
 
+  {$ifndef VER3_0_2}
   if ParentThread.Terminated then
     Terminate;
+  {$endif}
 end;
 
 function TCastleFpHttpClient.ReadResponseHeaders: Integer;
@@ -251,7 +253,7 @@ begin
     Exit;
     {$endif}
 
-    {$ifdef VER3_2}
+    {$ifndef VER3_0} // only for FPC >= 3.2.0
     { The first download using https initializes OpenSSL library.
       This is done by TFPCustomHTTPClient accessing TSSLSocketHandler.GetDefaultHandler,
       and using OpenSSLSockets unit initializes that handler to do MaybeInitSSLInterface
