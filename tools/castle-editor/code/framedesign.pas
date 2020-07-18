@@ -2032,7 +2032,7 @@ procedure TDesignFrame.ControlsTreeMouseUp(Sender: TObject;
 var
   Sel: TComponent;
 begin
-  if button = mbRight then
+  if (Button = mbRight) or (Button = mbMiddle) then //BUG: for some reason mbRight is reported as mbMiddle and mbMiddle is reported as mbRight here
   begin
     Sel := SelectedComponent;
     MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
