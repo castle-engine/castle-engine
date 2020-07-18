@@ -47,9 +47,10 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
-    MenuTreeViewPaste: TMenuItem;
-    MenuTreeViewCopy: TMenuItem;
-    MenuTreeViewDuplicate: TMenuItem;
+    MenuTreeViewItemDelete: TMenuItem;
+    MenuTreeViewItemPaste: TMenuItem;
+    MenuTreeViewItemCopy: TMenuItem;
+    MenuTreeViewItemDuplicate: TMenuItem;
     MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
@@ -120,14 +121,15 @@ type
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
-    procedure MenuTreeViewCopyClick(Sender: TObject);
-    procedure MenuTreeViewDuplicateClick(Sender: TObject);
+    procedure MenuTreeViewItemDeleteClick(Sender: TObject);
+    procedure MenuTreeViewItemCopyClick(Sender: TObject);
+    procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
     procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraCurrentFromInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
-    procedure MenuTreeViewPasteClick(Sender: TObject);
+    procedure MenuTreeViewItemPasteClick(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
@@ -1990,8 +1992,9 @@ begin
   //if button = mbRight then
   begin
     Sel := SelectedComponent;
-    MenuTreeViewDuplicate.Enabled := Sel <> nil;
-    MenuTreeViewCopy.Enabled := Sel <> nil;
+    MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+    MenuTreeViewItemCopy.Enabled := Sel <> nil;
+    MenuTreeViewItemDelete.Enabled := Sel <> nil;
 
     MenuTreeView.PopupComponent := ControlsTree; //I'm not sure what it means, something like menu owner?
     MenuTreeView.PopUp;
@@ -2311,17 +2314,22 @@ begin
   InsideToggleModeClick := false;
 end;
 
-procedure TDesignFrame.MenuTreeViewCopyClick(Sender: TObject);
+procedure TDesignFrame.MenuTreeViewItemDeleteClick(Sender: TObject);
+begin
+  DeleteComponent;
+end;
+
+procedure TDesignFrame.MenuTreeViewItemCopyClick(Sender: TObject);
 begin
   CopyComponent;
 end;
 
-procedure TDesignFrame.MenuTreeViewPasteClick(Sender: TObject);
+procedure TDesignFrame.MenuTreeViewItemPasteClick(Sender: TObject);
 begin
   PasteComponent;
 end;
 
-procedure TDesignFrame.MenuTreeViewDuplicateClick(Sender: TObject);
+procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
 begin
   DuplicateComponent;
 end;

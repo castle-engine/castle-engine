@@ -1486,17 +1486,21 @@ object DesignFrame: TDesignFrame
   object MenuTreeView: TPopupMenu
     Left = 653
     Top = 139
-    object MenuTreeViewDuplicate: TMenuItem
-      Caption = 'Duplicate Component'
-      OnClick = MenuTreeViewDuplicateClick
+    object MenuTreeViewItemDuplicate: TMenuItem
+      Caption = 'Duplicate'
+      OnClick = MenuTreeViewItemDuplicateClick
     end
-    object MenuTreeViewCopy: TMenuItem
-      Caption = 'Copy Component'
-      OnClick = MenuTreeViewCopyClick
+    object MenuTreeViewItemCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = MenuTreeViewItemCopyClick
     end
-    object MenuTreeViewPaste: TMenuItem
-      Caption = 'Paste Component'
-      OnClick = MenuTreeViewPasteClick
+    object MenuTreeViewItemPaste: TMenuItem
+      Caption = 'Paste'
+      OnClick = MenuTreeViewItemPasteClick
+    end
+    object MenuTreeViewItemDelete: TMenuItem
+      Caption = 'Delete'
+      OnClick = MenuTreeViewItemDeleteClick
     end
   end
 end
