@@ -28,7 +28,7 @@ type
   strict private
     InsideLogCallback: Boolean;
     ProcessId: Cardinal;
-    procedure HttpPostFinish(const Sender: TCastleDownload);
+    procedure HttpPostFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     procedure LogCallback(const Message: String);
@@ -54,14 +54,14 @@ procedure TLogHandler.LogCallback(const Message: String);
   { Send, using HTTP post, one parameter. }
   procedure HttpPost(const Url: String; const ParameterKey, ParameterValue: String);
   var
-    Download: TCastleDownload;
+    Request: TCastleDownload;
   begin
-    Download := TCastleDownload.Create(Application);
-    Download.Url := Url;
-    Download.PostData.Values[ParameterKey] := ParameterValue;
-    Download.HttpMethod := hmPost;
-    Download.OnFinish := @HttpPostFinish;
-    Download.Start;
+    Request := TCastleDownload.Create(Application);
+    Request.Url := Url;
+    Request.PostData.Values[ParameterKey] := ParameterValue;
+    Request.HttpMethod := hmPost;
+    Request.OnFinish := @HttpPostFinish;
+    Request.Start;
   end;
 
 var
@@ -83,7 +83,7 @@ begin
   finally InsideLogCallback := false end;
 end;
 
-procedure TLogHandler.HttpPostFinish(const Sender: TCastleDownload);
+procedure TLogHandler.HttpPostFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
   case Sender.Status of
     dsSuccess:
@@ -97,8 +97,9 @@ begin
         Sender.ErrorMessage
       ]));
     else
-      raise EInternalError.Create('No other status is possible when download finished');
+      raise EInternalError.Create('No other status is possible when request finished');
   end;
+  FreeSender := true;
 end;
 
 end.

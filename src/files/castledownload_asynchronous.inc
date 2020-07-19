@@ -18,7 +18,7 @@
 type
   TCastleDownload = class;
 
-  TDownloadEvent = procedure (const Sender: TCastleDownload) of object;
+  TDownloadFinishedEvent = procedure (const Sender: TCastleDownload; var FreeSender: Boolean) of object;
 
   { Download an URL asynchronously, without blocking the application.
     You can register a callback @link(OnFinish) or watch
@@ -52,7 +52,7 @@ type
   strict private
     FUrl: String;
     FHttpMethod: THttpMethod;
-    FOnFinish: TDownloadEvent;
+    FOnFinish: TDownloadFinishedEvent;
     FStatus: TDownloadStatus;
     FErrorMessage: String;
     FContents: TStream;
@@ -66,7 +66,7 @@ type
     FAdditionalHeadersKeys, FAdditionalHeadersValues: TStringList;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
-    procedure SetOnFinish(const Value: TDownloadEvent);
+    procedure SetOnFinish(const Value: TDownloadFinishedEvent);
     procedure SetOptions(const Value: TStreamOptions);
     procedure ReleaseContents;
     { Set Contents from given Stream.
@@ -79,6 +79,8 @@ type
     { Set by Download(). }
     ForceSynchronous: Boolean;
   protected
+    { Note that this may destroy our own instance.
+      So never access our own fields / virtual methods after calling this. }
     procedure DoFinish; virtual;
   public
     destructor Destroy; override;
@@ -112,7 +114,7 @@ type
 
       Can only change when there is no download in progress
       (@link(Status) is not dsDownloading). }
-    property OnFinish: TDownloadEvent read FOnFinish write SetOnFinish;
+    property OnFinish: TDownloadFinishedEvent read FOnFinish write SetOnFinish;
 
     { Whether we finished the download (and if yes, was it an error or success). }
     property Status: TDownloadStatus read FStatus;
@@ -215,7 +217,7 @@ begin
   end;
 end;
 
-procedure TCastleDownload.SetOnFinish(const Value: TDownloadEvent);
+procedure TCastleDownload.SetOnFinish(const Value: TDownloadFinishedEvent);
 begin
   if not SameMethods(TMethod(FOnFinish), TMethod(Value)) then
   begin
@@ -244,9 +246,16 @@ begin
 end;
 
 procedure TCastleDownload.DoFinish;
+var
+  FreeSender: Boolean;
 begin
   if Assigned(OnFinish) then
-    OnFinish(Self);
+  begin
+    FreeSender := false;
+    OnFinish(Self, FreeSender);
+    if FreeSender then
+      Self.Destroy;
+  end;
 end;
 
 procedure TCastleDownload.Start;
@@ -267,6 +276,8 @@ procedure TCastleDownload.Start;
     FStatus := dsDownloading;
   end;
 
+  { Read synchronously.
+    This calls DoFinish at end, and may free us. }
   procedure SynchronousRead(const ReadEvent: TUrlReadEvent; const RealUrl: String);
   var
     Size: Int64;
@@ -391,6 +402,7 @@ begin
           FreeAndNil(Reader.Stream);
           FreeAndNil(Reader);
           DoFinish;
+          Exit; // DoFinish possibly freed us
         end;
       dsSuccess:
         begin
@@ -398,6 +410,7 @@ begin
           Reader.Stream := nil; // not valid anymore, SetContentsApplyOptions took ownership
           FreeAndNil(Reader);
           DoFinish;
+          Exit; // DoFinish possibly freed us
         end;
     end;
 
