@@ -45,6 +45,7 @@ type
     ErrorMessage: String; //< When Status = dsError, download failed with this error.
     MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
     HttpResponseCode: Integer; // In case of HTTP requests, HTTP response code.
+    HttpResponseHeaders: TStrings; // In case of HTTP requests, may (if not @nil) contain HTTP response headers.
 
     { Exceptions inside this will make an exception from TCastleDownload.Start.
       They should be caught if should make Status = dsError instead. }

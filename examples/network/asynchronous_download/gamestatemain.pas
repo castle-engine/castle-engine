@@ -135,9 +135,22 @@ end;
 procedure TStateMain.DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
   if Sender.Status = dsError then
-    WritelnLog('Downloading "%s" failed: %s', [URIDisplay(Sender.Url), Sender.ErrorMessage])
+    WritelnLog('Downloading "%s" failed: %s.' + NL +
+      'HTTP response code: %d' + NL +
+      'HTTP response headers: %s', [
+      URIDisplay(Sender.Url),
+      Sender.ErrorMessage,
+      Sender.HttpResponseCode,
+      Sender.HttpResponseHeaders.Text
+    ])
   else
-    WritelnLog('Downloading "%s" successfull', [URIDisplay(Sender.Url)]);
+    WritelnLog('Downloading "%s" successfull.' + NL +
+      'HTTP response code: %d' + NL +
+      'HTTP response headers: %s', [
+      URIDisplay(Sender.Url),
+      Sender.HttpResponseCode,
+      Sender.HttpResponseHeaders.Text
+    ]);
 end;
 
 procedure TStateMain.ClickAbortDownloads(Sender: TObject);

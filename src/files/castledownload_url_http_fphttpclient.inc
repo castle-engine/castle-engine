@@ -74,6 +74,8 @@ type
     Contents: TMemoryStream;
     ErrorMessage: String;
     HttpResponseCode: Integer;
+    HttpResponseHeaders: TStrings;
+
     constructor Create(const EnableThreading: Boolean);
     destructor Destroy; override;
     procedure Execute; override;
@@ -195,6 +197,7 @@ end;
 destructor TFpHttpClientThread.Destroy;
 begin
   FreeAndNil(Contents);
+  FreeAndNil(HttpResponseHeaders);
   inherited;
 end;
 
@@ -241,6 +244,9 @@ begin
         end;
       finally
         HttpResponseCode := Client.ResponseStatusCode;
+        HttpResponseHeaders := TStringList.Create;
+        HttpResponseHeaders.NameValueSeparator := ':';
+        HttpResponseHeaders.Assign(Client.ResponseHeaders);
       end;
 
       { In case of GET, this is done automatically by FpHttpClient.
@@ -382,6 +388,8 @@ begin
   Contents := Thread.Contents;
   Thread.Contents := nil; // do not free our Contents inside TFpHttpClientThread destructor anymore
   HttpResponseCode := Thread.HttpResponseCode;
+  HttpResponseHeaders := Thread.HttpResponseHeaders;
+  Thread.HttpResponseHeaders := nil; // do not free HttpResponseHeaders inside TFpHttpClientThread destructor
   if Thread.Success then
   begin
     Status := dsSuccess;

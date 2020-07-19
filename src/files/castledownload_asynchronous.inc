@@ -65,6 +65,7 @@ type
     FHttpPostData: TStringList;
     FHttpHeadersKeys, FHttpHeadersValues: TStringList;
     FHttpResponseCode: Integer;
+    FHttpResponseHeaders: TStrings;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadFinishedEvent);
@@ -187,6 +188,17 @@ type
       this contains the HTTP status code.
       It is always 200 on success. }
     property HttpResponseCode: Integer read FHttpResponseCode;
+
+    { When Status is dsSuccess or dsError, and request was using HTTP or HTTPS,
+      this contains the HTTP response headers.
+      The NameValueSeparator is set to ':' which means you can use TStrings
+      name/value mechanism to read the data, like this:
+
+      @longCode(#
+        LastModified := Download.HttpResponseHeaders.Values['Last-Modified'];
+      #)
+    }
+    property HttpResponseHeaders: TStrings read FHttpResponseHeaders;
   end;
 
 {$endif}
@@ -413,34 +425,25 @@ begin
     FTotalBytes := Reader.TotalBytes;
     FMimeType := Reader.MimeType;
 
-    case FStatus of
-      dsError:
-        begin
-          // copy stuff from Reader
-          if Reader.Contents <> nil then // in this case, Reader.Contents is optional
-          begin
-            SetContentsApplyOptions(Reader.Contents);
-            Reader.Contents := nil; // not valid anymore, SetContentsApplyOptions took ownership
-          end;
-          FHttpResponseCode := Reader.HttpResponseCode;
-          FErrorMessage := Reader.ErrorMessage;
+    if FStatus in [dsError, dsSuccess] then
+    begin
+      // copy stuff from Reader
+      if FStatus = dsSuccess then
+        Assert(Reader.Contents <> nil); // in this case, Reader.Contents is obligatory
+      if Reader.Contents <> nil then // in this case, Reader.Contents is optional
+      begin
+        SetContentsApplyOptions(Reader.Contents);
+        Reader.Contents := nil; // not valid anymore, SetContentsApplyOptions took ownership
+      end;
+      FHttpResponseCode := Reader.HttpResponseCode;
+      FHttpResponseHeaders := Reader.HttpResponseHeaders;
+      Reader.HttpResponseHeaders := nil; // do not free HttpResponseHeaders in Reader destructor
+      if FStatus = dsError then
+        FErrorMessage := Reader.ErrorMessage;
 
-          FreeAndNil(Reader);
-          DoFinish;
-          Exit; // DoFinish possibly freed us
-        end;
-      dsSuccess:
-        begin
-          // copy stuff from Reader
-          Assert(Reader.Contents <> nil); // in this case, Reader.Contents is obligatory
-          SetContentsApplyOptions(Reader.Contents);
-          Reader.Contents := nil; // not valid anymore, SetContentsApplyOptions took ownership
-          FHttpResponseCode := Reader.HttpResponseCode;
-
-          FreeAndNil(Reader);
-          DoFinish;
-          Exit; // DoFinish possibly freed us
-        end;
+      FreeAndNil(Reader);
+      DoFinish;
+      Exit; // DoFinish possibly freed us, so Exit and do not access any own fields
     end;
 
     // Reader continues to exist if and only if still dsDownloading
