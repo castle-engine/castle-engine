@@ -19,6 +19,9 @@ type
   { See @link(TCastleDownload.Status). }
   TDownloadStatus = (dsNotStarted, dsDownloading, dsError, dsSuccess);
 
+  { See @link(TCastleDownload.HttpMethod). }
+  THttpMethod = (hmGet, hmPost, hmPut, hmDelete, hmOptions, hmHead);
+
   { Implement this class, and pass to RegisterUrlProtocol,
     to read protocols asynchronously (such that TCastleDownload can read
     them asynchronously).
@@ -28,22 +31,22 @@ type
     If you just want to download asynchronously from standard URLs,
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
-  strict private
-    FUrl: String;
   public
+    { Fields set before Start is called. Should not be modified by this instance after Start. }
+    Url: String;
+    ForceSynchronous: Boolean;
+    HttpMethod: THttpMethod;
+
+    { Fields that should be updated during downloading. }
     Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.
     DownloadedBytes, TotalBytes: Int64; //< Will set TCastleDownlad properties of the same name.
     Stream: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
     ErrorMessage: String; //< When Status = dsError, download failed with this error.
     MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
 
-    property Url: String read FUrl;
-
-    { Exceptions inside constructor will make an exception from TCastleDownload.Start.
-      They should be caught if should make Status = dsError instead.
-      ForceSynchronous signals that the user will only call WaitForFinish immediately
-      after Start, which may allow to optimize the job. }
-    constructor Create(const AUrl: String; ForceSynchronous: Boolean); virtual;
+    { Exceptions inside this will make an exception from TCastleDownload.Start.
+      They should be caught if should make Status = dsError instead. }
+    procedure Start; virtual;
 
     { Exceptions inside Update will make an exception at undefined application point
       (for now, ApplicationProperties._Update, called by CastleWindow and CastleControl).
@@ -76,12 +79,21 @@ procedure RegisterUrlProtocol(const Protocol: String;
 
 {$ifdef read_implementation}
 
-constructor TUrlAsynchronousReader.Create(const AUrl: String; ForceSynchronous: Boolean);
+procedure TUrlAsynchronousReader.Start;
 begin
-  inherited Create;
-  FUrl := AUrl;
   Status := dsDownloading;
   TotalBytes := -1;
+
+  { ForceSynchronous allows to make synchronous Download work even when
+    - binary has no thread support linked (e.g. no CThreads linked on Unix).
+    - OS has no thread support.
+    Moreover TCastleDownload can "downgrade" to working synchronously
+    (instead of just failing) when OS never supports threads.
+
+    Outside code may set ForceSynchronous, but we can override it to true. }
+  {$ifndef CASTLE_SUPPORTS_THREADING}
+  ForceSynchronous := true;
+  {$endif}
 end;
 
 procedure TUrlAsynchronousReader.Update;

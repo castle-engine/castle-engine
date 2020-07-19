@@ -16,9 +16,6 @@
 {$ifdef read_interface}
 
 type
-  { See @link(TCastleDownload.HttpMethod). }
-  THttpMethod = (hmGet, hmPost, hmPut, hmDelete, hmOptions, hmHead);
-
   TCastleDownload = class;
 
   TDownloadEvent = procedure (const Sender: TCastleDownload) of object;
@@ -319,7 +316,11 @@ begin
   begin
     if RegisteredProtocol.AsynchronousReader <> nil then
     begin
-      Reader := RegisteredProtocol.AsynchronousReader.Create(RealUrl, ForceSynchronous);
+      Reader := RegisteredProtocol.AsynchronousReader.Create;
+      Reader.Url := RealUrl;
+      Reader.ForceSynchronous := ForceSynchronous;
+      Reader.HttpMethod := HttpMethod;
+      Reader.Start;
     end else
     if Assigned(RegisteredProtocol.ReadEvent) then
     begin

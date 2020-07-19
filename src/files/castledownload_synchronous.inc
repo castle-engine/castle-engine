@@ -64,37 +64,34 @@ type
 
   Any errors are reported by raising exceptions.
 
-  A local file URL is always supported,
-  without using any networking library. URL without any protocol is always
-  treated like a local filename (absolute or relative to current dir),
-  so this function can be a drop-in replacement for normal file reading.
-  The MIME type for local files is guessed based on their extension.
+  All the supported URL protocols are documented in our manual:
+  https://castle-engine.io/manual_network.php . They include:
 
-  A data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme)
-  is also always supported.
-  The MIME type for such content is specified explicitly in URI.
-  TODO: right now, soGzip is ignored for data URIs, we never filter them
-  through gunzip.
+  @unorderedList(
+    @item(Local @code(file) URLs.
+      Moreover URL without any protocol is always
+      treated like a local filename (absolute or relative to current dir),
+      so this function can be a drop-in replacement for normal file reading.
+      The MIME type for local files is guessed based on their extension.
+    )
 
-  It also automatically supports protocols to embed script contents:
-  ecmascript, javascript (see VRML and X3D specifications),
-  castlescript, kambiscript (see https://castle-engine.io/castle_script.php),
-  compiled (https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled).
-  The MIME type for these is implied by the protocol (like "application/javascript"
-  for ecmascript/javascript), and the returned stream simply contains
-  script code.
+    @item(Data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme).)
 
-  Set EnableBlockingDownloads to @true to support http and https protocols here.
-  The MIME type for such content is usually reported by the http server
-  (but if the server doesn't report MIME type, we still try to determine it,
-  looking at URL using URIMimeType).
+    @item(Protocols to embed script contents:
+      ecmascript, javascript (see X3D specifications),
+      castlescript, kambiscript (see https://castle-engine.io/castle_script.php),
+      compiled (https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled).
+    )
 
-  On Android, you should use the "read_external_storage"
-  service to be able to read storage files (e.g. from SD card).
-  This means files accessed by the 'file' protocol.
-  See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
+    @item(
+      Set EnableBlockingDownloads to @true to support http and https protocols.
+      The MIME type for such content is usually reported by the http server
+      (but if the server doesn't report MIME type, we still try to determine it,
+      looking at URL using URIMimeType).
+    )
+  )
 
-  Note that this is a @italic(synchronous downloader).
+  This routine makes a @italic(synchronous (blocking) downloading).
   Which means that if you use a network URL (like http://...) then your
   application will wait until the data arrives from the Internet.
   There may be a timeout of the request (so your application will not hang

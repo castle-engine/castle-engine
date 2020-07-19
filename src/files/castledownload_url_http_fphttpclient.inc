@@ -54,6 +54,7 @@ type
   public
     { Set these before Execute }
     Url: String;
+    HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
 
     { Updated even during downloading. }
@@ -79,7 +80,7 @@ type
     SynchronizationCS: TCriticalSection;
     procedure SynchronizeFromFinishedThread;
   public
-    constructor Create(const AUrl: String; ForceSynchronous: Boolean); override;
+    procedure Start; override;
     destructor Destroy; override;
     procedure Update; override;
   end;
@@ -202,7 +203,19 @@ begin
       Client.Stream := Stream;
       Client.AllowRedirect := true;
       Client.MimeTypeFromUrl := URIMimeType(Url);
-      Client.Get(Url, Stream);
+      Client.KeepConnection := false; // used only once, so KeepConnection not necessary
+      case HttpMethod of
+        hmGet: Client.Get(Url, Stream);
+        hmPost: Client.Post(Url, Stream);
+        hmPut: Client.Put(Url, Stream);
+        hmDelete: Client.Delete(Url, Stream);
+        hmOptions: Client.Options(Url, Stream);
+        hmHead: //Client.Head(Url);
+          Client.HTTPMethod('HEAD', Url, nil, [200]);
+        {$ifndef COMPILER_CASE_ANALYSIS}
+        else raise EInternalError.Create('HttpMethod=?');
+        {$endif}
+      end;
     finally FreeAndNil(Client) end;
 
     Stream.Position := 0; { rewind for easy reading }
@@ -219,18 +232,9 @@ end;
 
 { TFpHttpClientReader --------------------------------------------------- }
 
-constructor TFpHttpClientReader.Create(const AUrl: String; ForceSynchronous: Boolean);
+procedure TFpHttpClientReader.Start;
 begin
   inherited;
-
-  { ForceSynchronous allows to make synchronous Download work even when
-    - binary has no thread support linked (e.g. no CThreads linked on Unix).
-    - OS has no thread support.
-    Moreover TCastleDownload can "downgrade" to working synchronously
-    (instead of just failing) when OS never supports threads. }
-  {$ifndef CASTLE_SUPPORTS_THREADING}
-  ForceSynchronous := true;
-  {$endif}
 
   { The main purpose of this is to disable Download from blocking.
     Additionally, it also disables TCastleDownload from "downgrading" to blocking,
@@ -277,6 +281,7 @@ begin
   Thread := TFpHttpClientThread.Create(not ForceSynchronous);
   Thread.Url := Url;
   Thread.SynchronizationCS := SynchronizationCS;
+  Thread.HttpMethod := HttpMethod;
   if ForceSynchronous then
   begin
     try
