@@ -352,6 +352,9 @@ begin
       Reader.Url := RealUrl;
       Reader.ForceSynchronous := ForceSynchronous;
       Reader.HttpMethod := HttpMethod;
+      { Assign from field FPostData, not PostData function,
+        this way it may remain nil and not waste memory
+        in case user didn't touch PostData. }
       Reader.PostData := FPostData;
       Reader.AdditionalHeadersKeys := FAdditionalHeadersKeys;
       Reader.AdditionalHeadersValues := FAdditionalHeadersValues;

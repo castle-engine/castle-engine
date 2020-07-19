@@ -22,30 +22,44 @@ implementation
 
 uses SysUtils, Math, Classes,
   {$ifndef VER3_0} OpenSSLSockets, {$endif} // support HTTPS
-  CastleWindow, CastleLog, CastleApplicationProperties, CastleKeysMouse,
-  GameLogHandler;
+  CastleWindow, CastleLog, CastleApplicationProperties, CastleUIState,
+  GameStateMain, GameLogHandler;
 
 var
   Window: TCastleWindowBase;
+  LogHandler: TLogHandler;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+{ One-time initialization of resources. }
+procedure ApplicationInitialize;
 begin
-  WritelnLog('Pressed: ' + Event.ToString);
+  { Initialize LogHandler }
+  LogHandler := TLogHandler.Create(Application);
+  ApplicationProperties.OnLog.Add(@LogHandler.LogCallback);
+
+  { Adjust container settings for a scalable UI (adjusts to any window size in a smart way). }
+  Window.Container.LoadSettings('castle-data:/CastleSettings.xml');
+
+  StateMain := TStateMain.Create(Application);
+  TUIState.Current := StateMain;
 end;
 
-var
-  LogHandler: TLogHandler;
 initialization
   { Set ApplicationName early, as our log uses it. }
   ApplicationProperties.ApplicationName := 'remote_logging';
 
-  LogHandler := TLogHandler.Create(Application);
-  ApplicationProperties.OnLog.Add(@LogHandler.LogCallback);
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization.
 
-  InitializeLog;
+    For programs, InitializeLog is not called here.
+    Instead InitializeLog is done by the program main file,
+    after command-line parameters are parsed. }
+  if IsLibrary then
+    InitializeLog;
 
-  { create Window and initialize Window callbacks }
+  { Initialize Application.OnInitialize. }
+  Application.OnInitialize := @ApplicationInitialize;
+
+  { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
-  Window.OnPress := @WindowPress;
   Application.MainWindow := Window;
 end.

@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Math, Classes,
   CastleWindow, CastleLog, CastleApplicationProperties, CastleKeysMouse,
-  CastleDownload, CastleClassUtils;
+  CastleDownload, CastleClassUtils, CastleNotifications;
 
 type
   { Log handler sending logs to server using asynchronous HTTP POST. }
@@ -33,6 +33,10 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure LogCallback(const Message: String);
   end;
+
+var
+  { Set by UI state. }
+  LogNotifications: TCastleNotifications;
 
 implementation
 
@@ -85,19 +89,22 @@ end;
 
 procedure TLogHandler.HttpPostFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
-  case Sender.Status of
-    dsSuccess:
-      Writeln(ErrOutput, Format('Posted log to "%s" with response: %s', [
-        Sender.Url,
-        StreamToString(Sender.Contents)
-      ]));
-    dsError:
-      Writeln(ErrOutput, Format('Posted log to "%s" with error: %s', [
-        Sender.Url,
-        Sender.ErrorMessage
-      ]));
-    else
-      raise EInternalError.Create('No other status is possible when request finished');
+  if LogNotifications <> nil then
+  begin
+    case Sender.Status of
+      dsSuccess:
+        LogNotifications.Show(Format('Posted log to "%s" with response: %s', [
+          Sender.Url,
+          StreamToString(Sender.Contents)
+        ]));
+      dsError:
+        LogNotifications.Show(Format('Posted log to "%s" with error: %s', [
+          Sender.Url,
+          Sender.ErrorMessage
+        ]));
+      else
+        raise EInternalError.Create('No other status is possible when request finished');
+    end;
   end;
   FreeSender := true;
 end;
