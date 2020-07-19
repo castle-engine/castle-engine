@@ -38,7 +38,7 @@ type
       Download: array [1..DownloadsCount] of TCastleDownload;
     procedure ClickStartDownloads(Sender: TObject);
     procedure ClickAbortDownloads(Sender: TObject);
-    procedure DownloadFinish(const Sender: TCastleDownload);
+    procedure DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
     procedure UpdateDownloadState;
   public
     procedure Start; override;
@@ -132,7 +132,7 @@ begin
   end;
 end;
 
-procedure TStateMain.DownloadFinish(const Sender: TCastleDownload);
+procedure TStateMain.DownloadFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
   if Sender.Status = dsError then
     WritelnLog('Downloading "%s" failed: %s', [URIDisplay(Sender.Url), Sender.ErrorMessage])
