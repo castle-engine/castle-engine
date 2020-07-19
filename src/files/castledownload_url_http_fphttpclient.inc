@@ -84,6 +84,7 @@ type
   strict private
     Thread: TFpHttpClientThread;
     SynchronizationCS: TCriticalSection;
+    { Synchronize one last time from Thread, when it finished work in Execute. }
     procedure SynchronizeFromFinishedThread;
   public
     procedure Start; override;
@@ -372,8 +373,10 @@ end;
 
 procedure TFpHttpClientReader.SynchronizeFromFinishedThread;
 begin
-  // synchronize one last time from Thread, when it finished work in Execute
-  DownloadedBytes := Thread.DownloadedBytes;
+  { Looks like FpHttpClient doesn't call DoDataRead on the final data chunk,
+    and thus Thread.DownloadedBytes is a bit less than Thread.TotalBytes at the end.
+    The actual stream has correct size, so just use this. }
+  DownloadedBytes := Thread.Contents.Size; // Thread.DownloadedBytes;
   TotalBytes := Thread.TotalBytes;
   MimeType := Thread.MimeType;
   Contents := Thread.Contents;
