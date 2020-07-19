@@ -82,6 +82,7 @@
     {
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
+      "MaxMessages" : 20,
       "Name" : "Notifications",
       "$Children" : [
       ],
