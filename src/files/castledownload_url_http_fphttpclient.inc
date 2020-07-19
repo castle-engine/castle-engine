@@ -342,7 +342,7 @@ begin
         before thread Execute processed PostData and AdditionalHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
-      WritelnLog('Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+      WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
       Thread.FreeOnTerminate := true;
       Thread := nil;
       SynchronizationCS := nil; // do not free it here, let Thread use it

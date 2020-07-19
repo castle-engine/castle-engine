@@ -3,5 +3,8 @@
   game_units="GameInitialize"
   qualified_name="io.castleengine.remote.logging"
 >
+  <dependencies>
+    <dependency name="Https" /> <!-- read https links -->
+  </dependencies>
   <data exists="false"/>
 </project>

@@ -161,7 +161,7 @@ type
 
       @longCode(#
         // Advised:
-        Download.PostData['my-form-key'] := 'my-form-value';
+        Download.PostData.Values['my-form-key'] := 'my-form-value';
         // This also works, it is equivalent to above if key didn't already exist
         Download.PostData.Append('my-form-key-2=my-form-value-2');
       #)
