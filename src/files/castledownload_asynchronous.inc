@@ -64,12 +64,13 @@ type
     UpdateInitialized: Boolean;
     FPostData: TStringList;
     FAdditionalHeadersKeys, FAdditionalHeadersValues: TStringList;
+    FHttpResponseCode: Integer;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadFinishedEvent);
     procedure SetOptions(const Value: TStreamOptions);
     procedure ReleaseContents;
-    { Set Contents from given Stream.
+    { Set Contents from given UnderlyingStream.
       The passed UnderlyingStream becomes owned by something in this method
       (like TCastleDownload instance or FContents or it is freed).
       Consider the reference to UnderlyingStream invalid after this call. }
@@ -125,7 +126,14 @@ type
     { If the @link(Status) is dsError, this contains a detailed error message. }
     property ErrorMessage: String read FErrorMessage;
 
-    { If the @link(Status) is dsSuccess, this contains the downloaded contents.
+    { The downloaded contents.
+
+      If the @link(Status) is dsSuccess, this is always set (never @nil).
+      In case of some protocols and some failures, the contents may be available
+      (not @nil) even when error occurred, that is when Status is dsError.
+      E.g. when HTTP server returns an error,
+      like 404, it also still sends the response contents.
+
       This stream is owned by default (if ContentOwned) by this TCastleDownload instance,
       so it will become invalid when the TCastleDownload instance is freed. }
     property Contents: TStream read FContents;
@@ -172,6 +180,11 @@ type
 
     { Additional HTTP headers, e.g. User-Agent. }
     procedure AddHeader(const AKey, AValue: String);
+
+    { When Status is dsSuccess or dsError, and request was using HTTP or HTTPS,
+      this contains the HTTP status code.
+      It is always 200 on success. }
+    property HttpResponseCode: Integer read FHttpResponseCode;
   end;
 
 {$endif}
@@ -183,7 +196,7 @@ begin
   ReleaseContents;
   if Reader <> nil then
   begin
-    FreeAndNil(Reader.Stream); // Reader doesn't own Stream, so we need to take care of it
+    FreeAndNil(Reader.Contents); // Reader doesn't own Contents, so we need to take care of it
     FreeAndNil(Reader);
   end;
   if UpdateInitialized then
@@ -266,7 +279,7 @@ procedure TCastleDownload.Start;
     ReleaseContents;
     if Reader <> nil then
     begin
-      FreeAndNil(Reader.Stream); // Reader doesn't own Stream, so we need to take care of it
+      FreeAndNil(Reader.Contents); // Reader doesn't own Contents, so we need to take care of it
       FreeAndNil(Reader);
     end;
     FErrorMessage := '';
@@ -401,16 +414,27 @@ begin
     case FStatus of
       dsError:
         begin
+          // copy stuff from Reader
+          if Reader.Contents <> nil then // in this case, Reader.Contents is optional
+          begin
+            SetContentsApplyOptions(Reader.Contents);
+            Reader.Contents := nil; // not valid anymore, SetContentsApplyOptions took ownership
+          end;
+          FHttpResponseCode := Reader.HttpResponseCode;
           FErrorMessage := Reader.ErrorMessage;
-          FreeAndNil(Reader.Stream);
+
           FreeAndNil(Reader);
           DoFinish;
           Exit; // DoFinish possibly freed us
         end;
       dsSuccess:
         begin
-          SetContentsApplyOptions(Reader.Stream);
-          Reader.Stream := nil; // not valid anymore, SetContentsApplyOptions took ownership
+          // copy stuff from Reader
+          Assert(Reader.Contents <> nil); // in this case, Reader.Contents is obligatory
+          SetContentsApplyOptions(Reader.Contents);
+          Reader.Contents := nil; // not valid anymore, SetContentsApplyOptions took ownership
+          FHttpResponseCode := Reader.HttpResponseCode;
+
           FreeAndNil(Reader);
           DoFinish;
           Exit; // DoFinish possibly freed us

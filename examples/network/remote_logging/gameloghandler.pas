@@ -89,18 +89,31 @@ end;
 
 procedure TLogHandler.HttpPostFinish(const Sender: TCastleDownload; var FreeSender: Boolean);
 begin
+  { TCastleDownload does not guarantee that TCastleDownload.Contents
+    are set (not nil) when Status is dsError.
+    It depends on the protocol.
+    But we know that we use this only with http / https protocols, in which
+    case TCastleDownload.Contents are always set when finished, even on error. }
+  Assert(Sender.Contents <> nil);
+
   if LogNotifications <> nil then
   begin
     case Sender.Status of
       dsSuccess:
-        LogNotifications.Show(Format('Posted log to "%s" with response: %s', [
+        LogNotifications.Show(Format('SUCCESS: Posted log to "%s".' + NL +
+          'Server response (%d): %s', [
           Sender.Url,
+          Sender.HttpResponseCode,
           StreamToString(Sender.Contents)
         ]));
       dsError:
-        LogNotifications.Show(Format('Posted log to "%s" with error: %s', [
+        LogNotifications.Show(Format('ERROR: Cannot post log to "%s".' + NL +
+          'Error message: %s' + NL +
+          'Server response (%d): %s', [
           Sender.Url,
-          Sender.ErrorMessage
+          Sender.ErrorMessage,
+          Sender.HttpResponseCode,
+          StreamToString(Sender.Contents)
         ]));
       else
         raise EInternalError.Create('No other status is possible when request finished');

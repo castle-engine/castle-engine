@@ -41,9 +41,10 @@ type
     { Fields that should be updated during downloading. }
     Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.
     DownloadedBytes, TotalBytes: Int64; //< Will set TCastleDownlad properties of the same name.
-    Stream: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
+    Contents: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
     ErrorMessage: String; //< When Status = dsError, download failed with this error.
     MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
+    HttpResponseCode: Integer; // In case of HTTP requests, HTTP response code.
 
     { Exceptions inside this will make an exception from TCastleDownload.Start.
       They should be caught if should make Status = dsError instead. }

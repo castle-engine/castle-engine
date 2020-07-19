@@ -43,7 +43,7 @@ type
   public
     ParentThread: TFpHttpClientThread;
     SynchronizationCS: TCriticalSection;
-    Stream: TMemoryStream;
+    Contents: TMemoryStream;
     MimeTypeFromUrl: String;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -62,13 +62,18 @@ type
     DownloadedBytes, TotalBytes: Int64;
     MimeType: String;
 
-    { Once we're finished (Running = false) then StatusSuccess informs about
-      whether we have dsSuccess or dsError.
-      When @true, use Stream (set if to @nil Stream, to avoid freeing it here).
-      When @false, ErrorMessage is the error message. }
+    { Once we're finished (Running = false) then
+
+      - Success informs about whether we have dsSuccess or dsError.
+      - HttpResponseCode is the HTTP answer.
+      - Contents contain the response (regardless of Success value).
+        If you take it, then set it to @nil, to avoid freeing it here.
+      - When Success = @false, ErrorMessage is the error message.
+    }
     Success: Boolean;
-    Stream: TMemoryStream;
+    Contents: TMemoryStream;
     ErrorMessage: String;
+    HttpResponseCode: Integer;
     constructor Create(const EnableThreading: Boolean);
     destructor Destroy; override;
     procedure Execute; override;
@@ -105,7 +110,7 @@ procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength,
 begin
   SynchronizationCS.Acquire;
   try
-    ParentThread.DownloadedBytes := Max(Stream.Size, 0);
+    ParentThread.DownloadedBytes := Max(Contents.Size, 0);
 
     if ContentLength = 0 then
       { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
@@ -182,13 +187,13 @@ begin
     In this case we can at least download synchronously, which sometimes is enough. }
   if EnableThreading then
     inherited Create(true);
-  Stream := TMemoryStream.Create;
+  Contents := TMemoryStream.Create;
   TotalBytes := -1;
 end;
 
 destructor TFpHttpClientThread.Destroy;
 begin
-  FreeAndNil(Stream);
+  FreeAndNil(Contents);
   inherited;
 end;
 
@@ -202,7 +207,7 @@ begin
     try
       Client.ParentThread := Self;
       Client.SynchronizationCS := SynchronizationCS;
-      Client.Stream := Stream;
+      Client.Contents := Contents;
       Client.AllowRedirect := true;
       Client.MimeTypeFromUrl := URIMimeType(Url);
       // Client is used only once, so KeepConnection not necessary
@@ -216,25 +221,35 @@ begin
           Client.AddHeader(AdditionalHeadersKeys[I], AdditionalHeadersValues[I]);
       end;
 
-      case HttpMethod of
-        hmGet: Client.Get(Url, Stream);
-        hmPost:
-          if PostData <> nil then
-            Client.FormPost(Url, PostData, Stream)
-          else
-            Client.Post(Url, Stream);
-        hmPut: Client.Put(Url, Stream);
-        hmDelete: Client.Delete(Url, Stream);
-        hmOptions: Client.Options(Url, Stream);
-        hmHead: //Client.Head(Url);
-          Client.HTTPMethod('HEAD', Url, nil, [200]);
-        {$ifndef COMPILER_CASE_ANALYSIS}
-        else raise EInternalError.Create('HttpMethod=?');
-        {$endif}
+      try
+        case HttpMethod of
+          hmGet: Client.Get(Url, Contents);
+          hmPost:
+            if PostData <> nil then
+              Client.FormPost(Url, PostData, Contents)
+            else
+              Client.Post(Url, Contents);
+          hmPut: Client.Put(Url, Contents);
+          hmDelete: Client.Delete(Url, Contents);
+          hmOptions: Client.Options(Url, Contents);
+          hmHead: //Client.Head(Url);
+            Client.HTTPMethod('HEAD', Url, nil, [200]);
+          {$ifndef COMPILER_CASE_ANALYSIS}
+          else raise EInternalError.Create('HttpMethod=?');
+          {$endif}
+        end;
+      finally
+        HttpResponseCode := Client.ResponseStatusCode;
       end;
+
+      { In case of GET, this is done automatically by FpHttpClient.
+        But for e.g. POST, it accepts any response code as OK (I'm not sure why).
+        So we check it manually here. }
+      if HttpResponseCode <> 200 then
+        raise EHTTPClient.CreateFmt('Unexpected response status code: %d', [HttpResponseCode]);
     finally FreeAndNil(Client) end;
 
-    Stream.Position := 0; { rewind for easy reading }
+    Contents.Position := 0; { rewind for easy reading }
 
     Success := true;
   except
@@ -361,20 +376,25 @@ begin
   DownloadedBytes := Thread.DownloadedBytes;
   TotalBytes := Thread.TotalBytes;
   MimeType := Thread.MimeType;
+  Contents := Thread.Contents;
+  Thread.Contents := nil; // do not free our Contents inside TFpHttpClientThread destructor anymore
+  HttpResponseCode := Thread.HttpResponseCode;
   if Thread.Success then
   begin
     Status := dsSuccess;
-    MimeType := Thread.MimeType;
-    Stream := Thread.Stream;
-    Thread.Stream := nil; // do not free our Stream inside TFpHttpClientThread destructor anymore
-    WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [
+    WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", HTTP response code %d', [
       Url,
-      MimeType
+      MimeType,
+      HttpResponseCode
     ]);
   end else
   begin
     Status := dsError;
     ErrorMessage := Thread.ErrorMessage;
+    WritelnLog('Network', 'Failed to download "%s", HTTP response code %d', [
+      Url,
+      HttpResponseCode
+    ]);
   end;
 end;
 
