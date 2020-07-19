@@ -12,4 +12,4 @@ if (!syslog(LOG_INFO, $message)) {
 }
 
 //echo 'Received message, stored in syslog. Contents: <b>' . htmlspecialchars($message) . '</b>';
-echo 'Received message, stored in syslog. Message length: <b>' . count($message) . '</b>';
+echo 'Received message, stored in syslog. Message length: <b>' . strlen($message) . '</b>';
