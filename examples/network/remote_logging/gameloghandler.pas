@@ -62,7 +62,7 @@ procedure TLogHandler.LogCallback(const Message: String);
   begin
     Request := TCastleDownload.Create(Application);
     Request.Url := Url;
-    Request.PostData.Values[ParameterKey] := ParameterValue;
+    Request.HttpPostData.Values[ParameterKey] := ParameterValue;
     Request.HttpMethod := hmPost;
     Request.OnFinish := @HttpPostFinish;
     Request.Start;

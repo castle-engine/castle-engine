@@ -53,7 +53,7 @@ type
   TFpHttpClientThread = class(TThread)
   public
     { Set these before Execute }
-    PostData, AdditionalHeadersKeys, AdditionalHeadersValues: TStrings;
+    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
@@ -213,20 +213,20 @@ begin
       // Client is used only once, so KeepConnection not necessary
       Client.KeepConnection := false;
       // add additional headers
-      if AdditionalHeadersKeys <> nil then
+      if HttpHeadersKeys <> nil then
       begin
-        Assert((AdditionalHeadersKeys <> nil) = (AdditionalHeadersValues <> nil));
-        Assert(AdditionalHeadersKeys.Count = AdditionalHeadersValues.Count);
-        for I := 0 to AdditionalHeadersKeys.Count - 1 do
-          Client.AddHeader(AdditionalHeadersKeys[I], AdditionalHeadersValues[I]);
+        Assert((HttpHeadersKeys <> nil) = (HttpHeadersValues <> nil));
+        Assert(HttpHeadersKeys.Count = HttpHeadersValues.Count);
+        for I := 0 to HttpHeadersKeys.Count - 1 do
+          Client.AddHeader(HttpHeadersKeys[I], HttpHeadersValues[I]);
       end;
 
       try
         case HttpMethod of
           hmGet: Client.Get(Url, Contents);
           hmPost:
-            if PostData <> nil then
-              Client.FormPost(Url, PostData, Contents)
+            if HttpPostData <> nil then
+              Client.FormPost(Url, HttpPostData, Contents)
             else
               Client.Post(Url, Contents);
           hmPut: Client.Put(Url, Contents);
@@ -313,9 +313,9 @@ begin
   Thread.Url := Url;
   Thread.SynchronizationCS := SynchronizationCS;
   Thread.HttpMethod := HttpMethod;
-  Thread.PostData := PostData;
-  Thread.AdditionalHeadersKeys := AdditionalHeadersKeys;
-  Thread.AdditionalHeadersValues := AdditionalHeadersValues;
+  Thread.HttpPostData := HttpPostData;
+  Thread.HttpHeadersKeys := HttpHeadersKeys;
+  Thread.HttpHeadersValues := HttpHeadersValues;
   if ForceSynchronous then
   begin
     try
@@ -354,7 +354,7 @@ begin
            (but that leak seems unrelated? it occurs even if nothing was interrupted?)
 
         TODO: This is actually dangerous if the interruption will happen
-        before thread Execute processed PostData and AdditionalHeadersKeys/Values,
+        before thread Execute processed HttpPostData and HttpHeadersKeys/Values,
         as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);

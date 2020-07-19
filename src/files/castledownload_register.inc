@@ -36,7 +36,7 @@ type
     Url: String;
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
-    PostData, AdditionalHeadersKeys, AdditionalHeadersValues: TStrings;
+    HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
 
     { Fields that should be updated during downloading. }
     Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.

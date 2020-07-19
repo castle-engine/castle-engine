@@ -62,8 +62,8 @@ type
     FMimeType: String;
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     UpdateInitialized: Boolean;
-    FPostData: TStringList;
-    FAdditionalHeadersKeys, FAdditionalHeadersValues: TStringList;
+    FHttpPostData: TStringList;
+    FHttpHeadersKeys, FHttpHeadersValues: TStringList;
     FHttpResponseCode: Integer;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
@@ -171,15 +171,17 @@ type
 
       @longCode(#
         // Advised:
-        Download.PostData.Values['my-form-key'] := 'my-form-value';
+        Download.HttpPostData.Values['my-form-key'] := 'my-form-value';
         // This also works, it is equivalent to above if key didn't already exist
-        Download.PostData.Append('my-form-key-2=my-form-value-2');
+        Download.HttpPostData.Append('my-form-key-2=my-form-value-2');
       #)
     }
-    function PostData: TStrings;
+    function HttpPostData: TStrings;
+    function PostData: TStrings; deprecated 'use HttpPostData';
 
-    { Additional HTTP headers, e.g. User-Agent. }
-    procedure AddHeader(const AKey, AValue: String);
+    { Add additional HTTP headers, e.g. User-Agent. }
+    procedure HttpHeader(const AKey, AValue: String);
+    procedure AddHeader(const AKey, AValue: String); deprecated 'use HttpHeader';
 
     { When Status is dsSuccess or dsError, and request was using HTTP or HTTPS,
       this contains the HTTP status code.
@@ -204,9 +206,9 @@ begin
     ApplicationProperties.OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif}Update);
     UpdateInitialized := false;
   end;
-  FreeAndNil(FPostData);
-  FreeAndNil(FAdditionalHeadersKeys);
-  FreeAndNil(FAdditionalHeadersValues);
+  FreeAndNil(FHttpPostData);
+  FreeAndNil(FHttpHeadersKeys);
+  FreeAndNil(FHttpHeadersValues);
   inherited;
 end;
 
@@ -365,12 +367,12 @@ begin
       Reader.Url := RealUrl;
       Reader.ForceSynchronous := ForceSynchronous;
       Reader.HttpMethod := HttpMethod;
-      { Assign from field FPostData, not PostData function,
+      { Assign from field FHttpPostData, not HttpPostData function,
         this way it may remain nil and not waste memory
-        in case user didn't touch PostData. }
-      Reader.PostData := FPostData;
-      Reader.AdditionalHeadersKeys := FAdditionalHeadersKeys;
-      Reader.AdditionalHeadersValues := FAdditionalHeadersValues;
+        in case user didn't touch HttpPostData. }
+      Reader.HttpPostData := FHttpPostData;
+      Reader.HttpHeadersKeys := FHttpHeadersKeys;
+      Reader.HttpHeadersValues := FHttpHeadersValues;
       Reader.Start;
     end else
     if Assigned(RegisteredProtocol.ReadEvent) then
@@ -500,22 +502,32 @@ end;
 
 function TCastleDownload.PostData: TStrings;
 begin
-  // FPostData is created on-demand, because it is often not needed
-  if FPostData = nil then
-    FPostData := TStringList.Create;
-  Result := FPostData;
+  Result := HttpPostData;
 end;
 
 procedure TCastleDownload.AddHeader(const AKey, AValue: String);
 begin
+  HttpHeader(AKey, AValue);
+end;
+
+function TCastleDownload.HttpPostData: TStrings;
+begin
+  // FHttpPostData is created on-demand, because it is often not needed
+  if FHttpPostData = nil then
+    FHttpPostData := TStringList.Create;
+  Result := FHttpPostData;
+end;
+
+procedure TCastleDownload.HttpHeader(const AKey, AValue: String);
+begin
   // 2 string lists are created on-demand, because they are often not needed
-  if FAdditionalHeadersKeys = nil then
-    FAdditionalHeadersKeys := TStringList.Create;
-  if FAdditionalHeadersValues = nil then
-    FAdditionalHeadersValues := TStringList.Create;
-  FAdditionalHeadersKeys.Append(AKey);
-  FAdditionalHeadersValues.Append(AValue);
-  Assert(FAdditionalHeadersKeys.Count = FAdditionalHeadersValues.Count);
+  if FHttpHeadersKeys = nil then
+    FHttpHeadersKeys := TStringList.Create;
+  if FHttpHeadersValues = nil then
+    FHttpHeadersValues := TStringList.Create;
+  FHttpHeadersKeys.Append(AKey);
+  FHttpHeadersValues.Append(AValue);
+  Assert(FHttpHeadersKeys.Count = FHttpHeadersValues.Count);
 end;
 
 {$endif}
