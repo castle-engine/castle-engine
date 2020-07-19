@@ -53,6 +53,7 @@ type
   TFpHttpClientThread = class(TThread)
   public
     { Set these before Execute }
+    PostData, AdditionalHeadersKeys, AdditionalHeadersValues: TStrings;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
@@ -194,6 +195,7 @@ end;
 procedure TFpHttpClientThread.Execute;
 var
   Client: TCastleFpHttpClient;
+  I: Integer;
 begin
   try
     Client := TCastleFpHttpClient.Create(nil);
@@ -203,10 +205,24 @@ begin
       Client.Stream := Stream;
       Client.AllowRedirect := true;
       Client.MimeTypeFromUrl := URIMimeType(Url);
-      Client.KeepConnection := false; // used only once, so KeepConnection not necessary
+      // Client is used only once, so KeepConnection not necessary
+      Client.KeepConnection := false;
+      // add additional headers
+      if AdditionalHeadersKeys <> nil then
+      begin
+        Assert((AdditionalHeadersKeys <> nil) = (AdditionalHeadersValues <> nil));
+        Assert(AdditionalHeadersKeys.Count = AdditionalHeadersValues.Count);
+        for I := 0 to AdditionalHeadersKeys.Count - 1 do
+          Client.AddHeader(AdditionalHeadersKeys[I], AdditionalHeadersValues[I]);
+      end;
+
       case HttpMethod of
         hmGet: Client.Get(Url, Stream);
-        hmPost: Client.Post(Url, Stream);
+        hmPost:
+          if PostData <> nil then
+            Client.FormPost(Url, PostData, Stream)
+          else
+            Client.Post(Url, Stream);
         hmPut: Client.Put(Url, Stream);
         hmDelete: Client.Delete(Url, Stream);
         hmOptions: Client.Options(Url, Stream);
@@ -282,6 +298,9 @@ begin
   Thread.Url := Url;
   Thread.SynchronizationCS := SynchronizationCS;
   Thread.HttpMethod := HttpMethod;
+  Thread.PostData := PostData;
+  Thread.AdditionalHeadersKeys := AdditionalHeadersKeys;
+  Thread.AdditionalHeadersValues := AdditionalHeadersValues;
   if ForceSynchronous then
   begin
     try
@@ -318,6 +337,10 @@ begin
         1. would cause short delay when interrupting downloads
         2. doesn't work to prevent visible mem leak in examples/network/asynchronous_download/
            (but that leak seems unrelated? it occurs even if nothing was interrupted?)
+
+        TODO: This is actually dangerous if the interruption will happen
+        before thread Execute processed PostData and AdditionalHeadersKeys/Values,
+        as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
       Thread.FreeOnTerminate := true;

@@ -71,6 +71,7 @@ begin
   Download := TCastleDownload.Create(nil);
   try
     Download.Url := Parameters[1];
+    Download.AddHeader('User-Agent', 'castle_download/1.0');
     Download.Start;
 
     while Download.Status = dsDownloading do

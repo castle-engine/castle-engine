@@ -62,6 +62,8 @@ type
     FMimeType: String;
     Reader: TUrlAsynchronousReader; //< non-nil when asynchronous reading is in-progress
     UpdateInitialized: Boolean;
+    FPostData: TStringList;
+    FAdditionalHeadersKeys, FAdditionalHeadersValues: TStringList;
     procedure SetUrl(const Value: String);
     procedure SetHttpMethod(const Value: THttpMethod);
     procedure SetOnFinish(const Value: TDownloadEvent);
@@ -152,6 +154,22 @@ type
       It is guaranteed to be set when @link(Status) is dsSuccess,
       it *may* be determined earlier (when dsDownloading). }
     property MimeType: String read FMimeType;
+
+    { Form data to send when HttpMethod = hmPost.
+      Initially empty.
+      Use the TStrings name/value mechanism to set the form, like
+
+      @longCode(#
+        // Advised:
+        Download.PostData['my-form-key'] := 'my-form-value';
+        // This also works, it is equivalent to above if key didn't already exist
+        Download.PostData.Append('my-form-key-2=my-form-value-2');
+      #)
+    }
+    function PostData: TStrings;
+
+    { Additional HTTP headers, e.g. User-Agent. }
+    procedure AddHeader(const AKey, AValue: String);
   end;
 
 {$endif}
@@ -171,6 +189,9 @@ begin
     ApplicationProperties.OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif}Update);
     UpdateInitialized := false;
   end;
+  FreeAndNil(FPostData);
+  FreeAndNil(FAdditionalHeadersKeys);
+  FreeAndNil(FAdditionalHeadersValues);
   inherited;
 end;
 
@@ -320,6 +341,9 @@ begin
       Reader.Url := RealUrl;
       Reader.ForceSynchronous := ForceSynchronous;
       Reader.HttpMethod := HttpMethod;
+      Reader.PostData := FPostData;
+      Reader.AdditionalHeadersKeys := FAdditionalHeadersKeys;
+      Reader.AdditionalHeadersValues := FAdditionalHeadersValues;
       Reader.Start;
     end else
     if Assigned(RegisteredProtocol.ReadEvent) then
@@ -432,6 +456,26 @@ begin
     FContents := CreateMemoryStream(UnderlyingStream)
   else
     FContents := UnderlyingStream;
+end;
+
+function TCastleDownload.PostData: TStrings;
+begin
+  // FPostData is created on-demand, because it is often not needed
+  if FPostData = nil then
+    FPostData := TStringList.Create;
+  Result := FPostData;
+end;
+
+procedure TCastleDownload.AddHeader(const AKey, AValue: String);
+begin
+  // 2 string lists are created on-demand, because they are often not needed
+  if FAdditionalHeadersKeys = nil then
+    FAdditionalHeadersKeys := TStringList.Create;
+  if FAdditionalHeadersValues = nil then
+    FAdditionalHeadersValues := TStringList.Create;
+  FAdditionalHeadersKeys.Append(AKey);
+  FAdditionalHeadersValues.Append(AValue);
+  Assert(FAdditionalHeadersKeys.Count = FAdditionalHeadersValues.Count);
 end;
 
 {$endif}
