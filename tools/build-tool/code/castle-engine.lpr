@@ -46,7 +46,7 @@ var
   CleanAll: Boolean = false;
 
 const
-  Options: array [0..18] of TOption =
+  Options: array [0..19] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -66,7 +66,8 @@ const
     (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
     (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
     (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone),
-    (Short: #0 ; Long: 'all'; Argument: oaNone)
+    (Short: #0 ; Long: 'all'; Argument: oaNone),
+    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -77,7 +78,7 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   var
     Dir: String;
   begin
-    if ExtractFileName(DirOrManifestFile) = 'CastleEngineManifest.xml' then
+    if ExtractFileName(DirOrManifestFile) = ManifestName then
       Dir := ExtractFilePath(DirOrManifestFile)
     else
       Dir := DirOrManifestFile;
@@ -167,7 +168,7 @@ begin
             OptionDescription('-V / --verbose',
               'Verbose mode, output contains e.g. list of packaged files.') +NL+
             OptionDescription('--mode=debug|release',
-              'Compilation mode, used by "compile" command. Also packaging mode for some platforms (right now, Android). By default "release".') +NL+
+              'Compilation mode, used by "compile" and "package" commands. Also packaging mode on some platforms (right now, Android). By default "release".') +NL+
             OptionDescription('--assume-compiled',
               'Do not automatically do "clean" and "compile" before "package". Instead assume that compiled executable for given OS/CPU/mode is already present in the package directory.') +NL+
             OptionDescription('--fast',
@@ -182,6 +183,10 @@ begin
               'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
             OptionDescription('--project=DIR',
               'Where to search for the project (CastleEngineManifest.xml file). By default we search in the current directory. The argument can either be a directory, or a filename of CastleEngineManifest.xml file.') +NL+
+            OptionDescription('--all',
+              'Use by "auto-generate-clean", indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
+            OptionDescription('--manifest-name=AlternativeManifest.xml',
+              'Search and use given "AlternativeManifest.xml" file instead of standard "CastleEngineManifest.xml". Useful if you need to maintain completely different project configurations for any reason.') +NL+
             TargetOptionHelp + NL +
             OSOptionHelp + NL +
             CPUOptionHelp + NL +
@@ -215,6 +220,7 @@ begin
     16: UpdateOnlyCode := true;
     17: IosSimulatorSupport := true;
     18: CleanAll := true;
+    19: ManifestName := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
