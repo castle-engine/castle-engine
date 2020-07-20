@@ -215,7 +215,9 @@ begin
       Client.AllowRedirect := true;
       Client.MimeTypeFromUrl := URIMimeType(Url);
       // Client is used only once, so KeepConnection not necessary
+      {$ifndef VER3_0_2}
       Client.KeepConnection := false;
+      {$endif}
       // add additional headers
       if HttpHeadersKeys <> nil then
       begin
