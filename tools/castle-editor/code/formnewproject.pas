@@ -131,7 +131,11 @@ begin
     InvalidIndex := CharsPos(InvalidProjectNameChars, ProjectName);
     if InvalidIndex <> 0 then
     begin
-      ErrorBox(Format('Project name contains invalid character "%s".',
+      ErrorBox(Format('Project name contains invalid character "%s".' + NL +
+        NL +
+        'The internal project name is used with various tools, in various contexts, and thus it is limited to alphanumeric characters plus underscore ("_") and hyphen ("-").' + NL +
+        NL +
+        'Note that this is only an internal project name. The user-visible "Project Caption" has no such limitations.',
         [SReadableForm(ProjectName[InvalidIndex])]));
       CanClose := false;
       Exit;
