@@ -78,11 +78,11 @@ end;"/>
 -dCASTLE_WINDOW_LCL"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (X3D, Collada, Spine...), we are cross-platform (desktop, mobile), we have an optimized renderer with many cool graphic effects (shadows, mirror, bump mapping...). See https://castle-engine.io/features.php for a complete list of features.
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
 This package, alternative_castle_window_based_on_lcl.lpk, contains the CastleWindow unit version using Lazarus LCL as a backend.
 
-It is practically only useful on Mac OS X (Darwin) systems. On other systems, you should use castle_window.lpk, that includes CastleWindow unit with the default backend.
+It is practically only useful on macOS (Darwin) systems. On other systems, you should use castle_window.lpk, that includes CastleWindow unit with the default backend.
 
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU LGPL with static linking exception >= 2.
