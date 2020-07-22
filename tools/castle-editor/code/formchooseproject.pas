@@ -157,7 +157,9 @@ begin
         raise EInternalError.Create('Unknown project template selected');
 
       // Fill project dir
-      CopyTemplate(ProjectDirUrl, TemplateName, NewProjectForm.EditProjectName.Text);
+      CopyTemplate(ProjectDirUrl, TemplateName,
+        NewProjectForm.EditProjectName.Text,
+        NewProjectForm.EditProjectCaption.Text);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project

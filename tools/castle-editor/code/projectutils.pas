@@ -25,7 +25,7 @@ uses
 
 { Fill directory for new project with the template. }
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
@@ -101,7 +101,7 @@ end;
 { global routines ------------------------------------------------------------ }
 
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
@@ -126,6 +126,7 @@ begin
     Macros.Add('${PROJECT_NAME}', ProjectName);
     Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
     Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
+    Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
 
     CopyProcess := TTemplateCopyProcess.Create;
     try

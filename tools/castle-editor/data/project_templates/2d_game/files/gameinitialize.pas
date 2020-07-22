@@ -51,6 +51,7 @@ initialization
 
   { Create and assign Application.MainWindow. }
   Window := TCastleWindowBase.Create(Application);
+  Window.Caption := '${PROJECT_CAPTION}';
   Application.MainWindow := Window;
 
   { You should not need to do *anything* more in the unit "initialization" section.

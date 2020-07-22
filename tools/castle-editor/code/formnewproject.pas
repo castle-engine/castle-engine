@@ -31,8 +31,10 @@ type
     ButtonTemplate2d: TSpeedButton;
     EditLocation: TEditButton;
     EditProjectName: TEdit;
+    EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
     LabelProjectLocation: TLabel;
+    LabelProjectCaption: TLabel;
     LabelTitle: TLabel;
     LabelProjectName: TLabel;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
@@ -156,4 +158,3 @@ begin
 end;
 
 end.
-

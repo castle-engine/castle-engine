@@ -3,5 +3,6 @@
   standalone_source="${PROJECT_PASCAL_NAME}_standalone.lpr"
   game_units="GameInitialize"
   qualified_name="${PROJECT_QUALIFIED_NAME}"
+  caption="${PROJECT_CAPTION}"
 >
 </project>

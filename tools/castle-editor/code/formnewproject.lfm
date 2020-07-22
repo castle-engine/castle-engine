@@ -1,29 +1,27 @@
 object NewProjectForm: TNewProjectForm
-  Left = 505
-  Height = 621
-  Top = 209
-  Width = 1132
+  Left = 343
+  Height = 773
+  Top = 99
+  Width = 1107
   Caption = 'New Project | Castle Game Engine'
-  ClientHeight = 621
-  ClientWidth = 1132
+  ClientHeight = 773
+  ClientWidth = 1107
   DesignTimePPI = 144
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.8.0'
   object ButtonPanel1: TButtonPanel
     Left = 6
     Height = 44
-    Top = 571
-    Width = 1120
+    Top = 723
+    Width = 1095
     OKButton.Name = 'OKButton'
     OKButton.Caption = '&Create Project'
-    OKButton.DefaultCaption = False
     HelpButton.Name = 'HelpButton'
     HelpButton.DefaultCaption = True
     CloseButton.Name = 'CloseButton'
     CloseButton.Caption = 'Close'
-    CloseButton.DefaultCaption = False
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
     TabOrder = 0
@@ -7703,10 +7701,36 @@ object NewProjectForm: TNewProjectForm
     ParentColor = False
     ParentFont = False
   end
+  object LabelProjectCaption: TLabel
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = EditProjectName
+    AnchorSideTop.Side = asrBottom
+    Left = 18
+    Height = 24
+    Top = 527
+    Width = 153
+    BorderSpacing.Top = 20
+    Caption = 'Project Caption'
+    ParentColor = False
+    ParentFont = False
+  end
+  object EditProjectCaption: TEdit
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelProjectCaption
+    AnchorSideTop.Side = asrBottom
+    Left = 18
+    Height = 34
+    Top = 557
+    Width = 498
+    BorderSpacing.Top = 6
+    ParentFont = False
+    TabOrder = 4
+    Text = 'My New Project'
+  end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
     Title = 'Select The Project Parent Directory'
     Options = [ofPathMustExist, ofFileMustExist, ofEnableSizing, ofViewDetail]
-    left = 782
-    top = 395
+    Left = 782
+    Top = 395
   end
 end
