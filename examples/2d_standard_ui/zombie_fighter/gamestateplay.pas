@@ -163,11 +163,12 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Triangle := Viewport.TriangleHit;
-    if (Triangle <> nil) and
-       ( (Triangle^.Material.X3DName = 'MA_female_zombie_material') or
-         (Triangle^.Material.X3DName = 'MA_male_zombie_material')) then
+    if (Triangle <> nil) and // we clicked on something that has triangle information (e.g. because it has Spatial with ssDynamicCollisions)
+       (Triangle^.MaterialInfo <> nil)  and // the clicked triangle has a material information
+       ( (Triangle^.MaterialInfo.Node.X3DName = 'MA_female_zombie_material') or
+         (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
     begin
-      StateAskDialog.Male := Triangle^.Material.X3DName = 'MA_male_zombie_material';
+      StateAskDialog.Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
       TUIState.Push(StateAskDialog);
     end;
   end;
