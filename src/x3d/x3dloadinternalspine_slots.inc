@@ -149,8 +149,10 @@ var
           IsOtherAttachmentExisted := True;
         end;
 
-        // TODO: Is this still useful?
-        // A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
+        { Transform skinnedmesh into local space.
+          Note that the new weighted mesh baked transformations directly into
+          TCoordinateInterpolatorNode so this is not necessary for weighted mesh. }
+        A.TransformToBoneSpace(Bone);
         A.NodeUsedAsChild := true;
         Result := A.Node;
 

@@ -102,6 +102,9 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+  end;
+
+  TSkinnedMeshAttachment = class(TMeshAttachment)
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
@@ -168,6 +171,14 @@ begin
   if TypeName = 'clipping' then
   begin
     Result := TClippingAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json, Bones);
+  end else
+  if TypeName = 'skinnedmesh' then
+  begin
+    WritelnWarning('Spine', 'Region type skinnedmesh may not be supported in future CGE versions, please export your model again from latest Spine version');
+    Result := TSkinnedMeshAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
@@ -415,7 +426,7 @@ begin
   begin
     BoneIndex := JsonArray[Index].AsInteger; Inc(Index);
     if not Between(BoneIndex, 0, AllBones.Count - 1) then
-      raise Exception.CreateFmt('Invalid bone index in Mesh.vertices: %d', [BoneIndex]);
+      raise Exception.CreateFmt('Invalid bone index in mesh.vertices: %d', [BoneIndex]);
     B := TMeshVertexBone.Create;
     Bones.Add(B);
     B.Bone := AllBones[BoneIndex];
@@ -441,7 +452,7 @@ begin
     if I + BonesCount * 4 < JsonArray.Count then
     begin
       if BonesCount = 0 then
-        WritelnWarning('Spine', 'Mesh bonesCount is <= 0');
+        WritelnWarning('Spine', 'mesh bonesCount is <= 0');
       V := TMeshVertex.Create;
       V.Parse(JsonArray, I + 1, BonesCount, Bones);
       V.Offset := Offset;
@@ -449,7 +460,7 @@ begin
       Add(V);
     end else
     begin
-      WritelnWarning('Spine', Format('Mesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
+      WritelnWarning('Spine', Format('mesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
         [BonesCount]));
       Break;
     end;
@@ -504,14 +515,16 @@ begin
   end;
 end;
 
-procedure TMeshAttachment.TransformToBoneSpace(const Bone: TBone);
+
+{ TSkinnedMeshAttachment --------------------------------------------------- }
+
+procedure TSkinnedMeshAttachment.TransformToBoneSpace(const Bone: TBone);
 var
   List: TVector3List;
   I: Integer;
 begin
   inherited;
 
-  // TODO: Is this still useful?
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
     List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
