@@ -16,8 +16,8 @@ program fpmake;
 {$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
 
 uses
-  { It seems that FPC 3.1.1 requires thread support for FpMkUnit. }
-  {$ifdef VER3_1} CThreads, {$endif}
+  { It seems that FPC > 3.0.x requires thread support for FpMkUnit. }
+  {$ifdef UNIX} {$ifndef VER3_0} CThreads, {$endif} {$endif}
   SysUtils, fpmkunit;
 
 var
