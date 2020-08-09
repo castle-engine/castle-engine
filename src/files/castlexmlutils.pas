@@ -741,7 +741,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToFloat(ValueStr);
+    Value := StrToFloatDot(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeFloat(
@@ -751,7 +751,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToFloat(ValueStr);
+    Value := StrToFloatDot(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeBoolean(
@@ -1024,7 +1024,7 @@ end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStr(Value)));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStrDot(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector2);

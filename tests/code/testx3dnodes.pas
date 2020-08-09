@@ -172,7 +172,7 @@ procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
       case T.Token of
         vtKeyword: result := result +' "' +X3DKeywordsName[T.Keyword]+'"';
         vtName: result := '"' +T.Name+'"';
-        vtFloat: result := result +' ' +FloatToStr(T.Float);
+        vtFloat: result := result +' ' +FloatToStrDot(T.Float);
         vtInteger: result := result +' ' +IntToStr(T.Integer);
         vtString: result := result+' "'+T.AString+'"';
       end;

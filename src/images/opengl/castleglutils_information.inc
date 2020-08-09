@@ -121,7 +121,8 @@ const
   function GetMaxTextureMaxAnisotropy: string;
   begin
     if GLFeatures.EXT_texture_filter_anisotropic then
-      Result := FloatToStr(GLFeatures.MaxTextureMaxAnisotropyEXT) else
+      Result := FloatToStrDot(GLFeatures.MaxTextureMaxAnisotropyEXT)
+    else
       Result := 'EXT_texture_filter_anisotropic not available';
   end;
 

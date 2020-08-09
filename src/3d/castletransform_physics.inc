@@ -1192,7 +1192,7 @@ begin
 
           WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
             + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
-            + FloatToStr(OldTimeAccumulator) + ' to ' + FloatToStr(TimeAccumulator));
+            + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
 
           break;
         end;

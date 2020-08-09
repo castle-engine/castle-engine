@@ -679,7 +679,7 @@ begin
     Terrain[3] := StrToInt(NextToken(TmpStr, SPosition, [',']));
   end;
   if Element.AttributeString('probability', TmpStr) then
-    Probability := StrToFloat(TmpStr);
+    Probability := StrToFloatDot(TmpStr);
 
   I := TXMLElementIterator.Create(Element);
   try
@@ -727,9 +727,9 @@ var
   begin
     SeekPos := 1;
     Token := NextToken(S, SeekPos, [',']);
-    Result[0] := StrToFloat(Token);
+    Result[0] := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
-    Result[1] := StrToFloat(Token);
+    Result[1] := StrToFloatDot(Token);
     Token := NextToken(S, SeekPos, [',']);
     if Token <> '' then
       raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
@@ -761,15 +761,15 @@ begin
   if Element.AttributeString('type', TmpStr) then
     Type_ := TmpStr;
   if Element.AttributeString('x', TmpStr) then
-    X := StrToFloat(TmpStr);
+    X := StrToFloatDot(TmpStr);
   if Element.AttributeString('y', TmpStr) then
-    Y := StrToFloat(TmpStr);
+    Y := StrToFloatDot(TmpStr);
   if Element.AttributeString('width', TmpStr) then
-    Width := StrToFloat(TmpStr);
+    Width := StrToFloatDot(TmpStr);
   if Element.AttributeString('height', TmpStr) then
-    Height := StrToFloat(TmpStr);
+    Height := StrToFloatDot(TmpStr);
   if Element.AttributeString('rotation', TmpStr) then
-    Rotation := StrToFloat(TmpStr);
+    Rotation := StrToFloatDot(TmpStr);
   if Element.AttributeString('gid', TmpStr) then
     GId := StrToInt(TmpStr);
   if Element.AttributeString('visible', TmpStr) then
@@ -825,7 +825,7 @@ begin
   OffsetY := 0;
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
-    Opacity := StrToFloat(TmpStr);
+    Opacity := StrToFloatDot(TmpStr);
   if Element.GetAttribute('visible') = '0' then
     Visible := False;
   OffsetX := Element.AttributeSingleDef('offsetx', 0);

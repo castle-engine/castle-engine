@@ -906,6 +906,7 @@ function Str2ToInt(const s: string): integer;
 function StrHexToInt(const s: string): Int64;
 
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;
+  deprecated 'use StrToFloatDefDot in most cases, to have dot as decimal separator';
 
 { Convert a set to a string representation, in somewhat hacky way.
   This assumes that given SetVariable is a set value, and the set type
@@ -1720,9 +1721,10 @@ var datapos, formpos: integer;
    Inc(datapos);
    while (datapos <= Length(data)) and (data[datapos] in ['0'..'9','.', 'e','E', '-', '+']) do
     Inc(datapos);
-   {ponizsze StrToFloat tez moze spowodowac blad jesli np.
-    wyszedl nam string '-' lub '+' lub string z dwoma kropkami}
-   result := StrToFloat(CopyPos(data, dataposstart, datapos-1));
+   { Note that StrToFloatDot may still raise EConvertError.
+     The argument contains only valid characters, but they may not form a valid number,
+     e.g. '123....456' or 'eee' or '1+2'. }
+   result := StrToFloatDot(CopyPos(data, dataposstart, datapos-1));
   end;
 
   function ReadInt64Data: Int64;

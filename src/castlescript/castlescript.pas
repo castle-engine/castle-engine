@@ -1749,7 +1749,7 @@ class procedure TCasScriptFloat.ConvertFromString(AFunction: TCasScriptFunction;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   try
-    TCasScriptFloat(AResult).Value := StrToFloat(TCasScriptString(Arguments[0]).Value);
+    TCasScriptFloat(AResult).Value := StrToFloatDot(TCasScriptString(Arguments[0]).Value);
   except
     on E: EConvertError do
       { Change EConvertError to ECasScriptError }
@@ -1997,7 +1997,7 @@ end;
 class procedure TCasScriptString.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
-  TCasScriptString(AResult).Value := FloatToStr(TCasScriptFloat(Arguments[0]).Value);
+  TCasScriptString(AResult).Value := FloatToStrDot(TCasScriptFloat(Arguments[0]).Value);
 end;
 
 class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);

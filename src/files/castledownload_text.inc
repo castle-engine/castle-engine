@@ -227,7 +227,7 @@ end;
 
 function TTextReader.ReadSingle: Single;
 begin
-  Result := StrToFloat(Read);
+  Result := StrToFloatDot(Read);
 end;
 
 function TTextReader.ReadVector3: TVector3;
