@@ -368,7 +368,7 @@ end;
 
 function TVector3List.MergeCloseVertexes(MergeDistance: Single): Cardinal;
 var
-  V1, V2: PT;
+  V1, V2: PtrT;
   I, J: Integer;
 begin
   MergeDistance := Sqr(MergeDistance);
