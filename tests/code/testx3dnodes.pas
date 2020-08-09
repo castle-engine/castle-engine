@@ -84,7 +84,6 @@ type
     procedure TestAttenuation;
     procedure TestAddChildren;
     procedure TestAddChildrenAllowDuplicates;
-    procedure TestNurbsCurvePoint;
   end;
 
 implementation
@@ -1952,29 +1951,6 @@ begin
   finally FreeAndNil(G) end;
 end;
 
-procedure TTestX3DNodes.TestNurbsCurvePoint;
-var
-  CurveNode: TNurbsCurveNode;
-  Coordinate: TCoordinateNode;
-begin
-  Coordinate := TCoordinateNode.Create;
-  Coordinate.SetPoint([
-    Vector3(2.285389, 1.235778, 1.636090),
-    Vector3(1, 0, 0),
-    Vector3(1.141864, 1.003204, -1.775073),
-    Vector3(1, 0, 0),
-    Vector3(3.120634, 1.865495, 2.322197)
-  ]);
-
-  CurveNode := TNurbsCurveNode.Create;
-  CurveNode.ControlPoint := Coordinate;
-
-  AssertVectorEquals(Vector3(2.285389, 1.235778, 1.636090), CurveNode.Point(0));
-  AssertVectorEquals(Vector3(3.120634, 1.865495, 2.322197), CurveNode.Point(1));
-
-  FreeAndNil(CurveNode);
-end;
-
 initialization
- RegisterTest(TTestX3DNodes);
+  RegisterTest(TTestX3DNodes);
 end.
