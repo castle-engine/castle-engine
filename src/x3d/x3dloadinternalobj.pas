@@ -409,6 +409,13 @@ var
           7: begin
                CheckIsMaterial('specular exponent (Ns)');
                Materials.Last.SpecularExponent := StrToFloatDot(LineAfterMarker);
+               if Materials.Last.SpecularExponent = 0 then
+               begin
+                 WritelnWarning('Wavefront material "%s" specifies specular exponent (Ns) as zero, ignoring', [
+                   Materials.Last.Name
+                 ]);
+                 Materials.Last.SpecularExponent := 1;
+               end;
              end;
           8: begin
                CheckIsMaterial('sharpness');
