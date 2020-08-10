@@ -156,9 +156,9 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
           NormalTextureCoordinatesId, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
 
-        { There is no need to increase the TexCoordNeeded unconditionally.
+        { There is no need to increase the ATexCoordsNeeded unconditionally.
           If the NormalTextureCoordinatesId = 0 and
-          TexCoordNeeded = 1 then we're already satisfied, as then the normalmap
+          ATexCoordsNeeded = 1 then we're already satisfied, as then the normalmap
           will use the existing texture coordinates from e.g. diffuse texture. }
         MaxVar(ATexCoordsNeeded, NormalTextureCoordinatesId + 1);
       end;
@@ -207,9 +207,9 @@ procedure TGLRenderer.SurfaceTexturesEnable(const Shape: TX3DRendererShape;
 
   procedure RequireTexCoord(const TextureCoordinatesId: Integer);
   begin
-    { Note that there is no need to increase the TexCoordNeeded unconditionally.
+    { Note that there is no need to increase the ATexCoordsNeeded unconditionally.
       If the NormalTextureCoordinatesId = 0 and
-      TexCoordNeeded = 1 then we're already satisfied, as then the normalmap
+      ATexCoordsNeeded = 1 then we're already satisfied, as then the normalmap
       will use the existing texture coordinates from e.g. diffuse texture. }
 
     MaxVar(ATexCoordsNeeded, TextureCoordinatesId + 1);
