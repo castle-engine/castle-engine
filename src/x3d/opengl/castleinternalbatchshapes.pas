@@ -253,7 +253,14 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
        (FaceSet.FdFogCoord.Value <> nil) or
        {$endif}
        (FaceSet.FdColor.Value <> nil) or
-       (FaceSet.FdNormal.Value <> nil) then
+       (FaceSet.FdNormal.Value <> nil) or
+       ( { If the shape needs automatic texture coordinate generation,
+           batching is not possible, as the tex coordinate generation looks at shape's bounding box.
+           See https://github.com/castle-engine/castle-engine/issues/179 . }
+         (FaceSet.FdTexCoord.Value = nil) and
+         (Shape.Node <> nil) and
+         (Shape.Node.Appearance <> nil) and
+         (Shape.Node.Appearance.Texture <> nil) ) then
       Exit;
 
     TexCoord := FaceSet.TexCoord;
