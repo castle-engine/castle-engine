@@ -93,7 +93,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleScript, CastleScriptParser;
+  CastleScript, CastleScriptParser, CastleUtils;
 
 { TCastleConfigScriptHelper -------------------------------------------------- }
 
