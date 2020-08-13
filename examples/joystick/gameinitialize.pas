@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleUtils;
 
 { TJoyAxisVisualize ---------------------------------------------------------- }
 
