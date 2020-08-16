@@ -333,7 +333,7 @@ type
     const
       DefaultScreenSpaceAmbientOcclusion = false;
       DefaultScreenSpaceReflections = False;
-      DefaultScreenSpaceReflectionsSurfaceGlossiness = 0.25;
+      DefaultScreenSpaceReflectionsSurfaceGlossiness = 0.5;
       DefaultUseGlobalLights = true;
       DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
