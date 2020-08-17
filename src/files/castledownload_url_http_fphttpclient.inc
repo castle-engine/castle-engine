@@ -386,6 +386,13 @@ begin
   begin
     Thread.Terminate;
 
+    {.$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
+    {$ifdef CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
+    WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
+    Thread.WaitFor;
+    FreeAndNil(Thread);
+
+    {$else}
     if not Thread.Finished then
     begin
       { TODO: This will leak memory if Running changed from true to false between these 2 lines.
@@ -406,18 +413,12 @@ begin
         as they may become invalid when owning TCastleDownload it freed.
       }
       WritelnLog('Network', 'Interrupting download in-progress of "%s"', [URIDisplay(Url)]);
-      {.$define CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
-      {$ifdef CASTLE_SAFE_DOWNLOAD_INTERRUPTION}
-      Thread.Terminate;
-      Thread.WaitFor;
-      FreeAndNil(Thread);
-      {$else}
       Thread.FreeOnTerminate := true;
       Thread := nil;
       SynchronizationCS := nil; // do not free it here, let Thread use it
-      {$endif}
     end else
       FreeAndNil(Thread);
+    {$endif}
   end;
 
   FreeAndNil(SynchronizationCS);
