@@ -1,3 +1,4 @@
+{%MainUnit castledownload.pas}
 {
   Copyright 2013-2020 Michalis Kamburelis.
 
