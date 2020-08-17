@@ -25,13 +25,15 @@
 
 type
   TFpHttpClientThread = class;
+  TFpHttpClientJob = class;
 
   { Customized HTTP client. In addition to TFpHttpClient this:
 
-    - Updates ParentThread.DownloadedBytes
-    - Updates ParentThread.TotalBytes
-    - Updates ParentThread.MimeType
-    - Terminates the client, if thread is terminated
+    - Updates ParentJob.DownloadedBytes
+    - Updates ParentJob.TotalBytes
+    - Updates ParentJob.MimeType
+    - Terminates the client, if ParentThread is terminated
+      (ParentThread can also be = nil, for non-threaded operation)
 
     This is used only within thread, in TFpHttpClientThread. }
   TCastleFpHttpClient = class(TFpHttpClient)
@@ -41,6 +43,7 @@ type
     procedure RedirectLog(Sender: TObject; const ASrc: String; var ADest: String);
     procedure DataReceived(Sender: TObject; const ContentLength, CurrentPos: Int64);
   public
+    ParentJob: TFpHttpClientJob;
     ParentThread: TFpHttpClientThread;
     SynchronizationCS: TCriticalSection;
     Contents: TMemoryStream;
@@ -49,14 +52,16 @@ type
     destructor Destroy; override;
   end;
 
-  { Thread that downloads using FpHttpClient. }
-  TFpHttpClientThread = class(TThread)
+  { Job that downloads using FpHttpClient.
+    Can be put in thread (like TFpHttpClientThread) or used without thread. }
+  TFpHttpClientJob = class
   public
     { Set these before Execute }
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
     Url: String;
     HttpMethod: THttpMethod;
     SynchronizationCS: TCriticalSection;
+    ParentThread: TFpHttpClientThread; //< leave nil for non-threaded operation
 
     { Updated even during downloading. }
     DownloadedBytes, TotalBytes: Int64;
@@ -76,7 +81,15 @@ type
     HttpResponseCode: Integer;
     HttpResponseHeaders: TStrings;
 
-    constructor Create(const EnableThreading: Boolean);
+    constructor Create;
+    destructor Destroy; override;
+    procedure Execute;
+  end;
+
+  { Thread that downloads using FpHttpClient. }
+  TFpHttpClientThread = class(TThread)
+    Job: TFpHttpClientJob;
+    constructor Create;
     destructor Destroy; override;
     procedure Execute; override;
   end;
@@ -86,8 +99,8 @@ type
   strict private
     Thread: TFpHttpClientThread;
     SynchronizationCS: TCriticalSection;
-    { Synchronize one last time from Thread, when it finished work in Execute. }
-    procedure SynchronizeFromFinishedThread;
+    { Synchronize one last time from Job, when it finished work in Execute. }
+    procedure SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
   public
     procedure Start; override;
     destructor Destroy; override;
@@ -113,23 +126,23 @@ procedure TCastleFpHttpClient.DataReceived(Sender: TObject; const ContentLength,
 begin
   SynchronizationCS.Acquire;
   try
-    ParentThread.DownloadedBytes := Max(Contents.Size, 0);
+    ParentJob.DownloadedBytes := Max(Contents.Size, 0);
 
     if ContentLength = 0 then
       { FpHttpClient leaves ContentLength as 0 in case of chunked HTTP response.
         We want to treat it as -1 (unknown) then.
         Testcase: examples/network/asynchronous_download/ with
         https://castle-engine.io/modern_pascal_introduction.html (FPC 3.2.0 on Linux/x86_64). }
-      ParentThread.TotalBytes := -1
+      ParentJob.TotalBytes := -1
     else
       { Otherwise ContentLength is exactly what we need for TotalBytes.
         Note: FpHttpClient may set ContentLength to -1 if unknown
         (not specified in headers), which is exactly what we want. }
-      ParentThread.TotalBytes := ContentLength;
+      ParentJob.TotalBytes := ContentLength;
   finally SynchronizationCS.Release end;
 
   {$ifndef VER3_0_2}
-  if ParentThread.Terminated then
+  if (ParentThread <> nil) and ParentThread.Terminated then
     Terminate;
   {$endif}
 end;
@@ -154,7 +167,7 @@ var
 begin
   Result := inherited;
 
-  { Determine ParentThread.MimeType.
+  { Determine ParentJob.MimeType.
     Do it only for http status = 200, otherwise we would detect MIME type
     for intermediate content send with redirection. }
   if Result = 200 then
@@ -165,7 +178,7 @@ begin
       MimeType := MimeTypeFromUrl;
     SynchronizationCS.Acquire;
     try
-      ParentThread.MimeType := MimeType;
+      ParentJob.MimeType := MimeType;
     finally SynchronizationCS.Release end;
   end;
 end;
@@ -180,28 +193,23 @@ begin
   inherited;
 end;
 
-{ TFpHttpClientThread -------------------------------------------------------- }
+{ TFpHttpClientJob -------------------------------------------------------- }
 
-constructor TFpHttpClientThread.Create(const EnableThreading: Boolean);
+constructor TFpHttpClientJob.Create;
 begin
-  { Using EnableThreading = false is a hack used when ForceSynchronous = true.
-    This is useful to instantiate TFpHttpClientThread when OS doesn't support
-    threads, or they not linked in (e.g. no CThreads on Unix).
-    In this case we can at least download synchronously, which sometimes is enough. }
-  if EnableThreading then
-    inherited Create(true);
+  inherited;
   Contents := TMemoryStream.Create;
   TotalBytes := -1;
 end;
 
-destructor TFpHttpClientThread.Destroy;
+destructor TFpHttpClientJob.Destroy;
 begin
   FreeAndNil(Contents);
   FreeAndNil(HttpResponseHeaders);
   inherited;
 end;
 
-procedure TFpHttpClientThread.Execute;
+procedure TFpHttpClientJob.Execute;
 var
   Client: TCastleFpHttpClient;
   I: Integer;
@@ -209,7 +217,8 @@ begin
   try
     Client := TCastleFpHttpClient.Create(nil);
     try
-      Client.ParentThread := Self;
+      Client.ParentJob := Self;
+      Client.ParentThread := ParentThread;
       Client.SynchronizationCS := SynchronizationCS;
       Client.Contents := Contents;
       Client.AllowRedirect := true;
@@ -270,9 +279,42 @@ begin
   end;
 end;
 
+{ TFpHttpClientThread -------------------------------------------------------- }
+
+constructor TFpHttpClientThread.Create;
+begin
+  inherited Create(true); // create suspended
+  Job := TFpHttpClientJob.Create;
+  Job.ParentThread := Self;
+end;
+
+destructor TFpHttpClientThread.Destroy;
+begin
+  FreeAndNil(Job);
+  inherited;
+end;
+
+procedure TFpHttpClientThread.Execute;
+begin
+  Job.Execute;
+end;
+
 { TFpHttpClientReader --------------------------------------------------- }
 
 procedure TFpHttpClientReader.Start;
+
+  procedure InitializeJob(const Job: TFpHttpClientJob);
+  begin
+    Job.Url := Url;
+    Job.SynchronizationCS := SynchronizationCS;
+    Job.HttpMethod := HttpMethod;
+    Job.HttpPostData := HttpPostData;
+    Job.HttpHeadersKeys := HttpHeadersKeys;
+    Job.HttpHeadersValues := HttpHeadersValues;
+  end;
+
+var
+  SynchronousJob: TFpHttpClientJob;
 begin
   inherited;
 
@@ -318,21 +360,23 @@ begin
 
   SynchronizationCS := TCriticalSection.Create;
 
-  Thread := TFpHttpClientThread.Create(not ForceSynchronous);
-  Thread.Url := Url;
-  Thread.SynchronizationCS := SynchronizationCS;
-  Thread.HttpMethod := HttpMethod;
-  Thread.HttpPostData := HttpPostData;
-  Thread.HttpHeadersKeys := HttpHeadersKeys;
-  Thread.HttpHeadersValues := HttpHeadersValues;
   if ForceSynchronous then
   begin
+    { This is useful when OS doesn't support
+      threads, or they not linked in (e.g. no CThreads on Unix).
+      In this case we can at least download synchronously, which sometimes is enough. }
+    SynchronousJob := TFpHttpClientJob.Create;
     try
-      Thread.Execute; // execute without any threads, immediately free afterwards
-      SynchronizeFromFinishedThread;
-    finally FreeAndNil(Thread) end;
+      InitializeJob(SynchronousJob);
+      SynchronousJob.Execute;
+      SynchronizeFromFinishedJob(SynchronousJob);
+    finally FreeAndNil(SynchronousJob) end;
   end else
+  begin
+    Thread := TFpHttpClientThread.Create;
+    InitializeJob(Thread.Job);
     Thread.Start;
+  end;
 end;
 
 destructor TFpHttpClientReader.Destroy;
@@ -379,20 +423,20 @@ begin
   inherited;
 end;
 
-procedure TFpHttpClientReader.SynchronizeFromFinishedThread;
+procedure TFpHttpClientReader.SynchronizeFromFinishedJob(const Job: TFpHttpClientJob);
 begin
   { Looks like FpHttpClient doesn't call DoDataRead on the final data chunk,
-    and thus Thread.DownloadedBytes is a bit less than Thread.TotalBytes at the end.
+    and thus Job.DownloadedBytes is a bit less than Job.TotalBytes at the end.
     The actual stream has correct size, so just use this. }
-  DownloadedBytes := Thread.Contents.Size; // Thread.DownloadedBytes;
-  TotalBytes := Thread.TotalBytes;
-  MimeType := Thread.MimeType;
-  Contents := Thread.Contents;
-  Thread.Contents := nil; // do not free our Contents inside TFpHttpClientThread destructor anymore
-  HttpResponseCode := Thread.HttpResponseCode;
-  HttpResponseHeaders := Thread.HttpResponseHeaders;
-  Thread.HttpResponseHeaders := nil; // do not free HttpResponseHeaders inside TFpHttpClientThread destructor
-  if Thread.Success then
+  DownloadedBytes := Job.Contents.Size; // Job.DownloadedBytes;
+  TotalBytes := Job.TotalBytes;
+  MimeType := Job.MimeType;
+  Contents := Job.Contents;
+  Job.Contents := nil; // do not free our Contents inside TFpHttpClientJob destructor anymore
+  HttpResponseCode := Job.HttpResponseCode;
+  HttpResponseHeaders := Job.HttpResponseHeaders;
+  Job.HttpResponseHeaders := nil; // do not free HttpResponseHeaders inside TFpHttpClientJob destructor
+  if Job.Success then
   begin
     Status := dsSuccess;
     WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", HTTP response code %d', [
@@ -403,7 +447,7 @@ begin
   end else
   begin
     Status := dsError;
-    ErrorMessage := Thread.ErrorMessage;
+    ErrorMessage := Job.ErrorMessage;
     WritelnLog('Network', 'Failed to download "%s", HTTP response code %d', [
       Url,
       HttpResponseCode
@@ -421,13 +465,13 @@ begin
     begin
       SynchronizationCS.Acquire;
       try
-        DownloadedBytes := Thread.DownloadedBytes;
-        TotalBytes := Thread.TotalBytes;
-        MimeType := Thread.MimeType;
+        DownloadedBytes := Thread.Job.DownloadedBytes;
+        TotalBytes := Thread.Job.TotalBytes;
+        MimeType := Thread.Job.MimeType;
       finally SynchronizationCS.Release end;
     end else
     begin
-      SynchronizeFromFinishedThread;
+      SynchronizeFromFinishedJob(Thread.Job);
     end;
   end;
 end;
