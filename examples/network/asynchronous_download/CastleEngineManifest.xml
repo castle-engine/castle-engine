@@ -7,10 +7,4 @@
   <dependencies>
     <dependency name="Https" /> <!-- read https links -->
   </dependencies>
-  <android>
-    <services>
-      <!-- necessary on Android to download from http, https -->
-      <service name="download_urls" />
-    </services>
-  </android>
 </project>

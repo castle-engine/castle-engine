@@ -280,6 +280,9 @@ var
       if (depFreeType in Project.Dependencies) and
          not Project.AndroidServices.HasService('freetype') then
         ExtractService('freetype');
+      if (depHttps in Project.Dependencies) and
+         not Project.AndroidServices.HasService('download_urls') then
+        ExtractService('download_urls');
     end;
   end;
 
