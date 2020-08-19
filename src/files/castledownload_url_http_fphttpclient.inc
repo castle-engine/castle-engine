@@ -95,7 +95,7 @@ type
     procedure Execute; override;
   end;
 
-  { TUrlAsynchronousReader descendant that implements http downloading. }
+  { TUrlAsynchronousReader descendant that implements http(s) downloading. }
   TFpHttpClientReader = class(TUrlAsynchronousReader)
   strict private
     Thread: TFpHttpClientThread;

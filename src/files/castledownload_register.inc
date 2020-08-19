@@ -161,8 +161,8 @@ begin
 
     // register default protocols handled in this unit
     {$if defined(ANDROID)}
-    FRegisteredProtocols.Add('http', @TUrlHttpAndroid(nil).Read, nil, nil);
-    FRegisteredProtocols.Add('https', @TUrlHttpAndroid(nil).Read, nil, nil);
+    FRegisteredProtocols.Add('http', nil, nil, THttpAndroidReader);
+    FRegisteredProtocols.Add('https', nil, nil, THttpAndroidReader);
     {$elseif defined(HAS_FP_HTTP_CLIENT)}
     FRegisteredProtocols.Add('http', nil, nil, TFpHttpClientReader);
     FRegisteredProtocols.Add('https', nil, nil, TFpHttpClientReader);

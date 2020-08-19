@@ -14,90 +14,128 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_interface}
-
-{$endif}
+{ Handle http, https URLs using Android service. }
 
 {$ifdef read_implementation}
 
-{ Handle http, https URLs using Android service. }
-
 {$ifdef ANDROID}
-
-type
-  TAndroidDownloadService = class
-    Finished, FinishedSuccess: boolean;
-    TemporaryFileName, ErrorMessage: string;
-    function HandleDownloadMessages(const Received: TCastleStringList): boolean;
-    function Wait(const URL: string): TStream;
-  end;
-
-function TAndroidDownloadService.HandleDownloadMessages(const Received: TCastleStringList): boolean;
-begin
-  if (Received.Count = 2) and (Received[0] = 'download-error') then
-  begin
-    Finished := true;
-    FinishedSuccess := false;
-    ErrorMessage := Received[1];
-    Result := true;
-  end;
-  if (Received.Count = 2) and (Received[0] = 'download-finished') then
-  begin
-    Finished := true;
-    FinishedSuccess := true;
-    TemporaryFileName := Received[1];
-    Result := true;
-  end;
-end;
-
-function TAndroidDownloadService.Wait(const URL: string): TStream;
-begin
-  Finished := false;
-  Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', URL]);
-  try
-    { TODO:
-      - This waiting should not be necessary anymore, with TCastleDownload.
-      - TCastleDownload should report it's progress by updating DownloadedBytes, TotalBytes
-    }
-    repeat
-      ApplicationProperties._Update; // process CastleMessages
-      Sleep(200);
-    until Finished;
-  finally
-    Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  end;
-  if FinishedSuccess then
-    Result := TFileStream.Create(TemporaryFileName, fmOpenRead)
-  else
-    raise Exception.Create(ErrorMessage);
-end;
 
 { TUrlHttpAndroid ------------------------------------------------------------ }
 
 type
-  TUrlHttpAndroid = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+  { TUrlAsynchronousReader descendant that implements http(s) downloading on Android. }
+  THttpAndroidReader = class(TUrlAsynchronousReader)
+  strict private
+    class var
+      { Every THttpAndroidReader instance uses a different id, to avoid mixing messages
+        (and temporary files) when multiple downloads are running. }
+      NextDownloadId: Integer;
+    var
+      DownloadId: Integer;
+      WaitingForPermission: Boolean;
+    function HandleDownloadMessages(const Received: TCastleStringList): boolean;
+  public
+    procedure Start; override;
+    destructor Destroy; override;
   end;
 
-class function TUrlHttpAndroid.Read(const Url: string; out MimeType: string): TStream;
-var
-  DownloadService: TAndroidDownloadService;
+procedure THttpAndroidReader.Start;
 begin
-  if not EnableBlockingDownloads then
-    raise EDownloadError.Create('Downloading network resources (from "http" or "https" protocols) is not enabled');
+  inherited;
 
-  CheckFileAccessSafe(URL);
-  WritelnLog('Network', 'Download service started for "%s"', [URIDisplay(URL)]);
-  DownloadService := TAndroidDownloadService.Create;
-  try
-    Result := DownloadService.Wait(URL);
-    MimeType := URIMimeType(URL);
-  finally
-    FreeAndNil(DownloadService);
+  DownloadId := NextDownloadId;
+  Inc(NextDownloadId);
+
+  CheckFileAccessSafe(Url);
+  WritelnLog('Network', 'Download service started for "%s", id %d', [
+    URIDisplay(Url),
+    DownloadId
+  ]);
+
+  MimeType := URIMimeType(Url);
+
+  Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
+
+  // first we need to know we have permission to read temporary files
+  WaitingForPermission := true;
+  Messaging.Send(['permission-request', 'android.permission.READ_EXTERNAL_STORAGE']);
+end;
+
+function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList): boolean;
+var
+  TemporaryFileName: String;
+begin
+  if WaitingForPermission then
+  begin
+    if (Received.Count = 2) and
+       (Received[0] = 'permission-granted') and
+       (Received[1] = 'android.permission.READ_EXTERNAL_STORAGE') then
+    begin
+      WaitingForPermission := false;
+      Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
+      Result := true;
+    end;
+
+    if (Received.Count = 2) and
+       (Received[0] = 'permission-cancelled') and
+       (Received[1] = 'android.permission.READ_EXTERNAL_STORAGE') then
+    begin
+      WaitingForPermission := false;
+      Status := dsError;
+      ErrorMessage := 'User denied necessary permissions to download URLs';
+      Result := true;
+    end;
+  end else
+  begin
+    if (Received.Count = 3) and
+       (Received[0] = 'download-error') and
+       (Received[1] = IntToStr(DownloadId)) then
+    begin
+      Status := dsError;
+      ErrorMessage := Received[2];
+      Result := true;
+    end;
+
+    if (Received.Count = 3) and
+       (Received[0] = 'download-progress') and
+       (Received[1] = IntToStr(DownloadId)) then
+    begin
+      DownloadedBytes := StrToInt(Received[2]);
+      Result := true;
+    end;
+
+    if (Received.Count = 3) and
+       (Received[0] = 'download-success') and
+       (Received[1] = IntToStr(DownloadId)) then
+    begin
+      Status := dsSuccess;
+      TemporaryFileName := Received[2];
+      Contents := TFileStream.Create(TemporaryFileName, fmOpenRead);
+      HttpResponseCode := 200;
+      DownloadedBytes := Contents.Size;
+      TotalBytes := Contents.Size;
+      Result := true;
+    end;
   end;
+
+  { TODO:
+    - report TotalBytes
+    - handle
+      HttpResponseCode,
+      HttpResponseHeaders,
+      HttpMethod,
+      HttpPostData,
+      HttpHeadersKeys,
+      HttpHeadersValues
+  }
+end;
+
+destructor THttpAndroidReader.Destroy;
+begin
+  Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
+  inherited;
 end;
 
 {$endif ANDROID}
 
-{$endif}
+{$endif read_implementation}

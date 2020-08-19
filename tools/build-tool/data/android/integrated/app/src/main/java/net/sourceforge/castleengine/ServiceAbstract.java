@@ -3,6 +3,8 @@ package net.sourceforge.castleengine;
 
 import java.util.regex.Pattern;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.content.Intent;
 import android.app.Activity;
@@ -54,6 +56,19 @@ public abstract class ServiceAbstract
     protected void messageSend(String[] s)
     {
         getActivity().messageSend(s);
+    }
+
+    protected void messageSendFromThread(final String[] message)
+    {
+        new Handler(Looper.getMainLooper()).post(new Runnable() // run in main thread
+            {
+                @Override
+                public void run()
+                {
+                    messageSend(message);
+                }
+            }
+        );
     }
 
     protected static boolean stringToBoolean(String value)

@@ -17,8 +17,6 @@
 
 package net.sourceforge.castleengine;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.content.Context;
 
@@ -47,28 +45,28 @@ public class ServiceDownloadUrls extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("download-url")) {
-            downloadDataFromUrl(parts[1]);
+        if (parts.length == 3 && parts[0].equals("download-url")) {
+            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2]);
             return true;
         }
         else
             return false;
     }
 
-    private void downloadDataFromUrl(String urlToDownload)
+    private void downloadDataFromUrl(final int downloadId, String urlToDownload)
     {
         final URL url;
         try {
             url = new URL(urlToDownload);
         }
         catch (Exception e) {
-            messageSend(new String[]{"download-error", e.getMessage()});
+            messageSend(new String[]{"download-error", Integer.toString(downloadId), e.getMessage()});
             return;
         }
 
-        File urlDocumentsDir = getActivity().getDir("inbox", Context.MODE_PRIVATE);
-        String tempFileName = url.getPath().replaceAll("[/|><]", "_");
-        final String tempDownloadFile = urlDocumentsDir.getAbsolutePath() + "/" + tempFileName;
+        // Store the file in cache dir, see https://stackoverflow.com/questions/3425906/creating-temporary-files-in-android
+        File urlDocumentsDir = getActivity().getCacheDir();
+        final String tempDownloadFile = urlDocumentsDir.getAbsolutePath() + "/" + Integer.toString(downloadId);
 
         Thread thread = new Thread(new Runnable(){
             @Override
@@ -82,26 +80,24 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     OutputStream streamOut = new FileOutputStream(new File(tempDownloadFile));
 
                     int size = 0;
+                    long totalSize = 0;
                     byte[] buffer = new byte[1024];
 
                     while ((size = bufferedReader.read(buffer)) != -1)
                     {
                         streamOut.write(buffer, 0, size);
+                        totalSize += size;
+                        messageSendFromThread(new String[]{"download-progress", Integer.toString(downloadId), Long.toString(totalSize)});
                     }
 
                     streamOut.close();
                     stream.close();
 
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {   // run in main thread
-                        @Override
-                        public void run() {
-                            messageSend(new String[]{"download-finished", tempDownloadFile});
-                        }
-                    });
+                    messageSendFromThread(new String[]{"download-success", Integer.toString(downloadId), tempDownloadFile});
                 }
                 catch (Exception e) {
                     logError(CATEGORY, "downloadDataFromUrl exception: " + e.getMessage());
-                    messageSend(new String[]{"download-error", e.getMessage()});
+                    messageSendFromThread(new String[]{"download-error", Integer.toString(downloadId), e.getMessage()});
                 }
             }
         });
