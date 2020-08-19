@@ -58,7 +58,7 @@ begin
 
   // first we need to know we have permission to read temporary files
   WaitingForPermission := true;
-  Messaging.Send(['permission-request', 'android.permission.READ_EXTERNAL_STORAGE']);
+  Messaging.Send(['permission-request', 'android.permission.WRITE_EXTERNAL_STORAGE']);
 end;
 
 function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList): boolean;
@@ -69,7 +69,7 @@ begin
   begin
     if (Received.Count = 2) and
        (Received[0] = 'permission-granted') and
-       (Received[1] = 'android.permission.READ_EXTERNAL_STORAGE') then
+       (Received[1] = 'android.permission.WRITE_EXTERNAL_STORAGE') then
     begin
       WaitingForPermission := false;
       Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
@@ -78,7 +78,7 @@ begin
 
     if (Received.Count = 2) and
        (Received[0] = 'permission-cancelled') and
-       (Received[1] = 'android.permission.READ_EXTERNAL_STORAGE') then
+       (Received[1] = 'android.permission.WRITE_EXTERNAL_STORAGE') then
     begin
       WaitingForPermission := false;
       Status := dsError;
