@@ -89,7 +89,12 @@ public class ServiceMessaging extends ServiceAbstract
                 toNative.remove(0);
             }
 
-            String messageFromNative = getActivity().jniMessage(toNativePair.message, toNativePair.messageStream);
+            String messageFromNative;
+            if (toNativePair != null) {
+                messageFromNative = getActivity().jniMessage(toNativePair.message, toNativePair.messageStream);
+            } else {
+                messageFromNative = getActivity().jniMessage(null, null);
+            }
 
             if (messageFromNative != null &&
                 messageFromNative.length() != 0) {
