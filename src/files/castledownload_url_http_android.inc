@@ -32,7 +32,6 @@ type
       NextDownloadId: Integer;
     var
       DownloadId: Integer;
-      WaitingForPermission: Boolean;
     function HandleDownloadMessages(const Received: TCastleStringList;
       const ReceivedStream: TMemoryStream): boolean;
   public
@@ -56,67 +55,41 @@ begin
   MimeType := URIMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-
-  // first we need to know we have permission to read temporary files
-  WaitingForPermission := true;
-  Messaging.Send(['permission-request', 'android.permission.WRITE_EXTERNAL_STORAGE']);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
+  Contents := TMemoryStream.Create;
 end;
 
 function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList;
   const ReceivedStream: TMemoryStream): boolean;
 begin
-  if WaitingForPermission then
+  if (Received.Count = 3) and
+     (Received[0] = 'download-error') and
+     (Received[1] = IntToStr(DownloadId)) then
   begin
-    if (Received.Count = 2) and
-       (Received[0] = 'permission-granted') and
-       (Received[1] = 'android.permission.WRITE_EXTERNAL_STORAGE') then
-    begin
-      WaitingForPermission := false;
-      Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
-      Contents := TMemoryStream.Create;
-      Result := true;
-    end;
+    Status := dsError;
+    ErrorMessage := Received[2];
+    Result := true;
+  end;
 
-    if (Received.Count = 2) and
-       (Received[0] = 'permission-cancelled') and
-       (Received[1] = 'android.permission.WRITE_EXTERNAL_STORAGE') then
-    begin
-      WaitingForPermission := false;
-      Status := dsError;
-      ErrorMessage := 'User denied necessary permissions to download URLs';
-      Result := true;
-    end;
-  end else
+  if (Received.Count = 2) and
+     (Received[0] = 'download-progress') and
+     (Received[1] = IntToStr(DownloadId)) then
   begin
-    if (Received.Count = 3) and
-       (Received[0] = 'download-error') and
-       (Received[1] = IntToStr(DownloadId)) then
-    begin
-      Status := dsError;
-      ErrorMessage := Received[2];
-      Result := true;
-    end;
+    // append ReceivedStream to Contents
+    ReceivedStream.SaveToStream(Contents);
+    DownloadedBytes := Contents.Size;
+    Result := true;
+  end;
 
-    if (Received.Count = 2) and
-       (Received[0] = 'download-progress') and
-       (Received[1] = IntToStr(DownloadId)) then
-    begin
-      // append ReceivedStream to Contents
-      ReceivedStream.SaveToStream(Contents);
-      DownloadedBytes := Contents.Size;
-      Result := true;
-    end;
-
-    if (Received.Count = 2) and
-       (Received[0] = 'download-success') and
-       (Received[1] = IntToStr(DownloadId)) then
-    begin
-      Status := dsSuccess;
-      HttpResponseCode := 200;
-      DownloadedBytes := Contents.Size;
-      TotalBytes := Contents.Size;
-      Result := true;
-    end;
+  if (Received.Count = 2) and
+     (Received[0] = 'download-success') and
+     (Received[1] = IntToStr(DownloadId)) then
+  begin
+    Status := dsSuccess;
+    HttpResponseCode := 200;
+    DownloadedBytes := Contents.Size;
+    TotalBytes := Contents.Size;
+    Result := true;
   end;
 
   { TODO:
