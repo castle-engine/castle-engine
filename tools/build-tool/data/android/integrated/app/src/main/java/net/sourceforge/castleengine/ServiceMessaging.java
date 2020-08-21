@@ -108,9 +108,10 @@ public class ServiceMessaging extends ServiceAbstract
                 }
             }
 
-            // run again in a short time (shorter if something happened,
-            // since next messages may follow)
-            timerHandler.postDelayed(this, somethingHappened ? 10 : 500);
+            // Run again in a short time (shorter if something happened,
+            // since next messages may follow).
+            // Important e.g. to download stuff with good speed.
+            timerHandler.postDelayed(this, somethingHappened ? 1 : 100);
         }
     };
 
