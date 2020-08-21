@@ -57,6 +57,9 @@ begin
   Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
   Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
   Contents := TMemoryStream.Create;
+
+  HttpResponseHeaders := TStringList.Create;
+  HttpResponseHeaders.NameValueSeparator := ':';
 end;
 
 function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList;
