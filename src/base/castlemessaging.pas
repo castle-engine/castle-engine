@@ -35,7 +35,7 @@ type
     the message from being passed to other callbacks, it only means
     we will not report a warning about unhandled message).
 
-    MessageStream may be @nil if service didn't provide any binary data stream.
+    ReceivedStream may be @nil if service didn't provide any binary data stream.
   }
   TMessageReceivedEvent = function (const Received: TCastleStringList;
     const ReceivedStream: TMemoryStream): Boolean of object;
