@@ -27,7 +27,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ServiceDownloadUrls extends ServiceAbstract
 {
@@ -54,14 +58,39 @@ public class ServiceDownloadUrls extends ServiceAbstract
             return false;
     }
 
+    /*
+     * Send to Pascal http response headers.
+     * Note that this is done in non-main thread.
+     */
+    private void sendResponseHeaders(Map<String,List<String>> httpResponseHeaders, String downloadIdStr)
+    {
+        List<String> httpResponseHeadersList = new ArrayList<String>();
+        httpResponseHeadersList.add("download-http-response-headers");
+        httpResponseHeadersList.add(downloadIdStr);
+
+        for (Map.Entry<String,List<String>> entry : httpResponseHeaders.entrySet()) {
+            String key = entry.getKey();
+            List<String> value = entry.getValue();
+            if (value.size() == 0) {
+                httpResponseHeadersList.add(key + ": ");
+            } else {
+                for (String headerValue : value) {
+                    httpResponseHeadersList.add(key + ": " + headerValue);
+                }
+            }
+        }
+        messageSendFromThread(httpResponseHeadersList.toArray(new String[0]));
+    }
+
     private void downloadDataFromUrl(final int downloadId, String urlToDownload)
     {
+        final String downloadIdStr = Integer.toString(downloadId);
         final URL url;
         try {
             url = new URL(urlToDownload);
         }
         catch (Exception e) {
-            messageSend(new String[]{"download-error", Integer.toString(downloadId), e.getMessage()});
+            messageSend(new String[]{"download-error", downloadIdStr, e.getMessage()});
             return;
         }
 
@@ -69,29 +98,29 @@ public class ServiceDownloadUrls extends ServiceAbstract
             @Override
             public void run(){
                 try {
-                    InputStream inStream = url.openStream();
+                    URLConnection connection = url.openConnection();
+                    InputStream inStream = connection.getInputStream();
 
-                    DataInputStream stream = new DataInputStream(inStream);
-                    BufferedInputStream bufferedReader = new BufferedInputStream(stream);
+                    Map<String,List<String>> httpResponseHeaders = connection.getHeaderFields();
+                    sendResponseHeaders(httpResponseHeaders, downloadIdStr);
 
                     int size = 0;
                     byte[] buffer = new byte[1024 * 1024];
-
-                    while ((size = bufferedReader.read(buffer)) != -1)
+                    while ((size = inStream.read(buffer)) != -1)
                     {
-                        messageSendFromThread(new String[]{"download-progress", Integer.toString(downloadId)},
+                        messageSendFromThread(new String[]{"download-progress", downloadIdStr},
                             /* Always copy buffer to new array instance, as messageSendFromThread
                                may store new array reference in a message queue. */
                             Arrays.copyOfRange(buffer, 0, size));
                     }
 
-                    stream.close();
+                    inStream.close();
 
-                    messageSendFromThread(new String[]{"download-success", Integer.toString(downloadId)});
+                    messageSendFromThread(new String[]{"download-success", downloadIdStr});
                 }
                 catch (Exception e) {
                     logError(CATEGORY, "downloadDataFromUrl exception: " + e.getMessage());
-                    messageSendFromThread(new String[]{"download-error", Integer.toString(downloadId), e.getMessage()});
+                    messageSendFromThread(new String[]{"download-error", downloadIdStr, e.getMessage()});
                 }
             }
         });

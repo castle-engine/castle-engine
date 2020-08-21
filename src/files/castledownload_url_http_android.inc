@@ -64,6 +64,31 @@ end;
 
 function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList;
   const ReceivedStream: TMemoryStream): boolean;
+
+  procedure HandleHttpResponseHeaders(const Received: TCastleStringList);
+  var
+    I: Integer;
+    Val, MimeTypeFromResponse: String;
+  begin
+    { append to HttpResponseHeaders }
+    for I := 2 to Received.Count - 1 do
+      HttpResponseHeaders.Append(Received[I]);
+
+    { set TotalBytes from Content-Length response }
+    Val := HttpResponseHeaders.Values['Content-Length'];
+    if Val <> '' then
+      TotalBytes := StrToInt64Def(Val, -1);
+
+    { set MimeType (overrides MIME from URL extension) from Content-Type response }
+    Val := HttpResponseHeaders.Values['Content-Type'];
+    if Val <> '' then
+    begin
+      MimeTypeFromResponse := ContentTypeToMimeType(Val);
+      if MimeTypeFromResponse <> '' then
+        MimeType := MimeTypeFromResponse;
+    end;
+  end;
+
 begin
   if (Received.Count = 3) and
      (Received[0] = 'download-error') and
@@ -71,6 +96,14 @@ begin
   begin
     Status := dsError;
     ErrorMessage := Received[2];
+    Result := true;
+  end;
+
+  if (Received.Count >= 2) and
+     (Received[0] = 'download-http-response-headers') and
+     (Received[1] = IntToStr(DownloadId)) then
+  begin
+    HandleHttpResponseHeaders(Received);
     Result := true;
   end;
 
@@ -96,10 +129,8 @@ begin
   end;
 
   { TODO:
-    - report TotalBytes
     - handle
       HttpResponseCode,
-      HttpResponseHeaders,
       HttpMethod,
       HttpPostData,
       HttpHeadersKeys,

@@ -30,4 +30,17 @@ begin
       [URL]);
 end;
 
+{ Extract MimeType from HTTP Content-Type.
+  Returns empty string if Content-Type is empty (undefined). }
+function ContentTypeToMimeType(const ContentType: string): string;
+var
+  P: Integer;
+begin
+  P := Pos(';', ContentType);
+  if P <> 0 then
+    Result := Trim(Copy(ContentType, 1, P - 1))
+  else
+    Result := Trim(ContentType);
+end;
+
 {$endif}
