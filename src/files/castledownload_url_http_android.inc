@@ -56,6 +56,14 @@ procedure THttpAndroidReader.Start;
     end;
   end;
 
+  function HttpPostDataStr: String;
+  begin
+    if HttpPostData <> nil then
+      Result := HttpPostData.Text
+    else
+      Result := '';
+  end;
+
 begin
   inherited;
 
@@ -71,7 +79,7 @@ begin
   MimeType := URIMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName]);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName, HttpPostDataStr]);
   Contents := TMemoryStream.Create;
 
   HttpResponseHeaders := TStringList.Create;
@@ -149,20 +157,17 @@ begin
      (Received[1] = IntToStr(DownloadId)) then
   begin
     HttpResponseCode := StrToInt(Received[2]);
-    WritelnLog('HTTP response for "%s" is %d: %s', [
-      URIDisplay(Url),
-      HttpResponseCode,
-      Received[3]
-    ]);
+    // WritelnLog('Network', 'HTTP response for "%s" is %d: %s', [
+    //   URIDisplay(Url),
+    //   HttpResponseCode,
+    //   Received[3]
+    // ]);
     Result := true;
   end;
 
   { TODO:
-    - HttpPostData
-      possible by casting to HttpURLConnection
-      https://www.mit.edu/afs.new/sipb/project/android/docs//reference/java/net/HttpURLConnection.html
-    - HttpHeadersKeys, HttpHeadersValues
-      possible using URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
+    - HttpHeadersKeys, HttpHeadersValues not handled
+      use URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
   }
 end;
 

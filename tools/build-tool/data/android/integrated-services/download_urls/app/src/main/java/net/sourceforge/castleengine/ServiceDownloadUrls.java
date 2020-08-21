@@ -53,8 +53,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 4 && parts[0].equals("download-url")) {
-            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2], parts[3]);
+        if (parts.length == 5 && parts[0].equals("download-url")) {
+            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2], parts[3], parts[4]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("download-interrupt")) {
@@ -91,7 +91,10 @@ public class ServiceDownloadUrls extends ServiceAbstract
         messageSendFromThread(httpResponseHeadersList.toArray(new String[0]));
     }
 
-    private void downloadDataFromUrl(final int downloadId, final String urlToDownload, final String httpMethod)
+    private void downloadDataFromUrl(final int downloadId,
+      final String urlToDownload,
+      final String httpMethod,
+      final String httpPostData)
     {
         final String downloadIdStr = Integer.toString(downloadId);
         final URL url;
@@ -109,6 +112,13 @@ public class ServiceDownloadUrls extends ServiceAbstract
                 try {
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod(httpMethod);
+
+                    if (httpPostData.length() != 0) {
+                        connection.setDoOutput(true);
+                        byte[] httpPostDataBytes = httpPostData.getBytes("utf-8");
+                        connection.getOutputStream().write(httpPostDataBytes, 0, httpPostDataBytes.length);
+                    }
+
                     InputStream inStream = connection.getInputStream();
 
                     messageSendFromThread(new String[]{"download-response-code", downloadIdStr,
