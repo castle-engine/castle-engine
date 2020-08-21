@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
@@ -52,8 +53,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 3 && parts[0].equals("download-url")) {
-            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2]);
+        if (parts.length == 4 && parts[0].equals("download-url")) {
+            downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2], parts[3]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("download-interrupt")) {
@@ -90,7 +91,7 @@ public class ServiceDownloadUrls extends ServiceAbstract
         messageSendFromThread(httpResponseHeadersList.toArray(new String[0]));
     }
 
-    private void downloadDataFromUrl(final int downloadId, String urlToDownload)
+    private void downloadDataFromUrl(final int downloadId, final String urlToDownload, final String httpMethod)
     {
         final String downloadIdStr = Integer.toString(downloadId);
         final URL url;
@@ -106,8 +107,14 @@ public class ServiceDownloadUrls extends ServiceAbstract
             @Override
             public void run(){
                 try {
-                    URLConnection connection = url.openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod(httpMethod);
                     InputStream inStream = connection.getInputStream();
+
+                    messageSendFromThread(new String[]{"download-response-code", downloadIdStr,
+                        Integer.toString(connection.getResponseCode()),
+                        connection.getResponseMessage()
+                    });
 
                     Map<String,List<String>> httpResponseHeaders = connection.getHeaderFields();
                     sendResponseHeaders(httpResponseHeaders, downloadIdStr);

@@ -40,6 +40,22 @@ type
   end;
 
 procedure THttpAndroidReader.Start;
+
+  function HttpMethodName: String;
+  begin
+    case HttpMethod of
+      hmGet: Result := 'GET';
+      hmPost: Result := 'POST';
+      hmPut: Result := 'PUT';
+      hmDelete: Result := 'DELETE';
+      hmOptions: Result := 'OPTIONS';
+      hmHead: Result := 'HEAD';
+      {$ifndef COMPILER_CASE_ANALYSIS}
+      else raise EInternalError.Create('HttpMethod=?');
+      {$endif}
+    end;
+  end;
+
 begin
   inherited;
 
@@ -55,7 +71,7 @@ begin
   MimeType := URIMimeType(Url);
 
   Messaging.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
-  Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
+  Messaging.Send(['download-url', IntToStr(DownloadId), Url, HttpMethodName]);
   Contents := TMemoryStream.Create;
 
   HttpResponseHeaders := TStringList.Create;
@@ -122,20 +138,31 @@ begin
      (Received[1] = IntToStr(DownloadId)) then
   begin
     Status := dsSuccess;
-    HttpResponseCode := 200;
+    Contents.Position := 0; // rewind
     DownloadedBytes := Contents.Size;
     TotalBytes := Contents.Size;
     Result := true;
   end;
 
-  { TODO:
-    - impossible to handle using URLConnection API?
+  if (Received.Count = 4) and
+     (Received[0] = 'download-response-code') and
+     (Received[1] = IntToStr(DownloadId)) then
+  begin
+    HttpResponseCode := StrToInt(Received[2]);
+    WritelnLog('HTTP response for "%s" is %d: %s', [
+      URIDisplay(Url),
       HttpResponseCode,
-      HttpMethod,
-      HttpPostData,
-    - possible to handle using URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html :
-      HttpHeadersKeys,
-      HttpHeadersValues
+      Received[3]
+    ]);
+    Result := true;
+  end;
+
+  { TODO:
+    - HttpPostData
+      possible by casting to HttpURLConnection
+      https://www.mit.edu/afs.new/sipb/project/android/docs//reference/java/net/HttpURLConnection.html
+    - HttpHeadersKeys, HttpHeadersValues
+      possible using URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html
   }
 end;
 
