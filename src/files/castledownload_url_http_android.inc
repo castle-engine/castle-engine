@@ -129,10 +129,11 @@ begin
   end;
 
   { TODO:
-    - handle
+    - impossible to handle using URLConnection API?
       HttpResponseCode,
       HttpMethod,
       HttpPostData,
+    - possible to handle using URLConnection API (setRequestProperty), https://docs.oracle.com/javase/7/docs/api/java/net/URLConnection.html :
       HttpHeadersKeys,
       HttpHeadersValues
   }
@@ -140,8 +141,8 @@ end;
 
 destructor THttpAndroidReader.Destroy;
 begin
-  { TODO: The underlying downloading (on Java side) is not interrupted.
-    It will continue downloading under the hood, and we will just ignore the messages. }
+  if Status = dsDownloading then
+    Messaging.Send(['download-interrupt', IntToStr(DownloadId)]);
   Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
   inherited;
 end;

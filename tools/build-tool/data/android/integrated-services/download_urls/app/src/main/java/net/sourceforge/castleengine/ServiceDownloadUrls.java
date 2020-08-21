@@ -37,6 +37,8 @@ public class ServiceDownloadUrls extends ServiceAbstract
 {
     private static final String CATEGORY = "ServiceDownloadUrls";
 
+    private final List<Integer> interruptIds = new ArrayList<Integer>();
+
     public ServiceDownloadUrls(MainActivity activity)
     {
         super(activity);
@@ -52,6 +54,12 @@ public class ServiceDownloadUrls extends ServiceAbstract
     {
         if (parts.length == 3 && parts[0].equals("download-url")) {
             downloadDataFromUrl(Integer.parseInt(parts[1]), parts[2]);
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("download-interrupt")) {
+            synchronized(interruptIds) {
+                interruptIds.add(Integer.parseInt(parts[1]));
+            }
             return true;
         }
         else
@@ -112,6 +120,18 @@ public class ServiceDownloadUrls extends ServiceAbstract
                             /* Always copy buffer to new array instance, as messageSendFromThread
                                may store new array reference in a message queue. */
                             Arrays.copyOfRange(buffer, 0, size));
+
+                        boolean interrupt = false;
+                        synchronized(interruptIds) {
+                            int indexInInterruptList = interruptIds.indexOf(downloadId);
+                            if (indexInInterruptList != -1) {
+                                interrupt = true;
+                                interruptIds.remove(indexInInterruptList);
+                            }
+                        }
+                        if (interrupt) {
+                            break;
+                        }
                     }
 
                     inStream.close();
