@@ -53,24 +53,57 @@ public abstract class ServiceAbstract
         return mActivity;
     }
 
-    protected void messageSend(String[] s)
+    /*
+     * Send message to Pascal, will be received by CastleMessaging unit.
+     * Use this when working in main Java thread.
+     *
+     * Warning: Do not modify the messageStream contents after calling this.
+     * The instance of messageStream may be stored in a message queue for
+     * undefined time period. IOW, message and messageStream should
+     * be constant after you call messageSend.
+     */
+    protected void messageSend(String[] message, byte[] messageStream)
     {
-        getActivity().messageSend(s);
+        getActivity().messageSend(message, messageStream);
     }
 
-    protected void messageSendFromThread(final String[] message)
+    protected void messageSend(String[] message)
+    {
+        messageSend(message, null);
+    }
+
+    /*
+     * Send message to Pascal, will be received by CastleMessaging unit.
+     * Use this when (possibly) working from other thread than the main Java thread.
+     *
+     * Warning: Do not modify the messageStream contents after calling this.
+     * The instance of messageStream may be stored in a message queue for
+     * undefined time period. IOW, message and messageStream should
+     * be constant after you call messageSend.
+     */
+    protected void messageSendFromThread(final String[] message, final byte[] messageStream)
     {
         new Handler(Looper.getMainLooper()).post(new Runnable() // run in main thread
             {
                 @Override
                 public void run()
                 {
-                    messageSend(message);
+                    messageSend(message, messageStream);
                 }
             }
         );
     }
 
+    protected void messageSendFromThread(String[] message)
+    {
+        messageSendFromThread(message, null);
+    }
+
+    /*
+     * Convert message part (from Pascal) to Boolean.
+     * Use this in messageReceived overrides.
+     * The counter-part of this is Pascal CastleMessaging.BoolToStr.
+     */
     protected static boolean stringToBoolean(String value)
     {
         if (value.equals("true")) {
@@ -84,6 +117,11 @@ public abstract class ServiceAbstract
         }
     }
 
+    /*
+     * Convert boolean into message part (for Pascal).
+     * Use this with messageSend.
+     * The counter-part of this is Pascal CastleMessaging.MessageToBoolean.
+     */
     protected static String booleanToString(boolean value)
     {
         return value ? "true" : "false";

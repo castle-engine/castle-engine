@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Arrays;
 
 public class ServiceDownloadUrls extends ServiceAbstract
 {
@@ -64,10 +65,6 @@ public class ServiceDownloadUrls extends ServiceAbstract
             return;
         }
 
-        // Store the file in cache dir, see https://stackoverflow.com/questions/3425906/creating-temporary-files-in-android
-        File urlDocumentsDir = getActivity().getCacheDir();
-        final String tempDownloadFile = urlDocumentsDir.getAbsolutePath() + "/" + Integer.toString(downloadId);
-
         Thread thread = new Thread(new Runnable(){
             @Override
             public void run(){
@@ -77,23 +74,20 @@ public class ServiceDownloadUrls extends ServiceAbstract
                     DataInputStream stream = new DataInputStream(inStream);
                     BufferedInputStream bufferedReader = new BufferedInputStream(stream);
 
-                    OutputStream streamOut = new FileOutputStream(new File(tempDownloadFile));
-
                     int size = 0;
-                    long totalSize = 0;
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[1024 * 1024];
 
                     while ((size = bufferedReader.read(buffer)) != -1)
                     {
-                        streamOut.write(buffer, 0, size);
-                        totalSize += size;
-                        messageSendFromThread(new String[]{"download-progress", Integer.toString(downloadId), Long.toString(totalSize)});
+                        messageSendFromThread(new String[]{"download-progress", Integer.toString(downloadId)},
+                            /* Always copy buffer to new array instance, as messageSendFromThread
+                               may store new array reference in a message queue. */
+                            Arrays.copyOfRange(buffer, 0, size));
                     }
 
-                    streamOut.close();
                     stream.close();
 
-                    messageSendFromThread(new String[]{"download-success", Integer.toString(downloadId), tempDownloadFile});
+                    messageSendFromThread(new String[]{"download-success", Integer.toString(downloadId)});
                 }
                 catch (Exception e) {
                     logError(CATEGORY, "downloadDataFromUrl exception: " + e.getMessage());

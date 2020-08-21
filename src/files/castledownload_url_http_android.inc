@@ -33,7 +33,8 @@ type
     var
       DownloadId: Integer;
       WaitingForPermission: Boolean;
-    function HandleDownloadMessages(const Received: TCastleStringList): boolean;
+    function HandleDownloadMessages(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
   public
     procedure Start; override;
     destructor Destroy; override;
@@ -61,9 +62,8 @@ begin
   Messaging.Send(['permission-request', 'android.permission.WRITE_EXTERNAL_STORAGE']);
 end;
 
-function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList): boolean;
-var
-  TemporaryFileName: String;
+function THttpAndroidReader.HandleDownloadMessages(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 begin
   if WaitingForPermission then
   begin
@@ -73,6 +73,7 @@ begin
     begin
       WaitingForPermission := false;
       Messaging.Send(['download-url', IntToStr(DownloadId), Url]);
+      Contents := TMemoryStream.Create;
       Result := true;
     end;
 
@@ -96,21 +97,21 @@ begin
       Result := true;
     end;
 
-    if (Received.Count = 3) and
+    if (Received.Count = 2) and
        (Received[0] = 'download-progress') and
        (Received[1] = IntToStr(DownloadId)) then
     begin
-      DownloadedBytes := StrToInt(Received[2]);
+      // append ReceivedStream to Contents
+      ReceivedStream.SaveToStream(Contents);
+      DownloadedBytes := Contents.Size;
       Result := true;
     end;
 
-    if (Received.Count = 3) and
+    if (Received.Count = 2) and
        (Received[0] = 'download-success') and
        (Received[1] = IntToStr(DownloadId)) then
     begin
       Status := dsSuccess;
-      TemporaryFileName := Received[2];
-      Contents := TFileStream.Create(TemporaryFileName, fmOpenRead);
       HttpResponseCode := 200;
       DownloadedBytes := Contents.Size;
       TotalBytes := Contents.Size;
@@ -132,6 +133,8 @@ end;
 
 destructor THttpAndroidReader.Destroy;
 begin
+  { TODO: The underlying downloading (on Java side) is not interrupted.
+    It will continue downloading under the hood, and we will just ignore the messages. }
   Messaging.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} HandleDownloadMessages);
   inherited;
 end;

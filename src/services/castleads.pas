@@ -89,7 +89,8 @@ type
         FParent: TAds;
         FBannerShowing: boolean;
         FBannerGravity: Integer;
-        function MessageReceived(const Received: TCastleStringList): boolean;
+        function MessageReceived(const Received: TCastleStringList;
+          const ReceivedStream: TMemoryStream): boolean;
         procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
       strict protected
         FFullScreenAdVisible: boolean;
@@ -274,7 +275,8 @@ begin
   inherited;
 end;
 
-function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList): boolean;
+function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 var
   AdWatchStatusInt: Integer;
   WatchStatus: TAdWatchStatus;

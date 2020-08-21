@@ -91,7 +91,8 @@ type
         FConnectedDictionary: TConnectedDictionary;
         FKey: String;
         FIsActive: Boolean;
-        function MessageFilter(const Received: TCastleStringList): Boolean;
+        function MessageFilter(const Received: TCastleStringList;
+          const ReceivedStream: TMemoryStream): Boolean;
       public
         constructor Create;
         destructor Destroy; override;
@@ -264,7 +265,8 @@ uses
     inherited;
   end;
 
-  function TAndroidTCPConnectionService.MessageFilter(const Received: TCastleStringList): Boolean;
+  function TAndroidTCPConnectionService.MessageFilter(const Received: TCastleStringList;
+    const ReceivedStream: TMemoryStream): Boolean;
   var
     LConnectionStatus: Boolean;
   begin

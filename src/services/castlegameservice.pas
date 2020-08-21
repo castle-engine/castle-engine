@@ -113,7 +113,8 @@ type
     FOnSaveGameLoaded: TSaveGameLoadedEvent;
     FOnStatusChanged: TNotifyEvent;
     FStatus: TGameServiceStatus;
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   protected
     procedure DoSignedInChanged; virtual; deprecated 'use DoStatusChanged';
@@ -397,7 +398,8 @@ begin
     OnSaveGameLoaded(Self, Success, Content);
 end;
 
-function TGameService.MessageReceived(const Received: TCastleStringList): boolean;
+function TGameService.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 var
   StatusInt: Int64;
 begin
