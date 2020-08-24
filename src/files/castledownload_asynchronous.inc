@@ -220,6 +220,7 @@ begin
     UpdateInitialized := false;
   end;
   FreeAndNil(FHttpPostData);
+  FreeAndNil(FHttpResponseHeaders);
   FreeAndNil(FHttpHeadersKeys);
   FreeAndNil(FHttpHeadersValues);
   inherited;
