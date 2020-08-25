@@ -31,7 +31,7 @@ uses
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
-  CastleCameras, CastleBoxes,
+  CastleCameras, CastleBoxes, CastleTransform,
   FrameAnchors;
 
 type
@@ -214,6 +214,13 @@ type
       return it. Otherwise return nil. }
     function SelectedViewport: TCastleViewport;
 
+    { If there is exactly one item selected, and it is TCastleTransform,
+      return it. Otherwise return nil. }
+    function GetSelectedTransform: TCastleTransform;
+    procedure SetSelectedTransform(const Value: TCastleTransform);
+    property SelectedTransform: TCastleTransform
+      read GetSelectedTransform write SetSelectedTransform;
+
     procedure InspectorBasicFilter(Sender: TObject; AEditor: TPropertyEditor;
       var aShow: boolean);
     procedure InspectorLayoutFilter(Sender: TObject; AEditor: TPropertyEditor;
@@ -275,7 +282,7 @@ implementation
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
-  CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
+  CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
   CastleProjection, CastleScene, CastleThirdPersonNavigation,
   EditorUtils;
@@ -402,6 +409,7 @@ function TDesignFrame.TDesignerLayer.HoverTransform(
 var
   UI: TCastleUserInterface;
   Viewport: TCastleViewport;
+  RayOrigin, RayDirection: TVector3;
 begin
   UI := HoverUserInterface(AMousePosition);
   if UI is TCastleViewport then // also checks UI <> nil
@@ -417,7 +425,11 @@ begin
      Frame.SelectedViewport.RenderRectWithBorder.Contains(AMousePosition) then
     Viewport := Frame.SelectedViewport;
 
-  Viewport.MouseRayHit;
+  if Viewport = nil then
+    Exit(nil);
+
+  Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
+  Result := Viewport.Items.WorldRayCast(RayOrigin, RayDirection);
 end;
 
 function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
@@ -1667,6 +1679,22 @@ begin
 end;
 
 procedure TDesignFrame.SetSelectedUserInterface(const Value: TCastleUserInterface);
+begin
+  SelectedComponent := Value;
+end;
+
+function TDesignFrame.GetSelectedTransform: TCastleTransform;
+var
+  C: TComponent;
+begin
+  C := GetSelectedComponent;
+  if C is TCastleTransform then
+    Result := TCastleTransform(C)
+  else
+    Result := nil;
+end;
+
+procedure TDesignFrame.SetSelectedTransform(const Value: TCastleTransform);
 begin
   SelectedComponent := Value;
 end;
