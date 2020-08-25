@@ -705,28 +705,28 @@ type
 
     { Convert 2D position on the viewport into 3D ray.
 
-    The interpretation of Position depends on ScreenCoordinates,
-    and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+      The interpretation of Position depends on ScreenCoordinates,
+      and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
 
-    @unorderedList(
-      @item(When ScreenCoordinates = @true,
-        then Position is relative to the whole container
-        (like TCastleWindowBase or TCastleControlBase).
+      @unorderedList(
+        @item(When ScreenCoordinates = @true,
+          then Position is relative to the whole container
+          (like TCastleWindowBase or TCastleControlBase).
 
-        And it is expressed in real device coordinates,
-        just like @link(TInputPressRelease.Position)
-        when mouse is being clicked, or like @link(TInputMotion.Position)
-        when mouse is moved.
+          And it is expressed in real device coordinates,
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
+          when mouse is moved.
+        )
+
+        @item(When ScreenCoordinates = @false,
+          then Position is relative to this UI control.
+
+          And it is expressed in coordinates after UI scaling.
+          IOW, if the size of this control is @link(Width) = 100,
+          then Position.X between 0 and 100 reflects the visible range of this control.
+        )
       )
-
-      @item(When ScreenCoordinates = @false,
-        then Position is relative to this UI control.
-
-        And it is expressed in coordinates after UI scaling.
-        IOW, if the size of this control is @link(Width) = 100,
-        then Position.X between 0 and 100 reflects the visible range of this control.
-      )
-    )
     }
     procedure PositionToRay(const Position: TVector2;
       const ScreenCoordinates: Boolean; out RayOrigin, RayDirection: TVector3);
@@ -1564,7 +1564,7 @@ var
 begin
   if GetMousePosition(MousePosition) then
   begin
-    Camera.CustomRay(RenderRect, MousePosition, FProjection, RayOrigin, RayDirection);
+    PositionToRay(MousePosition, true, RayOrigin, RayDirection);
     PointingDeviceMove(RayOrigin, RayDirection);
   end;
 end;
@@ -2741,6 +2741,8 @@ var
   RayOrigin, RayDirection: TVector3;
   Plane: TVector4;
 begin
+  PositionToRay(Position, ScreenCoordinates, RayOrigin, RayDirection);
+
   Plane := Vector4(Camera.Direction,
     { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
       Calculate Plane[3] such that point RayOrigin + Camera.Direction * Depth
@@ -2754,18 +2756,9 @@ function TCastleViewport.PositionToWorldPlane(const Position: TVector2;
   const ScreenCoordinates: Boolean;
   const PlaneZ: Single; out PlanePosition: TVector3): Boolean;
 var
-  R: TFloatRectangle;
-  ScreenPosition: TVector2;
   RayOrigin, RayDirection: TVector3;
 begin
-  R := RenderRect;
-
-  if ScreenCoordinates then
-    ScreenPosition := Position
-  else
-    ScreenPosition := Position * UIScale + R.LeftBottom;
-
-  Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+  PositionToRay(Position, ScreenCoordinates, RayOrigin, RayDirection);
 
   Result := TrySimplePlaneRayIntersection(PlanePosition, 2, PlaneZ,
     RayOrigin, RayDirection);
@@ -2804,18 +2797,12 @@ end; }
 { Version 2:
   This also makes sense, but also
   ignores TCastleExamineNavigation.ScaleFactor (assumes unscaled camera).
-  TCastleNavigation.CustomRay looks only at camera pos/dir/up and ignores scaling.
+  PositionToRay looks only at camera pos/dir/up and ignores scaling.
 
 var
-  P: TVector2;
-  Proj: TProjection;
   RayOrigin, RayDirection: TVector3;
 begin
-  if not ScreenCoordinates then
-    P := Position * UIScale + RenderRect.LeftBottom
-  else
-    P := Position;
-  RequiredNavigation.CustomRay(RenderRect, P, Projection, RayOrigin, RayDirection);
+  PositionToRay(MousePosition, true, RayOrigin, RayDirection);
   Result := RayOrigin.XY;
 end; }
 
@@ -3079,8 +3066,7 @@ var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(RenderRect, MousePosition + Change,
-      FProjection, RayOrigin, RayDirection);
+    PositionToRay(MousePosition + Change, true, RayOrigin, RayDirection);
 
     RayHit := CameraRayCollision(RayOrigin, RayDirection);
 
