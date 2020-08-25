@@ -31,7 +31,9 @@ uses
   CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs,
   CastleSceneCore, CastleKeysMouse, CastleVectors, CastleRectangles,
   CastleViewport, CastleClassUtils, CastleControls, CastleTiledMap,
-  CastleCameras, CastleBoxes, CastleTransform,
+  CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
+  CastleColors,
+  // editor units
   FrameAnchors;
 
 type
@@ -177,6 +179,8 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
+      TransformHover, TransformSelected: TDebugTransformBox;
+      ColorHover, ColorSelected, ColorHoverAndSelected: TCastleColor;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -283,7 +287,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
-  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
+  CastleURIUtils, CastleStringUtils, CastleGLUtils,
   CastleProjection, CastleScene, CastleThirdPersonNavigation,
   EditorUtils;
 
@@ -692,6 +696,19 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     Frame.CastleControl.Container.OverrideCursor := NewCursor;
   end;
 
+  procedure UpdateHoverTransform;
+  var
+    Transform: TCastleTransform;
+  begin
+    Transform := HoverTransform(Event.Position);
+    if Transform <> nil then
+    begin
+      Frame.TransformHover.Attach(Transform);
+      Frame.TransformHover.Exists := true;
+    end else
+      Frame.TransformHover.Exists := false;
+  end;
+
 var
   UI: TCastleUserInterface;
   Move: TVector2;
@@ -739,6 +756,9 @@ begin
   end;
 
   UpdateCursor;
+
+  if Frame.Mode = moTransformSelect then
+    UpdateHoverTransform;
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
@@ -806,15 +826,15 @@ begin
   if (HoverUI <> nil) and (HoverUI = SelectedUI) then
   begin
     UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
-      Yellow);
+      Frame.ColorHoverAndSelected);
     // make sure to hide RectHover in this case
     UpdateAttachedLabel(nil, TFloatRectangle.Empty, LabelHover, RectHover, Black);
   end else
   begin
     UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
-      White);
+      Frame.ColorSelected);
     UpdateAttachedLabel(HoverUI, HoverUIRect, LabelHover, RectHover,
-      HexToColor('fffba0')); // desaturated yellow
+      Frame.ColorHover);
 
     { Improve special case, when both RectSelected and RectHover would
       be displayed on top of each other. In this case,
@@ -897,6 +917,16 @@ begin
 
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
+
+  ColorHover := HexToColor('fffba0'); // desaturated yellow
+  ColorSelected := White;
+  ColorHoverAndSelected := Yellow;
+
+  TransformHover := TDebugTransformBox.Create(Self);
+  TransformHover.BoxColor := ColorOpacity(ColorHover, 0.75);
+
+  TransformSelected := TDebugTransformBox.Create(Self);
+  TransformSelected.BoxColor := ColorOpacity(ColorSelected, 0.75);
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
@@ -1726,6 +1756,7 @@ var
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
+  Transform: TCastleTransform;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1764,6 +1795,14 @@ begin
 
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
+
+  Transform := SelectedTransform;
+  if Transform <> nil then
+  begin
+    TransformSelected.Attach(Transform);
+    TransformSelected.Exists := true;
+  end else
+    TransformSelected.Exists := false;
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);

@@ -473,7 +473,7 @@ type
         FBoxRotated: TDebugBox;
         FParent: TItemOnWorld;
       strict protected
-        procedure Initialize; override;
+        procedure InitializeNodes; override;
         procedure Update; override;
       public
         procedure Attach(const AParent: TItemOnWorld);
@@ -1101,14 +1101,13 @@ end;
 
 { TItemOnWorld.TItemDebugTransform -------------------------------------------------------- }
 
-procedure TItemOnWorld.TItemDebugTransform.Initialize;
+procedure TItemOnWorld.TItemDebugTransform.InitializeNodes;
 begin
   inherited;
 
-  FBoxRotated := TDebugBox.Create(Self, GrayRGB);
+  FBoxRotated := TDebugBox.Create(Self);
+  FBoxRotated.Color := Gray;
   WorldSpace.AddChildren(FBoxRotated.Root);
-
-  ChangedScene;
 end;
 
 procedure TItemOnWorld.TItemDebugTransform.Attach(const AParent: TItemOnWorld);
