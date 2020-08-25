@@ -130,6 +130,7 @@ type
           LabelHover, LabelSelected: TCastleLabel;
           RectHover, RectSelected: TCastleRectangleControl;
         function HoverUserInterface(const AMousePosition: TVector2): TCastleUserInterface;
+        function HoverTransform(const AMousePosition: TVector2): TCastleTransform;
         { Should clicking inside UI rectangle start resizing (not only moving?). }
         function IsResizing(const UI: TCastleUserInterface; const Position: TVector2;
           out Horizontal: THorizontalPosition;
@@ -396,6 +397,29 @@ begin
     Result := nil;
 end;
 
+function TDesignFrame.TDesignerLayer.HoverTransform(
+  const AMousePosition: TVector2): TCastleTransform;
+var
+  UI: TCastleUserInterface;
+  Viewport: TCastleViewport;
+begin
+  UI := HoverUserInterface(AMousePosition);
+  if UI is TCastleViewport then // also checks UI <> nil
+    Viewport := TCastleViewport(UI)
+  else
+    Viewport := nil;
+
+  { If HoverUserInterface didn't have a useful viewport, try SelectedViewport.
+    This way you can select stuff in viewport, even when it's obscured
+    e.g. by a TCastleButton. }
+  if (Viewport = nil) and
+     (Frame.SelectedViewport <> nil) and
+     Frame.SelectedViewport.RenderRectWithBorder.Contains(AMousePosition) then
+    Viewport := Frame.SelectedViewport;
+
+  Viewport.MouseRayHit;
+end;
+
 function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
   const Position: TVector2; out Horizontal: THorizontalPosition;
   out Vertical: TVerticalPosition): Boolean;
@@ -461,6 +485,13 @@ begin
     end;
 
     PendingMove := TVector2.Zero;
+  end;
+
+  if (Frame.Mode = moTransformSelect) and
+      Event.IsMouseButton(mbLeft) then
+  begin
+    if Event.IsMouseButton(mbLeft) then
+      Frame.SelectedTransform := HoverTransform(Event.Position);
   end;
 end;
 

@@ -703,6 +703,34 @@ type
       const ScreenCoordinates: Boolean;
       const Depth: Single; out PlanePosition: TVector3): Boolean;
 
+    { Convert 2D position on the viewport into 3D ray.
+
+    The interpretation of Position depends on ScreenCoordinates,
+    and is similar to e.g. @link(TCastleTiledMapControl.PositionToTile):
+
+    @unorderedList(
+      @item(When ScreenCoordinates = @true,
+        then Position is relative to the whole container
+        (like TCastleWindowBase or TCastleControlBase).
+
+        And it is expressed in real device coordinates,
+        just like @link(TInputPressRelease.Position)
+        when mouse is being clicked, or like @link(TInputMotion.Position)
+        when mouse is moved.
+      )
+
+      @item(When ScreenCoordinates = @false,
+        then Position is relative to this UI control.
+
+        And it is expressed in coordinates after UI scaling.
+        IOW, if the size of this control is @link(Width) = 100,
+        then Position.X between 0 and 100 reflects the visible range of this control.
+      )
+    )
+    }
+    procedure PositionToRay(const Position: TVector2;
+      const ScreenCoordinates: Boolean; out RayOrigin, RayDirection: TVector3);
+
     { Convert 2D position on the viewport into 3D "world coordinates",
       by colliding camera ray with a plane at constant Z.
       "World coordinates" are coordinates
@@ -2689,14 +2717,12 @@ begin
   AutoCamera := false;
 end;
 
-function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
+procedure TCastleViewport.PositionToRay(const Position: TVector2;
   const ScreenCoordinates: Boolean;
-  const Depth: Single; out PlanePosition: TVector3): Boolean;
+  out RayOrigin, RayDirection: TVector3);
 var
   R: TFloatRectangle;
   ScreenPosition: TVector2;
-  RayOrigin, RayDirection: TVector3;
-  Plane: TVector4;
 begin
   R := RenderRect;
 
@@ -2706,7 +2732,15 @@ begin
     ScreenPosition := Position * UIScale + R.LeftBottom;
 
   Camera.CustomRay(R, ScreenPosition, FProjection, RayOrigin, RayDirection);
+end;
 
+function TCastleViewport.PositionToCameraPlane(const Position: TVector2;
+  const ScreenCoordinates: Boolean;
+  const Depth: Single; out PlanePosition: TVector3): Boolean;
+var
+  RayOrigin, RayDirection: TVector3;
+  Plane: TVector4;
+begin
   Plane := Vector4(Camera.Direction,
     { We know that Camera.Direction, which is used as Plane.XYZ, is normalized.
       Calculate Plane[3] such that point RayOrigin + Camera.Direction * Depth
