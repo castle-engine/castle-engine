@@ -41,6 +41,11 @@
   where the first parameter will be the name of the animation, the second and third parameter
   the index of the first and last image of the animation
   Each animation must be separated by the "-"
+  In the first case, only one animation, it will take the same name as the image (without "_x")
+  If you want to give the animation a different name instead of using the parameter "0" 
+  use only one set of parameters as in the case of multiple animations
+  e.g. with "walking_1.png" as the first image and 30 images in total: NewAnimName,1,30
+  
 
   - 3rd parameter is the is the padding you used
   For example:
