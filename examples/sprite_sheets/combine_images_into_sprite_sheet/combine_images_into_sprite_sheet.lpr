@@ -86,7 +86,6 @@ begin
   InputUrl := Parameters[1];
   AnimOpt := Parameters[2];
   Padding := StrToInt(Parameters[3]);
-  //Ext := Parameters[4];
   OutputUrl := Parameters[4];
   Columns := StrToInt(Parameters[5]);
   ReverseY := StrToBool(Parameters[6]);
@@ -108,7 +107,6 @@ begin
     XMLFileList.Add('<?xml version="1.0" encoding="UTF-8"?>');
     XMLFileList.Add('<TextureAtlas imagePath="' + XMLFileName + '">');
     InputVideo := TVideo.Create;
-    //InputUrl := CheckPadding[0] + '_@counter(' + inttostr(Padding) + ').' + Ext;
     InputUrl := FilePath + CheckPadding[0] + '_@counter(' + inttostr(Padding) + ')' + FileExt;
     InputVideo.LoadFromFile(InputUrl);
 
