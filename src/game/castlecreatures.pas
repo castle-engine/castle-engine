@@ -2476,7 +2476,7 @@ var
       if FDebugAlternativeTargetAxis = nil then
       begin
         FDebugAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
-        FDebugTransform.WorldSpace.AddChildren(FDebugAlternativeTargetAxis.Root);
+        FDebugTransform.ParentSpace.AddChildren(FDebugAlternativeTargetAxis.Root);
         FDebugTransform.ChangedScene;
       end;
 
@@ -2487,7 +2487,7 @@ var
       if FDebugLastSensedEnemyAxis = nil then
       begin
         FDebugLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
-        FDebugTransform.WorldSpace.AddChildren(FDebugLastSensedEnemyAxis.Root);
+        FDebugTransform.ParentSpace.AddChildren(FDebugLastSensedEnemyAxis.Root);
         FDebugTransform.ChangedScene;
       end;
 

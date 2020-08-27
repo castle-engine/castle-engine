@@ -150,7 +150,7 @@ type
     var
       FBox: TDebugBox;
       FTransform: TMatrixTransformNode;
-      FWorldSpace: TAbstractX3DGroupingNode;
+      FParentSpace: TAbstractX3DGroupingNode;
       FParent: TCastleTransform;
       FScene: TInternalScene;
       FExists: boolean;
@@ -162,7 +162,7 @@ type
     procedure Initialize;
   strict protected
     { Called when internal scene is constructed.
-      You can override it in desdendants to e.g. add more stuff to WorldSpace. }
+      You can override it in desdendants to e.g. add more stuff to ParentSpace. }
     procedure InitializeNodes; virtual;
 
     { Called continuosly when internal scene should be updated.
@@ -180,9 +180,10 @@ type
     property Parent: TCastleTransform read FParent write SetParent;
     { Is the debug visualization visible. }
     property Exists: boolean read FExists write SetExists default false;
-    { Add additional things that are expressed in world-space under this transform.
-      Be sure to call @link(ChangedScene) afterwards. }
-    property WorldSpace: TAbstractX3DGroupingNode read FWorldSpace;
+    { Add to this additional things that are expressed in parent coordinate-space.
+      Be sure to call @link(ChangedScene) afterwards, unless you do it in InitializeNodes
+      (then @link(ChangedScene) is not necessary). }
+    property ParentSpace: TAbstractX3DGroupingNode read FParentSpace;
     property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
   end;
@@ -454,11 +455,11 @@ var
   Root: TX3DRootNode;
 begin
   FTransform := TMatrixTransformNode.Create;
-  FWorldSpace := FTransform;
+  FParentSpace := FTransform;
 
   FBox := TDebugBox.Create(Self);
   FBox.Color := FBoxColor;
-  WorldSpace.AddChildren(FBox.Root);
+  ParentSpace.AddChildren(FBox.Root);
 
   InitializeNodes;
 
@@ -566,13 +567,13 @@ begin
   inherited;
 
   FDirectionArrow := TDebugArrow.Create(Self, BlueRGB);
-  WorldSpace.AddChildren(FDirectionArrow.Root);
+  ParentSpace.AddChildren(FDirectionArrow.Root);
 
   FSphere := TDebugSphere.Create(Self, GrayRGB);
-  WorldSpace.AddChildren(FSphere.Root);
+  ParentSpace.AddChildren(FSphere.Root);
 
   FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
-  WorldSpace.AddChildren(FMiddleAxis.Root);
+  ParentSpace.AddChildren(FMiddleAxis.Root);
 end;
 
 procedure TDebugTransform.Update;

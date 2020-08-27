@@ -1105,7 +1105,7 @@ begin
 
   FBoxRotated := TDebugBox.Create(Self);
   FBoxRotated.Color := Gray;
-  WorldSpace.AddChildren(FBoxRotated.Root);
+  ParentSpace.AddChildren(FBoxRotated.Root);
 end;
 
 procedure TItemOnWorld.TItemDebugTransform.Update;

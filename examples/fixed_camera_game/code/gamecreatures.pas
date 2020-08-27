@@ -386,7 +386,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 begin
   inherited;
   CreateTargetVisualize;
-  FDebugTransform.WorldSpace.AddChildren(FTargetVisualize);
+  FDebugTransform.ParentSpace.AddChildren(FTargetVisualize);
   FDebugTransform.ChangedScene;
 end;
 
