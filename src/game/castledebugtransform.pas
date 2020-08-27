@@ -124,11 +124,14 @@ type
     procedure SetOrigin(const Value: TVector3);
     procedure SetDirection(const Value: TVector3);
     procedure UpdateGeometry;
+    function GetRender: boolean;
+    procedure SetRender(const Value: boolean);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
     property Origin: TVector3 read FOrigin write SetOrigin;
     property Direction: TVector3 read FDirection write SetDirection;
+    property Render: boolean read GetRender write SetRender;
   end;
 
   { Visualization of a bounding volume of a TCastleTransform instance.
@@ -419,6 +422,16 @@ begin
   ]);
 end;
 
+function TDebugArrow.GetRender: boolean;
+begin
+  Result := FShape.Render;
+end;
+
+procedure TDebugArrow.SetRender(const Value: boolean);
+begin
+  FShape.Render := Value;
+end;
+
 { TDebugTransform.TInternalScene ---------------------------------------------------- }
 
 procedure TDebugTransformBox.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -528,10 +541,7 @@ end;
 procedure TDebugTransformBox.UpdateSafe;
 begin
   if Exists and
-     (FParent <> nil) and
-     { resign when FParent.World unset,
-       as then FParent.Middle and FParent.PreferredHeight cannot be calculated }
-     (FParent.World <> nil) then
+     (FParent <> nil) then
   begin
     if FScene = nil then
       Initialize;
@@ -579,24 +589,35 @@ end;
 procedure TDebugTransform.Update;
 var
   R: Single;
+  Visible: Boolean;
 begin
   inherited;
 
-  // show FParent.Sphere
-  FSphere.Render := Parent.Sphere(R);
-  if FSphere.Render then
+  Visible := Parent.World <> nil;
+
+  // when Parent.World = nil then Parent.Middle and Parent.PreferredHeight cannot be calculated
+  FSphere.Render := Visible;
+  FDirectionArrow.Render := Visible;
+  FMiddleAxis.Render := Visible;
+
+  if Visible then
   begin
-    FSphere.Position := Parent.Middle;
-    FSphere.Radius := R;
+    // show FParent.Sphere
+    FSphere.Render := Parent.Sphere(R);
+    if FSphere.Render then
+    begin
+      FSphere.Position := Parent.Middle;
+      FSphere.Radius := R;
+    end;
+
+    // show FParent.Direction
+    FDirectionArrow.Origin := Parent.Middle;
+    FDirectionArrow.Direction := Parent.Direction;
+
+    // show FParent.Middle
+    FMiddleAxis.Position := Parent.Middle;
+    FMiddleAxis.ScaleFromBox := Parent.BoundingBox;
   end;
-
-  // show FParent.Direction
-  FDirectionArrow.Origin := Parent.Middle;
-  FDirectionArrow.Direction := Parent.Direction;
-
-  // show FParent.Middle
-  FMiddleAxis.Position := Parent.Middle;
-  FMiddleAxis.ScaleFromBox := Parent.BoundingBox;
 end;
 
 end.
