@@ -1779,6 +1779,17 @@ begin
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
 
+  // buttons for moTransformXxx models are hidden when V = nil, so do not leave them as active mode
+  if (V = nil) and (Mode in [
+      moTransformSelect,
+      moTransformTranslate,
+      moTransformRotate,
+      moTransformScale
+    ]) then
+  begin
+    ChangeMode(moModifyUi);
+  end;
+
   TransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
 end;
 
