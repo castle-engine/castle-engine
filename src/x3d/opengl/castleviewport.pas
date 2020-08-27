@@ -1089,9 +1089,8 @@ type
       This is a nice thing for general model viewers (like view3dscene),
       to prevent from accidentally falling down when using "Walk" mode.
 
-      This is only used by navigations performing gravity,
-      like @link(TCastleWalkNavigation) (when @link(TCastleWalkNavigation.Gravity) = @true)
-      or @link(TCastleThirdPersonNavigation) (when @link(TCastleThirdPersonNavigation.Gravity) = @true). }
+      This is only used by navigations performing gravity internally,
+      that is right now: @link(TCastleWalkNavigation) (when @link(TCastleWalkNavigation.Gravity) = @true). }
     property PreventInfiniteFallingDown: Boolean
       read FPreventInfiniteFallingDown write FPreventInfiniteFallingDown default false;
 

@@ -36,7 +36,7 @@ type
     break the download immediately, if it's still in-progress.
 
     The download continues while your application is running,
-    because we use @link(ApplicationProperties.OnUpdate TCastleApplicationProperties.OnUpdate)
+    because we use @link(TCastleApplicationProperties.OnUpdate ApplicationProperties.OnUpdate)
     mechanism. If your application uses TCastleWindowBase or TCastleControlBase,
     then this just works.
     Note that if you just want to wait for download to finish,

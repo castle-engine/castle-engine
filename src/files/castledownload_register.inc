@@ -33,28 +33,44 @@ type
     like file or http, then use TCastleDownload class. }
   TUrlAsynchronousReader = class
   public
-    { Fields set before Start is called. Should not be modified by this instance after Start. }
+    { Fields set before Start is called. Should not be modified by this instance after Start.
+      @groupBegin }
     Url: String;
     ForceSynchronous: Boolean;
     HttpMethod: THttpMethod;
     HttpPostData, HttpHeadersKeys, HttpHeadersValues: TStrings;
+    { @groupEnd }
 
-    { Fields that should be updated during downloading. }
-    Status: TDownloadStatus; //< Never dsNotStarted, as we start in constructor.
-    DownloadedBytes, TotalBytes: Int64; //< Will set TCastleDownlad properties of the same name.
-    Contents: TStream; //< Not owned by this instance, TCastleDownlad takes care of freeing this.
+    { Fields that should be updated during downloading.
+      They will be set TCastleDownload properties of the same name.
+      @groupBegin }
+    Status: TDownloadStatus;
+    DownloadedBytes, TotalBytes: Int64;
+    Contents: TStream; //< Not owned by this instance, TCastleDownload takes care of freeing this.
     ErrorMessage: String; //< When Status = dsError, download failed with this error.
     MimeType: String; //< May be updated at any point, even when dsDownloading, or only when dsSuccess.
-    HttpResponseCode: Integer; // In case of HTTP requests, HTTP response code.
-    HttpResponseHeaders: TStrings; // In case of HTTP/HTTPS requests, this must contain HTTP response headers.
+    HttpResponseCode: Integer; // In case of HTTP(S) requests, HTTP response code.
+    HttpResponseHeaders: TStrings; // In case of HTTP(S) requests, this must contain HTTP response headers.
+    { @groupEnd }
 
-    { Exceptions inside this will make an exception from TCastleDownload.Start.
-      They should be caught if should make Status = dsError instead. }
+    { Start downloading, called when @link(TCastleDownload.Start) is called.
+
+      @italic(Note for descendant implementors):
+      Exceptions raised inside this will make an actual exception from
+      @link(TCastleDownload.Start).
+      In case of normal download failure, e.g. file (or HTTP resource) doesn't exist
+      (so it is not some bug in code), this method should set Status to dsError
+      and not raise an exception. }
     procedure Start; virtual;
 
-    { Exceptions inside Update will make an exception at undefined application point
-      (for now, ApplicationProperties._Update, called by CastleWindow and CastleControl).
-      They should be caught if should make Status = dsError instead. }
+    { Called continuously to push the download further.
+
+      @italic(Note for descendant implementors):
+      Exceptions raised inside this will make an actual exception (from
+      undefined place, for now ApplicationProperties._Update, called by TCastleWindowBase and TCastleControlBase).
+      In case of normal download failure, e.g. file (or HTTP resource) doesn't exist
+      (so it is not some bug in code), this method should set Status to dsError
+      and not raise an exception. }
     procedure Update; virtual;
   end;
 
