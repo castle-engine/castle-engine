@@ -387,7 +387,9 @@ function TDesignFrame.TDesignerLayer.HoverUserInterface(
           if Result <> nil then Exit;
         end;
       //if C.CapturesEventsAtPosition(MousePos) then
-      if SimpleCapturesEventsAtPosition(C, MousePos) then
+      if SimpleCapturesEventsAtPosition(C, MousePos) and
+         { Do not select TCastleNavigation, they would always obscure TCastleViewport. }
+         (not (C is TCastleNavigation)) then
         Result := C;
     end;
   end;
