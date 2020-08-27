@@ -508,8 +508,7 @@ begin
   if (Frame.Mode = moTransformSelect) and
       Event.IsMouseButton(mbLeft) then
   begin
-    if Event.IsMouseButton(mbLeft) then
-      Frame.SelectedTransform := HoverTransform(Event.Position);
+    Frame.SelectedTransform := HoverTransform(Event.Position);
   end;
 end;
 
@@ -699,16 +698,8 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
   end;
 
   procedure UpdateHoverTransform;
-  var
-    Transform: TCastleTransform;
   begin
-    Transform := HoverTransform(Event.Position);
-    if Transform <> nil then
-    begin
-      Frame.TransformHover.Attach(Transform);
-      Frame.TransformHover.Exists := true;
-    end else
-      Frame.TransformHover.Exists := false;
+    Frame.TransformHover.Parent := HoverTransform(Event.Position); // works also in case HoverTransform is nil
   end;
 
 var
@@ -926,9 +917,11 @@ begin
 
   TransformHover := TDebugTransformBox.Create(Self);
   TransformHover.BoxColor := ColorOpacity(ColorHover, 0.75);
+  TransformHover.Exists := true;
 
   TransformSelected := TDebugTransformBox.Create(Self);
   TransformSelected.BoxColor := ColorOpacity(ColorSelected, 0.75);
+  TransformSelected.Exists := true;
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
@@ -1653,26 +1646,15 @@ procedure TDesignFrame.GetSelected(out Selected: TComponentList;
   function SelectedFromNode(const Node: TTreeNode): TComponent;
   var
     SelectedObject: TObject;
-    //SelectedControl: TCastleUserInterface;
-    //SelectedTransform: TCastleTransform;
   begin
     SelectedObject := nil;
     Result := nil;
-    //SelectedControl := nil;
-    //SelectedTransform := nil;
 
     if Node <> nil then
     begin
       SelectedObject := TObject(Node.Data);
       if SelectedObject is TComponent then
-      begin
         Result := TComponent(SelectedObject);
-        //if SelectedComponent is TCastleUserInterface then
-        //  SelectedControl := TCastleUserInterface(SelectedComponent)
-        //else
-        //if SelectedComponent is TCastleTransform then
-        //  SelectedTransform := TCastleTransform(SelectedComponent);
-      end;
     end;
   end;
 
@@ -1758,7 +1740,6 @@ var
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
-  Transform: TCastleTransform;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1798,13 +1779,7 @@ begin
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
 
-  Transform := SelectedTransform;
-  if Transform <> nil then
-  begin
-    TransformSelected.Attach(Transform);
-    TransformSelected.Exists := true;
-  end else
-    TransformSelected.Exists := false;
+  TransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);

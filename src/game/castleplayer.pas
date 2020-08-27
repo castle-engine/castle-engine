@@ -630,7 +630,7 @@ begin
   Add(FBox);
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 end;
 
 destructor TPlayer.Destroy;

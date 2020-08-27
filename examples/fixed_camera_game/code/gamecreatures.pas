@@ -230,7 +230,7 @@ begin
   RandomizeStandTimeToBeBored;
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;

@@ -132,10 +132,10 @@ type
   end;
 
   { Visualization of a bounding volume of a TCastleTransform instance.
-    After constructing this, call @link(Attach) to attach this to some
+    After constructing this, set @link(Parent) to attach this to some
     @link(TCastleTransform) instance.
 
-    Then set @link(Exists) to control whether the debug visualization
+    Then set @link(Exists) (which is by default @false) to control whether the debug visualization
     should actually be shown. We take care to only actually construct
     internal TCastleScene when the @link(Exists) becomes @true,
     so you can construct TDebugTransform instance always, even in release mode --
@@ -158,6 +158,7 @@ type
     procedure SetBoxColor(const AValue: TCastleColor);
     procedure UpdateSafe;
     procedure SetExists(const Value: boolean);
+    procedure SetParent(const Value: TCastleTransform);
     procedure Initialize;
   strict protected
     { Called when internal scene is constructed.
@@ -168,10 +169,15 @@ type
       You can override it in desdendants to e.g. update the things you added
       in @link(Initialize). }
     procedure Update; virtual;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Attach(const AParent: TCastleTransform);
-    property Parent: TCastleTransform read FParent;
+    destructor Destroy; override;
+    procedure Attach(const AParent: TCastleTransform); deprecated 'set Parent instead';
+    { Determines what is visualizated by this component.
+      May be @nil, which means that nothing is visualized. }
+    property Parent: TCastleTransform read FParent write SetParent;
     { Is the debug visualization visible. }
     property Exists: boolean read FExists write SetExists default false;
     { Add additional things that are expressed in world-space under this transform.
@@ -428,6 +434,21 @@ begin
   FBoxColor := Gray;
 end;
 
+destructor TDebugTransformBox.Destroy;
+begin
+  { set to nil by SetParent, to detach free notification }
+  Parent := nil;
+  inherited;
+end;
+
+procedure TDebugTransformBox.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FParent) then
+    { set to nil by SetParent, to detach free notification }
+    Parent := nil;
+end;
+
 procedure TDebugTransformBox.Initialize;
 var
   Root: TX3DRootNode;
@@ -460,20 +481,35 @@ procedure TDebugTransformBox.InitializeNodes;
 begin
 end;
 
+procedure TDebugTransformBox.SetParent(const Value: TCastleTransform);
+begin
+  if FParent <> Value then
+  begin
+    if FParent <> nil then
+    begin
+      Assert(FScene <> nil);
+      // remove self from previous parent children
+      if not (csDestroying in FParent.ComponentState) then // testcase why it's needed: fps_game exit
+        FParent.Remove(FScene);
+      FParent.RemoveFreeNotification(Self);
+    end;
+
+    FParent := Value;
+
+    if FParent <> nil then
+    begin
+      if FScene = nil then
+        Initialize;
+      FParent.FreeNotification(Self);
+      FParent.Add(FScene);
+      UpdateSafe;
+    end;
+  end;
+end;
+
 procedure TDebugTransformBox.Attach(const AParent: TCastleTransform);
 begin
-  if FScene = nil then
-    Initialize
-  else
-  begin
-    // remove self from previous parent
-    if FParent <> nil then
-      FParent.Remove(FScene);
-  end;
-
-  FParent := AParent;
-  FParent.Add(FScene);
-  UpdateSafe;
+  Parent := AParent;
 end;
 
 procedure TDebugTransformBox.SetExists(const Value: boolean);

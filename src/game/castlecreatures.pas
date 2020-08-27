@@ -1462,7 +1462,7 @@ begin
   UsedSounds := TSoundList.Create(false);
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 
   FResourceFrame := TResourceFrame.Create(Self);
   Add(FResourceFrame);

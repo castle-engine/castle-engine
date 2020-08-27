@@ -467,16 +467,14 @@ type
     type
       { A debug visualization that can be added to TItemOnWorld
         to visualize the parameters of it's parent (bounding volumes and such).
-        See @link(TDebugTransform) for usage details. }
+        See @link(TDebugTransform) for usage details.
+        The @link(TDebugTransform.Parent) must be an instance of TItemOnWorld. }
       TItemDebugTransform = class(TDebugTransform)
       strict private
         FBoxRotated: TDebugBox;
-        FParent: TItemOnWorld;
       strict protected
         procedure InitializeNodes; override;
         procedure Update; override;
-      public
-        procedure Attach(const AParent: TItemOnWorld);
       end;
 
     var
@@ -1110,20 +1108,14 @@ begin
   WorldSpace.AddChildren(FBoxRotated.Root);
 end;
 
-procedure TItemOnWorld.TItemDebugTransform.Attach(const AParent: TItemOnWorld);
-begin
-  FParent := AParent;
-  inherited Attach(AParent);
-end;
-
 procedure TItemOnWorld.TItemDebugTransform.Update;
 var
   BBoxRotated: TBox3D;
 begin
   inherited;
 
-  // show FParent.BoundingBoxRotated
-  BBoxRotated := FParent.BoundingBoxRotated;
+  // show Parent.BoundingBoxRotated
+  BBoxRotated := (Parent as TItemOnWorld).BoundingBoxRotated;
   FBoxRotated.Box := BBoxRotated;
 end;
 
@@ -1137,7 +1129,7 @@ begin
   Gravity := true;
 
   FDebugTransform := TItemDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
