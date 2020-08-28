@@ -280,7 +280,7 @@ type
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
 
-    procedure CurrentComponentApiUrl(var UrlSuffix: String);
+    procedure CurrentComponentApiUrl(var Url: String);
   end;
 
 implementation
@@ -1387,7 +1387,7 @@ begin
   CastleControl.Container.UIReferenceHeight := UIReferenceHeight;
 end;
 
-procedure TDesignFrame.CurrentComponentApiUrl(var UrlSuffix: String);
+procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
   function InspectorTypeFromActiveControl(const C: TWinControl;
     out InspectorType: TInspectorType): Boolean;
@@ -1402,23 +1402,29 @@ procedure TDesignFrame.CurrentComponentApiUrl(var UrlSuffix: String);
     Result := false;
   end;
 
-var
-  ParentForm: TCustomForm;
-  InspectorType: TInspectorType;
-begin
-  if SelectedComponent <> nil then
+  { If a property of the SelectedComponent is now focused
+    in one of our object inspectors, return it's Name.
+    Otherwise return ''. }
+  function SelectedProperty: String;
+  var
+    ParentForm: TCustomForm;
+    InspectorType: TInspectorType;
   begin
-    UrlSuffix := SelectedComponent.UnitName + '.' + SelectedComponent.ClassName + '.html';
-
-    // get current member (property/event etc.) name
     ParentForm := GetParentForm(Self);
-    if ParentForm.ActiveControl <> nil then
-    begin
-      if InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
-         (Inspector[InspectorType].GetActiveRow <> nil) then
-        UrlSuffix := UrlSuffix + '#' + Inspector[InspectorType].GetActiveRow.Name;
-    end;
+    if (ParentForm.ActiveControl <> nil) and
+       InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
+       (Inspector[InspectorType].GetActiveRow <> nil) then
+      Result := Inspector[InspectorType].GetActiveRow.Name
+    else
+      Result := '';
   end;
+
+var
+  C: TComponent;
+begin
+  C := SelectedComponent;
+  if C <> nil then
+    Url := ApiReference(C, SelectedProperty);
 end;
 
 function TDesignFrame.ComponentCaption(const C: TComponent): String;

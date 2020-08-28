@@ -198,9 +198,6 @@ uses TypInfo, LCLType,
   FormChooseProject, ToolCommonUtils, FormAbout, FormPreferences,
   ToolCompilerInfo;
 
-const
-  ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
-
 procedure TProjectForm.MenuItemQuitClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
@@ -220,12 +217,12 @@ end;
 
 procedure TProjectForm.MenuItemReferenceOfCurrentClick(Sender: TObject);
 var
-  UrlSuffix: String;
+  Url: String;
 begin
-  UrlSuffix := 'index.html';
+  Url := ApiReferenceUrl + 'index.html';
   if Design <> nil then
-    Design.CurrentComponentApiUrl(UrlSuffix);
-  OpenURL(ApiReferenceUrl + UrlSuffix);
+    Design.CurrentComponentApiUrl(Url);
+  OpenURL(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
