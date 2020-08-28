@@ -1388,15 +1388,36 @@ begin
 end;
 
 procedure TDesignFrame.CurrentComponentApiUrl(var UrlSuffix: String);
+
+  function InspectorTypeFromActiveControl(const C: TWinControl;
+    out InspectorType: TInspectorType): Boolean;
+  begin
+    for InspectorType in TInspectorType do
+      if Inspector[InspectorType] = C then
+        Exit(true);
+
+    if C.Parent <> nil then
+      Exit(InspectorTypeFromActiveControl(C.Parent, InspectorType));
+
+    Result := false;
+  end;
+
 var
   ParentForm: TCustomForm;
+  InspectorType: TInspectorType;
 begin
   if SelectedComponent <> nil then
   begin
     UrlSuffix := SelectedComponent.UnitName + '.' + SelectedComponent.ClassName + '.html';
+
+    // get current member (property/event etc.) name
     ParentForm := GetParentForm(Self);
-    //if ParentForm.ActiveControl <> nil then
-    //  UrlSuffix := UrlSuffix + '#' + ParentForm.ActiveControl.ClassName;
+    if ParentForm.ActiveControl <> nil then
+    begin
+      if InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
+         (Inspector[InspectorType].GetActiveRow <> nil) then
+        UrlSuffix := UrlSuffix + '#' + Inspector[InspectorType].GetActiveRow.Name;
+    end;
   end;
 end;
 
