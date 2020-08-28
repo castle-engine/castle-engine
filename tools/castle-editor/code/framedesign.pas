@@ -279,6 +279,8 @@ type
     { Root saved/loaded to component file }
     property DesignRoot: TComponent read FDesignRoot;
     property DesignModified: Boolean read FDesignModified;
+
+    procedure CurrentComponentApiUrl(var UrlSuffix: String);
   end;
 
 implementation
@@ -1383,6 +1385,19 @@ begin
   CastleControl.Container.UIScaling := UIScaling;
   CastleControl.Container.UIReferenceWidth := UIReferenceWidth;
   CastleControl.Container.UIReferenceHeight := UIReferenceHeight;
+end;
+
+procedure TDesignFrame.CurrentComponentApiUrl(var UrlSuffix: String);
+var
+  ParentForm: TCustomForm;
+begin
+  if SelectedComponent <> nil then
+  begin
+    UrlSuffix := SelectedComponent.UnitName + '.' + SelectedComponent.ClassName + '.html';
+    ParentForm := GetParentForm(Self);
+    //if ParentForm.ActiveControl <> nil then
+    //  UrlSuffix := UrlSuffix + '#' + ParentForm.ActiveControl.ClassName;
+  end;
 end;
 
 function TDesignFrame.ComponentCaption(const C: TComponent): String;

@@ -289,6 +289,14 @@ object ProjectForm: TProjectForm
     end
     object MenuItemHelp: TMenuItem
       Caption = '&Help'
+      object MenuItemReferenceOfCurrent: TMenuItem
+        Caption = 'API Reference of Current Component / Property'
+        ShortCut = 112
+        OnClick = MenuItemReferenceOfCurrentClick
+      end
+      object MenuItemSeparator78: TMenuItem
+        Caption = '-'
+      end
       object MenuItemCgeWww: TMenuItem
         Caption = 'Website'
         OnClick = MenuItemCgeWwwClick
