@@ -135,8 +135,14 @@ const
 
 { Get full URL to display API reference of a given property in the given
   SelectedObject.
-  PropertyName may be '', in which case the link leads to the whole class reference. }
-function ApiReference(const SelectedObject: TObject; const PropertyName: String): String;
+
+  PropertyName may be '', in which case the link leads to the whole class reference.
+  In this case PropertyNameForLink must also be ''.
+  Both PropertyName and PropertyNameForLink should be '',
+  or both should be non-empty.
+}
+function ApiReference(const SelectedObject: TObject;
+  const PropertyName, PropertyNameForLink: String): String;
 
 implementation
 
@@ -556,7 +562,8 @@ begin
   C.Visible := Value;
 end;
 
-function ApiReference(const SelectedObject: TObject; const PropertyName: String): String;
+function ApiReference(const SelectedObject: TObject;
+  const PropertyName, PropertyNameForLink: String): String;
 
   { Knowing that property PropInfo is part of class C,
     determine the class where it's actually declared (C or ancestor of C).
@@ -622,7 +629,7 @@ begin
        ClassOfProperty := ClassOfPropertyDeclaration(SelectedObject.ClassType, PropInfo);
        LinkClassName := ClassOfProperty.ClassName;
        LinkUnitName := ClassOfProperty.UnitName;
-       LinkPropertyName := PropertyName;
+       LinkPropertyName := PropertyNameForLink;
      end else
        WritelnWarning('Cannot get property info "%s"', [PropertyName]);
   end;

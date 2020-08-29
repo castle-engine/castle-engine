@@ -1403,9 +1403,8 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
   end;
 
   { If a property of the SelectedComponent is now focused
-    in one of our object inspectors, return it's Name.
-    Otherwise return ''. }
-  function SelectedProperty: String;
+    in one of our object inspectors, return property name. }
+  function SelectedProperty(out PropertyName, PropertyNameForLink: String): Boolean;
   var
     ParentForm: TCustomForm;
     InspectorType: TInspectorType;
@@ -1414,17 +1413,37 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
     if (ParentForm.ActiveControl <> nil) and
        InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
        (Inspector[InspectorType].GetActiveRow <> nil) then
-      Result := Inspector[InspectorType].GetActiveRow.Name
-    else
-      Result := '';
+    begin
+      { Note that "GetActiveRow.Name" may not be the actual property name.
+        The actual property name is in "GetActiveRow.Editor.GetPropInfo^.Name",
+        and "GetActiveRow.Name" may be overrided by the property editor for presentation.
+        E.g. our TVector3Persistent, TCastleColorPersistent modify the name
+        to remove "Persistent" suffix.
+        That said, we actually want to link to the version without "Persistent"
+        suffix (but we need to use the version with "Persistent" for GetPropInfo
+        as only "XxxPersistent" is published).
+
+        So we need to pass on this complication to ApiReference.
+      }
+      PropertyName := Inspector[InspectorType].GetActiveRow.Editor.GetPropInfo^.Name;
+      PropertyNameForLink := Inspector[InspectorType].GetActiveRow.Name;
+      Result := true;
+    end else
+      Result := false;
   end;
 
 var
   C: TComponent;
+  PropertyName, PropertyNameForLink: String;
 begin
   C := SelectedComponent;
   if C <> nil then
-    Url := ApiReference(C, SelectedProperty);
+  begin
+    if SelectedProperty(PropertyName, PropertyNameForLink) then
+      Url := ApiReference(C, PropertyName, PropertyNameForLink)
+    else
+      Url := ApiReference(C, '', '');
+  end;
 end;
 
 function TDesignFrame.ComponentCaption(const C: TComponent): String;
