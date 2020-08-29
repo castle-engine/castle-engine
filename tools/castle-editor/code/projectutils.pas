@@ -30,10 +30,6 @@ procedure CopyTemplate(const ProjectDirUrl: String;
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 
-{ Open ProjectForm.
-  ManifestUrl may be absolute or relative here. }
-procedure ProjectOpen(ManifestUrl: string);
-
 type
   TBuildMode = (bmDebug, bmRelease);
 
@@ -158,20 +154,6 @@ begin
       [BuildToolStatus, BuildToolOutput]));
     Exit;
   end;
-end;
-
-procedure ProjectOpen(ManifestUrl: string);
-begin
-  ManifestUrl := AbsoluteURI(ManifestUrl);
-
-  // Validate
-  if not URIFileExists(ManifestUrl) then
-    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
-      [ManifestUrl]);
-
-  ProjectForm := TProjectForm.Create(Application);
-  ProjectForm.OpenProject(ManifestUrl);
-  ProjectForm.Show;
 end;
 
 procedure DetectEditorApplicationData;

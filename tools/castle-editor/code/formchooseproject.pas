@@ -55,6 +55,9 @@ type
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
     procedure UpdateWarningFpcLazarus;
+    { Open ProjectForm.
+      ManifestUrl may be absolute or relative here. }
+    procedure ProjectOpen(ManifestUrl: string);
   public
 
   end;
@@ -69,7 +72,8 @@ implementation
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo, ToolFpcVersion;
+  ToolCompilerInfo, ToolFpcVersion,
+  FormProject;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -89,6 +93,24 @@ begin
   {$else}
   inherited Hide;
   {$endif}
+end;
+
+procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
+begin
+  ManifestUrl := AbsoluteURI(ManifestUrl);
+
+  // Validate
+  if not URIFileExists(ManifestUrl) then
+    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
+      [ManifestUrl]);
+
+  ProjectForm := TProjectForm.Create(Application);
+  ProjectForm.OpenProject(ManifestUrl);
+  ProjectForm.Show;
+
+  { Do this even if you just opened this project through "recent" menu.
+    This way URL is moved to the top. }
+  RecentProjects.Add(ManifestUrl);
 end;
 
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
@@ -111,8 +133,6 @@ begin
 
   if OpenProject.Execute then
   begin
-    RecentProjects.Add(OpenProject.URL);
-
     Hide;
     try
       ProjectOpen(OpenProject.URL);
@@ -165,7 +185,6 @@ begin
       // Open new project
       ManifestUrl := CombineURI(ProjectDirUrl, 'CastleEngineManifest.xml');
       ProjectOpen(ManifestUrl);
-      RecentProjects.Add(ManifestUrl);
     except
       on E: Exception do
       begin
@@ -314,7 +333,6 @@ begin
     Hide;
     try
       ProjectOpen(Parameters[1]);
-      RecentProjects.Add(Parameters[1]);
     except
       Show;
       raise;

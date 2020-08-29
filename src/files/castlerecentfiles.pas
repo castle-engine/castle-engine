@@ -128,8 +128,11 @@ begin
     Exit { user reopens last opened file, nothing to do };
 
   if Index <> -1 then
+  begin
     { Just move Index to the beginning }
-    URLs.Exchange(Index, 0) else
+    URLs.Delete(Index);
+    URLs.Insert(0, F);
+  end else
   begin
     URLs.Insert(0, F);
     Strings_Trim(URLs, MaxCount);
