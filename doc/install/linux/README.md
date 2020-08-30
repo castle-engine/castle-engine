@@ -32,3 +32,7 @@ of any desktop (GNOME, MATE, KDE, ...).
      install --mode 644 castle-editor.desktop ~/.local/share/applications/
 
    And running update-desktop-database is actually not necessary on new systems.
+
+Note: the installation files for view3dscene are not yet distributed here.
+To install view3dscene in menu, get http://github.com/castle-engine/view3dscene
+and follow the desktop/INSTALL.txt instructions there ( https://github.com/castle-engine/view3dscene/blob/master/desktop/INSTALL.txt ).
