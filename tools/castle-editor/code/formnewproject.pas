@@ -27,9 +27,10 @@ uses
 type
   { Determine new project settings. }
   TNewProjectForm = class(TForm)
+    ButtonChooseLocation: TButton;
     ButtonPanel1: TButtonPanel;
     ButtonTemplate2d: TSpeedButton;
-    EditLocation: TEditButton;
+    EditLocation: TEdit;
     EditProjectName: TEdit;
     EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
