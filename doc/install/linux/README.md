@@ -15,9 +15,10 @@ of any desktop (GNOME, MATE, KDE, ...).
      sudo ln -s /home/michalis/castle-engine/bin/castle-editor /usr/local/bin/castle-editor
      sudo ln -s /home/michalis/castle-engine/bin/view3dscene /usr/local/bin/view3dscene
 
-   Alternative is to put the programs on $PATH
-   (but make sure that X session manager actually sees the $PATH;
-   it is *not* enough to add the modified $PATH to .bashrc ).
+   Alternative is to put the programs on $PATH .
+   Note that you will need to modify $PATH used by the X session,
+   which usually means you need to create and use the ~/.Xsession file.
+   ( Adjusting path of your shell, e.g. in ~/.bashrc, is *not* enough. )
 
 2. Run this:
 
