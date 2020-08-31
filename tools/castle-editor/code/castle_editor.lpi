@@ -34,7 +34,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="castle_editor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -102,6 +102,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FormPreferences"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="visualizetransform.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="VisualizeTransform"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

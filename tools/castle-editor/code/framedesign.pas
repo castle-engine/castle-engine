@@ -34,7 +34,7 @@ uses
   CastleCameras, CastleBoxes, CastleTransform, CastleDebugTransform,
   CastleColors,
   // editor units
-  FrameAnchors;
+  FrameAnchors, VisualizeTransform;
 
 type
   { Frame to visually design component hierarchy. }
@@ -179,8 +179,7 @@ type
       ControlsTreeNodeUnderMouse: TTreeNode;
       ControlsTreeNodeUnderMouseSide: TTreeNodeSide;
       PendingErrorBox: String;
-      TransformHover, TransformSelected: TDebugTransformBox;
-      ColorHover, ColorSelected, ColorHoverAndSelected: TCastleColor;
+      VisualizeTransformHover, VisualizeTransformSelected: TVisualizeTransform;
 
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
@@ -701,7 +700,7 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
 
   procedure UpdateHoverTransform;
   begin
-    Frame.TransformHover.Parent := HoverTransform(Event.Position); // works also in case HoverTransform is nil
+    Frame.VisualizeTransformHover.Parent := HoverTransform(Event.Position); // works also in case HoverTransform is nil
   end;
 
 var
@@ -821,15 +820,15 @@ begin
   if (HoverUI <> nil) and (HoverUI = SelectedUI) then
   begin
     UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
-      Frame.ColorHoverAndSelected);
+      ColorHoverAndSelected);
     // make sure to hide RectHover in this case
     UpdateAttachedLabel(nil, TFloatRectangle.Empty, LabelHover, RectHover, Black);
   end else
   begin
     UpdateAttachedLabel(SelectedUI, SelectedUIRect, LabelSelected, RectSelected,
-      Frame.ColorSelected);
+      ColorSelected);
     UpdateAttachedLabel(HoverUI, HoverUIRect, LabelHover, RectHover,
-      Frame.ColorHover);
+      ColorHover);
 
     { Improve special case, when both RectSelected and RectHover would
       be displayed on top of each other. In this case,
@@ -913,17 +912,8 @@ begin
   SelfAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
   ParentAnchorsFrame.OnAnchorChange := @FrameAnchorsChange;
 
-  ColorHover := HexToColor('fffba0'); // desaturated yellow
-  ColorSelected := White;
-  ColorHoverAndSelected := Yellow;
-
-  TransformHover := TDebugTransformBox.Create(Self);
-  TransformHover.BoxColor := ColorOpacity(ColorHover, 0.75);
-  TransformHover.Exists := true;
-
-  TransformSelected := TDebugTransformBox.Create(Self);
-  TransformSelected.BoxColor := ColorOpacity(ColorSelected, 0.75);
-  TransformSelected.Exists := true;
+  VisualizeTransformHover := TVisualizeTransform.Create(Self, true);
+  VisualizeTransformSelected := TVisualizeTransform.Create(Self, false);
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
@@ -1851,7 +1841,7 @@ begin
     ChangeMode(moModifyUi);
   end;
 
-  TransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
+  VisualizeTransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
