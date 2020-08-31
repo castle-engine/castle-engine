@@ -119,37 +119,6 @@
       <OtherUnitFiles Value="../../common-code"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Conditionals Value="// See http://wiki.freepascal.org/Macros_and_Conditionals
-
-if GetProjValue('FPC_FULLVERSION') >= 30101 then
-begin
-  // do not show
-  // Note: Private type &quot;TCustomPointersEnumerator$2&lt;CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T&quot; never used
-  CustomOptions += ' -vm5071';
-end;
-
-if GetProjValue('FPC_FULLVERSION') >= 30301 then
-begin
-  // do not show
-  // Note:  Call to subroutine &quot;function TGenericVector3.Length:Single;&quot; marked as inline is not inlined
-  // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-  CustomOptions += ' -vm6058';
-
-  // do not show
-  // Warning: Local variable &quot;$1&quot; of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5089';
-
-  // do not show
-  // Warning: Variable &quot;OutputFace&quot; of a managed type does not seem to be initialized
-  // (3 false warnings since FPC 3.3.1 in Kraft)
-  CustomOptions += ' -vm5090';
-
-  // do not show
-  // Warning: function result variable of a managed type does not seem to be initialized
-  // (a lot of false warnings since FPC 3.3.1)
-  CustomOptions += ' -vm5093';
-end;"/>
     <Linking>
       <Options>
         <Win32>
@@ -164,6 +133,10 @@ end;"/>
       <CompilerMessages>
         <IgnoredMessages idx4046="True"/>
       </CompilerMessages>
+      <ConfigFile>
+        <CustomConfigFile Value="True"/>
+        <ConfigFilePath Value="../../../castle-fpc-messages.cfg"/>
+      </ConfigFile>
     </Other>
   </CompilerOptions>
   <Debugging>
