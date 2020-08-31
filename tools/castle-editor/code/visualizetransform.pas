@@ -19,21 +19,28 @@ unit VisualizeTransform;
 interface
 
 uses Classes, SysUtils,
-  CastleColors, CastleTransform, CastleDebugTransform;
+  CastleColors, CastleTransform, CastleDebugTransform, CastleScene;
 
 type
+  TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
+
   { Visualize TCastleTransform selection and dragging to transform. }
   TVisualizeTransform = class(TComponent)
   private
     FHover: Boolean;
+    FOperation: TVisualizeOperation;
     FParent: TCastleTransform;
     Box: TDebugTransformBox;
+    Gizmo: array [TVisualizeOperation] of TCastleScene;
+    procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
   public
     constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
     { Currently visualized TCastleTransform instance.
       @nil to not visualize anything. }
     property Parent: TCastleTransform read FParent write SetParent;
+    property Operation: TVisualizeOperation read FOperation write SetOperation
+      default voSelect;
   end;
 
 var
@@ -41,13 +48,45 @@ var
 
 implementation
 
+uses ProjectUtils;
+
+// TODO free notification for parent
+// TODO set Operation
+
 { TVisualizeTransform ------------------------------------------------------ }
 
 procedure TVisualizeTransform.SetParent(const AValue: TCastleTransform);
 begin
   if FParent = AValue then Exit;
+
+  if FParent <> nil then
+  begin
+    Box.Parent := nil;
+    if Gizmo[Operation] <> nil then
+      FParent.Remove(Gizmo[Operation]);
+  end;
+
   FParent := AValue;
-  Box.Parent := FParent;
+
+  if FParent <> nil then
+  begin
+    Box.Parent := FParent;
+    if Gizmo[Operation] <> nil then
+      FParent.Add(Gizmo[Operation]);
+  end;
+end;
+
+procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
+begin
+  if FOperation = AValue then Exit;
+
+  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
+    FParent.Remove(Gizmo[Operation]);
+
+  FOperation := AValue;
+
+  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
+    FParent.Add(Gizmo[Operation]);
 end;
 
 constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean);
@@ -61,6 +100,14 @@ begin
   else
     Box.BoxColor := ColorOpacity(ColorSelected, 0.75);
   Box.Exists := true;
+
+  // Gizmo[voSelect] remains nil
+  Gizmo[voTranslate] := TCastleScene.Create(Self);
+  Gizmo[voTranslate].Load(EditorApplicationData + 'translate.glb');
+  Gizmo[voRotate] := TCastleScene.Create(Self);
+  Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
+  Gizmo[voScale] := TCastleScene.Create(Self);
+  Gizmo[voScale].Load(EditorApplicationData + 'scale.glb');
 end;
 
 initialization

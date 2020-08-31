@@ -151,7 +151,7 @@ begin
 
   if NewProjectForm.ShowModal = mrOK then
   begin
-    DetectEditorApplicationData; // we use our castle-data:/xxx to copy template
+    UseEditorApplicationData; // we use our castle-data:/xxx to copy template
 
     try
       // Create project dir

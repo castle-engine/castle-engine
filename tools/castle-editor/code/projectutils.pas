@@ -38,7 +38,10 @@ type
   So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
   We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
   for this. }
-procedure DetectEditorApplicationData;
+procedure UseEditorApplicationData;
+
+{ URL prefix of editor application data. }
+function EditorApplicationData: String;
 
 implementation
 
@@ -156,7 +159,7 @@ begin
   end;
 end;
 
-procedure DetectEditorApplicationData;
+procedure UseEditorApplicationData;
 var
   DataPath: string;
 begin
@@ -171,6 +174,18 @@ begin
     if DirectoryExists(DataPath) then
       ApplicationDataOverride := FilenameToURISafe(DataPath);
   end;
+end;
+
+function EditorApplicationData: String;
+var
+  ApplicationDataOverrideSaved: String;
+begin
+  ApplicationDataOverrideSaved := ApplicationDataOverride;
+
+  UseEditorApplicationData;
+  Result := ApplicationData('');
+
+  ApplicationDataOverride := ApplicationDataOverrideSaved;
 end;
 
 end.
