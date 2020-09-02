@@ -41,6 +41,8 @@ type
   TDesignFrame = class(TFrame)
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
+    LabelHeaderTransform: TLabel;
+    LabelHeaderUi: TLabel;
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
@@ -161,6 +163,14 @@ type
       TTreeNodeSide = (tnsRight, tnsBottom, tnsTop);
 
       TInspectorType = (itBasic, itLayout, itOther, itEvents, itAll);
+
+    const
+      TransformModes = [
+        moTransformSelect,
+        moTransformTranslate,
+        moTransformRotate,
+        moTransformScale
+      ];
 
     var
       Inspector: array [TInspectorType] of TOIPropertyGrid;
@@ -506,7 +516,7 @@ begin
     PendingMove := TVector2.Zero;
   end;
 
-  if (Frame.Mode = moTransformSelect) and
+  if (Frame.Mode in TransformModes) and
       Event.IsMouseButton(mbLeft) then
   begin
     Frame.SelectedTransform := HoverTransform(Event.Position);
@@ -700,7 +710,10 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
 
   procedure UpdateHoverTransform;
   begin
-    Frame.VisualizeTransformHover.Parent := HoverTransform(Event.Position); // works also in case HoverTransform is nil
+    if Frame.Mode in TransformModes then
+      Frame.VisualizeTransformHover.Parent := HoverTransform(Event.Position) // works also in case HoverTransform is nil
+    else
+      Frame.VisualizeTransformHover.Parent := nil;
   end;
 
 var
@@ -750,9 +763,7 @@ begin
   end;
 
   UpdateCursor;
-
-  if Frame.Mode = moTransformSelect then
-    UpdateHoverTransform;
+  UpdateHoverTransform;
 end;
 
 procedure TDesignFrame.TDesignerLayer.Render;
@@ -1821,25 +1832,10 @@ begin
 
   V := SelectedViewport;
   SetEnabledExists(LabelSelectedViewport, V <> nil);
-  SetEnabledExists(ButtonTransformSelectMode, V <> nil);
-  SetEnabledExists(ButtonTransformTranslateMode, V <> nil);
-  SetEnabledExists(ButtonTransformRotateMode, V <> nil);
-  SetEnabledExists(ButtonTransformScaleMode, V <> nil);
   SetEnabledExists(ButtonViewportMenu, V <> nil);
 
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
-
-  // buttons for moTransformXxx models are hidden when V = nil, so do not leave them as active mode
-  if (V = nil) and (Mode in [
-      moTransformSelect,
-      moTransformTranslate,
-      moTransformRotate,
-      moTransformScale
-    ]) then
-  begin
-    ChangeMode(moModifyUi);
-  end;
 
   VisualizeTransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
 end;
