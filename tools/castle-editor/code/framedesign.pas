@@ -2575,6 +2575,13 @@ begin
   ButtonTransformTranslateMode.Down := Mode = moTransformTranslate;
   ButtonTransformRotateMode.Down := Mode = moTransformRotate;
   ButtonTransformScaleMode.Down := Mode = moTransformScale;
+
+  case Mode of
+    moTransformTranslate: VisualizeTransformSelected.Operation := voTranslate;
+    moTransformRotate: VisualizeTransformSelected.Operation := voRotate;
+    moTransformScale: VisualizeTransformSelected.Operation := voScale;
+    else VisualizeTransformSelected.Operation := voSelect;
+  end;
 end;
 
 procedure TDesignFrame.ModifiedOutsideObjectInspector;

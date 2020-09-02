@@ -90,6 +90,17 @@ begin
 end;
 
 constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean);
+
+  function CreateGizmoScene: TCastleScene;
+  begin
+    Result := TCastleScene.Create(Self);
+    Result.Collides := false;
+    //Result.Pickable := false;
+    Result.CastShadowVolumes := false;
+    Result.ExcludeFromStatistics := true;
+    Result.InternalExcludeFromParentBoundingVolume := true;
+  end;
+
 begin
   inherited Create(AOwner);
   FHover := AHover;
@@ -102,11 +113,11 @@ begin
   Box.Exists := true;
 
   // Gizmo[voSelect] remains nil
-  Gizmo[voTranslate] := TCastleScene.Create(Self);
+  Gizmo[voTranslate] := CreateGizmoScene;
   Gizmo[voTranslate].Load(EditorApplicationData + 'translate.glb');
-  Gizmo[voRotate] := TCastleScene.Create(Self);
+  Gizmo[voRotate] := CreateGizmoScene;
   Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
-  Gizmo[voScale] := TCastleScene.Create(Self);
+  Gizmo[voScale] := CreateGizmoScene;
   Gizmo[voScale].Load(EditorApplicationData + 'scale.glb');
 end;
 
