@@ -40,7 +40,7 @@
       const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
     { Some attachments (skinnedmesh) can be attached only to a single bone
-      at a time, and must be transfomed from world to bone space. }
+      at a time, and must be transformed from world to bone space. }
     procedure TransformToBoneSpace(const Bone: TBone); virtual;
   end;
 
