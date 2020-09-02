@@ -228,7 +228,6 @@ EXAMPLES_BASE_NAMES := \
   examples/curves/simplest_curve_read \
   examples/fonts/font_draw_over_image \
   examples/fonts/font_from_texture \
-  examples/fonts/html_text \
   examples/fonts/test_font_break \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
