@@ -234,9 +234,9 @@ type
       Basically, this is a "dispatcher" that simply calls one of the IsKey or
       IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
       to use this instead of taking care of them separately. }
-    function IsEvent(AKey: TKey; AKeyString: String;
-      AMousePress: boolean; AMouseButton: TMouseButton;
-      AMouseWheel: TMouseWheelDirection): boolean; overload;
+    function IsEvent(const AKey: TKey; AKeyString: String;
+      const AMousePress: boolean; const AMouseButton: TMouseButton;
+      const AMouseWheel: TMouseWheelDirection): boolean; overload;
     function IsEvent(const Event: TInputPressRelease): boolean; overload;
 
     { Describe the current value (which key, mouse buttons and such) of this
@@ -595,9 +595,9 @@ begin
   Result := (AMouseWheel <> mwNone) and (AMouseWheel = MouseWheel);
 end;
 
-function TInputShortcut.IsEvent(AKey: TKey; AKeyString: String;
-  AMousePress: boolean; AMouseButton: TMouseButton;
-  AMouseWheel: TMouseWheelDirection): boolean;
+function TInputShortcut.IsEvent(const AKey: TKey; AKeyString: String;
+  const AMousePress: boolean; const AMouseButton: TMouseButton;
+  const AMouseWheel: TMouseWheelDirection): boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeyString = #0 then
