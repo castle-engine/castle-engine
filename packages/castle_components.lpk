@@ -32,6 +32,10 @@
         <CompilerMessages>
           <IgnoredMessages idx5063="True" idx4046="True"/>
         </CompilerMessages>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
@@ -94,7 +98,6 @@ See https://castle-engine.io/license.php for details.
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
     </PublishOptions>
     <CustomOptions Items="ExternHelp" Version="2">
       <_ExternHelp Items="Count"/>
