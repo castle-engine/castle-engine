@@ -2669,7 +2669,12 @@ end;
 
 procedure TCastleTransform.Remove(const Item: TCastleTransform);
 begin
-  List.Remove(Item);
+  { Free notifications of various components (like TVisualizeTransform)
+    may want to remove some children from a TCastleTransform that is being
+    freed, and has List = nil now.
+    Ignore it -- removing from a nil list doesn't require doing anything. }
+  if List <> nil then
+    List.Remove(Item);
 end;
 
 procedure TCastleTransform.Clear;

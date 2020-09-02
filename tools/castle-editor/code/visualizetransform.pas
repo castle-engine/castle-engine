@@ -34,8 +34,11 @@ type
     Gizmo: array [TVisualizeOperation] of TCastleScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
+    destructor Destroy; override;
     { Currently visualized TCastleTransform instance.
       @nil to not visualize anything. }
     property Parent: TCastleTransform read FParent write SetParent;
@@ -50,44 +53,7 @@ implementation
 
 uses ProjectUtils;
 
-// TODO free notification for parent
-// TODO set Operation
-
 { TVisualizeTransform ------------------------------------------------------ }
-
-procedure TVisualizeTransform.SetParent(const AValue: TCastleTransform);
-begin
-  if FParent = AValue then Exit;
-
-  if FParent <> nil then
-  begin
-    Box.Parent := nil;
-    if Gizmo[Operation] <> nil then
-      FParent.Remove(Gizmo[Operation]);
-  end;
-
-  FParent := AValue;
-
-  if FParent <> nil then
-  begin
-    Box.Parent := FParent;
-    if Gizmo[Operation] <> nil then
-      FParent.Add(Gizmo[Operation]);
-  end;
-end;
-
-procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
-begin
-  if FOperation = AValue then Exit;
-
-  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
-    FParent.Remove(Gizmo[Operation]);
-
-  FOperation := AValue;
-
-  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
-    FParent.Add(Gizmo[Operation]);
-end;
 
 constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean);
 
@@ -119,6 +85,57 @@ begin
   Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
   Gizmo[voScale] := CreateGizmoScene;
   Gizmo[voScale].Load(EditorApplicationData + 'scale.glb');
+end;
+
+destructor TVisualizeTransform.Destroy;
+begin
+  { set to nil by SetParent, to detach free notification }
+  Parent := nil;
+  inherited;
+end;
+
+procedure TVisualizeTransform.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FParent) then
+    { set to nil by SetParent to clean all connections nicely }
+    Parent := nil;
+end;
+
+procedure TVisualizeTransform.SetParent(const AValue: TCastleTransform);
+begin
+  if FParent = AValue then Exit;
+
+  if FParent <> nil then
+  begin
+    FParent.RemoveFreeNotification(Self);
+    Box.Parent := nil;
+    if Gizmo[Operation] <> nil then
+      FParent.Remove(Gizmo[Operation]);
+  end;
+
+  FParent := AValue;
+
+  if FParent <> nil then
+  begin
+    Box.Parent := FParent;
+    if Gizmo[Operation] <> nil then
+      FParent.Add(Gizmo[Operation]);
+    FParent.FreeNotification(Self);
+  end;
+end;
+
+procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
+begin
+  if FOperation = AValue then Exit;
+
+  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
+    FParent.Remove(Gizmo[Operation]);
+
+  FOperation := AValue;
+
+  if (FParent <> nil) and (Gizmo[Operation] <> nil) then
+    FParent.Add(Gizmo[Operation]);
 end;
 
 initialization
