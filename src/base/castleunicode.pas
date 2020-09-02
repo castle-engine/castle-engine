@@ -51,6 +51,9 @@ function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
 function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt);
+function UTF8CodepointStart(UTF8Str: PChar; Len, CodepointIndex: PtrInt): PChar;
+function UTF8CodepointSize(p: PChar): integer; inline;
 
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
@@ -80,31 +83,52 @@ function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 
-{ Convert all special Unicode characters in the given UTF-8 string to HTML entities.
-  This is a helpful routine to visualize a string with any Unicode characters
-  using simple ASCII.
-
-  "Special" Unicode characters is "anything outside of safe ASCII range,
-  which is between space and ASCII code 128".
-  The resulting string contains these special characters encoded
-  as HTML entities that show the Unicode code point in hex.
-  Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
-  Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.
-
-  Tip: You can check Unicode codes by going to e.g. https://codepoints.net/U+F3
-  for @code(&#xF3;). Just edit this URL in the WWW browser address bar.
-}
-function UTF8ToHtmlEntities(const S: String): String;
-
 implementation
-
-uses SysUtils;
 
 procedure TUnicodeCharList.Add(const C: TUnicodeChar);
 begin
   if IndexOf(C) = -1 then
     inherited Add(C);
 end;
+
+function UTF8CodepointSizeFull(p: PChar): integer;
+begin
+  case p^ of
+  #0..#191: // %11000000
+    // regular single byte character (#0 is a character, this is Pascal ;)
+    Result:=1;
+  #192..#223: // p^ and %11100000 = %11000000
+    begin
+      // could be 2 byte character
+      if (ord(p[1]) and %11000000) = %10000000 then
+        Result:=2
+      else
+        Result:=1;
+    end;
+  #224..#239: // p^ and %11110000 = %11100000
+    begin
+      // could be 3 byte character
+      if ((ord(p[1]) and %11000000) = %10000000)
+      and ((ord(p[2]) and %11000000) = %10000000) then
+        Result:=3
+      else
+        Result:=1;
+    end;
+  #240..#247: // p^ and %11111000 = %11110000
+    begin
+      // could be 4 byte character
+      if ((ord(p[1]) and %11000000) = %10000000)
+      and ((ord(p[2]) and %11000000) = %10000000)
+      and ((ord(p[3]) and %11000000) = %10000000) then
+        Result:=4
+      else
+        Result:=1;
+    end;
+  else
+    Result:=1;
+  end;
+end;
+
 
 procedure TUnicodeCharList.Add(const SampleText: string);
 var
@@ -226,6 +250,40 @@ begin
     else
       Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
+end;
+
+procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt
+  );
+var
+  StartBytePos: PChar;
+begin
+  StartBytePos:=UTF8CodepointStart(PChar(s),length(s),StartCharIndex-1);
+  if StartBytePos <> nil then
+    Insert(source, s, StartBytePos-PChar(s)+1);
+end;
+
+function UTF8CodepointStart(UTF8Str: PChar; Len, CodepointIndex: PtrInt): PChar;
+var
+  CharLen: LongInt;
+begin
+  Result:=UTF8Str;
+  if Result<>nil then begin
+    while (CodepointIndex>0) and (Len>0) do begin
+      CharLen:=UTF8CodepointSize(Result);
+      dec(Len,CharLen);
+      dec(CodepointIndex);
+      inc(Result,CharLen);
+    end;
+    if (CodepointIndex<>0) or (Len<0) then
+      Result:=nil;
+  end;
+end;
+
+function UTF8CodepointSize(p: PChar): integer;
+begin
+  if p=nil then exit(0);
+  if p^<#192 then exit(1);
+  Result:=UTF8CodepointSizeFull(p);
 end;
 
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): Cardinal;
@@ -353,31 +411,6 @@ begin
       end;
   else
     Result:=0;
-  end;
-end;
-
-function UTF8ToHtmlEntities(const S: String): String;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-begin
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  Result := '';
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    if (C < Ord(' ')) or (C >= 128) then
-      Result := Result + '&#x' + IntToHex(C, 1) + ';'
-    else
-    if C = Ord('&') then
-      Result := Result + '&amp;'
-    else
-      Result := Result + Chr(C);
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
