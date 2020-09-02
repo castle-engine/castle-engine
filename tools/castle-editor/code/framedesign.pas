@@ -488,6 +488,7 @@ function TDesignFrame.TDesignerLayer.Press(
   const Event: TInputPressRelease): Boolean;
 var
   UI: TCastleUserInterface;
+  T: TCastleTransform;
 begin
   Result := inherited Press(Event);
   if Result then Exit;
@@ -519,7 +520,13 @@ begin
   if (Frame.Mode in TransformModes) and
       Event.IsMouseButton(mbLeft) then
   begin
-    Frame.SelectedTransform := HoverTransform(Event.Position);
+    T := HoverTransform(Event.Position);
+    { Do not change Frame.SelectedTransform in case T is nil,
+      as then clicking in moTransformXxx modes at some place where no scene
+      exists would deselect UI item, also deselecting current viewport.
+      So it's not useful, and not expected. }
+    if T <> nil then
+      Frame.SelectedTransform := T;
   end;
 end;
 
