@@ -60,5 +60,5 @@
     tiLoading,
 
     { TCastleEdit frame. }
-    tiEdit);
+    tiEdit,tiMemo);
 {$endif read_interface}

@@ -21,6 +21,8 @@
     which is a more comfortable descendant of this class. }
   TCastleScrollViewCustom = class(TCastleUserInterface)
   strict private
+    FActiveKeyHomeEnd:boolean;
+    FActiveCtrlHomeEnd:boolean;
     FScroll: Single;
     FScrollbarVisible: Boolean;
     { Rects in screen coordinates (like RenderRect),
@@ -100,6 +102,10 @@
           you have to specify ScrollArea.HorizontalAnchorDelta manually,
           e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;)
       ) }
+    property ActiveKeyHomeEnd:Boolean read FActiveKeyHomeEnd write FActiveKeyHomeEnd default true;
+       {If ActiveKeyHomeEnd=True then scrolling with key Home and Key End will work}
+    property ActiveCtrlHomeEnd:Boolean read FActiveCtrlHomeEnd write FActiveCtrlHomeEnd default false;
+       {If ActiveCtrlHomeEnd=True then scrolling with key CtrlHome and Key CtrlEnd will work}
     property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
@@ -327,14 +333,12 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollBarVisible and HandleInput then
     begin
-      if Container.Pressed[      keyUp] or
-         Container.Pressed[keyNumpadUp] then
+      if Container.Pressed[K_Up  ] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      if Container.Pressed[      keyDown] or
-         Container.Pressed[keyNumpadDown] then
+      if Container.Pressed[K_Down] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
@@ -462,41 +466,61 @@ begin
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
     This way we allow TStateDialog (that uses TDialog that uses TCastleScrollViewCustom)
-    descendants like TStateDialogKey to handle keys and mouse wheel.
+    descendants like TStateDialogKey to handle
+    K_PageDown, K_PageUp, K_Home and K_End keys and mouse wheel.
     And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
-    keyPageDown, keyPageUp, etc. keys. }
+    K_PageDown, K_PageUp, etc. keys. }
 
   if ScrollBarVisible then
     case Event.EventType of
       itKey:
         case Event.Key of
-          keyPageUp, keyNumpadPageUp:
+          K_PageUp:
             begin
               Scroll := Scroll - GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          keyPageDown, keyNumpadPageDown:
+          K_PageDown:
             begin
               Scroll := Scroll + GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          keyHome, keyNumpadHome:
+          K_Home:
+            begin
+            if ActiveKeyHomeEnd then
             begin
               Scroll := ScrollMin;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          keyEnd, keyNumpadEnd:
+          if (ActiveCtrlHomeEnd) and (mkCtrl in Event.ModifiersDown) then
+          begin
+              Scroll := ScrollMin;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+          end;
+
+            end;
+          K_End:
+            begin
+              if ActiveKeyHomeEnd then
             begin
               Scroll := ScrollMax;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          else ;
+             if (ActiveCtrlHomeEnd) and (mkCtrl in Event.ModifiersDown) then
+          begin
+              Scroll := ScrollMax;
+              ResetInertialForce;
+              Result := ExclusiveEvents;
+            end;
+            end ;
+          else
         end;
       itMouseWheel:
         if Event.MouseWheelVertical then

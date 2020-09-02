@@ -253,7 +253,8 @@ begin
   FCorners[tiLoading] := Vector4(0, 0, 0, 0);
   FImages[tiEdit] := Edit;
   FCorners[tiEdit] := Vector4(2, 2, 2, 2);
-
+   FImages[tiMemo] := Edit;
+  FCorners[tiMemo] := Vector4(2, 2, 2, 2);
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
 
