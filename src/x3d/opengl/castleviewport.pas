@@ -232,10 +232,12 @@ type
       Looks at MainScene.InternalMainLightForShadows. }
     function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
-    { Pass pointing device (mouse) activation/deactivation event to 3D world. }
+    { Pass pointing device (mouse) activation/deactivation event
+      to TCastleTransform instances in @link(Items). }
     function PointingDeviceActivate(const Active: boolean): boolean;
 
-    { Pass pointing device (mouse) move event to 3D world. }
+    { Pass pointing device (mouse) move event
+      to TCastleTransform instances in @link(Items). }
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean;
   protected
     { Calculate projection parameters. Determines if the view is perspective
@@ -301,16 +303,17 @@ type
     function InternalExtraScreenEffectsCount: Integer; override;
     function InternalExtraScreenEffectsNeedDepth: Boolean; override;
 
-    { Called when PointingDeviceActivate was not handled by any 3D object.
+    { Called when PointingDeviceActivate was not handled by any TCastleTransform object.
       You can override this to make a message / sound signal to notify user
       that his Input_Interact click was not successful. }
     procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
 
-    { Handle pointing device (mouse) activation/deactivation event over a given 3D
-      object. See TCastleTransform.PointingDeviceActivate method for description how it
+    { Handle pointing device (mouse) activation/deactivation event for a given
+      TCastleTransform instance.
+      See TCastleTransform.PointingDeviceActivate method for description how it
       should be handled. Default implementation in TCastleViewport
       just calls TCastleTransform.PointingDeviceActivate. }
-    function PointingDeviceActivate3D(const Item: TCastleTransform; const Active: boolean;
+    function PointingDeviceActivateTransform(const Item: TCastleTransform; const Active: boolean;
       const Distance: Single): boolean; virtual;
 
     procedure BoundNavigationInfoChanged; virtual;
@@ -3042,7 +3045,7 @@ function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
       begin
         if RayHit[I].Item = Items.MainScene then
           PassToMainScene := false;
-        Result := PointingDeviceActivate3D(RayHit[I].Item, Active, RayHit.Distance);
+        Result := PointingDeviceActivateTransform(RayHit[I].Item, Active, RayHit.Distance);
         if Result then
         begin
           PassToMainScene := false;
@@ -3051,7 +3054,7 @@ function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
       end;
 
     if PassToMainScene and (Items.MainScene <> nil) then
-      Result := PointingDeviceActivate3D(Items.MainScene, Active, MaxSingle);
+      Result := PointingDeviceActivateTransform(Items.MainScene, Active, MaxSingle);
   end;
 
 var
@@ -3107,7 +3110,7 @@ begin
     PointingDeviceActivateFailed(Active);
 end;
 
-function TCastleViewport.PointingDeviceActivate3D(const Item: TCastleTransform;
+function TCastleViewport.PointingDeviceActivateTransform(const Item: TCastleTransform;
   const Active: boolean; const Distance: Single): boolean;
 begin
   Result := Item.PointingDeviceActivate(Active, Distance);

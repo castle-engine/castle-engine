@@ -929,7 +929,9 @@ type
     function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
-    { Pointing device (usually mouse) events.
+    { Pointing device (like mouse or touch) events.
+      These methods are automatically called by the TCastleViewport.
+      They are exposed here only to allow overriding them.
       Return @true if you handled the event.
 
       @unorderedList(
