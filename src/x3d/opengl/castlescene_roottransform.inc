@@ -159,9 +159,9 @@ type
         @item(The screen effects defined inside MainScene (TScreenEffectNode)
           are automatically used.)
 
-        @item(PointingDeviceMove and PointingDeviceActivate always pass events to the MainScene,
-          even if mouse cursor is not pointing at the MainScene.
-          This way MainScene reliably knows when you move mouse such that it
+        @item(PointingDeviceXxx always pass events to the MainScene,
+          even if mouse/touch position is not pointing at the MainScene.
+          This way MainScene reliably knows when you move mouse/finger such that it
           @italic(no longer) points at the MainScene.)
       )
 

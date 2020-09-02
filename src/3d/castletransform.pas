@@ -935,67 +935,63 @@ type
       Return @true if you handled the event.
 
       @unorderedList(
-        @item(PointingDeviceActivate signals that the picking button (usually,
-          left mouse button) is pressed or released (depending on Active parameter).
+        @item(PointingDevicePress signals that the picking button (usually,
+          left mouse button) was pressed.
 
           Note that the exact key or mouse responsible for this is configurable
           in our engine by Input_Interact. By default it's the left mouse button,
           as is usual for VRML/X3D browsers. But it can be configured to be other
           mouse button or a key, for example most 3D games use "e" key to interact.
+        )
 
-          In case of Active = @false (which means that pointing device
-          is no longer pressed), an extra parameter CancelAction indicates
+        @item(PointingDeviceRelease signals that the picking button is released.
+
+          An extra parameter CancelAction indicates
           whether this pointing device "press and release" sequence may be
           considered a "click". When CancelAction = @true, then you should not make
           a "click" event (e.g. TouchSensor should not send touchTime event etc.).
-
-          In case of Active = @true, CancelAction is always @false.
         )
 
-        @item(PointingDeviceMove signals that pointer moves over this 3D object.)
+        @item(PointingDeviceMove signals that pointer moves over this object.)
       )
 
-      PointingDeviceMove receives Pick information about what exactly is hit
-      by the 3D ray corresponding to the current mouse position.
-      It contains the detailed information about 3D point, triangle
-      and ray (all in local coordinate system) that are indicated by the mouse.
-      PointingDeviceActivate does not receive this information now
-      (because it may happen in obscure situations when ray direction is not known;
-      this is all related to our "fallback to MainScene" mechanism).
+      They receive Pick information (TRayCollisionNode) about what exactly is hit
+      by the 3D ray corresponding to the current pointing device position.
+      It contains the detailed information about the point, triangle
+      and ray (all in local coordinate system of this TCastleTransform) that are indicated
+      by the pointing device.
+      TRayCollisionNode.Triangle is @nil when it was not possible to determine,
+      and TRayCollisionNode.Point is undefined in this case.
 
-      They also receive Distance to the collision,
+      They also receive Distance to the collision point,
       in world coordinates. See TRayCollision.Distance.
+      The Distance may be MaxSingle when it was not possible to determine.
 
-      The pointing device event (activation,
-      deactivation or move) is send first to the innermost 3D object.
-      That is, we first send this event to the first item on
-      TRayCollision list corresponding to the current ray.
-      This way, the innermost ("most local") 3D object has the chance
-      to handle this event first. If the event is not handled, it is passed
-      to other 3D objects (we simply iterate over the TRayCollision list).
-      If nothing on TRayCollision list
-      handled the item, it is eventually passed to main 3D scene
-      (TCastleRootTransform.MainScene), if it wasn't already present on
-      TRayCollision list.
+      Every pointing device event (press, release or move) is send first to the leaf
+      in TCastleTransform hierarchy (usually a TCastleScene).
+      This object has the chance to handle this event first.
+      If the event is not handled, it is passed to other objects.
+      If nothing on the hit list handled the event, it is eventually passed to main scene
+      (TCastleRootTransform.MainScene), unless it was already present on
+      TRayCollision list. So TCastleRootTransform.MainScene always has a chance
+      to process the press/release events.
 
-      Note that when passing this event to TCastleRootTransform.MainScene,
-      it is possible that 3D ray simply didn't hit anything (mouse pointer
-      is over the background). In this case, TRayCollisionNode.Point
+      Note that when passing events to TCastleRootTransform.MainScene,
+      it is possible that 3D ray simply didn't hit anything (e.g. pointing device
+      is over an empty background). In this case, TRayCollisionNode.Point
       is undefined, TRayCollisionNode.Triangle is @nil
       and Distance is MaxSingle.
 
-      This event should be handled only if GetExists.
-      Usually, 3D objects with GetExists = @false will not be returned
-      by RayCollision, so they will not receive this event anyway.
-      However, if 3D object may be equal to TCastleRootTransform.MainScene,
-      then it should be secured and check for GetExists
-      inside PointingDeviceActivate and PointingDeviceMove.
+      This event is called only if the object GetExists.
+      There's no need to check this condition inside the event implementation.
 
       @groupBegin }
-    function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single; const CancelAction: boolean = false): boolean; virtual;
+    function PointingDevicePress(const Pick: TRayCollisionNode;
+      const Distance: Single): Boolean; virtual;
+    function PointingDeviceRelease(const Pick: TRayCollisionNode;
+      const Distance: Single; const CancelAction: Boolean): Boolean; virtual;
     function PointingDeviceMove(const Pick: TRayCollisionNode;
-      const Distance: Single): boolean; virtual;
+      const Distance: Single): Boolean; virtual;
     { @groupEnd }
 
     { Continuously occuring event, for various tasks.
@@ -2803,12 +2799,21 @@ begin
     if List[I].Release(Event) then Exit(true);
 end;
 
-function TCastleTransform.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single; const CancelAction: boolean): boolean;
+function TCastleTransform.PointingDevicePress(const Pick: TRayCollisionNode;
+  const Distance: Single): Boolean;
 begin
   { This event is not automatically passed to all children on List,
     instead the TCastleViewport has special logic which
-    TCastleTransform instances receive the PointingDeviceActivate call. }
+    TCastleTransform instances receive the PointingDevicePress call. }
+  Result := false;
+end;
+
+function TCastleTransform.PointingDeviceRelease(const Pick: TRayCollisionNode;
+  const Distance: Single; const CancelAction: Boolean): Boolean;
+begin
+  { This event is not automatically passed to all children on List,
+    instead the TCastleViewport has special logic which
+    TCastleTransform instances receive the PointingDeviceRelease call. }
   Result := false;
 end;
 
