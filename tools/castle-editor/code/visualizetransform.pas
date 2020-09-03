@@ -26,12 +26,21 @@ type
 
   { Visualize TCastleTransform selection and dragging to transform. }
   TVisualizeTransform = class(TComponent)
-  private
-    FHover: Boolean;
-    FOperation: TVisualizeOperation;
-    FParent: TCastleTransform;
-    Box: TDebugTransformBox;
-    Gizmo: array [TVisualizeOperation] of TCastleScene;
+  strict private
+    type
+      TGizmoScene = class(TCastleScene)
+        function PointingDevicePress(const Pick: TRayCollisionNode;
+          const Distance: Single): Boolean; override;
+        function PointingDeviceMove(const Pick: TRayCollisionNode;
+          const Distance: Single): Boolean; override;
+      end;
+
+    var
+      FHover: Boolean;
+      FOperation: TVisualizeOperation;
+      FParent: TCastleTransform;
+      Box: TDebugTransformBox;
+      Gizmo: array [TVisualizeOperation] of TGizmoScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
   protected
@@ -51,20 +60,45 @@ var
 
 implementation
 
-uses ProjectUtils;
+uses ProjectUtils,
+  CastleLog, CastleShapes;
+
+{ TVisualizeTransform.TGizmoScene -------------------------------------------- }
+
+function TVisualizeTransform.TGizmoScene.PointingDevicePress(
+  const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  WritelnLog('Gizmo: Press pointing device');
+  if (Pick.Triangle <> nil) and
+     (Pick.Triangle^.MaterialInfo <> nil) then
+    WritelnLog('Gizmo: Press on material ' + Pick.Triangle^.MaterialInfo.Node.X3DName);
+end;
+
+function TVisualizeTransform.TGizmoScene.PointingDeviceMove(
+  const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  WritelnLog('Gizmo: Moving pointing device');
+end;
 
 { TVisualizeTransform ------------------------------------------------------ }
 
 constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean);
 
-  function CreateGizmoScene: TCastleScene;
+  function CreateGizmoScene: TGizmoScene;
   begin
-    Result := TCastleScene.Create(Self);
+    Result := TGizmoScene.Create(Self);
     Result.Collides := false;
     //Result.Pickable := false;
     Result.CastShadowVolumes := false;
     Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
+    Result.Spatial := [ssDynamicCollisions];
   end;
 
 begin
@@ -143,4 +177,3 @@ initialization
   ColorSelected := White;
   ColorHoverAndSelected := Yellow;
 end.
-
