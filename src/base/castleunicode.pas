@@ -54,7 +54,8 @@ function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
 procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt);
 function UTF8CodepointStart(UTF8Str: PChar; Len, CodepointIndex: PtrInt): PChar;
 function UTF8CodepointSize(p: PChar): integer; inline;
-
+function UTF8FactLength(s:char): integer;
+procedure UTF8Delete(var s: String; StartCharIndex, CharCount: PtrInt);
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
 
@@ -239,19 +240,18 @@ var
   EndBytePos: PChar;
   MaxBytes: PtrInt;
 begin
-  StartBytePos:=UTF8CharStart(PChar(s),length(s),StartCharIndex-1);
+  StartBytePos:=UTF8CodepointStart(PChar(s),length(s),StartCharIndex-1);
   if StartBytePos=nil then
     Result:=''
   else begin
     MaxBytes:=PtrInt(PChar(s)+length(s)-StartBytePos);
-    EndBytePos:=UTF8CharStart(StartBytePos,MaxBytes,CharCount);
+    EndBytePos:=UTF8CodepointStart(StartBytePos,MaxBytes,CharCount);
     if EndBytePos=nil then
       Result:=copy(s,StartBytePos-PChar(s)+1,MaxBytes)
     else
       Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
-end;
-
+ end;
 procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt
   );
 var
@@ -286,7 +286,33 @@ begin
   Result:=UTF8CodepointSizeFull(p);
 end;
 
-function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): Cardinal;
+function UTF8FactLength(s: char): integer;
+var
+  S1:integer;
+begin
+ S1:=Str2ToInt(Utf8ToAnsi(s));
+ Result:=s1;
+end;
+
+procedure UTF8Delete(var s: String; StartCharIndex, CharCount: PtrInt);
+var
+  StartBytePos: PChar;
+  EndBytePos: PChar;
+  MaxBytes: PtrInt;
+begin
+  StartBytePos:=UTF8CodepointStart(PChar(s),length(s),StartCharIndex-1);
+  if StartBytePos <> nil then
+  begin
+    MaxBytes:=PtrInt(PChar(s)+length(s)-StartBytePos);
+    EndBytePos:=UTF8CodepointStart(StartBytePos,MaxBytes,CharCount);
+    if EndBytePos=nil then
+      Delete(s,StartBytePos-PChar(s)+1,MaxBytes)
+    else
+      Delete(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
+  end;
+end;
+
+function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
 { if p=nil then CharLen=0 otherwise CharLen>0
   If there is an encoding error the Result is undefined.
   Use UTF8FixBroken to fix UTF-8 encoding.

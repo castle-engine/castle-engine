@@ -77,6 +77,9 @@ BottomText:Single;
     procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
     procedure OnScrollChange(Scroll:TObject);
   public
+///
+TimeText:string;
+    ///
     ScrollBar:TCastleScrollViewManual;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -244,7 +247,7 @@ begin
        BottomText:=BottomText-i;
   FIndex:=Value;
   end;
-if IndexColumn>Length(Text[Index])-2 then IndexColumn:=Length(Text[Index])-2;
+if IndexColumn>Utf8Length(Text[Index])-1 then IndexColumn:=UTF8Length(Text[Index])-1;
 FBolScroll:=True;
 if ScrollBar.CompleteSize<>(Text.Count)-(Height/i) then
   ScrollBar.CompleteSize:=(Text.Count)-(Height/i);
@@ -259,8 +262,9 @@ end;
 
 procedure TCastleMemo.SetIndexColumn(Value: integer);
 begin
-  if (Value>-2) and (Value<Length(Text[Index])) then
+  if (Value>-2) and (Value<UTF8Length(Text[Index])) then
   begin
+    WritelnLog(UTF8Length(Text[Index]));
   FIndexColumn:=Value;
   end;
 end;
@@ -457,7 +461,6 @@ var
   i:integer;
 begin
   inherited;
-
   US := UIScale;
   RectInside := RenderRect;
      if AutoSizeHeight then
@@ -496,15 +499,13 @@ begin
   for i:=0 to Text.Count -1 do
   begin
     S :=Text[i];
-    S:=UTF8Copy(s,0,5);
     if Focused then
     begin
     if i=Index then
-      CaretShift := Font.TextWidth(Copy(s,0,IndexColumn+1));
+      CaretShift := Font.TextWidth(UTF8Copy(s,1,IndexColumn+1));
       Color := FocusedColor
     end else
       Color := UnfocusedColor;
-     S :=UTF8Copy(s,0,IndexColumn+1)+S;
   Scissor.Rect := RectInside.Round;
   Scissor.Enabled := true;
 
@@ -550,16 +551,15 @@ begin
       if s<>'' then
       begin
 
-      Delete(s,indexColumn+1-UTF8Length(Text[index][IndexColumn]),UTF8Length(Text[index][IndexColumn]));
-      IndexColumn:=IndexColumn-UTF8Length(Text[index][IndexColumn]);
-      Text[index]:=s+Text[index][IndexColumn];
+      UTF8Delete(s,indexColumn+2-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)),UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
+      IndexColumn:=IndexColumn-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1));
+      Text[index]:=s;//+Text[index][IndexColumn];
 
       end else if Index>0 then
+       begin
       Text.Delete(index);
-
-      begin
       Index:=Index-1;
-       IndexColumn:=IndexColumn-UTF8Length(Text[index][IndexColumn]);
+       IndexColumn:=UTF8Length(Text[Index]);
        end;
       DoChange;
     Result := ExclusiveEvents;
@@ -567,15 +567,17 @@ begin
     if Event.IsKey(K_Delete) then
   begin
       s:=Text[index];
-      if s<>'' then
+      if UTF8Copy(s,1,IndexColumn+1)<>'' then
           begin
-      Delete(s,indexColumn+1,Length(Text[Index][IndexColumn+1]));
+      UTF8Delete(s,indexColumn+1,UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
       Text[index]:=s;
-      end else  if Index<Text.Count-1 then
+      end else  if (Index<Text.Count-1) and (Text.Count>1) then
       begin
-      if Text.Count>1 then
-      Text.Delete(Index);
-      end;
+      if s='' then  Text.Delete(Index)
+        Index:=Index-1;
+        IndexColumn:=UTF8Length(Text[Index]);
+        end;
+
       DoChange;
     Result := ExclusiveEvents;
   end else
@@ -614,10 +616,10 @@ begin
     end
   else
   if Event.IsKey(keyLeft) then
-  IndexColumn:=indexColumn-Length(Text[Index][IndexColumn-1])
+  IndexColumn:=indexColumn-UTF8Length(UTF8Copy(Text[Index],indexColumn,1))
   else
     if Event.IsKey(keyRight) then
-  IndexColumn:=IndexColumn+Length(Text[Index][IndexColumn+1])
+  IndexColumn:=IndexColumn+UTF8Length(UTF8Copy(Text[Index],indexColumn+2,1))
   else
     if Event.IsKey(keyHome) and (mkCtrl  in Event.ModifiersDown) then
     begin
@@ -628,11 +630,11 @@ begin
      if Event.IsKey(KeyEnd) and (mkCtrl  in Event.ModifiersDown) then
      begin
     index:=Text.Count-1;
-      IndexColumn:=Length(Text[Index])-1;
+      IndexColumn:=UTF8Length(Text[Index])+1;
      end
     else
          if Event.IsKey(KeyEnd) then
-    IndexColumn:=Length(Text[Index])-1
+    IndexColumn:=UTF8Length(Text[Index])+1
     else
     if Event.IsKey(keyHome) then
     IndexColumn:=-1
@@ -640,11 +642,11 @@ begin
   if Event.IsKey(K_Enter) then
   begin
   i:=UTF8Length(UTF8Copy(Text[index],IndexColumn,UTF8Length(text[index])-IndexColumn));
-    Text.Insert(Index+1,UTF8Copy(Text[index],IndexColumn,Length(text[index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
+    Text.Insert(Index+1,UTF8Copy(Text[index],IndexColumn+2,UTF8Length(text[index])-IndexColumn));   //UTF8Copy(Text[Index],IndexColumn+2,Length(Text[index])-IndexColumn+Length(Text[Index][Length(Text[Index])])));
     s:=Text[index];
-    Delete(s,IndexColumn+2,utf8Length(Text[index])-IndexColumn+1);
+    Utf8Delete(s,IndexColumn+2,utf8Length(Text[index])-IndexColumn+1);
     Text[index]:=s;
-    Index:=Index+i;
+    Index:=Index+1;
     IndexColumn:=-1;
     DoChange;
   end
@@ -652,20 +654,29 @@ begin
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
-     ((MaxLength = 0) or (Length(Text[Index]) < MaxLength)) and
+     ((MaxLength = 0) or (UTF8Length(Text[Index]) < MaxLength)) and
      { Do not add unprintable special characters, like Enter and Escape.
        TCastleMemo doesn't process them,
        but also users don't expect these keys are something added to the edit field.
        Note: The range CtrlA..CtrlZ includes CharEnter. }
      (not (Event.KeyCharacter in [CtrlA..CtrlZ, CharEscape])) then
   begin
+   WritelnLog(Event.KeyString);
+   //WritelnLog(IntToStr(IndexColumn));
+
     s:=Text[index];
-    Insert(Event.KeyString,s,IndexColumn+1);
+    UTF8Insert(Event.KeyString,s,IndexColumn+2);
     Text[index]:=s;
     IndexColumn:=IndexColumn+1;
+
     DoChange;
     Result := ExclusiveEvents;
+
   end;
+      ////
+      TimeText:=Event.KeyString +'    '+ IntToStr(IndexColumn)+'     '+s+'    '+ IntToStr(Index)+'    '+UTF8Copy(Text[Index],IndexColumn,1);
+
+   ////
  end;
 
 function TCastleMemo.CapturesEventsAtPosition(const Position: TVector2): boolean;
