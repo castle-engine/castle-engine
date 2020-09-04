@@ -423,8 +423,7 @@ type
       Camera needs to know this to calculate @link(Frustum),
       which in turn allows rendering code to use frustum culling.
 
-      In normal circumstances, if you use our @italic(scene manager)
-      and viewport (@link(TCastleViewport)) for rendering,
+      In normal circumstances, if you use @link(TCastleViewport) for rendering,
       this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;

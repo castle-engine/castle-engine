@@ -356,6 +356,10 @@ type
       This simply rejects the 4th component. }
     function XYZ: TGenericVector3; inline;
 
+    { Get first 2 components as a 2D vector.
+      This simply rejects the remaining vector components. }
+    function XY: TGenericVector2;
+
     { Linear interpolation between two vector values.
       Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; inline;
@@ -1300,6 +1304,12 @@ begin
   Result.Data[0] := Data[0];
   Result.Data[1] := Data[1];
   Result.Data[2] := Data[2];
+end;
+
+function TGenericVector4.XY: TGenericVector2;
+begin
+  Result.Data[0] := Data[0];
+  Result.Data[1] := Data[1];
 end;
 
 class function TGenericVector4.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4;
