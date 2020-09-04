@@ -89,7 +89,6 @@ type
     UniformCastle_MaterialMetallic,
     UniformCastle_MaterialRoughness,
     UniformCastle_GlobalAmbient,
-    UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
 
     { Attributes initialized after linking.
@@ -1170,7 +1169,6 @@ begin
   UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
   UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
   UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
-  UniformCastle_SceneColor            := Uniform('castle_SceneColor'           , uaIgnore);
   UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
