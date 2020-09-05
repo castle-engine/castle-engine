@@ -112,6 +112,8 @@ uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
   CastleApplicationProperties,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
+{$R *.lfm}
+
 procedure TMain.OpenScene(const URL: string);
 
   procedure LoadScene(const URL: String);
@@ -422,6 +424,4 @@ begin
   end;
 end;
 
-initialization
-  {$I mainf.lrs}
 end.
