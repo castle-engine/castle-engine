@@ -247,7 +247,7 @@ procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
 var
   Walk: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkCamera(false);
+  Walk := Viewport.WalkNavigation(false);
   if Walk <> nil then
   begin
     Walk.MouseLook := (Sender as TMenuItem).Checked;
@@ -278,7 +278,7 @@ procedure TMain.UpdateCrosshairImage;
 var
   Walk: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkCamera(false);
+  Walk := Viewport.WalkNavigation(false);
 
   CrosshairCtl.Exists := ((Walk <> nil) and Walk.MouseLook);
 
