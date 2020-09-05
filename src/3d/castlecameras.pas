@@ -649,6 +649,7 @@ type
     function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
     function GetFrustum: TFrustum;
+    function GoodModelBox: TBox3D;
   protected
     { Needed for niMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -1092,10 +1093,9 @@ type
       can be created by Collision.proxy in VRML/X3D). }
     property ClimbHeight: Single read FClimbHeight write FClimbHeight;
 
-    { Approximate size of 3D world that is viewed, used by @link(TCastleExamineNavigation)
-      descendant.
-      It is crucial to set this to make @link(TCastleExamineNavigation) behave OK.
-
+    { Approximate size of 3D world that is viewed,
+      used by @link(TCastleExamineNavigation) descendant.
+      Determines speed of movement and zooming.
       Initially this is TBox3D.Empty. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
 
@@ -1187,9 +1187,7 @@ type
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
 
-    { Center of rotation and scale, relative to @link(Translation).
-      Zero if @link(ModelBox) empty,
-      otherwise @link(ModelBox) middle. }
+    { Center of rotation and scale, relative to @link(Translation). }
     function CenterOfRotation: TVector3;
 
     function GetExamineVectors: TExamineVectors;
@@ -3039,6 +3037,21 @@ begin
   Result := Camera.Frustum;
 end;
 
+function TCastleNavigation.GoodModelBox: TBox3D;
+begin
+  { Try hard to return non-empty bounding box, otherwise examine navigation
+    doesn't work sensibly, as movement and zooming speed must depend on box
+    sizes.
+    This is important in case you use TCastleExamineNavigation without
+    setting it's ModelBox explicitly, which happens e.g. when CGE editor
+    adds TCastleExamineNavigation. }
+  if FModelBox.IsEmpty and
+     (InternalViewport <> nil) then
+    Result := (InternalViewport as TCastleViewport).Items.BoundingBox
+  else
+    Result := FModelBox;
+end;
+
 { TCastleExamineNavigation ------------------------------------------------------------ }
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
@@ -3242,9 +3255,10 @@ begin
 
   if HandleInput and (niNormal in Input) then
   begin
-    if ModelBox.IsEmptyOrZero then
-      MoveChange := KeysMoveSpeed * SecondsPassed else
-      MoveChange := KeysMoveSpeed * ModelBox.AverageSize * SecondsPassed;
+    if GoodModelBox.IsEmptyOrZero then
+      MoveChange := KeysMoveSpeed * SecondsPassed
+    else
+      MoveChange := KeysMoveSpeed * GoodModelBox.AverageSize * SecondsPassed;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3344,10 +3358,10 @@ var
 begin
   if not (ni3dMouse in Input) then Exit(false);
   if not MoveEnabled then Exit(false);
-  if FModelBox.IsEmptyOrZero then Exit(false);
+  if GoodModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
-  Size := FModelBox.AverageSize;
+  Size := GoodModelBox.AverageSize;
   MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X) > 5 then   { left / right }
@@ -3482,11 +3496,14 @@ begin
 end;
 
 function TCastleExamineNavigation.CenterOfRotation: TVector3;
+var
+  B: TBox3D;
 begin
-  if FModelBox.IsEmpty then
+  B := GoodModelBox;
+  if B.IsEmpty then
     Result := Vector3(0, 0, 0) { any dummy value }
   else
-    Result := FModelBox.Center;
+    Result := B.Center;
 end;
 
 function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolean;
@@ -3555,8 +3572,10 @@ function TCastleExamineNavigation.Zoom(const Factor: Single): boolean;
 var
   Size: Single;
   OldTranslation, OldPosition: TVector3;
+  B: TBox3D;
 begin
-  Result := not FModelBox.IsEmptyOrZero;
+  B := GoodModelBox;
+  Result := not B.IsEmptyOrZero;
   if Result then
   begin
     if OrthographicProjection then
@@ -3567,7 +3586,7 @@ begin
     end else
     begin
       { zoom by changing Translation }
-      Size := FModelBox.AverageSize;
+      Size := B.AverageSize;
 
       OldTranslation := Translation;
       OldPosition := Camera.Position;
@@ -3579,8 +3598,8 @@ begin
         so zoomin in/out inside the box is still always allowed.
         See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
       if (Factor > 0) and
-         (FModelBox.PointDistance(Camera.Position) >
-          FModelBox.PointDistance(OldPosition)) then
+         (B.PointDistance(Camera.Position) >
+          B.PointDistance(OldPosition)) then
       begin
         Translation := OldTranslation;
         Exit(false);
@@ -3720,10 +3739,10 @@ begin
 
   { Moving uses box size, so requires non-empty box. }
   if MoveEnabled and
-     (not FModelBox.IsEmpty) and
+     (not GoodModelBox.IsEmpty) and
      (MouseButtonMove = DraggingMouseButton) then
   begin
-    Size := FModelBox.AverageSize;
+    Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
       DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst),
       DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst),
@@ -3757,9 +3776,9 @@ begin
     Zoom(Factor / ZoomScale);
   end;
 
-  if MoveEnabled and (not FModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
+  if MoveEnabled and (not GoodModelBox.IsEmpty) and (Recognizer.Gesture = gtPan) then
   begin
-    Size := FModelBox.AverageSize;
+    Size := GoodModelBox.AverageSize;
     Translation := Translation - Vector3(
       DragMoveSpeed * Size * (Recognizer.PanOldOffset.X - Recognizer.PanOffset.X) / (2*MoveDivConst),
       DragMoveSpeed * Size * (Recognizer.PanOldOffset.Y - Recognizer.PanOffset.Y) / (2*MoveDivConst),
