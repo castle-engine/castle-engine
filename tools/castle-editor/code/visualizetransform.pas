@@ -64,17 +64,21 @@ implementation
 
 uses Math,
   ProjectUtils,
-  CastleLog, CastleShapes;
+  CastleLog, CastleShapes, CastleViewport, CastleProjection;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
 procedure TVisualizeTransform.TGizmoScene.CameraChanged(
   const ACamera: TCastleCamera);
+const
+  AssumeNear = 1.0;
 var
-  W, ViewProjectionMatrix: TMatrix4;
+  W{, ViewProjectionMatrix}: TMatrix4;
   ZeroProjected, OneProjected: TVector2;
   OneDistance, ScaleUniform: Single;
-  ZeroWorld, OneWorld: TVector3;
+  ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos: TVector3;
+  CameraNearPlane: TVector4;
+  GizmoScale: Single;
 begin
   inherited;
 
@@ -83,26 +87,39 @@ begin
     to ignore current Scale when measuring. }
   if (UniqueParent <> nil) and UniqueParent.HasWorldTransform then
   begin
+    { TODO: this is a poor approximation,
+      to have something sensible for typical orthographic }
+    if ACamera.ProjectionType = ptOrthographic then
+      GizmoScale := 2.5
+    else
+      GizmoScale := 0.25;
+
     W := UniqueParent.WorldTransform;
     ZeroWorld := W.MultPoint(TVector3.Zero);
+    OneWorld := ZeroWorld + ACamera.GravityUp;
+
+    (* TODO: why this fails:
     ViewProjectionMatrix := ACamera.ProjectionMatrix * ACamera.Matrix;
     ZeroProjected := (ViewProjectionMatrix * Vector4(ZeroWorld, 1)).XY;
-    OneWorld := ZeroWorld + ACamera.GravityUp;
     OneProjected := (ViewProjectionMatrix * Vector4(OneWorld, 1)).XY;
+    *)
+
+    CameraPos := ACamera.Position;
+    CameraNearPlane.XYZ := ACamera.Direction;
+    { plane equation should yield 0 when used with point in front of camera }
+    CameraNearPlane.W := - TVector3.DotProduct(
+      CameraPos + ACamera.Direction * AssumeNear, ACamera.Direction);
+    if not TryPlaneLineIntersection(OneProjected3, CameraNearPlane, CameraPos, OneWorld - CameraPos) then
+      Exit;
+    if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
+      Exit;
+
+    ZeroProjected := ZeroProjected3.XY;
+    OneProjected := OneProjected3.XY;
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
-    ScaleUniform := Max(0.01, 1 / OneDistance);
+    ScaleUniform := Max(0.01, GizmoScale / OneDistance);
     Scale := Vector3(ScaleUniform, ScaleUniform, ScaleUniform);
-
-    WritelnLog('ACamera.ProjectionMatrix %s', [ACamera.ProjectionMatrix.ToString]);
-    WritelnLog('zero %s one %s OneDistance: %f', [
-      ZeroProjected.ToString,
-      OneProjected.ToString,
-      OneDistance
-    ]);
-
-    // TODO: OneDistance remains the same when it should change
-    // TODO: remove debug logs
   end;
 end;
 
