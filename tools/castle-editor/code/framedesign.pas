@@ -526,7 +526,16 @@ begin
       exists would deselect UI item, also deselecting current viewport.
       So it's not useful, and not expected. }
     if T <> nil then
+    begin
       Frame.SelectedTransform := T;
+      { No need for this Exit(true).
+        In practice, it is acceptable and even comfortable that a single click
+        both selects a transform, and allows to navigate (e.g. TCastleExamineNavigation
+        will handle this click too, and allow to rotate).
+        Even when Exit(true) was done only when "Frame.SelectedTransform <> T",
+        it seemed unnecessary. }
+      //Exit(ExclusiveEvents);
+    end;
   end;
 end;
 
