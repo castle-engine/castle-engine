@@ -90,19 +90,21 @@ type
     { Position, in local coordinate system of this 3D object,
       of the picked 3D point.
 
-      If the ray hit empty space (@link(Item) field is @nil),
+      If the ray hit empty space (@link(Triangle) field is @nil),
       then this is undefined.
-      Note that only @link(TCastleRootTransform.MainScene) is informed about pointing
-      device events when the ray hit empty space, so this is an unusual case.
-    }
+      Such case may occur because, once TCastleTransform
+      handles TCastleTransform.PointingDevicePress,
+      we make sure to inform it about PointingDeviceMove and PointingDeviceRelease,
+      regardless if ray still hits this TCastleTransform instance. }
     Point: TVector3;
 
     { Triangle that was hit. This triangle is always a part of @link(Item).
 
-      If the ray hit empty space (@link(Item) field is @nil),
-      then this is @nil.
-      Note that only @link(TCastleRootTransform.MainScene) is informed about pointing
-      device events when the ray hit empty space, so this is an unusual case.
+      If the ray hit empty space then this is @nil.
+      Such case may occur because, once TCastleTransform
+      handles TCastleTransform.PointingDevicePress,
+      we make sure to inform it about PointingDeviceMove and PointingDeviceRelease,
+      regardless if ray still hits this TCastleTransform instance.
 
       May also be @nil if RayCollision implementation for the 3D object
       simply left it @nil. For example,
@@ -146,8 +148,10 @@ type
       want to allow player to open a door by clicking on it from a far distance.
 
       If the ray hit empty space, the distance is MaxSingle.
-      Note that only MainScene is informed about pointing device events
-      when the ray hit empty space. }
+      Such case may occur because, once TCastleTransform
+      handles TCastleTransform.PointingDevicePress,
+      we make sure to inform it about PointingDeviceMove and PointingDeviceRelease,
+      regardless if ray still hits this TCastleTransform instance. }
     Distance: Single;
 
     { Index of node with given Item, -1 if none. }
@@ -162,18 +166,6 @@ type
   public
     { Colliding 3D object. }
     Item: TCastleTransform;
-
-    { Triangle that was hit. This triangle is always a part of @link(Item).
-
-      May be @nil if the given collision implementation cannot determine
-      this (not all 3D objects must have a simple array of triangles in memory).
-      In practice, only TCastleSceneCore sets this now, and containers
-      that eventually proxy the collisions to underlying TCastleSceneCore instances.
-
-      If the ray hit empty space, this is @nil.
-      Note that only TCastleRootTransform.MainScene is informed about pointing
-      device events when the ray hit empty space, so this is an unusual case. }
-    // Triangle: PTriangle;
   end;
   PCollisionDetailsItem = ^TCollisionDetailsItem;
 
@@ -929,7 +921,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
-    { Pointing device (like mouse or touch) events.
+    { Pointing device (mouse or touch) events, you can override these to handle pointing device events.
       These methods are automatically called by the TCastleViewport.
       They are exposed here only to allow overriding them.
       Return @true if you handled the event.
@@ -967,23 +959,28 @@ type
       in world coordinates. See TRayCollision.Distance.
       The Distance may be MaxSingle when it was not possible to determine.
 
-      Every pointing device event (press, release or move) is send first to the leaf
-      in TCastleTransform hierarchy (usually a TCastleScene).
-      This object has the chance to handle this event first.
-      If the event is not handled, it is passed to other objects.
-      If nothing on the hit list handled the event, it is eventually passed to main scene
-      (TCastleRootTransform.MainScene), unless it was already present on
-      TRayCollision list. So TCastleRootTransform.MainScene always has a chance
-      to process the press/release events.
+      There is a concept of a TCastleTransform that is currently "capturing"
+      the pointing device events. Once TCastleTransform
+      handles TCastleTransform.PointingDevicePress (returns @true for it),
+      it captures the following PointingDeviceMove and PointingDeviceRelease events,
+      regardless if ray still hits this TCastleTransform instance.
+      The "capturing" instance of TCastleTransform is informed first about
+      pointing device move/release.
 
-      Note that when passing events to TCastleRootTransform.MainScene,
-      it is possible that 3D ray simply didn't hit anything (e.g. pointing device
-      is over an empty background). In this case, TRayCollisionNode.Point
-      is undefined, TRayCollisionNode.Triangle is @nil
-      and Distance is MaxSingle.
+      After the "capturing" instance,
+      every pointing device event (press, release or move) is send to the leaf
+      in TCastleTransform hierarchy (usually a TCastleScene) that is under the mouse/touch
+      position.
+      If the event is not handled, it is passed to other objects under the mouse/touch
+      position.
 
-      This event is called only if the object GetExists.
-      There's no need to check this condition inside the event implementation.
+      The PointingDeviceMove event is also always passed to @link(TCastleRootTransform.MainScene)
+      at the end (if it wasn't already the "capturing" transform,
+      or under the mouse/touch position).
+      This way @link(TCastleRootTransform.MainScene) is always informed about pointing device movement.
+
+      These methods are called only if the object GetExists.
+      There's no need to check this condition inside the method implementation.
 
       @groupBegin }
     function PointingDevicePress(const Pick: TRayCollisionNode;
