@@ -87,12 +87,10 @@ begin
     to ignore current Scale when measuring. }
   if (UniqueParent <> nil) and UniqueParent.HasWorldTransform then
   begin
-    { TODO: this is a poor approximation,
-      to have something sensible for typical orthographic }
     if ACamera.ProjectionType = ptOrthographic then
-      GizmoScale := 2.5
+      GizmoScale := 0.001 * ACamera.Orthographic.EffectiveHeight
     else
-      GizmoScale := 0.25;
+      GizmoScale := 0.25 {TODO:* ACamera.Perspective.EffeectiveFieldOfViewVertical};
 
     W := UniqueParent.WorldTransform;
     ZeroWorld := W.MultPoint(TVector3.Zero);
