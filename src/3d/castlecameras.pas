@@ -2856,10 +2856,14 @@ function TCastleNavigation.ReallyEnableMouseDragging: boolean;
   function ViewportItemsDragging(const V: TCastleViewport): Boolean;
   begin
     { Do not navigate by dragging (regardless of niMouseDragging in Navigation.Input)
-      when we're already dragging a 3D item.
-      This means that if you drag X3D sensors like TouchSensor, then your
-      dragging will not simultaneously also affect the navigation (which would be very
-      disorienting). }
+      when we're already dragging a TCastleTransform item.
+      This means that if you drag
+
+      - X3D sensors like TouchSensor,
+      - gizmo in CGE editor,
+
+      ... then your dragging will not simultaneously also affect the navigation
+      (which would be very disorienting). }
 
     Result := (V.Items <> nil) and V.Items.Dragging;
   end;

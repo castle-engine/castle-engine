@@ -30,11 +30,19 @@ type
   strict private
     type
       TGizmoScene = class(TCastleScene)
+      strict private
+        GizmoDragging: Boolean;
+      protected
+        procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
+      public
         procedure CameraChanged(const ACamera: TCastleCamera); override;
+        function Dragging: boolean; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
           const Distance: Single): Boolean; override;
         function PointingDeviceMove(const Pick: TRayCollisionNode;
           const Distance: Single): Boolean; override;
+        function PointingDeviceRelease(const Pick: TRayCollisionNode;
+          const Distance: Single; const CancelAction: Boolean): Boolean; override;
       end;
 
     var
@@ -67,6 +75,19 @@ uses Math,
   CastleLog, CastleShapes, CastleViewport, CastleProjection;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
+
+procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
+  const Value: TCastleAbstractRootTransform);
+begin
+  if Value <> World then
+  begin
+    inherited;
+    GizmoDragging := false;
+    // TODO: CameraChanged is not automatically called by inherited ChangeWorld, maybe it should be?
+    if Value <> nil then
+      CameraChanged(Value.MainCamera);
+  end;
+end;
 
 procedure TVisualizeTransform.TGizmoScene.CameraChanged(
   const ACamera: TCastleCamera);
@@ -121,6 +142,11 @@ begin
   end;
 end;
 
+function TVisualizeTransform.TGizmoScene.Dragging: boolean;
+begin
+  Result := (inherited Dragging) or GizmoDragging;
+end;
+
 function TVisualizeTransform.TGizmoScene.PointingDevicePress(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
@@ -135,6 +161,9 @@ begin
      (Pick.Triangle^.ShapeNode.Appearance <> nil) then
   begin
     AppearanceName := Pick.Triangle^.ShapeNode.Appearance.X3DName;
+    GizmoDragging := true;
+    // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
+    Result := true;
     WritelnLog('Gizmo: Press on ' + AppearanceName);
   end;
 end;
@@ -145,7 +174,19 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  WritelnLog('Gizmo: Moving pointing device');
+  if GizmoDragging then
+    WritelnLog('Gizmo: Moving pointing device, gizmo works!');
+end;
+
+function TVisualizeTransform.TGizmoScene.PointingDeviceRelease(
+  const Pick: TRayCollisionNode; const Distance: Single;
+  const CancelAction: Boolean): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  GizmoDragging := false;
+  WritelnLog('Gizmo: Released pointing device');
 end;
 
 { TVisualizeTransform ------------------------------------------------------ }
@@ -161,6 +202,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
     Result.ExcludeFromStatistics := true;
     Result.InternalExcludeFromParentBoundingVolume := true;
     Result.Spatial := [ssDynamicCollisions];
+    Result.SetTransient;
   end;
 
 begin
@@ -216,11 +258,7 @@ begin
   begin
     Box.Parent := FParent;
     if Gizmo[Operation] <> nil then
-    begin
       FParent.Add(Gizmo[Operation]);
-      if (FParent.World <> nil) then
-        Gizmo[Operation].CameraChanged(FParent.World.MainCamera);
-    end;
     FParent.FreeNotification(Self);
   end;
 end;

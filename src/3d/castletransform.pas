@@ -448,16 +448,18 @@ type
       Value must not be @nil. }
     procedure RemoveFromWorld(const Value: TCastleAbstractRootTransform);
 
-    { Called when the current 3D world (which corresponds to the current
-      TCastleViewport) of this 3D object changes.
-      This can be ignored (not care about FWorldReferences) when Value = FWorld.
+    { Called when the current @link(World) that contains this object changes.
+      In the usual case, @link(World) corresponds to a @link(TCastleViewport.Items)
+      instance, and when this method is called it means that object
+      is added/removed from a viewport.
 
-      Each transformation/scene can only be part of one TCastleAbstractRootTransform at a time.
-      The object may be present many times within the world
-      (counted by FWorldReferences, which is always set to 1 by this procedure
-      for non-nil Value, and 0 for nil Value).
-      Always remove 3D object from previous world (scene manager)
-      before adding it to new one. }
+      You can ignore this when called with Value equal to current @link(World).
+
+      Note that each TCastleTransform instance can only be part of one world
+      (TCastleAbstractRootTransform) at a time.
+      Although we may be present many times within the same world.
+      Always remove the TCastleTransform from previous world
+      before adding it to a new one. }
     procedure ChangeWorld(const Value: TCastleAbstractRootTransform); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;

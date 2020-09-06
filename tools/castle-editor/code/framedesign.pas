@@ -427,6 +427,8 @@ var
   UI: TCastleUserInterface;
   Viewport: TCastleViewport;
   RayOrigin, RayDirection: TVector3;
+  RayHit: TRayCollision;
+  I: Integer;
 begin
   UI := HoverUserInterface(AMousePosition);
   if UI is TCastleViewport then // also checks UI <> nil
@@ -446,7 +448,18 @@ begin
     Exit(nil);
 
   Viewport.PositionToRay(AMousePosition, true, RayOrigin, RayDirection);
-  Result := Viewport.Items.WorldRayCast(RayOrigin, RayDirection);
+  RayHit := Viewport.Items.WorldRay(RayOrigin, RayDirection);
+  try
+    Result := nil;
+    // set the inner-most TCastleTransform hit, but not anything transient (to avoid hitting gizmo)
+    if RayHit <> nil then
+      for I := 0 to RayHit.Count - 1 do
+        if Selectable(RayHit[I].Item) then
+        begin
+          Result := RayHit[I].Item;
+          Break;
+        end;
+  finally FreeAndNil(RayHit) end;
 end;
 
 function TDesignFrame.TDesignerLayer.IsResizing(const UI: TCastleUserInterface;
