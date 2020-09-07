@@ -32,9 +32,15 @@ type
       TGizmoScene = class(TCastleScene)
       strict private
         GizmoDragging: Boolean;
+        DraggingAxis: Integer;
+        LastPick: TVector3;
+        { Point on axis closest to given 3D ray. }
+        function PointOnAxis(out Intersection: TVector3; const RayOrigin,
+          RayDirection: TVector3; const Axis: Integer): Boolean;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
       public
+        Operation: TVisualizeOperation;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
         function Dragging: boolean; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
@@ -72,9 +78,78 @@ implementation
 
 uses Math,
   ProjectUtils,
-  CastleLog, CastleShapes, CastleViewport, CastleProjection;
+  CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
+  CastleQuaternions;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
+
+function TVisualizeTransform.TGizmoScene.PointOnAxis(
+  out Intersection: TVector3;
+  const RayOrigin, RayDirection: TVector3; const Axis: Integer): Boolean;
+var
+  Line0, LineVector: TVector3;
+  RayProjected1, RayProjected2, RayOnAxis1, RayOnAxis2: TVector3;
+  Axis1, Axis2: Integer;
+  Ray1Dist, Ray2Dist: Single;
+begin
+  Line0 := TVector3.Zero;
+  LineVector := TVector3.One[Axis];
+
+  (*TODO: This is not a geometrically correct way to solve this.
+    Here's a start of geometrically correct approach:
+
+    var
+      Dist: Single;
+      I: Integer;
+    begin
+      { calculate distance between 2 lines in 3D
+        https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d }
+      N := TVector3.CrossProduct(LineVector, RayDirection);
+      if N.IsZero then
+        Exit(false); // ray parallel to axis, no sensible answer
+
+      Dist := TVector3.DotProduct(N, Line0 - RayOrigin) / N.Length;
+
+      { Line0 + LineVector * LineF + N * Dist = RayOrigin + RayDirection * RayF .
+
+        TODO: maybe - N * Dist?
+
+        We don't know LineF, RayF (scalars).
+        But we have now 3 equations that define relationship between them,
+        since above has both sides as 3D vectors. }
+
+  *)
+
+  (* Approach below just projects ray on 2 planes, and chooses the best answer *)
+
+  RestOf3DCoords(Axis, Axis1, Axis2);
+
+  if TrySimplePlaneRayIntersection(RayProjected1, Axis1, 0, RayOrigin, RayDirection) then
+  begin
+    RayOnAxis1 := PointOnLineClosestToPoint(Line0, LineVector, RayProjected1);
+    Ray1Dist := PointsDistanceSqr(RayOnAxis1, RayProjected1);
+  end else
+    Ray1Dist := MaxSingle;
+
+  if TrySimplePlaneRayIntersection(RayProjected2, Axis2, 0, RayOrigin, RayDirection) then
+  begin
+    RayOnAxis2 := PointOnLineClosestToPoint(Line0, LineVector, RayProjected2);
+    Ray2Dist := PointsDistanceSqr(RayOnAxis2, RayProjected2);
+  end else
+    Ray2Dist := MaxSingle;
+
+  if Ray1Dist < Ray2Dist then
+  begin
+    Intersection := RayOnAxis1;
+    Exit(true);
+  end else
+  if Ray2Dist <> MaxSingle then
+  begin
+    Intersection := RayOnAxis2;
+    Exit(true);
+  end else
+    Exit(false);
+end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
   const Value: TCastleAbstractRootTransform);
@@ -161,21 +236,54 @@ begin
      (Pick.Triangle^.ShapeNode.Appearance <> nil) then
   begin
     AppearanceName := Pick.Triangle^.ShapeNode.Appearance.X3DName;
-    GizmoDragging := true;
-    // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
-    Result := true;
-    WritelnLog('Gizmo: Press on ' + AppearanceName);
+    case AppearanceName of
+      'MaterialX': DraggingAxis := 0;
+      'MaterialY': DraggingAxis := 1;
+      'MaterialZ': DraggingAxis := 2;
+      else Exit;
+    end;
+
+    if PointOnAxis(LastPick, Pick.RayOrigin, Pick.RayDirection, DraggingAxis) then
+    begin
+      GizmoDragging := true;
+      // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
+      Result := true;
+      WritelnLog('Gizmo dragging axis %d', [DraggingAxis]);
+    end;
   end;
 end;
 
 function TVisualizeTransform.TGizmoScene.PointingDeviceMove(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
+var
+  NewPick, Diff: TVector3;
 begin
   Result := inherited;
   if Result then Exit;
 
   if GizmoDragging then
-    WritelnLog('Gizmo: Moving pointing device, gizmo works!');
+  begin
+    if PointOnAxis(NewPick, Pick.RayOrigin, Pick.RayDirection, DraggingAxis) then
+    begin
+      Diff := NewPick - LastPick;
+      case Operation of
+        voTranslate:
+          UniqueParent.Translation := UniqueParent.Translation + Diff;
+        // TODO: rotate/scale are dummy tests
+        //voRotate:
+        //  UniqueParent.Rotation := (
+        //    QuatFromAxisAngle(UniqueParent.Rotation) *
+        //    QuatFromAxisAngle(TVector3.One[DraggingAxis], Diff.Length)).
+        //    ToAxisAngle;
+        //voScale:
+        //  UniqueParent.Scale := UniqueParent.Scale + Diff;
+      end;
+      { No point in updating LastPick: it remains the same, as it is expressed
+        in local coordinate system, which we just changed by changing
+        UniqueParent.Translation. }
+      WritelnLog('Gizmo: Moving pointing device, gizmo works!');
+    end;
+  end;
 end;
 
 function TVisualizeTransform.TGizmoScene.PointingDeviceRelease(
@@ -219,10 +327,13 @@ begin
   // Gizmo[voSelect] remains nil
   Gizmo[voTranslate] := CreateGizmoScene;
   Gizmo[voTranslate].Load(EditorApplicationData + 'translate.glb');
+  Gizmo[voTranslate].Operation := voTranslate;
   Gizmo[voRotate] := CreateGizmoScene;
   Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
+  Gizmo[voRotate].Operation := voRotate;
   Gizmo[voScale] := CreateGizmoScene;
   Gizmo[voScale].Load(EditorApplicationData + 'scale.glb');
+  Gizmo[voScale].Operation := voScale;
 end;
 
 destructor TVisualizeTransform.Destroy;
