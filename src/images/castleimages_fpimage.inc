@@ -87,7 +87,7 @@ begin
   SourceRow := PByte(FPImage.FData) + RowSize * FPImage.Height;
   DestRow := FRawPixels;
 
-  { copy lines upside down}
+  { copy lines upside down }
   for Y := FPImage.Height - 1 downto 0 do
   begin
     Dec(SourceRow, RowSize);
