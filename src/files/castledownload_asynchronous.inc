@@ -136,7 +136,7 @@ type
       E.g. when HTTP server returns an error,
       like 404, it also still sends the response contents.
 
-      This stream is owned by default (if ContentOwned) by this TCastleDownload instance,
+      This stream is owned by default (if @link(OwnsContents)) by this TCastleDownload instance,
       so it will become invalid when the TCastleDownload instance is freed. }
     property Contents: TStream read FContents;
 
