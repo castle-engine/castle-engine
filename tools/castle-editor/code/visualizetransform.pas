@@ -89,7 +89,7 @@ function TVisualizeTransform.TGizmoScene.PointOnAxis(
 var
   Axis1, Axis2: Integer;
 begin
-  Result := true;
+  Result := Pick.Triangle <> nil; // otherwise Pick.Point undefined
 
   Intersection := Pick.Point;
 
