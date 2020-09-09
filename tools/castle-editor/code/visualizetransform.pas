@@ -297,6 +297,9 @@ begin
         in local coordinate system, which we just changed by changing
         UniqueParent.Translation. }
       WritelnLog('Gizmo: Moving pointing device, gizmo works!');
+
+      // update our gizmo size, as we moved ourselves
+      CameraChanged(World.MainCamera);
     end;
   end;
 end;
