@@ -5024,7 +5024,9 @@ begin
   FIsWalkingOnTheGround := false;
   FIsOnTheGround := false;
 
-  GravityUpdate;
+  { Disable gravity in design mode (in the future we may add optional way to enable them) }
+  if not CastleDesignMode then
+    GravityUpdate;
 end;
 
 function TCastleWalkNavigation.Jump: boolean;

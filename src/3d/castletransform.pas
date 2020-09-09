@@ -2848,8 +2848,12 @@ begin
         Inc(I);
     end;
 
-    UpdateSimpleGravity(SecondsPassed);
-    UpdatePhysicsEngine(SecondsPassed);
+    { Disable physics and gravity in design mode (in the future we may add optional way to enable them) }
+    if not CastleDesignMode then
+    begin
+      UpdateSimpleGravity(SecondsPassed);
+      UpdatePhysicsEngine(SecondsPassed);
+    end;
   end;
 end;
 
