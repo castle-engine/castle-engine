@@ -34,9 +34,9 @@ type
         GizmoDragging: Boolean;
         DraggingAxis: Integer;
         LastPick: TVector3;
-        { Point on axis closest to given 3D ray. }
-        function PointOnAxis(out Intersection: TVector3; const RayOrigin,
-          RayDirection: TVector3; const Axis: Integer): Boolean;
+        { Point on axis closest to given pick. }
+        function PointOnAxis(out Intersection: TVector3;
+          const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
       public
@@ -84,8 +84,22 @@ uses Math,
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
 function TVisualizeTransform.TGizmoScene.PointOnAxis(
-  out Intersection: TVector3;
-  const RayOrigin, RayDirection: TVector3; const Axis: Integer): Boolean;
+  out Intersection: TVector3; const Pick: TRayCollisionNode;
+  const Axis: Integer): Boolean;
+var
+  Axis1, Axis2: Integer;
+begin
+  Result := true;
+
+  Intersection := Pick.Point;
+
+  // leave only Intersection[Axis] non-zero
+  RestOf3DCoords(Axis, Axis1, Axis2);
+  Intersection[Axis1] := 0;
+  Intersection[Axis2] := 0;
+end;
+
+(*
 var
   Line0, LineVector: TVector3;
   RayProjected1, RayProjected2, RayOnAxis1, RayOnAxis2: TVector3;
@@ -95,7 +109,7 @@ begin
   Line0 := TVector3.Zero;
   LineVector := TVector3.One[Axis];
 
-  (*TODO: This is not a geometrically correct way to solve this.
+  { TODO: This is not a geometrically correct way to solve this.
     Here's a start of geometrically correct approach:
 
     var
@@ -110,17 +124,17 @@ begin
 
       Dist := TVector3.DotProduct(N, Line0 - RayOrigin) / N.Length;
 
-      { Line0 + LineVector * LineF + N * Dist = RayOrigin + RayDirection * RayF .
+        //Line0 + LineVector * LineF + N * Dist = RayOrigin + RayDirection * RayF .
+        //
+        //TODO: maybe - N * Dist?
+        //
+        //We don't know LineF, RayF (scalars).
+        //But we have now 3 equations that define relationship between them,
+        //since above has both sides as 3D vectors.
 
-        TODO: maybe - N * Dist?
+  }
 
-        We don't know LineF, RayF (scalars).
-        But we have now 3 equations that define relationship between them,
-        since above has both sides as 3D vectors. }
-
-  *)
-
-  (* Approach below just projects ray on 2 planes, and chooses the best answer *)
+  // Approach below just projects ray on 2 planes, and chooses the best answer
 
   RestOf3DCoords(Axis, Axis1, Axis2);
 
@@ -150,6 +164,7 @@ begin
   end else
     Exit(false);
 end;
+*)
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
   const Value: TCastleAbstractRootTransform);
@@ -243,7 +258,7 @@ begin
       else Exit;
     end;
 
-    if PointOnAxis(LastPick, Pick.RayOrigin, Pick.RayDirection, DraggingAxis) then
+    if PointOnAxis(LastPick, Pick, DraggingAxis) then
     begin
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
@@ -263,7 +278,7 @@ begin
 
   if GizmoDragging then
   begin
-    if PointOnAxis(NewPick, Pick.RayOrigin, Pick.RayDirection, DraggingAxis) then
+    if PointOnAxis(NewPick, Pick, DraggingAxis) then
     begin
       Diff := NewPick - LastPick;
       case Operation of
@@ -326,7 +341,7 @@ begin
 
   // Gizmo[voSelect] remains nil
   Gizmo[voTranslate] := CreateGizmoScene;
-  Gizmo[voTranslate].Load(EditorApplicationData + 'translate.glb');
+  Gizmo[voTranslate].Load(EditorApplicationData + 'translate_final.x3dv');
   Gizmo[voTranslate].Operation := voTranslate;
   Gizmo[voRotate] := CreateGizmoScene;
   Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
