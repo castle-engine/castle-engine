@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleVectors" -*-
 {
   Copyright 2004-2018 Michalis Kamburelis.
 
@@ -13,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleVectors. }
 unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
@@ -51,6 +53,7 @@ type
     procedure TestPlaneMoveRandom;
     procedure TestTryInverseHarder;
     procedure TestMaxAbsVectorCoord;
+    procedure TestPointOnLineClosestToLine;
   end;
 
 function RandomVector: TVector3;
@@ -923,6 +926,41 @@ begin
 
   AssertEquals(3, MaxAbsVectorCoord(Vector4(1, 2, 3, 10)));
   AssertEquals(3, MaxAbsVectorCoord(Vector4(-1, -2, -3, -10)));
+end;
+
+procedure TTestCastleVectors.TestPointOnLineClosestToLine;
+var
+  I: TVector3;
+begin
+  // lines parallel
+  AssertFalse(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 1, 1),
+    Vector3(10, 1, 1), Vector3(1, 1, 1)
+  ));
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 1, 1),
+    Vector3(0, 0, 0), Vector3(-1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(0, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(1, 2, 3), Vector3(1, 1, 1),
+    Vector3(1, 2, 3), Vector3(-1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(1, 2, 3), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 0, 0),
+    Vector3(110, 10, 10), Vector3(1, 1, 1)
+  ));
+  AssertVectorEquals(Vector3(100, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0, 0, 0), Vector3(1, 0, 0),
+    Vector3(110, 10, 10), Vector3(1, 1, 0)
+  ));
+  AssertVectorEquals(Vector3(100, 0, 0), I);
 end;
 
 initialization

@@ -122,7 +122,8 @@ type
     Triangle: PTriangle;
 
     { Ray used to cause the collision,
-      in local coordinate system of this 3D object. }
+      in local coordinate system of this 3D object.
+      RayDirection is @italic(not) necessarily normalized! }
     RayOrigin, RayDirection: TVector3;
   end;
   PRayCollisionNode = ^TRayCollisionNode;

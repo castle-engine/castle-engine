@@ -138,31 +138,32 @@ function PlaneDirNotInDirection(const Plane: TVector4; const Direction: TVector3
 function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3): TVector3; overload;
 { @groupEnd }
 
-{ Endianess utility functions for vectors  ----------------------------------- }
-
+{ Endianess swapping for vectors. }
 function SwapEndian(const V: TVector2): TVector2; overload;
 function SwapEndian(const V: TVector3): TVector3; overload;
 function SwapEndian(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (little endian to native). }
 function LEtoN(const V: TVector2): TVector2; overload;
 function LEtoN(const V: TVector3): TVector3; overload;
 function LEtoN(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (big endian to native). }
 function BEtoN(const V: TVector2): TVector2; overload;
 function BEtoN(const V: TVector3): TVector3; overload;
 function BEtoN(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (native to little endian). }
 function NtoLE(const V: TVector2): TVector2; overload;
 function NtoLE(const V: TVector3): TVector3; overload;
 function NtoLE(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (native to big endian). }
 function NtoBE(const V: TVector2): TVector2; overload;
 function NtoBE(const V: TVector3): TVector3; overload;
 function NtoBE(const V: TVector4): TVector4; overload;
 
-{ Simple vectors operations  ------------------------------------------------- }
-
-{ }
+{ Replace contents of 2 variables. }
 procedure SwapValues(var V1, V2: TVector2); overload;
 procedure SwapValues(var V1, V2: TVector3); overload;
 procedure SwapValues(var V1, V2: TVector4); overload;
@@ -456,6 +457,14 @@ function TryCylinderRayIntersection(out Intersection: TVector3;
   const CylinderRadius: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 { @groupEnd }
+
+{ Given two 3D lines (both given as an some point + direction in 3D),
+  calculate closest point on 1st line to the 2nd line.
+  Returns @false if lines are parallel, thus is not possible to determine any single
+  closest point. }
+function PointOnLineClosestToLine(
+  out Intersection: TVector3;
+  const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
 
 { Matrix operations ---------------------------------------------------------- }
 
@@ -2003,6 +2012,68 @@ begin
   Result := TryRayIntersectionQuadraticEquation(T, AA, BB, CC);
   if Result then
     Intersection := RayOrigin + RayDirection * T;
+end;
+
+function PointOnLineClosestToLine(
+  out Intersection: TVector3;
+  const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
+var
+  Line0, LineVector, Ray0, RayVector: TVector3;
+  N: TVector3;
+  Dist, Alpha, Beta, LineF: Single;
+  NonZeroRay, Ax1, Ax2, Ax: Integer;
+begin
+  Line0 := Line1Origin;
+  LineVector := Line1Vector;
+  Ray0 := Line2Origin;
+  RayVector := Line2Vector;
+
+  { See calculate distance between 2 lines in 3D:
+    https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
+    Observation: there must be N,
+    orthogonal to LineVector and RayVector,
+    that determines the vector between 2 closest points on 2 lines. }
+  N := TVector3.CrossProduct(LineVector, RayVector);
+  if N.IsZero then
+    Exit(false); // ray parallel to axis, no sensible answer
+
+  N.NormalizeMe;
+
+  Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length};
+
+  { We know that:
+    Line0 + LineVector * LineF + N * Dist = Ray0 + RayVector * RayF .
+
+    We don't know LineF, RayF (scalars).
+    But we have now 3 equations that define relationship between them,
+    since above has both sides as 3D vectors. }
+
+  // Find an axis where RayVector <> 0
+  NonZeroRay := MaxAbsVectorCoord(RayVector);
+  Assert(not IsZero(RayVector[NonZeroRay])); // this would mean that RayVector is zero
+
+  // On axis NonZeroRay, we can calculate Alpha, Beta such that:
+  // RayF = LineF * Alpha + Beta
+  Alpha := LineVector[NonZeroRay] / RayVector[NonZeroRay];
+  Beta := (Line0[NonZeroRay] + N[NonZeroRay] * Dist - Ray0[NonZeroRay]) / RayVector[NonZeroRay];
+
+  // Find an axis where (LineVector[*] - RayVector[*] * Alpha) <> 0
+  // We know it's not NonZeroRay due to how Alpha was calculated.
+  RestOf3dCoords(NonZeroRay, Ax1, Ax2);
+
+  if not IsZero(LineVector[Ax1] - RayVector[Ax1] * Alpha) then
+    Ax := Ax1
+  else
+  if not IsZero(LineVector[Ax2] - RayVector[Ax2] * Alpha) then
+    Ax := Ax2
+  else
+    Exit(false); // math says that any LineF would then satisfy the equation
+
+  LineF := (Beta + Ray0[Ax] - N[Ax] * Dist - Line0[Ax]) /
+           (LineVector[Ax] - RayVector[Ax] * Alpha);
+
+  Result := true;
+  Intersection := Line0 + LineVector * LineF;
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }

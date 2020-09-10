@@ -86,6 +86,8 @@ uses Math,
 function TVisualizeTransform.TGizmoScene.PointOnAxis(
   out Intersection: TVector3; const Pick: TRayCollisionNode;
   const Axis: Integer): Boolean;
+
+(*
 var
   Axis1, Axis2: Integer;
 begin
@@ -98,73 +100,13 @@ begin
   Intersection[Axis1] := 0;
   Intersection[Axis2] := 0;
 end;
-
-(*
-var
-  Line0, LineVector: TVector3;
-  RayProjected1, RayProjected2, RayOnAxis1, RayOnAxis2: TVector3;
-  Axis1, Axis2: Integer;
-  Ray1Dist, Ray2Dist: Single;
-begin
-  Line0 := TVector3.Zero;
-  LineVector := TVector3.One[Axis];
-
-  { TODO: This is not a geometrically correct way to solve this.
-    Here's a start of geometrically correct approach:
-
-    var
-      Dist: Single;
-      I: Integer;
-    begin
-      { calculate distance between 2 lines in 3D
-        https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d }
-      N := TVector3.CrossProduct(LineVector, RayDirection);
-      if N.IsZero then
-        Exit(false); // ray parallel to axis, no sensible answer
-
-      Dist := TVector3.DotProduct(N, Line0 - RayOrigin) / N.Length;
-
-        //Line0 + LineVector * LineF + N * Dist = RayOrigin + RayDirection * RayF .
-        //
-        //TODO: maybe - N * Dist?
-        //
-        //We don't know LineF, RayF (scalars).
-        //But we have now 3 equations that define relationship between them,
-        //since above has both sides as 3D vectors.
-
-  }
-
-  // Approach below just projects ray on 2 planes, and chooses the best answer
-
-  RestOf3DCoords(Axis, Axis1, Axis2);
-
-  if TrySimplePlaneRayIntersection(RayProjected1, Axis1, 0, RayOrigin, RayDirection) then
-  begin
-    RayOnAxis1 := PointOnLineClosestToPoint(Line0, LineVector, RayProjected1);
-    Ray1Dist := PointsDistanceSqr(RayOnAxis1, RayProjected1);
-  end else
-    Ray1Dist := MaxSingle;
-
-  if TrySimplePlaneRayIntersection(RayProjected2, Axis2, 0, RayOrigin, RayDirection) then
-  begin
-    RayOnAxis2 := PointOnLineClosestToPoint(Line0, LineVector, RayProjected2);
-    Ray2Dist := PointsDistanceSqr(RayOnAxis2, RayProjected2);
-  end else
-    Ray2Dist := MaxSingle;
-
-  if Ray1Dist < Ray2Dist then
-  begin
-    Intersection := RayOnAxis1;
-    Exit(true);
-  end else
-  if Ray2Dist <> MaxSingle then
-  begin
-    Intersection := RayOnAxis2;
-    Exit(true);
-  end else
-    Exit(false);
-end;
 *)
+
+begin
+  Result := PointOnLineClosestToLine(Intersection,
+    TVector3.Zero, TVector3.One[Axis],
+    Pick.RayOrigin, Pick.RayDirection);
+end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
   const Value: TCastleAbstractRootTransform);
