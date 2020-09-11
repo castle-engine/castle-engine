@@ -32,11 +32,12 @@
 
   TCastleMemo = class(TCastleUserInterfaceFont)
   strict private
-    FIndex:integer;
-    FIndexColumn:integer;
-BottomText:Single;
+    TextLeft:Single;
+    FIndex, FLastIndex:integer;
+    FIndexColumn,FLastIndexColumn:integer;
+    BottomText, LeftText:Single;
     FPasswordChar: Char;
-    FText: Tstrings;
+    FText: TstringList;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FPlaceholderColor: TCastleColor;
@@ -52,11 +53,15 @@ BottomText:Single;
     FOnChange: TNotifyEvent;
     FTextTranslate, FPlaceholderTranslate: Boolean;
     FBolScroll:Boolean;
+    BolSelect,SelectShift:Boolean;
     function GetCountRow: integer;
     procedure SetIndex(Value:integer);
     procedure SetIndexColumn(Value:integer);
+    procedure SetLastIndex(Value:integer);
+    procedure SetLastIndexColumn(Value:integer);
     procedure SetCountRow(Value:integer);
-    procedure SetText(const Value: TStrings);
+    procedure SetText(const Value: TStringList);
+    function GetSelectText:string;
     procedure SetFocusedColor(const Value: TCastleColor);
     //procedure SetText(AValue: TStrings);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -80,20 +85,26 @@ BottomText:Single;
 ///
 TimeText:string;
     ///
-    ScrollBar:TCastleScrollViewManual;
+    ScrollBar, ScrollBarHorizontal:TCastleScrollViewManual;
+    RectInside:TFloatRectangle;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+    function Motion(const Event: TInputMotion): boolean; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure SetFocused(const Value: boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
+    property SelectedText: string read GetSelectText;// write SetSelectText;
     function PropertySection(const PropertyName: String): TPropertySection; override;
+    procedure DeleteSelectText;
     property Index:integer read FIndex write SetIndex;
+    property LastIndex:integer read FLastIndex write SetLastIndex;
      property IndexColumn:integer read FIndexColumn write SetIndexColumn;
+    property LastIndexColumn:integer read FLastIndexColumn write SetLastIndexColumn;
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
 
@@ -128,7 +139,8 @@ TimeText:string;
       DefaultAutoOnScreenKeyboard = false;
 
     { Currently input text. }
-    property Text: Tstrings read FText write SetText;
+    property Text: TstringList read FText write SetText;
+
     property CountRow:integer read GetCountRow write SetCountRow default 1;
     { Inside the box rectangle, padding between the borders (or frame, if @link(Frame)) and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -198,11 +210,11 @@ begin
   ScrollBar.FullSize:=True;
     ScrollBar.KeyScrollSpeed:=0;
     ScrollBar.PageSize:=1;
-    BottomText:=0;
     ScrollBar.OnChange:=@OnScrollChange;
     ScrollBar.ActiveKeyHomeEnd:=False;
     ScrollBar.ActiveCtrlHomeEnd:=True;
-    ScrollBar.Exists:=False;
+     BottomText:=0;
+    LeftText:=0;
   FIndex:=0;
   FIndexColumn:=-1;
   FFocusedColor := Black;
@@ -221,7 +233,10 @@ begin
   FText:=TStringList.Create;
   Index:=FText.Add('');
   FBolScroll:=False;
+  BolSelect:=False;
+  LastIndex:=-1 ;
 end;
+
 
 destructor TCastleMemo.Destroy;
 begin
@@ -237,21 +252,24 @@ var
 begin
 if (Value>-1) and (Value<Text.Count) then
 begin
-  i:=Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
+  i:=Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
   if Value>FIndex then
   begin
-     if BottomText+Height<=i*(Index+2) then
+     if BottomText+RectInside.Height<=i*(Index+2) then
        BottomText:=BottomText+i;
   end else
      if (i*(Index)<=BottomText) and (BottomText>0) then
        BottomText:=BottomText-i;
   FIndex:=Value;
-  end;
-if IndexColumn>Utf8Length(Text[Index])-1 then IndexColumn:=UTF8Length(Text[Index])-1;
-FBolScroll:=True;
-if ScrollBar.CompleteSize<>(Text.Count)-(Height/i) then
-  ScrollBar.CompleteSize:=(Text.Count)-(Height/i);
-  ScrollBar.Scroll:=Index;
+  end else Exit;
+  if IndexColumn>Utf8Length(Text[Index])-1 then
+     IndexColumn:=UTF8Length(Text[Index])-1;
+  FBolScroll:=True;
+  if ScrollBar.CompleteSize<>(Text.Count+1)-(RectInside.Height/i) then
+    ScrollBar.CompleteSize:=(Text.Count+1)-(RectInside.Height/i); //round((Text.Count+1)-(Height/i))
+  ScrollBar.Scroll:=Index-(RectInside.Height/i);  //Text.Count-Index)/(Height/i);
+  if (ScrollBar.Scroll<0) or (Index=0) then ScrollBar.Scroll:=0;
+  if ScrollBar.Scroll>ScrollBar.CompleteSize then ScrollBar.Scroll:=ScrollBar.CompleteSize;
   FBolScroll:=False;
 end;
 
@@ -264,8 +282,43 @@ procedure TCastleMemo.SetIndexColumn(Value: integer);
 begin
   if (Value>-2) and (Value<UTF8Length(Text[Index])) then
   begin
-    WritelnLog(UTF8Length(Text[Index]));
+    WritelnLog(IntToStr(UTF8Length(Text[Index])));
   FIndexColumn:=Value;
+  end else begin
+  if (Value<-2) then  FIndexColumn:=-1;
+  if (Value>UTF8Length(Text[Index])-1) then FIndexColumn:=UTF8Length(Text[Index])-1;
+  end;
+end;
+
+procedure TCastleMemo.SetLastIndex(Value: integer);
+var
+  i:Single;
+begin
+if (Value>-2) and (Value<Text.Count) then
+begin
+ { i:=Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  if Value>FLastIndex then
+  begin
+     if BottomText+Height<=i*(Index+2) then
+       BottomText:=BottomText+i;
+  end else
+     if (i*(Index)<=BottomText) and (BottomText>0) then
+       BottomText:=BottomText-i;  }
+  FLastIndex:=Value;
+  end else Exit;
+  if LastIndexColumn>Utf8Length(Text[Index])-1 then
+     LastIndexColumn:=UTF8Length(Text[Index])-1;
+end;
+
+procedure TCastleMemo.SetLastIndexColumn(Value: integer);
+begin
+  if LastIndex<>-1 then
+    if (Value>-2) and (Value<UTF8Length(Text[LastIndex])) then
+  begin
+  FLastIndexColumn:=Value;
+  end else begin
+  if (Value<-2) then  FIndexColumn:=-1;
+  if (Value>UTF8Length(Text[LastIndex])-1) then FLastIndexColumn:=UTF8Length(Text[LastIndex])-1;
   end;
 end;
 
@@ -283,13 +336,13 @@ begin
 Text.Clear;
 Text.AddText(S1.Text);
 s1.Free;
-if Value>1 then
-     ScrollBar.Exists:=True else ScrollBar.Exists:=False;
+WriteLn('tttttttttttttttttttttttttttttttttttttt');
+
   end;
 end;
 
 
-procedure TCastleMemo.SetText(const Value: TStrings);
+procedure TCastleMemo.SetText(const Value: TStringList);
 begin
   if FText <> Value then
   begin
@@ -297,6 +350,36 @@ begin
     FText.AddStrings (Value);
     VisibleChange([chRender]);
   end;
+end;
+
+function TCastleMemo.GetSelectText: string;
+var
+  i,j:integer;
+begin
+  if LastIndex<>-1 then
+  begin
+  if Index<>LastIndex then
+  begin
+  if Index>LastIndex then
+  begin
+  Result:=UTF8Copy(Text[LastIndex],LastIndexColumn+2,UTF8Length(Text[LastIndex])-LastIndexColumn+2);
+  for i:=LastIndex+1 to  Index-1 do
+  Result:=Result+#13+Text[i];
+  Result:=Result+#13+UTF8Copy(Text[Index],1,IndexColumn+1);
+  end
+  else begin
+  Result:=UTF8Copy(Text[Index],IndexColumn+2,UTF8Length(Text[Index])-IndexColumn+2);
+  for i:=Index+1 to  LastIndex-1 do
+  Result:=Result+#13+Text[i];
+  Result:=Result+#13+UTF8Copy(Text[LastIndex],1,LastIndexColumn+1);
+    end;
+
+  end else
+  if IndexColumn>LastIndexColumn then
+  Result:=UTF8Copy(Text[index],LastIndexColumn+2,IndexColumn-LastIndexColumn+2)
+  else   Result:=UTF8Copy(Text[index],IndexColumn+2,LastIndexColumn-IndexColumn+2);
+
+  end else Result:='';
 end;
 
 procedure TCastleMemo.SetFocusedColor(const Value: TCastleColor);
@@ -423,6 +506,7 @@ end;
 
 procedure TCastleMemo.DoChange;
 begin
+ index:=index;
   if Assigned(OnChange) then
     OnChange(Self);
 end;
@@ -446,19 +530,95 @@ begin
     Result := inherited PropertySection(PropertyName);
 end;
 
+procedure TCastleMemo.DeleteSelectText;
+var
+  i:integer;
+  s:String;
+begin
+  if LastIndex<>-1 then
+  begin
+  if Index=LastIndex then
+      begin
+       s:=Text[Index];
+       if IndexColumn>LastIndexColumn then
+       begin
+       TimeText:=UTF8Copy(s,LastIndexColumn+2,UTF8Length(Text[Index])-IndexColumn+1);
+       UTF8Delete(s,LastIndexColumn+2,IndexColumn-LastIndexColumn+1);
+
+       IndexColumn:=LastIndexColumn;
+       end
+       else UTF8Delete(s,IndexColumn+2,LastIndexColumn-IndexColumn+1);
+
+       Text[index]:=s;
+       LastIndex:=-1;
+      end else
+      if Index>LastIndex then
+      begin
+      s:=Text[LastIndex];
+       WritelnLog('fff');
+      UTF8Delete(s,LastIndexColumn+2,UTF8Length(Text[LastIndex])-LastIndexColumn+2);
+       TimeText:=Text[LastIndex]+'   '+s;
+      Text[LastIndex]:=s;
+      WriteLnLog('fff');
+      TimeText:='';
+        if Index-LastIndex>2 then
+      begin
+       for i:= LastIndex+1 to Index-1 do
+       if LastIndex+1<Text.Count then
+       begin
+       TimeText:=TimeText+'    '+IntToStr(i);
+          Text.Delete(LastIndex+1);
+       end;
+       TimeText:=TimeText+'    sssssssssss   ';
+      end
+      else  if Index-LastIndex>1 then Text.Delete(Index-1);
+       Index:=LastIndex+1;
+      s:=Text[Index];
+      UTF8Delete(s,1,IndexColumn+1);
+      TimeText:=TimeText+'    '+Text[Index]+'   '+s;
+      WriteLnLog('fff');
+      Text.Delete(Index);
+      Text[LastIndex]:=Text[LastIndex]+s;
+      WriteLnLog('fff');
+      Index:=LastIndex;
+      WriteLnLog('fff');
+      IndexColumn:=LastIndexColumn;
+      LastIndex:=-1;
+           end else
+           begin
+      s:=Text[Index];
+      UTF8Delete(s,IndexColumn+2,UTF8Length(Text[Index])-IndexColumn+1);
+      Text[Index]:=s;
+      if Index-LastIndex>2 then
+      begin
+       for i:= Index+1 to LastIndex-1 do
+        if Index+1<Text.Count then
+          Text.Delete(Index+1);
+      end
+      else  if Index-LastIndex>1 then Text.Delete(Index-1);
+      LastIndex:=Index+1;
+      s:=Text[LastIndex];
+      UTF8Delete(s,1,LastIndexColumn+1);
+      Text.Delete(LastIndex);
+      Text[Index]:=Text[Index]+s;
+      LastIndexColumn:=0;
+      LastIndex:=-1;
+           end;
+end;
+end;
 procedure TCastleMemo.Render;
 const
   CaretSpeed = 1; //< how many blinks per second
 var
-  SR, RectInside: TFloatRectangle;
+  SR, MainSelectRect,AddSelectRec,AddLastSelectRec: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
-  US, TextLeft, TextBottom: Single;
+  US,  TextBottom,BotmText: Single;
   FrameCorners: TVector4;
   CaretVisible: boolean;
-  S: string;
+  S, S1: string;
   Color: TCastleColor;
   CaretShift,HeightText: Single;
-  i:integer;
+  i,j:integer;
 begin
   inherited;
   US := UIScale;
@@ -488,6 +648,68 @@ begin
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
   //RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
   // calculate S, Color, CaretShift
+  if LastIndex<>-1 then
+  begin
+   MainSelectRect.Left:=TextLeft;
+   if Index=LastIndex then
+   begin
+     AddSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText+1;
+     if IndexColumn>LastIndexColumn then
+     begin
+  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
+  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],LastIndexColumn+2,IndexColumn-LastIndexColumn)));
+     end else
+     begin
+  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
+  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],IndexColumn+2,LastIndexColumn-IndexColumn)));
+     end;
+   end
+  else if Index>LastIndex then
+  begin
+  MainSelectRect.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index)+BottomText+1;
+  MainSelectRect:=MainSelectRect.GrowTop(((Font.RowHeight+PaddingVerticalScaled*2)*(Index-LastIndex-1))).GrowRight(RectInside.Width);
+
+  AddSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText+1;
+  AddSelectRec.Left:=TextLeft;
+  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
+
+  AddLastSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
+  AddLastSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
+  AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
+  end
+  else
+  begin
+   MainSelectRect.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex)+BottomText+1;
+  MainSelectRect:=MainSelectRect.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex-Index-1)+1).GrowRight(RectInside.Width);
+
+  AddSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText;
+  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
+  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
+
+  AddLastSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
+  AddLastSelectRec.Left:=TextLeft;
+  AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)+1).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
+  end;
+
+  {if RectInside.Bottom+RectInside.Height<AddLastSelectRec.Bottom+AddLastSelectRec.Height then
+  AddLastSelectRec.RemoveTop(AddLastSelectRec.Bottom+AddLastSelectRec.Height-RectInside.Bottom-RectInside.Height);
+    if RectInside.Bottom+RectInside.Height<AddSelectRec.Bottom+AddSelectRec.Height then
+  AddLastSelectRec.RemoveTop(AddSelectRec.Bottom+AddSelectRec.Height-RectInside.Bottom-RectInside.Height);
+        if RectInside.Bottom+RectInside.Height<MainSelectRect.Bottom+MainSelectRect.Height then
+  AddLastSelectRec.RemoveTop(MainSelectRect.Bottom+MainSelectRect.Height-RectInside.Bottom-RectInside.Height);
+
+          if AddLastSelectRec.Bottom<RectInside.Bottom then
+  AddLastSelectRec.RemoveTop(AddLastSelectRec.Bottom-RectInside.Bottom);
+    if AddSelectRec.Bottom<RectInside.Bottom then
+  AddLastSelectRec.RemoveTop(AddSelectRec.Bottom-RectInside.Bottom);
+        if MainSelectRect.Bottom<RectInside.Bottom then
+  AddLastSelectRec.RemoveTop(MainSelectRect.Bottom-RectInside.Bottom);}
+
+  DrawRectangle(MainSelectRect,Blue);
+   DrawRectangle(AddSelectRec,Blue);
+   DrawRectangle(AddLastSelectRec,Blue);
+  end;
+BotmText:=0;
   CaretShift := 0;
   if AutoSizeHeight then
    HeightText:=Height else
@@ -503,7 +725,7 @@ begin
     begin
     if i=Index then
       CaretShift := Font.TextWidth(UTF8Copy(s,1,IndexColumn+1));
-      Color := FocusedColor
+    Color := FocusedColor
     end else
       Color := UnfocusedColor;
   Scissor.Rect := RectInside.Round;
@@ -511,19 +733,21 @@ begin
 
   TextLeft := RectInside.Left;
   // center in RectInside, important when AutoSize = false
-  TextBottom := (RectInside.Bottom+(Height-HeightText) +
-    ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
-  Font.Print(TextLeft, BottomText+TextBottom, Color, S);
+  TextBottom := (RectInside.Bottom+(RectInside.Height-HeightText) +
+    ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1)+BotmText; //+FPaddingVertical
+
+  Font.Print(TextLeft+LeftText, BottomText+TextBottom+BotmText, Color, S);
 
   { Note that we have to display Caret even when Text = '' and S = Placeholder. }
   if Focused  and (i=Index) then
   begin
     CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
     if CaretVisible then
-      Font.Print(TextLeft + CaretShift,BottomText+ TextBottom, FocusedColor, CaretChar);
+      Font.Print(TextLeft + CaretShift+LeftText,BottomText+TextBottom+BotmText, FocusedColor, CaretChar);
   end;
   end;
   Scissor.Enabled := false;
+  TimeText:=FloatToStr(BottomText);
 end;
 
 procedure TCastleMemo.Update(const SecondsPassed: Single;
@@ -537,19 +761,74 @@ begin
     HandleInput := false;
 end;
 
+function TCastleMemo.Motion(const Event: TInputMotion): boolean;
+var
+  i:integer;
+begin
+  Result:=inherited Motion(Event);
+  if BolSelect then
+  begin
+   if mbLeft in Event.Pressed then
+  begin
+  if Text.Count>1 then
+  begin
+
+  for i:=1 to round(Text.Count) do
+   begin
+   if RenderRect.Bottom+RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
+   begin
+      LastIndex:=i-1;
+      break;
+   end;
+   end;
+  end else LastIndex:=0;
+   if (BottomText>0) and (LastIndex<Text.Count-1-(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2))) then
+  if Event.Position.Y<10+RenderRect.Bottom then
+  begin
+       BottomText:=BottomText+Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  end;
+  if BottomText>0 then
+      if Event.Position.Y>RenderRect.Bottom+RenderRect.Height-10 then
+        BottomText:=BottomText-Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  for i:=UTF8Length(Text[LastIndex]) downto 0 do
+   begin
+   if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text[LastIndex],1,i)) then
+   begin
+      LastIndexColumn:=i-1;
+      break;
+   end;
+  end;
+  if SelectShift=FAlse then
+  if (LastIndex=Index) and (IndexColumn=LastIndexColumn) then
+  LastIndex:=-1;
+  end;
+
+  end else begin
+  BolSelect:=False;
+  LastIndex:=-1;
+  LastIndexColumn:=-1;
+  end;
+  end;
+
 function TCastleMemo.Press(const Event: TInputPressRelease): boolean;
 var
   s:string;
-  i:integer;
+  s1:TStrings;
+  i,j:integer;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
+  if Event.IsKey(keyShift)=False then SelectShift:=False;
 
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
+  if LastIndex<>-1 then
+  DeleteSelectText
+  else
+  begin
       s:=Text[index];
-      if s<>'' then
-      begin
+     if IndexColumn<>-1 then
+          begin
 
       UTF8Delete(s,indexColumn+2-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)),UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
       IndexColumn:=IndexColumn-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1));
@@ -557,87 +836,175 @@ begin
 
       end else if Index>0 then
        begin
+       i:=UTF8Length(Text[Index-1])-1;
+      if s<>'' then
+      begin
+         Text[Index-1]:=Text[Index-1]+Text[Index];
+      end;
       Text.Delete(index);
       Index:=Index-1;
-       IndexColumn:=UTF8Length(Text[Index]);
-       end;
+      IndexColumn:=i;
+        end;
       DoChange;
     Result := ExclusiveEvents;
+    end;
   end else
     if Event.IsKey(K_Delete) then
   begin
+  if LastIndex<>-1 then
+  DeleteSelectText else
+  begin
       s:=Text[index];
-      if UTF8Copy(s,1,IndexColumn+1)<>'' then
+      if UTF8Copy(s,IndexColumn+2,UTF8Length(UTF8Copy(Text[Index],IndexColumn+2,1)))<>'' then
           begin
-      UTF8Delete(s,indexColumn+1,UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
+      UTF8Delete(s,indexColumn+2,UTF8Length(UTF8Copy(Text[Index],IndexColumn+2,1)));
       Text[index]:=s;
-      end else  if (Index<Text.Count-1) and (Text.Count>1) then
-      begin
-      if s='' then  Text.Delete(Index)
-        Index:=Index-1;
-        IndexColumn:=UTF8Length(Text[Index]);
-        end;
+      end else
+          if (Index<Text.Count-1) and (Text.Count>1) then
+            if s='' then  Text.Delete(Index) else
+              begin
+               Text[Index]:=Text[Index]+Text[Index+1];
+               Text.Delete(Index+1)
+              end;
 
       DoChange;
     Result := ExclusiveEvents;
+    end;
   end else
   if Event.IsKey(CtrlC) then
   begin
-      Clipboard.AsText := Text[Index];
+      Clipboard.SetAsText(AnsiToUtf8(SelectedText));
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlX) then
   begin
-    if Text[Index] <> '' then
-    begin
-      Clipboard.AsText := Text[Index];
-      Text[Index] := '';
+      Clipboard.AsText := SelectedText;
+      DeleteSelectText;
+
       DoChange;
-    end;
     Result := ExclusiveEvents;
   end else
+  if Event.IsKey(CtrlA) then
+  begin
+    FIndex:=0;
+    FIndexColumn:=-1;
+    FLastIndex:=Text.Count-1;
+    LastIndexColumn:=UTF8Length(Text[LastIndex]);
+  end
+  else
   if Event.IsKey(CtrlV) then
   begin
-    if (Clipboard.AsText.IndexOf(#13)>-1) then
+  if LastIndex<>-1 then
+  begin
+     DeleteSelectText;
+     LastIndex:=-1;
+     end;
+   { if (Clipboard.AsText.IndexOf(#13)>-1) then
     Text.AddText(Clipboard.AsText)
-    else
-    Text[Index]:=Text[Index].Insert(IndexColumn+1,Clipboard.AsText);
+    else   }
+    //Text[Index]:=Text.Insert();
+   // Text.Insert(Index+1,Utf8ToAnsi(Clipboard.AsText));
+    //IndexColumn:=IndexColumn+UTF8Length(Clipboard.AsText);
+    s:=Clipboard.AsText;
+    i:=0;
+    s1:=TStringList.Create;
+    s:=(Clipboard.AsText);
+    WritelnLog(s);
+     WritelnLog((UTF8Decode(s)));
+      WritelnLog(UTF8Encode(s));
+      WriteLnLog(IntToStr(s1.Count));
+    s1.AddText(s);
+    if s1.Count>1 then
+    begin
+    TimeText:='ssssss   ';
+
+
+    s1[Text.Count-1]:=s1[Text.Count-1]+UTF8Copy(Text[Index],IndexColumn+2,UTF8Length(Text[index])-IndexColumn+2);
+    s1.Clear;
+    s1.AddText(s);
+    Text[Index]:=UTF8Copy(Text[Index],1,IndexColumn+2);
+    Text[Index]:=Text[Index]+s1[0];
+    if s1.Count>2 then
+    begin
+    for i:=1 to s1.Count-2 do
+       Text.Insert(Index+i,s1[i]);
+    Text[Index]:=Text[Index].Insert(IndexColumn+2,s1[0]);
+    end;
+    end else  begin
+    s:=Text[Index];
+    UTF8Insert(Clipboard.AsText,s,IndexColumn+2);
+    Text[Index]:=s;
+    end;
+    index:=Index+i;
+    IndexColumn:=IndexColumn+UTF8Length(s);
+    TimeText:=TimeText+s;
     DoChange;
     Result := ExclusiveEvents;
   end else
-  if Event.IsKey(keyUp) then
+  if Event.IsKey(keyUp) or Event.IsKey(keyNumpadUp) then
   begin
+  if LastIndex<>-1 then
+  Index:=LastIndex-1 else
   index:=Index-1;
   end
   else
-    if Event.IsKey(keyDown) then
+    if Event.IsKey(keyDown)or Event.IsKey(keyNumpadDown) then
     begin
+     if LastIndex<>-1 then
+  Index:=LastIndex+1 else
  index:=Index+1;
     end
   else
-  if Event.IsKey(keyLeft) then
-  IndexColumn:=indexColumn-UTF8Length(UTF8Copy(Text[Index],indexColumn,1))
+  if Event.IsKey(keyLeft) or Event.IsKey(keyNumpadLeft) then
+   if LastIndex<>-1 then
+   begin
+   Index:=LastIndex;
+  IndexColumn:=LastIndexColumn-UTF8Length(UTF8Copy(Text[LastIndex],LastIndexColumn+1,1))
+
+   end
+   else
+  IndexColumn:=indexColumn-UTF8Length(UTF8Copy(Text[Index],indexColumn+1,1))
   else
-    if Event.IsKey(keyRight) then
+    if Event.IsKey(keyRight) or Event.IsKey(keyNumpadRight) then
+     if LastIndex<>-1 then
+     begin
+        Index:=LastIndex;
+  IndexColumn:=LastIndexColumn+UTF8Length(UTF8Copy(Text[LastIndex],LastIndexColumn+1,1))
+
+     end
+  else
   IndexColumn:=IndexColumn+UTF8Length(UTF8Copy(Text[Index],indexColumn+2,1))
   else
-    if Event.IsKey(keyHome) and (mkCtrl  in Event.ModifiersDown) then
+    if (Event.IsKey(keyHome) or Event.IsKey(keyNumpadHome)) and (mkCtrl  in Event.ModifiersDown) then
     begin
      index:=0;
      IndexColumn:=0;
     end
     else
-     if Event.IsKey(KeyEnd) and (mkCtrl  in Event.ModifiersDown) then
+     if (Event.IsKey(keyEnd) or Event.IsKey(keyNumpadEnd)) and (mkCtrl  in Event.ModifiersDown) then
      begin
     index:=Text.Count-1;
-      IndexColumn:=UTF8Length(Text[Index])+1;
+      IndexColumn:=UTF8Length(Text[Index])-1;
      end
     else
-         if Event.IsKey(KeyEnd) then
-    IndexColumn:=UTF8Length(Text[Index])+1
+         if Event.IsKey(KeyEnd) or Event.IsKey(keyNumpadEnd) then
+         if LastIndex<>-1 then
+         begin
+         Index:=LastIndex;
+           IndexColumn:=UTF8Length(Text[Index])-1;
+
+         end
     else
-    if Event.IsKey(keyHome) then
-    IndexColumn:=-1
+    IndexColumn:=UTF8Length(Text[Index])-1
+    else
+    if Event.IsKey(keyHome) or Event.IsKey(keyNumpadHome) then
+    if LastIndex<>-1 then
+         begin
+         Index:=LastIndex;
+           IndexColumn:=-1;
+
+         end
+    else IndexColumn:=-1
     else
   if Event.IsKey(K_Enter) then
   begin
@@ -663,7 +1030,7 @@ begin
   begin
    WritelnLog(Event.KeyString);
    //WritelnLog(IntToStr(IndexColumn));
-
+   DeleteSelectText;
     s:=Text[index];
     UTF8Insert(Event.KeyString,s,IndexColumn+2);
     Text[index]:=s;
@@ -672,12 +1039,45 @@ begin
     DoChange;
     Result := ExclusiveEvents;
 
-  end;
-      ////
-      TimeText:=Event.KeyString +'    '+ IntToStr(IndexColumn)+'     '+s+'    '+ IntToStr(Index)+'    '+UTF8Copy(Text[Index],IndexColumn,1);
+  end else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+  for i:=1 to round(Text.Count) do
+   begin
+   if RenderRect.Bottom+RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
+   begin
+   if Event.IsKey(keyShift) then
+   begin
+     LastIndex:=i-1;
+     BolSelect:=True;
+     end
+     else
+      Index:=i-1;
+      break;
+   end;
 
-   ////
- end;
+  end;
+  for i:=UTF8Length(Text[Index]) downto 0 do
+   begin
+   if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text[Index],1,i)) then
+   begin
+   if Event.IsKey(keyShift) then
+     LastIndexColumn:=i-1 else
+      IndexColumn:=i-1;
+      break;
+   end;
+  end;
+  BolSelect:=True;
+    LastIndex:=-1;
+  LastIndexColumn:=-1;
+  end else if Event.IsKey(keyShift) then
+  begin
+  SelectShift:=True;
+  LastIndex:=Index;
+  LastIndexColumn:=IndexColumn;
+  end;
+
+  end;
 
 function TCastleMemo.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
@@ -746,14 +1146,25 @@ end;
 procedure TCastleMemo.OnScrollChange(Scroll: TObject);
 var
   i:Single;
+  indexVar:integer;
 begin
   if FBolScroll=False then
-  begin
-  i:=Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
-  FIndex:=round(ScrollBar.Scroll);
-  BottomText:=index*i;
-
-  end;
+    begin
+      i:=Font.RowHeight+UIScale * (PaddingVertical + Padding)*2;
+      if round(ScrollBar.Scroll-RectInside.Height/i)>0 then
+      begin
+      if  round(ScrollBar.Scroll-RectInside.Height/i)<Text.Count-(RectInside.Height/i) then
+      indexVar:=round(ScrollBar.Scroll-RectInside.Height/i) else
+      indexVar:=round(Text.Count-(RectInside.Height/i));
+      end
+      else
+      indexVar:=0;
+      BottomText:=indexVar*i;
+    end else
+    begin
+      if ScrollBar.Scroll<0 then ScrollBar.Scroll:=0;
+      if ScrollBar.Scroll>ScrollBar.CompleteSize then ScrollBar.Scroll:=ScrollBar.CompleteSize;
+    end;
 end;
 
 {$endif read_implementation}

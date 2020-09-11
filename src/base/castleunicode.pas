@@ -50,12 +50,18 @@ function UTF8Length(const s: string): PtrInt; overload;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
+function UTF8CodepointSizeFull(p: PChar): integer;
 function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+
 procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt);
 function UTF8CodepointStart(UTF8Str: PChar; Len, CodepointIndex: PtrInt): PChar;
 function UTF8CodepointSize(p: PChar): integer; inline;
 function UTF8FactLength(s:char): integer;
 procedure UTF8Delete(var s: String; StartCharIndex, CharCount: PtrInt);
+function UTF8PosP(SearchForText: PChar; SearchForTextLen: SizeInt;
+  SearchInText: PChar; SearchInTextLen: SizeInt): PChar;
+function UTF8Pos(const SearchForText, SearchInText: string;
+  StartPos: SizeInt = 1): PtrInt;
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
 
@@ -84,52 +90,32 @@ function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 
+
+{ Convert all special Unicode characters in the given UTF-8 string to HTML entities.
+  This is a helpful routine to visualize a string with any Unicode characters
+  using simple ASCII.
+
+  "Special" Unicode characters is "anything outside of safe ASCII range,
+  which is between space and ASCII code 128".
+  The resulting string contains these special characters encoded
+  as HTML entities that show the Unicode code point in hex.
+  Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
+  Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.
+
+  Tip: You can check Unicode codes by going to e.g. https://codepoints.net/U+F3
+  for @code(&#xF3;). Just edit this URL in the WWW browser address bar.
+}
+function UTF8ToHtmlEntities(const S: String): String;
+
 implementation
+
+uses SysUtils;
 
 procedure TUnicodeCharList.Add(const C: TUnicodeChar);
 begin
   if IndexOf(C) = -1 then
     inherited Add(C);
 end;
-
-function UTF8CodepointSizeFull(p: PChar): integer;
-begin
-  case p^ of
-  #0..#191: // %11000000
-    // regular single byte character (#0 is a character, this is Pascal ;)
-    Result:=1;
-  #192..#223: // p^ and %11100000 = %11000000
-    begin
-      // could be 2 byte character
-      if (ord(p[1]) and %11000000) = %10000000 then
-        Result:=2
-      else
-        Result:=1;
-    end;
-  #224..#239: // p^ and %11110000 = %11100000
-    begin
-      // could be 3 byte character
-      if ((ord(p[1]) and %11000000) = %10000000)
-      and ((ord(p[2]) and %11000000) = %10000000) then
-        Result:=3
-      else
-        Result:=1;
-    end;
-  #240..#247: // p^ and %11111000 = %11110000
-    begin
-      // could be 4 byte character
-      if ((ord(p[1]) and %11000000) = %10000000)
-      and ((ord(p[2]) and %11000000) = %10000000)
-      and ((ord(p[3]) and %11000000) = %10000000) then
-        Result:=4
-      else
-        Result:=1;
-    end;
-  else
-    Result:=1;
-  end;
-end;
-
 
 procedure TUnicodeCharList.Add(const SampleText: string);
 var
@@ -233,6 +219,44 @@ begin
   end;
 end;
 
+function UTF8CodepointSizeFull(p: PChar): integer;
+begin
+  case p^ of
+  #0..#191: // %11000000
+    // regular single byte character (#0 is a character, this is Pascal ;)
+    Result:=1;
+  #192..#223: // p^ and %11100000 = %11000000
+    begin
+      // could be 2 byte character
+      if (ord(p[1]) and %11000000) = %10000000 then
+        Result:=2
+      else
+        Result:=1;
+    end;
+  #224..#239: // p^ and %11110000 = %11100000
+    begin
+      // could be 3 byte character
+      if ((ord(p[1]) and %11000000) = %10000000)
+      and ((ord(p[2]) and %11000000) = %10000000) then
+        Result:=3
+      else
+        Result:=1;
+    end;
+  #240..#247: // p^ and %11111000 = %11110000
+    begin
+      // could be 4 byte character
+      if ((ord(p[1]) and %11000000) = %10000000)
+      and ((ord(p[2]) and %11000000) = %10000000)
+      and ((ord(p[3]) and %11000000) = %10000000) then
+        Result:=4
+      else
+        Result:=1;
+    end;
+  else
+    Result:=1;
+  end;
+end;
+
 function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
 // returns substring
 var
@@ -240,18 +264,19 @@ var
   EndBytePos: PChar;
   MaxBytes: PtrInt;
 begin
-  StartBytePos:=UTF8CodepointStart(PChar(s),length(s),StartCharIndex-1);
+  StartBytePos:=UTF8CharStart(PChar(s),length(s),StartCharIndex-1);
   if StartBytePos=nil then
     Result:=''
   else begin
     MaxBytes:=PtrInt(PChar(s)+length(s)-StartBytePos);
-    EndBytePos:=UTF8CodepointStart(StartBytePos,MaxBytes,CharCount);
+    EndBytePos:=UTF8CharStart(StartBytePos,MaxBytes,CharCount);
     if EndBytePos=nil then
       Result:=copy(s,StartBytePos-PChar(s)+1,MaxBytes)
     else
       Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
- end;
+end;
+
 procedure UTF8Insert(const source: String; var s: String; StartCharIndex: PtrInt
   );
 var
@@ -296,7 +321,7 @@ end;
 
 procedure UTF8Delete(var s: String; StartCharIndex, CharCount: PtrInt);
 var
-  StartBytePos: PChar;
+    StartBytePos: PChar;
   EndBytePos: PChar;
   MaxBytes: PtrInt;
 begin
@@ -309,6 +334,61 @@ begin
       Delete(s,StartBytePos-PChar(s)+1,MaxBytes)
     else
       Delete(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
+  end;
+
+end;
+
+function UTF8PosP(SearchForText: PChar; SearchForTextLen: SizeInt;
+  SearchInText: PChar; SearchInTextLen: SizeInt): PChar;
+// returns the position where SearchInText starts in SearchForText
+// returns nil if not found
+var
+  p: SizeInt;
+begin
+  Result:=nil;
+  if (SearchForText=nil) or (SearchForTextLen=0) or (SearchInText=nil) then
+    exit;
+  while SearchInTextLen>0 do begin
+    p:=IndexByte(SearchInText^,SearchInTextLen,PByte(SearchForText)^);
+    if p<0 then exit;
+    inc(SearchInText,p);
+    dec(SearchInTextLen,p);
+    if SearchInTextLen<SearchForTextLen then exit;
+    if CompareMem(SearchInText,SearchForText,SearchForTextLen) then
+      exit(SearchInText);
+    inc(SearchInText);
+    dec(SearchInTextLen);
+  end;
+end;
+
+function UTF8Pos(const SearchForText, SearchInText: string;
+  StartPos: SizeInt = 1): PtrInt;
+// returns the character index, where the SearchForText starts in SearchInText
+// an optional StartPos can be given (in UTF-8 codepoints, not in byte)
+// returns 0 if not found
+var
+  i: SizeInt;
+  p: PChar;
+  StartPosP: PChar;
+begin
+  Result:=0;
+  if StartPos=1 then
+  begin
+    i:=System.Pos(SearchForText,SearchInText);
+    if i>0 then
+      Result:=UTF8Length(PChar(SearchInText),i-1)+1;
+  end
+  else if StartPos>1 then
+  begin
+    // skip
+    StartPosP:=UTF8CodepointStart(PChar(SearchInText),Length(SearchInText),StartPos-1);
+    if StartPosP=nil then exit;
+    // search
+    p:=UTF8PosP(PChar(SearchForText),length(SearchForText),
+                StartPosP,length(SearchInText)+PChar(SearchInText)-StartPosP);
+    // get UTF-8 position
+    if p=nil then exit;
+    Result:=StartPos+UTF8Length(StartPosP,p-StartPosP);
   end;
 end;
 
@@ -437,6 +517,31 @@ begin
       end;
   else
     Result:=0;
+  end;
+end;
+
+function UTF8ToHtmlEntities(const S: String): String;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+begin
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  Result := '';
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    if (C < Ord(' ')) or (C >= 128) then
+      Result := Result + '&#x' + IntToHex(C, 1) + ';'
+    else
+    if C = Ord('&') then
+      Result := Result + '&amp;'
+    else
+      Result := Result + Chr(C);
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
