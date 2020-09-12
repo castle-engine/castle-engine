@@ -253,7 +253,8 @@ type
     procedure RenderShadowVolume;
 
     { Detect position/direction of the main light that produces shadows.
-      Looks at MainScene.InternalMainLightForShadows. }
+      Looks at MainScene.InternalMainLightForShadows.
+      Returns light position (or direction, if W = 0) in world space. }
     function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 
     { Pass pointing device (mouse or touch) press event
@@ -2020,8 +2021,18 @@ end;
 function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
 begin
   if Items.MainScene <> nil then
-    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition)
-  else
+  begin
+    Result := Items.MainScene.InternalMainLightForShadows(AMainLightPosition);
+    { Transform AMainLightPosition to world space.
+      This matters in case MainScene (that contains shadow-casting light) has some transformation. }
+    if Result then
+    begin
+      if AMainLightPosition.W = 0 then
+        AMainLightPosition.XYZ := Items.MainScene.LocalToWorldDirection(AMainLightPosition.XYZ)
+      else
+        AMainLightPosition.XYZ := Items.MainScene.LocalToWorld(AMainLightPosition.XYZ);
+    end;
+  end else
     Result := false;
 end;
 

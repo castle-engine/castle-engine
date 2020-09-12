@@ -1820,6 +1820,8 @@ type
 
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
+      Returned value is local to this transformation (i.e. it is in this scene's space,
+      not world space).
 
       @exclude
       Should only be used internally by TCastleViewport. }
