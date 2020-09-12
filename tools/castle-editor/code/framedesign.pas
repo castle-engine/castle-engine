@@ -939,6 +939,7 @@ begin
   CastleControl.OnResize := @CastleControlResize;
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
+  CastleControl.StencilBits := 8; // enable shadow volumes
 
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;
