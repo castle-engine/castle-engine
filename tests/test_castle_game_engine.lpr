@@ -116,7 +116,7 @@ var
 {var
   T: TTestCastleTransform;}
 begin
-  // InitializeLog;
+  InitializeLog;
 
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   // avoid warnings that opening files too early

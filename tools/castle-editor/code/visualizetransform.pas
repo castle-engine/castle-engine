@@ -31,6 +31,7 @@ type
     type
       TGizmoScene = class(TCastleScene)
       strict private
+        VisualizePick: TCastleScene;
         GizmoDragging: Boolean;
         DraggingAxis: Integer;
         LastPick: TVector3;
@@ -41,6 +42,7 @@ type
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
       public
         Operation: TVisualizeOperation;
+        constructor Create(AOwner: TComponent); override;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
         function Dragging: boolean; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
@@ -79,7 +81,7 @@ implementation
 uses Math,
   ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
-  CastleQuaternions;
+  CastleQuaternions, X3DNodes;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
@@ -99,13 +101,25 @@ begin
   RestOf3DCoords(Axis, Axis1, Axis2);
   Intersection[Axis1] := 0;
   Intersection[Axis2] := 0;
-end;
 *)
-
 begin
   Result := PointOnLineClosestToLine(Intersection,
     TVector3.Zero, TVector3.One[Axis],
     Pick.RayOrigin, Pick.RayDirection);
+
+  VisualizePick.Exists := Result;
+  if Result then
+  begin
+    // Intersection is in UniqueParent coordinate space, i.e. ignores our gizmo scale
+    VisualizePick.Translation := OutsideToLocal(Intersection);
+    WritelnLog('VisualizePick with %s', [Intersection.ToString]);
+    WritelnLog('Line 1: %s %s, line 2 %s %s', [
+      TVector3.Zero.ToString,
+      TVector3.One[Axis].ToString,
+      Pick.RayOrigin.ToString,
+      Pick.RayDirection.ToString
+    ]);
+  end;
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -119,6 +133,32 @@ begin
     if Value <> nil then
       CameraChanged(Value.MainCamera);
   end;
+end;
+
+constructor TVisualizeTransform.TGizmoScene.Create(AOwner: TComponent);
+var
+  SphereGeometry: TSphereNode;
+  SphereShape: TShapeNode;
+  SphereMat: TMaterialNode;
+  SphereRoot: TX3DRootNode;
+begin
+  inherited Create(AOwner);
+
+  VisualizePick := TCastleScene.Create(Self);
+
+  SphereGeometry := TSphereNode.CreateWithShape(SphereShape);
+  SphereGeometry.Radius := 0.1;
+
+  SphereMat := TMaterialNode.Create;
+  SphereMat.DiffuseColor := RedRGB;
+  SphereShape.Material := SphereMat;
+
+  SphereRoot := TX3DRootNode.Create;
+  SphereRoot.AddChildren(SphereShape);
+
+  VisualizePick.Load(SphereRoot, true);
+  VisualizePick.Exists := false;
+  Add(VisualizePick);
 end;
 
 procedure TVisualizeTransform.TGizmoScene.CameraChanged(
@@ -223,9 +263,9 @@ begin
     if PointOnAxis(NewPick, Pick, DraggingAxis) then
     begin
       Diff := NewPick - LastPick;
-      case Operation of
-        voTranslate:
-          UniqueParent.Translation := UniqueParent.Translation + Diff;
+      //case Operation of
+//        voTranslate:
+//          UniqueParent.Translation := UniqueParent.Translation + Diff;
         // TODO: rotate/scale are dummy tests
         //voRotate:
         //  UniqueParent.Rotation := (
@@ -234,7 +274,7 @@ begin
         //    ToAxisAngle;
         //voScale:
         //  UniqueParent.Scale := UniqueParent.Scale + Diff;
-      end;
+      //end;
       { No point in updating LastPick: it remains the same, as it is expressed
         in local coordinate system, which we just changed by changing
         UniqueParent.Translation. }

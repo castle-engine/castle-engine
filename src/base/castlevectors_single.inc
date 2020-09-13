@@ -2019,8 +2019,8 @@ function PointOnLineClosestToLine(
   const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
 var
   Line0, LineVector, Ray0, RayVector: TVector3;
-  N: TVector3;
-  Dist, Alpha, Beta, LineF: Single;
+  N, RayPoint: TVector3;
+  Dist, Alpha, Beta, LineF, ActualDist, RayF: Single;
   NonZeroRay, Ax1, Ax2, Ax: Integer;
 begin
   Line0 := Line1Origin;
@@ -2040,6 +2040,7 @@ begin
   N.NormalizeMe;
 
   Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length};
+  WritelnLog('ray close to line: %f', [Dist]);
 
   { We know that:
     Line0 + LineVector * LineF + N * Dist = Ray0 + RayVector * RayF .
@@ -2074,6 +2075,22 @@ begin
 
   Result := true;
   Intersection := Line0 + LineVector * LineF;
+
+  { check: }
+  // TODO: this check shows that Dist <> ActualDist, a lot. So something above is broken
+  RayPoint := PointOnLineClosestToPoint(Ray0, RayVector, Intersection);
+  ActualDist := PointsDistance(RayPoint, Intersection);
+  WritelnLog('actual dist: %f', [ActualDist]);
+
+  RayF := LineF * Alpha + Beta;
+  RayPoint := Ray0 + RayVector * RayF;
+  ActualDist := PointsDistance(RayPoint, Intersection);
+  WritelnLog('actual dist from RayPoint calculated differently: %f', [ActualDist]);
+
+  WritelnLog('equation sides' + NL + '%s' + NL + '%s', [
+    (Line0 + LineVector * LineF + N * Dist).ToString,
+    (Ray0 + RayVector * RayF).ToString
+  ]);
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
