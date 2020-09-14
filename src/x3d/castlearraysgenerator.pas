@@ -2324,7 +2324,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       LineA[1] := 0;
       LineA[2] := -TriangleTexCoord.Data[0].Data[0];
     end;
-    LineBC := LineOfTwoDifferentPoints2d(
+    LineBC := Line2DFrom2Points(
       TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
 
     try
