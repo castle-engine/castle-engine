@@ -1,6 +1,6 @@
 // -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleVectors" -*-
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -961,6 +961,14 @@ begin
     Vector3(110, 10, 10), Vector3(1, 1, 0)
   ));
   AssertVectorEquals(Vector3(100, 0, 0), I);
+
+  AssertTrue(PointOnLineClosestToLine(I,
+    Vector3(0.00, 0.00, 0.00),
+    Vector3(0.00, 1.00, 0.00),
+    Vector3(-6.58, 1.97, -5.73),
+    Vector3(0.74, -0.16, 0.65)
+  ));
+  AssertVectorEquals(Vector3(0, 0.5, 0), I, 0.1);
 end;
 
 initialization

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2026,9 +2026,11 @@ function PointOnLineClosestToLine(
   const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
 var
   Line0, LineVector, Ray0, RayVector: TVector3;
-  N, RayPoint: TVector3;
-  Dist, Alpha, Beta, LineF, ActualDist, RayF: Single;
-  NonZeroRay, Ax1, Ax2, Ax: Integer;
+  N: TVector3;
+  {Dist, }LineF: Single;
+  Ax: Integer;
+  ProjectAxisX, ProjectAxisY: TVector3;
+  ProjectedIntersection, ProjectLine0, ProjectLineVector, ProjectRay0, ProjectRayVector: TVector2;
 begin
   Line0 := Line1Origin;
   LineVector := Line1Vector;
@@ -2046,58 +2048,39 @@ begin
 
   N.NormalizeMe;
 
-  Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length};
-  WritelnLog('ray close to line: %f', [Dist]);
+  // Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length}; // not needed in this approach
 
-  { We know that:
-    Line0 + LineVector * LineF + N * Dist = Ray0 + RayVector * RayF .
+  { Project our 2 lines on 2D }
+  ProjectAxisX := AnyOrthogonalVector(N);
+  ProjectAxisY := TVector3.CrossProduct(N, ProjectAxisX);
 
-    We don't know LineF, RayF (scalars).
-    But we have now 3 equations that define relationship between them,
-    since above has both sides as 3D vectors. }
+  ProjectLine0 := Vector2(
+    TVector3.DotProduct(ProjectAxisX, Line0),
+    TVector3.DotProduct(ProjectAxisY, Line0)
+  );
+  ProjectLineVector := Vector2(
+    TVector3.DotProduct(ProjectAxisX, LineVector),
+    TVector3.DotProduct(ProjectAxisY, LineVector)
+  );
+  ProjectRay0 := Vector2(
+    TVector3.DotProduct(ProjectAxisX, Ray0),
+    TVector3.DotProduct(ProjectAxisY, Ray0)
+  );
+  ProjectRayVector := Vector2(
+    TVector3.DotProduct(ProjectAxisX, RayVector),
+    TVector3.DotProduct(ProjectAxisY, RayVector)
+  );
 
-  // Find an axis where RayVector <> 0
-  NonZeroRay := MaxAbsVectorCoord(RayVector);
-  Assert(not IsZero(RayVector[NonZeroRay])); // this would mean that RayVector is zero
+  ProjectedIntersection := Lines2DIntersection(
+    Line2DFromOriginVector(ProjectLine0, ProjectLineVector),
+    Line2DFromOriginVector(ProjectRay0, ProjectRayVector)
+  );
 
-  // On axis NonZeroRay, we can calculate Alpha, Beta such that:
-  // RayF = LineF * Alpha + Beta
-  Alpha := LineVector[NonZeroRay] / RayVector[NonZeroRay];
-  Beta := (Line0[NonZeroRay] + N[NonZeroRay] * Dist - Ray0[NonZeroRay]) / RayVector[NonZeroRay];
-
-  // Find an axis where (LineVector[*] - RayVector[*] * Alpha) <> 0
-  // We know it's not NonZeroRay due to how Alpha was calculated.
-  RestOf3dCoords(NonZeroRay, Ax1, Ax2);
-
-  if not IsZero(LineVector[Ax1] - RayVector[Ax1] * Alpha) then
-    Ax := Ax1
-  else
-  if not IsZero(LineVector[Ax2] - RayVector[Ax2] * Alpha) then
-    Ax := Ax2
-  else
-    Exit(false); // math says that any LineF would then satisfy the equation
-
-  LineF := (Beta + Ray0[Ax] - N[Ax] * Dist - Line0[Ax]) /
-           (LineVector[Ax] - RayVector[Ax] * Alpha);
+  Ax := MaxAbsVectorCoord(ProjectLineVector); // choose non-zero coordinate
+  LineF := (ProjectedIntersection[Ax] - ProjectLine0[Ax]) / ProjectLineVector[Ax];
 
   Result := true;
-  Intersection := Line0 + LineVector * LineF;
-
-  { check: }
-  // TODO: this check shows that Dist <> ActualDist, a lot. So something above is broken
-  RayPoint := PointOnLineClosestToPoint(Ray0, RayVector, Intersection);
-  ActualDist := PointsDistance(RayPoint, Intersection);
-  WritelnLog('actual dist: %f', [ActualDist]);
-
-  RayF := LineF * Alpha + Beta;
-  RayPoint := Ray0 + RayVector * RayF;
-  ActualDist := PointsDistance(RayPoint, Intersection);
-  WritelnLog('actual dist from RayPoint calculated differently: %f', [ActualDist]);
-
-  WritelnLog('equation sides' + NL + '%s' + NL + '%s', [
-    (Line0 + LineVector * LineF + N * Dist).ToString,
-    (Ray0 + RayVector * RayF).ToString
-  ]);
+  Intersection := Line0 + LineF * LineVector;
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
