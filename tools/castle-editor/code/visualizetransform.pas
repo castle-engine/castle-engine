@@ -31,7 +31,10 @@ type
     type
       TGizmoScene = class(TCastleScene)
       strict private
+        {.$define DEBUG_GIZMO_PICK}
+        {$ifdef DEBUG_GIZMO_PICK}
         VisualizePick: TCastleScene;
+        {$endif DEBUG_GIZMO_PICK}
         GizmoDragging: Boolean;
         DraggingAxis: Integer;
         LastPick: TVector3;
@@ -101,12 +104,15 @@ begin
   RestOf3DCoords(Axis, Axis1, Axis2);
   Intersection[Axis1] := 0;
   Intersection[Axis2] := 0;
+end;
 *)
+
 begin
   Result := PointOnLineClosestToLine(Intersection,
     TVector3.Zero, TVector3.One[Axis],
     Pick.RayOrigin, Pick.RayDirection);
 
+  {$ifdef DEBUG_GIZMO_PICK}
   VisualizePick.Exists := Result;
   if Result then
   begin
@@ -120,6 +126,7 @@ begin
       Pick.RayDirection.ToString
     ]);
   end;
+  {$endif DEBUG_GIZMO_PICK}
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -136,14 +143,17 @@ begin
 end;
 
 constructor TVisualizeTransform.TGizmoScene.Create(AOwner: TComponent);
+{$ifdef DEBUG_GIZMO_PICK}
 var
   SphereGeometry: TSphereNode;
   SphereShape: TShapeNode;
   SphereMat: TMaterialNode;
   SphereRoot: TX3DRootNode;
+{$endif DEBUG_GIZMO_PICK}
 begin
   inherited Create(AOwner);
 
+  {$ifdef DEBUG_GIZMO_PICK}
   VisualizePick := TCastleScene.Create(Self);
 
   SphereGeometry := TSphereNode.CreateWithShape(SphereShape);
@@ -159,6 +169,7 @@ begin
   VisualizePick.Load(SphereRoot, true);
   VisualizePick.Exists := false;
   Add(VisualizePick);
+  {$endif DEBUG_GIZMO_PICK}
 end;
 
 procedure TVisualizeTransform.TGizmoScene.CameraChanged(
@@ -262,10 +273,11 @@ begin
   begin
     if PointOnAxis(NewPick, Pick, DraggingAxis) then
     begin
+      {$ifndef DEBUG_GIZMO_PICK}
       Diff := NewPick - LastPick;
-      //case Operation of
-//        voTranslate:
-//          UniqueParent.Translation := UniqueParent.Translation + Diff;
+      case Operation of
+        voTranslate:
+          UniqueParent.Translation := UniqueParent.Translation + Diff;
         // TODO: rotate/scale are dummy tests
         //voRotate:
         //  UniqueParent.Rotation := (
@@ -274,7 +286,9 @@ begin
         //    ToAxisAngle;
         //voScale:
         //  UniqueParent.Scale := UniqueParent.Scale + Diff;
-      //end;
+      end;
+      {$endif not DEBUG_GIZMO_PICK}
+
       { No point in updating LastPick: it remains the same, as it is expressed
         in local coordinate system, which we just changed by changing
         UniqueParent.Translation. }
