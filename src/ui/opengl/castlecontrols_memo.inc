@@ -55,6 +55,8 @@
     FTextTranslate, FPlaceholderTranslate: Boolean;
     FBolScroll:Boolean;
     BolSelect,SelectShift:Boolean;
+    FSelectedColor:TCastleColor;
+    procedure SetSelectedColor(const Value:TCastleColor);
     function GetCountRow: integer;
     procedure SetIndex(Value:integer);
     procedure SetIndexColumn(Value:integer);
@@ -112,6 +114,8 @@ TimeText:string;
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
 
+    {Selected rectangle color. By default it's blue.}
+    property SelectedColor:TCastleColor read FSelectedColor write SetSelectedColor;
     { Unfocused text color. By default it's dark gray. }
     property UnfocusedColor: TCastleColor read FUnfocusedColor write SetUnfocusedColor;
 
@@ -240,6 +244,7 @@ begin
   BolSelect:=False;
   LastIndex:=-1 ;
   FTextChar:=TBooleanList.Create;
+  FSelectedColor:=Blue;
 end;
 
 
@@ -298,6 +303,11 @@ begin
   if (ScrollBar.Scroll<0) or (Index=0) then ScrollBar.Scroll:=0;
   if ScrollBar.Scroll>ScrollBar.CompleteSize then ScrollBar.Scroll:=ScrollBar.CompleteSize;
   FBolScroll:=False;
+end;
+
+procedure TCastleMemo.SetSelectedColor(const Value: TCastleColor);
+begin
+  FSelectedColor:=Value;
 end;
 
 function TCastleMemo.GetCountRow: integer;
@@ -581,11 +591,11 @@ begin
        s:=Text[Index];
        if IndexColumn>LastIndexColumn then
        begin
-       UTF8Delete(s,LastIndexColumn+2,IndexColumn-LastIndexColumn+1);
+       UTF8Delete(s,LastIndexColumn+2,IndexColumn-LastIndexColumn);
 
        IndexColumn:=LastIndexColumn;
        end
-       else UTF8Delete(s,IndexColumn+2,LastIndexColumn-IndexColumn+1);
+       else UTF8Delete(s,IndexColumn+2,LastIndexColumn-IndexColumn);
 
        Text[index]:=s;
        LastIndex:=-1;
@@ -610,10 +620,6 @@ begin
           if FTextChar.Count>LastIndex+1 then
           FTextChar.Delete(LastIndex+1);
        end;
-      end
-      else  if Index-LastIndex>1 then begin
-      Text.Delete(Index-1);
-      FTextChar.Delete(index-1);
       end;
        Index:=LastIndex+1;
       s:=Text[Index];
@@ -621,6 +627,7 @@ begin
       if Text.Count=1 then
       Text[0]:='' else
       Text.Delete(LastIndex+1);
+      FTextChar.Delete(LastIndex);
       Text[LastIndex]:=Text[LastIndex]+s;
 
       Index:=LastIndex;
@@ -646,10 +653,7 @@ begin
              FTextChar.Delete(Index+1);
        end;
       end
-      else  if Index-LastIndex>1 then begin
-     Text.Delete(LastIndex-1);
-      FTextChar.Delete(Lastindex-1);
-      end;
+      else;
       FLastIndex:=Index+1;
       FTextChar.delete(Index);
       if Text.Count>Index then
@@ -659,6 +663,9 @@ begin
         Text[Index]:=Text[Index]+s;
       end;
       Text.Delete(LastIndex);
+      TimeText:=IntToStr(LastIndex-1);
+      if LastIndex<FTextChar.Count then
+      FTextChar.Delete(LastIndex-1);
       if Text.Count=0 then Text.Add('');
       //LastIndexColumn:=-1;
       LastIndex:=-1;
@@ -752,23 +759,26 @@ begin
   AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)+1).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
   end;
 
-  {if RectInside.Bottom+RectInside.Height<AddLastSelectRec.Bottom+AddLastSelectRec.Height then
-  AddLastSelectRec.RemoveTop(AddLastSelectRec.Bottom+AddLastSelectRec.Height-RectInside.Bottom-RectInside.Height);
-    if RectInside.Bottom+RectInside.Height<AddSelectRec.Bottom+AddSelectRec.Height then
-  AddLastSelectRec.RemoveTop(AddSelectRec.Bottom+AddSelectRec.Height-RectInside.Bottom-RectInside.Height);
-        if RectInside.Bottom+RectInside.Height<MainSelectRect.Bottom+MainSelectRect.Height then
-  AddLastSelectRec.RemoveTop(MainSelectRect.Bottom+MainSelectRect.Height-RectInside.Bottom-RectInside.Height);
-
-          if AddLastSelectRec.Bottom<RectInside.Bottom then
-  AddLastSelectRec.RemoveTop(AddLastSelectRec.Bottom-RectInside.Bottom);
+  if MainSelectRect.Bottom<RectInside.Bottom then
+     MainSelectRect:=MainSelectRect.RemoveBottom(RectInside.Bottom-MainSelectRect.Bottom)
+  else if MainSelectRect.Bottom+MainSelectRect.Height>RectInside.Bottom+RectInside.Height then
+    MainSelectRect:=MainSelectRect.RemoveTop((MainSelectRect.Bottom+MainSelectRect.Height)-(RectInside.Bottom+RectInside.Height));
     if AddSelectRec.Bottom<RectInside.Bottom then
-  AddLastSelectRec.RemoveTop(AddSelectRec.Bottom-RectInside.Bottom);
-        if MainSelectRect.Bottom<RectInside.Bottom then
-  AddLastSelectRec.RemoveTop(MainSelectRect.Bottom-RectInside.Bottom);}
+     AddSelectRec:=AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
+  else if AddSelectRec.Bottom+AddSelectRec.Height>RectInside.Bottom+RectInside.Height then
+    AddSelectRec:=AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
+    if AddSelectRec.Bottom<RectInside.Bottom then
+     AddSelectRec:=AddSelectRec.RemoveBottom(RectInside.Bottom-AddSelectRec.Bottom)
+  else if AddSelectRec.Bottom+AddSelectRec.Height>RectInside.Bottom+RectInside.Height then
+    AddSelectRec:=AddSelectRec.RemoveTop((AddSelectRec.Bottom+AddSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
+     if AddLastSelectRec.Bottom<RectInside.Bottom then
+     AddLastSelectRec:=AddLastSelectRec.RemoveBottom(RectInside.Bottom-AddLastSelectRec.Bottom)
+  else if AddLastSelectRec.Bottom+AddLastSelectRec.Height>RectInside.Bottom+RectInside.Height then
+    AddLastSelectRec:=AddLastSelectRec.RemoveTop((AddLastSelectRec.Bottom+AddLastSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
 
-  DrawRectangle(MainSelectRect,Blue);
-   DrawRectangle(AddSelectRec,Blue);
-   DrawRectangle(AddLastSelectRec,Blue);
+  DrawRectangle(MainSelectRect,SelectedColor);
+   DrawRectangle(AddSelectRec,SelectedColor);
+   DrawRectangle(AddLastSelectRec,SelectedColor);
   end;
   CaretShift := 0;
   if AutoSizeHeight then
@@ -843,13 +853,13 @@ begin
    end;
    end;
   end else LastIndex:=0;
-   if (BottomText>0) and (LastIndex<Text.Count-1-(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2))) then
-  if Event.Position.Y<10+RenderRect.Bottom then
-  begin
+  WritelnLog(IntToStr(round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)));
+
+   if (LastIndex<=Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
+  if Event.Position.Y<5+RenderRect.Bottom then
        BottomText:=BottomText+Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-  end;
   if BottomText>0 then
-      if Event.Position.Y>RenderRect.Bottom+RenderRect.Height-10 then
+      if Event.Position.Y>RenderRect.Bottom+RenderRect.Height-7 then
         BottomText:=BottomText-Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
   for i:=UTF8Length(Text[LastIndex]) downto 0 do
    begin
@@ -859,7 +869,7 @@ begin
       break;
    end;
   end;
-  if SelectShift=FAlse then
+  if SelectShift=False then
   if (LastIndex=Index) and (IndexColumn=LastIndexColumn) then
   LastIndex:=-1;
   end;
@@ -917,7 +927,7 @@ begin
     Result := ExclusiveEvents;
     end;
   end else
-    if Event.IsKey(K_Delete) then
+    if Event.IsKey(CharDelete) or Event.IsKey(K_Delete) then
   begin
   if LastIndex<>-1 then
   DeleteSelectText else
