@@ -2,6 +2,6 @@
 PROFILE Interchange
 
 Collision {
-  proxy Inline { url "translate_colllider.glb" }
+  proxy Inline { url "translate_or_scale_colllider.glb" }
   children Inline { url "translate.glb" }
 }

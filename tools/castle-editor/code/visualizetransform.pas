@@ -281,6 +281,7 @@ function TVisualizeTransform.TGizmoScene.PointingDeviceMove(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
   NewPick, Diff: TVector3;
+  I: Integer;
 begin
   Result := inherited;
   if Result then Exit;
@@ -290,18 +291,29 @@ begin
     if PointOnAxis(NewPick, Pick, DraggingAxis) then
     begin
       {$ifndef DEBUG_GIZMO_PICK}
-      Diff := NewPick - LastPick;
       case Operation of
         voTranslate:
-          UniqueParent.Translation := UniqueParent.Translation + Diff;
+          begin
+            Diff := NewPick - LastPick;
+            UniqueParent.Translation := UniqueParent.Translation + Diff;
+          end;
+
         // TODO: rotate/scale are dummy tests
         //voRotate:
         //  UniqueParent.Rotation := (
         //    QuatFromAxisAngle(UniqueParent.Rotation) *
         //    QuatFromAxisAngle(TVector3.One[DraggingAxis], Diff.Length)).
         //    ToAxisAngle;
-        //voScale:
-        //  UniqueParent.Scale := UniqueParent.Scale + Diff;
+
+        voScale:
+          begin
+            for I := 0 to 2 do
+              if IsZero(LastPick[I]) then
+                Diff[I] := 1
+              else
+                Diff[I] := NewPick[I] / LastPick[I];
+            UniqueParent.Scale := UniqueParent.Scale * Diff;
+          end;
       end;
       {$endif not DEBUG_GIZMO_PICK}
 
@@ -360,7 +372,7 @@ begin
   Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
   Gizmo[voRotate].Operation := voRotate;
   Gizmo[voScale] := CreateGizmoScene;
-  Gizmo[voScale].Load(EditorApplicationData + 'scale.glb');
+  Gizmo[voScale].Load(EditorApplicationData + 'scale_final.x3dv');
   Gizmo[voScale].Operation := voScale;
 end;
 
