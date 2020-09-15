@@ -20,7 +20,7 @@ interface
 
 uses Classes, SysUtils, CastleColors, CastleVectors,
   CastleVectorsInternalSingle, CastleTransform, CastleDebugTransform,
-  CastleScene, CastleCameras;
+  CastleScene, CastleCameras, CastleTriangles;
 
 type
   TVisualizeOperation = (voSelect, voTranslate, voRotate, voScale);
@@ -43,6 +43,8 @@ type
           const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
+        function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
+          const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
       public
         Operation: TVisualizeOperation;
         constructor Create(AOwner: TComponent); override;
@@ -140,6 +142,21 @@ begin
     if Value <> nil then
       CameraChanged(Value.MainCamera);
   end;
+end;
+
+function TVisualizeTransform.TGizmoScene.LocalRayCollision(
+  const RayOrigin, RayDirection: TVector3;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
+begin
+  Result := inherited;
+  { Hack to make picking of the gizmo work even when gizmo is obscured
+    by other TCastleTransform (including bbox of UniqueParent, which is what
+    we actually want to transform).
+    Hacking Distance to be smallest possible means that it "wins"
+    when TCastleTransform.LocalRayCollision desides which collision
+    is first along the ray. }
+  if Result <> nil then
+    Result.Distance := 0;
 end;
 
 constructor TVisualizeTransform.TGizmoScene.Create(AOwner: TComponent);
@@ -256,7 +273,6 @@ begin
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
       Result := true;
-      WritelnLog('Gizmo dragging axis %d', [DraggingAxis]);
     end;
   end;
 end;
@@ -292,7 +308,6 @@ begin
       { No point in updating LastPick: it remains the same, as it is expressed
         in local coordinate system, which we just changed by changing
         UniqueParent.Translation. }
-      WritelnLog('Gizmo: Moving pointing device, gizmo works!');
 
       // update our gizmo size, as we moved ourselves
       CameraChanged(World.MainCamera);
@@ -308,7 +323,6 @@ begin
   if Result then Exit;
 
   GizmoDragging := false;
-  WritelnLog('Gizmo: Released pointing device');
 end;
 
 { TVisualizeTransform ------------------------------------------------------ }
