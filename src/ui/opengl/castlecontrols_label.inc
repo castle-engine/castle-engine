@@ -17,6 +17,9 @@
 {$ifdef read_interface}
 
   { Label with possibly multiline text, in an optional box. }
+
+  { TCastleLabel }
+
   TCastleLabel = class(TCastleUserInterfaceFont)
   strict private
     FText: TStrings;
@@ -33,6 +36,7 @@
     FMaxDisplayChars: Integer;
     CachedRichText: TRichText;
     FCaptionTranslate: Boolean;
+FWordWrap:Boolean;
     function GetTextToRender: TRichText;
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
@@ -47,10 +51,13 @@
     procedure SetPaddingVertical(const Value: Single);
     procedure SetPadding(const Value: Single);
     procedure SetHtml(const Value: Boolean);
+     procedure SetWordWrap(AValue: boolean);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
+     function WordWrapLines:TStringList;
+     function WordWrap_(Text1:TStringList;index1:integer):integer;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -85,7 +92,8 @@
       When this is @true (the default) then
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
-
+    { Words are transferred when they reach the edge of the field}
+      property WordWrap:boolean read FWordWrap write SetWordWrap;
     { Caption displayed on the label, each line as a string.
       Setting this property merely copies the contents using TStrings.Assign. }
     property Text: TStrings read FText write SetText;
@@ -207,7 +215,7 @@ begin
   ImageType := tiLabel;
   FMaxDisplayChars := -1;
   FCaptionTranslate := true;
-
+  FWordWrap:=False;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastlelabel_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -338,7 +346,10 @@ begin
 
   { calculate TextBottom }
   TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
-
+  if WordWrap then
+  begin
+    Font.PrintStrings(TextX, TextBottom, Color, WordWrapLines, false, LineSpacingScaled, Alignment);
+  end else
   if (not Html) and (MaxWidth = 0) and
      (AutoSize or (VerticalAlignment = vpBottom)) and
      (MaxDisplayChars = -1) then
@@ -503,6 +514,76 @@ begin
     // invalidate CachedRichText, as it depends on this property
     FreeAndNil(CachedRichText);
     VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleLabel.SetWordWrap(AValue: boolean);
+begin
+  if FWordWrap=AValue then Exit;
+  FWordWrap:=AValue;
+end;
+
+function TCastleLabel.WordWrapLines: TStringList;
+var
+  i,j:integer;
+begin
+  if Text.Count>0 then
+  begin
+    j:=0;
+    Result:=TStringList.Create;
+  for i:=0 to Text.Count-1 do
+  begin
+   Result.insert(i+j,Text[i+j]);
+  if Result[i]<>'' then
+  begin
+      j:=j+WordWrap_(Result,i+j);
+  end;
+end;
+  end;
+end;
+
+function TCastleLabel.WordWrap_(Text1: TStringList; index1: integer): integer;
+var
+  i,j,j1,j2:integer;
+  s:string;
+begin
+  j1:=0;
+  j:=0;
+  Result:=0;
+  if index1<Text1.Count then
+  if Text1[index1]<>'' then
+  begin
+  if  Text1[index1].IndexOf(' ')<>-1 then
+  begin
+    while Text1[index1].IndexOf(' ',j,UTF8Length(Text1[index1])-j)<>-1 do
+       begin
+        j1:=j;
+
+       j:=Text1[index1].IndexOf(' ',j,UTF8Length(Text1[index1])-j)+1;
+       if Font.TextWidth(UTF8Copy(Text1[index1],1,Text1[index1].IndexOf(' ',j,UTF8Length(Text1[index1])-j)))>RenderRect.Width then
+          begin
+
+               Text1.Insert(index1+1,UTF8Copy(Text1[index1],j+1,UTF8Length(Text1[index1])-j1+1));
+               s:=Text1[index1];
+               UTF8Delete(s,j+1,UTF8Length(Text1[index1])-j+1);
+               Text1[index1]:=s;
+               Result:=Result+WordWrap_(Text1,index1+1)+1;
+               break;
+          end;
+
+       if j>=UTF8Length(Text1[index1]) then break;
+       end;
+    end else if Font.TextWidth(Text1[index1])>RenderRect.Width then
+      for i:=0 to UTF8Length(Text1[index1])-1 do
+      if Font.TextWidth(UTF8Copy(Text1[index1],1,i))>RenderRect.Width then
+         begin
+       Text1.Insert(index1+1,UTF8Copy(Text1[index1],i,UTF8Length(Text1[index1])-i+1));
+       s:=Text1[index1];
+       UTF8Delete(s,i,UTF8Length(Text1[index1])-i+1);
+      Text1[index1]:=s;
+      Result:=Result+WordWrap_(Text1,index1+1)+1;
+      break;
+     end;
   end;
 end;
 
