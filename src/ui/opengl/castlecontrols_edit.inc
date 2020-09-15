@@ -30,6 +30,7 @@
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
     FText: string;
+    FIndex,FLastIndex:integer;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FPlaceholderColor: TCastleColor;
@@ -45,7 +46,12 @@
     FOnChange: TNotifyEvent;
     FPasswordChar: Char;
     FTextTranslate, FPlaceholderTranslate: Boolean;
+    FBolSelect:Boolean;
+    FSelectedColor:TCastleColor;
+    procedure SetSelectedColor(const Value:TCastleColor);
     procedure SetText(const Value: string);
+    procedure SetIndex(const Value:integer);
+    procedure SetLastIndex(const Value:integer);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetPlaceholderColor(const Value: TCastleColor);
@@ -67,17 +73,25 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    procedure DeleteSelectText;
+   function SelectedText: string;
     procedure SetFocused(const Value: boolean); override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
-
+    {Index for Caret}
+    property Index:integer read FIndex write SetIndex;
+    property LastIndex:integer read FLastIndex write SetLastIndex;
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
+
+   {Selected rectangle color. By default it's blue.}
+    property SelectedColor:TCastleColor read FSelectedColor write SetSelectedColor;
 
     { Unfocused text color. By default it's dark gray. }
     property UnfocusedColor: TCastleColor read FUnfocusedColor write SetUnfocusedColor;
@@ -253,7 +267,11 @@ begin
   FAutoSizeHeight := true;
   FTextTranslate := true;
   FPlaceholderTranslate := true;
-
+  if UTF8Length(Text)>0 then
+  Index:=UTF8Length(Text)-1 else
+  Index:=-1;
+  FSelectedColor:=Blue;
+  FBolSelect:=False;
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
   {$undef read_implementation_constructor}
@@ -269,12 +287,40 @@ begin
   inherited;
 end;
 
+procedure TCastleEdit.SetSelectedColor(const Value: TCastleColor);
+begin
+  FSelectedColor:=Value;
+end;
+
 procedure TCastleEdit.SetText(const Value: string);
 begin
   if FText <> Value then
   begin
     FText := Value;
     VisibleChange([chRender]);
+  end;
+end;
+
+procedure TCastleEdit.SetIndex(const Value: integer);
+begin
+  if (Value>=-1) and (Value<UTF8Length(Text)) then
+  begin
+   FIndex:=Value;
+  end else begin
+    if Value<-1 Then FIndex:=-1;
+    if Value>UTF8Length(Text)-1 then FIndex:=UTF8Length(Text)-1;
+  end;
+end;
+
+procedure TCastleEdit.SetLastIndex(const Value: integer);
+begin
+  if (Value>=-1) and (Value<UTF8Length(Text)) then
+  begin
+   FLastIndex:=Value;
+   WritelnLog('DDDD'+IntToStr(Findex));
+  end else begin
+    if Value<-1 Then FLastIndex:=-1;
+    if Value>UTF8Length(Text)-1 then FLastIndex:=UTF8Length(Text)-1;
   end;
 end;
 
@@ -422,6 +468,7 @@ var
   S: string;
   Color: TCastleColor;
   CaretShift: Single;
+  SelectedTextRect:TFloatRectangle;
 begin
   inherited;
 
@@ -464,7 +511,7 @@ begin
     if Focused then
     begin
       { Note that S here may be already processed by PasswordChar. }
-      CaretShift := Font.TextWidth(S);
+      CaretShift := Font.TextWidth(UTF8Copy(s,1,Index+1));
       Color := FocusedColor
     end else
     begin
@@ -485,6 +532,27 @@ begin
   // center in RectInside, important when AutoSize = false
   TextBottom := RectInside.Bottom +
     (RectInside.Height - Font.RowHeight) / 2 + Font.Descend;
+
+    //Draw Selected
+  if (FBolSelect) and (LastIndex<>-1) then
+   begin
+     WritelnLog(IntToStr(LastIndex));
+     SelectedTextRect.Bottom:=TextBottom;  //+ Font.Descend
+     if Index>LastIndex then
+     begin
+ SelectedTextRect.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text,1,LastIndex+1));
+  SelectedTextRect:=SelectedTextRect.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text,LastIndex+2,Index-LastIndex)));
+  WritelnLog(UTF8Copy(Text,LastIndex+2,Index-LastIndex));
+     end else
+     begin
+  SelectedTextRect.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text,1,Index+1));
+  SelectedTextRect:=SelectedTextRect.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text,Index+2,LastIndex-Index)));
+    WritelnLog(UTF8Copy(Text,Index+2,LastIndex-Index));
+     end;
+     WritelnLog(FloatToStr(SelectedTextRect.Size.Y));
+      DrawRectangle(SelectedTextRect,SelectedColor);
+   end;
+
   Font.Print(TextLeft, TextBottom, Color, S);
 
   { Note that we have to display Caret even when Text = '' and S = Placeholder. }
@@ -495,7 +563,34 @@ begin
       Font.Print(TextLeft + CaretShift, TextBottom, FocusedColor, CaretChar);
   end;
 
+
   Scissor.Enabled := false;
+end;
+
+function TCastleEdit.Motion(const Event: TInputMotion): boolean;
+var
+  i:integer;
+begin
+  Result:=inherited Motion(Event);
+  if (FBolSelect) then
+  begin
+    if  (mbLeft in Event.Pressed) and (UTF8Length(Text)>0) then
+    begin
+  for i:=UTF8Length(Text) downto 0 do
+   if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text,1,i)) then
+   begin
+   WritelnLog('ggg'+IntToStr(i-1));
+      LastIndex:=i-1;
+      break;
+      end;
+     // if SelectShift=False then
+  if (LastIndex=Index) then
+  LastIndex:=-1;
+    end;
+  end else begin
+    FBolSelect:=False;
+  LastIndex:=-1;
+  end;
 end;
 
 procedure TCastleEdit.Update(const SecondsPassed: Single;
@@ -510,41 +605,79 @@ begin
 end;
 
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
+var
+  i:integer;
+  s:string;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
-
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
-    if Text <> '' then
+  if LastIndex<>-1 then
+  DeleteSelectText else
+  if (Text <> '') and (Index>-1) then
     begin
-      Text := UTF8Copy(Text, 1, UTF8Length(Text) - 1);
+       s:=Text;
+       UTF8Delete(s,index+2-UTF8Length(UTF8Copy(Text,Index+1,1)),UTF8Length(UTF8Copy(Text,Index+1,1)));
+      Index:=Index-UTF8Length(UTF8Copy(Text,Index+1,1));
+      Text:=s;
       DoChange;
     end;
     Result := ExclusiveEvents;
   end else
+  if Event.IsKey(CharDelete) or Event.IsKey(K_Delete) then
+    begin
+    if LastIndex<>-1 then
+  DeleteSelectText else
+    if (Text <> '') and (Index<UTF8Length(Text)-1) then
+    begin
+       s:=Text;
+       UTF8Delete(s,index+2,UTF8Length(UTF8Copy(Text,Index+2,1)));
+      Text:=s;
+      DoChange;
+    end;
+    Result := ExclusiveEvents;
+  end
+  else
   if Event.IsKey(CtrlC) then
   begin
-    if Text <> '' then
-      Clipboard.AsText := Text;
+    if (Text <> '') and (LastIndex<>-1) then
+      Clipboard.AsText := SelectedText;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlX) then
   begin
-    if Text <> '' then
+    if (Text <> '') and (LastIndex<>-1) then
     begin
-      Clipboard.AsText := Text;
-      Text := '';
+  DeleteSelectText;
+      Clipboard.AsText := SelectedText;
       DoChange;
     end;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlV) then
   begin
-    Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
+  if LastIndex<>-1 then
+  DeleteSelectText;
+    s:=Text;
+    UTF8Insert(SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars),s,Index+2);
+    Text:=s;
+    Index:=Index+UTF8Length(SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars));
     DoChange;
     Result := ExclusiveEvents;
   end else
+  if Event.IsKey(keyLeft) or Event.IsKey(keyNumpadLeft) then
+  Index:=index-UTF8Length(UTF8Copy(Text,index+1,1))
+  else
+    if Event.IsKey(keyRight) or Event.IsKey(keyNumpadRight) then
+  Index:=Index+UTF8Length(UTF8Copy(Text,index+2,1))
+    else
+         if Event.IsKey(KeyEnd) or Event.IsKey(keyNumpadEnd) then
+    Index:=UTF8Length(Text)-1
+    else
+    if Event.IsKey(keyHome) or Event.IsKey(keyNumpadHome) then
+    Index:=-1
+    else
   if (Event.EventType = itKey) and
      (Event.KeyString <> '') and
      (Event.KeyCharacter in AllowedChars) and
@@ -555,9 +688,29 @@ begin
        Note: The range CtrlA..CtrlZ includes CharEnter. }
      (not (Event.KeyCharacter in [CtrlA..CtrlZ, CharEscape])) then
   begin
-    Text := Text + Event.KeyString;
+   if LastIndex<>-1 then
+  DeleteSelectText;
+    s:=Text;
+    UTF8Insert(Event.KeyString,s,Index+2);
+    Text:=s;
+    Index:=Index+1;
     DoChange;
     Result := ExclusiveEvents;
+  end
+  else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+  for i:=UTF8Length(Text) downto 0 do
+   begin
+   if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text,1,i)) then
+   begin
+      Index:=i-1;
+      WritelnLog('fff'+IntToStr(i-1));
+      break;
+   end;
+  end;
+  FBolSelect:=True;
+    LastIndex:=-1;
   end;
 end;
 
@@ -569,6 +722,44 @@ begin
     Result := inherited CapturesEventsAtPosition(Position);
 end;
 
+procedure TCastleEdit.DeleteSelectText;
+var
+  i:integer;
+  s:String;
+begin
+  if LastIndex<>-1 then
+  begin
+  if (Index=-1) and (LastIndex=UTF8Length(Text)) then
+  begin
+  Text:='';
+  end else
+      begin
+       s:=Text;
+       if Index>LastIndex then
+       begin
+       UTF8Delete(s,LastIndex+2,Index-LastIndex);
+
+       Index:=LastIndex;
+       end
+       else UTF8Delete(s,Index+2,LastIndex-Index);
+
+       Text:=s;
+       LastIndex:=-1;
+      end;
+end;
+
+end;
+
+function TCastleEdit.SelectedText: string;
+begin
+   if LastIndex<>-1 then
+  begin
+  if Index>LastIndex then
+  Result:=UTF8Copy(Text,LastIndex+2,Index-LastIndex+2)
+  else   Result:=UTF8Copy(Text,Index+2,LastIndex-Index+2);
+  end;
+end;
+
 procedure TCastleEdit.SetFocused(const Value: boolean);
 begin
   inherited;
@@ -577,7 +768,7 @@ begin
     Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
 end;
 
-procedure TCastleEdit.SetPlaceholder(const Value: string);
+procedure TCastleEdit.SetPlaceholder(const Value: String);
 begin
   if FPlaceholder <> Value then
   begin
