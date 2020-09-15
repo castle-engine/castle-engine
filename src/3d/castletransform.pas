@@ -80,8 +80,8 @@ type
   TCastleTransformList = class;
 
   { Information about ray collision with a single 3D object.
-    Everything (Point, RayOrigin, RayDirection) is expressed in the
-    local coordinates of given 3D object (in @link(Item)). }
+    Everything (Point, RayOrigin, RayDirection) is expressed
+    in the parent coordinate system of this TCastleTransform (in @link(Item)). }
   TRayCollisionNode = object
   public
     { Colliding object. }
@@ -122,7 +122,7 @@ type
     Triangle: PTriangle;
 
     { Ray used to cause the collision,
-      in local coordinate system of this 3D object.
+      in the parent coordinate system of this TCastleTransform.
       RayDirection is @italic(not) necessarily normalized! }
     RayOrigin, RayDirection: TVector3;
   end;

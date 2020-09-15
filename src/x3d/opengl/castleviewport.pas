@@ -3098,10 +3098,12 @@ function TCastleViewport.FakeRayCollisionNode(const RayOriginWorld, RayDirection
 var
   RayOrigin, RayDirection: TVector3;
 begin
-  if Item.HasWorldTransform then
+  if Item.HasWorldTransform and
+     (Item.UniqueParent <> nil) and
+     Item.UniqueParent.HasWorldTransform then
   begin
-    RayOrigin := Item.WorldToLocal(RayOriginWorld);
-    RayDirection := Item.WorldToLocalDirection(RayDirectionWorld);
+    RayOrigin := Item.UniqueParent.WorldToLocal(RayOriginWorld);
+    RayDirection := Item.UniqueParent.WorldToLocalDirection(RayDirectionWorld);
   end else
   begin
     WritelnWarning('TODO: Item %s is not part of World, or is present in World multiple times. PointingDeviceXxx events will receive ray in world coordinates, while they should be in local.');
