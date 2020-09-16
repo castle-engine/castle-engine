@@ -38,7 +38,8 @@ type
         GizmoDragging: Boolean;
         DraggingAxis: Integer;
         LastPick: TVector3;
-        { Point on axis closest to given pick. }
+        { Point on axis closest to given pick.
+          Axis may be -1 to indicate we drag on all axes with the same amount. }
         function PointOnAxis(out Intersection: TVector3;
           const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
       protected
@@ -110,26 +111,46 @@ begin
 end;
 *)
 
+var
+  IntersectionScalar: Single;
 begin
-  Result := PointOnLineClosestToLine(Intersection,
-    TVector3.Zero, TVector3.One[Axis],
-    Pick.RayOrigin, Pick.RayDirection);
-
-  {$ifdef DEBUG_GIZMO_PICK}
-  VisualizePick.Exists := Result;
-  if Result then
+  if Axis = -1 then
   begin
-    // Intersection is in UniqueParent coordinate space, i.e. ignores our gizmo scale
-    VisualizePick.Translation := OutsideToLocal(Intersection);
-    WritelnLog('VisualizePick with %s', [Intersection.ToString]);
-    WritelnLog('Line 1: %s %s, line 2 %s %s', [
-      TVector3.Zero.ToString,
-      TVector3.One[Axis].ToString,
-      Pick.RayOrigin.ToString,
-      Pick.RayDirection.ToString
-    ]);
+    (*
+    Result := Pick.Triangle <> nil; // otherwise Pick.Point undefined
+    if Result then
+    begin
+      Intersection := Pick.Point;
+      IntersectionScalar := Approximate3DScale(Intersection);
+      Intersection := Vector3(IntersectionScalar, IntersectionScalar, IntersectionScalar);
+    end;
+    *)
+
+    Result := true;
+    IntersectionScalar := Sqrt(PointToLineDistanceSqr(TVector3.Zero, Pick.RayOrigin, Pick.RayDirection));
+    Intersection := Vector3(IntersectionScalar, IntersectionScalar, IntersectionScalar);
+  end else
+  begin
+    Result := PointOnLineClosestToLine(Intersection,
+      TVector3.Zero, TVector3.One[Axis],
+      Pick.RayOrigin, Pick.RayDirection);
+
+    {$ifdef DEBUG_GIZMO_PICK}
+    VisualizePick.Exists := Result;
+    if Result then
+    begin
+      // Intersection is in UniqueParent coordinate space, i.e. ignores our gizmo scale
+      VisualizePick.Translation := OutsideToLocal(Intersection);
+      WritelnLog('VisualizePick with %s', [Intersection.ToString]);
+      WritelnLog('Line 1: %s %s, line 2 %s %s', [
+        TVector3.Zero.ToString,
+        TVector3.One[Axis].ToString,
+        Pick.RayOrigin.ToString,
+        Pick.RayDirection.ToString
+      ]);
+    end;
+    {$endif DEBUG_GIZMO_PICK}
   end;
-  {$endif DEBUG_GIZMO_PICK}
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -266,6 +287,7 @@ begin
       'MaterialX': DraggingAxis := 0;
       'MaterialY': DraggingAxis := 1;
       'MaterialZ': DraggingAxis := 2;
+      'MaterialCenter': DraggingAxis := -1;
       else Exit;
     end;
 
@@ -386,13 +408,13 @@ begin
 
   // Gizmo[voSelect] remains nil
   Gizmo[voTranslate] := CreateGizmoScene;
-  Gizmo[voTranslate].Load(EditorApplicationData + 'translate_final.x3dv');
+  Gizmo[voTranslate].Load(EditorApplicationData + 'gizmos/translate_final.x3dv');
   Gizmo[voTranslate].Operation := voTranslate;
   Gizmo[voRotate] := CreateGizmoScene;
-  Gizmo[voRotate].Load(EditorApplicationData + 'rotate.glb');
+  Gizmo[voRotate].Load(EditorApplicationData + 'gizmos/rotate_final.x3dv');
   Gizmo[voRotate].Operation := voRotate;
   Gizmo[voScale] := CreateGizmoScene;
-  Gizmo[voScale].Load(EditorApplicationData + 'scale_final.x3dv');
+  Gizmo[voScale].Load(EditorApplicationData + 'gizmos/scale_final.x3dv');
   Gizmo[voScale].Operation := voScale;
 end;
 

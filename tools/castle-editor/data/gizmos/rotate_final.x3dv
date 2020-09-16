@@ -1,0 +1,7 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Collision {
+  # proxy Inline { url "scale_colllider.glb" }
+  children Inline { url "rotate.glb" }
+}
