@@ -56,6 +56,7 @@ type
           const Distance: Single): Boolean; override;
         function PointingDeviceRelease(const Pick: TRayCollisionNode;
           const Distance: Single; const CancelAction: Boolean): Boolean; override;
+        procedure LocalRender(const Params: TRenderParams); override;
       end;
 
     var
@@ -86,7 +87,7 @@ implementation
 uses Math,
   ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
-  CastleQuaternions, X3DNodes;
+  CastleQuaternions, X3DNodes, CastleGLUtils;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
@@ -335,6 +336,25 @@ begin
   if Result then Exit;
 
   GizmoDragging := false;
+end;
+
+procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
+const
+  RenderOnTop = true;
+begin
+  { We show gizmo on top, to be easily always visible.
+    This makes sense because it is also interactable even when obscured.
+
+    This simple approach to "render on top" has same drawbacks
+    as TPlayer.LocalRender. }
+
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
+    RenderContext.DepthRange := drNear;
+
+  inherited;
+
+  if RenderOnTop and (Params.RenderingCamera.Target <> rtShadowMap) then
+    RenderContext.DepthRange := drFar;
 end;
 
 { TVisualizeTransform ------------------------------------------------------ }
