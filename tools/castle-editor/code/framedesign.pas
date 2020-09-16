@@ -39,6 +39,7 @@ uses
 type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
+    ButtonResetTransformation: TButton;
     ButtonClearAnchorDeltas: TButton;
     ButtonViewportMenu: TSpeedButton;
     LabelHeaderTransform: TLabel;
@@ -59,6 +60,7 @@ type
     MenuViewportNavigationThirdPerson: TMenuItem;
     MenuViewportNavigationExamine: TMenuItem;
     MenuViewportNavigationNone: TMenuItem;
+    PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
     MenuViewport: TPopupMenu;
@@ -91,6 +93,7 @@ type
     TabBasic: TTabSheet;
     TabOther: TTabSheet;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
+    procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonTransformRotateModeClick(Sender: TObject);
     procedure ButtonTransformScaleModeClick(Sender: TObject);
     procedure ButtonTransformSelectModeClick(Sender: TObject);
@@ -917,7 +920,7 @@ begin
   Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
   Inspector[itLayout].Filter := tkProperties;
   Inspector[itLayout].Align := alBottom;
-  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelAnchors);
+  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTransform);
 
   Inspector[itOther] := CommonInspectorCreate;
   Inspector[itOther].Parent := TabOther;
@@ -1832,6 +1835,7 @@ var
   UI: TCastleUserInterface;
   InspectorType: TInspectorType;
   V: TCastleViewport;
+  T: TCastleTransform;
 begin
   GetSelected(Selected, SelectedCount);
   try
@@ -1863,11 +1867,12 @@ begin
   V := SelectedViewport;
   SetEnabledExists(LabelSelectedViewport, V <> nil);
   SetEnabledExists(ButtonViewportMenu, V <> nil);
-
   if V <> nil then
     LabelSelectedViewport.Caption := V.Name + ':';
 
-  VisualizeTransformSelected.Parent := SelectedTransform; // works also in case SelectedTransform is nil
+  T := SelectedTransform;
+  PanelLayoutTransform.Visible := T <> nil;
+  VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 end;
 
 procedure TDesignFrame.ControlsTreeSelectionChanged(Sender: TObject);
@@ -2241,6 +2246,18 @@ begin
   begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
+    ModifiedOutsideObjectInspector;
+  end;
+end;
+
+procedure TDesignFrame.ButtonResetTransformationClick(Sender: TObject);
+var
+  T: TCastleTransform;
+begin
+  T := SelectedTransform;
+  if T <> nil then
+  begin
+    T.Identity;
     ModifiedOutsideObjectInspector;
   end;
 end;
