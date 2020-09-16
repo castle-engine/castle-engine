@@ -92,7 +92,7 @@ FWordWrap:Boolean;
       When this is @true (the default) then
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
-    { Words are transferred when they reach the edge of the field}
+    { Words are carry when they reach the edge of the field}
       property WordWrap:boolean read FWordWrap write SetWordWrap;
     { Caption displayed on the label, each line as a string.
       Setting this property merely copies the contents using TStrings.Assign. }
