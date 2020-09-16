@@ -755,8 +755,8 @@ begin
    if LastIndex<>-1 then
   begin
   if Index>LastIndex then
-  Result:=UTF8Copy(Text,LastIndex+2,Index-LastIndex+2)
-  else   Result:=UTF8Copy(Text,Index+2,LastIndex-Index+2);
+  Result:=UTF8Copy(Text,LastIndex+2,Index-LastIndex)
+  else   Result:=UTF8Copy(Text,Index+2,LastIndex-Index);
   end;
 end;
 
