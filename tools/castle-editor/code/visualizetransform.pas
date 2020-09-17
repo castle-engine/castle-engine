@@ -292,7 +292,9 @@ begin
 
     W := UniqueParent.WorldTransform;
     ZeroWorld := W.MultPoint(TVector3.Zero);
-    OneWorld := ZeroWorld + ACamera.GravityUp;
+    { Note: We use ACamera.Up, not ACamera.GravityUp, to work sensibly even
+      when looking at world at a direction similar to +Y. }
+    OneWorld := ZeroWorld + ACamera.Up;
 
     (* TODO: why this fails:
     ViewProjectionMatrix := ACamera.ProjectionMatrix * ACamera.Matrix;
