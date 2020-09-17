@@ -421,7 +421,8 @@ function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVect
 { Coefficients of the 2D line equation (Ax + By + C = 0),
   given 2 @italic(different) points lying on the line.
   When the points are equal, this is undefined. }
-function Line2DFrom2Points(const p1, p2: TVector2): TVector3;
+function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
+function LineOfTwoDifferentPoints2D(const P1, P2: TVector2): TVector3; deprecated 'use Line2DFrom2Points';
 
 { Coefficients of the 2D line equation (Ax + By + C = 0),
   given 1 point lying on the line, and non-zero line direction.
@@ -1801,6 +1802,11 @@ begin
 end;
 
 function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
+begin
+  Result := Line2DFromOriginVector(P1, P2 - P1);
+end;
+
+function LineOfTwoDifferentPoints2D(const P1, P2: TVector2): TVector3;
 begin
   Result := Line2DFromOriginVector(P1, P2 - P1);
 end;
