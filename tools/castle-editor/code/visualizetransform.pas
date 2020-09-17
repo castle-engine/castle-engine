@@ -36,12 +36,26 @@ type
         VisualizePick: TCastleScene;
         {$endif DEBUG_GIZMO_PICK}
         GizmoDragging: Boolean;
-        DraggingAxis: Integer;
+        DraggingCoord: Integer;
         LastPick: TVector3;
+        LastPickAngle: Single;
+
         { Point on axis closest to given pick.
           Axis may be -1 to indicate we drag on all axes with the same amount. }
         function PointOnAxis(out Intersection: TVector3;
           const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
+
+        { Angle in radians on a plane lying at given Coord
+          (e.g. plane "Z = 0" when Coord = 2).
+          The angle is measured using ArcTan2 on the given plane.
+          Angle is in radians, from -Pi to Pi.
+
+          It is not defined here where's the Angle = 0 exactly, as users
+          of this routine in practice always want to subtract 2 values of such
+          angle, so it doesn't matter "where is Angle = 0". }
+        function AngleOnPlane(out Angle: Single;
+          const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
+
         procedure DoParentModified;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
@@ -155,6 +169,37 @@ begin
     end;
     {$endif DEBUG_GIZMO_PICK}
   end;
+end;
+
+function TVisualizeTransform.TGizmoScene.AngleOnPlane(out Angle: Single;
+  const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
+
+  { Return other 3D coords, in the lopping order X-Y-Z.
+    This results in consistent ArcTan2 results, that makes rotating around
+    any coord in TVisualizeTransform.TGizmoScene.PointingDeviceMove
+    have the same behaviour (no need to invert angle sign for Y coord,
+    as with CastleUtils.RestOf3dCoords). }
+  procedure RestOf3dCoords(const Coord: Integer; out First, Second: Integer);
+  begin
+    case Coord of
+      0: begin First := 1; Second := 2; end;
+      1: begin First := 2; Second := 0; end;
+      2: begin First := 0; Second := 1; end;
+    end;
+  end;
+
+var
+  C1, C2: Integer;
+  PointProjected: TVector2;
+  Intersection: TVector3;
+begin
+  if not TrySimplePlaneRayIntersection(Intersection, Coord, 0, Pick.RayOrigin, Pick.RayDirection) then
+    Exit(false);
+  RestOf3dCoords(Coord, C1, C2);
+  PointProjected[0] := Intersection[C1];
+  PointProjected[1] := Intersection[C2];
+  Angle := ArcTan2(PointProjected[1], PointProjected[0]);
+  Result := true;
 end;
 
 procedure TVisualizeTransform.TGizmoScene.DoParentModified;
@@ -283,6 +328,7 @@ function TVisualizeTransform.TGizmoScene.PointingDevicePress(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
   AppearanceName: String;
+  CanDrag: Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -294,14 +340,19 @@ begin
   begin
     AppearanceName := Pick.Triangle^.ShapeNode.Appearance.X3DName;
     case AppearanceName of
-      'MaterialX': DraggingAxis := 0;
-      'MaterialY': DraggingAxis := 1;
-      'MaterialZ': DraggingAxis := 2;
-      'MaterialCenter': DraggingAxis := -1;
+      'MaterialX': DraggingCoord := 0;
+      'MaterialY': DraggingCoord := 1;
+      'MaterialZ': DraggingCoord := 2;
+      'MaterialCenter': DraggingCoord := -1;
       else Exit;
     end;
 
-    if PointOnAxis(LastPick, Pick, DraggingAxis) then
+    if Operation = voRotate then
+      CanDrag := AngleOnPlane(LastPickAngle, Pick, DraggingCoord)
+    else
+      CanDrag := PointOnAxis(LastPick, Pick, DraggingCoord);
+
+    if CanDrag then
     begin
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
@@ -314,14 +365,20 @@ function TVisualizeTransform.TGizmoScene.PointingDeviceMove(
   const Pick: TRayCollisionNode; const Distance: Single): Boolean;
 var
   NewPick, Diff: TVector3;
+  NewPickAngle, DiffAngle: Single;
   I: Integer;
+  DragSuccess: Boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if GizmoDragging then
   begin
-    if PointOnAxis(NewPick, Pick, DraggingAxis) then
+    if Operation = voRotate then
+      DragSuccess := AngleOnPlane(NewPickAngle, Pick, DraggingCoord)
+    else
+      DragSuccess := PointOnAxis(NewPick, Pick, DraggingCoord);
+    if DragSuccess then
     begin
       {$ifndef DEBUG_GIZMO_PICK}
       case Operation of
@@ -330,14 +387,14 @@ begin
             Diff := NewPick - LastPick;
             UniqueParent.Translation := UniqueParent.Translation + Diff;
           end;
-
-        // TODO: rotate/scale are dummy tests
-        //voRotate:
-        //  UniqueParent.Rotation := (
-        //    QuatFromAxisAngle(UniqueParent.Rotation) *
-        //    QuatFromAxisAngle(TVector3.One[DraggingAxis], Diff.Length)).
-        //    ToAxisAngle;
-
+        voRotate:
+          begin
+            DiffAngle := NewPickAngle - LastPickAngle;
+            UniqueParent.Rotation := (
+              QuatFromAxisAngle(UniqueParent.Rotation) *
+              QuatFromAxisAngle(TVector3.One[DraggingCoord], DiffAngle)).
+              ToAxisAngle;
+          end;
         voScale:
           begin
             for I := 0 to 2 do
@@ -350,7 +407,8 @@ begin
       end;
       {$endif not DEBUG_GIZMO_PICK}
 
-      { No point in updating LastPick: it remains the same, as it is expressed
+      { No point in updating LastPick or LastPickAngle:
+        it remains the same, as it is expressed
         in local coordinate system, which we just changed by changing
         UniqueParent.Translation. }
 
