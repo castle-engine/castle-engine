@@ -42,12 +42,14 @@ type
           Axis may be -1 to indicate we drag on all axes with the same amount. }
         function PointOnAxis(out Intersection: TVector3;
           const Pick: TRayCollisionNode; const Axis: Integer): Boolean;
+        procedure DoParentModified;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
         function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
           const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
       public
         Operation: TVisualizeOperation;
+        OnParentModified: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
         function Dragging: boolean; override;
@@ -68,9 +70,11 @@ type
       Gizmo: array [TVisualizeOperation] of TGizmoScene;
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
+    procedure GizmoHasModifiedParent(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    OnParentModified: TNotifyEvent;
     constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
     destructor Destroy; override;
     { Currently visualized TCastleTransform instance.
@@ -151,6 +155,12 @@ begin
     end;
     {$endif DEBUG_GIZMO_PICK}
   end;
+end;
+
+procedure TVisualizeTransform.TGizmoScene.DoParentModified;
+begin
+  if Assigned(OnParentModified) then
+    OnParentModified(Self);
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -346,6 +356,7 @@ begin
 
       // update our gizmo size, as we moved ourselves
       CameraChanged(World.MainCamera);
+      DoParentModified;
     end;
   end;
 end;
@@ -393,6 +404,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
     Result.InternalExcludeFromParentBoundingVolume := true;
     Result.Spatial := [ssDynamicCollisions];
     Result.SetTransient;
+    Result.OnParentModified := @GizmoHasModifiedParent;
   end;
 
 begin
@@ -454,6 +466,12 @@ begin
       FParent.Add(Gizmo[Operation]);
     FParent.FreeNotification(Self);
   end;
+end;
+
+procedure TVisualizeTransform.GizmoHasModifiedParent(Sender: TObject);
+begin
+  if Assigned(OnParentModified) then
+    OnParentModified(Self);
 end;
 
 procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);

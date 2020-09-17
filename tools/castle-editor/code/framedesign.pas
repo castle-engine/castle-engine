@@ -262,6 +262,7 @@ type
     procedure ModifiedOutsideObjectInspector;
     procedure InspectorFilter(Sender: TObject;
       AEditor: TPropertyEditor; var AShow: boolean; const Section: TPropertySection);
+    procedure GizmoHasModifiedParent(Sender: TObject);
   public
     OnUpdateFormCaption: TNotifyEvent;
     constructor Create(TheOwner: TComponent); override;
@@ -958,6 +959,7 @@ begin
 
   VisualizeTransformHover := TVisualizeTransform.Create(Self, true);
   VisualizeTransformSelected := TVisualizeTransform.Create(Self, false);
+  VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
@@ -1609,6 +1611,11 @@ begin
       Exit;
     end;
   end;
+end;
+
+procedure TDesignFrame.GizmoHasModifiedParent(Sender: TObject);
+begin
+  ModifiedOutsideObjectInspector;
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
