@@ -385,6 +385,12 @@ begin
         voTranslate:
           begin
             Diff := NewPick - LastPick;
+            { Our gizmo display and interaction is affected by existing
+              UniqueParent.Rotation, although the
+              UniqueParent.Translation is applied before rotation
+              technically.
+              So we need to manually multiply Diff by curent rotation. }
+            Diff := RotatePointAroundAxis(UniqueParent.Rotation, Diff);
             UniqueParent.Translation := UniqueParent.Translation + Diff;
           end;
         voRotate:
