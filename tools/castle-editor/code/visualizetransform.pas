@@ -39,6 +39,8 @@ type
         DraggingCoord: Integer;
         LastPick: TVector3;
         LastPickAngle: Single;
+        GizmoScalingAssumeScale: Boolean;
+        GizmoScalingAssumeScaleValue: TVector3;
 
         { Point on axis closest to given pick.
           Axis may be -1 to indicate we drag on all axes with the same amount. }
@@ -275,6 +277,22 @@ procedure TVisualizeTransform.TGizmoScene.CameraChanged(
     Result[1] := TVector3.DotProduct(V, Y);
   end;
 
+  { Returns WorldTransform, but makes sure to account for
+    GizmoScalingAssumeScale[Value] BTW. }
+  function GoodWorldTransform: TMatrix4;
+  var
+    OldScale: TVector3;
+  begin
+    if GizmoScalingAssumeScale then
+    begin
+      OldScale := Scale;
+      Scale := GizmoScalingAssumeScaleValue;
+      Result := WorldTransform;
+      Scale := OldScale;
+    end else
+      Result := WorldTransform;
+  end;
+
 const
   AssumeNear = 1.0;
 var
@@ -287,17 +305,15 @@ var
 begin
   inherited;
 
-  { Adjust scale to take the same space on screeen.
-    We look at UniqueParent transform, not our transform,
-    to ignore current Scale when measuring. }
-  if (UniqueParent <> nil) and UniqueParent.HasWorldTransform then
+  { Adjust scale to take the same space on screen. }
+  if HasWorldTransform then
   begin
     if ACamera.ProjectionType = ptOrthographic then
       GizmoScale := 0.001 * ACamera.Orthographic.EffectiveHeight
     else
       GizmoScale := 0.25 {TODO:* ACamera.Perspective.EffeectiveFieldOfViewVertical};
 
-    W := UniqueParent.WorldTransform;
+    W := GoodWorldTransform;
     ZeroWorld := W.MultPoint(TVector3.Zero);
     { Note: We use ACamera.Up, not ACamera.GravityUp, to work sensibly even
       when looking at world at a direction similar to +Y. }
@@ -368,6 +384,26 @@ begin
 
     if CanDrag then
     begin
+      if Operation = voScale then
+      begin
+        { In CameraChanged, we adjust gizmo scale to make it fit within
+          the screen nicely. But this has to be disabled within current
+          dragging, otherwise gizmo would try to "counter" the scaling
+          of parent, resulting in weird UX.
+          During a single drag, we behave like Scale is constant.
+          Gizmo will be correctly scaled when you release.
+
+          TODO:
+          - actually see the weirdness.
+
+            for some reason, CameraChanged without UniqueParent
+            doesn't try to unscale?
+
+          - then make the GizmoScalingAssumeScale actually working.
+        }
+        //GizmoScalingAssumeScale := true;
+        GizmoScalingAssumeScaleValue := Scale;
+      end;
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
       Result := true;
@@ -447,6 +483,12 @@ begin
   if Result then Exit;
 
   GizmoDragging := false;
+
+  if GizmoScalingAssumeScale then
+  begin
+    GizmoScalingAssumeScale := false;
+    CameraChanged(World.MainCamera);
+  end;
 end;
 
 procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
