@@ -268,13 +268,20 @@ end;
 
 procedure TVisualizeTransform.TGizmoScene.CameraChanged(
   const ACamera: TCastleCamera);
+
+  function Projected(const V, X, Y: TVector3): TVector2;
+  begin
+    Result[0] := TVector3.DotProduct(V, X);
+    Result[1] := TVector3.DotProduct(V, Y);
+  end;
+
 const
   AssumeNear = 1.0;
 var
   W{, ViewProjectionMatrix}: TMatrix4;
   ZeroProjected, OneProjected: TVector2;
   OneDistance, ScaleUniform: Single;
-  ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos: TVector3;
+  ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
   CameraNearPlane: TVector4;
   GizmoScale: Single;
 begin
@@ -312,11 +319,16 @@ begin
     if not TryPlaneLineIntersection(ZeroProjected3, CameraNearPlane, CameraPos, ZeroWorld - CameraPos) then
       Exit;
 
-    ZeroProjected := ZeroProjected3.XY;
-    OneProjected := OneProjected3.XY;
+    CameraSide := TVector3.CrossProduct(ACamera.Direction, ACamera.Up);
+    ZeroProjected := Projected(ZeroProjected3, CameraSide, ACamera.Up);
+    OneProjected := Projected(OneProjected3, CameraSide, ACamera.Up);
+
     // get the distance, on screen in pixels, of a 1 unit in 3D around gizmo
     OneDistance := PointsDistance(ZeroProjected, OneProjected);
-    ScaleUniform := Max(0.01, GizmoScale / OneDistance);
+    if IsZero(OneDistance) then
+      ScaleUniform := 1
+    else
+      ScaleUniform := GizmoScale / OneDistance;
     Scale := Vector3(ScaleUniform, ScaleUniform, ScaleUniform);
   end;
 end;
