@@ -139,7 +139,6 @@ end;
 procedure TUndoSystem.RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
 var
   NewUndoElement: TUndoHistoryElement;
-  I: Integer;
   NewUndoHistorySize: Integer;
 begin
   ScheduleRecordUndoOnRelease := false;
@@ -163,8 +162,7 @@ begin
   end;
   WriteLnLog('Saving Undo record. CurrentUndo = ' + IntToStr(CurrentUndo));
   //Clean all next undo records if available;
-  for I := UndoHistory.Count - 1 downto CurrentUndo + 1 do
-    UndoHistory.Delete(I);
+  UndoHistory.Count := CurrentUndo + 1;
   //add new UndoElement
   NewUndoElement := TUndoHistoryElement.Create;
   NewUndoElement.Data := UndoData;
