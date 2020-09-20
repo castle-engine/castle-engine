@@ -473,7 +473,7 @@ begin
   end else
   begin
     MenuItemUndo.Enabled := false;
-    MenuItemUndo.Caption := 'Undo is not possible';
+    MenuItemUndo.Caption := 'Undo';
   end;
 
   if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
@@ -483,7 +483,7 @@ begin
   end else
   begin
     MenuItemRedo.Enabled := false;
-    MenuItemRedo.Caption := 'Redo is not possible';
+    MenuItemRedo.Caption := 'Redo';
   end;
 end;
 
