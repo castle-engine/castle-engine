@@ -12,84 +12,84 @@ uses
   CastleUtils;
 
 type
-  { Content of the Undo record
-    we might want to change it in future, most likely make several types of data
+  { Content of the Undo record.
+    We might want to change it in future, most likely make several types of data
     that can be recorded as undo events }
   TUndoData = String;
-  { Reference to the component selected at the moment of recording Undo data
-    Currently we are "finding" the component by name to select it }
+  { Reference to the component selected at the moment of recording Undo data.
+    Currently we are "finding" the component by name to select it. }
   TSelectedComponent = String;
 
 type
-  { A single change in scene content }
+  { A single change in scene content. }
   TUndoHistoryElement = class(TObject)
-    { Content of this undo }
+    { Content of this undo. }
     Data: TUndoData;
-    { Compopent, selected at the time of undo recording }
+    { Compopent, selected at the time of undo recording. }
     Selected: TSelectedComponent;
-    { Index of the value selected/edited in the ObjectInspector }
+    { Index of the value selected/edited in the ObjectInspector. }
     ItemIndex: Integer;
-    { Index of the tab, opened at the moment of the Undo recording }
+    { Index of the tab, opened at the moment of the Undo recording. }
     TabIndex: Integer;
-    { Human-readable explanation of what action is recorded in this undo record }
+    { Human-readable explanation of what action is recorded in this undo record. }
     Comment: String;
     { Estimate of this undo record size;
       It may be several bytes inaccurate,
-      but it's used only to avoid exceeding some preset RAM limit }
+      but it's used only to avoid exceeding some preset RAM limit. }
     function Size: SizeInt;
   end;
 
 type
-  { All undo records currently availalbe }
+  { All undo records currently availalbe. }
   TUndoHistory = specialize TObjectList<TUndoHistoryElement>;
 
 type
-  { Manages undo records and performs undo/redo }
+  { Manages undo records and performs undo/redo. }
   TUndoSystem = class(TComponent)
   //private const MaxUndo = 50;
-  { Max amount of memory that can be reserved by Undo System
+  { Max amount of memory that can be reserved by Undo System.
     If the current records total size overruns this limit,
-    the fist undo records will be purged
-    Maybe we'll want to have it as user-definable variable in Castle-Editor settings }
+    the fist undo records will be purged.
+    Maybe we'll want to have it as user-definable variable in Castle-Editor settings. }
   private const MaxUndoHistorySize = 128 * 1024 * 1024; //128 Mb
   private
-    { Current undo step
-      equals to the last element of the Undo History, unless an undo has been performed }
+    { Current undo step,
+      equals to the last element of the Undo History, unless an undo has been performed. }
     CurrentUndo: Integer;
-    { All undo records in this session }
+    { All undo records in this session. }
     UndoHistory: TUndoHistory;
-    { Calculates total size of RAM used by the Undo History }
+    { Calculates total size of RAM used by the Undo History. }
     function UndoHistorySize: Integer;
-    { Construct human-readable comment for this Undo record }
+    { Construct human-readable comment for this Undo record. }
     function GetUndoComment(const UndoI: Integer): String;
   public
-    { Called when Undo information displayed to the User should be changed }
+    { Called when Undo information displayed to the User should be changed. }
     OnUpdateUndo: TNotifyEvent;
     { Should the Undo be recorded on Release event?
       Note, that we rely here on Release event, which may never come in case
-      user has switched a window (e.g. with Alt-Tab) while dragging
-      This value will be purged when recording a new Undo record }
+      user has switched a window (e.g. with Alt-Tab) while dragging.
+      This value will be purged when recording a new Undo record. }
     ScheduleRecordUndoOnRelease: Boolean;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { Should be called after every significant change, including initial loading of the design }
-    { Try to record a new Undo record
-      If several actions have been undone before, all the redo history will be cleared at this moment
-      If the new Undo record is equal to the recorded one then nothing will be recorded }
+    { Should be called after every significant change, including initial loading of the design. }
+    { Try to record a new Undo record.
+      If several actions have been undone before, all the redo history will be cleared at this moment.
+      If the new Undo record is equal to the recorded one then nothing will be recorded. }
     procedure RecordUndo(const UndoData: TUndoData; const SelectedComponent: TSelectedComponent; const ItemIndex: Integer; const TabIndex: Integer; const UndoComment: String);
-    { Get a recent state change and move one step backwards in Undo History }
+    { Get a recent state change and move one step backwards in Undo History. }
     function Undo: TUndoHistoryElement;
-    { Get a state change following current state and move one step fowrard in Undo History }
+    { Get a state change following current state and move one step fowrard in Undo History. }
     function Redo: TUndoHistoryElement;
-    { If it's possible to perform Undo right now }
+    { Is it possible to perform Undo right now? }
     function IsUndoPossible: Boolean;
-    { If it's possible to perform Redo right now }
+    { Is it possible to perform Redo right now? }
     function IsRedoPossible: Boolean;
-    { Get comment for Undo action if it's possible, or return '' }
+    { Get comment for Undo action if it's possible, or return ''. }
     function UndoComment: String;
-    { Get comment for Redo action if it's possible, or return '' }
+    { Get comment for Redo action if it's possible, or return ''. }
     function RedoComment: String;
-    { Clear all Undo History }
+    { Clear all Undo History. }
     procedure ClearUndoHistory;
   end;
 
@@ -101,8 +101,8 @@ uses
 function TUndoHistoryElement.Size: SizeInt;
 
   //see https://www.freepascal.org/docs-html/ref/refsu13.html
-  //I'm not sure if this includes size of string pointer or not
-  //Note that Length(AnsiString) returns length of the string in bytes, not in UTF8 characters
+  //I'm not sure if this includes size of string pointer or not.
+  //Note that Length(AnsiString) returns length of the string in bytes, not in UTF8 characters.
   function SizeOfAnsiString(const S: String): SizeInt;
   const
     HS = 16;
