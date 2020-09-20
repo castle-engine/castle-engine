@@ -96,7 +96,7 @@ type
 implementation
 uses
   SysUtils,
-  CastleComponentSerialize, CastleLog;
+  CastleComponentSerialize, CastleLog, CastleStringUtils;
 
 function TUndoHistoryElement.Size: SizeInt;
 
@@ -188,7 +188,7 @@ begin
   end;
   Assert(UndoHistorySize = NewUndoHistorySize);
   OnUpdateUndo(Self);
-  WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + IntToStr(NewUndoHistorySize div 1024) + 'kb.');
+  WriteLnLog('Undo record saved. CurrentUndo = ' + IntToStr(CurrentUndo) + '; Undo History Size = ' + SizeToStr(NewUndoHistorySize));
 end;
 
 function TUndoSystem.Undo: TUndoHistoryElement;
