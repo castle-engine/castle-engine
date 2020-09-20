@@ -15,10 +15,10 @@ type
   { Content of the Undo record
     we might want to change it in future, most likely make several types of data
     that can be recorded as undo events }
-  TUndoData = string;
+  TUndoData = String;
   { Reference to the component selected at the moment of recording Undo data
     Currently we are "finding" the component by name to select it }
-  TSelectedComponent = string;
+  TSelectedComponent = String;
 
 type
   { A single change in scene content }
