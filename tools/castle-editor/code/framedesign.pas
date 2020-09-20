@@ -284,7 +284,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
   CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
-  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors,
+  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleTimeUtils,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
   EditorUtils;
 
@@ -1590,11 +1590,12 @@ end;
 
 procedure TDesignFrame.RecordUndo(const UndoComment: String; const ItemIndex: Integer = -1);
 var
-  T: TDateTime;
+  StartTimer: TTimerResult;
   SelectedName: String;
   SelectedC: TComponent;
 begin
-  T := Now;
+  StartTimer := Timer;
+
   SelectedC := GetSelectedComponent;
   if (SelectedC <> nil) then
     SelectedName := SelectedC.Name
@@ -1602,7 +1603,8 @@ begin
     SelectedName := '';
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment);
-  WriteLnLog('Undo recorded in ' + FloatToStr((Now - T) * 24 * 60 * 60) + 's for ' + SelectedName);
+
+  WriteLnLog('Undo recorded in %fs for %s', [StartTimer.ElapsedTime, SelectedName]);
 end;
 
 procedure TDesignFrame.MarkModified;
