@@ -2254,7 +2254,7 @@ begin
   V := SelectedViewport;
   V.Setup2D;
   ModifiedOutsideObjectInspector;
-  RecordUndo('MenuItemViewportCamera2DViewInitialClick'); //whatever that means?
+  RecordUndo('Camera Setup for 2D View and Projection');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
@@ -2268,7 +2268,7 @@ begin
     V.Camera.InitialDirection,
     V.Camera.InitialUp);
   ModifiedOutsideObjectInspector;
-  RecordUndo('MenuItemViewportCameraCurrentFromInitialClick'); //whatever that means?
+  RecordUndo('Camera Current := Initial');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -2309,7 +2309,7 @@ begin
     V.Navigation.ModelBox := Box;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo('MenuItemViewportCameraViewAllClick'); //whatever that means?
+  RecordUndo('Camera Current := View All');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
@@ -2324,7 +2324,7 @@ begin
   V.AutoCamera := false;
 
   ModifiedOutsideObjectInspector;
-  RecordUndo('MenuItemViewportCameraSetInitialClick'); //whatever that means?
+  RecordUndo('Camera Initial := Current');
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
@@ -2337,7 +2337,7 @@ begin
 
   ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order
-  RecordUndo('MenuItemViewportSort2DClick'); //whatever that means?
+  RecordUndo('Sort Items For Correct 2D Blending');
 end;
 
 {
