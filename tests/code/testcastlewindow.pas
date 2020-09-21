@@ -14,6 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
+{ Test CastleWindow. }
 unit TestCastleWindow;
 
 interface

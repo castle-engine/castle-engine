@@ -34,6 +34,8 @@ type
     ListWarnings: TListBox;
     MenuItemRedo: TMenuItem;
     MenuItemUndo: TMenuItem;
+    MenuItemSeparator78: TMenuItem;
+    MenuItemReferenceOfCurrent: TMenuItem;
     MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
@@ -141,6 +143,7 @@ type
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
+    procedure MenuItemReferenceOfCurrentClick(Sender: TObject);
     procedure MenuItemRefreshDirClick(Sender: TObject);
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
@@ -209,13 +212,23 @@ end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/apidoc/html/index.html');
+  OpenURL(ApiReferenceUrl + 'index.html');
 end;
 
 procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
 begin
   BuildMode := bmRelease;
   MenuItemModeRelease.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemReferenceOfCurrentClick(Sender: TObject);
+var
+  Url: String;
+begin
+  Url := ApiReferenceUrl + 'index.html';
+  if Design <> nil then
+    Design.CurrentComponentApiUrl(Url);
+  OpenURL(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);

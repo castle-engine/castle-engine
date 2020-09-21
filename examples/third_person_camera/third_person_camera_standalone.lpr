@@ -9,7 +9,7 @@ program third_person_camera_standalone;
 {$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
 uses
-  {$ifdef CASTLE_THREADS}
+  {$ifndef CASTLE_DISABLE_THREADS}
     {$info Thread support enabled.}
     {$ifdef UNIX} CThreads, {$endif}
   {$endif}

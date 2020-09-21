@@ -26,6 +26,7 @@ type
   TStatePlay = class(TUIState)
   strict private
     Background: TCastleRectangleControl;
+    WalkNavigation: TCastleWalkNavigation;
     Viewport: TCastleViewport;
     Scene: TCastleScene;
     MapViewportRect: TCastleRectangleControl;
@@ -67,6 +68,11 @@ begin
     This is actually the default now. }
   //Scene.Attributes.BlendingSort := bs3D;
 
+  WalkNavigation := TCastleWalkNavigation.Create(FreeAtStop);
+  WalkNavigation.MoveSpeed := 10;
+  { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
+  WalkNavigation.HeadBobbing := 0;
+
   Viewport := TCastleViewport.Create(FreeAtStop);
   Viewport.AutoCamera := true;
   Viewport.FullSize := false;
@@ -76,10 +82,7 @@ begin
   Viewport.Height := 748;
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
-  Viewport.NavigationType := ntWalk;
-  Viewport.WalkNavigation.MoveSpeed := 10;
-  { turn off head bobbing, it makes a feeling that sprites sometimes "tremble" }
-  Viewport.WalkNavigation.HeadBobbing := 0;
+  Viewport.Navigation := WalkNavigation;
   InsertFront(Viewport);
 
   MapViewportRect := TCastleRectangleControl.Create(FreeAtStop);
@@ -153,6 +156,7 @@ end;
 function TStatePlay.Press(const Event: TInputPressRelease): boolean;
 var
   Triangle: PTriangle;
+  Male: Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -160,13 +164,13 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Triangle := Viewport.TriangleHit;
-    if (Triangle <> nil) and
-       ( (Triangle^.Material.X3DName = 'MA_female_zombie_material') or
-         (Triangle^.Material.X3DName = 'MA_male_zombie_material')) then
+    if (Triangle <> nil) and // we clicked on something that has triangle information (e.g. because it has Spatial with ssDynamicCollisions)
+       (Triangle^.MaterialInfo <> nil)  and // the clicked triangle has a material information
+       ( (Triangle^.MaterialInfo.Node.X3DName = 'MA_female_zombie_material') or
+         (Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material')) then
     begin
-      TUIState.Push(TStateAskDialog.CreateUntilStopped(
-        Triangle^.Material.X3DName = 'MA_male_zombie_material'
-      ));
+      Male := Triangle^.MaterialInfo.Node.X3DName = 'MA_male_zombie_material';
+      TUIState.Push(TStateAskDialog.CreateUntilStopped(Male));
     end;
   end;
 end;

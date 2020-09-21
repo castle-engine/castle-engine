@@ -251,7 +251,7 @@ procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
   begin
     if not XMLAttributeX3DName(Element, AttrName, Result) then
     begin
-      WritelnWarning('VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
+      WritelnWarning('X3D', 'Missing ROUTE ' + AttrName + ' attribute');
       Result := '';
     end;
   end;
@@ -300,7 +300,7 @@ begin
     if DestinationEvent <> nil then
       DestinationEvent.Send(Value, Time);
   end else
-    WritelnLog('VRML/X3D', Format(
+    WritelnLog('X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
       [ SourceNode.X3DName, SourceEvent.X3DName,
         DestinationNode.X3DName, DestinationEvent.X3DName,
@@ -405,7 +405,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      WritelnWarning('VRML/X3D', E.Message);
+      WritelnWarning('X3D', E.Message);
     end;
   end;
 end;
@@ -442,7 +442,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      WritelnWarning('VRML/X3D', E.Message);
+      WritelnWarning('X3D', E.Message);
     end;
   end;
 end;
@@ -547,7 +547,7 @@ begin
     end;
   except
     on E: EX3DRouteSaveError do
-      WritelnWarning('VRML/X3D', E.Message);
+      WritelnWarning('X3D', E.Message);
   end;
 end;
 

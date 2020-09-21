@@ -92,8 +92,8 @@ const
              '');
            Halt;
          end;
-      1: FloatScale *= StrToFloat(Argument);
-      2: FloatGamma *= StrToFloat(Argument);
+      1: FloatScale *= StrToFloatDot(Argument);
+      2: FloatGamma *= StrToFloatDot(Argument);
       3: WasParam_GrayScale := true;
       4: Param_ConvertToChannel := StrToInt(Argument);
       5: Param_StripToChannel := StrToInt(Argument);

@@ -157,7 +157,13 @@ The idea is that we sometimes want to move code from castle-editor to
 the engine core, for technical reasons, and we want the freedom to do so.
 Still, the editor stays GPL for the general public.
 
-## Contributing: When creating a new Lazarus form, remember to...
+## Contributing
+
+- Use desktop settings with 125% font scaling. Unfortunately, your personal desktop settings, at design-time, affect what is saved in LFM files, so it is best if we all use the same scaling, otherwise diffs to LFM files wildly change everything.
+
+    You can set such scaling e.g. by GNOME 3 _"Large fonts"_ accessibilty option, or by adjusting Xorg dpi to 120 (96 * 1.25), Windows also allows to set 125% scaling.
+
+### Contributing: When creating a new Lazarus form, remember to...
 
 - Save form class `TFooForm` (so it will have singleton `FooForm`) in unit name `FormFoo`.
 - Adjust form's `Caption`.

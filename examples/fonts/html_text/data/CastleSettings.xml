@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  See https://castle-engine.io/manual_castle_settings.php
+  for documentation of this file format.
+-->
+
+<castle_settings>
+  <ui_scaling
+    mode="EncloseReferenceSize"
+    reference_width="1600"
+    reference_height="900"
+  />
+  <default_font>
+    <regular
+      url="castle-data:/fonts/DejaVuSans.ttf"
+      size="30"
+    />
+    <bold
+      url="castle-data:/fonts/DejaVuSans-Bold.ttf"
+      size="30"
+    />
+    <italic
+      url="castle-data:/fonts/DejaVuSans-Oblique.ttf"
+      size="30"
+    />
+    <bold_italic
+      url="castle-data:/fonts/DejaVuSans-BoldOblique.ttf"
+      size="30"
+    />
+  </default_font>
+</castle_settings>

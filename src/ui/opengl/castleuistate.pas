@@ -214,9 +214,9 @@ type
       by @code(TUIState.Current := MyState), this happens:
 
       @orderedList(
-        @item(MyStart is pushed as the top-most state on state stack.)
-        @item(MyStart.Start is called.)
-        @item(MyStart is added to the @code(StateContainer.Controls) list,
+        @item(MyState is pushed as the top-most state on state stack.)
+        @item(MyState.Start is called.)
+        @item(MyState is added to the @code(StateContainer.Controls) list,
           so the state methods GLContextOpen and Resize are called
           (as for all normal TCastleUserInterface instances).)
         @item(MyStar.Resume is called.)
@@ -228,13 +228,13 @@ type
       When the state stops becoming active, this happens:
 
       @orderedList(
-        @item(MyStart.Pause is called.)
-        @item(MyStart is removed from the
+        @item(MyState.Pause is called.)
+        @item(MyState is removed from the
           @code(StateContainer.Controls) list.
           So the state method GLContextClose is called
           (as for all normal TCastleUserInterface instances).)
-        @item(MyStart.Stop is called.)
-        @item(MyStart is removed from the on state stack.)
+        @item(MyState.Stop is called.)
+        @item(MyState is removed from the on state stack.)
       )
 
       This is always called to finalize the started state.

@@ -2,18 +2,18 @@ X3DNurbsControlCurveNode : X3DNode {
   MFVec2d  [in,out] controlPoint []   (-Inf,Inf)
 }
 
-X3DNurbsSurfaceGeometryNode : X3DParametricGeometryNode { 
+X3DNurbsSurfaceGeometryNode : X3DParametricGeometryNode {
   SFNode   [in,out] controlPoint  []    [X3DCoordinateNode]
   SFNode   [in,out] texCoord      []    [X3DTextureCoordinateNode|NurbsTextureCoordinate]
   SFInt32  [in,out] uTessellation 0     (-Inf,Inf)
   SFInt32  [in,out] vTessellation 0     (-Inf,Inf)
   MFDouble [in,out] weight        []    (0,Inf)
   SFBool   []       solid         TRUE
-  SFBool   []       uClosed       FALSE 
+  SFBool   []       uClosed       FALSE
   SFInt32  []       uDimension    0     [0,Inf)
   MFDouble []       uKnot         []    (-Inf,Inf)
   SFInt32  []       uOrder        3     [2,Inf)
-  SFBool   []       vClosed       FALSE 
+  SFBool   []       vClosed       FALSE
   SFInt32  []       vDimension    0     [0,Inf)
   MFDouble []       vKnot         []    (-Inf,Inf)
   SFInt32  []       vOrder        3     [2,Inf)
@@ -22,7 +22,7 @@ X3DNurbsSurfaceGeometryNode : X3DParametricGeometryNode {
 X3DParametricGeometryNode : X3DGeometryNode {
 }
 
-Contour2D : X3DNode { 
+Contour2D : X3DNode {
   MFNode [in]     addChildren         [NurbsCurve2D|ContourPolyline2D]
   MFNode [in]     removeChildren      [NurbsCurve2D|ContourPolyline2D]
   MFNode [in,out] children       []   [NurbsCurve2D|ContourPolyline2D]
@@ -31,7 +31,7 @@ Contour2D : X3DNode {
 ContourPolyline2D : X3DNurbsControlCurveNode {
 }
 
-CoordinateDouble : X3DCoordinateNode { 
+CoordinateDouble : X3DCoordinateNode {
   MFVec3d [in,out] point    []   (-Inf,Inf)
 }
 
@@ -39,7 +39,7 @@ NurbsCurve : X3DParametricGeometryNode {
   SFNode   [in,out] controlPoint []    [X3DCoordinateNode]
   SFInt32  [in,out] tessellation 0     (-Inf,Inf)
   MFDouble [in,out] weight       []    (0,Inf)
-  SFBool   []       closed       FALSE 
+  SFBool   []       closed       FALSE
   MFDouble []       knot         []    (-Inf,Inf)
   SFInt32  []       order        3     [2,Inf)
 }
@@ -47,42 +47,42 @@ NurbsCurve : X3DParametricGeometryNode {
 NurbsCurve2D : X3DNurbsControlCurveNode {
   SFInt32  [in,out] tessellation 0     (-Inf,Inf)
   MFDouble [in,out] weight       []    (0,Inf)
-  SFBool   []       closed       FALSE 
+  SFBool   []       closed       FALSE
   MFDouble []       knot         []    (-Inf,Inf)
   SFInt32  []       order        3     [2,Inf)
 }
 
-NurbsOrientationInterpolator : X3DChildNode { 
+NurbsOrientationInterpolator : X3DChildNode {
   SFFloat    [in]     set_fraction       (-Inf,Inf)
   SFNode     [in,out] controlPoint []   [X3DCoordinateNode]
-  MFDouble   [in,out] knot          []   (-Inf,Inf)  
+  MFDouble   [in,out] knot          []   (-Inf,Inf)
   SFInt32    [in,out] order         3    (2,Inf)
   MFDouble   [in,out] weight        []   (-Inf,Inf)
   SFRotation [out]    value_changed
 }
 
-NurbsPatchSurface : X3DNurbsSurfaceGeometryNode { 
+NurbsPatchSurface : X3DNurbsSurfaceGeometryNode {
 }
 
-NurbsPositionInterpolator : X3DChildNode { 
+NurbsPositionInterpolator : X3DChildNode {
   SFFloat  [in]     set_fraction       (-Inf,Inf)
   SFNode   [in,out] controlPoint  []   [X3DCoordinateNode]
-  MFDouble [in,out] knot          []   (-Inf,Inf)  
+  MFDouble [in,out] knot          []   (-Inf,Inf)
   SFInt32  [in,out] order         3    (2,Inf)
   MFDouble [in,out] weight        []   (-Inf,Inf)
   SFVec3f  [out]    value_changed
 }
 
 NurbsSet : X3DChildNode, X3DBoundedObject {
-  MFNode  [in]     addGeometry                [NurbsSurface]
-  MFNode  [in]     removeGeometry             [NurbsSurface]
-  MFNode  [in,out] geometry          []       [NurbsSurface]
+  MFNode  [in]     addGeometry                [X3DNurbsSurfaceGeometryNode]
+  MFNode  [in]     removeGeometry             [X3DNurbsSurfaceGeometryNode]
+  MFNode  [in,out] geometry          []       [X3DNurbsSurfaceGeometryNode]
   SFFloat [in,out] tessellationScale 1.0      (0,Inf)
   SFVec3f []       bboxCenter        0 0 0    (-Inf,Inf)
   SFVec3f []       bboxSize          -1 -1 -1 [0,Inf) or -1 -1 -1
 }
 
-NurbsSurfaceInterpolator : X3DChildNode { 
+NurbsSurfaceInterpolator : X3DChildNode {
   SFVec2f  [in]     set_fraction          (-Inf,Inf)
   SFNode   [in,out] controlPoint     []   [X3DCoordinateNode]
   MFDouble [in,out] weight           []   (-Inf,Inf)
@@ -96,21 +96,21 @@ NurbsSurfaceInterpolator : X3DChildNode {
   SFInt32  []       vOrder           3    [2,Inf)
 }
 
-NurbsSweptSurface : X3DParametricGeometryNode { 
+NurbsSweptSurface : X3DParametricGeometryNode {
   SFNode [in,out] crossSectionCurve []   [X3DNurbsControlCurveNode]
   SFNode [in,out] trajectoryCurve   []   [NurbsCurve]
   SFBool []       ccw               TRUE
   SFBool []       solid             TRUE
 }
 
-NurbsSwungSurface : X3DParametricGeometryNode { 
+NurbsSwungSurface : X3DParametricGeometryNode {
   SFNode [in,out] profileCurve      []   [X3DNurbsControlCurveNode]
   SFNode [in,out] trajectoryCurve   []   [X3DNurbsControlCurveNode]
   SFBool []       ccw               TRUE
   SFBool []       solid             TRUE
 }
 
-NurbsTextureCoordinate : X3DNode { 
+NurbsTextureCoordinate : X3DNode {
   MFVec2f  [in,out] controlPoint []   (-Inf,Inf)
   MFFloat  [in,out] weight       []   (0,Inf)
   SFInt32  []       uDimension   0    [0,Inf)
@@ -121,9 +121,8 @@ NurbsTextureCoordinate : X3DNode {
   SFInt32  []       vOrder       3    [2,Inf)
 }
 
-NurbsTrimmedSurface : X3DNurbsSurfaceGeometryNode { 
+NurbsTrimmedSurface : X3DNurbsSurfaceGeometryNode {
   MFNode   [in]     addTrimmingContour          [Contour2D]
   MFNode   [in]     removeTrimmingContour       [Contour2D]
   MFNode   [in,out] trimmingContour       []    [Contour2D]
 }
-

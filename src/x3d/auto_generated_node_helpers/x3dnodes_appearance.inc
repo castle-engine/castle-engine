@@ -32,8 +32,8 @@
 {$endif not CASTLE_SLIM_NODES}
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
-    function GetBackMaterial: TAbstractMaterialNode;
-    procedure SetBackMaterial(const Value: TAbstractMaterialNode);
+    function GetBackMaterial: TAbstractOneSidedMaterialNode;
+    procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetShadowCaster: Boolean;
@@ -50,7 +50,7 @@
     { X3D field "lineProperties". } { }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
     { X3D field "backMaterial". } { }
-    property BackMaterial: TAbstractMaterialNode read GetBackMaterial write SetBackMaterial;
+    property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
     { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
     { X3D field "textureTransform". } { }
@@ -100,15 +100,15 @@ begin
   FdLineProperties.Send(Value);
 end;
 
-function TAppearanceNode.GetBackMaterial: TAbstractMaterialNode;
+function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
 begin
-  if FdBackMaterial.Value is TAbstractMaterialNode then
-    Result := TAbstractMaterialNode(FdBackMaterial.Value)
+  if FdBackMaterial.Value is TAbstractOneSidedMaterialNode then
+    Result := TAbstractOneSidedMaterialNode(FdBackMaterial.Value)
   else
     Result := nil;
 end;
 
-procedure TAppearanceNode.SetBackMaterial(const Value: TAbstractMaterialNode);
+procedure TAppearanceNode.SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
 begin
   FdBackMaterial.Send(Value);
 end;

@@ -127,7 +127,7 @@
 
       This method is used by TCastleSceneCore. Don't call this yourself.
 
-      Returns changed VRML/X3D coordinates field (or @nil if there is no skin).
+      Returns changed X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
       TCastleSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
@@ -553,7 +553,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
             if (CoordIndex < 0) or
                (CoordIndex >= SkinCoord.Count) then
             begin
-              WritelnWarning('VRML/X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+              WritelnWarning('X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
                 [CoordIndex, SkinCoord.Count]));
               Continue;
             end;

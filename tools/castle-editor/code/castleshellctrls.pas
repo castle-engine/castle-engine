@@ -695,7 +695,7 @@ var
   FileItem: TFileItem;
   i: Integer;
   MaskStrings, ExcludeMaskStrings: TStringList;
-  FileTree: TStringList;
+  //FileTree: TStringList;
   ShortFilename: AnsiString;
   {$if defined(windows) and not defined(wince)}
   ErrMode : LongWord;

@@ -129,9 +129,14 @@ public class MainActivity extends NativeActivity
      * Services (except ServiceMessaging) may call this
      * to send message to native code.
      */
-    public void messageSend(String[] s)
+    public void messageSend(String[] message, byte[] messageStream)
     {
-        messaging.sendFromMainActivity(s);
+        messaging.sendFromMainActivity(message, messageStream);
+    }
+
+    public void messageSend(String[] message)
+    {
+        messageSend(message, null);
     }
 
     /**
@@ -175,7 +180,7 @@ public class MainActivity extends NativeActivity
 
     /* JNI ------------------------------------------------------------------- */
 
-    public native String jniMessage(String javaToNative);
+    public native String jniMessage(String messageToPascal, byte[] messageToPascalStream);
     public native void jniLanguage(String javaToNative);
 
     public static final void safeLoadLibrary(String libName)

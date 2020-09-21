@@ -223,14 +223,11 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/view_3d_model_basic \
-  examples/audio/simplest_play_sound \
-  examples/audio/doppler_demo \
   examples/castlescript/castle_calculator \
   examples/castlescript/image_make_by_script \
   examples/curves/simplest_curve_read \
   examples/fonts/font_draw_over_image \
   examples/fonts/font_from_texture \
-  examples/fonts/html_text \
   examples/fonts/test_font_break \
   examples/images_videos/background_tiling \
   examples/images_videos/dds_decompose \
@@ -250,7 +247,6 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/show_sh \
-  examples/simple_command_line_utilities/castle_download \
   examples/simple_command_line_utilities/dircleaner \
   examples/simple_command_line_utilities/stringoper \
   examples/space_filling_curve/draw_space_filling_curve \
@@ -269,8 +265,6 @@ EXAMPLES_BASE_NAMES := \
 # Note that src/library/castleengine must be compiled before
 # cge_dynlib_tester, otherwise linking cge_dynlib_tester will fail.
 EXAMPLES_LAZARUS_BASE_NAMES := \
-  examples/audio/audio_player_scrubber/audio_player_scrubber \
-  examples/audio/test_sound_source_allocator/test_sound_source_allocator \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
@@ -336,11 +330,11 @@ examples:
 # We make a copy of castle-engine, otherwise it would fail on Windows
 # (as you cannot replace your own exe).
 # Exceptions:
-# - We do not compile examples/tcp_connection/ here,
+# - We do not compile examples/network/tcp_connection/ here,
 #   as it requires Indy which may not be installed.
 	cp -f tools/build-tool/castle-engine$(EXE_EXTENSION) tools/build-tool/castle-engine-copy$(EXE_EXTENSION)
 	$(FIND) . \
-	  '(' -path ./examples/tcp_connection -prune ')' -o \
+	  '(' -path ./examples/network/tcp_connection -prune ')' -o \
 	  '(' -path ./tools/castle-editor/data/project_templates -prune ')' -o \
 	  '(' -path ./tools/build-tool/tests/data -prune ')' -o \
 	  '(' -iname CastleEngineManifest.xml -print0 ')' | \
@@ -438,7 +432,8 @@ clean: cleanexamples
 	  examples/mobile/drawing_toy/drawing_toy.exe \
 	  examples/portable_game_skeleton/my_fantastic_game \
 	  examples/portable_game_skeleton/my_fantastic_game.exe \
-	  examples/fonts/font_draw_over_image_output.png
+	  examples/fonts/font_draw_over_image_output.png \
+	  examples/3d_rendering_processing/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/ *.fpm

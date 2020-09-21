@@ -198,7 +198,7 @@ var
     // Since right now we always compile with CASTLE_FREETYPE_STATIC,
     // we just always add freetype service, otherwise it would not link.
     if {(depFreeType in Project.Dependencies) and}
-       not Project.AndroidServices.HasService('freetype') then
+       not Project.IOSServices.HasService('freetype') then
       ExtractService('freetype');
   end;
 

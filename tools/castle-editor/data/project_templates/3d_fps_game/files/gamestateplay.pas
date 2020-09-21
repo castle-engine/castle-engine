@@ -20,7 +20,7 @@ type
     { Enemies behaviours }
     Enemies: TEnemyList;
 
-    { Components designed using CGE editor, loaded from state-main.castle-user-interface. }
+    { Components designed using CGE editor, loaded from state_play.castle-user-interface. }
     LabelFps: TCastleLabel;
     MainViewport: TCastleViewport;
     WalkNavigation: TCastleWalkNavigation;

@@ -62,9 +62,10 @@
       that the engine overrides a global DecimalSeparator.
       We will remove this feature in the future.)
 
-      Use @link(FormatDot) to reliably output floating point values
+      Use @link(FormatDot) and FloatToStrDot to reliably output floating point values
       with "dot" as a decimal separator.
-      Similarly, use TryStrToFloatDot to read string with dot to a float.
+      Similarly, use StrToFloatDot, TryStrToFloatDot, StrToFloatDefDot
+      to read string with dot to a float.
     )
 
     @item(Makes AnsiString (which is usually just called "string")

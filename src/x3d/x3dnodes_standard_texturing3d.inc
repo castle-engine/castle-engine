@@ -125,7 +125,7 @@
   end;
 
   { 3D texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate3DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate3DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -137,7 +137,7 @@
   end;
 
   { 4D (homogeneous 3D) texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate4DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate4DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -150,7 +150,7 @@
 
   { Transformation of texture coordinates by a 4x4 matrix,
     particularly useful with 3D textures. }
-  TTextureTransformMatrix3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransformMatrix3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -165,7 +165,7 @@
 
   { Transformation of texture coordinates in 3D,
     partcularly useful with 3D textures. }
-  TTextureTransform3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransform3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -264,7 +264,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     if not ((FdTexture[Index] <> nil) and
             (FdTexture[Index] is TAbstractTexture2DNode)) then
     begin
-      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
+      WritelnWarning('X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
@@ -277,7 +277,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
 
     if not (Tex.TextureImage is TCastleImage) then
     begin
-      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+      WritelnWarning('X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;
@@ -294,7 +294,7 @@ var
 begin
   if FdTexture.Count = 0 then
   begin
-    WritelnWarning('VRML/X3D', 'ComposedTexture3D has no textures');
+    WritelnWarning('X3D', 'ComposedTexture3D has no textures');
     Exit;
   end;
 
@@ -326,7 +326,7 @@ begin
          (Slice.Height <> FTextureImage.Height) or
          (Slice.ClassType <> FTextureImage.ClassType) then
       begin
-        WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
+        WritelnWarning('X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
           [I, Slice        .Width, Slice        .Height, Slice        .ClassName,
               FTextureImage.Width, FTextureImage.Height, FTextureImage.ClassName]));
         FreeAndNil(FTextureImage);
@@ -378,7 +378,7 @@ begin
       on E: Exception do
       begin
         FTextureComposite := nil;
-        WritelnWarning('VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
+        WritelnWarning('X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
         Continue;
       end;
     end;
@@ -386,14 +386,14 @@ begin
     if FTextureComposite = nil then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      WritelnWarning('VRML/X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+      WritelnWarning('X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
     if FTextureComposite.CompositeType <> ctVolume then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+      WritelnWarning('X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 
@@ -433,7 +433,7 @@ var
 begin
   if FdImage.Count < 4 then
   begin
-    WritelnWarning('VRML/X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
+    WritelnWarning('X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
     Exit;
   end;
 
@@ -444,7 +444,7 @@ begin
 
   if Cardinal(FdImage.Count) < 4 + Width * Height * Depth then
   begin
-    WritelnWarning('VRML/X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
+    WritelnWarning('X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
       [ 4 + Width * Height * Depth,  Width, Height, Depth ]));
     Exit;
   end;
@@ -489,7 +489,7 @@ begin
        end;
     else
     begin
-      WritelnWarning('VRML/X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
+      WritelnWarning('X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
       Exit;
     end;
   end;

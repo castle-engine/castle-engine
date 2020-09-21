@@ -88,7 +88,7 @@ function Matrix4(const V: TMatrix4Double): TMatrix4;
 function Matrix3Double(const V: TMatrix3): TMatrix3Double;
 function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 
-{ Convert string to vector. Each component is simply parsed by StrToFloat,
+{ Convert string to vector. Each component is simply parsed by StrToFloatDot,
   and components must be separated by whitespace (see @link(WhiteSpaces) constant).
   This is a reverse of
   @link(TGenericVector2.ToString TVector2.ToString),
@@ -292,8 +292,8 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
@@ -303,9 +303,9 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[2] := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 
@@ -319,10 +319,10 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[3] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[2] := StrToFloatDot(NextToken(S, SPosition));
+  Result.Data[3] := StrToFloatDot(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;

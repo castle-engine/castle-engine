@@ -931,7 +931,7 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexChannel: Integer);
+    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
   var
     GltfTexture: TPasGLTF.TTexture;
     GltfImage: TPasGLTF.TImage;
@@ -940,7 +940,7 @@ var
     Stream: TMemoryStream;
   begin
     Texture := nil;
-    TexChannel := GltfTextureAtMaterial.TexCoord;
+    TexMapping := ''; // for no texture, use empty mapping, to keep output X3D simple
 
     if not GltfTextureAtMaterial.Empty then
     begin
@@ -1015,20 +1015,26 @@ var
           end;
         end;
 
-        if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
+        if Texture <> nil then // above clause succeded in reading Texture
         begin
-          GltfSampler := Document.Samplers[GltfTexture.Sampler];
+          TexMapping := 'TEXCOORD_' + IntToStr(GltfTextureAtMaterial.TexCoord);
 
-          Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
-          Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
-
-          if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
-             (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+          // read wrap and filtering options
+          if Between(GltfTexture.Sampler, 0, Document.Samplers.Count - 1) then
           begin
-            TextureProperties := TTexturePropertiesNode.Create;
-            TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
-            TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
-            Texture.TextureProperties := TextureProperties;
+            GltfSampler := Document.Samplers[GltfTexture.Sampler];
+
+            Texture.RepeatS := ReadTextureRepeat(GltfSampler.WrapS);
+            Texture.RepeatT := ReadTextureRepeat(GltfSampler.WrapT);
+
+            if (GltfSampler.MinFilter <> TPasGLTF.TSampler.TMinFilter.None) or
+               (GltfSampler.MagFilter <> TPasGLTF.TSampler.TMagFilter.None) then
+            begin
+              TextureProperties := TTexturePropertiesNode.Create;
+              TextureProperties.MinificationFilter := ReadMinificationFilter(GltfSampler.MinFilter);
+              TextureProperties.MagnificationFilter := ReadMagnificationFilter(GltfSampler.MagFilter);
+              Texture.TextureProperties := TextureProperties;
+            end;
           end;
         end;
       end;
@@ -1036,21 +1042,21 @@ var
   end;
 
   procedure ReadTexture(const GltfTextureAtMaterial: TPasGLTF.TMaterial.TTexture;
-    out Texture: TAbstractX3DTexture2DNode; out TexChannel: Integer);
+    out Texture: TAbstractX3DTexture2DNode; out TexMapping: String);
   var
     TextureRec: TTexture;
   begin
     TextureRec.Init;
     TextureRec.Index := GltfTextureAtMaterial.Index;
     TextureRec.TexCoord := GltfTextureAtMaterial.TexCoord;
-    ReadTexture(TextureRec, Texture, TexChannel);
+    ReadTexture(TextureRec, Texture, TexMapping);
   end;
 
   function ReadPhongMaterial(const Material: TPasGLTF.TMaterial): TMaterialNode;
   var
     PbrMetallicRoughness: TPbrMetallicRoughness;
     BaseColorTexture, NormalTexture, EmissiveTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel: Integer;
+    BaseColorTextureMapping, NormalTextureMapping, EmissiveTextureMapping: String;
     // MetallicFactor, RoughnessFactor: Single;
   begin
     PbrMetallicRoughness.Read(Material);
@@ -1073,26 +1079,26 @@ var
     Result.Shininess := 1 - RoughnessFactor;
     *)
 
-    ReadTexture(PbrMetallicRoughness.BaseColorTexture, BaseColorTexture, BaseColorTextureChannel);
+    ReadTexture(PbrMetallicRoughness.BaseColorTexture, BaseColorTexture, BaseColorTextureMapping);
     Result.DiffuseTexture := BaseColorTexture;
-    Result.DiffuseTextureChannel := BaseColorTextureChannel;
+    Result.DiffuseTextureMapping := BaseColorTextureMapping;
 
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureChannel);
+      NormalTexture, NormalTextureMapping);
     Result.NormalTexture := NormalTexture;
-    Result.NormalTextureChannel := NormalTextureChannel;
+    Result.NormalTextureMapping := NormalTextureMapping;
 
     ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureChannel);
+      EmissiveTexture, EmissiveTextureMapping);
     Result.EmissiveTexture := EmissiveTexture;
-    Result.EmissiveTextureChannel := EmissiveTextureChannel;
+    Result.EmissiveTextureMapping := EmissiveTextureMapping;
   end;
 
   function ReadPhysicalMaterial(const Material: TPasGLTF.TMaterial): TPhysicalMaterialNode;
   var
     PbrMetallicRoughness: TPbrMetallicRoughness;
-    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureChannel, NormalTextureChannel, EmissiveTextureChannel, MetallicRoughnessTextureChannel: Integer;
+    BaseColorTexture, NormalTexture, EmissiveTexture, MetallicRoughnessTexture, OcclusionTexture: TAbstractX3DTexture2DNode;
+    BaseColorTextureMapping, NormalTextureMapping, EmissiveTextureMapping, MetallicRoughnessTextureMapping, OcclusionTextureMapping: String;
   begin
     PbrMetallicRoughness.Read(Material);
 
@@ -1104,24 +1110,30 @@ var
     Result.EmissiveColor := Vector3FromGltf(Material.EmissiveFactor);
 
     ReadTexture(PbrMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureChannel);
+      BaseColorTexture, BaseColorTextureMapping);
     Result.BaseTexture := BaseColorTexture;
-    Result.BaseTextureChannel := BaseColorTextureChannel;
+    Result.BaseTextureMapping := BaseColorTextureMapping;
 
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureChannel);
+      NormalTexture, NormalTextureMapping);
     Result.NormalTexture := NormalTexture;
-    Result.NormalTextureChannel := NormalTextureChannel;
+    Result.NormalTextureMapping := NormalTextureMapping;
 
     ReadTexture(Material.EmissiveTexture,
-      EmissiveTexture, EmissiveTextureChannel);
+      EmissiveTexture, EmissiveTextureMapping);
     Result.EmissiveTexture := EmissiveTexture;
-    Result.EmissiveTextureChannel := EmissiveTextureChannel;
+    Result.EmissiveTextureMapping := EmissiveTextureMapping;
 
     ReadTexture(PbrMetallicRoughness.MetallicRoughnessTexture,
-      MetallicRoughnessTexture, MetallicRoughnessTextureChannel);
+      MetallicRoughnessTexture, MetallicRoughnessTextureMapping);
     Result.MetallicRoughnessTexture := MetallicRoughnessTexture;
-    Result.MetallicRoughnessTextureChannel := MetallicRoughnessTextureChannel;
+    Result.MetallicRoughnessTextureMapping := MetallicRoughnessTextureMapping;
+
+    ReadTexture(Material.OcclusionTexture,
+      OcclusionTexture, OcclusionTextureMapping);
+    Result.OcclusionTexture := OcclusionTexture;
+    Result.OcclusionTextureMapping := OcclusionTextureMapping;
+    Result.OcclusionStrength := Material.OcclusionTexture.Strength;
   end;
 
   { Read glTF unlit material, see
@@ -1131,7 +1143,7 @@ var
   var
     BaseColorFactor: TVector4;
     BaseColorTexture, NormalTexture: TAbstractX3DTexture2DNode;
-    BaseColorTextureChannel, NormalTextureChannel: Integer;
+    BaseColorTextureMapping, NormalTextureMapping: String;
   begin
     BaseColorFactor := Vector4FromGltf(Material.PBRMetallicRoughness.BaseColorFactor);
 
@@ -1140,18 +1152,18 @@ var
     Result.Transparency := 1 - BaseColorFactor.W;
 
     ReadTexture(Material.PBRMetallicRoughness.BaseColorTexture,
-      BaseColorTexture, BaseColorTextureChannel);
+      BaseColorTexture, BaseColorTextureMapping);
     Result.EmissiveTexture := BaseColorTexture;
-    Result.EmissiveTextureChannel := BaseColorTextureChannel;
+    Result.EmissiveTextureMapping := BaseColorTextureMapping;
 
     { We read normal texture, even though it isn't *usually* useful for UnlitMaterial.
       But it makes sense when geometry has TextureCoordinateGenerator
       that depends on normal info.
       And both glTF and X3Dv4 allow normal texture even in case of unlit materials. }
     ReadTexture(Material.NormalTexture,
-      NormalTexture, NormalTextureChannel);
+      NormalTexture, NormalTextureMapping);
     Result.NormalTexture := NormalTexture;
-    Result.NormalTextureChannel := NormalTextureChannel;
+    Result.NormalTextureMapping := NormalTextureMapping;
   end;
 
   function ReadAppearance(const Material: TPasGLTF.TMaterial): TGltfAppearanceNode;
@@ -1365,12 +1377,14 @@ var
   { Set SingleTexCoord as a texture coordinate.
     Sets up TexCoordField as a TMultiTextureCoordinateNode instance,
     in case we have multiple texture coordinates. }
-  procedure SetMultiTextureCoordinate(const TexCoordField: TSFNode;
-    const SingleTexCoord: TTextureCoordinateNode;
-    const SingleTexCoordIndex: Integer);
+  procedure SetMultiTextureCoordinate(const Geometry: TAbstractGeometryNode;
+    const SingleTexCoord: TTextureCoordinateNode);
   var
+    TexCoordField: TSFNode;
     MultiTexCoord: TMultiTextureCoordinateNode;
   begin
+    TexCoordField := Geometry.TexCoordField;
+
     if TexCoordField.Value <> nil then
       { only this procedure modifies this field,
         so it has to be TMultiTextureCoordinateNode if assigned. }
@@ -1381,8 +1395,12 @@ var
       TexCoordField.Value := MultiTexCoord;
     end;
 
-    MultiTexCoord.FdTexCoord.Count := Max(MultiTexCoord.FdTexCoord.Count, SingleTexCoordIndex + 1);
-    MultiTexCoord.FdTexCoord.Items[SingleTexCoordIndex] := SingleTexCoord;
+    if Geometry.FindTextureMapping(SingleTexCoord.Mapping, false) <> nil then
+      WritelnWarning('Texture coordinate "%s" specified multiple times for the same glTF mesh', [
+        SingleTexCoord.Mapping
+      ]);
+
+    MultiTexCoord.FdTexCoord.Add(SingleTexCoord);
   end;
 
   procedure ReadPrimitive(const Primitive: TPasGLTF.TMesh.TPrimitive;
@@ -1398,7 +1416,6 @@ var
     ColorRGBA: TColorRGBANode;
     ColorAccessor: TPasGLTF.TAccessor;
     IndexField: TMFLong;
-    TexCoordIndex: LongInt;
     Appearance: TGltfAppearanceNode;
   begin
     // create X3D geometry and shape nodes
@@ -1457,10 +1474,10 @@ var
       end else
       if IsPrefix('TEXCOORD_', AttributeName, false) and (Geometry.TexCoordField <> nil) then
       begin
-        TexCoordIndex := StrToInt(PrefixRemove('TEXCOORD_', AttributeName, false));
         TexCoord := TTextureCoordinateNode.Create;
+        TexCoord.Mapping := AttributeName;
         AccessorToVector2(Primitive.Attributes[AttributeName], TexCoord.FdPoint, false);
-        SetMultiTextureCoordinate(Geometry.TexCoordField, TexCoord, TexCoordIndex);
+        SetMultiTextureCoordinate(Geometry, TexCoord);
       end else
       if (AttributeName = 'NORMAL') and (Geometry is TAbstractComposedGeometryNode) then
       begin
@@ -2312,6 +2329,7 @@ begin
       ReadSkins(Result);
       ExportAnimations;
     finally
+      FreeAndNil(JointMatrix);
       FreeAndNil(Animations);
       FreeAndNil(SkinsToInitialize);
       FreeAndNil(AnimationSampler);

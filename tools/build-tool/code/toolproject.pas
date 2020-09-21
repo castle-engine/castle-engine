@@ -335,9 +335,6 @@ end;
 
 { TCastleProject ------------------------------------------------------------- }
 
-const
-  ManifestName = 'CastleEngineManifest.xml';
-
 constructor TCastleProject.Create;
 var
   { look for CastleEngineManifest.xml in this dir, or parents }
@@ -422,16 +419,28 @@ constructor TCastleProject.Create(const APath: string);
       if (QualifiedName <> '') and
          ((QualifiedName[1] = '.') or
           (QualifiedName[Length(QualifiedName)] = '.')) then
-        raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) cannot start or end with a dot: "%s"', [OptionName, QualifiedName]);
+        raise Exception.CreateFmt('%s (in %s) cannot start or end with a dot: "%s"', [
+          OptionName,
+          ManifestName,
+          QualifiedName
+        ]);
 
       Components := CastleStringUtils.SplitString(QualifiedName, '.');
       try
         for I := 0 to Components.Count - 1 do
         begin
           if Components[I] = '' then
-            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) must contain a number of non-empty components separated with dots: "%s"', [OptionName, QualifiedName]);
+            raise Exception.CreateFmt('%s (in %s) must contain a number of non-empty components separated with dots: "%s"', [
+              OptionName,
+              ManifestName,
+              QualifiedName
+            ]);
           if Components[I][1] in ['0'..'9'] then
-            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) components must not start with a digit: "%s"', [OptionName, QualifiedName]);
+            raise Exception.CreateFmt('%s (in %s) components must not start with a digit: "%s"', [
+              OptionName,
+              ManifestName,
+              QualifiedName
+            ]);
         end;
       finally FreeAndNil(Components) end;
     end;

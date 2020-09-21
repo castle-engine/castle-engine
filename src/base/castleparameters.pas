@@ -644,14 +644,14 @@ end;
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer;
 begin
- result := RequiredSeparateFirstCount + Ord(v) - Ord(oaRequiredSeparateFirst)
+  Result := RequiredSeparateFirstCount + Ord(v) - Ord(oaRequiredSeparateFirst)
 end;
 
 function SeparateArgsToVector3(const v: TSeparateArgs): TVector3;
 begin
- result[0] := StrToFloat(v[1]);
- result[1] := StrToFloat(v[2]);
- result[2] := StrToFloat(v[3]);
+  Result[0] := StrToFloatDot(v[1]);
+  Result[1] := StrToFloatDot(v[2]);
+  Result[2] := StrToFloatDot(v[3]);
 end;
 
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;

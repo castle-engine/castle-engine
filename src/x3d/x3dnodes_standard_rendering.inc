@@ -303,6 +303,18 @@
       but they may have a texture coordinate node (from the state). }
     function TexCoordField: TSFNode; virtual;
 
+    { Find a texture coordinate node with given Mapping value.
+      Returns nil (and Index = -1) if not found.
+      This implements X3D 4.0 section
+      "12.2.4 Texture mapping specified in material nodes".
+
+      If MakeWarning, we make a warning if Mapping is not empty,
+      and yet it doesn't match anything. This is not allowed, according to spec. }
+    function FindTextureMapping(const Mapping: String;
+      const MakeWarning: Boolean = true): TAbstractSingleTextureCoordinateNode; overload;
+    function FindTextureMapping(const Mapping: String; out TexCoordIndex: Integer;
+      const MakeWarning: Boolean = true): TAbstractSingleTextureCoordinateNode; overload;
+
     { Converts this node to another node class that may be better supported.
 
       Typically, converts some complex geometry node (like
@@ -1107,6 +1119,62 @@ end;
 function TAbstractGeometryNode.TexCoordField: TSFNode;
 begin
   Result := nil;
+end;
+
+function TAbstractGeometryNode.FindTextureMapping(const Mapping: String;
+  const MakeWarning: Boolean): TAbstractSingleTextureCoordinateNode;
+var
+  TexCoordIndex: Integer;
+begin
+  Result := FindTextureMapping(Mapping, TexCoordIndex, MakeWarning);
+end;
+
+function TAbstractGeometryNode.FindTextureMapping(const Mapping: String;
+  out TexCoordIndex: Integer; const MakeWarning: Boolean): TAbstractSingleTextureCoordinateNode;
+var
+  T: TX3DNode;
+  MultiCoord: TMultiTextureCoordinateNode;
+  I: Integer;
+begin
+  Result := nil;
+  TexCoordIndex := -1;
+
+  if TexCoordField = nil then
+    Exit;
+
+  T := TexCoordField.Value;
+  if T is TMultiTextureCoordinateNode then
+  begin
+    MultiCoord := TMultiTextureCoordinateNode(T);
+    for I := 0 to MultiCoord.FdTexCoord.Count - 1 do
+      if (MultiCoord.FdTexCoord[I] is TAbstractSingleTextureCoordinateNode) and
+         { Mapping empty matches first item.
+           All children of MultiTextureCoordinate should be TAbstractSingleTextureCoordinateNode
+           in valid files. }
+         ( (Mapping = '') or
+           (Mapping = TAbstractSingleTextureCoordinateNode(MultiCoord.FdTexCoord[I]).Mapping) ) then
+      begin
+        Result := TAbstractSingleTextureCoordinateNode(MultiCoord.FdTexCoord[I]);
+        TexCoordIndex := I;
+        Exit;
+      end;
+
+    if MakeWarning and (Mapping <> '') then
+      WritelnWarning('Texture mapping "%s" not found within MultiTextureCoordinate list', [Mapping]);
+  end else
+  if T is TAbstractSingleTextureCoordinateNode then
+  begin
+    if ( (Mapping = '') or
+         (Mapping = TAbstractSingleTextureCoordinateNode(T).Mapping) ) then
+    begin
+      Result := TAbstractSingleTextureCoordinateNode(T);
+      TexCoordIndex := 0;
+      Exit;
+    end;
+
+    if MakeWarning and (Mapping <> '') then
+      WritelnWarning('Texture mapping "%s" not matching the only texture coordinate node possible', [Mapping]);
+  end;
 end;
 
 function TAbstractGeometryNode.Proxy(var State: TX3DGraphTraverseState;

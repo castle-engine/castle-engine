@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="remote_logging"
-  game_units="GameInitialize"
-  qualified_name="io.castleengine.remote.logging"
->
-  <data exists="false"/>
-</project>

@@ -253,7 +253,14 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
        (FaceSet.FdFogCoord.Value <> nil) or
        {$endif}
        (FaceSet.FdColor.Value <> nil) or
-       (FaceSet.FdNormal.Value <> nil) then
+       (FaceSet.FdNormal.Value <> nil) or
+       ( { If the shape needs automatic texture coordinate generation,
+           batching is not possible, as the tex coordinate generation looks at shape's bounding box.
+           See https://github.com/castle-engine/castle-engine/issues/179 . }
+         (FaceSet.FdTexCoord.Value = nil) and
+         (Shape.Node <> nil) and
+         (Shape.Node.Appearance <> nil) and
+         (Shape.Node.Appearance.Texture <> nil) ) then
       Exit;
 
     TexCoord := FaceSet.TexCoord;
@@ -289,9 +296,9 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
     end;
 
     function MaterialTexturesEqual(const Texture1, Texture2: TX3DNode;
-      const Texture1Channel, Texture2Channel: Integer): Boolean;
+      const Texture1Mapping, Texture2Mapping: String): Boolean;
     begin
-      Result := (Texture1 = Texture2) and (Texture1Channel = Texture2Channel);
+      Result := (Texture1 = Texture2) and (Texture1Mapping = Texture2Mapping);
     end;
 
     { Checks contents of M1 and M2,
@@ -307,11 +314,12 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           (M1.FdAmbientIntensity.Value = M2.FdAmbientIntensity.Value) and
           (M1.FdTransparency    .Value = M2.FdTransparency    .Value) and
 
-          MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureChannel  .Value, M2.FdNormalTextureChannel  .Value) and
-          MaterialTexturesEqual(M1.FdDiffuseTexture .Value, M2.FdDiffuseTexture .Value, M1.FdDiffuseTextureChannel .Value, M2.FdDiffuseTextureChannel .Value) and
-          MaterialTexturesEqual(M1.FdSpecularTexture.Value, M2.FdSpecularTexture.Value, M1.FdSpecularTextureChannel.Value, M2.FdSpecularTextureChannel.Value) and
-          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureChannel.Value, M2.FdEmissiveTextureChannel.Value) and
-          MaterialTexturesEqual(M1.FdAmbientTexture .Value, M2.FdAmbientTexture .Value, M1.FdAmbientTextureChannel .Value, M2.FdAmbientTextureChannel .Value)
+          MaterialTexturesEqual(M1.FdNormalTexture   .Value, M2.FdNormalTexture   .Value, M1.FdNormalTextureMapping   .Value, M2.FdNormalTextureMapping   .Value) and
+          MaterialTexturesEqual(M1.FdDiffuseTexture  .Value, M2.FdDiffuseTexture  .Value, M1.FdDiffuseTextureMapping  .Value, M2.FdDiffuseTextureMapping  .Value) and
+          MaterialTexturesEqual(M1.FdSpecularTexture .Value, M2.FdSpecularTexture .Value, M1.FdSpecularTextureMapping .Value, M2.FdSpecularTextureMapping .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture .Value, M2.FdEmissiveTexture .Value, M1.FdEmissiveTextureMapping .Value, M2.FdEmissiveTextureMapping .Value) and
+          MaterialTexturesEqual(M1.FdAmbientTexture  .Value, M2.FdAmbientTexture  .Value, M1.FdAmbientTextureMapping  .Value, M2.FdAmbientTextureMapping  .Value) and
+          MaterialTexturesEqual(M1.FdOcclusionTexture.Value, M2.FdOcclusionTexture.Value, M1.FdOcclusionTextureMapping.Value, M2.FdOcclusionTextureMapping.Value)
         );
     end;
 
@@ -322,8 +330,8 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           TVector3.PerfectlyEquals(M1.FdEmissiveColor   .Value, M2.FdEmissiveColor   .Value) and
           (M1.FdTransparency    .Value = M2.FdTransparency    .Value) and
 
-          // ignored: MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureChannel  .Value, M2.FdNormalTextureChannel  .Value) and
-          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureChannel.Value, M2.FdEmissiveTextureChannel.Value)
+          // ignored: MaterialTexturesEqual(M1.FdNormalTexture  .Value, M2.FdNormalTexture  .Value, M1.FdNormalTextureMapping  .Value, M2.FdNormalTextureMapping  .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture.Value, M2.FdEmissiveTexture.Value, M1.FdEmissiveTextureMapping.Value, M2.FdEmissiveTextureMapping.Value)
         );
     end;
 
@@ -337,10 +345,11 @@ function TBatchShapes.Collect(const Shape: TGLShape): Boolean;
           (M1.FdRoughness   .Value = M2.FdRoughness   .Value) and
           (M1.FdTransparency.Value = M2.FdTransparency.Value) and
 
-          MaterialTexturesEqual(M1.FdNormalTexture           .Value, M2.FdNormalTexture           .Value, M1.FdNormalTextureChannel           .Value, M2.FdNormalTextureChannel           .Value) and
-          MaterialTexturesEqual(M1.FdEmissiveTexture         .Value, M2.FdEmissiveTexture         .Value, M1.FdEmissiveTextureChannel         .Value, M2.FdEmissiveTextureChannel         .Value) and
-          MaterialTexturesEqual(M1.FdBaseTexture             .Value, M2.FdBaseTexture             .Value, M1.FdBaseTextureChannel             .Value, M2.FdBaseTextureChannel             .Value) and
-          MaterialTexturesEqual(M1.FdMetallicRoughnessTexture.Value, M2.FdMetallicRoughnessTexture.Value, M1.FdMetallicRoughnessTextureChannel.Value, M2.FdMetallicRoughnessTextureChannel.Value)
+          MaterialTexturesEqual(M1.FdNormalTexture           .Value, M2.FdNormalTexture           .Value, M1.FdNormalTextureMapping           .Value, M2.FdNormalTextureMapping           .Value) and
+          MaterialTexturesEqual(M1.FdEmissiveTexture         .Value, M2.FdEmissiveTexture         .Value, M1.FdEmissiveTextureMapping         .Value, M2.FdEmissiveTextureMapping         .Value) and
+          MaterialTexturesEqual(M1.FdBaseTexture             .Value, M2.FdBaseTexture             .Value, M1.FdBaseTextureMapping             .Value, M2.FdBaseTextureMapping             .Value) and
+          MaterialTexturesEqual(M1.FdMetallicRoughnessTexture.Value, M2.FdMetallicRoughnessTexture.Value, M1.FdMetallicRoughnessTextureMapping.Value, M2.FdMetallicRoughnessTextureMapping.Value) and
+          MaterialTexturesEqual(M1.FdOcclusionTexture        .Value, M2.FdOcclusionTexture        .Value, M1.FdOcclusionTextureMapping        .Value, M2.FdOcclusionTextureMapping        .Value)
         );
     end;
 

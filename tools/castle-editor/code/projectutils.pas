@@ -25,14 +25,10 @@ uses
 
 { Fill directory for new project with the template. }
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
-
-{ Open ProjectForm.
-  ManifestUrl may be absolute or relative here. }
-procedure ProjectOpen(ManifestUrl: string);
 
 type
   TBuildMode = (bmDebug, bmRelease);
@@ -42,7 +38,10 @@ type
   So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
   We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
   for this. }
-procedure DetectEditorApplicationData;
+procedure UseEditorApplicationData;
+
+{ URL prefix of editor application data. }
+function EditorApplicationData: String;
 
 implementation
 
@@ -101,7 +100,7 @@ end;
 { global routines ------------------------------------------------------------ }
 
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
@@ -126,6 +125,7 @@ begin
     Macros.Add('${PROJECT_NAME}', ProjectName);
     Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
     Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
+    Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
 
     CopyProcess := TTemplateCopyProcess.Create;
     try
@@ -159,21 +159,7 @@ begin
   end;
 end;
 
-procedure ProjectOpen(ManifestUrl: string);
-begin
-  ManifestUrl := AbsoluteURI(ManifestUrl);
-
-  // Validate
-  if not URIFileExists(ManifestUrl) then
-    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
-      [ManifestUrl]);
-
-  ProjectForm := TProjectForm.Create(Application);
-  ProjectForm.OpenProject(ManifestUrl);
-  ProjectForm.Show;
-end;
-
-procedure DetectEditorApplicationData;
+procedure UseEditorApplicationData;
 var
   DataPath: string;
 begin
@@ -188,6 +174,18 @@ begin
     if DirectoryExists(DataPath) then
       ApplicationDataOverride := FilenameToURISafe(DataPath);
   end;
+end;
+
+function EditorApplicationData: String;
+var
+  ApplicationDataOverrideSaved: String;
+begin
+  ApplicationDataOverrideSaved := ApplicationDataOverride;
+
+  UseEditorApplicationData;
+  Result := ApplicationData('');
+
+  ApplicationDataOverride := ApplicationDataOverrideSaved;
 end;
 
 end.

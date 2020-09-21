@@ -165,7 +165,7 @@ type
   { Octree based on triangles. Allows for fast collision-detection
     with a set of triangles. Each triangle is a TTriangle structure,
     that keeps triangle geometry in 3D space, and links to parent
-    VRML/X3D Shapes and such. }
+    X3D Shape and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
     function StatisticsBonus: string; override;

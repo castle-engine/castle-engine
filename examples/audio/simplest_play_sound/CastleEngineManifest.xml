@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="simplest_play_sound"
+  standalone_source="simplest_play_sound.lpr"
+  qualified_name="io.castleengine.simplest.play.sound"
+>
+</project>

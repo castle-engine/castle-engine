@@ -344,7 +344,7 @@ initialization
       $00007FC4771DF69B
   }
   {$if defined(cpui386) or defined(cpux86_64)}
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,exOverflow, exUnderflow, exPrecision]);
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   {$endif}
 
   {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}

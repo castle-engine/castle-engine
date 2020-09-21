@@ -9,11 +9,6 @@ Before 7.0 release:
 
 * 3d gizmos to translate / rotate / scale
 
-* templates:
-    * Create other than "empty" project templates
-    * Proper screenshots of all project templates
-    * Some (or all?) templates should show using TUIState. This is our ultimate flexible architecture to develop “pure games” applications (where OpenGL context is your only user-interface): TCastleWindow with a number of TUIState instances using TCastleUserInterface inside.
-
 * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
 
 ------------------------------------------------------------------------------
@@ -53,11 +48,6 @@ OK if after nearest release:
 * on Layout tab, new button for TCastleImageControl
   "Set Size Explicitly From Current Image"
   ? Unsure how much use-case.
-
-* make https://github.com/castle-engine/blaise-pascal-article-examples/
-  version using editor for level,
-  3d_game_alternative_using_editor
-  mention in README
 
 * more colors, vectors published props:
 
@@ -113,7 +103,6 @@ OK if after nearest release:
 
 * Make files browser with features as documented.
     * allow dropping scenes/images on UI design.
-    * "Files" showroot=false doesn't work?
     * own viewer for
         * text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
 	* on audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)

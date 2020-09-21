@@ -1,0 +1,8 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Collision {
+  # This doesn't work good, as MaterialCenter can get obscured
+  # proxy Inline { url "scale_collider.glb" }
+  children Inline { url "scale.glb" }
+}

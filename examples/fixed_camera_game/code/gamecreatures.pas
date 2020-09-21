@@ -230,7 +230,7 @@ begin
   RandomizeStandTimeToBeBored;
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -386,7 +386,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 begin
   inherited;
   CreateTargetVisualize;
-  FDebugTransform.WorldSpace.AddChildren(FTargetVisualize);
+  FDebugTransform.ParentSpace.AddChildren(FTargetVisualize);
   FDebugTransform.ChangedScene;
 end;
 

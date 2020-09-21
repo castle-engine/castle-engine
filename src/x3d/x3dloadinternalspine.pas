@@ -37,7 +37,7 @@ var
 implementation
 
 uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
-  CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
+  CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
   CastleTriangles,
   X3DFields;
@@ -67,6 +67,7 @@ type
   {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_drawordertimelines.inc}
   {$I x3dloadinternalspine_deformtimelines.inc}
+  {$I x3dloadinternalspine_weightedmeshtimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_interface}
@@ -81,6 +82,7 @@ type
   {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_drawordertimelines.inc}
   {$I x3dloadinternalspine_deformtimelines.inc}
+  {$I x3dloadinternalspine_weightedmeshtimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_implementation}

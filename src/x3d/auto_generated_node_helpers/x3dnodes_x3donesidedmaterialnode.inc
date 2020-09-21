@@ -30,12 +30,12 @@
     procedure SetEmissiveColor(const Value: TCastleColorRGB);
     function GetEmissiveTexture: TAbstractSingleTextureNode;
     procedure SetEmissiveTexture(const Value: TAbstractSingleTextureNode);
-    function GetEmissiveTextureChannel: Integer;
-    procedure SetEmissiveTextureChannel(const Value: Integer);
+    function GetEmissiveTextureMapping: String;
+    procedure SetEmissiveTextureMapping(const Value: String);
     function GetNormalTexture: TAbstractTexture2DNode;
     procedure SetNormalTexture(const Value: TAbstractTexture2DNode);
-    function GetNormalTextureChannel: Integer;
-    procedure SetNormalTextureChannel(const Value: Integer);
+    function GetNormalTextureMapping: String;
+    procedure SetNormalTextureMapping(const Value: String);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -52,11 +52,11 @@
     { X3D field "emissiveTexture". } { }
     property EmissiveTexture: TAbstractSingleTextureNode read GetEmissiveTexture write SetEmissiveTexture;
 
-    strict private FFdEmissiveTextureChannel: TSFInt32;
-    { X3D field "emissiveTextureChannel". } { }
-    public property FdEmissiveTextureChannel: TSFInt32 read FFdEmissiveTextureChannel;
-    { X3D field "emissiveTextureChannel". } { }
-    property EmissiveTextureChannel: Integer read GetEmissiveTextureChannel write SetEmissiveTextureChannel;
+    strict private FFdEmissiveTextureMapping: TSFString;
+    { X3D field "emissiveTextureMapping". } { }
+    public property FdEmissiveTextureMapping: TSFString read FFdEmissiveTextureMapping;
+    { X3D field "emissiveTextureMapping". } { }
+    property EmissiveTextureMapping: String read GetEmissiveTextureMapping write SetEmissiveTextureMapping;
 
     strict private FFdNormalTexture: TSFNode;
     { X3D field "normalTexture". } { }
@@ -64,11 +64,11 @@
     { X3D field "normalTexture". } { }
     property NormalTexture: TAbstractTexture2DNode read GetNormalTexture write SetNormalTexture;
 
-    strict private FFdNormalTextureChannel: TSFInt32;
-    { X3D field "normalTextureChannel". } { }
-    public property FdNormalTextureChannel: TSFInt32 read FFdNormalTextureChannel;
-    { X3D field "normalTextureChannel". } { }
-    property NormalTextureChannel: Integer read GetNormalTextureChannel write SetNormalTextureChannel;
+    strict private FFdNormalTextureMapping: TSFString;
+    { X3D field "normalTextureMapping". } { }
+    public property FdNormalTextureMapping: TSFString read FFdNormalTextureMapping;
+    { X3D field "normalTextureMapping". } { }
+    property NormalTextureMapping: String read GetNormalTextureMapping write SetNormalTextureMapping;
 
 {$endif read_interface}
 
@@ -99,14 +99,14 @@ begin
   FdEmissiveTexture.Send(Value);
 end;
 
-function TAbstractOneSidedMaterialNode.GetEmissiveTextureChannel: Integer;
+function TAbstractOneSidedMaterialNode.GetEmissiveTextureMapping: String;
 begin
-  Result := FdEmissiveTextureChannel.Value;
+  Result := FdEmissiveTextureMapping.Value;
 end;
 
-procedure TAbstractOneSidedMaterialNode.SetEmissiveTextureChannel(const Value: Integer);
+procedure TAbstractOneSidedMaterialNode.SetEmissiveTextureMapping(const Value: String);
 begin
-  FdEmissiveTextureChannel.Send(Value);
+  FdEmissiveTextureMapping.Send(Value);
 end;
 
 function TAbstractOneSidedMaterialNode.GetNormalTexture: TAbstractTexture2DNode;
@@ -122,14 +122,14 @@ begin
   FdNormalTexture.Send(Value);
 end;
 
-function TAbstractOneSidedMaterialNode.GetNormalTextureChannel: Integer;
+function TAbstractOneSidedMaterialNode.GetNormalTextureMapping: String;
 begin
-  Result := FdNormalTextureChannel.Value;
+  Result := FdNormalTextureMapping.Value;
 end;
 
-procedure TAbstractOneSidedMaterialNode.SetNormalTextureChannel(const Value: Integer);
+procedure TAbstractOneSidedMaterialNode.SetNormalTextureMapping(const Value: String);
 begin
-  FdNormalTextureChannel.Send(Value);
+  FdNormalTextureMapping.Send(Value);
 end;
 
 class function TAbstractOneSidedMaterialNode.ClassX3DType: String;
@@ -150,17 +150,17 @@ begin
    FdEmissiveTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveTexture);
 
-  FFdEmissiveTextureChannel := TSFInt32.Create(Self, True, 'emissiveTextureChannel', 0);
-   FdEmissiveTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdEmissiveTextureChannel);
+  FFdEmissiveTextureMapping := TSFString.Create(Self, True, 'emissiveTextureMapping', '');
+   FdEmissiveTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEmissiveTextureMapping);
 
   FFdNormalTexture := TSFNode.Create(Self, True, 'normalTexture', [TAbstractTexture2DNode]);
    FdNormalTexture.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdNormalTexture);
 
-  FFdNormalTextureChannel := TSFInt32.Create(Self, True, 'normalTextureChannel', 0);
-   FdNormalTextureChannel.ChangeAlways := chVisibleNonGeometry;
-  AddField(FFdNormalTextureChannel);
+  FFdNormalTextureMapping := TSFString.Create(Self, True, 'normalTextureMapping', '');
+   FdNormalTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdNormalTextureMapping);
 
   DefaultContainerField := 'material';
 end;

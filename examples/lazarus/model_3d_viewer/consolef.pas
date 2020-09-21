@@ -30,6 +30,8 @@ implementation
 
 uses MainF;
 
+{$R *.lfm}
+
 { TConsole }
 
 procedure TConsole.WarningToConsole(const Category, S: string);
@@ -47,9 +49,6 @@ procedure TConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   Main.MenuShowConsole.Checked := false;
 end;
-
-initialization
-  {$I consolef.lrs}
 
 end.
 

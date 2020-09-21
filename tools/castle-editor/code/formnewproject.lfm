@@ -1,41 +1,40 @@
 object NewProjectForm: TNewProjectForm
-  Left = 505
-  Height = 621
-  Top = 209
-  Width = 1132
+  Left = 75
+  Height = 590
+  Top = 34
+  Width = 951
   Caption = 'New Project | Castle Game Engine'
-  ClientHeight = 621
-  ClientWidth = 1132
-  DesignTimePPI = 144
+  ClientHeight = 590
+  ClientWidth = 951
+  DesignTimePPI = 120
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.8.0'
   object ButtonPanel1: TButtonPanel
-    Left = 6
-    Height = 44
-    Top = 571
-    Width = 1120
+    Left = 5
+    Height = 47
+    Top = 538
+    Width = 941
+    BorderSpacing.Around = 5
     OKButton.Name = 'OKButton'
     OKButton.Caption = '&Create Project'
-    OKButton.DefaultCaption = False
     HelpButton.Name = 'HelpButton'
     HelpButton.DefaultCaption = True
     CloseButton.Name = 'CloseButton'
     CloseButton.Caption = 'Close'
-    CloseButton.DefaultCaption = False
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 0
+    TabOrder = 5
     ShowButtons = [pbOK, pbCancel]
   end
   object LabelTitle: TLabel
-    Left = 18
-    Height = 36
-    Top = 17
-    Width = 284
+    Left = 15
+    Height = 29
+    Top = 14
+    Width = 213
     Caption = 'Create New Project'
-    Font.Height = -30
+    Font.Height = -25
     ParentColor = False
     ParentFont = False
   end
@@ -43,22 +42,32 @@ object NewProjectForm: TNewProjectForm
     AnchorSideLeft.Control = LabelTitle
     AnchorSideTop.Control = LabelTitle
     AnchorSideTop.Side = asrBottom
-    Left = 18
-    Height = 276
-    Top = 63
-    Width = 1008
-    BorderSpacing.Top = 10
+    Left = 15
+    Height = 230
+    Top = 51
+    Width = 840
+    BorderSpacing.Top = 8
     Caption = 'Project Template'
-    ClientHeight = 250
-    ClientWidth = 1004
+    ChildSizing.LeftRightSpacing = 10
+    ChildSizing.TopBottomSpacing = 10
+    ChildSizing.HorizontalSpacing = 10
+    ChildSizing.VerticalSpacing = 10
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 10
+    ClientHeight = 206
+    ClientWidth = 838
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 0
     object ButtonTemplateEmpty: TSpeedButton
-      Left = 17
-      Height = 226
+      Left = 10
+      Height = 186
       Hint = 'Application that starts with a black background and a yellow label showing FPS.'
-      Top = 8
-      Width = 212
+      Top = 10
+      Width = 197
       Caption = 'Empty'
       Glyph.Data = {
         36EB0000424D36EB0000000000003600000028000000A00000005E0000000100
@@ -1952,11 +1961,11 @@ object NewProjectForm: TNewProjectForm
       ParentFont = False
     end
     object ButtonTemplate3dModelViewer: TSpeedButton
-      Left = 728
-      Height = 226
+      Left = 217
+      Height = 186
       Hint = 'Application that shows a 3D model using TCastleScene, and allows to load and animate the model'
-      Top = 8
-      Width = 212
+      Top = 10
+      Width = 197
       Caption = '3D Model Viewer'
       Glyph.Data = {
         36EB0000424D36EB0000000000003600000028000000A00000005E0000000100
@@ -3850,11 +3859,11 @@ object NewProjectForm: TNewProjectForm
       ParentFont = False
     end
     object ButtonTemplate3dFps: TSpeedButton
-      Left = 496
-      Height = 226
+      Left = 424
+      Height = 186
       Hint = 'First-Person Shooter game with starter enemy AI code.'
-      Top = 8
-      Width = 212
+      Top = 10
+      Width = 197
       Caption = '3D FPS Game'
       Glyph.Data = {
         36EB0000424D36EB0000000000003600000028000000A00000005E0000000100
@@ -5748,11 +5757,11 @@ object NewProjectForm: TNewProjectForm
       ParentFont = False
     end
     object ButtonTemplate2d: TSpeedButton
-      Left = 256
-      Height = 226
+      Left = 631
+      Height = 186
       Hint = 'Using TCastleScene and TCastleViewport to display animated 2D character in a 2D level.'
-      Top = 8
-      Width = 212
+      Top = 10
+      Width = 197
       Caption = '2D Game'
       Glyph.Data = {
         36EB0000424D36EB0000000000003600000028000000A00000005E0000000100
@@ -7648,13 +7657,12 @@ object NewProjectForm: TNewProjectForm
   end
   object LabelProjectName: TLabel
     AnchorSideLeft.Control = LabelTitle
-    AnchorSideTop.Control = EditLocation
     AnchorSideTop.Side = asrBottom
-    Left = 18
-    Height = 24
-    Top = 443
-    Width = 133
-    BorderSpacing.Top = 20
+    Left = 15
+    Height = 21
+    Top = 380
+    Width = 112
+    BorderSpacing.Top = 17
     Caption = 'Project Name'
     ParentColor = False
     ParentFont = False
@@ -7663,50 +7671,85 @@ object NewProjectForm: TNewProjectForm
     AnchorSideLeft.Control = LabelTitle
     AnchorSideTop.Control = LabelProjectName
     AnchorSideTop.Side = asrBottom
-    Left = 18
-    Height = 34
-    Top = 473
-    Width = 498
-    BorderSpacing.Top = 6
+    Left = 15
+    Height = 39
+    Top = 406
+    Width = 415
+    BorderSpacing.Top = 5
     ParentFont = False
-    TabOrder = 2
-    Text = 'my-new-project'
-  end
-  object EditLocation: TEditButton
-    AnchorSideLeft.Control = LabelTitle
-    AnchorSideTop.Control = LabelProjectLocation
-    AnchorSideTop.Side = asrBottom
-    Left = 18
-    Height = 34
-    Top = 389
-    Width = 705
-    BorderSpacing.Top = 6
-    ButtonCaption = 'Choose Directory'
-    ButtonWidth = 206
-    MaxLength = 0
-    NumGlyphs = 1
-    OnButtonClick = EditLocationButtonClick
-    ParentFont = False
-    PasswordChar = #0
     TabOrder = 3
+    Text = 'my-new-project'
   end
   object LabelProjectLocation: TLabel
     AnchorSideLeft.Control = LabelTitle
     AnchorSideTop.Control = GroupProjectTemplate
     AnchorSideTop.Side = asrBottom
-    Left = 18
-    Height = 24
-    Top = 359
-    Width = 344
-    BorderSpacing.Top = 20
+    Left = 15
+    Height = 21
+    Top = 298
+    Width = 284
+    BorderSpacing.Top = 17
     Caption = 'Project Location (Parent Directory)'
     ParentColor = False
     ParentFont = False
   end
+  object LabelProjectCaption: TLabel
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = EditProjectName
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 21
+    Top = 462
+    Width = 126
+    BorderSpacing.Top = 17
+    Caption = 'Project Caption'
+    ParentColor = False
+    ParentFont = False
+  end
+  object EditProjectCaption: TEdit
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelProjectCaption
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 39
+    Top = 488
+    Width = 415
+    BorderSpacing.Top = 5
+    ParentFont = False
+    TabOrder = 4
+    Text = 'My New Project'
+  end
+  object EditLocation: TEdit
+    AnchorSideLeft.Control = LabelTitle
+    AnchorSideTop.Control = LabelProjectLocation
+    AnchorSideTop.Side = asrBottom
+    Left = 15
+    Height = 39
+    Top = 324
+    Width = 412
+    BorderSpacing.Top = 5
+    ParentFont = False
+    TabOrder = 1
+  end
+  object ButtonChooseLocation: TButton
+    AnchorSideLeft.Control = EditLocation
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = EditLocation
+    AnchorSideTop.Side = asrCenter
+    Left = 437
+    Height = 39
+    Top = 324
+    Width = 158
+    AutoSize = True
+    BorderSpacing.Left = 10
+    Caption = 'Choose Directory'
+    OnClick = EditLocationButtonClick
+    TabOrder = 2
+  end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
     Title = 'Select The Project Parent Directory'
     Options = [ofPathMustExist, ofFileMustExist, ofEnableSizing, ofViewDetail]
-    left = 782
-    top = 395
+    Left = 652
+    Top = 329
   end
 end

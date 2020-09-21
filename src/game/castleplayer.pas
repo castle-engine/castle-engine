@@ -463,7 +463,7 @@ type
     property ThirdPersonNavigation: TCastleThirdPersonNavigation read FThirdPersonNavigation;
 
     { Whether to use 1st-person @link(WalkNavigation) or 3rd-person @link(ThirdPersonNavigation).
-      @bold(You have to set this before @link(TLevel.Load). }
+      @bold(You have to set this before calling @link(TLevel.Load)). }
     property UseThirdPerson: Boolean read FUseThirdPerson write SetUseThirdPerson default false;
 
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
@@ -630,7 +630,7 @@ begin
   Add(FBox);
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 end;
 
 destructor TPlayer.Destroy;

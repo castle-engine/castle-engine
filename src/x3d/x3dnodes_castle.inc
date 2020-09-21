@@ -244,7 +244,7 @@
 
   { Generate texture coordinates by projection.
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
-  TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
+  TProjectedTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
 

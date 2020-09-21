@@ -93,14 +93,14 @@ type
 implementation
 
 uses SysUtils,
-  CastleScript, CastleScriptParser;
+  CastleScript, CastleScriptParser, CastleUtils;
 
 { TCastleConfigScriptHelper -------------------------------------------------- }
 
 function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
   const ADefaultValue: Float): Float;
 begin
-  Result := GetFloatExpression(APath, FloatToStr(ADefaultValue));
+  Result := GetFloatExpression(APath, FloatToStrDot(ADefaultValue));
 end;
 
 function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;

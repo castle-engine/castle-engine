@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <Name Value="castle_indy"/>
+    <Type Value="RunAndDesignTime"/>
+    <Author Value="Michalis Kamburelis"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <IncludeFiles Value="../src/base"/>
+        <OtherUnitFiles Value="../src/files/indy"/>
+        <UnitOutputDirectory Value="lib/castle_indy/$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <Verbosity>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
+        <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
+
+This package, castle_indy.lpk, contains the units that depend on Indy. You can install this package in Lazarus. See https://castle-engine.io/manual_network.php#section_indy about our networking solutions."/>
+    <License Value="GNU LGPL with static linking exception >= 2.
+This is the same license as used by Lazarus LCL and FPC RTL.
+See https://castle-engine.io/license.php for details.
+"/>
+    <Version Major="6" Minor="5"/>
+    <Files Count="1">
+      <Item1>
+        <Filename Value="../src/files/indy/castleclientserver.pas"/>
+        <UnitName Value="CastleClientServer"/>
+      </Item1>
+    </Files>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="castle_base"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="indylaz"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

@@ -903,6 +903,9 @@ type
     { Update various X3D nodes using the camera position/direction/up,
       like LOD, Billboard, ProximitySensor. }
     procedure UpdateCameraEvents;
+
+    function PointingDevicePressRelease(const DoPress: boolean;
+      const Distance: Single; const CancelAction: boolean): boolean;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -1495,8 +1498,10 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
-    function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single; const CancelAction: boolean = false): boolean; override;
+    function PointingDevicePress(const Pick: TRayCollisionNode;
+      const Distance: Single): Boolean; override;
+    function PointingDeviceRelease(const Pick: TRayCollisionNode;
+      const Distance: Single; const CancelAction: Boolean): Boolean; override;
 
     { Called when pointing device moves.
       This may generate the continuously-generated events like
@@ -1544,20 +1549,16 @@ type
     property PointingDeviceActiveSensors: TX3DNodeList
       read FPointingDeviceActiveSensors;
 
-    { Clear any references to OverItem passed previously to PointingDeviceMove.
-      This is sometimes useful, because PointingDeviceMove may save
-      the last passed OverItem, and PointingDeviceActivate may even
-      save some sensors for a longer time.
+    { Clear any references to PTriangle passed previously in TRayCollisionNode argument to
+      PointingDevicePress, PointingDeviceRelease, PointingDeviceMove.
+      This is internally used in case some of past seen PTriangle may become invalid,
+      so any memory about them should be cleared.
 
-      You could free it by calling
-      @link(PointingDeviceMove) with Collision = @nil,
-      but this could cause other X3D events,
-      so it's undesirable to call this when you're going to e.g. release
-      the scene or it's octree. Also, you would have to deactivate sensor
-      first, causing even more events.
+      This doesn't cause any X3D events
+      (contrary to e.g. calling PointingDeviceMove with Pick.Triangle = @nil).
 
-      So this method clears any references to saved OverItem and
-      PointingDeviceActiveSensors, without calling any VRML/X3D events.
+      This method clears any references to saved PTriangle and
+      PointingDeviceActiveSensors.
       Note that this still calls DoPointingDeviceSensorsChange
       (making OnPointingDeviceSensorsChange event), if PointingDeviceActiveSensors /
       PointingDeviceSensors possibly changed. }
@@ -1819,6 +1820,8 @@ type
 
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
+      Returned value is local to this transformation (i.e. it is in this scene's space,
+      not world space).
 
       @exclude
       Should only be used internally by TCastleViewport. }
@@ -2770,7 +2773,7 @@ begin
 
       if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
-        WritelnWarning('VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        WritelnWarning('X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;
@@ -4078,7 +4081,7 @@ type
     another change of Transform and another traversal.
     Consider e.g. proximity_sensor_transformed.x3dv: ProximitySensorUpdate
     causes sending of Position_Changed, which may be routed to something
-    like Transfom.set_translation.
+    like Transform.set_translation.
 
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
@@ -6155,7 +6158,23 @@ begin
     DoPointingDeviceSensorsChange;
 end;
 
-function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
+function TCastleSceneCore.PointingDevicePress(const Pick: TRayCollisionNode;
+  const Distance: Single): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+  Result := PointingDevicePressRelease(true, Distance, { ignored } false);
+end;
+
+function TCastleSceneCore.PointingDeviceRelease(const Pick: TRayCollisionNode;
+  const Distance: Single; const CancelAction: Boolean): Boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+  Result := PointingDevicePressRelease(false, Distance, CancelAction);
+end;
+
+function TCastleSceneCore.PointingDevicePressRelease(const DoPress: boolean;
   const Distance: Single; const CancelAction: boolean): boolean;
 
   function AnchorActivate(Anchor: TAnchorNode): boolean;
@@ -6213,16 +6232,15 @@ var
   ActiveChanged: boolean;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
 begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
+  Result := false;
 
-  if ProcessEvents and (FPointingDeviceActive <> Active) then
+  if ProcessEvents and (FPointingDeviceActive <> DoPress) then
   begin
     BeginChangesSchedule;
     try
       ActiveChanged := false;
-      FPointingDeviceActive := Active;
-      if Active then
+      FPointingDeviceActive := DoPress;
+      if DoPress then
       begin
         if PointingDeviceOverItem <> nil then
         begin
@@ -6277,13 +6295,13 @@ begin
 
       { We try hard to leave Result as false when nothing happened.
         This is important for TCastleViewport, that wants to retry
-        activation around if ApproximateActivation, and for other 3D objects
+        press around if ApproximateActivation, and for other TCastleTransform objects
         along the same TRayCollision list. So we really must set
         Result := false if nothing happened, to enable other objects
-        to have a better chance of catching activation.
+        to have a better chance of catching press/release event.
         At the same time, we really must set Result := true if something
         (possibly) happened. Otherwise, simultaneously two objects may be activated,
-        and TCastleViewport.PointingDeviceActivateFailed may do a sound
+        and TCastleViewport.PointingDevicePressFailed may do a sound
         warning that activation was unsuccessful.
 
         Fortunately, our ActiveChanged right now precisely tells us
@@ -7129,7 +7147,7 @@ function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
        (S = 'LOOKAT') then
     begin
       if S = 'LOOKAT' then
-        WritelnWarning('VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+        WritelnWarning('X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       Result := true;
       NavigationType := ntExamine;
     end else
@@ -7143,7 +7161,7 @@ function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      WritelnWarning('VRML/X3D', 'Unknown NavigationInfo.type "%s"', [S]);
+      WritelnWarning('X3D', 'Unknown NavigationInfo.type "%s"', [S]);
   end;
 
 var
@@ -7380,7 +7398,7 @@ begin
       if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
         { Leave TransitionAnimate as true }
         Break else
-        WritelnWarning('VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
+        WritelnWarning('X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
     end;
 
   { calculate TransitionTime }

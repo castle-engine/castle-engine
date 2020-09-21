@@ -295,8 +295,7 @@ type
       This applies e.g. to URLs using http / https protocols.
       The only way to detect their existence would be to actually open them.
       But this involves a network request, so it may take some time,
-      and you may consider doing it asynchronously using (coming in the future)
-      TDownload class (see CastleDownload comments for an API plan of TDownload).
+      and should be done asynchronously (see @link(TCastleDownload)).
 
       If you really want to check the file existence, you can always
       try to open it by @link(Download):
