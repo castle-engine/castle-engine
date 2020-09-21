@@ -277,26 +277,30 @@ procedure TVisualizeTransform.TGizmoScene.CameraChanged(
     Result[1] := TVector3.DotProduct(V, Y);
   end;
 
-  { Returns WorldTransform, but makes sure to account for
-    GizmoScalingAssumeScale[Value] BTW. }
-  function GoodWorldTransform: TMatrix4;
-  var
-    OldScale: TVector3;
+var
+  OldScale: TVector3;
+
+  { Surround calls to WorldTransform in this, to account for
+    GizmoScalingAssumeScale[Value]. }
+  procedure BeginWorldTransform;
   begin
     if GizmoScalingAssumeScale then
     begin
-      OldScale := Scale;
-      Scale := GizmoScalingAssumeScaleValue;
-      Result := WorldTransform;
-      Scale := OldScale;
-    end else
-      Result := WorldTransform;
+      OldScale := UniqueParent.Scale;
+      UniqueParent.Scale := GizmoScalingAssumeScaleValue;
+    end;
+  end;
+
+  procedure EndWorldTransform;
+  begin
+    if GizmoScalingAssumeScale then
+      UniqueParent.Scale := OldScale;
   end;
 
 const
   AssumeNear = 1.0;
 var
-  W{, ViewProjectionMatrix}: TMatrix4;
+  // ViewProjectionMatrix: TMatrix4;
   ZeroProjected, OneProjected: TVector2;
   OneDistance, ScaleUniform: Single;
   ZeroWorld, OneWorld, OneProjected3, ZeroProjected3, CameraPos, CameraSide: TVector3;
@@ -313,11 +317,22 @@ begin
     else
       GizmoScale := 0.25 {TODO:* ACamera.Perspective.EffeectiveFieldOfViewVertical};
 
-    W := GoodWorldTransform;
-    ZeroWorld := W.MultPoint(TVector3.Zero);
+    BeginWorldTransform;
+
+    { Map two points from gizmo local transformation,
+      to determine correct gizmo scale.
+      These points reflect the parent translation and scale.
+
+      Note that we know that gizmo itself has never any translation,
+      but it may have a scale.
+    }
+    Scale := Vector3(1, 1, 1); // assume gizmo scale = 1, will be changed later
+    ZeroWorld := LocalToWorld(TVector3.Zero);
     { Note: We use ACamera.Up, not ACamera.GravityUp, to work sensibly even
       when looking at world at a direction similar to +Y. }
-    OneWorld := ZeroWorld + ACamera.Up;
+    OneWorld := LocalToWorld(WorldToLocalDirection(ACamera.Up).Normalize);
+
+    EndWorldTransform;
 
     (* TODO: why this fails:
     ViewProjectionMatrix := ACamera.ProjectionMatrix * ACamera.Matrix;
@@ -387,22 +402,16 @@ begin
       if Operation = voScale then
       begin
         { In CameraChanged, we adjust gizmo scale to make it fit within
-          the screen nicely. But this has to be disabled within current
-          dragging, otherwise gizmo would try to "counter" the scaling
-          of parent, resulting in weird UX.
+          the screen nicely. This way, we actually "nullify" the effect
+          of parent's scale on gizmo size.
+
+          But this has to be disabled within the dragging when scaling,
+          to enable scaling gizmo get smaller/larger as we drag.
+
           During a single drag, we behave like Scale is constant.
-          Gizmo will be correctly scaled when you release.
-
-          TODO:
-          - actually see the weirdness.
-
-            for some reason, CameraChanged without UniqueParent
-            doesn't try to unscale?
-
-          - then make the GizmoScalingAssumeScale actually working.
-        }
-        //GizmoScalingAssumeScale := true;
-        GizmoScalingAssumeScaleValue := Scale;
+          Gizmo will be correctly scaled when you release. }
+        GizmoScalingAssumeScale := true;
+        GizmoScalingAssumeScaleValue := UniqueParent.Scale;
       end;
       GizmoDragging := true;
       // keep tracking pointing device events, by TCastleViewport.CapturePointingDevice mechanism
