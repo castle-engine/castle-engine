@@ -309,8 +309,8 @@ implementation
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
-  CastleComponentSerialize, CastleTransform, CastleUtils, Castle2DSceneManager,
-  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleColors, CastleTimeUtils,
+  CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
+  CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleTimeUtils,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
   EditorUtils;
 
