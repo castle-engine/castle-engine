@@ -892,7 +892,7 @@ begin
   if VectorsParallel(D, StandardUp) then
     result := StandardUpAlt else
     result := StandardUp;
-  result := RotatePointAroundAxisDeg(Bank, result, D);
+  result := RotatePointAroundAxisRad(DegToRad(Bank), result, D);
 end;
 
 { TLights3ds --------------------------------------------------------------- }
