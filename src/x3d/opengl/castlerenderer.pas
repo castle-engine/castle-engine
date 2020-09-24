@@ -1071,7 +1071,8 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes;
+  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes,
+  CastleRenderContext;
 
 {$define read_implementation}
 
@@ -2790,7 +2791,7 @@ begin
   { restore defaults }
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
-  TGLSLProgram.Current := nil;
+  RenderContext.CurrentProgram := nil;
   RenderingCamera := nil;
 end;
 

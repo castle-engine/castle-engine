@@ -108,7 +108,7 @@ implementation
 uses Math,
   ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
-  CastleQuaternions, X3DNodes, CastleGLUtils;
+  CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 

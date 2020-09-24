@@ -265,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
@@ -663,7 +663,7 @@ var
         Inc(BoundTextureUnits);
       end;
 
-      TGLSLProgram.Current := Shader;
+      RenderContext.CurrentProgram := Shader;
       Shader.Uniform('screen').SetValue(0);
       if CurrentScreenEffectsNeedDepth then
         Shader.Uniform('screen_depth').SetValue(1);

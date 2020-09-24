@@ -113,7 +113,7 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleRectangles;
+uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;

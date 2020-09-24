@@ -278,6 +278,7 @@ begin
     P.Targets.AddUnit('castleglimages.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castleglshaders.pas');
+    P.Targets.AddUnit('castlerendercontext.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'files');
     P.Targets.AddUnit('castleconfig.pas');

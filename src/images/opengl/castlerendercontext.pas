@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2018 Michalis Kamburelis.
+  Copyright 2001-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,9 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLUtils unit: TRenderContext and friends. }
+{ Rendering context state. }
+unit CastleRenderContext;
 
-{$ifdef read_interface}
+{$I castleconf.inc}
+
+interface
+
+uses SysUtils, Generics.Collections,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleUtils, CastleVectors, CastleRectangles, CastleGLShaders, CastleColors;
 
 type
   TClearBuffer = (cbColor, cbDepth, cbStencil);
@@ -88,6 +95,7 @@ type
       FViewport: TRectangle;
       FViewportDelta: TVector2Integer;
       WarningViewportTooLargeDone: Boolean;
+      FCurrentProgram: TGLSLProgram;
 
       procedure SetLineWidth(const Value: Single);
       procedure SetPointSize(const Value: Single);
@@ -104,6 +112,7 @@ type
       procedure SetViewportDelta(const Value: TVector2Integer);
       procedure UpdateViewport;
       procedure WarningViewportTooLarge;
+      procedure SetCurrentProgram(const Value: TGLSLProgram);
   private
     FEnabledScissors: TScissorList;
   public
@@ -216,6 +225,13 @@ type
       Returns @true and sets Rect if any scissor is active.
       Returns @false if we don't clip the view now. }
     function FinalScissor(out Rect: TRectangle): Boolean;
+
+    { Currently enabled GLSL program.
+      @nil if fixed-function pipeline should be used.
+      Setting this property encapsulates the OpenGL glUseProgram
+      (or equivalent ARB extension), additionally preventing redundant glUseProgram
+      calls. }
+    property CurrentProgram: TGLSLProgram read FCurrentProgram write SetCurrentProgram;
   end;
 
 var
@@ -226,22 +242,7 @@ var
     and this may be accessible instead through a new TCastleUserInterface.Render parameter. }
   RenderContext: TRenderContext;
 
-procedure GLClear(const Buffers: TClearBuffers;
-  const ClearColor: TCastleColor); deprecated 'use RenderContext.Clear';
-
 { Projection matrix -------------------------------------------------------- } { }
-
-{$ifdef CASTLE_OBJFPC}
-function GetProjectionMatrix: TMatrix4;
-  deprecated 'use RenderContext.ProjectionMatrix';
-procedure SetProjectionMatrix(const Value: TMatrix4);
-  deprecated 'use RenderContext.ProjectionMatrix';
-
-{ Current projection matrix.
-  @deprecated Use RenderContext.ProjectionMatrix instead. }
-property ProjectionMatrix: TMatrix4
-  read GetProjectionMatrix write SetProjectionMatrix;
-{$endif}
 
 { Calculate projection matrix, and set
   @link(TRenderContext.ProjectionMatrix RenderContext.ProjectionMatrix)
@@ -258,20 +259,9 @@ function OrthoProjection(const Dimensions: TFloatRectangle;
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
-{ depth range ---------------------------------------------------------------- } { }
+implementation
 
-{$ifdef CASTLE_OBJFPC}
-function GetDepthRange: TDepthRange;
-  deprecated 'use RenderContext.DepthRange';
-procedure SetDepthRange(const Value: TDepthRange);
-  deprecated 'use RenderContext.DepthRange';
-{ @deprecated Use @link(TRenderContext.DepthRange RenderContext.DepthRange) instead. }
-property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
-{$endif CASTLE_OBJFPC}
-
-{$endif read_interface}
-
-{$ifdef read_implementation}
+uses CastleLog, CastleGLUtils, CastleProjection;
 
 constructor TRenderContext.Create;
 begin
@@ -555,6 +545,15 @@ begin
     Rect := FEnabledScissors.FFinalScissor;
 end;
 
+procedure TRenderContext.SetCurrentProgram(const Value: TGLSLProgram);
+begin
+  if FCurrentProgram <> Value then
+  begin
+    FCurrentProgram := Value;
+    InternalSetCurrentProgram(Value);
+  end;
+end;
+
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
 
 procedure TRenderContext.TScissorList.Update;
@@ -603,26 +602,7 @@ begin
   end;
 end;
 
-{ GLClear -------------------------------------------------------------------- }
-
-procedure GLClear(const Buffers: TClearBuffers; const ClearColor: TCastleColor);
-begin
-  RenderContext.Clear(Buffers, ClearColor);
-end;
-
 { projection matrix ---------------------------------------------------------- }
-
-{$ifdef CASTLE_OBJFPC}
-function GetProjectionMatrix: TMatrix4;
-begin
-  Result := RenderContext.ProjectionMatrix;
-end;
-
-procedure SetProjectionMatrix(const Value: TMatrix4);
-begin
-  RenderContext.ProjectionMatrix := Value;
-end;
-{$endif}
 
 function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
 begin
@@ -642,18 +622,4 @@ begin
   RenderContext.ProjectionMatrix := Result;
 end;
 
-{ depth range ---------------------------------------------------------------- }
-
-{$ifdef CASTLE_OBJFPC}
-function GetDepthRange: TDepthRange;
-begin
-  Result := RenderContext.DepthRange;
-end;
-
-procedure SetDepthRange(const Value: TDepthRange);
-begin
-  RenderContext.DepthRange := Value;
-end;
-{$endif CASTLE_OBJFPC}
-
-{$endif read_implementation}
+end.

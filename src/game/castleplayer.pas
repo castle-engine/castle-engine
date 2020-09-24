@@ -519,10 +519,11 @@ var
 
 implementation
 
-uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
+uses Math, SysUtils,
+  CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastleLog,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig;
+  CastleGLImages, CastleConfig, CastleRenderContext;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 

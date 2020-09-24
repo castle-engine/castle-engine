@@ -1245,7 +1245,8 @@ uses DOM, Math,
   CastleRenderingCamera,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
-  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils;
+  CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
+  CastleRenderContext;
 {$warnings on}
 
 procedure Register;

@@ -87,7 +87,8 @@ function CreateBackground(const Node: TAbstractBackgroundNode;
 implementation
 
 uses Math,
-  CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages;
+  CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages,
+  CastleRenderContext;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.

@@ -445,7 +445,7 @@ begin
 
   if not GLFeatures.EnableFixedFunction then
   begin
-    TGLSLProgram.Current := Primitive2DRes.Prog;
+    RenderContext.CurrentProgram := Primitive2DRes.Prog;
     Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
 
     if (RenderContext.Viewport.Left <> 0) or
@@ -460,7 +460,7 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    TGLSLProgram.Current := nil;
+    RenderContext.CurrentProgram := nil;
     glLoadIdentity();
     {$warnings off}
     glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
