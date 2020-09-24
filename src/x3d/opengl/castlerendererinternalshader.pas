@@ -2742,12 +2742,7 @@ var
   procedure EnableShaderFog;
   var
     FogFactor, FogUniforms, CoordinateSource: string;
-    USingle: TDynamicUniformSingle;
-    UColor: TDynamicUniformVec3;
   begin
-    { Both OpenGLES and desktop OpenGL use castle_xxx uniforms and varying
-      to pass fog parameters, not gl_xxx. }
-
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
@@ -2775,34 +2770,17 @@ var
               which is just 1.0 / gl_Fog.end for us.
               So we just divide by castle_FogLinearEnd. }
             FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogLinearEnd';
-            USingle.Value := FFogLinearEnd;
-            DynamicUniforms.Add(USingle);
           end;
         ftExp:
           begin
             FogUniforms := 'uniform float castle_FogExpDensity;';
             FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogExpDensity';
-            USingle.Value := FFogExpDensity;
-            DynamicUniforms.Add(USingle);
           end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
         {$endif}
       end;
 
-      UColor := TDynamicUniformVec3.Create;
-      UColor.Name := 'castle_FogColor';
-      UColor.Value := FFogColor;
-      { We leave UColor.Declaration empty, just like USingle.Declaration above,
-        because we only declare them inside this plug
-        (which is a separate compilation unit for desktop OpenGL). }
-      DynamicUniforms.Add(UColor);
       Plug(stFragment,
         'varying float castle_FogFragCoord;' + NL+
         'uniform vec3 castle_FogColor;' +NL+
@@ -3453,6 +3431,9 @@ procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
   const FogColor: TVector3; const FogLinearEnd: Single;
   const FogExpDensity: Single);
+var
+  UColor: TDynamicUniformVec3;
+  USingle: TDynamicUniformSingle;
 begin
   FFogEnabled := true;
   FFogType := FogType;
@@ -3463,6 +3444,34 @@ begin
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
+
+  if FFogEnabled then
+  begin
+    case FFogType of
+      ftLinear:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogLinearEnd';
+          USingle.Value := FFogLinearEnd;
+          DynamicUniforms.Add(USingle);
+        end;
+      ftExp:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogExpDensity';
+          USingle.Value := FFogExpDensity;
+          DynamicUniforms.Add(USingle);
+        end;
+    end;
+
+    UColor := TDynamicUniformVec3.Create;
+    UColor.Name := 'castle_FogColor';
+    UColor.Value := FFogColor;
+    { We leave UColor.Declaration empty, just like USingle.Declaration above,
+      because we only declare them inside this plug
+      (which is a separate compilation unit for desktop OpenGL). }
+    DynamicUniforms.Add(UColor);
+  end;
 end;
 
 procedure TShader.ModifyFog(const FogType: TFogType;
