@@ -7,8 +7,6 @@ Before 7.0 release:
   (ResizeDisabledReason) somewhere
   (at tooltip)?
 
-* 3d gizmos to translate / rotate / scale
-
 * Scene.Rendering (new Scene.Attributes) should be subcomponent and published
 
 ------------------------------------------------------------------------------
