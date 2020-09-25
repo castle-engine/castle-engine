@@ -945,6 +945,10 @@ begin
   CastleControl.OnUpdate := @CastleControlUpdate;
   CastleControl.StencilBits := 8; // enable shadow volumes
 
+  {$ifdef DEBUG_GIZMO_PICK}
+  TCastleControl.MainControl := CastleControl;
+  {$endif DEBUG_GIZMO_PICK}
+
   DesignerLayer := TDesignerLayer.Create(Self);
   DesignerLayer.Frame := Self;
   CastleControl.Controls.InsertFront(DesignerLayer);

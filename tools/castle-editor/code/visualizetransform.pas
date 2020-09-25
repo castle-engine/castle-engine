@@ -108,7 +108,8 @@ implementation
 uses Math,
   ProjectUtils,
   CastleLog, CastleShapes, CastleViewport, CastleProjection, CastleUtils,
-  CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext;
+  CastleQuaternions, X3DNodes, CastleGLUtils, CastleRenderContext,
+  CastleControl, CastleKeysMouse;
 
 { TVisualizeTransform.TGizmoScene -------------------------------------------- }
 
@@ -439,17 +440,19 @@ begin
       DragSuccess := PointOnAxis(NewPick, Pick, DraggingCoord);
     if DragSuccess then
     begin
-      {$ifndef DEBUG_GIZMO_PICK}
+      {$ifdef DEBUG_GIZMO_PICK}
+      if TCastleControl.MainControl.Pressed[keyShift] then
+      {$endif DEBUG_GIZMO_PICK}
       case Operation of
         voTranslate:
           begin
             Diff := NewPick - LastPick;
             { Our gizmo display and interaction is affected by existing
-              UniqueParent.Rotation, although the
-              UniqueParent.Translation is applied before rotation
-              technically.
+              UniqueParent.Rotation although the UniqueParent.Translation
+              is applied before rotation technically.
               So we need to manually multiply Diff by curent rotation. }
             Diff := RotatePointAroundAxis(UniqueParent.Rotation, Diff);
+            Diff := Diff * UniqueParent.Scale;
             UniqueParent.Translation := UniqueParent.Translation + Diff;
           end;
         voRotate:
@@ -470,7 +473,6 @@ begin
             UniqueParent.Scale := UniqueParent.Scale * Diff;
           end;
       end;
-      {$endif not DEBUG_GIZMO_PICK}
 
       { No point in updating LastPick or LastPickAngle:
         it remains the same, as it is expressed
