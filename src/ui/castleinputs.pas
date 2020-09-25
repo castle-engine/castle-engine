@@ -112,6 +112,8 @@ type
     FKeyString: String;
     FMouseButtonUse: boolean;
     FMouseButton: TMouseButton;
+    FMouseButton2Use: boolean;
+    FMouseButton2: TMouseButton;
     FMouseWheel: TMouseWheelDirection;
     FCaption: string;
     FGroup: TInputGroup;
@@ -125,6 +127,8 @@ type
     FDefaultKeyString: String;
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TMouseButton;
+    FDefaultMouseButton2Use: boolean;
+    FDefaultMouseButton2: TMouseButton;
     FDefaultMouseWheel: TMouseWheelDirection;
 
     procedure SetKey1(const Value: TKey);
@@ -134,13 +138,15 @@ type
     procedure SetCharacter(const AValue: Char);
     procedure SetMouseButtonUse(const Value: boolean);
     procedure SetMouseButton(const Value: TMouseButton);
+    procedure SetMouseButton2Use(const Value: boolean);
+    procedure SetMouseButton2(const Value: TMouseButton);
     procedure SetMouseWheel(const Value: TMouseWheelDirection);
   protected
     { Called always right after the key/character/mouse
       shortcut value changed. Note that this is called only when
       the "current" values (Key1, Key2, KeyString, MouseButtonUse, MouseButton,
-      MouseWheel) changed, and it's not called when just the DefaultXxx
-      values changed. }
+      MouseButton2Use, MouseButton2, MouseWheel) changed,
+      and it's not called when just the DefaultXxx values changed. }
     procedure Changed; virtual;
   public
     { Constructor that always creates local shortcuts (with Group = igLocal).
@@ -163,8 +169,8 @@ type
 
     { Copy Source properties to this object.
       It always copies "current" properties (Key1, Key2, KeyString,
-      MouseButtonUse, MouseButton, MouseWheel), and optionally (if CopyDefaults)
-      also copies the DefaultXxx properties. }
+      MouseButtonUse, MouseButton, MouseButton2Use, MouseButton2, MouseWheel),
+      and optionally (if CopyDefaults) also copies the DefaultXxx properties. }
     procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
 
     { Set keys/mouse buttons of this shortcut.
@@ -214,10 +220,8 @@ type
       If Key = K_None and AString = '', result is always @false. }
     function IsKey(const Key: TKey; AKeyString: String): boolean;
 
-    { Check does given mouse button correspond to this input shortcut.
-      In practice, just checks MouseButtonUse and if @true, compares
-      AMouseButton with MouseButton. }
-    function IsMouseButton(AMouseButton: TMouseButton): boolean;
+    { Check does given mouse button correspond to this input shortcut. }
+    function IsMouseButton(const AMouseButton: TMouseButton): boolean;
 
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
@@ -323,6 +327,13 @@ type
     property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
+    { Alternative mouse shortcut for given command. You can set MouseButton2Use to @false
+      if you don't want to use this.
+      @groupBegin }
+    property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use;
+    property MouseButton2: TMouseButton read FMouseButton2 write SetMouseButton2;
+    { @groupEnd }
+
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
       continuously pressed (our method IsPressed doesn't look at it),
       so this is only suitable for commands that work in steps
@@ -347,6 +358,10 @@ type
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TMouseButton
       read FDefaultMouseButton write FDefaultMouseButton;
+    property DefaultMouseButton2Use: boolean
+      read FDefaultMouseButton2Use write FDefaultMouseButton2Use;
+    property DefaultMouseButton2: TMouseButton
+      read FDefaultMouseButton2 write FDefaultMouseButton2;
     property DefaultMouseWheel: TMouseWheelDirection
       read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
@@ -466,6 +481,8 @@ begin
   FKeyString := Source.DefaultKeyString;
   FMouseButtonUse := Source.DefaultMouseButtonUse;
   FMouseButton := Source.DefaultMouseButton;
+  FMouseButton2Use := Source.DefaultMouseButton2Use;
+  FMouseButton2 := Source.DefaultMouseButton2;
   FMouseWheel := Source.DefaultMouseWheel;
 
   { we don't set here properties, but directly set FXxx fields,
@@ -489,6 +506,8 @@ begin
   FDefaultKeyString := AKeyString;
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
+  FDefaultMouseButton2Use := false; // not set by parameters, just reset
+  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
   FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
 end;
@@ -509,6 +528,8 @@ begin
   FKeyString := AKeyString;
   FMouseButtonUse := AMouseButtonUse;
   FMouseButton := AMouseButton;
+  FDefaultMouseButton2Use := false; // not set by parameters, just reset
+  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
   FMouseWheel := AMouseWheel;
   Changed;
 end;
@@ -522,6 +543,8 @@ begin
     DefaultKeyString := Source.DefaultKeyString;
     DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
     DefaultMouseButton := Source.DefaultMouseButton;
+    DefaultMouseButton2Use := Source.DefaultMouseButton2Use;
+    DefaultMouseButton2 := Source.DefaultMouseButton2;
     DefaultMouseWheel := Source.DefaultMouseWheel;
   end;
 
@@ -530,6 +553,8 @@ begin
   FKeyString := Source.KeyString;
   FMouseButtonUse := Source.MouseButtonUse;
   FMouseButton := Source.MouseButton;
+  FMouseButton2Use := Source.MouseButton2Use;
+  FMouseButton2 := Source.MouseButton2;
   FMouseWheel := Source.MouseWheel;
 
   { we don't set here properties, but directly set FXxx fields,
@@ -543,6 +568,9 @@ begin
   FKey2 := K_None;
   FKeyString := '';
   FMouseButtonUse := false;
+  FMouseButton := mbLeft;
+  FMouseButton2Use := false;
+  FMouseButton2 := mbLeft;
   FMouseWheel := mwNone;
 
   if ClearAlsoDefaultState then
@@ -551,6 +579,9 @@ begin
     FDefaultKey2 := K_None;
     FDefaultKeyString := '';
     FDefaultMouseButtonUse := false;
+    FDefaultMouseButton := mbLeft;
+    FDefaultMouseButton2Use := false;
+    FDefaultMouseButton2 := mbLeft;
     FDefaultMouseWheel := mwNone;
   end;
 
@@ -566,7 +597,8 @@ begin
     ( (Pressed <> nil) and (Pressed.Keys[Key1] or
                             Pressed.Keys[Key2] or
                             Pressed.Strings[KeyString]) ) or
-    ( MouseButtonUse and (MouseButton in MousePressed) );
+    ( MouseButtonUse  and (MouseButton in MousePressed) ) or
+    ( MouseButton2Use and (MouseButton2 in MousePressed) );
 end;
 
 function TInputShortcut.IsPressed(Container: TUIContainer): boolean;
@@ -585,9 +617,11 @@ begin
     ( (KeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TInputShortcut.IsMouseButton(AMouseButton: TMouseButton): boolean;
+function TInputShortcut.IsMouseButton(const AMouseButton: TMouseButton): boolean;
 begin
-  Result := MouseButtonUse and (AMouseButton = MouseButton);
+  Result :=
+    ( MouseButtonUse  and (AMouseButton = MouseButton) ) or
+    ( MouseButton2Use and (AMouseButton = MouseButton2) );
 end;
 
 function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
@@ -654,6 +688,12 @@ begin
     Result := Result + Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
   end;
 
+  if MouseButton2Use then
+  begin
+    if Result <> '' then Result := Result + ' or ';
+    Result := Result + Format('mouse "%s"', [MouseButtonStr[MouseButton2]]);
+  end;
+
   if MouseWheel <> mwNone then
   begin
     if Result <> '' then Result := Result + ' or ';
@@ -700,6 +740,18 @@ end;
 procedure TInputShortcut.SetMouseButton(const Value: TMouseButton);
 begin
   FMouseButton := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButton2Use(const Value: boolean);
+begin
+  FMouseButton2Use := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButton2(const Value: TMouseButton);
+begin
+  FMouseButton2 := Value;
   Changed;
 end;
 
@@ -762,6 +814,10 @@ begin
     MouseButtonUse, DefaultMouseButtonUse);
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_button',
     Ord(MouseButton), Ord(DefaultMouseButton));
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button_use2',
+    MouseButton2Use, DefaultMouseButton2Use);
+  Config.SetDeleteValue(ConfigPath + Name + '/mouse_button2',
+    Ord(MouseButton2), Ord(DefaultMouseButton2));
   Config.SetDeleteValue(ConfigPath + Name + '/mouse_wheel',
     Ord(MouseWheel), Ord(DefaultMouseWheel));
 end;
@@ -777,14 +833,15 @@ begin
   Key2 := Config.GetKey(
     ConfigPath + Name + '/key2', DefaultKey2);
   MouseButtonUse := Config.GetValue(
-    ConfigPath + Name + '/mouse_button_use',
-    DefaultMouseButtonUse);
+    ConfigPath + Name + '/mouse_button_use', DefaultMouseButtonUse);
   MouseButton := TMouseButton(Config.GetValue(
-    ConfigPath + Name + '/mouse_button',
-    Ord(DefaultMouseButton)));
+    ConfigPath + Name + '/mouse_button', Ord(DefaultMouseButton)));
+  MouseButton2Use := Config.GetValue(
+    ConfigPath + Name + '/mouse_button_use2', DefaultMouseButton2Use);
+  MouseButton2 := TMouseButton(Config.GetValue(
+    ConfigPath + Name + '/mouse_button2', Ord(DefaultMouseButton2)));
   MouseWheel := TMouseWheelDirection(Config.GetValue(
-    ConfigPath + Name + '/mouse_wheel',
-    Ord(DefaultMouseWheel)));
+    ConfigPath + Name + '/mouse_wheel', Ord(DefaultMouseWheel)));
 end;
 
 { TInputShortcutList ----------------------------------------------------- }
@@ -884,8 +941,8 @@ begin
     begin
       if Items[J].IsKey(Items[I].Key1, '') or
          Items[J].IsKey(Items[I].Key2, '') or
-         (Items[I].MouseButtonUse and
-           Items[J].IsMouseButton(Items[I].MouseButton)) then
+         (Items[I].MouseButtonUse  and Items[J].IsMouseButton(Items[I].MouseButton)) or
+         (Items[I].MouseButton2Use and Items[J].IsMouseButton(Items[I].MouseButton2)) then
       begin
         ConflictDescription := Format('"%s" conflicts with "%s"',
           [Items[I].Caption, Items[J].Caption]);

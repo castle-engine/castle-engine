@@ -967,6 +967,10 @@ begin
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
+
+  // Input_Interact (for gizmos) reacts to both left and right
+  Input_Interact.MouseButton2Use := true;
+  Input_Interact.MouseButton2 := mbRight;
 end;
 
 destructor TDesignFrame.Destroy;
