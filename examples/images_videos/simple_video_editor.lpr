@@ -83,8 +83,6 @@ const
   end;
 
 begin
-  RenderContext.Clear([cbColor], Black);
-
   if Video.Loaded then
   begin
     GLVideo.DrawableImageFromTime(Time).Draw(0, 0);

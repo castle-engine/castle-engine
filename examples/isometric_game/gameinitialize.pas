@@ -61,8 +61,6 @@ var
   BaseFitX, BaseFitY: Cardinal;
   X1, X2, Y1, Y2: Integer;
 begin
-  RenderContext.Clear([cbColor], Black);
-
   BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
   BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
 

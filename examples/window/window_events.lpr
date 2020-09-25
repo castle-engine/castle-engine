@@ -50,7 +50,6 @@ begin
   { Part of functionality of OnRender moved to BeforeRender.
     In this program there is no point in doing that.
     But I wanted just to show that BeforeRender really works. }
-  RenderContext.Clear([cbColor], Black);
 end;
 
 procedure Render(Container: TUIContainer);

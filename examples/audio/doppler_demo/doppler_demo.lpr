@@ -51,7 +51,6 @@ procedure Render(Container: TUIContainer);
   end;
 
 begin
-  RenderContext.Clear([cbColor], Black);
   DrawPoint(ListenerPosition, Yellow);
   DrawPoint(SoundPosition, White);
 end;
