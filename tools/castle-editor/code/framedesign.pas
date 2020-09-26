@@ -1872,7 +1872,7 @@ begin
 
     Here we have to "restore" the pure name of the component (without class name)
     before starting edit. }
-  Node.Text := TComponent(ControlsTree.Selected.Data).Name;
+  Node.Text := TComponent(Node.Data).Name;
 end;
 
 procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
