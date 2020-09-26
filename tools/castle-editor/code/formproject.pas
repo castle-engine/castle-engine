@@ -32,6 +32,8 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemRedo: TMenuItem;
+    MenuItemUndo: TMenuItem;
     MenuItemSeparator78: TMenuItem;
     MenuItemReferenceOfCurrent: TMenuItem;
     MenuItemSeparator2303403o: TMenuItem;
@@ -109,6 +111,10 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure UpdateUndo(Sender: TObject);
+    procedure UpdateUndoRedoInformation;
+    procedure MenuItemRedoClick(Sender: TObject);
+    procedure MenuItemUndoClick(Sender: TObject);
     procedure MenuItemDeleteFileClick(Sender: TObject);
     procedure MenuItemOpenDefaultClick(Sender: TObject);
     procedure MenuItemOpenDirFromFileClick(Sender: TObject);
@@ -466,6 +472,46 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.UpdateUndo(Sender: TObject);
+begin
+  UpdateUndoRedoInformation;
+end;
+
+procedure TProjectForm.UpdateUndoRedoInformation;
+begin
+  if (Design <> nil) and Design.UndoSystem.IsUndoPossible then
+  begin
+    MenuItemUndo.Enabled := true;
+    MenuItemUndo.Caption := Design.UndoSystem.UndoComment;
+  end else
+  begin
+    MenuItemUndo.Enabled := false;
+    MenuItemUndo.Caption := 'Undo';
+  end;
+
+  if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
+  begin
+    MenuItemRedo.Enabled := true;
+    MenuItemRedo.Caption := Design.UndoSystem.RedoComment;
+  end else
+  begin
+    MenuItemRedo.Enabled := false;
+    MenuItemRedo.Caption := 'Redo';
+  end;
+end;
+
+procedure TProjectForm.MenuItemRedoClick(Sender: TObject);
+begin
+  Design.PerformRedo;
+  UpdateUndoRedoInformation;
+end;
+
+procedure TProjectForm.MenuItemUndoClick(Sender: TObject);
+begin
+  Design.PerformUndo;
+  UpdateUndoRedoInformation;
+end;
+
 procedure TProjectForm.MenuItemDeleteFileClick(Sender: TObject);
 var
   SelectedFileName: String;
@@ -570,6 +616,8 @@ begin
   MenuItemPasteComponent.Enabled := Design <> nil;
   MenuItemDuplicateComponent.Enabled := Design <> nil;
 
+  UpdateUndoRedoInformation;
+
   LabelNoDesign.Visible := Design = nil;
 end;
 
@@ -581,6 +629,7 @@ begin
     Design.Parent := PanelAboveTabs;
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
+    Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
     DesignExistenceChanged;
   end;
 end;
