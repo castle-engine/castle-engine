@@ -1866,10 +1866,13 @@ end;
 procedure TDesignFrame.ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
   var AllowEdit: Boolean);
 begin
-  { this event is fired when calling TCustomListView.CanEdit which itself is called in TCustomListView.ShowEditor
-    therefore this event preceeds initializing and showing of the editor }
-  //here we have to "restore" the pure name of the component (without class name) before starting edit
-  Node.Text := TComponent(ControlsTree.Selected.Data).name;
+  { This event is fired when calling TCustomListView.CanEdit
+    which itself is called in TCustomListView.ShowEditor
+    therefore this event preceeds initializing and showing of the editor.
+
+    Here we have to "restore" the pure name of the component (without class name)
+    before starting edit. }
+  Node.Text := TComponent(ControlsTree.Selected.Data).Name;
 end;
 
 procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
