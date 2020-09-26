@@ -1878,14 +1878,14 @@ end;
 procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
   Cancel: Boolean);
 var
-  S: String;
+  UndoComment: String;
   Sel: TComponent;
 begin
-  Sel := TComponent(ControlsTree.Selected.Data);
-  S := 'Rename ' + Sel.name + ' into ' + Node.Text;
-  Sel.name := Node.Text;
+  Sel := TComponent(Node.Data);
+  UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+  Sel.Name := Node.Text;
   ModifiedOutsideObjectInspector;
-  RecordUndo(S); //It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+  RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   Node.Text := ComponentCaption(Sel);
 end;
 
