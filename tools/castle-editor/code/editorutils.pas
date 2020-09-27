@@ -711,13 +711,13 @@ begin
   Don't show deprecated -- at least in initial CGE release, keep the menu clean.
 
   { add separators from deprecated }
-  MenuItem := TMenuItem.Create(Self);
+  MenuItem := TMenuItem.Create(ParentUeserInterface);
   MenuItem.Caption := '-';
-  MenuItemDesignAddUserInterface.Add(MenuItem);
+  ParentUeserInterface.Add(MenuItem);
 
-  MenuItem := TMenuItem.Create(Self);
+  MenuItem := TMenuItem.Create(ParentTransform);
   MenuItem.Caption := '-';
-  MenuItemDesignAddTransform.Add(MenuItem);
+  ParentTransform.Add(MenuItem);
 
   { add deprecated components }
   for R in RegisteredComponents do
@@ -726,15 +726,15 @@ begin
       if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
          not R.ComponentClass.InheritsFrom(TCastleNavigation) then
       begin
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemAddComponentClick;
-        MenuItemDesignAddUserInterface.Add(MenuItem);
+        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUeserInterface.Add(MenuItem);
       end else
       if R.ComponentClass.InheritsFrom(TCastleTransform) then
       begin
-        MenuItem := CreateMenuItemForComponent(R);
-        MenuItem.OnClick := @MenuItemAddComponentClick;
-        MenuItemDesignAddTransform.Add(MenuItem);
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
       end;
     end;
   *)
