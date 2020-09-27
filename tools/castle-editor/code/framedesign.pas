@@ -948,44 +948,6 @@ constructor TDesignFrame.Create(TheOwner: TComponent);
     Result.ShowGutter := false;
   end;
 
-  //This is a copy from FormProject - TODO: reuse the code; do not copy it
-  procedure BuildComponentsMenu;
-
-    function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
-    var
-      S: String;
-    begin
-      Result := TMenuItem.Create(Self);
-      S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-      if R.IsDeprecated then
-        S := '(Deprecated) ' + S;
-      Result.Caption := S;
-      Result.Tag := PtrInt(Pointer(R));
-    end;
-
-  var
-    MenuItem: TMenuItem;
-    R: TRegisteredComponent;
-  begin
-    for R in RegisteredComponents do
-      if not R.IsDeprecated then
-      begin
-        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
-           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuTreeViewItemAddUserInterface.Add(MenuItem);
-        end else
-        if R.ComponentClass.InheritsFrom(TCastleTransform) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuTreeViewItemAddTransform.Add(MenuItem);
-        end;
-      end;
-  end;
-
 var
   DesignerLayer: TDesignerLayer;
 begin
@@ -1052,7 +1014,7 @@ begin
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
 
-  BuildComponentsMenu;
+  BuildComponentsMenu(MenuTreeViewItemAddUserInterface, MenuTreeViewItemAddTransform, @MenuItemAddComponentClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
   Input_Interact.MouseButton2 := mbRight;
