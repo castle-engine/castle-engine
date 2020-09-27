@@ -110,9 +110,10 @@ type
     colors of the entire rectangle (@link(RenderRect)) of this control.
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
-    You may use e.g. @link(TCastleRectangleControl)
-    or TCastleViewport with @link(TCastleViewport.Background)=true
-    to always reliably fill the background.
+    You may use e.g. @link(TCastleRectangleControl) to fill the background with a solid color
+    from @link(TCastleRectangleControl.Color).
+    Or use @link(TCastleViewport) with @link(TCastleViewport.Transparent) = @false (default)
+    which fills background with @link(TCastleViewport.BackgroundColor).
   }
   TCastleScreenEffects = class(TCastleUserInterface)
   strict private
@@ -264,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
@@ -662,7 +663,7 @@ var
         Inc(BoundTextureUnits);
       end;
 
-      TGLSLProgram.Current := Shader;
+      RenderContext.CurrentProgram := Shader;
       Shader.Uniform('screen').SetValue(0);
       if CurrentScreenEffectsNeedDepth then
         Shader.Uniform('screen_depth').SetValue(1);

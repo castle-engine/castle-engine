@@ -913,7 +913,7 @@ var
 
     if IsSuffix('%', NumStr, false) then
     begin
-      if not TryStrToFloat(SuffixRemove('%', NumStr, false), PercentSize) then
+      if not TryStrToFloatDot(SuffixRemove('%', NumStr, false), PercentSize) then
         Exit(false);
       PercentSize := PercentSize / 100;
     end else

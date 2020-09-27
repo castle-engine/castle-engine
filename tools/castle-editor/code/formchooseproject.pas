@@ -55,6 +55,9 @@ type
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
     procedure UpdateWarningFpcLazarus;
+    { Open ProjectForm.
+      ManifestUrl may be absolute or relative here. }
+    procedure ProjectOpen(ManifestUrl: string);
   public
 
   end;
@@ -69,7 +72,8 @@ implementation
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
   CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
   ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
-  ToolCompilerInfo, ToolFpcVersion;
+  ToolCompilerInfo, ToolFpcVersion,
+  FormProject;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
@@ -89,6 +93,24 @@ begin
   {$else}
   inherited Hide;
   {$endif}
+end;
+
+procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
+begin
+  ManifestUrl := AbsoluteURI(ManifestUrl);
+
+  // Validate
+  if not URIFileExists(ManifestUrl) then
+    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
+      [ManifestUrl]);
+
+  ProjectForm := TProjectForm.Create(Application);
+  ProjectForm.OpenProject(ManifestUrl);
+  ProjectForm.Show;
+
+  { Do this even if you just opened this project through "recent" menu.
+    This way URL is moved to the top. }
+  RecentProjects.Add(ManifestUrl);
 end;
 
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
@@ -111,8 +133,6 @@ begin
 
   if OpenProject.Execute then
   begin
-    RecentProjects.Add(OpenProject.URL, false);
-
     Hide;
     try
       ProjectOpen(OpenProject.URL);
@@ -131,7 +151,7 @@ begin
 
   if NewProjectForm.ShowModal = mrOK then
   begin
-    DetectEditorApplicationData; // we use our castle-data:/xxx to copy template
+    UseEditorApplicationData; // we use our castle-data:/xxx to copy template
 
     try
       // Create project dir
@@ -157,13 +177,14 @@ begin
         raise EInternalError.Create('Unknown project template selected');
 
       // Fill project dir
-      CopyTemplate(ProjectDirUrl, TemplateName, NewProjectForm.EditProjectName.Text);
+      CopyTemplate(ProjectDirUrl, TemplateName,
+        NewProjectForm.EditProjectName.Text,
+        NewProjectForm.EditProjectCaption.Text);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project
       ManifestUrl := CombineURI(ProjectDirUrl, 'CastleEngineManifest.xml');
       ProjectOpen(ManifestUrl);
-      RecentProjects.Add(ManifestUrl, false);
     except
       on E: Exception do
       begin
@@ -185,7 +206,7 @@ procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
 var
   MenuItem: TMenuItem;
   I: Integer;
-  Url, S: String;
+  Url, S, NotExistingSuffix: String;
 begin
   PopupMenuRecentProjects.Items.Clear;
   for I := 0 to RecentProjects.URLs.Count - 1 do
@@ -193,13 +214,18 @@ begin
     Url := RecentProjects.URLs[I];
     MenuItem := TMenuItem.Create(Self);
 
+    if URIExists(Url) in [ueFile, ueUnknown] then
+      NotExistingSuffix := ''
+    else
+      NotExistingSuffix := ' (PROJECT FILES MISSING)';
+
     // show file URLs simpler, esp to avoid showing space as %20
     Url := SuffixRemove('/CastleEngineManifest.xml', Url, true);
     if URIProtocol(Url) = 'file' then
       S := URIToFilenameSafeUTF8(Url)
     else
       S := URIDisplay(Url);
-    MenuItem.Caption := SQuoteLCLCaption(S);
+    MenuItem.Caption := SQuoteLCLCaption(S + NotExistingSuffix);
 
     MenuItem.Tag := I;
     MenuItem.OnClick := @MenuItemRecentClick;
@@ -275,6 +301,18 @@ var
 begin
   Url := RecentProjects.URLs[(Sender as TMenuItem).Tag];
 
+  if not (URIExists(Url) in [ueFile, ueUnknown]) then
+  begin
+    if YesNoBox(Format('Project file "%s" does not exist. Remove the project from the recent list?', [
+      URIDisplay(Url)
+    ])) then
+    begin
+      RecentProjects.Remove(Url);
+      PopupMenuRecentProjects.Items.Remove(Sender as TMenuItem);
+    end;
+    Exit;
+  end;
+
   Hide;
   try
     ProjectOpen(Url);
@@ -295,7 +333,6 @@ begin
     Hide;
     try
       ProjectOpen(Parameters[1]);
-      RecentProjects.Add(Parameters[1], false);
     except
       Show;
       raise;

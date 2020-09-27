@@ -32,13 +32,17 @@
         <CompilerMessages>
           <IgnoredMessages idx5063="True" idx4046="True"/>
         </CompilerMessages>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (X3D, Collada, Spine...), we are cross-platform (desktop, mobile), we have an optimized renderer with many cool graphic effects (shadows, mirror, bump mapping...). See https://castle-engine.io/features.php for a complete list of features.
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
-This package, castle_components.lpk, contains the Lazarus visual components based on LCL. Most of all: the TCastleControl component. You can install this package in Lazarus."/>
+This package, castle_components.lpk, contains the Lazarus visual components that depend on LCL. First of all, the TCastleControlBase component. You can install this package in Lazarus."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
@@ -94,7 +98,6 @@ See https://castle-engine.io/license.php for details.
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
     </PublishOptions>
     <CustomOptions Items="ExternHelp" Version="2">
       <_ExternHelp Items="Count"/>

@@ -264,6 +264,8 @@ type
   Shader pipeline completely ignores the enabled state of texture units. }
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 
+function BoolToGL(const Value: boolean): TGLboolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

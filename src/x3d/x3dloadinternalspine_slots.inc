@@ -103,6 +103,9 @@ end;
 
 procedure TSlot.BuildNodes(const BaseUrl: string;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
+var
+  IsWeightedMeshAttachmentExisted: Boolean = False;
+  IsOtherAttachmentExisted: Boolean = False;
 
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
@@ -131,7 +134,25 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
             [A.Node.X3DName]);
         end;
 
-        A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
+        { TODO: This is a hackjob and need a better way to handle this issue.
+          Since we "baked" mesh transformation into TCoordinateInterpolatorNode,
+          including bone transformation, we need to move this mesh to root bone. }
+        if (A is TMeshAttachment) and ((A as TMeshAttachment).Weights.Count > 0) then
+        begin
+          IsWeightedMeshAttachmentExisted := True;
+          while Bone.Parent <> nil do
+          begin
+            Bone := Bone.Parent;
+          end;
+        end else
+        begin
+          IsOtherAttachmentExisted := True;
+        end;
+
+        { Transform skinnedmesh into local space.
+          Note that the new weighted mesh baked transformations directly into
+          TCoordinateInterpolatorNode so this is not necessary for weighted mesh. }
+        A.TransformToBoneSpace(Bone);
         A.NodeUsedAsChild := true;
         Result := A.Node;
 
@@ -159,7 +180,6 @@ var
 begin
   Node := TTransformNode.Create('SlotTransform_' + Name, BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
-  Bone.Node.AddChildren(Node);
   NodeUsedAsChild := true;
 
   SwitchNode := TSwitchNode.Create('SlotSwitch_' + Name, BaseUrl);
@@ -170,6 +190,9 @@ begin
 
   for I := 0 to AttachmentNames.Count - 1 do
     SwitchNode.AddChildren(AttachmentNode(AttachmentNames[I]));
+  if IsWeightedMeshAttachmentExisted and IsOtherAttachmentExisted then
+    WritelnWarning('Spine', 'Weighted mesh attachment alongside with other types of attachment in the same slot is not supported');
+  Bone.Node.AddChildren(Node);
 end;
 
 { TSlotList ------------------------------------------------------------------ }

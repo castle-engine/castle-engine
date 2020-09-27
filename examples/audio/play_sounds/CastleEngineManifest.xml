@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="play_sounds"
   game_units="GameInitialize"
-  qualified_name="io.castleengine.play.sounds"
->
-  <!--
-    Uncomment this to test music streaming (which requires threads
-    when used with the default OpenAL backend).
-    Uncomment also relevant part of gamestatemain.pas.
-  -->
-  <!--
-  <compiler_options>
-    <custom_options>
-      <option>-dCASTLE_THREADS</option>
-    </custom_options>
-  </compiler_options>
-  -->
+  qualified_name="io.castleengine.play.sounds">
 </project>

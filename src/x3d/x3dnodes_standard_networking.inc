@@ -290,7 +290,7 @@ function TAnchorNode.LoadAnchor(
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin
-    WritelnWarning('VRML/X3D', Format('Viewpoint "%s" specified by Anchor not found',
+    WritelnWarning('X3D', Format('Viewpoint "%s" specified by Anchor not found',
       [NewViewpointName]));
   end;
 
@@ -352,7 +352,7 @@ begin
             Exit(true);
           end else
           begin
-            WritelnWarning('VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
+            WritelnWarning('X3D', Format('Cannot open browser to handle document on this URL: %s',
               [PathFromBaseUrl(Url)]));
             Continue;
           end;
@@ -362,7 +362,7 @@ begin
         on E: Exception do
         begin
           { Catch exception and produce WritelnWarning, go to next URL }
-          WritelnWarning('VRML/X3D', Format('Loading world from Anchor URL "%s" failed: %s',
+          WritelnWarning('X3D', Format('Loading world from Anchor URL "%s" failed: %s',
             [UrlWithoutViewpoint, E.Message]));
           Continue;
         end;
@@ -501,7 +501,7 @@ begin
       except
         on E: Exception do
           { Careful here, as WritelnWarning may also raise exception. }
-          WritelnWarning('VRML/X3D', Format(SLoadError,
+          WritelnWarning('X3D', Format(SLoadError,
             [E.ClassName, 'inline file', URIDisplay(FullUrl), E.Message]));
       end;
     end;

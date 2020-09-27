@@ -69,7 +69,8 @@ implementation
 // to keep it working for backward compatibility.
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages;
+  CastleRenderingCamera, CastleGLUtils, CastleUtils, CastleShapes, CastleImages,
+  CastleRenderContext;
 {$warnings on}
 
 {$ifndef OpenGLES}

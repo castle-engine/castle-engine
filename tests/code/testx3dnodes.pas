@@ -84,7 +84,6 @@ type
     procedure TestAttenuation;
     procedure TestAddChildren;
     procedure TestAddChildrenAllowDuplicates;
-    procedure TestNurbsCurvePoint;
   end;
 
 implementation
@@ -173,7 +172,7 @@ procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
       case T.Token of
         vtKeyword: result := result +' "' +X3DKeywordsName[T.Keyword]+'"';
         vtName: result := '"' +T.Name+'"';
-        vtFloat: result := result +' ' +FloatToStr(T.Float);
+        vtFloat: result := result +' ' +FloatToStrDot(T.Float);
         vtInteger: result := result +' ' +IntToStr(T.Integer);
         vtString: result := result+' "'+T.AString+'"';
       end;
@@ -211,7 +210,7 @@ end;
   be correctly parsed by pure Lexer.NextToken calls. All valid VRML >= 2.0
   files are like that, although parser in practice has to use NextTokenForceXxx
   methods because of unfortunately
-  1. invalid VRML files (that use some funny node names)
+  1. invalid X3D files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
 procedure TX3DTokenInfoList.ReadFromFile(const FileName: string);
 var
@@ -1952,29 +1951,6 @@ begin
   finally FreeAndNil(G) end;
 end;
 
-procedure TTestX3DNodes.TestNurbsCurvePoint;
-var
-  CurveNode: TNurbsCurveNode;
-  Coordinate: TCoordinateNode;
-begin
-  Coordinate := TCoordinateNode.Create;
-  Coordinate.SetPoint([
-    Vector3(2.285389, 1.235778, 1.636090),
-    Vector3(1, 0, 0),
-    Vector3(1.141864, 1.003204, -1.775073),
-    Vector3(1, 0, 0),
-    Vector3(3.120634, 1.865495, 2.322197)
-  ]);
-
-  CurveNode := TNurbsCurveNode.Create;
-  CurveNode.ControlPoint := Coordinate;
-
-  AssertVectorEquals(Vector3(2.285389, 1.235778, 1.636090), CurveNode.Point(0));
-  AssertVectorEquals(Vector3(3.120634, 1.865495, 2.322197), CurveNode.Point(1));
-
-  FreeAndNil(CurveNode);
-end;
-
 initialization
- RegisterTest(TTestX3DNodes);
+  RegisterTest(TTestX3DNodes);
 end.

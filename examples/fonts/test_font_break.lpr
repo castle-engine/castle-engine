@@ -38,7 +38,6 @@ procedure Render(Container: TUIContainer);
 var
   X1: Integer;
 begin
-  RenderContext.Clear([cbColor], Black);
   X1 := (Window.Width - BoxWidth) div 2;
   Theme.Draw(Rectangle(X1, 0, BoxWidth, Window.Height), tiActiveFrame);
   UIFont.PrintBrokenString(x1, UIFont.Descend, White,

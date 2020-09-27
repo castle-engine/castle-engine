@@ -100,6 +100,20 @@
     strict private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
 
+    { Get the position of a point on the surface.
+
+      The returned position is in the local transformation space of this shape.
+      This method is guaranteed to work the same,
+      regardless if this node is part of any TX3DRootNode and TCastleSceneCore
+      or not.
+
+      @param U First parameter of the parametric surface, in [0..1] range.
+      @param V Second parameter of the parametric surface, in [0..1] range.
+      @param(OutputNormal Optional. If non-nil, will be set to the normal,
+        that is, normalized direction in 3D that is orthogonal to the surface
+        at this point.) }
+    function Point(const U, V: Single; const OutputNormal: PVector3 = nil): TVector3;
+
     {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
   end;
 
@@ -1136,7 +1150,7 @@ begin
   if (UDimension < 0) or
      (VDimension < 0) then
   begin
-    WritelnWarning('VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension must be >= 0');
     Exit;
   end;
 
@@ -1371,6 +1385,67 @@ begin
   Result := FdSolid;
 end;
 
+function TAbstractNurbsSurfaceGeometryNode.Point(const U, V: Single; const OutputNormal: PVector3 = nil): TVector3;
+var
+  ControlPointList: TVector3List;
+  UKnot, VKnot: TDoubleList;
+begin
+  if ControlPoint is TCoordinateNode then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
+    raise EInvalidNurbs.Create('Only NURBS with Coordinate node are supported');
+
+  if ControlPointList.Count = 0 then
+    raise EInvalidNurbs.Create('Only NURBS with at least 1 controlPoint are supported');
+
+  if FdUDimension.Value * FdVDimension.Value <>
+     Integer(ControlPointList.Count) then
+    raise EInvalidNurbs.CreateFmt('Number of coordinates in NURBS surface controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)', [
+      ControlPointList.Count,
+      FdUDimension.Value,
+      FdVDimension.Value,
+      FdUDimension.Value * FdVDimension.Value
+    ]);
+
+  if (FdUDimension.Value < 0) or
+     (FdVDimension.Value < 0) then
+    raise EInvalidNurbs.Create('NURBS surface u/vDimension must be >= 0');
+
+  if (FdUOrder.Value < 2) or
+     (FdVOrder.Value < 2) then
+    raise EInvalidNurbs.Create('NURBS surface u/vOrder must be >= 2');
+
+  { We can be sure now that we have
+    - correct ControlPointList, non-nil, with at least 1 point.
+    - uDimension, vDimension match ControlPointList count, and are > 0.
+    - we have Order >= 2.
+  }
+
+  { calculate correct UKnot, VKnot vectors }
+  UKnot := TDoubleList.Create;
+  UKnot.Assign(FdUKnot.Items);
+  NurbsKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value, nkEndpointUniform);
+  VKnot := TDoubleList.Create;
+  VKnot.Assign(FdVKnot.Items);
+  NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
+
+  Result :=
+    NurbsSurfacePoint(ControlPointList,
+      FdUDimension.Value,
+      FdVDimension.Value,
+      U,
+      V,
+      FdUOrder.Value,
+      FdVOrder.Value,
+      UKnot,
+      VKnot,
+      FdWeight.Items,
+      OutputNormal);
+
+  FreeAndNil(UKnot);
+  FreeAndNil(VKnot);
+end;
+
 procedure TNurbsPositionInterpolatorNode.CreateNode;
 begin
   inherited;
@@ -1426,7 +1501,7 @@ var
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
-  if ControlPoint <> nil then
+  if ControlPoint is TCoordinateNode then
     ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
   else
     Exit;
@@ -1561,7 +1636,7 @@ begin
           EventNormal_Changed.SendNeeded) then Exit;
 
   { TODO: we should handle here all TAbstractCoordinateNode }
-  if ControlPoint <> nil then
+  if ControlPoint is TCoordinateNode then
     ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
   else
     Exit;
@@ -1581,7 +1656,7 @@ begin
   if (FdUDimension.Value < 0) or
      (FdVDimension.Value < 0) then
   begin
-    WritelnWarning('VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension must be >= 0');
     Exit;
   end;
 

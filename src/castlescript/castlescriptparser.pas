@@ -106,7 +106,7 @@ function ParseExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
-  This can be used as a drop-in replacement for StrToFloat.
+  This can be used as a drop-in replacement for StrToFloatDot.
   Takes a string with any constant mathematical expression,
   according to CastleScript syntax, parses it and calculates.
 

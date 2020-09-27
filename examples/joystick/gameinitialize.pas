@@ -25,7 +25,7 @@ uses SysUtils, Classes,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleUtils;
 
 { TJoyAxisVisualize ---------------------------------------------------------- }
 
@@ -134,7 +134,7 @@ begin
   // numbers outside of their declared Axis count,
   // see https://github.com/castle-engine/castle-engine/issues/106 .
   if Axis <= High(JoyAxes) then
-    JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStr(Value);
+    JoyAxes[Axis].Caption := AxisNames[Axis] + ': ' + FloatToStrDot(Value);
 end;
 
 class procedure TEventsHandler.JoyButtonPress(const Joy: TJoystick; const Button: Byte);

@@ -103,7 +103,7 @@ MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
   MFNode [in,out] texCoord NULL [TextureCoordinateGenerator, ProjectedTextureCoordinate]
 }
 
-ProjectedTextureCoordinate : X3DTextureCoordinateNode {
+ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
   SFNode     [in,out]      projector   NULL        # [SpotLight, DirectionalLight, X3DViewpointNode]
 }
 

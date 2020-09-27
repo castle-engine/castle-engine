@@ -688,6 +688,19 @@ var
           raise Exception.Create('Failed to compile');
       end else
         raise Exception.Create('Failed to compile');
+    end else
+
+    // lazbuild from Lazarus 1.6.4 doesn't support add-package-link
+    if (Pos('Invalid option at position 3: "add-package-link"', LazbuildOutput) <> 0) and
+       (LazbuildOptions.IndexOf('--add-package-link') <> -1) then
+    begin
+      Writeln('lazbuild does not support --add-package-link, retrying without it');
+      LazbuildOptions.Delete(LazbuildOptions.IndexOf('--add-package-link'));
+      RunCommandIndirPassthrough(WorkingDirectory,
+        LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+      if LazbuildExitStatus <> 0 then
+        { do not retry compiling in a loop, give up }
+        raise Exception.Create('Failed to compile');
     end;
   end;
 

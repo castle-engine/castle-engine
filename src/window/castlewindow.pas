@@ -1057,7 +1057,8 @@ type
     procedure DoMenuClick(Item: TMenuItem);
 
     procedure DoDropFiles(const FileNames: array of string);
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
 
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. Also, for OpenDialog, we make sure that initial FileName
@@ -2930,6 +2931,7 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 implementation
 
 uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+  CastleRenderContext,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -3716,7 +3718,8 @@ begin
     OnDropFiles(Container, FileNames);
 end;
 
-function TCastleWindowBase.MessageReceived(const Received: TCastleStringList): boolean;
+function TCastleWindowBase.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 var
   Url: string;
 begin

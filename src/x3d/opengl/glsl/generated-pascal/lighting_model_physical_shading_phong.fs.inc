@@ -220,14 +220,17 @@
 '' + LineEnding +
 '  main_texture_apply(material_base_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +
-'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
-'  /* PLUG: material_emissive (emissive) */' + LineEnding +
-'' + LineEnding +
-'  result = vec4(emissive, material_base_alpha.a);' + LineEnding +
+'  result = vec4(0.0, 0.0, 0.0, material_base_alpha.a);' + LineEnding +
 '' + LineEnding +
 '  vec3 view = normalize(-vec3(vertex_eye));' + LineEnding +
 '  MaterialInfo material_info = getPhysicalMaterialInfo(material_base_alpha);' + LineEnding +
 '  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info, view) */' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: material_occlusion (result) */' + LineEnding +
+'' + LineEnding +
+'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
+'  /* PLUG: material_emissive (emissive) */' + LineEnding +
+'  result.rgb += emissive;' + LineEnding +
 '' + LineEnding +
 '  // TODO: No need for this in PBR?' + LineEnding +
 '  // TODO: No need for this in Phong lighting with Phong shading, too?' + LineEnding +

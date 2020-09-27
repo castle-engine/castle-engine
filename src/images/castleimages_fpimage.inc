@@ -75,23 +75,25 @@ end;
 
 procedure TRGBAlphaImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 var
-  X, Y: Integer;
-  ResultPixels: PVector4Byte;
-  Color: TFPCompactImgRGBA8BitValue;
+  Y: Integer;
+  RowSize: Integer;
+  SourceRow: PByte;
+  DestRow: PByte;
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
-  ResultPixels := Pixels;
+  RowSize := FPImage.Width * 4;
+  { prepare pointers }
+  SourceRow := PByte(FPImage.FData) + RowSize * FPImage.Height;
+  DestRow := FRawPixels;
+
+  { copy lines upside down }
   for Y := FPImage.Height - 1 downto 0 do
-    for X := 0 to FPImage.Width - 1 do
-    begin
-      Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^.Data[0] := Color.R;
-      ResultPixels^.Data[1] := Color.G;
-      ResultPixels^.Data[2] := Color.B;
-      ResultPixels^.Data[3] := Color.A;
-      Inc(ResultPixels);
-    end;
+  begin
+    Dec(SourceRow, RowSize);
+    Move(SourceRow^, DestRow^, RowSize);
+    Inc(DestRow, RowSize);
+  end;
 end;
 
 procedure TGrayscaleImage.FromFpImage(const FPImage: TInternalCastleFpImage);

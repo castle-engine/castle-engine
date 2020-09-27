@@ -812,7 +812,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           { ignore, for backward compatibility }
         else
         if Attr.Name = 'equality_epsilon' then
-          Result.Epsilon := StrToFloat(Attr.NodeValue8)
+          Result.Epsilon := StrToFloatDot(Attr.NodeValue8)
         else
         if Attr.Name = 'loop' then
           Result.Loop := StrToBool(Attr.NodeValue8)

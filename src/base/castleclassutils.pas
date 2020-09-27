@@ -1728,7 +1728,17 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Assigned(Items[I]) then
+
+    { TODO: The test "I < Count" is a quick fix for the problem that list
+      may be modified during iteration.
+      E.g. network/remote_logging/gameloghandler.pas in HttpPostFinish
+      sets FreeSender, which means that Application.OnUpdate list
+      is modified while we iterate over it.
+
+      We should introduce a reliable way to handle this, but for now the test
+      at least prevents a crash in this case. }
+
+    if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
 end;
 
@@ -1747,6 +1757,7 @@ begin
       TCastleApplicationProperties._GLContextClose calls
       FOnGLContextCloseObject.ExecuteBackward(Self),
       some "on close" callbacks modify the FOnGLContextCloseObject list.
+
       We should introduce a reliable way to handle this, but for now the test
       at least prevents a crash in this case. }
 

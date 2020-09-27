@@ -120,7 +120,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-  end;
+  end deprecated 'use TNurbsCurveNode';
 
   { Groups a set of NURBS surface nodes to a common group
     for rendering purposes, to ensure a common tesselation within the group,
@@ -167,7 +167,7 @@
     public property Eventvalue_changed: TSFVec3fEvent read FEventvalue_changed;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
-  end;
+  end deprecated 'use TNurbsPositionInterpolatorNode';
 
   { Visible NURBS 3D surface, for VRML 2.0. }
   TNurbsSurfaceNode = class(TAbstractGeometryNode)
@@ -224,7 +224,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function SolidField: TSFBool; override;
-  end;
+  end deprecated 'use TNurbsPatchSurfaceNode; we define TNurbsSurfaceNode only for compatibility with VRML 2.0';
 
   { NURBS surface existing in the parametric domain of its surface host specifying
     the mapping of the texture onto the surface, for VRML 2.0.
@@ -287,7 +287,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-  end;
+  end deprecated 'use TNurbsTrimmedSurfaceNode';
 
   { 2D curve composed from NURBS curves and straight segments, for VRML 2.0.
     @bold(Not implemented yet.) }
@@ -754,9 +754,11 @@ begin
    FdtrimmingContour.ChangeAlways := chGeometry;
   AddField(FFdtrimmingContour);
 
+  {$warnings off} // using deprecated nodes in deprecated nodes
   FFdsurface := TSFNode.Create(Self, true, 'surface', [TNurbsSurfaceNode]);
    Fdsurface.ChangeAlways := chGeometry;
   AddField(FFdsurface);
+  {$warnings on}
 end;
 
 class function TTrimmedSurfaceNode.ClassX3DType: string;
@@ -845,6 +847,7 @@ end;
 
 procedure RegisterVRML97NodesNurbs;
 begin
+  {$warnings off} // register deprecated nodes
   NodesManager.RegisterNodeClasses([
     TCoordinateDeformerNode,
     TNurbsCurveNode_2,
@@ -855,5 +858,6 @@ begin
     TTrimmedSurfaceNode,
     TContour2DNode_2
   ]);
+  {$warnings on}
 end;
 {$endif read_implementation}

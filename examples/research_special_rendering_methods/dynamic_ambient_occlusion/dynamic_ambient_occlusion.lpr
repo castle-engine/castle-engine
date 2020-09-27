@@ -35,7 +35,8 @@ uses SysUtils, Classes, Math,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
-  CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties;
+  CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties,
+  CastleRenderContext;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);

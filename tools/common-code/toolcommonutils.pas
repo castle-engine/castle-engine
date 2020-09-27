@@ -128,6 +128,11 @@ function MakeQualifiedName(ProjectName: String): String;
 { Make correct CGE project Pascal name from any ProjectName. }
 function MakeProjectPascalName(ProjectName: String): String;
 
+var
+  { CGE manifest filename, designating CGE project root.
+    Can be adjusted using `castle-engine --manifest-name=xxx`. }
+  ManifestName: String = 'CastleEngineManifest.xml';
+
 implementation
 
 uses Classes, SysUtils, Process,

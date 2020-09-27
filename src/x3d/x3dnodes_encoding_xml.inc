@@ -75,19 +75,19 @@ begin
 
   if Element.TagName <> 'connect' then
   begin
-    WritelnWarning('VRML/X3D', 'Only <connect> elements are allowed inside <IS> element');
+    WritelnWarning('X3D', 'Only <connect> elements are allowed inside <IS> element');
     Exit;
   end;
 
   if not Element.AttributeString('nodeField', NodeField) then
   begin
-    WritelnWarning('VRML/X3D', 'Missing "nodeField" inside <connect> element');
+    WritelnWarning('X3D', 'Missing "nodeField" inside <connect> element');
     Exit;
   end;
 
   if not Element.AttributeString('protoField', ProtoField) then
   begin
-    WritelnWarning('VRML/X3D', 'Missing "protoField" inside <connect> element');
+    WritelnWarning('X3D', 'Missing "protoField" inside <connect> element');
     Exit;
   end;
 
@@ -113,7 +113,7 @@ begin
           NodeFieldOrEvent.PositionInParent := PositionInParent;
           Inc(PositionInParent);
         end else
-          WritelnWarning('VRML/X3D', Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+          WritelnWarning('X3D', Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
       end;
   finally FreeAndNil(I) end;
 end;
@@ -188,14 +188,14 @@ function ParseXMLNode(Element: TDOMElement;
           begin
             if not ProtoIter.Current.AttributeString('name', FieldName) then
             begin
-              WritelnWarning('VRML/X3D', 'X3D XML: missing "name" attribute for <fieldValue> element');
+              WritelnWarning('X3D', 'X3D XML: missing "name" attribute for <fieldValue> element');
               Continue;
             end;
 
             FieldIndex := Result.IndexOfField(FieldName);
             if FieldIndex = -1 then
             begin
-              WritelnWarning('VRML/X3D', Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+              WritelnWarning('X3D', Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
               Continue;
             end;
 
@@ -210,7 +210,7 @@ function ParseXMLNode(Element: TDOMElement;
             ParseISStatement(Result, ProtoIter.Current, PositionInParent);
           end else
           begin
-            WritelnWarning('VRML/X3D', Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
+            WritelnWarning('X3D', Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
           end;
 
           Inc(PositionInParent);
@@ -226,7 +226,7 @@ function ParseXMLNode(Element: TDOMElement;
         on E: EX3DPrototypeInstantiateError do
           { Just write E.Message and silence the exception.
             Result will simply remain as TX3DPrototypeNode instance in this case. }
-          WritelnWarning('VRML/X3D', E.Message);
+          WritelnWarning('X3D', E.Message);
       end;
     end else
     begin
@@ -247,7 +247,7 @@ function ParseXMLNode(Element: TDOMElement;
           at it's attributes. All we need to do is to make
           WritelnWarning warning. }
 
-        WritelnWarning('VRML/X3D', 'Unknown X3D node type "' + X3DType + '"');
+        WritelnWarning('X3D', 'Unknown X3D node type "' + X3DType + '"');
       end;
     end;
 
@@ -273,7 +273,7 @@ begin
           Result := nil; { return nil in case of cycles }
         end;
         if NilIfUnresolvedUSE then
-          WritelnWarning('VRML/X3D', S) else
+          WritelnWarning('X3D', S) else
           raise EX3DXmlNotAllowedError.Create(S);
       end;
     end else
@@ -337,7 +337,7 @@ var
     end else
       { We allow PROFILE to be omitted.
         Actually, we do not use profile for anything right now. }
-      WritelnWarning('VRML/X3D', 'X3D "profile" attribute missing');
+      WritelnWarning('X3D', 'X3D "profile" attribute missing');
   end;
 
   procedure ParseHead;
@@ -364,7 +364,7 @@ var
           ComponentLevel := 1;
         Result.Components[ComponentName] := ComponentLevel;
       end else
-        WritelnWarning('VRML/X3D', Format('X3D XML: <component> element without required "name" attribute',
+        WritelnWarning('X3D', Format('X3D XML: <component> element without required "name" attribute',
           [Element.TagName]));
     end;
 
@@ -411,7 +411,7 @@ var
           ParseComponent(I.Current) else
         if I.Current.TagName = 'unit' then
           ParseUnit(I.Current) else
-          WritelnWarning('VRML/X3D', Format('X3D XML: unrecognized element "%s" in <head>',
+          WritelnWarning('X3D', Format('X3D XML: unrecognized element "%s" in <head>',
             [I.Current.TagName]));
       end;
     finally FreeAndNil(I) end;
@@ -565,13 +565,13 @@ begin
     DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
     if Version.Major < 3 then
     begin
-      WritelnWarning('VRML/X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
+      WritelnWarning('X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
       Version := X3DVersion; { some sensible version number }
     end;
   end else
   begin
     Version := X3DVersion; { some sensible version number }
-    WritelnWarning('VRML/X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
+    WritelnWarning('X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
   end;
 
   SceneElement := X3DElement.ChildElement('Scene', true);

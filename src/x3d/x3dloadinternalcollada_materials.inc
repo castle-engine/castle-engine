@@ -67,7 +67,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
        WritelnWarning('Collada', 'Expected <param> with type "float"');
        Result := 0;
      end else
-       Result := StrToFloat(Element.TextData);
+       Result := StrToFloatDot(Element.TextData);
   end;
 
 var

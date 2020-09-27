@@ -117,7 +117,7 @@ begin
 
   { Visualize SceneAvatar bounding box, sphere, middle point, direction etc. }
   DebugAvatar := TDebugTransform.Create(FreeAtStop);
-  DebugAvatar.Attach(SceneAvatar);
+  DebugAvatar.Parent := SceneAvatar;
 
   { Configure ThirdPersonNavigation, some things that cannot be yet adusted using CGE editor.
     In particular assign some keys that are not assigned by default. }

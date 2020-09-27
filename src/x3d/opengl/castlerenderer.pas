@@ -1071,7 +1071,8 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes;
+  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes,
+  CastleRenderContext;
 
 {$define read_implementation}
 
@@ -2790,7 +2791,7 @@ begin
   { restore defaults }
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
-  TGLSLProgram.Current := nil;
+  RenderContext.CurrentProgram := nil;
   RenderingCamera := nil;
 end;
 
@@ -3533,7 +3534,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.MainTexture(MainTextureMapping);
+    TextureNode := Shape.State.MainTexture(Shape.Geometry, MainTextureMapping);
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
@@ -3579,8 +3580,8 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
       end;
 
       { If there is special texture like a normalmap, enable it. }
-      BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
-      SurfaceTexturesEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
+      BumpMappingEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
+      SurfaceTexturesEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).

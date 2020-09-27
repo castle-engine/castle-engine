@@ -35,7 +35,6 @@ uses SysUtils, Math, Matrix, Generics.Collections,
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
-{$I castleglutils_context.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
 
 {$undef read_interface}
@@ -46,7 +45,7 @@ implementation
 
 uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties, CastleRenderContext;
 
 {$I castleglutils_types.inc}
 {$I castleglutils_errors.inc}
@@ -55,7 +54,6 @@ uses
 {$I castleglutils_draw_primitive_2d.inc}
 {$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
-{$I castleglutils_context.inc}
 {$I castleglutils_ext_framebuffer_blit.inc}
 
 { initialization, finalization ----------------------------------------------- }

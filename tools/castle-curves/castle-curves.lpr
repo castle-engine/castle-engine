@@ -25,7 +25,7 @@ uses SysUtils, Classes, Math,
   CastleKeysMouse, CastleParameters, CastleClassUtils, CastleRectangles,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
   CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleRenderContext;
 
 var
   Window: TCastleWindowBase;
@@ -247,7 +247,6 @@ var
   Color: TCastleColor;
   SelectedPointXY: TVector2;
 begin
-  RenderContext.Clear([cbColor], Black);
   if BackgroundImage <> nil then
     BackgroundImage.Draw(FloatRectangle(BackgroundImage.Rect).Translate(SceneMove).ScaleAround0(SceneZoom));
 

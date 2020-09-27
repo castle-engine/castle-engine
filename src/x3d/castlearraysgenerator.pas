@@ -732,7 +732,7 @@ procedure TArraysGenerator.WarningShadingProblems(
 const
   SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
 begin
-  WritelnWarning('VRML/X3D', Format(
+  WritelnWarning('X3D', Format(
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
     [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
       Geometry.X3DType]));
@@ -827,7 +827,7 @@ begin
       finally GenerateCoordinateEnd; end;
     except
       on E: EAssignInterleavedRangeError do
-        WritelnWarning('VRML/X3D', Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
+        WritelnWarning('X3D', Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
           [Shape.NiceName, E.Message]));
     end;
   finally FreeAndNil(IndexesFromCoordIndex); end;
@@ -1088,7 +1088,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           Result := tgMirrorPlane else
         begin
           Result := tgCoord;
-          WritelnWarning('VRML/X3D', Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
+          WritelnWarning('X3D', Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
             [S]));
         end;
       end;
@@ -1116,7 +1116,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           begin
             Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
-            WritelnWarning('VRML/X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
+            WritelnWarning('X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
         if GeneratorNode is TProjectedTextureCoordinateNode then
         begin
@@ -1131,10 +1131,10 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           begin
             Result := @TAbstractX3DViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
-            WritelnWarning('VRML/X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
+            WritelnWarning('X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else
           { This should not actually happen (GeneratorNode passed here should be like this) }
-          WritelnWarning('VRML/X3D', 'Invalid texture generator node');
+          WritelnWarning('X3D', 'Invalid texture generator node');
       end;
 
     begin
@@ -1172,8 +1172,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         { dummy default }
         Arrays.AddTexCoordGenerated(tgBounds2d, TextureUnit);
         if TexCoord <> nil then
-          WritelnWarning('VRML/X3D', Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.X3DType])) else
-          WritelnWarning('VRML/X3D', 'NULL texture coordinate node');
+          WritelnWarning('X3D', Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.X3DType])) else
+          WritelnWarning('X3D', 'NULL texture coordinate node');
       end;
 
       { Calculate some Generation-specific values }
@@ -1439,7 +1439,7 @@ function TAbstractTextureCoordinateGenerator.GetTextureCoord(
           Result[2] := Vertex[2];
           Result[3] := 1;
         end;
-      else WritelnWarning('VRML/X3D', Format('Generating on CPU texture coordinates with %d not implemented yet',
+      else WritelnWarning('X3D', Format('Generating on CPU texture coordinates with %d not implemented yet',
         [TexCoord.Generation]));
     end;
   end;
@@ -1650,12 +1650,12 @@ begin
     begin
       if RadianceTransfer.Count mod Coord.Count <> 0 then
       begin
-        WritelnWarning('VRML/X3D', 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
+        WritelnWarning('X3D', 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
         RadianceTransfer := nil;
       end else
       if RadianceTransfer.Count < Coord.Count then
       begin
-        WritelnWarning('VRML/X3D', 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
+        WritelnWarning('X3D', 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
         RadianceTransfer := nil;
       end else
         RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;
@@ -2121,7 +2121,7 @@ begin
           2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
           3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
           4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
-          else WritelnWarning('VRML/X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
+          else WritelnWarning('X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
             [TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value]));
         end;
       end else
@@ -2129,7 +2129,7 @@ begin
         Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false) else
       if Attrib[I] is TMatrix4VertexAttributeNode then
         Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false) else
-        WritelnWarning('VRML/X3D', Format('Not handled vertex attribute class %s',
+        WritelnWarning('X3D', Format('Not handled vertex attribute class %s',
           [Attrib[I].X3DType]));
     end;
 end;
@@ -2324,7 +2324,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       LineA[1] := 0;
       LineA[2] := -TriangleTexCoord.Data[0].Data[0];
     end;
-    LineBC := LineOfTwoDifferentPoints2d(
+    LineBC := Line2DFrom2Points(
       TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
 
     try

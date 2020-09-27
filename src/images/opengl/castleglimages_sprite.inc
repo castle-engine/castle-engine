@@ -77,6 +77,7 @@ type
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
     FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
+    FOwnsImage: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
@@ -137,6 +138,13 @@ type
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
+
+    { By default this class "owns" the underlying image, even when passed explicitly to
+      CreateFrameSize as TDrawableImage instance.
+      That is, the underlying TDrawableImage instance will be automatically freed when
+      the sprite will be freed.
+      You turn it off with this property. }
+    property OwnsImage: Boolean read FOwnsImage write FOwnsImage default true;
 
     destructor Destroy; override;
 
@@ -548,6 +556,7 @@ begin
   FCustomFrame := 0;
   FHorizontalFlip := False;
   FVerticalFlip := False;
+  FOwnsImage := true;
 end;
 
 constructor TSprite.CreateFrameSize(const URL: string;
@@ -583,7 +592,8 @@ end;
 
 destructor TSprite.Destroy;
 begin
-  FreeAndNil(FImage);
+  if OwnsImage then
+    FreeAndNil(FImage);
   FreeAndNil(FCustomAnimations);
   inherited;
 end;

@@ -44,7 +44,7 @@ begin
           'element) has not enough items');
         Break;
       end;
-      Result[Col, Row] := StrToFloat(Token);
+      Result[Col, Row] := StrToFloatDot(Token);
     end;
 end;
 
@@ -69,7 +69,7 @@ var
         WritelnWarning('Collada', 'Unexpected end of data of <lookat>');
         Exit(false);
       end;
-      Vector[I] := StrToFloat(Token);
+      Vector[I] := StrToFloatDot(Token);
     end;
   end;
 

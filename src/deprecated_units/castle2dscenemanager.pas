@@ -239,7 +239,7 @@ end;
 constructor TCastle2DScene.Create(AOwner: TComponent);
 begin
   inherited;
-  Attributes.BlendingSort := bs2D;
+  Setup2D;
 end;
 
 function TCastle2DScene.Clone(const AOwner: TComponent): TCastle2DScene;

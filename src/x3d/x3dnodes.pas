@@ -15,10 +15,10 @@
 
 (*
   @abstract(Nodes and other important bulding blocks
-  of VRML/X3D (prototypes, routes and so on).)
+  of X3D (prototypes, routes and so on).)
 
-  This is the central unit for VRML/X3D processing, as VRML/X3D file
-  is basically just a graph of nodes. We represent whole VRML/X3D file
+  This is the central unit for X3D processing, as X3D file
+  is basically just a graph of nodes. We represent whole X3D file
   by it's root node. This is what we load, save and process in this unit.
 
   The chapter "Reading, writing, processing VRML scene graph"
@@ -35,25 +35,25 @@
       For XML encoding, we use standard FPC DOM unit.
       Loading and saving of fields (in both encodings) is inside X3DFields unit.
 
-      When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
-      So we're able to save exactly the same VRML/X3D graph
+      When reading X3D files, we generally do not change the X3D graph.
+      So we're able to save exactly the same X3D graph
       back to another file. See also
       [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
-      This allows writing various VRML/X3D
+      This allows writing various X3D
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
       parts of graph are preserved perfectly.)
 
-    @item(TX3DNode class offers a lot of methods to process VRML/X3D graph.
+    @item(TX3DNode class offers a lot of methods to process X3D graph.
       See TX3DNode.Traverse, TX3DNode.EnumerateNodes and
       TX3DNode.FindNode. TX3DNode.Traverse is especially important, as it
-      walks through VRML/X3D graph just as the specification says
+      walks through X3D graph just as the specification says
       (accumulating transformation, visiting only active children of
       nodes like Switch or LOD),
       gathering some state (useful especially for VRML 1.0, but also
-      used for various things in later VRML/X3D versions).
+      used for various things in new X3D versions).
 
-      When you want to render VRML/X3D graph, you can just traverse
+      When you want to render X3D graph, you can just traverse
       the graph and render each geometry node (TAbstractGeometryNode instance)
       knowing it's state (that will contain transformation and such).
       Alternatively, simple renderer can also use TAbstractGeometryNode.Triangulate.)
@@ -73,22 +73,18 @@
       method. So it's suitable also for CastleRayTracer, and every other possible
       renderer that will ever get implemented.)
 
-    @item(Your own units can define new VRML/X3D nodes, by declaring
+    @item(Your own units can define new X3D nodes, by declaring
       new classes descending from TX3DNode (or other, more specialized,
       descendant). You should register your new classes by calling
-      @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).
-
-      Examples of defining your own VRML/X3D node types (without modifying
-      sources of this unit, or any other unit) are for example in "malfunction" game
-      on https://github.com/castle-engine/malfunction (see LevelUnit).)
+      @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).)
   )
 
   @bold(Node class names, and inheritance:)
 
   @unorderedList(
-    @item(Normal VRML/X3D nodes are defined by classses
-      named like @code(TXxxNode). These nodes can be specified inside the VRML/X3D
-      files. See VRML/X3D specifications, and also our extensions specification,
+    @item(Normal X3D nodes are defined by classses
+      named like @code(TXxxNode). These nodes can be specified inside the X3D
+      files. See X3D specifications, and also our extensions specification,
       on [https://castle-engine.io/vrml_x3d.php].
 
       There are also abstract node classes. Their definitions are helpful
@@ -99,7 +95,7 @@
       and some of them are just our own inventions.
 
       Finally, there are some special-purpose node classes that play
-      important role in our VRML/X3D organization.
+      important role in our X3D organization.
       They are not abstract, but also their exact instances
       are not created under normal circumstances.
       These are named like @code(TX3DXxxNode), currently
@@ -114,7 +110,7 @@
 
     @item(
       Optional suffix _1 or _2 at the node class name indicates that
-      this is only for a specific VRML/X3D standard version.
+      this is only for a specific X3D or VRML standard version.
       Suffix _1 indicates nodes specific to VRML 1.0.
       Suffix _2 indicates nodes specific to VRML 2.0 (aka 97),
       that are not available in X3D.
@@ -673,7 +669,9 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}

@@ -239,7 +239,7 @@ var
             ' less than declated in the count attribute');
           Break;
         end;
-        Source.Floats.List^[I] := StrToFloat(Token);
+        Source.Floats.List^[I] := StrToFloatDot(Token);
       end;
 
       Technique := SourceElement.ChildElement('technique_common', false);

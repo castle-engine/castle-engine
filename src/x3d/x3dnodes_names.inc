@@ -50,7 +50,7 @@
       If not NodeFinished, then we understand that we're parsing / saving
       the node's contents now. If NodeFinished, then we know the node
       contents are fully parsed / saved now. This information helps
-      us to detect cycles in VRML/X3D DEF/USE graph.
+      us to detect cycles in X3D DEF/USE graph.
       For now, we just disallow such cycles. Still, we allow
       ROUTEs from inside the node, so calling with NodeFinished = false
       is still useful for parsing. }

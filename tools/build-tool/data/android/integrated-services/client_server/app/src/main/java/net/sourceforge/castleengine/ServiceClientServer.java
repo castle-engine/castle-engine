@@ -1,5 +1,5 @@
 /*
-  Copyright 2018 Benedikt Magnus.
+  Copyright 2018-2020 Benedikt Magnus, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -62,21 +62,21 @@ public class ServiceClientServer extends ServiceAbstract
 
         if (parts[2].equals("send")) //send message clientid
         {
-            SendMessage(parts[1], parts[3], parts[4]);
+            sendMessage(parts[1], parts[3], parts[4]);
 
             return true;
         }
         else if (parts[2].equals("server")) //server protocol port
         {
             if (!messageMap.containsKey(parts[1]))
-                CreateSocket(parts[1], true, null, Integer.parseInt(parts[4]));
+                createSocket(parts[1], true, null, Integer.parseInt(parts[4]));
 
             return true;
         }
         else if (parts[2].equals("client")) //client protocol host port
         {
             if (!messageMap.containsKey(parts[1]))
-                CreateSocket(parts[1], false, parts[4], Integer.parseInt(parts[5]));
+                createSocket(parts[1], false, parts[4], Integer.parseInt(parts[5]));
 
             return true;
         }
@@ -106,7 +106,7 @@ public class ServiceClientServer extends ServiceAbstract
             return false;
     }
 
-    private void CreateSocket(final String key, final Boolean isServer, final String host, final int port)
+    private void createSocket(final String key, final Boolean isServer, final String host, final int port)
     {
         final ConcurrentHashMap<String, List<String>> socketMessageMap = new ConcurrentHashMap<String, List<String>>();
         final ConcurrentHashMap<String, Boolean> socketActiveMap = new ConcurrentHashMap<String, Boolean>();
@@ -128,16 +128,16 @@ public class ServiceClientServer extends ServiceAbstract
                             ServerSocket serverSocket = new ServerSocket(port);
                             while (activeMap.get(key).active)
                             {
-                                CreateListenerThread(serverSocket.accept(), key + Integer.toString(listenerId), socketMessageMap, socketActiveMap);
+                                createListenerThread(serverSocket.accept(), key + Integer.toString(listenerId), socketMessageMap, socketActiveMap);
                                 listenerId++;
-                            }   
+                            }
 
                             serverSocket.close();
                             messageMap.remove(key);
-                            activeMap.remove(key);                       
+                            activeMap.remove(key);
                         }
                         else
-                            CreateListenerThread(new Socket(host, port), key + "client", socketMessageMap, socketActiveMap);
+                            createListenerThread(new Socket(host, port), key + "client", socketMessageMap, socketActiveMap);
                     }
                     catch (IOException e)
                     {
@@ -148,7 +148,7 @@ public class ServiceClientServer extends ServiceAbstract
         )).start();
     }
 
-    private Boolean GetOrDefault(ConcurrentHashMap<String, Boolean> aMap, String aValue, Boolean aDefault)
+    private Boolean getOrDefault(ConcurrentHashMap<String, Boolean> aMap, String aValue, Boolean aDefault)
     {
         Boolean result = aMap.get(aValue);
         if (result == null)
@@ -156,7 +156,7 @@ public class ServiceClientServer extends ServiceAbstract
         return result;
     }
 
-    private void CreateListenerThread(final Socket listenerSocket, final String listenerId,
+    private void createListenerThread(final Socket listenerSocket, final String listenerId,
                                       final ConcurrentHashMap<String, List<String>> socketMessageMap, final ConcurrentHashMap<String, Boolean> socketActiveMap)
     {
         final List<String> listenerMessageList = Collections.synchronizedList(new ArrayList<String>());
@@ -175,17 +175,17 @@ public class ServiceClientServer extends ServiceAbstract
                         PrintWriter writer = new PrintWriter(listenerSocket.getOutputStream(), true);
                         BufferedReader reader = new BufferedReader(new InputStreamReader(listenerSocket.getInputStream()));
 
-                        MessageSendSynchronised(new String[]{NAME, "connected", listenerId});
+                        messageSendFromThread(new String[]{NAME, "connected", listenerId});
 
                         String inputLine;
 
-                        while (GetOrDefault(socketActiveMap, listenerId, false))
+                        while (getOrDefault(socketActiveMap, listenerId, false))
                         {
                             try
                             {
                                 if ((inputLine = reader.readLine()) != null)
                                 {
-                                    MessageSendSynchronised(new String[]{NAME, "message", inputLine, listenerId});
+                                    messageSendFromThread(new String[]{NAME, "message", inputLine, listenerId});
                                 }
                                 else
                                 {
@@ -194,7 +194,7 @@ public class ServiceClientServer extends ServiceAbstract
                             }
                             catch (SocketTimeoutException e)
                             {
-                                //Thrown when timeout is rechead. This is normal. 
+                                //Thrown when timeout is rechead. This is normal.
                             }
 
                             synchronized (listenerMessageList)
@@ -212,7 +212,7 @@ public class ServiceClientServer extends ServiceAbstract
                         logInfo(CATEGORY, e.toString());
                     }
 
-                    MessageSendSynchronised(new String[]{NAME, "disconnected", listenerId});
+                    messageSendFromThread(new String[]{NAME, "disconnected", listenerId});
 
                     try
                     {
@@ -229,7 +229,7 @@ public class ServiceClientServer extends ServiceAbstract
         )).start();
     }
 
-    private void SendMessage(String key, String message, String clientId)
+    private void sendMessage(String key, String message, String clientId)
     {
         if (clientId.equals("all"))
         {
@@ -244,7 +244,7 @@ public class ServiceClientServer extends ServiceAbstract
                     }
                 }
             }
-        } 
+        }
         else
         {
             List<String> messageList;
@@ -254,18 +254,5 @@ public class ServiceClientServer extends ServiceAbstract
                     messageList.add(message);
                 }
         }
-    }
-
-    private void MessageSendSynchronised(final String[] message)
-    {
-        new Handler(Looper.getMainLooper()).post(new Runnable() // run in main thread
-            {   
-                @Override
-                public void run()
-                {
-                    messageSend(message);
-                }
-            }
-        );
     }
 }

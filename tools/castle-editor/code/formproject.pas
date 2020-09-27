@@ -32,8 +32,11 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemRename: TMenuItem;
     MenuItemRedo: TMenuItem;
     MenuItemUndo: TMenuItem;
+    MenuItemSeparator78: TMenuItem;
+    MenuItemReferenceOfCurrent: TMenuItem;
     MenuItemSeparator2303403o: TMenuItem;
     MenuItemRefreshDir: TMenuItem;
     MenuItemSeparator123123213: TMenuItem;
@@ -109,8 +112,10 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateUndoRedoInformation;
+    procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
     procedure MenuItemUndoClick(Sender: TObject);
     procedure MenuItemDeleteFileClick(Sender: TObject);
@@ -141,6 +146,7 @@ type
     procedure MenuItemQuitClick(Sender: TObject);
     procedure MenuItemReferenceClick(Sender: TObject);
     procedure MenuItemModeReleaseClick(Sender: TObject);
+    procedure MenuItemReferenceOfCurrentClick(Sender: TObject);
     procedure MenuItemRefreshDirClick(Sender: TObject);
     procedure MenuItemRestartRebuildEditorClick(Sender: TObject);
     procedure MenuItemSaveAsDesignClick(Sender: TObject);
@@ -209,13 +215,23 @@ end;
 
 procedure TProjectForm.MenuItemReferenceClick(Sender: TObject);
 begin
-  OpenURL('https://castle-engine.io/apidoc/html/index.html');
+  OpenURL(ApiReferenceUrl + 'index.html');
 end;
 
 procedure TProjectForm.MenuItemModeReleaseClick(Sender: TObject);
 begin
   BuildMode := bmRelease;
   MenuItemModeRelease.Checked := true;
+end;
+
+procedure TProjectForm.MenuItemReferenceOfCurrentClick(Sender: TObject);
+var
+  Url: String;
+begin
+  Url := ApiReferenceUrl + 'index.html';
+  if Design <> nil then
+    Design.CurrentComponentApiUrl(Url);
+  OpenURL(Url);
 end;
 
 procedure TProjectForm.MenuItemRefreshDirClick(Sender: TObject);
@@ -459,6 +475,19 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
+begin
+  Design.RenameSelectedItem;
+end;
+ 
+procedure TProjectForm.UpdateRenameItem(Sender: TObject);
+begin
+  if (Design <> nil) and Design.RenamePossible then
+    MenuItemRename.Enabled := true
+  else
+    MenuItemRename.Enabled := false;
+end;
+
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
   UpdateUndoRedoInformation;
@@ -473,7 +502,7 @@ begin
   end else
   begin
     MenuItemUndo.Enabled := false;
-    MenuItemUndo.Caption := 'Undo is not possible';
+    MenuItemUndo.Caption := 'Undo';
   end;
 
   if (Design <> nil) and Design.UndoSystem.IsRedoPossible then
@@ -483,7 +512,7 @@ begin
   end else
   begin
     MenuItemRedo.Enabled := false;
-    MenuItemRedo.Caption := 'Redo is not possible';
+    MenuItemRedo.Caption := 'Redo';
   end;
 end;
 
@@ -604,6 +633,7 @@ begin
   MenuItemDuplicateComponent.Enabled := Design <> nil;
 
   UpdateUndoRedoInformation;
+  UpdateRenameItem(nil);
 
   LabelNoDesign.Visible := Design = nil;
 end;
@@ -617,6 +647,7 @@ begin
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
+    Design.OnSelectionChanged := @UpdateRenameItem;
     DesignExistenceChanged;
   end;
 end;

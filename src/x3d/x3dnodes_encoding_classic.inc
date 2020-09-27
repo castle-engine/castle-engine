@@ -543,7 +543,7 @@ begin
       except
         on E: EX3DClassicReadError do
         begin
-          WritelnWarning('VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
+          WritelnWarning('VRML/X3D', Format('Error when reading, will skip the rest of X3D file: %s', [E.Message]));
           Break;
         end;
       end;

@@ -30,7 +30,7 @@ type
 
 implementation
 
-uses DOM, CastleXMLUtils, CastleFilesUtils;
+uses DOM, CastleXMLUtils, CastleFilesUtils, CastleDownload;
 
 procedure TTestCastleXMLUtils.TestReadResult;
 var
@@ -50,7 +50,7 @@ begin
       URLReadXML(Doc, 'castle-data:/not-existing-test.xml');
       Fail('Should not reach here, non-existing-test.xml should not exist');
     finally AssertTrue(Doc = nil); end;
-  except on EFOpenError do begin { this is Ok } end; end;
+  except on EDownloadError do begin { this is Ok } end; end;
 end;
 
 procedure TTestCastleXMLUtils.TestAttributeReading;

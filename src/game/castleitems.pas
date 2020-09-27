@@ -467,16 +467,14 @@ type
     type
       { A debug visualization that can be added to TItemOnWorld
         to visualize the parameters of it's parent (bounding volumes and such).
-        See @link(TDebugTransform) for usage details. }
+        See @link(TDebugTransform) for usage details.
+        The @link(TDebugTransform.Parent) must be an instance of TItemOnWorld. }
       TItemDebugTransform = class(TDebugTransform)
       strict private
         FBoxRotated: TDebugBox;
-        FParent: TItemOnWorld;
       strict protected
-        procedure Initialize; override;
+        procedure InitializeNodes; override;
         procedure Update; override;
-      public
-        procedure Attach(const AParent: TItemOnWorld);
       end;
 
     var
@@ -1101,20 +1099,13 @@ end;
 
 { TItemOnWorld.TItemDebugTransform -------------------------------------------------------- }
 
-procedure TItemOnWorld.TItemDebugTransform.Initialize;
+procedure TItemOnWorld.TItemDebugTransform.InitializeNodes;
 begin
   inherited;
 
-  FBoxRotated := TDebugBox.Create(Self, GrayRGB);
-  WorldSpace.AddChildren(FBoxRotated.Root);
-
-  ChangedScene;
-end;
-
-procedure TItemOnWorld.TItemDebugTransform.Attach(const AParent: TItemOnWorld);
-begin
-  FParent := AParent;
-  inherited Attach(AParent);
+  FBoxRotated := TDebugBox.Create(Self);
+  FBoxRotated.Color := Gray;
+  ParentSpace.AddChildren(FBoxRotated.Root);
 end;
 
 procedure TItemOnWorld.TItemDebugTransform.Update;
@@ -1123,8 +1114,8 @@ var
 begin
   inherited;
 
-  // show FParent.BoundingBoxRotated
-  BBoxRotated := FParent.BoundingBoxRotated;
+  // show Parent.BoundingBoxRotated
+  BBoxRotated := (Parent as TItemOnWorld).BoundingBoxRotated;
   FBoxRotated.Box := BBoxRotated;
 end;
 
@@ -1138,7 +1129,7 @@ begin
   Gravity := true;
 
   FDebugTransform := TItemDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
