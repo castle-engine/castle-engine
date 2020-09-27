@@ -152,6 +152,31 @@ type
     function Symbol(SymbolName: PChar): Pointer;
   end;
 
+var
+  { Disable all dynamic libraries loading.
+    All TDynLib.Load calls will return InvalidDynLibHandle.
+    This is useful:
+
+    @orderedList(
+      @item(For testing purposes. CGE applications should gracefully work
+        even without various dynamic libraries.
+        E.g. without OpenAL library, no sound is played.
+        Without LibPng we use PNG internal implementation using FpImage.
+      )
+
+      @item(By the build tool. Commands like "castle-engine compile"
+        and "castle-engine clear" want to delete/override dll files,
+        but it is impossible on Windows, because the build tool would use dll
+        files in the project's directory.
+
+        The build tool doesn't need dynamic libraries for anything,
+        but some code pulled by dependencies could accidentally load them.
+        E.g. OpenAL unit loads it in initialization.
+      )
+    )
+  }
+  InternalDisableDynamicLibraries: Boolean = false;
+
 implementation
 
 uses CastleUtils, CastleLog;
@@ -201,10 +226,10 @@ class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean)
 var
   Handle: TDynLibHandle;
 begin
-  Handle :=
-    {$ifdef CASTLE_DISABLE_DYNAMIC_LIBRARIES} InvalidDynLibHandle
-    {$else} LoadLibrary(PChar(AName))
-    {$endif};
+  if InternalDisableDynamicLibraries then
+    Handle := InvalidDynLibHandle
+  else
+    Handle := LoadLibrary(PChar(AName));
   if Handle = InvalidDynLibHandle then
   begin
     if RaiseExceptionOnError then

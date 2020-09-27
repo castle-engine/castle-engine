@@ -26,7 +26,6 @@ var
 
 procedure Render(Container: TUIContainer);
 begin
-  RenderContext.Clear([cbColor], Black);
   DestImage.Draw(0, 0);
 end;
 
@@ -40,6 +39,7 @@ begin
     // Window.Width := 100;
     // Window.Height := 100;
     Window.Open;
+    Window.Container.BackgroundColor := Black;
 
     { All of the TDrawableImage drawing must happen when OpenGL context is active,
       so after Window.Open.

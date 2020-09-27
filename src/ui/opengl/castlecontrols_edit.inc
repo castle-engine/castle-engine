@@ -664,7 +664,7 @@ end;
 
 function TCastleFloatEdit.GetValue: Single;
 begin
-  Result := StrToFloatDef(Text, 0);
+  Result := StrToFloatDefDot(Text, 0);
   if Min <= Max then
     ClampVar(Result, Min, Max);
 end;
@@ -672,8 +672,9 @@ end;
 procedure TCastleFloatEdit.SetValue(const AValue: Single);
 begin
   if DecimalDigits < 0 then
-    Text := FloatToStr(AValue)
+    Text := FloatToStrDot(AValue)
   else
+    // TODO Add FloatToStrFDot, use it
     Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
 end;
 

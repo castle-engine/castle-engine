@@ -2,23 +2,21 @@
 
   Feel free to use this code as a starting point for your own projects.
   (This code is in public domain, unlike most other CGE code which
-  is covered by the LGPL license variant, see the COPYING.txt file.)
-}
+  is covered by the LGPL license variant, see the COPYING.txt file.) }
 unit GameStateMain;
 
 interface
 
-uses CastleUIState, CastleScene, CastleControls,
-  CastleKeysMouse, CastleColors, CastleViewport, CastleUIControls;
+uses Classes,
+  CastleUIState, CastleComponentSerialize, CastleUIControls, CastleControls,
+  CastleKeysMouse;
 
 type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    Viewport: TCastleViewport;
-    Status: TCastleLabel;
-    ExampleImage: TCastleImageControl;
-    ExampleScene: TCastleScene;
+    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+    LabelFps: TCastleLabel;
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
@@ -33,51 +31,48 @@ implementation
 { TStateMain ----------------------------------------------------------------- }
 
 procedure TStateMain.Start;
+var
+  UiOwner: TComponent;
 begin
   inherited;
 
-  { Create scene manager to show 3D stuff (in TCastleScene) }
-  Viewport := TCastleViewport.Create(FreeAtStop);
-  Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
-  InsertFront(Viewport);
+  { Load designed user interface }
+  InsertUserInterface('castle-data:/state_main.castle-user-interface', FreeAtStop, UiOwner);
 
-  { Show a 3D object (TCastleScene) inside a Viewport }
-  ExampleScene := TCastleScene.Create(FreeAtStop);
-  ExampleScene.Load('castle-data:/example_scene.x3dv');
-  ExampleScene.Spatial := [ssRendering, ssDynamicCollisions];
-  ExampleScene.ProcessEvents := true;
-  Viewport.Items.Add(ExampleScene);
-  Viewport.Items.MainScene := ExampleScene;
-
-  { Show a label with frames per second information }
-  Status := TCastleLabel.Create(FreeAtStop);
-  Status.Anchor(vpTop, -10);
-  Status.Anchor(hpRight, -10);
-  Status.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
-  InsertFront(Status);
-
-  { Show 2D image }
-  ExampleImage := TCastleImageControl.Create(FreeAtStop);
-  ExampleImage.URL := 'castle-data:/example_image.png';
-  ExampleImage.Bottom := 100;
-  ExampleImage.Left := 100;
-  InsertFront(ExampleImage);
+  { Find components, by name, that we need to access from code }
+  LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
 begin
   inherited;
-  // ... do something every frame
-  Status.Caption := 'FPS: ' + Container.Fps.ToString;
+  { This virtual method is executed every frame.}
+  LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 function TStateMain.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
-  // ... react to press of key, mouse, touch
+
+  { This virtual method is executed when user presses
+    a key, a mouse button, or touches a touch-screen.
+
+    Note that each UI control has also events like OnPress and OnClick.
+    These events can be used to handle the "press", if it should do something
+    specific when used in that UI control.
+    The TStateMain.Press method should be used to handle keys
+    not handled in children controls.
+  }
+
+  // Use this to handle keys:
+  {
+  if Event.IsKey(keyXxx) then
+  begin
+    // DoSomething;
+    Exit(true); // key was handled
+  end;
+  }
 end;
 
 end.

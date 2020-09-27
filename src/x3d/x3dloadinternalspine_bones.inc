@@ -26,11 +26,10 @@
     WorldRotation: Single;
     WorldMatrix, WorldMatrixInverse: TMatrix2;
     { @groupEnd }
-
-    { Calculate world-space (well, at least in the space of whole JSON file)
-      bone parameters.
-      Similar to UpdateWorldTransform in spine-runtimes/spine-csharp/src/Bone.cs }
-    procedure UpdateWorldTransform;
+    BackupXY: TVector2;
+    BackupScale: TVector2;
+    BackupRotation: Single;
+    IsBackup: Boolean;
   public
     Name: string;
     Length: Single;
@@ -48,12 +47,23 @@
     function ToWorldSpace(const V: TVector2): TVector2;
     function ToLocalSpace(V: TVector2): TVector2; overload;
     function ToLocalSpace(const V: TVector3): TVector3; overload;
+    { Calculate world-space (well, at least in the space of whole JSON file)
+      bone parameters.
+      Similar to UpdateWorldTransform in spine-runtimes/spine-csharp/src/Bone.cs }
+    procedure UpdateWorldTransform;
+    { Backup bone's position, rotation and scale values }
+    procedure Backup;
+    { Restore bone's position, rotation and scale values }
+    procedure Restore;
   end;
 
   TBoneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
+    { Find bone by name.
+      @return nil if bone does not exist. }
+    function FindByName(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone;
       const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string);
@@ -197,6 +207,28 @@ begin
   Result2 := ToLocalSpace(Result2);
 end;
 
+procedure TBone.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupXY := XY;
+    BackupRotation := Rotation;
+    BackupScale := Scale;
+    IsBackup := True;
+  end;
+end;
+
+procedure TBone.Restore;
+begin
+  if IsBackup then
+  begin
+    XY := BackupXY;
+    Rotation := BackupRotation;
+    Scale := BackupScale;
+    IsBackup := False;
+  end;
+end;
+
 { TBoneList ------------------------------------------------------------------ }
 
 function TBoneList.Find(const BoneName: string): TBone;
@@ -207,6 +239,16 @@ begin
     if Items[I].Name = BoneName then
       Exit(Items[I]);
   raise ESpineReadError.CreateFmt('Bone name "%s" not found', [BoneName]);
+end;
+
+function TBoneList.FindByName(const BoneName: string): TBone;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = BoneName then
+      Exit(Items[I]);
+  Exit(nil);
 end;
 
 procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: boolean);

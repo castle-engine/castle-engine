@@ -18,12 +18,17 @@ uniform vec4 castle_MaterialDiffuseAlpha;
 uniform vec3 castle_MaterialAmbient;
 uniform vec3 castle_MaterialSpecular;
 uniform float castle_MaterialShininess;
-/* Color summed with all the lights:
-   Material emissive color + material ambient color * global (light model) ambient.
-   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)
-*/
-uniform vec3 castle_SceneColor;
+uniform vec3 castle_MaterialEmissive;
+uniform vec3 castle_GlobalAmbient;
+
 uniform vec4 castle_UnlitColor;
+
+/* Material ambient color * global (light model) ambient. */
+vec3 get_ambient_color()
+{
+  vec3 ambient = castle_MaterialAmbient;
+  return ambient * castle_GlobalAmbient;
+}
 
 void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)
 {
@@ -82,9 +87,12 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
     castle_MaterialDiffuseAlpha;
     #endif
 
-  result = vec4(castle_SceneColor, material_info.diffuse_alpha.a);
+  result = vec4(get_ambient_color(), material_info.diffuse_alpha.a);
 
   /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */
+
+  vec3 emissive = castle_MaterialEmissive;
+  result.rgb += emissive;
 
   /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   result.rgb = min(result.rgb, 1.0);

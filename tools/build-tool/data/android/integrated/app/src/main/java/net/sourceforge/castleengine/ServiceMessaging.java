@@ -49,11 +49,20 @@ public class ServiceMessaging extends ServiceAbstract
         return builder.toString();
     }
 
-    private List<String> toNative = new ArrayList<String>();
-    public void sendFromMainActivity(String[] messageParts)
+    private class MessagePair {
+        public String message;
+        public byte[] messageStream;
+    }
+
+    private List<MessagePair> toNative = new ArrayList<MessagePair>();
+
+    public void sendFromMainActivity(String[] messageParts, byte[] messageStream)
     {
-        String s = glueStringArray(messageParts, 0, MESSAGE_DELIMITER);
-        toNative.add(s);
+        String messageGlued = glueStringArray(messageParts, 0, MESSAGE_DELIMITER);
+        MessagePair messagePair = new MessagePair();
+        messagePair.message = messageGlued;
+        messagePair.messageStream = messageStream;
+        toNative.add(messagePair);
     }
 
     /* Timer code inspired by
@@ -70,31 +79,39 @@ public class ServiceMessaging extends ServiceAbstract
         {
             boolean somethingHappened = false;
 
-            String toNativeStr = null;
+            MessagePair toNativePair = null;
             if (toNative.size() != 0) {
-                toNativeStr = toNative.get(0);
+                toNativePair = toNative.get(0);
                 if (debug) {
-                    logInfo(CATEGORY, "JNI: Java posting a message to the native code: " + toNativeStr);
+                    logInfo(CATEGORY, "JNI: Java posting a message to the native code: " + toNativePair.message);
                 }
                 somethingHappened = true;
                 toNative.remove(0);
             }
 
-            String message = getActivity().jniMessage(toNativeStr);
-            if (message != null && message.length() != 0) {
+            String messageFromNative;
+            if (toNativePair != null) {
+                messageFromNative = getActivity().jniMessage(toNativePair.message, toNativePair.messageStream);
+            } else {
+                messageFromNative = getActivity().jniMessage(null, null);
+            }
+
+            if (messageFromNative != null &&
+                messageFromNative.length() != 0) {
                 if (debug) {
-                    logInfo(CATEGORY, "JNI: Java received message from native code: " + message);
+                    logInfo(CATEGORY, "JNI: Java received message from native code: " + messageFromNative);
                 }
                 somethingHappened = true;
-                String[] parts = splitString(message, MESSAGE_DELIMITER_CODE);
+                String[] parts = splitString(messageFromNative, MESSAGE_DELIMITER_CODE);
                 if (!getActivity().messageReceived(parts)) {
                     logWarning(CATEGORY, "Message unhandled: " + glueStringArray(parts, 0, "\n"));
                 }
             }
 
-            // run again in a short time (shorter if something happened,
-            // since next messages may follow)
-            timerHandler.postDelayed(this, somethingHappened ? 10 : 500);
+            // Run again in a short time (shorter if something happened,
+            // since next messages may follow).
+            // Important e.g. to download stuff with good speed.
+            timerHandler.postDelayed(this, somethingHappened ? 1 : 100);
         }
     };
 

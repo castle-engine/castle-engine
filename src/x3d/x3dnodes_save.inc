@@ -239,12 +239,14 @@ begin
       <NurbsCurve> instead of <ProtoInstance name="NurbsCurve">,
       and the invalid externproto is not relevant.
   }
+  {$warnings off} // supporting deprecated nodes
   if Node is TNurbsCurveNode_2 then
     Node := ConvertNurbsCurve(TNurbsCurveNode_2(Node)) else
   if Node is TNurbsSurfaceNode then
     Node := ConvertNurbsSurface(TNurbsSurfaceNode(Node)) else
   if Node is TNurbsPositionInterpolatorNode_2 then
     Node := ConvertNurbsPositionInterpolator(TNurbsPositionInterpolatorNode_2(Node));
+  {$warnings on}
 end;
 
 { TFixNamesHandler ----------------------------------------------------------- }

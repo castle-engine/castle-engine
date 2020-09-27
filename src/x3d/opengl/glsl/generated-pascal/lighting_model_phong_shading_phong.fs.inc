@@ -20,35 +20,17 @@
 'uniform vec3 castle_MaterialAmbient;' + LineEnding +
 'uniform vec3 castle_MaterialSpecular;' + LineEnding +
 'uniform float castle_MaterialShininess;' + LineEnding +
-'' + LineEnding +
-'#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 'uniform vec3 castle_MaterialEmissive;' + LineEnding +
 'uniform vec3 castle_GlobalAmbient;' + LineEnding +
-'#else' + LineEnding +
-'/* In this case we can optimize it.' + LineEnding +
-'   Color summed with all the lights:' + LineEnding +
-'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
-'   (similar to old gl_Front/BackLightModelProduct.sceneColor in deprecated GLSL versions.)' + LineEnding +
-'*/' + LineEnding +
-'uniform vec3 castle_SceneColor;' + LineEnding +
-'#endif' + LineEnding +
 '' + LineEnding +
 'uniform vec4 castle_UnlitColor;' + LineEnding +
 '' + LineEnding +
-'/* Calculate color summed with all the lights:' + LineEnding +
-'   Material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
-'*/' + LineEnding +
-'vec3 get_scene_color()' + LineEnding +
+'/* Material ambient color * global (light model) ambient. */' + LineEnding +
+'vec3 get_ambient_color()' + LineEnding +
 '{' + LineEnding +
-'#ifdef HAS_EMISSIVE_OR_AMBIENT_TEXTURE' + LineEnding +
 '  vec3 ambient = castle_MaterialAmbient;' + LineEnding +
 '  /* PLUG: material_light_ambient (ambient) */' + LineEnding +
-'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
-'  /* PLUG: material_emissive (emissive) */' + LineEnding +
-'  return emissive + ambient * castle_GlobalAmbient;' + LineEnding +
-'#else' + LineEnding +
-'  return castle_SceneColor;' + LineEnding +
-'#endif' + LineEnding +
+'  return ambient * castle_GlobalAmbient;' + LineEnding +
 '}' + LineEnding +
 '' + LineEnding +
 'void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3 normal_eye)' + LineEnding +
@@ -74,9 +56,15 @@
 '' + LineEnding +
 '  main_texture_apply(material_info.diffuse_alpha, normal_eye);' + LineEnding +
 '' + LineEnding +
-'  result = vec4(get_scene_color(), material_info.diffuse_alpha.a);' + LineEnding +
+'  result = vec4(get_ambient_color(), material_info.diffuse_alpha.a);' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: add_light (result, vertex_eye, normal_eye, material_info) */' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: material_occlusion (result) */' + LineEnding +
+'' + LineEnding +
+'  vec3 emissive = castle_MaterialEmissive;' + LineEnding +
+'  /* PLUG: material_emissive (emissive) */' + LineEnding +
+'  result.rgb += emissive;' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +

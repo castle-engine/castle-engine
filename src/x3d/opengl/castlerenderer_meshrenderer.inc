@@ -258,18 +258,8 @@ var
       CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(M.ShininessExp);
       CurrentMeshShader.UniformCastle_MaterialAmbient.SetValue(M.AmbientColor);
       CurrentMeshShader.UniformCastle_MaterialSpecular.SetValue(M.SpecularColor);
-      if ( (Attributes.CustomShader <> nil) or // assume custom shader does Phong shading
-           Shader.PhongShading ) and
-         Shader.HasEmissiveOrAmbientTexture then
-      begin
-        CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
-        CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
-      end else
-      begin
-        CurrentMeshShader.UniformCastle_SceneColor.SetValue(
-          M.EmissiveColor +
-          RenderContext.GlobalAmbient * M.AmbientColor);
-      end;
+      CurrentMeshShader.UniformCastle_MaterialEmissive.SetValue(M.EmissiveColor);
+      CurrentMeshShader.UniformCastle_GlobalAmbient.SetValue(RenderContext.GlobalAmbient);
 
       { castle_UnlitColor is used when we calculated Lighting = false
         (in castlerenderer_materials.inc) and material is TPhongMaterialInfo.
@@ -1070,5 +1060,5 @@ begin
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
 
-  TGLSLProgram.Current := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+  RenderContext.CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

@@ -461,7 +461,7 @@ begin
       Better check it here, before we start changing anything. }
     if Shape.Geometry.TexCoordField = nil then
     begin
-      WritelnWarning('VRML/X3D', 'Geometry node ' + Shape.Geometry.X3DType + ' does not have a texCoord, cannot be shadow maps receiver.');
+      WritelnWarning('X3D', 'Geometry node ' + Shape.Geometry.X3DType + ' does not have a texCoord, cannot be shadow maps receiver.');
       Exit;
     end;
 

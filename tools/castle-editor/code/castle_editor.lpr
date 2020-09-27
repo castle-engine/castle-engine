@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, FormChooseProject, castle_components, ProjectUtils, FormNewProject,
   EditorUtils, FormProject, FrameDesign, FormAbout, FrameViewFile,
-  FormPreferences
+  FormPreferences, VisualizeTransform
   { you can add units after this };
 
 {$R *.res}

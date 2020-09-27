@@ -125,7 +125,7 @@ begin
   FloatElement := Element.ChildElement('float', false);
   if FloatElement <> nil then
   begin
-    Result := StrToFloat(FloatElement.TextData);
+    Result := StrToFloatDot(FloatElement.TextData);
   end else
     { We don't support anything else than <float> here, just use
       default 1 eventually. }

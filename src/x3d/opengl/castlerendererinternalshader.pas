@@ -34,7 +34,8 @@ type
     stAmbient,
     stSpecular,
     stShininess,
-    stMetallicRoughness
+    stMetallicRoughness,
+    stOcclusion
   );
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -88,7 +89,6 @@ type
     UniformCastle_MaterialMetallic,
     UniformCastle_MaterialRoughness,
     UniformCastle_GlobalAmbient,
-    UniformCastle_SceneColor,
     UniformCastle_UnlitColor: TGLSLUniform;
 
     { Attributes initialized after linking.
@@ -416,7 +416,6 @@ type
     FFogExpDensity: Single;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
-    DynamicUniforms: TDynamicUniformList;
     TextureMatrix: TCardinalList;
     NeedsCameraInverseMatrix: Boolean;
     NeedsMirrorPlaneTexCoords: Boolean;
@@ -444,7 +443,6 @@ type
     GroupEffects: TX3DNodeList;
     Lighting, ColorPerVertex: Boolean;
     ColorPerVertexMode: TColorMode;
-    FHasEmissiveOrAmbientTexture: Boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -474,6 +472,9 @@ type
     { Material parameters for current shape.
       Must be set before EnableLight, and be constant later. }
     Material: TMaterialInfo;
+
+    { Uniforms that will be set on this shader every frame (not just once after linking). }
+    DynamicUniforms: TDynamicUniformList;
 
     { We use a callback, instead of storing TBox3D result, because
       1. in many cases, we will not need to call it (so we don't need to recalculate
@@ -635,9 +636,6 @@ type
     procedure Initialize(const APhongShading: boolean);
 
     property PhongShading: boolean read FPhongShading;
-
-    { Calculated based on EnableSurfaceTexture calls. }
-    property HasEmissiveOrAmbientTexture: Boolean read FHasEmissiveOrAmbientTexture;
 
     { Set uniforms that should be set each time before using shader
       (because changes to their values may happen at any time,
@@ -1171,7 +1169,6 @@ begin
   UniformCastle_MaterialMetallic      := Uniform('castle_MaterialMetallic'     , uaIgnore);
   UniformCastle_MaterialRoughness     := Uniform('castle_MaterialRoughness'    , uaIgnore);
   UniformCastle_GlobalAmbient         := Uniform('castle_GlobalAmbient'        , uaIgnore);
-  UniformCastle_SceneColor            := Uniform('castle_SceneColor'           , uaIgnore);
   UniformCastle_UnlitColor            := Uniform('castle_UnlitColor'           , uaIgnore);
 
   AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
@@ -1984,7 +1981,6 @@ begin
   NeedsMirrorPlaneTexCoords := false;
   NeedsNormalsForTexGen := false;
   RenderingCamera := nil;
-  FHasEmissiveOrAmbientTexture := false;
   FLightingModel := lmPhong;
   MainTextureMapping := -1;
   GammaCorrection := false;
@@ -2746,12 +2742,7 @@ var
   procedure EnableShaderFog;
   var
     FogFactor, FogUniforms, CoordinateSource: string;
-    USingle: TDynamicUniformSingle;
-    UColor: TDynamicUniformVec3;
   begin
-    { Both OpenGLES and desktop OpenGL use castle_xxx uniforms and varying
-      to pass fog parameters, not gl_xxx. }
-
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
@@ -2779,34 +2770,17 @@ var
               which is just 1.0 / gl_Fog.end for us.
               So we just divide by castle_FogLinearEnd. }
             FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogLinearEnd';
-            USingle.Value := FFogLinearEnd;
-            DynamicUniforms.Add(USingle);
           end;
         ftExp:
           begin
             FogUniforms := 'uniform float castle_FogExpDensity;';
             FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
-
-            USingle := TDynamicUniformSingle.Create;
-            USingle.Name := 'castle_FogExpDensity';
-            USingle.Value := FFogExpDensity;
-            DynamicUniforms.Add(USingle);
           end;
         {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
         {$endif}
       end;
 
-      UColor := TDynamicUniformVec3.Create;
-      UColor.Name := 'castle_FogColor';
-      UColor.Value := FFogColor;
-      { We leave UColor.Declaration empty, just like USingle.Declaration above,
-        because we only declare them inside this plug
-        (which is a separate compilation unit for desktop OpenGL). }
-      DynamicUniforms.Add(UColor);
       Plug(stFragment,
         'varying float castle_FogFragCoord;' + NL+
         'uniform vec3 castle_FogColor;' +NL+
@@ -2943,8 +2917,6 @@ begin
     Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
   if GLVersion.BuggyGLSLReadVarying then
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
-  if HasEmissiveOrAmbientTexture then
-    Define('HAS_EMISSIVE_OR_AMBIENT_TEXTURE', stFragment);
   if GammaCorrection then
     Define('CASTLE_GAMMA_CORRECTION', stFragment);
   case ToneMapping of
@@ -3427,17 +3399,13 @@ begin
 
   HashMultiplier := 2063 * (1 + Ord(SurfaceTexture));
   FCodeHash.AddInteger(HashMultiplier * (
-    2069 * TextureUnit +
-    2081 * TextureCoordinatesId
+    2069 * (1 + TextureUnit) +
+    2081 * (1 + TextureCoordinatesId)
   ));
   { TODO: add FCodeHash.AddString(PlugCode, 2083 * HashMultiplier);
     to account that PlugCode may change?
     But in reality it never changes, only in case of CommonSurfaceShader
     the ChannelMask is configurable. }
-
-  // update HasEmissiveOrAmbientTexture value
-  if SurfaceTexture in [stAmbient, stEmissive] then
-    FHasEmissiveOrAmbientTexture := true;
 end;
 
 procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);
@@ -3463,6 +3431,9 @@ procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
   const FogColor: TVector3; const FogLinearEnd: Single;
   const FogExpDensity: Single);
+var
+  UColor: TDynamicUniformVec3;
+  USingle: TDynamicUniformSingle;
 begin
   FFogEnabled := true;
   FFogType := FogType;
@@ -3473,6 +3444,34 @@ begin
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
+
+  if FFogEnabled then
+  begin
+    case FFogType of
+      ftLinear:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogLinearEnd';
+          USingle.Value := FFogLinearEnd;
+          DynamicUniforms.Add(USingle);
+        end;
+      ftExp:
+        begin
+          USingle := TDynamicUniformSingle.Create;
+          USingle.Name := 'castle_FogExpDensity';
+          USingle.Value := FFogExpDensity;
+          DynamicUniforms.Add(USingle);
+        end;
+    end;
+
+    UColor := TDynamicUniformVec3.Create;
+    UColor.Name := 'castle_FogColor';
+    UColor.Value := FFogColor;
+    { We leave UColor.Declaration empty, just like USingle.Declaration above,
+      because we only declare them inside this plug
+      (which is a separate compilation unit for desktop OpenGL). }
+    DynamicUniforms.Add(UColor);
+  end;
 end;
 
 procedure TShader.ModifyFog(const FogType: TFogType;

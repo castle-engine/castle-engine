@@ -112,6 +112,8 @@ uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
   CastleApplicationProperties,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
+{$R *.lfm}
+
 procedure TMain.OpenScene(const URL: string);
 
   procedure LoadScene(const URL: String);
@@ -247,7 +249,7 @@ procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
 var
   Walk: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkCamera(false);
+  Walk := Viewport.WalkNavigation(false);
   if Walk <> nil then
   begin
     Walk.MouseLook := (Sender as TMenuItem).Checked;
@@ -278,7 +280,7 @@ procedure TMain.UpdateCrosshairImage;
 var
   Walk: TCastleWalkNavigation;
 begin
-  Walk := Viewport.WalkCamera(false);
+  Walk := Viewport.WalkNavigation(false);
 
   CrosshairCtl.Exists := ((Walk <> nil) and Walk.MouseLook);
 
@@ -368,17 +370,17 @@ procedure TMain.ButtonChangeCameraClick(Sender: TObject);
 begin
   Viewport.Camera.SetView(
     Vector3(
-      StrToFloat(EditPositionX.Text),
-      StrToFloat(EditPositionY.Text),
-      StrToFloat(EditPositionZ.Text)),
+      StrToFloatDot(EditPositionX.Text),
+      StrToFloatDot(EditPositionY.Text),
+      StrToFloatDot(EditPositionZ.Text)),
     Vector3(
-      StrToFloat(EditDirectionX.Text),
-      StrToFloat(EditDirectionY.Text),
-      StrToFloat(EditDirectionZ.Text)),
+      StrToFloatDot(EditDirectionX.Text),
+      StrToFloatDot(EditDirectionY.Text),
+      StrToFloatDot(EditDirectionZ.Text)),
     Vector3(
-      StrToFloat(EditUpX.Text),
-      StrToFloat(EditUpY.Text),
-      StrToFloat(EditUpZ.Text)));
+      StrToFloatDot(EditUpX.Text),
+      StrToFloatDot(EditUpY.Text),
+      StrToFloatDot(EditUpZ.Text)));
 end;
 
 procedure TMain.BrowserCameraChanged(Camera: TObject);
@@ -422,6 +424,4 @@ begin
   end;
 end;
 
-initialization
-  {$I mainf.lrs}
 end.

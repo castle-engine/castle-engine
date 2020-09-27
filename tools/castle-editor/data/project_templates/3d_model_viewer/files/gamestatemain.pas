@@ -15,6 +15,7 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
+    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
     Viewport: TCastleViewport;
     SceneMain: TCastleScene;
     ButtonLoadKnight: TCastleButton;
@@ -23,6 +24,7 @@ type
     ButtonPlayAnimation: TCastleButton;
     ButtonStopAnimation: TCastleButton;
     LabelLoadedUrl, LabelFps: TCastleLabel;
+
     procedure Load(const Url: String);
     { Methods assigned to handle buttons' OnClick events. }
     procedure ClickLoadKnight(Sender: TObject);

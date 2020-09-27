@@ -88,7 +88,7 @@ implementation
 
 uses SysUtils, DOM,
   CastleProgress, CastleImages, CastleUIControls, CastleGLUtils, CastleXMLUtils,
-  CastleSceneCore, CastleApplicationProperties, X3DLoad,
+  CastleSceneCore, CastleApplicationProperties, X3DLoad, CastleRenderContext,
   GameConfiguration;
 
 { TLocation.TLocationScene --------------------------------------------------- }

@@ -70,6 +70,7 @@ uses
   TestX3DFields,
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
+  TestX3DNodesNurbs,
   TestCastleScene,
   TestCastleSceneCore,
   TestCastleSceneManager,

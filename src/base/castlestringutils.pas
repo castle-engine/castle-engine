@@ -52,6 +52,14 @@ type
   TStringsHelper = class helper for TStrings
     { Convert TStrings to a dynamic string array. }
     function ToArray: TDynamicStringArray;
+
+    { Split the argument into lines (honors any newline convention),
+      and add the resulting lines to the list.
+
+      If the S doesn't contain any newline, then using AddMultiLine(S)
+      is equivalent to trivial Add(S). But when S has some newline characters,
+      then AddMultiLine(S) call Add(...) many times. }
+    procedure AddMultiLine(const S: String);
   end;
 
   { List of strings. This is a slightly extended version of standard TStringList.
@@ -898,6 +906,7 @@ function Str2ToInt(const s: string): integer;
 function StrHexToInt(const s: string): Int64;
 
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;
+  deprecated 'use StrToFloatDefDot in most cases, to have dot as decimal separator';
 
 { Convert a set to a string representation, in somewhat hacky way.
   This assumes that given SetVariable is a set value, and the set type
@@ -957,7 +966,7 @@ procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
 { Remove one newline from the end of the string, if any. }
 function TrimEndingNewline(const S: String): String;
 
-function SizeToStr(const Value: QWord): String;
+function SizeToStr(const Value: Int64): String;
 
 const
   { }
@@ -1008,6 +1017,24 @@ begin
   SetLength(Result, Count);
   for I := 0 to Count - 1 do
     Result[I] := Strings[I];
+end;
+
+procedure TStringsHelper.AddMultiLine(const S: String);
+var
+  SList: TStringList;
+  I: Integer;
+begin
+  if S = '' then
+    Add('')
+  else
+  begin
+    SList := TStringList.Create;
+    try
+      SList.Text := S;
+      for I := 0 to SList.Count - 1 do
+        Add(SList[I]);
+    finally FreeAndNil(SList) end;
+  end;
 end;
 
 { TCastleStringList ------------------------------------------------------------- }
@@ -1694,9 +1721,10 @@ var datapos, formpos: integer;
    Inc(datapos);
    while (datapos <= Length(data)) and (data[datapos] in ['0'..'9','.', 'e','E', '-', '+']) do
     Inc(datapos);
-   {ponizsze StrToFloat tez moze spowodowac blad jesli np.
-    wyszedl nam string '-' lub '+' lub string z dwoma kropkami}
-   result := StrToFloat(CopyPos(data, dataposstart, datapos-1));
+   { Note that StrToFloatDot may still raise EConvertError.
+     The argument contains only valid characters, but they may not form a valid number,
+     e.g. '123....456' or 'eee' or '1+2'. }
+   result := StrToFloatDot(CopyPos(data, dataposstart, datapos-1));
   end;
 
   function ReadInt64Data: Int64;
@@ -2579,7 +2607,7 @@ begin
     Result := S;
 end;
 
-function SizeToStr(const Value: QWord): String;
+function SizeToStr(const Value: Int64): String;
 begin
   if Value >= 1024 * 1024 * 1024 then
     Result := FormatDot('%.2f', [Value / (1024 * 1024 * 1024)]) + ' GB'
@@ -2590,7 +2618,11 @@ begin
   if Value >= 1024 then
     Result := FormatDot('%.2f', [Value / 1024]) + ' KB'
   else
-    Result := FormatDot('%d', [Value]) + ' bytes';
+  if Value >= 0 then
+    Result := FormatDot('%d', [Value]) + ' bytes'
+  else
+    // display Value like -1 just as "-1", useful e.g. for TCastleDownload.TotalBytes
+    Result := IntToStr(Value);
 
   // too verbose
   //Result += Format(' (%d bytes)', [Value]);

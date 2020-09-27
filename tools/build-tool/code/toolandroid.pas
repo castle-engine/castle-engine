@@ -280,6 +280,9 @@ var
       if (depFreeType in Project.Dependencies) and
          not Project.AndroidServices.HasService('freetype') then
         ExtractService('freetype');
+      if (depHttps in Project.Dependencies) and
+         not Project.AndroidServices.HasService('download_urls') then
+        ExtractService('download_urls');
     end;
   end;
 
@@ -507,6 +510,8 @@ var
     library correctly preserced, such that ndk-gdb works and sees our symbols.
   }
   procedure RunNdkBuild;
+  var
+    Args: TCastleStringList;
   begin
     { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
       See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
@@ -519,8 +524,15 @@ var
       as they would not be picked by Gradle from there. But that's
       what ndk-build does: it copies them from jni/ to another directory. }
 
-    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-      NdkBuildExe, ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
+    Args := TCastleStringList.Create;
+    try
+      if not Verbose then
+        Args.Add('--silent');
+      Args.Add('NDK_LIBS_OUT=./jniLibs');
+
+      RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
+        NdkBuildExe, Args.ToArray);
+    finally FreeAndNil(Args) end;
   end;
 
   { Run Gradle to actually build the final apk. }

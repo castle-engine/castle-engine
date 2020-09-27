@@ -51,7 +51,8 @@ type
     var
     ImageNaked, ImageBadge, ImageWarning: TCastleImage;
     GiftizStatusVisible: boolean;
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -116,7 +117,8 @@ begin
   inherited;
 end;
 
-function TGiftizButton.MessageReceived(const Received: TCastleStringList): boolean;
+function TGiftizButton.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 begin
   Result := false;
 

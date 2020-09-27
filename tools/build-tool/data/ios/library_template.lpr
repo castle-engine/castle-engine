@@ -18,7 +18,7 @@
 library ${NAME_PASCAL};
 
 uses
-  {$ifdef CASTLE_THREADS}
+  {$ifndef CASTLE_DISABLE_THREADS}
     {$info Thread support enabled.}
     {$ifdef UNIX} CThreads, {$endif}
   {$endif}

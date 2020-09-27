@@ -27,12 +27,15 @@ uses
 type
   { Determine new project settings. }
   TNewProjectForm = class(TForm)
+    ButtonChooseLocation: TButton;
     ButtonPanel1: TButtonPanel;
     ButtonTemplate2d: TSpeedButton;
-    EditLocation: TEditButton;
+    EditLocation: TEdit;
     EditProjectName: TEdit;
+    EditProjectCaption: TEdit;
     GroupProjectTemplate: TGroupBox;
     LabelProjectLocation: TLabel;
+    LabelProjectCaption: TLabel;
     LabelTitle: TLabel;
     LabelProjectName: TLabel;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
@@ -129,7 +132,11 @@ begin
     InvalidIndex := CharsPos(InvalidProjectNameChars, ProjectName);
     if InvalidIndex <> 0 then
     begin
-      ErrorBox(Format('Project name contains invalid character "%s".',
+      ErrorBox(Format('Project name contains invalid character "%s".' + NL +
+        NL +
+        'The internal project name is used with various tools, in various contexts, and thus it is limited to alphanumeric characters plus underscore ("_") and hyphen ("-").' + NL +
+        NL +
+        'Note that this is only an internal project name. The user-visible "Project Caption" has no such limitations.',
         [SReadableForm(ProjectName[InvalidIndex])]));
       CanClose := false;
       Exit;
@@ -156,4 +163,3 @@ begin
 end;
 
 end.
-

@@ -25,6 +25,8 @@ implementation
 
 uses CastleGLUtils;
 
+{$R *.lfm}
+
 { TOpenGLInformation }
 
 class procedure TOpenGLInformation.Execute;
@@ -37,9 +39,6 @@ begin
     F.ShowModal;
   finally FreeAndNil(F) end;
 end;
-
-initialization
-  {$I openglinformation.lrs}
 
 end.
 

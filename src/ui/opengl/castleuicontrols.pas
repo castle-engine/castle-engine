@@ -24,7 +24,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils, CastleGLUtils, CastleFonts,
   CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion, CastleColors,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties,
-  CastleGLImages;
+  CastleGLImages, CastleRenderContext;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -1505,7 +1505,7 @@ type
           Texturing, lighting, fog is off.)
       )
 
-      Beware that GLSL @link(TGLSLProgram.Current) has undefined value when this is called.
+      Beware that GLSL @link(TRenderContext.CurrentProgram RenderContext.CurrentProgram) has undefined value when this is called.
       You should always set it, before making direct OpenGL drawing calls
       (all the engine drawing routines of course do it already, this is only a concern
       if you make direct OpenGL / OpenGLES calls). }

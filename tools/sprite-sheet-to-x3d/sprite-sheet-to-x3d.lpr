@@ -372,7 +372,7 @@ begin
         Writeln(ApplicationName + ' ' + CastleEngineVersion);
         Halt;
       end;
-    2:FramesPerSecond := StrToFloat(Argument);
+    2:FramesPerSecond := StrToFloatDot(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;

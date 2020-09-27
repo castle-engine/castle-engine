@@ -192,14 +192,14 @@ begin
      (FdSize.Value[1] < 0) or
      (FdSize.Value[2] < 0) then
   begin
-    WritelnWarning('VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
+    WritelnWarning('X3D', 'All VisibilitySensor.size components must be >= 0');
     Exit(TBox3D.Empty);
   end;
 
   { In case of VisibilitySensor, specification doesn't say that size = 0
     indicates empty box (like in case of ProximitySensor).
     And this is sensible: flat (0 depth or such) VisibilitySensor
-    makes sense. So for a valid VRML/X3D, this box is never TBox3D.Empty. }
+    makes sense. So for a valid X3D, this box is never TBox3D.Empty. }
 
   Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
 end;

@@ -89,8 +89,6 @@ begin
 
       The downside is a possible additional work at run-time
       (but it's done in a thread and should not matter in normal use-cases).
-      Make sure to also uncomment thread support in CastleEngineManifest.xml,
-      see the example in CastleEngineManifest.xml in this directory.
     }
     // , slStreaming
   );

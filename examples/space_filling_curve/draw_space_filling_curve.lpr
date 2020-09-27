@@ -53,10 +53,6 @@ procedure Render(Container: TUIContainer);
 var
   DrawableImage: TDrawableImage;
 begin
-  { If DoubleBuffer available, then use it.
-    This program should work perfectly with and without DoubleBuffer. }
-  if Window.DoubleBuffer then RenderContext.Clear([cbColor], Gray);
-
   DrawableImage := TDrawableImage.Create(CurveImage, false, false);
   try
     DrawableImage.Draw(0, 0);

@@ -1179,7 +1179,7 @@ begin
     end else
       Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
 
-    TGLSLProgram.Current := Prog.Prog;
+    RenderContext.CurrentProgram := Prog.Prog;
     Prog.AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
       SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
     Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
@@ -1199,7 +1199,7 @@ begin
   end else
   begin
     {$ifndef OpenGLES}
-    TGLSLProgram.Current := nil;
+    RenderContext.CurrentProgram := nil;
     glLoadIdentity();
     glColorv(Color);
 

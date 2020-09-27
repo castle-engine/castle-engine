@@ -157,8 +157,6 @@ var
 begin
   inherited;
 
-  RenderContext.Clear([cbColor], Black);
-
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
     IntroParts[IntroPart].ImageCorroded.Draw(Container.Rect);

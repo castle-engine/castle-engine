@@ -93,7 +93,7 @@ implementation
 
 uses Math, Generics.Defaults,
   CastleLog, CastleGLVersion,
-  CastleApplicationProperties, CastleStringUtils, CastleURIUtils;
+  CastleApplicationProperties, CastleStringUtils, CastleURIUtils, CastleRenderContext;
 
 {$define read_implementation}
 

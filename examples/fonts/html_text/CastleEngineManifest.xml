@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="html_text"
+  qualified_name="io.castleengine.html.text"
+  game_units="GameInitialize"
+  author="Michalis Kamburelis">
+</project>

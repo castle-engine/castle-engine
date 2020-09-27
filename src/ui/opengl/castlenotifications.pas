@@ -214,7 +214,7 @@ procedure TCastleNotifications.Show(S: TStringList);
 var
   Broken: TStringList;
 begin
-  WritelnLog('Notification', Trim(S.Text));
+  //WritelnLog('Notification', Trim(S.Text)); // too verbose by default
 
   { before Notifications are part of some Controls list,
     we don't know about Parent or Container size. }

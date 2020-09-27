@@ -211,7 +211,7 @@ var
   I: integer;
 begin
   YScale := Size / Font.RowHeight;
-  { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
+  { TODO: Use maxEntent, length for X3D and VRML 2.0. Use width for VRML 1.0. }
   XScale := YScale;
 
   MaxRowWidth := 0;

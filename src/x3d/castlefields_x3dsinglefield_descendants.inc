@@ -665,8 +665,7 @@ procedure TSFBool.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
   procedure VRML2BooleanIntegerWarning;
   begin
     if Lexer.Version.Major >= 2 then
-      WritelnWarning('VRML/X3D', 'In VRML >= 2.0 you cannot express boolean values ' +
-        'as 0 (instead of FALSE) or 1 (instead of TRUE)');
+      WritelnWarning('X3D', 'In X3D and VRML >= 2.0 you cannot express boolean values as 0 (instead of FALSE) or 1 (instead of TRUE)');
   end;
 
 const
@@ -1234,7 +1233,7 @@ begin
     Value := Lexer.TokenInteger;
   end else
   begin
-    WritelnWarning('VRML/X3D', Format('Integer in the file is out of 32-bit range: %d',
+    WritelnWarning('X3D', Format('Integer in the file is out of 32-bit range: %d',
       [Lexer.TokenInteger]));
     Value := -1;
   end;
@@ -1581,7 +1580,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    WritelnWarning('VRML/X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
+    WritelnWarning('X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
   end;
 end;
 
@@ -1766,7 +1765,7 @@ begin
      (AttributeValue[1] = '"') and
      (AttributeValue[Length(AttributeValue)] = '"') then
   begin
-    WritelnWarning('VRML/X3D', 'X3D XML: found extra quotes around SFString value. Assuming this is a mistake, and stripping quotes from ''' + AttributeValue + '''. Fix your model: SFString field values should not be enclosed in extra quotes!');
+    WritelnWarning('X3D', 'X3D XML: found extra quotes around SFString value. Assuming this is a mistake, and stripping quotes from ''' + AttributeValue + '''. Fix your model: SFString field values should not be enclosed in extra quotes!');
     Value := Copy(AttributeValue, 2, Length(AttributeValue) - 2);
   end else
     Value := AttributeValue;
@@ -1833,14 +1832,14 @@ var
 begin
   UpperValue := UpperCase(NewValue);
   if UpperValue <> NewValue then
-    WritelnWarning('VRML/X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
+    WritelnWarning('X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
       [X3DName, NewValue]));
 
   Result := FEnumNames.IndexOf(UpperValue);
   if Result = -1 then
   begin
     Result := DefaultEnumValue;
-    WritelnWarning('VRML/X3D', Format('Unknown "%s" field value: "%s"',
+    WritelnWarning('X3D', Format('Unknown "%s" field value: "%s"',
       [X3DName, NewValue]));
   end;
 end;

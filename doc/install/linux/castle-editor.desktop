@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=Castle Game Engine
+GenericName=Game Engine
+Exec=castle-editor
+Icon=castle_game_engine_icon
+Type=Application
+Categories=Development;Building;GTK;

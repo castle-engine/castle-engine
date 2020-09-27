@@ -45,6 +45,7 @@ begin
   Window.Container.UIReferenceWidth := DefaultWindowWidth;
   Window.Container.UIReferenceHeight := DefaultWindowHeight;
   Window.Container.UIScaling := usEncloseReferenceSize;
+  Window.Container.BackgroundColor := Black;
 
   { configure Notifications }
   Notifications.MaxMessages := 4;

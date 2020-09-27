@@ -65,8 +65,8 @@ type
   private
     ToRemove: boolean;
   public
-    function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single; const CancelAction: boolean = false): boolean; override;
+    function PointingDevicePress(const Pick: TRayCollisionNode;
+      const Distance: Single): Boolean; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -77,16 +77,17 @@ const
 var
   TntsCount: Integer = 0;
 
-function TTnt.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single; const CancelAction: boolean): boolean;
+function TTnt.PointingDevicePress(const Pick: TRayCollisionNode;
+  const Distance: Single): Boolean;
 begin
-  Result := Active and (not ToRemove) and (not CancelAction);
-  if not Result then Exit;
+  if ToRemove then
+    Exit(false);
 
   SoundEngine.Sound3D(stKaboom, Translation);
   if PointsDistanceSqr(Translation, Rat.Translation) < 1.0 then
     SoundEngine.Sound3D(stRatSqueak, Rat.Translation);
 
+  Result := true;
   ToRemove := true;
   Dec(TntsCount);
 end;
