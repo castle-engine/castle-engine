@@ -2232,18 +2232,18 @@ begin
     MenuTreeViewItemDelete.Enabled := Sel <> nil;
     if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
     begin
-      MenuTreeViewItemAddUserInterface.Visible := true;
-      MenuTreeViewItemAddTransform.Visible := false;
+      MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
+      MenuTreeViewItemAddTransform.SetEnabledVisible(false);
     end else
     if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
     begin
-      MenuTreeViewItemAddUserInterface.Visible := false;
-      MenuTreeViewItemAddTransform.Visible := true;
+      MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+      MenuTreeViewItemAddTransform.SetEnabledVisible(true);
     end else
     begin
-      //That wasn't supposed to happen!
-      MenuTreeViewItemAddUserInterface.Visible := false;
-      MenuTreeViewItemAddTransform.Visible := false;
+      // That wasn't supposed to happen!
+      MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+      MenuTreeViewItemAddTransform.SetEnabledVisible(false);
     end;
 
 

@@ -20,8 +20,14 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Generics.Collections,
+uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   CastleStringUtils;
+
+type
+  TMenuItemHelper = class helper for TMenuItem
+  public
+    procedure SetEnabledVisible(const Value: Boolean);
+  end;
 
 type
   TOutputKind = (
@@ -149,6 +155,12 @@ implementation
 uses SysUtils, Dialogs, Graphics, TypInfo,
   CastleUtils, CastleLog,
   ToolCompilerInfo;
+
+procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
+begin
+  Visible := Value;
+  Self.Enabled := Value;
+end;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
 
