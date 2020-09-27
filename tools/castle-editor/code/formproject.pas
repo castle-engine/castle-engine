@@ -32,6 +32,7 @@ type
   TProjectForm = class(TForm)
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
+    MenuItemRename: TMenuItem;
     MenuItemRedo: TMenuItem;
     MenuItemUndo: TMenuItem;
     MenuItemSeparator2303403o: TMenuItem;
@@ -109,8 +110,10 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
+    procedure MenuItemRenameClick(Sender: TObject);
     procedure UpdateUndo(Sender: TObject);
     procedure UpdateUndoRedoInformation;
+    procedure UpdateRenameItem(Sender: TObject);
     procedure MenuItemRedoClick(Sender: TObject);
     procedure MenuItemUndoClick(Sender: TObject);
     procedure MenuItemDeleteFileClick(Sender: TObject);
@@ -459,6 +462,19 @@ begin
   // TODO: just to source code line in case of error message here
 end;
 
+procedure TProjectForm.MenuItemRenameClick(Sender: TObject);
+begin
+  Design.RenameSelectedItem;
+end;
+ 
+procedure TProjectForm.UpdateRenameItem(Sender: TObject);
+begin
+  if (Design <> nil) and Design.RenamePossible then
+    MenuItemRename.Enabled := true
+  else
+    MenuItemRename.Enabled := false;
+end;
+
 procedure TProjectForm.UpdateUndo(Sender: TObject);
 begin
   UpdateUndoRedoInformation;
@@ -604,6 +620,7 @@ begin
   MenuItemDuplicateComponent.Enabled := Design <> nil;
 
   UpdateUndoRedoInformation;
+  UpdateRenameItem(nil);
 
   LabelNoDesign.Visible := Design = nil;
 end;
@@ -617,6 +634,7 @@ begin
     Design.Align := alClient;
     Design.OnUpdateFormCaption := @UpdateFormCaption;
     Design.UndoSystem.OnUpdateUndo := @UpdateUndo;
+    Design.OnSelectionChanged := @UpdateRenameItem;
     DesignExistenceChanged;
   end;
 end;

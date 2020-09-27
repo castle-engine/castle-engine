@@ -106,8 +106,6 @@ type
     procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ControlsTreeKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
@@ -122,6 +120,7 @@ type
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
     procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
     procedure ClearDesign;
+    procedure RenameSelectedItem;
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
@@ -253,6 +252,8 @@ type
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
   public
     OnUpdateFormCaption: TNotifyEvent;
+    OnSelectionChanged: TNotifyEvent;
+    function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -1781,6 +1782,8 @@ var
   InspectorType: TInspectorType;
   V: TCastleViewport;
 begin
+  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
+
   GetSelected(Selected, SelectedCount);
   try
     case SelectedCount of
@@ -1965,12 +1968,15 @@ begin
   ControlsTree.Invalidate; // force custom-drawn look redraw
 end;
 
-procedure TDesignFrame.ControlsTreeKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+function TDesignFrame.RenamePossible: Boolean;
 begin
-  if Key = VK_F2 then
-    if ControlsTree.SelectionCount = 1 then
-      ControlsTree.Selected.EditText;
+  Result := ControlsTree.SelectionCount = 1;
+end;
+
+procedure TDesignFrame.RenameSelectedItem;
+begin
+  if RenamePossible then
+    ControlsTree.Selected.EditText;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
