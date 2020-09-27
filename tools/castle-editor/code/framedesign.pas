@@ -51,6 +51,7 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuItemRename: TMenuItem;
     MenuTreeViewItemAddTransform: TMenuItem;
     MenuTreeViewItemAddUserInterface: TMenuItem;
     MenuTreeViewItemDelete: TMenuItem;
@@ -128,6 +129,7 @@ type
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
     procedure MenuItemAddComponentClick(Sender: TObject);
+    procedure MenuItemRenameClick(Sender: TObject);
     procedure MenuTreeViewItemDeleteClick(Sender: TObject);
     procedure MenuTreeViewItemCopyClick(Sender: TObject);
     procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
@@ -2544,6 +2546,11 @@ var
 begin
   R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
   AddComponent(R.ComponentClass, R.OnCreate);
+end;
+
+procedure TDesignFrame.MenuItemRenameClick(Sender: TObject);
+begin
+  RenameSelectedItem;
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDeleteClick(Sender: TObject);

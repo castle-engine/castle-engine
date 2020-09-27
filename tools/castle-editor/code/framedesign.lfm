@@ -1535,6 +1535,10 @@ object DesignFrame: TDesignFrame
   object MenuTreeView: TPopupMenu
     Left = 653
     Top = 139
+    object MenuItemRename: TMenuItem
+      Caption = 'Rename'
+      OnClick = MenuItemRenameClick
+    end
     object MenuTreeViewItemDuplicate: TMenuItem
       Caption = 'Duplicate'
       OnClick = MenuTreeViewItemDuplicateClick
