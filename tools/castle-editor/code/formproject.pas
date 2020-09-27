@@ -323,7 +323,7 @@ end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
 
-  procedure BuildComponentsMenu;
+  procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
 
     function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
     var
@@ -349,22 +349,14 @@ procedure TProjectForm.FormCreate(Sender: TObject);
            not R.ComponentClass.InheritsFrom(TCastleNavigation) then
         begin
           MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-          MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
-
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddUserInterface.Add(MenuItem);
+          MenuItem.OnClick := OnClickEvent;
+          ParentUeserInterface.Add(MenuItem);
         end else
         if R.ComponentClass.InheritsFrom(TCastleTransform) then
         begin
           MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-          MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
-
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddTransform.Add(MenuItem);
+          MenuItem.OnClick := OnClickEvent;
+          ParentTransform.Add(MenuItem);
         end;
       end;
 
@@ -458,7 +450,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
 begin
   OutputList := TOutputList.Create(ListOutput);
-  BuildComponentsMenu;
+  BuildComponentsMenu(MenuItemDesignNewUserInterfaceCustomRoot, MenuItemDesignNewTransformCustomRoot, @MenuItemDesignNewCustomRootClick);
+  BuildComponentsMenu(MenuItemDesignAddUserInterface, MenuItemDesignAddTransform, @MenuItemAddComponentClick);
   CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;
