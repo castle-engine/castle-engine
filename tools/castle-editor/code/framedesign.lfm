@@ -345,6 +345,7 @@ object DesignFrame: TDesignFrame
       MultiSelect = True
       ParentFont = False
       ParentShowHint = False
+      RightClickSelect = True
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
