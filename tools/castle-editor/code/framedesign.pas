@@ -122,8 +122,6 @@ type
     procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ControlsTreeKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
     procedure ControlsTreeMouseUp(Sender: TObject; Button: TLclMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
