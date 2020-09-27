@@ -1255,6 +1255,8 @@ var
   SelectedCount: Integer;
   ParentComponent: TComponent;
 begin
+  if ControlsTree.Selected <> nil then
+    ControlsTree.Selected.EndEdit(true);
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
   try
