@@ -323,19 +323,20 @@ end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
 
-  function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
-  var
-    S: String;
-  begin
-    Result := TMenuItem.Create(Self);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-  end;
-
   procedure BuildComponentsMenu;
+
+    function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
+    var
+      S: String;
+    begin
+      Result := TMenuItem.Create(Self);
+      S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+      if R.IsDeprecated then
+        S := '(Deprecated) ' + S;
+      Result.Caption := S;
+      Result.Tag := PtrInt(Pointer(R));
+    end;
+
   var
     MenuItem: TMenuItem;
     R: TRegisteredComponent;

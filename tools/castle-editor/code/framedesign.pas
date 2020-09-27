@@ -2246,8 +2246,7 @@ begin
       MenuTreeViewItemAddTransform.SetEnabledVisible(false);
     end;
 
-
-    MenuTreeView.PopupComponent := ControlsTree; //I'm not sure what it means, something like menu owner?
+    MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
     MenuTreeView.PopUp;
   end;
 end;
