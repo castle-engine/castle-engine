@@ -32,13 +32,12 @@
 
   TCastleMemo = class(TCastleUserInterfaceFont)
   strict private
-    TextLeft:Single;
-    FIndex, FLastIndex:integer;
-    FIndexColumn,FLastIndexColumn:integer;
-    BottomText, LeftText:Single;
+    TextLeft: Single;
+    FIndex, FLastIndex: integer;
+    FIndexColumn,FLastIndexColumn: integer;
+    BottomText, LeftText: Single;
     FPasswordChar: Char;
     FText: TstringList;
-
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FPlaceholderColor: TCastleColor;
@@ -48,16 +47,17 @@
     FAllowedChars: TSetOfChars;
     FCaptureAllInput: boolean;
     FAutoOnScreenKeyboard: Boolean;
-    Scissor: TScissor;
     FAutoSizeHeight: Boolean;
     FPlaceholder: String;
     FOnChange: TNotifyEvent;
     FTextTranslate, FPlaceholderTranslate: Boolean;
-    FBolScroll:Boolean;
-    BolSelect,SelectShift:Boolean;
-    FSelectedColor:TCastleColor;
-    UndoSystem:TMemoUndo;
+    FBolScroll: Boolean;
+    BolSelect,SelectShift: Boolean;
+    FSelectedColor: TCastleColor;
+    UndoSystem: TMemoUndo;
+    LastSizeWidth, LastSizeHeight: Single;
     function GetText: TStringList;
+    procedure LinesChange(Sender: TObject);
     procedure SetLines(AValue: TStringList);
     procedure SetSelectedColor(const Value:TCastleColor);
     function GetCountRow: integer;
@@ -110,6 +110,7 @@ TimeText:string;
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
     procedure Delete(index1:integer);
     property SelectedText: string read GetSelectText;// write SetSelectText;
+    procedure SetCaret(index1,indexColumn1:integer;index2:integer=-1;indexColumn2:Integer=-1);
     function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure DeleteSelectText;
     property Index:integer read FIndex write SetIndex;
@@ -216,16 +217,16 @@ TimeText:string;
 constructor TCastleMemo.Create(AOwner: TComponent);
 begin
   inherited;
-    ScrollBar:=TCastleScrollViewManual.Create(Self);
+  ScrollBar:=TCastleScrollViewManual.Create(Self);
   InsertFrontIfNotExists(ScrollBar);
   ScrollBar.FullSize:=True;
-    ScrollBar.KeyScrollSpeed:=0;
-    ScrollBar.PageSize:=1;
-    ScrollBar.OnChange:=@OnScrollChange;
-    ScrollBar.ActiveKeyHomeEnd:=False;
-    ScrollBar.ActiveCtrlHomeEnd:=True;
-     BottomText:=0;
-    LeftText:=0;
+  ScrollBar.KeyScrollSpeed:=0;
+  ScrollBar.PageSize:=1;
+  ScrollBar.OnChange:=@OnScrollChange;
+  ScrollBar.ActiveKeyHomeEnd:=False;
+  ScrollBar.ActiveCtrlHomeEnd:=True;
+  BottomText:=0;
+  LeftText:=0;
   FIndex:=0;
   FIndexColumn:=-1;
   FFocusedColor := Black;
@@ -237,7 +238,6 @@ begin
   FAllowedChars := AllChars;
   FMaxLength := 0;
   FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
-  Scissor := TScissor.Create;
   FAutoSizeHeight := false;
   FTextTranslate := true;
   FPlaceholderTranslate := true;
@@ -250,13 +250,12 @@ begin
   FSelectedColor:=Blue;
   UndoSystem:=TMemoUndo.Create;
   UndoSystem.Memo^:=Self;
-  WordWrap(-1);
+//  WordWrap(-1);
 end;
 
 
 destructor TCastleMemo.Destroy;
 begin
-  FreeAndNil(Scissor);
   FreeAndNil(ScrollBar);
   FTextChar.Free;
   Text.Free;
@@ -322,28 +321,34 @@ var
   ff:TStringList;
 begin
   ff:=TStringList.Create;
+  WritelnLog('ff');
   ff:=Text;
-  for i:=0 to Text.Count-1 do
-   if i<Text.Count then
+  for i:=0 to ff.Count-1 do
+   if i<ff.Count then
    begin
   j:=i+1;
   if FTextChar.Count>j then
     while FTextChar[j]=False do
     begin
-         Text[i]:=Text[i]+Text[j];
-         Text.Delete(j);
+         ff[i]:=ff[i]+ff[j];
+         ff.Delete(j);
           j:=j+1;
           if FTextChar.Count<=j then
              break;
     end;
    end;
-  Result:=Text;
-  Text:=ff;
+  ff.OnChange:=@LinesChange;
+  Result:=ff;
+end;
+
+procedure TCastleMemo.LinesChange(Sender: TObject);
+begin
+  SetText(TStringList(Sender));
 end;
 
 procedure TCastleMemo.SetLines(AValue: TStringList);
 begin
-  Text.Assign(AValue);
+  Text:=AValue;
   WordWrap(-1);
 end;
 
@@ -600,7 +605,19 @@ end;
 
 procedure TCastleMemo.Delete(index1: integer);
 begin
+ Text.Delete(index1);
+ if (index1-1<Text.Count) and (index1<>0) then
+    FTextChar.Delete(index1-1);
+end;
 
+procedure TCastleMemo.SetCaret(index1, indexColumn1: integer; index2: integer;
+  indexColumn2: Integer);
+begin
+
+  if index2=-1 then
+  begin
+
+  end;
 end;
 
 function TCastleMemo.PropertySection(const PropertyName: String): TPropertySection;
@@ -729,9 +746,9 @@ begin
   inherited;
   US := UIScale;
   RectInside := RenderRect;
-     if AutoSizeHeight then
+  if AutoSizeHeight then
      RectInside:=RectInside.GrowBottom(RectInside.Height*(Text.Count-1));
-       SR := RectInside;
+  SR := RectInside;
   if Frame then
   begin
     { make smaller RectInside, by frame size }
@@ -752,8 +769,14 @@ begin
   { make smaller RectInside, by padding }
   PaddingHorizontalScaled := US * (PaddingHorizontal + Padding);
   PaddingVerticalScaled := US * (PaddingVertical + Padding);
-  //RectInside := RectInside.Grow(-PaddingHorizontalScaled, -PaddingVerticalScaled);
   // calculate S, Color, CaretShift
+  if (LastSizeHeight<>RectInside.Height) or (LastSizeWidth<>RectInside.Width) then
+    begin
+    WordWrap(-1);
+    LastSizeHeight:=RenderRect.Height;
+    LastSizeWidth:=RenderRect.Width;
+    end;
+
   if LastIndex<>-1 then
   begin
    MainSelectRect.Left:=TextLeft;
@@ -762,39 +785,39 @@ begin
      AddSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText+1;
      if IndexColumn>LastIndexColumn then
      begin
-  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
-  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],LastIndexColumn+2,IndexColumn-LastIndexColumn)));
+      AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
+      AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],LastIndexColumn+2,IndexColumn-LastIndexColumn)));
      end else
      begin
-  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
-  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],IndexColumn+2,LastIndexColumn-IndexColumn)));
+      AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
+      AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],IndexColumn+2,LastIndexColumn-IndexColumn)));
      end;
    end
   else if Index>LastIndex then
   begin
-  MainSelectRect.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index)+BottomText+1;
-  MainSelectRect:=MainSelectRect.GrowTop(((Font.RowHeight+PaddingVerticalScaled*2)*(Index-LastIndex-1))).GrowRight(RectInside.Width);
+    MainSelectRect.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index)+BottomText+1;
+    MainSelectRect:=MainSelectRect.GrowTop(((Font.RowHeight+PaddingVerticalScaled*2)*(Index-LastIndex-1))).GrowRight(RectInside.Width);
 
-  AddSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText+1;
-  AddSelectRec.Left:=TextLeft;
-  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
+    AddSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText+1;
+    AddSelectRec.Left:=TextLeft;
+    AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
 
-  AddLastSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
-  AddLastSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
-  AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
+    AddLastSelectRec.Bottom:=(RectInside.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
+    AddLastSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1));
+    AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
   end
   else
   begin
-   MainSelectRect.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex)+BottomText+1;
-  MainSelectRect:=MainSelectRect.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex-Index-1)+1).GrowRight(RectInside.Width);
+    MainSelectRect.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex)+BottomText+1;
+    MainSelectRect:=MainSelectRect.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex-Index-1)+1).GrowRight(RectInside.Width);
 
-  AddSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText;
-  AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
-  AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
+    AddSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(Index+1)+BottomText;
+    AddSelectRec.Left:=TextLeft+Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1));
+    AddSelectRec:=AddSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)).GrowRight(RectInside.Width-Font.TextWidth(UTF8Copy(Text[Index],1,IndexColumn+1)));
 
-  AddLastSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
-  AddLastSelectRec.Left:=TextLeft;
-  AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)+1).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
+    AddLastSelectRec.Bottom:=(RenderRect.Bottom+RectInside.Height)-(Font.RowHeight+PaddingVerticalScaled*2)*(LastIndex+1)+BottomText;
+    AddLastSelectRec.Left:=TextLeft;
+    AddLastSelectRec:=AddLastSelectRec.GrowTop((Font.RowHeight+PaddingVerticalScaled*2)+1).GrowRight(Font.TextWidth(UTF8Copy(Text[LastIndex],1,LastIndexColumn+1)));
   end;
 
   if MainSelectRect.Bottom<RectInside.Bottom then
@@ -814,7 +837,7 @@ begin
   else if AddLastSelectRec.Bottom+AddLastSelectRec.Height>RectInside.Bottom+RectInside.Height then
     AddLastSelectRec:=AddLastSelectRec.RemoveTop((AddLastSelectRec.Bottom+AddLastSelectRec.Height)-(RectInside.Bottom+RectInside.Height));
 
-  DrawRectangle(MainSelectRect,SelectedColor);
+   DrawRectangle(MainSelectRect,SelectedColor);
    DrawRectangle(AddSelectRec,SelectedColor);
    DrawRectangle(AddLastSelectRec,SelectedColor);
   end;
@@ -837,8 +860,6 @@ begin
     Color := FocusedColor
     end else
       Color := UnfocusedColor;
-  Scissor.Rect := RectInside.Round;
-  Scissor.Enabled := true;
 
   TextLeft := RectInside.Left;
   // center in RectInside, important when AutoSize = false
@@ -846,8 +867,10 @@ begin
     ( HeightText/Text.Count - Font.RowHeight) / 2 + Font.Descend)+HeightText/Text.Count*(Text.Count-i-1); //+FPaddingVertical
 
   Font.Print(TextLeft+LeftText, BottomText+TextBottom, Color, S);
-
-
+  if (FTextChar.Count>i) and (i>-1) then
+    if FTextChar[i] then
+    Font.Print(TextLeft+LeftText+Font.TextWidth(S)+10, BottomText+TextBottom, Color, 'T')
+    else Font.Print(TextLeft+LeftText+Font.TextWidth(S)+10, BottomText+TextBottom, Color, 'F');
      if Focused  and (i=Index) then
   begin
     CaretVisible := FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5;
@@ -855,7 +878,6 @@ begin
       Font.Print(TextLeft + CaretShift+LeftText,BottomText+TextBottom, FocusedColor, CaretChar);
   end;
   end;
-  Scissor.Enabled := false;
 end;
 end;
 
@@ -943,28 +965,26 @@ begin
       UndoSystem.AddAct(index,indexcolumn,UTF8Copy(Text[Index],IndexColumn+1,1),atDelete);
       IndexColumn:=IndexColumn-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1));
       Text[index]:=s;//+Text[index][IndexColumn];
-
       end else
       if Index>0 then
        begin
        i:=UTF8Length(Text[Index-1])-1;
-      if Text[index]='' then
-      begin
-         if FTextChar[Index-1] then
-            begin
-            Text[Index-1]:=Text[Index-1]+Text[Index];
-               Text.Delete(index);
-             UndoSystem.AddAct(index,indexcolumn,Text[Index],atDeleteLine);
-            end;
-            FTextChar.Delete(index-1);
-            Index:=Index-1;
-            IndexColumn:=i;
-      end;
-
+       if FTextChar[Index-1] then
+          begin
+           if Text[index]<>'' then
+             Text[Index-1]:=Text[Index-1]+Text[Index];
+           UndoSystem.AddAct(index,indexcolumn,Text[Index],atDeleteLine);
+           Text.Delete(index);
+          end;
+          {if FTextChar=False then
+             WordWrap(index-1);   }
+          FTextChar.Delete(index-1);
+          Index:=Index-1;
+          IndexColumn:=i;
         end;
+     end;
       DoChange;
     Result := ExclusiveEvents;
-    end;
   end else
     if Event.IsKey(CharDelete) or Event.IsKey(K_Delete) then
   begin
@@ -972,20 +992,24 @@ begin
   DeleteSelectText else
   begin
       s:=Text[index];
-      if UTF8Copy(s,IndexColumn+2,UTF8Length(UTF8Copy(Text[Index],IndexColumn+2,1)))<>'' then
-          begin
+      if IndexColumn < UTF8Length(S)-1 then
+      begin
       UTF8Delete(s,indexColumn+2,UTF8Length(UTF8Copy(Text[Index],IndexColumn+2,1)));
       Text[index]:=s;
       end else
-          if (Index<Text.Count-1) and (Text.Count>1) then
-            if s='' then  Text.Delete(Index) else
+          if (Text.Count > Index + 1) and (Text.Count > 1) then
+            if s='' then  begin
+            Text.Delete(Index);
+            FTextChar.Delete(index);
+            end
+            else
               begin
                Text[Index]:=Text[Index]+Text[Index+1];
                Text.Delete(Index+1);
                FTextChar.Delete(index);
               end;
 
-      DoChange;
+    DoChange;
     Result := ExclusiveEvents;
     end;
   end else
@@ -1129,6 +1153,7 @@ begin
     Text[index]:=s;
     if index<FTextChar.Count then
     begin
+        WritelnLog('insert');
         FTextChar[Index]:=True;
         if index+1<FTextChar.Count then
         FTextChar[Index+1]:=FTextChar[Index];
@@ -1262,8 +1287,12 @@ begin
   j1:=index;
   j2:=IndexColumn;
   index:=0;
-  for i:=0 to Text.Count-1 do
-    index:=index+WordWrap(index+i);
+  if Text.Count>0 then
+    if Text.Count>2 then
+    begin
+    for i:=0 to Text.Count-1 do
+      index:=index+WordWrap(index+i);
+    end else WordWrap(0);
   index:=j1;
   indexcolumn:=j2;
   end
@@ -1276,10 +1305,9 @@ begin
     while FTextChar[j-1]=False do
     begin
          Text[index1]:=Text[index1]+Text[j];
-          FTextChar.Delete(j-1);
+         FTextChar.Delete(j-1);
          Text.Delete(j);
-          j:=j+1;
-          if FTextChar.Count<=j-1 then
+         if FTextChar.Count<=j-1 then
              break;
     end;
   j:=0;
@@ -1288,12 +1316,10 @@ begin
     while Text[index1].IndexOf(' ',j,UTF8Length(Text[index1])-j)<>-1 do
        begin
        TimeText:=TimeText+'    '+IntToStr(j)+ ' ^ '+IntToStr(j1);
-        j1:=j;
-
+       j1:=j;
        j:=Text[index1].IndexOf(' ',j,UTF8Length(Text[index1])-j)+1;
        if Font.TextWidth(UTF8Copy(Text[index1],1,Text[index1].IndexOf(' ',j,UTF8Length(Text[index1])-j)))>RectInside.Width-ScrollBar.EffectiveScrollBarWidth then
           begin
-
                Text.Insert(index1+1,UTF8Copy(Text[index1],j+1,UTF8Length(Text[index1])-j1+1));
                s:=Text[index1];
                UTF8Delete(s,j+1,UTF8Length(Text[index1])-j);

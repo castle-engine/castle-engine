@@ -24,7 +24,7 @@ uses Classes, Generics.Collections,
   CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
-  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils;
+  CastleURIUtils, CastleLog, CastleStringUtils, CastleGLShaders, CastleClassUtils,CastleRenderContext;
 
 type
   {$define read_interface}
@@ -50,6 +50,7 @@ type
   {$I castlecontrols_edit.inc}
   {$I castlecontrols_groups.inc}
   {$I castlecontrols_design.inc}
+  {$I castlecontrols_memoundo.inc}
   {$I castlecontrols_memo.inc}
 // Add more UI controls include files here.
 
@@ -93,6 +94,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_design.inc}
 {$I castlecontrols_theme.inc}
 {$I castlecontrols_clipboard.inc}
+{$I castlecontrols_memoundo.inc}
 {$I castlecontrols_memo.inc}
 {$undef read_implementation}
 
