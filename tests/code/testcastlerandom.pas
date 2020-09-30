@@ -58,8 +58,8 @@ begin
   //test that random is in 0..1 limits
   for I := 0 to NTests do
     AssertTrue('Rnd.Random <= 1', Rnd.Random <= 1);
-  for i := 0 to NTests do
-    AssertTrue('Rnd.Random > 0', Rnd.Random > 0);
+  for I := 0 to NTests do
+    AssertTrue('Rnd.Random32bit > 0', Rnd.Random32bit > 0);
 
   //test random homogeneity
   {p.s. I'm not exactly sure if this is the right way to do, because random
