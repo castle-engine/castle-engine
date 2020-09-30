@@ -189,7 +189,7 @@ begin
     TUIState.Current := StateMainMenu;
     Result := true;
   end else
-  if Event.IsMouseButton(mbLeft) or Event.IsKey(K_Space) then
+  if Event.IsMouseButton(mbLeft) or Event.IsKey(keySpace) then
   begin
     NextIntroPart;
     Result := true;

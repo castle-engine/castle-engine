@@ -924,7 +924,7 @@ begin
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnUpdate := @Update;
-    Window.SetDemoOptions(K_F11, CharEscape, true);
+    Window.SetDemoOptions(keyF11, CharEscape, true);
     Window.OpenAndRun;
   finally
     FreeAndNil(Viewport);
