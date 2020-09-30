@@ -88,10 +88,10 @@ type
     keyPageDown,
     keyEnd,
     keyHome,
-    keyLeft,
-    keyUp,
-    keyRight,
-    keyDown,
+    keyArrowLeft,
+    keyArrowUp,
+    keyArrowRight,
+    keyArrowDown,
     keyReserved_41,
     keyReserved_42,
     keyReserved_43,
@@ -275,10 +275,10 @@ const
   K_PageDown                   = keyPageDown;
   K_End                        = keyEnd;
   K_Home                       = keyHome;
-  K_Left                       = keyLeft;
-  K_Up                         = keyUp;
-  K_Right                      = keyRight;
-  K_Down                       = keyDown;
+  K_Left                       = keyArrowLeft;
+  K_Up                         = keyArrowUp;
+  K_Right                      = keyArrowRight;
+  K_Down                       = keyArrowDown;
   K_Insert                     = keyInsert;
   K_Delete                     = keyDelete;
   K_0                          = key0;
@@ -359,6 +359,11 @@ const
   K_Numpad_Divide              = keyNumpadDivide;
   K_Comma                      = keyComma;
   K_Period                     = keyPeriod;
+
+  keyLeft                      = keyArrowLeft deprecated 'Use keyArrowLeft';
+  keyUp                        = keyArrowUp deprecated 'Use keyArrowUp';
+  keyRight                     = keyArrowRight deprecated 'Use keyArrowRight';
+  keyDown                      = keyArrowDown deprecated 'Use keyArrowDown';
 
 type
   TKeysBooleans = array [TKey] of Boolean;
