@@ -701,7 +701,7 @@ var
 begin
   FKeyPressHandler.BeforeKeyUp(Key, Shift);
   MyKey := KeyLCLToCastle(Key, Shift);
-  if MyKey <> K_None then
+  if MyKey <> keyNone then
     DoKeyUp(MyKey);
 end;
 

@@ -182,7 +182,7 @@ function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
   cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
-  K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
+  keyXxx constant (from Keys unit). Returns keyNone if no conversion is possible
   (gdk keysym has no corresponding TKey value). }
 function GdkKeysymToKey(GdkKeysym: guint): TKey;
 begin
@@ -209,12 +209,12 @@ begin
     GDK_KEY_KP_Add: Result := keyNumpadPlus;
     GDK_KEY_KP_Subtract: Result := keyNumpadMinus;
 
-    GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(K_0) + GdkKeysym - GDK_KEY_0);
+    GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(key0) + GdkKeysym - GDK_KEY_0);
 
-    GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_Capital_A);
-    GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_A);
+    GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_Capital_A);
+    GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_A);
 
-    GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(K_F1) + GdkKeysym - GDK_KEY_F1);
+    GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(keyF1) + GdkKeysym - GDK_KEY_F1);
 
     GDK_KEY_Comma: Result := keyComma;
     GDK_KEY_Period: Result := keyPeriod;
@@ -447,7 +447,7 @@ SIGNAL_WINDOW_BEGIN
       Key := GdkKeysymToKey(Event^.KeyVal);
       KeyString := Event^._string;
 
-      if (Key <> K_None) or (KeyString <> '') then
+      if (Key <> keyNone) or (KeyString <> '') then
       begin
         { Fix some cases when KeyString should better correspond to Key. }
         if KeyString = '' then
@@ -501,7 +501,7 @@ SIGNAL_WINDOW_BEGIN
     else
     begin
       Key := GdkKeysymToKey(Event^.KeyVal);
-      if Key <> K_None then DoKeyUp(Key);
+      if Key <> keyNone then DoKeyUp(Key);
     end;
   end;
 

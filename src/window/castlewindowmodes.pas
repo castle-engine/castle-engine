@@ -200,7 +200,7 @@ type
         @item(TCastleWindowBase.AutoRedisplay is reset to @false.)
         @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
-        @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
+        @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to keyNone.)
         @item(TCastleWindowDemo.Close_KeyString will be reset to ''.)
 
         @item(All TCastleWindowBase.Controls are temporarily removed.)

@@ -92,7 +92,7 @@ type
     @italic("Key") is something that can be expressed as TKey value.
     @italic("KeyString") is an UTF-8 character that can be expressed as String value.
 
-    They are keys like "control key" (K_Ctrl) or "shift key" (K_Shift)
+    They are keys like "control key" (keyCtrl) or "shift key" (keyShift)
     that cannot be expressed (on their own) as KeyString.
     KeyString is sometimes more, sometimes less specific than Key:
     character "A" (upper letter "a")

@@ -234,7 +234,7 @@
 
     { Key shortcut for this menu item.
 
-      When user presses indicated Key (if it's not K_None)
+      When user presses indicated Key (if it's not keyNone)
       or KeyString (if it's not '') then DoClick will be called
       (which results in TCastleWindowBase.EventMenuClick,
       and TCastleWindowBase.OnMenuClick,
@@ -252,7 +252,7 @@
 
       You should use at most one of these properties, not both.
       So either use Key or KeyString, and leave the other one at default
-      value (Key = K_None, KeyString = '').
+      value (Key = keyNone, KeyString = '').
 
       The KeyString values within range CtrlA..CtrlZ mean
       that user must press the given letter with Ctrl modfier. This rule
@@ -265,7 +265,7 @@
       The KeyString values above do @bold(not) mean the backspace or tab or enter
       keys, they mean the combination of Ctrl key + respective letter.
       If you want to have backspace/tab/enter keys to activate the menu item,
-      use Key = K_BackSpace, Key = K_Tab or Key =  K_Enter.
+      use Key = keyBackSpace, Key = keyTab or Key = keyEnter.
 
       TODO: for now, this must be assigned before adding this menu item
       to parent (actually, before the parent menu is added to window MainMenu)
@@ -295,7 +295,7 @@
 
     { Returns as S the string that describes key shortcut
       (@link(KeyString), @link(Key), @link(Modifiers)) and then returns true.
-      If KeyString = '' and Key = K_None then returns false and
+      If KeyString = '' and Key = keyNone then returns false and
       S is undefined. }
     function KeyToString(out S: string): boolean;
 

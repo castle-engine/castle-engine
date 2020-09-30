@@ -181,9 +181,9 @@ type
     procedure BeforeSizing; override;
   public
     const
-      DefaultMenuKeyNextItem = K_Down;
-      DefaultMenuKeyPreviousItem = K_Up;
-      DefaultMenuKeySelectItem = K_Enter;
+      DefaultMenuKeyNextItem = keyArrowDown;
+      DefaultMenuKeyPreviousItem = keyArrowUp;
+      DefaultMenuKeySelectItem = keyEnter;
 
       DefaultCurrentItemBorderColor1: TCastleColor = (Data: (1.0, 1.0, 1.0, 1.0)) { White  }; { }
       DefaultCurrentItemBorderColor2: TCastleColor = (Data: (0.5, 0.5, 0.5, 1.0)) { Gray   }; { }

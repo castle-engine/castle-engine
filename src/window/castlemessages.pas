@@ -206,7 +206,7 @@ function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
 
 { Ask user to press any key, return this key as Keys.TKey.
 
-  Never returns K_None (which means that keys that cannot be interpreted
+  Never returns keyNone (which means that keys that cannot be interpreted
   as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
