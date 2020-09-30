@@ -198,9 +198,9 @@ begin
     GDK_KEY_End: Result := keyEnd;
     GDK_KEY_Home: Result := keyHome;
     GDK_KEY_Left: Result := keyLeft;
-    GDK_KEY_Up: Result := keyUp;
-    GDK_KEY_Right: Result := keyRight;
-    GDK_KEY_Down: Result := keyDown;
+    GDK_KEY_Up: Result := keyArrowUp;
+    GDK_KEY_Right: Result := keyArrowRight;
+    GDK_KEY_Down: Result := keyArrowDown;
     GDK_KEY_Insert: Result := keyInsert;
     GDK_KEY_Delete: Result := keyDelete;
     GDK_KEY_BracketLeft: Result := keyLeftBracket;
