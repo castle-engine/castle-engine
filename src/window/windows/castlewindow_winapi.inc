@@ -203,10 +203,10 @@ begin
     VK_NEXT: Result := keyPageDown;
     VK_END: Result := keyEnd;
     VK_HOME: Result := keyHome;
-    VK_LEFT: Result := keyLeft;
-    VK_UP: Result := keyUp;
-    VK_RIGHT: Result := keyRight;
-    VK_DOWN: Result := keyDown;
+    VK_LEFT: Result := keyArrowLeft;
+    VK_UP: Result := keyArrowUp;
+    VK_RIGHT: Result := keyArrowRight;
+    VK_DOWN: Result := keyArrowDown;
     VK_INSERT: Result := keyInsert;
     VK_DELETE: Result := keyDelete;
     VK_ADD: Result := keyNumpadPlus;

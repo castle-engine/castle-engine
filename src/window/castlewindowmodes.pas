@@ -395,7 +395,7 @@ begin
     Window.MainMenu.Enabled := false;
   {Window.MainMenu := leave current value}
   Window.InternalCursor := mcDefault;
-  Window.SwapFullScreen_Key := K_None;
+  Window.SwapFullScreen_Key := keyNone;
   Window.Close_KeyString := '';
   {$warnings off} // code only to keep deprecated working
   if Window is TCastleWindowTouch then
@@ -426,7 +426,7 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase);
         Window.Container.EventRelease(InputKey(Window.MousePosition, Key, '', ModifiersDown));
     for C := Low(C) to High(C) do
       if Window.Pressed.Characters[C] then
-        Window.Container.EventRelease(InputKey(Window.MousePosition, K_None, C, ModifiersDown));
+        Window.Container.EventRelease(InputKey(Window.MousePosition, keyNone, C, ModifiersDown));
   end;
 
 begin

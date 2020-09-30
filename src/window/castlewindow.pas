@@ -2350,7 +2350,7 @@ type
       implementations: you have to be able to recreate in OnOpen everything
       that was released in OnClose. }
     property SwapFullScreen_Key: TKey
-      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_None;
+      read FSwapFullScreen_Key write FSwapFullScreen_Key default keyNone;
 
     { Key to use to close the window.
       Set to '' (default) to disable this functionality.
@@ -3057,7 +3057,7 @@ begin
   FMainMenuVisible := true;
   FContainer := CreateContainer;
   Close_KeyString := '';
-  SwapFullScreen_Key := K_None;
+  SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
   FTouches := TTouchList.Create;
@@ -3594,7 +3594,7 @@ begin
   if Pressed[Key] then
   begin
     { K_None key is never pressed, DoKeyDown guarentees this }
-    Assert(Key <> K_None);
+    Assert(Key <> keyNone);
     Pressed.KeyUp(Key, KeyString);
     MakeCurrent;
     Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
@@ -5384,7 +5384,7 @@ begin
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
-  if Key <> K_None then
+  if Key <> keyNone then
   begin
     S := KeyToStr(Key, Modifiers
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});

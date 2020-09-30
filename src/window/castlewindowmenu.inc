@@ -274,7 +274,7 @@
 
       @groupBegin }
     property KeyString: String read FKeyString write FKeyString;
-    property Key: TKey read FKey write FKey default K_None;
+    property Key: TKey read FKey write FKey default keyNone;
     { @groupEnd }
 
     property CharKey: Char read GetCharKey write SetCharKey;
@@ -758,17 +758,17 @@ begin
     Exit(false);
 
   { For CtrlH (= CharBackspace), *do not* match backspace key. }
-  if (Key = K_None) and (KeyString = CharBackSpace) then
-    Result := (AKeyString = CharBackSpace) and not (AKey = K_BackSpace) else
+  if (Key = keyNone) and (KeyString = CharBackSpace) then
+    Result := (AKeyString = CharBackSpace) and not (AKey = keyBackSpace) else
 
-  if (Key = K_None) and (KeyString = CharEnter) then
-    Result := (AKeyString = CharEnter) and not (AKey = K_Enter) else
+  if (Key = keyNone) and (KeyString = CharEnter) then
+    Result := (AKeyString = CharEnter) and not (AKey = keyEnter) else
 
-  if (Key = K_None) and (KeyString = CharTab) then
-    Result := (AKeyString = CharTab) and not (AKey = K_Tab) else
+  if (Key = keyNone) and (KeyString = CharTab) then
+    Result := (AKeyString = CharTab) and not (AKey = keyTab) else
 
     Result :=
-      ( (AKey <> K_None) and (Key = AKey) ) or
+      ( (AKey <> keyNone) and (Key = AKey) ) or
       ( (AKeyString <> '') and (KeyString = AKeyString) );
 end;
 
@@ -1114,7 +1114,7 @@ end;
 
 constructor TMenuItemToggleFullScreen.Create(const InitialFullScreen: boolean);
 begin
-  inherited Create('_Full Screen', 0, K_F11, InitialFullScreen, true);
+  inherited Create('_Full Screen', 0, keyF11, InitialFullScreen, true);
   {$ifdef DARWIN} Modifiers := [mkCtrl]; {$endif}
 end;
 
