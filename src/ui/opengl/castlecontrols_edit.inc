@@ -514,7 +514,7 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
+  if Event.IsKey(CharBackSpace) or Event.IsKey(keyBackSpace) then
   begin
     if Text <> '' then
     begin

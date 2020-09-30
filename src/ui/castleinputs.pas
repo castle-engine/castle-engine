@@ -185,7 +185,7 @@ type
       untouched. }
     procedure Assign(
       const AKey1: TKey;
-      const AKey2: TKey = K_None;
+      const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
       const AMouseButton: TMouseButton = mbLeft;
@@ -196,14 +196,14 @@ type
       leaving @link(DefaultKey1) unmodified). }
     procedure AssignCurrent(
       const AKey1: TKey;
-      const AKey2: TKey = K_None;
+      const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
       const AMouseButton: TMouseButton = mbLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
-      This sets both keys to K_None, KeyString to '', MouseButtonUse
+      This sets both keys to keyNone, KeyString to '', MouseButtonUse
       to @false, and MouseWheel to mwNone. }
     procedure MakeClear(const ClearAlsoDefaultState: boolean = false);
 
@@ -217,7 +217,7 @@ type
     function IsPressed(Container: TUIContainer): boolean; overload;
 
     { Check does given Key or AKeyString correspond to this input shortcut.
-      If Key = K_None and AString = '', result is always @false. }
+      If Key = keyNone and AString = '', result is always @false. }
     function IsKey(const Key: TKey; AKeyString: String): boolean;
 
     { Check does given mouse button correspond to this input shortcut. }
@@ -228,12 +228,12 @@ type
     { Check does given key or mouse button or mouse wheel use activates
       this shortcut.
 
-      For key/character press, set AKey <> K_None or AKeyString <> ''.
+      For key/character press, set AKey <> keyNone or AKeyString <> ''.
       For mouse button press, set AMousePress to @true
       and pass relevant AMouseButton. For mouse wheel, pass AMouseWheel
       <> mwNone. Pass only one of these three events here,
       for example if you AMousePress to @true then pass
-      AKey = K_None and AKeyString = '' and AMouseWheel = mwNone.
+      AKey = keyNone and AKeyString = '' and AMouseWheel = mwNone.
 
       Basically, this is a "dispatcher" that simply calls one of the IsKey or
       IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
@@ -300,13 +300,13 @@ type
       "default" specifier, to always save them in Lazarus LFM file.
       Reason: various class (TCastleExamineNavigation, TCastleWalkNavigation, TCastleViewport)
       create them setting different default values.
-      If we would declare that default for Key1 is K_None,
-      then you couldn't set in Lazarus e.g. TCastleWalkNavigation.Input_Forward.Key1 to K_None.
-      Such K_None would not be saved to LFM (since it would equal Key1 default
-      value), but when reading the LFM back it would change into K_Up
-      (because TCastleWalkNavigation creates Input_Forward with K_Up by default). }
+      If we would declare that default for Key1 is keyNone,
+      then you couldn't set in Lazarus e.g. TCastleWalkNavigation.Input_Forward.Key1 to keyNone.
+      Such keyNone would not be saved to LFM (since it would equal Key1 default
+      value), but when reading the LFM back it would change into keyArrowUp
+      (because TCastleWalkNavigation creates Input_Forward with keyArrowUp by default). }
 
-    { Key shortcuts for given command. You can set any of them to K_None
+    { Key shortcuts for given command. You can set any of them to keyNone
       to indicate that no key is assigned.
       @groupBegin }
     property Key1: TKey read FKey1 write SetKey1;
@@ -345,7 +345,7 @@ type
       You can change them --- this will change what MakeDefault does.
 
       Note that setting these properties doesn't automatically set
-      corresponding "current" property. E.g. @code(DefaultKey1 := K_Space;)
+      corresponding "current" property. E.g. @code(DefaultKey1 := keySpace;)
       doesn't change the value of Key1 property --- only DefaultKey1
       changes. You can explicitly change Key1 property, or just call
       MakeDefault afterwards, if you want this to happen.
@@ -564,8 +564,8 @@ end;
 
 procedure TInputShortcut.MakeClear(const ClearAlsoDefaultState: boolean);
 begin
-  FKey1 := K_None;
-  FKey2 := K_None;
+  FKey1 := keyNone;
+  FKey2 := keyNone;
   FKeyString := '';
   FMouseButtonUse := false;
   FMouseButton := mbLeft;
@@ -575,8 +575,8 @@ begin
 
   if ClearAlsoDefaultState then
   begin
-    FDefaultKey1 := K_None;
-    FDefaultKey2 := K_None;
+    FDefaultKey1 := keyNone;
+    FDefaultKey2 := keyNone;
     FDefaultKeyString := '';
     FDefaultMouseButtonUse := false;
     FDefaultMouseButton := mbLeft;
@@ -613,7 +613,7 @@ begin
     AKeyString := '';
 
   Result :=
-    ( (Key <> K_None) and ( (Key = Key1) or (Key = Key2) ) ) or
+    ( (Key <> keyNone) and ( (Key = Key1) or (Key = Key2) ) ) or
     ( (KeyString <> '') and (KeyString = AKeyString) );
 end;
 
@@ -667,11 +667,11 @@ begin
     I mess with checking various cases and trying to make shorter string
     for this. }
 
-  if (Key1 <> K_None) or (Key2 <> K_None) then
+  if (Key1 <> keyNone) or (Key2 <> keyNone) then
   begin
-    if (Key1 <> K_None) and (Key2 <> K_None) then
+    if (Key1 <> keyNone) and (Key2 <> keyNone) then
       Result := Format('key "%s" or "%s"', [KeyToStr(Key1), KeyToStr(Key2)]) else
-    if Key1 <> K_None then
+    if Key1 <> keyNone then
       Result := Result + (Format('key "%s"', [KeyToStr(Key1)])) else
       Result := Result + Format('key "%s"', [KeyToStr(Key2)]);
   end;
@@ -784,9 +784,9 @@ begin
     itMouseWheel:
       MouseWheel := NewEvent.MouseWheel;
     itKey:
-      if Key1 = K_None then
+      if Key1 = keyNone then
         Key1 := NewEvent.Key else
-      if Key2 = K_None then
+      if Key2 = keyNone then
         Key2 := NewEvent.Key else
       begin
         { We move the previous Key1 to Key2, and set Key1 to new key.
