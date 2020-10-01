@@ -485,6 +485,7 @@ type
       TExposedTransform = class
       strict private
         ChildObserver: TFreeNotificationObserver;
+        WarningDone: Boolean;
         procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
       public
         Node: TTransformNode;
@@ -2518,7 +2519,7 @@ implementation
 
 uses Math, DateUtils,
   X3DCameraUtils, CastleStringUtils, CastleLog,
-  X3DLoad, CastleURIUtils, CastleTimeUtils;
+  X3DLoad, CastleURIUtils, CastleTimeUtils, CastleQuaternions;
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}
@@ -2902,10 +2903,53 @@ begin
 end;
 
 procedure TCastleSceneCore.TExposedTransform.Synchronize;
+var
+  ShapeTransform: TShapeTreeTransform;
+  C: Integer;
+  Translation, Scale: TVector3;
+  Rotation: TVector4;
 begin
+  C := TShapeTree.AssociatedShapesCount(Node);
+  if C = 0 then
+  begin
+    if not WarningDone then
+    begin
+      WarningDone := true;
+      WritelnWarning('Exposed transformation (bone) "%s" is not present in the shapes tree (which usually means it has no shapes), transformation is not updated', [
+        Node.X3DName
+      ]);
+    end;
+    Exit;
+  end;
+
+  if C > 1 then
+  begin
+    if not WarningDone then
+    begin
+      WarningDone := true;
+      WritelnWarning('Exposed transformation (bone) "%s" is present mutliple times in the shapes tree, it has no single transformation', [
+        Node.X3DName
+      ]);
+    end;
+    Exit;
+  end;
+
+  Assert(C = 1);
+  ShapeTransform := TShapeTree.AssociatedShape(Node, 0) as TShapeTreeTransform;
+  MatrixDecompose(ShapeTransform.TransformState.Transformation.Transform,
+    Translation, Rotation, Scale);
+
+  { Apply to Child the accumulated transformation within this TTransformNode,
+    taking into account TTransformNode hierarchy. }
+  Child.Translation := Translation;
+  Child.Rotation := Rotation;
+  Child.Scale := Scale;
+
+  { This would be incorrect, as we would not apply parent TTransformNode values.
   Child.Translation := Node.Translation;
   Child.Rotation := Node.Rotation;
   Child.Scale := Node.Scale;
+  }
 end;
 
 { TPlayAnimationParameters --------------------------------------------------- }
