@@ -440,13 +440,13 @@ begin
     ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
     ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
-  if Container.Pressed[keyUp] then
+  if Container.Pressed[keyArrowUp] then
     ChangeMove(0, 1);
-  if Container.Pressed[keyDown] then
+  if Container.Pressed[keyArrowDown] then
     ChangeMove(0, -1);
-  if Container.Pressed[keyLeft] then
+  if Container.Pressed[keyArrowLeft] then
     ChangeMove(-1, 0);
-  if Container.Pressed[keyRight] then
+  if Container.Pressed[keyArrowRight] then
     ChangeMove(1, 0);
 end;
 

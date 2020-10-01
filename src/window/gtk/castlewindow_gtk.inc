@@ -197,7 +197,7 @@ begin
     GDK_KEY_Page_Down: Result := keyPageDown;
     GDK_KEY_End: Result := keyEnd;
     GDK_KEY_Home: Result := keyHome;
-    GDK_KEY_Left: Result := keyLeft;
+    GDK_KEY_Left: Result := keyArrowLeft;
     GDK_KEY_Up: Result := keyArrowUp;
     GDK_KEY_Right: Result := keyArrowRight;
     GDK_KEY_Down: Result := keyArrowDown;

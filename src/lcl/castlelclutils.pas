@@ -157,7 +157,7 @@ type
       to do OnPress now.
 
       This matters for keys without corresponding String/Char representation
-      (thus, without UTF8KeyPress call), like keyLeft.
+      (thus, without UTF8KeyPress call), like keyArrowLeft.
       If we have buffered to "send the OnPress for this key",
       we need to send it now, before the OnRelease for the same key is generated.
       Otherwise the KeyUp would cause OnRelease of the arrow key,
