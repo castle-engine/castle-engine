@@ -93,6 +93,7 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     TabOther: TTabSheet;
+    UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonTransformRotateModeClick(Sender: TObject);
@@ -125,6 +126,7 @@ type
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
+    procedure UpdateObjectInspectorTimer(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
   private
@@ -1073,6 +1075,21 @@ begin
     UndoSystem.Undo;
   end;}
   PerformUndoRedo(UndoSystem.Undo);
+end;
+
+procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);
+var
+  InspectorType: TInspectorType;
+begin
+  { In many cases, properties may change but property editor doesn't reflect it.
+    E.g.
+    - TCastleTransform changes by ExposeTransforms mechanism
+    - Caption changes because you modified Name, and they used to match.
+    The only universal solution to make OI up-to-date seems to be to just
+    occasionally refresh it. }
+
+  for InspectorType in TInspectorType do
+    Inspector[InspectorType].RefreshPropertyValues;
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;

@@ -1529,4 +1529,10 @@ object DesignFrame: TDesignFrame
       OnClick = MenuItemViewportSort2DClick
     end
   end
+  object UpdateObjectInspector: TTimer
+    Interval = 500
+    OnTimer = UpdateObjectInspectorTimer
+    Left = 692
+    Top = 79
+  end
 end
