@@ -59,6 +59,8 @@ begin
   for I := 0 to NTests do
     AssertTrue('Rnd.Random <= 1', Rnd.Random <= 1);
   for I := 0 to NTests do
+    AssertTrue('Rnd.Random >= 0', Rnd.Random >= 0);
+  for I := 0 to NTests do
     AssertTrue('Rnd.Random32bit > 0', Rnd.Random32bit > 0);
 
   //test random homogeneity
