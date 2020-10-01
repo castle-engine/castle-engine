@@ -482,6 +482,21 @@ type
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
       TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
+      TExposedTransform = class
+      strict private
+        ChildObserver: TFreeNotificationObserver;
+        procedure ChildFreeNotification(const Sender: TFreeNotificationObserver);
+      public
+        Node: TTransformNode;
+        Child: TCastleTransform;
+        ParentScene: TCastleSceneCore;
+        constructor Create(const AParentScene: TCastleSceneCore;
+          const ANode: TTransformNode; const AChild: TCastleTransform);
+        destructor Destroy; override;
+        procedure Synchronize;
+      end;
+      TExposedTransformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TExposedTransform>;
+
   protected
     type
       TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
@@ -580,6 +595,9 @@ type
       Never zero. }
     FShapesHash: TShapesHash;
 
+    FExposeTransforms: TStrings;
+    FExposedTransforms: TExposedTransformList;
+
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
       TInternalTimeDependentHandler.SetTime. }
@@ -660,6 +678,9 @@ type
       Always call this after doing something that could change
       TTransformNode values. }
     procedure FinishTransformationChanges;
+
+    procedure SetExposeTransforms(const Value: TStrings);
+    procedure ExposeTransformsChange(Sender: TObject);
   private
     FGlobalLights: TLightInstancesList;
 
@@ -2432,6 +2453,27 @@ type
       read FAutoAnimation write SetAutoAnimation;
     property AutoAnimationLoop: Boolean
       read FAutoAnimationLoop write SetAutoAnimationLoop default true;
+
+    { List of names of transformation nodes (TTransformNode in X3D, "bones" in most authoring software)
+      that should result in creation of children TCastleTransform instances, with the same name,
+      as children of this TCastleScene.
+      These auto-created children TCastleTransform instances will have their transformation
+      (translation, rotation, scale) automatically synchronized with the bone transformation
+      in our model.
+
+      In effect, this exposes the transformation of a bone, e.g. "hand that may hold a weapon",
+      or "slot of a plane where to attach a gun", as TCastleTransform.
+      This allows to place new scenes (e.g. model of a weapon) as TCastleScene,
+      as children of such transformations. This makes these scenes automatically
+      animated when the scene skeleton animates.
+
+      Setting this property merely copies the contents using TStrings.Assign,
+      as is usual for published TStrings properties.
+
+      Note: the owner of auto-created children is equal to this scene's Owner.
+      This is most natural when you edit this in CGE editor,
+      or load using @link(TransformLoad). }
+    property ExposeTransforms: TStrings read FExposeTransforms write SetExposeTransforms;
   end;
 
   {$define read_interface}
@@ -2831,6 +2873,41 @@ begin
   inherited Clear;
 end;
 
+{ TCastleSceneCore.TExposedTransform ----------------------------------------- }
+
+constructor TCastleSceneCore.TExposedTransform.Create(const AParentScene: TCastleSceneCore;
+  const ANode: TTransformNode; const AChild: TCastleTransform);
+begin
+  inherited Create;
+  ParentScene := AParentScene;
+  Node := ANode;
+  Child := AChild;
+
+  // create ChildObserver
+  ChildObserver := TFreeNotificationObserver.Create(nil);
+  ChildObserver.OnFreeNotification := @ChildFreeNotification;
+  ChildObserver.Observed := Child;
+end;
+
+destructor TCastleSceneCore.TExposedTransform.Destroy;
+begin
+  FreeAndNil(ChildObserver);
+  inherited;
+end;
+
+procedure TCastleSceneCore.TExposedTransform.ChildFreeNotification(const Sender: TFreeNotificationObserver);
+begin
+  // free this TExposedTransform instance, removing it from FExposeTransforms
+  ParentScene.FExposedTransforms.Remove(Self);
+end;
+
+procedure TCastleSceneCore.TExposedTransform.Synchronize;
+begin
+  Child.Translation := Node.Translation;
+  Child.Rotation := Node.Rotation;
+  Child.Scale := Node.Scale;
+end;
+
 { TPlayAnimationParameters --------------------------------------------------- }
 
 constructor TPlayAnimationParameters.Create;
@@ -3045,6 +3122,10 @@ begin
 
   FAutoAnimationLoop := true;
 
+  FExposeTransforms := TStringList.Create;
+  TStringList(FExposeTransforms).OnChange := {$ifdef CASTLE_OBJFPC}@{$endif} ExposeTransformsChange;
+  FExposedTransforms := TExposedTransformList.Create(true);
+
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
     and our current state should be equal to what ScheduleChangedAll
@@ -3058,6 +3139,8 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
+  FreeAndNil(FExposeTransforms);
+  FreeAndNil(FExposedTransforms);
   FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
@@ -3761,6 +3844,7 @@ begin
   ScheduledHumanoidAnimateSkin.Count := 0;
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
+  FExposedTransforms.Clear;
 
   { clear animation stuff, since any TTimeSensorNode may be freed soon }
   if PlayingAnimationNode <> nil then
@@ -4004,6 +4088,8 @@ begin
       if NeedsDetectAffectedFields then
         DetectAffectedFields;
     end;
+
+    ExposeTransformsChange(nil);
 
     { Call DoGeometryChanged here, as our new shapes are added.
       Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
@@ -6629,12 +6715,17 @@ begin
 end;
 
 procedure TCastleSceneCore.FinishTransformationChanges;
+var
+  E: TExposedTransform;
 begin
   if TransformationDirty then
   begin
     RootTransformationChanged;
     TransformationDirty := false;
   end;
+
+  for E in FExposedTransforms do
+    E.Synchronize;
 end;
 
 procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
@@ -8296,6 +8387,85 @@ begin
     FShapesHash := 1;
   end else
     Inc(FShapesHash);
+end;
+
+procedure TCastleSceneCore.SetExposeTransforms(const Value: TStrings);
+begin
+  FExposeTransforms.Assign(Value);
+end;
+
+procedure TCastleSceneCore.ExposeTransformsChange(Sender: TObject);
+
+  function X3dNameToPascal(const S: String): String;
+  const
+    AllowedChars = ['a'..'z', 'A'..'Z', '0'..'9', '_'];
+    AllowedCharsFirst = AllowedChars - ['0'..'9'];
+  begin
+    Result := SReplaceChars(S, AllChars - AllowedChars, '_');
+    if not SCharIs(Result, 1, AllowedCharsFirst) then
+      Result := '_' + Result;
+  end;
+
+var
+  TransformName, TransformNamePascal: String;
+  TransformNode: TTransformNode;
+  TransformChild: TCastleTransform;
+  E: TExposedTransform;
+  I: Integer;
+begin
+  FExposedTransforms.Clear;
+  if RootNode = nil then // needed for subsequent RootNode.TryFindNodeByName
+    Exit;
+
+  for TransformName in FExposeTransforms do
+  begin
+    if TransformName = '' then // ignore empty lines on FExposeTransforms list
+      Continue;
+
+    // calculate TransformNode
+    TransformNode := RootNode.TryFindNodeByName(TTransformNode, TransformName, false) as TTransformNode;
+    if TransformNode = nil then
+    begin
+      WritelnWarning('No TTransformNode (bone) named "%s" found in model', [TransformName]);
+      Continue;
+    end;
+
+    for E in FExposedTransforms do
+      if E.Node = TransformNode then
+        Continue; // ignore duplicates on FExposeTransforms list
+
+    TransformNamePascal := X3dNameToPascal(TransformName);
+
+    // calculate TransformChild
+    TransformChild := nil;
+    for I := 0 to Count - 1 do
+      if Items[I].Name = TransformNamePascal then
+      begin
+        TransformChild := Items[I];
+        Break;
+      end;
+    if TransformChild = nil then
+    begin
+      { Create new TCastleTransform.
+        Note
+        - We connect to it only by Name, not any other internal reference.
+          This is important, as we need to restore the connection
+          e.g. after deserializing it from design file.
+        - We use current Owner as the owner, not Self.
+          This makes it work in case of editor or TransformLoad nicely.
+          Intuitively, we don't want to manage the lifetime of these scenes
+          here: the lifetime of them should be up to our owner.
+      }
+      TransformChild := TCastleTransform.Create(Owner);
+      TransformChild.Name := TransformNamePascal;
+      Add(TransformChild);
+    end;
+
+    // create TExposedTransform
+    E := TExposedTransform.Create(Self, TransformNode, TransformChild);
+    E.Synchronize;
+    FExposedTransforms.Add(E);
+  end;
 end;
 
 end.

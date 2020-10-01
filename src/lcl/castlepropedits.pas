@@ -52,6 +52,7 @@ uses SysUtils, Classes, TypInfo,
 {$I castlepropedits_unused_controls.inc}
 {$I castlepropedits_viewport_navigation.inc}
 {$I castlepropedits_float.inc}
+{$I castlepropedits_exposetransforms.inc}
 
 procedure Register;
 begin
@@ -100,6 +101,8 @@ begin
     TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
+    TExposeTransformsPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
