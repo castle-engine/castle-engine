@@ -30,6 +30,7 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ShellIcons: TImageList;
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
     MenuItemRedo: TMenuItem;
@@ -426,9 +427,6 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ReadOnly := True;
     ShellListView1.SortColumn := 0;
     ShellListView1.TabOrder := 1;
-    // TODO: To make folders work nicely, it needs some more improvements:
-    // - show icons of folders, to make them distinct
-    //   (or make color of the directory row different -- but so far, on GTK2 backend, any attempt to customize the look of this failed)
     ShellListView1.ObjectTypes := [otNonFolders, otFolders];
     { Without this, files are in undefined order
       (it seems SortColumn=0 above doesn't work). }
@@ -446,6 +444,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Pascal files open in Lazarus.' + NL +
       '- Other files open in external applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
+    ShellListView1.SmallImages := ShellIcons;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;

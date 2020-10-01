@@ -1469,8 +1469,10 @@ begin
 end;
 
 const
-  DirCaptionPrefix = '<';
-  DirCaptionSuffix = '>';
+  //DirCaptionPrefix = '<';
+  //DirCaptionSuffix = '>';
+  DirCaptionPrefix = '';
+  DirCaptionSuffix = '';
 
 procedure TCustomCastleShellListView.PopulateWithRoot();
 var
@@ -1504,6 +1506,7 @@ begin
         NewItem.SubItems.Add('');
         NewItem.SubItems.Add('');
         NewItem.Data := ShellListItemDirectory;
+        NewItem.ImageIndex := 0;
       end else
       begin
         // First column - Name
