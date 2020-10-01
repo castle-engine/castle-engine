@@ -61,6 +61,7 @@ type
     MenuViewportNavigationThirdPerson: TMenuItem;
     MenuViewportNavigationExamine: TMenuItem;
     MenuViewportNavigationNone: TMenuItem;
+    PanelLayoutTop: TPanel;
     PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
@@ -945,7 +946,7 @@ begin
   Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
   Inspector[itLayout].Filter := tkProperties;
   Inspector[itLayout].Align := alBottom;
-  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTransform);
+  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
 
   Inspector[itOther] := CommonInspectorCreate;
   Inspector[itOther].Parent := TabOther;
@@ -1997,7 +1998,7 @@ begin
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  PanelAnchors.Visible := UI <> nil;
+  SetEnabledExists(PanelAnchors, UI <> nil);
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);
@@ -2011,7 +2012,7 @@ begin
     LabelSelectedViewport.Caption := V.Name + ':';
 
   T := SelectedTransform;
-  PanelLayoutTransform.Visible := T <> nil;
+  SetEnabledExists(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 end;
 
