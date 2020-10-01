@@ -817,14 +817,6 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
   var
     Exe: String;
   begin
-    //if ProjectLazarus = '' then
-    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-    begin
-      //EditorUtils.ErrorBox('Cannot open project in Lazarus, as neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml.');
-      EditorUtils.ErrorBox('Cannot open project in Lazarus, as "standalone_source" was not specified in CastleEngineManifest.xml.');
-      Exit;
-    end;
-
     try
       Exe := FindExeLazarusIDE;
     except
@@ -846,8 +838,16 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       to new one.
     }
 
-    if SameFileName(ProjectStandaloneSource, FileName) then
-      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+    //if ProjectLazarus = '' then
+    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+    begin
+      //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+      WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+    end;
+
+    if (ProjectStandaloneSource = '') or
+       SameFileName(ProjectStandaloneSource, FileName) then
+      RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
     else
       { pass both project name, and particular filename, to open file within this project. }
       RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
