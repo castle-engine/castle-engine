@@ -426,11 +426,10 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ReadOnly := True;
     ShellListView1.SortColumn := 0;
     ShellListView1.TabOrder := 1;
-    ShellListView1.ObjectTypes := [otNonFolders];
     // TODO: To make folders work nicely, it needs some more improvements:
     // - show icons of folders, to make them distinct
-    // - double-click on folder should move to it, in both shell tree/list views
-    //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
+    //   (or make color of the directory row different -- but so far, on GTK2 backend, any attempt to customize the look of this failed)
+    ShellListView1.ObjectTypes := [otNonFolders, otFolders];
     { Without this, files are in undefined order
       (it seems SortColumn=0 above doesn't work). }
     ShellListView1.FileSortType := fstFoldersFirst;
@@ -878,6 +877,12 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    if DirectoryExists(SelectedFileName) then
+    begin
+      ShellTreeView1.Path := SelectedFileName;
+      Exit;
+    end;
+
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 

@@ -363,9 +363,15 @@ function DbgS(OT: TObjectTypes): String; overload;
 
 procedure Register;
 
+const
+  { Use these to detect whether TListItem inside TCastleShellListView
+    is a directory or not. Compare these values with TListItem.Data value. }
+  ShellListItemFile = Pointer(1);
+  ShellListItemDirectory = Pointer(2);
+
 implementation
 
-uses {$ifdef windows} Windows, {$endif} StrUtils;
+uses {$ifdef windows} Windows, {$endif} StrUtils, CastleStringUtils;
 
 const
   //no need to localize, it's a message for the programmer
@@ -1462,6 +1468,10 @@ begin
   inherited Destroy;
 end;
 
+const
+  DirCaptionPrefix = '<';
+  DirCaptionSuffix = '>';
+
 procedure TCustomCastleShellListView.PopulateWithRoot();
 var
   i: Integer;
@@ -1488,20 +1498,30 @@ begin
       NewItem := Items.Add;
       CurFileName := Files.Strings[i];
       CurFilePath := IncludeTrailingPathDelimiter(FRoot) + CurFileName;
-      // First column - Name
-      NewItem.Caption := CurFileName;
-      // Second column - Size
-      // The raw size in bytes is stored in the data part of the item
-      CurFileSize := FileSize(CurFilePath); // in Bytes
-      NewItem.Data := Pointer(PtrInt(CurFileSize));
-      if CurFileSize < 1024 then
-        NewItem.SubItems.Add(Format(sShellCtrlsBytes, [IntToStr(CurFileSize)]))
-      else if CurFileSize < 1024 * 1024 then
-        NewItem.SubItems.Add(Format(sShellCtrlsKB, [IntToStr(CurFileSize div 1024)]))
-      else
-        NewItem.SubItems.Add(Format(sShellCtrlsMB, [IntToStr(CurFileSize div (1024 * 1024))]));
-      // Third column - Type
-      NewItem.SubItems.Add(ExtractFileExt(CurFileName));
+      if DirectoryExists(CurFilePath) then
+      begin
+        NewItem.Caption := DirCaptionPrefix + CurFileName + DirCaptionSuffix;
+        NewItem.SubItems.Add('');
+        NewItem.SubItems.Add('');
+        NewItem.Data := ShellListItemDirectory;
+      end else
+      begin
+        // First column - Name
+        NewItem.Caption := CurFileName;
+        // Second column - Size
+        // The raw size in bytes is stored in the data part of the item
+        CurFileSize := FileSize(CurFilePath); // in Bytes
+        NewItem.Data := Pointer(PtrInt(CurFileSize));
+        if CurFileSize < 1024 then
+          NewItem.SubItems.Add(Format(sShellCtrlsBytes, [IntToStr(CurFileSize)]))
+        else if CurFileSize < 1024 * 1024 then
+          NewItem.SubItems.Add(Format(sShellCtrlsKB, [IntToStr(CurFileSize div 1024)]))
+        else
+          NewItem.SubItems.Add(Format(sShellCtrlsMB, [IntToStr(CurFileSize div (1024 * 1024))]));
+        // Third column - Type
+        NewItem.SubItems.Add(ExtractFileExt(CurFileName));
+        NewItem.Data := ShellListItemFile;
+      end;
       if Assigned(FOnFileAdded) then FOnFileAdded(Self,NewItem);
     end;
     Sort;
@@ -1546,13 +1566,24 @@ begin
 end;
 
 function TCustomCastleShellListView.GetPathFromItem(ANode: TListItem): string;
+var
+  FileName: String;
 begin
-  Result := IncludeTrailingPathDelimiter(FRoot) + ANode.Caption;
+  FileName := ANode.Caption;
+  { TODO: This is hack,
+    we revert to additional characters added to ANode.Caption when displaying it.
+    It would be cleaner to store the original filename somewhere in TListItem. }
+  if ANode.Data = ShellListItemDirectory then
+  begin
+    FileName := PrefixRemove(DirCaptionPrefix, FileName, false);
+    FileName := SuffixRemove(DirCaptionSuffix, FileName, false);
+  end;
+  Result := IncludeTrailingPathDelimiter(FRoot) + FileName;
 end;
 
 procedure Register;
 begin
-  RegisterComponents('Misc',[TCastleShellTreeView, TCastleShellListView]);
+  RegisterComponents('Castle', [TCastleShellTreeView, TCastleShellListView]);
 end;
 
 end.
