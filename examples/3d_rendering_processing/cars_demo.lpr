@@ -59,7 +59,7 @@ begin
     CarTransforms[1].Exists := not CarTransforms[1].Exists;
 
   { capture a screenshot }
-  if Event.IsKey(K_F5) then
+  if Event.IsKey(keyF5) then
     Window.Container.SaveScreenToDefaultFile;
 end;
 

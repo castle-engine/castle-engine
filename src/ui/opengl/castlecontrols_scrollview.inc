@@ -327,13 +327,13 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollBarVisible and HandleInput then
     begin
-      if Container.Pressed[      keyUp] or
+      if Container.Pressed[ keyArrowUp] or
          Container.Pressed[keyNumpadUp] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      if Container.Pressed[      keyDown] or
+      if Container.Pressed[ keyArrowDown] or
          Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;

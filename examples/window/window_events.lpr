@@ -83,7 +83,7 @@ end;
 
 procedure Update(Container: TUIContainer);
 begin
-  if Window.Pressed[K_F12] then
+  if Window.Pressed[keyF12] then
     // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.');
     Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', mtInfo);
 end;
@@ -111,7 +111,7 @@ begin
   end;
 
   { Test what messages happen when switching FullScreen }
-  if Event.IsKey(K_F11) {$ifdef DARWIN} and Window.Pressed[K_Ctrl] {$endif} then
+  if Event.IsKey(keyF11) {$ifdef DARWIN} and Window.Pressed[keyCtrl] {$endif} then
     Window.FullScreen := not Window.FullScreen;
 end;
 

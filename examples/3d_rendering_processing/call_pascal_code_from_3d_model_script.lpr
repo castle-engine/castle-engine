@@ -100,6 +100,6 @@ begin
   { initialize ProcessEvents *after* attaching ScriptTouchInitialize, to receive it }
   Scene.ProcessEvents := true;
 
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Application.Run;
 end.

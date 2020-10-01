@@ -280,7 +280,7 @@ begin
   Window.Width := 300;
   Window.Height := 300;
   Window.DepthBits := 0;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Caption := 'Demo CastleWindow Menu';
   Window.OpenAndRun;
 

@@ -138,10 +138,10 @@ begin
       else
       { Debug keys }
       case Event.Key of
-        K_F2:
+        keyF2:
           CurrentLocation.Scene.RenderInternalModel :=
             not CurrentLocation.Scene.RenderInternalModel;
-        K_F5:
+        keyF5:
           begin
             URL := Container.SaveScreenToDefaultFile;
             if URL <> '' then

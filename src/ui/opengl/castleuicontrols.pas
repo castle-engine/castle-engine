@@ -1010,7 +1010,7 @@ type
       @longCode(#
         if HandleInput then
         begin
-          if Container.Pressed[K_Right] then
+          if Container.Pressed[keyArrowRight] then
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;

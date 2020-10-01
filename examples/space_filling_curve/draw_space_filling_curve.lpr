@@ -143,7 +143,7 @@ begin
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
   Window.ParseParameters(StandardParseOptions);
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Open;
 
   { init CurveImage }

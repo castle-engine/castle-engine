@@ -189,10 +189,10 @@ var
   BoxCollider: TBoxCollider;
   SphereCollider: TSphereCollider;
 begin
-  if Event.IsKey(K_F4) then
+  if Event.IsKey(keyF4) then
     Navigation.MouseLook := not Navigation.MouseLook;
 
-  if Event.IsKey(K_F6) then
+  if Event.IsKey(keyF6) then
     Viewport.Items.EnablePhysics := not Viewport.Items.EnablePhysics;
 
   if Event.IsMouseButton(mbLeft) then

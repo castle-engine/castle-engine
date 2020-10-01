@@ -1012,13 +1012,13 @@ type
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
-      Only DoKeyDown: pass also KeyString. Pass Key = K_None if this is not
+      Only DoKeyDown: pass also KeyString. Pass Key = keyNone if this is not
       representable as TKey, pass KeyString = '' if this is not representable
-      as char. But never pass both Key = K_None and KeyString = ''
+      as char. But never pass both Key = keyNone and KeyString = ''
       (this would mean that nothing is pressed, at least nothing that can be represented
       in CGE).
 
-      Only DoKeyUp: never pass Key = K_None.
+      Only DoKeyUp: never pass Key = keyNone.
 
       If you call DoKeyUp while (not Pressed[Key]) it will be ignored
       (will not do any EventRelease etc. - just NOOP).
@@ -2340,8 +2340,8 @@ type
       read FFpsShowOnCaption write FFpsShowOnCaption default false;
 
     { Key to use to switch between FullScreen and not FullScreen.
-      Set to K_None (default) to disable this functionality.
-      Suggested value to enable this functionality is K_F11, this is consistent
+      Set to keyNone (default) to disable this functionality.
+      Suggested value to enable this functionality is keyF11, this is consistent
       will fullscreen key in other programs.
       You can freely modify it at any time, even after calling @link(Open).
 
@@ -2350,7 +2350,7 @@ type
       implementations: you have to be able to recreate in OnOpen everything
       that was released in OnClose. }
     property SwapFullScreen_Key: TKey
-      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_None;
+      read FSwapFullScreen_Key write FSwapFullScreen_Key default keyNone;
 
     { Key to use to close the window.
       Set to '' (default) to disable this functionality.
@@ -2906,11 +2906,11 @@ function Application: TCastleApplication;
 procedure Resize2D(Container: TUIContainer);
 
 { Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
-  and Key code (may be K_None), and additional required @code(Modifiers)
+  and Key code (may be keyNone), and additional required @code(Modifiers)
   (although some modifiers may be already implied by KeyString, e.g. when it is CtrlA).
   See @link(TMenuItem.Key) and @link(TMenuItem.KeyString) and @link(TMenuItem.Modifiers).
 
-  Only when Key = K_None and KeyString = ''
+  Only when Key = keyNone and KeyString = ''
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
@@ -3057,7 +3057,7 @@ begin
   FMainMenuVisible := true;
   FContainer := CreateContainer;
   Close_KeyString := '';
-  SwapFullScreen_Key := K_None;
+  SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
   FTouches := TTouchList.Create;
@@ -3361,7 +3361,7 @@ var
 begin
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   { When CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
-    SetPrivateModifiersDown. It would be an error to do DoKeyUp(K_Ctrl)
+    SetPrivateModifiersDown. It would be an error to do DoKeyUp(keyCtrl)
     directly when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
     use SetPrivateModifiersDown(mkCtrl, ...).
     This is the only way to make values in PrivateModifiersDown[]
@@ -3593,8 +3593,8 @@ var
 begin
   if Pressed[Key] then
   begin
-    { K_None key is never pressed, DoKeyDown guarentees this }
-    Assert(Key <> K_None);
+    { keyNone key is never pressed, DoKeyDown guarantees this }
+    Assert(Key <> keyNone);
     Pressed.KeyUp(Key, KeyString);
     MakeCurrent;
     Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
@@ -5384,7 +5384,7 @@ begin
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
-  if Key <> K_None then
+  if Key <> keyNone then
   begin
     S := KeyToStr(Key, Modifiers
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});

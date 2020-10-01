@@ -203,21 +203,21 @@ procedure Update(Container: TUIContainer);
   end;
 
 begin
-  if Window.Pressed[K_A] then ChangeLightPosition(0, -1);
-  if Window.Pressed[K_D] then ChangeLightPosition(0,  1);
-  if Window.Pressed[K_S] then ChangeLightPosition(2, -1);
-  if Window.Pressed[K_W] then ChangeLightPosition(2,  1);
-  if Window.Pressed[K_Q] then ChangeLightPosition(1, -1);
-  if Window.Pressed[K_E] then ChangeLightPosition(1,  1);
+  if Window.Pressed[keyA] then ChangeLightPosition(0, -1);
+  if Window.Pressed[keyD] then ChangeLightPosition(0,  1);
+  if Window.Pressed[keyS] then ChangeLightPosition(2, -1);
+  if Window.Pressed[keyW] then ChangeLightPosition(2,  1);
+  if Window.Pressed[keyQ] then ChangeLightPosition(1, -1);
+  if Window.Pressed[keyE] then ChangeLightPosition(1,  1);
 
-  if Window.Pressed[K_R] then
+  if Window.Pressed[keyR] then
   begin
     if mkShift in Window.Pressed.Modifiers then
       ChangeLightRadius(1/1.8) else
       ChangeLightRadius(1.8);
   end;
 
-  if Window.Pressed[K_L] then
+  if Window.Pressed[keyL] then
   begin
     if mkShift in Window.Pressed.Modifiers then
       ChangeLightIntensityScale(1/1.5) else
@@ -249,7 +249,7 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.Attributes.Lighting } true, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
+    M.Append(TMenuItem.Create('_Save Screen ...', 100, keyF5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
