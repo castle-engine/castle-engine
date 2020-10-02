@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="expose_transformations_to_animate_children"
+  standalone_source="expose_transformations_to_animate_children_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="com.mycompany.exposetransformationstoanimatechildren"
+  caption="ExposeTransforms test"
+>
+</project>
