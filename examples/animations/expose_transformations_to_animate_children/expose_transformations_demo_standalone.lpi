@@ -8,7 +8,7 @@
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="expose_transformations_to_animate_children"/>
+      <Title Value="expose_transformations_demo"/>
     </General>
     <RequiredPackages Count="2">
       <Item1>
@@ -20,7 +20,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="expose_transformations_to_animate_children_standalone.lpr"/>
+        <Filename Value="expose_transformations_demo_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -28,7 +28,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="expose_transformations_to_animate_children"/>
+      <Filename Value="expose_transformations_demo"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value=""/>
