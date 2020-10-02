@@ -64,9 +64,9 @@ begin
   ButtonWeaponAxe := UiOwner.FindRequiredComponent('ButtonWeaponAxe') as TCastleButton;
   ButtonWeaponSword := UiOwner.FindRequiredComponent('ButtonWeaponSword') as TCastleButton;
   ButtonWeaponNone := UiOwner.FindRequiredComponent('ButtonWeaponNone') as TCastleButton;
-  SceneHumanoid :=  UiOwner.FindRequiredComponent('SceneHumanoid') as TCastleScene;
-  SceneAxe :=  UiOwner.FindRequiredComponent('SceneAxe') as TCastleScene;
-  SceneSword :=  UiOwner.FindRequiredComponent('SceneSword') as TCastleScene;
+  SceneHumanoid := UiOwner.FindRequiredComponent('SceneHumanoid') as TCastleScene;
+  SceneAxe := UiOwner.FindRequiredComponent('SceneAxe') as TCastleScene;
+  SceneSword := UiOwner.FindRequiredComponent('SceneSword') as TCastleScene;
 
   ButtonAnimationWalk.OnClick := @ClickAnimationWalk;
   ButtonAnimationAttack.OnClick := @ClickAnimationAttack;
@@ -74,6 +74,9 @@ begin
   ButtonWeaponAxe.OnClick := @ClickWeaponAxe;
   ButtonWeaponSword.OnClick := @ClickWeaponSword;
   ButtonWeaponNone.OnClick := @ClickWeaponNone;
+
+  { initially hold axe }
+  ClickWeaponAxe(nil);
 end;
 
 procedure TStateMain.ClickAnimationWalk(Sender: TObject);
