@@ -3376,6 +3376,7 @@ procedure TCastleSceneCore.Loaded;
 begin
   inherited;
   UpdateAutoAnimation(false);
+  ExposeTransformsChange(nil);
 end;
 
 procedure TCastleSceneCore.SetAutoAnimationLoop(const Value: Boolean);
@@ -4133,7 +4134,11 @@ begin
         DetectAffectedFields;
     end;
 
-    ExposeTransformsChange(nil);
+    { Wait until loading finished before calling ExposeTransformsChange.
+      Otherwise we would create new TCastleTransform children in ExposeTransformsChange,
+      instead of reusing existing ones. }
+    if not (csLoading in ComponentState) then
+      ExposeTransformsChange(nil);
 
     { Call DoGeometryChanged here, as our new shapes are added.
       Probably, only one DoGeometryChanged(gcAll) is needed, but for safety

@@ -62,22 +62,22 @@
               {
                 "Name" : "Hand_R",
                 "RotationPersistent" : {
-                  "W" : 2.4075455665588379E+000,
-                  "X" : 3.6203068494796753E-001,
-                  "Y" : 8.1273174285888672E-001,
-                  "Z" : 4.5650959014892578E-001,
+                  "W" : 3.4170145988464355E+000,
+                  "X" : 3.2055923342704773E-001,
+                  "Y" : 4.6464300155639648E-001,
+                  "Z" : 8.2543855905532837E-001,
                   "$ClassName" : "TCastleVector4Persistent"
                 },
                 "ScalePersistent" : {
-                  "X" : 9.9999994039535522E-001,
-                  "Y" : 9.9999994039535522E-001,
-                  "Z" : 1.0000001192092896E+000,
+                  "X" : 9.9999988079071045E-001,
+                  "Y" : 9.9999982118606567E-001,
+                  "Z" : 9.9999988079071045E-001,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "TranslationPersistent" : {
-                  "X" : -1.3289073705673218E+000,
-                  "Y" : 9.9201157689094543E-002,
-                  "Z" : 1.1268185377120972E+000,
+                  "X" : -1.3398799896240234E+000,
+                  "Y" : -5.2844887971878052E-001,
+                  "Z" : 7.3047053813934326E-001,
                   "$ClassName" : "TCastleVector3Persistent"
                 },
                 "$Children" : [
@@ -131,55 +131,6 @@
                     ],
                     "$ClassName" : "TCastleScene"
                   }
-                ],
-                "$ClassName" : "TCastleTransform"
-              },
-              {
-                "Name" : "Hand_R1",
-                "RotationPersistent" : {
-                  "W" : 3.1891965866088867E+000,
-                  "X" : 5.1532745361328125E-001,
-                  "Y" : 2.8115358948707581E-001,
-                  "Z" : 8.0956184864044189E-001,
-                  "$ClassName" : "TCastleVector4Persistent"
-                },
-                "ScalePersistent" : {
-                  "X" : 1.0000001192092896E+000,
-                  "Y" : 9.9999982118606567E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.7513264417648315E+000,
-                  "Y" : -4.8388236761093140E-001,
-                  "Z" : 4.7149825096130371E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "$Children" : [
-                ],
-                "$ClassName" : "TCastleTransform"
-              },
-              {
-                "Name" : "Hand_R2",
-                "RotationPersistent" : {
-                  "W" : 3.1181311607360840E+000,
-                  "X" : 6.0566186904907227E-001,
-                  "Y" : 1.5995129942893982E-001,
-                  "Z" : 7.7948021888732910E-001,
-                  "$ClassName" : "TCastleVector4Persistent"
-                },
-                "ScalePersistent" : {
-                  "X" : 9.9999994039535522E-001,
-                  "Y" : 9.9999994039535522E-001,
-                  "Z" : 9.9999976158142090E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "TranslationPersistent" : {
-                  "X" : -1.9438869953155518E+000,
-                  "Y" : -3.5383650660514832E-001,
-                  "Z" : 3.3400481939315796E-001,
-                  "$ClassName" : "TCastleVector3Persistent"
-                },
-                "$Children" : [
                 ],
                 "$ClassName" : "TCastleTransform"
               }
