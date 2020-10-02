@@ -1089,8 +1089,9 @@ begin
     The only universal solution to make OI up-to-date seems to be to just
     occasionally refresh it. }
 
-  for InspectorType in TInspectorType do
-    Inspector[InspectorType].RefreshPropertyValues;
+  // TODO: This is not good, it breaks editing within object inspector, resets cursor
+  //for InspectorType in TInspectorType do
+  //  Inspector[InspectorType].RefreshPropertyValues;
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
