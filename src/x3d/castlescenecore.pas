@@ -2908,6 +2908,7 @@ var
   C: Integer;
   Translation, Scale: TVector3;
   Rotation: TVector4;
+  T: TTransformation;
 begin
   C := TShapeTree.AssociatedShapesCount(Node);
   if C = 0 then
@@ -2936,8 +2937,9 @@ begin
 
   Assert(C = 1);
   ShapeTransform := TShapeTree.AssociatedShape(Node, 0) as TShapeTreeTransform;
-  MatrixDecompose(ShapeTransform.TransformState.Transformation.Transform,
-    Translation, Rotation, Scale);
+  T :=  ShapeTransform.TransformState.Transformation;
+  Node.ApplyTransform(T);
+  MatrixDecompose(T.Transform, Translation, Rotation, Scale);
 
   { Apply to Child the accumulated transformation within this TTransformNode,
     taking into account TTransformNode hierarchy. }
