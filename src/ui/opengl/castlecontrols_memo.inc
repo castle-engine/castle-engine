@@ -287,27 +287,32 @@ procedure TCastleMemo.SetIndex(Value: integer);
 var
   i:Single;
 begin
-if (Value>-1) and (Value<Text.Count) then
+i:= Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+if (Value > -1) and (Value < Text.Count) then
 begin
-  i:=Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-  if Value>FIndex then
+  if Value > FIndex then
   begin
-     if BottomText+RectInside.Height<=i*(Index+2) then
-       BottomText:=BottomText+i;
+     if BottomText+RectInside.Height <= i*(Index+2) then
+       BottomText:= BottomText+i;
   end else
-     if (i*(Index)<=BottomText) and (BottomText>0) then
-       BottomText:=BottomText-i;
-  FIndex:=Value;
-  end else Exit;
-  if IndexColumn>Utf8Length(Text[Index])-1 then
-     IndexColumn:=UTF8Length(Text[Index])-1;
-  FBolScroll:=True;
-  if ScrollBar.CompleteSize<>(Text.Count)-(RectInside.Height/i) then
-    ScrollBar.CompleteSize:=(Text.Count)-(RectInside.Height/i); //round((Text.Count+1)-(Height/i))
-  ScrollBar.Scroll:=Index-(RectInside.Height/i);  //Text.Count-Index)/(Height/i);
-  if (ScrollBar.Scroll<0) or (Index=0) then ScrollBar.Scroll:=0;
-  if ScrollBar.Scroll>ScrollBar.CompleteSize then ScrollBar.Scroll:=ScrollBar.CompleteSize;
-  FBolScroll:=False;
+     if (i*(Index) <= BottomText) and (BottomText > 0) then
+       BottomText:= BottomText-i;
+  FIndex:= Value;
+  end else
+  begin
+   if Value > Text.Count-1 then Index:= Text.Count-1;
+   if Value < 0 then Index:= 0;
+   Exit;
+  end;
+  if IndexColumn > Utf8Length(Text[Index])-1 then
+     IndexColumn:= UTF8Length(Text[Index])-1;
+  FBolScroll:= True;
+  if ScrollBar.CompleteSize <> (Text.Count)-(RectInside.Height/i) then
+    ScrollBar.CompleteSize:= (Text.Count)-(RectInside.Height/i); //round((Text.Count+1)-(Height/i))
+  ScrollBar.Scroll:= Index -(RectInside.Height / i);  //Text.Count-Index)/(Height/i);
+  if (ScrollBar.Scroll < 0) or (Index = 0) then ScrollBar.Scroll:= 0;
+  if ScrollBar.Scroll > ScrollBar.CompleteSize then ScrollBar.Scroll:= ScrollBar.CompleteSize;
+  FBolScroll:= False;
 end;
 
 procedure TCastleMemo.SetSelectedColor(const Value: TCastleColor);
@@ -322,33 +327,51 @@ var
 begin
   ff:=TStringList.Create;
   WritelnLog('ff');
-  ff:=Text;
-  for i:=0 to ff.Count-1 do
-   if i<ff.Count then
-   begin
-  j:=i+1;
-  if FTextChar.Count>j then
-    while FTextChar[j]=False do
+  ff.Assign(Text);
+  i:= 0;
+  while i < FTextChar.Count do
+    begin
+     j:=i+1;
+    while FTextChar[i]=False do
     begin
          ff[i]:=ff[i]+ff[j];
          ff.Delete(j);
-          j:=j+1;
-          if FTextChar.Count<=j then
+         i:= i + 1;
+          if FTextChar.Count<=i then
              break;
     end;
+    i:= i + 1;
    end;
-  ff.OnChange:=@LinesChange;
-  Result:=ff;
+ // ff.OnChange:= @LinesChange;
+ Result:=TStringList.Create;
+  Result.Assign(ff);
+  Result.OnChange:= @LinesChange;
+  ff.Free;
 end;
 
 procedure TCastleMemo.LinesChange(Sender: TObject);
+var
+  i: integer;
 begin
-  SetText(TStringList(Sender));
+  if Sender <> nil then
+  begin
+    WritelnLog('Change');
+  SetLines(TStringList(Sender));
+  end;
 end;
 
 procedure TCastleMemo.SetLines(AValue: TStringList);
+var
+  i:integer;
 begin
-  Text:=AValue;
+  Text.Assign(AValue);
+  FTextChar.Clear;
+  if Text.Count > 2 then
+  begin
+    for i:= 0 to Text.Count-2 do
+      FTextChar.Add(True);
+  end else
+  if Text.Count > 1 then  FTextChar.Add(True);
   WordWrap(-1);
 end;
 
@@ -414,8 +437,6 @@ begin
 Text.Clear;
 Text.AddText(S1.Text);
 s1.Free;
-WriteLn('tttttttttttttttttttttttttttttttttttttt');
-
   end;
 end;
 
@@ -612,11 +633,70 @@ end;
 
 procedure TCastleMemo.SetCaret(index1, indexColumn1: integer; index2: integer;
   indexColumn2: Integer);
+var
+  i, j, k: integer;
 begin
-
-  if index2=-1 then
+ j:=0;
+ k:= 0;
+  for i:=0 to FTextChar.Count-1 do
   begin
+    if FTextChar[i] = False then j:=j+1 else k:=k+1;
+    if k >= index1 then break;
+  end;
+  Index:= index1 + j;
 
+  j:=UTF8Length(Text[Index]);
+  IndexColumn:=0;
+  for i:=Index to Text.Count-1 do
+  begin
+    if indexColumn1 <= j then break
+    else j:= j + UTF8Length(Text[i]);
+    if FTextChar.Count > i then
+      if FTextChar[i] = False then index:=index+1
+      else
+        begin
+        IndexColumn:=j;
+        break;
+        end;
+  end;
+  IndexColumn:= IndexColumn + indexColumn1-1;
+  if index2 <> -1 then
+  begin
+   j:=0;
+ k:= 0;
+  for i:=0 to FTextChar.Count-1 do
+  begin
+    if FTextChar[i] = False then j:=j+1 else k:=k+1;
+    if k >= index2 then break;
+  end;
+  LastIndex:= index2 + j;
+
+  j:=UTF8Length(Text[LastIndex]);
+  LastIndexColumn:=0;
+  WritelnLog(IntToStr(indexColumn2));
+  for i:=LastIndex to Text.Count-2 do
+  begin
+  WritelnLog('PPP'+IntToStr(j));
+    if indexColumn2 <= j then break
+    else
+      if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
+      else begin
+           WritelnLog('break12');
+           break;
+           LastIndexColumn:= j;
+      end;
+    if FTextChar.Count > i then
+      if FTextChar[i] = False then LastIndex:= LastIndex + 1
+      else
+        begin
+        WritelnLog('break24');
+        LastIndexColumn:= j;
+        break;
+        end;
+  end;
+  LastIndexColumn:= LastIndexColumn + indexColumn2 - UTF8Length(Text[i+1]) - 1;
+  WritelnLog(IntToStr(LastIndexColumn));
+  WritelnLog(IntToStr(LastIndex));
   end;
 end;
 
@@ -773,8 +853,8 @@ begin
   if (LastSizeHeight<>RectInside.Height) or (LastSizeWidth<>RectInside.Width) then
     begin
     WordWrap(-1);
-    LastSizeHeight:=RenderRect.Height;
-    LastSizeWidth:=RenderRect.Width;
+    LastSizeHeight:=RectInside.Height;
+    LastSizeWidth:=RectInside.Width;
     end;
 
   if LastIndex<>-1 then
@@ -921,6 +1001,7 @@ begin
   if BottomText>0 then
       if Event.Position.Y>RenderRect.Bottom+RenderRect.Height-7 then
         BottomText:=BottomText-Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+  if (LastIndex>-1) and (LastIndex<Text.Count) then
   for i:=UTF8Length(Text[LastIndex]) downto 0 do
    begin
    if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text[LastIndex],1,i)) then
@@ -1006,7 +1087,8 @@ begin
               begin
                Text[Index]:=Text[Index]+Text[Index+1];
                Text.Delete(Index+1);
-               FTextChar.Delete(index);
+               if FTextChar.Count > index then
+                  FTextChar.Delete(index);
               end;
 
     DoChange;
@@ -1151,16 +1233,7 @@ begin
     s:=Text[index];
     Utf8Delete(s,IndexColumn+2,utf8Length(Text[index])-IndexColumn+1);
     Text[index]:=s;
-    if index<FTextChar.Count then
-    begin
-        WritelnLog('insert');
-        FTextChar[Index]:=True;
-        if index+1<FTextChar.Count then
-        FTextChar[Index+1]:=FTextChar[Index];
-    end else
-    begin
     FTextChar.Insert(index,True);
-    end;
     Index:=Index+1;
     IndexColumn:=-1;
 
@@ -1284,34 +1357,39 @@ begin
   Result:=0;
   if index1=-1 then
   begin
-  j1:=index;
-  j2:=IndexColumn;
-  index:=0;
-  if Text.Count>0 then
-    if Text.Count>2 then
-    begin
-    for i:=0 to Text.Count-1 do
-      index:=index+WordWrap(index+i);
-    end else WordWrap(0);
-  index:=j1;
-  indexcolumn:=j2;
+   if Text.Count > 0 then
+   begin
+    j1:= index;
+    j2:= IndexColumn;
+    index:= 0;
+      if Text.Count > 1 then
+      begin
+        for i:= 0 to Text.Count-1 do
+        begin
+          index:= index+WordWrap(index+i);
+        end;
+      end else WordWrap(0);
+    index:= j1;
+    indexcolumn:= j2;
+   end;
   end
   else
-  if index1<Text.Count then
-  if Text[index1]<>'' then
+  if index1 < Text.Count then
+  if Text[index1] <> '' then
   begin
-  j:=index1+1;
-  if FTextChar.Count>j-1 then
-    while FTextChar[j-1]=False do
+  j:= index1+1;
+  if FTextChar.Count > j-1 then
+    while FTextChar[j-1] = False do
     begin
-         Text[index1]:=Text[index1]+Text[j];
+    WritelnLog('Yes');
+         Text[index1]:= Text[index1]+Text[j];
          FTextChar.Delete(j-1);
          Text.Delete(j);
-         if FTextChar.Count<=j-1 then
+         if FTextChar.Count <= j-1 then
              break;
     end;
   j:=0;
-  if  Text[index1].IndexOf(' ')<>-1 then
+  if  Text[index1].IndexOf(' ') <> -1 then
   begin
     while Text[index1].IndexOf(' ',j,UTF8Length(Text[index1])-j)<>-1 do
        begin
@@ -1324,6 +1402,8 @@ begin
                s:=Text[index1];
                UTF8Delete(s,j+1,UTF8Length(Text[index1])-j);
                Text[index1]:=s;
+               WritelnLog('Get'+IntToStr(index1));
+
                FTextChar.Insert(index1,False);
                Result:=Result+WordWrap(index1+1)+1;
                if (index=index1) and (IndexColumn>j) then
