@@ -2900,9 +2900,30 @@ end;
 procedure TCastleTransform.CameraChanged(const ACamera: TCastleCamera);
 var
   I: Integer;
+  TransformToNotify: TCastleTransform;
 begin
   for I := 0 to List.Count - 1 do
-    List[I].CameraChanged(ACamera);
+  begin
+    TransformToNotify := List[i];
+    { Checking the component status avoids informing an object that
+      changes or initiates change of camera settings during self destruction.
+      For example this situation may appear when TPlayer delete
+      causes reinitialization of the camera in TLevel).
+
+      To do this, see Frogger3d with the changed order of Level and Player
+      creation (Level first, Player next) and play two times:
+
+      FpsPlayer := TPlayer.Create(SceneManager);
+      FpsPlayer.Blocked := true; // do not allow to move player in this game
+      SceneManager.LoadLevel('1');
+      SceneManager.Items.Add(FpsPlayer);
+      SceneManager.Player := FpsPlayer;
+
+      I think that in the case of user games there may be more such situations,
+      so it is worth checking this. }
+    if not (csDestroying in TransformToNotify.ComponentState) then
+      TransformToNotify.CameraChanged(ACamera);
+  end;
 end;
 
 procedure TCastleTransform.CameraChanged(const ACamera: TCastleNavigation);
