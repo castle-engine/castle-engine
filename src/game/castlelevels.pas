@@ -1178,13 +1178,6 @@ end;
 
 procedure TLevel.SetPlayer(const Value: TPlayer);
 begin
-{  if (not (csDestroying in ComponentState)) and
-     (Value <> nil) and
-     (FInfo <> nil) then
-    { Setting Player not allowed now, as Load() would not have a chance to properly
-      process it, e.g. setting Player.Navigation as Viewport.Navigation. }
-    raise EInternalError.Create('Do not assign TLevel.Player after calling TLevel.Load');}
-
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
