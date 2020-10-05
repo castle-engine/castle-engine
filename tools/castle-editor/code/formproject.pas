@@ -29,9 +29,6 @@ uses
 
 type
   { Main project management. }
-
-  { TProjectForm }
-
   TProjectForm = class(TForm)
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
@@ -188,7 +185,10 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
+    procedure OpenDesign(const DesignUrl: String);
     procedure WarningNotification(const Category, Message: string);
+    { Clears all warnings }
+    procedure ClearAllWarnings;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -327,8 +327,7 @@ end;
 
 procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
 begin
-  ListWarnings.Clear;
-  TabWarnings.TabVisible := false;
+  ClearAllWarnings;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -644,6 +643,13 @@ begin
   end;
 end;
 
+procedure TProjectForm.OpenDesign(const DesignUrl: String);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.WarningNotification(const Category,
   Message: string);
 begin
@@ -653,6 +659,12 @@ begin
     ListWarnings.Items.Add(Message);
   TabWarnings.Caption := 'Warnings (' + IntToStr(ListWarnings.Count) + ')';
   TabWarnings.TabVisible := true;
+end;
+
+procedure TProjectForm.ClearAllWarnings;
+begin
+  ListWarnings.Clear;
+  TabWarnings.TabVisible := false;
 end;
 
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
@@ -687,8 +699,7 @@ begin
       OpenDesignDialog.Url := Design.DesignUrl;
     if OpenDesignDialog.Execute then
     begin
-      NeedsDesignFrame;
-      Design.OpenDesign(OpenDesignDialog.Url);
+      OpenDesign(OpenDesignDialog.Url);
     end;
   end;
 end;
@@ -914,10 +925,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') then
     begin
       if ProposeSaveDesign then
-      begin
-        NeedsDesignFrame;
-        Design.OpenDesign(SelectedURL);
-      end;
+        OpenDesign(SelectedURL);
       Exit;
     end;
 
