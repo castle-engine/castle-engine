@@ -22,14 +22,18 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
-  Types, Contnrs,
-  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
-  EditorUtils, FrameDesign, FrameViewFile;
+  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
+  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
+  FrameViewFile;
 
 type
   { Main project management. }
+
+  { TProjectForm }
+
   TProjectForm = class(TForm)
+    PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
@@ -102,12 +106,14 @@ type
     MenuItemQuit: TMenuItem;
     PageControlBottom: TPageControl;
     PanelAboveTabs: TPanel;
+    ButtonClearWarnings: TSpeedButton;
     SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -317,6 +323,12 @@ begin
     Application.Terminate
   else
     CanClose := false;
+end;
+
+procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
+begin
+  ListWarnings.Clear;
+  TabWarnings.TabVisible := false;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
