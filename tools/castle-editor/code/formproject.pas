@@ -185,9 +185,15 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
+    { Separated procedure to not duplicate code in various ways to create new
+      Design }
+    procedure NewDesign(const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent);
+    { Separated procedure to not duplicate code in various ways to open Design
+      (files view, menu) }
     procedure OpenDesign(const DesignUrl: String);
     procedure WarningNotification(const Category, Message: string);
-    { Clears all warnings }
+    { Clears all warnings and hides warnings tab }
     procedure ClearAllWarnings;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
@@ -643,6 +649,14 @@ begin
   end;
 end;
 
+procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
+  const ComponentOnCreate: TNotifyEvent);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.NewDesign(ComponentClass, ComponentOnCreate);
+end;
+
 procedure TProjectForm.OpenDesign(const DesignUrl: String);
 begin
   NeedsDesignFrame;
@@ -670,19 +684,13 @@ end;
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleUserInterface, nil);
-  end;
+    NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleTransform, nil);
-  end;
+    NewDesign(TCastleTransform, nil);
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -1011,8 +1019,7 @@ begin
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
-    NeedsDesignFrame;
-    Design.NewDesign(R.ComponentClass, R.OnCreate);
+    NewDesign(R.ComponentClass, R.OnCreate);
   end;
 end;
 
