@@ -27,7 +27,13 @@
     looking at font size (and other properties, like padding and frame size),
     and usually is reasonable automatically.
   }
+   type
 
+    { TMemoIndexs }
+
+    TMemoIndexs=record
+      Index1,IndexColumn1,Index2,IndexColumn2:integer;
+    end;
   { TCastleMemo }
 
   TCastleMemo = class(TCastleUserInterfaceFont)
@@ -111,6 +117,7 @@ TimeText:string;
     procedure Delete(index1:integer);
     property SelectedText: string read GetSelectText;// write SetSelectText;
     procedure SetCaret(index1,indexColumn1:integer;index2:integer=-1;indexColumn2:Integer=-1);
+    function GetCaret:TMemoIndexs;
     function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure DeleteSelectText;
     property Index:integer read FIndex write SetIndex;
@@ -639,20 +646,19 @@ var
   i, j, k: integer;
 begin
    j:=0;
- k:= 0;
+   k:= 0;
+   if index1<>0 then
   for i:=0 to FTextChar.Count-1 do
   begin
     if FTextChar[i] = False then j:=j+1 else k:=k+1;
     if k >= index1 then break;
   end;
   Index:= index1 + j;
-
+  WritelnLog(IntToStr(index));
   j:=UTF8Length(Text[Index]);
   IndexColumn:=0;
-  WritelnLog(IntToStr(indexColumn1));
   for i:=Index to Text.Count-1 do
   begin
-  WritelnLog('PPP'+IntToStr(j));
     if indexColumn1 <= j then
     begin
     IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
@@ -661,7 +667,6 @@ begin
     else
       if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
       else begin
-           WritelnLog('break12');
            break;
            IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
       end;
@@ -675,8 +680,10 @@ begin
   end;
   if index2 <> -1 then
   begin
-   j:=0;
- k:= 0;
+  BolSelect:= True;
+  j:= 0;
+  k:= 0;
+  if index1<>0 then
   for i:=0 to FTextChar.Count-1 do
   begin
     if FTextChar[i] = False then j:=j+1 else k:=k+1;
@@ -686,8 +693,7 @@ begin
 
   j:=UTF8Length(Text[LastIndex]);
   LastIndexColumn:=0;
-  WritelnLog(IntToStr(indexColumn2));
-    for i:=LastIndex to Text.Count-1 do
+  for i:=LastIndex to Text.Count-1 do
   begin
   WritelnLog('PPP'+IntToStr(j));
     if indexColumn2 <= j then
@@ -698,7 +704,6 @@ begin
     else
       if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
       else begin
-           WritelnLog('break12');
            break;
            LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
       end;
@@ -710,9 +715,68 @@ begin
         break;
         end;
   end;
-  //LastIndexColumn:= LastIndexColumn + indexColumn2  - 1;
-  WritelnLog(IntToStr(LastIndexColumn));
-  WritelnLog(IntToStr(LastIndex));
+  end else BolSelect:= False;
+end;
+
+function TCastleMemo.GetCaret: TMemoIndexs;
+var
+  i, j, j1 ,k: integer;
+begin
+  j1:= 0;
+  k:= 0;
+  if Index <> 0 then
+  for i:=0 to FTextChar.Count-1 do
+  begin
+    if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
+    if k >= index then break;
+  end;
+  Result.Index1:= k;
+
+  j:=0;
+  if Index <> 0 then
+    for i:= j1+k-1 downto 0 do
+      begin
+        if FTextChar[i] = True then break else j1:= j1 - 1;
+      end;
+  for i:=j1+k to FTextChar.Count-1 do
+  begin
+    if FTextChar[i] = False then j:= j + UTF8Length(Text[i])
+    else
+      begin
+       Result.IndexColumn1:= j - UTF8Length(Text[i]) + IndexColumn+1;
+       break;
+      end;
+    if IndexColumn <= j then
+    begin
+      Result.IndexColumn1:= j - UTF8Length(Text[i]) + IndexColumn+1;
+      break;
+    end;
+  end;
+
+ if LastIndex<>-1 then
+ begin
+    j:=0;
+    k:= 0;
+    if LastIndex <> 0 then
+      for i:=0 to FTextChar.Count-1 do
+      begin
+        if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
+        if k >= LastIndex then break;
+      end;
+    Result.Index2:= k;
+
+    j:=0;
+    if LastIndex <> 0 then
+      for i:= j1+k-1 downto 0 do
+        begin
+          if FTextChar[i] = True then break
+           else j1:= j1 - 1;
+        end;
+    WritelnLog(IntToStr(k)+'gg'+IntToStr(j1));
+    for i:=k+j1 to LastIndex do
+        j:= j + UTF8Length(Text[i]);
+
+    Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
   end;
 end;
 
