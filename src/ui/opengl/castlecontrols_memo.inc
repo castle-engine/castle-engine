@@ -331,12 +331,14 @@ begin
   i:= 0;
   while i < FTextChar.Count do
     begin
-     j:=i+1;
+     WritelnLog('ff'+IntToStr(i));
+     j:=i;
     while FTextChar[i]=False do
     begin
-         ff[i]:=ff[i]+ff[j];
-         ff.Delete(j);
-         i:= i + 1;
+         WritelnLog('ffgg'+IntToStr(j));
+         ff[j]:=ff[j]+ff[j+1];
+         ff.Delete(j+1);
+         i:=i+1;
           if FTextChar.Count<=i then
              break;
     end;
@@ -636,7 +638,7 @@ procedure TCastleMemo.SetCaret(index1, indexColumn1: integer; index2: integer;
 var
   i, j, k: integer;
 begin
- j:=0;
+   j:=0;
  k:= 0;
   for i:=0 to FTextChar.Count-1 do
   begin
@@ -647,19 +649,30 @@ begin
 
   j:=UTF8Length(Text[Index]);
   IndexColumn:=0;
+  WritelnLog(IntToStr(indexColumn1));
   for i:=Index to Text.Count-1 do
   begin
-    if indexColumn1 <= j then break
-    else j:= j + UTF8Length(Text[i]);
+  WritelnLog('PPP'+IntToStr(j));
+    if indexColumn1 <= j then
+    begin
+    IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
+    break;
+    end
+    else
+      if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
+      else begin
+           WritelnLog('break12');
+           break;
+           IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
+      end;
     if FTextChar.Count > i then
-      if FTextChar[i] = False then index:=index+1
+      if FTextChar[i] = False then Index:= Index + 1
       else
         begin
-        IndexColumn:=j;
+        IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
         break;
         end;
   end;
-  IndexColumn:= IndexColumn + indexColumn1-1;
   if index2 <> -1 then
   begin
    j:=0;
@@ -674,27 +687,30 @@ begin
   j:=UTF8Length(Text[LastIndex]);
   LastIndexColumn:=0;
   WritelnLog(IntToStr(indexColumn2));
-  for i:=LastIndex to Text.Count-2 do
+    for i:=LastIndex to Text.Count-1 do
   begin
   WritelnLog('PPP'+IntToStr(j));
-    if indexColumn2 <= j then break
+    if indexColumn2 <= j then
+    begin
+    LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
+    break;
+    end
     else
       if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
       else begin
            WritelnLog('break12');
            break;
-           LastIndexColumn:= j;
+           LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
       end;
     if FTextChar.Count > i then
       if FTextChar[i] = False then LastIndex:= LastIndex + 1
       else
         begin
-        WritelnLog('break24');
-        LastIndexColumn:= j;
+        LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
         break;
         end;
   end;
-  LastIndexColumn:= LastIndexColumn + indexColumn2 - UTF8Length(Text[i+1]) - 1;
+  //LastIndexColumn:= LastIndexColumn + indexColumn2  - 1;
   WritelnLog(IntToStr(LastIndexColumn));
   WritelnLog(IntToStr(LastIndex));
   end;
