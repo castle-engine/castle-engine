@@ -109,6 +109,10 @@ type
     procedure ControlsTreeDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ControlsTreeDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
+    procedure ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
+      var AllowEdit: Boolean);
+    procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
+      Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
@@ -124,6 +128,7 @@ type
     procedure MenuViewportNavigationWalkClick(Sender: TObject);
     procedure MenuViewportNavigationThirdPersonClick(Sender: TObject);
     procedure ClearDesign;
+    procedure RenameSelectedItem;
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
@@ -274,6 +279,8 @@ type
     procedure GizmoHasModifiedParent(Sender: TObject);
   public
     OnUpdateFormCaption: TNotifyEvent;
+    OnSelectionChanged: TNotifyEvent;
+    function RenamePossible: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -311,7 +318,7 @@ implementation
 
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
-  TypInfo, StrUtils, Math, Graphics, Types, Dialogs,
+  TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
   CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleTimeUtils,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
@@ -1979,6 +1986,8 @@ var
   V: TCastleViewport;
   T: TCastleTransform;
 begin
+  OnSelectionChanged(Self); // Calling it in ControlsTreeSelectionChanged doesn't seem to be enough as RenamePossible is true there even in case SelectedCount = 0 (does it use some obsolete value?)
+
   GetSelected(Selected, SelectedCount);
   try
     case SelectedCount of
@@ -2060,6 +2069,32 @@ begin
   ControlsTree.Invalidate; // force custom-drawn look redraw
 end;
 
+procedure TDesignFrame.ControlsTreeEditing(Sender: TObject; Node: TTreeNode;
+  var AllowEdit: Boolean);
+begin
+  { This event is fired when calling TCustomListView.CanEdit
+    which itself is called in TCustomListView.ShowEditor
+    therefore this event preceeds initializing and showing of the editor.
+
+    Here we have to "restore" the pure name of the component (without class name)
+    before starting edit. }
+  Node.Text := TComponent(Node.Data).Name;
+end;
+
+procedure TDesignFrame.ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
+  Cancel: Boolean);
+var
+  UndoComment: String;
+  Sel: TComponent;
+begin
+  Sel := TComponent(Node.Data);
+  UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+  Sel.Name := Node.Text;
+  ModifiedOutsideObjectInspector;
+  RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+  Node.Text := ComponentCaption(Sel);
+end;
+
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
 var
   SrcComponent: TComponent;
@@ -2134,6 +2169,17 @@ procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
 begin
   ControlsTreeNodeUnderMouse := nil;
   ControlsTree.Invalidate; // force custom-drawn look redraw
+end;
+
+function TDesignFrame.RenamePossible: Boolean;
+begin
+  Result := ControlsTree.SelectionCount = 1;
+end;
+
+procedure TDesignFrame.RenameSelectedItem;
+begin
+  if RenamePossible then
+    ControlsTree.Selected.EditText;
 end;
 
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,

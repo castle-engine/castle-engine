@@ -188,6 +188,11 @@ object ProjectForm: TProjectForm
       object MenuItemSeparator170: TMenuItem
         Caption = '-'
       end
+      object MenuItemRename: TMenuItem
+        Caption = 'Rename'
+        ShortCut = 113
+        OnClick = MenuItemRenameClick
+      end
       object MenuItemUndo: TMenuItem
         Caption = 'Undo'
         ShortCut = 49242
