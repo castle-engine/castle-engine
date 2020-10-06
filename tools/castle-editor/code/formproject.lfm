@@ -63,34 +63,35 @@ object ProjectForm: TProjectForm
       TabVisible = False
       object ListWarnings: TListBox
         Left = 0
-        Height = 227
-        Top = 0
-        Width = 1364
+        Height = 147
+        Top = 40
+        Width = 1132
         Align = alClient
         ItemHeight = 0
         ParentFont = False
-        ScrollWidth = 1362
+        ScrollWidth = 1130
         TabOrder = 0
         TopIndex = -1
       end
       object PanelWarnings: TPanel
         Left = 0
-        Height = 28
+        Height = 40
         Top = 0
-        Width = 1136
+        Width = 1132
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 28
-        ClientWidth = 1136
+        ClientHeight = 40
+        ClientWidth = 1132
         TabOrder = 1
-        object ButtonClearWarnings: TSpeedButton
+        object ButtonClearWarnings: TBitBtn
           Left = 0
-          Height = 28
+          Height = 40
           Hint = 'Clear warnings list.'
           Top = 0
-          Width = 28
+          Width = 87
           AutoSize = True
+          Caption = 'Clear'
           Constraints.MinHeight = 27
           Constraints.MinWidth = 27
           Glyph.Data = {
@@ -170,6 +171,7 @@ object ProjectForm: TProjectForm
             0000000000000000000000000000000000000000000000000000
           }
           OnClick = ButtonClearWarningsClick
+          TabOrder = 0
         end
       end
     end

@@ -30,6 +30,7 @@ uses
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ButtonClearWarnings: TBitBtn;
     PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
@@ -104,7 +105,6 @@ type
     MenuItemQuit: TMenuItem;
     PageControlBottom: TPageControl;
     PanelAboveTabs: TPanel;
-    ButtonClearWarnings: TSpeedButton;
     SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
     TabFiles: TTabSheet;
