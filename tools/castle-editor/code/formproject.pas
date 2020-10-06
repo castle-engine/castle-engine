@@ -22,14 +22,15 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
-  Types, Contnrs,
-  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
-  EditorUtils, FrameDesign, FrameViewFile;
+  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
+  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
+  FrameViewFile;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    PanelWarnings: TPanel;
     ShellIcons: TImageList;
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
@@ -103,12 +104,14 @@ type
     MenuItemQuit: TMenuItem;
     PageControlBottom: TPageControl;
     PanelAboveTabs: TPanel;
+    ButtonClearWarnings: TSpeedButton;
     SplitterBetweenFiles: TSplitter;
     Splitter2: TSplitter;
     TabFiles: TTabSheet;
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -185,7 +188,16 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
+    { Separated procedure to not duplicate code in various ways to create new
+      Design }
+    procedure NewDesign(const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent);
+    { Separated procedure to not duplicate code in various ways to open Design
+      (files view, menu) }
+    procedure OpenDesign(const DesignUrl: String);
     procedure WarningNotification(const Category, Message: string);
+    { Clears all warnings and hides warnings tab }
+    procedure ClearAllWarnings;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -320,6 +332,11 @@ begin
     Application.Terminate
   else
     CanClose := false;
+end;
+
+procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
+begin
+  ClearAllWarnings;
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
@@ -650,6 +667,21 @@ begin
   end;
 end;
 
+procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
+  const ComponentOnCreate: TNotifyEvent);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.NewDesign(ComponentClass, ComponentOnCreate);
+end;
+
+procedure TProjectForm.OpenDesign(const DesignUrl: String);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.WarningNotification(const Category,
   Message: string);
 begin
@@ -661,22 +693,22 @@ begin
   TabWarnings.TabVisible := true;
 end;
 
+procedure TProjectForm.ClearAllWarnings;
+begin
+  ListWarnings.Clear;
+  TabWarnings.TabVisible := false;
+end;
+
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleUserInterface, nil);
-  end;
+    NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleTransform, nil);
-  end;
+    NewDesign(TCastleTransform, nil);
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -693,8 +725,7 @@ begin
       OpenDesignDialog.Url := Design.DesignUrl;
     if OpenDesignDialog.Execute then
     begin
-      NeedsDesignFrame;
-      Design.OpenDesign(OpenDesignDialog.Url);
+      OpenDesign(OpenDesignDialog.Url);
     end;
   end;
 end;
@@ -920,10 +951,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') then
     begin
       if ProposeSaveDesign then
-      begin
-        NeedsDesignFrame;
-        Design.OpenDesign(SelectedURL);
-      end;
+        OpenDesign(SelectedURL);
       Exit;
     end;
 
@@ -1009,8 +1037,7 @@ begin
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
-    NeedsDesignFrame;
-    Design.NewDesign(R.ComponentClass, R.OnCreate);
+    NewDesign(R.ComponentClass, R.OnCreate);
   end;
 end;
 
