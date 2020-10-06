@@ -1491,7 +1491,7 @@ type
         @item(@italic((For fixed-function pipeline:))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
+          matrix, e.g. use @link(CastleRenderContext.PerspectiveProjection).)
 
         @item(@italic((For fixed-function pipeline:))
           The modelview matrix is set to identity. The matrix mode

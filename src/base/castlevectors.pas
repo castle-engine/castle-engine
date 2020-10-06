@@ -45,7 +45,7 @@
       Line0 and LineVector (analogously like line in 3D).
 
       And sometimes it's represented as one TVector3 value:
-      [A, B, C], where line consists of all points satisfying @code(A * x + B * y + C = 0)).
+      [A, B, C], where line consists of all points satisfying @code(A * x + B * y + C = 0).
       At least one of A, B must be different than zero.)
 
     @item(

@@ -2058,7 +2058,7 @@ type
     procedure Invalidate;
 
     { Make the OpenGL context of this window @italic(current). Following OpenGL
-      commands will apply to this context, and the @link(CastleGLUtils.RenderContext)
+      commands will apply to this context, and the @link(CastleRenderContext.RenderContext RenderContext)
       will also refer to this.
       When the window is opened, and right
       before calling any window callback, we always automatically call
