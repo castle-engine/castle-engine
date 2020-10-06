@@ -70,12 +70,16 @@
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   margin-bottom: 20px;
-  padding: 19px;
 }
 
 /* Disable the max-width 100% rule which breaks these images. */
 .pasdoc-container img {
   max-width: none !important;
+}
+
+/* Our default left-aligned footer is obscured by PasDoc navigation */
+.panel-footer {
+  text-align: right;
 }
 
 /* Adjusted original pasdoc.css below ---------------------------------------- */
@@ -93,7 +97,7 @@
 
 .pasdoc-container .navigation {
   float: left;
-  width: 32%;
+  width: 20em; /* must match .content margin-left */
   height: 100%;
   background-color: #787878;
   position: fixed;
@@ -117,8 +121,7 @@
 }
 
 .pasdoc-container .content {
-  float:right;
-  width: 68%;
+  margin-left: 20em; /* must match .navigation width */
   box-sizing: border-box; /* without this, you could not have padding here, it would overlap with .navigation, causing errors on narrow screens */
   padding: 1em;
 }
@@ -287,6 +290,7 @@
 .pasdoc-container .navigation h2 {
     text-align: left;
     visibility: hidden;
+    height: 1em; /* otherwise it may be tall as underneath the text "Castle Game Engine" has 2 lines */
     /* to make position:absolute in ::after work */
     position: relative;
 }
