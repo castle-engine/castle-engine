@@ -66,7 +66,7 @@ pipeline {
     }
     fixed {
       mail to: 'michalis@castle-engine.io',
-        subject: "[jenkins] Build is again successfull: ${currentBuild.fullDisplayName}",
+        subject: "[jenkins] Build is again successful: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
   }
