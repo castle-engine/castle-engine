@@ -809,6 +809,11 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
+    { I didn't found real MIME type for Starling Texture Atlas.
+      Created as image type based on
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    }
+    if Ext = '.starling-xml' then Result := 'image/starling-texture-atlas' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else

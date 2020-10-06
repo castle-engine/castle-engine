@@ -124,7 +124,7 @@ const
     Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
   LoadScene_FileFilters =
   'All Files|*|' +
-  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf|' +
+  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
@@ -140,7 +140,8 @@ const
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo|' +
   'Spine animation (*.json)|*.json|' +
-  'Standard Triangle Language (*.stl)|*.stl';
+  'Standard Triangle Language (*.stl)|*.stl|' +
+  'Starling XML (*.starling-xml)|*.starling-xml';
 
   Load3D_FileFilters = LoadScene_FileFilters
     deprecated 'use LoadScene_FileFilters';
@@ -197,7 +198,7 @@ implementation
 uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF,
+  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
   CastleInternalNodeInterpolator;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
@@ -349,6 +350,10 @@ begin
   if (MimeType = 'model/gltf+json') or
      (MimeType = 'model/gltf-binary') then
     Result := LoadGLTF(URL)
+  else
+
+  if MimeType = 'image/starling-texture-atlas' then
+    Result := LoadStarlingTextureAtlas(URL)
   else
 
   if NilOnUnrecognizedFormat then
