@@ -495,6 +495,7 @@ type
           const ANode: TTransformNode; const AChild: TCastleTransform);
         destructor Destroy; override;
         procedure Synchronize;
+        class function X3dNameToPascal(const Prefix, S: String): String; static;
       end;
       TExposedTransformList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TExposedTransform>;
 
@@ -598,6 +599,7 @@ type
 
     FExposeTransforms: TStrings;
     FExposedTransforms: TExposedTransformList;
+    FExposeTransformsPrefix: String;
 
     { Perform animation fade-in and fade-out by initializing
       TInternalTimeDependentHandler.PartialSend before
@@ -682,6 +684,7 @@ type
 
     procedure SetExposeTransforms(const Value: TStrings);
     procedure ExposeTransformsChange(Sender: TObject);
+    procedure SetExposeTransformsPrefix(const Value: String);
   private
     FGlobalLights: TLightInstancesList;
 
@@ -2473,8 +2476,16 @@ type
 
       Note: the owner of auto-created children is equal to this scene's Owner.
       This is most natural when you edit this in CGE editor,
-      or load using @link(TransformLoad). }
+      or load using @link(TransformLoad).
+
+      See the engine example in: examples/animations/expose_transformations_to_animate_children/ .
+
+      @seealso ExposeTransformsPrefix }
     property ExposeTransforms: TStrings read FExposeTransforms write SetExposeTransforms;
+
+    { Name prefix for all children created by ExposeTransforms.
+      Useful to keep names unique in the scene. }
+    property ExposeTransformsPrefix: String read FExposeTransformsPrefix write SetExposeTransformsPrefix;
   end;
 
   {$define read_interface}
@@ -2952,6 +2963,16 @@ begin
   Child.Rotation := Node.Rotation;
   Child.Scale := Node.Scale;
   }
+end;
+
+class function TCastleSceneCore.TExposedTransform.X3dNameToPascal(const Prefix, S: String): String; static;
+const
+  AllowedChars = ['a'..'z', 'A'..'Z', '0'..'9', '_'];
+  AllowedCharsFirst = AllowedChars - ['0'..'9'];
+begin
+  Result := Prefix + SReplaceChars(S, AllChars - AllowedChars, '_');
+  if not SCharIs(Result, 1, AllowedCharsFirst) then
+    Result := '_' + Result;
 end;
 
 { TPlayAnimationParameters --------------------------------------------------- }
@@ -8446,17 +8467,6 @@ begin
 end;
 
 procedure TCastleSceneCore.ExposeTransformsChange(Sender: TObject);
-
-  function X3dNameToPascal(const S: String): String;
-  const
-    AllowedChars = ['a'..'z', 'A'..'Z', '0'..'9', '_'];
-    AllowedCharsFirst = AllowedChars - ['0'..'9'];
-  begin
-    Result := SReplaceChars(S, AllChars - AllowedChars, '_');
-    if not SCharIs(Result, 1, AllowedCharsFirst) then
-      Result := '_' + Result;
-  end;
-
 var
   TransformName, TransformNamePascal: String;
   TransformNode: TTransformNode;
@@ -8485,7 +8495,7 @@ begin
       if E.Node = TransformNode then
         Continue; // ignore duplicates on FExposeTransforms list
 
-    TransformNamePascal := X3dNameToPascal(TransformName);
+    TransformNamePascal := TExposedTransform.X3dNameToPascal(ExposeTransformsPrefix, TransformName);
 
     // calculate TransformChild
     TransformChild := nil;
@@ -8516,6 +8526,22 @@ begin
     E := TExposedTransform.Create(Self, TransformNode, TransformChild);
     E.Synchronize;
     FExposedTransforms.Add(E);
+  end;
+end;
+
+procedure TCastleSceneCore.SetExposeTransformsPrefix(const Value: String);
+var
+  E: TExposedTransform;
+begin
+  if FExposeTransformsPrefix <> Value then
+  begin
+    FExposeTransformsPrefix := Value;
+    // rename existing children
+    for E in FExposedTransforms do
+    begin
+      E.Child.Name := TExposedTransform.X3dNameToPascal(ExposeTransformsPrefix, E.Node.X3DName);
+      InternalCastleDesignInvalidate :=  true;
+    end;
   end;
 end;
 
