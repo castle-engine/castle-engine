@@ -1086,9 +1086,15 @@ begin
 end;
 
 procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);
-var
-  InspectorType: TInspectorType;
+//var
+//  InspectorType: TInspectorType;
 begin
+  if InternalCastleDesignInvalidate then
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+  end;
+
   { In many cases, properties may change but property editor doesn't reflect it.
     E.g.
     - TCastleTransform changes by ExposeTransforms mechanism
@@ -1882,6 +1888,8 @@ begin
   Node.Expand(true);
 
   UpdateSelectedControl;
+
+  InternalCastleDesignInvalidate := false;
 end;
 
 procedure TDesignFrame.GetSelected(out Selected: TComponentList;

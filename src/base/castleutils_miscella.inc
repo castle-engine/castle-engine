@@ -188,6 +188,9 @@ var
   { Are we inside Castle Game Engine designer mode. }
   CastleDesignMode: Boolean;
 
+  { Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
+  InternalCastleDesignInvalidate: Boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
