@@ -331,21 +331,20 @@ var
   ff:TStringList;
 begin
   ff:=TStringList.Create;
-  WritelnLog('ff');
   ff.Assign(Text);
   i:= 0;
   while i < FTextChar.Count do
     begin
-     WritelnLog('ff'+IntToStr(i));
+     //WritelnLog('ff'+IntToStr(i));
      j:=i;
-    while FTextChar[i]=False do
-    begin
-         WritelnLog('ffgg'+IntToStr(j));
-         ff[j]:=ff[j]+ff[j+1];
-         ff.Delete(j+1);
-         i:=i+1;
-          if FTextChar.Count<=i then
-             break;
+     while FTextChar[i]=False do
+     begin
+       //WritelnLog('ffgg'+IntToStr(j));
+       ff[j]:=ff[j]+ff[j+1];
+       ff.Delete(j+1);
+       i:=i+1;
+       if FTextChar.Count<=i then
+         break;
     end;
     i:= i + 1;
    end;
@@ -466,10 +465,11 @@ var
   Lines1: TStringList;
 begin
   Caret:= GetCaret;
-  if (GetCaret.Index2 <> -1) then
+  if (Caret.Index2 > -1) and (Caret.Index2 < Lines.Count) and (Caret.Index1 < Lines.Count) and (BolSelect) then
   begin
     Lines1:=TStringList.Create;
     Lines1.Assign(Lines);
+    WritelnLog(IntToStr(Caret.Index1)+'gff'+IntToStr(Caret.Index2));
     if Caret.Index1 <> Caret.Index2 then
     begin
       if Caret.Index1 > Caret.Index2 then
@@ -729,12 +729,19 @@ begin
   j1:= 0;
   k:= 0;
   if Index <> 0 then
-  for i:=0 to FTextChar.Count-1 do
   begin
-    if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
-    if k >= index then break;
+    for i:=0 to FTextChar.Count-1 do
+    begin
+      if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
+      if k >= index then break;
+    end;
+    Result.Index1:= k;
+  end else
+  begin
+    Result.Index2:= 0;
+    k:= 0;
+    j1:= 0;
   end;
-  Result.Index1:= k;
 
   j:=0;
   if Index <> 0 then
@@ -762,12 +769,19 @@ begin
     j:=0;
     k:= 0;
     if LastIndex <> 0 then
+    begin
       for i:=0 to FTextChar.Count-1 do
       begin
         if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
         if k >= LastIndex then break;
       end;
     Result.Index2:= k;
+    end else
+    begin
+    Result.Index2:= 0;
+    k:= 0;
+    j1:= 0;
+    end;
 
     j:=0;
     if LastIndex <> 0 then
@@ -776,12 +790,12 @@ begin
           if FTextChar[i] = True then break
            else j1:= j1 - 1;
         end;
-    WritelnLog(IntToStr(k)+'gg'+IntToStr(j1));
     for i:=k+j1 to LastIndex do
         j:= j + UTF8Length(Text[i]);
 
     Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
   end;
+ WritelnLog(IntToStr(Result.Index2)+'AAAaaa'+IntToStr(Result.Index1)+'AAAaaa'+IntToStr(Result.IndexColumn1)+'AAAaaa'+IntToStr(Result.IndexColumn2));
 end;
 
 function TCastleMemo.PropertySection(const PropertyName: String): TPropertySection;
