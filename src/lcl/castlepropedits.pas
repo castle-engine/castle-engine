@@ -35,13 +35,14 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes, TypInfo,
+uses SysUtils, Classes, TypInfo, Forms,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils;
+  CastleTiledMap, CastleGLImages, CastleStringUtils,
+  CastleInternalExposeTransformsDialog;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
