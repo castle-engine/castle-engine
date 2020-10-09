@@ -261,6 +261,8 @@ type
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
+    { Is Child deletable by user (this implies it is also selectable). }
+    function Deletable(const Child: TComponent): Boolean;
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
@@ -1288,10 +1290,52 @@ procedure TDesignFrame.DeleteComponent;
     I: Integer;
   begin
     for I := 0 to List.Count - 1 do
-      if (not (csSubComponent in List[I].ComponentStyle)) and
-         (List[I] <> DesignRoot) then
+      if Deletable(List[I]) then
         Exit(List[I]);
     Result := nil;
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform); forward;
+  procedure FreeUiChildren(const C: TCastleUserInterface); forward;
+
+  { Delete C and all children.
+    We have to delete things recursively, otherwise they would keep existing,
+    taking resources and reserving names in DesignRoot,
+    even though they would not be visible when disconnected from parent
+    hierarchy. }
+  procedure FreeRecursively(const C: TComponent);
+  begin
+    if not Deletable(C) then
+      Exit;
+    if C is TCastleTransform then
+    begin
+      FreeTransformChildren(TCastleTransform(C));
+    end else
+    if C is TCastleUserInterface then
+    begin
+      FreeUiChildren(TCastleUserInterface(C));
+      if C is TCastleViewport then
+        FreeTransformChildren(TCastleViewport(C).Items);
+    end;
+    C.Free;
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.Count - 1 downto 0 do
+      if Deletable(T[I]) then
+        FreeRecursively(T[I]);
+  end;
+
+  procedure FreeUiChildren(const C: TCastleUserInterface);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      if Deletable(C.Controls[I]) then
+        FreeRecursively(C.Controls[I]);
   end;
 
 var
@@ -1312,7 +1356,7 @@ begin
       repeat
         C := FirstDeletableComponent(Selected);
         if C <> nil then
-          FreeAndNil(C)
+          FreeRecursively(C)
         else
           Break;
       until false;
@@ -1830,6 +1874,13 @@ begin
     Same for TCastleCheckbox children.
     Consequently, do not allow to select stuff inside. }
   Result := not (csTransient in Child.ComponentStyle);
+end;
+
+function TDesignFrame.Deletable(const Child: TComponent): Boolean;
+begin
+  Result := Selectable(Child) and
+    (not (csSubComponent in Child.ComponentStyle)) and
+    (Child <> DesignRoot);
 end;
 
 procedure TDesignFrame.UpdateDesign;
