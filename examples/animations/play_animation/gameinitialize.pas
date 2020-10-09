@@ -135,13 +135,14 @@ end;
 
 class procedure TEventsHandler.ButtonOpen3DClick(Sender: TObject);
 begin
-  { TODO: Unfortunately, it cannot work for castle-anim-frames now.
-    This awaits other castle-anim-frames improvements (internal conversion
-    of frames into interpolators). }
-  //Open('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
+  Open('../../fps_game/data/knight_creature/knight.gltf');
 
-  // It works with CoordinateInterpolator in single X3D file, though
-  Open('../resource_animations/data/knight_single_x3d/knight.x3dv');
+  //Open('../resource_animations/data/knight_single_x3d/knight.x3dv');
+
+  { Note: TransitionDuration is not supported for castle-anim-frames.
+    TransitionDuration is supported on other model formats (in particular
+    glTF, Spine, X3D support animations too). }
+  //Open('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
 end;
 
 class procedure TEventsHandler.ButtonOpen2DClick(Sender: TObject);
