@@ -730,72 +730,95 @@ begin
   k:= 0;
   if Index <> 0 then
   begin
+  WritelnLog('Index');
     for i:=0 to FTextChar.Count-1 do
     begin
-      if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
-      if k >= index then break;
+      if FTextChar[i] = False then k:=k+1 else j1:=j1+1;
+      WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
+      if k + j1>= index then break;
     end;
-    Result.Index1:= k;
-  end else
-  begin
-    Result.Index2:= 0;
-    k:= 0;
-    j1:= 0;
-  end;
-
-  j:=0;
-  if Index <> 0 then
     for i:= j1+k-1 downto 0 do
       begin
         if FTextChar[i] = True then break else j1:= j1 - 1;
       end;
-  for i:=j1+k to FTextChar.Count-1 do
+    Result.Index1:= j1 + k;
+  end else
   begin
-    if FTextChar[i] = False then j:= j + UTF8Length(Text[i])
+    Result.Index1:= 0;
+    k:= 0;
+    j1:= 0;
+  end;
+  WritelnLog('Index:'+IntToStr(Result.Index1));
+
+  j:=0;
+  j1:=0;
+  WritelnLog('IndexColumn');
+  for i:=Result.Index1 to FTextChar.Count-1 do
+  begin
+   WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j));
+    if FTextChar[i] = False then
+    begin
+     j:= j + UTF8Length(Text[i]);
+     j1:= j1 + UTF8Length(Text[i]);
+    end
     else
-      begin
-       Result.IndexColumn1:= j - UTF8Length(Text[i]) + IndexColumn+1;
-       break;
-      end;
+    begin
+     Result.IndexColumn1:= j1 + IndexColumn + 1;
+     break;
+    end;
     if IndexColumn <= j then
     begin
-      Result.IndexColumn1:= j - UTF8Length(Text[i]) + IndexColumn+1;
+      Result.IndexColumn1:= j1 + IndexColumn + 1;
       break;
     end;
   end;
 
  if LastIndex<>-1 then
  begin
-    j:=0;
-    k:= 0;
-    if LastIndex <> 0 then
+ j1:=0;
+ k:=0;
+ WritelnLog('LastIndex');
+     for i:=0 to FTextChar.Count-1 do
     begin
-      for i:=0 to FTextChar.Count-1 do
+      if FTextChar[i] = False then k:=k+1 else j1:=j1+1;
+      WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
+      if k + j1>= LastIndex then break;
+    end;
+    for i:= j1+k-1 downto 0 do
       begin
-        if FTextChar[i] = False then j1:=j1+1 else k:=k+1;
-        if k >= LastIndex then break;
+       WritelnLog('i_'+IntToStr(i));
+        if FTextChar[i] = True then break else j1:= j1 - 1;
       end;
-    Result.Index2:= k;
+    Result.Index2:= j1 + k;
+    WritelnLog('LastIndex:'+IntToStr(Result.Index2));
     end else
     begin
     Result.Index2:= 0;
     k:= 0;
     j1:= 0;
     end;
+     j:=0;
+  WritelnLog('IndexColumn');
 
-    j:=0;
-    if LastIndex <> 0 then
-      for i:= j1+k-1 downto 0 do
-        begin
-          if FTextChar[i] = True then break
-           else j1:= j1 - 1;
-        end;
-    for i:=k+j1 to LastIndex do
-        j:= j + UTF8Length(Text[i]);
-
-    Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
+  for i:=Result.Index2 to FTextChar.Count-1 do
+  begin
+   WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j));
+    if FTextChar[i] = False then
+    begin
+    j:= j + UTF8Length(Text[i]);
+    j1:= j1 + UTF8Length(Text[i]);
+    end
+    else
+      begin
+       Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
+       break;
+      end;
+    if LastIndexColumn <= j then
+    begin
+      Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
+      break;
+    end;
   end;
- WritelnLog(IntToStr(Result.Index2)+'AAAaaa'+IntToStr(Result.Index1)+'AAAaaa'+IntToStr(Result.IndexColumn1)+'AAAaaa'+IntToStr(Result.IndexColumn2));
 end;
 
 function TCastleMemo.PropertySection(const PropertyName: String): TPropertySection;
