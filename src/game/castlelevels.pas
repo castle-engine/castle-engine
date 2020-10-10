@@ -985,7 +985,7 @@ begin
     Items.MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
-      use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
+      use Scene for wall-sliding (see TCastleTransform.LocalMoveCollision implementation). }
     Items.Insert(0, Items.MainScene);
 
     InitializeCamera;
