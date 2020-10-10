@@ -1193,7 +1193,7 @@ begin
     end;
     Viewport.AvoidNavigationCollisions := Value;
 
-    { Reintialize camera and navigation only when level was loaded. }
+    { Reinitialize camera and navigation only when level was loaded. }
     if FInfo <> nil then
     begin
       InitializeCamera;
