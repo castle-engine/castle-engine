@@ -1181,7 +1181,10 @@ begin
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
+    begin
       FPlayer.RemoveFreeNotification(Self);
+      Items.Remove(FPlayer);
+    end;
     FPlayer := Value;
     if FPlayer <> nil then
     begin
@@ -1189,10 +1192,11 @@ begin
       FPlayer.InternalLevel := Self;
     end;
     Viewport.AvoidNavigationCollisions := Value;
+
+    { Reintialize camera and navigation only when level was loaded. }
+    if FInfo <> nil then
+      InitializeCamera;
   end;
-  { Reintialize camera and navigation only when level was loaded. }
-  if FInfo <> nil then
-    InitializeCamera;
 end;
 
 procedure TLevel.InitializeCamera;
