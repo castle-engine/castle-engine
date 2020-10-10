@@ -1195,7 +1195,21 @@ begin
 
     { Reintialize camera and navigation only when level was loaded. }
     if FInfo <> nil then
+    begin
       InitializeCamera;
+      if FPlayer <> nil then
+      begin
+        { Add Player to Items,
+          as the second item (see LoadCore for explanation why),
+          making sure it's not already there (because InitializeCamera
+          may have already added it when UseThirdPerson). }
+        if FPlayer.World = nil then
+        begin
+          Items.Insert(1, FPlayer);
+          FPlayer.LevelChanged;
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -1301,7 +1315,14 @@ begin
     if ThirdPersonNavigation.AvatarHierarchy <> nil then
     begin
       ThirdPersonNavigation.AvatarHierarchy.SetView(InitialPosition, InitialDirection, InitialUp);
-      Items.Add(ThirdPersonNavigation.AvatarHierarchy);
+
+      if (Player <> nil) and (ThirdPersonNavigation.AvatarHierarchy = Player) then
+      begin
+        Items.Insert(1, ThirdPersonNavigation.AvatarHierarchy);
+        Player.LevelChanged;
+      end
+      else
+        Items.Add(ThirdPersonNavigation.AvatarHierarchy);
     end else
     if ThirdPersonNavigation.Avatar <> nil then
     begin
