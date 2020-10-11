@@ -88,7 +88,6 @@
     function WordWrap(index1:integer=-1):integer;
   protected
     FTextChar: TBooleanList;  //if False-Enter is word wrap, True - is real Enter #13
-    property Text: TstringList read FText write SetText;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
     procedure SetInternalText(const Value:String); override;
@@ -117,6 +116,7 @@
     function GetCaret:TMemoIndexs;
     function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure DeleteSelectText;
+    property Text: TstringList read FText write SetText;
     property Index:integer read FIndex write SetIndex;
     property LastIndex:integer read FLastIndex write SetLastIndex;
      property IndexColumn:integer read FIndexColumn write SetIndexColumn;
@@ -728,6 +728,7 @@ var
 begin
   j1:= 0;
   k:= 0;
+  j:= 0;
   if Index <> 0 then
   begin
   WritelnLog('Index');
@@ -735,8 +736,9 @@ begin
     begin
       if FTextChar[i] = False then k:=k+1 else j1:=j1+1;
       WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
-      if k + j1>= index then break;
+      if k + j1 >= index then break;
     end;
+    j:= j1;
     for i:= j1+k-1 downto 0 do
       begin
         if FTextChar[i] = True then break else j1:= j1 - 1;
@@ -744,81 +746,84 @@ begin
     Result.Index1:= j1 + k;
   end else
   begin
+    j:=0;
     Result.Index1:= 0;
     k:= 0;
     j1:= 0;
   end;
   WritelnLog('Index:'+IntToStr(Result.Index1));
 
-  j:=0;
-  j1:=0;
+  j1:= 0;
   WritelnLog('IndexColumn');
-  for i:=Result.Index1 to FTextChar.Count-1 do
+  Result.IndexColumn1:= IndexColumn;
+  for i:= Result.Index1 to k + j do
   begin
-   WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j));
+    WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j)+'Bool_'+BoolToStr(FTextChar[i],'True','False'));
     if FTextChar[i] = False then
-    begin
-     j:= j + UTF8Length(Text[i]);
-     j1:= j1 + UTF8Length(Text[i]);
-    end
+       j1:= j + UTF8Length(Text[i])
     else
     begin
-     Result.IndexColumn1:= j1 + IndexColumn + 1;
+     WritelnLog('break');
+     Result.IndexColumn1:= j1 + IndexColumn + 2;
      break;
     end;
-    if IndexColumn <= j then
+    if  i = FTextChar.Count-1 then
     begin
-      Result.IndexColumn1:= j1 + IndexColumn + 1;
+      Result.IndexColumn1:= j1 + IndexColumn + 2;
       break;
     end;
   end;
 
- if LastIndex<>-1 then
+ if LastIndex <> -1 then
  begin
- j1:=0;
- k:=0;
- WritelnLog('LastIndex');
-     for i:=0 to FTextChar.Count-1 do
-    begin
-      if FTextChar[i] = False then k:=k+1 else j1:=j1+1;
-      WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
-      if k + j1>= LastIndex then break;
-    end;
-    for i:= j1+k-1 downto 0 do
+   j:= 0;
+   j1:= 0;
+   k:= 0;
+   WritelnLog('LastIndex');
+   if LastIndex <> 0 then
+   begin
+       for i:= 0 to FTextChar.Count-1 do
       begin
-       WritelnLog('i_'+IntToStr(i));
-        if FTextChar[i] = True then break else j1:= j1 - 1;
+        if FTextChar[i] = False then k:=k+1 else j1:= j1 + 1;
+        WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
+        if k + j1 >= LastIndex then break;
       end;
-    Result.Index2:= j1 + k;
-    WritelnLog('LastIndex:'+IntToStr(Result.Index2));
+      j := j1;
+      for i := j1+k-1 downto 0 do
+        begin
+         WritelnLog('i_'+IntToStr(i));
+          if FTextChar[i] = True then break else j1:= j1 - 1;
+        end;
+      Result.Index2:= j1 + k;
+      WritelnLog('LastIndex:'+IntToStr(Result.Index2));
     end else
     begin
-    Result.Index2:= 0;
-    k:= 0;
-    j1:= 0;
+      Result.Index2:= 0;
+      j:= 0;
+      k:= 0;
+      j1:= 0;
     end;
-     j:=0;
-  WritelnLog('IndexColumn');
 
-  for i:=Result.Index2 to FTextChar.Count-1 do
+  WritelnLog('LastIndexColumn');
+  Result.IndexColumn2:= LastIndexColumn;
+  for i:= Result.Index2 to k + j do
   begin
-   WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j));
+    WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j1)+'Bool_'+BoolToStr(FTextChar[i],'True','False')+'FGFG'+Text[i]);
     if FTextChar[i] = False then
-    begin
-    j:= j + UTF8Length(Text[i]);
-    j1:= j1 + UTF8Length(Text[i]);
-    end
+       j1:= j1 + UTF8Length(Text[i])
     else
-      begin
-       Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
-       break;
-      end;
-    if LastIndexColumn <= j then
     begin
-      Result.IndexColumn2:= j - UTF8Length(Text[i]) + LastIndexColumn+1;
+     WritelnLog('break');
+     Result.IndexColumn2:= j1 + LastIndexColumn + 2;
+     break;
+    end;
+    if  i = FTextChar.Count-1 then
+    begin
+      Result.IndexColumn2:= j1 + LastIndexColumn + 2;
       break;
     end;
   end;
+ end;
 end;
 
 function TCastleMemo.PropertySection(const PropertyName: String): TPropertySection;
