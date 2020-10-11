@@ -2902,7 +2902,7 @@ var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
-      List[I].CameraChanged(ACamera);
+    List[I].CameraChanged(ACamera);
 end;
 
 procedure TCastleTransform.CameraChanged(const ACamera: TCastleNavigation);
