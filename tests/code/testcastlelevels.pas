@@ -25,11 +25,13 @@ type
   published
     { Test that TLevel.Load works even when GL context is not ready yet }
     procedure TestLoadLevelWithoutGLContext;
+    { Test setting/destroying Player after TLevel.Load }
+    procedure TestSetDestroyPlayerAfterLevelLoad;
   end;
 
 implementation
 
-uses CastleApplicationProperties, CastleViewport, CastleLevels;
+uses CastleApplicationProperties, CastleViewport, CastleLevels, CastlePlayer;
 
 procedure TTestCastleLevels.TestLoadLevelWithoutGLContext;
 var
@@ -46,6 +48,34 @@ begin
 
   Level.Free;
   Viewport.Free;
+end;
+
+procedure TTestCastleLevels.TestSetDestroyPlayerAfterLevelLoad;
+var
+  Level: TLevel;
+  Viewport: TCastleViewport;
+  Player: TPlayer;
+begin
+  Player := TPlayer.Create(nil);
+  Viewport := TCastleViewport.Create(nil);
+
+  Level := TLevel.Create(nil);
+  Level.Viewport := Viewport;
+  Levels.LoadFromFiles('data/game/level_without_loading_image');
+  Level.Load('level_without_loading_image');
+
+  Level.Player := Player;
+  FreeAndNil(Player);
+
+  Player := TPlayer.Create(nil);
+  Level.Player := Player;
+
+  //Level.Load('level_without_loading_image');
+  FreeAndNil(Player);
+  Player := TPlayer.Create(nil);
+  Level.Player := Player;
+  Level.Free;
+  Player.Free;
 end;
 
 initialization
