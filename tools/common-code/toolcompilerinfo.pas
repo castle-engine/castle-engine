@@ -138,8 +138,12 @@ function FindExeLazarusIDE: String;
 begin
   Result := FindExeLazarus('lazarus');
   if Result = '' then
-    // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
-    raise EExecutableNotFound.Create('Cannot find "lazarus" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+  begin
+    Result := FindExeLazarus('lazarus-ide'); //new possible lazarus executable name on Liux if installed from official binaries
+    if Result = '' then
+      // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
+      raise EExecutableNotFound.Create('Cannot find "lazarus" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+  end;
 end;
 
 end.
