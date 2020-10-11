@@ -44,6 +44,7 @@ begin
 
   Level := TLevel.Create(nil);
   Level.Viewport := Viewport;
+  Levels.LoadFromFiles('data/game/level_without_loading_image');
   Level.Load('level_without_loading_image');
 
   Level.Free;
