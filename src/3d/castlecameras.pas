@@ -5085,7 +5085,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
   end;
 
 const
-  MouseWheelScrollSpeed = 0.03;
+  MouseWheelScrollSpeed = Pi * 3 / 180.0;
 begin
   Result := inherited;
   if Result then Exit;
