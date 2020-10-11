@@ -1091,12 +1091,6 @@ procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);
 //var
 //  InspectorType: TInspectorType;
 begin
-  if InternalCastleDesignInvalidate then
-  begin
-    ModifiedOutsideObjectInspector;
-    UpdateDesign;
-  end;
-
   { In many cases, properties may change but property editor doesn't reflect it.
     E.g.
     - TCastleTransform changes by ExposeTransforms mechanism
@@ -1744,6 +1738,13 @@ begin
   begin
     ErrorBox(PendingErrorBox);
     PendingErrorBox := '';
+  end;
+
+  if InternalCastleDesignInvalidate then
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+    //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
   end;
 end;
 
