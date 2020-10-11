@@ -5165,7 +5165,7 @@ end;
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 const
-  SpeedSensor = 100;
+  SpeedSensor = 2;
 begin
   if not (ni3dMouse in Input) then Exit(false);
   Result := true;
