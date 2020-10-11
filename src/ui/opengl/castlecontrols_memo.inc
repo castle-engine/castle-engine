@@ -731,11 +731,9 @@ begin
   j:= 0;
   if Index <> 0 then
   begin
-  WritelnLog('Index');
     for i:=0 to FTextChar.Count-1 do
     begin
       if FTextChar[i] = False then k:=k+1 else j1:=j1+1;
-      WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
       if k + j1 >= index then break;
     end;
     j:= j1;
@@ -751,19 +749,15 @@ begin
     k:= 0;
     j1:= 0;
   end;
-  WritelnLog('Index:'+IntToStr(Result.Index1));
 
   j1:= 0;
-  WritelnLog('IndexColumn');
   Result.IndexColumn1:= IndexColumn;
   for i:= Result.Index1 to k + j do
   begin
-    WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j)+'Bool_'+BoolToStr(FTextChar[i],'True','False'));
     if FTextChar[i] = False then
        j1:= j + UTF8Length(Text[i])
     else
     begin
-     WritelnLog('break');
      Result.IndexColumn1:= j1 + IndexColumn + 2;
      break;
     end;
@@ -779,23 +773,19 @@ begin
    j:= 0;
    j1:= 0;
    k:= 0;
-   WritelnLog('LastIndex');
    if LastIndex <> 0 then
    begin
        for i:= 0 to FTextChar.Count-1 do
       begin
         if FTextChar[i] = False then k:=k+1 else j1:= j1 + 1;
-        WritelnLog(IntToStr(i)+'_k_'+IntToStr(k)+'_j1_'+IntToStr(j1));
         if k + j1 >= LastIndex then break;
       end;
       j := j1;
       for i := j1+k-1 downto 0 do
         begin
-         WritelnLog('i_'+IntToStr(i));
           if FTextChar[i] = True then break else j1:= j1 - 1;
         end;
       Result.Index2:= j1 + k;
-      WritelnLog('LastIndex:'+IntToStr(Result.Index2));
     end else
     begin
       Result.Index2:= 0;
@@ -804,16 +794,13 @@ begin
       j1:= 0;
     end;
 
-  WritelnLog('LastIndexColumn');
   Result.IndexColumn2:= LastIndexColumn;
   for i:= Result.Index2 to k + j do
   begin
-    WritelnLog('_i_'+IntToStr(i)+'_j_'+IntToStr(j1)+'Bool_'+BoolToStr(FTextChar[i],'True','False')+'FGFG'+Text[i]);
     if FTextChar[i] = False then
        j1:= j1 + UTF8Length(Text[i])
     else
     begin
-     WritelnLog('break');
      Result.IndexColumn2:= j1 + LastIndexColumn + 2;
      break;
     end;
@@ -1110,7 +1097,6 @@ begin
    end;
    end;
   end else LastIndex:=0;
-  WritelnLog(IntToStr(round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)));
 
    if (LastIndex<=Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
   if Event.Position.Y<5+RenderRect.Bottom then
