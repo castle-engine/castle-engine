@@ -55,8 +55,7 @@ type
 function FindExeFpcCompiler: String;
 
 { Find the main executable of Lazarus IDE.
-  This uses FindExeLazarus for common executable names like 'lazarus' (upstream)
-  or 'lazarus-ide' (Debian/Ubuntu packages).
+  This uses FindExeLazarus for common executable names like 'lazarus' or 'lazarus-ide'.
   @raises EExecutableNotFound When the exe is not found. }
 function FindExeLazarusIDE: String;
 
@@ -139,7 +138,9 @@ begin
   Result := FindExeLazarus('lazarus');
   if Result = '' then
   begin
-    Result := FindExeLazarus('lazarus-ide'); //new possible lazarus executable name on Liux if installed from official binaries
+    { Alternative possible Lazarus executable name on non-Windows,
+      if installed from deb files or by "make install". }
+    Result := FindExeLazarus('lazarus-ide');
     if Result = '' then
       // Note: FormProject using this message also for ErrorBox, so make sure it looks sensible.
       raise EExecutableNotFound.Create('Cannot find "lazarus" or "lazarus-ide" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
