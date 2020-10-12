@@ -31,9 +31,7 @@ uses DOM,
 
 type
 
-  { TSubTexture }
-
-  TSubTexture = class
+  TStarlingSubTexture = class
   private
     procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
   public
@@ -48,7 +46,6 @@ type
     AnchorY: Single;
 
     procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; ImageWidth, ImageHeight: Integer);
-
   end;
 
 var
@@ -68,7 +65,7 @@ var
   I: TXMLElementIterator;
   ImageWidth, ImageHeight: Integer;
   ImagePath: String;
-  SubTexture: TSubTexture;
+  SubTexture: TStarlingSubTexture;
   Root: TX3DRootNode;
   LastAnimationName: String;
   Coord: TCoordinateNode;
@@ -178,7 +175,7 @@ begin
   Root.AddRoute(R4);
 end;
 
-procedure AddFrameCoords(SubTexture: TSubTexture);
+procedure AddFrameCoords(SubTexture: TStarlingSubTexture);
 begin
   CoordArray[0] := Vector3(-SubTexture.Width * (SubTexture.AnchorX),
       SubTexture.Height * (SubTexture.AnchorY), 0);
@@ -254,7 +251,7 @@ begin
   Root := nil;
   try
     Doc := URLReadXML(URL);
-    SubTexture := TSubTexture.Create;
+    SubTexture := TStarlingSubTexture.Create;
     AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
     ReadImageProperties(URL, AtlasNode);
 
@@ -317,9 +314,9 @@ begin
   end;
 end;
 
-{ TSubTexture }
+{ TStarlingSubTexture }
 
-procedure TSubTexture.PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
+procedure TStarlingSubTexture.PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
 begin
   X2 := 1 / ImageWidth * (X1 + Width);
   Y2 := 1 - 1 / ImageHeight * (Y1 + Height);
@@ -328,7 +325,7 @@ begin
   Y1 := 1 - 1 / ImageHeight * Y1;
 end;
 
-procedure TSubTexture.ReadFormXMLNode(const SubTextureNode: TDOMElement;
+procedure TStarlingSubTexture.ReadFormXMLNode(const SubTextureNode: TDOMElement;
   ImageWidth, ImageHeight: Integer);
 var
   UnderscorePos: SizeInt;
