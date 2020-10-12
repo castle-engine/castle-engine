@@ -27,8 +27,8 @@ var
   Level: TLevel;
   LastCreature: TCreature;
   LastResource: TCreatureResource;
+  ResourceButtonsGroup: TCastleVerticalGroup;
 
-procedure Resize(Container: TUIContainer); forward;
 procedure UpdateResourceButtons; forward;
 
 type
@@ -82,6 +82,7 @@ begin
   end;
 end;
 
+{ Create buttons in ResourceButtons and ResourceButtonsGroup to reflect current Resources. }
 procedure UpdateResourceButtons;
 var
   ResButton: TResourceButton;
@@ -95,44 +96,14 @@ begin
   begin
     ResButton := TResourceButton.Create(nil);
     ResButton.ButtonResource := Resources[I] as TCreatureResource;
-    ResButton.Caption := ResButton.ButtonResource.Name;
+    ResButton.Caption := 'Spawn creature ' + ResButton.ButtonResource.Name;
     ResButton.Toggle := true;
     ResourceButtons.Add(ResButton);
-    Window.Controls.InsertFront(ResButton);
+    ResourceButtonsGroup.InsertFront(ResButton);
   end;
   if Resources.Count = 0 then
     raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")',
       [ResolveCastleDataURL('castle-data:/')]);
-
-  { update buttons sizes and positions using Resize }
-  Resize(Window.Container);
-end;
-
-procedure Resize(Container: TUIContainer);
-const
-  Margin = 8;
-var
-  MaxWidth: Single;
-  Bottom: Single;
-  I: Integer;
-begin
-  MaxWidth := 0;
-  for I := 0 to ResourceButtons.Count - 1 do
-    MaxVar(MaxWidth, ResourceButtons[I].EffectiveWidth);
-
-  Bottom := Window.Height;
-  for I := 0 to ResourceButtons.Count - 1 do
-  begin
-    Bottom := Bottom - (Margin + ResourceButtons[I].EffectiveHeight);
-    ResourceButtons[I].Bottom := Bottom;
-    ResourceButtons[I].Left := Margin;
-    ResourceButtons[I].AutoSizeWidth := false;
-    ResourceButtons[I].Width := MaxWidth;
-  end;
-
-  Bottom := Bottom - (Margin * 2 + ResourceButtons[I].EffectiveHeight);
-  LoadResourceButton.Bottom := Bottom;
-  LoadResourceButton.Left := Margin;
 end;
 
 { TestAddingResourceByCode --------------------------------------------------- }
@@ -192,14 +163,19 @@ begin
   Level := TLevel.Create(Application);
   Level.Viewport := Viewport;
 
+  ResourceButtonsGroup := TCastleVerticalGroup.Create(Application);
+  ResourceButtonsGroup.Anchor(hpLeft, 10);
+  ResourceButtonsGroup.Anchor(vpTop, -10);
+  ResourceButtonsGroup.Spacing := 10;
+  Window.Controls.InsertFront(ResourceButtonsGroup);
+
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';
-  Window.Controls.InsertFront(LoadResourceButton);
+  ResourceButtonsGroup.InsertFront(LoadResourceButton);
+
   ResourceButtons := TResourceButtonList.Create(true);
   UpdateResourceButtons;
   ResourceButtons.First.DoClick;
-
-  Window.OnResize := @Resize;
 
   Application.Run;
 
