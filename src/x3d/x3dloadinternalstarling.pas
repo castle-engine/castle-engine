@@ -76,6 +76,7 @@ var
   TimeSensor: TTimeSensorNode;
   CoordInterp: TCoordinateInterpolatorNode;
   TexCoordInterp: TCoordinateInterpolator2DNode;
+  FirstFrameInFirstAnimation: Boolean;
 
 procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
 var
@@ -101,16 +102,21 @@ begin
     end;
 end;
 
-procedure PrepareX3D(const Root: TX3DRootNode);
+procedure PrepareX3DRoot;
+begin
+  Root := TX3DRootNode.Create;
+  Root.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
+  Root.Meta['source'] := ExtractURIName(URL);
+end;
+
+procedure PrepareShape( const CoordArray: array of TVector3;
+    const TexCoordArray: array of TVector2);
 var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
   Material: TUnlitMaterialNode;
 begin
-  Root.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  Root.Meta['source'] := ExtractURIName(URL);
-
   Shape:= TShapeNode.Create;
   Material := TUnlitMaterialNode.Create;
   Material.EmissiveColor := Vector3(1, 1, 1);
@@ -127,22 +133,25 @@ begin
 
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
+
   Coord := TCoordinateNode.Create('coord');
   Coord.SetPoint([
-      Vector3(-128, -128, 0),
-      Vector3(128, -128, 0),
-      Vector3(128, 128, 0),
-      Vector3(-128, -128, 0),
-      Vector3(128, 128, 0),
-      Vector3(-128, 128, 0)]);
+      CoordArray[0],
+      CoordArray[1],
+      CoordArray[2],
+      CoordArray[3],
+      CoordArray[4],
+      CoordArray[5]]);
+
   TexCoord := TTextureCoordinateNode.Create('texcoord');
   TexCoord.SetPoint([
-       Vector2(0, 0),
-       Vector2(1, 0),
-       Vector2(1, 1),
-       Vector2(0, 0),
-       Vector2(1, 1),
-       Vector2(0, 1)]);
+       TexCoordArray[0],
+       TexCoordArray[1],
+       TexCoordArray[2],
+       TexCoordArray[3],
+       TexCoordArray[4],
+       TexCoordArray[5]]);
+
   Tri.Coord := Coord;
   Tri.TexCoord := TexCoord;
   Shape.Geometry := Tri;
@@ -175,7 +184,7 @@ begin
   Root.AddRoute(R4);
 end;
 
-procedure AddFrameCoords(SubTexture: TStarlingSubTexture);
+procedure CalculateFrameCoords(const SubTexture: TStarlingSubTexture);
 begin
   CoordArray[0] := Vector3(-SubTexture.Width * (SubTexture.AnchorX),
       SubTexture.Height * (SubTexture.AnchorY), 0);
@@ -201,7 +210,10 @@ begin
   TexCoordArray[3] := Vector2(SubTexture.X1, SubTexture.Y1);
   TexCoordArray[4] := Vector2(SubTexture.X2, SubTexture.Y2);
   TexCoordArray[5] := Vector2(SubTexture.X1, SubTexture.Y2);
+end;
 
+procedure AddFrameCoords;
+begin
   CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
   TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
   { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
@@ -255,12 +267,12 @@ begin
     AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
     ReadImageProperties(URL, AtlasNode);
 
-    Root := TX3DRootNode.Create;
-    PrepareX3D(Root);
+    PrepareX3DRoot;
 
     SetLength(CoordArray, 6);
     SetLength(TexCoordArray, 6);
     CurrentAnimFrameCount := 0;
+    FirstFrameInFirstAnimation := true;
 
     I := AtlasNode.ChildrenIterator('SubTexture');
     try
@@ -268,6 +280,14 @@ begin
       begin
         { Read frame from XML }
         SubTexture.ReadFormXMLNode(I.Current, ImageWidth, ImageHeight);
+
+        CalculateFrameCoords(SubTexture);
+        { After calculate first frame cords and tex cord we need create shape. }
+        if FirstFrameInFirstAnimation then
+        begin
+          PrepareShape(CoordArray, TexCoordArray);
+          FirstFrameInFirstAnimation := false;
+        end;
 
         if LastAnimationName <> SubTexture.AnimationName then
         begin
@@ -285,18 +305,18 @@ begin
           CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
           TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
 
-          AddFrameCoords(SubTexture);
+          AddFrameCoords;
         end
         else
           begin
             { Next frame of animation }
             Inc(CurrentAnimFrameCount);
 
-            AddFrameCoords(SubTexture);
+            AddFrameCoords;
           end;
-
       end;
 
+      { Add last animation }
       if CurrentAnimFrameCount > 0 then
       begin
         AddAnimation(CurrentAnimFrameCount);
