@@ -318,6 +318,8 @@ end;
 
 procedure TStarlingSubTexture.PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
 begin
+  { The input data (X1, Y1) is the coordinates in the texture.
+    We need the coordinates in the texture so we start by computing X2 and Y2. }
   X2 := 1 / ImageWidth * (X1 + Width);
   Y2 := 1 - 1 / ImageHeight * (Y1 + Height);
 
