@@ -31,74 +31,74 @@ uses Classes, DOM,
 
 type
   TStarlingTextureAtlasLoader = class
-    strict private
-      type
-        { Class that represents SubTexture from Starling xml file }
-        TStarlingSubTexture = class
-        private
-          procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
-        public
-          AnimationName: String;
-          X1: Single;
-          Y1: Single;
-          X2: Single;
-          Y2: Single;
-          Width: Integer;
-          Height: Integer;
-          AnchorX: Single;
-          AnchorY: Single;
+  strict private
+    type
+      { Class that represents SubTexture from Starling xml file }
+      TStarlingSubTexture = class
+      private
+        procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
+      public
+        AnimationName: String;
+        X1: Single;
+        Y1: Single;
+        X2: Single;
+        Y2: Single;
+        Width: Integer;
+        Height: Integer;
+        AnchorX: Single;
+        AnchorY: Single;
 
-          procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
-        end;
+        procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
+      end;
+    var
+      FURL: String;
 
-      var
-        FURL: String;
+      FImageWidth, FImageHeight: Integer;
+      FImagePath: String;
 
-        FImageWidth, FImageHeight: Integer;
-        FImagePath: String;
+      FSubTexture: TStarlingSubTexture;
 
-        FSubTexture: TStarlingSubTexture;
+      FRoot: TX3DRootNode;
+      FShapeCoord: TCoordinateNode;
+      FShapeTexCoord: TTextureCoordinateNode;
 
-        FRoot: TX3DRootNode;
-        FShapeCoord: TCoordinateNode;
-        FShapeTexCoord: TTextureCoordinateNode;
+      FCoordArray: array of TVector3;
+      FTexCoordArray: array of TVector2;
 
-        FCoordArray: array of TVector3;
-        FTexCoordArray: array of TVector2;
+      FFramesPerSecond: Single;
+      { Animation list to check if the file has any mixed SubTexture nodes. }
+      FAnimationList: TStringList;
 
-        FFramesPerSecond: Single;
-        { Animation list to check if the file has any mixed SubTexture nodes. }
-        FAnimationList: TStringList;
+    procedure ReadImportSettings(const URL: String);
 
-        procedure ReadImportSettings(const URL: String);
+    procedure PrepareX3DRoot;
 
-        procedure PrepareX3DRoot;
+    procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
 
-        procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
+    procedure CalculateFrameCoords(const SubTexture: TStarlingSubTexture);
 
-        procedure CalculateFrameCoords(const SubTexture: TStarlingSubTexture);
+    procedure PrepareShape(const CoordArray: array of TVector3;
+        const TexCoordArray: array of TVector2);
 
-        procedure PrepareShape(const CoordArray: array of TVector3;
-            const TexCoordArray: array of TVector2);
+    procedure AddFrameCoords(const CoordInterp: TCoordinateInterpolatorNode;
+        const TexCoordInterp: TCoordinateInterpolator2DNode);
 
-        procedure AddFrameCoords(const CoordInterp: TCoordinateInterpolatorNode;
-            const TexCoordInterp: TCoordinateInterpolator2DNode);
+    procedure AddAnimation(const FrameCount: Integer;
+        const TimeSensor: TTimeSensorNode;
+        const CoordInterp: TCoordinateInterpolatorNode;
+        const TexCoordInterp: TCoordinateInterpolator2DNode);
 
-        procedure AddAnimation(const FrameCount: Integer;
-            const TimeSensor: TTimeSensorNode;
-            const CoordInterp: TCoordinateInterpolatorNode;
-            const TexCoordInterp: TCoordinateInterpolator2DNode);
+    procedure AddRoutes(const TimeSensor: TTimeSensorNode;
+        const CoordInterp: TCoordinateInterpolatorNode;
+        const TexCoordInterp: TCoordinateInterpolator2DNode);
 
-        procedure AddRoutes(const TimeSensor: TTimeSensorNode;
-            const CoordInterp: TCoordinateInterpolatorNode;
-            const TexCoordInterp: TCoordinateInterpolator2DNode);
+    function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
 
-        function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
+  public
+    constructor Create(const URL: String);
+    destructor Destroy; override;
 
-    public
-      constructor Create(const URL: String);
-      function Load: TX3DRootNode;
-      destructor Destroy; override;
+    function Load: TX3DRootNode;
   end;
 
 function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
