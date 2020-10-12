@@ -145,11 +145,10 @@ begin
     but it's an easy way to add a camera with headlight,
     and some grid to help with orientation. }
   BaseScene := TCastleScene.Create(Application);
-  BaseScene.Load('castle-data:/base.x3d');
-  { turn on headlight, as base.x3d exported from Blender has always headlight=false }
-  BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
+  BaseScene.Load('castle-data:/base.gltf');
   Viewport.Items.MainScene := BaseScene;
   Viewport.Items.Add(BaseScene);
+  Viewport.Items.UseHeadlight := hlOn;
 
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
