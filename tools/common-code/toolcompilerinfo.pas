@@ -54,10 +54,10 @@ type
   @raises EExecutableNotFound }
 function FindExeFpcCompiler: String;
 
-{ Find the executable of Lazarus IDE.
-  This is just like FindExeLazarus('lazarus')
-  but raises EExecutableNotFound in case it failed.
-  @raises EExecutableNotFound }
+{ Find the main executable of Lazarus IDE.
+  This uses FindExeLazarus for common executable names like 'lazarus' (upstream)
+  or 'lazarus-ide' (Debian/Ubuntu packages).
+  @raises EExecutableNotFound When the exe is not found. }
 function FindExeLazarusIDE: String;
 
 implementation
