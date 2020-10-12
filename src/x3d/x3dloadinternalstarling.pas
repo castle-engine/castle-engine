@@ -26,7 +26,7 @@ unit X3DLoadInternalStarling;
 
 interface
 
-uses DOM,
+uses Classes, DOM,
   X3DNodes, CastleVectors;
 
 type
@@ -67,6 +67,8 @@ type
         FTexCoordArray: array of TVector2;
 
         FFramesPerSecond: Single;
+        { Animation list to check if the file has any mixed SubTexture nodes. }
+        FAnimationList: TStringList;
 
         procedure ReadImportSettings(const URL: String);
 
@@ -91,6 +93,8 @@ type
             const CoordInterp: TCoordinateInterpolatorNode;
             const TexCoordInterp: TCoordinateInterpolator2DNode);
 
+        function CheckAnimationNameAvailable(AnimationName: String): Boolean;
+
     public
       constructor Create(const URL: String);
       function Load: TX3DRootNode;
@@ -102,7 +106,7 @@ function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
 implementation
 
 uses SysUtils, StrUtils,
-  CastleImages, CastleTextureImages, CastleURIUtils, CastleXMLUtils;
+  CastleImages, CastleTextureImages, CastleURIUtils, CastleXMLUtils, CastleLog;
 
 function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
 var
@@ -310,6 +314,19 @@ begin
   FRoot.AddRoute(R4);
 end;
 
+function TStarlingTextureAtlasLoader.CheckAnimationNameAvailable(
+    AnimationName: String): Boolean;
+begin
+  if FAnimationList.IndexOf(AnimationName) > -1 then
+  begin
+    WritelnWarning('Starling', 'Mixed animations tags (%s) in %s file', [AnimationName, FURL]);
+    Exit(false);
+  end;
+
+  FAnimationList.Add(AnimationName);
+  Result := true;
+end;
+
 
 constructor TStarlingTextureAtlasLoader.Create(const URL: String);
 begin
@@ -318,6 +335,8 @@ begin
 
   SetLength(FCoordArray, 6);
   SetLength(FTexCoordArray, 6);
+
+  FAnimationList := TStringList.Create;
 end;
 
 function TStarlingTextureAtlasLoader.Load: TX3DRootNode;
@@ -331,6 +350,7 @@ var
   CoordInterp: TCoordinateInterpolatorNode;
   TexCoordInterp: TCoordinateInterpolator2DNode;
   FirstFrameInFirstAnimation: Boolean;
+
 begin
   Result := nil;
 
@@ -368,13 +388,16 @@ begin
             { First frame of animation loaded. }
 
             if CurrentAnimFrameCount > 0 then
-            begin
-              AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
-            end;
+                AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
             { Reset variables for new animation }
-            CurrentAnimFrameCount := 1;
+            CurrentAnimFrameCount := 0;
             LastAnimationName := FSubTexture.AnimationName;
+
+            if not CheckAnimationNameAvailable(LastAnimationName) then
+              continue;
+
+            CurrentAnimFrameCount := 1;
             TimeSensor := TTimeSensorNode.Create(LastAnimationName);
             CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
             TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
@@ -392,9 +415,7 @@ begin
 
         { Add last animation }
         if CurrentAnimFrameCount > 0 then
-        begin
           AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
-        end;
 
         Result := FRoot;
 
@@ -413,6 +434,7 @@ end;
 destructor TStarlingTextureAtlasLoader.Destroy;
 begin
   FreeAndNil(FSubTexture);
+  FreeAndNil(FAnimationList);
   inherited Destroy;
 end;
 
