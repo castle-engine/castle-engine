@@ -639,12 +639,12 @@ begin
   if AnimationName <> '' then
   begin
     if Owner.Model = nil then
-      raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but model url is not defined (neither specific to this animation nor containing multiple animations)',
+      raise Exception.CreateFmt('Animation "%s" of resource "%s": animation_name is defined, but model url is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
     FDuration := Owner.Model.AnimationDuration(AnimationName);
   end else
   if Required then
-    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or time_sensor for this animation in appropriate resource.xml file',
+    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or animation_name for this animation in appropriate resource.xml file',
       [Name, Owner.Name]);
 end;
 
