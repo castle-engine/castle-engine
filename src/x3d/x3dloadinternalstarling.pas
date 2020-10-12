@@ -93,7 +93,7 @@ type
             const CoordInterp: TCoordinateInterpolatorNode;
             const TexCoordInterp: TCoordinateInterpolator2DNode);
 
-        function CheckAnimationNameAvailable(AnimationName: String): Boolean;
+        function CheckAnimationNameAvailable(const AnimationName: String): Boolean;
 
     public
       constructor Create(const URL: String);
@@ -315,7 +315,7 @@ begin
 end;
 
 function TStarlingTextureAtlasLoader.CheckAnimationNameAvailable(
-    AnimationName: String): Boolean;
+    const AnimationName: String): Boolean;
 begin
   if FAnimationList.IndexOf(AnimationName) > -1 then
   begin
