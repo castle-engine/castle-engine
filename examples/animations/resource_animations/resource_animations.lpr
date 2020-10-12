@@ -65,7 +65,7 @@ begin
 
   { update Pressed of buttons }
   for I := 0 to ResourceButtons.Count - 1 do
-    ResourceButtons[I].Pressed := ResourceButtons[I].ButtonResource = LastResource;
+    ResourceButtons[I].Pressed := ResourceButtons[I] = Self; // only Self remains pressed
 end;
 
 procedure TLoadResourceButton.DoClick;
