@@ -27,90 +27,165 @@ unit X3DLoadInternalStarling;
 interface
 
 uses DOM,
-  X3DNodes;
+  X3DNodes, CastleVectors;
 
 type
+  TStarlingTextureAtlasLoader = class
+    strict private
+      type
+        { Class that represents SubTexture from Starling xml file }
+        TStarlingSubTexture = class
+        private
+          procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
+        public
+          AnimationName: String;
+          X1: Single;
+          Y1: Single;
+          X2: Single;
+          Y2: Single;
+          Width: Integer;
+          Height: Integer;
+          AnchorX: Single;
+          AnchorY: Single;
 
-  TStarlingSubTexture = class
-  private
-    procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
-  public
-    AnimationName: String;
-    X1: Single;
-    Y1: Single;
-    X2: Single;
-    Y2: Single;
-    Width: Integer;
-    Height: Integer;
-    AnchorX: Single;
-    AnchorY: Single;
+          procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
+        end;
 
-    procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; ImageWidth, ImageHeight: Integer);
+      var
+        FURL: String;
+
+        FImageWidth, FImageHeight: Integer;
+        FImagePath: String;
+
+        FSubTexture: TStarlingSubTexture;
+
+        FRoot: TX3DRootNode;
+        FShapeCoord: TCoordinateNode;
+        FShapeTexCoord: TTextureCoordinateNode;
+
+        FCoordArray: array of TVector3;
+        FTexCoordArray: array of TVector2;
+
+        FFramesPerSecond: Single;
+
+        procedure ReadImportSettings(const URL: String);
+
+        procedure PrepareX3DRoot;
+
+        procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
+
+        procedure CalculateFrameCoords(const SubTexture: TStarlingSubTexture);
+
+        procedure PrepareShape(const CoordArray: array of TVector3;
+            const TexCoordArray: array of TVector2);
+
+        procedure AddFrameCoords(const CoordInterp: TCoordinateInterpolatorNode;
+            const TexCoordInterp: TCoordinateInterpolator2DNode);
+
+        procedure AddAnimation(const FrameCount: Integer;
+            const TimeSensor: TTimeSensorNode;
+            const CoordInterp: TCoordinateInterpolatorNode;
+            const TexCoordInterp: TCoordinateInterpolator2DNode);
+
+        procedure AddRoutes(const TimeSensor: TTimeSensorNode;
+            const CoordInterp: TCoordinateInterpolatorNode;
+            const TexCoordInterp: TCoordinateInterpolator2DNode);
+
+    public
+      constructor Create(const URL: String);
+      function Load: TX3DRootNode;
+      destructor Destroy; override;
   end;
-
-var
-  FramesPerSecond: Single = 4.0;
 
 function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
 
 implementation
 
 uses SysUtils, StrUtils,
-  CastleImages, CastleTextureImages, CastleURIUtils, CastleVectors, CastleXMLUtils;
+  CastleImages, CastleTextureImages, CastleURIUtils, CastleXMLUtils;
 
 function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
 var
-  Doc: TXMLDocument;
-  AtlasNode: TDOMElement;
-  I: TXMLElementIterator;
-  ImageWidth, ImageHeight: Integer;
-  ImagePath: String;
-  SubTexture: TStarlingSubTexture;
-  Root: TX3DRootNode;
-  LastAnimationName: String;
-  Coord: TCoordinateNode;
-  TexCoord: TTextureCoordinateNode;
-  CoordArray: array of TVector3;
-  TexCoordArray: array of TVector2;
-  CurrentAnimFrameCount: Integer;
-  TimeSensor: TTimeSensorNode;
-  CoordInterp: TCoordinateInterpolatorNode;
-  TexCoordInterp: TCoordinateInterpolator2DNode;
-  FirstFrameInFirstAnimation: Boolean;
+  StarlingLoader: TStarlingTextureAtlasLoader;
+begin
+  StarlingLoader := TStarlingTextureAtlasLoader.Create(URL);
+  try
+    Result := StarlingLoader.Load;
+  finally
+    FreeAndNil(StarlingLoader);
+  end;
+end;
 
-procedure ReadImageProperties(const URL: String; const AtlasNode: TDOMElement);
+{ TStarlingTextureAtlasLoader }
+
+procedure TStarlingTextureAtlasLoader.ReadImportSettings(const URL: String);
+begin
+  // TODO: read settings from URL anchors
+  FFramesPerSecond := 4.0;
+end;
+
+procedure TStarlingTextureAtlasLoader.PrepareX3DRoot;
+begin
+  FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
+  FRoot.Meta['source'] := ExtractURIName(FURL);
+end;
+
+procedure TStarlingTextureAtlasLoader.ReadImageProperties(const URL: String;
+  const AtlasNode: TDOMElement);
 var
   Image: TCastleImage;
 begin
-  ImagePath := ExtractURIPath(URL) + AtlasNode.AttributeString('imagePath');
+  FImagePath := ExtractURIPath(URL) + AtlasNode.AttributeString('imagePath');
   { Some exporters like Free Texture Packer add width and height attributes.
     In this case we don't need load image to check them. }
   if AtlasNode.HasAttribute('width') and AtlasNode.HasAttribute('height') then
   begin
-    ImageWidth := AtlasNode.AttributeInteger('width');
-    ImageHeight := AtlasNode.AttributeInteger('height');
+    FImageWidth := AtlasNode.AttributeInteger('width');
+    FImageHeight := AtlasNode.AttributeInteger('height');
   end
   else
     begin
-      Image := LoadImage(ImagePath);
+      Image := LoadImage(FImagePath);
       try
-        ImageWidth := Image.Width;
-        ImageHeight := Image.Height;
+        FImageWidth := Image.Width;
+        FImageHeight := Image.Height;
       finally
         FreeAndNil(Image);
       end;
     end;
 end;
 
-procedure PrepareX3DRoot;
+procedure TStarlingTextureAtlasLoader.CalculateFrameCoords(
+  const SubTexture: TStarlingSubTexture);
 begin
-  Root := TX3DRootNode.Create;
-  Root.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
-  Root.Meta['source'] := ExtractURIName(URL);
+  FCoordArray[0] := Vector3(-SubTexture.Width * (SubTexture.AnchorX),
+      SubTexture.Height * (SubTexture.AnchorY), 0);
+
+  FCoordArray[1] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
+      SubTexture.Height * (SubTexture.AnchorY), 0);
+
+  FCoordArray[2] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
+      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
+
+  FCoordArray[3] := Vector3(-SubTexture.Width * SubTexture.AnchorX,
+      SubTexture.Height * SubTexture.AnchorY, 0);
+
+  FCoordArray[4] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
+      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
+
+  FCoordArray[5] := Vector3(-SubTexture.Width * SubTexture.AnchorX,
+      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
+
+  FTexCoordArray[0] := Vector2(SubTexture.X1, SubTexture.Y1);
+  FTexCoordArray[1] := Vector2(SubTexture.X2, SubTexture.Y1);
+  FTexCoordArray[2] := Vector2(SubTexture.X2, SubTexture.Y2);
+  FTexCoordArray[3] := Vector2(SubTexture.X1, SubTexture.Y1);
+  FTexCoordArray[4] := Vector2(SubTexture.X2, SubTexture.Y2);
+  FTexCoordArray[5] := Vector2(SubTexture.X1, SubTexture.Y2);
 end;
 
-procedure PrepareShape( const CoordArray: array of TVector3;
-    const TexCoordArray: array of TVector2);
+procedure TStarlingTextureAtlasLoader.PrepareShape(
+  const CoordArray: array of TVector3; const TexCoordArray: array of TVector2);
 var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
@@ -123,7 +198,7 @@ begin
   Shape.Material := Material;
 
   Tex := TImageTextureNode.Create;
-  Tex.FdUrl.Send(ImagePath);
+  Tex.FdUrl.Send(FImagePath);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
   Tex.TextureProperties := TTexturePropertiesNode.Create;
@@ -134,8 +209,8 @@ begin
   Tri := TTriangleSetNode.Create;
   Tri.Solid := false;
 
-  Coord := TCoordinateNode.Create('coord');
-  Coord.SetPoint([
+  FShapeCoord := TCoordinateNode.Create('coord');
+  FShapeCoord.SetPoint([
       CoordArray[0],
       CoordArray[1],
       CoordArray[2],
@@ -143,8 +218,8 @@ begin
       CoordArray[4],
       CoordArray[5]]);
 
-  TexCoord := TTextureCoordinateNode.Create('texcoord');
-  TexCoord.SetPoint([
+  FShapeTexCoord := TTextureCoordinateNode.Create('texcoord');
+  FShapeTexCoord.SetPoint([
        TexCoordArray[0],
        TexCoordArray[1],
        TexCoordArray[2],
@@ -152,87 +227,39 @@ begin
        TexCoordArray[4],
        TexCoordArray[5]]);
 
-  Tri.Coord := Coord;
-  Tri.TexCoord := TexCoord;
+  Tri.Coord := FShapeCoord;
+  Tri.TexCoord := FShapeTexCoord;
   Shape.Geometry := Tri;
 
-  Root.AddChildren(Shape);
+  FRoot.AddChildren(Shape);
 end;
 
-procedure AddRoutes(const TimeSensor: TTimeSensorNode;
+procedure TStarlingTextureAtlasLoader.AddFrameCoords(
+    const CoordInterp: TCoordinateInterpolatorNode;
+    const TexCoordInterp: TCoordinateInterpolator2DNode);
+begin
+  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
+  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
+  { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
+  CoordInterp.FdKeyValue.Items.AddRange(FCoordArray);
+  TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
+end;
+
+procedure TStarlingTextureAtlasLoader.AddAnimation(const FrameCount: Integer;
+  const TimeSensor: TTimeSensorNode;
   const CoordInterp: TCoordinateInterpolatorNode;
   const TexCoordInterp: TCoordinateInterpolator2DNode);
-var
-  R1, R2, R3, R4: TX3DRoute;
-begin
-  { Create routes. }
-  R1 := TX3DRoute.Create;
-  R2 := TX3DRoute.Create;
-  R3 := TX3DRoute.Create;
-  R4 := TX3DRoute.Create;
-  R1.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R1.SetDestinationDirectly(CoordInterp.EventSet_fraction);
-  R2.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R2.SetDestinationDirectly(TexCoordInterp.EventSet_fraction);
-  R3.SetSourceDirectly(CoordInterp.EventValue_changed);
-  R3.SetDestinationDirectly(Coord.FdPoint);
-  R4.SetSourceDirectly(TexCoordInterp.EventValue_changed);
-  R4.SetDestinationDirectly(TexCoord.FdPoint);
-  Root.AddRoute(R1);
-  Root.AddRoute(R2);
-  Root.AddRoute(R3);
-  Root.AddRoute(R4);
-end;
-
-procedure CalculateFrameCoords(const SubTexture: TStarlingSubTexture);
-begin
-  CoordArray[0] := Vector3(-SubTexture.Width * (SubTexture.AnchorX),
-      SubTexture.Height * (SubTexture.AnchorY), 0);
-
-  CoordArray[1] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
-      SubTexture.Height * (SubTexture.AnchorY), 0);
-
-  CoordArray[2] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
-      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
-
-  CoordArray[3] := Vector3(-SubTexture.Width * SubTexture.AnchorX,
-      SubTexture.Height * SubTexture.AnchorY, 0);
-
-  CoordArray[4] := Vector3(SubTexture.Width * (1 - SubTexture.AnchorX),
-      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
-
-  CoordArray[5] := Vector3(-SubTexture.Width * SubTexture.AnchorX,
-      -SubTexture.Height * (1 - SubTexture.AnchorY), 0);
-
-  TexCoordArray[0] := Vector2(SubTexture.X1, SubTexture.Y1);
-  TexCoordArray[1] := Vector2(SubTexture.X2, SubTexture.Y1);
-  TexCoordArray[2] := Vector2(SubTexture.X2, SubTexture.Y2);
-  TexCoordArray[3] := Vector2(SubTexture.X1, SubTexture.Y1);
-  TexCoordArray[4] := Vector2(SubTexture.X2, SubTexture.Y2);
-  TexCoordArray[5] := Vector2(SubTexture.X1, SubTexture.Y2);
-end;
-
-procedure AddFrameCoords;
-begin
-  CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
-  TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-  { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
-  CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
-  TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
-end;
-
-procedure AddAnimation(FrameCount:Integer);
 var
   I: Integer;
   Key: Single;
 begin
   { Set Cycle Interval becouse we know now frame count }
-  TimeSensor.CycleInterval := CurrentAnimFrameCount / FramesPerSecond;
+  TimeSensor.CycleInterval := FrameCount / FFramesPerSecond;
 
   { Generate list of keys. }
-  for I := 0 to CurrentAnimFrameCount - 1 do
+  for I := 0 to FrameCount - 1 do
   begin
-    Key := I / CurrentAnimFrameCount;
+    Key := I / FrameCount;
 
     CoordInterp.FdKey.Items.Add(Key);
     TexCoordInterp.FdKey.Items.Add(Key);
@@ -251,92 +278,148 @@ begin
 
   { Add TimeSensor, CoordinateInterpolatorNode,
     CoordinateInterpolator2DNode to Root node }
-  Root.AddChildren(TimeSensor);
-  Root.AddChildren(CoordInterp);
-  Root.AddChildren(TexCoordInterp);
+  FRoot.AddChildren(TimeSensor);
+  FRoot.AddChildren(CoordInterp);
+  FRoot.AddChildren(TexCoordInterp);
   AddRoutes(TimeSensor, CoordInterp, TexCoordInterp);
 end;
 
+procedure TStarlingTextureAtlasLoader.AddRoutes(
+  const TimeSensor: TTimeSensorNode;
+  const CoordInterp: TCoordinateInterpolatorNode;
+  const TexCoordInterp: TCoordinateInterpolator2DNode);
+var
+  R1, R2, R3, R4: TX3DRoute;
 begin
+  { Create routes. }
+  R1 := TX3DRoute.Create;
+  R2 := TX3DRoute.Create;
+  R3 := TX3DRoute.Create;
+  R4 := TX3DRoute.Create;
+  R1.SetSourceDirectly(TimeSensor.EventFraction_changed);
+  R1.SetDestinationDirectly(CoordInterp.EventSet_fraction);
+  R2.SetSourceDirectly(TimeSensor.EventFraction_changed);
+  R2.SetDestinationDirectly(TexCoordInterp.EventSet_fraction);
+  R3.SetSourceDirectly(CoordInterp.EventValue_changed);
+  R3.SetDestinationDirectly(FShapeCoord.FdPoint);
+  R4.SetSourceDirectly(TexCoordInterp.EventValue_changed);
+  R4.SetDestinationDirectly(FShapeTexCoord.FdPoint);
+  FRoot.AddRoute(R1);
+  FRoot.AddRoute(R2);
+  FRoot.AddRoute(R3);
+  FRoot.AddRoute(R4);
+end;
+
+
+constructor TStarlingTextureAtlasLoader.Create(const URL: String);
+begin
+  FURL := URL;
+  FSubTexture := TStarlingSubTexture.Create;
+
+  SetLength(FCoordArray, 6);
+  SetLength(FTexCoordArray, 6);
+end;
+
+function TStarlingTextureAtlasLoader.Load: TX3DRootNode;
+var
+  Doc: TXMLDocument;
+  AtlasNode: TDOMElement;
+  I: TXMLElementIterator;
+  LastAnimationName: String;
+  CurrentAnimFrameCount: Integer;
+  TimeSensor: TTimeSensorNode;
+  CoordInterp: TCoordinateInterpolatorNode;
+  TexCoordInterp: TCoordinateInterpolator2DNode;
+  FirstFrameInFirstAnimation: Boolean;
+begin
+  Result := nil;
+
+  ReadImportSettings(FURL);
+
+  FRoot := nil;
   Doc := nil;
-  SubTexture := nil;
-  Root := nil;
   try
-    Doc := URLReadXML(URL);
-    SubTexture := TStarlingSubTexture.Create;
-    AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
-    ReadImageProperties(URL, AtlasNode);
-
-    PrepareX3DRoot;
-
-    SetLength(CoordArray, 6);
-    SetLength(TexCoordArray, 6);
-    CurrentAnimFrameCount := 0;
-    FirstFrameInFirstAnimation := true;
-
-    I := AtlasNode.ChildrenIterator('SubTexture');
     try
-      while I.GetNext do
-      begin
-        { Read frame from XML }
-        SubTexture.ReadFormXMLNode(I.Current, ImageWidth, ImageHeight);
+      FRoot := TX3DRootNode.Create;
+      Doc := URLReadXML(FURL);
+      AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
+      ReadImageProperties(FURL, AtlasNode);
 
-        CalculateFrameCoords(SubTexture);
-        { After calculate first frame cords and tex cord we need create shape. }
-        if FirstFrameInFirstAnimation then
+      CurrentAnimFrameCount := 0;
+      FirstFrameInFirstAnimation := true;
+
+      I := AtlasNode.ChildrenIterator('SubTexture');
+      try
+        while I.GetNext do
         begin
-          PrepareShape(CoordArray, TexCoordArray);
-          FirstFrameInFirstAnimation := false;
+          { Read frame from XML }
+          FSubTexture.ReadFormXMLNode(I.Current, FImageWidth, FImageHeight);
+
+          CalculateFrameCoords(FSubTexture);
+          { After calculate first frame cords and tex cord we need create shape. }
+          if FirstFrameInFirstAnimation then
+          begin
+            PrepareShape(FCoordArray, FTexCoordArray);
+            FirstFrameInFirstAnimation := false;
+          end;
+
+          if LastAnimationName <> FSubTexture.AnimationName then
+          begin
+            { First frame of animation loaded. }
+
+            if CurrentAnimFrameCount > 0 then
+            begin
+              AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
+            end;
+
+            { Reset variables for new animation }
+            CurrentAnimFrameCount := 1;
+            LastAnimationName := FSubTexture.AnimationName;
+            TimeSensor := TTimeSensorNode.Create(LastAnimationName);
+            CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
+            TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
+
+            AddFrameCoords(CoordInterp, TexCoordInterp);
+          end
+          else
+            begin
+              { Next frame of animation }
+              Inc(CurrentAnimFrameCount);
+
+              AddFrameCoords(CoordInterp, TexCoordInterp);
+            end;
         end;
 
-        if LastAnimationName <> SubTexture.AnimationName then
+        { Add last animation }
+        if CurrentAnimFrameCount > 0 then
         begin
-          { First frame of animation loaded. }
+          AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
+        end;
 
-          if CurrentAnimFrameCount > 0 then
-          begin
-            AddAnimation(CurrentAnimFrameCount);
-          end;
+        Result := FRoot;
 
-          { Reset variables for new animation }
-          CurrentAnimFrameCount := 1;
-          LastAnimationName := SubTexture.AnimationName;
-          TimeSensor := TTimeSensorNode.Create(LastAnimationName);
-          CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
-          TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
-
-          AddFrameCoords;
-        end
-        else
-          begin
-            { Next frame of animation }
-            Inc(CurrentAnimFrameCount);
-
-            AddFrameCoords;
-          end;
+      finally
+        FreeAndNil(I);
       end;
-
-      { Add last animation }
-      if CurrentAnimFrameCount > 0 then
-      begin
-        AddAnimation(CurrentAnimFrameCount);
-      end;
-
-      Result := Root;
-
-    finally
-      FreeAndNil(I);
+    except
+      FreeAndNil(FRoot);
+      raise;
     end;
-
   finally
     FreeAndNil(Doc);
-    FreeAndNil(SubTexture);
   end;
+end;
+
+destructor TStarlingTextureAtlasLoader.Destroy;
+begin
+  FreeAndNil(FSubTexture);
+  inherited Destroy;
 end;
 
 { TStarlingSubTexture }
 
-procedure TStarlingSubTexture.PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
+procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareCordsForX3D(
+    ImageWidth, ImageHeight: Integer);
 begin
   { The input data (X1, Y1) is the coordinates in the texture.
     We need the coordinates in the texture so we start by computing X2 and Y2. }
@@ -347,8 +430,8 @@ begin
   Y1 := 1 - 1 / ImageHeight * Y1;
 end;
 
-procedure TStarlingSubTexture.ReadFormXMLNode(const SubTextureNode: TDOMElement;
-  ImageWidth, ImageHeight: Integer);
+procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ReadFormXMLNode(
+    const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
 var
   UnderscorePos: SizeInt;
   FrameXTrim: Integer;
