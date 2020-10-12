@@ -17,7 +17,7 @@
 uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, CastleTransform, CastleCreatures, CastleLog,
+  CastleUtils, CastleTransform, CastleCreatures, CastleLog, CastleCameras,
   CastleURIUtils, CastleViewport, CastleLevels, CastleVectors;
 
 var
@@ -106,8 +106,6 @@ begin
       [ResolveCastleDataURL('castle-data:/')]);
 end;
 
-{ TestAddingResourceByCode --------------------------------------------------- }
-
 { An example of creating a resource (TStillCreatureResource in this case)
   without resource.xml file. You just create an instance of TXxxResource by hand,
   fill the properties you need, and add it to global Resources list. }
@@ -133,8 +131,6 @@ begin
 
   Viewport := TCastleViewport.Create(Application);
   Viewport.FullSize := true;
-  Viewport.AutoCamera := true;
-  Viewport.AutoNavigation := true;
   Window.Controls.InsertFront(Viewport);
 
   Resources.LoadFromFiles;
@@ -149,6 +145,10 @@ begin
   Viewport.Items.MainScene := BaseScene;
   Viewport.Items.Add(BaseScene);
   Viewport.Items.UseHeadlight := hlOn;
+
+  Viewport.AssignDefaultCamera; // derive camera from base.gltf (in MainScene)
+
+  Viewport.Navigation := TCastleExamineNavigation.Create(Application);
 
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
