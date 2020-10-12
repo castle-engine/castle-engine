@@ -17,91 +17,24 @@
 uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog,
-  CastleURIUtils, CastleViewport;
+  CastleUtils, CastleTransform, CastleCreatures, CastleLog,
+  CastleURIUtils, CastleViewport, CastleLevels, CastleVectors;
 
 var
-  BaseScene: TCastleScene;
   Window: TCastleWindowBase;
   Viewport: TCastleViewport;
-  Resource: T3DResource;
-  Animation: T3DResourceAnimation;
-
-{ 3D things ------------------------------------------------------------------ }
-
-type
-  { Display current Animation in a loop.
-
-    In a normal game, you would never display T3DResourceAnimation like this.
-    Actually, in a normal game, you would never deal directly with
-    T3DResourceAnimation. Instead, in a game, resource logic
-    (like TWalkAttackCreature implementation) chooses appropriate animation
-    (and whether it's looping), based on creature state (whether it's dead,
-    attacking and such), and the animation is displayed because
-    creature/item is already a part of 3D world.
-
-    Here, to directly show the animation, we go around the normal CastleCreatures
-    and CastleItems mechanisms, and we directly get the animation. }
-  TLoopAnimation = class(TCastleTransform)
-  public
-    Time: Single;
-    CurrentChild: TCastleTransform;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-  end;
-
-procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  function GetChild: TCastleTransform;
-  begin
-    if not (GetExists and Resource.Prepared) then Exit;
-    Result := Animation.Scene(Time, true);
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
-    end;
-  end;
-
-begin
-  Time := Time + SecondsPassed;
-  VisibleChangeHere([vcVisibleGeometry]);
-  UpdateChild;
-end;
-
-var
-  LoopAnimation: TLoopAnimation;
-
-{ 2D things (buttons) -------------------------------------------------------- }
-
-type
-  TUpdateCurrentResource = (
-    ucpActivateFirst,
-    ucpActivateLast,
-    ucpUpdateOnlyAnimations);
+  BaseScene: TCastleScene;
+  Level: TLevel;
+  LastCreature: TCreature;
+  LastResource: TCreatureResource;
 
 procedure Resize(Container: TUIContainer); forward;
-procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource); forward;
+procedure UpdateResourceButtons; forward;
 
 type
   TResourceButton = class(TCastleButton)
   public
-    ButtonResource: T3DResource;
-    procedure DoClick; override;
-  end;
-
-  TAnimationButton = class(TCastleButton)
-  public
-    ButtonAnimation: T3DResourceAnimation;
+    ButtonResource: TCreatureResource;
     procedure DoClick; override;
   end;
 
@@ -113,35 +46,26 @@ type
   end;
 
   TResourceButtonList = specialize TObjectList<TResourceButton>;
-  TAnimationButtonList = specialize TObjectList<TAnimationButton>;
 
 var
-  ResButtons: TResourceButtonList;
-  AnimButtons: TAnimationButtonList;
+  ResourceButtons: TResourceButtonList;
   LoadResourceButton: TLoadResourceButton;
 
 procedure TResourceButton.DoClick;
 var
   I: Integer;
 begin
-  Resource := ButtonResource;
-  { update Pressed of buttons }
-  for I := 0 to ResButtons.Count - 1 do
-    ResButtons[I].Pressed := ResButtons[I].ButtonResource = Resource;
-  { load buttons for animations of currently selected Resource }
-  UpdateButtons(ucpUpdateOnlyAnimations);
-end;
+  FreeAndNil(LastCreature); // remove previous creature
 
-procedure TAnimationButton.DoClick;
-var
-  I: Integer;
-begin
-  Animation := ButtonAnimation;
+  { CreateCreature creates TCreature instance and adds it to Viewport.Items }
+  LastResource := ButtonResource;
+  LastCreature := LastResource.CreateCreature(Level,
+    { Translation } Vector3(0, 0, 0),
+    { Direction } Vector3(0, 0, 1));
+
   { update Pressed of buttons }
-  for I := 0 to AnimButtons.Count - 1 do
-    AnimButtons[I].Pressed := AnimButtons[I].ButtonAnimation = Animation;
-  { reset time }
-  LoopAnimation.Time := 0;
+  for I := 0 to ResourceButtons.Count - 1 do
+    ResourceButtons[I].Pressed := ResourceButtons[I].ButtonResource = LastResource;
 end;
 
 procedure TLoadResourceButton.DoClick;
@@ -152,67 +76,33 @@ begin
     Resources.AddFromFile(LastChosenURL);
     { directly prepare new resource }
     Resources.Prepare(Viewport.PrepareParams, 'resources');
-    UpdateButtons(ucpActivateLast);
+
+    UpdateResourceButtons;
+    ResourceButtons.Last.DoClick; // newly added resource is the last, activate it
   end;
 end;
 
-procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource);
+procedure UpdateResourceButtons;
 var
   ResButton: TResourceButton;
-  AnimButton: TAnimationButton;
   I: Integer;
 begin
-  if UpdateCurrentResource <> ucpUpdateOnlyAnimations then
+  { easily destroy all existing buttons using the XxxButtons list,
+    destroying them also automatically removed them from Window.Controls list }
+  ResourceButtons.Clear;
+
+  for I := 0 to Resources.Count - 1 do
   begin
-    { easily destroy all existing buttons using the XxxButtons list,
-      destroying them also automatically removed them from Window.Controls list }
-    ResButtons.Clear;
-
-    for I := 0 to Resources.Count - 1 do
-    begin
-      ResButton := TResourceButton.Create(nil);
-      ResButton.ButtonResource := Resources[I];
-      ResButton.Caption := ResButton.ButtonResource.Name;
-      ResButton.Toggle := true;
-      ResButtons.Add(ResButton);
-      Window.Controls.InsertFront(ResButton);
-    end;
-    if Resources.Count = 0 then
-      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")',
-        [ResolveCastleDataURL('castle-data:/')]);
-    case UpdateCurrentResource of
-      ucpActivateFirst:
-        begin
-          Resource := Resources.First;
-          ResButtons.First.Pressed := true;
-        end;
-      ucpActivateLast :
-        begin
-          Resource := Resources.Last;
-          ResButtons.Last.Pressed := true;
-        end;
-    end;
+    ResButton := TResourceButton.Create(nil);
+    ResButton.ButtonResource := Resources[I] as TCreatureResource;
+    ResButton.Caption := ResButton.ButtonResource.Name;
+    ResButton.Toggle := true;
+    ResourceButtons.Add(ResButton);
+    Window.Controls.InsertFront(ResButton);
   end;
-
-  AnimButtons.Clear;
-  Animation := nil;
-  for I := 0 to Resource.Animations.Count - 1 do
-    if Resource.Animations[I].Defined then
-    begin
-      AnimButton := TAnimationButton.Create(nil);
-      AnimButton.ButtonAnimation := Resource.Animations[I];
-      AnimButton.Caption := AnimButton.ButtonAnimation.Name;
-      AnimButton.Toggle := true;
-      if Animation = nil then
-      begin
-        Animation := Resource.Animations[I];
-        AnimButton.Pressed := true;
-      end;
-      AnimButtons.Add(AnimButton);
-      Window.Controls.InsertFront(AnimButton);
-    end;
-  if Animation = nil then
-    raise Exception.CreateFmt('No (defined) animation found in resource "%s"', [Resource.Name]);
+  if Resources.Count = 0 then
+    raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")',
+      [ResolveCastleDataURL('castle-data:/')]);
 
   { update buttons sizes and positions using Resize }
   Resize(Window.Container);
@@ -227,36 +117,22 @@ var
   I: Integer;
 begin
   MaxWidth := 0;
-  for I := 0 to ResButtons.Count - 1 do
-    MaxVar(MaxWidth, ResButtons[I].EffectiveWidth);
+  for I := 0 to ResourceButtons.Count - 1 do
+    MaxVar(MaxWidth, ResourceButtons[I].EffectiveWidth);
 
   Bottom := Window.Height;
-  for I := 0 to ResButtons.Count - 1 do
+  for I := 0 to ResourceButtons.Count - 1 do
   begin
-    Bottom := Bottom - (Margin + ResButtons[I].EffectiveHeight);
-    ResButtons[I].Bottom := Bottom;
-    ResButtons[I].Left := Margin;
-    ResButtons[I].AutoSizeWidth := false;
-    ResButtons[I].Width := MaxWidth;
+    Bottom := Bottom - (Margin + ResourceButtons[I].EffectiveHeight);
+    ResourceButtons[I].Bottom := Bottom;
+    ResourceButtons[I].Left := Margin;
+    ResourceButtons[I].AutoSizeWidth := false;
+    ResourceButtons[I].Width := MaxWidth;
   end;
 
-  Bottom := Bottom - (Margin * 2 + ResButtons[I].EffectiveHeight);
+  Bottom := Bottom - (Margin * 2 + ResourceButtons[I].EffectiveHeight);
   LoadResourceButton.Bottom := Bottom;
   LoadResourceButton.Left := Margin;
-
-  MaxWidth := 0;
-  for I := 0 to AnimButtons.Count - 1 do
-    MaxVar(MaxWidth, AnimButtons[I].EffectiveWidth);
-
-  Bottom := Window.Height;
-  for I := 0 to AnimButtons.Count - 1 do
-  begin
-    Bottom := Bottom - (Margin + AnimButtons[I].EffectiveHeight);
-    AnimButtons[I].Bottom := Bottom;
-    AnimButtons[I].Left := Window.Width - Margin - MaxWidth;
-    AnimButtons[I].AutoSizeWidth := false;
-    AnimButtons[I].Width := MaxWidth;
-  end;
 end;
 
 { TestAddingResourceByCode --------------------------------------------------- }
@@ -309,20 +185,23 @@ begin
     depend on TLevel.Load doing this for you. }
   Resources.Prepare(Viewport.PrepareParams, 'resources');
 
+  { Level refers to a Viewport.
+    We need to create Level, as creature can be spawned only within a Level,
+    using LastResource.CreateCreature(Level, ...),
+    placing it inside "Viewport.Items". }
+  Level := TLevel.Create(Application);
+  Level.Viewport := Viewport;
+
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';
   Window.Controls.InsertFront(LoadResourceButton);
-  ResButtons := TResourceButtonList.Create(true);
-  AnimButtons := TAnimationButtonList.Create(true);
-  UpdateButtons(ucpActivateFirst);
-
-  LoopAnimation := TLoopAnimation.Create(Application);
-  Viewport.Items.Add(LoopAnimation);
+  ResourceButtons := TResourceButtonList.Create(true);
+  UpdateResourceButtons;
+  ResourceButtons.First.DoClick;
 
   Window.OnResize := @Resize;
 
   Application.Run;
 
-  FreeAndNil(ResButtons);
-  FreeAndNil(AnimButtons);
+  FreeAndNil(ResourceButtons);
 end.
