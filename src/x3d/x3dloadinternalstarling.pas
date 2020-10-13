@@ -207,17 +207,16 @@ begin
   begin
     FImageWidth := AtlasNode.AttributeInteger('width');
     FImageHeight := AtlasNode.AttributeInteger('height');
-  end
-  else
-    begin
-      Image := LoadImage(FImagePath);
-      try
-        FImageWidth := Image.Width;
-        FImageHeight := Image.Height;
-      finally
-        FreeAndNil(Image);
-      end;
+  end else
+  begin
+    Image := LoadImage(FImagePath);
+    try
+      FImageWidth := Image.Width;
+      FImageHeight := Image.Height;
+    finally
+      FreeAndNil(Image);
     end;
+  end;
 end;
 
 procedure TStarlingTextureAtlasLoader.CalculateFrameCoords(
@@ -464,14 +463,13 @@ begin
             TexCoordInterp := TCoordinateInterpolator2DNode.Create(LastAnimationName + '_TexCoord');
 
             AddFrameCoords(CoordInterp, TexCoordInterp);
-          end
-          else
-            begin
-              { Next frame of animation }
-              Inc(CurrentAnimFrameCount);
+          end else
+          begin
+            { Next frame of animation }
+            Inc(CurrentAnimFrameCount);
 
-              AddFrameCoords(CoordInterp, TexCoordInterp);
-            end;
+            AddFrameCoords(CoordInterp, TexCoordInterp);
+          end;
         end;
 
         { Add last animation }
@@ -562,12 +560,11 @@ begin
 
     AnchorX := 1 / Width * (FrameAnchorX - FrameXTrim);
     AnchorY := 1 / Height * (FrameAnchorY - FrameYTrim);
-  end
-  else
-    begin
-      AnchorX := 0.5;
-      AnchorY := 0.5;
-    end;
+  end else
+  begin
+    AnchorX := 0.5;
+    AnchorY := 0.5;
+  end;
 
   PrepareCordsForX3D(ImageWidth, ImageHeight);
 end;
