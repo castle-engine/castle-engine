@@ -528,7 +528,20 @@ begin
   AnimationName := SubTextureNode.AttributeString('name');
   UnderscorePos := rpos('_', AnimationName);
   if UnderscorePos > 0 then
-    Delete(AnimationName, UnderscorePos, Length(AnimationName) - UnderscorePos);
+    Delete(AnimationName, UnderscorePos, Length(AnimationName) - UnderscorePos)
+  else
+  begin
+    { I found a lot of Starling files that don't have underscore but a number on end
+      so we need find and remove last number. }
+    RemoveTrailingChars(AnimationName, ['1','2','3','4','5','6','7','8','9','0']);
+
+    if AnimationName = '' then
+    begin
+      WritelnWarning('Starling', 'Incorrect animation name (%s), I set to "unknown"',
+      [SubTextureNode.AttributeString('name')]);
+      AnimationName := 'unknown';
+    end;
+  end;
 
   X1 := SubTextureNode.AttributeInteger('x');
   Y1 := SubTextureNode.AttributeInteger('y');
