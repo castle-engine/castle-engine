@@ -352,7 +352,8 @@ begin
     Result := LoadGLTF(URL)
   else
 
-  if MimeType = 'image/starling-texture-atlas' then
+  if (MimeType = 'image/starling-texture-atlas') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'image/starling-texture-atlas') then
     Result := LoadStarlingTextureAtlas(URL)
   else
 
