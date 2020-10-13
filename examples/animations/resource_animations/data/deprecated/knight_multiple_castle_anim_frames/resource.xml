@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <resource
-  name="KnightMultipleCastleAnimFrames"
+  name="DeprecatedKnightMultipleCastleAnimFrames"
   type="WalkAttack"
 >
   <model>

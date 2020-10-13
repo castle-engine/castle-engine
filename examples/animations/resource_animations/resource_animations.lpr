@@ -25,11 +25,14 @@ var
   Viewport: TCastleViewport;
   BaseScene: TCastleScene;
   Level: TLevel;
-  LastCreature: TCreature;
-  LastResource: TCreatureResource;
+  CurrentCreature: TCreature;
+  CurrentResource: TCreatureResource;
   ResourceButtonsGroup: TCastleVerticalGroup;
 
 procedure UpdateResourceButtons; forward;
+procedure SetCreatureResource(const NewCreatureResource: TCreatureResource); forward;
+
+{ TResourceButton ------------------------------------------------------------ }
 
 type
   TResourceButton = class(TCastleButton)
@@ -38,35 +41,25 @@ type
     procedure DoClick; override;
   end;
 
+  TResourceButtonList = specialize TObjectList<TResourceButton>;
+
+procedure TResourceButton.DoClick;
+begin
+  SetCreatureResource(ButtonResource);
+end;
+
+var
+  ResourceButtons: TResourceButtonList;
+
+{ TLoadResourceButton -------------------------------------------------------- }
+
+type
   TLoadResourceButton = class(TCastleButton)
   public
     { remember this only to make repeated usage of FileDialog more comfortable }
     LastChosenURL: string;
     procedure DoClick; override;
   end;
-
-  TResourceButtonList = specialize TObjectList<TResourceButton>;
-
-var
-  ResourceButtons: TResourceButtonList;
-  LoadResourceButton: TLoadResourceButton;
-
-procedure TResourceButton.DoClick;
-var
-  I: Integer;
-begin
-  FreeAndNil(LastCreature); // remove previous creature
-
-  { CreateCreature creates TCreature instance and adds it to Viewport.Items }
-  LastResource := ButtonResource;
-  LastCreature := LastResource.CreateCreature(Level,
-    { Translation } Vector3(0, 0, 0),
-    { Direction } Vector3(0, 0, 1));
-
-  { update Pressed of buttons }
-  for I := 0 to ResourceButtons.Count - 1 do
-    ResourceButtons[I].Pressed := ResourceButtons[I] = Self; // only Self remains pressed
-end;
 
 procedure TLoadResourceButton.DoClick;
 begin
@@ -78,8 +71,30 @@ begin
     Resources.Prepare(Viewport.PrepareParams, 'resources');
 
     UpdateResourceButtons;
-    ResourceButtons.Last.DoClick; // newly added resource is the last, activate it
+    SetCreatureResource(Resources.Last as TCreatureResource); // newly added resource is the last, activate it
   end;
+end;
+
+var
+  LoadResourceButton: TLoadResourceButton;
+
+{ helper functions ----------------------------------------------------------- }
+
+procedure SetCreatureResource(const NewCreatureResource: TCreatureResource);
+var
+  I: Integer;
+begin
+  FreeAndNil(CurrentCreature); // remove previous creature
+
+  { CreateCreature creates TCreature instance and adds it to Viewport.Items }
+  CurrentResource := NewCreatureResource;
+  CurrentCreature := CurrentResource.CreateCreature(Level,
+    { Translation } Vector3(0, 0, 0),
+    { Direction } Vector3(0, 0, 1));
+
+  { update Pressed of buttons }
+  for I := 0 to ResourceButtons.Count - 1 do
+    ResourceButtons[I].Pressed := ResourceButtons[I].ButtonResource = CurrentResource;
 end;
 
 { Create buttons in ResourceButtons and ResourceButtonsGroup to reflect current Resources. }
@@ -157,7 +172,7 @@ begin
 
   { Level refers to a Viewport.
     We need to create Level, as creature can be spawned only within a Level,
-    using LastResource.CreateCreature(Level, ...),
+    using CurrentResource.CreateCreature(Level, ...),
     placing it inside "Viewport.Items". }
   Level := TLevel.Create(Application);
   Level.Viewport := Viewport;
@@ -174,7 +189,7 @@ begin
 
   ResourceButtons := TResourceButtonList.Create(true);
   UpdateResourceButtons;
-  ResourceButtons.First.DoClick;
+  SetCreatureResource(Resources.FindName('KnightSingleGltf') as TCreatureResource);
 
   Application.Run;
 
