@@ -23,18 +23,20 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleSceneCore, CastleControls, CastleLog,
   CastleFilesUtils, CastleColors, CastleUIControls, X3DLoad, CastleUtils,
-  CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport;
+  CastleApplicationProperties, CastleVectors, CastleCameras, CastleViewport,
+  CastleURIUtils, X3DNodes, CastleTextureImages;
 
 var
   Window: TCastleWindowBase;
   Viewport: TCastleViewport;
   Scene: TCastleScene;
+  ScaleAfterLoading: Single = 1.0;
 
   { user interface }
-  ButtonOpen3D, ButtonOpen2D, ButtonOpenDialog: TCastleButton;
-  AnimationsPanel: TCastleRectangleControl;
-  CheckboxForward, CheckboxLoop: TCastleCheckbox;
-  SliderTransition: TCastleFloatSlider;
+  ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpenDialog: TCastleButton;
+  AnimationsPanel, LoadOptionsPanel: TCastleRectangleControl;
+  CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest: TCastleCheckbox;
+  SliderTransition, SliderScale, SliderFPS: TCastleFloatSlider;
 
 const
   Margin = 10; // used throughout the user interface
@@ -42,15 +44,21 @@ const
 { Handle button clicks ------------------------------------------------------- }
 
 type
+
+  { TEventsHandler }
+
   TEventsHandler = class
-    class procedure Open(const Url: string);
+    class procedure Open(const Url: String);
     class procedure ButtonOpen3DClick(Sender: TObject);
-    class procedure ButtonOpen2DClick(Sender: TObject);
+    class procedure ButtonOpen2DSpineClick(Sender: TObject);
+    class procedure ButtonOpen2DStarlingClick(Sender: TObject);
     class procedure ButtonOpenDialogClick(Sender: TObject);
     class procedure ButtonPlayAnimationClick(Sender: TObject);
+    class procedure ScaleChanged(Sender: TObject);
+    class procedure StarlingOptionsChanged(Sender: TObject);
   end;
 
-class procedure TEventsHandler.Open(const Url: string);
+class procedure TEventsHandler.Open(const Url: String);
 
   procedure RecreateAnimationsPanel;
   var
@@ -105,6 +113,22 @@ class procedure TEventsHandler.Open(const Url: string);
     SliderTransition.Max := 5;
     LabelAndSlider.InsertFront(SliderTransition);
 
+    LabelAndSlider := TCastleHorizontalGroup.Create(AnimationsPanel);
+    LabelAndSlider.Spacing := Margin;
+    ScrollGroup.InsertFront(LabelAndSlider);
+
+    Lab := TCastleLabel.Create(AnimationsPanel);
+    Lab.Caption := 'Scale:';
+    Lab.Color := Black;
+    LabelAndSlider.InsertFront(Lab);
+
+    SliderScale := TCastleFloatSlider.Create(AnimationsPanel);
+    SliderScale.Min := 0.01;
+    SliderScale.Max := 5;
+    SliderScale.Value := ScaleAfterLoading;
+    LabelAndSlider.InsertFront(SliderScale);
+    SliderScale.OnChange := @TEventsHandler(nil).ScaleChanged;
+
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Click to play animation...';
     Lab.Color := Black;
@@ -128,9 +152,12 @@ class procedure TEventsHandler.Open(const Url: string);
   end;
 
 begin
+  Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
   Viewport.AssignDefaultCamera;
   RecreateAnimationsPanel;
+  { Update scale for current slider value }
+  ScaleChanged(nil);
 end;
 
 class procedure TEventsHandler.ButtonOpen3DClick(Sender: TObject);
@@ -145,9 +172,72 @@ begin
   //Open('../resource_animations/data/knight_single_castle_anim_frames/knight.castle-anim-frames');
 end;
 
-class procedure TEventsHandler.ButtonOpen2DClick(Sender: TObject);
+class procedure TEventsHandler.ButtonOpen2DSpineClick(Sender: TObject);
 begin
   Open('../../2d_dragon_spine_game/data/dragon/dragon.json');
+end;
+
+{ Simple funtion to parse curesnt settngs in options UI
+  see ButtonOpen2DStarlingClick for more info. }
+function CurrentUIStarlingSettingsToAnchor: String;
+var
+  FilterSettings: String;
+begin
+  if CheckboxMagFilterNearest.Checked = CheckboxMinFilterNearest.Checked then
+  begin
+    if CheckboxMagFilterNearest.Checked then
+      FilterSettings := 'filter:nearest'
+    else
+      FilterSettings := 'filter:linear';
+  end else
+  begin
+    if CheckboxMagFilterNearest.Checked then
+      FilterSettings := 'magfilter:nearest'
+    else
+      FilterSettings := 'magfilter:linear';
+
+    if CheckboxMagFilterNearest.Checked then
+      FilterSettings := FilterSettings + ',minfilter:nearest'
+    else
+      FilterSettings := FilterSettings + ',minfilter:linear';
+  end;
+
+  Result := '#fps:' + FloatToStrDot(SliderFPS.Value) + ',' + FilterSettings;
+end;
+
+class procedure TEventsHandler.ButtonOpen2DStarlingClick(Sender: TObject);
+begin
+  { When using Starling files you can specyfy some options like:
+    - fps - frames per second for animations
+    - magfilter - magnification filtering can be "linear" or "nearest"
+    - minfilter - minification filtering can be "linear" or "nearest"
+    - filter - shortcut sets magnification and minification to the same value
+               can be "linear" or "nearest"
+    Options are passed using an anchor separated by a comma, with
+    a colon between the value and the option name.
+
+    E.g. To set filtering to "linear" and fps to 10 you can do:
+    <url here>#fps:10,filter:linear
+
+    BTW. Sample starling file based on one of many great assets by Kenney
+    check https://kenney.nl/ for more. }
+
+  Open('castle-data:/starling/character_zombie_atlas.starling-xml' + CurrentUIStarlingSettingsToAnchor);
+
+  { Of course, you can set these options after loading the file.
+    We specially set the node name of texture properties to 'TextureProperties'.
+    But if you only want to set these options once at the beginning,
+    it's more efficient to add them to the URL.
+
+    Example how to change magfilter after loading:
+
+    var
+      TexProp: TTexturePropertiesNode;
+    begin
+      TexProp := Scene.RootNode.FindNode('TextureProperties') as TTexturePropertiesNode;
+      if TexProp <> nil then
+        TexProp.MagnificationFilter := magLinear;
+    end; }
 end;
 
 class procedure TEventsHandler.ButtonOpenDialogClick(Sender: TObject);
@@ -156,7 +246,13 @@ var
 begin
   Url := Scene.Url;
   if Window.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
-    Open(Url);
+  begin
+    { In case of Starling add current settings }
+    if URIMimeType(Url) = 'image/starling-texture-atlas' then
+      Open(Url + CurrentUIStarlingSettingsToAnchor)
+    else
+      Open(Url);
+  end;
 end;
 
 class procedure TEventsHandler.ButtonPlayAnimationClick(Sender: TObject);
@@ -175,8 +271,121 @@ begin
   finally FreeAndNil(Params) end;
 end;
 
-{ routines ------------------------------------------------------------------- }
+class procedure TEventsHandler.ScaleChanged(Sender: TObject);
+begin
+  Scene.Scale := Vector3(SliderScale.Value, SliderScale.Value, SliderScale.Value);
+end;
 
+class procedure TEventsHandler.StarlingOptionsChanged(Sender: TObject);
+var
+  AnimationName: String;
+  Params: TPlayAnimationParameters;
+begin
+  { This function is only to show loading options. In real application you can
+    also change options by finding and changing X3DNodes values without scene
+    reloading. See comments in ButtonOpen2DStarlingClick(). }
+
+  { Check last loaded model was Starling }
+  if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'image/starling-texture-atlas' then
+    Exit;
+
+  try
+    { Remember current scale }
+    ScaleAfterLoading := SliderScale.Value;
+
+    { Get latest animation }
+    if Scene.CurrentAnimation <> nil then
+      AnimationName := Scene.CurrentAnimation.X3DName
+    else
+      AnimationName := '';
+
+    { Reload model with new settings }
+    Open(URIDeleteAnchor(Scene.URL) + CurrentUIStarlingSettingsToAnchor);
+
+    { Re-run animation. }
+    if AnimationName <> '' then
+    begin
+      Params := TPlayAnimationParameters.Create;
+      try
+        Params.Name := AnimationName;
+        Params.Forward := CheckboxForward.Checked;
+        Params.Loop := CheckboxLoop.Checked;
+        Params.TransitionDuration := SliderTransition.Value;
+        Scene.PlayAnimation(Params);
+      finally FreeAndNil(Params) end;
+    end;
+  finally
+    ScaleAfterLoading := 1.0;
+  end;
+end;
+
+
+procedure CreateLoadOptionsUI;
+var
+  Lab: TCastleLabel;
+  ScrollView: TCastleScrollView;
+  ScrollGroup: TCastleVerticalGroup;
+  LabelAndSlider: TCastleHorizontalGroup;
+begin
+  LoadOptionsPanel := TCastleRectangleControl.Create(Application);
+  LoadOptionsPanel.Anchor(hpLeft, Margin);
+  LoadOptionsPanel.Anchor(vpTop, -Margin);
+  LoadOptionsPanel.Color := Vector4(1, 1, 1, 0.5);
+
+  { We place TCastleScrollView inside LoadOptionsPanel,
+    in case we have too many settings to fit. }
+  ScrollView := TCastleScrollView.Create(LoadOptionsPanel);
+  ScrollView.ScrollArea.AutoSizeToChildren := true;
+  LoadOptionsPanel.InsertFront(ScrollView);
+
+  ScrollGroup := TCastleVerticalGroup.Create(LoadOptionsPanel);
+  ScrollGroup.Padding := Margin;
+  ScrollGroup.Spacing := Margin;
+  ScrollView.ScrollArea.InsertFront(ScrollGroup);
+
+  Lab := TCastleLabel.Create(LoadOptionsPanel);
+  Lab.Caption := 'Starling options:';
+  Lab.Color := Black;
+  ScrollGroup.InsertFront(Lab);
+
+  LabelAndSlider := TCastleHorizontalGroup.Create(LoadOptionsPanel);
+  LabelAndSlider.Spacing := Margin;
+  ScrollGroup.InsertFront(LabelAndSlider);
+
+  Lab := TCastleLabel.Create(LoadOptionsPanel);
+  Lab.Caption := 'FPS:';
+  Lab.Color := Black;
+  LabelAndSlider.InsertFront(Lab);
+
+  SliderFPS := TCastleFloatSlider.Create(LoadOptionsPanel);
+  SliderFPS.Min := 1;
+  SliderFPS.Max := 60;
+  SliderFPS.Value := 4;
+  LabelAndSlider.InsertFront(SliderFPS);
+  SliderFPS.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+
+  CheckboxMagFilterNearest := TCastleCheckbox.Create(AnimationsPanel);
+  CheckboxMagFilterNearest.Checked := true;
+  CheckboxMagFilterNearest.Caption := 'Nearest magnification filter';
+  ScrollGroup.InsertFront(CheckboxMagFilterNearest);
+  CheckboxMagFilterNearest.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+
+  CheckboxMinFilterNearest := TCastleCheckbox.Create(AnimationsPanel);
+  CheckboxMinFilterNearest.Checked := true;
+  CheckboxMinFilterNearest.Caption := 'Nearest minification filter';
+  ScrollGroup.InsertFront(CheckboxMinFilterNearest);
+  CheckboxMinFilterNearest.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+
+  ScrollView.Width := ScrollGroup.EffectiveWidth;
+  ScrollView.Height := Min(ScrollGroup.EffectiveHeight,
+    Window.Container.UnscaledHeight - 2 * Margin);
+
+  LoadOptionsPanel.Width := ScrollView.Width;
+  LoadOptionsPanel.Height := ScrollView.Height;
+  Window.Controls.InsertFront(LoadOptionsPanel);
+end;
+
+{ routines ------------------------------------------------------------------- }
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
@@ -208,7 +417,9 @@ begin
   Viewport.Items.Add(Scene);
   Viewport.Items.MainScene := Scene;
 
-  Y := -Margin;
+  CreateLoadOptionsUI;
+
+  Y := -LoadOptionsPanel.Height - Margin * 2;
 
   ButtonOpen3D := TCastleButton.Create(Application);
   ButtonOpen3D.Caption := 'Load sample 3D model';
@@ -218,13 +429,21 @@ begin
   Window.Controls.InsertFront(ButtonOpen3D);
   Y := Y - (ButtonOpen3D.EffectiveHeight + Margin);
 
-  ButtonOpen2D := TCastleButton.Create(Application);
-  ButtonOpen2D.Caption := 'Load sample 2D model';
-  ButtonOpen2D.OnClick := @TEventsHandler(nil).ButtonOpen2DClick;
-  ButtonOpen2D.Anchor(hpLeft, Margin);
-  ButtonOpen2D.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen2D);
-  Y := Y - (ButtonOpen2D.EffectiveHeight + Margin);
+  ButtonOpen2DSpine := TCastleButton.Create(Application);
+  ButtonOpen2DSpine.Caption := 'Load sample 2D model';
+  ButtonOpen2DSpine.OnClick := @TEventsHandler(nil).ButtonOpen2DSpineClick;
+  ButtonOpen2DSpine.Anchor(hpLeft, Margin);
+  ButtonOpen2DSpine.Anchor(vpTop, Y);
+  Window.Controls.InsertFront(ButtonOpen2DSpine);
+  Y := Y - (ButtonOpen2DSpine.EffectiveHeight + Margin);
+
+  ButtonOpen2DStarling := TCastleButton.Create(Application);
+  ButtonOpen2DStarling.Caption := 'Load sample 2D Starling';
+  ButtonOpen2DStarling.OnClick := @TEventsHandler(nil).ButtonOpen2DStarlingClick;
+  ButtonOpen2DStarling.Anchor(hpLeft, Margin);
+  ButtonOpen2DStarling.Anchor(vpTop, Y);
+  Window.Controls.InsertFront(ButtonOpen2DStarling);
+  Y := Y - (ButtonOpen2DStarling.EffectiveHeight + Margin);
 
   ButtonOpenDialog := TCastleButton.Create(Application);
   ButtonOpenDialog.Caption := 'Open any model on disk';
