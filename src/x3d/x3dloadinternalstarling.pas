@@ -266,7 +266,7 @@ begin
   Tex.FdUrl.Send(FImagePath);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
-  Tex.TextureProperties := TTexturePropertiesNode.Create;
+  Tex.TextureProperties := TTexturePropertiesNode.Create('TextureProperties');
   Tex.TextureProperties.MinificationFilter := FMinificationFilter;
   Tex.TextureProperties.MagnificationFilter := FMagnificationFilter;
   Shape.Texture := Tex;
