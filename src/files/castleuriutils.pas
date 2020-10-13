@@ -35,6 +35,18 @@ uses Classes,
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
 
+{ Extracts #anchor from URI. On input, URI contains full URI.
+  On output, Anchor is removed from URI and saved in TStringStringMap
+  If no #anchor existed, SettingsFromAnchor will be empty.
+
+  When RecognizeEvenEscapedHash, we also recognize as a delimiter
+  escaped hash, %23. This is a hack and should not be used (prevents
+  from using actual filename with hash, thus making the escaping process
+  useless). Unless there's no other sensible way --- e.g. specify
+  Spine skin name when opening Spine json file... }
+procedure URIExtractAnchor(var URI: string; const SettingsFromAnchor: TStringStringMap;
+  const RecognizeEvenEscapedHash: boolean = false);
+
 { Return URI with anchor (if was any) stripped. }
 function URIDeleteAnchor(const URI: string;
   const RecognizeEvenEscapedHash: boolean = false): string;
@@ -387,6 +399,50 @@ begin
       SetLength(URI, HashPos - 1);
     end;
   end;
+end;
+
+procedure URIExtractAnchor(var URI: string;
+  const SettingsFromAnchor: TStringStringMap;
+  const RecognizeEvenEscapedHash: boolean);
+var
+  URLForDisplay: String;
+  procedure ProcessAnchorPart(const Part: String);
+  var
+    Semicolon: Integer;
+    PartName, PartValue: String;
+  begin
+    Semicolon := Pos(':', Part);
+
+    if Semicolon = 0 then
+    begin
+      WritelnWarning('Empty setting (%s) in anchor of "%s"', [Part, URLForDisplay]);
+      SettingsFromAnchor.Add(Part, '');
+    end else
+    begin
+      PartName := Copy(Part, 1, Semicolon - 1);
+      PartValue := SEnding(Part, Semicolon + 1);
+      SettingsFromAnchor.Add(PartName, PartValue);
+    end;
+  end;
+var
+  Anchor, AnchorPart: String;
+  SeekPos: Integer;
+begin
+  URLForDisplay := URIDisplay(URI);
+
+  URIExtractAnchor(URI, Anchor, RecognizeEvenEscapedHash);
+  SettingsFromAnchor.Clear;
+
+  if Anchor = '' then
+    Exit;
+
+  SeekPos := 1;
+  repeat
+    AnchorPart := NextToken(Anchor, SeekPos, [',']);
+    if AnchorPart = '' then
+      Break;
+    ProcessAnchorPart(AnchorPart);
+  until false;
 end;
 
 function URIDeleteAnchor(const URI: string;
