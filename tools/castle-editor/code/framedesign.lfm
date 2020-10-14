@@ -1582,6 +1582,7 @@ object DesignFrame: TDesignFrame
     object MenuTreeViewItemAddTransform: TMenuItem
       Caption = 'Add'
     end
+  end
   object UpdateObjectInspector: TTimer
     Interval = 500
     OnTimer = UpdateObjectInspectorTimer
