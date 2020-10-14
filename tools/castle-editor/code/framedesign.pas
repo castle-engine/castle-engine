@@ -123,8 +123,6 @@ type
     procedure ControlsTreeEditingEnd(Sender: TObject; Node: TTreeNode;
       Cancel: Boolean);
     procedure ControlsTreeEndDrag(Sender, Target: TObject; X, Y: Integer);
-    procedure ControlsTreeMouseUp(Sender: TObject; Button: TLclMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
@@ -139,6 +137,7 @@ type
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
     procedure MenuTreeViewItemPasteClick(Sender: TObject);
+    procedure MenuTreeViewPopup(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
@@ -2185,38 +2184,6 @@ begin
     ControlsTree.Selected.EditText;
 end;
 
-procedure TDesignFrame.ControlsTreeMouseUp(Sender: TObject;
-  Button: TLclMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  Sel: TComponent;
-begin
-  if (Button = TLclMouseButton.mbRight) then
-  begin
-    Sel := SelectedComponent;
-    MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
-    MenuTreeViewItemCopy.Enabled := Sel <> nil;
-    MenuTreeViewItemDelete.Enabled := Sel <> nil;
-    if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
-    begin
-      MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
-      MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    end else
-    if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
-    begin
-      MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-      MenuTreeViewItemAddTransform.SetEnabledVisible(true);
-    end else
-    begin
-      // That wasn't supposed to happen!
-      MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
-      MenuTreeViewItemAddTransform.SetEnabledVisible(false);
-    end;
-
-    MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
-    MenuTreeView.PopUp;
-  end;
-end;
-
 procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 
@@ -2568,6 +2535,32 @@ end;
 procedure TDesignFrame.MenuTreeViewItemPasteClick(Sender: TObject);
 begin
   PasteComponent;
+end;
+
+procedure TDesignFrame.MenuTreeViewPopup(Sender: TObject);
+var
+  Sel: TComponent;
+begin
+  Sel := SelectedComponent;
+  MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+  MenuTreeViewItemCopy.Enabled := Sel <> nil;
+  MenuTreeViewItemDelete.Enabled := Sel <> nil;
+  if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
+  begin
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+  end else
+  if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
+  begin
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(true);
+  end else
+  begin
+    // That wasn't supposed to happen!
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+  end;
+  MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
 end;
 
 procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);

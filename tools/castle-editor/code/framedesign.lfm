@@ -346,6 +346,7 @@ object DesignFrame: TDesignFrame
       ParentFont = False
       ParentShowHint = False
       RightClickSelect = True
+      PopupMenu = MenuTreeView
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
@@ -356,7 +357,6 @@ object DesignFrame: TDesignFrame
       OnEditing = ControlsTreeEditing
       OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
-      OnMouseUp = ControlsTreeMouseUp
       OnSelectionChanged = ControlsTreeSelectionChanged
       Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
@@ -1535,6 +1535,7 @@ object DesignFrame: TDesignFrame
   object MenuTreeView: TPopupMenu
     Left = 653
     Top = 139
+    OnPopup = MenuTreeViewPopup
     object MenuItemRename: TMenuItem
       Caption = 'Rename'
       OnClick = MenuItemRenameClick
