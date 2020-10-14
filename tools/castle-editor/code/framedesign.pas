@@ -38,9 +38,6 @@ uses
   CastleUndoSystem;
 
 type
-  TLclMouseButton = Controls.TMouseButton; // Workaround FPC bug https://bugs.freepascal.org/view.php?id=36189 (actually a more severe one: as TWinControls.Controls indexed property and Controls unit got mixed up badly
-
-type
   { Frame to visually design component hierarchy. }
   TDesignFrame = class(TFrame)
     ButtonResetTransformation: TButton;
