@@ -358,7 +358,7 @@ object DesignFrame: TDesignFrame
       OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
       OnSelectionChanged = ControlsTreeSelectionChanged
-      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object LabelHierarchy: TLabel
       Left = 5
