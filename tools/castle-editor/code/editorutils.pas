@@ -162,7 +162,7 @@ uses SysUtils, Dialogs, Graphics, TypInfo,
 procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
 begin
   Visible := Value;
-  Self.Enabled := Value;
+  Enabled := Value;
 end;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
