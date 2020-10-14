@@ -71,5 +71,5 @@ jQuery(document).ready(function() {
         }
     });
 
-    jQuery('td.navigation').append(versionsForm);
+    jQuery('.navigation').append(versionsForm);
 });

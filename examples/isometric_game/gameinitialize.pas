@@ -242,10 +242,10 @@ const
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowUp]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowDown]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowRight] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowLeft]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -253,21 +253,21 @@ begin
       of the screen, user is easily fooled and thinks that they work
       continuously. So he keeps pressing them. So we should check them
       here. }
-    if Window.Pressed[K_Up]    then Player.Move(dirNorth);
-    if Window.Pressed[K_Down]  then Player.Move(dirSouth);
-    if Window.Pressed[K_Left]  then Player.Move(dirWest);
-    if Window.Pressed[K_Right] then Player.Move(dirEast);
+    if Window.Pressed[keyArrowUp]    then Player.Move(dirNorth);
+    if Window.Pressed[keyArrowDown]  then Player.Move(dirSouth);
+    if Window.Pressed[keyArrowLeft]  then Player.Move(dirWest);
+    if Window.Pressed[keyArrowRight] then Player.Move(dirEast);
 
-    if Window.Pressed[K_Numpad_7] then Player.Move(dirNorthWest);
-    if Window.Pressed[K_Numpad_9] then Player.Move(dirNorthEast);
-    if Window.Pressed[K_Numpad_1] then Player.Move(dirSouthWest);
-    if Window.Pressed[K_Numpad_3] then Player.Move(dirSouthEast);
-    if Window.Pressed[K_Numpad_4] then Player.Move(dirWest);
-    if Window.Pressed[K_Numpad_6] then Player.Move(dirEast);
-    if Window.Pressed[K_Numpad_2] then Player.Move(dirSouth);
-    if Window.Pressed[K_Numpad_8] then Player.Move(dirNorth);
+    if Window.Pressed[keyNumpad7] then Player.Move(dirNorthWest);
+    if Window.Pressed[keyNumpad9] then Player.Move(dirNorthEast);
+    if Window.Pressed[keyNumpad1] then Player.Move(dirSouthWest);
+    if Window.Pressed[keyNumpad3] then Player.Move(dirSouthEast);
+    if Window.Pressed[keyNumpad4] then Player.Move(dirWest);
+    if Window.Pressed[keyNumpad6] then Player.Move(dirEast);
+    if Window.Pressed[keyNumpad2] then Player.Move(dirSouth);
+    if Window.Pressed[keyNumpad8] then Player.Move(dirNorth);
 
-    if Window.Pressed[K_F10] then
+    if Window.Pressed[keyF10] then
     begin
       { simulate OpenGL context close + open, this may happen at any time on Android/iOS }
       Window.Close(false);

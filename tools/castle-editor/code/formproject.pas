@@ -22,14 +22,17 @@ interface
 
 uses
   Classes, SysUtils, DOM, FileUtil, Forms, Controls, Graphics, Dialogs, Menus,
-  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, ProjectUtils,
-  Types, Contnrs,
-  CastleControl, CastleUIControls, CastlePropEdits, CastleDialogs, X3DNodes,
-  EditorUtils, FrameDesign, FrameViewFile;
+  ExtCtrls, ComCtrls, CastleShellCtrls, StdCtrls, ValEdit, ActnList, Buttons,
+  ProjectUtils, Types, Contnrs, CastleControl, CastleUIControls,
+  CastlePropEdits, CastleDialogs, X3DNodes, EditorUtils, FrameDesign,
+  FrameViewFile;
 
 type
   { Main project management. }
   TProjectForm = class(TForm)
+    ButtonClearWarnings: TBitBtn;
+    PanelWarnings: TPanel;
+    ShellIcons: TImageList;
     LabelNoDesign: TLabel;
     ListWarnings: TListBox;
     MenuItemRename: TMenuItem;
@@ -108,6 +111,7 @@ type
     TabOutput: TTabSheet;
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
+    procedure ButtonClearWarningsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -184,7 +188,16 @@ type
     procedure DesignExistenceChanged;
     { Create Design, if nil. }
     procedure NeedsDesignFrame;
+    { Separated procedure to not duplicate code in various ways to create new
+      Design }
+    procedure NewDesign(const ComponentClass: TComponentClass;
+      const ComponentOnCreate: TNotifyEvent);
+    { Separated procedure to not duplicate code in various ways to open Design
+      (files view, menu) }
+    procedure OpenDesign(const DesignUrl: String);
     procedure WarningNotification(const Category, Message: string);
+    { Clears all warnings and hides warnings tab }
+    procedure ClearAllWarnings;
   public
     { Open a project, given an absolute path to CastleEngineManifest.xml }
     procedure OpenProject(const ManifestUrl: String);
@@ -321,6 +334,11 @@ begin
     CanClose := false;
 end;
 
+procedure TProjectForm.ButtonClearWarningsClick(Sender: TObject);
+begin
+  ClearAllWarnings;
+end;
+
 procedure TProjectForm.FormCreate(Sender: TObject);
 
   { We create some components by code, this way we don't have to put
@@ -352,11 +370,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
     ShellListView1.ReadOnly := True;
     ShellListView1.SortColumn := 0;
     ShellListView1.TabOrder := 1;
-    ShellListView1.ObjectTypes := [otNonFolders];
-    // TODO: To make folders work nicely, it needs some more improvements:
-    // - show icons of folders, to make them distinct
-    // - double-click on folder should move to it, in both shell tree/list views
-    //ShellListView1.ObjectTypes := [otNonFolders, otFolders];
+    ShellListView1.ObjectTypes := [otNonFolders, otFolders];
     { Without this, files are in undefined order
       (it seems SortColumn=0 above doesn't work). }
     ShellListView1.FileSortType := fstFoldersFirst;
@@ -373,6 +387,7 @@ procedure TProjectForm.FormCreate(Sender: TObject);
       '- Pascal files open in Lazarus.' + NL +
       '- Other files open in external applications.';
     ShellListView1.PopupMenu := ShellListPopupMenu;
+    ShellListView1.SmallImages := ShellIcons;
 
     ShellTreeView1.ShellListView := ShellListView1;
     ShellListView1.ShellTreeView := ShellTreeView1;
@@ -576,6 +591,21 @@ begin
   end;
 end;
 
+procedure TProjectForm.NewDesign(const ComponentClass: TComponentClass;
+  const ComponentOnCreate: TNotifyEvent);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.NewDesign(ComponentClass, ComponentOnCreate);
+end;
+
+procedure TProjectForm.OpenDesign(const DesignUrl: String);
+begin
+  NeedsDesignFrame;
+  ClearAllWarnings;
+  Design.OpenDesign(DesignUrl);
+end;
+
 procedure TProjectForm.WarningNotification(const Category,
   Message: string);
 begin
@@ -587,22 +617,22 @@ begin
   TabWarnings.TabVisible := true;
 end;
 
+procedure TProjectForm.ClearAllWarnings;
+begin
+  ListWarnings.Clear;
+  TabWarnings.TabVisible := false;
+end;
+
 procedure TProjectForm.MenuItemDesignNewUserInterfaceRectClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleUserInterface, nil);
-  end;
+    NewDesign(TCastleUserInterface, nil);
 end;
 
 procedure TProjectForm.MenuItemDesignNewTransformClick(Sender: TObject);
 begin
   if ProposeSaveDesign then
-  begin
-    NeedsDesignFrame;
-    Design.NewDesign(TCastleTransform, nil);
-  end;
+    NewDesign(TCastleTransform, nil);
 end;
 
 procedure TProjectForm.MenuItemOnlyRunClick(Sender: TObject);
@@ -619,8 +649,7 @@ begin
       OpenDesignDialog.Url := Design.DesignUrl;
     if OpenDesignDialog.Execute then
     begin
-      NeedsDesignFrame;
-      Design.OpenDesign(OpenDesignDialog.Url);
+      OpenDesign(OpenDesignDialog.Url);
     end;
   end;
 end;
@@ -761,14 +790,6 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
   var
     Exe: String;
   begin
-    //if ProjectLazarus = '' then
-    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
-    begin
-      //EditorUtils.ErrorBox('Cannot open project in Lazarus, as neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml.');
-      EditorUtils.ErrorBox('Cannot open project in Lazarus, as "standalone_source" was not specified in CastleEngineManifest.xml.');
-      Exit;
-    end;
-
     try
       Exe := FindExeLazarusIDE;
     except
@@ -790,8 +811,16 @@ procedure TProjectForm.ShellListViewDoubleClick(Sender: TObject);
       to new one.
     }
 
-    if SameFileName(ProjectStandaloneSource, FileName) then
-      RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource])
+    //if ProjectLazarus = '' then
+    if ProjectStandaloneSource = '' then // see comments below, we use ProjectStandaloneSource
+    begin
+      //WritelnWarning('Lazarus project not defined (neither "standalone_source" nor "lazarus_project" were specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+      WritelnWarning('Lazarus project not defined ("standalone_source" was not specified in CastleEngineManifest.xml), the file will be opened without changing Lazarus project.');
+    end;
+
+    if (ProjectStandaloneSource = '') or
+       SameFileName(ProjectStandaloneSource, FileName) then
+      RunCommandNoWait(CreateTemporaryDir, Exe, [FileName])
     else
       { pass both project name, and particular filename, to open file within this project. }
       RunCommandNoWait(CreateTemporaryDir, Exe, [ProjectStandaloneSource, FileName]);
@@ -820,6 +849,12 @@ begin
   if ShellListView1.Selected <> nil then
   begin
     SelectedFileName := ShellListView1.GetPathFromItem(ShellListView1.Selected);
+    if DirectoryExists(SelectedFileName) then
+    begin
+      ShellTreeView1.Path := SelectedFileName;
+      Exit;
+    end;
+
     SelectedURL := FilenameToURISafe(SelectedFileName);
     Ext := ExtractFileExt(SelectedFileName);
 
@@ -840,10 +875,7 @@ begin
        AnsiSameText(Ext, '.castle-transform') then
     begin
       if ProposeSaveDesign then
-      begin
-        NeedsDesignFrame;
-        Design.OpenDesign(SelectedURL);
-      end;
+        OpenDesign(SelectedURL);
       Exit;
     end;
 
@@ -929,8 +961,7 @@ begin
   if ProposeSaveDesign then
   begin
     R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
-    NeedsDesignFrame;
-    Design.NewDesign(R.ComponentClass, R.OnCreate);
+    NewDesign(R.ComponentClass, R.OnCreate);
   end;
 end;
 

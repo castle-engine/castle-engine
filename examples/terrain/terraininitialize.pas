@@ -635,7 +635,7 @@ begin
     M.Append(TMenuItemChecked.Create('Fog', 142, 'f',
       true { default Fog on EnvironmentScene }, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, OnScreenMenuVisible, true));
+    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, keyF1, OnScreenMenuVisible, true));
     Result.Append(M);
   M := TMenu.Create('_Noise');
     M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);

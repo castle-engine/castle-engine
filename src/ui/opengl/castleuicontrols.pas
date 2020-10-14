@@ -1010,7 +1010,7 @@ type
       @longCode(#
         if HandleInput then
         begin
-          if Container.Pressed[K_Right] then
+          if Container.Pressed[keyArrowRight] then
             Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;
@@ -1491,7 +1491,7 @@ type
         @item(@italic((For fixed-function pipeline:))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
+          matrix, e.g. use @link(CastleRenderContext.PerspectiveProjection).)
 
         @item(@italic((For fixed-function pipeline:))
           The modelview matrix is set to identity. The matrix mode

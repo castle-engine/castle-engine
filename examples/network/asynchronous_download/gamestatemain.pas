@@ -144,7 +144,7 @@ begin
       Sender.HttpResponseHeaders.Text
     ])
   else
-    WritelnLog('Downloading "%s" successfull.' + NL +
+    WritelnLog('Downloading "%s" successful.' + NL +
       'HTTP response code: %d' + NL +
       'HTTP response headers: %s', [
       URIDisplay(Sender.Url),

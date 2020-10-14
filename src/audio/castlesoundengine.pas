@@ -488,7 +488,7 @@ type
       failed for any reason (e.g. OpenAL library is not available,
       or no sound output device is available).
       You can check @link(IsContextOpenSuccess) and @link(Information) to know if
-      the initialization was actually successfull. But you can also ignore it,
+      the initialization was actually successful. But you can also ignore it,
       the sound engine will silently (literally) keep working even if OpenAL
       could not be initialized. }
     procedure ContextOpen;

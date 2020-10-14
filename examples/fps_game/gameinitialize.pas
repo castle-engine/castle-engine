@@ -359,17 +359,17 @@ begin
     mechanism to assign key shortcut to a TCastleButton right now.
     Note that we pass Sender = nil to the callbacks, because we know that
     our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(K_F4) and
+  if Event.IsKey(keyF4) and
      // in case we test touch input in desktop, ToggleMouseLookButton = nil
      (Buttons.ToggleMouseLookButton <> nil) then
     Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
     Buttons.ExitButtonClick(nil) else
-  if Event.IsKey(K_F5) then
+  if Event.IsKey(keyF5) then
     Buttons.ScreenshotButtonClick(nil) else
-  if Event.IsKey(K_F9) then
+  if Event.IsKey(keyF9) then
     Buttons.AddCreatureButtonClick(nil) else
-  if Event.IsKey(K_F10) then
+  if Event.IsKey(keyF10) then
     Buttons.AddItemButtonClick(nil);
 end;
 
@@ -577,10 +577,10 @@ begin
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
-  PlayerInput_DropItem.Assign(K_R);
+  PlayerInput_DropItem.Assign(keyR);
   if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
-    PlayerInput_Attack.Assign(K_Ctrl, K_None, '', true, mbLeft);
+    PlayerInput_Attack.Assign(keyCtrl, keyNone, '', true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }

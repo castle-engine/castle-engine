@@ -3063,9 +3063,9 @@ type
   T3BoolKeys = array [0..2, boolean] of TKey;
 const
   DefaultInputs_Move: T3BoolKeys =
-    ((K_Left, K_Right), (K_Down, K_Up), (K_None, K_None));
+    ((keyArrowLeft, keyArrowRight), (keyArrowDown, keyArrowUp), (keyNone, keyNone));
   DefaultInputs_Rotate: T3BoolKeys =
-    ((K_Up, K_Down), (K_Left, K_Right), (K_None, K_None));
+    ((keyArrowUp, keyArrowDown), (keyArrowLeft, keyArrowRight), (keyNone, keyNone));
   CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
   IncreaseToStr: array [boolean] of string = ('Dec', 'Inc');
 var
@@ -3111,22 +3111,22 @@ begin
   FInput_ScaleLarger  := TInputShortcut.Create(Self);
    Input_ScaleLarger.Name := 'Input_ScaleLarger';
    Input_ScaleLarger.SetSubComponent(true);
-   Input_ScaleLarger.Assign(K_Numpad_Plus, K_None, '+');
+   Input_ScaleLarger.Assign(keyNumpadPlus, keyNone, '+');
 
   FInput_ScaleSmaller := TInputShortcut.Create(Self);
    Input_ScaleSmaller.Name := 'Input_ScaleSmaller';
    Input_ScaleSmaller.SetSubComponent(true);
-   Input_ScaleSmaller.Assign(K_Numpad_Minus, K_None, '-');
+   Input_ScaleSmaller.Assign(keyNumpadMinus, keyNone, '-');
 
   FInput_Home := TInputShortcut.Create(Self);
    Input_Home.Name := 'Input_Home';
    Input_Home.SetSubComponent(true);
-   Input_Home.Assign(K_None);
+   Input_Home.Assign(keyNone);
 
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(K_Space, K_None, '', true, mbLeft);
+   Input_StopRotating.Assign(keySpace, keyNone, '', true, mbLeft);
 end;
 
 destructor TCastleExamineNavigation.Destroy;
@@ -3946,24 +3946,24 @@ begin
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(K_W, K_Up);
-  Input_Backward                .Assign(K_S, K_Down);
-  Input_LeftRotate              .Assign(K_Left);
-  Input_RightRotate             .Assign(K_Right);
-  Input_LeftStrafe              .Assign(K_A);
-  Input_RightStrafe             .Assign(K_D);
-  Input_UpRotate                .Assign(K_None);
-  Input_DownRotate              .Assign(K_None);
-  Input_IncreasePreferredHeight .Assign(K_Insert);
-  Input_DecreasePreferredHeight .Assign(K_Delete);
-  Input_GravityUp               .Assign(K_None);
+  Input_Forward                 .Assign(keyW, keyArrowUp);
+  Input_Backward                .Assign(keyS, keyArrowDown);
+  Input_LeftRotate              .Assign(keyArrowLeft);
+  Input_RightRotate             .Assign(keyArrowRight);
+  Input_LeftStrafe              .Assign(keyA);
+  Input_RightStrafe             .Assign(keyD);
+  Input_UpRotate                .Assign(keyNone);
+  Input_DownRotate              .Assign(keyNone);
+  Input_IncreasePreferredHeight .Assign(keyInsert);
+  Input_DecreasePreferredHeight .Assign(keyDelete);
+  Input_GravityUp               .Assign(keyNone);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  Input_MoveSpeedInc            .Assign(K_Numpad_Plus , K_None, '+');
-  Input_MoveSpeedDec            .Assign(K_Numpad_Minus, K_None, '-');
-  Input_Jump                    .Assign(K_Space);
-  Input_Crouch                  .Assign(K_C);
-  Input_Run                     .Assign(K_Shift);
+  Input_MoveSpeedInc            .Assign(keyNumpadPlus , keyNone, '+');
+  Input_MoveSpeedDec            .Assign(keyNumpadMinus, keyNone, '-');
+  Input_Jump                    .Assign(keySpace);
+  Input_Crouch                  .Assign(keyC);
+  Input_Run                     .Assign(keyShift);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -5085,7 +5085,7 @@ function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
   end;
 
 const
-  MouseWheelScrollSpeed = 0.03;
+  MouseWheelScrollSpeed = Pi * 3 / 180.0;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5165,7 +5165,7 @@ end;
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 const
-  SpeedSensor = 100;
+  SpeedSensor = 2;
 begin
   if not (ni3dMouse in Input) then Exit(false);
   Result := true;

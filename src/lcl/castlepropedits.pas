@@ -35,13 +35,14 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes, TypInfo,
+uses SysUtils, Classes, TypInfo, Forms,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
   OpenGLContext, Graphics,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes, CastleCameras,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleViewport, CastleDialogs,
-  CastleTiledMap, CastleGLImages, CastleStringUtils;
+  CastleTiledMap, CastleGLImages, CastleStringUtils,
+  CastleInternalExposeTransformsDialog;
 
 {$I castlepropedits_any_subproperties.inc}
 {$I castlepropedits_autoanimation.inc}
@@ -52,6 +53,7 @@ uses SysUtils, Classes, TypInfo,
 {$I castlepropedits_unused_controls.inc}
 {$I castlepropedits_viewport_navigation.inc}
 {$I castlepropedits_float.inc}
+{$I castlepropedits_exposetransforms.inc}
 
 procedure Register;
 begin
@@ -100,6 +102,8 @@ begin
     TCastleVector4PropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore, 'AutoAnimation',
     TSceneAutoAnimationPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TStrings), TCastleSceneCore, 'ExposeTransforms',
+    TExposeTransformsPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',
     TViewportNavigationEditor);
   RegisterPropertyEditor(TypeInfo(TCastleNavigation), TCastleViewport, 'Navigation',

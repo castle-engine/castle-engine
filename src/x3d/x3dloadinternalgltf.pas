@@ -2305,10 +2305,14 @@ begin
       ReadHeader;
       Lights.ReadHeader(Document);
 
-      // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
+      { Initialize DefaultAppearance.
+        Testcase: floor of ~/sources/castle-engine/demo-models/gltf/punctual_lights/test_lights.gltf,
+        it should use PBR (not be affected by PhongShading attribute). }
       DefaultAppearance := TGltfAppearanceNode.Create;
-      DefaultAppearance.Material := TMaterialNode.Create;
+      DefaultAppearance.Material := TPhysicalMaterialNode.Create;
       DefaultAppearance.DoubleSided := false;
+
+      // read appearances (called "materials" in glTF; in X3D "material" is something smaller)
       Appearances := TX3DNodeList.Create(false);
       for Material in Document.Materials do
         Appearances.Add(ReadAppearance(Material));

@@ -68,6 +68,7 @@ type
     MenuViewportNavigationThirdPerson: TMenuItem;
     MenuViewportNavigationExamine: TMenuItem;
     MenuViewportNavigationNone: TMenuItem;
+    PanelLayoutTop: TPanel;
     PanelLayoutTransform: TPanel;
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
@@ -101,6 +102,7 @@ type
     TabLayout: TTabSheet;
     TabBasic: TTabSheet;
     TabOther: TTabSheet;
+    UpdateObjectInspector: TTimer;
     procedure ButtonClearAnchorDeltasClick(Sender: TObject);
     procedure ButtonResetTransformationClick(Sender: TObject);
     procedure ButtonTransformRotateModeClick(Sender: TObject);
@@ -145,6 +147,7 @@ type
     procedure PerformUndoRedo(const UHE: TUndoHistoryElement);
     procedure PerformRedo;
     procedure PerformUndo;
+    procedure UpdateObjectInspectorTimer(Sender: TObject);
   protected
     procedure SetParent(AParent: TWinControl); override;
   private
@@ -273,6 +276,8 @@ type
     procedure PropertyGridModified(Sender: TObject);
     { Is Child selectable and visible in hierarchy. }
     class function Selectable(const Child: TComponent): Boolean; static;
+    { Is Child deletable by user (this implies it is also selectable). }
+    function Deletable(const Child: TComponent): Boolean;
     procedure UpdateDesign;
     procedure UpdateSelectedControl;
     function ProposeName(const ComponentClass: TComponentClass;
@@ -965,7 +970,7 @@ begin
   Inspector[itLayout].OnEditorFilter := @InspectorLayoutFilter;
   Inspector[itLayout].Filter := tkProperties;
   Inspector[itLayout].Align := alBottom;
-  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTransform);
+  Inspector[itLayout].AnchorToNeighbour(akTop, 0, PanelLayoutTop);
 
   Inspector[itOther] := CommonInspectorCreate;
   Inspector[itOther].Parent := TabOther;
@@ -1096,6 +1101,22 @@ begin
     UndoSystem.Undo;
   end;}
   PerformUndoRedo(UndoSystem.Undo);
+end;
+
+procedure TDesignFrame.UpdateObjectInspectorTimer(Sender: TObject);
+//var
+//  InspectorType: TInspectorType;
+begin
+  { In many cases, properties may change but property editor doesn't reflect it.
+    E.g.
+    - TCastleTransform changes by ExposeTransforms mechanism
+    - Caption changes because you modified Name, and they used to match.
+    The only universal solution to make OI up-to-date seems to be to just
+    occasionally refresh it. }
+
+  // TODO: This is not good, it breaks editing within object inspector, resets cursor
+  //for InspectorType in TInspectorType do
+  //  Inspector[InspectorType].RefreshPropertyValues;
 end;
 
 procedure TDesignFrame.OpenDesign(const NewDesignRoot, NewDesignOwner: TComponent;
@@ -1281,10 +1302,52 @@ procedure TDesignFrame.DeleteComponent;
     I: Integer;
   begin
     for I := 0 to List.Count - 1 do
-      if (not (csSubComponent in List[I].ComponentStyle)) and
-         (List[I] <> DesignRoot) then
+      if Deletable(List[I]) then
         Exit(List[I]);
     Result := nil;
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform); forward;
+  procedure FreeUiChildren(const C: TCastleUserInterface); forward;
+
+  { Delete C and all children.
+    We have to delete things recursively, otherwise they would keep existing,
+    taking resources and reserving names in DesignRoot,
+    even though they would not be visible when disconnected from parent
+    hierarchy. }
+  procedure FreeRecursively(const C: TComponent);
+  begin
+    if not Deletable(C) then
+      Exit;
+    if C is TCastleTransform then
+    begin
+      FreeTransformChildren(TCastleTransform(C));
+    end else
+    if C is TCastleUserInterface then
+    begin
+      FreeUiChildren(TCastleUserInterface(C));
+      if C is TCastleViewport then
+        FreeTransformChildren(TCastleViewport(C).Items);
+    end;
+    C.Free;
+  end;
+
+  procedure FreeTransformChildren(const T: TCastleTransform);
+  var
+    I: Integer;
+  begin
+    for I := T.Count - 1 downto 0 do
+      if Deletable(T[I]) then
+        FreeRecursively(T[I]);
+  end;
+
+  procedure FreeUiChildren(const C: TCastleUserInterface);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      if Deletable(C.Controls[I]) then
+        FreeRecursively(C.Controls[I]);
   end;
 
 var
@@ -1305,7 +1368,7 @@ begin
       repeat
         C := FirstDeletableComponent(Selected);
         if C <> nil then
-          FreeAndNil(C)
+          FreeRecursively(C)
         else
           Break;
       until false;
@@ -1694,6 +1757,13 @@ begin
     ErrorBox(PendingErrorBox);
     PendingErrorBox := '';
   end;
+
+  if InternalCastleDesignInvalidate then
+  begin
+    ModifiedOutsideObjectInspector;
+    UpdateDesign;
+    //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
+  end;
 end;
 
 procedure TDesignFrame.InspectorFilter(Sender: TObject;
@@ -1825,6 +1895,13 @@ begin
   Result := not (csTransient in Child.ComponentStyle);
 end;
 
+function TDesignFrame.Deletable(const Child: TComponent): Boolean;
+begin
+  Result := Selectable(Child) and
+    (not (csSubComponent in Child.ComponentStyle)) and
+    (Child <> DesignRoot);
+end;
+
 procedure TDesignFrame.UpdateDesign;
 
   function AddTransform(const Parent: TTreeNode; const T: TCastleTransform): TTreeNode;
@@ -1881,6 +1958,8 @@ begin
   Node.Expand(true);
 
   UpdateSelectedControl;
+
+  InternalCastleDesignInvalidate := false;
 end;
 
 procedure TDesignFrame.GetSelected(out Selected: TComponentList;
@@ -2007,7 +2086,7 @@ begin
   finally FreeAndNil(Selected) end;
 
   UI := SelectedUserInterface;
-  PanelAnchors.Visible := UI <> nil;
+  SetEnabledExists(PanelAnchors, UI <> nil);
   if UI <> nil then
   begin
     UpdateLabelSizeInfo(UI);
@@ -2021,7 +2100,7 @@ begin
     LabelSelectedViewport.Caption := V.Name + ':';
 
   T := SelectedTransform;
-  PanelLayoutTransform.Visible := T <> nil;
+  SetEnabledExists(PanelLayoutTransform, T <> nil);
   VisualizeTransformSelected.Parent := T; // works also in case SelectedTransform is nil
 end;
 

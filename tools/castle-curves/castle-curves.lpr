@@ -440,13 +440,13 @@ begin
     ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
     ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
-  if Container.Pressed[keyUp] then
+  if Container.Pressed[keyArrowUp] then
     ChangeMove(0, 1);
-  if Container.Pressed[keyDown] then
+  if Container.Pressed[keyArrowDown] then
     ChangeMove(0, -1);
-  if Container.Pressed[keyLeft] then
+  if Container.Pressed[keyArrowLeft] then
     ChangeMove(-1, 0);
-  if Container.Pressed[keyRight] then
+  if Container.Pressed[keyArrowRight] then
     ChangeMove(1, 0);
 end;
 
@@ -661,7 +661,7 @@ begin
     M.Append(TMenuItem.Create('_Open ...',            4, CtrlO));
     M.Append(TMenuItem.Create('_Save ...',            6, CtrlS));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Save screen ...', 8, K_F5));
+    M.Append(TMenuItem.Create('Save screen ...', 8, keyF5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',                10, CtrlW));
     Result.Append(M);
@@ -670,7 +670,7 @@ begin
     M.Append(TMenuItem.Create('_Clear',              202));
     Result.Append(M);
   M := TMenu.Create('_View');
-    M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, K_F1,
+    M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, keyF1,
       true { default of StatusText.Exists }, true));
     M.Append(TMenuItemChecked.Create(
       'Show / Hide non-selected _points',                   310,
@@ -679,7 +679,7 @@ begin
       'Show / Hide _convex hull of selected curve',         320,
       ShowSelectedCurveConvexHull, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, K_Home));
+    M.Append(TMenuItem.Create('Restore Default Position/Scale' , 326, keyHome));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
     M.Append(TMenuItem.Create('Curves rendering segments x 2',      331, 's'));

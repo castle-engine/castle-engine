@@ -1599,41 +1599,41 @@ initialization
     of menu entries in "Configure controls". }
 
   PlayerInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
-  PlayerInput_Forward.Assign(K_W, K_Up);
+  PlayerInput_Forward.Assign(keyW, keyArrowUp);
   PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
-  PlayerInput_Backward.Assign(K_S, K_Down);
+  PlayerInput_Backward.Assign(keyS, keyArrowDown);
   PlayerInput_LeftRotate := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
-  PlayerInput_LeftRotate.Assign(K_Left);
+  PlayerInput_LeftRotate.Assign(keyArrowLeft);
   PlayerInput_RightRotate := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
-  PlayerInput_RightRotate.Assign(K_Right);
+  PlayerInput_RightRotate.Assign(keyArrowRight);
   PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
-  PlayerInput_LeftStrafe.Assign(K_A);
+  PlayerInput_LeftStrafe.Assign(keyA);
   PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
-  PlayerInput_RightStrafe.Assign(K_D);
+  PlayerInput_RightStrafe.Assign(keyD);
   PlayerInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
-  PlayerInput_UpRotate.Assign(K_None);
+  PlayerInput_UpRotate.Assign(keyNone);
   PlayerInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
-  PlayerInput_DownRotate.Assign(K_None);
+  PlayerInput_DownRotate.Assign(keyNone);
   PlayerInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
-  PlayerInput_GravityUp.Assign(K_None);
+  PlayerInput_GravityUp.Assign(keyNone);
   PlayerInput_Jump := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
-  PlayerInput_Jump.Assign(K_Space);
+  PlayerInput_Jump.Assign(keySpace);
   PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
-  PlayerInput_Crouch.Assign(K_C);
+  PlayerInput_Crouch.Assign(keyC);
 
   PlayerInput_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
-  PlayerInput_Attack.Assign(K_Ctrl, K_None, '', false, mbLeft);
+  PlayerInput_Attack.Assign(keyCtrl, keyNone, '', false, mbLeft);
   PlayerInput_Attack.GroupOrder := -100; { before other (player) shortcuts }
   PlayerInput_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
-  PlayerInput_InventoryShow.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_InventoryShow.Assign(keyNone, keyNone, '', false, mbLeft);
   PlayerInput_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
-  PlayerInput_InventoryPrevious.Assign(K_LeftBracket, K_None, '', false, mbLeft, mwUp);
+  PlayerInput_InventoryPrevious.Assign(keyLeftBracket, keyNone, '', false, mbLeft, mwUp);
   PlayerInput_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
-  PlayerInput_InventoryNext.Assign(K_RightBracket, K_None, '', false, mbLeft, mwDown);
+  PlayerInput_InventoryNext.Assign(keyRightBracket, keyNone, '', false, mbLeft, mwDown);
   PlayerInput_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
-  PlayerInput_UseItem.Assign(K_Enter, K_None, '', false, mbLeft);
+  PlayerInput_UseItem.Assign(keyEnter, keyNone, '', false, mbLeft);
   PlayerInput_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
-  PlayerInput_DropItem.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_DropItem.Assign(keyNone, keyNone, '', false, mbLeft);
   PlayerInput_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
-  PlayerInput_CancelFlying.Assign(K_None, K_None, '', false, mbLeft);
+  PlayerInput_CancelFlying.Assign(keyNone, keyNone, '', false, mbLeft);
 end.

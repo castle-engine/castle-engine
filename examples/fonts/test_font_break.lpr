@@ -93,7 +93,7 @@ begin
 
   Window.OnResize := @Resize;
   Window.DepthBits := 0;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.Caption := 'Font.BreakLines demo';
   Window.OnRender := @Render;
   Window.OpenAndRun;

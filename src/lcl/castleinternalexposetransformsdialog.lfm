@@ -1,0 +1,63 @@
+object ExposeTransformsDialog: TExposeTransformsDialog
+  Left = 713
+  Height = 434
+  Top = 316
+  Width = 597
+  Caption = 'Edit ExposeTransforms'
+  ClientHeight = 434
+  ClientWidth = 597
+  DesignTimePPI = 120
+  OnCloseQuery = FormCloseQuery
+  Position = poMainFormCenter
+  LCLVersion = '2.0.8.0'
+  object ButtonPanel1: TButtonPanel
+    Left = 8
+    Height = 47
+    Top = 379
+    Width = 581
+    BorderSpacing.Around = 8
+    OKButton.Name = 'OKButton'
+    OKButton.DefaultCaption = True
+    HelpButton.Name = 'HelpButton'
+    HelpButton.DefaultCaption = True
+    CloseButton.Name = 'CloseButton'
+    CloseButton.DefaultCaption = True
+    CancelButton.Name = 'CancelButton'
+    CancelButton.DefaultCaption = True
+    TabOrder = 0
+    ShowButtons = [pbOK, pbCancel]
+  end
+  object Label1: TLabel
+    Left = 8
+    Height = 46
+    Top = 8
+    Width = 576
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Select which transformations (bones) should be "exposed", that is "available as child TCastleTransform instances in the hierarchy".'
+    ParentColor = False
+    WordWrap = True
+  end
+  object CheckTransforms: TScrollBox
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = ButtonPanel1
+    Left = 8
+    Height = 309
+    Top = 62
+    Width = 580
+    HorzScrollBar.Page = 1
+    VertScrollBar.Page = 1
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 8
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    Color = clWindow
+    ParentColor = False
+    TabOrder = 1
+  end
+end

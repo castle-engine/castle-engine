@@ -62,9 +62,7 @@
 }
 
 /* Match CGE sidebar size and look */
-.pasdoc-container td.navigation {
-  width: 25%;
-
+.pasdoc-container .navigation {
   background-image: linear-gradient(to bottom, #e8e8e8 0px, #f5f5f5 100%);
   background-repeat: repeat-x;
   border-color: #dcdcdc;
@@ -72,7 +70,6 @@
   border: 1px solid #e3e3e3;
   border-radius: 4px;
   margin-bottom: 20px;
-  padding: 19px;
 }
 
 /* Disable the max-width 100% rule which breaks these images. */
@@ -80,26 +77,57 @@
   max-width: none !important;
 }
 
+/* Our default left-aligned footer is obscured by PasDoc navigation */
+.panel-footer {
+  text-align: right;
+}
+
 /* Adjusted original pasdoc.css below ---------------------------------------- */
 
-.pasdoc-container table.container {
+.pasdoc-container .container {
   margin: 0;
   padding: 0;
 }
 
-.pasdoc-container table.container {
+.pasdoc-container .container {
   width: 100%;
+  height: 100%;
   border-spacing: 0;
 }
-.pasdoc-container table.container td {
-  vertical-align: top;
+
+.pasdoc-container .navigation {
+  float: left;
+  width: 20em; /* must match .content margin-left */
+  height: 100%;
+  background-color: #787878;
+  position: fixed;
+  margin: 0;
+  box-sizing: border-box; /* without this, you could not have padding here, it would overlap with .content, causing errors on narrow screens */
+  padding: 1em;
+}
+.pasdoc-container .navigation ul {
+  margin: 0em;
+  padding: 0em;
+}
+.pasdoc-container .navigation li {
+  list-style-type: none;
+  margin: 0.2em 0em 0em 0em;
+  padding: 0.25em;
+}
+.pasdoc-container .navigation h2 {
+  text-align: center;
+  margin: 0em;
+  padding: 0.5em;
 }
 
-.pasdoc-container td.navigation p { padding: 0; }
-.pasdoc-container td.navigation h2 { margin-top: 0; }
-
-.pasdoc-container td.content { padding: 1em; }
-.pasdoc-container td.content h1 { margin-top: 0; }
+.pasdoc-container .content {
+  margin-left: 20em; /* must match .navigation width */
+  box-sizing: border-box; /* without this, you could not have padding here, it would overlap with .navigation, causing errors on narrow screens */
+  padding: 1em;
+}
+.pasdoc-container .content h1 {
+  margin-top: 0;
+}
 
 .pasdoc-container img { border:0px; }
 
@@ -113,8 +141,8 @@
 .pasdoc-container a:hover {text-decoration: underline; }
 .pasdoc-container a:active {text-decoration: underline; }
 
-.pasdoc-container td.content a:link {color:#C91E0C; text-decoration: none; }
-.pasdoc-container td.content a:visited {color:#7E5C31; text-decoration: none; }
+.pasdoc-container .content a:link {color:#C91E0C; text-decoration: none; }
+.pasdoc-container .content a:visited {color:#7E5C31; text-decoration: none; }
 
 .pasdoc-container a.navigation:link { text-decoration: none; }
 .pasdoc-container a.navigation:visited { text-decoration: none; }
@@ -240,7 +268,9 @@
 }
 
 .pasdoc-container .search-form { white-space: nowrap; }
-.pasdoc-container .search-input, .search-button { display: inline-block; vertical-align: middle; }
+.pasdoc-container .search-input input { max-width: 80%; } /* this provides some safe space to always fit even on very narrow screens */
+.pasdoc-container .search-input input, .search-button { display: inline-block; vertical-align: middle; }
+.pasdoc-container .search-input { display: inline-block; }
 
 /* Do not make extra vertical space at the beginning/end of table cells.
    We need ">" selector, to not change paragraphs inside lists inside
@@ -255,13 +285,16 @@
 
 /* The trick how to replace using CSS from
    http://blog.escapecreative.com/how-to-replace-text-with-css/
+   https://stackoverflow.com/questions/7896402/how-can-i-replace-text-with-css
 */
-.pasdoc-container td.navigation h2 {
+.pasdoc-container .navigation h2 {
+    text-align: left;
     visibility: hidden;
+    height: 1em; /* otherwise it may be tall as underneath the text "Castle Game Engine" has 2 lines */
     /* to make position:absolute in ::after work */
     position: relative;
 }
-.pasdoc-container td.navigation h2::after {
+.pasdoc-container .navigation h2::after {
     /* otherwise, it's hidden along with parent h2 */
     visibility: visible;
     position: absolute;

@@ -201,15 +201,15 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itKey then
     case Event.Key of
-      K_T : (Level.Event('MyScript', 'forceThunderNow') as TSFBoolEvent).Send(true);
-      K_F1: HelpMessage.Exists := not HelpMessage.Exists;
-      K_F4:
+      keyT : (Level.Event('MyScript', 'forceThunderNow') as TSFBoolEvent).Send(true);
+      keyF1: HelpMessage.Exists := not HelpMessage.Exists;
+      keyF4:
         begin
           Navigation.MouseLook := not Navigation.MouseLook;
           // crosshair makes sense only with mouse look
           Crosshair.Exists := Navigation.MouseLook;
         end;
-      K_F5: Window.Container.SaveScreenToDefaultFile;
+      keyF5: Window.Container.SaveScreenToDefaultFile;
     end;
 end;
 
@@ -269,7 +269,7 @@ begin
   Window.OnPress := @Press;
   Window.AutoRedisplay := true;
   Window.Caption := 'Let''s take a walk';
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
 
   { parse parameters }
   Window.FullScreen := true; { by default we open in fullscreen }

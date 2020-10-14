@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <resource
-  name="KnightSingleXThreeD"
+  name="DeprecatedKnightSingleXThreeD"
   type="WalkAttack"
 >
   <model url="knight.x3dv">

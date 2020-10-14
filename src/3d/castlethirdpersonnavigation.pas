@@ -389,10 +389,10 @@ begin
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(keyW, keyUp);
-  Input_Backward                .Assign(keyS, keyDown);
-  Input_LeftRotate              .Assign(keyLeft, keyA);
-  Input_RightRotate             .Assign(keyRight, keyD);
+  Input_Forward                 .Assign(keyW, keyArrowUp);
+  Input_Backward                .Assign(keyS, keyArrowDown);
+  Input_LeftRotate              .Assign(keyArrowLeft, keyA);
+  Input_RightRotate             .Assign(keyArrowRight, keyD);
   Input_LeftStrafe              .Assign(keyNone);
   Input_RightStrafe             .Assign(keyNone);
   Input_CameraCloser            .Assign(keyNone);

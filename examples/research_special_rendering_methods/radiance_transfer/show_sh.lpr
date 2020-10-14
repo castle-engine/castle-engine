@@ -142,6 +142,6 @@ begin
 
   Window.OnMenuClick := @MenuClick;
   Window.OnRender := @Render;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.SetDemoOptions(keyF11, CharEscape, true);
   Window.OpenAndRun;
 end.
