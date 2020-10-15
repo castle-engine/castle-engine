@@ -32,6 +32,8 @@
     procedure SetDescription(const Value: String);
     function GetJump: Boolean;
     procedure SetJump(const Value: Boolean);
+    function GetOrientation: TVector4;
+    procedure SetOrientation(const Value: TVector4);
     function GetRetainUserOffsets: Boolean;
     procedure SetRetainUserOffsets(const Value: Boolean);
     function GetCameraMatrixSendAlsoOnOffscreenRendering: Boolean;
@@ -65,6 +67,8 @@
     strict private FFdOrientation: TSFRotation;
     { X3D field "orientation". } { }
     public property FdOrientation: TSFRotation read FFdOrientation;
+    { X3D field "orientation". } { }
+    property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     strict private FFdRetainUserOffsets: TSFBool;
     { X3D field "retainUserOffsets". } { }
@@ -148,6 +152,16 @@ end;
 procedure TAbstractViewpointNode.SetJump(const Value: Boolean);
 begin
   FdJump.Send(Value);
+end;
+
+function TAbstractViewpointNode.GetOrientation: TVector4;
+begin
+  Result := FdOrientation.Value;
+end;
+
+procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4);
+begin
+  FdOrientation.Send(Value);
 end;
 
 function TAbstractViewpointNode.GetRetainUserOffsets: Boolean;

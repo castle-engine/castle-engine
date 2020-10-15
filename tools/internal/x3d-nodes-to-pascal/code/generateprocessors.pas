@@ -920,7 +920,6 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'OrthoViewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'GeoViewpoint.position') or
-     (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.orientation') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or

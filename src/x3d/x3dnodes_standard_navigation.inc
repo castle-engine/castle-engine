@@ -22,8 +22,6 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
-    function GetOrientation: TVector4;
-    procedure SetOrientation(const Value: TVector4);
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
@@ -32,10 +30,6 @@
 
     { Position of the viewpoint. }
     property Position: TVector3 read GetPosition write SetPosition;
-
-    { Orientation of the viewpoint, expressed as rotation to transform default direction and up
-      (DefaultX3DCameraDirection, DefaultX3DCameraUp). }
-    property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     class function ProjectionType: TProjectionType; virtual; abstract;
 
@@ -496,16 +490,6 @@ end;
 procedure TAbstractViewpointNode.SetPosition(const Value: TVector3);
 begin
   PositionField.Send(Value);
-end;
-
-function TAbstractViewpointNode.GetOrientation: TVector4;
-begin
-  Result := FdOrientation.Value;
-end;
-
-procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4);
-begin
-  FdOrientation.Send(Value);
 end;
 
 function TAbstractViewpointNode.ProjectionMatrix: TMatrix4;

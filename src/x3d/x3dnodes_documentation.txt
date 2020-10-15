@@ -1,3 +1,7 @@
+# TAbstractViewpointNode.Orientation
+Orientation of the viewpoint, expressed as rotation to transform default direction and up
+(DefaultX3DCameraDirection, DefaultX3DCameraUp).
+
 # TAbstractViewpointNode.GravityTransform
 Should the gravity vector be affected by the viewpoint transformation,
 that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode.
