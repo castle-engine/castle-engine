@@ -433,7 +433,7 @@ clean: cleanexamples
 	  examples/portable_game_skeleton/my_fantastic_game \
 	  examples/portable_game_skeleton/my_fantastic_game.exe \
 	  examples/fonts/font_draw_over_image_output.png \
-	  examples/3d_rendering_processing/transform_save_load/aaa.castle-transform
+	  examples/short_api_samples/transform_save_load/aaa.castle-transform
 	$(MAKE) -C doc/man/man1/ clean
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/ *.fpm

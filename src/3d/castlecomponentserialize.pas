@@ -76,7 +76,7 @@ type
 { Save / load TCastleTransform (or descendant) to a .castle-transform file.
 
   An example:
-  @includeCode(../../examples/3d_rendering_processing/transform_save_load/transform_save_load.lpr) }
+  @includeCode(../../examples/short_api_samples/transform_save_load/transform_save_load.lpr) }
 procedure TransformSave(const T: TCastleTransform; const Url: String);
 function TransformLoad(const Url: String; const Owner: TComponent): TCastleTransform;
 
