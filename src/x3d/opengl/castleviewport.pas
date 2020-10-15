@@ -1077,13 +1077,12 @@ type
       (initial position, direction, up, TCastleCamera.ProjectionNear)
       by looking at the initial world (@link(Items)) when rendering the first frame.
 
-      The @link(AssignDefaultCamera) is called only if this property is @true.
+      The @link(AssignDefaultCamera) is automatically called only if this property is @true.
 
       Also, only if this property is @true, we synchronize
       camera when X3D Viewpoint node changes, or a new X3D Viewpoint node is bound.
 
-      By default it is @true. Setting it to @false effectively means
-      that you control @link(Camera) properties on your own.
+      By default it is @false, which means you control @link(Camera) properties on your own.
     }
     property AutoCamera: Boolean
       read FAutoCamera write SetAutoCamera default false;
@@ -1094,8 +1093,7 @@ type
       This also allows to later synchronize navigation properties when X3D NavigationInfo
       node changes, or a new NavigationInfo node is bound.
 
-      By default it is @true. Setting it to @false effectively means
-      that you control @link(Navigation) on your own.
+      By default it is @false, which means that you control @link(Navigation) on your own.
     }
     property AutoNavigation: Boolean
       read FAutoNavigation write FAutoNavigation default false;

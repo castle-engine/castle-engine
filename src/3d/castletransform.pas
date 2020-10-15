@@ -277,6 +277,7 @@ type
 
     { Orientation sensible for models oriented around Y axis,
       using default export from Blender to glTF or Wavefront OBJ.
+      This matches glTF specification that explicitly says "The front of a glTF asset faces +Z".
 
       Gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes +Z and +Y match (respectively) Direction and Up.
@@ -710,7 +711,8 @@ type
 
     var
       { Default value of @link(TCastleTransform.Orientation) for new instances.
-        By default @link(otUpYDirectionZ), matching e.g. Blender exporter to glTF. }
+        By default @link(otUpYDirectionZ), matching glTF orientation
+        (as exported from Blender and other software). }
       DefaultOrientation: TOrientationType; static;
 
     constructor Create(AOwner: TComponent); override;
