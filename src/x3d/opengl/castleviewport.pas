@@ -957,15 +957,14 @@ type
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
-    { If yes then we will not draw any background, letting the window contents
-      underneath be visible (in places where we do not draw our own 3D geometry,
-      or where our own geometry is transparent, e.g. by Material.transparency).
-      For this to make sense, make sure that you always place some other 2D control
-      under this viewport, that actually draws something predictable underneath.
+    { If yes then the viewport will not draw a background, letting the window contents
+      underneath be visible (on pixels which are not drawn by this viewport's @link(Items),
+      and on pixels which are drawn but with partially-transparent materials).
 
-      The normal background, derived from @link(Background) will be ignored.
-      We will also not do any RenderContext.Clear on color buffer.
-      Also BackgroundWireframe and BackgroundColor doesn't matter in this case. }
+      In effect, the @link(BackgroundColor), @link(BackgroundWireframe),
+      and any background defined using X3D nodes (like @link(TBackgroundNode),
+      @link(TTextureBackgroundNode), @link(TImageBackgroundNode)) inside
+      @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
     { At the beginning of rendering, scene manager by default clears
@@ -2223,6 +2222,9 @@ procedure TCastleViewport.RenderFromViewEverything(const RenderingCamera: TRende
   var
     UsedBackground: TBackground;
   begin
+    if Transparent then
+      Exit;
+
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
