@@ -1570,6 +1570,7 @@ var
     begin
       OrthoViewpoint := TOrthoViewpointNode.Create;
       OrthoViewpoint.X3DName := Camera.Name;
+      OrthoViewpoint.GravityTransform := false;
       ParentGroup.AddChildren(OrthoViewpoint);
     end else
     begin
@@ -1577,6 +1578,7 @@ var
       Viewpoint.X3DName := Camera.Name;
       if Camera.Perspective.YFov <> 0 then
         Viewpoint.FieldOfView := Camera.Perspective.YFov / 2;
+      Viewpoint.GravityTransform := false;
       ParentGroup.AddChildren(Viewpoint);
     end;
   end;

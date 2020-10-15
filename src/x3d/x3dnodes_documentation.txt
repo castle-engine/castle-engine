@@ -1,3 +1,7 @@
+# TAbstractViewpointNode.GravityTransform
+Should the gravity vector be affected by the viewpoint transformation,
+that is by the @link(TTransformNode) instances that contain this TAbstractViewpointNode.
+
 # TAbstractViewpointNode.GravityUp
 Specify the gravity vector explicitly.
 See https://castle-engine.io/x3d_implementation_navigation_extensions.php .

@@ -455,7 +455,11 @@ begin
     even if input (like CamDir) was already normalized. }
   CamDir    := Transform.MultDirection(CamDir).Normalize;
   CamUp     := Transform.MultDirection(CamUp).Normalize;
-  GravityUp := Transform.MultDirection(GravityUp).Normalize;
+
+  if GravityTransform then
+    GravityUp := Transform.MultDirection(GravityUp).Normalize
+  else
+    GravityUp.NormalizeMe;
 
   Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
   Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));

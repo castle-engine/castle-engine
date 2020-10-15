@@ -16,6 +16,7 @@ X3DViewpointNode : X3DBindableNode {
   MFVec3f    [in,out]      direction   []
   MFVec3f    [in,out]      up          []
   SFVec3f    [in,out]      gravityUp   0 1 0
+  SFBool     [in,out]      gravityTransform  TRUE
 }
 
 Billboard : X3DGroupingNode {

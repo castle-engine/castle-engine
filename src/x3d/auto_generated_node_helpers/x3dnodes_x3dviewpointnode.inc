@@ -38,6 +38,8 @@
     procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: Boolean);
     function GetGravityUp: TVector3;
     procedure SetGravityUp(const Value: TVector3);
+    function GetGravityTransform: Boolean;
+    procedure SetGravityTransform(const Value: Boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -106,6 +108,12 @@
     { X3D field "gravityUp". } { }
     property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
+    strict private FFdGravityTransform: TSFBool;
+    { X3D field "gravityTransform". } { }
+    public property FdGravityTransform: TSFBool read FFdGravityTransform;
+    { X3D field "gravityTransform". } { }
+    property GravityTransform: Boolean read GetGravityTransform write SetGravityTransform;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -172,6 +180,16 @@ begin
   FdGravityUp.Send(Value);
 end;
 
+function TAbstractViewpointNode.GetGravityTransform: Boolean;
+begin
+  Result := FdGravityTransform.Value;
+end;
+
+procedure TAbstractViewpointNode.SetGravityTransform(const Value: Boolean);
+begin
+  FdGravityTransform.Send(Value);
+end;
+
 class function TAbstractViewpointNode.ClassX3DType: String;
 begin
   Result := 'X3DViewpointNode';
@@ -230,6 +248,10 @@ begin
   FFdGravityUp := TSFVec3f.Create(Self, True, 'gravityUp', Vector3(0, 1, 0));
    FdGravityUp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdGravityUp);
+
+  FFdGravityTransform := TSFBool.Create(Self, True, 'gravityTransform', true);
+   FdGravityTransform.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGravityTransform);
 end;
 
 {$endif read_implementation}
