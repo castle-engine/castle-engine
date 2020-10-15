@@ -18,7 +18,8 @@ uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
   CastleUtils, CastleTransform, CastleCreatures, CastleLog, CastleCameras,
-  CastleURIUtils, CastleViewport, CastleLevels, CastleVectors;
+  CastleURIUtils, CastleViewport, CastleLevels, CastleVectors,
+  CastleDebugTransform;
 
 var
   Window: TCastleWindowBase;
@@ -83,6 +84,7 @@ var
 procedure SetCreatureResource(const NewCreatureResource: TCreatureResource);
 var
   I: Integer;
+  Debug: TDebugTransformBox;
 begin
   FreeAndNil(CurrentCreature); // remove previous creature
 
@@ -91,6 +93,10 @@ begin
   CurrentCreature := CurrentResource.CreateCreature(Level,
     { Translation } Vector3(0, 0, 0),
     { Direction } Vector3(0, 0, 1));
+
+  Debug := TDebugTransformBox.Create(CurrentCreature);
+  Debug.Parent := CurrentCreature;
+  Debug.Exists := true;
 
   { update Pressed of buttons }
   for I := 0 to ResourceButtons.Count - 1 do
