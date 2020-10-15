@@ -657,72 +657,86 @@ var
 begin
    j:=0;
    k:= 0;
+   if index1 <> -2 then
+  begin
    if index1<>0 then
-  for i:=0 to FTextChar.Count-1 do
-  begin
-    if FTextChar[i] = False then j:=j+1 else k:=k+1;
-    if k >= index1 then break;
-  end;
-  Index:= index1 + j;
-  j:=UTF8Length(Text[Index]);
-  IndexColumn:=0;
-  for i:=Index to Text.Count-1 do
-  begin
-    if indexColumn1 <= j then
+    for i:=0 to FTextChar.Count-1 do
     begin
-    IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
-    break;
-    end
-    else
-      if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
-      else begin
-           break;
-           IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
-      end;
-    if FTextChar.Count > i then
-      if FTextChar[i] = False then Index:= Index + 1
-      else
-        begin
-        IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
-        break;
-        end;
+      if FTextChar[i] = False then j:=j+1 else k:=k+1;
+      if k >= index1 then break;
+    end;
+    Index:= index1 + j;
   end;
+
+  if indexColumn1 <> -2 then
+  begin
+    j:=UTF8Length(Text[Index]);
+    IndexColumn:=0;
+    for i:=Index to Text.Count-1 do
+    begin
+      if indexColumn1 <= j then
+      begin
+      IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
+      break;
+      end
+      else
+        if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
+        else begin
+             break;
+             IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
+        end;
+      if FTextChar.Count > i then
+        if FTextChar[i] = False then Index:= Index + 1
+        else
+          begin
+          IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
+          break;
+          end;
+      end;
+  end;
+
   if index2 <> -1 then
   begin
-  BolSelect:= True;
-  j:= 0;
-  k:= 0;
-  if index1<>0 then
-  for i:=0 to FTextChar.Count-1 do
-  begin
-    if FTextChar[i] = False then j:=j+1 else k:=k+1;
-    if k >= index2 then break;
-  end;
-  LastIndex:= index2 + j;
-
-  j:=UTF8Length(Text[LastIndex]);
-  LastIndexColumn:=0;
-  for i:=LastIndex to Text.Count-1 do
-  begin
-    if indexColumn2 <= j then
+    if index2 <> -2 then
     begin
-    LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
-    break;
-    end
-    else
-      if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
-      else begin
-           break;
-           LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
-      end;
-    if FTextChar.Count > i then
-      if FTextChar[i] = False then LastIndex:= LastIndex + 1
-      else
+      BolSelect:= True;
+      j:= 0;
+      k:= 0;
+      if index1<>0 then
+        for i:=0 to FTextChar.Count-1 do
+        begin
+          if FTextChar[i] = False then j:=j+1 else k:=k+1;
+          if k >= index2 then break;
+        end;
+      LastIndex:= index2 + j;
+    end;
+
+    if indexColumn2 <> -2 then
+    begin
+      j:=UTF8Length(Text[LastIndex]);
+      LastIndexColumn:=0;
+      for i:=LastIndex to Text.Count-1 do
+      begin
+        if indexColumn2 <= j then
         begin
         LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
         break;
-        end;
-  end;
+        end
+        else
+          if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
+          else begin
+               break;
+               LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
+          end;
+        if FTextChar.Count > i then
+          if FTextChar[i] = False then LastIndex:= LastIndex + 1
+          else
+            begin
+            LastIndexColumn:= indexColumn2 - (j - UTF8Length(Text[i])) - 1;
+            break;
+            end;
+      end;
+    end;
   end else BolSelect:= False;
 end;
 
@@ -733,6 +747,7 @@ begin
   j1:= 0;
   k:= 0;
   j:= 0;
+  k1:=0;
   if Index <> 0 then
   begin
     for i:=0 to FTextChar.Count-1 do
@@ -740,7 +755,8 @@ begin
       if FTextChar[i] = False then
       begin
        k:= k+1;
-       k1:= k+1;
+       k1:= k1+1;
+       WritelnLog('k_'+IntToStr(k)+'   k1_'+IntToStr(k1)+'  j1_'+IntToStr(j1));
       end
       else begin
        j1:= j1+1;
@@ -748,11 +764,15 @@ begin
       end;
       if k + j1 >= index then break;
     end;
-    j:= k;
+    j:= k+j1;
     for i:= j1+k-1 downto 0 do
       begin
-        if FTextChar[i] = True then break else k1:= k1 - 1;
+        if FTextChar[i] = True then break else begin
+        k1:= k1 - 1;
+        k:= k - 1;
+        end;
       end;
+    if i = 0 then k1:=0;
     Result.Index1:= j1 + k1;
   end else
   begin
@@ -764,25 +784,33 @@ begin
 
   j1:= 0;
   Result.IndexColumn1:= IndexColumn;
+  WritelnLog('Index1_'+IntToStr(Result.Index1+k)+' k+j_'+IntToStr(j));
   if FTextChar.Count > 0 then
-    for i:= Result.Index1 to k + j do
+    for i:= Result.Index1+k to j do
     begin
-      if i > FTextChar.Count-1 then break;
-      if FTextChar[i] = False then j1:= j1 + UTF8Length(Text[i])
-      else
+     WritelnLog('j1_'+IntToStr(j1)+'_i_'+IntToStr(i));
+      if i-1 > FTextChar.Count-1 then break;
+      if i-1 >= Result.Index1+k then
       begin
-        if i-1 > -1 then
-          j1:= j1 - UTF8Length(Text[i-1]);
-        break;
-      end;
-      if i >= FTextChar.Count-1 then break;
-      if  (i = k + j) then
+        if FTextChar[i-1] = False then j1:= j1 + UTF8Length(Text[i])
+        else
+        begin
+          if i-1 > -1 then
+            j1:= j1 - UTF8Length(Text[i]);
+          WritelnLog('j1_'+IntToStr(j1)+'_i_'+IntToStr(i));
+          break;
+        end;
+      end else j1:= UTF8Length(Text[i]);
+      if i-1 > FTextChar.Count-1 then break;
+      if  (i = j) then
       begin
        j1:= j1 - UTF8Length(Text[i]);
+       WritelnLog('j1_'+IntToStr(j1)+'_i_'+IntToStr(i));
        break;
       end;
     end;
-  Result.IndexColumn1:= j1  + IndexColumn + 1;
+  WritelnLog('IndexColumn_'+IntToStr(IndexColumn)+' j1'+IntToStr(j1));
+  Result.IndexColumn1:= j1 + IndexColumn + 1;
 
  if LastIndex <> -1 then
  begin
@@ -796,7 +824,7 @@ begin
       if FTextChar[i] = False then
       begin
        k:= k+1;
-       k1:= k+1;
+       k1:= k1+1;
       end
       else begin
        j1:= j1+1;
@@ -1177,18 +1205,19 @@ var
   s1:TStrings;
   i, j:integer;
   bool: boolean;
+  Caret: TMemoIndexs;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
   s:='';
   bool:= False;
   if Event.IsKey(keyShift)=False then SelectShift:=False;
-
+  Caret:=GetCaret;
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
     if LastIndex<>-1 then
     begin
-      UndoSystem.ChangeAct(bool,index, indexcolumn, LastIndex, LastIndex, SelectedText, atDelete);
+      UndoSystem.ChangeAct(bool,Caret.index1, Caret.indexcolumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
       DeleteSelectText;
     end
     else
@@ -1197,7 +1226,7 @@ begin
      if IndexColumn<>-1 then
       begin
         UTF8Delete(s,indexColumn+2-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)),UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
-        UndoSystem.ChangeAct(bool, index, indexcolumn, -2, -2, UTF8Copy(Text[Index],IndexColumn+1,1), atDelete);
+        UndoSystem.ChangeAct(bool, Caret.Index1, Caret.IndexColumn1, -2, -2, UTF8Copy(Text[Index],IndexColumn+1,1), atDelete);
         IndexColumn:=IndexColumn-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1));
         Text[index]:=s;//+Text[index][IndexColumn];
       end else
@@ -1211,7 +1240,7 @@ begin
          if Text[index] <> '' then
            Text[Index-1]:=Text[Index-1]+Text[Index];
           WritelnLog(Text[index]);
-           UndoSystem.AddAct(bool,index, indexcolumn, -2, -2, Text[Index], atDeleteLine);
+           UndoSystem.AddAct(bool,Caret.index1, Caret.IndexColumn1, -2, -2, Text[Index], atDeleteLine);
            Text.Delete(index);
          // end;
         FTextChar.Delete(index-1);
@@ -1226,7 +1255,7 @@ begin
   begin
   if LastIndex <> -1 then
   begin
-    UndoSystem.ChangeAct(bool, index, IndexColumn, LastIndex, LastIndexColumn, SelectedText, atDelete);
+    UndoSystem.ChangeAct(bool, Caret.Index1, Caret.IndexColumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
     DeleteSelectText;
     bool:=true;
   end
@@ -1236,7 +1265,7 @@ begin
       if IndexColumn < UTF8Length(S)-1 then
       begin
         UTF8Delete(s,indexColumn+2,UTF8Length(UTF8Copy(Text[Index],IndexColumn+2,1)));
-        UndoSystem.AddAct(index,indexColumn+2,UTF8Copy(Text[Index],IndexColumn+2,1),atDelete);
+        UndoSystem.AddAct(Caret.Index1,Caret.IndexColumn1+2,UTF8Copy(Text[Index],IndexColumn+2,1),atDelete);
         Text[index]:=s;
       end
       else
@@ -1244,12 +1273,12 @@ begin
         if s='' then  begin
           Text.Delete(Index);
           FTextChar.Delete(index);
-          UndoSystem.AddAct(index, indexColumn+2, '', atDeleteLine);
+          UndoSystem.AddAct(Caret.Index1, Caret.IndexColumn1+2, '', atDeleteLine);
         end
         else
         begin
          Text[Index]:=Text[Index]+Text[Index+1];
-         UndoSystem.AddAct(index, indexColumn+2, Text[Index+1], atDelete);
+         UndoSystem.AddAct(Caret.Index1, Caret.IndexColumn1+2, Text[Index+1], atDelete);
          Text.Delete(Index+1);
          if FTextChar.Count > index then
             FTextChar.Delete(index);
@@ -1267,7 +1296,7 @@ begin
   if Event.IsKey(CtrlX) then
   begin
       Clipboard.AsText := SelectedText;
-      UndoSystem.AddAct(False,index, IndexColumn, LastIndex, LastIndexColumn, SelectedText, atDelete);
+      UndoSystem.AddAct(False,Caret.Index1, Caret.IndexColumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
       DeleteSelectText;
       DoChange;
     Result := ExclusiveEvents;
@@ -1286,7 +1315,7 @@ begin
     if LastIndex <> -1 then
     begin
        DeleteSelectText;
-       UndoSystem.AddAct(False, index, IndexColumn, LastIndex, LastIndexColumn, SelectedText, atDelete);
+       UndoSystem.AddAct(False, Caret.Index1, Caret.IndexColumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
        bool:= True;
        LastIndex:=-1;
        WritelnLog('True');
@@ -1316,17 +1345,16 @@ begin
        { s:= Text[Index+i];
         UTF8Insert(s1[i+1], s, IndexColumn+2);
         Text[Index+i]:= s; }
-
-        UndoSystem.ChangeAct(bool,-1, -1, Index+i, IndexColumn+UTF8Length(s));
+        index:= Index+i;
+        UndoSystem.ChangeAct(bool,-1, -1, Caret.Index1, Caret.IndexColumn1+UTF8Length(s));
       end;
     end else
     begin
       s:= Text[Index];
       UTF8Insert(Clipboard.AsText,s,IndexColumn + 2);
       Text[Index]:= s;
-      UndoSystem.AddAct(bool, index, indexColumn, index ,IndexColumn + 2+UTF8Length(Clipboard.AsText), Clipboard.AsText, atAdd);
+      UndoSystem.AddAct(bool, Caret.Index1, Caret.IndexColumn1, Caret.index1,Caret.IndexColumn1 + 2+UTF8Length(Clipboard.AsText), Clipboard.AsText, atAdd);
     end;
-    index:= Index+i;
     IndexColumn:= IndexColumn+UTF8Length(s);
     //UndoSystem.ChangeAct(bool,-1, -1, Index, IndexColumn);
     DoChange;
@@ -1828,7 +1856,10 @@ end;
     LastIndexColumn: integer; Text: string; ActionType: TMemoUndoActionType);
   var
     s:string;
+    Lines:TStringList;
  begin
+   Lines:=TStringList.Create;
+   Lines.Assign(Memo^.Lines);
    if ActionType = atAdd then
     begin
       WritelnLog('ffffffff   '+Text);
@@ -1836,14 +1867,14 @@ end;
       if LastIndex < 0 then
        begin
         //Memo^.Text.Insert(Memo^.Text.Count,IntToStr());
-        if NOT(Index < Memo^.Text.Count) then
-          Memo^.Text.Insert(Index,'');
-        s:= Memo^.Text[Index];
+        if NOT(Index < Lines.Count) then
+          Lines.Insert(Index,'');
+        s:= Lines[Index];
         UTF8Insert(Text,s,indexColumn+2);
         WriteLnLog(IntToStr(indexColumn+1));
-        Memo^.Text[Index]:= s;
-        Memo^.IndexColumn:= IndexColumn+UTF8Length(Text);
-        Memo^.Index:= index;
+        Lines[Index]:= s;
+        Memo^.SetCaret(-2, IndexColumn+UTF8Length(Text));
+        Memo^.SetCaret(index, -2);
         WritelnLog('adding');
        end;
       end else if ActionType = atDelete then
@@ -1851,15 +1882,15 @@ end;
          if LastIndex < 0 then
          begin
           Memo^.IndexColumn:= Memo^.IndexColumn-UTF8Length(Text);
-          Memo^.Index:=index;
-          s:=Memo^.Text[Index];
+          Memo^.SetCaret(index,-2);
+          s:= Lines[Index];
           UTF8Delete(s,indexColumn+2,1);
-          Memo^.Text[Index]:=s;Memo^.IndexColumn:=Memo^.IndexColumn-UTF8Length(Text);
-          Memo^.Index:=index;
+          Lines[Index]:=s;Memo^.IndexColumn:=Memo^.IndexColumn-UTF8Length(Text);
+          Memo^.SetCaret(index,-2);
           WritelnLog('delete');
         end else
         begin
-          Memo^.Text.Insert(Memo^.Text.Count,'delete LastIndex');
+          Lines.Insert(Lines.Count,'delete LastIndex');
           Memo^.IndexColumn:= IndexColumn;
           Memo^.Index:= index;
           Memo^.LastIndexColumn:= LastIndexColumn;
@@ -1870,10 +1901,10 @@ end;
         end;
         end else if ActionType=atEnter then
          begin
-            Memo^.Text.Insert(Index,UTF8Copy(Memo^.Text[index-1],IndexColumn+2,UTF8Length(Memo^.Text[index-1])-IndexColumn));
-            s:= Memo^.Text[index-1];
-            Utf8Delete(s,IndexColumn+2,utf8Length(Memo^.Text[index-1])-IndexColumn+1);
-            Memo^.Text[index-1]:= s;
+            Lines.Insert(Index,UTF8Copy(Lines[index-1],IndexColumn+2,UTF8Length(Lines[index-1])-IndexColumn));
+            s:= Lines[index-1];
+            Utf8Delete(s,IndexColumn+2,utf8Length(Lines[index-1])-IndexColumn+1);
+            Lines[index-1]:= s;
             Memo^.FTextChar.Insert(index-1,True);
             Memo^.Index:= Index+1;
             Memo^.IndexColumn:= -1;
