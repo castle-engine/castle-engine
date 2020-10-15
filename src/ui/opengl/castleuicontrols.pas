@@ -613,6 +613,15 @@ type
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
     { @groupEnd }
 
+    { Capture the current container (window) contents to an image with alpha.
+
+      An example:
+      @includeCode(../../examples/short_api_samples/save_screen_rgba/save_screen_rgba.lpr)
+      @groupBegin }
+    function SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
+    function SaveScreenRgba: TRGBAlphaImage;
+    { @groupEnd }
+
     { Capture the current container (window) contents to an image and save it to file,
       following the current platform/user preferred directory to store screenshots.
 
@@ -3778,6 +3787,19 @@ begin
     WritelnLog('Screen saved to ' + Result);
   end else
     Result := '';
+end;
+
+function TUIContainer.SaveScreenRgba(const SaveRect: TRectangle): TRGBAlphaImage;
+begin
+  EventBeforeRender;
+  EventRender;
+  { This is correct if we use double-buffer. }
+  Result := SaveScreen_NoFlush(TRGBAlphaImage, SaveRect, cbBack) as TRGBAlphaImage;
+end;
+
+function TUIContainer.SaveScreenRgba: TRGBAlphaImage;
+begin
+  Result := SaveScreenRgba(Rect);
 end;
 
 function TUIContainer.Dpi: Single;
