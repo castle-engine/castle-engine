@@ -73,7 +73,7 @@
       )
 
       They are all then transformed by the current viewpoint transformation
-      (determined by parent nodes like Transform).
+      (determined by parent nodes like TTransformNode).
 
       One conclusion from the above is that the only way to change the gravity up
       vector (this determines in which direction viewer falls down)
@@ -525,11 +525,10 @@ begin
   if GravityUp.IsZero then
     GravityUp := DefaultX3DGravityUp;
 
-  { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
-    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak Transform.MultDirectionNoScale }
   CamPos    := Transform.MultPoint(CamPos);
+  { Since the Transform can contain scale,
+    we need to always normalize resulting vectors,
+    even if input (like CamDir) was already normalized. }
   CamDir    := Transform.MultDirection(CamDir).Normalize;
   CamUp     := Transform.MultDirection(CamUp).Normalize;
   GravityUp := Transform.MultDirection(GravityUp).Normalize;
