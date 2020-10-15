@@ -5850,8 +5850,7 @@ type
     if ( (not OnlyPerspective) or
          (V.ProjectionType = ptPerspective) ) and
        ( (ViewpointDescription = '') or
-         ( (Node is TAbstractX3DViewpointNode) and
-           (TAbstractX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
+         (V.Description = ViewpointDescription) ) then
       Result := V else
       Result := nil;
   end;

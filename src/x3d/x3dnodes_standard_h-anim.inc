@@ -400,7 +400,9 @@ begin
       To be on the safest side, I allow both THAnimSiteNode and viewpoint
       classes.  }
     THAnimSiteNode,
-    TAbstractX3DViewpointNode, TViewpointGroupNode ]);
+    TAbstractViewpointNode,
+    TViewpointGroupNode
+  ]);
   AddField(FFdViewpoints);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));

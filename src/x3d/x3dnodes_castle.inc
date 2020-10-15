@@ -753,10 +753,13 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
-  FFdProjector := TSFNode.Create(Self, true, 'projector',
-    [TSpotLightNode_1, TDirectionalLightNode_1,
-     TSpotLightNode  , TDirectionalLightNode  ,
-     TAbstractX3DViewpointNode]);
+  FFdProjector := TSFNode.Create(Self, true, 'projector', [
+    TSpotLightNode_1,
+    TDirectionalLightNode_1,
+    TSpotLightNode,
+    TDirectionalLightNode,
+    TAbstractViewpointNode
+  ]);
    FFdprojector.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjector);
 end;

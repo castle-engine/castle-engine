@@ -347,7 +347,7 @@
     {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
   end;
 
-  TGeoViewpointNode = class(TAbstractX3DViewpointNode)
+  TGeoViewpointNode = class(TAbstractViewpointNode)
   strict private
     DummyPositionSingle: TSFVec3f;
   strict protected

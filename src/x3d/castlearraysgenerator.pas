@@ -1121,15 +1121,13 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         if GeneratorNode is TProjectedTextureCoordinateNode then
         begin
           ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
-          if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractPunctualLightNode) then
+          if ProjectorValue is TAbstractPunctualLightNode then // checks also ProjectorValue <> nil
           begin
             Result := @TAbstractPunctualLightNode(ProjectorValue).GetProjectorMatrix;
           end else
-          if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractX3DViewpointNode) then
+          if ProjectorValue is TAbstractViewpointNode then // checks also ProjectorValue <> nil
           begin
-            Result := @TAbstractX3DViewpointNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
             WritelnWarning('X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else

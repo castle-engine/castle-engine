@@ -250,11 +250,10 @@ begin
   // replace X3D prefix with Abstract prefix
   if IsAbstract then
   begin
-    { On X3DViewpointNode, we have both
-      TAbstractX3DViewpointNode and TAbstractViewpointNode,
-      to support also older VRML versions. Similar for grouping. }
-    if (X3DType <> 'X3DViewpointNode') and
-       (X3DType <> 'X3DGroupingNode') then
+    { On X3DGroupingNode, we have both
+      TAbstractX3DGroupingNode and TAbstractGroupingNode,
+      to support also older VRML versions. }
+    if X3DType <> 'X3DGroupingNode' then
       Result := PrefixRemove('X3D', Result, true);
     Result := 'Abstract' + Result;
   end;

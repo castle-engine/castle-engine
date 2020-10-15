@@ -1,4 +1,6 @@
 X3DViewpointNode : X3DBindableNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFVec3f    [in,out] centerOfRotation  0 0 0     (-Inf,Inf)
   SFString   [in,out] description       ""
   SFBool     [in,out] jump              TRUE
