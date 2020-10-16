@@ -1,2 +1,0 @@
-This documentation was moved to wiki:
-https://github.com/castle-engine/castle-engine/wiki/Coding-Conventions
