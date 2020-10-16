@@ -436,7 +436,7 @@ begin
 
   FFakeMouseDown := false;
 
-  Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
+  Check(not Window.Closed, 'TGLMode.Create cannot be called on a closed CastleWindow.');
 
   OldState := TWindowState.Create(Window);
   OldWidth := Window.Width;
