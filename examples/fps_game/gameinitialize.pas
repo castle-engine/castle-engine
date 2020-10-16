@@ -433,7 +433,7 @@ begin
     Buttons.AddCreatureButtonClick(nil) else
   if Event.IsKey(keyF10) then
     Buttons.AddItemButtonClick(nil);
-  if Event.IsKey(K_F1) then
+  if Event.IsKey(keyF1) then
     CreatePlayer;
 end;
 
