@@ -1320,8 +1320,7 @@ begin
       begin
         Items.Insert(1, ThirdPersonNavigation.AvatarHierarchy);
         Player.LevelChanged;
-      end
-      else
+      end else
         Items.Add(ThirdPersonNavigation.AvatarHierarchy);
     end else
     if ThirdPersonNavigation.Avatar <> nil then
