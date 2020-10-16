@@ -363,6 +363,7 @@ var
     and it follows level's properties like PreferredHeight (from level's
     NavigationInfo.avatarSize). }
 procedure CreatePlayer;
+
   procedure SetupThirdPersonNavigation;
   var
     Avatar: TCastleScene;
@@ -397,6 +398,7 @@ procedure CreatePlayer;
     Player.ThirdPersonNavigation.MoveSpeed := 4;
     Player.ThirdPersonNavigation.RunSpeed := 8;
   end;
+
 begin
   FreeAndNil(Player);
 
