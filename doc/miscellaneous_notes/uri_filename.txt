@@ -1,3 +1,11 @@
+The information below contains early thoughts and decisions about URL support
+throughout Castle Game Engine.
+It is still true, but probably goes into too much details to be much useful.
+See https://castle-engine.io/manual_network.php for more up-to-date documentation
+of our URL support.
+
+------------------------------------------------------------------------------
+
 Castle Game Engine allows you to use filenames everywhere where URLs are
 expected.
 

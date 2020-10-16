@@ -1,4 +1,5 @@
-Convention used in all Kambi's programs:
+Good command-line options conventions:
+(These guided the design of CastleParameters unit.
 
 Options specifications (printed in response to the --help parameter)
 should look like this :

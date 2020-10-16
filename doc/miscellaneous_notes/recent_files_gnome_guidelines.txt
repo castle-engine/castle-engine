@@ -1,3 +1,7 @@
+The information below guided the units:
+CastleWindowRecentFiles, CastleLclRecentFiles, CastleRecentFiles.
+
+------------------------------------------------------------------------------
 How should recent files menu look and work like in GNOME program ?
 
 (I didn't found this info in any guideline on Internet,
