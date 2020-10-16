@@ -336,6 +336,8 @@ type
     function UnloadCore: T3DResourceList;
     function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
     procedure SetPlayer(const Value: TPlayer);
+    { Assigns Camera and Navigation on level loading and setting/change player }
+    procedure InitializeCamera;
     function Items: TCastleRootTransform;
     procedure Update(const SecondsPassed: Single);
   protected
@@ -957,122 +959,6 @@ var
     Logic.PlaceholdersEnd;
   end;
 
-  { Assign Camera and Navigation, knowing Items.MainScene and Player.
-    We need to assign Camera early, as initial Camera also is used
-    when placing initial resources on the level (to determine their
-    initial direction, World.GravityUp etc.) }
-  procedure InitializeCamera;
-  var
-    InitialPosition: TVector3;
-    InitialDirection: TVector3;
-    InitialUp: TVector3;
-    GravityUp: TVector3;
-    Radius, PreferredHeight: Single;
-    ProjectionNear: Single;
-    NavigationNode: TNavigationInfoNode;
-    WalkNavigation: TCastleWalkNavigation;
-    ThirdPersonNavigation: TCastleThirdPersonNavigation;
-  begin
-    if Items.MainScene.ViewpointStack.Top <> nil then
-      Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
-        InitialDirection, InitialUp, GravityUp) else
-    begin
-      InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
-      InitialDirection := DefaultX3DCameraDirection;
-      InitialUp := DefaultX3DCameraUp;
-      GravityUp := DefaultX3DGravityUp;
-    end;
-
-    NavigationNode := Items.MainScene.NavigationInfoStack.Top;
-
-    // calculate Radius
-    Radius := 0;
-    if (NavigationNode <> nil) and
-       (NavigationNode.FdAvatarSize.Count >= 1) then
-      Radius := NavigationNode.FdAvatarSize.Items[0];
-    // If radius not specified, or invalid (<0), calculate it
-    if Radius <= 0 then
-      Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
-    Assert(Radius > 0, 'Navigation Radius must be > 0');
-
-    // calculate ProjectionNear
-    ProjectionNear := Radius * RadiusToProjectionNear;
-    Viewport.Camera.ProjectionNear := ProjectionNear;
-
-    if (NavigationNode <> nil) and
-      (NavigationNode.FdAvatarSize.Count >= 2) then
-      PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
-    else
-      PreferredHeight := Max(TCastleNavigation.DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin);
-    CorrectPreferredHeight(PreferredHeight, Radius,
-      TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
-
-    WalkNavigation := nil;
-    ThirdPersonNavigation := nil;
-    if Player <> nil then
-    begin
-      if Player.UseThirdPerson then
-        ThirdPersonNavigation := Player.ThirdPersonNavigation
-      else
-        WalkNavigation := Player.WalkNavigation;
-    end else
-      { If you don't initialize Player (like for castle1 background level
-        or castle-view-level or lets_take_a_walk) then just create a camera. }
-      WalkNavigation := TCastleWalkNavigation.Create(Self);
-
-    { initialize some navigation settings of player }
-    if Player <> nil then
-    begin
-      Player.DefaultPreferredHeight := PreferredHeight;
-      if NavigationNode <> nil then
-        Player.DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        Player.DefaultMoveHorizontalSpeed := 1.0;
-      Player.DefaultMoveVerticalSpeed := 20;
-    end else
-    if WalkNavigation <> nil then
-    begin
-      { if you use TCastlePlayer, then it will automatically update navigation
-        speed properties. But if not (when Player = nil), we have to set them
-        explicitly here. }
-      WalkNavigation.PreferredHeight := PreferredHeight;
-      if NavigationNode <> nil then
-        WalkNavigation.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        WalkNavigation.MoveHorizontalSpeed := 1.0;
-      WalkNavigation.MoveVerticalSpeed := 20;
-    end;
-
-    Viewport.Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
-    // will be overridden by ThirdPersonNavigation.Init, possibly
-
-    if WalkNavigation <> nil then
-    begin
-      WalkNavigation.PreferredHeight := PreferredHeight;
-      WalkNavigation.Radius := Radius;
-      WalkNavigation.CorrectPreferredHeight;
-      WalkNavigation.CancelFalling;
-
-      Viewport.Navigation := WalkNavigation;
-    end else
-    begin
-      Viewport.Navigation := ThirdPersonNavigation;
-
-      { Use InitialXxx vectors to position avatar, camera will be derived from it.
-        Also add the avatar to Items (avatar needs to be part of hierarchy when
-        ThirdPersonNavigation.Init is called). }
-      if ThirdPersonNavigation.AvatarHierarchy <> nil then
-      begin
-        ThirdPersonNavigation.AvatarHierarchy.SetView(InitialPosition, InitialDirection, InitialUp);
-        Items.Add(ThirdPersonNavigation.AvatarHierarchy);
-      end else
-      if ThirdPersonNavigation.Avatar <> nil then
-      begin
-        ThirdPersonNavigation.Avatar.SetView(InitialPosition, InitialDirection, InitialUp);
-        Items.Add(ThirdPersonNavigation.Avatar);
-      end;
-      ThirdPersonNavigation.Init;
-    end;
-  end;
-
 var
   Options: TPrepareResourcesOptions;
   ShapeList: TShapeList;
@@ -1099,7 +985,7 @@ begin
     Items.MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
-      use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
+      use Scene for wall-sliding (see TCastleTransform.LocalMoveCollision implementation). }
     Items.Insert(0, Items.MainScene);
 
     InitializeCamera;
@@ -1292,17 +1178,13 @@ end;
 
 procedure TLevel.SetPlayer(const Value: TPlayer);
 begin
-  if (not (csDestroying in ComponentState)) and
-     (Value <> nil) and
-     (FInfo <> nil) then
-    { Setting Player not allowed now, as Load() would not have a chance to properly
-      process it, e.g. setting Player.Navigation as Viewport.Navigation. }
-    raise EInternalError.Create('Do not assign TLevel.Player after calling TLevel.Load');
-
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
+    begin
       FPlayer.RemoveFreeNotification(Self);
+      Items.Remove(FPlayer);
+    end;
     FPlayer := Value;
     if FPlayer <> nil then
     begin
@@ -1310,6 +1192,143 @@ begin
       FPlayer.InternalLevel := Self;
     end;
     Viewport.AvoidNavigationCollisions := Value;
+
+    { Reinitialize camera and navigation only when level was loaded. }
+    if FInfo <> nil then
+    begin
+      InitializeCamera;
+      if FPlayer <> nil then
+      begin
+        { Add Player to Items,
+          as the second item (see LoadCore for explanation why),
+          making sure it's not already there (because InitializeCamera
+          may have already added it when UseThirdPerson). }
+        if FPlayer.World = nil then
+        begin
+          Items.Insert(1, FPlayer);
+          FPlayer.LevelChanged;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TLevel.InitializeCamera;
+var
+  InitialPosition: TVector3;
+  InitialDirection: TVector3;
+  InitialUp: TVector3;
+  GravityUp: TVector3;
+  Radius, PreferredHeight: Single;
+  ProjectionNear: Single;
+  NavigationNode: TNavigationInfoNode;
+  WalkNavigation: TCastleWalkNavigation;
+  ThirdPersonNavigation: TCastleThirdPersonNavigation;
+begin
+  if Items.MainScene.ViewpointStack.Top <> nil then
+    Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
+      InitialDirection, InitialUp, GravityUp) else
+  begin
+    InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
+    InitialDirection := DefaultX3DCameraDirection;
+    InitialUp := DefaultX3DCameraUp;
+    GravityUp := DefaultX3DGravityUp;
+  end;
+
+  NavigationNode := Items.MainScene.NavigationInfoStack.Top;
+
+  // calculate Radius
+  Radius := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    Radius := NavigationNode.FdAvatarSize.Items[0];
+  // If radius not specified, or invalid (<0), calculate it
+  if Radius <= 0 then
+    Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+  Assert(Radius > 0, 'Navigation Radius must be > 0');
+
+  // calculate ProjectionNear
+  ProjectionNear := Radius * RadiusToProjectionNear;
+  Viewport.Camera.ProjectionNear := ProjectionNear;
+
+  if (NavigationNode <> nil) and
+    (NavigationNode.FdAvatarSize.Count >= 2) then
+    PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
+  else
+    PreferredHeight := Max(TCastleNavigation.DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin);
+  CorrectPreferredHeight(PreferredHeight, Radius,
+    TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
+
+  WalkNavigation := nil;
+  ThirdPersonNavigation := nil;
+  if Player <> nil then
+  begin
+    if Player.UseThirdPerson then
+      ThirdPersonNavigation := Player.ThirdPersonNavigation
+    else
+      WalkNavigation := Player.WalkNavigation;
+  end else
+    { If you don't initialize Player (like for castle1 background level
+      or castle-view-level or lets_take_a_walk) then just create a camera. }
+    WalkNavigation := TCastleWalkNavigation.Create(Self);
+
+  { initialize some navigation settings of player }
+  if Player <> nil then
+  begin
+    Player.DefaultPreferredHeight := PreferredHeight;
+    if NavigationNode <> nil then
+      Player.DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+      Player.DefaultMoveHorizontalSpeed := 1.0;
+    Player.DefaultMoveVerticalSpeed := 20;
+  end else
+  if WalkNavigation <> nil then
+  begin
+    { if you use TCastlePlayer, then it will automatically update navigation
+      speed properties. But if not (when Player = nil), we have to set them
+      explicitly here. }
+    WalkNavigation.PreferredHeight := PreferredHeight;
+    if NavigationNode <> nil then
+      WalkNavigation.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+      WalkNavigation.MoveHorizontalSpeed := 1.0;
+    WalkNavigation.MoveVerticalSpeed := 20;
+  end;
+
+
+  // will be overridden by ThirdPersonNavigation.Init, possibly
+  Viewport.Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
+
+  if WalkNavigation <> nil then
+  begin
+    WalkNavigation.PreferredHeight := PreferredHeight;
+    WalkNavigation.Radius := Radius;
+    WalkNavigation.CorrectPreferredHeight;
+    WalkNavigation.CancelFalling;
+
+    Viewport.Navigation := WalkNavigation;
+  end else
+  begin
+    Viewport.Navigation := ThirdPersonNavigation;
+
+    { Use InitialXxx vectors to position avatar, camera will be derived from it.
+      Also add the avatar to Items (avatar needs to be part of hierarchy when
+      ThirdPersonNavigation.Init is called). }
+    if ThirdPersonNavigation.AvatarHierarchy <> nil then
+    begin
+      ThirdPersonNavigation.AvatarHierarchy.SetView(InitialPosition, InitialDirection, InitialUp);
+
+      if (Player <> nil) and (ThirdPersonNavigation.AvatarHierarchy = Player) then
+      begin
+        Items.Insert(1, ThirdPersonNavigation.AvatarHierarchy);
+        Player.LevelChanged;
+      end else
+        Items.Add(ThirdPersonNavigation.AvatarHierarchy);
+    end else
+    if ThirdPersonNavigation.Avatar <> nil then
+    begin
+      ThirdPersonNavigation.Avatar.SetView(InitialPosition, InitialDirection, InitialUp);
+      Items.Add(ThirdPersonNavigation.Avatar);
+    end;
+    ThirdPersonNavigation.Init;
   end;
 end;
 
