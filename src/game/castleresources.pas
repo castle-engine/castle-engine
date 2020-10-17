@@ -13,8 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage large 3D resources (scenes and such)
-  that need to be loaded and reference counted. }
+{ Manage resources with animations that may be reused by multiple instances.
+  This is in practice used for creatures and items animations in our
+  "Utilities for typical 3D games", https://castle-engine.io/manual_high_level_3d_classes.php .
+
+  Note that you @italic(do not) need this unit in many normal cases when dealing with animations.
+  It is generally simpler and more adviced to use TCastleScene and TCastleScene.PlayAnimation
+  to play animations, see https://castle-engine.io/manual_scene.php . }
 unit CastleResources;
 
 {$I castleconf.inc}
@@ -313,7 +318,7 @@ type
     function AlwaysPrepared: boolean; virtual;
 
     property ConfigAlwaysPrepared: boolean
-      read FConfigAlwaysPrepared write FConfigAlwaysPrepared;
+      read FConfigAlwaysPrepared write FConfigAlwaysPrepared default false;
 
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
