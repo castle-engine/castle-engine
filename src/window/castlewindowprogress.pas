@@ -39,7 +39,7 @@ unit CastleWindowProgress;
 
 interface
 
-uses CastleWindow, CastleProgress, CastleWindowModes,
+uses CastleWindow, CastleProgress, CastleInternalWindowModes,
   CastleImages, CastleGLImages, CastleUIControls, CastleControls;
 
 type

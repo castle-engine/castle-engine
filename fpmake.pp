@@ -151,6 +151,7 @@ begin
     P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('castleshaders.pas');
     P.Targets.AddUnit('castlewarnings.pas');
+    P.Targets.AddUnit('castlewindowmodes.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
@@ -328,12 +329,12 @@ begin
     P.Targets.AddUnit('castleuistate.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
+    P.Targets.AddUnit('castleinternalwindowmodes.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
     P.Targets.AddUnit('castlewindow.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
-    P.Targets.AddUnit('castlewindowmodes.pas');
     if Xlib then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');

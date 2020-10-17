@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -24,8 +24,12 @@
   and restore everything. This way you can implement functions that
   wait for some keypress, or wait until user inputs some
   string, or wait until user picks something with mouse,
-  or wait for 10 seconds displaying some animation, etc. }
-unit CastleWindowModes;
+  or wait for 10 seconds displaying some animation, etc.
+
+  This unit is internal, and in time may be removed.
+  For users, we recommend using CastleUIState as a way to implement user-interface
+  states. }
+unit CastleInternalWindowModes;
 
 {$I castleconf.inc}
 

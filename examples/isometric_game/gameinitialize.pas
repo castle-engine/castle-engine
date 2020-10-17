@@ -24,7 +24,7 @@ uses
   { standard units }
   SysUtils, Math,
   { Castle Game Engine units }
-  CastleWindow, CastleFilesUtils, CastleWindowModes, CastleStringUtils,
+  CastleWindow, CastleFilesUtils, CastleStringUtils,
   CastleUtils, CastleGLUtils, CastleKeysMouse, CastleMessages, CastleGLImages,
   CastleImages, CastleColors, CastleLog, CastleApplicationProperties,
   { game units }

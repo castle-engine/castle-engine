@@ -43,7 +43,7 @@ Windows, CommDlg,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
+CastleInternalWindowModes, CastleMessages, CastleJoysticks, CastleUnicode,
 {$endif}
 
 {$ifdef read_window_interface}

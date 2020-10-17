@@ -1874,12 +1874,8 @@ type
       no MenuItem.DoClick and no OnMenuClick will be called,
       but instead normal EventPress (OnPress) will be called.
 
-      When it is useful to set this to false?
-      For example hen using CastleWindowModes. When you're changing modes (e.g. at the
-      beginning of CastleMessages.MessageOk) you're temporary setting
-      OnMenuClick to nil, but this doesn't block TMenuItem.DoClick
-      functions. The only way to block menu from triggering ANY event is to
-      set this to MainMenu.Enabled to @false. }
+      Disabling MainMenu is useful e.g. during modal dialog box, like @link(MessageOk).
+      This way you can force use to interact with the modal box. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
     { Is MainMenu visible. @false means that we do not show main menu bar,
@@ -2764,11 +2760,8 @@ type
           Application.ProcessMessages(...);
       #)
 
-      Often this is used together with TGLMode, TGLModeFrozenScreen
-      and similar utilities from CastleWindowModes unit.
-      They allow you to temporarily replace window callbacks with new ones,
-      and later restore the original ones.
-      This is useful for behavior similar to modal dialog boxes.
+      This can used to implement routines that wait until a modal dialog box
+      returns, like @link(MessageOK) or @link(MessageYesNo).
 
       For comfort, returns @code(not Terminated).
       So it returns @true if we should continue, that is

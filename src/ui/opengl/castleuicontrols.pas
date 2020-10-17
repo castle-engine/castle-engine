@@ -1570,7 +1570,11 @@ type
 
     property GLInitialized: boolean read FGLInitialized default false;
 
-    { When non-zero, control will not receive GLContextOpen and
+    { @exclude
+      This is dirty internal hack, and will be removed one day.
+      Please don't use this.
+
+      When non-zero, control will not receive GLContextOpen and
       GLContextClose events when it is added/removed from the
       @link(TUIContainer.Controls) list.
 
@@ -1591,12 +1595,12 @@ type
 
       Using this mechanism is only sensible if you want to reliably hide a control,
       but also allow readding it to the @link(TUIContainer.Controls) list,
-      and then you want to show it again. This is useful for CastleWindowModes,
+      and then you want to show it again. This is useful for CastleInternalWindowModes,
       that must push (and then pop) the controls, but then allows the caller
       to modify the controls list. And some games, e.g. castle1, add back
       some (but not all) of the just-hidden controls. For example the TCastleNotifications
       instance is added back, to be visible even in the menu mode.
-      This means that CastleWindowModes cannot just modify the TUIContainer.Exists
+      This means that CastleInternalWindowModes cannot just modify the TUIContainer.Exists
       value, leaving the control on the @link(TUIContainer.Controls) list:
       it would leave the TCastleUserInterface existing many times on the @link(TUIContainer.Controls)
       list, with the undefined TUIContainer.Exists value. }

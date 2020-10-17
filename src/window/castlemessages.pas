@@ -364,7 +364,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleImages, CastleClassUtils, CastleWindowModes, CastleLog,
+  CastleImages, CastleClassUtils, CastleInternalWindowModes, CastleLog,
   CastleUIControls, CastleUIState, CastleDialogStates;
 
 { MessageCore ---------------------------------------------------------------- }

@@ -14,7 +14,7 @@
 }
 
 { Use deprecated units (in src/deprecated_units/ in CGE)
-  in a way that doesn't cause warnings when compiling Lazarus lpk.
+  in a way that doesn't cause warnings when compiling Lazarus castle_base.lpk.
   The deprecated units are compiled this way,
   but you can uncheck AddToUsesPkgSection in lpk. }
 unit CastleInternalUseDeprecatedUnits;

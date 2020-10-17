@@ -50,7 +50,7 @@ This is the same license as used by Lazarus LCL and FPC RTL.
 See https://castle-engine.io/license.php for details.
 "/>
     <Version Major="6" Minor="5"/>
-    <Files Count="13">
+    <Files Count="14">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -68,8 +68,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleWindow"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/window/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
+        <UnitName Value="CastleInternalWindowModes"/>
       </Item5>
       <Item6>
         <Filename Value="../src/window/castlewindowprogress.pas"/>
@@ -104,6 +104,10 @@ See https://castle-engine.io/license.php for details.
         <Filename Value="../src/deprecated_units/castlewindowtouch.pas"/>
         <UnitName Value="CastleWindowTouch"/>
       </Item13>
+      <Item14>
+        <Filename Value="../src/deprecated_units/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item14>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

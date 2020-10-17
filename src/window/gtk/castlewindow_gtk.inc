@@ -33,7 +33,7 @@ Glib2, Gdk2, Gtk2, CastleDynLib,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleFindFiles,
+CastleInternalWindowModes, CastleFindFiles,
 {$endif}
 
 {$ifdef read_interface_types}
