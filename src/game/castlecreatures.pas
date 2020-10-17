@@ -1090,6 +1090,8 @@ begin
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
   FFallSound := SoundEngine.SoundFromName(DefaultFallSoundName, false);
+  ScaleMin := 1;
+  ScaleMax := 1;
 end;
 
 procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
