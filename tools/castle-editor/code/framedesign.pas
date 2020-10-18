@@ -2165,12 +2165,17 @@ var
   UndoComment: String;
   Sel: TComponent;
 begin
-  Sel := TComponent(Node.Data);
-  UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
-  Sel.Name := Node.Text;
-  ModifiedOutsideObjectInspector;
-  RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
-  Node.Text := ComponentCaption(Sel);
+  try
+    Sel := TComponent(Node.Data);
+    UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    Sel.Name := Node.Text;
+    ModifiedOutsideObjectInspector;
+    RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    Node.Text := ComponentCaption(Sel);
+  except
+    Node.Text := ComponentCaption(Sel);
+    raise;
+  end;
 end;
 
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
