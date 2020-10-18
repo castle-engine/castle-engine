@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleViewport,
+  CastleCameras, CastleVectors, CastleBoxes, CastleViewport,
   CastleUIControls, CastleApplicationProperties;
 
 var

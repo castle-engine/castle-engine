@@ -56,6 +56,100 @@ type
     gcAlways
   );
 
+  TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TRenderingAttributes.Shaders, which is now deprecated in favor of TRenderingAttributes.PhongShading';
+
+  { Possible bump mapping options. Use with @link(TRenderOptions.BumpMapping). }
+  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
+
+  { Possible values of @link(TRenderOptions.Mode). }
+  TRenderingMode = (
+    { Normal rendering features. Everything is enabled
+      (as long as other TRenderingAttributes settings allow them). }
+    rmFull,
+
+    { Solid color is used for everything. We do not show any color variation,
+      materials, lights, fog, textures on surfaces.
+      We still do back-face culling and depth test.
+      The idea is that we "hit" the same pixels as normal rendering
+      (with the exception of alpha test textures, this mode
+      doesn't set up alpha test for them).
+      But everything has color TRenderingAttributes.SolidColor.
+
+      This is useful for special tricks. }
+    rmSolidColor,
+
+    { Only the rendering fetures that affect depth buffer work reliably,
+      everything else is undefined (and works as fast as possible).
+      This is suitable if you render only to depth buffer, like for shadow maps.
+
+      It's quite similar to rmSolidColor, except alpha testing must work,
+      so (at least some) textures must be applied over the model. }
+    rmDepth
+  );
+
+  { Values for @link(TRenderOptions.WireframeEffect).
+
+    Generally, two other attributes may affect the way wireframe is rendered:
+    TSceneRenderingAttributes.WireframeColor and
+    TSceneRenderingAttributes.LineWidth, quite self-explanatory. }
+  TWireframeEffect = (
+
+    { Default setting, model polygons are simply passed to OpenGL.
+      Whether this results in filled or wireframe look, depends on OpenGL
+      glPolygonMode setting, filled by default. }
+    weNormal,
+
+    { The model is rendered in wireframe mode.
+
+      LineWidth is used as wireframe line width (regardless of
+      TSceneRenderingAttributes.Mode).
+
+      Depending on TSceneRenderingAttributes.Mode value:
+
+      @unorderedList(
+        @item(If <> rmFull then WireframeColor is used as wireframe
+          line color.)
+
+        @item(If rmFull, then lines are colored
+          and potentially lighted and textured just like their corresponding
+          triangles would be colored. So you can control lighting using
+          Lighting, UseSceneLights etc. attributes, and you
+          can control texturing by EnableTextures attribute.)
+      ) }
+    weWireframeOnly,
+
+    { The model is rendered as normal, with it's wireframe version visible
+      on top. This is most often called "solid wireframe", since the intention
+      is too see wireframe version of the model but still render shapes
+      solid (e.g. filled polygons with depth test).
+
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      of lines.
+
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
+    weSolidWireframe,
+
+    { The model is rendered as normal, with silhouette outlined around it.
+      This works quite like weSolidWireframe, except that weSolidWireframe
+      makes the wireframe mesh slightly in front the model, while weSilhouette
+      makes the wireframe mesh slightly at the back of the model. This way
+      only the silhouette is visible from the wireframe rendering.
+
+      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TRenderingAttributes.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      of silhouette lines.
+
+      This is often used together with the
+      @link(TRenderingAttributes.Mode Attributes.Mode)
+      set to rmSolidColor. In such case,
+      Then @link(TRenderingAttributes.SolidColor) determinesthe fill color. }
+    weSilhouette
+  );
+
 const
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );

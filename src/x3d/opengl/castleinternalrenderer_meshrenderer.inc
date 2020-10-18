@@ -30,7 +30,7 @@
     documented interface. Experience with TGeneralIndexedRenderer
     taught me that this has to be really flexible and designed for
     long-term work, to encompass many nodes and features. So, while
-    this is internal for CastleRenderer, it still must be implemented
+    this is internal for CastleInternalRenderer, it still must be implemented
     and documented cleanly.
 }
 

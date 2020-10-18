@@ -46,7 +46,7 @@ implementation
 
 uses Math, SysUtils,
   CastleGLUtils, CastleStringUtils, CastleProgress, CastleUtils, CastleCameras,
-  CastleFilesUtils, CastleUIControls, CastleRenderer, CastleImages,
+  CastleFilesUtils, CastleUIControls, CastleImages,
   CastleGameNotifications, CastleRectangles, CastleColors,
   GameStateMainMenu;
 

@@ -325,8 +325,6 @@ type
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
 
-  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
-
   TDynamicUniform = class abstract
   public
     Name: string;
