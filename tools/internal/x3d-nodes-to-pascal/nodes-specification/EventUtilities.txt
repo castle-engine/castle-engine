@@ -1,8 +1,9 @@
 X3DSequencerNode : X3DChildNode {
   SFBool       [in]     next
   SFBool       [in]     previous
-  SFFloat      [in]     set_fraction       (-Inf,Inf)
-  MFFloat      [in,out] key           []   (-Inf,Inf)
+  SFFloat      [in]     set_fraction       # (-Inf,Inf)
+  MFFloat      [in,out] key           []   # (-Inf,Inf)
+  SFBool       [in,out] forceContinuousValue_changed  FALSE
 }
 
 X3DTriggerNode : X3DChildNode  {

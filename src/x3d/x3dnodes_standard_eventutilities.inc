@@ -37,7 +37,7 @@
       as specification clearly says that value_changed should not be
       generated continuously on each set_fraction, but only when value
       actually changes. (Although we make an exception for this
-      with our extension FdForceContinuousValue_Changed).
+      with our extension @link(ForceContinuousValue_Changed)).
 
       Valid values here are between -1 and FdKey.Count - 1.
       Values between 0 and FdKey.Count - 1 indicate which keyValue was

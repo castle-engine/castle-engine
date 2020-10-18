@@ -25,11 +25,16 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetForceContinuousValue_changed: Boolean;
+    procedure SetForceContinuousValue_changed(const Value: Boolean);
   public
     { Set X3D field "key". } { }
     procedure SetKey(const Value: array of Single);
     { Set X3D field "key". } { }
     procedure SetKey(const Value: TSingleList);
+    { X3D field "forceContinuousValue_changed". } { }
+    property ForceContinuousValue_changed: Boolean read GetForceContinuousValue_changed write SetForceContinuousValue_changed;
 
 {$endif read_interface}
 
@@ -45,6 +50,16 @@ end;
 procedure TAbstractSequencerNode.SetKey(const Value: TSingleList);
 begin
   FdKey.Send(Value);
+end;
+
+function TAbstractSequencerNode.GetForceContinuousValue_changed: Boolean;
+begin
+  Result := FdForceContinuousValue_changed.Value;
+end;
+
+procedure TAbstractSequencerNode.SetForceContinuousValue_changed(const Value: Boolean);
+begin
+  FdForceContinuousValue_changed.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -998,7 +998,7 @@ var
         Without this, the animation would jump between 2 frames.
       - Also examples/fixed_camera_game/ (shaking humanoid without this)
       - Also castle-game (shaking alien shooting animation) }
-    IntSequencer.FdForceContinuousValue_Changed.Value := true;
+    IntSequencer.ForceContinuousValue_Changed := true;
     if BakedAnimation.Backwards then
     begin
       IntSequencer.FdKey.Count := NodesCount * 2;
