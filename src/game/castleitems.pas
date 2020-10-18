@@ -986,7 +986,7 @@ begin
   AttackTime := LifeTime - AttackStartTime;
   if Attacking and (AttackTime <= AttackAnim.Duration) then
   begin
-    Result := AttackAnim.Scene(AttackTime, false);
+    Result := AttackAnim.SceneAtTime(AttackTime, false);
   end else
   begin
     { turn off Attacking, if AttackTime passed }
@@ -994,7 +994,7 @@ begin
     { although current weapons animations are just static,
       we use LifeTime to enable any weapon animation
       (like weapon swaying, or some fire over the sword or such) in the future. }
-    Result :=  Resource.ReadyAnimation.Scene(LifeTime, true);
+    Result :=  Resource.ReadyAnimation.SceneAtTime(LifeTime, true);
   end;
 end;
 

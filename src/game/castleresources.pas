@@ -38,18 +38,29 @@ type
   T3DResourceAnimation = class
   private
     type
+      { Container for a loaded TCastleScene,
+        which may be specific inside animation (T3DResourceAnimation),
+        or may be common to all animations (one scene for the whole T3DResource). }
       TSceneState = record
-        ForcedAnimationName: string;
-        ForcedLoop: boolean;
+        Scene: TCastleScene;
+        InitialBox: TBox3D; //< Defined only once Scene <> nil
+
+        ForcedAnimationName: String;
+        ForcedLoop: Boolean;
         ForcedActualTime: TFloatTime;
+
+        { Prepare scene loading i from given URL.
+          Loads the scene only if URL is not empty and if it's not already loaded (that is, when Scene = nil).
+          Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
+          Calls Progress.Step 2 times, if DoProgress. }
+        procedure Prepare(const URL: String; const Resource: T3DResource;
+          const PrepareParams: TPrepareParams; const DoProgress: Boolean);
       end;
     var
       FName: string;
       FRequired: boolean;
       FOwner: T3DResource;
-      FSceneForAnimation: TCastleScene;
-      FSceneForAnimationInitialBox: TBox3D;
-      FSceneForAnimationState: TSceneState;
+      FSceneState: TSceneState;
       FDuration: Single;
       FURL: string;
       FAnimationName: string;
@@ -80,7 +91,7 @@ type
 
       This returns the scene (TCastleScene) with state reflecting given time
       (TimeSensor forced to given time). }
-    function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
+    function SceneAtTime(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
@@ -175,8 +186,6 @@ type
     FDefaultAnimationTransition: Single;
     FModelURL: string;
     { Model loaded from ModelURL }
-    Model: TCastleScene;
-    ModelInitialBox: TBox3D;
     ModelState: T3DResourceAnimation.TSceneState;
     { Non-nil only if we're using Pool to allocate scenes for resource instances.
       See @link(Pool) description. }
@@ -184,18 +193,9 @@ type
     { First ScenePoolUsed items on ScenePool are used, rest is unused. }
     ScenePoolUsed: Cardinal;
     FPool: Cardinal;
-    { Prepare scene loading it from given URL.
-      Loads the scene only if URL is not empty,
-      and only if it's not already loaded (that is, when Scene = nil).
-      Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
-      Calls Progress.Step 2 times, if DoProgress. }
-    procedure PrepareScene(var Scene: TCastleScene; var SceneInitialBox: TBox3D; const URL: string;
-      const Params: TPrepareParams; const DoProgress: Boolean);
     function AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
     procedure ReleaseSceneFromPool(const Scene: TCastleScene);
     function CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
-  const
-    ScenePrepareResources = [prRenderSelf, prBoundingBox, prShadowVolume];
   protected
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
@@ -497,7 +497,10 @@ uses SysUtils,
 var
   UnitFinalization: Boolean;
 
-{ TResourceClasses  ---------------------------------------------------------- }
+const
+  ScenePrepareResources = [prRenderSelf, prBoundingBox, prShadowVolume];
+
+{ TResourceClasses ---------------------------------------------------------- }
 
 type
   TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
@@ -532,6 +535,40 @@ begin
   Result := FResourceClasses;
 end;
 
+{ T3DResourceAnimation.TSceneState ------------------------------------------- }
+
+procedure T3DResourceAnimation.TSceneState.Prepare(
+  const URL: String; const Resource: T3DResource;
+  const PrepareParams: TPrepareParams; const DoProgress: Boolean);
+begin
+  if (URL <> '') and (Scene = nil) then
+  begin
+    Scene := TCastleScene.Create(nil);
+    Scene.Load(Url);
+    Scene.ReceiveShadowVolumes := Resource.ReceiveShadowVolumes;
+
+    { save initial Scene bounding box,
+      to avoid later changing T3DResourceAnimation.BoundingBox
+      result after some animation run and modified scene.
+      This would cause creature radius change.
+
+      Testcase: examples/animations/resource_animations,
+      load same resource 2x in a row,
+      bounding sphere should not change. }
+    InitialBox := Scene.BoundingBox;
+
+    // reset ForcedXxx fields
+    ForcedAnimationName := '';
+    ForcedLoop := false;
+    ForcedActualTime := 0;
+  end;
+  if DoProgress then Progress.Step;
+
+  if Scene <> nil then
+    Scene.PrepareResources(ScenePrepareResources, false, PrepareParams);
+  if DoProgress then Progress.Step;
+end;
+
 { T3DResourceAnimation ------------------------------------------------------- }
 
 constructor T3DResourceAnimation.Create(const AOwner: T3DResource;
@@ -550,10 +587,10 @@ var
   Necessary, Avoided: Int64;
 {$endif}
 
-function T3DResourceAnimation.Scene(const Time: TFloatTime;
+function T3DResourceAnimation.SceneAtTime(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 
-  procedure ForceTime(const Scene: TCastleScene; var SceneState: TSceneState);
+  procedure ForceTime(var SceneState: TSceneState);
   var
     GoodAnimationName: string;
     ActualTime: TFloatTime;
@@ -587,7 +624,7 @@ function T3DResourceAnimation.Scene(const Time: TFloatTime;
       SceneState.ForcedAnimationName := GoodAnimationName;
       SceneState.ForcedLoop := Loop;
       SceneState.ForcedActualTime := ActualTime;
-      Scene.ForceAnimationPose(GoodAnimationName, ActualTime, Loop);
+      SceneState.Scene.ForceAnimationPose(GoodAnimationName, ActualTime, Loop);
     end;
 
     {$ifdef STATISTICS_FORCING_OPTIMIZATION}
@@ -602,26 +639,26 @@ function T3DResourceAnimation.Scene(const Time: TFloatTime;
   end;
 
 begin
-  if FSceneForAnimation <> nil then
+  if FSceneState.Scene <> nil then
   begin
-    ForceTime(FSceneForAnimation, FSceneForAnimationState);
-    Result := FSceneForAnimation;
+    ForceTime(FSceneState);
+    Result := FSceneState.Scene;
   end else
-  if Owner.Model <> nil then
+  if Owner.ModelState.Scene <> nil then
   begin
-    ForceTime(Owner.Model, Owner.ModelState);
-    Result := Owner.Model;
+    ForceTime(Owner.ModelState);
+    Result := Owner.ModelState.Scene;
   end else
     Result := nil;
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
 begin
-  if FSceneForAnimation <> nil then
-    Result := FSceneForAnimationInitialBox
+  if FSceneState.Scene <> nil then
+    Result := FSceneState.InitialBox
   else
-  if Owner.Model <> nil then
-    Result := Owner.ModelInitialBox
+  if Owner.ModelState.Scene <> nil then
+    Result := Owner.ModelState.InitialBox
   else
     { animation 3D model not loaded }
     Result := TBox3D.Empty;
@@ -637,18 +674,18 @@ procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
 begin
   if URL <> '' then
   begin
-    Owner.PrepareScene(FSceneForAnimation, FSceneForAnimationInitialBox, URL, Params, DoProgress);
+    FSceneState.Prepare(URL, Owner, Params, DoProgress);
     if AnimationName <> '' then
-      FDuration := FSceneForAnimation.AnimationDuration(AnimationName)
+      FDuration := FSceneState.Scene.AnimationDuration(AnimationName)
     else
-      FDuration := FSceneForAnimation.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
+      FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
   if AnimationName <> '' then
   begin
-    if Owner.Model = nil then
+    if Owner.ModelState.Scene = nil then
       raise Exception.CreateFmt('Animation "%s" of resource "%s": animation_name is defined, but model url is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
-    FDuration := Owner.Model.AnimationDuration(AnimationName);
+    FDuration := Owner.ModelState.Scene.AnimationDuration(AnimationName);
   end else
   if Required then
     raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or animation_name for this animation in appropriate resource.xml file',
@@ -657,7 +694,7 @@ end;
 
 procedure T3DResourceAnimation.Release;
 begin
-  FreeAndNil(FSceneForAnimation);
+  FreeAndNil(FSceneState.Scene);
 end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -701,7 +738,7 @@ procedure TResourceFrame.LocalRender(const Params: TRenderParams);
     NewChild: TCastleScene;
   begin
     if (FAnimation <> nil) and FAnimation.FOwner.Prepared then
-      NewChild := FAnimation.Scene(FTime, FLoop)
+      NewChild := FAnimation.SceneAtTime(FTime, FLoop)
     else
       NewChild := nil;
 
@@ -759,7 +796,7 @@ begin
   if (not CurrentChildFromPool) and
      (FAnimation <> nil) and
      FAnimation.FOwner.Prepared and
-     (FAnimation.FSceneForAnimation = nil) and
+     (FAnimation.FSceneState.Scene = nil) and
      (FAnimation.FOwner.ScenePool <> nil) then
   begin
     CurrentChild := FAnimation.FOwner.AllocateSceneFromPool(Level);
@@ -814,7 +851,7 @@ end;
 
 function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
 begin
-  Result := Model.Clone(nil);
+  Result := ModelState.Scene.Clone(nil);
   Result.DefaultAnimationTransition := DefaultAnimationTransition;
   Result.PrepareResources(ScenePrepareResources, false, Params);
 end;
@@ -827,9 +864,9 @@ var
 begin
   TimeStart := Profiler.Start('Prepare Animations of Resource ' + Name);
 
-  PrepareScene(Model, ModelInitialBox, ModelURL, Params, DoProgress);
+  ModelState.Prepare(ModelURL, Self, Params, DoProgress);
 
-  if (Model <> nil) and (Pool <> 0) then
+  if (ModelState.Scene <> nil) and (Pool <> 0) then
   begin
     ScenePool := TCastleSceneList.Create(true);
     ScenePool.Count := Pool;
@@ -853,7 +890,7 @@ procedure T3DResource.ReleaseCore;
 var
   I: Integer;
 begin
-  FreeAndNil(Model);
+  FreeAndNil(ModelState.Scene);
   FreeAndNil(ScenePool);
   ScenePoolUsed := 0;
   if Animations <> nil then
@@ -940,33 +977,6 @@ end;
 function T3DResource.AlwaysPrepared: boolean;
 begin
   Result := ConfigAlwaysPrepared;
-end;
-
-procedure T3DResource.PrepareScene(var Scene: TCastleScene; var SceneInitialBox: TBox3D;
-  const URL: string;
-  const Params: TPrepareParams; const DoProgress: Boolean);
-begin
-  if (URL <> '') and (Scene = nil) then
-  begin
-    Scene := TCastleScene.Create(nil);
-    Scene.Load(URL);
-    Scene.ReceiveShadowVolumes := ReceiveShadowVolumes;
-
-    { save initial Scene bounding box,
-      to avoid later changing T3DResourceAnimation.BoundingBox
-      result after some animation run and modified scene.
-      This would cause creature radius change.
-
-      Testcase: examples/animations/resource_animations,
-      load same resource 2x in a row,
-      bounding sphere should not change. }
-    SceneInitialBox := Scene.BoundingBox;
-  end;
-  if DoProgress then Progress.Step;
-
-  if Scene <> nil then
-    Scene.PrepareResources(ScenePrepareResources, false, Params);
-  if DoProgress then Progress.Step;
 end;
 
 function T3DResource.AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
