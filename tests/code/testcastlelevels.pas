@@ -77,6 +77,7 @@ begin
   Level.Player := Player;
   Level.Free;
   Player.Free;
+  Viewport.Free;
 end;
 
 initialization
