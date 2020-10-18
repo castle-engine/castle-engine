@@ -985,6 +985,20 @@ var
 
     IntSequencer := TIntegerSequencerNode.Create(
       AnimationX3DName + '_IntegerSequencer', BaseUrl);
+    { ForceContinuousValue_Changed.Value means that output is send
+      (so Switch.whichChoice is set) even when the range of IntSequencer key
+      didn't change.
+
+      This is important in connection with TCastleScene.ResetAnimationState feature:
+      when it occurs, the Switch.whichChoice is reset, and we expect that next
+      receive of IntSequencer.fraction_changed will again set Switch.
+
+      Testcase:
+      - resource_animations example, load any castle-anim-frames example.
+        Without this, the animation would jump between 2 frames.
+      - Also examples/fixed_camera_game/ (shaking humanoid without this)
+      - Also castle-game (shaking alien shooting animation) }
+    IntSequencer.FdForceContinuousValue_Changed.Value := true;
     if BakedAnimation.Backwards then
     begin
       IntSequencer.FdKey.Count := NodesCount * 2;
