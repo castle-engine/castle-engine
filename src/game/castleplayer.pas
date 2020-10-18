@@ -93,6 +93,7 @@ type
       FRenderDebug: boolean;
 
       FEquippedWeapon: TItemWeapon;
+      FEquippedWeaponResourceFrame: TResourceFrame;
 
       { If Swimming = psUnderWater, then this is the time (from LifeTime)
         of setting Swimming to psUnderWater. }
@@ -156,7 +157,6 @@ type
       FSwimSoundPause: Single;
       FEnableNavigationDragging: boolean;
       FFallingEffect: boolean;
-      CurrentEquippedScene: TCastleScene;
       FWalkNavigation: TCastleWalkNavigation;
       FThirdPersonNavigation: TCastleThirdPersonNavigation;
       FUseThirdPerson: Boolean;
@@ -632,6 +632,9 @@ begin
 
   FDebugTransform := TDebugTransform.Create(Self);
   FDebugTransform.Parent := Self;
+
+  FEquippedWeaponResourceFrame := TResourceFrame.Create(Self);
+  Add(FEquippedWeaponResourceFrame);
 end;
 
 destructor TPlayer.Destroy;
@@ -777,15 +780,7 @@ begin
   if Value <> FEquippedWeapon then
   begin
     if FEquippedWeapon <> nil then
-    begin
-      { clear CurrentEquippedScene }
-      if CurrentEquippedScene <> nil then
-      begin
-        Remove(CurrentEquippedScene);
-        CurrentEquippedScene := nil;
-      end;
       FEquippedWeapon.RemoveFreeNotification(Self);
-    end;
 
     FEquippedWeapon := Value;
 
@@ -990,25 +985,6 @@ end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  procedure UpdateCurrentEquippedScene;
-  var
-    NewEquippedScene: TCastleScene;
-  begin
-    if EquippedWeapon <> nil then
-      NewEquippedScene := EquippedWeapon.EquippedScene(LifeTime)
-    else
-      NewEquippedScene := nil;
-
-    if CurrentEquippedScene <> NewEquippedScene then
-    begin
-      if CurrentEquippedScene <> nil then
-        Remove(CurrentEquippedScene);
-      CurrentEquippedScene := NewEquippedScene;
-      if CurrentEquippedScene <> nil then
-        Add(CurrentEquippedScene);
-    end;
-  end;
-
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
   begin
@@ -1197,8 +1173,6 @@ begin
 
   SynchronizeFromNavigation;
 
-  UpdateCurrentEquippedScene;
-
   if FFlyingTimeOut > 0 then
   begin
     FFlyingTimeOut := FFlyingTimeOut - SecondsPassed;
@@ -1218,7 +1192,11 @@ begin
 
   if (EquippedWeapon <> nil) and
      (InternalLevel <> nil) then
-    EquippedWeapon.EquippedUpdate(InternalLevel, LifeTime);
+  begin
+    FEquippedWeaponResourceFrame.Exists := true;
+    EquippedWeapon.EquippedUpdate(InternalLevel, LifeTime, FEquippedWeaponResourceFrame);
+  end else
+    FEquippedWeaponResourceFrame.Exists := false;
 
   UpdateIsOnTheGround;
   UpdateToxic;

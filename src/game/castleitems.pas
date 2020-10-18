@@ -410,10 +410,8 @@ type
     procedure EquippedAttack(const Level: TAbstractLevel; const LifeTime: Single); virtual;
 
     { Time passses for equipped weapon. }
-    procedure EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single); virtual;
-
-    { Return the 3D model to render for this equipped weapon, or @nil if none. }
-    function EquippedScene(const LifeTime: Single): TCastleScene; virtual;
+    procedure EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single;
+      const ResourceFrame: TResourceFrame); virtual;
   end;
 
   { List of items, with a 3D object (like a player or creature) owning
@@ -956,7 +954,7 @@ begin
     AttackDone := false;
 
     { if AttackTime = 0, attack immediately, otherwise this could get aborted
-      by TItemWeapon.EquippedScene if AttackAnim.Duration = 0. }
+      by TItemWeapon.EquippedUpdate if AttackAnim.Duration = 0. }
     if Resource.AttackTime = 0 then
     begin
       AttackDone := true;
@@ -965,7 +963,11 @@ begin
   end;
 end;
 
-procedure TItemWeapon.EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single);
+procedure TItemWeapon.EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single;
+  const ResourceFrame: TResourceFrame);
+var
+  AttackAnim: T3DResourceAnimation;
+  AttackTime: Single;
 begin
   if Attacking and (not AttackDone) and
     (LifeTime - AttackStartTime >= Resource.AttackTime) then
@@ -973,28 +975,20 @@ begin
     AttackDone := true;
     Attack(Level);
   end;
-end;
 
-function TItemWeapon.EquippedScene(const LifeTime: Single): TCastleScene;
-var
-  AttackTime: Single;
-  AttackAnim: T3DResourceAnimation;
-begin
-  if not Resource.Prepared then Exit(nil);
-
-  AttackAnim := Resource.AttackAnimation;
-  AttackTime := LifeTime - AttackStartTime;
-  if Attacking and (AttackTime <= AttackAnim.Duration) then
+  if Resource.Prepared then
   begin
-    Result := AttackAnim.SceneAtTime(AttackTime, false);
-  end else
-  begin
-    { turn off Attacking, if AttackTime passed }
-    Attacking := false;
-    { although current weapons animations are just static,
-      we use LifeTime to enable any weapon animation
-      (like weapon swaying, or some fire over the sword or such) in the future. }
-    Result :=  Resource.ReadyAnimation.SceneAtTime(LifeTime, true);
+    AttackAnim := Resource.AttackAnimation;
+    AttackTime := LifeTime - AttackStartTime;
+    if Attacking and (AttackTime <= AttackAnim.Duration) then
+    begin
+      ResourceFrame.SetFrame(Level, AttackAnim, AttackTime, false);
+    end else
+    begin
+      { turn off Attacking, if AttackTime passed }
+      Attacking := false;
+      ResourceFrame.SetFrame(Level, Resource.ReadyAnimation, LifeTime, true);
+    end;
   end;
 end;
 

@@ -68,6 +68,21 @@ type
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
+
+    { Current Scene to render for given time.
+
+      Looping is automatically done here, if parameter Loop is @true.
+      When it is @false, there is no looping, which means that
+      when Time is < 0, we show the first frame,
+      and when Time is > @link(Duration), we show the last frame forever.
+
+      This returns the scene (TCastleScene) with state reflecting given time
+      (TimeSensor forced to given time).
+
+      Note that this should not be used if owner resource uses pooling.
+      In case of pooling, not ForceAnimationPose calls should be done
+      (which is what this method does). }
+    function SceneAtTime(const Time: TFloatTime; const Loop: boolean): TCastleScene;
   public
     constructor Create(const AOwner: T3DResource;
       const AName: string; const ARequired: boolean = true);
@@ -81,17 +96,6 @@ type
       May be @false only if @link(Required) was @false, or before we actually
       read animation info from resource.xml file. }
     function Defined: boolean;
-
-    { Current Scene to render for given time.
-
-      Looping is automatically done here, if parameter Loop is @true.
-      When it is @false, there is no looping, which means that
-      when Time is < 0, we show the first frame,
-      and when Time is > @link(Duration), we show the last frame forever.
-
-      This returns the scene (TCastleScene) with state reflecting given time
-      (TimeSensor forced to given time). }
-    function SceneAtTime(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
