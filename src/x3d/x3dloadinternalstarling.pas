@@ -1,6 +1,6 @@
 {
   Copyright 2017-2018 Trung Le (kagamma),
-  Copyright 2020 Andrzej Kilijański (and3md)
+  Copyright 2020-2020 Andrzej Kilijański (and3md)
 
   Based on sprite-sheet-to-x3d source code by Trung Le (kagamma).
 

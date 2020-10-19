@@ -199,6 +199,7 @@ uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
+  X3DLoadInternalImage,
   CastleInternalNodeInterpolator;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
@@ -355,6 +356,10 @@ begin
   if (MimeType = 'image/starling-texture-atlas') or
      (URIMimeType(URIDeleteAnchor(URL, true)) = 'image/starling-texture-atlas') then
     Result := LoadStarlingTextureAtlas(URL)
+  else
+
+  if URIMimeExtensions.ContainsKey(ExtractFileExt(URIDeleteAnchor(URL, true))) then
+    Result := LoadImageAsX3DModel(URL)
   else
 
   if NilOnUnrecognizedFormat then
