@@ -26,11 +26,14 @@ unit X3DLoadInternalStarling;
 
 interface
 
-uses Classes, DOM,
+uses Classes, SysUtils, DOM,
   X3DNodes,
   CastleTextureImages, CastleVectors;
 
 type
+  { Starling XML file is not correct }
+  EInvalidStarlingXml = class(Exception);
+
   TStarlingTextureAtlasLoader = class
   strict private
     type
@@ -109,7 +112,7 @@ function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
 
 implementation
 
-uses SysUtils, StrUtils,
+uses StrUtils,
   CastleImages, CastleLog, CastleStringUtils, CastleURIUtils, CastleUtils,
   CastleXMLUtils;
 
@@ -369,10 +372,7 @@ var
   CoordInterp: TCoordinateInterpolatorNode;
   TexCoordInterp: TCoordinateInterpolator2DNode;
   FirstFrameInFirstAnimation: Boolean;
-
 begin
-  Result := nil;
-
   ReadImportSettings;
 
   FRoot := nil;
@@ -382,6 +382,8 @@ begin
       FRoot := TX3DRootNode.Create;
       Doc := URLReadXML(FURL);
       AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
+      if AtlasNode = nil then
+        raise EInvalidStarlingXml.CreateFmt('Invalid Starling XML file "%s" - TextureAtlas node not found.', [FDisplayURL]);
       ReadImageProperties(FURL, AtlasNode);
 
       CurrentAnimFrameCount := 0;
