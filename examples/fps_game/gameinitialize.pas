@@ -318,7 +318,7 @@ begin
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
-    Player.Inventory[I].Resource.DrawableImage.Draw(X, Y);
+    Player.Inventory[I].Resource.DrawableImage.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize));
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
