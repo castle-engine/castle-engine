@@ -115,7 +115,7 @@ Transform {
 #   # There are advantages and disadvantages to both shadow approaches.
 #   # Also our shadow volumes implementation is a little limited now: only 1 light.
 #   # Only 2-manifold objects cast shadows by shadow volumes, which include
-#   # only medkit and shooting_eye items right now.
+#   # only medkit item right now.
 #   # Remember to add "Window.StencilBits := 8;" before "Window.Open;"
 #   # if you want to use shadow volumes.
 #

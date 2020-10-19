@@ -1,6 +1,6 @@
 {
     "asset" : {
-        "generator" : "Khronos glTF Blender I/O v1.1.46",
+        "generator" : "Khronos glTF Blender I/O v1.2.75",
         "version" : "2.0"
     },
     "extensionsUsed" : [
@@ -112,7 +112,8 @@
                 36,
                 37,
                 38,
-                39
+                39,
+                40
             ]
         }
     ],
@@ -580,7 +581,7 @@
         },
         {
             "mesh" : 23,
-            "name" : "CasResShootingEye",
+            "name" : "CasResGun",
             "translation" : [
                 0.39338499307632446,
                 1,
@@ -615,6 +616,20 @@
                 -7.737188816070557,
                 1.0000020265579224,
                 -61.951194763183594
+            ]
+        },
+        {
+            "mesh" : 26,
+            "name" : "Plane",
+            "scale" : [
+                15.157414436340332,
+                15.157414436340332,
+                15.157414436340332
+            ],
+            "translation" : [
+                -0.03880500793457031,
+                -3.0397329330444336,
+                -37.47038269042969
             ]
         }
     ],
@@ -700,6 +715,24 @@
                 },
                 "metallicFactor" : 0,
                 "roughnessFactor" : 1
+            }
+        },
+        {
+            "alphaMode" : "BLEND",
+            "doubleSided" : true,
+            "emissiveFactor" : [
+                0,
+                0,
+                0
+            ],
+            "name" : "MatWater",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 5,
+                    "texCoord" : 0
+                },
+                "metallicFactor" : 0.3612903356552124,
+                "roughnessFactor" : 0.1387096643447876
             }
         }
     ],
@@ -996,7 +1029,7 @@
             ]
         },
         {
-            "name" : "CasResShootingEye",
+            "name" : "CasResGun",
             "primitives" : [
                 {
                     "attributes" : {
@@ -1030,6 +1063,20 @@
                     "indices" : 21
                 }
             ]
+        },
+        {
+            "name" : "Plane",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 64,
+                        "NORMAL" : 65,
+                        "TEXCOORD_0" : 66
+                    },
+                    "indices" : 67,
+                    "material" : 4
+                }
+            ]
         }
     ],
     "textures" : [
@@ -1047,6 +1094,9 @@
         },
         {
             "source" : 4
+        },
+        {
+            "source" : 5
         }
     ],
     "images" : [
@@ -1074,6 +1124,11 @@
             "mimeType" : "image/png",
             "name" : "tilable-img_0044",
             "uri" : "textures/tilable-img_0044.png"
+        },
+        {
+            "mimeType" : "image/png",
+            "name" : "brushwalker437",
+            "uri" : "textures/brushwalker437.png"
         }
     ],
     "accessors" : [
@@ -1730,6 +1785,40 @@
             "componentType" : 5126,
             "count" : 24,
             "type" : "VEC3"
+        },
+        {
+            "bufferView" : 64,
+            "componentType" : 5126,
+            "count" : 289,
+            "max" : [
+                1.4804186820983887,
+                0.03824496269226074,
+                0.9999999403953552
+            ],
+            "min" : [
+                -1.4804186820983887,
+                -0.02534853294491768,
+                -0.9999999403953552
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 65,
+            "componentType" : 5126,
+            "count" : 289,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 66,
+            "componentType" : 5126,
+            "count" : 289,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 67,
+            "componentType" : 5123,
+            "count" : 1536,
+            "type" : "SCALAR"
         }
     ],
     "bufferViews" : [
@@ -2052,11 +2141,31 @@
             "buffer" : 0,
             "byteLength" : 288,
             "byteOffset" : 76000
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3468,
+            "byteOffset" : 76288
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3468,
+            "byteOffset" : 79756
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2312,
+            "byteOffset" : 83224
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3072,
+            "byteOffset" : 85536
         }
     ],
     "buffers" : [
         {
-            "byteLength" : 76288,
+            "byteLength" : 88608,
             "uri" : "example_level.bin"
         }
     ]
