@@ -39,7 +39,10 @@ begin
   Dialog := TCastleOpen3DDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -68,7 +71,10 @@ begin
   Dialog := TCastleOpenImageDialog.Create(nil);
   try
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -97,7 +103,10 @@ begin
   try
     Dialog.Filter := 'CGE User Interace Design (*.castle-user-interface)|*.castle-user-interface|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
@@ -126,7 +135,10 @@ begin
   try
     Dialog.Filter := 'Tiled Map (*.tmx)|*.tmx|All Files|*';
     Dialog.AdviceDataDirectory := PropertyEditorsAdviceDataDirectory;
-    Dialog.URL := GetStrValue;
+    if (GetStrValue = '') and PropertyEditorsAdviceDataDirectory then
+      Dialog.URL := 'castle-data:/' // make it easier to open files within data folder
+    else
+      Dialog.URL := GetStrValue;
     if Dialog.Execute then
       SetStrValue(Dialog.URL);
   finally FreeAndNil(Dialog) end;
