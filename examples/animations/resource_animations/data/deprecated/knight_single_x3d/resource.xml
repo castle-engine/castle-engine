@@ -3,6 +3,7 @@
 <resource
   name="DeprecatedKnightSingleXThreeD"
   type="WalkAttack"
+  orientation="up:y,direction:-z"
 >
   <model url="knight.x3dv">
     <idle   animation_name="Animation_Idle"/>

@@ -3,6 +3,7 @@
 <resource
   name="DeprecatedKnightMultipleCastleAnimFrames"
   type="WalkAttack"
+  orientation="up:y,direction:-z"
 >
   <model>
     <idle   url="idle.castle-anim-frames"  />

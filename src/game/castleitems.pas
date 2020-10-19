@@ -770,6 +770,7 @@ begin
   Result.Level := ALevel;
   Result.FItem := Self;
   FOwner3D := Result;
+  Result.Orientation := Resource.Orientation; // must be set before SetView
   Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;

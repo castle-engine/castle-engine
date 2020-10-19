@@ -197,6 +197,7 @@ type
     { First ScenePoolUsed items on ScenePool are used, rest is unused. }
     ScenePoolUsed: Cardinal;
     FPool: Cardinal;
+    FOrientation: TOrientationType;
     function AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
     procedure ReleaseSceneFromPool(const Scene: TCastleScene);
     function CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
@@ -367,9 +368,28 @@ type
     property CastShadowVolumes: boolean
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
+
     { See @link(TCastleSceneCore.DefaultAnimationTransition) }
     property DefaultAnimationTransition: Single
       read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+
+    { See @link(TCastleTransform.Orientation), by default this is @link(TCastleTransform.DefaultOrientation).
+
+      In the resource.xml file, this value can be specified using following strings:
+
+      @definitionList(
+        @itemLabel @code(default)
+        @item Use TCastleTransform.DefaultOrientation.
+        @itemLabel @code(up:y,direction:-z)
+        @item Use otUpYDirectionMinusZ.
+        @itemLabel @code(up:y,direction:z)
+        @item Use otUpYDirectionZ. Matches conventional glTF orientation.
+        @itemLabel @code(up:z,direction:-y)
+        @item Use otUpZDirectionMinusY.
+        @itemLabel @code(up:z,direction:x)
+        @item Use otUpZDirectionX.
+      ) }
+    property Orientation: TOrientationType read FOrientation write FOrientation;
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
@@ -843,6 +863,7 @@ begin
   FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
   FCastShadowVolumes := DefaultCastShadowVolumes;
   FAnimations := T3DResourceAnimationList.Create;
+  FOrientation := TCastleTransform.DefaultOrientation;
 end;
 
 destructor T3DResource.Destroy;
@@ -913,6 +934,7 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
+  FOrientation := StrToOrientationType(ResourceConfig.GetValue('orientation', 'default'));
   FDefaultAnimationTransition := ResourceConfig.GetFloat('model/default_animation_transition', 0.0);
   if ResourceConfig.GetValue('model/file_name', '') <> '' then
   begin

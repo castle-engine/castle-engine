@@ -2120,6 +2120,8 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
 const
   rfOffScreen = rfRenderedTexture deprecated 'use rfRenderedTexture';
 
+function StrToOrientationType(const S: String): TOrientationType;
+
 implementation
 
 uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
@@ -3853,6 +3855,26 @@ begin
     FMainCamera := Value;
     VisibleChangeHere([]);
   end;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+const
+  OrientationNames: array [TOrientationType] of String =  (
+    'up:y,direction:-z',
+    'up:y,direction:z',
+    'up:z,direction:-y',
+    'up:z,direction:x'
+  );
+
+function StrToOrientationType(const S: String): TOrientationType;
+begin
+  if S = 'default' then
+    Exit(TCastleTransform.DefaultOrientation);
+  for Result in TOrientationType do
+    if OrientationNames[Result] = S then
+      Exit;
+  raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);
 end;
 
 initialization
