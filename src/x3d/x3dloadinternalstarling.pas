@@ -57,8 +57,6 @@ type
 
       { Load settings. }
       FFramesPerSecond: Single;
-      FMinificationFilter: TMinificationFilter;
-      FMagnificationFilter: TMagnificationFilter;
 
       FImageWidth, FImageHeight: Integer;
       FImagePath: String;
@@ -136,8 +134,6 @@ var
 begin
   // default values
   FFramesPerSecond := 4.0;
-  FMagnificationFilter := magNearest;
-  FMinificationFilter := minNearest;
 
   SettingsMap := TStringStringMap.Create;
   try
@@ -147,40 +143,6 @@ begin
       if Setting.Key = 'fps' then
       begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
-      end else
-      if Setting.Key = 'filter' then
-      begin
-        if Setting.Value = 'nearest' then
-        begin
-          FMagnificationFilter := magNearest;
-          FMinificationFilter := minNearest;
-        end else
-        if Setting.Value = 'linear' then
-        begin
-          FMagnificationFilter := magLinear;
-          FMinificationFilter := minLinear;
-        end else
-          WritelnWarning('Starling', 'Unknown filter value (%s) in "%s" anchor.', [Setting.Value, FDisplayURL]);
-      end else
-      if Setting.Key = 'magfilter' then
-      begin
-        if Setting.Value = 'nearest' then
-          FMagnificationFilter := magNearest
-        else
-        if Setting.Value = 'linear' then
-          FMagnificationFilter := magLinear
-        else
-          WritelnWarning('Starling', 'Unknown magfilter value (%s) in "%s" anchor.', [Setting.Value, FDisplayURL]);
-      end else
-      if Setting.Key = 'minfilter' then
-      begin
-        if Setting.Value = 'nearest' then
-          FMinificationFilter := minNearest
-        else
-        if Setting.Value = 'linear' then
-          FMinificationFilter := minLinear
-        else
-          WritelnWarning('Starling', 'Unknown minfilter value (%s) in "%s" anchor.', [Setting.Value, FDisplayURL]);
       end else
         WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
     end;
@@ -265,9 +227,6 @@ begin
   Tex.FdUrl.Send(FImagePath);
   Tex.RepeatS := false;
   Tex.RepeatT := false;
-  Tex.TextureProperties := TTexturePropertiesNode.Create('TextureProperties');
-  Tex.TextureProperties.MinificationFilter := FMinificationFilter;
-  Tex.TextureProperties.MagnificationFilter := FMagnificationFilter;
   Shape.Texture := Tex;
 
   Tri := TTriangleSetNode.Create;
