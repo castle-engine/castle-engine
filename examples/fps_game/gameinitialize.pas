@@ -265,12 +265,34 @@ type
   end;
 
 procedure TPlayerHUD.Render;
+
+  procedure DisplayCurrentAmmo;
+  var
+    AmmoStr: String;
+    GunResource: TItemWeaponResource;
+    GunIndex: Integer;
+    Gun: TItemWeapon;
+  begin
+    GunResource := Resources.FindName('Gun') as TItemWeaponResource;
+    GunIndex := Player.Inventory.FindResource(GunResource);
+    if GunIndex <> -1 then // owns gun?
+    begin
+      Gun := Player.Inventory[GunIndex] as TItemWeapon;
+      AmmoStr := Format('Loaded Ammo: %d / %d', [
+        Gun.AmmoLoaded,
+        GunResource.AttackAmmoCapacity
+      ]);
+      UIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+    end;
+  end;
+
+
 const
   InventoryImageSize = 128;
 var
   I: Integer;
   X, Y: Single;
-  S: string;
+  S: String;
 begin
   inherited;
 
@@ -285,6 +307,8 @@ begin
   Y := Y - (UIFont.RowHeight + ControlsMargin);
   UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  DisplayCurrentAmmo;
 
   { show FPS }
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,

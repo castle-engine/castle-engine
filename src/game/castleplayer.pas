@@ -1194,7 +1194,7 @@ begin
      (InternalLevel <> nil) then
   begin
     FEquippedWeaponResourceFrame.Exists := true;
-    EquippedWeapon.EquippedUpdate(InternalLevel, LifeTime, FEquippedWeaponResourceFrame);
+    EquippedWeapon.EquippedUpdate(InternalLevel, SecondsPassed, FEquippedWeaponResourceFrame);
   end else
     FEquippedWeaponResourceFrame.Exists := false;
 
@@ -1257,9 +1257,12 @@ procedure TPlayer.Attack;
 begin
   if (EquippedWeapon <> nil) and
      (InternalLevel <> nil) then
-    EquippedWeapon.EquippedAttack(InternalLevel, LifeTime)
+    EquippedWeapon.EquippedAttack(InternalLevel)
   else
-    { TODO: allow to do some "punch" / "kick" here easily }
+    { Cannot attack without weapon equipped.
+      If the game will want to have some "always owned weapon"
+      (like footkick in Duke, crowbar in HalfLife)
+      that game will have to assign it to EquippedWeapon. }
     Notifications.Show('No weapon equipped');
 end;
 
