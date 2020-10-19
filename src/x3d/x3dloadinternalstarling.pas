@@ -463,8 +463,9 @@ end;
 procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareCordsForX3D(
     ImageWidth, ImageHeight: Integer);
 begin
-  { The input data (X1, Y1) is the coordinates in the texture.
-    We need the coordinates in the texture so we start by computing X2 and Y2. }
+  { The input data (X1, Y1) are the coordinates in the texture.
+    We need those coordinates to compute X2, Y2 and after that we
+    recalculate X1, X2 for X3D. }
   X2 := 1 / ImageWidth * (X1 + Width);
   Y2 := 1 - 1 / ImageHeight * (Y1 + Height);
 
