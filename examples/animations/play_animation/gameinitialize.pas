@@ -36,7 +36,7 @@ var
   ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpenDialog: TCastleButton;
   AnimationsPanel, LoadOptionsPanel: TCastleRectangleControl;
   CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest: TCastleCheckbox;
-  SliderTransition, SliderScale, SliderFPS: TCastleFloatSlider;
+  SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
 
 const
   Margin = 10; // used throughout the user interface
@@ -55,6 +55,8 @@ type
     class procedure ButtonOpenDialogClick(Sender: TObject);
     class procedure ButtonPlayAnimationClick(Sender: TObject);
     class procedure ScaleChanged(Sender: TObject);
+    class procedure TextureMagOptionsChanged(Sender: TObject);
+    class procedure TextureMinOptionsChanged(Sender: TObject);
     class procedure StarlingOptionsChanged(Sender: TObject);
   end;
 
@@ -129,6 +131,18 @@ class procedure TEventsHandler.Open(const Url: String);
     LabelAndSlider.InsertFront(SliderScale);
     SliderScale.OnChange := @TEventsHandler(nil).ScaleChanged;
 
+    CheckboxMagFilterNearest := TCastleCheckbox.Create(LoadOptionsPanel);
+    CheckboxMagFilterNearest.Checked := Scene.Attributes.MagnificationFilter = magNearest;
+    CheckboxMagFilterNearest.Caption := 'Nearest magnification filter';
+    ScrollGroup.InsertFront(CheckboxMagFilterNearest);
+    CheckboxMagFilterNearest.OnChange := @TEventsHandler(nil).TextureMagOptionsChanged;
+
+    CheckboxMinFilterNearest := TCastleCheckbox.Create(LoadOptionsPanel);
+    CheckboxMinFilterNearest.Checked := Scene.Attributes.MinificationFilter = minNearest;
+    CheckboxMinFilterNearest.Caption := 'Nearest minification filter';
+    ScrollGroup.InsertFront(CheckboxMinFilterNearest);
+    CheckboxMinFilterNearest.OnChange := @TEventsHandler(nil).TextureMinOptionsChanged;
+
     Lab := TCastleLabel.Create(AnimationsPanel);
     Lab.Caption := 'Click to play animation...';
     Lab.Color := Black;
@@ -152,6 +166,7 @@ class procedure TEventsHandler.Open(const Url: String);
   end;
 
 begin
+  { Scale reset - needed because we set viewport after model loading }
   Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
   Viewport.AssignDefaultCamera;
@@ -177,67 +192,29 @@ begin
   Open('../../2d_dragon_spine_game/data/dragon/dragon.json');
 end;
 
-{ Simple funtion to parse curesnt settngs in options UI
+{ Simple funtion to parse current settings in options UI
   see ButtonOpen2DStarlingClick for more info. }
 function CurrentUIStarlingSettingsToAnchor: String;
-var
-  FilterSettings: String;
 begin
-  if CheckboxMagFilterNearest.Checked = CheckboxMinFilterNearest.Checked then
-  begin
-    if CheckboxMagFilterNearest.Checked then
-      FilterSettings := 'filter:nearest'
-    else
-      FilterSettings := 'filter:linear';
-  end else
-  begin
-    if CheckboxMagFilterNearest.Checked then
-      FilterSettings := 'magfilter:nearest'
-    else
-      FilterSettings := 'magfilter:linear';
-
-    if CheckboxMagFilterNearest.Checked then
-      FilterSettings := FilterSettings + ',minfilter:nearest'
-    else
-      FilterSettings := FilterSettings + ',minfilter:linear';
-  end;
-
-  Result := '#fps:' + FloatToStrDot(SliderFPS.Value) + ',' + FilterSettings;
+  Result := '#fps:' + FloatToStrDot(SliderFPSLoadOpt.Value);
 end;
 
 class procedure TEventsHandler.ButtonOpen2DStarlingClick(Sender: TObject);
 begin
   { When using Starling files you can specyfy some options like:
     - fps - frames per second for animations
-    - magfilter - magnification filtering can be "linear" or "nearest"
-    - minfilter - minification filtering can be "linear" or "nearest"
-    - filter - shortcut sets magnification and minification to the same value
-               can be "linear" or "nearest"
+
     Options are passed using an anchor separated by a comma, with
     a colon between the value and the option name.
 
-    E.g. To set filtering to "linear" and fps to 10 you can do:
-    <url here>#fps:10,filter:linear
+    E.g. To set fps to 10 you can do:
+    <url here>#fps:10
 
     BTW. Sample starling file based on one of many great assets by Kenney
     check https://kenney.nl/ for more. }
 
   Open('castle-data:/starling/character_zombie_atlas.starling-xml' + CurrentUIStarlingSettingsToAnchor);
 
-  { Of course, you can set these options after loading the file.
-    We specially set the node name of texture properties to 'TextureProperties'.
-    But if you only want to set these options once at the beginning,
-    it's more efficient to add them to the URL.
-
-    Example how to change magfilter after loading:
-
-    var
-      TexProp: TTexturePropertiesNode;
-    begin
-      TexProp := Scene.RootNode.FindNode('TextureProperties') as TTexturePropertiesNode;
-      if TexProp <> nil then
-        TexProp.MagnificationFilter := magLinear;
-    end; }
 end;
 
 class procedure TEventsHandler.ButtonOpenDialogClick(Sender: TObject);
@@ -276,14 +253,41 @@ begin
   Scene.Scale := Vector3(SliderScale.Value, SliderScale.Value, SliderScale.Value);
 end;
 
+class procedure TEventsHandler.TextureMagOptionsChanged(Sender: TObject);
+begin
+  if CheckboxMagFilterNearest.Checked then
+    Scene.Attributes.MagnificationFilter := magNearest
+  else
+    Scene.Attributes.MagnificationFilter := magLinear;
+end;
+
+class procedure TEventsHandler.TextureMinOptionsChanged(Sender: TObject);
+begin
+  { There are a lot of other options like:
+    - minNearestMipmapNearest,
+    - minNearestMipmapLinear,
+    - minLinearMipmapNearest,
+    - minLinearMipmapLinear,
+    - minDefault,
+    - minFastest - Alias for minNearest,
+    - minNicest - minLinearMipmapLinear,
+
+    But to keep example UI simple we change only minNearest and minLinear.
+  }
+  if CheckboxMinFilterNearest.Checked then
+    Scene.Attributes.MinificationFilter := minNearest
+  else
+    Scene.Attributes.MinificationFilter := minLinear;
+end;
+
 class procedure TEventsHandler.StarlingOptionsChanged(Sender: TObject);
 var
   AnimationName: String;
   Params: TPlayAnimationParameters;
 begin
   { This function is only to show loading options. In real application you can
-    also change options by finding and changing X3DNodes values without scene
-    reloading. See comments in ButtonOpen2DStarlingClick(). }
+    also change options by finding and changing X3DNodes or other CastleScene Values
+    like Scene.CurrentAnimation.CycleInterval for changing animation speed. }
 
   { Check last loaded model was Starling }
   if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'image/starling-texture-atlas' then
@@ -344,7 +348,7 @@ begin
   ScrollView.ScrollArea.InsertFront(ScrollGroup);
 
   Lab := TCastleLabel.Create(LoadOptionsPanel);
-  Lab.Caption := 'Starling options:';
+  Lab.Caption := 'Starling load options:';
   Lab.Color := Black;
   ScrollGroup.InsertFront(Lab);
 
@@ -357,24 +361,12 @@ begin
   Lab.Color := Black;
   LabelAndSlider.InsertFront(Lab);
 
-  SliderFPS := TCastleFloatSlider.Create(LoadOptionsPanel);
-  SliderFPS.Min := 1;
-  SliderFPS.Max := 60;
-  SliderFPS.Value := 4;
-  LabelAndSlider.InsertFront(SliderFPS);
-  SliderFPS.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
-
-  CheckboxMagFilterNearest := TCastleCheckbox.Create(AnimationsPanel);
-  CheckboxMagFilterNearest.Checked := true;
-  CheckboxMagFilterNearest.Caption := 'Nearest magnification filter';
-  ScrollGroup.InsertFront(CheckboxMagFilterNearest);
-  CheckboxMagFilterNearest.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
-
-  CheckboxMinFilterNearest := TCastleCheckbox.Create(AnimationsPanel);
-  CheckboxMinFilterNearest.Checked := true;
-  CheckboxMinFilterNearest.Caption := 'Nearest minification filter';
-  ScrollGroup.InsertFront(CheckboxMinFilterNearest);
-  CheckboxMinFilterNearest.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+  SliderFPSLoadOpt := TCastleFloatSlider.Create(LoadOptionsPanel);
+  SliderFPSLoadOpt.Min := 1;
+  SliderFPSLoadOpt.Max := 60;
+  SliderFPSLoadOpt.Value := 4;
+  LabelAndSlider.InsertFront(SliderFPSLoadOpt);
+  SliderFPSLoadOpt.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
 
   ScrollView.Width := ScrollGroup.EffectiveWidth;
   ScrollView.Height := Min(ScrollGroup.EffectiveHeight,
@@ -452,8 +444,9 @@ begin
   ButtonOpenDialog.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpenDialog);
 
-  // pretend ButtonOpen2D was clicked
-  TEventsHandler.ButtonOpen2DClick(nil);
+  // pretend ButtonOpen2DSpine was clicked
+  TEventsHandler.ButtonOpen2DSpineClick(nil);
+  //TEventsHandler.ButtonOpen2DStarlingClick(nil);
 end;
 
 initialization
