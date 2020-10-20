@@ -100,7 +100,7 @@ type
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL;
+    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -690,12 +690,15 @@ end;
 
 function T3DResourceAnimation.Defined: boolean;
 begin
+  {$warnings off} // using deprecated to keep it working
   Result := (URL <> '') or (AnimationName <> '');
+  {$warnings on}
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
+  {$warnings off} // using deprecated to keep it working
   if URL <> '' then
   begin
     FSceneState.Prepare(URL, Owner, Params, DoProgress);
@@ -704,6 +707,7 @@ begin
     else
       FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
+  {$warnings on}
   if AnimationName <> '' then
   begin
     if Owner.ModelState.Scene = nil then
@@ -723,12 +727,21 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
+  {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
     URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
     WritelnWarning('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
+
+  if URL <> '' then
+    WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations. See https://castle-engine.io/creating_data_resources.php .', [
+      Name,
+      Owner.Name
+    ]);
+  {$warnings on}
+
   AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
   begin
