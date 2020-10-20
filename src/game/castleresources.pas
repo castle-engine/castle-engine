@@ -440,8 +440,9 @@ type
         )
       )
 
-      TODO: For now, Pool only matters if you use a single file
-      for all resource animations.
+      Note that Pool only matters if you use a single file
+      for all resource animations. Using multiples files (separate file for each animation)
+      is deprecated anyway, see https://castle-engine.io/creating_data_resources.php .
     }
     property Pool: Cardinal read FPool write FPool default 0;
   end;
@@ -516,7 +517,7 @@ implementation
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils, CastleInternalNodeInterpolator;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleURIUtils;
 
 var
   UnitFinalization: Boolean;
@@ -939,6 +940,7 @@ end;
 procedure T3DResource.LoadFromFile(ResourceConfig: TCastleConfig);
 var
   I: Integer;
+  PoolStr: String;
 begin
   ConfigAlwaysPrepared := ResourceConfig.GetValue('always_prepared', false);
   FFallSpeed := ResourceConfig.GetFloat('fall_speed', DefaultFallSpeed);
@@ -955,7 +957,25 @@ begin
     WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     FModelURL := ResourceConfig.GetURL('model/url', true);
-  Pool := ResourceConfig.GetValue('model/pool', 0);
+
+  { calculate Pool }
+  PoolStr := ResourceConfig.GetValue('model/pool', 'auto');
+  if PoolStr = 'auto' then
+  begin
+    { Do not use Pool for model formats that are
+      - fast to switch current frame (ForceAnimationPose is fast)
+      - do not support animation blending anyway
+      In practice, this means formats with precalculated animation frames, like castle-anim-frames. }
+    if (FModelURL <> '') and
+       ( (URIMimeType(FModelURL) = 'application/x-castle-anim-frames') or
+         (URIMimeType(FModelURL) = 'application/x-md3')
+       ) then
+      Pool := 0
+    else
+      Pool := 1;
+    WritelnLog('Pool for "%s" auto-determined as %d', [Name, Pool]);
+  end else
+    Pool := StrToInt(PoolStr);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
