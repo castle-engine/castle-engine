@@ -9,9 +9,6 @@
 <properties>
   <property texture_base_name="tilable-img_0044"
     footsteps_sound="footsteps_grass" />
-  <!-- Uncomment this to have bump mapping for "concrete" texture. -->
-  <!-- property texture_base_name="concrete"
-    normal_map="example_level/textures/concrete-normalmap.png" / -->
 
   <!-- Automatically compress textures.
     Most of them to DXT1 (without alpha),
