@@ -443,6 +443,11 @@ type
       Note that Pool only matters if you use a single file
       for all resource animations. Using multiples files (separate file for each animation)
       is deprecated anyway, see https://castle-engine.io/creating_data_resources.php .
+
+      In the @code(resource.xml), you can specify this value an explicit integer
+      (0 means to not use pool), or you can write @code("auto") to automatically guess
+      the best value. The best value means to use pool, unless the ModelURL indicates castle-anim-frames
+      or MD3 formats.
     }
     property Pool: Cardinal read FPool write FPool default 0;
   end;
