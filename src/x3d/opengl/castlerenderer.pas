@@ -459,14 +459,15 @@ type
     { For efficiency reasons, we only allow a finite number of lights that can affect
       the given shape. You can increase this number if necessary.
 
-      Note that increasing this is not recommended, as it can quickly lower rendering
-      performance. It is generally better to make more limited light sources,
-      using light source radius and/or scope (e.g. you can use "radius" in Blender,
-      it is exported OK to glTF), and to make smaller shapes. IOW, if you can,
-      make your assets such that you can fit within the default limit.
+      Note that, instead of increasing this limit,
+      you can sometimes adjust your models to fit within this limit.
+      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      it is exported OK to glTF), and make smaller shapes.
 
-      Note that changing this will not have an effect on old dekstops with fixed-function
-      OpenGL pipeline. But it works on modern desktops, mobile and other platforms. }
+      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
+      there is an additional hard limit (dependent on GPU, but usually 8, for this).
+      But on modern desktops, as well as mobile and other platforms, you can increase this limit
+      freely. }
     property MaxLightsPerShape: Cardinal
       read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
   end;
