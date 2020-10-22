@@ -1253,7 +1253,6 @@ type
         function MoveNext: Boolean;
         property Current: TCastleUserInterface read GetCurrent;
       end;
-
     var
       FDisableContextOpenClose: Cardinal;
       FFocused: boolean;
