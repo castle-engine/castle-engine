@@ -188,6 +188,7 @@ type
     FSolidColor: TCastleColorRGB;
     FSolidColorBlendingPipeline: Boolean;
     FSeparateDiffuseTexture: boolean;
+    FMaxLightsPerShape: Cardinal;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
     { These methods just set the value on given property,
@@ -226,6 +227,7 @@ type
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
       DefaultPhongShading = false;
+      DefaultMaxLightsPerShape = 8;
 
     class var
       { Value used when @link(MinificationFilter) is minDefault.
@@ -453,6 +455,20 @@ type
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
+
+    { For efficiency reasons, we only allow a finite number of lights that can affect
+      the given shape. You can increase this number if necessary.
+
+      Note that increasing this is not recommended, as it can quickly lower rendering
+      performance. It is generally better to make more limited light sources,
+      using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      it is exported OK to glTF), and to make smaller shapes. IOW, if you can,
+      make your assets such that you can fit within the default limit.
+
+      Note that changing this will not have an effect on old dekstops with fixed-function
+      OpenGL pipeline. But it works on modern desktops, mobile and other platforms. }
+    property MaxLightsPerShape: Cardinal
+      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -1989,6 +2005,7 @@ begin
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
   FPhongShading := DefaultPhongShading;
+  FMaxLightsPerShape := DefaultMaxLightsPerShape;
 end;
 
 procedure TRenderingAttributes.ReleaseCachedResources;
@@ -2763,7 +2780,7 @@ begin
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, Attributes.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
