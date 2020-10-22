@@ -266,7 +266,7 @@ begin
     '-------' + NL +
     'Limits:' + NL +
     '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) + NL +
-    '  Max lights: ' + IntToStr(GLFeatures.MaxLights) + NL +
+    '  Max lights (fixed-function limit): ' + IntToStr(GLFeatures.MaxLights) + NL +
     {$ifndef OpenGLES}
     '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) + NL +
     '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) + NL +
