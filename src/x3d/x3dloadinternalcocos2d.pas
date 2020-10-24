@@ -25,7 +25,7 @@
 }
  unit X3DLoadInternalCocos2d;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 

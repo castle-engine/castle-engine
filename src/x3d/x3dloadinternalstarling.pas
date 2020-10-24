@@ -22,7 +22,7 @@
 }
 unit X3DLoadInternalStarling;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
