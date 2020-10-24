@@ -141,7 +141,8 @@ const
   'Videoscape (*.geo)|*.geo|' +
   'Spine animation (*.json)|*.json|' +
   'Standard Triangle Language (*.stl)|*.stl|' +
-  'Starling XML (*.starling-xml)|*.starling-xml';
+  'Starling XML (*.starling-xml)|*.starling-xml' +
+  'Cocos2d Spritesheet (*.plist)|*.plist';
 
   Load3D_FileFilters = LoadScene_FileFilters
     deprecated 'use LoadScene_FileFilters';
@@ -199,7 +200,7 @@ uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
-  X3DLoadInternalImage,
+  X3DLoadInternalImage, X3DLoadInternalCocos2d,
   CastleInternalNodeInterpolator;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
@@ -357,6 +358,12 @@ begin
      (URIMimeType(URIDeleteAnchor(URL, true)) = 'image/starling-texture-atlas') then
     Result := LoadStarlingTextureAtlas(URL)
   else
+
+  if (MimeType = 'application/x-plist') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-plist') then
+    Result := LoadCocos2d(URL)
+  else
+
 
   if URIMimeExtensions.ContainsKey(ExtractFileExt(URIDeleteAnchor(URL, true))) then
     Result := LoadImageAsX3DModel(URL)

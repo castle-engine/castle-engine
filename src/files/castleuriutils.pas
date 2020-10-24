@@ -870,6 +870,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
     }
     if Ext = '.starling-xml' then Result := 'image/starling-texture-atlas' else
+    if Ext = '.plist' then Result := 'application/x-plist' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
