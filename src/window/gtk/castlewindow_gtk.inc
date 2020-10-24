@@ -272,8 +272,8 @@ begin
     1: mb := buttonLeft;
     2: mb := buttonMiddle;
     3: mb := buttonRight;
-    8: mb := mbExtra1;
-    9: mb := mbExtra2;
+    8: mb := buttonExtra1;
+    9: mb := buttonExtra2;
     else Exit(false);
   end;
   Result := true;
