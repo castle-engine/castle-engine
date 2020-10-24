@@ -1800,9 +1800,15 @@ begin
 end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+const
+  { Unreadable chars are defined like in SReplaceChars.
+    Note they include newlines, we don't want to include newlines in undo description,
+    as it would make menu item look weird (actually multiline on GTK2). }
+  UnreadableChars = [Low(AnsiChar) .. Pred(' '), #128 .. High(AnsiChar)];
 var
   Sel: TComponent;
   UI: TCastleUserInterface;
+  SenderRowName, SenderRowValue, SenderRowDescription: String;
 begin
   // This knows we have selected *at least one* component.
   // When you modify component Name in PropertyGrid, update it in the ControlsTree.
@@ -1834,8 +1840,15 @@ begin
       So we should ignore changes to PropertyGrid in case the change is caused
       by dragging, otherwise we'll record an undo for every OnMotion of dragging }
     if Sender is TOICustomPropertyGrid then
-      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue, TOICustomPropertyGrid(Sender).ItemIndex)
-    else
+    begin
+      SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
+      SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
+      if CharsPos(UnreadableChars, SenderRowValue) = 0 then
+        SenderRowDescription := 'Change ' + SenderRowName + ' to ' + SenderRowValue
+      else
+        SenderRowDescription := 'Change ' + SenderRowName;
+      RecordUndo(SenderRowDescription, TOICustomPropertyGrid(Sender).ItemIndex);
+    end else
       RecordUndo('');
   end;
 
