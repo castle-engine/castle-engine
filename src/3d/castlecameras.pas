@@ -1261,7 +1261,7 @@ type
       read FMouseButtonMove write FMouseButtonMove default mbMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
     property MouseButtonZoom: TCastleMouseButton
-      read FMouseButtonZoom write FMouseButtonZoom default mbRight;
+      read FMouseButtonZoom write FMouseButtonZoom default buttonRight;
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -3090,7 +3090,7 @@ begin
 
   FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := mbMiddle;
-  FMouseButtonZoom := mbRight;
+  FMouseButtonZoom := buttonRight;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -3716,9 +3716,9 @@ begin
   if (buttonLeft in Container.MousePressed) and (ModsDown = []) then
     DraggingMouseButton := buttonLeft
   else
-  if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
+  if ((buttonRight in Container.MousePressed) and (ModsDown = [])) or
      ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
-    DraggingMouseButton := mbRight
+    DraggingMouseButton := buttonRight
   else
   if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
      ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
@@ -4890,7 +4890,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       if Abs(Delta[0]) > Tolerance then
         RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
-    else if mbRight in Container.MousePressed then
+    else if buttonRight in Container.MousePressed then
     begin
       if Delta[0] < -Tolerance then
       begin
@@ -5005,7 +5005,7 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((buttonLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
+       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging

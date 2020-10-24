@@ -367,7 +367,7 @@ begin
     SelectClosestPoint(Pos);
     StartDragging;
   end else
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
     AddNewPoint(Pos) else
   if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
     ChangeZoom(ZoomFactor) else

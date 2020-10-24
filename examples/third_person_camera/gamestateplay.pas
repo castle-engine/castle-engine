@@ -141,7 +141,7 @@ procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolea
   (*
   procedure UpdateAimAvatar;
   begin
-    if mbRight in Container.MousePressed then
+    if buttonRight in Container.MousePressed then
       ThirdPersonNavigation.AimAvatar := aaHorizontal
     else
       ThirdPersonNavigation.AimAvatar := aaNone;
@@ -228,7 +228,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     CheckboxAimAvatar.Checked := not CheckboxAimAvatar.Checked;
     ChangeCheckboxAimAvatar(CheckboxAimAvatar); // update ThirdPersonNavigation.AimAvatar

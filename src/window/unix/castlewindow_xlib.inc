@@ -592,7 +592,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     case button of
       Button1 : mbtn := buttonLeft;
       Button2 : mbtn := mbMiddle;
-      Button3 : mbtn := mbRight;
+      Button3 : mbtn := buttonRight;
       else Result := false;
     end;
   end;
@@ -625,7 +625,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     mousePressed:=[];
     if (Button1Mask and event.state) <> 0 then Include(mousePressed, buttonLeft);
     if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
-    if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
+    if (Button3Mask and event.state) <> 0 then Include(mousePressed, buttonRight);
     }
     DoMotion(InputMotion(MousePosition,
       LeftTopToCastle(xEvent.x, xEvent.y),

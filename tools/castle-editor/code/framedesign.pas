@@ -546,7 +546,7 @@ begin
   if Result then Exit;
 
   if (Frame.Mode = moModifyUi) and
-     (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(mbRight)) then
+     (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
     { Left mouse button selects before moving/resizing.
       Right mouse button doesn't. This allows to change the size of the control
@@ -596,7 +596,7 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(mbRight)) then
+  if (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
     DraggingMode := dmNone;
 
@@ -808,8 +808,8 @@ begin
     (maybe can happen e.g. if you Alt+Tab during dragging?),
     reset DraggingMode. }
   if (DraggingMode <> dmNone) and
-     // neither buttonLeft nor mbRight
-     ([buttonLeft, mbRight] * Event.Pressed = []) then
+     // neither buttonLeft nor buttonRight
+     ([buttonLeft, buttonRight] * Event.Pressed = []) then
     DraggingMode := dmNone;
 
   if (Frame.Mode = moModifyUi) and (DraggingMode <> dmNone) then
@@ -1020,7 +1020,7 @@ begin
   BuildComponentsMenu(MenuTreeViewItemAddUserInterface, MenuTreeViewItemAddTransform, @MenuItemAddComponentClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
-  Input_Interact.MouseButton2 := mbRight;
+  Input_Interact.MouseButton2 := buttonRight;
 end;
 
 destructor TDesignFrame.Destroy;

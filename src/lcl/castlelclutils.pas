@@ -471,7 +471,7 @@ begin
   Result := true;
   case MouseButton of
     Controls.mbLeft  : MyMouseButton := CastleKeysMouse.buttonLeft;
-    Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
+    Controls.mbRight : MyMouseButton := CastleKeysMouse.buttonRight;
     Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
     Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
     Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;

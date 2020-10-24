@@ -206,7 +206,7 @@ begin
     Spawn(BoxTemplate, BoxCollider, RigidBody);
   end;
 
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     RigidBody := TRigidBody.Create(SphereTemplate);
 

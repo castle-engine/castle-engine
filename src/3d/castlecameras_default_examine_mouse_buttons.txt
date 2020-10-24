@@ -17,13 +17,13 @@ Both Shift and Ctrl pressed do nothing.
 
 vrweb:
 - rotating: mbMiddle
-- moving closer/further: mbRight (like in Blender: down closer, up further,
+- moving closer/further: buttonRight (like in Blender: down closer, up further,
   horizontal doesn't matter)
 - moving left/right/down/up: buttonLeft
 
 GIMP normalmap 3d preview:
 - rotating: buttonLeft
-- moving closer/further: mbRight (like in Blender: down closer, up further,
+- moving closer/further: buttonRight (like in Blender: down closer, up further,
   horizontal doesn't matter)
 - no moving left/right/down/up.
 
@@ -32,7 +32,7 @@ My thoughts and conclusions:
   mode is the most comfortable), so it should be on buttonLeft (like normalmap)
   with no modifiers (like Blender).
 - moving closer/further: 2nd most important action in Examine mode, IMO.
-  Goes to mbRight. For people with 1 mouse button, and for Blender analogy,
+  Goes to buttonRight. For people with 1 mouse button, and for Blender analogy,
   it's also on Ctrl + buttonLeft.
 - moving left/right/down/up: mbMiddle.
   For people with no middle button, and Blender analogy, it's also on

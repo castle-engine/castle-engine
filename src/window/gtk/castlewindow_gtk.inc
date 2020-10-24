@@ -271,7 +271,7 @@ begin
   case bn of
     1: mb := buttonLeft;
     2: mb := mbMiddle;
-    3: mb := mbRight;
+    3: mb := buttonRight;
     8: mb := mbExtra1;
     9: mb := mbExtra2;
     else Exit(false);

@@ -374,7 +374,7 @@ type
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
 
-  TCastleMouseButton = (buttonLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
+  TCastleMouseButton = (buttonLeft, mbMiddle, buttonRight, mbExtra1, mbExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
 
   { Look of the mouse cursor.
