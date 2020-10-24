@@ -1822,6 +1822,16 @@ var
   Sel: TComponent;
   UI: TCastleUserInterface;
 begin
+  { Workaround possible ControlsTree.Selected = nil when the user deselects
+    the currently edited component by clicking somewhere else.
+    See https://trello.com/c/V6v2rBwv/75-bug-access-violation-in-castle-editor . }
+  if ControlsTree.Selected = nil then
+  begin
+    UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
+    //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
+    RecordUndo('Modify property'); // We're recording a generic Undo message
+    Exit;
+  end;
   // This knows we have selected *at least one* component.
   // When you modify component Name in PropertyGrid, update it in the ControlsTree.
   Assert(ControlsTree.Selected <> nil);
