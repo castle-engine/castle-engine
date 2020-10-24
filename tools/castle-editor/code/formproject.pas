@@ -341,83 +341,6 @@ end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
 
-  function CreateMenuItemForComponent(const R: TRegisteredComponent): TMenuItem;
-  var
-    S: String;
-  begin
-    Result := TMenuItem.Create(Self);
-    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
-    if R.IsDeprecated then
-      S := '(Deprecated) ' + S;
-    Result.Caption := S;
-    Result.Tag := PtrInt(Pointer(R));
-  end;
-
-  procedure BuildComponentsMenu;
-  var
-    MenuItem: TMenuItem;
-    R: TRegisteredComponent;
-  begin
-    { add non-deprecated components }
-    for R in RegisteredComponents do
-      if not R.IsDeprecated then
-      begin
-        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
-           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-          MenuItemDesignNewUserInterfaceCustomRoot.Add(MenuItem);
-
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddUserInterface.Add(MenuItem);
-        end else
-        if R.ComponentClass.InheritsFrom(TCastleTransform) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemDesignNewCustomRootClick;
-          MenuItemDesignNewTransformCustomRoot.Add(MenuItem);
-
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddTransform.Add(MenuItem);
-        end;
-      end;
-
-    (*
-    Don't show deprecated -- at least in initial CGE release, keep the menu clean.
-
-    { add separators from deprecated }
-    MenuItem := TMenuItem.Create(Self);
-    MenuItem.Caption := '-';
-    MenuItemDesignAddUserInterface.Add(MenuItem);
-
-    MenuItem := TMenuItem.Create(Self);
-    MenuItem.Caption := '-';
-    MenuItemDesignAddTransform.Add(MenuItem);
-
-    { add deprecated components }
-    for R in RegisteredComponents do
-      if R.IsDeprecated then
-      begin
-        if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
-           not R.ComponentClass.InheritsFrom(TCastleNavigation) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddUserInterface.Add(MenuItem);
-        end else
-        if R.ComponentClass.InheritsFrom(TCastleTransform) then
-        begin
-          MenuItem := CreateMenuItemForComponent(R);
-          MenuItem.OnClick := @MenuItemAddComponentClick;
-          MenuItemDesignAddTransform.Add(MenuItem);
-        end;
-      end;
-    *)
-  end;
-
   { We create some components by code, this way we don't have to put
     in package TCastleShellTreeView and TCastleShellListView,
     making compiling CGE editor a bit easier. }
@@ -472,7 +395,8 @@ procedure TProjectForm.FormCreate(Sender: TObject);
 
 begin
   OutputList := TOutputList.Create(ListOutput);
-  BuildComponentsMenu;
+  BuildComponentsMenu(MenuItemDesignNewUserInterfaceCustomRoot, MenuItemDesignNewTransformCustomRoot, @MenuItemDesignNewCustomRootClick);
+  BuildComponentsMenu(MenuItemDesignAddUserInterface, MenuItemDesignAddTransform, @MenuItemAddComponentClick);
   CreateShellViews;
   ApplicationProperties.OnWarning.Add(@WarningNotification);
 end;

@@ -20,8 +20,14 @@ unit EditorUtils;
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Generics.Collections,
+uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   CastleStringUtils;
+
+type
+  TMenuItemHelper = class helper for TMenuItem
+  public
+    procedure SetEnabledVisible(const Value: Boolean);
+  end;
 
 type
   TOutputKind = (
@@ -144,11 +150,20 @@ const
 function ApiReference(const SelectedObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
+procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+
 implementation
 
 uses SysUtils, Dialogs, Graphics, TypInfo,
   CastleUtils, CastleLog,
+  CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
   ToolCompilerInfo;
+
+procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
+begin
+  Visible := Value;
+  Enabled := Value;
+end;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
 
@@ -653,6 +668,76 @@ begin
     // adjust for PasDoc links in CGE
     Result := ApiReferenceUrl + PasDocSuffix(LinkUnitName, LinkClassName, LinkPropertyName);
   end;
+end;
+
+procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+
+  function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
+  var
+    S: String;
+  begin
+    Result := TMenuItem.Create(Owner);
+    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+    if R.IsDeprecated then
+      S := '(Deprecated) ' + S;
+    Result.Caption := S;
+    Result.Tag := PtrInt(Pointer(R));
+  end;
+
+var
+  MenuItem: TMenuItem;
+  R: TRegisteredComponent;
+begin
+  { add non-deprecated components }
+  for R in RegisteredComponents do
+    if not R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUeserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+
+  (*
+  Don't show deprecated -- at least in initial CGE release, keep the menu clean.
+
+  { add separators from deprecated }
+  MenuItem := TMenuItem.Create(ParentUeserInterface);
+  MenuItem.Caption := '-';
+  ParentUeserInterface.Add(MenuItem);
+
+  MenuItem := TMenuItem.Create(ParentTransform);
+  MenuItem.Caption := '-';
+  ParentTransform.Add(MenuItem);
+
+  { add deprecated components }
+  for R in RegisteredComponents do
+    if R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUeserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+  *)
 end;
 
 end.
