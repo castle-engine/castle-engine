@@ -176,12 +176,15 @@ end;
 
 procedure TCocos2dLoader.TCocosFrame.ParseAnimationName(const FrameFileName: String);
 begin
-  AnimationName := ExtractOnlyFilename(FrameFileName);
+  { Some times this names can be like "walk/0001.png" }
+  AnimationName := DeleteFileExt(FrameFileName);
 
   RemoveTrailingChars(AnimationName, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
 
   if (Length(AnimationName) > 1) and ((AnimationName[Length(AnimationName)] = '_')
-    or (AnimationName[Length(AnimationName)] = '-')) then
+    or (AnimationName[Length(AnimationName)] = '-')
+    or (AnimationName[Length(AnimationName)] = '/')
+    or (AnimationName[Length(AnimationName)] = '\')) then
   delete(AnimationName, Length(AnimationName), 1);
 
   if AnimationName = '' then
