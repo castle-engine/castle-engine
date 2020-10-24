@@ -89,7 +89,7 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   but beware --- the order of values in my type is different (buttonMiddle
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
-  const MouseButton: TMouseButton;
+  const MouseButton: Controls.TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 
 const
@@ -465,7 +465,7 @@ begin
 end;
 
 function MouseButtonLCLToCastle(
-  const MouseButton: TMouseButton;
+  const MouseButton: Controls.TMouseButton;
   out MyMouseButton: TCastleMouseButton): boolean;
 begin
   Result := true;

@@ -196,9 +196,9 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure MouseDown(Button: TMouseButton;
+    procedure MouseDown(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseUp(Button: TMouseButton;
+    procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
@@ -1089,7 +1089,7 @@ begin
       Key := 0; // handled
 end;
 
-procedure TCastleControlBase.MouseDown(Button: TMouseButton;
+procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;
@@ -1108,7 +1108,7 @@ begin
       ModifiersDown(Container.Pressed)));
 end;
 
-procedure TCastleControlBase.MouseUp(Button: TMouseButton;
+procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;

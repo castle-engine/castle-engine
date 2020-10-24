@@ -99,9 +99,9 @@ private
   procedure OpenGLControlUTF8KeyPress(Sender: TObject; var UTF8Key: TUTF8Char);
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
     Shift: TShiftState);
-  procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton;
+  procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
     Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseUp(Sender: TObject; Button: TMouseButton;
+  procedure OpenGLControlMouseUp(Sender: TObject; Button: Controls.TMouseButton;
     Shift: TShiftState; X, Y: Integer);
   procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X,
     Y: Integer);
@@ -706,7 +706,7 @@ begin
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;
 begin
@@ -715,7 +715,7 @@ begin
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: TCastleMouseButton;
 begin
