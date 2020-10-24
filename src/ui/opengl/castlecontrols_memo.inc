@@ -672,16 +672,17 @@ begin
   if indexColumn1 <> -2 then
   begin
     j:=UTF8Length(Text[Index]);
-    IndexColumn:=0;
+    IndexColumn:= -1;
     for i:=Index to Text.Count-1 do
     begin
+     WritelnLog(Text[i]);
       if indexColumn1 <= j then
       begin
         IndexColumn:= indexColumn1 - (j - UTF8Length(Text[i])) - 1;
         break;
       end
       else
-        if i+1<Text.Count then j:= j + UTF8Length(Text[i+1])
+        if i+1 < Text.Count then j:= j + UTF8Length(Text[i+1])
         else
         begin
          break;
@@ -806,7 +807,7 @@ begin
        break;
       end;
     end;
-  Result.IndexColumn1:= j1 + IndexColumn + 1;
+  Result.IndexColumn1:= j1 + IndexColumn;
 
  if LastIndex <> -1 then
  begin
@@ -862,7 +863,7 @@ begin
        break;
       end;
     end;
-  Result.IndexColumn2:= j1  + LastIndexColumn + 1;
+  Result.IndexColumn2:= j1  + LastIndexColumn;
  end else
  begin
   Result.IndexColumn2:=-1;
@@ -1161,18 +1162,18 @@ begin
       begin
        for i:=1 to round(Text.Count) do
        begin
-         if RenderRect.Bottom+RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
+         if RenderRect.Bottom + RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
          begin
            LastIndex:=i-1;
            break;
          end;
        end;
 
-      if (LastIndex<=Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
+      if (LastIndex <= Text.Count+1-round(RectInside.Height/(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)/2)) then
         if Event.Position.Y<5+RenderRect.Bottom then
-           BottomText:=BottomText+Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
-      if BottomText>0 then
-          if Event.Position.Y>RenderRect.Bottom+RenderRect.Height-7 then
+           BottomText:= BottomText+Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
+      if BottomText > 0 then
+          if Event.Position.Y > RenderRect.Bottom+RenderRect.Height-7 then
             BottomText:=BottomText-Font.RowHeight + UIScale * (PaddingVertical + Padding)*2;
       if (LastIndex>-1) and (LastIndex<Text.Count) then
           for i:=UTF8Length(Text[LastIndex]) downto 0 do
@@ -1222,14 +1223,17 @@ begin
     if Text.Count=0 then Text.Add('');
     if NOT(mkShift in Event.ModifiersDown) then
     begin
-      for i:=1 to round(Text.Count) do
-       if RenderRect.Bottom+RectInside.Height-Event.Position.Y<i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
+      for i:=1 to Text.Count do
+      begin
+       if RenderRect.Bottom+RectInside.Height-Event.Position.Y < i*(Font.RowHeight + UIScale * (PaddingVertical + Padding)*2)-BottomText then
        begin
          Index:=i-1;
          break;
        end;
+       if i = Text.Count then Index:= i;
+      end;
       for i:=UTF8Length(Text[Index]) downto 0 do
-       if Event.Position.X-RenderRect.Left>Font.TextWidth(UTF8Copy(Text[Index],1,i)) then
+       if Event.Position.X-RenderRect.Left > Font.TextWidth(UTF8Copy(Text[Index],1,i)) then
        begin
           IndexColumn:=i-1;
           LastIndex:=-1;
@@ -1270,7 +1274,7 @@ begin
   else
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
-    if LastIndex<>-1 then
+    if LastIndex <> -1 then
     begin
       UndoSystem.ChangeAct(bool, Caret.index1, Caret.indexcolumn1, Caret.Index2, Caret.IndexColumn2, SelectedText, atDelete);
       DeleteSelectText;
@@ -1278,18 +1282,23 @@ begin
     else
     begin
      s:=Text[index];
-     if IndexColumn<>-1 then
+     if IndexColumn <> -1 then
       begin
-        UTF8Delete(s,indexColumn+2-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)),UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1)));
+        UTF8Delete(s,indexColumn+1,1);
         UndoSystem.ChangeAct(bool, Caret.Index1, Caret.IndexColumn1-1, -1, -1, UTF8Copy(Text[Index],IndexColumn+1,1), atDelete);
-        IndexColumn:=IndexColumn-UTF8Length(UTF8Copy(Text[Index],IndexColumn+1,1));
+        IndexColumn:=IndexColumn-1;
         Text[index]:=s;//+Text[index][IndexColumn];
       end else
       if Index>0 then
        begin
        i:=UTF8Length(Text[Index-1])-1;
         if FTextChar[index-1] = False then
-           WordWrap(index-1);
+         begin
+         s:=Text[index-1];
+          UTF8Delete(s,UTF8Length(Text[index-1]),1);
+          UndoSystem.ChangeAct(bool, Caret.Index1, UTF8Length(Text[index-1]), -1, -1, UTF8Copy(Text[index-1],UTF8Length(Text[index-1])-1,1), atDelete);
+          Text[index-1]:=s;
+         end;
        {if FTextChar[Index-1] then
           begin  }
          if Text[index] <> '' then
@@ -1628,6 +1637,7 @@ function TCastleMemo.WordWrap(index1: integer): integer;
 var
   i,j,j1,j2:integer;
   s:string;
+  MemoIndexs: TMemoIndexs;
 begin
   j1:=0;
   j:=0;
@@ -1654,6 +1664,7 @@ begin
   if index1 < Text.Count then
   if Text[index1] <> '' then
   begin
+  MemoIndexs:= GetCaret;
   j:= index1+1;
   if FTextChar.Count > j-1 then
     while FTextChar[j-1] = False do
@@ -1680,7 +1691,7 @@ begin
 
                FTextChar.Insert(index1,False);
                Result:=Result+WordWrap(index1+1)+1;
-               if (index=index1) and (IndexColumn>j) then
+               if (index = index1) and (IndexColumn > j) then
                begin
                   index:=index1+1;
                   Result:=Result-1;
@@ -1701,10 +1712,11 @@ begin
        FTextChar.insert(index1,False);
         Result:=Result+WordWrap(index1+1)+1;
 
-       if index=index1 then
+       if index = index1 then
                   index:=index1+1;
        break;
      end;
+    SetCaret(MemoIndexs.Index1, MemoIndexs.IndexColumn1+1, MemoIndexs.Index2, MemoIndexs.IndexColumn2);
   end;
 end;
 function TCastleMemo.GetInternalText: String;
@@ -1853,9 +1865,9 @@ ActionType: TMemoUndoActionType);
        WritelnLog('_LastIndex_'+IntToStr(LastIndex)+'_LastIndexColumn_'+IntToStr(LastIndexColumn)+'|||||||||||');
 
       if ActionType = atAdd then WritelnLog('add') else WritelnLog('delete');
-      if IndexAct+1 < Count then
-       for i:= IndexAct+1 to Count-1 do
-           Delete(IndexAct+1); //+1
+      if IndexAct < Count then
+       for i:= IndexAct to Count-1 do
+           Delete(IndexAct); //+1
       Self.add(A);
       IndexAct:= IndexAct+1;
       WritelnLog(IntToStr(IndexAct));
@@ -1888,7 +1900,8 @@ end;
    AFleep:TMemoUndoAction;
    j:integer;
  begin
-   if (Count > IndexAct-1)and(IndexAct-1 > -1) then
+   WritelnLog('IndexAct'+IntToStr(IndexAct-1));
+   if (Count > IndexAct-1) and (IndexAct-1 > -1) then
    begin
     if self[IndexAct-1].ActionType = atAdd then WritelnLog('Type Add') else
     if self[IndexAct-1].ActionType = atDelete then WritelnLog('Type Delete') else
@@ -1898,8 +1911,8 @@ end;
     if self[IndexAct-1].ActionType1 = atEnter then WritelnLog('Type Enter1');
      WritelnLog(self[IndexAct-1].Text + '  ' + self[IndexAct-1].Text1);
      WritelnLog('IndexAct'+IntToStr(IndexAct-1));
-     for j:= 0 to Self.Count-1 do
-      WritelnLog('Index:'+IntToStr(self[j].Index)+' IndexColumn:'+IntToStr(self[j].IndexColumn)+' LastIndex:'+IntToStr(self[j].LastIndex)+' LastIndexColumn:'+IntToStr(self[j].LastIndexColumn)+' Text:'+self[j].Text);
+     //for j:= 0 to Self.Count-1 do
+      //WritelnLog('Index:'+IntToStr(self[j].Index)+' IndexColumn:'+IntToStr(self[j].IndexColumn)+' LastIndex:'+IntToStr(self[j].LastIndex)+' LastIndexColumn:'+IntToStr(self[j].LastIndexColumn)+' Text:'+self[j].Text);
      AFleep:= ActionFleep(self[IndexAct-1]);
      Action1(AFleep);
      Action(AFleep);
@@ -1943,7 +1956,6 @@ end;
     s:string;
     Lines:TStringList;
  begin
-
    if ActionType = atAdd then
     begin
       Lines:=TStringList.Create;
@@ -1969,6 +1981,7 @@ end;
              Memo^.SetCaret(index, IndexColumn, -2, -2);
           end;
           Lines[Index]:= s;
+          WritelnLog(UTF8Copy(s,UTF8Length(s)-10,10));
         end;
         WritelnLog('adding'+IntToStr(Memo^.indexColumn));
       end
