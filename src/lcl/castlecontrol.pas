@@ -196,9 +196,9 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure MouseDown(Button: Controls.TMouseButton;
+    procedure MouseDown(Button: TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseUp(Button: Controls.TMouseButton;
+    procedure MouseUp(Button: TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
@@ -230,7 +230,7 @@ type
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: CastleKeysMouse.TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
@@ -1089,10 +1089,10 @@ begin
       Key := 0; // handled
 end;
 
-procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseDown(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1108,10 +1108,10 @@ begin
       ModifiersDown(Container.Pressed)));
 end;
 
-procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseUp(Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1245,7 +1245,7 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: CastleKeysMouse.TMouseButtons;
+function TCastleControlBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;

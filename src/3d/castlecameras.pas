@@ -1154,7 +1154,7 @@ type
       FInput_Home: TInputShortcut;
       FInput_StopRotating: TInputShortcut;
 
-      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TMouseButton;
+      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TCastleMouseButton;
 
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
@@ -1254,13 +1254,13 @@ type
           pressing middle mouse button.)
       )
     }
-    property MouseButtonRotate: TMouseButton
+    property MouseButtonRotate: TCastleMouseButton
       read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
     { Drag with this mouse button to move the model. }
-    property MouseButtonMove: TMouseButton
+    property MouseButtonMove: TCastleMouseButton
       read FMouseButtonMove write FMouseButtonMove default mbMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
-    property MouseButtonZoom: TMouseButton
+    property MouseButtonZoom: TCastleMouseButton
       read FMouseButtonZoom write FMouseButtonZoom default mbRight;
 
     { Current rotation of the model.
@@ -3686,7 +3686,7 @@ var
   end;
 
 var
-  DraggingMouseButton: TMouseButton;
+  DraggingMouseButton: TCastleMouseButton;
 begin
   Result := inherited;
   if Result then Exit;

@@ -542,7 +542,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
     end;
   end;
 
-  procedure HandleMouseDown(const Button: TMouseButton);
+  procedure HandleMouseDown(const Button: TCastleMouseButton);
   begin
     MaybeCapture;
     DoMouseDown(LeftTopToCastle(
@@ -550,7 +550,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
       TWinParam(lParm).HiSmallint), Button, 0);
   end;
 
-  procedure HandleMouseUp(const Button: TMouseButton);
+  procedure HandleMouseUp(const Button: TCastleMouseButton);
   begin
     DoMouseUp(LeftTopToCastle(
       TWinParam(lParm).LoSmallint,

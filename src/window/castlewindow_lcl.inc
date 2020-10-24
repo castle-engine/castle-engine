@@ -99,9 +99,9 @@ private
   procedure OpenGLControlUTF8KeyPress(Sender: TObject; var UTF8Key: TUTF8Char);
   procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
     Shift: TShiftState);
-  procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
+  procedure OpenGLControlMouseDown(Sender: TObject; Button: TMouseButton;
     Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseUp(Sender: TObject; Button: Controls.TMouseButton;
+  procedure OpenGLControlMouseUp(Sender: TObject; Button: TMouseButton;
     Shift: TShiftState; X, Y: Integer);
   procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X,
     Y: Integer);
@@ -706,18 +706,18 @@ begin
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
-  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
-  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseUp(LeftTopToCastle(X, Y), MyButton, 0);

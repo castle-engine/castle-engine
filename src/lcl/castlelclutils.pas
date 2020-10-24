@@ -83,14 +83,14 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
 { @groupEnd }
 
 { Convert Lazarus Controls.TMouseButton value to Castle Game Engine
-  CastleKeysMouse.TMouseButton.
+  CastleKeysMouse.TCastleMouseButton.
 
   (By coincidence, my type name and values are the same as used by LCL;
   but beware --- the order of values in my type is different (mbMiddle
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
-  const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  const MouseButton: TMouseButton;
+  out MyMouseButton: TCastleMouseButton): boolean;
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
@@ -465,8 +465,8 @@ begin
 end;
 
 function MouseButtonLCLToCastle(
-  const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  const MouseButton: TMouseButton;
+  out MyMouseButton: TCastleMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of

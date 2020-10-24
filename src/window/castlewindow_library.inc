@@ -498,7 +498,7 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
@@ -527,7 +527,7 @@ end;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
   FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;

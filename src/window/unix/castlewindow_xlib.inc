@@ -586,7 +586,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     DoResize(xEvent.width, xEvent.height, false);
   end;
 
-  function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): boolean;
   begin
     result := true;
     case button of
@@ -599,7 +599,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_ButtonPress(const xEvent: TXButtonPressedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseDown(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0) else
@@ -613,7 +613,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_ButtonRelease(const xEvent: TXButtonReleasedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseUp(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0)
