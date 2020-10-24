@@ -150,7 +150,7 @@ begin
       end;
     itMouseButton:
       begin
-        if Event.MouseButton = mbLeft then
+        if Event.MouseButton = buttonLeft then
         begin
           if Viewport.MouseRayHit <> nil then
             Player.WantsToWalk(Viewport.MouseRayHit.Last.Point);

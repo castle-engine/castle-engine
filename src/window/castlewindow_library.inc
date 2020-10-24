@@ -502,7 +502,7 @@ var
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    if (bLeftBtn) then MyButton := buttonLeft else MyButton := mbRight;
     Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
@@ -532,7 +532,7 @@ begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := mbLeft
+      MyButton := buttonLeft
     else
       MyButton := mbRight;
     Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);

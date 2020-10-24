@@ -374,7 +374,7 @@ type
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
 
-  TCastleMouseButton = (mbLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
+  TCastleMouseButton = (buttonLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
 
   { Look of the mouse cursor.
@@ -657,7 +657,7 @@ type
     KeyRepeated: boolean;
 
     { When EventType is itMouseButton, this is the mouse button pressed or released.
-      Always mbLeft for touch device press/release events.
+      Always buttonLeft for touch device press/release events.
 
       CastleWindow notes (but relevant also to other interfaces, like Lazarus
       component, although in that case it's beyond our control):

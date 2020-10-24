@@ -212,7 +212,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) or
+  if Event.IsMouseButton(buttonLeft) or
      Event.IsKey(keySpace) or
      Event.IsKey(keyEnter) then
   begin
@@ -228,7 +228,7 @@ begin
   if Result then Exit;
 
   if FPressed and (
-     Event.IsMouseButton(mbLeft) or
+     Event.IsMouseButton(buttonLeft) or
      Event.IsKey(keySpace) or
      Event.IsKey(keyEnter)) then
   begin

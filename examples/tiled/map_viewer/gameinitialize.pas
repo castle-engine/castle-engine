@@ -108,7 +108,7 @@ end;
 procedure TEventsHandler.MapMotion(const Sender: TInputListener;
   const Event: TInputMotion; var Handled: Boolean);
 begin
-  if mbLeft in Event.Pressed then
+  if buttonLeft in Event.Pressed then
   begin
     TiledMap.Origin := TiledMap.Origin -
       (Event.Position - Event.OldPosition) / TiledMap.Scale;

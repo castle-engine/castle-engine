@@ -319,7 +319,7 @@ begin
     DoChange;
     Result := ExclusiveEvents;
   end else
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     Value := RoundAndClamp(MapRange(
       XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
@@ -333,7 +333,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if mbLeft in Event.Pressed then
+  if buttonLeft in Event.Pressed then
   begin
     Value := RoundAndClamp(MapRange(
       XCoordToSliderPosition(Event.Position[0], RenderRect), 0, 1, Min, Max));
@@ -466,7 +466,7 @@ begin
     DoChange;
     Result := ExclusiveEvents;
   end else
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;
@@ -489,7 +489,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if mbLeft in Event.Pressed then
+  if buttonLeft in Event.Pressed then
   begin
     Value := XCoordToValue(Event.Position[0], RenderRect);
     DoChange;

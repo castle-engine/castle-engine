@@ -195,7 +195,7 @@ begin
   if Event.IsKey(keyF6) then
     Viewport.Items.EnablePhysics := not Viewport.Items.EnablePhysics;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     RigidBody := TRigidBody.Create(BoxTemplate);
 

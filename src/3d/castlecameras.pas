@@ -1255,7 +1255,7 @@ type
       )
     }
     property MouseButtonRotate: TCastleMouseButton
-      read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
+      read FMouseButtonRotate write FMouseButtonRotate default buttonLeft;
     { Drag with this mouse button to move the model. }
     property MouseButtonMove: TCastleMouseButton
       read FMouseButtonMove write FMouseButtonMove default mbMiddle;
@@ -3088,7 +3088,7 @@ begin
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
-  FMouseButtonRotate := mbLeft;
+  FMouseButtonRotate := buttonLeft;
   FMouseButtonMove := mbMiddle;
   FMouseButtonZoom := mbRight;
 
@@ -3126,7 +3126,7 @@ begin
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(keySpace, keyNone, '', true, mbLeft);
+   Input_StopRotating.Assign(keySpace, keyNone, '', true, buttonLeft);
 end;
 
 destructor TCastleExamineNavigation.Destroy;
@@ -3713,15 +3713,15 @@ begin
 
   { Look at Container.MousePressed and ModsDown to determine
     which mouse button is "dragging" now. }
-  if (mbLeft in Container.MousePressed) and (ModsDown = []) then
-    DraggingMouseButton := mbLeft
+  if (buttonLeft in Container.MousePressed) and (ModsDown = []) then
+    DraggingMouseButton := buttonLeft
   else
   if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
     DraggingMouseButton := mbRight
   else
   if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
     DraggingMouseButton := mbMiddle
   else
     Exit;
@@ -4880,7 +4880,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     else
       MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if mbLeft in Container.MousePressed then
+    if buttonLeft in Container.MousePressed then
     begin
       if Delta[1] < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
@@ -5005,7 +5005,7 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
+       ((buttonLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging

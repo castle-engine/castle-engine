@@ -691,7 +691,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := true;
           Cursor := mcForceNone;
@@ -704,7 +704,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := false;
           Cursor := mcDefault;
@@ -937,7 +937,7 @@ type
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
         end;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           // do something in reaction on Enter
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default

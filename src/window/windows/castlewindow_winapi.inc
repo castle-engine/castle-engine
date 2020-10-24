@@ -748,7 +748,7 @@ begin
       begin
         { We could refresh FMousePressed now:
             FMousePressed := [];
-            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, mbLeft);
+            if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
             if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, mbMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, mbRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
@@ -758,10 +758,10 @@ begin
           MousePressed, 0));
         Exit;
       end;
-    WM_LBUTTONDOWN: begin HandleMouseDown(mbLeft  ); Exit end;
+    WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
     WM_MBUTTONDOWN: begin HandleMouseDown(mbMiddle); Exit end;
     WM_RBUTTONDOWN: begin HandleMouseDown(mbRight ); Exit end;
-    WM_LBUTTONUP  : begin HandleMouseUp(mbLeft  ); Exit end;
+    WM_LBUTTONUP  : begin HandleMouseUp(buttonLeft  ); Exit end;
     WM_MBUTTONUP  : begin HandleMouseUp(mbMiddle); Exit end;
     WM_RBUTTONUP  : begin HandleMouseUp(mbRight ); Exit end;
     WM_COMMAND    :

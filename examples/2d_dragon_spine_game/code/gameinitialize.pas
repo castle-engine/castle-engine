@@ -356,7 +356,7 @@ begin
   if Event.IsKey(keyEscape) then
     Application.Terminate;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     if Viewport.PositionToWorldPlane(Event.Position, true, 0, WorldPosition) then
     begin

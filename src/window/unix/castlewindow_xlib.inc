@@ -590,7 +590,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
   begin
     result := true;
     case button of
-      Button1 : mbtn := mbLeft;
+      Button1 : mbtn := buttonLeft;
       Button2 : mbtn := mbMiddle;
       Button3 : mbtn := mbRight;
       else Result := false;
@@ -623,7 +623,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
   begin
     { We could refresh MousePressed now. But no need for now?
     mousePressed:=[];
-    if (Button1Mask and event.state) <> 0 then Include(mousePressed, mbLeft);
+    if (Button1Mask and event.state) <> 0 then Include(mousePressed, buttonLeft);
     if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
     if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
     }

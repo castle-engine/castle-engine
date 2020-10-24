@@ -58,7 +58,7 @@ function TStateWin.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     TUIState.Current := StateMainMenu;
     Exit(ExclusiveEvents);

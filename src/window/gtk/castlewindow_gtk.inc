@@ -269,7 +269,7 @@ begin
   { No need to implement this using dirty typecasts, it's simple enough
     to do it type-safe. }
   case bn of
-    1: mb := mbLeft;
+    1: mb := buttonLeft;
     2: mb := mbMiddle;
     3: mb := mbRight;
     8: mb := mbExtra1;

@@ -188,7 +188,7 @@ type
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
-      const AMouseButton: TCastleMouseButton = mbLeft;
+      const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Set keys/mouse buttons of this shortcut.
@@ -199,7 +199,7 @@ type
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
-      const AMouseButton: TCastleMouseButton = mbLeft;
+      const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
@@ -507,7 +507,7 @@ begin
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
   FDefaultMouseButton2Use := false; // not set by parameters, just reset
-  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
+  FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
   FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
 end;
@@ -529,7 +529,7 @@ begin
   FMouseButtonUse := AMouseButtonUse;
   FMouseButton := AMouseButton;
   FDefaultMouseButton2Use := false; // not set by parameters, just reset
-  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
+  FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
   FMouseWheel := AMouseWheel;
   Changed;
 end;
@@ -568,9 +568,9 @@ begin
   FKey2 := keyNone;
   FKeyString := '';
   FMouseButtonUse := false;
-  FMouseButton := mbLeft;
+  FMouseButton := buttonLeft;
   FMouseButton2Use := false;
-  FMouseButton2 := mbLeft;
+  FMouseButton2 := buttonLeft;
   FMouseWheel := mwNone;
 
   if ClearAlsoDefaultState then
@@ -579,9 +579,9 @@ begin
     FDefaultKey2 := keyNone;
     FDefaultKeyString := '';
     FDefaultMouseButtonUse := false;
-    FDefaultMouseButton := mbLeft;
+    FDefaultMouseButton := buttonLeft;
     FDefaultMouseButton2Use := false;
-    FDefaultMouseButton2 := mbLeft;
+    FDefaultMouseButton2 := buttonLeft;
     FDefaultMouseWheel := mwNone;
   end;
 

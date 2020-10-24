@@ -123,8 +123,8 @@ begin
     In particular assign some keys that are not assigned by default. }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
-  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
+  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
   ThirdPersonNavigation.MouseLook := true; // by default use mouse look
   ThirdPersonNavigation.Init;
 end;

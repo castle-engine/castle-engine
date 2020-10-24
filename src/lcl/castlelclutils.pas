@@ -470,7 +470,7 @@ function MouseButtonLCLToCastle(
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.mbLeft;
+    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.buttonLeft;
     Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
     Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
     Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
