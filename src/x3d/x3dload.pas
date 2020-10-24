@@ -141,7 +141,7 @@ const
   'Videoscape (*.geo)|*.geo|' +
   'Spine animation (*.json)|*.json|' +
   'Standard Triangle Language (*.stl)|*.stl|' +
-  'Starling XML (*.starling-xml)|*.starling-xml' +
+  'Starling XML (*.starling-xml)|*.starling-xml|' +
   'Cocos2d Spritesheet (*.plist)|*.plist';
 
   Load3D_FileFilters = LoadScene_FileFilters
