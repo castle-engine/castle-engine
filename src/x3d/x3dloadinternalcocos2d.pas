@@ -60,13 +60,16 @@ type
         Y1: Single;
         X2: Single;
         Y2: Single;
-        { Width of trimmed sprite }
+        { Width of sprite. If sprite is trimmed this is trimmed width - not full frame width. }
         Width: Integer;
+        { Height of sprite. If sprite is trimmed this is trimmed height - not full frame height. }
         Height: Integer;
         AnchorX: Single;
         AnchorY: Single;
 
         constructor Create(DisplayURL: String);
+        { We support format version 2 and 3. This procedure sets suitable
+          ParseFrameDictionaryFormatX procedure. }
         procedure SetCocosFormat(Format: Integer);
 
         procedure ReadFormDict(const KeyNode, DictNode: TDOMElement;
