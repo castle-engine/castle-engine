@@ -270,7 +270,7 @@ begin
     to do it type-safe. }
   case bn of
     1: mb := buttonLeft;
-    2: mb := mbMiddle;
+    2: mb := buttonMiddle;
     3: mb := buttonRight;
     8: mb := mbExtra1;
     9: mb := mbExtra2;

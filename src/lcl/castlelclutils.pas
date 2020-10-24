@@ -86,7 +86,7 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   CastleKeysMouse.TCastleMouseButton.
 
   (By coincidence, my type name and values are the same as used by LCL;
-  but beware --- the order of values in my type is different (mbMiddle
+  but beware --- the order of values in my type is different (buttonMiddle
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
   const MouseButton: TMouseButton;
@@ -472,7 +472,7 @@ begin
   case MouseButton of
     Controls.mbLeft  : MyMouseButton := CastleKeysMouse.buttonLeft;
     Controls.mbRight : MyMouseButton := CastleKeysMouse.buttonRight;
-    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
+    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.buttonMiddle;
     Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
     Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;
     {$ifndef COMPILER_CASE_ANALYSIS}

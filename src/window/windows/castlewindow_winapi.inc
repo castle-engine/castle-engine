@@ -749,7 +749,7 @@ begin
         { We could refresh FMousePressed now:
             FMousePressed := [];
             if (MK_LBUTTON and wParm) <> 0 then Include(FMousePressed, buttonLeft);
-            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, mbMiddle);
+            if (MK_MBUTTON and wParm) <> 0 then Include(FMousePressed, buttonMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(FMousePressed, buttonRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
         DoMotion(InputMotion(MousePosition, LeftTopToCastle(
@@ -759,10 +759,10 @@ begin
         Exit;
       end;
     WM_LBUTTONDOWN: begin HandleMouseDown(buttonLeft  ); Exit end;
-    WM_MBUTTONDOWN: begin HandleMouseDown(mbMiddle); Exit end;
+    WM_MBUTTONDOWN: begin HandleMouseDown(buttonMiddle); Exit end;
     WM_RBUTTONDOWN: begin HandleMouseDown(buttonRight ); Exit end;
     WM_LBUTTONUP  : begin HandleMouseUp(buttonLeft  ); Exit end;
-    WM_MBUTTONUP  : begin HandleMouseUp(mbMiddle); Exit end;
+    WM_MBUTTONUP  : begin HandleMouseUp(buttonMiddle); Exit end;
     WM_RBUTTONUP  : begin HandleMouseUp(buttonRight ); Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }

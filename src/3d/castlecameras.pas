@@ -1258,7 +1258,7 @@ type
       read FMouseButtonRotate write FMouseButtonRotate default buttonLeft;
     { Drag with this mouse button to move the model. }
     property MouseButtonMove: TCastleMouseButton
-      read FMouseButtonMove write FMouseButtonMove default mbMiddle;
+      read FMouseButtonMove write FMouseButtonMove default buttonMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
     property MouseButtonZoom: TCastleMouseButton
       read FMouseButtonZoom write FMouseButtonZoom default buttonRight;
@@ -3089,7 +3089,7 @@ begin
   FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
   FMouseButtonRotate := buttonLeft;
-  FMouseButtonMove := mbMiddle;
+  FMouseButtonMove := buttonMiddle;
   FMouseButtonZoom := buttonRight;
 
   for I := 0 to 2 do
@@ -3720,9 +3720,9 @@ begin
      ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
     DraggingMouseButton := buttonRight
   else
-  if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
+  if ((buttonMiddle in Container.MousePressed) and (ModsDown = [])) or
      ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
-    DraggingMouseButton := mbMiddle
+    DraggingMouseButton := buttonMiddle
   else
     Exit;
 
