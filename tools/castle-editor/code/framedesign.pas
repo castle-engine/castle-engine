@@ -2165,12 +2165,20 @@ var
   UndoComment: String;
   Sel: TComponent;
 begin
-  Sel := TComponent(Node.Data);
-  UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
-  Sel.Name := Node.Text;
-  ModifiedOutsideObjectInspector;
-  RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
-  Node.Text := ComponentCaption(Sel);
+  try
+    Sel := TComponent(Node.Data);
+    UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    Sel.Name := Node.Text;
+    ModifiedOutsideObjectInspector;
+    RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+  finally
+    { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
+      - If the name was correct, then "Sel.Name := " goes without exception, 
+        and we want to show new name + class name.
+      - If the name was not correct, then "Sel.Name := " raises exception, 
+        and we want to show old name + class name. }
+    Node.Text := ComponentCaption(Sel);
+  end;
 end;
 
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
