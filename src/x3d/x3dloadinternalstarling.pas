@@ -40,7 +40,7 @@ type
       { Class that represents SubTexture from Starling xml file }
       TStarlingSubTexture = class
       private
-        procedure PrepareCordsForX3D(ImageWidth, ImageHeight: Integer);
+        procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
       public
         AnimationName: String;
         X1: Single;
@@ -364,6 +364,7 @@ end;
 function TStarlingTextureAtlasLoader.Load: TX3DRootNode;
 var
   Doc: TXMLDocument;
+  Node: TDOMNode;
   AtlasNode: TDOMElement;
   I: TXMLElementIterator;
   LastAnimationName: String;
@@ -381,9 +382,11 @@ begin
     try
       FRoot := TX3DRootNode.Create;
       Doc := URLReadXML(FURL);
-      AtlasNode := Doc.FindNode('TextureAtlas') as TDOMElement;
-      if AtlasNode = nil then
+      Node := Doc.FindNode('TextureAtlas');
+      if (Node = nil) or (Node.NodeType <> ELEMENT_NODE) then
         raise EInvalidStarlingXml.CreateFmt('Invalid Starling XML file "%s" - TextureAtlas node not found.', [FDisplayURL]);
+      AtlasNode := Node as TDOMElement;
+
       ReadImageProperties(FURL, AtlasNode);
 
       CurrentAnimFrameCount := 0;
@@ -460,7 +463,7 @@ end;
 
 { TStarlingSubTexture }
 
-procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareCordsForX3D(
+procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareTexCordsForX3D(
     ImageWidth, ImageHeight: Integer);
 begin
   { The input data (X1, Y1) are the coordinates in the texture.
@@ -477,10 +480,10 @@ procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ReadFormXMLNode(
     const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
 var
   UnderscorePos: SizeInt;
-  FrameXTrim: Integer;
-  FrameYTrim: Integer;
-  FrameWidth: Integer;
-  FrameHeight: Integer;
+  FrameXTrimOffset: Integer;
+  FrameYTrimOffset: Integer;
+  FullFrameWidth: Integer;
+  FullFrameHeight: Integer;
   Trimmed: Boolean;
   FrameAnchorX: Integer;
   FrameAnchorY: Integer;
@@ -511,24 +514,30 @@ begin
   Trimmed := SubTextureNode.HasAttribute('frameX');
   if Trimmed then
   begin
-    FrameXTrim := -SubTextureNode.AttributeIntegerDef('frameX', 0);
-    FrameYTrim := -SubTextureNode.AttributeIntegerDef('frameY', 0);
-    FrameWidth := SubTextureNode.AttributeIntegerDef('frameWidth', Width);
-    FrameHeight := SubTextureNode.AttributeIntegerDef('frameHeight', Height);
+    { When frame is trimmed Width and Height does not mean the full size
+      of the frame, so we have to calculate the appropriate
+      anchor to get the correct position because it will not be (0.5, 0.5) }
 
-    // calculate anchor
-    FrameAnchorX := FrameWidth div 2;
-    FrameAnchorY := FrameHeight div 2;
+    FrameXTrimOffset := SubTextureNode.AttributeIntegerDef('frameX', 0);
+    FrameYTrimOffset := SubTextureNode.AttributeIntegerDef('frameY', 0);
+    FullFrameWidth := SubTextureNode.AttributeIntegerDef('frameWidth', Width);
+    FullFrameHeight := SubTextureNode.AttributeIntegerDef('frameHeight', Height);
 
-    AnchorX := 1 / Width * (FrameAnchorX - FrameXTrim);
-    AnchorY := 1 / Height * (FrameAnchorY - FrameYTrim);
+    { Anchor in pixels (Without translation to correct texture point
+      because we don't need that. Just add X1, Y1 to have correct position.) }
+    FrameAnchorX := FullFrameWidth div 2 + FrameXTrimOffset;
+    FrameAnchorY := FullFrameHeight div 2 + FrameYTrimOffset;
+
+    { Convert to 0.0..1.0 coordinate system }
+    AnchorX := 1 / Width * FrameAnchorX;
+    AnchorY := 1 / Height * FrameAnchorY;
   end else
   begin
     AnchorX := 0.5;
     AnchorY := 0.5;
   end;
 
-  PrepareCordsForX3D(ImageWidth, ImageHeight);
+  PrepareTexCordsForX3D(ImageWidth, ImageHeight);
 end;
 
 
