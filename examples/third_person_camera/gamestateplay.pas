@@ -186,7 +186,7 @@ begin
     not handled in children controls.
   }
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
 
