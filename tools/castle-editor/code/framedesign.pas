@@ -1822,6 +1822,12 @@ var
   Sel: TComponent;
   UI: TCastleUserInterface;
 begin
+  if ControlsTree.Selected = nil then
+  begin
+    UpdateDesign;
+    //failing to record Undo here
+    Exit;
+  end;
   // This knows we have selected *at least one* component.
   // When you modify component Name in PropertyGrid, update it in the ControlsTree.
   Assert(ControlsTree.Selected <> nil);
