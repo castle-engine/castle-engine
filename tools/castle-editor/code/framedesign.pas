@@ -1822,10 +1822,13 @@ var
   Sel: TComponent;
   UI: TCastleUserInterface;
 begin
+  { Workaround possible ControlsTree.Selected = nil when the user deselects
+    the currently edited component by clicking somewhere else }
   if ControlsTree.Selected = nil then
   begin
-    UpdateDesign;
-    //failing to record Undo here
+    UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
+    //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
+    RecordUndo('Modify property'); // We're recording a generic Undo message
     Exit;
   end;
   // This knows we have selected *at least one* component.
