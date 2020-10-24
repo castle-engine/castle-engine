@@ -33,7 +33,7 @@ var
   ScaleAfterLoading: Single = 1.0;
 
   { user interface }
-  ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpenDialog: TCastleButton;
+  ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpen2DCocos2d, ButtonOpen2DImage, ButtonOpenDialog: TCastleButton;
   AnimationsPanel, LoadOptionsPanel: TCastleRectangleControl;
   CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest: TCastleCheckbox;
   SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
@@ -52,6 +52,8 @@ type
     class procedure ButtonOpen3DClick(Sender: TObject);
     class procedure ButtonOpen2DSpineClick(Sender: TObject);
     class procedure ButtonOpen2DStarlingClick(Sender: TObject);
+    class procedure ButtonOpen2DCocos2dClick(Sender: TObject);
+    class procedure ButtonOpen2DImageClick(Sender: TObject);
     class procedure ButtonOpenDialogClick(Sender: TObject);
     class procedure ButtonPlayAnimationClick(Sender: TObject);
     class procedure ScaleChanged(Sender: TObject);
@@ -215,6 +217,24 @@ begin
 
   Open('castle-data:/starling/character_zombie_atlas.starling-xml' + CurrentUIStarlingSettingsToAnchor);
 
+end;
+
+class procedure TEventsHandler.ButtonOpen2DCocos2dClick(Sender: TObject);
+begin
+  Open('../../../tools/sprite-sheet-to-x3d/samples/wolf.plist');
+end;
+
+class procedure TEventsHandler.ButtonOpen2DImageClick(Sender: TObject);
+begin
+  { You can open normal images in TCastleScene, optionaly you can set rect
+    from image in anchor (left, bottom, width, height). }
+
+  { Full image }
+  //Open('castle-data:/starling/character_zombie_atlas.png');
+  //Open('castle-data:/starling/character_zombie_atlas.png#left:0,bottom:0,width:1024,height:2048');
+
+  { Just first pose from our character_zombie_atlas.png }
+  Open('castle-data:/starling/character_zombie_atlas.png#left:0,bottom:1756,width:182,height:259');
 end;
 
 class procedure TEventsHandler.ButtonOpenDialogClick(Sender: TObject);
@@ -422,7 +442,7 @@ begin
   Y := Y - (ButtonOpen3D.EffectiveHeight + Margin);
 
   ButtonOpen2DSpine := TCastleButton.Create(Application);
-  ButtonOpen2DSpine.Caption := 'Load sample 2D model';
+  ButtonOpen2DSpine.Caption := 'Load sample 2D Spine';
   ButtonOpen2DSpine.OnClick := @TEventsHandler(nil).ButtonOpen2DSpineClick;
   ButtonOpen2DSpine.Anchor(hpLeft, Margin);
   ButtonOpen2DSpine.Anchor(vpTop, Y);
@@ -436,6 +456,22 @@ begin
   ButtonOpen2DStarling.Anchor(vpTop, Y);
   Window.Controls.InsertFront(ButtonOpen2DStarling);
   Y := Y - (ButtonOpen2DStarling.EffectiveHeight + Margin);
+
+  ButtonOpen2DCocos2d := TCastleButton.Create(Application);
+  ButtonOpen2DCocos2d.Caption := 'Load sample 2D Cocos2d';
+  ButtonOpen2DCocos2d.OnClick := @TEventsHandler(nil).ButtonOpen2DCocos2dClick;
+  ButtonOpen2DCocos2d.Anchor(hpLeft, Margin);
+  ButtonOpen2DCocos2d.Anchor(vpTop, Y);
+  Window.Controls.InsertFront(ButtonOpen2DCocos2d);
+  Y := Y - (ButtonOpen2DCocos2d.EffectiveHeight + Margin);
+
+  ButtonOpen2DImage := TCastleButton.Create(Application);
+  ButtonOpen2DImage.Caption := 'Load sample 2D Image';
+  ButtonOpen2DImage.OnClick := @TEventsHandler(nil).ButtonOpen2DImageClick;
+  ButtonOpen2DImage.Anchor(hpLeft, Margin);
+  ButtonOpen2DImage.Anchor(vpTop, Y);
+  Window.Controls.InsertFront(ButtonOpen2DImage);
+  Y := Y - (ButtonOpen2DImage.EffectiveHeight + Margin);
 
   ButtonOpenDialog := TCastleButton.Create(Application);
   ButtonOpenDialog.Caption := 'Open any model on disk';
