@@ -376,6 +376,9 @@ type
 
   TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
   TCastleMouseButtons = set of TCastleMouseButton;
+  
+  TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
+  TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
 
 const
   mbLeft   = buttonLeft deprecated 'Use buttonLeft';
