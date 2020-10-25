@@ -13,7 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various XML and DOM utilities. }
+{ XML utilities.
+
+  This unit provides a lot of comfortable routines and helpers to manipulate
+  XML files. It builds on top of FPC DOM unit, and you can still use
+  the full power of FPC DOM unit, however we provide helpers to do a lot
+  of things easier.
+
+  The engine example application that manipulates XML files is inside
+  examples/short_api_samples/xml_utils/ . This is the code that loads and saves XML:
+
+  @includeCode(../../examples/short_api_samples/xml_utils/mybookmarks.pas)
+}
 unit CastleXMLUtils;
 
 interface
