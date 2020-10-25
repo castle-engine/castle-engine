@@ -664,13 +664,13 @@ begin
           aeOpen: OpenContext;
           aeMotionDown:
             if not MainWindow.Closed then
-              MainWindow.DoMouseDown(QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
+              MainWindow.DoMouseDown(QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, mbLeft, QEvent.FingerIndex, false);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex, false);
           aeMotionMove:
             if not MainWindow.Closed then
-              MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [mbLeft], QEvent.FingerIndex));
+              MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [buttonLeft], QEvent.FingerIndex));
         end;
       end;
 

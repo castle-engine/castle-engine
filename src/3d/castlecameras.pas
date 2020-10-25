@@ -1154,7 +1154,7 @@ type
       FInput_Home: TInputShortcut;
       FInput_StopRotating: TInputShortcut;
 
-      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TMouseButton;
+      FMouseButtonRotate, FMouseButtonMove, FMouseButtonZoom: TCastleMouseButton;
 
     procedure SetRotationsAnim(const Value: TVector3);
     function GetRotations: TQuaternion;
@@ -1254,14 +1254,14 @@ type
           pressing middle mouse button.)
       )
     }
-    property MouseButtonRotate: TMouseButton
-      read FMouseButtonRotate write FMouseButtonRotate default mbLeft;
+    property MouseButtonRotate: TCastleMouseButton
+      read FMouseButtonRotate write FMouseButtonRotate default buttonLeft;
     { Drag with this mouse button to move the model. }
-    property MouseButtonMove: TMouseButton
-      read FMouseButtonMove write FMouseButtonMove default mbMiddle;
+    property MouseButtonMove: TCastleMouseButton
+      read FMouseButtonMove write FMouseButtonMove default buttonMiddle;
     { Drag with this mouse button to zoom the model (look closer / further). }
-    property MouseButtonZoom: TMouseButton
-      read FMouseButtonZoom write FMouseButtonZoom default mbRight;
+    property MouseButtonZoom: TCastleMouseButton
+      read FMouseButtonZoom write FMouseButtonZoom default buttonRight;
 
     { Current rotation of the model.
       Rotation is done around ModelBox middle (with @link(Translation) added). }
@@ -3088,9 +3088,9 @@ begin
   FPinchGestureRecognizer := TCastlePinchPanGestureRecognizer.Create;
   FPinchGestureRecognizer.OnGestureChanged := @OnGestureRecognized;
 
-  FMouseButtonRotate := mbLeft;
-  FMouseButtonMove := mbMiddle;
-  FMouseButtonZoom := mbRight;
+  FMouseButtonRotate := buttonLeft;
+  FMouseButtonMove := buttonMiddle;
+  FMouseButtonZoom := buttonRight;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -3126,7 +3126,7 @@ begin
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
    Input_StopRotating.SetSubComponent(true);
-   Input_StopRotating.Assign(keySpace, keyNone, '', true, mbLeft);
+   Input_StopRotating.Assign(keySpace, keyNone, '', true, buttonLeft);
 end;
 
 destructor TCastleExamineNavigation.Destroy;
@@ -3686,7 +3686,7 @@ var
   end;
 
 var
-  DraggingMouseButton: TMouseButton;
+  DraggingMouseButton: TCastleMouseButton;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3713,16 +3713,16 @@ begin
 
   { Look at Container.MousePressed and ModsDown to determine
     which mouse button is "dragging" now. }
-  if (mbLeft in Container.MousePressed) and (ModsDown = []) then
-    DraggingMouseButton := mbLeft
+  if (buttonLeft in Container.MousePressed) and (ModsDown = []) then
+    DraggingMouseButton := buttonLeft
   else
-  if ((mbRight in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
-    DraggingMouseButton := mbRight
+  if ((buttonRight in Container.MousePressed) and (ModsDown = [])) or
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkCtrl])) then
+    DraggingMouseButton := buttonRight
   else
-  if ((mbMiddle in Container.MousePressed) and (ModsDown = [])) or
-     ((mbLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
-    DraggingMouseButton := mbMiddle
+  if ((buttonMiddle in Container.MousePressed) and (ModsDown = [])) or
+     ((buttonLeft in Container.MousePressed) and (ModsDown = [mkShift])) then
+    DraggingMouseButton := buttonMiddle
   else
     Exit;
 
@@ -4880,7 +4880,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     else
       MoveSizeY := (Abs(Delta[1]) - Tolerance) * MouseDraggingMoveSpeed;
 
-    if mbLeft in Container.MousePressed then
+    if buttonLeft in Container.MousePressed then
     begin
       if Delta[1] < -Tolerance then
         MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
@@ -4890,7 +4890,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       if Abs(Delta[0]) > Tolerance then
         RotateHorizontal(-Delta[0] * SecondsPassed * MouseDraggingHorizontalRotationSpeed); { rotate }
     end
-    else if mbRight in Container.MousePressed then
+    else if buttonRight in Container.MousePressed then
     begin
       if Delta[0] < -Tolerance then
       begin
@@ -5005,7 +5005,7 @@ begin
     { mouse dragging navigation }
     if (MouseDraggingStarted <> -1) and
        ReallyEnableMouseDragging and
-       ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
+       ((buttonLeft in Container.MousePressed) or (buttonRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers (except Input_Run,
          which must be allowed to enable running) are pressed.
          This allows application to handle e.g. ctrl + dragging

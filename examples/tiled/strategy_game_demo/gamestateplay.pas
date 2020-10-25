@@ -213,7 +213,7 @@ procedure TStatePlay.MapPress(const Sender: TInputListener;
 var
   UnitUnderMouse: TUnit;
 begin
-  if Event.IsMouseButton(mbLeft) and TileUnderMouseExists then
+  if Event.IsMouseButton(buttonLeft) and TileUnderMouseExists then
   begin
     Handled := true;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];

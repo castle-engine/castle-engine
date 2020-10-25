@@ -60,7 +60,7 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   TopMostScene: TCastleTransform;
 begin
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     TopMostScene := Viewport.TransformUnderMouse;
     if TopMostScene <> nil then

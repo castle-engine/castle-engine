@@ -262,18 +262,18 @@ begin
 end;
 
 { Converts GDK mouse button number (from GdkEventButton.button)
-  to TMouseButton. Returns false (and does not change mb) if such
-  button number cannot be represented as TMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; out mb: TMouseButton): boolean;
+  to TCastleMouseButton. Returns false (and does not change mb) if such
+  button number cannot be represented as TCastleMouseButton. }
+function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): boolean;
 begin
   { No need to implement this using dirty typecasts, it's simple enough
     to do it type-safe. }
   case bn of
-    1: mb := mbLeft;
-    2: mb := mbMiddle;
-    3: mb := mbRight;
-    8: mb := mbExtra1;
-    9: mb := mbExtra2;
+    1: mb := buttonLeft;
+    2: mb := buttonMiddle;
+    3: mb := buttonRight;
+    8: mb := buttonExtra1;
+    9: mb := buttonExtra2;
     else Exit(false);
   end;
   Result := true;
@@ -512,7 +512,7 @@ SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
   Result := (Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb);
@@ -522,7 +522,7 @@ SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
   Result := (Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb);

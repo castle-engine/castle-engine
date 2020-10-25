@@ -708,7 +708,7 @@ end;
 procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
@@ -717,7 +717,7 @@ end;
 procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseUp(LeftTopToCastle(X, Y), MyButton, 0);

@@ -362,12 +362,12 @@ var
   Pos: TVector2;
 begin
   Pos := Event.Position / SceneZoom;
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     SelectClosestPoint(Pos);
     StartDragging;
   end else
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
     AddNewPoint(Pos) else
   if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
     ChangeZoom(ZoomFactor) else
@@ -380,7 +380,7 @@ end;
 
 procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     Dragging := false;
     Window.Invalidate;

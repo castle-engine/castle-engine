@@ -586,20 +586,20 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     DoResize(xEvent.width, xEvent.height, false);
   end;
 
-  function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): boolean;
   begin
     result := true;
     case button of
-      Button1 : mbtn := mbLeft;
-      Button2 : mbtn := mbMiddle;
-      Button3 : mbtn := mbRight;
+      Button1 : mbtn := buttonLeft;
+      Button2 : mbtn := buttonMiddle;
+      Button3 : mbtn := buttonRight;
       else Result := false;
     end;
   end;
 
   procedure X_ButtonPress(const xEvent: TXButtonPressedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseDown(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0) else
@@ -613,7 +613,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_ButtonRelease(const xEvent: TXButtonReleasedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseUp(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0)
@@ -623,9 +623,9 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
   begin
     { We could refresh MousePressed now. But no need for now?
     mousePressed:=[];
-    if (Button1Mask and event.state) <> 0 then Include(mousePressed, mbLeft);
-    if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
-    if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
+    if (Button1Mask and event.state) <> 0 then Include(mousePressed, buttonLeft);
+    if (Button2Mask and event.state) <> 0 then Include(mousePressed, buttonMiddle);
+    if (Button3Mask and event.state) <> 0 then Include(mousePressed, buttonRight);
     }
     DoMotion(InputMotion(MousePosition,
       LeftTopToCastle(xEvent.x, xEvent.y),

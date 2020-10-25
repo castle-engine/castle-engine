@@ -374,9 +374,20 @@ type
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
 
-  TMouseButton = (mbLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
-  TMouseButtons = set of TMouseButton;
+  TCastleMouseButton = (buttonLeft, buttonMiddle, buttonRight, buttonExtra1, buttonExtra2);
+  TCastleMouseButtons = set of TCastleMouseButton;
+  
+  TMouseButton = TCastleMouseButton deprecated 'use TCastleMouseButton';
+  TMouseButtons = TCastleMouseButtons deprecated 'use TCastleMouseButtons';
 
+const
+  mbLeft   = buttonLeft deprecated 'Use buttonLeft';
+  mbMiddle = buttonMiddle deprecated 'Use buttonMiddle';
+  mbRight = buttonRight deprecated 'Use buttonRight';
+  mbExtra1 = buttonExtra1 deprecated 'Use buttonExtra1';
+  mbExtra2 = buttonExtra2 deprecated 'Use buttonExtra2';
+
+type
   { Look of the mouse cursor.
     Used for various properties:
     TCastleUserInterface.Cursor, TCastleTransform.Cursor, TCastleWindowBase.Cursor.
@@ -425,7 +436,7 @@ type
     mcResizeBottomRight
   );
 const
-  MouseButtonStr: array [TMouseButton] of string = (
+  MouseButtonStr: array [TCastleMouseButton] of string = (
     'left', 'middle', 'right', 'extra1', 'extra2');
 
 type
@@ -657,7 +668,7 @@ type
     KeyRepeated: boolean;
 
     { When EventType is itMouseButton, this is the mouse button pressed or released.
-      Always mbLeft for touch device press/release events.
+      Always buttonLeft for touch device press/release events.
 
       CastleWindow notes (but relevant also to other interfaces, like Lazarus
       component, although in that case it's beyond our control):
@@ -667,7 +678,7 @@ type
       outside of this control), until user releases all mouse buttons.
       Note that this means that mouse positions may be outside
       of [0..Width - 1, 0..Height - 1] range. }
-    MouseButton: TMouseButton;
+    MouseButton: TCastleMouseButton;
 
     { When EventType is itMouseButton, this is the finger index pressed or
       released on a touch device. Always 0 for normal mouse events. }
@@ -716,7 +727,7 @@ type
     function IsKey(const AKey: TKey): boolean; overload;
     function IsKey(AKeyString: String): boolean; overload;
     { @groupEnd }
-    function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
     { Textual description of this event. }
@@ -733,7 +744,7 @@ type
   { Motion (movement) of mouse or a finger on a touch device. }
   TInputMotion = object
     OldPosition, Position: TVector2;
-    Pressed: TMouseButtons;
+    Pressed: TCastleMouseButtons;
     FingerIndex: TFingerIndex;
   end;
 
@@ -743,7 +754,7 @@ function InputKey(const Position: TVector2; const Key: TKey;
   const KeyString: string;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
   const Scroll: Single; const Vertical: boolean;
@@ -752,7 +763,7 @@ function InputMouseWheel(const Position: TVector2;
 
 { Construct TInputMotion. }
 function InputMotion(const OldPosition, Position: TVector2;
-  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+  const Pressed: TCastleMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 
 type
   TCastleConfigKeysMouseHelper = class helper for TCastleConfig
@@ -1270,7 +1281,7 @@ begin
   Result := (AKeystring <> '') and (EventType = itKey) and (KeyString = AKeystring);
 end;
 
-function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
+function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
@@ -1329,7 +1340,7 @@ begin
 end;
 
 function InputMouseButton(const Position: TVector2;
-  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex;
+  const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1353,7 +1364,7 @@ begin
 end;
 
 function InputMotion(const OldPosition, Position: TVector2;
-  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+  const Pressed: TCastleMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.OldPosition := OldPosition;

@@ -83,14 +83,14 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
 { @groupEnd }
 
 { Convert Lazarus Controls.TMouseButton value to Castle Game Engine
-  CastleKeysMouse.TMouseButton.
+  CastleKeysMouse.TCastleMouseButton.
 
   (By coincidence, my type name and values are the same as used by LCL;
-  but beware --- the order of values in my type is different (mbMiddle
+  but beware --- the order of values in my type is different (buttonMiddle
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): boolean;
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
@@ -466,15 +466,15 @@ end;
 
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.mbLeft;
-    Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
-    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
-    Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
-    Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;
+    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.buttonLeft;
+    Controls.mbRight : MyMouseButton := CastleKeysMouse.buttonRight;
+    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.buttonMiddle;
+    Controls.mbExtra1: MyMouseButton := CastleKeysMouse.buttonExtra1;
+    Controls.mbExtra2: MyMouseButton := CastleKeysMouse.buttonExtra2;
     {$ifndef COMPILER_CASE_ANALYSIS}
     else Result := false;
     {$endif}

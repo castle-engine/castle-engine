@@ -3657,7 +3657,7 @@ var
   R: TRegisteredComponent;
 initialization
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
-  Input_Interact.Assign(keyNone, keyNone, '', true, mbLeft);
+  Input_Interact.Assign(keyNone, keyNone, '', true, buttonLeft);
 
   R := TRegisteredComponent.Create;
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working

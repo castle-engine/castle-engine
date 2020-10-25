@@ -285,7 +285,7 @@ type
     FCalculatedUIScale: Single; //< set on all children
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
-    FMousePressed: CastleKeysMouse.TMouseButtons;
+    FMousePressed: TCastleMouseButtons;
     FMouseLookIgnoreNextMotion: Boolean;
     FMouseLookWaitingForMiddle: Boolean;
     FMouseLookMotionToSubtract: TVector2;
@@ -510,7 +510,7 @@ type
 
       This value is always current, in particular it's already updated
       before we call events @link(OnPress) or @link(OnRelease). }
-    property MousePressed: TMouseButtons read FMousePressed write FMousePressed;
+    property MousePressed: TCastleMouseButtons read FMousePressed write FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -691,7 +691,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := true;
           Cursor := mcForceNone;
@@ -704,7 +704,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := false;
           Cursor := mcDefault;
@@ -937,7 +937,7 @@ type
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
         end;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           // do something in reaction on Enter
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default

@@ -100,7 +100,7 @@ type
           on a touch device.)
 
         @item(The only "mouse button" you will ever see pressed
-          on a touch device is mbLeft.)
+          on a touch device is buttonLeft.)
 
         @item(On the other hand, touch devices support multitouch, exposed by
           @link(TUIContainer.Touches) and @link(TUIContainer.TouchesCount).

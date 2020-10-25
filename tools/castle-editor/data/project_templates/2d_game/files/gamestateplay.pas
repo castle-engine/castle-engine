@@ -125,7 +125,7 @@ begin
     not handled in children controls.
   }
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     DragonFlyingTarget := MainViewport.PositionTo2DWorld(Event.Position, true);
     if not DragonFlying then
