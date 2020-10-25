@@ -23,7 +23,7 @@ interface
 uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
-  CastleResources, CastleGLImages,
+  CastleResources, CastleGLImages, CastleTimeUtils,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
   CastleTransformExtra, CastleTransform, CastleColors, CastleDebugTransform;
 
@@ -168,21 +168,25 @@ type
     FEquippingSound: TSoundType;
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
+    FReloadAnimation: T3DResourceAnimation;
     FAttackTime: Single;
+    FReloadTime: Single;
     FAttackSoundStart: TSoundType;
-    FAttackAmmo: string;
+    FAttackAmmo: String;
+    FAttackAmmoCapacity: Cardinal;
     FAttackSoundHit: TSoundType;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
-    FAttackShoot: boolean;
-    FFireMissileName: string;
+    FAttackShoot: Boolean;
+    FFireMissileName: String;
     FFireMissileSound: TSoundType;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
     const
       DefaultAttackTime = 0.0;
+      DefaultReloadTime = 0.0;
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
@@ -198,16 +202,23 @@ type
     { Animation of attack with this weapon. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
-    { Animation of keeping weapon ready. }
+    { Animation of keeping weapon ready (idle). }
     property ReadyAnimation: T3DResourceAnimation read FReadyAnimation;
+
+    { Animation of reloading weapon, used only if @link(AttackAmmoCapacity) non-zero. }
+    property ReloadAnimation: T3DResourceAnimation read FReloadAnimation;
 
     { Common properties for all types of attack (short-range/shoot,
       fire missile) below. }
 
-    { A time within AttackAnimationat at which TItemWeapon.Attack
+    { A time within AttackAnimation at at which TItemWeapon.Attack
       method will be called, which actually hits the enemy. }
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
+
+    { A time within ReloadAnimation at at which TItemWeapon.AmmoLoaded is actually refilled. }
+    property ReloadTime: Single read FReloadTime write FReloadTime
+      default DefaultReloadTime;
 
     { Sound when attack starts. This is played when attack animation starts,
       and it means that we already checked that you have necessary ammunition
@@ -235,6 +246,9 @@ type
       fly and can be avoided by fast moving enemies).
       And set AttackAmmo to something like 'Quiver'. }
     property AttackAmmo: string read FAttackAmmo write FAttackAmmo;
+
+    { If non-zero, it indicates that weapon has to be reloaded after making so many shots. }
+    property AttackAmmoCapacity: Cardinal read FAttackAmmoCapacity write FAttackAmmoCapacity;
 
     { Immediate attack (short-range/shoot) damage and knockback.
       This type of attack (along with AttackSoundHit) is only
@@ -385,12 +399,18 @@ type
 
   TItemWeapon = class(TInventoryItem)
   private
-    { Weapon AttackAnimation is in progress.}
-    Attacking: boolean;
-    { If Attacking, then this is time of attack start, from LifeTime. }
-    AttackStartTime: Single;
-    { If Attacking, then this says whether Attack was already called. }
-    AttackDone: boolean;
+    type
+      TWeaponState = (wsReady, wsAttack, wsReload);
+    var
+      FState: TWeaponState;
+      { Last State change time, assigned from LifeTime. }
+      FStateChangeTime: Single;
+      { If State = wsAttack, then this says whether Attack was already called. }
+      AttackDone: boolean;
+      { If State = wsReload, then this says whether AmmoLoaded was already updated. }
+      ReloadDone: boolean;
+      FAmmoLoaded: Cardinal;
+      LifeTime: TFloatTime;
   protected
     { Make real attack, immediate (short-range/shoot) or firing missile.
       Called during weapon TItemWeaponResource.AttackAnimation,
@@ -400,6 +420,8 @@ type
       non-zero) and fires a missile (if FireMissileName not empty). }
     procedure Attack(const Level: TAbstractLevel); virtual;
     procedure Use; override;
+    { Make actual reload that refills AmmoLoaded. }
+    procedure ReloadNow; virtual;
   public
     function Resource: TItemWeaponResource;
 
@@ -407,11 +429,19 @@ type
     procedure Equip; virtual;
 
     { Owner starts attack with this equipped weapon. }
-    procedure EquippedAttack(const Level: TAbstractLevel; const LifeTime: Single); virtual;
+    procedure EquippedAttack(const Level: TAbstractLevel); virtual;
 
     { Time passses for equipped weapon. }
-    procedure EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single;
+    procedure EquippedUpdate(const Level: TAbstractLevel; const SecondsPassed: Single;
       const ResourceFrame: TResourceFrame); virtual;
+
+    { Currently loaded capacity in the magazine. }
+    property AmmoLoaded: Cardinal read FAmmoLoaded write FAmmoLoaded;
+
+    { Initiate reload of the equipped weapon (run "reload" animation, refill AmmoLoaded).
+      If IgnorePreviousState then it works unconditionally,
+      otherwise it works only when the current state is not in the middle of shooting/reloading. }
+    procedure EquippedReload(const IgnorePreviousState: Boolean);
   end;
 
   { List of items, with a 3D object (like a player or creature) owning
@@ -478,7 +508,7 @@ type
     var
       FItem: TInventoryItem;
       FResourceFrame: TResourceFrame;
-      ItemRotation, LifeTime: Single;
+      ItemRotation, LifeTime: TFloatTime;
       FDebugTransform: TItemDebugTransform;
       Level: TAbstractLevel;
     function BoundingBoxRotated: TBox3D;
@@ -697,7 +727,9 @@ begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
   FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
+  FReloadAnimation := T3DResourceAnimation.Create(Self, 'reload');
   FAttackTime := DefaultAttackTime;
+  FReloadTime := DefaultReloadTime;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
@@ -712,9 +744,11 @@ begin
     ResourceConfig.GetValue('equipping_sound', ''));
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
+  ReloadTime := ResourceConfig.GetFloat('attack/time', DefaultReloadTime);
   AttackSoundStart := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_start', ''));
   AttackAmmo := ResourceConfig.GetValue('attack/ammo', '');
+  AttackAmmoCapacity := ResourceConfig.GetValue('attack/ammo_capacity', 0);
   AttackSoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
@@ -770,6 +804,7 @@ begin
   Result.Level := ALevel;
   Result.FItem := Self;
   FOwner3D := Result;
+  Result.Orientation := Resource.Orientation; // must be set before SetView
   Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
@@ -878,7 +913,8 @@ begin
        (AttackKD >= 0) then
     begin
       if Resource.AttackShoot then
-        ShootAttack else
+        ShootAttack
+      else
         ShortRangeAttack;
     end;
 
@@ -902,12 +938,13 @@ end;
 procedure TItemWeapon.Equip;
 begin
   SoundEngine.Sound(Resource.EquippingSound);
-
-  { Just in case we had Attacking=true from previous weapon usage, clear it }
-  Attacking := false;
+  { Just in case we had different State from previous weapon usage, clear it }
+  FState := wsReady;
+  FStateChangeTime := LifeTime;
+  ReloadNow;
 end;
 
-procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel; const LifeTime: Single);
+procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
 
   { Check do you have ammunition to perform attack, and decrease it if yes. }
   function CheckAmmo: boolean;
@@ -946,11 +983,11 @@ procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel; const LifeTime
   end;
 
 begin
-  if (not Attacking) and CheckAmmo then
+  if (FState = wsReady) and CheckAmmo then
   begin
     SoundEngine.Sound(Resource.AttackSoundStart);
-    AttackStartTime := LifeTime;
-    Attacking := true;
+    FState := wsAttack;
+    FStateChangeTime := LifeTime;
     AttackDone := false;
 
     { if AttackTime = 0, attack immediately, otherwise this could get aborted
@@ -960,35 +997,118 @@ begin
       AttackDone := true;
       Attack(Level);
     end;
+
+    if AmmoLoaded > 0 then
+      Dec(FAmmoLoaded);
   end;
 end;
 
-procedure TItemWeapon.EquippedUpdate(const Level: TAbstractLevel; const LifeTime: Single;
-  const ResourceFrame: TResourceFrame);
-var
-  AttackAnim: T3DResourceAnimation;
-  AttackTime: Single;
+procedure TItemWeapon.EquippedReload(const IgnorePreviousState: Boolean);
 begin
-  if Attacking and (not AttackDone) and
-    (LifeTime - AttackStartTime >= Resource.AttackTime) then
+  if IgnorePreviousState or (FState = wsReady) then
   begin
-    AttackDone := true;
-    Attack(Level);
+    FStateChangeTime := LifeTime;
+    FState := wsReload;
+    ReloadDone := false;
+
+    { if ReloadTime = 0, reload immediately. }
+    if Resource.ReloadTime = 0 then
+    begin
+      ReloadDone := true;
+      ReloadNow;
+    end;
+  end;
+end;
+
+procedure TItemWeapon.ReloadNow;
+
+  { Limit AmmoLoaded by the currently owned ammunition number. }
+  procedure LimitAmmoLoaded;
+  var
+    Inventory: TInventory;
+    AmmoIndex: Integer;
+    AmmoResource: TItemResource;
+    MaxAmmoLoaded: Cardinal;
+  begin
+    if (Resource.AttackAmmo <> '') and
+       (Owner3D <> nil) and
+       (Owner3D is TAliveWithInventory) then
+    begin
+      Inventory := TAliveWithInventory(Owner3D).Inventory;
+
+      AmmoResource := Resources.FindName(Resource.AttackAmmo) as TItemResource;
+      AmmoIndex := Inventory.FindResource(AmmoResource);
+
+      if AmmoIndex <> -1 then
+        MaxAmmoLoaded := Inventory[AmmoIndex].Quantity
+      else
+        MaxAmmoLoaded := 0;
+
+      AmmoLoaded := Min(AmmoLoaded, MaxAmmoLoaded);
+    end;
   end;
 
-  if Resource.Prepared then
-  begin
-    AttackAnim := Resource.AttackAnimation;
-    AttackTime := LifeTime - AttackStartTime;
-    if Attacking and (AttackTime <= AttackAnim.Duration) then
-    begin
-      ResourceFrame.SetFrame(Level, AttackAnim, AttackTime, false);
-    end else
-    begin
-      { turn off Attacking, if AttackTime passed }
-      Attacking := false;
-      ResourceFrame.SetFrame(Level, Resource.ReadyAnimation, LifeTime, true);
-    end;
+begin
+  FAmmoLoaded := Resource.AttackAmmoCapacity;
+  LimitAmmoLoaded;
+end;
+
+procedure TItemWeapon.EquippedUpdate(const Level: TAbstractLevel; const SecondsPassed: Single;
+  const ResourceFrame: TResourceFrame);
+var
+  StateTime: Single;
+begin
+  LifeTime := LifeTime + SecondsPassed;
+
+  StateTime := LifeTime - FStateChangeTime;
+
+  { perform action in the middle of state }
+  case FState of
+    wsAttack:
+      if (not AttackDone) and (StateTime >= Resource.AttackTime) then
+      begin
+        AttackDone := true;
+        Attack(Level);
+      end;
+    wsReload:
+      if (not ReloadDone) and (StateTime >= Resource.ReloadTime) then
+      begin
+        ReloadDone := true;
+        ReloadNow;
+      end;
+  end;
+
+  { advance to next State, if necessary }
+  case FState of
+    wsAttack:
+      if StateTime > Resource.AttackAnimation.Duration then
+      begin
+        if (Resource.AttackAmmoCapacity <> 0) and (AmmoLoaded = 0) then
+        begin
+          EquippedReload(true);
+          StateTime := LifeTime - FStateChangeTime; // EquippedReload changed FState and FStateChangeTime
+        end else
+        begin
+          FState := wsReady;
+          FStateChangeTime := LifeTime;
+        end;
+      end;
+    wsReload:
+      if StateTime > Resource.ReloadAnimation.Duration then
+      begin
+        FState := wsReady;
+        FStateChangeTime := LifeTime;
+      end;
+  end;
+
+  { update animation frame to display }
+  case FState of
+    wsAttack: ResourceFrame.SetFrame(Level, Resource.AttackAnimation, StateTime, false);
+    wsReload: ResourceFrame.SetFrame(Level, Resource.ReloadAnimation, StateTime, false);
+    wsReady: ResourceFrame.SetFrame(Level, Resource.ReadyAnimation, StateTime, true);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('Weapon state?');
+    {$endif}
   end;
 end;
 

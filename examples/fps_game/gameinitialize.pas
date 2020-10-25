@@ -265,12 +265,34 @@ type
   end;
 
 procedure TPlayerHUD.Render;
+
+  procedure DisplayCurrentAmmo;
+  var
+    AmmoStr: String;
+    GunResource: TItemWeaponResource;
+    GunIndex: Integer;
+    Gun: TItemWeapon;
+  begin
+    GunResource := Resources.FindName('Gun') as TItemWeaponResource;
+    GunIndex := Player.Inventory.FindResource(GunResource);
+    if GunIndex <> -1 then // owns gun?
+    begin
+      Gun := Player.Inventory[GunIndex] as TItemWeapon;
+      AmmoStr := Format('Loaded Ammo: %d / %d', [
+        Gun.AmmoLoaded,
+        GunResource.AttackAmmoCapacity
+      ]);
+      UIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+    end;
+  end;
+
+
 const
   InventoryImageSize = 128;
 var
   I: Integer;
   X, Y: Single;
-  S: string;
+  S: String;
 begin
   inherited;
 
@@ -285,6 +307,8 @@ begin
   Y := Y - (UIFont.RowHeight + ControlsMargin);
   UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  DisplayCurrentAmmo;
 
   { show FPS }
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
@@ -318,7 +342,7 @@ begin
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
-    Player.Inventory[I].Resource.DrawableImage.Draw(X, Y);
+    Player.Inventory[I].Resource.DrawableImage.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize));
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
@@ -392,8 +416,8 @@ procedure CreatePlayer;
     Player.GrowSpeed := 10.0;
     Player.FallSpeed := 10.0;
 
-    Player.ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
-    Player.ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
+    Player.ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+    Player.ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
     Player.ThirdPersonNavigation.CrouchSpeed := 2;
     Player.ThirdPersonNavigation.MoveSpeed := 4;
     Player.ThirdPersonNavigation.RunSpeed := 8;
@@ -608,7 +632,7 @@ begin
   PlayerInput_DropItem.Assign(keyR);
   if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
-    PlayerInput_Attack.Assign(keyCtrl, keyNone, '', true, mbLeft);
+    PlayerInput_Attack.Assign(keyCtrl, keyNone, '', true, buttonLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }

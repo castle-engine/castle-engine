@@ -48,6 +48,13 @@ type
     LabelEventsInfo: TLabel;
     LabelSizeInfo: TLabel;
     LabelSelectedViewport: TLabel;
+    MenuItemRename: TMenuItem;
+    MenuTreeViewItemAddTransform: TMenuItem;
+    MenuTreeViewItemAddUserInterface: TMenuItem;
+    MenuTreeViewItemDelete: TMenuItem;
+    MenuTreeViewItemPaste: TMenuItem;
+    MenuTreeViewItemCopy: TMenuItem;
+    MenuTreeViewItemDuplicate: TMenuItem;
     MenuViewportNavigationFly: TMenuItem;
     MenuItemViewportCameraCurrentFromInitial: TMenuItem;
     MenuItemSeparator123: TMenuItem;
@@ -66,6 +73,7 @@ type
     PanelEventsInfo: TPanel;
     PanelAnchors: TPanel;
     MenuViewport: TPopupMenu;
+    MenuTreeView: TPopupMenu;
     SelfAnchorsFrame: TAnchorsFrame;
     ParentAnchorsFrame: TAnchorsFrame;
     CheckParentSelfAnchorsEqual: TCheckBox;
@@ -117,11 +125,18 @@ type
     procedure ControlsTreeSelectionChanged(Sender: TObject);
     procedure ButtonInteractModeClick(Sender: TObject);
     procedure ButtonModifyUiModeClick(Sender: TObject);
+    procedure MenuItemAddComponentClick(Sender: TObject);
+    procedure MenuItemRenameClick(Sender: TObject);
+    procedure MenuTreeViewItemDeleteClick(Sender: TObject);
+    procedure MenuTreeViewItemCopyClick(Sender: TObject);
+    procedure MenuTreeViewItemDuplicateClick(Sender: TObject);
     procedure MenuItemViewportCamera2DViewInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraCurrentFromInitialClick(Sender: TObject);
     procedure MenuItemViewportCameraViewAllClick(Sender: TObject);
     procedure MenuItemViewportCameraSetInitialClick(Sender: TObject);
     procedure MenuItemViewportSort2DClick(Sender: TObject);
+    procedure MenuTreeViewItemPasteClick(Sender: TObject);
+    procedure MenuTreeViewPopup(Sender: TObject);
     procedure MenuViewportNavigationExamineClick(Sender: TObject);
     procedure MenuViewportNavigationFlyClick(Sender: TObject);
     procedure MenuViewportNavigationNoneClick(Sender: TObject);
@@ -324,7 +339,7 @@ uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleTimeUtils,
   CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
-  EditorUtils;
+  EditorUtils, FormProject;
 
 {$R *.lfm}
 
@@ -531,14 +546,14 @@ begin
   if Result then Exit;
 
   if (Frame.Mode = moModifyUi) and
-     (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
+     (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
     { Left mouse button selects before moving/resizing.
       Right mouse button doesn't. This allows to change the size of the control
       without changing the selected control, e.g. when you want to change
       the size of TCastleScrollView without
       selecting TCastleScrollView.ScrollArea inside. }
-    if Event.IsMouseButton(mbLeft) then
+    if Event.IsMouseButton(buttonLeft) then
       Frame.SelectedUserInterface := HoverUserInterface(Event.Position);
 
     UI := Frame.SelectedUserInterface;
@@ -555,7 +570,7 @@ begin
   end;
 
   if (Frame.Mode in TransformModes) and
-      Event.IsMouseButton(mbLeft) then
+      Event.IsMouseButton(buttonLeft) then
   begin
     T := HoverTransform(Event.Position);
     { Do not change Frame.SelectedTransform in case T is nil,
@@ -581,7 +596,7 @@ begin
   Result := inherited Press(Event);
   if Result then Exit;
 
-  if (Event.IsMouseButton(mbLeft) or Event.IsMouseButton(mbRight)) then
+  if (Event.IsMouseButton(buttonLeft) or Event.IsMouseButton(buttonRight)) then
   begin
     DraggingMode := dmNone;
 
@@ -793,8 +808,8 @@ begin
     (maybe can happen e.g. if you Alt+Tab during dragging?),
     reset DraggingMode. }
   if (DraggingMode <> dmNone) and
-     // neither mbLeft nor mbRight
-     ([mbLeft, mbRight] * Event.Pressed = []) then
+     // neither buttonLeft nor buttonRight
+     ([buttonLeft, buttonRight] * Event.Pressed = []) then
     DraggingMode := dmNone;
 
   if (Frame.Mode = moModifyUi) and (DraggingMode <> dmNone) then
@@ -1002,9 +1017,10 @@ begin
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
 
+  BuildComponentsMenu(MenuTreeViewItemAddUserInterface, MenuTreeViewItemAddTransform, @MenuItemAddComponentClick);
   // Input_Interact (for gizmos) reacts to both left and right
   Input_Interact.MouseButton2Use := true;
-  Input_Interact.MouseButton2 := mbRight;
+  Input_Interact.MouseButton2 := buttonRight;
 end;
 
 destructor TDesignFrame.Destroy;
@@ -1256,6 +1272,8 @@ var
   SelectedCount: Integer;
   ParentComponent: TComponent;
 begin
+  if ControlsTree.Selected <> nil then
+    ControlsTree.Selected.EndEdit(true);
   // calculate ParentComponent
   GetSelected(Selected, SelectedCount);
   try
@@ -1800,10 +1818,26 @@ begin
 end;
 
 procedure TDesignFrame.PropertyGridModified(Sender: TObject);
+const
+  { Unreadable chars are defined like in SReplaceChars.
+    Note they include newlines, we don't want to include newlines in undo description,
+    as it would make menu item look weird (actually multiline on GTK2). }
+  UnreadableChars = [Low(AnsiChar) .. Pred(' '), #128 .. High(AnsiChar)];
 var
   Sel: TComponent;
   UI: TCastleUserInterface;
+  SenderRowName, SenderRowValue, SenderRowDescription: String;
 begin
+  { Workaround possible ControlsTree.Selected = nil when the user deselects
+    the currently edited component by clicking somewhere else.
+    See https://trello.com/c/V6v2rBwv/75-bug-access-violation-in-castle-editor . }
+  if ControlsTree.Selected = nil then
+  begin
+    UpdateDesign; // Something has changed, but we don't know what exactly. Maybe it's some component's name? Let's rebuild everything to be safe
+    //if not UndoSystem.ScheduleRecordUndoOnRelease then // We don't care here, this situation is an error, so we're saving what we can
+    RecordUndo('Modify property'); // We're recording a generic Undo message
+    Exit;
+  end;
   // This knows we have selected *at least one* component.
   // When you modify component Name in PropertyGrid, update it in the ControlsTree.
   Assert(ControlsTree.Selected <> nil);
@@ -1834,8 +1868,15 @@ begin
       So we should ignore changes to PropertyGrid in case the change is caused
       by dragging, otherwise we'll record an undo for every OnMotion of dragging }
     if Sender is TOICustomPropertyGrid then
-      RecordUndo('Change ' + TOICustomPropertyGrid(Sender).GetActiveRow.Name + ' to ' + TOICustomPropertyGrid(Sender).CurrentEditValue, TOICustomPropertyGrid(Sender).ItemIndex)
-    else
+    begin
+      SenderRowName := TOICustomPropertyGrid(Sender).GetActiveRow.Name;
+      SenderRowValue := TOICustomPropertyGrid(Sender).CurrentEditValue;
+      if CharsPos(UnreadableChars, SenderRowValue) = 0 then
+        SenderRowDescription := 'Change ' + SenderRowName + ' to ' + SenderRowValue
+      else
+        SenderRowDescription := 'Change ' + SenderRowName;
+      RecordUndo(SenderRowDescription, TOICustomPropertyGrid(Sender).ItemIndex);
+    end else
       RecordUndo('');
   end;
 
@@ -2147,12 +2188,20 @@ var
   UndoComment: String;
   Sel: TComponent;
 begin
-  Sel := TComponent(Node.Data);
-  UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
-  Sel.Name := Node.Text;
-  ModifiedOutsideObjectInspector;
-  RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
-  Node.Text := ComponentCaption(Sel);
+  try
+    Sel := TComponent(Node.Data);
+    UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
+    Sel.Name := Node.Text;
+    ModifiedOutsideObjectInspector;
+    RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+  finally
+    { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
+      - If the name was correct, then "Sel.Name := " goes without exception, 
+        and we want to show new name + class name.
+      - If the name was not correct, then "Sel.Name := " raises exception, 
+        and we want to show old name + class name. }
+    Node.Text := ComponentCaption(Sel);
+  end;
 end;
 
 function TDesignFrame.ControlsTreeAllowDrag(const Src, Dst: TTreeNode): Boolean;
@@ -2565,6 +2614,65 @@ begin
   InsideToggleModeClick := true;
   ChangeMode(moModifyUi);
   InsideToggleModeClick := false;
+end;
+
+procedure TDesignFrame.MenuItemAddComponentClick(Sender: TObject);
+var
+  R: TRegisteredComponent;
+begin
+  R := TRegisteredComponent(Pointer((Sender as TComponent).Tag));
+  AddComponent(R.ComponentClass, R.OnCreate);
+end;
+
+procedure TDesignFrame.MenuItemRenameClick(Sender: TObject);
+begin
+  RenameSelectedItem;
+end;
+
+procedure TDesignFrame.MenuTreeViewItemDeleteClick(Sender: TObject);
+begin
+  DeleteComponent;
+end;
+
+procedure TDesignFrame.MenuTreeViewItemCopyClick(Sender: TObject);
+begin
+  CopyComponent;
+end;
+
+procedure TDesignFrame.MenuTreeViewItemPasteClick(Sender: TObject);
+begin
+  PasteComponent;
+end;
+
+procedure TDesignFrame.MenuTreeViewPopup(Sender: TObject);
+var
+  Sel: TComponent;
+begin
+  Sel := SelectedComponent;
+  MenuTreeViewItemDuplicate.Enabled := Sel <> nil;
+  MenuTreeViewItemCopy.Enabled := Sel <> nil;
+  MenuTreeViewItemDelete.Enabled := Sel <> nil;
+  if (Sel is TCastleUserInterface) or ((Sel = nil) and (DesignRoot is TCastleUserInterface)) then
+  begin
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(true);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+  end else
+  if (Sel is TCastleTransform) or ((Sel = nil) and (DesignRoot is TCastleTransform)) then
+  begin
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(true);
+  end else
+  begin
+    // That wasn't supposed to happen!
+    MenuTreeViewItemAddUserInterface.SetEnabledVisible(false);
+    MenuTreeViewItemAddTransform.SetEnabledVisible(false);
+  end;
+  MenuTreeView.PopupComponent := ControlsTree; // I'm not sure what it means, something like menu owner?
+end;
+
+procedure TDesignFrame.MenuTreeViewItemDuplicateClick(Sender: TObject);
+begin
+  DuplicateComponent;
 end;
 
 procedure TDesignFrame.MenuItemViewportCamera2DViewInitialClick(

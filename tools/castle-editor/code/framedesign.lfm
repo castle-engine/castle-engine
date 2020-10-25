@@ -365,6 +365,8 @@ object DesignFrame: TDesignFrame
       MultiSelect = True
       ParentFont = False
       ParentShowHint = False
+      RightClickSelect = True
+      PopupMenu = MenuTreeView
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
@@ -376,7 +378,7 @@ object DesignFrame: TDesignFrame
       OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
       OnSelectionChanged = ControlsTreeSelectionChanged
-      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object LabelHierarchy: TLabel
       Left = 5
@@ -1548,6 +1550,37 @@ object DesignFrame: TDesignFrame
     object MenuItemViewportSort2D: TMenuItem
       Caption = 'Sort Items For Correct 2D Blending'
       OnClick = MenuItemViewportSort2DClick
+    end
+  end
+  object MenuTreeView: TPopupMenu
+    Left = 653
+    Top = 139
+    OnPopup = MenuTreeViewPopup
+    object MenuItemRename: TMenuItem
+      Caption = 'Rename'
+      OnClick = MenuItemRenameClick
+    end
+    object MenuTreeViewItemDuplicate: TMenuItem
+      Caption = 'Duplicate'
+      OnClick = MenuTreeViewItemDuplicateClick
+    end
+    object MenuTreeViewItemCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = MenuTreeViewItemCopyClick
+    end
+    object MenuTreeViewItemPaste: TMenuItem
+      Caption = 'Paste'
+      OnClick = MenuTreeViewItemPasteClick
+    end
+    object MenuTreeViewItemDelete: TMenuItem
+      Caption = 'Delete'
+      OnClick = MenuTreeViewItemDeleteClick
+    end
+    object MenuTreeViewItemAddUserInterface: TMenuItem
+      Caption = 'Add'
+    end
+    object MenuTreeViewItemAddTransform: TMenuItem
+      Caption = 'Add'
     end
   end
   object UpdateObjectInspector: TTimer

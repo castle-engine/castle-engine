@@ -64,7 +64,7 @@ end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  if mbLeft in Event.Pressed then
+  if buttonLeft in Event.Pressed then
   begin
     SoundPosition := Vector3(Event.Position[0], Event.Position[1], 0);
     if Sound <> nil then

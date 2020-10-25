@@ -1043,9 +1043,9 @@ type
         MakeCurrent
         EventPress/EventRelease }
     procedure DoMouseDown(const Position: TVector2;
-      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
+      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseUp(const Position: TVector2;
-      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0;
+      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoTimer;
@@ -1901,7 +1901,7 @@ type
 
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -3346,7 +3346,7 @@ end;
 procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
 var
   k: TKey;
-  mb: CastleKeysMouse.TMouseButton;
+  mb: TCastleMouseButton;
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   mk: TModifierKey;
   b: boolean;
@@ -3610,7 +3610,7 @@ begin
 end;
 
 procedure TCastleWindowBase.DoMouseDown(const Position: TVector2;
-  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+  Button: TCastleMouseButton; const FingerIndex: TFingerIndex);
 var
   Event: TInputPressRelease;
 begin
@@ -3627,7 +3627,7 @@ begin
 end;
 
 procedure TCastleWindowBase.DoMouseUp(const Position: TVector2;
-  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex;
+  Button: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const TrackReleased: boolean);
 var
   Event: TInputPressRelease;
@@ -4592,7 +4592,7 @@ begin
   Result := FTouches.Count;
 end;
 
-function TCastleWindowBase.MousePressed: TMouseButtons;
+function TCastleWindowBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;

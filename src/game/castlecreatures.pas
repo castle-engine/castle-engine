@@ -1163,6 +1163,7 @@ begin
     to sensibly use the creature }
   Result.Level := ALevel;
   Result.FResource := Self;
+  Result.Orientation := Orientation; // must be set before SetView
   Result.SetView(APosition, ADirection, RootTransform.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;

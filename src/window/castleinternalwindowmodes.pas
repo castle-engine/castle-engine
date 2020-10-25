@@ -414,7 +414,7 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase);
 
   procedure SimulateReleaseAll;
   var
-    Button: TMouseButton;
+    Button: TCastleMouseButton;
     Key: TKey;
     C: char;
     ModifiersDown: TModifierKeys;
@@ -462,7 +462,7 @@ end;
 
 destructor TGLMode.Destroy;
 var
-  btn: TMouseButton;
+  btn: TCastleMouseButton;
 begin
   FreeAndNil(OldState);
 

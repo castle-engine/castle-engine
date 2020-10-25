@@ -3,6 +3,7 @@
 <resource
   name="DeprecatedKnightMultipleXThreeD"
   type="WalkAttack"
+  orientation="up:y,direction:-z"
 >
   <model>
     <idle   url="idle.x3dv"   animation_name="AnimTimeSensor"/>

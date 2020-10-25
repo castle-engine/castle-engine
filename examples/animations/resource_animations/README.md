@@ -7,7 +7,7 @@ in different ways:
 
 - Single file for all animations (glTF, X3D, castle-anim-frames)
 
-- Multiple files, different file for all animations (multiple X3D, multiple castle-anim-frames)
+- Multiple files, different file for each animation (multiple X3D, multiple castle-anim-frames)
 
 We declare them in resource.xml files with different names
 ("KnightSingleXThreeD", "KnightMultipleXThreeD", and so on)

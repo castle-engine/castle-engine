@@ -230,7 +230,7 @@ type
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: CastleKeysMouse.TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
@@ -1092,7 +1092,7 @@ end;
 procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1111,7 +1111,7 @@ end;
 procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1245,7 +1245,7 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: CastleKeysMouse.TMouseButtons;
+function TCastleControlBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;

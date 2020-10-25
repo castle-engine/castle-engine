@@ -1,3 +1,5 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleUIControls" -*-
+
 {
   Copyright 2018-2018 Michalis Kamburelis.
 
@@ -27,11 +29,12 @@ type
   published
     procedure TestRectOverrides;
     procedure TestRecursiveRect;
+    procedure TestForIn;
   end;
 
 implementation
 
-uses CastleRectangles;
+uses CastleRectangles, CastleVectors;
 
 type
   TNothingOverrriden = class(TCastleUserInterface)
@@ -114,6 +117,51 @@ begin
     FreeAndNil(UiParent);
     FreeAndNil(UiChild);
   end;
+end;
+
+procedure TTestCastleUIControls.TestForIn;
+var
+  Owner: TComponent;
+  T, T1, C: TCastleUserInterface;
+  Y: Single;
+begin
+  Owner := TComponent.Create(nil);
+  try
+    T := TCastleUserInterface.Create(Owner);
+    T.AnchorDelta := Vector2(0, 0);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(1, 0);
+    T.InsertFront(T1);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(2, 0);
+    T.InsertFront(T1);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(3, 0);
+    T.InsertFront(T1);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(1, 1);
+    T.Controls[0].InsertFront(T1);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(1, 2);
+    T.Controls[0].InsertFront(T1);
+
+    T1 := TCastleUserInterface.Create(Owner);
+    T1.AnchorDelta := Vector2(1, 3);
+    T.Controls[0].InsertFront(T1);
+
+    Y := 1;
+    for C in T do
+    begin
+      AssertVectorEquals(C.AnchorDelta, Vector2(Y, 0));
+      Y += 1;
+    end;
+    AssertSameValue(Y, 4);
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization

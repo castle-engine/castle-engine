@@ -47,6 +47,7 @@ type
     FLightRenderEvent: TLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PLightInstance;
+    FMaxLightsPerShape: Cardinal;
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
   public
     { Statistics of how many OpenGL light setups were done
@@ -57,7 +58,7 @@ type
 
     RenderingCamera: TRenderingCamera;
 
-    constructor Create(const ALightRenderEvent: TLightRenderEvent);
+    constructor Create(const ALightRenderEvent: TLightRenderEvent; const AMaxLightsPerShape: Cardinal);
 
     { Set OpenGL lights properties.
       Sets OpenGL fixed-function pipeline lights,
@@ -221,12 +222,15 @@ end;
 { TVRMLGLLightsRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsRenderer.Create(
-  const ALightRenderEvent: TLightRenderEvent);
+  const ALightRenderEvent: TLightRenderEvent; const AMaxLightsPerShape: Cardinal);
 begin
   inherited Create;
   FLightRenderEvent := ALightRenderEvent;
   LightsKnown := false;
-  SetLength(LightsDone, GLFeatures.MaxLights);
+  FMaxLightsPerShape := AMaxLightsPerShape;
+  if GLFeatures.EnableFixedFunction then
+    MinVar(FMaxLightsPerShape, GLFeatures.MaxLights);
+  SetLength(LightsDone, FMaxLightsPerShape);
 end;
 
 function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
@@ -279,7 +283,7 @@ var
           glLightFromVRMLLight(LightsEnabled, Light^, RenderingCamera);
         Shader.EnableLight(LightsEnabled, Light);
         Inc(LightsEnabled);
-        if LightsEnabled >= GLFeatures.MaxLights then Exit;
+        if LightsEnabled >= FMaxLightsPerShape then Exit;
       end;
     end;
   end;
@@ -292,25 +296,25 @@ begin
   Assert(RenderingCamera <> nil);
 
   LightsEnabled := 0;
-  if LightsEnabled >= GLFeatures.MaxLights then Exit;
+  if LightsEnabled >= FMaxLightsPerShape then Exit;
 
   if Lights1 <> nil then
   begin
     AddList(Lights1);
-    if LightsEnabled >= GLFeatures.MaxLights then Exit;
+    if LightsEnabled >= FMaxLightsPerShape then Exit;
   end;
 
   if Lights2 <> nil then
   begin
     AddList(Lights2);
-    if LightsEnabled >= GLFeatures.MaxLights then Exit;
+    if LightsEnabled >= FMaxLightsPerShape then Exit;
   end;
 
   if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     { Disable remaining light for fixed-function pipeline }
-    for I := LightsEnabled to GLFeatures.MaxLights - 1 do
+    for I := LightsEnabled to FMaxLightsPerShape - 1 do
       if NeedRenderLight(I, nil) then
         glDisable(GL_LIGHT0 + I);
     {$endif}

@@ -123,8 +123,8 @@ begin
     In particular assign some keys that are not assigned by default. }
   ThirdPersonNavigation.Input_LeftStrafe.Assign(keyQ);
   ThirdPersonNavigation.Input_RightStrafe.Assign(keyE);
-  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, mbLeft, mwUp);
-  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, mbLeft, mwDown);
+  ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+  ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
   ThirdPersonNavigation.MouseLook := true; // by default use mouse look
   ThirdPersonNavigation.Init;
 end;
@@ -141,7 +141,7 @@ procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolea
   (*
   procedure UpdateAimAvatar;
   begin
-    if mbRight in Container.MousePressed then
+    if buttonRight in Container.MousePressed then
       ThirdPersonNavigation.AimAvatar := aaHorizontal
     else
       ThirdPersonNavigation.AimAvatar := aaNone;
@@ -186,7 +186,7 @@ begin
     not handled in children controls.
   }
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     SoundEngine.Sound(SoundEngine.SoundFromName('shoot_sound'));
 
@@ -228,7 +228,7 @@ begin
     Exit(true);
   end;
 
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     CheckboxAimAvatar.Checked := not CheckboxAimAvatar.Checked;
     ChangeCheckboxAimAvatar(CheckboxAimAvatar); // update ThirdPersonNavigation.AimAvatar

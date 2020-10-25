@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2020 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -285,7 +285,7 @@ type
     FCalculatedUIScale: Single; //< set on all children
     FFps: TFramesPerSecond;
     FPressed: TKeysPressed;
-    FMousePressed: CastleKeysMouse.TMouseButtons;
+    FMousePressed: TCastleMouseButtons;
     FMouseLookIgnoreNextMotion: Boolean;
     FMouseLookWaitingForMiddle: Boolean;
     FMouseLookMotionToSubtract: TVector2;
@@ -510,7 +510,7 @@ type
 
       This value is always current, in particular it's already updated
       before we call events @link(OnPress) or @link(OnRelease). }
-    property MousePressed: TMouseButtons read FMousePressed write FMousePressed;
+    property MousePressed: TCastleMouseButtons read FMousePressed write FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -691,7 +691,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := true;
           Cursor := mcForceNone;
@@ -704,7 +704,7 @@ type
         Result := inherited;
         if Result then Exit;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           Drag := false;
           Cursor := mcDefault;
@@ -937,7 +937,7 @@ type
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
         end;
 
-        if Event.IsMouseButton(mbLeft) then
+        if Event.IsMouseButton(buttonLeft) then
         begin
           // do something in reaction on Enter
           Exit(ExclusiveEvents); // ExclusiveEvents is true by default
@@ -1242,38 +1242,50 @@ type
     convention that (0, 0) is left-bottom window corner. }
   TCastleUserInterface = class(TInputListener)
   private
-    FDisableContextOpenClose: Cardinal;
-    FFocused: boolean;
-    FGLInitialized: boolean;
-    FExists: boolean;
-    FControls: TChildrenControls;
-    FLeft: Single;
-    FBottom: Single;
-    FParent: TCastleUserInterface;
-    FHasHorizontalAnchor: boolean;
-    FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
-    FHorizontalAnchorDelta: Single;
-    FHasVerticalAnchor: boolean;
-    FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
-    FVerticalAnchorDelta: Single;
-    FEnableUIScaling: boolean;
-    FKeepInFront, FCapturesEvents: boolean;
-    FWidth, FHeight: Single;
-    FWidthFraction, FHeightFraction: Single;
-    FFullSize: boolean;
-    FBorder: TBorder;
-    FBorderColor: TCastleColor;
-    FAutoSizeToChildren: Boolean;
-    FAutoSizeToChildrenPaddingRight: Single;
-    FAutoSizeToChildrenPaddingTop: Single;
-    FSizeFromChildrenValid: Boolean;
-    FSizeFromChildrenRect: TFloatRectangle;
-    FCachedRectWithoutAnchors: TFloatRectangle;
-    FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
-    FInsideRectWithoutAnchors: Boolean;
-    FCulling: Boolean;
-    FClipChildren: Boolean;
-    FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
+    type
+      TEnumerator = class
+      private
+        FList: TChildrenControls;
+        FPosition: Integer;
+        function GetCurrent: TCastleUserInterface;
+      public
+        constructor Create(AList: TChildrenControls);
+        function MoveNext: Boolean;
+        property Current: TCastleUserInterface read GetCurrent;
+      end;
+    var
+      FDisableContextOpenClose: Cardinal;
+      FFocused: boolean;
+      FGLInitialized: boolean;
+      FExists: boolean;
+      FControls: TChildrenControls;
+      FLeft: Single;
+      FBottom: Single;
+      FParent: TCastleUserInterface;
+      FHasHorizontalAnchor: boolean;
+      FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
+      FHorizontalAnchorDelta: Single;
+      FHasVerticalAnchor: boolean;
+      FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
+      FVerticalAnchorDelta: Single;
+      FEnableUIScaling: boolean;
+      FKeepInFront, FCapturesEvents: boolean;
+      FWidth, FHeight: Single;
+      FWidthFraction, FHeightFraction: Single;
+      FFullSize: boolean;
+      FBorder: TBorder;
+      FBorderColor: TCastleColor;
+      FAutoSizeToChildren: Boolean;
+      FAutoSizeToChildrenPaddingRight: Single;
+      FAutoSizeToChildrenPaddingTop: Single;
+      FSizeFromChildrenValid: Boolean;
+      FSizeFromChildrenRect: TFloatRectangle;
+      FCachedRectWithoutAnchors: TFloatRectangle;
+      FUseCachedRectWithoutAnchors: Cardinal; // <> 0 if we should use FCachedRectWithoutAnchors
+      FInsideRectWithoutAnchors: Boolean;
+      FCulling: Boolean;
+      FClipChildren: Boolean;
+      FOnRender, FOnInternalMouseEnter, FOnInternalMouseLeave: TUiNotifyEvent;
 
     procedure BorderChange(Sender: TObject);
     procedure SetExists(const Value: boolean);
@@ -1413,6 +1425,7 @@ type
       const ChangeInitiatedByChildren: boolean = false); override;
     procedure InternalAddChild(const C: TComponent); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
+    function GetEnumerator: TEnumerator;
 
     property Controls [Index: Integer]: TCastleUserInterface read GetControls write SetControls;
     function ControlsCount: Integer;
@@ -2188,21 +2201,6 @@ type
       FList: TMyObjectList;
       FCaptureFreeNotifications: TCaptureFreeNotifications;
 
-    {$ifndef VER2_6}
-    { Using this causes random crashes in -dRELEASE with FPC 2.6.x. }
-    type
-      TEnumerator = class
-      private
-        FList: TChildrenControls;
-        FPosition: Integer;
-        function GetCurrent: TCastleUserInterface;
-      public
-        constructor Create(AList: TChildrenControls);
-        function MoveNext: Boolean;
-        property Current: TCastleUserInterface read GetCurrent;
-      end;
-    {$endif}
-
     function GetItem(const I: Integer): TCastleUserInterface;
     procedure SetItem(const I: Integer; const Item: TCastleUserInterface);
     { React to add/remove notifications. }
@@ -2210,10 +2208,6 @@ type
   public
     constructor Create(AParent: TCastleUserInterface);
     destructor Destroy; override;
-
-    {$ifndef VER2_6}
-    function GetEnumerator: TEnumerator;
-    {$endif}
 
     property Items[I: Integer]: TCastleUserInterface read GetItem write SetItem; default;
     function Count: Integer;
@@ -4060,6 +4054,26 @@ begin
   FContainer := Value;
 end;
 
+{ TCastleUserInterface.TEnumerator ------------------------------------------------- }
+
+function TCastleUserInterface.TEnumerator.GetCurrent: TCastleUserInterface;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TCastleUserInterface.TEnumerator.Create(AList: TChildrenControls);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TCastleUserInterface.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
 { TCastleUserInterface ----------------------------------------------------------------- }
 
 constructor TCastleUserInterface.Create(AOwner: TComponent);
@@ -5243,6 +5257,11 @@ begin
   Result := Max(0, EffectiveWidth - Border.TotalWidth);
 end;
 
+function TCastleUserInterface.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(FControls);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleuserinterface_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -5379,13 +5398,6 @@ begin
   for I := NewItems.Count - 1 downto 0 do
     InsertBack(NewItems[I]);
 end;
-
-{$ifndef VER2_6}
-function TChildrenControls.GetEnumerator: TEnumerator;
-begin
-  Result := TEnumerator.Create(Self);
-end;
-{$endif}
 
 procedure TChildrenControls.Notify(Ptr: Pointer; Action: TListNotification);
 var
@@ -5532,28 +5544,6 @@ procedure TChildrenControls.TMyObjectList.Notify(Ptr: Pointer; Action: TListNoti
 begin
   Parent.Notify(Ptr, Action);
 end;
-
-{ TChildrenControls.TEnumerator ------------------------------------------------- }
-
-{$ifndef VER2_6}
-function TChildrenControls.TEnumerator.GetCurrent: TCastleUserInterface;
-begin
-  Result := FList.Items[FPosition];
-end;
-
-constructor TChildrenControls.TEnumerator.Create(AList: TChildrenControls);
-begin
-  inherited Create;
-  FList := AList;
-  FPosition := -1;
-end;
-
-function TChildrenControls.TEnumerator.MoveNext: Boolean;
-begin
-  Inc(FPosition);
-  Result := FPosition < FList.Count;
-end;
-{$endif}
 
 { TCastleUserInterfaceList ------------------------------------------------------------- }
 

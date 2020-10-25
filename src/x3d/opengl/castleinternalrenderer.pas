@@ -2268,7 +2268,7 @@ begin
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, Attributes.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 

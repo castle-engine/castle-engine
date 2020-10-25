@@ -88,6 +88,7 @@ examples/3d_rendering_processing/tools/gen_light_map
 examples/short_api_samples/save_screen_rgba/save_screen_rgba
 examples/short_api_samples/transform_save_load/aaa.castle-transform
 examples/short_api_samples/transform_save_load/transform_save_load
+examples/short_api_samples/xml_utils/bookmarks_xml_demo
 examples/3d_rendering_processing/transform_scenes_demos
 examples/3d_rendering_processing/triangulate_demo
 examples/3d_rendering_processing/triangulate_demo.res

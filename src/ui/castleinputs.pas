@@ -111,9 +111,9 @@ type
     FKey2: TKey;
     FKeyString: String;
     FMouseButtonUse: boolean;
-    FMouseButton: TMouseButton;
+    FMouseButton: TCastleMouseButton;
     FMouseButton2Use: boolean;
-    FMouseButton2: TMouseButton;
+    FMouseButton2: TCastleMouseButton;
     FMouseWheel: TMouseWheelDirection;
     FCaption: string;
     FGroup: TInputGroup;
@@ -126,9 +126,9 @@ type
     FDefaultKey2: TKey;
     FDefaultKeyString: String;
     FDefaultMouseButtonUse: boolean;
-    FDefaultMouseButton: TMouseButton;
+    FDefaultMouseButton: TCastleMouseButton;
     FDefaultMouseButton2Use: boolean;
-    FDefaultMouseButton2: TMouseButton;
+    FDefaultMouseButton2: TCastleMouseButton;
     FDefaultMouseWheel: TMouseWheelDirection;
 
     procedure SetKey1(const Value: TKey);
@@ -137,9 +137,9 @@ type
     function GetCharacter: Char;
     procedure SetCharacter(const AValue: Char);
     procedure SetMouseButtonUse(const Value: boolean);
-    procedure SetMouseButton(const Value: TMouseButton);
+    procedure SetMouseButton(const Value: TCastleMouseButton);
     procedure SetMouseButton2Use(const Value: boolean);
-    procedure SetMouseButton2(const Value: TMouseButton);
+    procedure SetMouseButton2(const Value: TCastleMouseButton);
     procedure SetMouseWheel(const Value: TMouseWheelDirection);
   protected
     { Called always right after the key/character/mouse
@@ -188,7 +188,7 @@ type
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
-      const AMouseButton: TMouseButton = mbLeft;
+      const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Set keys/mouse buttons of this shortcut.
@@ -199,7 +199,7 @@ type
       const AKey2: TKey = keyNone;
       AKeyString: String = '';
       const AMouseButtonUse: boolean = false;
-      const AMouseButton: TMouseButton = mbLeft;
+      const AMouseButton: TCastleMouseButton = buttonLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
@@ -210,7 +210,7 @@ type
     { Given a set of currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
     function IsPressed(Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons): boolean; overload;
+      const MousePressed: TCastleMouseButtons): boolean; overload;
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
@@ -221,7 +221,7 @@ type
     function IsKey(const Key: TKey; AKeyString: String): boolean;
 
     { Check does given mouse button correspond to this input shortcut. }
-    function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
 
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
@@ -239,7 +239,7 @@ type
       IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
       to use this instead of taking care of them separately. }
     function IsEvent(const AKey: TKey; AKeyString: String;
-      const AMousePress: boolean; const AMouseButton: TMouseButton;
+      const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
       const AMouseWheel: TMouseWheelDirection): boolean; overload;
     function IsEvent(const Event: TInputPressRelease): boolean; overload;
 
@@ -324,14 +324,14 @@ type
       if you don't want to use this.
       @groupBegin }
     property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
-    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
+    property MouseButton: TCastleMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
     { Alternative mouse shortcut for given command. You can set MouseButton2Use to @false
       if you don't want to use this.
       @groupBegin }
     property MouseButton2Use: boolean read FMouseButton2Use write SetMouseButton2Use;
-    property MouseButton2: TMouseButton read FMouseButton2 write SetMouseButton2;
+    property MouseButton2: TCastleMouseButton read FMouseButton2 write SetMouseButton2;
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
@@ -356,11 +356,11 @@ type
       read FDefaultKeyString write FDefaultKeyString;
     property DefaultMouseButtonUse: boolean
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
-    property DefaultMouseButton: TMouseButton
+    property DefaultMouseButton: TCastleMouseButton
       read FDefaultMouseButton write FDefaultMouseButton;
     property DefaultMouseButton2Use: boolean
       read FDefaultMouseButton2Use write FDefaultMouseButton2Use;
-    property DefaultMouseButton2: TMouseButton
+    property DefaultMouseButton2: TCastleMouseButton
       read FDefaultMouseButton2 write FDefaultMouseButton2;
     property DefaultMouseWheel: TMouseWheelDirection
       read FDefaultMouseWheel write FDefaultMouseWheel;
@@ -494,7 +494,7 @@ procedure TInputShortcut.Assign(const AKey1: TKey;
   const AKey2: TKey;
   AKeyString: String;
   const AMouseButtonUse: boolean;
-  const AMouseButton: TMouseButton;
+  const AMouseButton: TCastleMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
@@ -507,7 +507,7 @@ begin
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
   FDefaultMouseButton2Use := false; // not set by parameters, just reset
-  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
+  FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
   FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
 end;
@@ -516,7 +516,7 @@ procedure TInputShortcut.AssignCurrent(const AKey1: TKey;
   const AKey2: TKey;
   AKeyString: String;
   const AMouseButtonUse: boolean;
-  const AMouseButton: TMouseButton;
+  const AMouseButton: TCastleMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
@@ -529,7 +529,7 @@ begin
   FMouseButtonUse := AMouseButtonUse;
   FMouseButton := AMouseButton;
   FDefaultMouseButton2Use := false; // not set by parameters, just reset
-  FDefaultMouseButton2 := mbLeft; // not set by parameters, just reset
+  FDefaultMouseButton2 := buttonLeft; // not set by parameters, just reset
   FMouseWheel := AMouseWheel;
   Changed;
 end;
@@ -568,9 +568,9 @@ begin
   FKey2 := keyNone;
   FKeyString := '';
   FMouseButtonUse := false;
-  FMouseButton := mbLeft;
+  FMouseButton := buttonLeft;
   FMouseButton2Use := false;
-  FMouseButton2 := mbLeft;
+  FMouseButton2 := buttonLeft;
   FMouseWheel := mwNone;
 
   if ClearAlsoDefaultState then
@@ -579,9 +579,9 @@ begin
     FDefaultKey2 := keyNone;
     FDefaultKeyString := '';
     FDefaultMouseButtonUse := false;
-    FDefaultMouseButton := mbLeft;
+    FDefaultMouseButton := buttonLeft;
     FDefaultMouseButton2Use := false;
-    FDefaultMouseButton2 := mbLeft;
+    FDefaultMouseButton2 := buttonLeft;
     FDefaultMouseWheel := mwNone;
   end;
 
@@ -591,7 +591,7 @@ begin
 end;
 
 function TInputShortcut.IsPressed(Pressed: TKeysPressed;
-  const MousePressed: TMouseButtons): boolean;
+  const MousePressed: TCastleMouseButtons): boolean;
 begin
   Result :=
     ( (Pressed <> nil) and (Pressed.Keys[Key1] or
@@ -617,7 +617,7 @@ begin
     ( (KeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TInputShortcut.IsMouseButton(const AMouseButton: TMouseButton): boolean;
+function TInputShortcut.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
 begin
   Result :=
     ( MouseButtonUse  and (AMouseButton = MouseButton) ) or
@@ -630,7 +630,7 @@ begin
 end;
 
 function TInputShortcut.IsEvent(const AKey: TKey; AKeyString: String;
-  const AMousePress: boolean; const AMouseButton: TMouseButton;
+  const AMousePress: boolean; const AMouseButton: TCastleMouseButton;
   const AMouseWheel: TMouseWheelDirection): boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
@@ -737,7 +737,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.SetMouseButton(const Value: TMouseButton);
+procedure TInputShortcut.SetMouseButton(const Value: TCastleMouseButton);
 begin
   FMouseButton := Value;
   Changed;
@@ -749,7 +749,7 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.SetMouseButton2(const Value: TMouseButton);
+procedure TInputShortcut.SetMouseButton2(const Value: TCastleMouseButton);
 begin
   FMouseButton2 := Value;
   Changed;
@@ -834,11 +834,11 @@ begin
     ConfigPath + Name + '/key2', DefaultKey2);
   MouseButtonUse := Config.GetValue(
     ConfigPath + Name + '/mouse_button_use', DefaultMouseButtonUse);
-  MouseButton := TMouseButton(Config.GetValue(
+  MouseButton := TCastleMouseButton(Config.GetValue(
     ConfigPath + Name + '/mouse_button', Ord(DefaultMouseButton)));
   MouseButton2Use := Config.GetValue(
     ConfigPath + Name + '/mouse_button_use2', DefaultMouseButton2Use);
-  MouseButton2 := TMouseButton(Config.GetValue(
+  MouseButton2 := TCastleMouseButton(Config.GetValue(
     ConfigPath + Name + '/mouse_button2', Ord(DefaultMouseButton2)));
   MouseWheel := TMouseWheelDirection(Config.GetValue(
     ConfigPath + Name + '/mouse_wheel', Ord(DefaultMouseWheel)));

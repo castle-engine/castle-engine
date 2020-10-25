@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="resource_animations"
-  standalone_source="resource_animations.lpr"
+  standalone_source="resource_animations_standalone.lpr"
+  game_units="GameInitialize"
 >
 </project>

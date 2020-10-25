@@ -347,6 +347,17 @@ type
     with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TCastleComponent)
   private
+    type
+      TEnumerator = class
+      private
+        FList: TCastleTransformList;
+        FPosition: Integer;
+        function GetCurrent: TCastleTransform;
+      public
+        constructor Create(AList: TCastleTransformList);
+        function MoveNext: Boolean;
+        property Current: TCastleTransform read GetCurrent;
+      end;
     class var
       NextTransformId: Cardinal;
     var
@@ -720,6 +731,7 @@ type
 
     procedure InternalAddChild(const C: TComponent); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
+    function GetEnumerator: TEnumerator;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -2120,6 +2132,8 @@ procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
 const
   rfOffScreen = rfRenderedTexture deprecated 'use rfRenderedTexture';
 
+function StrToOrientationType(const S: String): TOrientationType;
+
 implementation
 
 uses CastleLog, CastleQuaternions, CastleComponentSerialize, X3DTriangles;
@@ -2305,6 +2319,26 @@ end;
 function TCastleTransformList.Last: TCastleTransform;
 begin
   Result := (inherited Last) as TCastleTransform;
+end;
+
+{ TCastleTransform.TEnumerator ------------------------------------------------- }
+
+function TCastleTransform.TEnumerator.GetCurrent: TCastleTransform;
+begin
+  Result := FList[FPosition];
+end;
+
+constructor TCastleTransform.TEnumerator.Create(AList: TCastleTransformList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TCastleTransform.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
 end;
 
 { TCastleTransform ---------------------------------------------------------------- }
@@ -3678,6 +3712,11 @@ begin
   Rotation := RotationFromDirectionUp(D, U);
 end;
 
+function TCastleTransform.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(FList);
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastletransform_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -3853,6 +3892,26 @@ begin
     FMainCamera := Value;
     VisibleChangeHere([]);
   end;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+const
+  OrientationNames: array [TOrientationType] of String =  (
+    'up:y,direction:-z',
+    'up:y,direction:z',
+    'up:z,direction:-y',
+    'up:z,direction:x'
+  );
+
+function StrToOrientationType(const S: String): TOrientationType;
+begin
+  if S = 'default' then
+    Exit(TCastleTransform.DefaultOrientation);
+  for Result in TOrientationType do
+    if OrientationNames[Result] = S then
+      Exit;
+  raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);
 end;
 
 initialization

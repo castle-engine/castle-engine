@@ -100,7 +100,7 @@ type
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL;
+    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -197,6 +197,7 @@ type
     { First ScenePoolUsed items on ScenePool are used, rest is unused. }
     ScenePoolUsed: Cardinal;
     FPool: Cardinal;
+    FOrientation: TOrientationType;
     function AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
     procedure ReleaseSceneFromPool(const Scene: TCastleScene);
     function CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
@@ -367,9 +368,28 @@ type
     property CastShadowVolumes: boolean
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
+
     { See @link(TCastleSceneCore.DefaultAnimationTransition) }
     property DefaultAnimationTransition: Single
       read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+
+    { See @link(TCastleTransform.Orientation), by default this is @link(TCastleTransform.DefaultOrientation).
+
+      In the resource.xml file, this value can be specified using following strings:
+
+      @definitionList(
+        @itemLabel @code(default)
+        @item Use TCastleTransform.DefaultOrientation.
+        @itemLabel @code(up:y,direction:-z)
+        @item Use otUpYDirectionMinusZ.
+        @itemLabel @code(up:y,direction:z)
+        @item Use otUpYDirectionZ. Matches conventional glTF orientation.
+        @itemLabel @code(up:z,direction:-y)
+        @item Use otUpZDirectionMinusY.
+        @itemLabel @code(up:z,direction:x)
+        @item Use otUpZDirectionX.
+      ) }
+    property Orientation: TOrientationType read FOrientation write FOrientation;
 
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
@@ -420,8 +440,14 @@ type
         )
       )
 
-      TODO: For now, Pool only matters if you use a single file
-      for all resource animations.
+      Note that Pool only matters if you use a single file
+      for all resource animations. Using multiples files (separate file for each animation)
+      is deprecated anyway, see https://castle-engine.io/creating_data_resources.php .
+
+      In the @code(resource.xml), you can specify this value an explicit integer
+      (0 means to not use pool), or you can write @code("auto") to automatically guess
+      the best value. The best value means to use pool, unless the ModelURL indicates castle-anim-frames
+      or MD3 formats.
     }
     property Pool: Cardinal read FPool write FPool default 0;
   end;
@@ -496,7 +522,7 @@ implementation
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils, CastleInternalNodeInterpolator;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleURIUtils;
 
 var
   UnitFinalization: Boolean;
@@ -670,12 +696,15 @@ end;
 
 function T3DResourceAnimation.Defined: boolean;
 begin
+  {$warnings off} // using deprecated to keep it working
   Result := (URL <> '') or (AnimationName <> '');
+  {$warnings on}
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
+  {$warnings off} // using deprecated to keep it working
   if URL <> '' then
   begin
     FSceneState.Prepare(URL, Owner, Params, DoProgress);
@@ -684,6 +713,7 @@ begin
     else
       FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
+  {$warnings on}
   if AnimationName <> '' then
   begin
     if Owner.ModelState.Scene = nil then
@@ -703,12 +733,21 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
+  {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
     URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
     WritelnWarning('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
+
+  if URL <> '' then
+    WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations. See https://castle-engine.io/creating_data_resources.php .', [
+      Name,
+      Owner.Name
+    ]);
+  {$warnings on}
+
   AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
   begin
@@ -843,6 +882,7 @@ begin
   FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
   FCastShadowVolumes := DefaultCastShadowVolumes;
   FAnimations := T3DResourceAnimationList.Create;
+  FOrientation := TCastleTransform.DefaultOrientation;
 end;
 
 destructor T3DResource.Destroy;
@@ -905,6 +945,7 @@ end;
 procedure T3DResource.LoadFromFile(ResourceConfig: TCastleConfig);
 var
   I: Integer;
+  PoolStr: String;
 begin
   ConfigAlwaysPrepared := ResourceConfig.GetValue('always_prepared', false);
   FFallSpeed := ResourceConfig.GetFloat('fall_speed', DefaultFallSpeed);
@@ -913,6 +954,7 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
+  FOrientation := StrToOrientationType(ResourceConfig.GetValue('orientation', 'default'));
   FDefaultAnimationTransition := ResourceConfig.GetFloat('model/default_animation_transition', 0.0);
   if ResourceConfig.GetValue('model/file_name', '') <> '' then
   begin
@@ -920,7 +962,25 @@ begin
     WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     FModelURL := ResourceConfig.GetURL('model/url', true);
-  Pool := ResourceConfig.GetValue('model/pool', 0);
+
+  { calculate Pool }
+  PoolStr := ResourceConfig.GetValue('model/pool', 'auto');
+  if PoolStr = 'auto' then
+  begin
+    { Do not use Pool for model formats that are
+      - fast to switch current frame (ForceAnimationPose is fast)
+      - do not support animation blending anyway
+      In practice, this means formats with precalculated animation frames, like castle-anim-frames. }
+    if (FModelURL <> '') and
+       ( (URIMimeType(FModelURL) = 'application/x-castle-anim-frames') or
+         (URIMimeType(FModelURL) = 'application/x-md3')
+       ) then
+      Pool := 0
+    else
+      Pool := 1;
+    WritelnLog('Pool for "%s" auto-determined as %d', [Name, Pool]);
+  end else
+    Pool := StrToInt(PoolStr);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);

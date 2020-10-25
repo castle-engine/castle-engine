@@ -837,8 +837,8 @@ type
     function PositionTo2DWorld(const Position: TVector2;
       const ScreenCoordinates: Boolean): TVector2;
 
-    { Prepare resources, to make various methods (like @link(Render))
-      execute fast.
+    { Prepare resources, to make various methods (like @link(Render)) execute fast.
+      Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
     procedure PrepareResources(const DisplayProgressTitle: string = '';
       const Options: TPrepareResourcesOptions = DefaultPrepareOptions);
@@ -1243,7 +1243,7 @@ uses DOM, Math,
   CastleGLUtils, CastleProgress, CastleLog, CastleStringUtils,
   CastleSoundEngine, CastleGLVersion, CastleShapes, CastleTextureImages,
   CastleComponentSerialize, CastleInternalSettings, CastleXMLUtils, CastleURIUtils,
-  CastleRenderContext;
+  CastleRenderContext, CastleApplicationProperties;
 {$warnings on}
 
 procedure Register;
@@ -3025,6 +3025,15 @@ procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
 var
   MainLightPosition: TVector4; // value of this is ignored
 begin
+  if not ApplicationProperties.IsGLContextOpen then
+    raise Exception.Create('PrepareResources can only be called when rendering context is initialized.' + NL +
+      'Various events and virtual methods can be used to wait for the context:' + NL +
+      '- (if you use CastleWindow) Application.OnInitialize' + NL +
+      '- (if you use CastleWindow) TCastleWindowBase.OnOpen' + NL +
+      '- (if you use LCL CastleControl) TCastleControlBase.OnOpen' + NL +
+      '- TCasleUserInterface.GLContextOpen'
+    );
+
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
@@ -3648,7 +3657,7 @@ var
   R: TRegisteredComponent;
 initialization
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
-  Input_Interact.Assign(keyNone, keyNone, '', true, mbLeft);
+  Input_Interact.Assign(keyNone, keyNone, '', true, buttonLeft);
 
   R := TRegisteredComponent.Create;
   {$warnings off} // using deprecated, to keep reading it from castle-user-interface working

@@ -26,6 +26,7 @@
     FSolidColor: TCastleColorRGB;
     FSolidColorBlendingPipeline: Boolean;
     FSeparateDiffuseTexture: boolean;
+    FMaxLightsPerShape: Cardinal;
     FBlending: boolean;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
@@ -85,6 +86,7 @@
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
       DefaultPhongShading = false;
+      DefaultMaxLightsPerShape = 8;
 
       { }
       DefaultBlendingSourceFactor = bsSrcAlpha;
@@ -352,6 +354,21 @@
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
 
+    { For efficiency reasons, we only allow a finite number of lights that can affect
+      the given shape. You can increase this number if necessary.
+
+      Note that, instead of increasing this limit,
+      you can sometimes adjust your models to fit within this limit.
+      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      it is exported OK to glTF), and make smaller shapes.
+
+      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
+      there is an additional hard limit (dependent on GPU, but usually 8, for this).
+      But on modern desktops, as well as mobile and other platforms, you can increase this limit
+      freely. }
+    property MaxLightsPerShape: Cardinal
+      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
+
     { Render partially transparent objects.
 
       More precisely: if this is @true, all shapes with
@@ -529,6 +546,7 @@ begin
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
   FPhongShading := DefaultPhongShading;
+  FMaxLightsPerShape := DefaultMaxLightsPerShape;
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;

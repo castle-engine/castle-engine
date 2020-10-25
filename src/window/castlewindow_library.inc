@@ -498,11 +498,11 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    if (bLeftBtn) then MyButton := buttonLeft else MyButton := buttonRight;
     Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
@@ -527,14 +527,14 @@ end;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
   FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := mbLeft
+      MyButton := buttonLeft
     else
-      MyButton := mbRight;
+      MyButton := buttonRight;
     Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));

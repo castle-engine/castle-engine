@@ -2,7 +2,7 @@
 <!-- Configuration of game sounds. -->
 <sounds>
   <sound name="medkit_use" default_importance="player"/>
-  <sound name="eye_shoot" default_importance="player"/>
+  <sound name="shoot" default_importance="player"/>
 
   <!-- Footsteps sounds are assigned to a ground texture
        in ../texture_properties.xml file -->
