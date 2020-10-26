@@ -14,15 +14,15 @@
 }
 
 { Backward-compatibility, provide TRenderingAttributes type. }
-unit CastleRenderer deprecated 'use CastleRendererBaseTypes to access TRenderOptions';
+unit CastleRenderer deprecated 'use CastleRenderOptions to access TRenderOptions';
 
 interface
 
-uses CastleScene;
+uses CastleRenderOptions;
 
 type
   { Various properties that control rendering. }
-  TRenderingAttributes = CastleScene.TRenderOptions;
+  TRenderingAttributes = CastleRenderOptions.TRenderOptions;
 
 implementation
 

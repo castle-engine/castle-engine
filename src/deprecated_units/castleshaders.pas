@@ -14,22 +14,22 @@
 }
 
 { Shaders types. }
-unit CastleShaders deprecated 'use CastleRendererBaseTypes';
+unit CastleShaders deprecated 'use CastleRenderOptions';
 
 interface
 
 {$I castleconf.inc}
 
-uses CastleRendererBaseTypes;
+uses CastleRenderOptions;
 
 type
   { Shader types. }
-  TShaderType = CastleRendererBaseTypes.TShaderType;
+  TShaderType = CastleRenderOptions.TShaderType;
 
 const
-  stVertex = CastleRendererBaseTypes.stVertex;
-  stGeometry = CastleRendererBaseTypes.stGeometry;
-  stFragment = CastleRendererBaseTypes.stFragment;
+  stVertex = CastleRenderOptions.stVertex;
+  stGeometry = CastleRenderOptions.stGeometry;
+  stFragment = CastleRenderOptions.stFragment;
 
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );

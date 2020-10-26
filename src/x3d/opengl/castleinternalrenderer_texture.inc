@@ -386,7 +386,7 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(Attributes: TRenderingAttributes): boolean;
+    class function ClassVarianceShadowMaps(Attributes: TRenderOptions): boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
@@ -444,7 +444,7 @@ procedure TGLTextureNode.HandleTextureProperties(
     case FilterAuto of
       minDefault:
         case Renderer.Attributes.MinificationFilter of
-          minDefault: Result := TRenderingAttributes.DefaultMinificationFilter;
+          minDefault: Result := TRenderOptions.DefaultMinificationFilter;
           minFastest: Result := minNearest;
           minNicest : Result := minLinearMipmapLinear;
           else        Result := Renderer.Attributes.MinificationFilter;
@@ -462,7 +462,7 @@ procedure TGLTextureNode.HandleTextureProperties(
     case FilterAuto of
       magDefault:
         case Renderer.Attributes.MagnificationFilter of
-          magDefault: Result := TRenderingAttributes.DefaultMagnificationFilter;
+          magDefault: Result := TRenderOptions.DefaultMagnificationFilter;
           magFastest: Result := magNearest;
           magNicest : Result := magLinear;
           else        Result := Renderer.Attributes.MagnificationFilter;
@@ -470,6 +470,23 @@ procedure TGLTextureNode.HandleTextureProperties(
       magFastest: Result := magNearest;
       magNicest : Result := magLinear;
       else        Result := FilterAuto;
+    end;
+  end;
+
+  function TextureFilter(const RenderOptions: TRenderOptions): TTextureFilter;
+  begin
+    case RenderOptions.MinificationFilter of
+      minDefault: Result.Minification := TRenderOptions.DefaultMinificationFilter;
+      minFastest: Result.Minification := minNearest;
+      minNicest : Result.Minification := minLinearMipmapLinear;
+      else        Result.Minification := RenderOptions.MinificationFilter;
+    end;
+
+    case RenderOptions.MagnificationFilter of
+      magDefault: Result.Magnification := TRenderOptions.DefaultMagnificationFilter;
+      magFastest: Result.Magnification := magNearest;
+      magNicest : Result.Magnification := magLinear;
+      else        Result.Magnification := RenderOptions.MagnificationFilter;
     end;
   end;
 
@@ -482,7 +499,7 @@ begin
     GUITexture := TextureProperties.GUITexture;
   end else
   begin
-    Filter := Renderer.Attributes.TextureFilter;
+    Filter := TextureFilter(Renderer.Attributes);
     Anisotropy := 1;
     GUITexture := false;
   end;
@@ -1949,7 +1966,7 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  Attributes: TRenderingAttributes): boolean;
+  Attributes: TRenderOptions): boolean;
 begin
   Result :=
     (Attributes.ShadowSampling = ssVarianceShadowMaps) and

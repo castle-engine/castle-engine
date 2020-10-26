@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes, X3DFields, CastleImages,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleRenderer;
+  CastleInternalRenderer, CastleRenderOptions;
 
 type
   { Shape within a scene rendered using OpenGL.
@@ -70,9 +70,26 @@ type
     function UseBlending: Boolean;
   end;
 
+{ Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  Also, returns @false when UseHierarchicalOcclusionQuery is @true
+  --- because then UseHierarchicalOcclusionQuery should take precedence.
+
+  @exclude Internal. }
+function ReallyUseOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+
+{ Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+  and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+  be used.
+
+  @exclude Internal. }
+function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+
 implementation
 
-uses CastleScene, CastleVectors;
+uses CastleScene, CastleVectors, CastleGLUtils;
 
 { TGLShape --------------------------------------------------------------- }
 
@@ -172,7 +189,7 @@ begin
   end;
 
   {$ifndef OpenGLES}
-  if TCastleScene(ParentScene).Attributes.ReallyUseOcclusionQuery and
+  if ReallyUseOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
     glGenQueriesARB(1, @OcclusionQueryId);
@@ -207,6 +224,29 @@ end;
 function TGLShape.UseBlending: Boolean;
 begin
   Result := UseAlphaChannel = acBlending;
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+function ReallyUseOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.UseOcclusionQuery and
+    (not RenderOptions.UseHierarchicalOcclusionQuery) and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
+end;
+
+function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+begin
+  {$warnings off}
+  Result := RenderOptions.UseHierarchicalOcclusionQuery and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
 end.

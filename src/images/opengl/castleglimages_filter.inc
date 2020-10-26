@@ -18,8 +18,8 @@
 {$ifdef read_interface}
 
 type
-  TMinificationFilter = CastleTextureImages.TMinificationFilter;
-  TMagnificationFilter = CastleTextureImages.TMagnificationFilter;
+  TMinificationFilter = CastleRenderOptions.TMinificationFilter;
+  TMagnificationFilter = CastleRenderOptions.TMagnificationFilter;
 
   TTextureFilter = record
   public
@@ -43,14 +43,14 @@ function TextureFilter(const Minification: TMinificationFilter;
 procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
 
 const
-  minNearest              = CastleTextureImages.minNearest;
-  minLinear               = CastleTextureImages.minLinear;
-  minNearestMipmapNearest = CastleTextureImages.minNearestMipmapNearest;
-  minNearestMipmapLinear  = CastleTextureImages.minNearestMipmapLinear;
-  minLinearMipmapNearest  = CastleTextureImages.minLinearMipmapNearest;
-  minLinearMipmapLinear   = CastleTextureImages.minLinearMipmapLinear;
-  magNearest              = CastleTextureImages.magNearest;
-  magLinear               = CastleTextureImages.magLinear;
+  minNearest              = CastleRenderOptions.minNearest;
+  minLinear               = CastleRenderOptions.minLinear;
+  minNearestMipmapNearest = CastleRenderOptions.minNearestMipmapNearest;
+  minNearestMipmapLinear  = CastleRenderOptions.minNearestMipmapLinear;
+  minLinearMipmapNearest  = CastleRenderOptions.minLinearMipmapNearest;
+  minLinearMipmapLinear   = CastleRenderOptions.minLinearMipmapLinear;
+  magNearest              = CastleRenderOptions.magNearest;
+  magLinear               = CastleRenderOptions.magLinear;
 
 {$endif read_interface}
 

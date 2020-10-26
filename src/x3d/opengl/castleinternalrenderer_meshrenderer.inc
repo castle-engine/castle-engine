@@ -41,7 +41,7 @@ type
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FAttributes: TRenderingAttributes;
+    FAttributes: TRenderOptions;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
@@ -49,7 +49,7 @@ type
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property Attributes: TRenderingAttributes read FAttributes;
+    property Attributes: TRenderOptions read FAttributes;
   public
     PrepareRenderShape: Boolean;
 
@@ -1004,9 +1004,9 @@ begin
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := Attributes.CustomShaderAlphaTest
+      CurrentMeshShader := Attributes.CustomShaderAlphaTest as TX3DShaderProgramBase
     else
-      CurrentMeshShader := Attributes.CustomShader;
+      CurrentMeshShader := Attributes.CustomShader as TX3DShaderProgramBase;
   end else
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }

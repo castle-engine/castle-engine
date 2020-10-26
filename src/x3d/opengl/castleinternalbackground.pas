@@ -88,7 +88,7 @@ implementation
 
 uses Math,
   CastleLog, CastleScene, X3DFields, CastleSceneCore, CastleGLImages,
-  CastleRenderContext;
+  CastleRenderContext, CastleRenderOptions;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -186,7 +186,7 @@ begin
     we even don't want it (because we don't clear depth buffer
     before drawing, so it may contain the depths on 3D world rendered
     in previous frame). }
-  Scene.Attributes.DepthTest := false;
+  Scene.RenderOptions.DepthTest := false;
   { We may share some nodes with the main scene.
     And both scenes must have Static=false (as we will change them,
     e.g. in TBackground3D.UpdateRotation or TBackground2D.Render (UpdateProperties)).
@@ -216,9 +216,9 @@ begin
   Params.RenderingCamera := RenderingCamera;
 
   if Wireframe then
-    Scene.Attributes.WireframeEffect := weWireframeOnly
+    Scene.RenderOptions.WireframeEffect := weWireframeOnly
   else
-    Scene.Attributes.WireframeEffect := weNormal;
+    Scene.RenderOptions.WireframeEffect := weNormal;
 
   if UseClearColor then
     RenderContext.Clear([cbColor], ClearColor);

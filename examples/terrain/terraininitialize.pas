@@ -27,7 +27,7 @@ uses SysUtils, Classes,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   CastleTransform, CastleFrustum, CastleViewport, CastleURIUtils,
-  CastleRectangles, CastleControls, CastleRendererBaseTypes,
+  CastleRectangles, CastleControls, CastleRenderOptions,
   CastleApplicationProperties, CastleLog, CastleScene, X3DLoad,
   TerrainScene;
 

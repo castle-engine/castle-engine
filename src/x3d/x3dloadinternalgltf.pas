@@ -36,8 +36,9 @@ implementation
 uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
   CastleClassUtils, CastleDownload, CastleUtils, CastleURIUtils, CastleLog,
   CastleVectors, CastleStringUtils, CastleTextureImages, CastleQuaternions,
-  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform, CastleRendererBaseTypes,
-  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors;
+  CastleImages, CastleVideos, CastleTimeUtils, CastleTransform,
+  CastleLoadGltf, X3DLoadInternalUtils, CastleBoxes, CastleColors,
+  CastleRenderOptions;
 
 { This unit implements reading glTF into X3D.
   We're using PasGLTF from Bero: https://github.com/BeRo1985/pasgltf/

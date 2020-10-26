@@ -24,18 +24,6 @@ uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays,
   CastleVectors;
 
 type
-  TRadianceTransferFunction = function (Node: TAbstractGeometryNode;
-    RadianceTransfer: PVector3;
-    const RadianceTransferCount: Cardinal): TVector3 of object;
-
-  { Callback used by TRenderingAttributes.OnVertexColor.
-    Passed here VertexPosition is in local coordinates (that is,
-    local of this object, multiply by State.Transform to get scene coords).
-    VertexIndex is the direct index to Node.Coordinates. }
-  TVertexColorFunction = procedure (var Color: TVector3;
-    Shape: TShape; const VertexPosition: TVector3;
-    VertexIndex: Integer) of object;
-
   { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
     of our renderer: generate a TGeometryArrays for a shape,
     then TGLRenderer will pass TGeometryArrays to OpenGL.
@@ -204,8 +192,6 @@ type
     FogVolumetricVisibilityStart: Single;
     ShapeBumpMappingUsed: boolean;
     ShapeBumpMappingTextureCoordinatesId: Cardinal;
-    OnRadianceTransfer: TRadianceTransferFunction;
-    OnVertexColor: TVertexColorFunction;
     { Do we need TGeometryArrays.Faces }
     FacesNeeded: boolean;
     { @groupEnd }
@@ -229,7 +215,7 @@ implementation
 
 uses SysUtils, Math, Generics.Collections,
   CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
-  CastleStringUtils, CastleRendererBaseTypes;
+  CastleStringUtils, CastleRenderOptions;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
@@ -504,21 +490,6 @@ type
       accesses colors)
       and for face we'll use just face number.
 
-    - We also handle RadianceTransfer for all X3DComposedGeometryNode
-      descendants. If set, and non-empty,
-      and OnRadianceTransfer is defined, we will use it.
-
-      We will then ignore Color, ColorRGBA, ColorPerVertex, ColorIndex
-      settings --- only the colors returned by OnRadianceTransfer
-      will be used.
-
-    - Attributes.OnVertexColor, if assigned,
-      will be automatically used here to calculate color for each vertex.
-      If this will be assigned, then the above things
-      (Color, ColorRGBA, ColorPerVertex, ColorIndex, RadianceTransfer)
-      will be ignored -- only the colors returned by OnVertexColor will
-      be used.
-
     Everything related to setting VRML 2.0
     material should be set in Render_MaterialsBegin, and everything
     related to VRML 2.0 colors is handled in this class.
@@ -526,8 +497,6 @@ type
     materials / colors. }
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
-    RadianceTransferVertexSize: Cardinal;
-    RadianceTransfer: TVector3List;
     FaceColor: TVector4;
   protected
     Color: TMFVec3f;
@@ -1633,40 +1602,6 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  {$ifndef CASTLE_SLIM_NODES}
-  if Geometry is TAbstractComposedGeometryNode then
-    RadianceTransfer := (Geometry as TAbstractComposedGeometryNode).FdRadianceTransfer.Items;
-  {$endif}
-
-  { calculate final RadianceTransfer:
-    Leave it non-nil, and calculate RadianceTransferVertexSize,
-    if it's useful. }
-  if RadianceTransfer <> nil then
-  begin
-    if (RadianceTransfer.Count <> 0) and
-       Assigned(OnRadianceTransfer) then
-    begin
-      if RadianceTransfer.Count mod Coord.Count <> 0 then
-      begin
-        WritelnWarning('X3D', 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
-        RadianceTransfer := nil;
-      end else
-      if RadianceTransfer.Count < Coord.Count then
-      begin
-        WritelnWarning('X3D', 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
-        RadianceTransfer := nil;
-      end else
-        RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;
-    end else
-      RadianceTransfer := nil;
-  end;
-
-  if Assigned(OnVertexColor) or
-     (RadianceTransfer <> nil) then
-  begin
-    Arrays.AddColor(cmReplace);
-    AllowIndexed := false;
-  end else
   if ColorNode <> nil then
   begin
     Assert((Color <> nil) or (ColorRGBA <> nil));
@@ -1685,52 +1620,8 @@ begin
 end;
 
 procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
-var
-  VertexColor: TCastleColorRGB;
-  VertexIndex: Cardinal;
-  M: TMaterialInfo;
 begin
   inherited;
-  { Implement different color per vertex here. }
-  if Assigned(OnVertexColor) then
-  begin
-    if CoordIndex <> nil then
-      VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
-      VertexIndex := IndexNum;
-
-    { Get vertex color, taking various possible configurations.
-      OnVertexColor will be able to change it. }
-    if (Color <> nil) and ColorPerVertex then
-    begin
-      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        VertexColor := Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
-      if CoordIndex <> nil then
-        VertexColor := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
-        VertexColor := Color.ItemsSafe[IndexNum];
-    end else
-    begin
-      M := State.MaterialInfo;
-      if M <> nil then
-        VertexColor := M.MainColor
-      else
-        VertexColor := WhiteRGB; { default fallback }
-    end;
-
-    OnVertexColor(VertexColor, Shape, GetVertex(IndexNum), VertexIndex);
-    Arrays.Color(ArrayIndexNum)^ := Vector4(VertexColor, MaterialOpacity);
-  end else
-  if RadianceTransfer <> nil then
-  begin
-    if CoordIndex <> nil then
-      VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
-      VertexIndex := IndexNum;
-
-    VertexColor := OnRadianceTransfer(Geometry,
-      Addr(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
-      RadianceTransferVertexSize);
-
-    Arrays.Color(ArrayIndexNum)^ := Vector4(VertexColor, MaterialOpacity);
-  end else
   if Color <> nil then
   begin
     if ColorPerVertex then
@@ -1763,21 +1654,17 @@ begin
   inherited;
 
   { Implement different color per face here. }
-  if (not Assigned(OnVertexColor)) and
-     (RadianceTransfer = nil) then
+  if (Color <> nil) and (not ColorPerVertex) then
   begin
-    if (Color <> nil) and (not ColorPerVertex) then
-    begin
-      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        FaceColor := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
-        FaceColor := Vector4(Color.ItemsSafe[RangeNumber], MaterialOpacity);
-    end else
-    if (ColorRGBA <> nil) and (not ColorPerVertex) then
-    begin
-      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        FaceColor := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]] else
-        FaceColor := ColorRGBA.ItemsSafe[RangeNumber];
-    end;
+    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+      FaceColor := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
+      FaceColor := Vector4(Color.ItemsSafe[RangeNumber], MaterialOpacity);
+  end else
+  if (ColorRGBA <> nil) and (not ColorPerVertex) then
+  begin
+    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+      FaceColor := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]] else
+      FaceColor := ColorRGBA.ItemsSafe[RangeNumber];
   end;
 end;
 

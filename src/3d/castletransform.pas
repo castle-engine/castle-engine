@@ -22,7 +22,7 @@ interface
 uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
-  CastleSoundEngine, CastleCameras, CastleTriangles;
+  CastleSoundEngine, CastleCameras, CastleTriangles, CastleRenderOptions;
 
 type
   TCastleAbstractRootTransform = class;

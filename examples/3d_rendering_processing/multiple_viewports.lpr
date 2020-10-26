@@ -26,7 +26,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes,
-  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRendererBaseTypes,
+  CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleRenderOptions,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleViewport,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,

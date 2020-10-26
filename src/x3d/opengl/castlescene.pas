@@ -29,23 +29,18 @@ uses SysUtils, Classes, Generics.Collections,
   CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader, CastleColors,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending,
-  CastleInternalBatchShapes;
+  CastleInternalBatchShapes, CastleRenderOptions;
 
 {$define read_interface}
 
 type
   TCastleSceneList = class;
-  TRenderOptions = class;
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TRenderingAttributesEvent = procedure (Attributes: TRenderOptions) of object;
+  TRenderingAttributesEvent = TRenderOptionsEvent deprecated 'use TRenderOptionsEvent';
+  TSceneRenderingAttributes = TRenderOptions deprecated 'use TRenderOptions';
 
-  {$I castlescene_renderoptions.inc}
-
-  TSceneRenderingAttributes = TRenderOptions 'use TRenderOptions';
-
-type
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
@@ -165,7 +160,7 @@ type
       @true for this shape) and Params.Transparent value must include
       given shape. At the end calls Renderer.RenderEnd.
 
-      Additionally this implements blending, looking at Attributes.Blending*,
+      Additionally this implements blending, looking at RenderOptions.Blending*,
       setting appropriate OpenGL state and rendering partially transparent
       shape before all opaque objects.
 
@@ -199,7 +194,7 @@ type
           (from every scene) first, and only then render everything transparent.
           For shadow volumes, this is even more complicated.)
 
-        @item(Note that when Attributes.Blending is @false then everything
+        @item(Note that when RenderOptions.Blending is @false then everything
           is always opaque, so tgOpaque renders everything and tgTransparent
           renders nothing.)
       )
@@ -293,10 +288,10 @@ type
       (so you may prefer to prepare it before, e.g. by calling PrepareResources
       with prShadowVolume included).
 
-      We look at some Attributes, like Attributes.Blending, because transparent
+      We look at some RenderOptions, like RenderOptions.Blending, because transparent
       triangles have to be handled a little differently, and when
-      Attributes.Blending = false then all triangles are forced to be opaque.
-      In other words, this takes Attributes into account, to cooperate with
+      RenderOptions.Blending = false then all triangles are forced to be opaque.
+      In other words, this takes RenderOptions into account, to cooperate with
       our Render method.
 
       ShadowVolumeRenderer.LightPosition is the light position.
@@ -417,7 +412,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(Attributes). }
+      in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastleScene;
 
     { What kind of per-shape frustum culling do when
@@ -516,9 +511,9 @@ var
   DynamicBatching: Boolean = false;
 
 const
-  bsNone = CastleBoxes.bsNone;
-  bs2D = CastleBoxes.bs2D;
-  bs3D = CastleBoxes.bs3D;
+  bsNone = CastleRenderOptions.bsNone;
+  bs2D = CastleRenderOptions.bs2D;
+  bs3D = CastleRenderOptions.bs3D;
 
   paDefault = CastleSceneCore.paDefault;
   paForceLooping = CastleSceneCore.paForceLooping;
@@ -547,7 +542,6 @@ uses CastleGLVersion, CastleImages, CastleLog,
 {$warnings on}
 
 {$define read_implementation}
-{$I castlescene_renderoptions.inc}
 {$I castlescene_roottransform.inc}
 {$undef read_implementation}
 
@@ -634,13 +628,13 @@ constructor TCastleScene.Create(AOwner: TComponent);
 begin
   { inherited Create *may* call some virtual things overriden here
     (although right now it doesn't): it may bind new viewpoint which
-    may call ViewChangedSuddenly which is overridden here and uses Attributes.
+    may call ViewChangedSuddenly which is overridden here and uses RenderOptions.
     That's why I have to initialize them *before* "inherited Create" }
 
-  Renderer := TGLRenderer.Create(GLContextCache);
+  Renderer := TGLRenderer.Create(TRenderOptions, GLContextCache);
 
-  { Note that this calls Renderer.Attributes, so use this only after initializing Renderer. }
-  Attributes.OwnerScene := Self;
+  { Note that this calls Renderer.RenderOptions, so use this only after initializing Renderer. }
+  // TODO RenderOptions.OwnerScene := Self;
 
   inherited Create(AOwner);
 
@@ -687,10 +681,11 @@ begin
 
   GLContextClose;
 
-  { Note that this calls Renderer.Attributes, so use this before
+  { Note that this calls Renderer.RenderOptions, so use this before
     deinitializing Renderer. }
-  if Renderer <> nil then
-    Attributes.FScenes.Remove(Self);
+  // TODO
+  // if Renderer <> nil then
+  //   RenderOptions.OwnerScene := nil;
 
   { We must release all connections between RootNode and Renderer first.
     Reason: when freeing RootNode, image references (from texture nodes)
@@ -844,7 +839,7 @@ begin
       else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
     end;
   end else
-    Result := Attributes.BlendingSort;
+    Result := RenderOptions.BlendingSort;
 end;
 
 procedure TCastleScene.LocalRenderInside(
@@ -880,14 +875,6 @@ var
 
     if (Params.InternalPass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
-
-    { Optionally free Shape arrays data now, if they need to be regenerated. }
-    {$warnings off} // consciously using deprecated stuff, to keep it working
-    if (Assigned(Attributes.OnVertexColor) or
-        Assigned(Attributes.OnRadianceTransfer)) and
-       (Shape.Cache <> nil) then
-      Shape.Cache.FreeArrays([vtAttribute]);
-    {$warnings on}
 
     BlendingRenderer.BeforeRenderShape(Shape);
     Renderer.RenderShape(Shape);
@@ -940,14 +927,14 @@ var
         octree nodes (for hierarchical occ query), so all these things
         should have a map "target->oq state" for various rendering targets. }
 
-      if Attributes.ReallyUseOcclusionQuery and
+      if ReallyUseOcclusionQuery(RenderOptions) and
          (Params.RenderingCamera.Target = rtScreen) then
       begin
         SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_BatchingTest, Params);
       end else
       {$warnings off}
-      if Attributes.DebugHierOcclusionQueryResults and
-         Attributes.UseHierarchicalOcclusionQuery then
+      if RenderOptions.DebugHierOcclusionQueryResults and
+         RenderOptions.UseHierarchicalOcclusionQuery then
       {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
@@ -1031,13 +1018,13 @@ var
     end;
   end;
 
-  { Render for Attributes.Mode = rmFull }
+  { Render for RenderOptions.Mode = rmFull }
   procedure RenderModeFull;
   var
     I: Integer;
   begin
-    if Attributes.ReallyUseHierarchicalOcclusionQuery and
-       (not Attributes.DebugHierOcclusionQueryResults) and
+    if ReallyUseHierarchicalOcclusionQuery(RenderOptions) and
+       (not RenderOptions.DebugHierOcclusionQueryResults) and
        (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
     begin
@@ -1045,13 +1032,13 @@ var
         Params, RenderCameraKnown, RenderCameraPosition);
     end else
     begin
-      if Attributes.Blending then
+      if RenderOptions.Blending then
       begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
           if RenderCameraKnown and
-            (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
+            (ReallyUseOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1119,8 +1106,8 @@ begin
   ModelView := GetModelViewTransform;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if Attributes.ReallyUseOcclusionQuery or
-     Attributes.ReallyUseHierarchicalOcclusionQuery then
+  if ReallyUseOcclusionQuery(RenderOptions) or
+     ReallyUseHierarchicalOcclusionQuery(RenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * ModelView;
@@ -1139,18 +1126,18 @@ begin
     Params.RenderingCamera,
     LightRenderEvent, Params.InternalPass, InternalScenePass, Params.UserPass);
   try
-    case Attributes.Mode of
+    case RenderOptions.Mode of
       rmDepth:
         { When not rmFull, we don't want to do anything with glDepthMask
           or GL_BLEND enable state. Just render everything
           (except: don't render partially transparent stuff for shadow maps). }
         RenderAllAsOpaque(true);
       rmSolidColor:
-        RenderAllAsOpaque(false, Attributes.SolidColorBlendingPipeline);
+        RenderAllAsOpaque(false, RenderOptions.SolidColorBlendingPipeline);
       rmFull:
         RenderModeFull;
       {$ifndef COMPILER_CASE_ANALYSIS}
-      else raise EInternalError.Create('Attributes.Mode?');
+      else raise EInternalError.Create('RenderOptions.Mode?');
       {$endif}
     end;
 
@@ -1339,16 +1326,7 @@ begin
       { We use PreparedRender to avoid potentially expensive iteration
         over shapes and expensive Renderer.RenderBegin/End. }
       PreparedRender := true;
-
-      { Do not prepare when OnVertexColor or OnRadianceTransfer used,
-        as we can only call these callbacks during render (otherwise they
-        may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
-      {$warnings off} // consciously using deprecated stuff, to keep it working
-      if not
-        (Assigned(Attributes.OnVertexColor) or
-         Assigned(Attributes.OnRadianceTransfer)) then
-        PrepareRenderShapes;
-      {$warnings on}
+      PrepareRenderShapes;
     end;
 
     if prBackground in Options then
@@ -1387,25 +1365,25 @@ procedure TCastleScene.LocalRenderOutside(
 
       if UseWireframeColor then
       begin
-        SavedMode := Attributes.Mode;
-        SavedSolidColor := Attributes.SolidColor;
-        Attributes.Mode := rmSolidColor;
-        Attributes.SolidColor := Attributes.WireframeColor;
+        SavedMode := RenderOptions.Mode;
+        SavedSolidColor := RenderOptions.SolidColor;
+        RenderOptions.Mode := rmSolidColor;
+        RenderOptions.SolidColor := RenderOptions.WireframeColor;
       end;
 
       RenderNormal;
 
       if UseWireframeColor then
       begin
-        Attributes.Mode := SavedMode;
-        Attributes.SolidColor := SavedSolidColor;
+        RenderOptions.Mode := SavedMode;
+        RenderOptions.SolidColor := SavedSolidColor;
       end;
     glPopAttrib;
   end;
   {$warnings on}
   {$endif}
 
-  { Render taking Attributes.WireframeEffect into account.
+  { Render taking RenderOptions.WireframeEffect into account.
     Also controls InternalScenePass,
     this way shaders from RenderNormal and RenderWireframe can coexist,
     which avoids FPS drops e.g. at weSilhouette rendering a single 3D model. }
@@ -1415,7 +1393,7 @@ procedure TCastleScene.LocalRenderOutside(
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
   begin
-    case Attributes.WireframeEffect of
+    case RenderOptions.WireframeEffect of
       weNormal:
         begin
           InternalScenePass := 0;
@@ -1424,7 +1402,7 @@ procedure TCastleScene.LocalRenderOutside(
       weWireframeOnly:
         begin
           InternalScenePass := 1;
-          RenderWireframe(Attributes.Mode = rmSolidColor);
+          RenderWireframe(RenderOptions.Mode = rmSolidColor);
         end;
       weSolidWireframe:
         begin
@@ -1434,7 +1412,7 @@ procedure TCastleScene.LocalRenderOutside(
             glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(Attributes.SolidWireframeScale, Attributes.SolidWireframeBias); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(RenderOptions.SolidWireframeScale, RenderOptions.SolidWireframeBias); { saved by GL_POLYGON_BIT }
             RenderNormal;
           glPopAttrib;
 
@@ -1449,7 +1427,7 @@ procedure TCastleScene.LocalRenderOutside(
           InternalScenePass := 1;
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(RenderOptions.SilhouetteScale, RenderOptions.SilhouetteBias); { saved by GL_POLYGON_BIT }
 
             (* Old idea, may be resurrected one day:
 
@@ -1468,14 +1446,14 @@ procedure TCastleScene.LocalRenderOutside(
               What we really would like to is to negate the FrontFaceCcw
               interpretation inside this RenderWireframe call.
             }
-            if Attributes.Mode = rmSolidColor then
+            if RenderOptions.Mode = rmSolidColor then
               glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
             *)
 
             RenderWireframe(true);
           glPopAttrib;
         end;
-      else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
+      else raise EInternalError.Create('Render: RenderOptions.WireframeEffect ?');
     end;
   {$warnings on}
   {$else}
@@ -1495,8 +1473,8 @@ procedure TCastleScene.LocalRenderOutside(
       depth output. Also set up specialized shaders. }
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
-      SavedMode := Attributes.Mode;
-      Attributes.Mode := rmDepth;
+      SavedMode := RenderOptions.Mode;
+      RenderOptions.Mode := rmDepth;
 
       if Params.RenderingCamera.Target = rtVarianceShadowMap then
       begin
@@ -1512,19 +1490,19 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
-      SavedShaders.Shader          := Attributes.CustomShader;
-      SavedShaders.ShaderAlphaTest := Attributes.CustomShaderAlphaTest;
-      Attributes.CustomShader          := NewShaders.Shader;
-      Attributes.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
+      SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
+      SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
+      RenderOptions.CustomShader          := NewShaders.Shader;
+      RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
     end;
 
     RenderWithWireframeEffect;
 
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
-      Attributes.Mode := SavedMode;
-      Attributes.CustomShader          := SavedShaders.Shader;
-      Attributes.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
+      RenderOptions.Mode := SavedMode;
+      RenderOptions.CustomShader          := SavedShaders.Shader;
+      RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end;
   end;
 
@@ -1616,7 +1594,7 @@ begin
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
-    ForceOpaque := not (Attributes.Blending and (Attributes.Mode = rmFull));
+    ForceOpaque := not (RenderOptions.Blending and (RenderOptions.Mode = rmFull));
 
     { calculate and check SceneBox }
     SceneBox := LocalBoundingBox;
@@ -1971,7 +1949,7 @@ end;
 
 function TCastleScene.RenderOptions: TRenderOptions;
 begin
-  Result := Renderer.RenderOptions;
+  Result := Renderer.Attributes;
 end;
 
 procedure TCastleScene.UpdateGeneratedTextures(
@@ -2012,7 +1990,7 @@ var
 begin
   inherited;
 
-  if Attributes.ReallyUseOcclusionQuery then
+  if ReallyUseOcclusionQuery(RenderOptions) then
   begin
     WritelnLog('Occlusion query', 'View changed suddenly');
 
@@ -2151,7 +2129,7 @@ end;
 
 procedure TCastleScene.Setup2D;
 begin
-  Attributes.BlendingSort := bs2D;
+  RenderOptions.BlendingSort := bs2D;
 end;
 
 { TCastleSceneList ------------------------------------------------------ }

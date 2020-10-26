@@ -1,13 +1,33 @@
+{%MainUnit castlerenderoptions.pas}
+
+{
+  Copyright 2002-2020 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 {$ifdef read_interface}
 
+type
+  TRenderOptions = class;
+
+  TRenderOptionsEvent = procedure (Options: TRenderOptions) of object;
+
   { Options that control rendering,
-    available for every scene through @link(TCastleScene.RenderOptions) }
+    available at every scene through @link(TCastleScene.RenderOptions). }
   TRenderOptions = class(TComponent)
   strict private
-    OwnerScene: TCastleScene;
+    // TODO OwnerScene: TCastleScene;
 
-    FOnRadianceTransfer: TRadianceTransferFunction;
-    FOnVertexColor: TVertexColorFunction;
     FLighting: boolean;
     FUseSceneLights: boolean;
     FOpacity: Single;
@@ -17,7 +37,7 @@
     FPointSize: Single;
     FLineWidth: Single;
     FBumpMapping: TBumpMapping;
-    FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
+    FCustomShader, FCustomShaderAlphaTest: TObject;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
@@ -48,8 +68,6 @@
     { These methods just set the value on given property,
       eventually (some of them) calling ReleaseCachedResources.
       @groupBegin }
-    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
-    procedure SetOnVertexColor(const Value: TVertexColorFunction);
     procedure SetEnableTextures(const Value: boolean);
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
@@ -72,8 +90,7 @@
       @unorderedList(
         @item(How TShapeCache.Arrays contents are generated.
           For example, Generator uses TexCoordsNeeded, so changing
-          any attribute that affects TexCoordsNeeded calls this method.
-          Likewise OnVertexColor determines if color array will be loaded at all.)
+          any attribute that affects TexCoordsNeeded calls this method.)
 
         @item(How (and if) TShapeCache.Vbo are loaded.)
 
@@ -124,6 +141,8 @@
       DefaultSilhouetteScale = 5;
       DefaultSilhouetteBias = 5;
 
+      DefaultShadowSampling = ssPCF16;
+
     class var
       { Value used when @link(MinificationFilter) is minDefault.
         By default, this is minLinearMipmapLinear. }
@@ -131,42 +150,18 @@
       { Value used when @link(MagnificationFilter) is magDefault.
         By default, this is magLinear. }
       DefaultMagnificationFilter: TMagnificationFilter;
-
       { Adjust attributes of all loaded resources. }
-      OnCreate: TRenderingAttributesEvent; static;
+      OnCreate: TRenderOptionsEvent;
 
     constructor Create(AOwner: TComponent); override;
 
     procedure Assign(Source: TPersistent); override;
 
-    { Is the second TRenderingAttributes instance on all fields
+    { Is the second TRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TRenderingAttributes): boolean; virtual;
-
-    { Calculate vertex color from radiance transfer.
-      If this is assigned, and geometry object has radianceTransfer
-      field (see [https://castle-engine.io/x3d_extensions.php#section_ext_radiance_transfer])
-      then this is used to calculate the color of each vertex.
-
-      Note that this is evaluated when object is rendered.
-      It causes the shapes resources to be regenerated at each render frame,
-      since we have to assume that results of this function change. }
-    property OnRadianceTransfer: TRadianceTransferFunction
-      read FOnRadianceTransfer write SetOnRadianceTransfer;
-      deprecated 'use Color node, or shaders, to change per-vertex colors';
-
-    { Calculate vertex color for given vertex by a callback.
-      If this is assigned, then this is used to calculate
-      the color of each vertex.
-
-      Note that this is evaluated when object is rendered.
-      It causes the shapes resources to be regenerated at each render frame,
-      since we have to assume that results of this function change. }
-    property OnVertexColor: TVertexColorFunction
-      read FOnVertexColor write SetOnVertexColor;
-      deprecated 'use Color node, or shaders, to change per-vertex colors';
+    function EqualForShapeCache(SecondValue: TRenderOptions): boolean; virtual;
 
     { Enable OpenGL lighting when rendering.
       This is @true by default, since it's almost always wanted.
@@ -226,7 +221,6 @@
       read FMinificationFilter write SetMinificationFilter default minDefault;
     property MagnificationFilter: TAutoMagnificationFilter
       read FMagnificationFilter write SetMagnificationFilter default magDefault;
-    function TextureFilter: TTextureFilter;
     { @groupEnd }
 
     { Size of points. This has an effect on VRML/X3D PointSet rendering.
@@ -274,20 +268,22 @@
       default DefaultPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
+      It must be a @link(TX3DShaderProgramBase) instance.
       When this is assigned, @link(Shaders) value is ignored.
 
       @italic(Avoid using this.) It's not easy to create portable shaders,
       that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
       https://castle-engine.io/compositing_shaders.php which still allow you
       to write GLSL effects, but they are integrated into standard shader code. }
-    property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
+    property CustomShader: TObject read FCustomShader write FCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
+      It must be a @link(TX3DShaderProgramBase) instance.
       Relevant only if CustomShader <> nil.
 
       @italic(Do not use this.) This is a temporary hack to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else. }
-    property CustomShaderAlphaTest: TX3DShaderProgramBase read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
+    property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -505,24 +501,9 @@
     property DebugHierOcclusionQueryResults: boolean
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
-
-    { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
-      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-      be used.
-
-      Also, returns @false when UseHierarchicalOcclusionQuery is @true
-      --- because then UseHierarchicalOcclusionQuery should take precedence.
-
-      @exclude Internal. }
-    function ReallyUseOcclusionQuery: boolean;
-
-    { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
-      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-      be used.
-
-      @exclude Internal. }
-    function ReallyUseHierarchicalOcclusionQuery: boolean;
   end;
+
+  TRenderOptionsClass = class of TRenderOptions;
 
 {$endif read_interface}
 
@@ -568,10 +549,6 @@ procedure TRenderOptions.Assign(Source: TPersistent);
 begin
   if Source is TRenderOptions then
   begin
-    {$warnings off} // consciously using deprecated stuff, to keep it working
-    OnRadianceTransfer := TRenderOptions(Source).OnRadianceTransfer;
-    OnVertexColor := TRenderOptions(Source).OnVertexColor;
-    {$warnings on}
     Lighting := TRenderOptions(Source).Lighting;
     UseSceneLights := TRenderOptions(Source).UseSceneLights;
     Opacity := TRenderOptions(Source).Opacity;
@@ -597,12 +574,8 @@ end;
 function TRenderOptions.EqualForShapeCache(
   SecondValue: TRenderOptions): boolean;
 begin
-  {$warnings off} // consciously using deprecated stuff, to keep it working
   Result :=
-    (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
-    (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.EnableTextures = EnableTextures);
-  {$warnings on}
 end;
 
 procedure TRenderOptions.ReleaseCachedResources;
@@ -612,28 +585,8 @@ begin
     from OpenGL, to release screen effects (referencing renderer shaders)
     and such. So full GLContextClose is needed. }
 
-  if TemporaryAttributeChange = 0 then
-    OwnerScene.GLContextClose;
-end;
-
-procedure TRenderOptions.SetOnRadianceTransfer(
-  const Value: TRadianceTransferFunction);
-begin
-  if FOnRadianceTransfer <> Value then
-  begin
-    ReleaseCachedResources;
-    FOnRadianceTransfer := Value;
-  end;
-end;
-
-procedure TRenderOptions.SetOnVertexColor(
-  const Value: TVertexColorFunction);
-begin
-  if FOnVertexColor <> Value then
-  begin
-    ReleaseCachedResources;
-    FOnVertexColor := Value;
-  end;
+  // TODO if TemporaryAttributeChange = 0 then
+  // TODO   OwnerScene.GLContextClose;
 end;
 
 procedure TRenderOptions.SetEnableTextures(const Value: boolean);
@@ -660,23 +613,6 @@ begin
   begin
     ReleaseCachedResources;
     FMagnificationFilter := Value;
-  end;
-end;
-
-function TRenderOptions.TextureFilter: TTextureFilter;
-begin
-  case MinificationFilter of
-    minDefault: Result.Minification := DefaultMinificationFilter;
-    minFastest: Result.Minification := minNearest;
-    minNicest : Result.Minification := minLinearMipmapLinear;
-    else        Result.Minification := MinificationFilter;
-  end;
-
-  case MagnificationFilter of
-    magDefault: Result.Magnification := DefaultMagnificationFilter;
-    magFastest: Result.Magnification := magNearest;
-    magNicest : Result.Magnification := magLinear;
-    else        Result.Magnification := MagnificationFilter;
   end;
 end;
 
@@ -758,8 +694,6 @@ begin
 end;
 
 procedure TRenderOptions.SetUseOcclusionQuery(const Value: boolean);
-var
-  I: Integer;
 begin
   if UseOcclusionQuery <> Value then
   begin
@@ -770,39 +704,17 @@ begin
       { If you switch UseOcclusionQuery on, then off, then move around the scene
         a lot, then switch UseOcclusionQuery back on --- you don't want to use
         results from previous query that was done many frames ago. }
-      FScenes.ViewChangedSuddenly;
+      // TODO OwnerScene.ViewChangedSuddenly;
 
       { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
         that initializes OcclusionQueryId for each shape }
-      if TemporaryAttributeChange = 0 then
-        OwnerScene.PreparedShapesResources := false;
+      // TODO if TemporaryAttributeChange = 0 then
+      // TODO   OwnerScene.PreparedShapesResources := false;
     end;
   end;
 end;
 
-function TRenderOptions.ReallyUseOcclusionQuery: boolean;
-begin
-  {$warnings off}
-  Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
-    GLFeatures.ARB_occlusion_query and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.QueryCounterBits > 0);
-  {$warnings on}
-end;
-
-function TRenderOptions.ReallyUseHierarchicalOcclusionQuery: boolean;
-begin
-  {$warnings off}
-  Result := UseHierarchicalOcclusionQuery and
-    GLFeatures.ARB_occlusion_query and
-    GLFeatures.VertexBufferObject and
-    (GLFeatures.QueryCounterBits > 0);
-  {$warnings on}
-end;
-
 procedure TRenderOptions.SetPhongShading(const Value: boolean);
-var
-  I: Integer;
 begin
   if PhongShading <> Value then
   begin
@@ -811,8 +723,8 @@ begin
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }
-    if TemporaryAttributeChange = 0 then
-      OwnerScene.PreparedRender := false;
+    // TODO if TemporaryAttributeChange = 0 then
+    // TODO   OwnerScene.PreparedRender := false;
   end;
 end;
 

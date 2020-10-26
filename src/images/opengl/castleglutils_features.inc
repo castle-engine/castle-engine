@@ -173,7 +173,8 @@ type
 
       Note that MaxLights is only relevant if we use OpenGL fixed-function pipeline.
       Otherwise the actual limit is defined purely by
-      @link(SceneTRenderingAttributes.MaxLightsPerShape), specific to each TCastleScene,
+      @link(TRenderOptions.MaxLightsPerShape Scene.RenderOptions.MaxLightsPerShape),
+      specific to each TCastleScene,
       and is completely configurable (can be higher or lower than MaxLights).
 
       @groupBegin }

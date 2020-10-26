@@ -32,30 +32,7 @@ uses SysUtils, Classes, Generics.Collections,
   X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles, CastleImages,
   CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
-type
-  TShadowSampling = (ssSimple,
-
-    { Percentage Closer Filtering improve shadow maps look, by sampling
-      the depth map a couple of times. They also make shadow more blurry
-      (increase shadow map size to counteract this), and a little slower.
-      They may also introduce new artifacts (due to bad interaction
-      with the "polygon offset" of shadow map). }
-    ssPCF4, ssPCF4Bilinear, ssPCF16,
-
-    { Variance Shadow Maps, see http://www.punkuser.net/vsm/ .
-      This may generally produce superior
-      results, as shadow maps can be then filtered like normal textures
-      (bilinear, mipmaps, anisotropic filtering). So shadows look much nicer
-      from very close and very far distances.
-      However, this requires new GPU, and may cause artifacts on some scenes. }
-    ssVarianceShadowMaps);
-
 const
-  ShadowSamplingNames: array [TShadowSampling] of string =
-  ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
-
-  DefaultShadowSampling = ssPCF16;
-
   { }
   DefLocalTriangleOctreeMaxDepth = 10;
   { Default octree leaf capacity for TShape.OctreeTriangles.

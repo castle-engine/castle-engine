@@ -265,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext, CastleRenderOptions;
 
 function ScreenEffectVertex: string;
 begin

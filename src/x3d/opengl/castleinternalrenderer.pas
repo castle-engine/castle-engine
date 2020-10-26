@@ -124,7 +124,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRendererBaseTypes;
+  CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 
 {$define read_interface}
 
@@ -135,7 +135,7 @@ type
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
   { Various properties that control rendering. }
-  TRenderingAttributes = TODO: BETTER TO MOVE IT TO CastleRendererBaseTypes AFTER ALL?.TRenderOptions;
+  TRenderingAttributes = CastleRenderOptions.TRenderOptions;
 
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -208,7 +208,7 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TRenderingAttributes;
+    Attributes: TRenderOptions;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
     FogVolumetric: boolean;
@@ -403,10 +403,10 @@ type
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
 
-  {$I castlerenderer_resource.inc}
-  {$I castlerenderer_texture.inc}
-  {$I castlerenderer_glsl.inc}
-  {$I castlerenderer_pass.inc}
+  {$I castleinternalrenderer_resource.inc}
+  {$I castleinternalrenderer_texture.inc}
+  {$I castleinternalrenderer_glsl.inc}
+  {$I castleinternalrenderer_pass.inc}
 
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
@@ -545,7 +545,7 @@ type
     property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineType: TLineType read FLineType write SetLineType;
 
-    {$I castlerenderer_surfacetextures.inc}
+    {$I castleinternalrenderer_surfacetextures.inc}
   private
     { ----------------------------------------------------------------- }
 
@@ -563,7 +563,7 @@ type
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TRenderingAttributes;
+    FAttributes: TRenderOptions;
 
     FCache: TGLRendererContextCache;
 
@@ -652,7 +652,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(const AttributesClass: TRenderingAttributesClass;
+    constructor Create(const AttributesClass: TRenderOptionsClass;
       const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -660,7 +660,7 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TRenderingAttributes read FAttributes;
+    property Attributes: TRenderOptions read FAttributes;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -723,13 +723,6 @@ type
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
 
-  BumpMappingNames: array [TBumpMapping] of string =
-  ( 'None',
-    'Basic',
-    'Parallax',
-    'Steep Parallax',
-    'Steep Parallax With Self-Shadowing' );
-
   rmPureGeometry = rmSolidColor deprecated 'use rmSolidColor';
 
 var
@@ -751,16 +744,16 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes,
+  CastleCameras, CastleSceneInternalShape,
   CastleRenderContext;
 
 {$define read_implementation}
 
-{$I castlerenderer_meshrenderer.inc}
-{$I castlerenderer_resource.inc}
-{$I castlerenderer_texture.inc}
-{$I castlerenderer_surfacetextures.inc}
-{$I castlerenderer_glsl.inc}
+{$I castleinternalrenderer_meshrenderer.inc}
+{$I castleinternalrenderer_resource.inc}
+{$I castleinternalrenderer_texture.inc}
+{$I castleinternalrenderer_surfacetextures.inc}
+{$I castleinternalrenderer_glsl.inc}
 
 { TGLRendererContextCache -------------------------------------------- }
 
@@ -1444,15 +1437,10 @@ var
       (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
-    {$warnings off} // consciously using deprecated stuff, to keep it working
-    Result := not (
-      { If we use any features that (may) render shape differently
-        if shape's transform (or other stuff handled outside arrays
-        and castlerenderer) changes, then Result must be false. }
-      Assigned(ARenderer.Attributes.OnVertexColor) or
-      Assigned(ARenderer.Attributes.OnRadianceTransfer) or
-      FogVolumetric);
-    {$warnings on}
+    { If we use any features that (may) render shape differently
+      if shape's transform (or other stuff handled outside arrays
+      and castlerenderer) changes, then Result must be false. }
+    Result := not FogVolumetric;
   end;
 
   function FogVolumetricEqual(
@@ -1623,12 +1611,12 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  const AttributesClass: TRenderingAttributesClass;
+  const AttributesClass: TRenderOptionsClass;
   const ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
-  FAttributes := AttributesClass.Create;
+  FAttributes := AttributesClass.Create(nil);
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -2410,7 +2398,7 @@ end;
 procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
   const Shader: TShader);
 
-  {$I castlerenderer_materials.inc}
+  {$I castleinternalrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
@@ -3170,10 +3158,6 @@ begin
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
         Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
-        {$warnings off} // consciously using deprecated stuff, to keep it working
-        Generator.OnVertexColor := Attributes.OnVertexColor;
-        Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
-        {$warnings on}
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 
@@ -3432,6 +3416,6 @@ begin
 end;
 
 initialization
-  TRenderingAttributes.DefaultMinificationFilter := minLinearMipmapLinear;
-  TRenderingAttributes.DefaultMagnificationFilter := magLinear;
+  TRenderOptions.DefaultMinificationFilter := minLinearMipmapLinear;
+  TRenderOptions.DefaultMagnificationFilter := magLinear;
 end.
