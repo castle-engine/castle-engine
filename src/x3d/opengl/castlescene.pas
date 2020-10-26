@@ -545,9 +545,6 @@ uses CastleGLVersion, CastleImages, CastleLog,
 {$I castlescene_roottransform.inc}
 {$undef read_implementation}
 
-var
-  TemporaryAttributeChange: Cardinal = 0;
-
 procedure Register;
 begin
   {$ifdef CASTLE_REGISTER_ALL_COMPONENTS_IN_LAZARUS}

@@ -585,7 +585,6 @@ begin
     from OpenGL, to release screen effects (referencing renderer shaders)
     and such. So full GLContextClose is needed. }
 
-  // TODO if TemporaryAttributeChange = 0 then
   // TODO   OwnerScene.GLContextClose;
 end;
 
@@ -708,7 +707,6 @@ begin
 
       { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
         that initializes OcclusionQueryId for each shape }
-      // TODO if TemporaryAttributeChange = 0 then
       // TODO   OwnerScene.PreparedShapesResources := false;
     end;
   end;
@@ -723,7 +721,6 @@ begin
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }
-    // TODO if TemporaryAttributeChange = 0 then
     // TODO   OwnerScene.PreparedRender := false;
   end;
 end;
