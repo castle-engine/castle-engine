@@ -143,7 +143,7 @@ begin
     URIExtractAnchor(FURL, SettingsMap);
     for Setting in SettingsMap do
     begin
-      if Setting.Key = 'fps' then
+      if LowerCase(Setting.Key) = 'fps' then
       begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
       end else

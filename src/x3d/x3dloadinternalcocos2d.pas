@@ -46,7 +46,7 @@ type
         FDisplayURL: String;
         FCocosFormat: Integer;
 
-        FParseFrameDictionary : procedure (const DictNode: TDOMElement) of object;
+        FParseFrameDictionary: procedure (const DictNode: TDOMElement) of object;
 
         procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
         procedure ParseAnimationName(const FrameFileName: String);
@@ -536,7 +536,7 @@ begin
     URIExtractAnchor(FURL, SettingsMap);
     for Setting in SettingsMap do
     begin
-      if Setting.Key = 'fps' then
+      if LowerCase(Setting.Key) = 'fps' then
       begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
       end else

@@ -102,16 +102,16 @@ begin
     URIExtractAnchor(FURL, SettingsMap);
     for Setting in SettingsMap do
     begin
-      if Setting.Key = 'left' then
+      if LowerCase(Setting.Key) = 'left' then
         FLeft := StrToInt(Setting.Value)
       else
-      if Setting.Key = 'bottom' then
+      if LowerCase(Setting.Key) = 'bottom' then
         FBottom := StrToInt(Setting.Value)
       else
-      if Setting.Key = 'width' then
+      if LowerCase(Setting.Key) = 'width' then
         FWidth := StrToInt(Setting.Value)
       else
-      if Setting.Key = 'height' then
+      if LowerCase(Setting.Key) = 'height' then
         FHeight := StrToInt(Setting.Value)
       else
         WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
