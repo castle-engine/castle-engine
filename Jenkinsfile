@@ -144,13 +144,6 @@ pipeline {
         sh './tools/internal/pack_release/pack_release.sh'
       }
     }
-    /* update Docker image only when the "master" branch changes */
-    stage('Update Docker Image with CGE') {
-      when { branch 'master' }
-      steps {
-        build job: '../castle_game_engine_update_docker_image'
-      }
-    }
   }
   post {
     success {
