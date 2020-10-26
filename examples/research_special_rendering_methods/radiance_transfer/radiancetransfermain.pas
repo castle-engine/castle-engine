@@ -160,9 +160,10 @@ end;
 
 procedure UpdateViewMode;
 begin
-  if ViewMode = vmNormal then
-    Scene.Attributes.OnRadianceTransfer := nil else
-    Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
+  // TODO
+  // if ViewMode = vmNormal then
+  //   Scene.Attributes.OnRadianceTransfer := nil else
+  //  Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);

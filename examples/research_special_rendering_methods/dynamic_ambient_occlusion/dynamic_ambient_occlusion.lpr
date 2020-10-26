@@ -851,12 +851,14 @@ begin
   case DrawType of
     dtNormalGL:
       begin
-        Scene.Attributes.OnVertexColor := nil;
+        // TODO
+        // Scene.Attributes.OnVertexColor := nil;
         Scene.Attributes.Lighting := true;
       end;
     dtPass1, dtPass2:
       begin
-        Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
+        // TODO: Make it work after Scene.Attributes.OnVertexColor removed
+        // Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
         Scene.Attributes.Lighting := false;
       end;
     { else they don't matter }
