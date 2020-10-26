@@ -18,13 +18,13 @@
 {$ifdef read_interface}
 
 type
-  TRenderOptions = class;
+  TCastleRenderOptions = class;
 
-  TRenderOptionsEvent = procedure (Options: TRenderOptions) of object;
+  TCastleRenderOptionsEvent = procedure (Options: TCastleRenderOptions) of object;
 
   { Options that control rendering,
     available at every scene through @link(TCastleScene.RenderOptions). }
-  TRenderOptions = class(TComponent)
+  TCastleRenderOptions = class(TComponent)
   strict private
     FLighting: boolean;
     FUseSceneLights: boolean;
@@ -107,7 +107,7 @@ type
       DefaultBlendingSourceFactor = bsSrcAlpha;
 
       { Default value of Attributes.BlendingDestinationFactor.
-        See TRenderOptions.BlendingDestinationFactor.
+        See TCastleRenderOptions.BlendingDestinationFactor.
 
         Using bdOneMinusSrcAlpha is the standard value for 3D graphic stuff,
         often producing best results. However, it causes troubles when
@@ -115,7 +115,7 @@ type
         For closed convex 3D objects, using backface culling
         (solid = TRUE for geometry) helps. For multiple transparent shapes,
         sorting the transparent shapes helps,
-        see @link(TRenderOptions.BlendingSort).
+        see @link(TCastleRenderOptions.BlendingSort).
         Sometimes, no solution works for all camera angles.
 
         Another disadvantage of bdOneMinusSrcAlpha may be that
@@ -129,7 +129,7 @@ type
         often making too bright results. }
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
 
-      { Default value of @link(TRenderOptions.BlendingSort). }
+      { Default value of @link(TCastleRenderOptions.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
       DefaultWireframeColor: TCastleColorRGB = (Data: (0, 0, 0));
@@ -149,17 +149,17 @@ type
         By default, this is magLinear. }
       DefaultMagnificationFilter: TMagnificationFilter;
       { Adjust attributes of all loaded resources. }
-      OnCreate: TRenderOptionsEvent;
+      OnCreate: TCastleRenderOptionsEvent;
 
     constructor Create(AOwner: TComponent); override;
 
     procedure Assign(Source: TPersistent); override;
 
-    { Is the second TRenderOptions instance on all fields
+    { Is the second TCastleRenderOptions instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TRenderOptions): boolean; virtual;
+    function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
     { Enable OpenGL lighting when rendering.
       This is @true by default, since it's almost always wanted.
@@ -227,7 +227,7 @@ type
       read FPointSize write FPointSize default DefaultPointSize;
 
     { Line width. This has an effect on VRML/X3D LineSet rendering,
-      and on wireframe rendering for TRenderOptions.WireframeEffect.
+      and on wireframe rendering for TCastleRenderOptions.WireframeEffect.
       Must be > 0. }
     property LineWidth: Single
       read FLineWidth write FLineWidth default DefaultLineWidth;
@@ -501,15 +501,15 @@ type
       write FDebugHierOcclusionQueryResults default false;
   end;
 
-  TRenderOptionsClass = class of TRenderOptions;
+  TCastleRenderOptionsClass = class of TCastleRenderOptions;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TRenderOptions --------------------------------------------------- }
+{ TCastleRenderOptions --------------------------------------------------- }
 
-constructor TRenderOptions.Create(AOwner: TComponent);
+constructor TCastleRenderOptions.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -543,44 +543,44 @@ begin
     OnCreate(Self);
 end;
 
-procedure TRenderOptions.Assign(Source: TPersistent);
+procedure TCastleRenderOptions.Assign(Source: TPersistent);
 begin
-  if Source is TRenderOptions then
+  if Source is TCastleRenderOptions then
   begin
-    Lighting := TRenderOptions(Source).Lighting;
-    UseSceneLights := TRenderOptions(Source).UseSceneLights;
-    Opacity := TRenderOptions(Source).Opacity;
-    EnableTextures := TRenderOptions(Source).EnableTextures;
-    MinificationFilter := TRenderOptions(Source).MinificationFilter;
-    MagnificationFilter := TRenderOptions(Source).MagnificationFilter;
-    PointSize := TRenderOptions(Source).PointSize;
-    LineWidth := TRenderOptions(Source).LineWidth;
-    Blending := TRenderOptions(Source).Blending;
-    BlendingSourceFactor := TRenderOptions(Source).BlendingSourceFactor;
-    BlendingDestinationFactor := TRenderOptions(Source).BlendingDestinationFactor;
-    BlendingSort := TRenderOptions(Source).BlendingSort;
-    OcclusionSort := TRenderOptions(Source).OcclusionSort;
-    ControlBlending := TRenderOptions(Source).ControlBlending;
-    UseOcclusionQuery := TRenderOptions(Source).UseOcclusionQuery;
+    Lighting := TCastleRenderOptions(Source).Lighting;
+    UseSceneLights := TCastleRenderOptions(Source).UseSceneLights;
+    Opacity := TCastleRenderOptions(Source).Opacity;
+    EnableTextures := TCastleRenderOptions(Source).EnableTextures;
+    MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
+    MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
+    PointSize := TCastleRenderOptions(Source).PointSize;
+    LineWidth := TCastleRenderOptions(Source).LineWidth;
+    Blending := TCastleRenderOptions(Source).Blending;
+    BlendingSourceFactor := TCastleRenderOptions(Source).BlendingSourceFactor;
+    BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
+    BlendingSort := TCastleRenderOptions(Source).BlendingSort;
+    OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
+    ControlBlending := TCastleRenderOptions(Source).ControlBlending;
+    UseOcclusionQuery := TCastleRenderOptions(Source).UseOcclusionQuery;
     {$warnings off}
-    UseHierarchicalOcclusionQuery := TRenderOptions(Source).UseHierarchicalOcclusionQuery;
+    UseHierarchicalOcclusionQuery := TCastleRenderOptions(Source).UseHierarchicalOcclusionQuery;
     {$warnings on}
   end else
     inherited;
 end;
 
-function TRenderOptions.EqualForShapeCache(
-  SecondValue: TRenderOptions): boolean;
+function TCastleRenderOptions.EqualForShapeCache(
+  SecondValue: TCastleRenderOptions): boolean;
 begin
   Result :=
     (SecondValue.EnableTextures = EnableTextures);
 end;
 
-procedure TRenderOptions.ReleaseCachedResources;
+procedure TCastleRenderOptions.ReleaseCachedResources;
 begin
 end;
 
-procedure TRenderOptions.SetEnableTextures(const Value: boolean);
+procedure TCastleRenderOptions.SetEnableTextures(const Value: boolean);
 begin
   if EnableTextures <> Value then
   begin
@@ -589,7 +589,7 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetMinificationFilter(const Value: TAutoMinificationFilter);
+procedure TCastleRenderOptions.SetMinificationFilter(const Value: TAutoMinificationFilter);
 begin
   if MinificationFilter <> Value then
   begin
@@ -598,7 +598,7 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
+procedure TCastleRenderOptions.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
 begin
   if MagnificationFilter <> Value then
   begin
@@ -607,7 +607,7 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetBumpMapping(const Value: TBumpMapping);
+procedure TCastleRenderOptions.SetBumpMapping(const Value: TBumpMapping);
 begin
   if BumpMapping <> Value then
   begin
@@ -616,12 +616,12 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetMode(const Value: TRenderingMode);
+procedure TCastleRenderOptions.SetMode(const Value: TRenderingMode);
 begin
   FMode := Value;
 end;
 
-procedure TRenderOptions.SetShadowSampling(const Value: TShadowSampling);
+procedure TCastleRenderOptions.SetShadowSampling(const Value: TShadowSampling);
 begin
   if FShadowSampling <> Value then
   begin
@@ -635,7 +635,7 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetVisualizeDepthMap(const Value: boolean);
+procedure TCastleRenderOptions.SetVisualizeDepthMap(const Value: boolean);
 begin
   if VisualizeDepthMap <> Value then
   begin
@@ -644,7 +644,7 @@ begin
   end;
 end;
 
-function TRenderOptions.GetShaders: TShadersRendering;
+function TCastleRenderOptions.GetShaders: TShadersRendering;
 begin
   if PhongShading then
     Result := srAlways
@@ -652,39 +652,39 @@ begin
     Result := srWhenRequired;
 end;
 
-procedure TRenderOptions.SetShaders(const Value: TShadersRendering);
+procedure TCastleRenderOptions.SetShaders(const Value: TShadersRendering);
 begin
   PhongShading := Value = srAlways;
 end;
 
-procedure TRenderOptions.SetBlending(const Value: boolean);
+procedure TCastleRenderOptions.SetBlending(const Value: boolean);
 begin
   FBlending := Value;
 end;
 
-procedure TRenderOptions.SetBlendingSourceFactor(
+procedure TCastleRenderOptions.SetBlendingSourceFactor(
   const Value: TBlendingSourceFactor);
 begin
   FBlendingSourceFactor := Value;
 end;
 
-procedure TRenderOptions.SetBlendingDestinationFactor(
+procedure TCastleRenderOptions.SetBlendingDestinationFactor(
   const Value: TBlendingDestinationFactor);
 begin
   FBlendingDestinationFactor := Value;
 end;
 
-procedure TRenderOptions.SetBlendingSort(const Value: TBlendingSort);
+procedure TCastleRenderOptions.SetBlendingSort(const Value: TBlendingSort);
 begin
   FBlendingSort := Value;
 end;
 
-procedure TRenderOptions.SetControlBlending(const Value: boolean);
+procedure TCastleRenderOptions.SetControlBlending(const Value: boolean);
 begin
   FControlBlending := Value;
 end;
 
-procedure TRenderOptions.SetUseOcclusionQuery(const Value: boolean);
+procedure TCastleRenderOptions.SetUseOcclusionQuery(const Value: boolean);
 begin
   if UseOcclusionQuery <> Value then
   begin
@@ -699,7 +699,7 @@ begin
   end;
 end;
 
-procedure TRenderOptions.SetPhongShading(const Value: boolean);
+procedure TCastleRenderOptions.SetPhongShading(const Value: boolean);
 begin
   if PhongShading <> Value then
   begin

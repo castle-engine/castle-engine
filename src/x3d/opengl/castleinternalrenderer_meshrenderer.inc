@@ -41,7 +41,7 @@ type
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FAttributes: TRenderOptions;
+    FAttributes: TCastleRenderOptions;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
@@ -49,7 +49,7 @@ type
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property Attributes: TRenderOptions read FAttributes;
+    property Attributes: TCastleRenderOptions read FAttributes;
   public
     PrepareRenderShape: Boolean;
 

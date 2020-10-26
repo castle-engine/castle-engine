@@ -78,14 +78,14 @@ type
   --- because then UseHierarchicalOcclusionQuery should take precedence.
 
   @exclude Internal. }
-function ReallyUseOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+function ReallyUseOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
 { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
   and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
   be used.
 
   @exclude Internal. }
-function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
 implementation
 
@@ -228,7 +228,7 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function ReallyUseOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+function ReallyUseOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 begin
   {$warnings off}
   Result := RenderOptions.UseOcclusionQuery and
@@ -239,7 +239,7 @@ begin
   {$warnings on}
 end;
 
-function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TRenderOptions): boolean;
+function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 begin
   {$warnings off}
   Result := RenderOptions.UseHierarchicalOcclusionQuery and

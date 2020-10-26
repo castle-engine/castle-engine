@@ -135,7 +135,7 @@ type
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
   { Various properties that control rendering. }
-  TRenderingAttributes = CastleRenderOptions.TRenderOptions;
+  TRenderingAttributes = CastleRenderOptions.TCastleRenderOptions;
 
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
@@ -208,7 +208,7 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TRenderOptions;
+    Attributes: TCastleRenderOptions;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
     FogVolumetric: boolean;
@@ -563,7 +563,7 @@ type
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TRenderOptions;
+    FAttributes: TCastleRenderOptions;
 
     FCache: TGLRendererContextCache;
 
@@ -652,7 +652,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(const AttributesClass: TRenderOptionsClass;
+    constructor Create(const AttributesClass: TCastleRenderOptionsClass;
       const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -660,7 +660,7 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TRenderOptions read FAttributes;
+    property Attributes: TCastleRenderOptions read FAttributes;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -1611,7 +1611,7 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  const AttributesClass: TRenderOptionsClass;
+  const AttributesClass: TCastleRenderOptionsClass;
   const ACache: TGLRendererContextCache);
 begin
   inherited Create;
@@ -3416,6 +3416,6 @@ begin
 end;
 
 initialization
-  TRenderOptions.DefaultMinificationFilter := minLinearMipmapLinear;
-  TRenderOptions.DefaultMagnificationFilter := magLinear;
+  TCastleRenderOptions.DefaultMinificationFilter := minLinearMipmapLinear;
+  TCastleRenderOptions.DefaultMagnificationFilter := magLinear;
 end.

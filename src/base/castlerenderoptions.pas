@@ -14,7 +14,7 @@
 }
 
 { Configure rendering options.
-  The @link(TRenderOptions) component configures the rendering at each particular scene,
+  The @link(TCastleRenderOptions) component configures the rendering at each particular scene,
   and is usually accessed through @link(TCastleScene.RenderOptions).
   This unit contains also related types, constants and some variables. }
 unit CastleRenderOptions;
@@ -60,15 +60,15 @@ type
     gcAlways
   );
 
-  TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TRenderOptions.Shaders, which is now deprecated in favor of TRenderOptions.PhongShading';
+  TShadersRendering = (srDisable, srWhenRequired, srAlways) deprecated 'this was only useful with TCastleRenderOptions.Shaders, which is now deprecated in favor of TCastleRenderOptions.PhongShading';
 
-  { Possible bump mapping options. Use with @link(TRenderOptions.BumpMapping). }
+  { Possible bump mapping options. Use with @link(TCastleRenderOptions.BumpMapping). }
   TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
-  { Possible values of @link(TRenderOptions.Mode). }
+  { Possible values of @link(TCastleRenderOptions.Mode). }
   TRenderingMode = (
     { Normal rendering features. Everything is enabled
-      (as long as other TRenderOptions settings allow them). }
+      (as long as other TCastleRenderOptions settings allow them). }
     rmFull,
 
     { Solid color is used for everything. We do not show any color variation,
@@ -77,7 +77,7 @@ type
       The idea is that we "hit" the same pixels as normal rendering
       (with the exception of alpha test textures, this mode
       doesn't set up alpha test for them).
-      But everything has color TRenderOptions.SolidColor.
+      But everything has color TCastleRenderOptions.SolidColor.
 
       This is useful for special tricks. }
     rmSolidColor,
@@ -91,7 +91,7 @@ type
     rmDepth
   );
 
-  { Values for @link(TRenderOptions.WireframeEffect).
+  { Values for @link(TCastleRenderOptions.WireframeEffect).
 
     Generally, two other attributes may affect the way wireframe is rendered:
     TSceneRenderingAttributes.WireframeColor and
@@ -128,13 +128,13 @@ type
       solid (e.g. filled polygons with depth test).
 
       @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
-      @link(TRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of lines.
 
       This is often used together with the
-      @link(TRenderOptions.Mode Attributes.Mode)
+      @link(TCastleRenderOptions.Mode Attributes.Mode)
       set to rmSolidColor. In such case,
-      Then @link(TRenderOptions.SolidColor) determinesthe fill color. }
+      Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -144,17 +144,17 @@ type
       only the silhouette is visible from the wireframe rendering.
 
       @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
-      @link(TRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of silhouette lines.
 
       This is often used together with the
-      @link(TRenderOptions.Mode Attributes.Mode)
+      @link(TCastleRenderOptions.Mode Attributes.Mode)
       set to rmSolidColor. In such case,
-      Then @link(TRenderOptions.SolidColor) determinesthe fill color. }
+      Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
     weSilhouette
   );
 
-  { Values for @link(TRenderOptions.ShadowSampling). }
+  { Values for @link(TCastleRenderOptions.ShadowSampling). }
   TShadowSampling = (
     { One sample to shadow map. }
     ssSimple,
@@ -188,9 +188,9 @@ type
     minLinearMipmapLinear,
 
     { Interpretation of this filter depends on current
-      @link(TRenderOptions.MinificationFilter Scene.Attributes.MinificationFilter).
+      @link(TCastleRenderOptions.MinificationFilter Scene.Attributes.MinificationFilter).
       If that is also minDefault, it depends on current
-      @link(TRenderOptions.DefaultMinificationFilter). }
+      @link(TCastleRenderOptions.DefaultMinificationFilter). }
     minDefault,
     { Alias for minNearest. }
     minFastest,
@@ -206,9 +206,9 @@ type
     magLinear,
 
     { Interpretation of this filter depends on current
-      @link(TRenderOptions.MagnificationFilter Scene.Attributes.MagnificationFilter).
+      @link(TCastleRenderOptions.MagnificationFilter Scene.Attributes.MagnificationFilter).
       If that is also magDefault, it depends on current
-      @link(TRenderOptions.DefaultMagnificationFilter). }
+      @link(TCastleRenderOptions.DefaultMagnificationFilter). }
     magDefault,
     { Alias for magnNearest. }
     magFastest,

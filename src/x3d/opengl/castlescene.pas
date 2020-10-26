@@ -38,8 +38,8 @@ type
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TRenderingAttributesEvent = TRenderOptionsEvent deprecated 'use TRenderOptionsEvent';
-  TSceneRenderingAttributes = TRenderOptions deprecated 'use TRenderOptions';
+  TRenderingAttributesEvent = TCastleRenderOptionsEvent deprecated 'use TCastleRenderOptionsEvent';
+  TSceneRenderingAttributes = TCastleRenderOptions deprecated 'use TCastleRenderOptions';
 
   TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
   TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
@@ -108,7 +108,7 @@ type
         procedure Free;
       end;
 
-      TSceneRenderOptions = class(TRenderOptions)
+      TSceneRenderOptions = class(TCastleRenderOptions)
       private
         OwnerScene: TCastleScene;
       protected
@@ -393,8 +393,8 @@ type
 
     { Rendering options.
       You are free to change them at any time. }
-    function RenderOptions: TRenderOptions;
-    function Attributes: TRenderOptions; deprecated 'use RenderOptions';
+    function RenderOptions: TCastleRenderOptions;
+    function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -1965,12 +1965,12 @@ begin
     Result.UpdateRotation(BackgroundNode.TransformRotation);
 end;
 
-function TCastleScene.Attributes: TRenderOptions;
+function TCastleScene.Attributes: TCastleRenderOptions;
 begin
   Result := RenderOptions;
 end;
 
-function TCastleScene.RenderOptions: TRenderOptions;
+function TCastleScene.RenderOptions: TCastleRenderOptions;
 begin
   Result := Renderer.Attributes;
 end;

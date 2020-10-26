@@ -386,7 +386,7 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(Attributes: TRenderOptions): boolean;
+    class function ClassVarianceShadowMaps(Attributes: TCastleRenderOptions): boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
@@ -444,7 +444,7 @@ procedure TGLTextureNode.HandleTextureProperties(
     case FilterAuto of
       minDefault:
         case Renderer.Attributes.MinificationFilter of
-          minDefault: Result := TRenderOptions.DefaultMinificationFilter;
+          minDefault: Result := TCastleRenderOptions.DefaultMinificationFilter;
           minFastest: Result := minNearest;
           minNicest : Result := minLinearMipmapLinear;
           else        Result := Renderer.Attributes.MinificationFilter;
@@ -462,7 +462,7 @@ procedure TGLTextureNode.HandleTextureProperties(
     case FilterAuto of
       magDefault:
         case Renderer.Attributes.MagnificationFilter of
-          magDefault: Result := TRenderOptions.DefaultMagnificationFilter;
+          magDefault: Result := TCastleRenderOptions.DefaultMagnificationFilter;
           magFastest: Result := magNearest;
           magNicest : Result := magLinear;
           else        Result := Renderer.Attributes.MagnificationFilter;
@@ -473,17 +473,17 @@ procedure TGLTextureNode.HandleTextureProperties(
     end;
   end;
 
-  function TextureFilter(const RenderOptions: TRenderOptions): TTextureFilter;
+  function TextureFilter(const RenderOptions: TCastleRenderOptions): TTextureFilter;
   begin
     case RenderOptions.MinificationFilter of
-      minDefault: Result.Minification := TRenderOptions.DefaultMinificationFilter;
+      minDefault: Result.Minification := TCastleRenderOptions.DefaultMinificationFilter;
       minFastest: Result.Minification := minNearest;
       minNicest : Result.Minification := minLinearMipmapLinear;
       else        Result.Minification := RenderOptions.MinificationFilter;
     end;
 
     case RenderOptions.MagnificationFilter of
-      magDefault: Result.Magnification := TRenderOptions.DefaultMagnificationFilter;
+      magDefault: Result.Magnification := TCastleRenderOptions.DefaultMagnificationFilter;
       magFastest: Result.Magnification := magNearest;
       magNicest : Result.Magnification := magLinear;
       else        Result.Magnification := RenderOptions.MagnificationFilter;
@@ -1966,7 +1966,7 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  Attributes: TRenderOptions): boolean;
+  Attributes: TCastleRenderOptions): boolean;
 begin
   Result :=
     (Attributes.ShadowSampling = ssVarianceShadowMaps) and
