@@ -2184,7 +2184,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(TCastleScene.Attributes).
+      in @link(TCastleScene.RenderOptions).
       It only copies the scene graph (RootNode) and also sets
       target URL based on source URL (for logging purposes, e.g.
       TCastleProfilerTime use this URL to report loading and preparation times). }

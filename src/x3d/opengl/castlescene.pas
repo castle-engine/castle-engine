@@ -522,6 +522,11 @@ const
   bs2D = CastleRenderOptions.bs2D;
   bs3D = CastleRenderOptions.bs3D;
 
+  weNormal = CastleRenderOptions.weNormal;
+  weWireframeOnly = CastleRenderOptions.weWireframeOnly;
+  weSolidWireframe = CastleRenderOptions.weSolidWireframe;
+  weSilhouette = CastleRenderOptions.weSilhouette;
+
   paDefault = CastleSceneCore.paDefault;
   paForceLooping = CastleSceneCore.paForceLooping;
   paForceNotLooping = CastleSceneCore.paForceNotLooping;

@@ -35,7 +35,7 @@ unit CastleTextureImages;
 interface
 
 uses Generics.Collections,
-  CastleImages, CastleCompositeImage, CastleUtils, CastleVideos;
+  CastleImages, CastleCompositeImage, CastleUtils, CastleVideos, CastleRenderOptions;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -169,6 +169,25 @@ var
   { Cache of texture images, equal to X3DCache
     and automatically initialized / finalized if you use X3DNodes unit. }
   TextureCache: TTexturesVideosCache;
+
+const
+  { We recommend using CastleRenderOptions unit to get these constants.
+    But for backward compatibility, they are also available here. }
+  minNearest = CastleRenderOptions.minNearest;
+  minLinear = CastleRenderOptions.minLinear;
+  minNearestMipmapNearest = CastleRenderOptions.minNearestMipmapNearest;
+  minNearestMipmapLinear = CastleRenderOptions.minNearestMipmapLinear;
+  minLinearMipmapNearest = CastleRenderOptions.minLinearMipmapNearest;
+  minLinearMipmapLinear = CastleRenderOptions.minLinearMipmapLinear;
+  minDefault = CastleRenderOptions.minDefault;
+  minFastest = CastleRenderOptions.minFastest;
+  minNicest = CastleRenderOptions.minNicest;
+
+  magNearest = CastleRenderOptions.magNearest;
+  magLinear = CastleRenderOptions.magLinear;
+  magDefault = CastleRenderOptions.magDefault;
+  magFastest = CastleRenderOptions.magFastest;
+  magNicest = CastleRenderOptions.magNicest;
 
 implementation
 
