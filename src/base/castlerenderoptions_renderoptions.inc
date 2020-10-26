@@ -20,7 +20,7 @@
 type
   TCastleRenderOptions = class;
 
-  TCastleRenderOptionsEvent = procedure (Options: TCastleRenderOptions) of object;
+  TCastleRenderOptionsEvent = procedure (const Options: TCastleRenderOptions) of object;
 
   { Options that control rendering,
     available at every scene through @link(TCastleScene.RenderOptions). }
