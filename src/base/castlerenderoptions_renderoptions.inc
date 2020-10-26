@@ -26,8 +26,6 @@ type
     available at every scene through @link(TCastleScene.RenderOptions). }
   TRenderOptions = class(TComponent)
   strict private
-    // TODO OwnerScene: TCastleScene;
-
     FLighting: boolean;
     FUseSceneLights: boolean;
     FOpacity: Single;
@@ -83,7 +81,7 @@ type
     procedure SetUseOcclusionQuery(const Value: boolean);
     procedure SetPhongShading(const Value: boolean);
     { @groupEnd }
-
+  protected
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
 
@@ -96,7 +94,7 @@ type
 
         @item(How textures are loaded (texture filtering options affect them).)
       ) }
-    procedure ReleaseCachedResources;
+    procedure ReleaseCachedResources; virtual;
   public
     const
       DefaultPointSize = 3.0;
@@ -580,12 +578,6 @@ end;
 
 procedure TRenderOptions.ReleaseCachedResources;
 begin
-  { We have to do at least Renderer.UnprepareAll.
-    Actually, we have to do more: TCastleScene must also be disconnected
-    from OpenGL, to release screen effects (referencing renderer shaders)
-    and such. So full GLContextClose is needed. }
-
-  // TODO   OwnerScene.GLContextClose;
 end;
 
 procedure TRenderOptions.SetEnableTextures(const Value: boolean);
@@ -700,14 +692,9 @@ begin
 
     if UseOcclusionQuery then
     begin
-      { If you switch UseOcclusionQuery on, then off, then move around the scene
-        a lot, then switch UseOcclusionQuery back on --- you don't want to use
-        results from previous query that was done many frames ago. }
-      // TODO OwnerScene.ViewChangedSuddenly;
-
       { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
         that initializes OcclusionQueryId for each shape }
-      // TODO   OwnerScene.PreparedShapesResources := false;
+      ReleaseCachedResources;
     end;
   end;
 end;
@@ -720,8 +707,11 @@ begin
     { When switching this we want to force generating necessary
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
-      awfully stutters for some time after changing this property. }
-    // TODO   OwnerScene.PreparedRender := false;
+      awfully stutters for some time after changing this property.
+
+      We could do this by OwnerScene.PreparedRender := false.
+      Or just ReleaseCachedResources. }
+    ReleaseCachedResources;
   end;
 end;
 

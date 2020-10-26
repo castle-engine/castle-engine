@@ -108,6 +108,13 @@ type
         procedure Free;
       end;
 
+      TSceneRenderOptions = class(TRenderOptions)
+      private
+        OwnerScene: TCastleScene;
+      protected
+        procedure ReleaseCachedResources; override;
+      end;
+
     var
       { Used by UpdateGeneratedTextures, to prevent rendering the shape
         for which reflection texture is generated. (This wouldn't cause
@@ -619,6 +626,26 @@ begin
   FreeAndNil(ShaderAlphaTest);
 end;
 
+{ TCastleScene.TSceneRenderOptions ------------------------------------------- }
+
+procedure TCastleScene.TSceneRenderOptions.ReleaseCachedResources;
+begin
+  inherited;
+
+  { We have to do at least Renderer.UnprepareAll.
+    Actually, we have to do more: TCastleScene must also be disconnected
+    from OpenGL, to release screen effects (referencing renderer shaders)
+    and such. So full GLContextClose is needed. }
+
+  OwnerScene.GLContextClose;
+
+  { If UseOcclusionQuery just changed:
+    If you switch UseOcclusionQuery on, then off, then move around the scene
+    a lot, then switch UseOcclusionQuery back on --- you don't want to use
+    results from previous query that was done many frames ago. }
+  OwnerScene.ViewChangedSuddenly;
+end;
+
 { TCastleScene ------------------------------------------------------------ }
 
 constructor TCastleScene.Create(AOwner: TComponent);
@@ -628,10 +655,10 @@ begin
     may call ViewChangedSuddenly which is overridden here and uses RenderOptions.
     That's why I have to initialize them *before* "inherited Create" }
 
-  Renderer := TGLRenderer.Create(TRenderOptions, GLContextCache);
+  Renderer := TGLRenderer.Create(TSceneRenderOptions, GLContextCache);
 
   { Note that this calls Renderer.RenderOptions, so use this only after initializing Renderer. }
-  // TODO RenderOptions.OwnerScene := Self;
+  (RenderOptions as TSceneRenderOptions).OwnerScene := Self;
 
   inherited Create(AOwner);
 
@@ -680,9 +707,8 @@ begin
 
   { Note that this calls Renderer.RenderOptions, so use this before
     deinitializing Renderer. }
-  // TODO
-  // if Renderer <> nil then
-  //   RenderOptions.OwnerScene := nil;
+  if Renderer <> nil then
+    (RenderOptions as TSceneRenderOptions).OwnerScene := nil;
 
   { We must release all connections between RootNode and Renderer first.
     Reason: when freeing RootNode, image references (from texture nodes)
