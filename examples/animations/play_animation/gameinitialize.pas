@@ -37,6 +37,7 @@ var
   AnimationsPanel, LoadOptionsPanel: TCastleRectangleControl;
   CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest: TCastleCheckbox;
   SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
+  CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
 
 const
   Margin = 10; // used throughout the user interface
@@ -197,20 +198,39 @@ end;
 { Simple funtion to parse current settings in options UI
   see ButtonOpen2DStarlingClick for more info. }
 function CurrentUIStarlingSettingsToAnchor: String;
+var
+  AnimNaming: String;
 begin
-  Result := '#fps:' + FloatToStrDot(SliderFPSLoadOpt.Value);
+  if CheckboxAnimationNamingLoadOpt.Checked then
+    AnimNaming := 'trailing-number'
+  else
+    AnimNaming := 'strict-underscore';
+
+  Result := '#fps:' + FloatToStrDot(SliderFPSLoadOpt.Value) + ',anim-naming:' + AnimNaming;
 end;
 
 class procedure TEventsHandler.ButtonOpen2DStarlingClick(Sender: TObject);
 begin
   { When using Starling files you can specyfy some options like:
     - fps - frames per second for animations
+    - anim-naming - frame names in starling file can be named freely, but
+        in the case of our loader, we have to define what is the next frame
+        of the animation and what should be recognized as a separate animation.
+        Values:
+        - strict-underscore - default behavior treats as animation frames only
+            those subtextures whose names ends with an underscore followed
+            by a number. In this case, "walk_01", "walk_02" will be recognized
+            as next frames of the same animation "walk", but "item1", "item2"
+            will be treated as separate entities.
+        - trailing-number - in many cases, the consecutive frames of one
+            animation are named without underscore, eg "walk1", "walk2".
+            To load such subtextures as one animation use this option.
 
     Options are passed using an anchor separated by a comma, with
     a colon between the value and the option name.
 
     E.g. To set fps to 10 you can do:
-    <url here>#fps:10
+    <url here>#fps:10,anim-naming:strict-underscore
 
     BTW. Sample starling file based on one of many great assets by Kenney
     check https://kenney.nl/ for more. }
@@ -387,6 +407,12 @@ begin
   SliderFPSLoadOpt.Value := 4;
   LabelAndSlider.InsertFront(SliderFPSLoadOpt);
   SliderFPSLoadOpt.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+
+  CheckboxAnimationNamingLoadOpt := TCastleCheckbox.Create(LoadOptionsPanel);
+  CheckboxAnimationNamingLoadOpt.Checked := false;
+  CheckboxAnimationNamingLoadOpt.Caption := 'All trailing numbers are animation frames';
+  CheckboxAnimationNamingLoadOpt.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
+  ScrollGroup.InsertFront(CheckboxAnimationNamingLoadOpt);
 
   ScrollView.Width := ScrollGroup.EffectiveWidth;
   ScrollView.Height := Min(ScrollGroup.EffectiveHeight,
