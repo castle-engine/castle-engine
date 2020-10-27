@@ -290,7 +290,7 @@ type
     procedure UpdateAnchors(const UI: TCastleUserInterface;
       const AllowToHideParentAnchorsFrame: Boolean);
     procedure ChangeMode(const NewMode: TMode);
-    procedure ModifiedOutsideObjectInspector;
+    procedure ModifiedOutsideObjectInspector(const UndoComment: String; const UndoOnRelease: Boolean = false);
     procedure InspectorFilter(Sender: TObject;
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
@@ -653,11 +653,6 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
     MinHeight = 10;
   begin
     if not DragAllowed(UI, Vector2(X, Y)) then Exit;
-
-    //this will schedule recording Undo OnRelease
-    //and will prevent from recording Undo by applying changes below
-    Frame.UndoSystem.ScheduleRecordUndoOnRelease := true;
-
     case DraggingMode of
       dmTranslate:
         begin
@@ -725,7 +720,9 @@ function TDesignFrame.TDesignerLayer.Motion(const Event: TInputMotion): Boolean;
         end;
     end;
 
-    Frame.ModifiedOutsideObjectInspector;
+    //this will schedule recording Undo OnRelease
+    //and will prevent from recording Undo by applying changes below
+    Frame.ModifiedOutsideObjectInspector('', true);
   end;
 
   function ResizingCursor(const H: THorizontalPosition;
@@ -1227,10 +1224,9 @@ procedure TDesignFrame.AddComponent(const ComponentClass: TComponentClass;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
-    ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo('Add component');
+    ModifiedOutsideObjectInspector('Add component');
   end;
 
   procedure AddTransform(const ParentComponent: TCastleTransform);
@@ -1383,8 +1379,7 @@ begin
 
       { call this after UpdateDesign, otherwise tree is not ready,
         and events caused by ModifiedOutsideObjectInspector may expect it is. }
-      ModifiedOutsideObjectInspector;
-      RecordUndo('Delete component');
+      ModifiedOutsideObjectInspector('Delete component');
     end;
   finally FreeAndNil(Selected) end;
 end;
@@ -1408,10 +1403,9 @@ procedure TDesignFrame.PasteComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
-    ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo('Paste component');
+    ModifiedOutsideObjectInspector('Paste component');
   end;
 
 var
@@ -1473,10 +1467,9 @@ procedure TDesignFrame.DuplicateComponent;
 
   procedure FinishAddingComponent(const NewComponent: TComponent);
   begin
-    ModifiedOutsideObjectInspector;
     UpdateDesign;
     SelectedComponent := NewComponent; // select after adding, makes it natural to edit
-    RecordUndo('Duplicate component');
+    ModifiedOutsideObjectInspector('Duplicate component');
   end;
 
   procedure DuplicateUserInterface(const Selected: TCastleUserInterface);
@@ -1760,9 +1753,9 @@ begin
 
   if InternalCastleDesignInvalidate then
   begin
-    ModifiedOutsideObjectInspector;
     UpdateDesign;
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
+    ModifiedOutsideObjectInspector('Internal update'); //WARNING: I don't really know when this happens and how it should behave
   end;
 end;
 
@@ -1796,7 +1789,7 @@ end;
 
 procedure TDesignFrame.GizmoHasModifiedParent(Sender: TObject);
 begin
-  ModifiedOutsideObjectInspector;
+  ModifiedOutsideObjectInspector('Gizmo parent modified');
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;
@@ -2192,8 +2185,7 @@ begin
     Sel := TComponent(Node.Data);
     UndoComment := 'Rename ' + Sel.Name + ' into ' + Node.Text;
     Sel.Name := Node.Text;
-    ModifiedOutsideObjectInspector;
-    RecordUndo(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
+    ModifiedOutsideObjectInspector(UndoComment); // It'd be good if we set "ItemIndex" to index of "name" field, but there doesn't seem to be an easy way to
   finally
     { This method must set Node.Text, to cleanup after ControlsTreeEditing + user editing.
       - If the name was correct, then "Sel.Name := " goes without exception, 
@@ -2269,8 +2261,7 @@ begin
       (RenderRectBeforeChange.Bottom - NewRect.Bottom) / UI.UIScale;
   end;
 
-  ModifiedOutsideObjectInspector;
-  RecordUndo('');
+  ModifiedOutsideObjectInspector('');
 end;
 
 procedure TDesignFrame.ControlsTreeEndDrag(Sender, Target: TObject; X,
@@ -2316,9 +2307,8 @@ procedure TDesignFrame.ControlsTreeDragDrop(Sender, Source: TObject; X,
         Which already happens when we do UpdateDesign.
     }
 
-    ModifiedOutsideObjectInspector;
     UpdateDesign;
-    RecordUndo('Drag''n''drop');
+    ModifiedOutsideObjectInspector('Drag''n''drop');
   end;
 
   { Does Parent contains PotentialChild, searching recursively.
@@ -2545,8 +2535,7 @@ begin
   begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
-    ModifiedOutsideObjectInspector;
-    RecordUndo('');
+    ModifiedOutsideObjectInspector('');
   end;
 end;
 
@@ -2558,7 +2547,7 @@ begin
   if T <> nil then
   begin
     T.Identity;
-    ModifiedOutsideObjectInspector;
+    ModifiedOutsideObjectInspector('Reset transformations');
   end;
 end;
 
@@ -2682,8 +2671,7 @@ var
 begin
   V := SelectedViewport;
   V.Setup2D;
-  ModifiedOutsideObjectInspector;
-  RecordUndo('Camera Setup for 2D View and Projection');
+  ;ModifiedOutsideObjectInspector('Camera Setup for 2D View and Projection');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraCurrentFromInitialClick(
@@ -2696,8 +2684,7 @@ begin
     V.Camera.InitialPosition,
     V.Camera.InitialDirection,
     V.Camera.InitialUp);
-  ModifiedOutsideObjectInspector;
-  RecordUndo('Camera Current := Initial');
+  ModifiedOutsideObjectInspector('Camera Current := Initial');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraViewAllClick(Sender: TObject);
@@ -2737,8 +2724,7 @@ begin
     // Makes Examine camera pivot, and scroll speed, adjust to sizes
     V.Navigation.ModelBox := Box;
 
-  ModifiedOutsideObjectInspector;
-  RecordUndo('Camera Current := View All');
+  ModifiedOutsideObjectInspector('Camera Current := View All');
 end;
 
 procedure TDesignFrame.MenuItemViewportCameraSetInitialClick(Sender: TObject);
@@ -2752,8 +2738,7 @@ begin
   V.Camera.SetInitialView(APos, ADir, AUp, false);
   V.AutoCamera := false;
 
-  ModifiedOutsideObjectInspector;
-  RecordUndo('Camera Initial := Current');
+  ModifiedOutsideObjectInspector('Camera Initial := Current');
 end;
 
 procedure TDesignFrame.MenuItemViewportSort2DClick(Sender: TObject);
@@ -2764,9 +2749,8 @@ begin
 
   V.Items.SortBackToFront2D;
 
-  ModifiedOutsideObjectInspector;
   UpdateDesign; // make the tree reflect new order
-  RecordUndo('Sort Items For Correct 2D Blending');
+  ModifiedOutsideObjectInspector('Sort Items For Correct 2D Blending');
 end;
 
 {
@@ -2813,14 +2797,13 @@ begin
   // otherwise, setting Navigation to nil would not work, as it would be replaced by internal navigation
   V.AutoNavigation := false;
 
-  ModifiedOutsideObjectInspector;
   UpdateDesign;
 
   if NewNavigation <> nil then
     SelectedUserInterface := NewNavigation
   else
     SelectedUserInterface := V;
-  RecordUndo('Change viewport navigation');
+  ModifiedOutsideObjectInspector('Change viewport navigation');
 end;
 
 procedure TDesignFrame.MenuViewportNavigationNoneClick(Sender: TObject);
@@ -2989,9 +2972,10 @@ begin
   end;
 end;
 
-procedure TDesignFrame.ModifiedOutsideObjectInspector;
+procedure TDesignFrame.ModifiedOutsideObjectInspector(const UndoComment: String; const UndoOnRelease: Boolean = false);
 var
   InspectorType: TInspectorType;
+  DoRecordUndo: Boolean = true;
 begin
   // TODO: this moves UI scrollbar up,
   // TODO: this is not optimized
@@ -3001,9 +2985,20 @@ begin
     Inspector[InspectorType].RefreshPropertyValues;
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
   if ControlsTree.Selected <> nil then
-    PropertyGridModified(nil);
+  begin
+    PropertyGridModified(nil); //WARNING: Loop here!
+    DoRecordUndo := false; //PropertyGridModified will record undo itself
+  end;
 
   MarkModified;
+
+  if UndoOnRelease then
+    UndoSystem.ScheduleRecordUndoOnRelease := true
+  else
+  if DoRecordUndo then
+  begin
+    RecordUndo(UndoComment);
+  end;
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass;
