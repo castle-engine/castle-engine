@@ -34,13 +34,27 @@ type
   { Starling XML file is not correct }
   EInvalidStarlingXml = class(Exception);
 
+  TStarlingAnimationNaming = (
+    { Default behavior treats as animation frames only those subtextures whose
+      names ends with an underscore followed by a number.
+      In this case, "walk_01", "walk_02" will be recognized as next frames of the
+      same animation, but "item1", "item2" will be treated as separate entities. }
+    anStrictUnderscore,
+    { In many cases, the consecutive frames of one animation are named
+      without underscore, eg "walk1", "walk2". To load such textures as one animation
+      use the anTralingNumber option. }
+    anTralingNumber
+  );
+
   TStarlingTextureAtlasLoader = class
   strict private
     type
       { Class that represents SubTexture from Starling xml file }
       TStarlingSubTexture = class
       private
+        FAnimationNaming: TStarlingAnimationNaming;
         procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
+        procedure ParseAnimationName(const FrameName: String);
       public
         AnimationName: String;
         X1: Single;
@@ -53,6 +67,7 @@ type
         AnchorY: Single;
 
         procedure ReadFormXMLNode(const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
+        constructor Create;
       end;
     var
       FURL: String;
@@ -146,6 +161,15 @@ begin
       if LowerCase(Setting.Key) = 'fps' then
       begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
+      end else
+      if LowerCase(Setting.Key) = 'anim-naming' then
+      begin
+        if Setting.Value = 'strict-underscore' then
+          FSubTexture.FAnimationNaming := anStrictUnderscore
+        else if Setting.Value = 'trailing-number' then
+          FSubTexture.FAnimationNaming := anTralingNumber
+        else
+          WritelnWarning('Starling', 'Unknown anim-naming value (%s) in "%s" anchor.', [Setting.Value, FDisplayURL]);
       end else
         WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
     end;
@@ -476,10 +500,55 @@ begin
   Y1 := 1 - 1 / ImageHeight * Y1;
 end;
 
+procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ParseAnimationName(
+  const FrameName: String);
+var
+  UnderscorePos: SizeInt;
+  FrameNumberStr: String;
+  FrameNumber: Integer;
+  AnimationNameLength: Integer;
+begin
+  AnimationName := SubTextureNode.AttributeString('name');
+
+  { Some files has file type Extensions like "walk/0001.png" or walk_1.png }
+  AnimationName := DeleteFileExt(AnimationName);
+
+  AnimationNameLength := Length(AnimationName);
+
+  case FAnimationNaming of
+    anStrictUnderscore:
+      begin
+        UnderscorePos := rpos('_', AnimationName);
+        { Check characters after underscore is number if not  }
+        if (UnderscorePos > 0) and (AnimationNameLength > UnderscorePos) then
+        begin
+          FrameNumberStr := Copy(AnimationName, UnderscorePos + 1, AnimationNameLength - UnderscorePos);
+          if TryStrToInt(FrameNumberStr,  FrameNumber) then
+          begin
+            Delete(AnimationName, UnderscorePos, AnimationNameLength - UnderscorePos + 1);
+          end;
+        end;
+      end;
+    anTralingNumber:
+      begin
+        RemoveTrailingChars(AnimationName, ['0'..'9']);
+
+        if (Length(AnimationName) > 1) and (AnimationName[AnimationNameLength] = '_') then
+          delete(AnimationName, AnimationNameLength, 1);
+      end;
+  end;
+
+  if AnimationName = '' then
+  begin
+    WritelnWarning('Starling', 'Incorrect animation name (%s), I set to "unknown"',
+    [SubTextureNode.AttributeString('name')]);
+    AnimationName := 'unknown';
+  end;
+end;
+
 procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ReadFormXMLNode(
     const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
 var
-  UnderscorePos: SizeInt;
   FrameXTrimOffset: Integer;
   FrameYTrimOffset: Integer;
   FullFrameWidth: Integer;
@@ -488,23 +557,7 @@ var
   FrameAnchorX: Integer;
   FrameAnchorY: Integer;
 begin
-  AnimationName := SubTextureNode.AttributeString('name');
-  UnderscorePos := rpos('_', AnimationName);
-  if UnderscorePos > 0 then
-    Delete(AnimationName, UnderscorePos, Length(AnimationName) - UnderscorePos)
-  else
-  begin
-    { I found a lot of Starling files that don't have underscore but a number on end
-      so we need find and remove last number. }
-    RemoveTrailingChars(AnimationName, ['1','2','3','4','5','6','7','8','9','0']);
-
-    if AnimationName = '' then
-    begin
-      WritelnWarning('Starling', 'Incorrect animation name (%s), I set to "unknown"',
-      [SubTextureNode.AttributeString('name')]);
-      AnimationName := 'unknown';
-    end;
-  end;
+  ParseAnimationName(SubTextureNode.AttributeString('name'));
 
   X1 := SubTextureNode.AttributeInteger('x');
   Y1 := SubTextureNode.AttributeInteger('y');
@@ -540,7 +593,10 @@ begin
   PrepareTexCordsForX3D(ImageWidth, ImageHeight);
 end;
 
-
+constructor TStarlingTextureAtlasLoader.TStarlingSubTexture.Create;
+begin
+  FAnimationNaming := anStrictUnderscore;
+end;
 
 
 end.
