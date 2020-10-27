@@ -56,7 +56,7 @@ type
       TStarlingSubTexture = class
       private
         FAnimationNaming: TStarlingAnimationNaming;
-        procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
+        procedure PrepareTexCordsForX3D(const ImageWidth, ImageHeight: Integer);
         procedure ParseAnimationName(const SubTextureName: String);
       public
         AnimationName: String;
@@ -491,7 +491,7 @@ end;
 { TStarlingSubTexture }
 
 procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareTexCordsForX3D(
-    ImageWidth, ImageHeight: Integer);
+  const ImageWidth, ImageHeight: Integer);
 begin
   { The input data (X1, Y1) are the coordinates in the texture.
     We need those coordinates to compute X2, Y2 and after that we

@@ -48,7 +48,7 @@ type
 
         FParseFrameDictionary: procedure (const DictNode: TDOMElement) of object;
 
-        procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
+        procedure PrepareTexCordsForX3D(const ImageWidth, ImageHeight: Integer);
         procedure ParseAnimationName(const FrameFileName: String);
         procedure ParseFrameDictionaryFormat2(const DictNode: TDOMElement);
         procedure ParseFrameDictionaryFormat3(const DictNode: TDOMElement);
@@ -67,10 +67,10 @@ type
         AnchorX: Single;
         AnchorY: Single;
 
-        constructor Create(DisplayURL: String);
+        constructor Create(const DisplayURL: String);
         { We support format version 2 and 3. This procedure sets suitable
           ParseFrameDictionaryFormatX procedure. }
-        procedure SetCocosFormat(Format: Integer);
+        procedure SetCocosFormat(const Format: Integer);
 
         procedure ReadFormDict(const KeyNode, DictNode: TDOMElement;
           const ImageWidth, ImageHeight: Integer);
@@ -161,7 +161,7 @@ end;
 
 { TCocos2dLoader.TCocosFrame }
 
-procedure TCocos2dLoader.TCocosFrame.PrepareTexCordsForX3D(ImageWidth,
+procedure TCocos2dLoader.TCocosFrame.PrepareTexCordsForX3D(const ImageWidth,
   ImageHeight: Integer);
 begin
   { The input data (X1, Y1) are the coordinates in the texture.
@@ -409,14 +409,14 @@ begin
   end;
 end;
 
-constructor TCocos2dLoader.TCocosFrame.Create(DisplayURL: String);
+constructor TCocos2dLoader.TCocosFrame.Create(const DisplayURL: String);
 begin
   FDisplayURL := DisplayURL;
   { By default, use format 3 }
   FParseFrameDictionary := @ParseFrameDictionaryFormat3;
 end;
 
-procedure TCocos2dLoader.TCocosFrame.SetCocosFormat(Format: Integer);
+procedure TCocos2dLoader.TCocosFrame.SetCocosFormat(const Format: Integer);
 begin
   FCocosFormat := Format;
   case Format of
