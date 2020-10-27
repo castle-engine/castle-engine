@@ -294,6 +294,7 @@ type
     procedure InspectorFilter(Sender: TObject;
       AEditor: TPropertyEditor; var AShow: Boolean; const Section: TPropertySection);
     procedure GizmoHasModifiedParent(Sender: TObject);
+    procedure GizmoStopDrag(Sender: TObject);
   public
     OnUpdateFormCaption: TNotifyEvent;
     OnSelectionChanged: TNotifyEvent;
@@ -1010,6 +1011,7 @@ begin
   VisualizeTransformHover := TVisualizeTransform.Create(Self, true);
   VisualizeTransformSelected := TVisualizeTransform.Create(Self, false);
   VisualizeTransformSelected.OnParentModified := @GizmoHasModifiedParent;
+  VisualizeTransformSelected.OnGizmoStopDrag := @GizmoStopDrag;
 
   //ChangeMode(moInteract);
   ChangeMode(moModifyUi); // most expected default, it seems
@@ -1789,7 +1791,13 @@ end;
 
 procedure TDesignFrame.GizmoHasModifiedParent(Sender: TObject);
 begin
-  ModifiedOutsideObjectInspector('Gizmo parent modified');
+  ModifiedOutsideObjectInspector('', true);
+end;
+
+procedure TDesignFrame.GizmoStopDrag(Sender: TObject);
+begin
+  if UndoSystem.ScheduleRecordUndoOnRelease then
+    RecordUndo('Transform with Gizmo');
 end;
 
 procedure TDesignFrame.InspectorBasicFilter(Sender: TObject;

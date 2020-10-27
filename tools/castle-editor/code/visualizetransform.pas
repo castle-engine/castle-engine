@@ -59,6 +59,7 @@ type
           const Pick: TRayCollisionNode; const Coord: Integer): Boolean;
 
         procedure DoParentModified;
+        procedure DoGizmoStopDrag;
       protected
         procedure ChangeWorld(const Value: TCastleAbstractRootTransform); override;
         function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
@@ -66,6 +67,7 @@ type
       public
         Operation: TVisualizeOperation;
         OnParentModified: TNotifyEvent;
+        OnGizmoStopDrag: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
         function Dragging: boolean; override;
@@ -87,10 +89,12 @@ type
     procedure SetOperation(const AValue: TVisualizeOperation);
     procedure SetParent(const AValue: TCastleTransform);
     procedure GizmoHasModifiedParent(Sender: TObject);
+    procedure GizmoStopDrag(Sender: TObject);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     OnParentModified: TNotifyEvent;
+    OnGizmoStopDrag: TNotifyEvent;
     constructor Create(AOwner: TComponent; const AHover: Boolean); reintroduce;
     destructor Destroy; override;
     { Currently visualized TCastleTransform instance.
@@ -209,6 +213,12 @@ procedure TVisualizeTransform.TGizmoScene.DoParentModified;
 begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
+end;
+
+procedure TVisualizeTransform.TGizmoScene.DoGizmoStopDrag;
+begin
+  if Assigned(OnGizmoStopDrag) then
+    OnGizmoStopDrag(Self);
 end;
 
 procedure TVisualizeTransform.TGizmoScene.ChangeWorld(
@@ -500,6 +510,7 @@ begin
     GizmoScalingAssumeScale := false;
     CameraChanged(World.MainCamera);
   end;
+  DoGizmoStopDrag;
 end;
 
 procedure TVisualizeTransform.TGizmoScene.LocalRender(const Params: TRenderParams);
@@ -536,6 +547,7 @@ constructor TVisualizeTransform.Create(AOwner: TComponent; const AHover: Boolean
     Result.Spatial := [ssDynamicCollisions];
     Result.SetTransient;
     Result.OnParentModified := @GizmoHasModifiedParent;
+    Result.OnGizmoStopDrag := @GizmoStopDrag;
   end;
 
 begin
@@ -604,6 +616,13 @@ begin
   if Assigned(OnParentModified) then
     OnParentModified(Self);
 end;
+
+procedure TVisualizeTransform.GizmoStopDrag(Sender: TObject);
+begin
+  if Assigned(OnGizmoStopDrag) then
+    OnGizmoStopDrag(Self);
+end;
+
 
 procedure TVisualizeTransform.SetOperation(const AValue: TVisualizeOperation);
 begin
