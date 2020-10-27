@@ -40,7 +40,7 @@ type
   TCocos2dLoader = class
   strict private
     type
-      { Class that represents Frame from Cocos2d file }
+      { Class that represents frame from Cocos2d file }
       TCocosFrame = class
       private
         FDisplayURL: String;
@@ -54,8 +54,8 @@ type
         procedure ParseFrameDictionaryFormat3(const DictNode: TDOMElement);
       public
         AnimationName: String;
-        { Texture coordinates before PrepareTexCordsForX3D() they are in pixels,
-          after PrepareTexCordsForX3D() they are just UV  }
+        { Texture coordinates. Before PrepareTexCordsForX3D() they are in pixels,
+          after PrepareTexCordsForX3D() they are just UV for X3D }
         X1: Single;
         Y1: Single;
         X2: Single;
@@ -236,33 +236,33 @@ begin
 
       case KeyNode.TextData of
         'frame':
-        begin
-          { Sprite position and size in the texture - the same as textureRect in format 3 }
-          if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
           begin
-            X1 := X;
-            Y1 := Y;
-            WasFrame := true;
+            { Sprite position and size in the texture - the same as textureRect in format 3 }
+            if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+            begin
+              X1 := X;
+              Y1 := Y;
+              WasFrame := true;
+            end;
           end;
-        end;
         'sourceColorRect':
-        begin
-          { rect of the trimmed sprite }
-          ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
-          Trimmed := true;
-        end;
+          begin
+            { rect of the trimmed sprite }
+            ReadQuad(ValueNode.TextData, FrameXTrimed, FrameYTrimed, FrameWidthTrimed, FrameHeightTrimed);
+            Trimmed := true;
+          end;
         'anchor':
-        begin
-          { Anchor point for the sprite in coordinates relative to the original sprite size }
-          if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
-            HasAnchor := true;
-        end;
+          begin
+            { Anchor point for the sprite in coordinates relative to the original sprite size }
+            if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+              HasAnchor := true;
+          end;
         'sourceSize':
-        begin
-          { full size of the sprite, the same as spriteSourceSize in format 3 }
-          if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
-            WasFrameSize := true;
-        end
+          begin
+            { full size of the sprite, the same as spriteSourceSize in format 3 }
+            if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+              WasFrameSize := true;
+          end
         else
           continue;
       end;
@@ -341,33 +341,33 @@ begin
 
       case KeyNode.TextData of
         'textureRect':
-        begin
-          { Sprite position and size in the texture - the same as frame in format 2 }
-          if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
           begin
-            X1 := X;
-            Y1 := Y;
-            WasTextureFrame := true;
+            { Sprite position and size in the texture - the same as frame in format 2 }
+            if ReadQuad(ValueNode.TextData, X, Y, Width, Height) then
+            begin
+              X1 := X;
+              Y1 := Y;
+              WasTextureFrame := true;
+            end;
           end;
-        end;
         'spriteOffset':
-        begin
-          { offset in sprite }
-          ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
-          Trimmed := true;
-        end;
+          begin
+            { offset in sprite }
+            ReadDual(ValueNode.TextData, FrameXTrimOffset, FrameYTrimOffset);
+            Trimmed := true;
+          end;
         'anchor':
-        begin
-          { Anchor point for the sprite in coordinates relative to the original sprite size }
-          if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
-            HasAnchor := true;
-        end;
+          begin
+            { Anchor point for the sprite in coordinates relative to the original sprite size }
+            if ReadDual(ValueNode.TextData, AnchorX, AnchorY) then
+              HasAnchor := true;
+          end;
         'spriteSourceSize':
-        begin
-          { full size of the sprite, the same as sourceSize in format 2 }
-          if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
-            WasFrameFullSize := true;
-        end
+          begin
+            { full size of the sprite, the same as sourceSize in format 2 }
+            if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
+              WasFrameFullSize := true;
+          end
         else
           continue;
       end;
