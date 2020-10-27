@@ -34,6 +34,9 @@ type
   { Starling XML file is not correct }
   EInvalidStarlingXml = class(Exception);
 
+  { Frame names in starling file can be named freely, but in the case of our loader,
+    we have to define what is the next frame of the animation and what should
+    be recognized as a separate animation. }
   TStarlingAnimationNaming = (
     { Default behavior treats as animation frames only those subtextures whose
       names ends with an underscore followed by a number.
@@ -41,7 +44,7 @@ type
       same animation, but "item1", "item2" will be treated as separate entities. }
     anStrictUnderscore,
     { In many cases, the consecutive frames of one animation are named
-      without underscore, eg "walk1", "walk2". To load such textures as one animation
+      without underscore, eg "walk1", "walk2". To load such subtextures as one animation
       use the anTralingNumber option. }
     anTralingNumber
   );
