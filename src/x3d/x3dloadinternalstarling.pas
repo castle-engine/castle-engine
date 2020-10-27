@@ -57,7 +57,7 @@ type
       private
         FAnimationNaming: TStarlingAnimationNaming;
         procedure PrepareTexCordsForX3D(ImageWidth, ImageHeight: Integer);
-        procedure ParseAnimationName(const FrameName: String);
+        procedure ParseAnimationName(const SubTextureName: String);
       public
         AnimationName: String;
         X1: Single;
@@ -504,17 +504,15 @@ begin
 end;
 
 procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ParseAnimationName(
-  const FrameName: String);
+  const SubTextureName: String);
 var
   UnderscorePos: SizeInt;
   FrameNumberStr: String;
   FrameNumber: Integer;
   AnimationNameLength: Integer;
 begin
-  AnimationName := SubTextureNode.AttributeString('name');
-
   { Some files has file type Extensions like "walk/0001.png" or walk_1.png }
-  AnimationName := DeleteFileExt(AnimationName);
+  AnimationName := DeleteFileExt(SubTextureName);
 
   AnimationNameLength := Length(AnimationName);
 
@@ -544,7 +542,7 @@ begin
   if AnimationName = '' then
   begin
     WritelnWarning('Starling', 'Incorrect animation name (%s), I set to "unknown"',
-    [SubTextureNode.AttributeString('name')]);
+    [SubTextureName]);
     AnimationName := 'unknown';
   end;
 end;
