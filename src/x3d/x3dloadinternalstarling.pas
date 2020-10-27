@@ -514,11 +514,10 @@ begin
   { Some files has file type Extensions like "walk/0001.png" or walk_1.png }
   AnimationName := DeleteFileExt(SubTextureName);
 
-  AnimationNameLength := Length(AnimationName);
-
   case FAnimationNaming of
     anStrictUnderscore:
       begin
+        AnimationNameLength := Length(AnimationName);
         UnderscorePos := rpos('_', AnimationName);
         { Check characters after underscore is number if not  }
         if (UnderscorePos > 0) and (AnimationNameLength > UnderscorePos) then
@@ -534,6 +533,7 @@ begin
       begin
         RemoveTrailingChars(AnimationName, ['0'..'9']);
 
+        AnimationNameLength := Length(AnimationName);
         if (Length(AnimationName) > 1) and (AnimationName[AnimationNameLength] = '_') then
           delete(AnimationName, AnimationNameLength, 1);
       end;
