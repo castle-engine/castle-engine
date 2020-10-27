@@ -517,9 +517,10 @@ begin
   case FAnimationNaming of
     anStrictUnderscore:
       begin
-        AnimationNameLength := Length(AnimationName);
         UnderscorePos := rpos('_', AnimationName);
-        { Check characters after underscore is number if not  }
+
+        { Check characters after underscore is number if not don't change name. }
+        AnimationNameLength := Length(AnimationName);
         if (UnderscorePos > 0) and (AnimationNameLength > UnderscorePos) then
         begin
           FrameNumberStr := Copy(AnimationName, UnderscorePos + 1, AnimationNameLength - UnderscorePos);
@@ -533,8 +534,9 @@ begin
       begin
         RemoveTrailingChars(AnimationName, ['0'..'9']);
 
+        { Remove trailing underscore if there is more than one char }
         AnimationNameLength := Length(AnimationName);
-        if (Length(AnimationName) > 1) and (AnimationName[AnimationNameLength] = '_') then
+        if (AnimationNameLength > 1) and (AnimationName[AnimationNameLength] = '_') then
           delete(AnimationName, AnimationNameLength, 1);
       end;
   end;
