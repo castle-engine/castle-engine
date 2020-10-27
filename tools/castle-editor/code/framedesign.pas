@@ -1892,7 +1892,7 @@ begin
 
   UndoSystem.RecordUndo(ComponentToString(FDesignRoot), SelectedName, ItemIndex, ControlProperties.TabIndex, UndoComment);
 
-  WriteLnLog('Undo recorded in %fs for %s', [StartTimer.ElapsedTime, SelectedName]);
+  WriteLnLog('Undo %s recorded in %fs for %s', [UndoComment, StartTimer.ElapsedTime, SelectedName]);
 end;
 
 procedure TDesignFrame.MarkModified;
@@ -2975,7 +2975,6 @@ end;
 procedure TDesignFrame.ModifiedOutsideObjectInspector(const UndoComment: String; const UndoOnRelease: Boolean = false);
 var
   InspectorType: TInspectorType;
-  DoRecordUndo: Boolean = true;
 begin
   // TODO: this moves UI scrollbar up,
   // TODO: this is not optimized
@@ -2985,20 +2984,14 @@ begin
     Inspector[InspectorType].RefreshPropertyValues;
   // do not call PropertyGridModified if nothing selected, e.g. after delete operation
   if ControlsTree.Selected <> nil then
-  begin
-    PropertyGridModified(nil); //WARNING: Loop here!
-    DoRecordUndo := false; //PropertyGridModified will record undo itself
-  end;
+    PropertyGridModified(nil);
 
   MarkModified;
 
   if UndoOnRelease then
     UndoSystem.ScheduleRecordUndoOnRelease := true
   else
-  if DoRecordUndo then
-  begin
-    RecordUndo(UndoComment);
-  end;
+    RecordUndo(UndoComment); //it will overwrite Undo recorded in PropertyGridModified with a better comment
 end;
 
 procedure TDesignFrame.NewDesign(const ComponentClass: TComponentClass;
