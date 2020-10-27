@@ -2535,7 +2535,7 @@ begin
   begin
     UI.HorizontalAnchorDelta := 0;
     UI.VerticalAnchorDelta := 0;
-    ModifiedOutsideObjectInspector('');
+    ModifiedOutsideObjectInspector('Click clear anchor deltas');
   end;
 end;
 
