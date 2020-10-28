@@ -57,7 +57,7 @@ implementation
 
 uses Math, Contnrs,
   CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene;
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleScene, CastleInternalRenderer;
 
 { TMy3D ---------------------------------------------------------------------- }
 
