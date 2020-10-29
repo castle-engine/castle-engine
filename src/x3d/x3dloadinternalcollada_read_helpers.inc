@@ -52,7 +52,7 @@ begin
   Result := Child <> nil;
   if Result then
   try
-    Value := StrToFloat(Child.TextData);
+    Value := StrToFloatDot(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 

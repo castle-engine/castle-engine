@@ -23,11 +23,7 @@
 
   { Touch user interface to navigate in a 3D world.
     Shows one "lever", that can be moved up/down/left/right,
-    and controls the movement while Walking or Flying.
-
-    Usually, this control is created and used through the @link(TCastleWindowTouch)
-    properties. There is no need to directly create TCastleTouchControl instance
-    in this case. }
+    and controls the movement while Walking or Flying. }
   TCastleTouchControl = class(TCastleUserInterface)
   strict private
     FTouchMode: TCastleTouchCtlMode;
@@ -238,17 +234,17 @@ procedure TCastleTouchControl.GetSensorRotation(var X, Y, Z, Angle: Double);
 var
   FxConst: Double;
 begin
-  FxConst := 10/MaxOffsetDist;
+  FxConst := 10 / MaxOffsetDist;
   if FTouchMode = ctcmHeadRotation then
   begin
     X :=  FLeverOffset[1] * FxConst;
     Y := -FLeverOffset[0] * FxConst;
-    Angle := 1;
+    Angle := Pi * 1 / 180;
   end else
   if FTouchMode = ctcmWalkWithSideRot then
   begin
     Y := -FLeverOffset[0] * FxConst;
-    Angle := 1;
+    Angle := Pi * 1 / 180;
   end;
 end;
 
@@ -280,6 +276,7 @@ begin
         Y := -FLeverOffset[1] * FxConst;
         Length := 5;
       end;
+    else ;
   end;
 end;
 

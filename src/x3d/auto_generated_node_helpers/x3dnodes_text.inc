@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,6 +28,8 @@
   strict private
     function GetMaxExtent: Single;
     procedure SetMaxExtent(const Value: Single);
+    function GetMaxDisplayChars: Integer;
+    procedure SetMaxDisplayChars(const Value: Integer);
   public
     { Set X3D field "length". } { }
     procedure SetLength(const Value: array of Single);
@@ -35,6 +37,8 @@
     procedure SetLength(const Value: TSingleList);
     { X3D field "maxExtent". } { }
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
+    { X3D field "maxDisplayChars". } { }
+    property MaxDisplayChars: Integer read GetMaxDisplayChars write SetMaxDisplayChars;
     { Set X3D field "string". } { }
     procedure SetString(const Value: array of string);
     { Set X3D field "string". } { }
@@ -64,6 +68,16 @@ end;
 procedure TTextNode.SetMaxExtent(const Value: Single);
 begin
   FdMaxExtent.Send(Value);
+end;
+
+function TTextNode.GetMaxDisplayChars: Integer;
+begin
+  Result := FdMaxDisplayChars.Value;
+end;
+
+procedure TTextNode.SetMaxDisplayChars(const Value: Integer);
+begin
+  FdMaxDisplayChars.Send(Value);
 end;
 
 procedure TTextNode.SetString(const Value: array of string);

@@ -16,12 +16,6 @@
 *.stat
 *.dcu
 
-# Don't ignore these files.
-# Although they are automatically created/updated by the CGE build tool.
-# We commit these files, to allow compiling the examples through Lazarus
-# (using lpi) without the need to run the build tool.
-# automatic-windows-resources.res
-
 # Other backups
 *.blend1
 *.blend2
@@ -32,6 +26,7 @@ backup
 *.apk
 *.log
 *.exe
+*.dll
 *.pro.user
 .DS_Store
 xcuserdata
@@ -40,6 +35,8 @@ bin/
 
 # cge build tool stuff
 castle-engine-output
+automatic-windows-resources.res
+castle-auto-generated-resources.res
 
 # fpmake stuff
 castle-game-engine-*.fpm
@@ -57,12 +54,15 @@ examples/2d_dragon_spine_game/castle_spine
 examples/2d_dragon_spine_game/castle_spine.log
 examples/2d_dragon_spine_game/code/lib/
 examples/2d_dragon_spine_game/code/libcastle_spine_android.so
+examples/2d_standard_ui/dragging_test/dragging_test
 examples/2d_standard_ui/edit_test/edit_test
 examples/2d_standard_ui/quick_2d_game/quick_2d_game
 examples/2d_standard_ui/show_various_ui_controls/libshow_various_ui_controls_android.so
 examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls
 examples/2d_standard_ui/timer_test/timer_test
 examples/2d_standard_ui/zombie_fighter/zombie_fighter
+examples/2d_standard_ui/zombie_fighter_alternative_short_lived_states/zombie_fighter
+examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code
@@ -81,11 +81,15 @@ examples/3d_rendering_processing/multiple_viewports
 examples/3d_rendering_processing/placeholder_names
 examples/3d_rendering_processing/render_3d_to_image
 examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad
-examples/3d_rendering_processing/scene_manager_demos
 examples/3d_rendering_processing/show_bounding_rect_in_2d
 examples/3d_rendering_processing/switch_projection
 examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators
 examples/3d_rendering_processing/tools/gen_light_map
+examples/short_api_samples/save_screen_rgba/save_screen_rgba
+examples/short_api_samples/transform_save_load/aaa.castle-transform
+examples/short_api_samples/transform_save_load/transform_save_load
+examples/short_api_samples/xml_utils/bookmarks_xml_demo
+examples/3d_rendering_processing/transform_scenes_demos
 examples/3d_rendering_processing/triangulate_demo
 examples/3d_rendering_processing/triangulate_demo.res
 examples/3d_rendering_processing/view_3d_model_advanced
@@ -94,14 +98,18 @@ examples/3d_rendering_processing/view_3d_model_basic
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/audio/algets
-examples/audio/alplay
+examples/animations/expose_transformations_to_animate_children/expose_transformations_demo
+examples/animations/play_animation/play_animation
+examples/animations/resource_animations/resource_animations
+examples/animations/simultaneous_animations_one_scene/simultaneous_animations_one_scene
 examples/audio/audio_player_scrubber/audio_player_scrubber
 examples/audio/audio_player_scrubber/audio_player_scrubber.res
 examples/audio/audio_player_scrubber/lib/
-examples/audio/doppler_demo
-examples/audio/efx_demo
-examples/audio/test_al_source_allocator
+examples/audio/doppler_demo/doppler_demo
+examples/audio/play_sounds/play_sounds
+examples/audio/simplest_play_sound/simplest_play_sound
+examples/audio/test_sound_source_allocator
+examples/audio/test_sound_source_allocator/*.obj
 examples/castlescript/castle_calculator
 examples/castlescript/image_make_by_script
 examples/curves/simplest_curve_read
@@ -110,16 +118,18 @@ examples/fixed_camera_game/rift
 examples/fonts/font_draw_over_image
 examples/fonts/font_draw_over_image_output.png
 examples/fonts/font_from_texture
-examples/fonts/html_text
+examples/fonts/html_text/html_text
 examples/fonts/test_font_break
 examples/fonts/test_local_characters/test_local_characters
 examples/fonts/test_local_characters/test_local_characters_standalone
 examples/fonts/texture-font-to-pascal
 examples/fps_game/fps_game
 examples/headlight_test/headlight_test
+examples/images_videos/background_tiling
 examples/images_videos/dds_decompose
 examples/images_videos/draw_images_on_gpu
 examples/images_videos/drawing_modes_test
+examples/images_videos/fft/fft_tests
 examples/images_videos/gaussian_write
 examples/images_videos/image_compare
 examples/images_videos/image_convert
@@ -142,17 +152,28 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/library/lazarus_library_tester/cge_dynlib_tester
+examples/library/lazarus_library_tester/cge_dynlib_tester.res
+examples/library/lazarus_library_tester/lib/
 examples/localization/custom/castle_localization
 examples/localization/gettext/localization_test
+examples/localization/gettext/po_files/generator/po_generator
+examples/mobile/activity_recognition/activity_recognition
 examples/mobile/drawing_toy/drawing_toy
 examples/mobile/drawing_toy/libdrawing_toy.so
 examples/mobile/simple_3d_demo/libsimple_3d_demo.so
 examples/mobile/simple_3d_demo/simple_3d_demo
 examples/mobile/simple_3d_demo/simple_3d_demo_standalone
 examples/mobile/test_bump_mapping/test_bump_mapping
+examples/network/asynchronous_download/asynchronous_download
+examples/network/castle_download/castle_download
+examples/network/custom_url_handler/read_game_data_from_zip
+examples/network/remote_logging/remote_logging
+examples/network/tcp_connection/client/client
+examples/network/tcp_connection/server/server
+examples/physics/physics_2d_collisions/physics_2d_collisions
 examples/physics/physics_2d_game_sopwith/physics_2d_game_sopwith
 examples/physics/physics_3d_demo/physics_3d_demo
-examples/play_animation/play_animation
 examples/plugin/cge_3d_viewer/cge_3d_viewer
 examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 examples/portable_game_skeleton/my_fantastic_game
@@ -170,27 +191,31 @@ examples/research_special_rendering_methods/radiance_transfer/radiance_transfer
 examples/research_special_rendering_methods/radiance_transfer/show_sh
 examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
-examples/resource_animations/resource_animations
 examples/screen_effects_demo/screen_effects_demo
-examples/simple_command_line_utilities/castle_download
 examples/simple_command_line_utilities/dircleaner
 examples/simple_command_line_utilities/dircleaner.res
 examples/simple_command_line_utilities/stringoper
 examples/space_filling_curve/draw_space_filling_curve
+examples/sprite_sheets/combine_images_into_sprite_sheet/combine_images_into_sprite_sheet
+examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
 examples/terrain/terrain
+examples/third_person_camera/third_person_camera
 examples/tiled/map_viewer/tiled_demo
 examples/tiled/map_viewer/tiled_demo_standalone
 examples/tiled/map_viewer/tiled_demo_standalone.lps
+examples/tiled/strategy_game_demo/strategy_game_demo
+examples/visualize_triangulation/visualize_triangulation
 examples/window/multi_window
 examples/window/window_events
-examples/window/window_gtk_mix
 examples/window/window_menu
 packages/alternative_castle_window_based_on_lcl.pas
 packages/castle_base.pas
 packages/castle_components.pas
+packages/castle_indy.pas
 packages/castle_window.pas
 packages/delphi/castle_base.res
 packages/lib/
+src/audio/fmod/test/fmod_api_test
 src/library/build-*
 src/library/ios-output/
 src/library/libcastleengine.dylib
@@ -206,7 +231,9 @@ tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
 tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
 tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
+tools/build-tool/tests/test_cge_build_tool
 tools/castle-curves/castle-curves
+tools/castle-editor/code/castle_editor.res
 tools/castle-engine
 tools/image-to-pascal/image-to-pascal
 tools/internal/generate-persistent-vectors/generate-persistent-vectors
@@ -216,9 +243,3 @@ tools/internal/x3d-nodes-to-pascal/code/x3d-nodes-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 tools/texture-font-to-pascal/texture-font-to-pascal
 tools/to-data-uri/to-data-uri
-/examples/sprite_sheets/combine_images_into_sprite_sheet/combine_images_into_sprite_sheet
-/examples/sprite_sheets/sprite_sheet_animation/sprite_sheet_animation
-/tools/castle-editor/code/castle_editor.res
-/examples/tiled/strategy_game_demo/strategy_game_demo
-/examples/tcp_connection/client/client
-/examples/tcp_connection/server/server

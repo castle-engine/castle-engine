@@ -34,7 +34,7 @@ published
     instead read or write @link(TintScrollBarInactive) directly.
 
     @seealso TintScrollBarInactive }
-  property TintScrollBarInactivePersistent: TCastleColorPersistent read FTintScrollBarInactivePersistent;
+  property TintScrollBarInactivePersistent: TCastleColorPersistent read FTintScrollBarInactivePersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

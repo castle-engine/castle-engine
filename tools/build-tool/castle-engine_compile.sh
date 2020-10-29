@@ -22,6 +22,7 @@ mkdir -p tools/build-tool/castle-engine-output/build-tool-compilation
 fpc -dRELEASE @castle-fpc.cfg \
   -FEtools/build-tool/ \
   -FUtools/build-tool/castle-engine-output/build-tool-compilation \
+  -Futools/common-code/ \
   -Futools/build-tool/embedded_images/ \
   ${CASTLE_FPC_OPTIONS:-} \
   tools/build-tool/code/castle-engine.lpr

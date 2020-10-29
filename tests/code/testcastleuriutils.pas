@@ -18,7 +18,7 @@ unit TestCastleURIUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestURIUtils = class(TCastleTestCase)
@@ -29,6 +29,8 @@ type
     procedure TestCombineURIEncoding;
     procedure TestURIDisplay;
     procedure TestRelativeURLWhitespace;
+    procedure TestURIExists;
+    procedure TestRelativeToCastleDataURL;
   end;
 
 implementation
@@ -196,6 +198,50 @@ begin
   AssertEquals('   ecmascript: blablah', CombineURI('http:///foo/bar', '   ecmascript: blablah'));
   AssertEquals(NL + 'ecmascript: blablah', CombineURI('http:///foo/bar', NL + 'ecmascript: blablah'));
   AssertEquals(NL + '  ecmascript: blablah', CombineURI('http:///foo/bar', NL + '  ecmascript: blablah'));
+end;
+
+procedure TTestURIUtils.TestURIExists;
+begin
+  AssertTrue(ueUnknown = URIExists('http:/whatever'));
+  AssertTrue(ueUnknown = URIExists('unknown-protocol:/whatecer'));
+
+  AssertTrue(ueNotExists = URIExists('castle-data:/not_existing'));
+  AssertTrue(ueFile = URIExists('castle-data:/game/level.xml'));
+  AssertTrue(ueDirectory = URIExists('castle-data:/game/'));
+  AssertTrue(ueDirectory = URIExists('castle-data:/game'));
+  AssertTrue(ueDirectory = URIExists('castle-data:/'));
+
+  AssertTrue(ueNotExists = URIExists(ResolveCastleDataURL('castle-data:/not_existing')));
+  AssertTrue(ueFile = URIExists(ResolveCastleDataURL('castle-data:/game/level.xml')));
+  AssertTrue(ueDirectory = URIExists(ResolveCastleDataURL('castle-data:/game/')));
+  AssertTrue(ueDirectory = URIExists(ResolveCastleDataURL('castle-data:/game')));
+  AssertTrue(ueDirectory = URIExists(ResolveCastleDataURL('castle-data:/')));
+
+  AssertTrue(ueFile = URIExists('data:model/vrml,#VRML V2.0 utf8' + NL +
+    'Transform {' + NL +
+    '  translation 0 -2 0' + NL +
+    '  children Shape {' + NL +
+    '    geometry Text { string "VRML 2.0 model inlined using data URI" }' + NL +
+    '  }' + NL +
+    '}'));
+end;
+
+procedure TTestURIUtils.TestRelativeToCastleDataURL;
+var
+  WasInsideData: Boolean;
+begin
+  AssertEquals('foo/bar.txt', RelativeToCastleDataURL('castle-data:/foo/bar.txt', WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('bar.txt', RelativeToCastleDataURL('castle-data:/bar.txt', WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('foo/bar.txt', RelativeToCastleDataURL(ResolveCastleDataURL('castle-data:/foo/bar.txt'), WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('bar.txt', RelativeToCastleDataURL(ResolveCastleDataURL('castle-data:/bar.txt'), WasInsideData));
+  AssertTrue(WasInsideData);
+  AssertEquals('http://example.com/bar.txt', RelativeToCastleDataURL('http://example.com/bar.txt', WasInsideData));
+  AssertFalse(WasInsideData);
+  AssertEquals('/something-not-in-root/bar.txt', RelativeToCastleDataURL('/something-not-in-root/bar.txt', WasInsideData));
+  AssertFalse(WasInsideData);
 end;
 
 initialization

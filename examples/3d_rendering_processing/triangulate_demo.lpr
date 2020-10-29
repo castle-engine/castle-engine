@@ -7,14 +7,14 @@ uses SysUtils, CastleVectors, CastleSceneCore, CastleShapes, CastleTriangles,
 type
   TTriangleHandler = class
     procedure HandleTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangleHandler.HandleTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   Writeln('Triangle position (in world coordinates):');
@@ -23,23 +23,22 @@ end;
 
 var
   Scene: TCastleSceneCore;
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
   Handler: TTriangleHandler;
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load(ApplicationData('bridge_final.x3dv'));
+    Scene.Load('castle-data:/bridge_final.x3dv');
 
-    SI := TShapeTreeIterator.Create(Scene.Shapes, true);
+    ShapeList := Scene.Shapes.TraverseList(true);
+    Handler := TTriangleHandler.Create;
     try
-      Handler := TTriangleHandler.Create;
-      try
-        while SI.GetNext do
-          { Try also LocalTriangulate instead of Triangulate,
-            to have Position in local shape coordinates. }
-          SI.Current.Triangulate(true, @Handler.HandleTriangle);
-      finally FreeAndNil(Handler) end;
-    finally FreeAndNil(SI) end;
+      for Shape in ShapeList do
+        { Try also LocalTriangulate instead of Triangulate,
+          to have Position in local shape coordinates. }
+        Shape.Triangulate(true, @Handler.HandleTriangle);
+    finally FreeAndNil(Handler) end;
 
     { An alternative method: use Scene.InternalOctreeVisibleTriangles.Triangles.
       This is available only when Scene.Spatial contains appropriate flag.

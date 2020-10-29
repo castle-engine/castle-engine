@@ -75,7 +75,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDirectOutput: TSFBool;
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
@@ -144,9 +143,8 @@ begin
   if Initialized and (Scene <> nil) then
   begin
     { Disable this by default, as it really trashes the log with a lot
-      of messages in case script is used continously (with TimeSensor or such).
-    if Log then
-      WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
+      of messages in case script is used continuously (with TimeSensor or such).
+    WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
     }
 
     case FInitializedScriptType of
@@ -183,7 +181,7 @@ begin
             except
               on E: ECasScriptError do
               begin
-                WritelnWarning('VRML/X3D', 'Error when executing CastleScript: ' + E.Message);
+                WritelnWarning('X3D', 'Error when executing CastleScript: ' + E.Message);
                 Exit;
               end;
             end;
@@ -202,7 +200,9 @@ begin
             FreeAndNil(ParameterTime)
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unknown script type initialized');
+      {$endif}
     end;
   end;
 end;
@@ -255,7 +255,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
              http://stackoverflow.com/questions/189850/what-is-the-javascript-mime-type-what-belongs-in-the-type-attribute-of-a-script
              http://annevankesteren.nl/2005/02/javascript-mime-type }
         begin
-          WritelnWarning('VRML/X3D', Format(
+          WritelnWarning('X3D', Format(
             'ECMAScript is not yet implemented, ignoring URL "%s"',
             [URIDisplay(URL)]));
         end else
@@ -282,7 +282,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         end else
 
         begin
-          WritelnWarning('VRML/X3D', Format(
+          WritelnWarning('X3D', Format(
             'Script MIME type not recognized in URL "%s": %s',
             [URIDisplay(URL), MimeType]));
         end;
@@ -291,7 +291,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     except
       { Catch exceptions from Download and CastleScriptInitialize }
       on E: Exception do
-        WritelnWarning('VRML/X3D', Format(
+        WritelnWarning('X3D', Format(
           'Exception %s when loading Script from URL "%s": %s',
             [E.ClassName, URIDisplay(URL), E.Message ]));
     end;
@@ -329,7 +329,7 @@ begin
       begin
         if FailedUrlsLog <> '' then
           FailedUrlsLog := ' (' + FailedUrlsLog + ')';
-        WritelnWarning('VRML/X3D', 'Script node ignored: no supported protocol found' + FailedUrlsLog);
+        WritelnWarning('X3D', 'Script node ignored: no supported protocol found' + FailedUrlsLog);
       end;
     end else
     begin
@@ -361,13 +361,6 @@ end;
 class function TScriptNode.ClassX3DType: string;
 begin
   Result := 'Script';
-end;
-
-class function TScriptNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScriptNode.PostAddInterfaceDeclaration(

@@ -20,7 +20,7 @@ unit CastleFindFiles;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, DOM,
   CastleUtils;
 
 type
@@ -29,10 +29,9 @@ type
     { Filename, without any directory path. }
     Name: string;
     { Expanded (with absolute path) file name.
-      For local filesystem paths, this is an absolute filename.
-      For Android asset, this is an absolute path within asset (note that
-      absolute paths within Android assets do @italic(not) start with slash).
-      It's adviced to use URL field instead of this. }
+      Only when URL is using "file" protocol.
+      You should prefer to use URL field instead of this,
+      to work with all possible URLs. }
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
@@ -67,12 +66,7 @@ type
       (unless some time-consuming precautions would be taken, or a level limit).
       In other words, it's just not implemented.
       But it @italic(may) be implemented someday, as this would be definitely
-      something useful.
-
-      For Android asset searching: note that recursive searching
-      if unfortunately not supported. Although Android NDK contains functions
-      to iterate over a files inside a directory, it stupidly omits
-      the subdirectories (only returns the non-directory files). }
+      something useful. }
     ffRecursive,
 
     { Determines the order of reporting directory contents.
@@ -104,7 +98,8 @@ type
   @param(Path Path URL to search inside.
     May be absolute or relative. Like everywhere in our engine,
     it can also be a local filesystem path, although we advice using
-    URLs for everything. May, but doesn't have to, end with slash or PathDelim.)
+    URLs for everything. May, but doesn't have to, end with slash or PathDelim.
+    Empty Path means "the current directory".)
 
   @param(Mask Mask of the files to search, may contain wildcards * and ?.)
 
@@ -129,16 +124,16 @@ type
 
   @groupBegin }
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
-  FileMethod: TFoundFileMethod; Options: TFindFilesOptions): Cardinal; overload;
+  const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  Options: TFindFilesOptions): Cardinal; overload;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const Options: TFindFilesOptions): Cardinal; overload;
 
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
-  FileMethod: TFoundFileMethod; Options: TFindFilesOptions): Cardinal; overload;
+  const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  Options: TFindFilesOptions): Cardinal; overload;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const Options: TFindFilesOptions): Cardinal; overload;
 { @groupEnd }
 
 { Search for a file, ignoring the case.
@@ -165,8 +160,9 @@ function FindFirstFile(const Path, Mask: string;
 
 implementation
 
-uses CastleURIUtils, CastleLog, StrUtils
-  {$ifdef ANDROID}, CastleAndroidInternalAssetManager, CastleAndroidInternalAssetStream {$endif};
+uses URIParser, StrUtils,
+  CastleURIUtils, CastleLog, CastleXMLUtils, CastleStringUtils,
+  CastleInternalDirectoryInformation, CastleFilesUtils;
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
@@ -189,14 +185,14 @@ uses CastleURIUtils, CastleLog, StrUtils
   and ReadAllFirst = false. }
 function FindFiles_NonRecursive(const Path, Mask: string;
   const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
   var StopSearch: boolean): Cardinal;
 
-  procedure LocalFileSystem;
+  procedure UseLocalFileSystem;
   var
     AbsoluteName, LocalPath: string;
     FileRec: TSearchRec;
-    Attr, searchError: integer;
+    Attr, SearchError: Integer;
     FileInfo: TFileInfo;
   begin
     Result := 0;
@@ -211,67 +207,84 @@ function FindFiles_NonRecursive(const Path, Mask: string;
       Attr := Attr or faDirectory;
 
     if Path <> '' then
-      LocalPath := URIToFilenameSafe(Path) else
+      LocalPath := URIToFilenameSafe(Path)
+    else
       LocalPath := GetCurrentDir;
     LocalPath := InclPathDelim(LocalPath);
     SearchError := FindFirst(LocalPath + Mask, Attr, FileRec);
     try
       while (SearchError = 0) and (not StopSearch) do
       begin
-        AbsoluteName := LocalPath + FileRec.Name;
-        Inc(Result);
+        // do not enumarate directory names '.' and '..'
+        if not (
+          ((FileRec.Attr and faDirectory) <> 0) and
+          SpecialDirName(FileRec.Name)) then
+        begin
+          AbsoluteName := LocalPath + FileRec.Name;
+          Inc(Result);
 
-        FileInfo.AbsoluteName := AbsoluteName;
-        FileInfo.Name := FileRec.Name;
-        FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
-        FileInfo.Size := FileRec.Size;
-        FileInfo.URL := FilenameToURISafe(AbsoluteName);
-        if Assigned(FileProc) then
-          FileProc(FileInfo, FileProcData, StopSearch);
+          FileInfo.AbsoluteName := AbsoluteName;
+          FileInfo.Name := FileRec.Name;
+          FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
+          FileInfo.Size := FileRec.Size;
+          FileInfo.URL := FilenameToURISafe(AbsoluteName);
+          if Assigned(FileProc) then
+            FileProc(FileInfo, FileProcData, StopSearch);
+        end;
 
         SearchError := FindNext(FileRec);
       end;
     finally FindClose(FileRec) end;
   end;
 
-  {$ifdef ANDROID}
-  procedure AndroidAssetFileSystem;
+  procedure UseDataDirectoryInformation;
   var
-    AssetDir, AssetName: string;
-    Dir: PAAssetDir;
+    U: TURI;
+    PathPartsStr: String;
+    PathEntry: TDirectoryInformation.TEntry;
+    F: TDirectoryInformation.TFile;
+    PathDir, D: TDirectoryInformation.TDirectory;
     FileInfo: TFileInfo;
   begin
-    Result := 0;
-    AssetDir := URIToAssetPath(Path);
-    Dir := AAssetManager_openDir(AssetManager, PChar(ExclPathDelim(AssetDir)));
-    if Dir <> nil then
-    try
-      repeat
-        AssetName := AAssetDir_getNextFileName(Dir);
-        if AssetName = '' then
-          Break;
+    U := ParseURI(Path);
+    PathPartsStr := PrefixRemove('/', U.Path + U.Document, false);
+    PathEntry := DataDirectoryInformation.FindEntry(PathPartsStr);
+    if PathEntry is TDirectoryInformation.TDirectory then
+    begin
+      PathDir := TDirectoryInformation.TDirectory(PathEntry);
 
-        if AssetDir <> '' then
-          { Contrary to AAssetDir_getNextFileName docs, returned AssetName
-            *does not* contain full path, we have to prefix it with AssetDir.
-            See http://code.google.com/p/android/issues/detail?id=35079 }
-          FileInfo.AbsoluteName := InclPathDelim(AssetDir) + AssetName else
-          FileInfo.AbsoluteName := AssetName;
-        FileInfo.Name := AssetName;
-        { AAssetDir_getNextFileName never returns directories. }
-        FileInfo.Directory := false;
-        FileInfo.Size := 0;
-        FileInfo.URL := AssetPathToURI(FileInfo.AbsoluteName);
-        if IsWild(FileInfo.Name, Mask, false) then
-        begin
-          if Assigned(FileProc) then
-            FileProc(FileInfo, FileProcData, StopSearch);
-          Inc(Result);
-        end;
-      until StopSearch;
-    finally AAssetDir_close(Dir) end;
+      if FindDirectories then
+        for D in PathDir.Directories do
+          if IsWild(D.Name, Mask, false) then
+          begin
+            Inc(Result);
+            FileInfo.Name := D.Name;
+            FileInfo.Directory := true;
+            FileInfo.URL := URIIncludeSlash(Path) + D.Name;
+            if Assigned(FileProc) then
+            begin
+              FileProc(FileInfo, FileProcData, StopSearch);
+              if StopSearch then Break;
+            end;
+          end;
+
+      if not StopSearch then
+        for F in PathDir.Files do
+          if IsWild(F.Name, Mask, false) then
+          begin
+            Inc(Result);
+            FileInfo.Name := F.Name;
+            FileInfo.Directory := false;
+            FileInfo.Size := F.Size;
+            FileInfo.URL := URIIncludeSlash(Path) + F.Name;
+            if Assigned(FileProc) then
+            begin
+              FileProc(FileInfo, FileProcData, StopSearch);
+              if StopSearch then Break;
+            end;
+          end;
+    end;
   end;
-  {$endif}
 
 var
   P: string;
@@ -279,20 +292,27 @@ begin
   P := URIProtocol(Path);
 
   if (P = 'file') or (P = '') then
-    LocalFileSystem else
-  {$ifdef ANDROID}
-  if (P = 'assets') or (P = 'castle-android-assets') then
-    AndroidAssetFileSystem else
-  {$endif}
+    UseLocalFileSystem
+  else
+  if P = 'castle-data' then
+  begin
+    if (DisableDataDirectoryInformation = 0) and
+       (DataDirectoryInformation <> nil) then
+      UseDataDirectoryInformation
+    else
+      Result := FindFiles_NonRecursive(ResolveCastleDataURL(Path), Mask,
+        FindDirectories, FileProc, FileProcData, StopSearch);
+  end else
     WritelnLog('FindFiles',
-      'Searching inside filesystem with protocol %s not possible', [P]);
+      'Searching inside filesystem with protocol %s not possible, ignoring path "%s"',
+        [P, URICaption(Path)]);
 end;
 
 { This is equivalent to FindFiles with Recursive = true,
   and ReadAllFirst = false. }
 function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  DirContentsLast: boolean; var StopSearch: boolean): Cardinal;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const DirContentsLast: boolean; var StopSearch: boolean): Cardinal;
 
   procedure WriteDirContent;
   begin
@@ -300,25 +320,18 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       FindFiles_NonRecursive(Path, Mask, FindDirectories, FileProc, FileProcData, StopSearch);
   end;
 
-  { Search in subdirectories recursively. }
-  procedure WriteSubdirs;
+  procedure UseLocalFileSystem;
   var
+    LocalPath: string;
     FileRec: TSearchRec;
     SearchError: integer;
-    P, LocalPath: string;
   begin
-    P := URIProtocol(Path);
-    if P = 'file' then
-      LocalPath := URIToFilenameSafe(Path) else
-    if P = '' then
-      LocalPath := Path else
-    begin
-      WritelnLog('FindFiles',
-        'Searching inside subdirectories with protocol %s not possible', [P]);
-      Exit;
-    end;
-
+    if Path <> '' then
+      LocalPath := URIToFilenameSafe(Path)
+    else
+      LocalPath := GetCurrentDir;
     LocalPath := InclPathDelim(LocalPath);
+
     {$warnings off}
     SearchError := FindFirst(LocalPath + '*',
       faDirectory { potential flags on directory: } or faSysFile or faArchive or faReadOnly or faHidden,
@@ -337,8 +350,62 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     finally FindClose(FileRec) end;
   end;
 
+  procedure UseDataDirectoryInformation;
+  var
+    U: TURI;
+    PathPartsStr: String;
+    PathEntry: TDirectoryInformation.TEntry;
+    PathDir, D: TDirectoryInformation.TDirectory;
+  begin
+    U := ParseURI(Path);
+    PathPartsStr := PrefixRemove('/', U.Path + U.Document, false);
+    PathEntry := DataDirectoryInformation.FindEntry(PathPartsStr);
+    if PathEntry is TDirectoryInformation.TDirectory then
+    begin
+      PathDir := TDirectoryInformation.TDirectory(PathEntry);
+      for D in PathDir.Directories do
+      begin
+        FindFiles_Recursive(URIIncludeSlash(Path) + D.Name, Mask,
+          FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
+        if StopSearch then Break;
+      end;
+    end;
+  end;
+
+  { Search in subdirectories recursively. }
+  procedure WriteSubdirs;
+  var
+    P: string;
+  begin
+    P := URIProtocol(Path);
+
+    if (P = 'file') or (P = '') then
+      UseLocalFileSystem
+    else
+    if P = 'castle-data' then
+    begin
+      if (DisableDataDirectoryInformation = 0) and
+         (DataDirectoryInformation <> nil) then
+        UseDataDirectoryInformation
+      else
+        raise EInternalError.Create('This case should cause recursive exit earlier in FindFiles_Recursive');
+    end else
+      WritelnLog('FindFiles',
+        'Searching inside subdirectories with protocol %s not possible, ignoring path "%s"',
+          [P, URICaption(Path)]);
+  end;
+
 begin
   Result := 0;
+
+  { early exit if we should do ResolveCastleDataURL and call ourselves }
+  if (URIProtocol(Path) = 'castle-data') and
+     not ( (DisableDataDirectoryInformation = 0) and
+           (DataDirectoryInformation <> nil) ) then
+  begin
+    Exit(FindFiles_Recursive(ResolveCastleDataURL(Path), Mask,
+      FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch));
+  end;
 
   if DirContentsLast then
   begin
@@ -352,15 +419,16 @@ begin
 end;
 
 { This is equivalent to FindFiles with ReadAllFirst = false. }
-function FindFiles_NonReadAllFirst(const Path, Mask: string; FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  Recursive, DirContentsLast: boolean): Cardinal;
+function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectories: boolean;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const Recursive, DirContentsLast: boolean): Cardinal;
 var
   StopSearch: boolean;
 begin
   StopSearch := false;
   if Recursive then
-    Result := FindFiles_Recursive(Path, Mask, FindDirectories, fileProc, FileProcData, DirContentsLast, StopSearch) else
+    Result := FindFiles_Recursive(Path, Mask, FindDirectories, fileProc, FileProcData, DirContentsLast, StopSearch)
+  else
     Result := FindFiles_NonRecursive(Path, Mask, FindDirectories, fileProc, FileProcData, StopSearch);
 end;
 
@@ -371,8 +439,8 @@ begin
 end;
 
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  Options: TFindFilesOptions): Cardinal;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const Options: TFindFilesOptions): Cardinal;
 var
   FileInfos: TFileInfoList;
   i: Integer;
@@ -406,8 +474,8 @@ begin
 end;
 
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer;
-  Options: TFindFilesOptions): Cardinal;
+  const FileProc: TFoundFileProc; const FileProcData: Pointer;
+  const Options: TFindFilesOptions): Cardinal;
 begin
   Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
     FindDirectories, FileProc, FileProcData, Options);
@@ -428,17 +496,18 @@ begin
 end;
 
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
-  FileMethod: TFoundFileMethod; Options: TFindFilesOptions): Cardinal;
+  const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 var
   FileMethodWrapper: TFoundFileMethodWrapper;
 begin
   FileMethodWrapper.Contents := FileMethod;
   Result := FindFiles(Path, Mask, FindDirectories,
-    @FoundFileProcToMethod, @FileMethodWrapper, Options);
+    {$ifdef CASTLE_OBJFPC}@{$endif} FoundFileProcToMethod,
+    @FileMethodWrapper, Options);
 end;
 
 function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
-  FileMethod: TFoundFileMethod; Options: TFindFilesOptions): Cardinal;
+  const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 begin
   Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
     FindDirectories, FileMethod, Options);
@@ -475,12 +544,18 @@ begin
   P := URIProtocol(Path);
   if P = 'file' then
     { convert Path to filename and continue }
-    Path := URIToFilenameSafe(Path) else
+    Path := URIToFilenameSafe(Path)
+  else
+  if (P = 'castle-nx-contents') or
+     (P = 'castle-nx-save') then
+    Exit(URIFileExists(Path + Base)) // URIFileExists handles castle-nx-contents and castle-nx-save
+  else
   if P <> '' then
-    { we can't do anything when protocol is not file or empty. }
+    { we can't do anything with different protocols
+      (note that empty protocol means it's a filename, so this is OK). }
     Exit(true);
 
-  if FileExists(Path + Base) then Exit(true);
+  if RegularFileExists(Path + Base) then Exit(true);
 
   Helper := TSearchFileHardHelper.Create;
   try

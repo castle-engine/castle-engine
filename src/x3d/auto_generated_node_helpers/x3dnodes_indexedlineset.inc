@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,25 +30,31 @@
     procedure SetColor(const Value: TAbstractColorNode);
     function GetCoord: TAbstractCoordinateNode;
     procedure SetCoord(const Value: TAbstractCoordinateNode);
+{$ifndef CASTLE_SLIM_NODES}
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
-    function GetColorPerVertex: boolean;
-    procedure SetColorPerVertex(const Value: boolean);
+{$endif not CASTLE_SLIM_NODES}
+    function GetColorPerVertex: Boolean;
+    procedure SetColorPerVertex(const Value: Boolean);
   public
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: array of LongInt);
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
     { X3D field "colorPerVertex". } { }
-    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
@@ -60,6 +66,7 @@
 
 { TIndexedLineSetNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TIndexedLineSetNode.SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 var
   L: Integer;
@@ -72,6 +79,7 @@ begin
   FdAttrib.Send(A);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TIndexedLineSetNode.GetColor: TAbstractColorNode;
 begin
   if FdColor.Value is TAbstractColorNode then
@@ -98,6 +106,7 @@ begin
   FdCoord.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TIndexedLineSetNode.GetFogCoord: TFogCoordinateNode;
 begin
   if FdFogCoord.Value is TFogCoordinateNode then
@@ -111,6 +120,7 @@ begin
   FdFogCoord.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 procedure TIndexedLineSetNode.SetColorIndex(const Value: array of LongInt);
 begin
   FdColorIndex.Send(Value);
@@ -121,12 +131,12 @@ begin
   FdColorIndex.Send(Value);
 end;
 
-function TIndexedLineSetNode.GetColorPerVertex: boolean;
+function TIndexedLineSetNode.GetColorPerVertex: Boolean;
 begin
   Result := FdColorPerVertex.Value;
 end;
 
-procedure TIndexedLineSetNode.SetColorPerVertex(const Value: boolean);
+procedure TIndexedLineSetNode.SetColorPerVertex(const Value: Boolean);
 begin
   FdColorPerVertex.Send(Value);
 end;

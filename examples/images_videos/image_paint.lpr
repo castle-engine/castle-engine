@@ -27,7 +27,7 @@ const
 
 var
   Window: TCastleWindowBase;
-  RGBAlphaImageGL, RGBImageGL, GrayscaleAlphaImageGL, GrayscaleImageGL, RGBFloatImageGL: TGLImage;
+  RGBAlphaImageGL, RGBImageGL, GrayscaleAlphaImageGL, GrayscaleImageGL, RGBFloatImageGL: TDrawableImage;
   RGBAlphaImage, RGBImage, GrayscaleAlphaImage, GrayscaleImage, RGBFloatImage: TCastleImage;
 
 procedure DoTest(aImage: TCastleImage);
@@ -57,23 +57,23 @@ procedure DoDraw;
 begin
   RGBAlphaImage := TRGBAlphaImage.Create(TestSize*NTests, TestSize);
   DoTest(RGBAlphaImage);
-  RGBAlphaImageGL := TGLImage.Create(RGBAlphaImage,true,true);
+  RGBAlphaImageGL := TDrawableImage.Create(RGBAlphaImage,true,true);
   {-------------}
   RGBImage := TRGBImage.Create(TestSize * NTests, TestSize);
   DoTest(RGBImage);
-  RGBImageGL := TGLImage.Create(RGBImage,true,true);
+  RGBImageGL := TDrawableImage.Create(RGBImage,true,true);
   {-------------}
   GrayscaleAlphaImage := TGrayscaleAlphaImage.Create(TestSize*NTests, TestSize);
   DoTest(GrayscaleAlphaImage);
-  GrayscaleAlphaImageGL := TGLImage.Create(GrayscaleAlphaImage,true,true);
+  GrayscaleAlphaImageGL := TDrawableImage.Create(GrayscaleAlphaImage,true,true);
   {-------------}
   GrayscaleImage := TGrayscaleImage.Create(TestSize*NTests, TestSize);
   DoTest(GrayscaleImage);
-  GrayscaleImageGL := TGLImage.Create(GrayscaleImage,true,true);
+  GrayscaleImageGL := TDrawableImage.Create(GrayscaleImage,true,true);
   {-------------}
   RGBFloatImage := TRGBFloatImage.Create(TestSize*NTests, TestSize);
   DoTest(RGBFloatImage);
-  RGBFloatImageGL := TGLImage.Create(RGBFloatImage,true,true);
+  RGBFloatImageGL := TDrawableImage.Create(RGBFloatImage,true,true);
 end;
 
 procedure DoRender(Container: TUIContainer);

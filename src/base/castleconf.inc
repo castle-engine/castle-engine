@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,12 @@
   - It's error prone, it's too easy to forget to include this file in some unit.
     Using a consistent compiler options in scripts is easier.
 
-  The proper compiler options to compile the engine are
+  The proper compiler options to compile the engine are:
   - in the ../../castle-fpc.cfg configuration file (used also by fpmake
     compilation method),
   - and they are replicated in Lazarus packages compilation settings,
-  - and are replicated once more in the castle-engine build tool code.
+  - and are replicated once more in the castle-engine build tool code
+    (toolcompile.pas).
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
@@ -146,9 +147,41 @@
 
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
   {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
+    { Build tool defines CASTLE_IOS automatically.
+      This include file defines IOS, and CASTLE_IOS.
+      We advise to use CASTLE_IOS everywhere (in engine code and user applications),
+      to make it simple. }
+    {$define CASTLE_IOS}
     {$define iOS}
   {$endif}
 {$endif}
+
+{$ifdef FPC}
+  {$ifndef VER3_0}
+    {$ifndef VER3_1}
+      { Compiler automatically detects and warns when "case" doesn't cover
+        all possibilities. This means we do not have to, and actually
+        we should not have to (as it would cause "Warning: Unreachable code" warning),
+        add a clause like "else raise EInternalError.Create('xxx');"
+        to "case" statements that should always have a matching possibility.
+
+        This is true for FPC >= 3.2 now. }
+      {$define COMPILER_CASE_ANALYSIS}
+    {$endif}
+  {$endif}
+{$endif}
+
+{ Nintendo Switch ------------------------------------------------------------ }
+
+{ Since we use (as a hack) Aarch64/Android for Nintendo Switch,
+  undefine ANDROID now,
+  to not automatically use Android-specific units in
+  android/castleandroidinternal*.pas . }
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  {$undef ANDROID}
+{$endif CASTLE_NINTENDO_SWITCH}
+
+{ Platform specific adjustments ---------------------------------------------- }
 
 { On some Android versions, you cannot call dlopen (load dynamic libraries)
   from the initialization section of units. You have to wait for
@@ -157,30 +190,9 @@
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
-
-// *Not* define ENABLE_SELF_RECORD_CONSTANTS because:
-//
-// - Declaring something like TVector3.Zero (constant filled with zeros,
-//   inside a record, which type is the same record)
-//   causes internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
-//   so already fixed in FPC).
-//
-// - Declaring something like TVector3.Zero or TVector3.One
-//   (any constant inside a record, which type is the same record)
-//   is not allowed in Delphi, causes error that type is not completely defined.
-//
-// - Since FPC 3.3.1 (at least revision 40292, revision 40000 was OK)
-//   FPC reports the same error as Delphi
-//   (Error: Type "TGenericVector2" is not completely defined).
-//
-// So ENABLE_SELF_RECORD_CONSTANTS is just *never* defined for now.
-// If FPC 3.3.1 will keep this behaviour, we'll just simplify the code
-// in the future to not make this optional.
-{.$define ENABLE_SELF_RECORD_CONSTANTS}
-
-// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
-{$ifdef VER3_0_0}
-  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+// TODO: for now dlopen doesn't work at all on NX, so avoid it
+{$ifdef CASTLE_NINTENDO_SWITCH}
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$endif}
 
 { OpenGL[ES] ------------------------------------------------------------------ }
@@ -193,11 +205,21 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef iOS} {$define OpenGLES} {$endif}
+
+{ NX supports OpenGL and OpenGLES (that's public information,
+  https://wccftech.com/nintendo-switch-supports-vulkan/ ).
+  Our rendering matches better OpenGLES on NX. }
+{$ifdef CASTLE_NINTENDO_SWITCH} {$define OpenGLES} {$endif}
+
 {$ifdef OpenGLES}
   {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}
     {$error We do not support Android/iOS for Delphi yet, use FPC/Lazarus to develop for Android/iOS and other OpenGLES platforms}
   {$else}
-    {$define CastleGL := CastleGLES20}
+    {$ifdef CASTLE_NINTENDO_SWITCH}
+      {$define CastleGL := CastleInternalNxGLES20}
+    {$else}
+      {$define CastleGL := CastleGLES20}
+    {$endif}
   {$endif}
 
   { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
@@ -269,23 +291,25 @@
 { PNG ------------------------------------------------------------------------ }
 
 { There are 3 ways to read/write the PNG format:
-  - If CASTLE_PNG_USING_FCL_IMAGE is defined, then we use
-    PNG implementation inside fcl-image, that does not depend on libpng API.
-    This is the simplest option if you don't want the hassle of linking
-    to libpng library (and distributing it, in case of dynamic linking).
-    This is the default for now, as it makes distribution easiest,
-    on all platforms (standalone, mobile...).
-    Also, aggressive detection of when texture is grayscale/RGB
-    and when it has alpha channel (or is opaque) right now only happens
-    in this case, which helps reduce GPU usage.
-    Also, libpng under Windows can raise some dumb antivirus (ZoneAlarm)
-    warnings, see
-    https://sourceforge.net/p/castle-engine/discussion/general/thread/2fd412b1/ .
 
-  - If CASTLE_PNG_DYNAMIC is defined,
+  1.FpImage (fcl-image units):
+
+    Used if neither CASTLE_PNG_DYNAMIC nor CASTLE_PNG_STATIC are defined
+    (you can force it by CASTLE_DISABLE_LIBPNG).
+    Or when CASTLE_PNG_DYNAMIC is defined but libpng cannot be loaded.
+
+    Then we use PNG implementation inside fcl-image units family,
+    that does not depend on libpng API.
+    This is the simplest option to use, since the PNG support is completely
+    contained in Pascal code, so you don't need to distribute anything,
+    and it works on all platforms.
+
+    The downside is that it is slow.
+    Using libpng (see below option) results in drastically faster PNG loading
+    (even 4x times).
+
+  2.If CASTLE_PNG_DYNAMIC is defined and libpng exists,
     we use libpng from a dynamic library (.so or .dll).
-    This is a bit harder to set up for developer, but may result in drastically
-    faster PNG loading (even 4x times).
 
     - On Linux and other desktop Unixes, libpng is almost definitely already
       installed system-wide, so this just works.
@@ -294,44 +318,42 @@
       ../../tools/build-tool/data/external_libraries/ .
 
       It will be added to your Windows package by the build tool automatically when
-      you run "castle-engine package ...".
+      you run "castle-engine package ..."
       See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
-
-      For development, you may want to copy the DLLs from
-      ../../tools/build-tool/data/external_libraries/ to your project exe dir,
-      or to place these DLLs in a directory listed on the PATH environment variable.
+      It will also be placed alongside your .exe when you do "castle-engine compile ...".
 
     - For macOS, see https://castle-engine.io/macosx_requirements.php .
 
-  - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
-    unit that allows static linking to png, see castleinternalpng_static.inc.
+  3.If CASTLE_PNG_STATIC is defined, we statically link to libpng.
+    The presense of static libpng library (libpng.a on Unix) is then
+    required at compile-time.
+    This is necessary on some platforms, e.g. iOS. The CGE build tool
+    automatically uses this flag when necessary.
 }
 
-{$ifdef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$define CASTLE_PNG_USING_FCL_IMAGE}
-{$else}
-  // iOS or Android support only CASTLE_PNG_USING_FCL_IMAGE
-  // (they could work with other methods too, but it needs some work to set up,
-  // so we don't support it officially)
-  {$if defined(iOS) or defined(ANDROID)}
+{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
+
+  { On most platforms, try dynamic libpng (will fallback on FpImage at runtime).
+    Except on platforms where we know it would not work. }
+  {$if not (defined(iOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH))}
+    {$define CASTLE_PNG_DYNAMIC}
+  {$endif}
+
+  {$if defined(CASTLE_PNG_DYNAMIC) and defined(CASTLE_PNG_STATIC)}
+    {$error Cannot define both CASTLE_PNG_DYNAMIC and CASTLE_PNG_STATIC. Define at most one of them.}
+  {$endif}
+
+  {$if defined(CASTLE_DISABLE_LIBPNG)}
     {$undef CASTLE_PNG_DYNAMIC}
     {$undef CASTLE_PNG_STATIC}
-    {$define CASTLE_PNG_USING_FCL_IMAGE}
   {$endif}
 {$endif}
 
-{$ifndef CASTLE_PNG_DYNAMIC}
-  {$ifndef CASTLE_PNG_STATIC}
-    // Automatically define CASTLE_PNG_USING_FCL_IMAGE, unless one of the other defines is set.
-    // This allows developers to override this by setting e.g. -dCASTLE_PNG_DYNAMIC in ~/.fpc.cfg
-    {$define CASTLE_PNG_USING_FCL_IMAGE}
-  {$endif}
-{$endif}
-
-{ Below is relevant only if we use dynamic PNG library (castleinternalpng_dynamic.inc).
-  Determines calling convention of libpng functions and callbacks:
-  LIBPNG_STDCALL or LIBPNG_CDECL. The standard is to just define LIBPNG_CDECL,
-  also for Windows: normal Windows dlls of libpng use cdecl, just like Unix. }
+{ LIBPNG_CDECL is relevant only if we use libpng (dynamic or static).
+  Determines calling convention of libpng functions and libpng callbacks.
+  When LIBPNG_CDECL is defined, it is "cdecl", otherwise it is "stdcall".
+  Right now, in practice it is always LIBPNG_CDECL, even on Windows
+  (standard Windows libpng DLL libraries use cdecl, just like on Unix). }
 {$ifdef MSWINDOWS}
   {$define LIBPNG_CDECL}
 {$else}
@@ -343,6 +365,7 @@
 { Keep HAS_FP_HTTP_CLIENT defined for all platforms that have
   FpHttpClient implemented, if you use FPC. }
 {$define HAS_FP_HTTP_CLIENT}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 {$ifndef FPC} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
@@ -358,5 +381,29 @@
   Undefine this to conserve around 0.7 MB in exe size.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
+
+{ Threading --------------------------------------------------------------- }
+
+{ Threading support, some platform don't have threads (implemented yet). }
+{$define CASTLE_SUPPORTS_THREADING}
+{$ifdef CASTLE_NINTENDO_SWITCH} {$undef CASTLE_SUPPORTS_THREADING} {$endif}
+
+{ Audio ---------------------------------------------------------------------- }
+
+{ Although Tremolo is largely compatible with VorbisFile, there are small differences,
+  e.g. ov_time_total returns Int64 with Tremolo instead of Double with VorbisFile. }
+{$if defined(IOS) or defined(ANDROID) or defined(CASTLE_NINTENDO_SWITCH)}
+  {$define CASTLE_TREMOLO}
+{$endif}
+
+{ X3D ------------------------------------------------------------------------ }
+
+{ Define this if needed to optimize loading time.
+  It removes various seldom-used fields from often-used X3D nodes,
+  thus increasing the X3D node creation time significantly.
+  It also makes some exposed X3D fields into non-exposed
+  (it means you cannot define X3D ROUTEs to pass value into/out of this field).
+  The choice "which fields are seldom used" is purely subjective, and may change! }
+{.$define CASTLE_SLIM_NODES}
 
 {$endif not CASTLE_CONF_INCLUDED}

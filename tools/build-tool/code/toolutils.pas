@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
   Parts of this file are based on FPC packages/fcl-process/src/process.pp ,
@@ -20,7 +20,8 @@ unit ToolUtils;
 
 interface
 
-uses CastleImages, CastleStringUtils;
+uses DOM,
+  CastleImages, CastleStringUtils;
 
 { Copy file, making sure the destination directory exists
   (eventually creating it), and checking result. }
@@ -28,65 +29,7 @@ procedure SmartCopyFile(const Source, Dest: string);
 
 function FileSize(const FileName: string): Int64;
 
-{ Run command in given directory with given arguments,
-  gathering output and status to string.
-  Also gathers error output to the same string.
-  Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output.
-
-  @param(ExeName Executable name, should be an absolute filename
-    e.g. found by FindExe. This will avoid FPC errors (the default FPC
-    algorithm searching $PATH may mistake binary for a directory with
-    the same name).)
-
-  @param(OutputString Standard output (stdout) and standard error output
-    (stderr) of the command.)
-}
-procedure MyRunCommandIndir(
-  const CurDir: string; const ExeName: string;
-  const Options: array of string;
-  out OutputString: string; out ExitStatus: integer);
-
-{ Run command in given directory with given arguments,
-  gathering output and status to string, and also letting output
-  to go to our output.
-
-  @param(ExeName Executable name, should be an absolute filename
-    e.g. found by FindExe. Like for MyRunCommandIndir.)
-
-  @param(OutputString Stdout and stderr of the process.
-    Like by MyRunCommandIndir.)
-
-  @param(OverrideEnvironmentName
-    When not empty, this environment variable has set
-    value OverrideEnvironmentValue in the process.) }
-procedure RunCommandIndirPassthrough(
-  const CurDir: string; const ExeName: string;
-  const Options: array of string;
-  var OutputString:string; var ExitStatus:integer;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
-
-{ Run command in given (or current) directory with given arguments,
-  letting output (stdout and stderr) to go to our stdout.
-  Command is searched on $PATH following standard OS conventions,
-  if it's not already an absolute filename.
-  Raises exception if command fails (detected by exit code <> 0). }
-procedure RunCommandSimple(
-  const ExeName: string; const Options: array of string); overload;
-procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Options: array of string;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = ''); overload;
-
-{ Run the command, and return immediately, without waiting for finish. }
-procedure RunCommandNoWait(
-  const ProjectPath: string;
-  const ExeName: string; const Options: array of string);
-
 var
-  { Trivial verbosity global setting. }
-  Verbose: boolean = false;
-
   { Output path base directory. Empty to use working project directory. }
   OutputPathBase: string = '';
 
@@ -99,8 +42,6 @@ function TempOutputPath(const WorkingDirectory: string;
 
 type
   TReplaceMacros = function (const Source: string): string of object;
-
-function CreateTemporaryDir: string;
 
 type
   TImageFileNames = class(TCastleStringList)
@@ -118,18 +59,6 @@ type
 
 const
   MaxAndroidTagLength = 23;
-
-{ Like @link(FindExe), but additionally look for the exe in
-  Castle Game Engine bin/ subdirectory. }
-function FindCgeExe(const ExeName: String): String;
-
-{ Path to CGE main directory,
-  obtained from $CASTLE_ENGINE_PATH environment variable.
-
-  Returns empty String if it wasn't possible to get a valid value.
-  Otherwise, the returned path always ends with path delimiter,
-  and always exists. }
-function CastleEnginePath: String;
 
 const
   { Interpolation to scale images with highest quality.
@@ -154,10 +83,48 @@ const
   }
   BestInterpolation = {$ifdef VER3_0} riLanczos {$else} riBilinear {$endif};
 
+{ Find in Element all children called <parameter>,
+  read them and add to Parameters list,
+  expecting this format:
+
+  <parameter key="my_key" value="my_value" />
+  or
+  <parameter key="my_key">my_value</parameter>
+  or
+  <parameter key="my_key"><![CDATA[my_value]]></parameter>
+
+  Note that keys are converted to lowercase.
+  Parameter keys, just like macro names, are not case-sensitive.
+
+  All the keys in RequiredKeys are guaranteed to have a value set.
+  If they are not specified in Element (or Element is @nil),
+  they will have an empty value.
+  This is necessary if you want to use this macro in template *even*
+  when user doesn't specify it.
+}
+procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
+  const RequiredKeys: array of String);
+
+{ Add all parameters in Parameters to Macros.
+  Each parameter key is prefixed by ParameterMacroPrefix
+  when it is added to the Macros list. }
+procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
+  const ParameterMacroPrefix: String);
+
+{ Find the filename of linker input produced by FPC when called with -Cn .
+  Path must contain a final path delimiter.
+
+  For old FPC, it is just link.res.
+  For new FPC 3.3.1 it may be any link<id>.res and unfortunately we don't know the <id>
+  (it's not the TProcess.ProcessID of "fpc" process, at least under Windows). }
+function FindLinkRes(const Path: String): String;
+
 implementation
 
 uses Classes, Process, SysUtils,
-  CastleFilesUtils, CastleUtils, CastleURIUtils;
+  CastleFilesUtils, CastleUtils, CastleURIUtils, CastleLog, CastleXMLUtils,
+  CastleFindFiles,
+  ToolCommonUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
 begin
@@ -173,219 +140,6 @@ begin
   try
     Result := SourceFile.Size;
   finally FreeAndNil(SourceFile) end;
-end;
-
-procedure MyRunCommandIndir(const CurDir: string;
-  const ExeName: string;const Options: array of string;
-  out OutputString: string; out ExitStatus: integer);
-{ Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
-Const
-  READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
-var
-  p : TProcess;
-  i : integer;
-  numbytes,bytesread : integer;
-begin
-  // default out values
-  OutputString := '';
-  ExitStatus := 0;
-
-  p:=TProcess.create(nil);
-  p.Executable:=exename;
-  if curdir<>'' then
-    p.CurrentDirectory:=curdir;
-  if high(Options)>=0 then
-   for i:=low(Options) to high(Options) do
-     p.Parameters.add(Options[i]);
-  if Verbose then
-  begin
-    Writeln('Calling ' + ExeName);
-    Writeln(P.Parameters.Text);
-  end;
-
-  try
-    try
-      p.Options := [poUsePipes, poStderrToOutPut];
-      bytesread := 0;
-      p.Execute;
-      while p.Running do
-      begin
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes) else
-          Sleep(100);
-      end;
-      repeat
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes);
-      until NumBytes <= 0;
-      setlength(OutputString,BytesRead);
-      ExitStatus:=p.ExitStatus;
-    except
-      on e : Exception do
-      begin
-        setlength(OutputString,BytesRead);
-        raise;
-      end;
-    end;
-  finally p.free end;
-end;
-
-procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Options: array of string;var OutputString:string;var ExitStatus:integer;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
-{ Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
-Const
-  READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
-var
-  p : TProcess;
-  i : integer;
-  numbytes,bytesread : integer;
-  NewEnvironment: TStringList;
-begin
-  p:=TProcess.create(nil);
-  p.Executable:=exename;
-  if curdir<>'' then
-    p.CurrentDirectory:=curdir;
-  if high(Options)>=0 then
-   for i:=low(Options) to high(Options) do
-     p.Parameters.add(Options[i]);
-  if Verbose then
-  begin
-    Writeln('Calling ' + ExeName);
-    Writeln(P.Parameters.Text);
-  end;
-
-  NewEnvironment := nil;
-  try
-    if OverrideEnvironmentName <> '' then
-    begin
-      NewEnvironment := TStringList.Create;
-      for I := 1 to GetEnvironmentVariableCount do
-        NewEnvironment.Add(GetEnvironmentString(I));
-      NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
-      P.Environment := NewEnvironment;
-      // Writeln('Environment: ' + P.Environment.Text);
-    end;
-
-    try
-      p.Options := [poUsePipes, poStderrToOutPut];
-      bytesread := 0;
-      p.Execute;
-      while p.Running do
-      begin
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes) else
-          Sleep(100);
-      end;
-      repeat
-        Setlength(OutputString,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
-        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
-        if NumBytes > 0 then
-          Inc(BytesRead, NumBytes);
-      until NumBytes <= 0;
-      setlength(OutputString,BytesRead);
-      ExitStatus:=p.ExitStatus;
-    except
-      on e : Exception do
-      begin
-        setlength(OutputString,BytesRead);
-        raise;
-      end;
-    end;
-  finally
-    FreeAndNil(p);
-    FreeAndNil(NewEnvironment);
-  end;
-end;
-
-procedure RunCommandNoWait(
-  const ProjectPath: string;
-  const ExeName: string; const Options: array of string);
-var
-  P: TProcess;
-  I: Integer;
-  {$ifdef UNIX} NoHupExe: String; {$endif}
-begin
-  P := TProcess.Create(nil);
-  try
-    P.Executable := ExeName;
-    // this is useful on Unix, to place nohup.out inside temp directory
-    P.CurrentDirectory := TempOutputPath(ProjectPath);
-
-    { Under Unix, execute using nohup.
-      This way the parent process can die (and destroy child's IO handles)
-      and the new process will keep running OK.
-      This is important when you execute in "castle-editor" the option
-      to "Restart and Rebuild" editor, then "castle-editor" calls "castle-engine editor",
-      and both "castle-editor" and "castle-engine" processes die
-      (while the new CGE editor should continue running). }
-    {$ifdef UNIX}
-    NoHupExe := FindExe('nohup');
-    if NoHupExe <> '' then
-    begin
-      P.Executable := NoHupExe;
-      P.Parameters.Add(ExeName);
-    end;
-    {$endif}
-
-    for I := Low(Options) to High(Options) do
-      P.Parameters.Add(Options[I]);
-
-    { Under Windows, these options should make a process execute OK.
-      Following http://wiki.lazarus.freepascal.org/Executing_External_Programs . }
-    P.InheritHandles := false;
-    P.ShowWindow := swoShow;
-
-    if Verbose then
-    begin
-      Writeln('Calling ' + ExeName);
-      Writeln(P.Parameters.Text);
-    end;
-
-    P.Execute;
-  finally FreeAndNil(P) end;
-end;
-
-procedure RunCommandSimple(
-  const ExeName: string; const Options: array of string);
-begin
-  RunCommandSimple(GetCurrentDir, ExeName, Options);
-end;
-
-procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Options: array of string;
-  const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = '');
-var
-  ProcessOutput: string;
-  ProcessStatus: Integer;
-  AbsoluteExeName: string;
-begin
-  { use FindExe to use our fixed PathFileSearch that does not accidentaly find
-    "ant" directory as "ant" executable }
-  if IsPathAbsolute(ExeName) then
-    AbsoluteExeName := ExeName
-  else
-  begin
-    AbsoluteExeName := FindExe(ExeName);
-    if AbsoluteExeName = '' then
-      raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
-        [ExeName, ExeName]);
-  end;
-
-  RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Options,
-    ProcessOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
-  if ProcessStatus <> 0 then
-    raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',
-      [ExeName, AbsoluteExeName, ProcessStatus]);
 end;
 
 var
@@ -410,21 +164,12 @@ begin
       CheckForceDirectories(FOutputPath);
 
       OutputNote := FOutputPath + 'DO-NOT-COMMIT-THIS-DIRECTORY.txt';
-      if not FileExists(OutputNote) then
+      if not RegularFileExists(OutputNote) then
         StringToFile(OutputNote, OutputNoteContents);
     end;
   end;
 
   Result := FOutputPath;
-end;
-
-function CreateTemporaryDir: string;
-begin
-  Result := InclPathDelim(GetTempDir(false)) +
-    ApplicationName + IntToStr(Random(1000000));
-  CheckForceDirectories(Result);
-  if Verbose then
-    Writeln('Created temporary dir for package: ' + Result);
 end;
 
 { TImageFileNames ------------------------------------------------------------- }
@@ -454,41 +199,110 @@ begin
   Result := nil;
 end;
 
-function FindCgeExe(const ExeName: String): String;
+function GetCData(const Element: TDOMElement): String;
 var
-  CgePath: String;
+  I: TXMLCDataIterator;
 begin
-  CgePath := CastleEnginePath;
-  if CgePath <> '' then
-  begin
-    Result := CgePath + 'bin' + PathDelim + ExeName + ExeExtension;
-    if FileExists(Result) then
-      Exit;
-  end;
-
-  Result := FindExe(ExeName);
+  Result := '';
+  I := TXMLCDataIterator.Create(Element);
+  try
+    while I.GetNext do
+      Result := Result + I.Current;
+  finally FreeAndNil(I) end;
 end;
 
-function CastleEnginePath: String;
+procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringStringMap;
+  const RequiredKeys: array of String);
+var
+  ChildElements: TXMLElementIterator;
+  ChildElement: TDOMElement;
+  Key, Value, KeyLower: string;
 begin
-  Result := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-  if Result = '' then Exit;
+  if Element <> nil then
+  begin
+    ChildElements := Element.ChildrenIterator('parameter');
+    try
+      while ChildElements.GetNext do
+      begin
+        ChildElement := ChildElements.Current;
 
-  Result := InclPathDelim(Result);
+        Key := LowerCase(ChildElement.AttributeString('key'));
+        if Key = '' then
+          raise Exception.Create('Key for <parameter> is empty in CastleEngineManifest.xml');
 
-  if not DirectoryExists(Result) then
-    Exit('');
+        if ChildElement.HasAttribute('value') then
+          Value := ChildElement.AttributeString('value')
+        else
+        begin
+          Value := ChildElement.TextData;
+          if Value = '' then
+            Value := GetCData(ChildElement);
+          { value cannot be empty in this case }
+          if Value = '' then
+            raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
+        end;
 
-  { $CASTLE_ENGINE_PATH environment variable may point to the directory
-    - containing castle_game_engine/ as subdirectory
-    - or containing castle-engine/ as subdirectory
-    - or pointing straight to castle_game_engine/ or castle-engine/
-      directory. }
-  if DirectoryExists(Result + 'castle_game_engine') then
-    Result := Result + 'castle_game_engine' + PathDelim
-  else
-  if DirectoryExists(Result + 'castle-engine') then
-    Result := Result + 'castle-engine' + PathDelim;
+        Parameters.Add(Key, Value);
+      end;
+    finally FreeAndNil(ChildElements) end;
+  end;
+
+  for Key in RequiredKeys do
+  begin
+    KeyLower := LowerCase(Key);
+    if not Parameters.ContainsKey(KeyLower) then
+      Parameters.Add(KeyLower, '');
+  end;
+end;
+
+procedure ParametersAddMacros(const Macros, Parameters: TStringStringMap;
+  const ParameterMacroPrefix: String);
+var
+  Pair: TStringStringMap.TDictionaryPair;
+begin
+  for Pair in Parameters do
+    Macros.Add(UpperCase(ParameterMacroPrefix + Pair.Key), Pair.Value);
+end;
+
+type
+  TFindLinkResHandler = class
+    FileName: String;
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+  end;
+
+procedure TFindLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if FileName <> '' then
+    raise Exception.CreateFmt('Multiple linker input files in the same directory: "%s" and "%s". Delete all "link*.res" here and run the process again', [
+      FileName,
+      FileInfo.AbsoluteName
+    ]);
+  FileName := FileInfo.AbsoluteName;
+end;
+
+function FindLinkRes(const Path: String): String;
+var
+  Handler: TFindLinkResHandler;
+  LinkFilesRes: String;
+begin
+  LinkFilesRes := CombinePaths(Path, 'linkfiles.res');
+  if FileExists(LinkFilesRes) then
+  begin
+    { Latest FPC 3.3.1 introduced linkfiles.res file
+      (see FPC sources compiler/systems/t_bsd.pas , started in commit
+      https://github.com/graemeg/freepascal/commit/36d634bd87427e480d4f82344c5f7e5c7d6b57eb
+      it seems ).
+      It contains what we need: the list of .o files.
+      The link<some-process-id>.res is also generated, but it is no longer useful for us.
+      So exit with "linkfiles.res", without causing "Multiple linker input files..." error. }
+    Exit(LinkFilesRes);
+  end;
+
+  Handler := TFindLinkResHandler.Create;
+  try
+    FindFiles(Path, 'link*.res', false, @Handler.FoundFile, []);
+    Result := Handler.FileName;
+  finally FreeAndNil(Handler) end;
 end;
 
 end.

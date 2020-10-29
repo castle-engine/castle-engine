@@ -18,25 +18,28 @@
   This is useful for example when auto-generating a complex 3D scene
   by code, from multiple small X3D files.
 
-  If you want to render the complex scene fast, it's better to combine
-  it, and use a single TCastleScene, than to use multiple TCastleScenes.
-  Using a single TCastleScene means that e.g. frustum culling will be
-  efficient.
-  See https://castle-engine.io/tutorial_transformation_hierarchy.php .
+  If you want to render the complex scene fast, it may be beneficial to combine
+  it into a single TCastleScene, instead of using multiple TCastleScenes.
+  See https://castle-engine.io/tutorial_transformation_hierarchy.php for detailed
+  discussion.
 }
 program combine_multiple_x3d_into_one;
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, X3DLoad, X3DNodes,
-  CastleFilesUtils, CastleVectors;
+  CastleFilesUtils, CastleVectors, CastleViewport;
 
 var
   MainRoot, ModelBoxes, ModelRaptor: TX3DRootNode;
   TransformBoxes: TTransformNode;
   TransformRaptor: array [0..2] of TTransformNode;
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   I: Integer;
 begin
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
+
   { Create an X3D graph like this:
 
     MainRoot (TX3DRootNode)
@@ -61,7 +64,7 @@ begin
 
   { add ModelBoxes and TransformBoxes }
 
-  ModelBoxes := Load3D(ApplicationData('boxes.x3dv'));
+  ModelBoxes := LoadNode('castle-data:/boxes.x3dv');
 
   TransformBoxes := TTransformNode.Create;
   TransformBoxes.Translation := Vector3(-5, 0, 0);
@@ -71,7 +74,7 @@ begin
 
   { add ModelRaptor and TransformRaptor[0..2] }
 
-  ModelRaptor := Load3D(ApplicationData('raptor_1.x3d'));
+  ModelRaptor := LoadNode('castle-data:/raptor_1.x3d');
 
   for I := 0 to 2 do
   begin
@@ -89,10 +92,14 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window := TCastleWindow.Create(Application);
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
-  Window.Open;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+
   Application.Run;
 end.

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,20 +32,20 @@
     procedure SetBorderColor(const Value: TCastleColor);
     function GetBorderWidth: Integer;
     procedure SetBorderWidth(const Value: Integer);
-    function GetBoundaryModeS: string;
-    procedure SetBoundaryModeS(const Value: string);
-    function GetBoundaryModeT: string;
-    procedure SetBoundaryModeT(const Value: string);
-    function GetBoundaryModeR: string;
-    procedure SetBoundaryModeR(const Value: string);
-    function GetTextureCompression: string;
-    procedure SetTextureCompression(const Value: string);
+    function GetBoundaryModeS: String;
+    procedure SetBoundaryModeS(const Value: String);
+    function GetBoundaryModeT: String;
+    procedure SetBoundaryModeT(const Value: String);
+    function GetBoundaryModeR: String;
+    procedure SetBoundaryModeR(const Value: String);
+    function GetTextureCompression: String;
+    procedure SetTextureCompression(const Value: String);
     function GetTexturePriority: Single;
     procedure SetTexturePriority(const Value: Single);
-    function GetGenerateMipMaps: boolean;
-    procedure SetGenerateMipMaps(const Value: boolean);
-    function GetGuiTexture: boolean;
-    procedure SetGuiTexture(const Value: boolean);
+    function GetGenerateMipMaps: Boolean;
+    procedure SetGenerateMipMaps(const Value: Boolean);
+    function GetGuiTexture: Boolean;
+    procedure SetGuiTexture(const Value: Boolean);
   public
     { X3D field "anisotropicDegree". } { }
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
@@ -54,19 +54,19 @@
     { X3D field "borderWidth". } { }
     property BorderWidth: Integer read GetBorderWidth write SetBorderWidth;
     { X3D field "boundaryModeS". } { }
-    property BoundaryModeS: string read GetBoundaryModeS write SetBoundaryModeS;
+    property BoundaryModeS: String read GetBoundaryModeS write SetBoundaryModeS;
     { X3D field "boundaryModeT". } { }
-    property BoundaryModeT: string read GetBoundaryModeT write SetBoundaryModeT;
+    property BoundaryModeT: String read GetBoundaryModeT write SetBoundaryModeT;
     { X3D field "boundaryModeR". } { }
-    property BoundaryModeR: string read GetBoundaryModeR write SetBoundaryModeR;
+    property BoundaryModeR: String read GetBoundaryModeR write SetBoundaryModeR;
     { X3D field "textureCompression". } { }
-    property TextureCompression: string read GetTextureCompression write SetTextureCompression;
+    property TextureCompression: String read GetTextureCompression write SetTextureCompression;
     { X3D field "texturePriority". } { }
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
     { X3D field "generateMipMaps". } { }
-    property GenerateMipMaps: boolean read GetGenerateMipMaps write SetGenerateMipMaps;
+    property GenerateMipMaps: Boolean read GetGenerateMipMaps write SetGenerateMipMaps;
     { X3D field "guiTexture". } { }
-    property GuiTexture: boolean read GetGuiTexture write SetGuiTexture;
+    property GuiTexture: Boolean read GetGuiTexture write SetGuiTexture;
 
 {$endif read_interface}
 
@@ -104,42 +104,42 @@ begin
   FdBorderWidth.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeS: string;
+function TTexturePropertiesNode.GetBoundaryModeS: String;
 begin
   Result := FdBoundaryModeS.Value;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: string);
+procedure TTexturePropertiesNode.SetBoundaryModeS(const Value: String);
 begin
   FdBoundaryModeS.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeT: string;
+function TTexturePropertiesNode.GetBoundaryModeT: String;
 begin
   Result := FdBoundaryModeT.Value;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: string);
+procedure TTexturePropertiesNode.SetBoundaryModeT(const Value: String);
 begin
   FdBoundaryModeT.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetBoundaryModeR: string;
+function TTexturePropertiesNode.GetBoundaryModeR: String;
 begin
   Result := FdBoundaryModeR.Value;
 end;
 
-procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: string);
+procedure TTexturePropertiesNode.SetBoundaryModeR(const Value: String);
 begin
   FdBoundaryModeR.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetTextureCompression: string;
+function TTexturePropertiesNode.GetTextureCompression: String;
 begin
   Result := FdTextureCompression.Value;
 end;
 
-procedure TTexturePropertiesNode.SetTextureCompression(const Value: string);
+procedure TTexturePropertiesNode.SetTextureCompression(const Value: String);
 begin
   FdTextureCompression.Send(Value);
 end;
@@ -154,22 +154,22 @@ begin
   FdTexturePriority.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetGenerateMipMaps: boolean;
+function TTexturePropertiesNode.GetGenerateMipMaps: Boolean;
 begin
   Result := FdGenerateMipMaps.Value;
 end;
 
-procedure TTexturePropertiesNode.SetGenerateMipMaps(const Value: boolean);
+procedure TTexturePropertiesNode.SetGenerateMipMaps(const Value: Boolean);
 begin
   FdGenerateMipMaps.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetGuiTexture: boolean;
+function TTexturePropertiesNode.GetGuiTexture: Boolean;
 begin
   Result := FdGuiTexture.Value;
 end;
 
-procedure TTexturePropertiesNode.SetGuiTexture(const Value: boolean);
+procedure TTexturePropertiesNode.SetGuiTexture(const Value: Boolean);
 begin
   FdGuiTexture.Send(Value);
 end;

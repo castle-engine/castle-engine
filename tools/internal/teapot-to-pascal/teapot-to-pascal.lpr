@@ -63,7 +63,7 @@ var
   end;
 
 begin
-  Model := Load3D('teapot.wrl');
+  Model := LoadNode('teapot.wrl');
   try
     HandleCoords('TeapotManifold', 'Manifold');
     HandleCoords('Teapot', '');

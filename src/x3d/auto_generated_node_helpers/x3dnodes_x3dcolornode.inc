@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,50 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetMode: TColorMode;
+    procedure SetMode(const Value: TColorMode);
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdMode: TSFStringEnum;
+    { X3D field "mode". } { }
+    public property FdMode: TSFStringEnum read FFdMode;
+    { X3D field "mode". } { }
+    property Mode: TColorMode read GetMode write SetMode;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractColorNode ----------------------------------------------- }
+
+function TAbstractColorNode.GetMode: TColorMode;
+begin
+  Result := TColorMode(FdMode.EnumValue);
+end;
+
+procedure TAbstractColorNode.SetMode(const Value: TColorMode);
+begin
+  FdMode.SendEnumValue(Ord(Value));
+end;
+
+class function TAbstractColorNode.ClassX3DType: String;
+begin
+  Result := 'X3DColorNode';
+end;
+
+procedure TAbstractColorNode.CreateNode;
+begin
+  inherited;
+
+  FFdMode := TSFStringEnum.Create(Self, False, 'mode', ColorModeNames, Ord(cmReplace));
+   FdMode.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMode);
+  { X3D specification comment: ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace }
+
+  DefaultContainerField := 'color';
+end;
 
 {$endif read_implementation}

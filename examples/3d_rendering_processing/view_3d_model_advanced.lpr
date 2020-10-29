@@ -18,14 +18,15 @@
   so look there first. }
 program view_3d_model_advanced;
 
-{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
-  CastleControls, CastleURIUtils, CastleApplicationProperties;
+  CastleControls, CastleURIUtils, CastleApplicationProperties, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
   URL: string = 'data/bridge_final.x3dv';
@@ -38,18 +39,15 @@ type
 
 class procedure THelper.OpenButtonClick(Sender: TObject);
 begin
-  if Window.FileDialog('Open 3D model', URL, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open Scene', URL, true, LoadScene_FileFilters) then
   begin
     Scene.Load(URL);
     Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
 
-    { camera is separate from the 3D world, and so it is *not* reinitialized
-      by simple reloading of the scene. In this demo, we want to move camera
-      to most suitable place for the *new* scene (ignoring previous camera
-      mode and position). The simplest way to do it is to just free the previous
-      camera. SceneManager will automatically create new, suitable camera
-      before next render. }
-    Window.SceneManager.Camera.Free;
+    { Move camera to most suitable place for the *new* scene (ignoring previous camera
+      position). }
+    Viewport.AssignDefaultCamera;
+    Viewport.AssignDefaultNavigation;
   end;
 end;
 
@@ -59,10 +57,18 @@ begin
   if Parameters.High = 1 then
     URL := Parameters[1];
 
+  InitializeLog;
+
   { Output warnings on a console. }
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   { Enable rendering models using shadow volumes. This requires some special
     code, as OpenGL must be prepared in a special way to enable it,
@@ -82,7 +88,7 @@ begin
   Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
 
-  { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }
+  { load a Scene and add it to Viewport, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
   Scene.PlayAnimation('animation', true); // play animation named "animation", if exists.
@@ -95,20 +101,22 @@ begin
 
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
-  { force recreating camera suitable for new Scene (after it's added to SceneManager) }
-  Window.SceneManager.Camera.Free;
+  Viewport.AssignDefaultCamera;
+  Viewport.AssignDefaultNavigation;
 
   { Output some information about the loaded scene }
-  Writeln('Scene vertexes: ', Scene.VerticesCount(true),
-    ', triangles: ', Scene.TrianglesCount(true),
-    ', bounding box: ', Scene.BoundingBox.ToString);
+  WritelnLog('Scene vertexes: %d, triangles: %d, bounding box: %s', [
+    Scene.VerticesCount(true),
+    Scene.TrianglesCount(true),
+    Scene.BoundingBox.ToString
+  ]);
 
   { add an "Open" button to the window controls }
   OpenButton := TCastleButton.Create(Application);
-  OpenButton.Caption := 'Open 3D model';
+  OpenButton.Caption := 'Open Scene';
   OpenButton.OnClick := @THelper(nil).OpenButtonClick;
   OpenButton.Left := 10;
   OpenButton.Bottom := 10;

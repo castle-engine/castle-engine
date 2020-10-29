@@ -28,10 +28,14 @@
 
   Logs TouchSensor clicks on the console. }
 
-{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses Classes,SysUtils,
-  X3DNodes, X3DFields, X3DTIme, CastleWindow, CastleSceneCore, CastleScene;
+  X3DNodes, X3DFields, X3DTIme, CastleWindow, CastleSceneCore, CastleScene,
+  CastleViewport, CastleNotifications, CastleUIControls, CastleColors;
+
+var
+  Notifications: TCastleNotifications;
 
 type
   TMyEventListener = class(TComponent)
@@ -44,19 +48,20 @@ var
   Val: Double;
 begin
   Val := (Value as TSFTime).Value;
-  Writeln('Received TouchSensor.touchTime event with value ', Val:1:2);
+  Notifications.Show(Format('Received TouchSensor.touchTime event: time %f', [Val]));
 end;
 
 procedure TMyEventListener.ReceivedIsActive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  Val: boolean;
+  Val: Boolean;
 begin
   Val := (Value as TSFBool).Value;
-  Writeln('Received TouchSensor.isActive event with value ', BoolToStr(Val, true));
+  Notifications.Show(Format('Received TouchSensor.isActive event: %s', [BoolToStr(Val, true)]));
 end;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   EventListener: TMyEventListener;
 
@@ -66,6 +71,24 @@ var
   Shape: TShapeNode;
   TouchSensor: TTouchSensorNode;
 begin
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
+
+  Notifications  := TCastleNotifications.Create(Application);
+  Notifications.Anchor(hpMiddle);
+  Notifications.Anchor(vpBottom);
+  Notifications.TextAlignment := hpMiddle; // looks best, when anchor is also in the middle
+  Notifications.MaxMessages := 20;
+  Notifications.Timeout := 20000;
+  Notifications.Color := Yellow;
+  Window.Controls.InsertFront(Notifications);
+
   EventListener := TMyEventListener.Create(Application);
 
   Cone := TConeNode.Create;
@@ -94,10 +117,8 @@ begin
     as we have no necessary collision detection structures. }
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  Window := TCastleWindow.Create(Application);
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
-  Window.Open;
   Application.Run;
 end.

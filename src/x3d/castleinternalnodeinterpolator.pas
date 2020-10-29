@@ -22,7 +22,7 @@ unit CastleInternalNodeInterpolator;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUtils, X3DNodes, CastleBoxes;
+  CastleUtils, X3DNodes, CastleBoxes, X3DLoadInternalGLTF;
 
 type
   TGetKeyNodeWithTime = procedure (const Index: Cardinal;
@@ -702,10 +702,9 @@ begin
       except
         on E: EModelsStructureDifferent do
         begin
-          if Log then
-            WritelnLog('TNodeInterpolator', Format(
-              'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
-              [I - 1, I]) + E.Message);
+          WritelnLog('TNodeInterpolator', Format(
+            'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
+            [I - 1, I]) + E.Message);
         end;
       end;
 
@@ -755,6 +754,16 @@ end;
 
 class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
 
+  function LoadGLTFFromString(const Contents: String; const BaseUrl: String): TX3DRootNode;
+  var
+    SStream: TStringStream;
+  begin
+    SStream := TStringStream.Create(Contents);
+    try
+      Result := LoadGLTF(SStream, BaseUrl);
+    finally FreeAndNil(SStream) end;
+  end;
+
   { Load <animation> data from a given XML element to a set of variables.
 
     @param(BaseUrl The URL from which relative
@@ -771,7 +780,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     Children: TXMLElementIterator;
     I: Integer;
     FrameTime: Single;
-    FrameURL: string;
+    FrameURL, MimeType: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
     FrameBoxCenter, FrameBoxSize: TVector3;
@@ -803,7 +812,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           { ignore, for backward compatibility }
         else
         if Attr.Name = 'equality_epsilon' then
-          Result.Epsilon := StrToFloat(Attr.NodeValue8)
+          Result.Epsilon := StrToFloatDot(Attr.NodeValue8)
         else
         if Attr.Name = 'loop' then
           Result.Loop := StrToBool(Attr.NodeValue8)
@@ -836,10 +845,20 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
             { Make FrameURL absolute, treating it as relative vs
               AbsoluteBaseUrl }
             FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-            NewNode := Load3D(FrameURL);
+            NewNode := LoadNode(FrameURL);
           end else
           begin
-            NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+            MimeType := FrameElement.AttributeStringDef('mime_type', '');
+            case MimeType of
+              '', 'model/x3d+xml':
+                NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+              'model/gltf+json':
+                NewNode := LoadGLTFFromString(FrameElement.TextData, AbsoluteBaseUrl);
+              else
+                raise Exception.CreateFmt('Cannot use mime_type "%s" for a frame in castle-anim-frames', [
+                  MimeType
+                ]);
+            end;
           end;
 
           if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
@@ -937,33 +956,17 @@ var
 
     procedure AddAnimationVisibilityRoutes(TimeSensor: TTimeSensorNode);
     var
-      BooleanFilter: TBooleanFilterNode;
-      IntegerTrigger: TIntegerTriggerNode;
-      Route: TX3DRoute;
+      ValueTrigger: TValueTriggerNode;
+      F: TX3DField;
     begin
-      BooleanFilter := TBooleanFilterNode.Create(
-        AnimationX3DName + '_BooleanFilter', BaseUrl);
-      RootNode.AddChildren(BooleanFilter);
+      ValueTrigger := TValueTriggerNode.Create;
+      ValueTrigger.X3DName := AnimationX3DName + '_ValueTrigger';
+      RootNode.AddChildren(ValueTrigger);
+      RootNode.AddRoute(TimeSensor.EventIsActive, ValueTrigger.EventTrigger);
 
-      IntegerTrigger := TIntegerTriggerNode.Create(
-        AnimationX3DName + '_IntegerTrigger', BaseUrl);
-      IntegerTrigger.IntegerKey := AnimationIndex;
-      RootNode.AddChildren(IntegerTrigger);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(TimeSensor.EventIsActive);
-      Route.SetDestinationDirectly(BooleanFilter.EventSet_boolean);
-      RootNode.AddRoute(Route);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(BooleanFilter.EventInputTrue);
-      Route.SetDestinationDirectly(IntegerTrigger.EventSet_boolean);
-      RootNode.AddRoute(Route);
-
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(IntegerTrigger.EventTriggerValue);
-      Route.SetDestinationDirectly(SwitchChooseAnimation.FdWhichChoice.EventIn);
-      RootNode.AddRoute(Route);
+      F := TSFInt32.Create(nil, true, 'whichChoice', AnimationIndex);
+      ValueTrigger.AddCustomField(F);
+      RootNode.AddRoute(F, SwitchChooseAnimation.FdWhichChoice.EventIn);
     end;
 
   var
@@ -971,10 +974,9 @@ var
     IntSequencer: TIntegerSequencerNode;
     Switch: TSwitchNode;
     I, NodesCount: Integer;
-    Route: TX3DRoute;
     Group: TGroupNode;
   begin
-    AnimationX3DName := ToX3DName(BakedAnimation.Name);
+    AnimationX3DName := BakedAnimation.Name;
 
     Group := TGroupNode.Create(
       AnimationX3DName + '_Group', BaseUrl);
@@ -983,6 +985,20 @@ var
 
     IntSequencer := TIntegerSequencerNode.Create(
       AnimationX3DName + '_IntegerSequencer', BaseUrl);
+    { ForceContinuousValue_Changed.Value means that output is send
+      (so Switch.whichChoice is set) even when the range of IntSequencer key
+      didn't change.
+
+      This is important in connection with TCastleScene.ResetAnimationState feature:
+      when it occurs, the Switch.whichChoice is reset, and we expect that next
+      receive of IntSequencer.fraction_changed will again set Switch.
+
+      Testcase:
+      - resource_animations example, load any castle-anim-frames example.
+        Without this, the animation would jump between 2 frames.
+      - Also examples/fixed_camera_game/ (shaking humanoid without this)
+      - Also castle-game (shaking alien shooting animation) }
+    IntSequencer.ForceContinuousValue_Changed := true;
     if BakedAnimation.Backwards then
     begin
       IntSequencer.FdKey.Count := NodesCount * 2;
@@ -1028,6 +1044,14 @@ var
       Also, place it in the active graph part (outside SwitchChooseAnimation)
       to be always listed in Scene.AnimationsList. }
     TimeSensor := TTimeSensorNode.Create(AnimationX3DName, BaseUrl);
+    { castle-anim-frames now works cool with DetectAffectedFields,
+      so keep it enabled (default).
+      Our SwitchChooseAnimation.FdWhichChoice.EventIn is detected OK as "affected field".
+      Testcases:
+      - examples/animations/resource_animations/
+      - demo-models/bump_mapping/lizardman.
+    TimeSensor.DetectAffectedFields := true;
+    }
     if BakedAnimation.Backwards then
       TimeSensor.CycleInterval := 2 * BakedAnimation.Duration
     else
@@ -1035,17 +1059,10 @@ var
     TimeSensor.Loop := BakedAnimation.Loop;
     RootNode.AddChildren(TimeSensor);
 
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
-    Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
-    RootNode.AddRoute(Route);
+    RootNode.AddRoute(TimeSensor.EventFraction_changed, IntSequencer.EventSet_fraction);
+    RootNode.AddRoute(IntSequencer.EventValue_changed, Switch.FdWhichChoice);
 
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(IntSequencer.EventValue_changed);
-    Route.SetDestinationDirectly(Switch.FdWhichChoice);
-    RootNode.AddRoute(Route);
-
-    RootNode.ManuallyExportNode(TimeSensor);
+    RootNode.ExportNode(TimeSensor);
 
     AddAnimationVisibilityRoutes(TimeSensor);
 

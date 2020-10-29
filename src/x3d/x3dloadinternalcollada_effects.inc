@@ -125,7 +125,7 @@ begin
   FloatElement := Element.ChildElement('float', false);
   if FloatElement <> nil then
   begin
-    Result := StrToFloat(FloatElement.TextData);
+    Result := StrToFloatDot(FloatElement.TextData);
   end else
     { We don't support anything else than <float> here, just use
       default 1 eventually. }
@@ -256,7 +256,8 @@ var
           if I.Current.TagName = 'reflectivity' then
           begin
             if AllowKambiExtensions then
-              Mat.FdMirror.Value := ReadFloatOrParam(I.Current) else
+              Mat.FdMirror.Value := ReadFloatOrParam(I.Current)
+            else
               ReadFloatOrParam(I.Current);
           end else
           if I.Current.TagName = 'transparent' then

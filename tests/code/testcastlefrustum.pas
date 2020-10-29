@@ -18,11 +18,11 @@ unit TestCastleFrustum;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleVectors, CastleBoxes, CastleFrustum;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
+  CastleTestCase, CastleVectors, CastleBoxes, CastleFrustum;
 
 type
-  TTestCastleFrustum = class(TTestCase)
+  TTestCastleFrustum = class(TCastleTestCase)
   private
     procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
       const SphereCenter: TVector3; const SphereRadiusSqt: Single;
@@ -33,11 +33,13 @@ type
     procedure TestFrustum;
     procedure TestInfiniteFrustum;
     procedure TestCompareWithUnoptimizedPlaneCollision;
+    procedure TestTransformFrustum;
   end;
 
 implementation
 
-uses Math, CastleUtils, CastleTimeUtils, CastleProjection;
+uses Math,
+  CastleUtils, CastleTimeUtils, CastleProjection, CastleTransform, CastleLog;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 
@@ -420,6 +422,119 @@ begin
   {$endif}
 end;
 
+procedure TTestCastleFrustum.TestTransformFrustum;
+
+  {$define TEST_FRUSTUM_TRANSFORM_SPEED}
+  {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
+  procedure DoTestSpeed;
+  const
+    TestsCount = 1000 * 1000;
+  var
+    Frustum1{, Frustum2, Frustum3}: TFrustum;
+    M, MInverse: TMatrix4;
+    T: TTimerResult;
+    I: Integer;
+  begin
+    Frustum1.Init(
+      PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
+      LookDirMatrix(
+        Vector3(10, 10, 10) { eye position },
+        Vector3(1, 0, 0) { look direction },
+        Vector3(0, 0, 1) { up vector } ));
+
+    M := TMatrix4.Identity;
+    MInverse := TMatrix4.Identity;
+    TransformMatricesMult(M, MInverse,
+      Vector3(1, 2, 3),
+      Vector4(4, 5, 6, 7),
+      Vector3(8, 9, 10),
+      Vector4(11, 12, 13, 14),
+      Vector3(15, 16, 17));
+
+    T := Timer;
+    for I := 1 to TestsCount do
+      Frustum1.TransformByInverse(MInverse);
+    WritelnLog('Time of TFrustum.TransformByInverse: %f', [T.ElapsedTime]);
+
+    T := Timer;
+    for I := 1 to TestsCount do
+      Frustum1.Transform(M);
+    WritelnLog('Time of TFrustum.Transform: %f', [T.ElapsedTime]);
+  end;
+  {$endif}
+
+var
+  Frustum1{, Frustum2, Frustum3}: TFrustum;
+  M, MInverse: TMatrix4;
+begin
+  Frustum1.Init(
+    PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
+    LookDirMatrix(
+      Vector3(10, 10, 10) { eye position },
+      Vector3(1, 0, 0) { look direction },
+      Vector3(0, 0, 1) { up vector } ));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+
+  AssertFrustumEquals(Frustum1, Frustum1.Transform(M));
+  AssertFrustumEquals(Frustum1, Frustum1.TransformByInverse(MInverse));
+
+  TransformMatricesMult(M, MInverse,
+    Vector3(0, 0, 0),
+    Vector4(0, 0, 0, 0),
+    Vector3(1, 1, 1),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(1, 1, 1),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(10, 10, 10),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M));
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(10, 20, 30),
+    Vector4(0, 0, 0, 0),
+    Vector3(15, 16, 17));
+  // when using non-uniform scaling, we need larger epsilon to pass
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
+  TransformMatricesMult(M, MInverse,
+    Vector3(1, 2, 3),
+    Vector4(4, 5, 6, 7),
+    Vector3(8, 9, 10),
+    Vector4(11, 12, 13, 14),
+    Vector3(15, 16, 17));
+  // when using non-uniform scaling, we need larger epsilon to pass
+  AssertFrustumEquals(Frustum1.TransformByInverse(MInverse), Frustum1.Transform(M), 0.05);
+
+  {$ifdef TEST_FRUSTUM_TRANSFORM_SPEED}
+  DoTestSpeed;
+  {$endif}
+end;
+
 initialization
- RegisterTest(TTestCastleFrustum);
+  RegisterTest(TTestCastleFrustum);
 end.

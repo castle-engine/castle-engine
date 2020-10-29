@@ -23,8 +23,8 @@ unit CastleTestCase;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, CastleVectors, CastleBoxes,
-  CastleImages, CastleRectangles;
+  Classes, SysUtils, FpcUnit, TestUtils,
+  CastleVectors, CastleBoxes, CastleImages, CastleRectangles, CastleFrustum;
 
 type
   TCastleTestCase = class(TTestCase)
@@ -42,6 +42,11 @@ type
     procedure AssertVectorEquals(const Expected, Actual: TVector2; const Epsilon: Single; AErrorAddrs: Pointer = nil);
     procedure AssertVectorEquals(const Expected, Actual: TVector3; const Epsilon: Single; AErrorAddrs: Pointer = nil);
     procedure AssertVectorEquals(const Expected, Actual: TVector4; const Epsilon: Single; AErrorAddrs: Pointer = nil);
+
+    { Check that 3D planes (defined by equation Ax+By+Cz+D=0) are equal.
+      The vectors must be a component-wise multiplication of each other. }
+    procedure AssertPlaneEquals(const Expected, Actual: TVector4; const Epsilon: Single; AErrorAddrs: Pointer = nil);
+    procedure AssertPlaneEquals(const Expected, Actual: TVector4; AErrorAddrs: Pointer = nil);
 
     procedure AssertSameValue(const Expected, Actual: Single; AErrorAddrs: Pointer = nil);
     procedure AssertSameValue(const Expected, Actual: Single; const Epsilon: Single; AErrorAddrs: Pointer = nil);
@@ -63,6 +68,9 @@ type
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TRectangle; AErrorAddrs: Pointer = nil);
     procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle; AErrorAddrs: Pointer = nil);
+
+    procedure AssertFrustumEquals(const Expected, Actual: TFrustum; const Epsilon: Single; AErrorAddrs: Pointer = nil);
+    procedure AssertFrustumEquals(const Expected, Actual: TFrustum; AErrorAddrs: Pointer = nil);
   end;
 
 implementation
@@ -191,6 +199,54 @@ begin
   if not TVector4.Equals(Expected, Actual, Epsilon) then
     Fail(Format('Vectors (TVector4) are not equal: expected: %s, actual: %s',
       [Expected.ToRawString, Actual.ToRawString]), AErrorAddrs);
+end;
+
+procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4; const Epsilon: Single; AErrorAddrs: Pointer = nil);
+var
+  MaxE, MaxA: Integer;
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+
+  MaxE := MaxAbsVectorCoord(Expected);
+  MaxA := MaxAbsVectorCoord(Actual);
+
+  if MaxE <> MaxA then
+    Fail(Format('Planes (TVector4) are not equal, their maximum component index differs. Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), AErrorAddrs);
+
+  if IsZero(Expected[MaxE], Epsilon) and
+     IsZero(  Actual[MaxA], Epsilon) then
+  begin
+    if not (Expected.IsZero(Epsilon) and Actual.IsZero(Epsilon)) then
+      Fail(Format('Planes (TVector4) are not equal, they should be both zero since maximum component is zero. Expected: %s, actual: %s',
+        [Expected.ToRawString, Actual.ToRawString]), AErrorAddrs);
+  end else
+  if IsZero(Expected[MaxE], Epsilon) or
+     IsZero(  Actual[MaxA], Epsilon) then
+  begin
+    Fail(Format('Planes (TVector4) are not equal, one of them has zero maximum component, the other not. Expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]), AErrorAddrs);
+  end else
+  begin
+    if not TVector4.Equals(
+      Expected,
+      Actual * (Expected[MaxE] / Actual[MaxA]),
+      Epsilon
+    ) then
+      Fail(Format('Planes (TVector4) are not equal, they are not multiplied version of each other. Expected: %s, actual: %s. After trying to bring them closer, actual is %s', [
+        Expected.ToRawString,
+        Actual.ToRawString,
+        (Actual * (Expected[MaxE] / Actual[MaxA])).ToRawString
+      ]), AErrorAddrs);
+  end;
+end;
+
+procedure TCastleTestCase.AssertPlaneEquals(const Expected, Actual: TVector4; AErrorAddrs: Pointer = nil);
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+  AssertPlaneEquals(Expected, Actual, SingleEpsilon, AErrorAddrs);
 end;
 
 procedure TCastleTestCase.AssertSameValue(const Expected, Actual: Single; AErrorAddrs: Pointer);
@@ -374,6 +430,44 @@ begin
   if not Expected.Equals(Actual) then
     Fail(Format('Expected rect (%s) does not equal actual (%s)',
       [Expected.ToString, Actual.ToString]), AErrorAddrs);
+end;
+
+procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum; AErrorAddrs: Pointer = nil);
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+  AssertFrustumEquals(Expected, Actual, SingleEpsilon, AErrorAddrs);
+end;
+
+procedure TCastleTestCase.AssertFrustumEquals(const Expected, Actual: TFrustum; const Epsilon: Single; AErrorAddrs: Pointer = nil);
+var
+  I: TFrustumPlane;
+begin
+  if AErrorAddrs = nil then
+    AErrorAddrs := CallerAddr;
+
+  try
+    AssertEquals(Expected.ZFarInfinity, Actual.ZFarInfinity);
+
+    if Expected.ZFarInfinity then
+    begin
+      for I := Low(I) to Pred(High(I)) do
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+    end else
+    begin
+      for I := Low(I) to High(I) do
+        AssertPlaneEquals(Expected.Planes[I], Actual.Planes[I], Epsilon);
+    end;
+  except
+    on E: Exception do
+    begin
+      Fail(Format('Expected frustum (%s) does not equal actual (%s). The underlying difference exception: %s', [
+        Expected.ToString('  '),
+        Actual.ToString('  '),
+        E.Message
+      ]), AErrorAddrs);
+    end;
+  end;
 end;
 
 end.

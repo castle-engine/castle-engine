@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleTransform" -*-
 {
   Copyright 2012-2018 Michalis Kamburelis.
 
@@ -18,7 +19,7 @@ unit TestCastleTransform;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleTransform = class(TCastleTestCase)
@@ -33,7 +34,7 @@ type
     procedure Test3DTransformNotCollides;
     procedure Test3DTransformReal;
     procedure TestNotifications;
-    procedure TestNotificationsSceneManager;
+    procedure TestNotificationsViewport;
     procedure TestList;
     procedure TestViewVectorsOrthogonal1;
     procedure TestViewVectorsOrthogonal2;
@@ -41,20 +42,22 @@ type
     procedure TestWorldFull;
     procedure TestWorldPrematureFree;
     procedure TestWorldFreeBeforeItem;
-    procedure TestDirectionUp;
+    procedure TestDirectionUp_UpYDirectionMinusZ;
+    procedure TestDirectionUp_UpYDirectionZ;
     procedure TestTransformingScene;
     procedure TestPhysicsWorldOwner;
     procedure TestPhysicsWorldOwnerEmptyBox;
     procedure TestPhysicsWorldOwnerEmptySphere;
     procedure TestPass;
     procedure TestPassCombine;
+    procedure TestForIn;
   end;
 
 implementation
 
 uses Math, Contnrs,
-  CastleVectors, CastleBoxes, CastleTransform, CastleSceneManager, CastleClassUtils,
-  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer;
+  CastleVectors, CastleBoxes, CastleTransform, CastleViewport, CastleClassUtils,
+  CastleTriangles, CastleSceneCore, X3DNodes, CastleRenderer, CastleScene;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -723,26 +726,26 @@ begin
   finally FreeAndNil(ListParent) end;
 end;
 
-procedure TTestCastleTransform.TestNotificationsSceneManager;
+procedure TTestCastleTransform.TestNotificationsViewport;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   List: TCastleTransform;
   ItemOnList: TCastleTransform;
 begin
-  SceneManager := TCastleSceneManager.Create(nil);
+  Viewport := TCastleViewport.Create(nil);
   try
-    List := TCastleTransform.Create(SceneManager);
+    List := TCastleTransform.Create(Viewport);
     try
-      SceneManager.Items.Add(List);
+      Viewport.Items.Add(List);
 
-      ItemOnList := TCastleTransform.Create(SceneManager);
+      ItemOnList := TCastleTransform.Create(Viewport);
       List.Add(ItemOnList);
 
       { now this will cause TCastleTransform.Notification with Owner=Self, and List=nil }
       FreeAndNil(ItemOnList);
 
     finally FreeAndNil(List) end;
-  finally FreeAndNil(SceneManager) end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestList;
@@ -897,7 +900,7 @@ end;
 
 procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
-  World1, World2: TSceneManagerWorld;
+  World1, World2: TCastleRootTransform;
   O1List, O2List: TCastleTransform;
   O1, O2: TCastleTransform;
 begin
@@ -905,8 +908,8 @@ begin
   World2 := nil;
   try
     {$warnings off} { don't warn about creating with abstract methods here }
-    World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
-    World2 := TSceneManagerWorld.Create(nil); World2.Name := 'World2';
+    World1 := TCastleRootTransform.Create(nil); World1.Name := 'World1';
+    World2 := TCastleRootTransform.Create(nil); World2.Name := 'World2';
     O1 := TCastleTransform.Create(World1); O1.Name := 'O1';
     O2 := TCastleTransform.Create(World1); O2.Name := 'O2';
     {$warnings on}
@@ -1001,12 +1004,12 @@ end;
 
 procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
-  World1: TSceneManagerWorld;
+  World1: TCastleRootTransform;
   O1List: TCastleTransform;
   O1: TCastleTransform;
 begin
   {$warnings off} { don't warn about creating with abstract methods here }
-  World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
+  World1 := TCastleRootTransform.Create(nil); World1.Name := 'World1';
   O1 := TCastleTransform.Create(nil); O1.Name := 'O1';
   {$warnings on}
   O1List := TCastleTransform.Create(nil); O1List.Name := 'O1List';
@@ -1046,39 +1049,71 @@ begin
   FreeAndNil(O1List);
 end;
 
-procedure TTestCastleTransform.TestDirectionUp;
+procedure TTestCastleTransform.TestDirectionUp_UpYDirectionMinusZ;
 var
   T: TCastleTransform;
 begin
   T := TCastleTransform.Create(nil);
   try
+    T.Orientation := otUpYDirectionMinusZ;
+
     AssertVectorEquals(Vector3(1, 2, 3),
       RotatePointAroundAxis(Vector4(0, 0, 0, 0), Vector3(1, 2, 3)));
 
     AssertVectorEquals(Vector4(0, 0, 0, 0), T.Rotation);
-    AssertVectorEquals(T.Direction, Vector3(0, 0, -1));
-    AssertVectorEquals(T.Up, Vector3(0, 1, 0));
+    AssertVectorEquals(Vector3(0, 0, -1), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up);
 
     T.Orientation := otUpZDirectionX;
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Direction := Vector3(1, 0, 0);
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Up := Vector3(0, 0, 1);
-    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
-    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
 
     T.Direction := Vector3(1, 1, 1);
     AssertVectorEquals(T.Direction, Vector3(1, 1, 1).Normalize);
   finally FreeAndNil(T) end;
 end;
 
+procedure TTestCastleTransform.TestDirectionUp_UpYDirectionZ;
+var
+  T: TCastleTransform;
+begin
+  T := TCastleTransform.Create(nil);
+  try
+    //T.Orientation := otUpYDirectionZ; // should be default
+    Assert(TCastleTransform.DefaultOrientation = otUpYDirectionZ);
+    Assert(T.Orientation = otUpYDirectionZ);
+
+    AssertVectorEquals(Vector3(1, 2, 3),
+      RotatePointAroundAxis(Vector4(0, 0, 0, 0), Vector3(1, 2, 3)));
+
+    AssertVectorEquals(Vector4(0, 0, 0, 0), T.Rotation);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up);
+
+    T.Direction := Vector3(1, 0, 0);
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 1, 0), T.Up, 0.01);
+
+    T.Up := Vector3(0, 0, 1);
+    AssertVectorEquals(Vector3(1, 0, 0), T.Direction);
+    AssertVectorEquals(Vector3(0, 0, 1), T.Up);
+
+    T.Direction := Vector3(1, 1, 1);
+    AssertVectorEquals(Vector3(1, 1, 1).Normalize, T.Direction);
+  finally FreeAndNil(T) end;
+end;
+
 procedure TTestCastleTransform.TestTransformingScene;
 var
-  World: TSceneManagerWorld;
+  World: TCastleRootTransform;
 
   function EpsilonBox(const Center: TVector3): TBox3D;
   begin
@@ -1163,7 +1198,7 @@ var
   Shape: TShapeNode;
   Root: TX3DRootNode;
 begin
-  World := TSceneManagerWorld.Create(nil);
+  World := TCastleRootTransform.Create(nil);
   try
     //Box := TBoxNode.CreateWithShape(Shape);
     Box := TBoxNode.Create;
@@ -1221,26 +1256,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptyBox;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TBoxCollider;
 begin
   try
-    SceneManager := TCastleSceneManager.Create(nil);
+    Viewport := TCastleViewport.Create(nil);
     try
-      Scene := TCastleSceneCore.Create(SceneManager.Items);
+      Scene := TCastleSceneCore.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(SceneManager.Items);
+      Body := TRigidBody.Create(Viewport.Items);
 
       Collider := TBoxCollider.Create(Body);
 
-      // add to SceneManager before setting Scene.RigidBody,
+      // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
-      SceneManager.Items.Add(Scene);
+      Viewport.Items.Add(Scene);
 
       Scene.RigidBody := Body;
-    finally FreeAndNil(SceneManager) end;
+    finally FreeAndNil(Viewport) end;
 
     Fail('This should raise EPhysicsError, as TBoxCollider is empty');
   except on EPhysicsError do end;
@@ -1248,26 +1283,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptySphere;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TSphereCollider;
 begin
   //try
-    SceneManager := TCastleSceneManager.Create(nil);
+    Viewport := TCastleViewport.Create(nil);
     try
-      Scene := TCastleSceneCore.Create(SceneManager.Items);
+      Scene := TCastleSceneCore.Create(Viewport.Items);
 
-      Body := TRigidBody.Create(SceneManager.Items);
+      Body := TRigidBody.Create(Viewport.Items);
 
       Collider := TSphereCollider.Create(Body);
 
-      // add to SceneManager before setting Scene.RigidBody,
+      // add to Viewport before setting Scene.RigidBody,
       // to provoke RigidBody.InitializeTransform to create all physics stuff
-      SceneManager.Items.Add(Scene);
+      Viewport.Items.Add(Scene);
 
       Scene.RigidBody := Body;
-    finally FreeAndNil(SceneManager) end;
+    finally FreeAndNil(Viewport) end;
 
     // OK, this can work without error now,
     // although it's a little inconsistent with TestPhysicsWorldOwnerEmptyBox.
@@ -1278,26 +1313,26 @@ end;
 
 procedure TTestCastleTransform.TestPhysicsWorldOwner;
 var
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
   Scene: TCastleSceneCore;
   Body: TRigidBody;
   Collider: TBoxCollider;
 begin
-  SceneManager := TCastleSceneManager.Create(nil);
+  Viewport := TCastleViewport.Create(nil);
   try
-    Scene := TCastleSceneCore.Create(SceneManager.Items);
+    Scene := TCastleSceneCore.Create(Viewport.Items);
 
-    Body := TRigidBody.Create(SceneManager.Items);
+    Body := TRigidBody.Create(Viewport.Items);
 
     Collider := TBoxCollider.Create(Body);
     Collider.Size := Vector3(2, 2, 2);
 
-    // add to SceneManager before setting Scene.RigidBody,
+    // add to Viewport before setting Scene.RigidBody,
     // to provoke RigidBody.InitializeTransform to create all physics stuff
-    SceneManager.Items.Add(Scene);
+    Viewport.Items.Add(Scene);
 
     Scene.RigidBody := Body;
-  finally FreeAndNil(SceneManager) end;
+  finally FreeAndNil(Viewport) end;
 end;
 
 procedure TTestCastleTransform.TestPass;
@@ -1369,6 +1404,51 @@ begin
   AssertEquals(9, GetTotalPass([1, 0, 2], [2, 2, 3]));
   AssertEquals(10, GetTotalPass([0, 1, 2], [2, 2, 3]));
   AssertEquals(11, GetTotalPass([1, 1, 2], [2, 2, 3]));
+end;
+
+procedure TTestCastleTransform.TestForIn;
+var
+  Owner: TComponent;
+  T, T1, C: TCastleTransform;
+  Y: Single;
+begin
+  Owner := TComponent.Create(nil);
+  try
+    T := TCastleTransform.Create(Owner);
+    T.Translation := Vector3(1, 0, 0);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 2, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 3, 0);
+    T.Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 1);
+    T[0].Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 2);
+    T[0].Add(T1);
+
+    T1 := TCastleTransform.Create(Owner);
+    T1.Translation := Vector3(1, 1, 3);
+    T[0].Add(T1);
+
+    Y := 1;
+    for C in T do
+    begin
+      AssertVectorEquals(C.Translation, Vector3(1, Y, 0));
+      Y += 1;
+    end;
+    AssertSameValue(Y, 4);
+  finally FreeAndNil(Owner) end;
 end;
 
 initialization

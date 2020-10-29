@@ -18,21 +18,25 @@
 {$ifdef read_interface}
 
 type
-  { Class of exceptions that will not have ClassName displayed by
-    @link(ExceptMessage).
-    Sometimes useful, when you know that exception message
-    is good enough, and showing exception class is not needed. }
-  EWithHiddenClassName = class(Exception);
+  { Descend from this to mark exceptions that should be shown
+    in more concise way by @link(ExceptMessage) function.
+    It avoids showing the ClassName in output (and stack trace, in debug).
+
+    Useful for exceptions that have clear @code(Message),
+    and it is normal that they may occur during normal execution of the program
+    and be visible to users.
+    E.g. EInvalidParams. }
+  EShortErrorMessage = class(Exception);
+  EWithHiddenClassName = EShortErrorMessage deprecated 'use EShortErrorMessage';
 
   { @deprecated Special class to raise an exception that is always catched. }
   TCodeBreaker = class(TObject)
   end deprecated;
 
-{ Nice exception description. Contains exception ClassName
-  (if not descends from EWithHiddenClassName), exception Message (if
-  descends from Exception), and ExceptAddr (if not @nil, and code is compiled
-  with -dDEBUG), and BonusErrorMesssg. }
-function ExceptMessage(E: TObject; ExceptAddr: Pointer = nil): string; overload;
+{ Nice exception description.
+  Contains the ClassName (unless it descends from EShortErrorMessage),
+  and the exception Message (if it descends from Exception). }
+function ExceptMessage(const E: TObject): string;
 
 procedure ProgramBreak; deprecated 'Use Halt';
 
@@ -40,7 +44,7 @@ procedure ProgramBreak; deprecated 'Use Halt';
 
 {$ifdef read_implementation}
 
-function ExceptMessage(E: TObject; ExceptAddr: Pointer): string;
+function ExceptMessage(const E: TObject): string;
 var
   Message, NiceMessage: string;
 begin
@@ -63,22 +67,21 @@ begin
         107: NiceMessage := 'File already open';
         else NiceMessage := '';
       end;
-      if NiceMessage <> '' then Message := Message +' (' +NiceMessage +')';
+      if NiceMessage <> '' then
+        Message := Message + ' (' + NiceMessage + ')';
     end;
 
   end else
     Message := '';
 
-  if (E is EWithHiddenClassName) and (Message <> '') then
-    result := Message else
+  if (E is EShortErrorMessage) and (Message <> '') then
   begin
-    result := 'Exception "' + E.ClassName + '"';
-    // not usually useful
-    // {$ifdef DEBUG}
-    // if ExceptAddr <> nil then
-    //   result := result +' (at address ' + PointerToStr(ExceptAddr) + ')';
-    // {$endif}
-    if Message <> '' then result := result +' : ' +nl +Message;
+    Result := Message;
+  end else
+  begin
+    Result := 'Exception "' + E.ClassName + '"';
+    if Message <> '' then
+      Result := Result + ':' + NL + Message;
   end;
 end;
 

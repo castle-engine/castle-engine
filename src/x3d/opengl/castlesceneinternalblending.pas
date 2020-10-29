@@ -30,30 +30,55 @@ type
     SceneCore: TCastleSceneCore;
     SourceFactorSet: TBlendingSourceFactor;
     DestinationFactorSet: TBlendingDestinationFactor;
+    Active: Boolean; //< between RenderBegin and RenderEnd
     function DefaultSourceFactor: TBlendingSourceFactor;
     function DefaultDestinationFactor: TBlendingDestinationFactor;
   public
     constructor Create(const AScene: TCastleSceneCore);
+
+    { Start rendering shapes with blending. }
     procedure RenderBegin;
-    { Determine what blending source/destination factors
-      to use for rendering Shape, and set OpenGL glBlendFunc. }
-    procedure BeforeRenderShape(const Shape: TShape);
+
+    { Stop rendering shapes with blending.
+      It is ignored if RenderBegin was not called earlier. }
+    procedure RenderEnd;
+
+    { If we are rendering with blending (between RenderBegin and RenderEnd)
+      and this Shape uses blending,
+      then determine what blending source/destination factors
+      to use for rendering Shape, and set OpenGL state like glBlendFunc. }
+    procedure BeforeRenderShape(const Shape: TGLShape);
   end;
 
 { Fill a TShapeList with only opaque (UseBlending = @false) or
   only transparent shapes (UseBlending = @true). }
 procedure ShapesFilterBlending(
-  Tree: TShapeTree;
+  const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
-  TestShapeVisibility: TTestShapeVisibility;
+  const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
 implementation
 
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleLog, X3DNodes, CastleScene;
+  CastleLog, X3DNodes, CastleScene, CastleTimeUtils;
 
+{ Given blending name (as defined by X3D BlendMode node spec,
+  http://www.instantreality.org/documentation/nodetype/BlendMode/),
+  returns @true and corresponding Factor.
+
+  Returns @false if S doesn't match any known name, or it's "none",
+  or it's not supported by the current OpenGL implementation (some factors
+  may require newer OpenGL versions), or it's not for this kind
+  (which means it's not for source factor if Source = true,
+  or it's not for dest factor is Source = false).
+
+  If returns @true, then also updates NeedsConstXxx.
+  "Updates" means that always does something like
+    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
+  so can only change from false to true.
+}
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
   var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
@@ -101,8 +126,7 @@ begin
       if ((I in ConstColor) or (I in ConstAlpha)) and
          (not GLFeatures.BlendConstant) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
         Exit(false);
       end;
 
@@ -110,8 +134,7 @@ begin
       if (not GLFeatures.Version_1_4) and
          (Factor in [bsSrcColor, bsOneMinusSrcColor]) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
         Exit(false);
       end;
       {$endif}
@@ -172,8 +195,7 @@ begin
       if ((I in ConstColor) or (I in ConstAlpha)) and
          (not GLFeatures.BlendConstant) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
         Exit(false);
       end;
 
@@ -181,8 +203,7 @@ begin
       if (not GLFeatures.Version_1_4) and
          (Factor in [bdDstColor, bdOneMinusDstColor]) then
       begin
-        if Log then
-          WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
+        WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
         Exit(false);
       end;
       {$endif}
@@ -218,13 +239,29 @@ end;
 
 procedure TBlendingRenderer.RenderBegin;
 begin
+  Active := true;
+
+  glDepthMask(GL_FALSE);
+  glEnable(GL_BLEND);
+
   { Set glBlendFunc using Attributes.BlendingXxxFactor }
   SourceFactorSet := DefaultSourceFactor;
   DestinationFactorSet := DefaultDestinationFactor;
   GLBlendFunction(SourceFactorSet, DestinationFactorSet);
 end;
 
-procedure TBlendingRenderer.BeforeRenderShape(const Shape: TShape);
+procedure TBlendingRenderer.RenderEnd;
+begin
+  if not Active then
+    Exit;
+  Active := false;
+
+  { restore glDepthMask and blending state to default values }
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
+end;
+
+procedure TBlendingRenderer.BeforeRenderShape(const Shape: TGLShape);
 
 { Looks at Scene.Attributes.BlendingXxx and Appearance.blendMode of X3D node.
   If different than currently set, then changes BlendingXxxFactorSet and updates
@@ -237,6 +274,9 @@ var
   NewDest: TBlendingDestinationFactor;
   NeedsConstColor, NeedsConstAlpha: boolean;
 begin
+  if not (Active and Shape.UseBlending) then
+    Exit;
+
   NeedsConstColor := false;
   NeedsConstAlpha := false;
 
@@ -284,53 +324,37 @@ end;
 
 { global --------------------------------------------------------------------- }
 
-{ Given blending name (as defined by X3D BlendMode node spec,
-  http://www.instantreality.org/documentation/nodetype/BlendMode/),
-  returns @true and corresponding Factor.
-
-  Returns @false if S doesn't match any known name, or it's "none",
-  or it's not supported by the current OpenGL implementation (some factors
-  may require newer OpenGL versions), or it's not for this kind
-  (which means it's not for source factor if Source = true,
-  or it's not for dest factor is Source = false).
-
-  If returns @true, then also updates NeedsConstXxx.
-  "Updates" means that always does something like
-    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
-  so can only change from false to true.
-}
-
 procedure ShapesFilterBlending(
-  Tree: TShapeTree;
+  const Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
-  TestShapeVisibility: TTestShapeVisibility;
+  const TestShapeVisibility: TTestShapeVisibility;
   const FilteredShapes: TShapeList; const UseBlending: boolean);
 
-  procedure AddToList(Shape: TShape);
+  procedure AddToList(const Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending = UseBlending then
       FilteredShapes.Add(Shape);
   end;
 
-  procedure AddToListIfTested(Shape: TShape);
+  procedure AddToListIfTested(const Shape: TShape);
   begin
     if (TGLShape(Shape).UseBlending = UseBlending) and
        TestShapeVisibility(TGLShape(Shape)) then
       FilteredShapes.Add(Shape);
   end;
 
-var
-  Capacity: Integer;
 begin
-  FilteredShapes.Clear;
+  FrameProfiler.Start(fmRenderShapesFilterBlending);
 
+  { Use "Count := 0" instead of Clear, this way previous Capacity remains }
+  FilteredShapes.Count := 0;
   { Set Capacity to max value at the beginning, to speed adding items later. }
-  Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-  FilteredShapes.Capacity := Capacity;
+  FilteredShapes.Capacity := Tree.MaxShapesCount;
 
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
     Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
+  FrameProfiler.Stop(fmRenderShapesFilterBlending);
 end;
 
 end.

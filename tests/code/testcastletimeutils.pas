@@ -18,7 +18,7 @@ unit TestCastleTimeUtils;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleTestCase;
+uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleTimeUtils = class(TCastleTestCase)
@@ -38,9 +38,9 @@ procedure TTestCastleTimeUtils.TestGetTickCount64;
 var
   G1, G2: TMilisecTime;
 begin
-  G1 := CastleTimeUtils.GetTickCount64;
+  G1 := GetTickCount64;
   Sleep(1000);
-  G2 := CastleTimeUtils.GetTickCount64;
+  G2 := GetTickCount64;
 
   { It should be that G2 is larger than G1 by 1000 milisecons.
     To allow wild imprecision, we check something larger.

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -46,8 +46,8 @@
     procedure SetEmissiveColor(const Value: TCastleColorRGB);
     function GetShininess: Single;
     procedure SetShininess(const Value: Single);
-    function GetSeparateBackColor: boolean;
-    procedure SetSeparateBackColor(const Value: boolean);
+    function GetSeparateBackColor: Boolean;
+    procedure SetSeparateBackColor(const Value: Boolean);
     function GetSpecularColor: TCastleColorRGB;
     procedure SetSpecularColor(const Value: TCastleColorRGB);
     function GetTransparency: Single;
@@ -74,7 +74,7 @@
     { X3D field "shininess". } { }
     property Shininess: Single read GetShininess write SetShininess;
     { X3D field "separateBackColor". } { }
-    property SeparateBackColor: boolean read GetSeparateBackColor write SetSeparateBackColor;
+    property SeparateBackColor: Boolean read GetSeparateBackColor write SetSeparateBackColor;
     { X3D field "specularColor". } { }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
     { X3D field "transparency". } { }
@@ -186,12 +186,12 @@ begin
   FdShininess.Send(Value);
 end;
 
-function TTwoSidedMaterialNode.GetSeparateBackColor: boolean;
+function TTwoSidedMaterialNode.GetSeparateBackColor: Boolean;
 begin
   Result := FdSeparateBackColor.Value;
 end;
 
-procedure TTwoSidedMaterialNode.SetSeparateBackColor(const Value: boolean);
+procedure TTwoSidedMaterialNode.SetSeparateBackColor(const Value: Boolean);
 begin
   FdSeparateBackColor.Send(Value);
 end;

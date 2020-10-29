@@ -34,7 +34,7 @@ uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, X3DNodes, CastleWindow,
   CastleClassUtils, CastleUtils, CastleRenderingCamera,
-  CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
+  CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
   CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
   CastleApplicationProperties, CastleControls, CastleTransform;
@@ -95,12 +95,12 @@ begin
 end;
 
 type
-  TMySceneManager = class(TCastleSceneManager)
+  TMyViewport = class(TCastleViewport)
     procedure Render; override;
     procedure Render3D(const Params: TRenderParams); override;
   end;
 
-procedure TMySceneManager.Render;
+procedure TMyViewport.Render;
 begin
   if not Scene.BoundingBox.IsEmpty then
   begin
@@ -112,21 +112,21 @@ begin
       @DrawLight, 100, 100, LightIntensityScale);
 
     { no need to reset RenderContext.Viewport
-      inheried TCastleSceneManager.Render calls
+      inheried TCastleViewport.Render calls
       ApplyProjection that will already do it. }
   end;
 
   inherited;
 end;
 
-procedure TMySceneManager.Render3D(const Params: TRenderParams);
+procedure TMyViewport.Render3D(const Params: TRenderParams);
 begin
   inherited;
   DrawLight(false);
 end;
 
 var
-  SceneManager: TMySceneManager;
+  Viewport: TMyViewport;
 
 type
   THelper = class
@@ -172,7 +172,7 @@ begin
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
     20: with Scene.Attributes do Lighting := not Lighting;
-    100: Window.SaveScreenDialog(FileNameAutoInc(SUnformattable(ApplicationName) + '_screen_%d.png'));
+    100: Window.Container.SaveScreenToDefaultFile;
     200: Window.Close;
     else Exit;
   end;
@@ -203,21 +203,21 @@ procedure Update(Container: TUIContainer);
   end;
 
 begin
-  if Window.Pressed[K_A] then ChangeLightPosition(0, -1);
-  if Window.Pressed[K_D] then ChangeLightPosition(0,  1);
-  if Window.Pressed[K_S] then ChangeLightPosition(2, -1);
-  if Window.Pressed[K_W] then ChangeLightPosition(2,  1);
-  if Window.Pressed[K_Q] then ChangeLightPosition(1, -1);
-  if Window.Pressed[K_E] then ChangeLightPosition(1,  1);
+  if Window.Pressed[keyA] then ChangeLightPosition(0, -1);
+  if Window.Pressed[keyD] then ChangeLightPosition(0,  1);
+  if Window.Pressed[keyS] then ChangeLightPosition(2, -1);
+  if Window.Pressed[keyW] then ChangeLightPosition(2,  1);
+  if Window.Pressed[keyQ] then ChangeLightPosition(1, -1);
+  if Window.Pressed[keyE] then ChangeLightPosition(1,  1);
 
-  if Window.Pressed[K_R] then
+  if Window.Pressed[keyR] then
   begin
     if mkShift in Window.Pressed.Modifiers then
       ChangeLightRadius(1/1.8) else
       ChangeLightRadius(1.8);
   end;
 
-  if Window.Pressed[K_L] then
+  if Window.Pressed[keyL] then
   begin
     if mkShift in Window.Pressed.Modifiers then
       ChangeLightIntensityScale(1/1.5) else
@@ -249,7 +249,7 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.Attributes.Lighting } true, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
+    M.Append(TMenuItem.Create('_Save Screen ...', 100, keyF5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
@@ -258,7 +258,8 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  URL: string = 'data/chinchilla_with_prt.wrl.gz';
+  URL: string = 'castle-data:/chinchilla_with_prt.wrl.gz';
+  Background: TCastleRectangleControl;
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
@@ -280,20 +281,26 @@ begin
       Scene.BoundingBox.Data[0].Data[0] + LightRadius;
   end;
 
-  Window.Controls.InsertFront(TCastleSimpleBackground.Create(Application));
+  Background := TCastleRectangleControl.Create(Application);
+  Background.FullSize := true;
+  Background.Color := Black;
+  Window.Controls.InsertFront(Background);
 
-  SceneManager := TMySceneManager.Create(Application);
-  SceneManager.Items.Add(Scene);
-  { we will clear context by our own TCastleSimpleBackground,
+  Viewport := TMyViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  { we will clear context by our own Background,
     to keep SHVectorGLCapture visible for debugging }
-  SceneManager.Transparent := true;
-  SceneManager.MainScene := Scene;
+  Viewport.Transparent := true;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
 
   { TODO: this demo uses specialized rendering
     that currently assumes some fixed-function things set up. }
   GLFeatures.EnableFixedFunction := true;
 
-  Window.Controls.InsertFront(SceneManager);
+  Window.Controls.InsertFront(Viewport);
 
   Window.OnUpdate := @Update;
 

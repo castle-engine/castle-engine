@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAutoOffset: boolean;
-    procedure SetAutoOffset(const Value: boolean);
+    function GetAutoOffset: Boolean;
+    procedure SetAutoOffset(const Value: Boolean);
   public
     { X3D field "autoOffset". } { }
-    property AutoOffset: boolean read GetAutoOffset write SetAutoOffset;
+    property AutoOffset: Boolean read GetAutoOffset write SetAutoOffset;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TAbstractDragSensorNode ----------------------------------------------- }
 
-function TAbstractDragSensorNode.GetAutoOffset: boolean;
+function TAbstractDragSensorNode.GetAutoOffset: Boolean;
 begin
   Result := FdAutoOffset.Value;
 end;
 
-procedure TAbstractDragSensorNode.SetAutoOffset(const Value: boolean);
+procedure TAbstractDragSensorNode.SetAutoOffset(const Value: Boolean);
 begin
   FdAutoOffset.Send(Value);
 end;

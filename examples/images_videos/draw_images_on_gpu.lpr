@@ -13,20 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of drawing on GPU to TGLImage, using TGLImage.RenderToImageBegin
-  and TGLImage.DrawFrom. }
+{ Demo of drawing on GPU to TDrawableImage, using TDrawableImage.RenderToImageBegin
+  and TDrawableImage.DrawFrom. }
 
 uses SysUtils,
   CastleGLImages, CastleWindow, CastleUIControls, CastleGLUtils, CastleColors,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleVectors;
 
 var
-  SourceImage: TGLImage;
-  DestImage: TGLImage;
+  SourceImage: TDrawableImage;
+  DestImage: TDrawableImage;
 
 procedure Render(Container: TUIContainer);
 begin
-  RenderContext.Clear([cbColor], Black);
   DestImage.Draw(0, 0);
 end;
 
@@ -40,19 +39,21 @@ begin
     // Window.Width := 100;
     // Window.Height := 100;
     Window.Open;
+    Window.Container.BackgroundColor := Black;
 
-    { All of the TGLImage drawing must happen when OpenGL context is active,
+    { All of the TDrawableImage drawing must happen when OpenGL context is active,
       so after Window.Open.
       In a cross-platform application (https://castle-engine.io/manual_cross_platform.php),
       you would do this in Application.OnInitialize. }
 
-    SourceImage := TGLImage.Create(ApplicationData(
-      //'2RGBA.png')); // better alpha test
-      'boss-preview.png'));
+    SourceImage := TDrawableImage.Create(
+      //'castle-data:/2RGBA.png' // better alpha test
+      'castle-data:/boss-preview.png'
+    );
 
     DestImageInitial := TRGBAlphaImage.Create(800, 800);
     DestImageInitial.Clear(Yellow);
-    DestImage := TGLImage.Create(DestImageInitial, true, true);
+    DestImage := TDrawableImage.Create(DestImageInitial, true, true);
 
     { Note that blending parameters on SourceImage control how the alpha
       is treated when drawing. }
@@ -73,8 +74,8 @@ begin
 
     Window.OnRender := @Render;
 
-    { TGLImage.GetContents is not supported on OpenGLES.
-      This makes sense, as the primary usage of TGLImage (and OpenGLES textures)
+    { TDrawableImage.GetContents is not supported on OpenGLES.
+      This makes sense, as the primary usage of TDrawableImage (and OpenGLES textures)
       is to load them to GPU, and then keep them on GPU, not get them back
       from GPU to normal memory. }
     if not Application.OpenGLES then

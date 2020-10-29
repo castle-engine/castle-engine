@@ -95,25 +95,25 @@ type
     it's descendants.
 
     It can be used to apply screen effects over any UI control,
-    like @link(TCastleSceneManager), @link(TCastleViewport),
+    like @link(TCastleViewport),
     @link(TCastleButton), @link(TCastleImageControl) and so on.
     Simply place the desired control as child of this control.
 
-    To make it easier to apply effects on
-    @link(TCastleSceneManager) and @link(TCastleViewport),
-    they already descend from this class. So, while you can, you don't need to wrap
-    @link(TCastleSceneManager) instance inside another @link(TCastleScreenEffects)
+    To make it easier to apply effects on @link(TCastleViewport),
+    it already descends from this class. So, while you can, you don't need to wrap
+    @link(TCastleViewport) instance inside another @link(TCastleScreenEffects)
     instance. You can instead directly call @link(AddScreenEffect) on your
-    @link(TCastleSceneManager) instance.
+    @link(TCastleViewport) instance.
 
     Note that the UI controls rendered for the screen effects
     (our children and descendants) must always initialize and fill
     colors of the entire rectangle (@link(RenderRect)) of this control.
     Otherwise, the results are undefined, as an internal texture that is used
     for screen effects is initially undefined.
-    You may use e.g. @link(TCastleRectangleControl)
-    or TCastleSceneManager with @link(TCastleSceneManager.Background)=true
-    to always reliably fill the background.
+    You may use e.g. @link(TCastleRectangleControl) to fill the background with a solid color
+    from @link(TCastleRectangleControl.Color).
+    Or use @link(TCastleViewport) with @link(TCastleViewport.Transparent) = @false (default)
+    which fills background with @link(TCastleViewport.BackgroundColor).
   }
   TCastleScreenEffects = class(TCastleUserInterface)
   strict private
@@ -128,11 +128,8 @@ type
       ScreenEffectsRoot: TX3DRootNode;
       FScreenEffectsTimeScale: Single;
       { World to pass dummy camera position to ScreenEffectsScene. }
-      World: TSceneManagerWorld;
-      Camera: TWalkCamera;
-
-      { Valid only between Render and RenderOverChildren calls. }
-      RenderScreenEffects: Boolean;
+      World: TCastleRootTransform;
+      Camera: TCastleCamera;
 
       { OpenGL(ES) resources for screen effects. }
       { If a texture for screen effects is ready, then
@@ -152,9 +149,38 @@ type
       ScreenPointVbo: TGLuint;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
+      FScreenEffectsEnable: Boolean;
+
     function GetScreenEffectsCount: Cardinal;
     function GetScreenEffectsNeedDepth: Boolean;
     function GetScreenEffect(const Index: Integer): TGLSLProgram;
+  protected
+    { Valid only between Render and RenderOverChildren calls.
+      Tells whether we actually use screen effects, thus RenderWithoutScreenEffects
+      renders to texture.
+      Read-only in descendants. }
+    RenderScreenEffects: Boolean;
+
+    { Descendants with special rendering code should override this,
+      and @italic(never) override @link(Render) or @link(RenderOverChildren)
+      (as those two methods have special implementation in this class).
+
+      This rendering method will be called regardless if we have
+      or not some screen effects.
+      When no screen effects are actually used (e.g. @link(AddScreenEffect)
+      wasn't used, @code(InternalExtraScreenEffectsCount) is zero), then our @link(Render)
+      trivially calls this method without doing anything else. }
+    procedure RenderWithoutScreenEffects; virtual;
+
+    { Render these additional screen effects, defined by explicit TGLSLProgram
+      instead of by AddScreenEffect call.
+      This is internal, only to be used by TCastleViewport.
+      @exclude }
+    function InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
+    { @exclude }
+    function InternalExtraScreenEffectsCount: Integer; virtual;
+    { @exclude }
+    function InternalExtraScreenEffectsNeedDepth: Boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -169,12 +195,12 @@ type
       as children,
       and use TTimeSensorNode to provide time to your shader uniform parameter.
       Or you can e.g. pass an X3D graph loaded from X3D file
-      using @link(X3DLoad.Load3D), this way you can define effects
+      using @link(X3DLoad.LoadNode), this way you can define effects
       inside an external X3D file, e.g. like this:
 
       @longCode(#
-      SceneManager.AddScreenEffect(
-        Load3D(ApplicationData('screen_effects_scene.x3dv')));
+      ScreenEffects.AddScreenEffect(
+        LoadNode('castle-data:/screen_effects_scene.x3dv'));
       #)
 
       If you're looking for inspirations what to put in screen_effects_scene.x3dv,
@@ -204,7 +230,9 @@ type
       Use TX3DNode.DeepCopy if necessary to duplicate node into multiple scenes.
 
       Note that you can enable/disable the effect using @link(TScreenEffectNode.Enabled),
-      you do not need to remove the node only to disable it.
+      or enable/disable all using @link(ScreenEffectsEnable).
+      You do not need to remove the node by @link(RemoveScreenEffect) if you only want
+      to disable it temporarily.
     }
     procedure AddScreenEffect(const Node: TAbstractChildNode);
     procedure RemoveScreenEffect(const Node: TAbstractChildNode);
@@ -219,9 +247,17 @@ type
       May be 0 to stop time passing.
       This has deliberately long name, instead of simple TimeScale,
       to make it clear that it's completely independent from
-      @link(TCastleSceneManager.TimeScale). }
+      @link(TCastleAbstractRootTransform.TimeScale). }
     property ScreenEffectsTimeScale: Single
       read FScreenEffectsTimeScale write FScreenEffectsTimeScale default 1;
+
+    { Enable or disable all screen effects added by AddScreenEffect.
+      When this is @true, particular screen effects can still be enabled/disabled
+      using @link(TScreenEffectNode.Enabled).
+      When this is @false, all effects are disabled, regardless of
+      @link(TScreenEffectNode.Enabled). }
+    property ScreenEffectsEnable: Boolean
+      read FScreenEffectsEnable write FScreenEffectsEnable default true;
 
     { Make the screen effects rendering resources ready (e.g. link shaders). }
     procedure PrepareResources;
@@ -229,7 +265,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleGLUtils, CastleLog;
+uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
 
 function ScreenEffectVertex: string;
 begin
@@ -277,6 +313,7 @@ constructor TCastleScreenEffects.Create(AOwner: TComponent);
 begin
   inherited;
   FScreenEffectsTimeScale := 1;
+  FScreenEffectsEnable := true;
 end;
 
 destructor TCastleScreenEffects.Destroy;
@@ -301,10 +338,9 @@ begin
 
     (* We use Camera and World to make some ProximitySensors working,
        like a dummy "ProximitySensors { size 10000 10000 10000 }". *)
-    // TODO: creating class with abstract methods here
-    World := TSceneManagerWorld.Create(Self);
+    World := TCastleRootTransform.Create(Self);
     World.Add(ScreenEffectsScene);
-    Camera := TWalkCamera.Create(Self);
+    Camera := TCastleCamera.Create(Self);
   end;
 
   { Note that AddChildren by default has AllowDuplicates=true,
@@ -324,26 +360,57 @@ begin
   end;
 end;
 
+function TCastleScreenEffects.InternalExtraGetScreenEffects(const Index: Integer): TGLSLProgram;
+begin
+  raise EInternalError.Create('Override InternalExtraGetScreenEffects if you override InternalExtraScreenEffectsCount. In TCastleScreenEffects, InternalExtraScreenEffectsCount returns zero, so InternalExtraGetScreenEffects should never be called');
+  Result := nil; // silence FPC warnings about undefined result
+end;
+
+function TCastleScreenEffects.InternalExtraScreenEffectsCount: Integer;
+begin
+  Result := 0;
+end;
+
+function TCastleScreenEffects.InternalExtraScreenEffectsNeedDepth: Boolean;
+begin
+  Result := false;
+end;
+
 function TCastleScreenEffects.GetScreenEffectsCount: Cardinal;
 begin
-  { TCastleScene already implemented logic to only count screen effects
-    that are enabled, and their GLSL code linked successfully.
-    Cool, we depend on it. }
-  if ScreenEffectsScene <> nil then
-    Result := ScreenEffectsScene.ScreenEffectsCount
-  else
-    Result := 0;
+  Result := 0;
+  if ScreenEffectsEnable then
+  begin
+    if ScreenEffectsScene <> nil then
+      { TCastleScene already implemented logic to only count screen effects
+        that are enabled, and their GLSL code linked successfully.
+        Cool, we depend on it. }
+      Result := Result + ScreenEffectsScene.ScreenEffectsCount;
+    Result := Result + InternalExtraScreenEffectsCount;
+  end;
 end;
 
 function TCastleScreenEffects.GetScreenEffectsNeedDepth: Boolean;
 begin
-  Result := (ScreenEffectsScene <> nil) and
-    ScreenEffectsScene.ScreenEffectsNeedDepth;
+  Result := ScreenEffectsEnable and (
+    ((ScreenEffectsScene <> nil) and ScreenEffectsScene.ScreenEffectsNeedDepth) or
+    InternalExtraScreenEffectsNeedDepth
+  );
 end;
 
 function TCastleScreenEffects.GetScreenEffect(const Index: Integer): TGLSLProgram;
+var
+  SceneEffects: Integer;
 begin
-  Result := ScreenEffectsScene.ScreenEffects(Index);
+  if ScreenEffectsScene <> nil then
+    SceneEffects := ScreenEffectsScene.ScreenEffectsCount
+  else
+    SceneEffects := 0;
+
+  if Index < SceneEffects then
+    Result := ScreenEffectsScene.ScreenEffects(Index)
+  else
+    Result := InternalExtraGetScreenEffects(Index - SceneEffects);
 end;
 
 procedure TCastleScreenEffects.Render;
@@ -528,11 +595,10 @@ var
       ScreenEffectRTT.Stencil := GLFeatures.ShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
-      if Log then
-        WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
-          [ ScreenEffectTextureWidth,
-            ScreenEffectTextureHeight,
-            BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
+      WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
+        [ ScreenEffectTextureWidth,
+          ScreenEffectTextureHeight,
+          BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     RenderContext.Viewport := SR;
@@ -550,6 +616,11 @@ begin
   CheckScreenEffects;
   if RenderScreenEffects then
     BeginRenderingToTexture;
+  RenderWithoutScreenEffects;
+end;
+
+procedure TCastleScreenEffects.RenderWithoutScreenEffects;
+begin
 end;
 
 procedure TCastleScreenEffects.RenderOverChildren;
@@ -592,7 +663,7 @@ var
         Inc(BoundTextureUnits);
       end;
 
-      TGLSLProgram.Current := Shader;
+      RenderContext.CurrentProgram := Shader;
       Shader.Uniform('screen').SetValue(0);
       if CurrentScreenEffectsNeedDepth then
         Shader.Uniform('screen_depth').SetValue(1);
@@ -720,7 +791,7 @@ var
   RemoveItem: TRemoveType;
 begin
   inherited;
-  if ScreenEffectsScene <> nil then
+  if (ScreenEffectsScene <> nil) and ScreenEffectsEnable then
   begin
     RemoveItem := rtNone;
     ScreenEffectsScene.Update(SecondsPassed * ScreenEffectsTimeScale, RemoveItem);
@@ -733,8 +804,8 @@ procedure TCastleScreenEffects.PrepareResources;
 begin
   if ScreenEffectsScene <> nil then
     { We depend here on undocumented TCastleScene.PrepareResources behavior:
-      when there is no prRender, then PrepareParams (3rd argument below) is used,
-      and may be nil. }
+      when there is no prRenderSelf or prRenderClones,
+      then PrepareParams (3rd argument below) is unused, and may be nil. }
     ScreenEffectsScene.PrepareResources([prScreenEffects], false, nil);
 end;
 

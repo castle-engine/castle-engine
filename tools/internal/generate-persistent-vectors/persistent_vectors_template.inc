@@ -34,7 +34,7 @@ published
     instead read or write @link(${PROPERTY_NAME}) directly.
 
     @seealso ${PROPERTY_NAME} }
-  property ${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS} read F${PROPERTY_NAME}Persistent;
+  property ${PROPERTY_NAME}Persistent: ${PERSISTENT_PROPERTY_CLASS} read F${PROPERTY_NAME}Persistent ${PROPERTY_STORED};
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

@@ -20,7 +20,13 @@
 ../../../src/ui/opengl/ TCastleButton CustomColorFocused TCastleColor
 ../../../src/ui/opengl/ TCastleButton CustomColorNormal TCastleColor
 
-../../../src/ui/opengl/ TCastleImageControl Color TCastleColor
+../../../src/ui/opengl/ TCastleImageControl Color TCastleColor no-store
+../../../src/ui/opengl/ TCastleImageControl ClipLine TVector3 no-store
+../../../src/ui/opengl/ TCastleImageControl RotationCenter TVector2 no-store
+
+../../../src/images/opengl/ TCastleImagePersistent Color TCastleColor
+../../../src/images/opengl/ TCastleImagePersistent ClipLine TVector3
+../../../src/images/opengl/ TCastleImagePersistent RotationCenter TVector2
 
 ../../../src/ui/opengl/ TCastleUserInterfaceFont OutlineColor TCastleColor
 
@@ -50,4 +56,12 @@
 ../../../src/3d/ TCastleTransform ScaleOrientation TVector4
 ../../../src/3d/ TCastleTransform Translation TVector3
 
-../../../src/game/ TCastleAbstractViewport BackgroundColor TCastleColor
+../../../src/3d/ TCastleCamera InitialPosition TVector3
+../../../src/3d/ TCastleCamera InitialDirection TVector3
+../../../src/3d/ TCastleCamera InitialUp TVector3
+../../../src/3d/ TCastleCamera GravityUp TVector3
+../../../src/3d/ TCastleThirdPersonNavigation AvatarTarget TVector3
+
+../../../src/3d/ TCastleOrthographic Origin TVector2
+
+../../../src/x3d/opengl/ TCastleViewport BackgroundColor TCastleColor

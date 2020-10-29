@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2018 Michalis Kamburelis.
+  Copyright 2006-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager that can easily load game levels (TGameSceneManager),
+{ Loading of typical 3D game level with placeholders (TLevel),
   management of available game levels (TLevelInfo, @link(Levels)). }
 unit CastleLevels;
 
@@ -24,15 +24,13 @@ interface
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
-  CastlePlayer, CastleResources, CastleProgress,
+  CastlePlayer, CastleResources, CastleProgress, CastleInputs,
   CastleSoundEngine, CastleTransform, CastleShapes, CastleXMLConfig, CastleImages,
-  CastleTimeUtils, CastleSceneManager, CastleFindFiles;
+  CastleTimeUtils, CastleViewport, CastleFindFiles, CastleKeysMouse;
 
 type
   TLevelLogic = class;
   TLevelLogicClass = class of TLevelLogic;
-  TCastleSceneClass = class of TCastleScene;
-  TGameSceneManager = class;
 
   TLevelInfo = class
   private
@@ -90,7 +88,7 @@ type
     property LogicClass: TLevelLogicClass read FLogicClass write FLogicClass;
 
     { Unique identifier of this level. This name may be useful in scripts,
-      as TGameSceneManager.LoadLevel parameter and such.
+      as @link(TLevel.Load) parameter and such.
 
       For all (current and future) uses it should be a valid VRML/X3D
       and ObjectPascal identifier, so use only (English) letters,
@@ -98,7 +96,7 @@ type
     property Name: string read FName write FName;
 
     { Main level 3D model. When the level is loaded, this scene will be set
-      as TCastleSceneManager.MainScene,
+      as TCastleRootTransform.MainScene,
       so it determines the default viewpoint, background and such.
 
       Usually it also contains the most (if not all) of the visible level geometry,
@@ -204,7 +202,7 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
 
     { Placeholder detection method. See TPlaceholderName, and see
-      TGameSceneManager.LoadLevel for a description when we use placeholders.
+      @link(TLevel.Load) for a description when we use placeholders.
       Default value is @code(PlaceholderNames['x3dshape']). }
     property PlaceholderName: TPlaceholderName
       read FPlaceholderName write FPlaceholderName;
@@ -250,8 +248,8 @@ type
 
   TLevelInfoList = class(specialize TObjectList<TLevelInfo>)
   private
-    { How many TGameSceneManager have references to our children by
-      TGameSceneManager.Info? }
+    { How many TLevel have references to our children by
+      TLevel.Info? }
     References: Cardinal;
     procedure AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
   public
@@ -260,7 +258,7 @@ type
 
     { Add all available levels found by scanning for level.xml inside data
       directory.
-      Overloaded version without parameter just looks inside ApplicationData.
+      Overloaded version without parameter just looks inside 'castle-data:/'.
       For the specification of level.xml format see
       [https://castle-engine.io/creating_data_levels.php] .
 
@@ -273,11 +271,6 @@ type
       All TLevelInfo.Played values are initially set to @false.
       You must call LoadFromConfig @italic(after) calling this
       to read TLevelInfo.Played values from user preferences file.
-
-      Note that on Android, searching the Android asset filesystem
-      recursively is not possible (this is a fault of Android NDK API...).
-      So instead of this method, you should use AddFromFile repeatedly
-      to explicitly list all level.xml locations.
 
       @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
@@ -309,39 +302,73 @@ type
     procedure SaveToConfig(const Config: TCastleConfig);
   end;
 
-  { Scene manager that can comfortably load and manage a 3D game level.
-    It really adds only one new method to TCastleSceneManager:
-    @link(LoadLevel), see it's documentation to know what it gives you.
-    It also exposes @link(Logic) and @link(Info) properties
-    corresponding to the currently loaded level. }
-  TGameSceneManager = class(TCastleSceneManager)
-  private
-    FLogic: TLevelLogic;
-    FInfo: TLevelInfo;
-    LevelResourcesPrepared: boolean;
-    { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
-    procedure LoadLevelCore(const AInfo: TLevelInfo);
+  { Manage (load and unload) game level.
+
+    For basic usage, assign @link(Viewport) and call @link(Load).
+    It is similar to creating regular TCastleScene and adding it to
+    @code(Viewport.Items), but has some extra features. Most notably,
+    it will instantiate also creatures and items looking at special
+    "placeholders" in the model file. }
+  TLevel = class(TAbstractLevel)
+  strict private
+    type
+      TLevelInternalLogic = class(TCastleTransform)
+        Level: TLevel;
+        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+      end;
+    var
+      FViewport: TCastleViewport;
+      FInternalLogic: TLevelInternalLogic;
+      FLogic: TLevelLogic;
+      FInfo: TLevelInfo;
+      LevelResourcesPrepared: boolean;
+      FWater: TBox3D;
+      FSectors: TSectorList;
+      Waypoints: TWaypointList;
+      FPlayer: TPlayer;
+      FPlayerSwimming: TPlayerSwimming;
+      SickProjectionTime: TFloatTime;
+      FFreeAtUnload: TComponent;
+    { Like TLevel.Load, but doesn't care about AInfo.LoadingImage. }
+    procedure LoadCore(const AInfo: TLevelInfo);
     { Unload Items from previous level, keeps only Player on Items.
       Returns previous resources. You have to call Release and free them. }
-    function UnloadLevelCore: T3DResourceList;
+    function UnloadCore: T3DResourceList;
     function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
+    procedure SetPlayer(const Value: TPlayer);
+    { Assigns Camera and Navigation on level loading and setting/change player }
+    procedure InitializeCamera;
+    function Items: TCastleRootTransform;
+    procedure Update(const SecondsPassed: Single);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function GetPlayer: TCastleTransform; override;
+    function GetSectors: TSectorList; override;
+    function RootTransform: TCastleRootTransform; override;
+    function PrepareParams: TPrepareParams; override;
+    function FreeAtUnload: TComponent; override;
+
+    { Viewport whose contents will be adjusted to show given level.
+      Must be assigned before @link(Load). }
+    property Viewport: TCastleViewport read FViewport write FViewport;
 
     { Load game level.
 
       @unorderedList(
-        @item(@bold(Set scene manager 3D items):
+        @item(@bold(Set Viewport.Items):
 
-          Clear all 3D items from @link(TCastleSceneManager.Items)
-          list (except @link(TCastleSceneManager.Player)), clear
-          @link(TCastleAbstractViewport.Camera Camera)
-          and @link(TCastleSceneManager.MainScene) as well.
-          Then load a new main scene and camera, adding to
-          @link(TCastleSceneManager.Items) all 3D resources (creatures and items)
-          defined by placeholders named CasRes* in the main level 3D file.)
+          Clear @link(TCastleViewport.Items),
+          clear @link(TCastleViewport.Navigation Navigation),
+          clear @link(TCastleRootTransform.MainScene) as well.
+          Then load a new main scene and set navigation, adding to
+          @link(TCastleViewport.Items) all resources (creatures and items)
+          defined by placeholders named CasRes* in the main level file.)
 
-        @item(@bold(Make sure 3D resources are ready:)
+        @item(@bold(Make sure resources are ready:)
 
           Resources are T3DResource instances on @link(Resources) list.
           They are heavy (in terms of memory use and preparation time),
@@ -386,8 +413,7 @@ type
 
         @item(@bold(Prepare everything possible for rendering and collision
           detection) to avoid later preparing things on-demand (which would cause
-          unpleasant delay during gameplay).
-          E.g. prepares octree and OpenGL resources.)
+          unpleasant delay during gameplay).)
       )
 
       The overloaded version with a LevelName string searches the @link(Levels)
@@ -396,18 +422,18 @@ type
       usually by @link(TLevelInfoList.LoadFromFiles Levels.LoadFromFiles)
       call. So you can easily define a level in your data with @code(name="xxx")
       in the @code(level.xml) file, and then you can load it
-      by @code(LoadLevel('xxx')) call.
+      by @code(Load('xxx')) call.
 
       It's important to note that @bold(you do not have to use
       this method to make a 3D game). You may as well just load the 3D scene
-      yourself, and add things to TCastleSceneManager.Items and
-      TCastleSceneManager.MainScene directly.
-      This method is just a very comfortable way to set your 3D world in one call
-      --- but it's not the only way.
+      yourself, and add things to TCastleViewport.Items and
+      TCastleRootTransform.MainScene directly.
+      This method is just a comfortable way to set a world,
+      with creatures and items, using placeholders.
 
       @groupBegin }
-    procedure LoadLevel(const LevelName: string);
-    procedure LoadLevel(const AInfo: TLevelInfo);
+    procedure Load(const LevelName: string);
+    procedure Load(const AInfo: TLevelInfo);
     { @groupEnd }
 
     { Level logic and state. }
@@ -416,44 +442,119 @@ type
     { Level information, independent from current level state. }
     property Info: TLevelInfo read FInfo;
 
-    { Release everything loaded by LoadLevel, clearing the 3D world
-      (only Player is left).
+    { Release everything loaded by @link(Load), clearing the 3D world.
 
       You do not have to call this in normal circumstances,
-      as each LoadLevel automatically clears previous 3D world. If fact,
+      as each @link(Load) automatically clears previous 3D world. If fact,
       you should not call this in normal circumstances:
-      calling this prevents the next LoadLevel to reuse resources
+      calling this prevents the next Load to reuse resources
       that were needed by both old and new level.
 
       Call this only if you really want to conserve memory @italic(right now).
-      Or when you want to force reload of resources at next LoadLevel
+      Or when you want to force reload of resources at next Load
       call (for example, if you changed BakedAnimationSmoothness, it is useful
       --- otherwise the old animations will remain loaded with old BakedAnimationSmoothness
       setting). }
-    procedure UnloadLevel;
+    procedure Unload;
+
+    { Sectors and waypoints of this world, for AI in 3D.
+      Initialized by @link(Load).
+      @nil if you never call @link(Load). }
+    property Sectors: TSectorList read FSectors;
+
+    { Water volume in the scene. It may be used by various 3D objects
+      to indicate appropriate behavior --- some things swim,
+      some things drown and such. For now, this is only used by TPlayer
+      class to detect swimming (and make appropriate sounds, special rendering,
+      drowning and such).
+
+      For now, this is just a simple TBox3D. It will
+      be extended to represent a set of flexible 3D volumes in the future.
+
+      Empty initially. Initialize it however you want. }
+    property Water: TBox3D read FWater write FWater;
+
+    { Player in this 3D world. This serves various purposes:
+
+      @unorderedList(
+        @item(This object never collides with the navigation.
+          See @link(TCastleViewport.AvoidNavigationCollisions).)
+
+        @item(
+          Player transformation will be automatically synchronized
+          with current @link(TCastleViewport.Camera) position.
+          As such, TPlayer represents the volume of player in 1st person games.)
+
+        @item(For AI in CastleCreatures, hostile creatures will attack
+          this player. So this determines the target position that
+          creatures try to reach, where they shoot missiles etc.
+          More advanced AI, with friendlies/companions, or cooperating
+          factions of creatures, may have other mechanisms to determine who
+          wants to attack who.)
+
+        @item(For items on level in CastleItems, this player will pick up the items
+          lying on the ground, and will be able to equip weapons.
+          This functionality may be generalized in the future, to allow
+          anyone to pick up and carry and equip items.)
+      )
+    }
+    property Player: TPlayer read FPlayer write SetPlayer;
   end;
 
-  { Level logic. We use T3D descendant, since this is the comfortable
-    way to add any behavior to the 3D world (it doesn't matter that
-    "level logic" is not a usual 3D object --- it doesn't have to collide
+  TLevelProperties = TAbstractLevel deprecated 'use TAbstractLevel';
+
+  { Scene manager that can comfortably load and manage a 3D game level.
+    It really adds only one new method to TCastleSceneManager:
+    @link(LoadLevel), see it's documentation to know what it gives you.
+    It also exposes @link(Logic) and @link(Info) properties
+    corresponding to the currently loaded level.
+
+    @deprecated @exclude Use @link(TLevel) instead. }
+  TGameSceneManager = class(TCastleSceneManager)
+  strict private
+    FLevel: TLevel;
+    function GetSectors: TSectorList;
+    function GetWater: TBox3D;
+    procedure SetWater(const Value: TBox3D);
+    function GetPlayer: TPlayer;
+    procedure SetPlayer(const Value: TPlayer);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure LoadLevel(const LevelName: string);
+    procedure LoadLevel(const AInfo: TLevelInfo);
+    function Logic: TLevelLogic;
+    function Info: TLevelInfo;
+    procedure UnloadLevel;
+    property Sectors: TSectorList read GetSectors;
+    property Water: TBox3D read GetWater write SetWater;
+    property Player: TPlayer read GetPlayer write SetPlayer;
+    function LevelProperties: TAbstractLevel;
+  end deprecated 'use TLevel together with a TCastleViewport';
+
+  { Level logic. We use TCastleTransform descendant, since this is the comfortable
+    way to add any behavior to the game world (it doesn't matter that
+    "level logic" is not a usual visible object --- it doesn't have to collide
     or be visible). }
   TLevelLogic = class(TCastleTransform)
-  private
+  strict private
     FTime: TFloatTime;
+    FLevel: TAbstractLevel;
   protected
     { Load 3D scene from file, doing common tasks.
       @unorderedList(
         @item optionally create triangle octree
-        @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
+        @item(call PrepareResources, with prRenderSelf, prBoundingBox, prShadowVolume
           (if shadow volumes possible at all in this OpenGL context),)
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
     function LoadLevelScene(const URL: string;
       const PrepareForCollisions: boolean;
-      const SceneClass: TCastleSceneClass): TCastleScene;
+      const SceneClass: TCastleSceneClass): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     function LoadLevelScene(const URL: string;
-      const PrepareForCollisions: boolean): TCastleScene;
+      const PrepareForCollisions: boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
@@ -463,7 +564,7 @@ type
     function Placeholder(const Shape: TShape; const PlaceholderName: string): boolean; virtual;
 
     { Called after all placeholders have been processed,
-      that is after TGameSceneManager.LoadLevel placed initial creatures,
+      that is after @link(TLevel.Load) placed initial creatures,
       items and other stuff on the level.
       Override it to do anything you want. }
     procedure PlaceholdersEnd; virtual;
@@ -473,13 +574,16 @@ type
       after creatures and items are added).
       You can modify MainScene contents here.
 
-      @param(AWorld
+      @param(Level
 
-        3D world items. We provide AWorld instance at construction,
-        and the created TLevelLogic instance will be added to this AWorld,
-        and you cannot change it later. This is necessary,
-        as TLevelLogic descendants at construction may actually modify your world,
-        and depend on it later.)
+        Instance of TLevel, in particular with the root of level transformation
+        in Level.RootTransform.
+
+        The created TLevelLogic instance will be added to this Level.RootTransform,
+        and it must stay there always.
+
+        Passing it in constructor is necessary, as TLevelLogic descendants at
+        construction may actually modify your world, and depend on it later.)
 
       @param(DOMElement
 
@@ -495,8 +599,9 @@ type
         #)
       )
     }
-    constructor Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
-      MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
+    constructor Create(const AOwner: TComponent;
+      const ALevel: TAbstractLevel;
+      const MainScene: TCastleScene; const DOMElement: TDOMElement); reintroduce; virtual;
     function LocalBoundingBox: TBox3D; override;
 
     { Called when new player starts new game on this level.
@@ -533,7 +638,7 @@ type
 function LevelLogicClasses: TLevelLogicClasses;
 
 { All known levels. You can use this to show a list of available levels to user.
-  You can also search it and use TGameSceneManager.LoadLevel to load
+  You can also search it and use @link(TLevel.Load) to load
   a given TLevelInfo instance. }
 function Levels: TLevelInfoList;
 
@@ -541,9 +646,8 @@ implementation
 
 uses SysUtils, Generics.Defaults, Math,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
-  CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleLog, X3DCameraUtils,
-  CastleGLVersion, CastleURIUtils, CastleDownload;
+  CastleGLImages, CastleUIControls, XMLRead, CastleXMLUtils, CastleLog,
+  X3DCameraUtils, CastleGLVersion, CastleURIUtils, CastleDownload, CastleThirdPersonNavigation;
 
 { globals -------------------------------------------------------------------- }
 
@@ -562,7 +666,7 @@ end;
 
 var
   { Created in initialization of this unit, destroyed in finalization
-    (or when the last TGameSceneManager referring to TLevelInfo is destroyed).
+    (or when the last TLevel referring to TLevelInfo is destroyed).
     Owns it's Items. }
   FLevels: TLevelInfoList;
 
@@ -571,10 +675,79 @@ begin
   Result := FLevels;
 end;
 
-{ TGameSceneManager ---------------------------------------------------------- }
+{ TLevelInternalLogic -------------------------------------------------------- }
 
-function TGameSceneManager.Placeholder(Shape: TShape;
-  PlaceholderName: string): boolean;
+procedure TLevel.TLevelInternalLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+  Level.Update(SecondsPassed);
+end;
+
+{ TLevel ---------------------------------------------------------- }
+
+constructor TLevel.Create(AOwner: TComponent);
+begin
+  inherited;
+  FWater := TBox3D.Empty;
+  FInternalLogic := TLevelInternalLogic.Create(Self);
+  FInternalLogic.Level := Self;
+end;
+
+destructor TLevel.Destroy;
+begin
+  if Info <> nil then
+  begin
+    { we check LevelResourcesPrepared, to avoid calling
+      Info.LevelResources.Release when Info.LevelResources.Prepare
+      was not called (which may happen if there was an exception if LoadCore
+      at MainScene.Load(SceneURL). }
+    if (Info.LevelResources <> nil) and LevelResourcesPrepared then
+      Info.LevelResources.Release;
+
+    Dec(FLevels.References);
+    if FLevels.References = 0 then
+      FreeAndNil(FLevels);
+  end;
+
+  { unregister free notification from this }
+  Player := nil;
+
+  FreeAndNil(FSectors);
+  FreeAndNil(Waypoints);
+  FreeAndNil(FInternalLogic);
+  FreeAndNil(FFreeAtUnload); // free stuff owned by FFreeAtUnload now
+
+  inherited;
+end;
+
+function TLevel.FreeAtUnload: TComponent;
+begin
+  if FFreeAtUnload = nil then
+    FFreeAtUnload := TComponent.Create(nil);
+  Result := FFreeAtUnload;
+end;
+
+function TLevel.GetPlayer: TCastleTransform;
+begin
+  Result := FPlayer;
+end;
+
+function TLevel.GetSectors: TSectorList;
+begin
+  Result := FSectors;
+end;
+
+function TLevel.RootTransform: TCastleRootTransform;
+begin
+  Result := Viewport.Items;
+end;
+
+function TLevel.PrepareParams: TPrepareParams;
+begin
+  Result := Viewport.PrepareParams;
+end;
+
+function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): boolean;
 const
   { Prefix of all placeholders that we seek on 3D models. }
   PlaceholderPrefix = 'Cas';
@@ -594,10 +767,13 @@ const
     IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
-    { PlaceholderName is now <resource_name>[<resource_number>][_<ignored>] }
+    { PlaceholderName is now <resource_name>[<resource_number>][_<ignored>][.<ignored>] }
 
     { cut off optional [_<ignored>] suffix }
     IgnoredBegin := Pos('_', PlaceholderName);
+    if IgnoredBegin <> 0 then
+      PlaceholderName := Copy(PlaceholderName, 1, IgnoredBegin - 1);
+    IgnoredBegin := Pos('.', PlaceholderName);
     if IgnoredBegin <> 0 then
       PlaceholderName := Copy(PlaceholderName, 1, IgnoredBegin - 1);
 
@@ -624,9 +800,9 @@ const
     Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
-    Direction := Shape.State.Transform.MultDirection(Direction);
+    Direction := Shape.State.Transformation.Transform.MultDirection(Direction);
 
-    Resource.InstantiatePlaceholder(Items, Position, Direction,
+    Resource.InstantiatePlaceholder(Self, Position, Direction,
       ResourceNumberPresent, ResourceNumber);
   end;
 
@@ -678,7 +854,7 @@ begin
   if IsPrefix(ResourcePrefix, PlaceholderName) then
     PlaceholderResource(Shape, SEnding(PlaceholderName, Length(ResourcePrefix) + 1)) else
   if PlaceholderName = MoveLimitName then
-    MoveLimit := Shape.BoundingBox else
+    Items.MoveLimit := Shape.BoundingBox else
   if PlaceholderName = WaterName then
     Water := Shape.BoundingBox else
   if IsPrefix(SectorPrefix, PlaceholderName) then
@@ -688,22 +864,17 @@ begin
     Result := Logic.Placeholder(Shape, PlaceholderName);
 end;
 
-function TGameSceneManager.UnloadLevelCore: T3DResourceList;
-var
-  I: Integer;
+function TLevel.UnloadCore: T3DResourceList;
 begin
-  { release stuff from previous level. Our items must be clean.
-    This releases previous Level (logic), MainScene,
-    and our creatures and items --- the ones added in TraverseForResources,
-    but also the ones created dynamically (when creature is added to scene manager,
-    e.g. because player/creature shoots a missile, or when player drops an item).
-    The only thing that can (and should) remain is Player. }
-  I := 0;
-  while I < Items.Count do
-    if Items[I] <> Player then
-      Items[I].Free else
-      Inc(I);
-  FLogic := nil; { we freed FLogic above, since it was on Items list }
+  { clear Items, removing everything from previous level }
+  Items.Clear;
+
+  { free stuff like creatures, items, level logic.
+    Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,
+    remain untouched. }
+  FreeAndNil(FFreeAtUnload);
+
+  FLogic := nil; { we freed FLogic above, since it is always owned by FFreeAtUnload }
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -719,16 +890,21 @@ begin
   end;
 end;
 
-procedure TGameSceneManager.UnloadLevel;
+procedure TLevel.Unload;
 var
   PreviousResources: T3DResourceList;
 begin
-  PreviousResources := UnloadLevelCore;
+  PreviousResources := UnloadCore;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
 end;
 
-procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelInfo);
+function TLevel.Items: TCastleRootTransform;
+begin
+  Result := Viewport.Items;
+end;
+
+procedure TLevel.LoadCore(const AInfo: TLevelInfo);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -757,10 +933,10 @@ var
   var
     I: Integer;
   begin
-    MainScene.BeforeNodesFree;
+    Items.MainScene.BeforeNodesFree;
     for I := 0 to ItemsToRemove.Count - 1 do
       ItemsToRemove.Items[I].FreeRemovingFromAllParents;
-    MainScene.ChangedAll;
+    Items.MainScene.ChangedAll;
   end;
 
   { After placeholders are processed, finish some stuff. }
@@ -768,14 +944,14 @@ var
   var
     NewMoveLimit: TBox3D;
   begin
-    if MoveLimit.IsEmpty then
+    if Items.MoveLimit.IsEmpty then
     begin
-      { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
-      NewMoveLimit := MainScene.BoundingBox;
+      { Set MoveLimit to Items.MainScene.BoundingBox, and make maximum up larger. }
+      NewMoveLimit := Items.MainScene.BoundingBox;
       NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
         4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
              NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
-      MoveLimit := NewMoveLimit;
+      Items.MoveLimit := NewMoveLimit;
     end;
 
     Sectors.LinkToWaypoints(Waypoints);
@@ -783,91 +959,13 @@ var
     Logic.PlaceholdersEnd;
   end;
 
-  { Assign Camera, knowing MainScene and Player.
-    We need to assign Camera early, as initial Camera also is used
-    when placing initial resources on the level (to determine their
-    initial direciton, World.GravityUp etc.) }
-  procedure InitializeCamera;
-  var
-    InitialPosition: TVector3;
-    InitialDirection: TVector3;
-    InitialUp: TVector3;
-    GravityUp: TVector3;
-    CameraRadius, PreferredHeight: Single;
-    NavigationNode: TNavigationInfoNode;
-    WalkCamera: TWalkCamera;
-  begin
-    if MainScene.ViewpointStack.Top <> nil then
-      MainScene.ViewpointStack.Top.GetView(InitialPosition,
-        InitialDirection, InitialUp, GravityUp) else
-    begin
-      InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
-      InitialDirection := DefaultX3DCameraDirection;
-      InitialUp := DefaultX3DCameraUp;
-      GravityUp := DefaultX3DGravityUp;
-    end;
-
-    NavigationNode := MainScene.NavigationInfoStack.Top;
-
-    if (NavigationNode <> nil) and (NavigationNode.FdAvatarSize.Count >= 1) then
-      CameraRadius := NavigationNode.FdAvatarSize.Items[0] else
-      CameraRadius := MainScene.BoundingBox.AverageSize(false, 1) * 0.007;
-
-    if (NavigationNode <> nil) and (NavigationNode.FdAvatarSize.Count >= 2) then
-      PreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      PreferredHeight := CameraRadius * 5;
-    CorrectPreferredHeight(PreferredHeight, CameraRadius,
-      TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
-
-    if Player <> nil then
-      WalkCamera := Player.Camera
-    else
-      { If you don't initialize Player (like for castle1 background level
-        or castle-view-level or lets_take_a_walk) then just create a camera. }
-      WalkCamera := TWalkCamera.Create(Self);
-
-    { initialize some navigation settings of player }
-    if Player <> nil then
-    begin
-      Player.DefaultPreferredHeight := PreferredHeight;
-      if NavigationNode <> nil then
-        Player.DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        Player.DefaultMoveHorizontalSpeed := 1.0;
-      Player.DefaultMoveVerticalSpeed := 20;
-    end else
-    begin
-      { if you use Player with TGameSceneManager, then Player will automatically
-        update camera's speed properties. But if not, we have to set them
-        here. }
-      WalkCamera.PreferredHeight := PreferredHeight;
-      if NavigationNode <> nil then
-        WalkCamera.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        WalkCamera.MoveHorizontalSpeed := 1.0;
-      WalkCamera.MoveVerticalSpeed := 20;
-    end;
-
-    Camera := WalkCamera;
-
-    WalkCamera.Init(InitialPosition, InitialDirection,
-      InitialUp, GravityUp, PreferredHeight, CameraRadius);
-    WalkCamera.CancelFalling;
-  end;
-
 var
   Options: TPrepareResourcesOptions;
-  SI: TShapeTreeIterator;
+  ShapeList: TShapeList;
+  Shape: TShape;
   PreviousResources: T3DResourceList;
 begin
-  { We want OpenGL context, but we don't want to require that this scene manager
-    is actually added to Window.Controls yet. This would prevent taking a screenshot
-    from previous 3D contents as a background when loading level, which is actually
-    used by castle1.
-    So we do not check field "not GLInitialized", instead we look at global
-    GLVersion. }
-  if GLVersion = nil then
-    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TGameSceneManager.LoadLevel.');
-
-  PreviousResources := UnloadLevelCore;
+  PreviousResources := UnloadCore;
 
   FInfo := AInfo;
   Inc(Levels.References);
@@ -876,19 +974,19 @@ begin
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
-    { disconnect previous Camera from SceneManager.
-      Otherwise, it would be updated by MainScene loading binding new
+    { Disconnect previous Viewport.Navigation.
+      Otherwise, it would be updated by Items.MainScene loading binding new
       NavigationInfo (with it's speed) and Viewpoint.
       We prefer to do it ourselves in InitializeCamera. }
-    Camera := nil;
+    Viewport.Navigation := nil;
 
-    MainScene := TCastleScene.Create(Self);
-    Inc(MainScene.InternalDirty);
-    MainScene.Load(Info.SceneURL);
+    Items.MainScene := TCastleScene.Create(Self);
+    Inc(Items.MainScene.InternalDirty);
+    Items.MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
-      use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
-    Items.Insert(0, MainScene);
+      use Scene for wall-sliding (see TCastleTransform.LocalMoveCollision implementation). }
+    Items.Insert(0, Items.MainScene);
 
     InitializeCamera;
 
@@ -899,18 +997,59 @@ begin
 
   { load new resources (and release old unused). This must be done after
     InitializeCamera (because it uses GravityUp), which in turn must
-    be after loading MainScene (because initial camera looks at MainScene
+    be after loading Items.MainScene (because initial camera looks at Items.MainScene
     contents).
     It will show it's own progress bar. }
-  Info.LevelResources.Prepare(PrepareParams);
+  Info.LevelResources.Prepare(Viewport.PrepareParams);
   LevelResourcesPrepared := true;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
-    { create new Logic }
-    FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
+    { add Player to Items.
+
+      It is necessary to keep Player as 1st item:
+      Testcase darkest-before-the-dawn:
+      - Doing Info.LogicClass.Create creates a number of TCastleLinearMoving
+        and adds them to Items.
+
+      - If the TCastleLinearMoving are *before* Player on Items,
+        things are broken when player is moved
+        by TCastleLinearMoving (standing on elevator):
+
+        TCastleLinearMoving.Update changes Player transformation,
+        causing TPlayer.ChangedTransform
+        causing TPlayer.SynchronizeToNavigation.
+
+        But in effect any changes possibly done by user input in the same frame
+        (e.g. moving around) are lost.
+        When we reach TPlayer.Update, it calls SynchronizeFromNavigation
+        that does nothing, as Navigation and Player transformation
+        are for sure synchronized now.
+
+      - OTOH, when Player is *before* everything else:
+
+        TPlayer.Update calls SynchronizeFromNavigation which can apply
+        to Player transformation changes done to Viewport.Camera
+        (done by TCastleWalkNavigation receiving inputs).
+
+      IOW, TPlayer now requires that you let SynchronizeFromNavigation to happen
+      in each frame, before any SynchronizeToNavigation.
+
+      Do not add Player if was already added.
+      This happens if UseThirdPerson was used,
+      then ThirdPersonNavigation.AvatarHierarchy is already added to world,
+      and it is equal to Player.
+    }
+    if (Player <> nil) and (Player.World = nil) then
+      Items.Add(Player);
+
+    { add FInternalLogic to Items }
+    Items.Add(FInternalLogic);
+
+    { add FLogic (new Info.LogicClass instance) to Items }
+    FLogic := Info.LogicClass.Create(FreeAtUnload, Self, Items.MainScene, Info.Element);
     Items.Add(Logic);
 
     { We will calculate new Sectors and Waypoints and other stuff
@@ -919,28 +1058,27 @@ begin
     FreeAndNil(Waypoints);
     FSectors := TSectorList.Create(true);
     Waypoints := TWaypointList.Create(true);
-    MoveLimit := TBox3D.Empty;
+    Items.MoveLimit := TBox3D.Empty;
     Water := TBox3D.Empty;
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
-      SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
-      try
-        while SI.GetNext do TraverseForPlaceholders(SI.Current);
-      finally SysUtils.FreeAndNil(SI) end;
+      ShapeList := Items.MainScene.Shapes.TraverseList({ OnlyActive } true);
+      for Shape in ShapeList do
+        TraverseForPlaceholders(Shape);
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 
     PlaceholdersEnd;
 
     { calculate Options for PrepareResources }
-    Options := [prRender, prBackground, prBoundingBox];
+    Options := [prRenderSelf, prBackground, prBoundingBox];
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
-    MainScene.PrepareResources(Options, false, PrepareParams);
+    Items.MainScene.PrepareResources(Options, false, Viewport.PrepareParams);
 
-    MainScene.FreeResources([frTextureDataInNodes]);
+    Items.MainScene.FreeResources([frTextureDataInNodes]);
 
     Progress.Step;
   finally
@@ -949,10 +1087,10 @@ begin
 
   { Loading octree have their own Progress, so we load them outside our
     progress. }
-  MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
-  MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
-  MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  MainScene.PrepareResources([prSpatial], false, PrepareParams);
+  Items.MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
+  Items.MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
+  Items.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Items.MainScene.PrepareResources([prSpatial], false, Viewport.PrepareParams);
 
   if (Player <> nil) then
     Player.LevelChanged;
@@ -960,12 +1098,12 @@ begin
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
   SoundEngine.PrepareResources;
 
-  MainScene.ProcessEvents := true;
+  Items.MainScene.ProcessEvents := true;
 
-  Dec(MainScene.InternalDirty);
+  Dec(Items.MainScene.InternalDirty);
 end;
 
-procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
+procedure TLevel.Load(const AInfo: TLevelInfo);
 var
   SavedImage: TObject;
   SavedBarYPosition: Single;
@@ -978,7 +1116,7 @@ begin
     Progress.UserInterface.OwnsImage := false; // never free Image at next assignment
     Progress.UserInterface.Image := AInfo.LoadingImage;
     Progress.UserInterface.BarYPosition := AInfo.LoadingBarYPosition;
-    LoadLevelCore(AInfo);
+    LoadCore(AInfo);
   finally
     Progress.UserInterface.Image := nil; // unassign AInfo.LoadingImage, while OwnsImage = false
     Progress.UserInterface.OwnsImage := SavedOwnsImage;
@@ -987,38 +1125,303 @@ begin
   end;
 end;
 
-procedure TGameSceneManager.LoadLevel(const LevelName: string);
+procedure TLevel.Load(const LevelName: string);
 begin
-  LoadLevel(Levels.FindName(LevelName));
+  Load(Levels.FindName(LevelName));
+end;
+
+procedure TLevel.Update(const SecondsPassed: Single);
+
+  procedure UpdatePlayerSwimming;
+  begin
+    if Player = nil then
+    begin
+      FPlayerSwimming := psNo;
+      Exit;
+    end;
+
+    if Water.Contains(Player.Translation) then
+      FPlayerSwimming := psUnderWater
+    else
+    { Check Player.Navigation, not Navigation, in case Navigation=nil
+      but Player is <> nil. Then Player.Navigation is guaranteed non-nil. }
+    if Water.Contains(Player.Translation - Viewport.Camera.GravityUp * Player.Navigation.PreferredHeight) then
+      FPlayerSwimming := psAboveWater
+    else
+      FPlayerSwimming := psNo;
+
+    Player.Swimming := FPlayerSwimming;
+  end;
+
+  procedure UpdateSickProjection;
+  var
+    DistortFov, DistortAspect: Single;
+    S, C: Extended;
+  begin
+    DistortFov := 1;
+    DistortAspect := 1;
+    if FPlayerSwimming = psUnderWater then
+    begin
+      SickProjectionTime := SickProjectionTime + SecondsPassed * Items.TimeScale;
+      SinCos(SickProjectionTime * Player.SickProjectionSpeed, S, C);
+      DistortFov := DistortFov + (C * 0.03);
+      DistortAspect := DistortAspect + (S * 0.03);
+    end;
+    Viewport.InternalDistortFieldOfViewY := DistortFov;
+    Viewport.InternalDistortViewAspect := DistortAspect;
+  end;
+
+begin
+  UpdatePlayerSwimming;
+  UpdateSickProjection;
+end;
+
+procedure TLevel.SetPlayer(const Value: TPlayer);
+begin
+  if FPlayer <> Value then
+  begin
+    if FPlayer <> nil then
+    begin
+      FPlayer.RemoveFreeNotification(Self);
+      Items.Remove(FPlayer);
+    end;
+    FPlayer := Value;
+    if FPlayer <> nil then
+    begin
+      FPlayer.FreeNotification(Self);
+      FPlayer.InternalLevel := Self;
+    end;
+    Viewport.AvoidNavigationCollisions := Value;
+
+    { Reinitialize camera and navigation only when level was loaded. }
+    if FInfo <> nil then
+    begin
+      InitializeCamera;
+      if FPlayer <> nil then
+      begin
+        { Add Player to Items,
+          as the second item (see LoadCore for explanation why),
+          making sure it's not already there (because InitializeCamera
+          may have already added it when UseThirdPerson). }
+        if FPlayer.World = nil then
+        begin
+          Items.Insert(1, FPlayer);
+          FPlayer.LevelChanged;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TLevel.InitializeCamera;
+var
+  InitialPosition: TVector3;
+  InitialDirection: TVector3;
+  InitialUp: TVector3;
+  GravityUp: TVector3;
+  Radius, PreferredHeight: Single;
+  ProjectionNear: Single;
+  NavigationNode: TNavigationInfoNode;
+  WalkNavigation: TCastleWalkNavigation;
+  ThirdPersonNavigation: TCastleThirdPersonNavigation;
+begin
+  if Items.MainScene.ViewpointStack.Top <> nil then
+    Items.MainScene.ViewpointStack.Top.GetView(InitialPosition,
+      InitialDirection, InitialUp, GravityUp) else
+  begin
+    InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
+    InitialDirection := DefaultX3DCameraDirection;
+    InitialUp := DefaultX3DCameraUp;
+    GravityUp := DefaultX3DGravityUp;
+  end;
+
+  NavigationNode := Items.MainScene.NavigationInfoStack.Top;
+
+  // calculate Radius
+  Radius := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    Radius := NavigationNode.FdAvatarSize.Items[0];
+  // If radius not specified, or invalid (<0), calculate it
+  if Radius <= 0 then
+    Radius := Items.MainScene.BoundingBox.AverageSize(false, 1) * WorldBoxSizeToRadius;
+  Assert(Radius > 0, 'Navigation Radius must be > 0');
+
+  // calculate ProjectionNear
+  ProjectionNear := Radius * RadiusToProjectionNear;
+  Viewport.Camera.ProjectionNear := ProjectionNear;
+
+  if (NavigationNode <> nil) and
+    (NavigationNode.FdAvatarSize.Count >= 2) then
+    PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
+  else
+    PreferredHeight := Max(TCastleNavigation.DefaultPreferredHeight, Radius * RadiusToPreferredHeightMin);
+  CorrectPreferredHeight(PreferredHeight, Radius,
+    TCastleWalkNavigation.DefaultCrouchHeight, TCastleWalkNavigation.DefaultHeadBobbing);
+
+  WalkNavigation := nil;
+  ThirdPersonNavigation := nil;
+  if Player <> nil then
+  begin
+    if Player.UseThirdPerson then
+      ThirdPersonNavigation := Player.ThirdPersonNavigation
+    else
+      WalkNavigation := Player.WalkNavigation;
+  end else
+    { If you don't initialize Player (like for castle1 background level
+      or castle-view-level or lets_take_a_walk) then just create a camera. }
+    WalkNavigation := TCastleWalkNavigation.Create(Self);
+
+  { initialize some navigation settings of player }
+  if Player <> nil then
+  begin
+    Player.DefaultPreferredHeight := PreferredHeight;
+    if NavigationNode <> nil then
+      Player.DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+      Player.DefaultMoveHorizontalSpeed := 1.0;
+    Player.DefaultMoveVerticalSpeed := 20;
+  end else
+  if WalkNavigation <> nil then
+  begin
+    { if you use TCastlePlayer, then it will automatically update navigation
+      speed properties. But if not (when Player = nil), we have to set them
+      explicitly here. }
+    WalkNavigation.PreferredHeight := PreferredHeight;
+    if NavigationNode <> nil then
+      WalkNavigation.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+      WalkNavigation.MoveHorizontalSpeed := 1.0;
+    WalkNavigation.MoveVerticalSpeed := 20;
+  end;
+
+
+  // will be overridden by ThirdPersonNavigation.Init, possibly
+  Viewport.Camera.Init(InitialPosition, InitialDirection, InitialUp, GravityUp);
+
+  if WalkNavigation <> nil then
+  begin
+    WalkNavigation.PreferredHeight := PreferredHeight;
+    WalkNavigation.Radius := Radius;
+    WalkNavigation.CorrectPreferredHeight;
+    WalkNavigation.CancelFalling;
+
+    Viewport.Navigation := WalkNavigation;
+  end else
+  begin
+    Viewport.Navigation := ThirdPersonNavigation;
+
+    { Use InitialXxx vectors to position avatar, camera will be derived from it.
+      Also add the avatar to Items (avatar needs to be part of hierarchy when
+      ThirdPersonNavigation.Init is called). }
+    if ThirdPersonNavigation.AvatarHierarchy <> nil then
+    begin
+      ThirdPersonNavigation.AvatarHierarchy.SetView(InitialPosition, InitialDirection, InitialUp);
+
+      if (Player <> nil) and (ThirdPersonNavigation.AvatarHierarchy = Player) then
+      begin
+        Items.Insert(1, ThirdPersonNavigation.AvatarHierarchy);
+        Player.LevelChanged;
+      end else
+        Items.Add(ThirdPersonNavigation.AvatarHierarchy);
+    end else
+    if ThirdPersonNavigation.Avatar <> nil then
+    begin
+      ThirdPersonNavigation.Avatar.SetView(InitialPosition, InitialDirection, InitialUp);
+      Items.Add(ThirdPersonNavigation.Avatar);
+    end;
+    ThirdPersonNavigation.Init;
+  end;
+end;
+
+procedure TLevel.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FPlayer) then
+    Player := nil;
+end;
+
+{ TGameSceneManager ---------------------------------------------------------- }
+
+{ TGameSceneManager is deprecated, just passes all the work
+  to internal TLevel instance. }
+
+constructor TGameSceneManager.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLevel := TLevel.Create(nil);
+  FLevel.Viewport := Self;
 end;
 
 destructor TGameSceneManager.Destroy;
 begin
-  if Info <> nil then
-  begin
-    { we check LevelResourcesPrepared, to avoid calling
-      Info.LevelResources.Release when Info.LevelResources.Prepare
-      was not called (which may happen if there was an exception if LoadLevelCore
-      at MainScene.Load(SceneURL). }
-    if (Info.LevelResources <> nil) and LevelResourcesPrepared then
-      Info.LevelResources.Release;
-
-    Dec(FLevels.References);
-    if FLevels.References = 0 then
-      FreeAndNil(FLevels);
-  end;
-
+  FreeAndNil(FLevel);
   inherited;
+end;
+
+function TGameSceneManager.GetSectors: TSectorList;
+begin
+  Result := FLevel.Sectors;
+end;
+
+function TGameSceneManager.GetWater: TBox3D;
+begin
+  Result := FLevel.Water;
+end;
+
+procedure TGameSceneManager.SetWater(const Value: TBox3D);
+begin
+  FLevel.Water := Value;
+end;
+
+function TGameSceneManager.GetPlayer: TPlayer;
+begin
+  Result := FLevel.Player;
+end;
+
+procedure TGameSceneManager.SetPlayer(const Value: TPlayer);
+begin
+  FLevel.Player := Value;
+end;
+
+procedure TGameSceneManager.LoadLevel(const LevelName: string);
+begin
+  FLevel.Load(LevelName);
+end;
+
+procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
+begin
+  FLevel.Load(AInfo);
+end;
+
+function TGameSceneManager.Logic: TLevelLogic;
+begin
+  Result := FLevel.Logic;
+end;
+
+function TGameSceneManager.Info: TLevelInfo;
+begin
+  Result := FLevel.Info;
+end;
+
+procedure TGameSceneManager.UnloadLevel;
+begin
+  FLevel.Unload;
+end;
+
+function TGameSceneManager.LevelProperties: TAbstractLevel;
+begin
+  Result := FLevel;
 end;
 
 { TLevelLogic ---------------------------------------------------------------- }
 
-constructor TLevelLogic.Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
-  MainScene: TCastleScene; DOMElement: TDOMElement);
+constructor TLevelLogic.Create(const AOwner: TComponent;
+  const ALevel: TAbstractLevel;
+  const MainScene: TCastleScene; const DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  Assert(AWorld <> nil, 'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
-  AddToWorld(AWorld);
+  FLevel := ALevel;
+
+  AddToWorld(ALevel.RootTransform);
 
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
@@ -1048,11 +1451,11 @@ begin
   Result.Load(URL);
 
   { calculate Options for PrepareResources }
-  Options := [prRender, prBoundingBox { always needed }];
+  Options := [prRenderSelf, prBoundingBox { always needed }];
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, World.PrepareParams);
+  Result.PrepareResources(Options, false, FLevel.PrepareParams);
 
   if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];
@@ -1066,7 +1469,9 @@ function TLevelLogic.LoadLevelScene(
   const URL: string;
   const PrepareForCollisions: boolean): TCastleScene;
 begin
+  {$warnings off} // using deprecated in deprecated
   Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
+  {$warnings on}
 end;
 
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1273,7 +1678,7 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles;
 begin
-  LoadFromFiles(ApplicationData(''));
+  LoadFromFiles('castle-data:/');
   SortByNumber;
 end;
 
@@ -1303,7 +1708,7 @@ initialization
   Inc(FLevels.References);
 finalization
   FreeAndNil(FLevelLogicClasses);
-  { there may still exist TGameSceneManager instances that refer to our
+  { there may still exist TLevel instances that refer to our
     TLevelInfo instances. So we don't always free Levels below. }
   if FLevels <> nil then
   begin

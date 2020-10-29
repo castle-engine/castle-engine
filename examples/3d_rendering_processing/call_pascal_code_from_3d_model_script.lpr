@@ -35,12 +35,14 @@ program call_pascal_code_from_3d_model_script;
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses CastleUtils, CastleProgress, CastleProgressConsole, CastleLog,
+uses CastleUtils, CastleProgress, CastleProgressConsole, CastleLog, CastleScene,
   CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,
-  CastleWindow, CastleKeysMouse, CastleApplicationProperties;
+  CastleWindow, CastleKeysMouse, CastleApplicationProperties, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
+  Scene: TCastleScene;
 
 type
   THelperObj = class
@@ -50,12 +52,18 @@ type
 
 class procedure THelperObj.ScriptTouchInitialize(Value: TX3DField; const Time: TX3DTime);
 begin
-  Writeln(Format('Script is initialized (timestamp: %f)', [Time.Seconds]));
+  Writeln(Format('Script is initialized (absolute time: %f, time since load: %f)', [
+    Time.Seconds,
+    Time.Seconds - Scene.TimeAtLoad
+  ]));
 end;
 
 class procedure THelperObj.ScriptTouch(Value: TX3DField; const Time: TX3DTime);
 begin
-  Writeln(Format('Touch! (timestamp: %f)', [Time.Seconds]));
+  Writeln(Format('Touch! (absolute time: %f, time since load: %f)', [
+    Time.Seconds,
+    Time.Seconds - Scene.TimeAtLoad
+  ]));
 end;
 
 var
@@ -69,20 +77,29 @@ begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Window := TCastleWindow.Create(nil);
-  try
-    Window.Load(URL);
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
 
-    { initialize events procesing }
-    Window.MainScene.RegisterCompiledScript('touch_initialize',
-      @THelperObj(nil).ScriptTouchInitialize);
-    Window.MainScene.RegisterCompiledScript('touch',
-      @THelperObj(nil).ScriptTouch);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
-    Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-    Window.MainScene.ProcessEvents := true;
+  Scene := TCastleScene.Create(Application);
+  Scene.Load(URL);
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-    Window.SetDemoOptions(K_F11, CharEscape, true);
-    Window.OpenAndRun;
-  finally Window.Free end;
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+
+  { initialize events procesing }
+  Scene.RegisterCompiledScript('touch_initialize',  @THelperObj(nil).ScriptTouchInitialize);
+  Scene.RegisterCompiledScript('touch', @THelperObj(nil).ScriptTouch);
+
+  { initialize ProcessEvents *after* attaching ScriptTouchInitialize, to receive it }
+  Scene.ProcessEvents := true;
+
+  Window.SetDemoOptions(keyF11, CharEscape, true);
+  Application.Run;
 end.

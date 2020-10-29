@@ -402,7 +402,7 @@ type
   strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    GLImage: TGLImage;
+    DrawableImage: TDrawableImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
     function GetScale: Single;
@@ -485,7 +485,7 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   strict private
-    GLImage: TGLImage;
+    DrawableImage: TDrawableImage;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
@@ -494,7 +494,7 @@ type
     function ScaledCharHeight: Single;
     function ScaledCharDisplayMargin: Single;
     function GetSmoothScaling: boolean;
-    { Scale applied to the rendered GLImage to honor changing the Size property. }
+    { Scale applied to the rendered DrawableImage to honor changing the Size property. }
     function Scale: Single;
   strict protected
     procedure SetSize(const Value: Single); override;
@@ -708,7 +708,9 @@ begin
         hpLeft   : X := ThisRect.Left;
         hpMiddle : X := ThisRect.Center[0];
         hpRight  : X := ThisRect.Right;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TextHorizontalAlignment? in TCastleFont.PrintRectMultiline');
+        {$endif}
       end;
       PrintStrings(X, ThisRect.Bottom, Color, Strings,
         Html, LineSpacing, TextHorizontalAlignment);
@@ -877,7 +879,9 @@ procedure TCastleFont.PrintStrings(const X0, Y0: Single;
       hpLeft  : Result := X0;
       hpMiddle: Result := X0 - TextWidth(S) / 2;
       hpRight : Result := X0 - TextWidth(S);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
+      {$endif}
     end;
   end;
 
@@ -983,7 +987,9 @@ begin
       hpLeft  : X0 := Rect.Left;
       hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) / 2;
       hpRight : X0 := Rect.Right - Text.Width;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
+      {$endif}
     end;
     { calculate Y0 based on Rect and BrokenHeight }
     BrokenHeight := Text.Count * (LineSpacing + RowHeight);
@@ -991,7 +997,9 @@ begin
       vpBottom: Y0 := Rect.Bottom;
       vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) / 2;
       vpTop   : Y0 := Rect.Top - BrokenHeight;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
+      {$endif}
     end;
     Text.Print(X0, Y0, Color, LineSpacing);
     Result := Text.Count;
@@ -1185,8 +1193,8 @@ begin
   Assert(FFont.Size <> 0);
   Assert(not IsInfinite(Value));
 
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
+  if DrawableImage <> nil then
+    DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TTextureFont.GetSmoothScaling: boolean;
@@ -1197,13 +1205,13 @@ end;
 procedure TTextureFont.PrepareResources;
 begin
   inherited;
-  if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling, false);
+  if DrawableImage = nil then
+    DrawableImage := TDrawableImage.Create(FFont.Image, GetSmoothScaling, false);
 end;
 
 procedure TTextureFont.GLContextClose;
 begin
-  FreeAndNil(GLImage);
+  FreeAndNil(DrawableImage);
   inherited;
 end;
 
@@ -1327,8 +1335,8 @@ begin
 
     if TargetImage = nil then
     begin
-      GLImage.Color := OutlineColor;
-      GLImage.Draw(
+      DrawableImage.Color := OutlineColor;
+      DrawableImage.Draw(
         PFloatRectangleArray(GlyphsScreenRects.List),
         PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
     end;
@@ -1364,8 +1372,8 @@ begin
 
   if TargetImage = nil then
   begin
-    GLImage.Color := Color;
-    GLImage.Draw(
+    DrawableImage.Color := Color;
+    DrawableImage.Draw(
       PFloatRectangleArray(GlyphsScreenRects.List),
       PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;
@@ -1458,8 +1466,8 @@ end;
 procedure TSimpleTextureFont.SetSize(const Value: Single);
 begin
   inherited SetSize(Value);
-  if GLImage <> nil then
-    GLImage.SmoothScaling := GetSmoothScaling;
+  if DrawableImage <> nil then
+    DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TSimpleTextureFont.GetSmoothScaling: boolean;
@@ -1470,13 +1478,13 @@ end;
 procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
-  if GLImage = nil then
-    GLImage := TGLImage.Create(Image, GetSmoothScaling, false);
+  if DrawableImage = nil then
+    DrawableImage := TDrawableImage.Create(Image, GetSmoothScaling, false);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
 begin
-  FreeAndNil(GLImage);
+  FreeAndNil(DrawableImage);
   inherited;
 end;
 
@@ -1517,7 +1525,7 @@ begin
     PrepareResources;
     GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, Length(S));
     GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, Length(S));
-    GLImage.Color := Color;
+    DrawableImage.Color := Color;
   end;
 
   GlyphsToRender := 0;
@@ -1565,8 +1573,8 @@ begin
 
   if TargetImage = nil then
   begin
-    GLImage.Color := Color;
-    GLImage.Draw(
+    DrawableImage.Color := Color;
+    DrawableImage.Draw(
       PFloatRectangleArray(GlyphsScreenRects.List),
       PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;

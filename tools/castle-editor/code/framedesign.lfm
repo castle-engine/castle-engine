@@ -5,11 +5,11 @@ object DesignFrame: TDesignFrame
   Width = 1261
   ClientHeight = 510
   ClientWidth = 1261
-  DesignTimePPI = 140
+  DesignTimePPI = 120
   ParentFont = False
   TabOrder = 0
-  DesignLeft = 339
-  DesignTop = 171
+  DesignLeft = 332
+  DesignTop = 175
   object SplitterLeft: TSplitter
     Left = 266
     Height = 510
@@ -17,7 +17,7 @@ object DesignFrame: TDesignFrame
     Width = 7
   end
   object SplitterRight: TSplitter
-    Left = 898
+    Left = 928
     Height = 510
     Top = 0
     Width = 7
@@ -25,20 +25,21 @@ object DesignFrame: TDesignFrame
     ResizeAnchor = akRight
   end
   object PanelRight: TPanel
-    Left = 905
+    Left = 935
     Height = 510
     Top = 0
-    Width = 356
+    Width = 326
     Align = alRight
     BevelOuter = bvNone
     ClientHeight = 510
-    ClientWidth = 356
+    ClientWidth = 326
+    ParentFont = False
     TabOrder = 2
     object LabelControlSelected: TLabel
       Left = 5
-      Height = 54
+      Height = 46
       Top = 5
-      Width = 346
+      Width = 316
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Selected:'#13#10'xxx (yyy)'
@@ -47,107 +48,298 @@ object DesignFrame: TDesignFrame
     end
     object ControlProperties: TPageControl
       Left = 0
-      Height = 446
-      Top = 64
-      Width = 356
-      ActivePage = TabAnchors
+      Height = 454
+      Top = 56
+      Width = 326
+      ActivePage = TabLayout
       Align = alClient
+      ParentFont = False
       TabIndex = 1
       TabOrder = 0
-      object TabSimple: TTabSheet
-        Caption = 'Simple'
+      object TabBasic: TTabSheet
+        Caption = 'Basic'
+        ParentFont = False
       end
-      object TabAnchors: TTabSheet
-        Caption = 'Anchors'
-        ClientHeight = 401
-        ClientWidth = 350
-        object ScrollBox1: TScrollBox
+      object TabLayout: TTabSheet
+        Caption = 'Layout'
+        ClientHeight = 417
+        ClientWidth = 316
+        ParentFont = False
+        object PanelLayoutTop: TPanel
           Left = 0
-          Height = 401
+          Height = 327
           Top = 0
-          Width = 350
-          HorzScrollBar.Page = 1
-          HorzScrollBar.Visible = False
-          VertScrollBar.Page = 311
-          Align = alClient
-          BorderStyle = bsNone
-          ClientHeight = 401
-          ClientWidth = 350
+          Width = 316
+          Align = alTop
+          AutoSize = True
+          BevelOuter = bvNone
+          ChildSizing.ShrinkHorizontal = crsHomogenousSpaceResize
+          ChildSizing.Layout = cclTopToBottomThenLeftToRight
+          ChildSizing.ControlsPerLine = 100
+          ClientHeight = 327
+          ClientWidth = 316
           TabOrder = 0
-          object LabelSizeInfo: TLabel
-            AnchorSideTop.Control = ButtonClearAnchorDeltas
-            AnchorSideTop.Side = asrBottom
-            Left = 8
-            Height = 27
-            Top = 284
-            Width = 338
-            Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Top = 10
-            Caption = 'LabelSizeInfo'
+          object PanelAnchors: TPanel
+            Left = 0
+            Height = 272
+            Top = 0
+            Width = 330
+            AutoSize = True
+            BevelOuter = bvNone
+            ChildSizing.LeftRightSpacing = 8
+            ChildSizing.TopBottomSpacing = 8
+            ClientHeight = 272
+            ClientWidth = 330
             ParentColor = False
-            WordWrap = True
-          end
-          object CheckParentSelfAnchorsEqual: TCheckBox
-            Left = 8
-            Height = 31
-            Top = 8
-            Width = 334
-            Caption = 'Anchor to the same side of Parent'
-            OnChange = CheckParentSelfAnchorsEqualChange
+            ParentFont = False
             TabOrder = 0
-          end
-          inline SelfAnchorsFrame: TAnchorsFrame
-            AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
-            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
-            AnchorSideTop.Side = asrBottom
-            Left = 8
-            Height = 176
-            Top = 49
-            Width = 152
-            BorderSpacing.Top = 10
-            ClientHeight = 176
-            ClientWidth = 152
-            TabOrder = 1
-          end
-          inline ParentAnchorsFrame: TAnchorsFrame
-            AnchorSideLeft.Control = SelfAnchorsFrame
-            AnchorSideLeft.Side = asrBottom
-            AnchorSideTop.Control = CheckParentSelfAnchorsEqual
-            AnchorSideTop.Side = asrBottom
-            Left = 170
-            Height = 176
-            Top = 49
-            Width = 152
-            BorderSpacing.Left = 10
-            BorderSpacing.Top = 10
-            ClientHeight = 176
-            ClientWidth = 152
-            TabOrder = 2
-            inherited GroupBox1: TGroupBox
-              Caption = 'Parent Side'
+            object CheckParentSelfAnchorsEqual: TCheckBox
+              AnchorSideTop.Control = SelfAnchorsFrame
+              AnchorSideTop.Side = asrBottom
+              Left = 8
+              Height = 27
+              Top = 237
+              Width = 300
+              BorderSpacing.Top = 7
+              Caption = 'Anchor to the same side of Parent'
+              OnChange = CheckParentSelfAnchorsEqualChange
+              ParentFont = False
+              TabOrder = 0
+            end
+            inline SelfAnchorsFrame: TAnchorsFrame
+              AnchorSideLeft.Control = CheckParentSelfAnchorsEqual
+              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Side = asrBottom
+              Left = 8
+              Height = 176
+              Top = 54
+              Width = 152
+              BorderSpacing.Top = 7
+              ClientHeight = 176
+              ClientWidth = 152
+              TabOrder = 1
+              DesignTop = 210
+              inherited GroupBox1: TGroupBox
+                Height = 176
+                Width = 152
+                ClientHeight = 152
+                ClientWidth = 150
+                inherited ButtonLeftTop: TSpeedButton
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonLeftMiddle: TSpeedButton
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonLeftBottom: TSpeedButton
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+                inherited ButtonMiddleTop: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonMiddleMiddle: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonMiddleBottom: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+                inherited ButtonRightTop: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonRightMiddle: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonRightBottom: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+              end
+            end
+            inline ParentAnchorsFrame: TAnchorsFrame
+              AnchorSideLeft.Control = SelfAnchorsFrame
+              AnchorSideLeft.Side = asrBottom
+              AnchorSideTop.Control = ButtonClearAnchorDeltas
+              AnchorSideTop.Side = asrBottom
+              Left = 170
+              Height = 176
+              Top = 54
+              Width = 152
+              BorderSpacing.Left = 10
+              BorderSpacing.Top = 7
+              ClientHeight = 176
+              ClientWidth = 152
+              TabOrder = 2
+              DesignTop = 210
+              inherited GroupBox1: TGroupBox
+                Height = 176
+                Width = 152
+                Caption = 'Parent Side'
+                ClientHeight = 152
+                ClientWidth = 150
+                inherited ButtonLeftTop: TSpeedButton
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonLeftMiddle: TSpeedButton
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonLeftBottom: TSpeedButton
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+                inherited ButtonMiddleTop: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonMiddleMiddle: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonMiddleBottom: TSpeedButton
+                  Left = 48
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+                inherited ButtonRightTop: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Width = 44
+                end
+                inherited ButtonRightMiddle: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Top = 48
+                  Width = 44
+                end
+                inherited ButtonRightBottom: TSpeedButton
+                  Left = 96
+                  Height = 44
+                  Top = 96
+                  Width = 44
+                end
+              end
+            end
+            object ButtonClearAnchorDeltas: TButton
+              AnchorSideLeft.Control = SelfAnchorsFrame
+              Left = 8
+              Height = 39
+              Top = 8
+              Width = 172
+              AutoSize = True
+              Caption = 'Move to the anchor'
+              OnClick = ButtonClearAnchorDeltasClick
+              ParentFont = False
+              TabOrder = 3
+            end
+            object LabelSizeInfo: TLabel
+              AnchorSideRight.Side = asrBottom
+              Left = 217
+              Height = 23
+              Top = 8
+              Width = 91
+              Anchors = [akTop, akRight]
+              Caption = 'Show sizes'
+              Font.Color = clBlue
+              Font.Style = [fsUnderline]
+              ParentColor = False
+              ParentFont = False
+              ParentShowHint = False
+              ShowHint = True
             end
           end
-          object ButtonClearAnchorDeltas: TButton
-            AnchorSideLeft.Control = SelfAnchorsFrame
-            AnchorSideTop.Control = SelfAnchorsFrame
-            AnchorSideTop.Side = asrBottom
-            Left = 8
-            Height = 39
-            Top = 235
-            Width = 191
+          object PanelLayoutTransform: TPanel
+            Left = 0
+            Height = 55
+            Top = 272
+            Width = 330
             AutoSize = True
-            BorderSpacing.Top = 10
-            Caption = 'Move to the anchor'
-            OnClick = ButtonClearAnchorDeltasClick
-            TabOrder = 3
+            BevelOuter = bvNone
+            ChildSizing.LeftRightSpacing = 8
+            ChildSizing.TopBottomSpacing = 8
+            ChildSizing.HorizontalSpacing = 8
+            ChildSizing.VerticalSpacing = 8
+            ChildSizing.Layout = cclLeftToRightThenTopToBottom
+            ChildSizing.ControlsPerLine = 10
+            ClientHeight = 55
+            ClientWidth = 330
+            TabOrder = 1
+            object ButtonResetTransformation: TButton
+              Left = 8
+              Height = 39
+              Top = 8
+              Width = 194
+              AutoSize = True
+              Caption = 'Reset Transformation'
+              OnClick = ButtonResetTransformationClick
+              TabOrder = 0
+            end
           end
         end
       end
-      object TabAdvanced: TTabSheet
-        Caption = 'Advanced'
+      object TabOther: TTabSheet
+        Caption = 'Other'
+        ParentFont = False
       end
       object TabEvents: TTabSheet
         Caption = 'Events'
+        ClientHeight = 417
+        ClientWidth = 316
+        ParentFont = False
+        object PanelEventsInfo: TPanel
+          Left = 0
+          Height = 106
+          Top = 0
+          Width = 316
+          Align = alTop
+          AutoSize = True
+          BevelOuter = bvNone
+          ClientHeight = 106
+          ClientWidth = 316
+          ParentFont = False
+          TabOrder = 0
+          object LabelEventsInfo: TLabel
+            Left = 7
+            Height = 92
+            Top = 7
+            Width = 302
+            Align = alTop
+            BorderSpacing.Around = 7
+            Caption = 'TODO: It''s not possible to assign the events using the CGE editor. For now, you have to assign events using code.'
+            ParentColor = False
+            ParentFont = False
+            WordWrap = True
+          end
+        end
+      end
+      object TabAll: TTabSheet
+        Caption = 'All'
+        ParentFont = False
       end
     end
   end
@@ -160,18 +352,21 @@ object DesignFrame: TDesignFrame
     BevelOuter = bvNone
     ClientHeight = 510
     ClientWidth = 266
+    ParentFont = False
     TabOrder = 3
     object ControlsTree: TTreeView
       Left = 0
-      Height = 473
+      Height = 477
       Hint = 'Select a control to edit it''s properties.'#10'Hold down "Ctrl" key to select multiple components at once.'#10'Drag the control to move it to the front, back, or even change it''s parent.'
-      Top = 37
+      Top = 33
       Width = 266
       Align = alClient
       DragMode = dmAutomatic
       MultiSelect = True
+      ParentFont = False
       ParentShowHint = False
-      ReadOnly = True
+      RightClickSelect = True
+      PopupMenu = MenuTreeView
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
@@ -179,111 +374,1219 @@ object DesignFrame: TDesignFrame
       OnAdvancedCustomDrawItem = ControlsTreeAdvancedCustomDrawItem
       OnDragDrop = ControlsTreeDragDrop
       OnDragOver = ControlsTreeDragOver
+      OnEditing = ControlsTreeEditing
+      OnEditingEnd = ControlsTreeEditingEnd
       OnEndDrag = ControlsTreeEndDrag
       OnSelectionChanged = ControlsTreeSelectionChanged
-      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+      Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object LabelHierarchy: TLabel
       Left = 5
-      Height = 27
+      Height = 23
       Top = 5
       Width = 256
       Align = alTop
       BorderSpacing.Around = 5
       Caption = 'Hierarchy'
       ParentColor = False
+      ParentFont = False
     end
   end
   object PanelMiddle: TPanel
     Left = 273
     Height = 510
     Top = 0
-    Width = 625
+    Width = 655
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 510
-    ClientWidth = 625
+    ClientWidth = 655
+    ParentFont = False
     TabOrder = 4
     object PanelMiddleTop: TPanel
       Left = 5
-      Height = 39
+      Height = 40
       Top = 5
-      Width = 615
+      Width = 645
       Align = alTop
-      AutoSize = True
       BorderSpacing.Around = 5
       BevelOuter = bvNone
-      ClientHeight = 39
-      ClientWidth = 615
+      ChildSizing.HorizontalSpacing = 4
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 100
+      ClientHeight = 40
+      ClientWidth = 645
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 0
-      object LabelUIScaling: TLabel
+      object LabelHeaderUi: TLabel
         Left = 0
-        Height = 27
-        Hint = 'UI Scaling to 1600x900'
+        Height = 40
         Top = 0
-        Width = 615
-        Align = alTop
-        Alignment = taRightJustify
-        Caption = '50%'
+        Width = 23
+        BorderSpacing.Right = 10
+        Caption = 'UI:'
+        Layout = tlCenter
         ParentColor = False
-        ParentShowHint = False
-        ShowHint = True
       end
-      object ToggleInteractMode: TToggleBox
-        Left = 0
-        Height = 39
-        Hint = 'Press buttons, change camera and more.'
+      object ButtonInteractMode: TSpeedButton
+        Left = 33
+        Height = 40
+        Hint = 'Use components as a normal user.'#10#10'Allows to press buttons, navigate in viewports by mouse dragging, and more.'
         Top = 0
-        Width = 84
-        AutoSize = True
-        Caption = 'Interact'
-        OnClick = ToggleInteractModeClick
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 0
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000190000004900000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0049000000180000000000000000000000000000000000000000000000000000
+          0000000000000000000B0000009B000000FE000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FE0000009A0000000B000000000000000000000000000000000000
+          0000000000000000009B000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000099000000000000000000000000000000000000
+          000000000019000000FE000000FF000000DE0000006100000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0061000000DE000000FF000000FE000000180000000000000000000000000000
+          000000000049000000FF000000FF000000610000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000062000000FF000000FF000000490000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000049000000FF000000FF000000610000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000061000000FF000000FF000000490000000000000000000000000000
+          000000000019000000FF000000FF000000DD0000006100000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0061000000DE000000FF000000FF000000190000000000000000000000000000
+          0000000000000000009D000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF0000009B000000000000000000000000000000000000
+          0000000000000000000C0000009C000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FE0000009B0000000B000000000000000000000000000000000000
+          00000000000000000000000000000000001A0000004A00000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0049000000190000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 1
+        OnClick = ButtonInteractModeClick
+        ParentFont = False
       end
-      object ToggleSelectTranslateResizeMode: TToggleBox
-        AnchorSideLeft.Control = ToggleInteractMode
-        AnchorSideLeft.Side = asrBottom
-        Left = 89
-        Height = 39
-        Hint = 'Select, move and resize user interface controls (with left mouse button).'#10'Use right mouse button to move and resize, without changing the selected object.'
+      object ButtonModifyUiMode: TSpeedButton
+        Left = 73
+        Height = 40
+        Hint = 'Select / Move / Resize user interface controls (TCastleUserInterface).'#10#10'Use right mouse button to Move / Resize, but without changing the current selection.'
         Top = 0
-        Width = 241
-        AutoSize = True
-        BorderSpacing.Left = 5
-        Caption = 'Select / Translate / Resize'
-        OnClick = ToggleSelectTranslateResizeModeClick
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000190000004900000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0049000000180000000000000000000000000000000000000000000000000000
+          0000000000000000000B0000009B000000FE000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FE0000009A0000000B000000000000000000000000000000000000
+          0000000000000000009B000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000099000000000000000000000000000000000000
+          000000000019000000FE000000FF000000DE0000006100000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0061000000DE000000FF000000FE000000180000000000000000000000000000
+          000000000049000000FF000000FF000000610000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000062000000FF000000FF000000490000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000400000084000000840000
+          0004000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000049000000FF000000FF0000
+          0049000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00040000004A0000005500000055000000550000008E000000FF000000FF0000
+          008E0000005500000055000000550000004A0000000400000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0082000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000008200000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0082000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000008200000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00040000004A0000005500000055000000550000008E000000FF000000FF0000
+          008E0000005500000055000000550000004A0000000400000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          00000000000000000000000000000000000000000049000000FF000000FF0000
+          0049000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000400000084000000840000
+          0004000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000055000000FF000000FF000000550000000000000000000000000000
+          000000000049000000FF000000FF000000610000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000061000000FF000000FF000000490000000000000000000000000000
+          000000000019000000FF000000FF000000DD0000006100000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0061000000DE000000FF000000FF000000190000000000000000000000000000
+          0000000000000000009D000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF0000009B000000000000000000000000000000000000
+          0000000000000000000C0000009C000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FE0000009B0000000B000000000000000000000000000000000000
+          00000000000000000000000000000000001A0000004A00000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0049000000190000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 2
+        OnClick = ButtonModifyUiModeClick
+        ParentFont = False
       end
       object SpinEditSnap: TSpinEdit
-        AnchorSideLeft.Control = LabelSnap
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = LabelSnap
         AnchorSideTop.Side = asrCenter
-        Left = 406
-        Height = 37
-        Top = 1
-        Width = 55
+        Left = 114
+        Height = 40
+        Hint = 'Snap (when moving/resizing UI)'
+        Top = 0
+        Width = 63
         BorderSpacing.Left = 5
-        TabOrder = 2
+        ParentFont = False
+        TabOrder = 0
         Value = 10
       end
-      object LabelSnap: TLabel
-        AnchorSideLeft.Control = ToggleSelectTranslateResizeMode
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = ToggleSelectTranslateResizeMode
-        AnchorSideTop.Side = asrCenter
-        Left = 350
-        Height = 27
-        Top = 6
-        Width = 51
-        BorderSpacing.Left = 20
-        Caption = 'Snap:'
+      object LabelHeaderTransform: TLabel
+        Left = 207
+        Height = 40
+        Top = 0
+        Width = 90
+        BorderSpacing.Left = 30
+        BorderSpacing.Right = 10
+        Caption = 'Transform:'
+        Layout = tlCenter
         ParentColor = False
       end
+      object LabelUIScaling: TLabel
+        Left = 605
+        Height = 23
+        Hint = 'UI Scaling to 1600x900'
+        Top = 0
+        Width = 40
+        Align = alCustom
+        Alignment = taRightJustify
+        Anchors = [akTop, akRight]
+        Caption = '50%'
+        ParentColor = False
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+      end
+      object ButtonTransformSelectMode: TSpeedButton
+        Left = 307
+        Height = 40
+        Hint = 'Select Scene (TCastleScene)'
+        Top = 0
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000007D000000E80000005D00000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000018000000F9000000FF000000DF00000001000000000000
+          0000000000000000000000000000000000000000000000000000000000520000
+          009E000000210000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000007C000000FF000000FF000000FF00000036000000000000
+          0000000000000000000000000000000000000000000000000063000000FD0000
+          00FF0000009B0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000003000000E0000000FF000000FF000000FF0000008D000000000000
+          00000000000000000000000000000000000000000063000000FD000000FF0000
+          00FD000000530000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000052000000FF000000FF000000FF000000FF000000E3000000020000
+          000000000000000000000000000000000062000000FD000000FF000000FE0000
+          0069000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000BC000000FF000000FE000000BA000000FF000000FF0000003C0000
+          0000000000000000000000000062000000FD000000FF000000FE000000690000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0025000000FE000000FF000000BB0000003E000000FF000000FF000000920000
+          00000000000000000062000000FD000000FF000000FE00000069000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0091000000FF000000FF0000005100000002000000E4000000FF000000E70000
+          000300000062000000FD000000FF000000FE0000006900000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000000000000000000000A0000
+          00EE000000FF000000E5000000050000000000000090000000FF000000FF0000
+          0089000000FD000000FF000000FE000000690000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000670000
+          00FF000000FF0000007C000000000000000000000038000000FF000000FF0000
+          00FE000000FF000000FD00000063000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000D10000
+          00FF000000F900000017000000000000000000000001000000E0000000FF0000
+          00FF000000FE0000008B00000003000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000000000000000000003C000000FF0000
+          00FF000000A60000000000000000000000000000000000000087000000FF0000
+          00FF000000FF000000FF000000E7000000930000003C00000002000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000000000000A6000000FF0000
+          00FF0000003C000000000000000000000000000000000000000C000000880000
+          00E0000000FF000000FF000000FF000000FF000000FF000000E30000008E0000
+          0037000000010000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000018000000F9000000FF0000
+          00D0000000000000000000000000000000000000000000000000000000000000
+          0001000000380000008F000000E4000000FF000000FF000000FF000000FF0000
+          00FF000000DE0000005C00000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000007C000000FF000000FF0000
+          0066000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000020000003D000000B9000000FF000000FF0000
+          00FF000000FF000000E800000000000000000000000000000000000000000000
+          000000000000000000000000000000000004000000E2000000FF000000F00000
+          000B000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000400000051000000BB000000FE000000FF000000FF0000
+          00FF000000F90000007E00000000000000000000000000000000000000000000
+          000000000000000000000000000000000051000000FF000000FF000000910000
+          0000000000000000000000000000000000000000000000000000000000000000
+          001700000077000000E0000000FF000000FF000000FF000000FF000000E60000
+          00880000001C0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000BC000000FF000000FF0000002B0000
+          0000000000000000000000000000000000000000000000000033000000990000
+          00F6000000FF000000FF000000FF000000FF000000C400000055000000050000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000025000000FE000000FF000000BB000000000000
+          00000000000000000000000000080000005E000000CF000000FF000000FF0000
+          00FF000000FF000000F1000000990000002C0000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000091000000FF000000FF00000051000000000000
+          00000000002500000088000000ED000000FF000000FF000000FF000000FF0000
+          00D70000006F0000000C00000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000A000000EE000000FF000000E500000007000000440000
+          00B3000000FE000000FF000000FF000000FF000000F9000000AA000000440000
+          0001000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000067000000FF000000FF000000D6000000E2000000FF0000
+          00FF000000FF000000FF000000E30000007C0000001800000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000D1000000FF000000FF000000FF000000FF000000FF0000
+          00FE000000BC0000005200000004000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000036000000FF000000FF000000FF000000FF000000F0000000910000
+          0028000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000030000000FD000000FF000000D1000000670000000C000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000003100000036000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 3
+        OnClick = ButtonTransformSelectModeClick
+        ParentFont = False
+      end
+      object ButtonTransformTranslateMode: TSpeedButton
+        Left = 347
+        Height = 40
+        Hint = 'Move / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Move, but without changing the current selection.'
+        Top = 0
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000A000000C4000000C40000
+          000A000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000006000000C7000000FF000000FF0000
+          00C7000000060000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000006000000B1000000FF000000FF000000FF0000
+          00FF000000B10000000600000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000006000000B1000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000B100000006000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000004000000B0000000FF000000FF000000EE000000FF000000FF0000
+          00EE000000FF000000FF000000B0000000040000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000046000000FF000000FF000000E50000006F000000FF000000FF0000
+          006F000000E5000000FF000000FF000000460000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000017000000D9000000D90000002700000055000000FF000000FF0000
+          005500000027000000D9000000D9000000170000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000040000004900000016000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000160000
+          0049000000040000000000000000000000000000000000000000000000000000
+          0000000000000000000000000006000000B0000000FF000000D8000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000D80000
+          00FF000000B00000000600000000000000000000000000000000000000000000
+          00000000000000000006000000B1000000FF000000FF000000D9000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000D90000
+          00FF000000FF000000B100000006000000000000000000000000000000000000
+          000000000005000000AF000000FF000000FF000000E80000002A000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000260000
+          00E5000000FF000000FF000000B5000000070000000000000000000000000000
+          0009000000C6000000FF000000FF000000F00000007100000055000000550000
+          0055000000550000005500000055000000550000008E000000FF000000FF0000
+          008E000000550000005500000055000000550000005500000055000000550000
+          006E000000EE000000FF000000FF000000CA0000000B00000000000000000000
+          00C2000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000C200000000000000000000
+          00C2000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000C200000000000000000000
+          000A000000C6000000FF000000FF000000F00000007100000055000000550000
+          0055000000550000005500000055000000550000008E000000FF000000FF0000
+          008E000000550000005500000055000000550000005500000055000000550000
+          006E000000ED000000FF000000FF000000CB0000000B00000000000000000000
+          000000000006000000AF000000FF000000FF000000E80000002A000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000250000
+          00E4000000FF000000FF000000B6000000070000000000000000000000000000
+          00000000000000000006000000B1000000FF000000FF000000D9000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000D90000
+          00FF000000FF000000B100000006000000000000000000000000000000000000
+          0000000000000000000000000006000000B0000000FF000000D8000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000D80000
+          00FF000000B00000000600000000000000000000000000000000000000000000
+          0000000000000000000000000000000000040000004900000016000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000160000
+          0049000000040000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000055000000FF000000FF0000
+          0055000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000017000000D9000000D90000002700000055000000FF000000FF0000
+          005500000027000000D9000000D9000000170000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000046000000FF000000FF000000E50000006F000000FF000000FF0000
+          006F000000E5000000FF000000FF000000460000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000004000000B0000000FF000000FF000000EE000000FF000000FF0000
+          00EE000000FF000000FF000000B0000000040000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000006000000B1000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000B100000006000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000006000000B1000000FF000000FF000000FF0000
+          00FF000000B10000000600000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000006000000C7000000FF000000FF0000
+          00C7000000060000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000A000000C4000000C40000
+          000A000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 4
+        OnClick = ButtonTransformTranslateModeClick
+        ParentFont = False
+      end
+      object ButtonTransformRotateMode: TSpeedButton
+        Left = 387
+        Height = 40
+        Hint = 'Rotate / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Rotate, but without changing the current selection.'
+        Top = 0
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000011000000350000004D000000440000
+          003A0000000E0000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000002100000084000000D4000000FF000000FF000000FF000000FF0000
+          00FF000000FE000000D600000080000000220000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000140000
+          009A000000FA000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FB0000009700000016000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000042000000E50000
+          00FF000000FF000000FF000000EF000000A7000000790000005A000000660000
+          0077000000A7000000EE000000FF000000FF000000FF000000E70000003E0000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000051000000F9000000FF0000
+          00FF000000DB0000005D00000005000000000000000000000000000000000000
+          000000000000000000070000005B000000DD000000FF000000FF000000FA0000
+          0054000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000042000000FA000000FF000000FF0000
+          0094000000090000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000700000096000000FF000000FF0000
+          00F9000000430000000000000000000000000000000000000000000000000000
+          0000000000000000000000000015000000E5000000FF000000FF000000760000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000076000000FF0000
+          00FF000000E70000001200000000000000000000000000000000000000000000
+          000000000000000000000000009B000000FF000000FF00000094000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000930000
+          00FF000000FF0000009D00000000000000000000000000000000000000000000
+          00000000000000000022000000FA000000FF000000DA00000008000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000090000
+          00D9000000FF000000FB0000001E000000000000000000000000000000000000
+          00000000000000000083000000FF000000FF0000005C00000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          005D000000FF000000FF00000086000000000000000000000000000000000000
+          000000000000000000D3000000FF000000EF0000000500000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0005000000DD000000FF0000007F000000000000000000000000000000000000
+          000000000010000000FF000000FF000000A70000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000170000004900000003000000000000000000000000000000000000
+          000000000035000000FF000000FF000000790000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000004D000000FF000000FF0000005D0000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000049000000FF000000FF000000600000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000003A000000FF000000FF000000770000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000210000009F000000AA000000AA0000
+          00AA000000AA000000AA000000AA000000B6000000DE00000087000000000000
+          00000000000F000000FE000000FF000000A70000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000009B000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FE000000000000
+          000000000000000000D7000000FF000000EE0000000700000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000050000000F4000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000000000
+          00000000000000000081000000FF000000FF0000005A00000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000045000000F4000000FF000000FF000000FF000000FF000000000000
+          00000000000000000023000000FB000000FF000000DC00000006000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0051000000F8000000FF000000FF000000DC000000FF000000FF000000000000
+          0000000000000000000000000099000000FF000000FF00000094000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000000000000000000000000005A0000
+          00FA000000FF000000FF00000092000000A9000000FF000000FF000000000000
+          0000000000000000000000000017000000E8000000FF000000FF000000750000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000000000000000000006E000000FD0000
+          00FF000000FF0000007B00000000000000A9000000FF000000FF000000000000
+          00000000000000000000000000000000003F000000FB000000FF000000FF0000
+          00930000000A0000000000000000000000000000000000000000000000000000
+          00000000000000000000000000000000000900000093000000FF000000FF0000
+          00FE0000006C0000000000000000000000A9000000FF000000FF000000000000
+          00000000000000000000000000000000000000000053000000F8000000FF0000
+          00FF000000DB0000005F00000006000000000000000000000000000000000000
+          000000000000000000070000005A000000DD000000FF000000FF000000F80000
+          005C000000000000000000000000000000A9000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000042000000E60000
+          00FF000000FF000000FF000000EB000000A8000000750000005C0000005F0000
+          0073000000A8000000EB000000FF000000FF000000FF000000EA0000003D0000
+          0000000000000000000000000000000000A7000000FF000000FD000000000000
+          0000000000000000000000000000000000000000000000000000000000110000
+          009B000000FA000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FD0000009900000013000000000000
+          000000000000000000000000000000000050000000F30000009C000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          00000000001D00000087000000D3000000FE000000FF000000FF000000FF0000
+          00FF000000FE000000D600000083000000200000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          000000000000000000000000000000000014000000370000004E0000004A0000
+          003A000000110000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 5
+        OnClick = ButtonTransformRotateModeClick
+        ParentFont = False
+      end
+      object ButtonTransformScaleMode: TSpeedButton
+        Left = 427
+        Height = 40
+        Hint = 'Scale / Select Transform (TCastleTransform, including TCastleScene).'#10#10'Use right mouse button to Scale, but without changing the current selection.'
+        Top = 0
+        Width = 36
+        AllowAllUp = True
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000D50000
+          00FF000000FF000000D500000000000000000000000000000000000000000000
+          00000000000000000000000000D5000000FF000000FF000000D5000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000D5000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000D50000000000000000000000000000
+          0000000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000000000000000000000000000
+          0000000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000F800000000000000000000000000000000000000000000
+          00000000000000000000000000F9000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000000000000000000000000000
+          0000000000D5000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000F90000008600000000000000000000000000000000000000000000
+          0000000000000000000000000088000000F9000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000D50000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000D5000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000F90000008400000000000000000000000000000000000000000000
+          0000000000000000000000000086000000F9000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000D50000000000000000000000000000
+          0000000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000F800000000000000000000000000000000000000000000
+          00000000000000000000000000F9000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000000000000000000000000000
+          0000000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF0000000000000000000000000000
+          0000000000D5000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000D50000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000FF0000
+          00FF000000FF000000FF00000000000000000000000000000000000000000000
+          00000000000000000000000000FF000000FF000000FF000000FF000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000D50000
+          00FF000000FF000000D500000000000000000000000000000000000000000000
+          00000000000000000000000000D5000000FF000000FF000000D5000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        GroupIndex = 6
+        OnClick = ButtonTransformScaleModeClick
+        ParentFont = False
+      end
+      object LabelSelectedViewport: TLabel
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Side = asrCenter
+        Left = 493
+        Height = 40
+        Top = 0
+        Width = 105
+        BorderSpacing.Left = 30
+        BorderSpacing.Right = 10
+        Caption = 'MyViewport:'
+        Layout = tlCenter
+        ParentColor = False
+      end
+      object ButtonViewportMenu: TSpeedButton
+        Left = 608
+        Height = 40
+        Hint = 'Viewport Options'
+        Top = 0
+        Width = 36
+        Constraints.MinHeight = 34
+        Constraints.MinWidth = 34
+        Glyph.Data = {
+          36100000424D3610000000000000360000002800000020000000200000000100
+          2000000000000010000064000000640000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          000000000030000000FD000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+          00FF000000FF000000FF000000FD000000300000000000000000000000000000
+          0000000000000000003100000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000055000000550000005500000055000000550000
+          0055000000550000005500000031000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000000000000000
+          0000000000000000000000000000000000000000000000000000
+        }
+        OnClick = ButtonViewportMenuClick
+        ParentFont = False
+      end
     end
+  end
+  object MenuViewport: TPopupMenu
+    Left = 816
+    Top = 82
+    object MenuItemViewportCameraSetInitial: TMenuItem
+      Caption = 'Camera Initial (stored in design file) := Current'
+      Hint = 'Sets Viewport.Camera InitialPosition/Direction/Up to current view, and sets Viewport.AutoCamera to false.'
+      OnClick = MenuItemViewportCameraSetInitialClick
+    end
+    object MenuItemViewportCameraCurrentFromInitial: TMenuItem
+      Caption = 'Camera Current := Initial (stored in design file)'
+      OnClick = MenuItemViewportCameraCurrentFromInitialClick
+    end
+    object MenuItemViewportCameraViewAll: TMenuItem
+      Caption = 'Camera Current := View All'
+      OnClick = MenuItemViewportCameraViewAllClick
+    end
+    object MenuItemSeparator123: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemViewportCamera2DViewInitial: TMenuItem
+      Caption = 'Camera Setup (Initial and Current) for 2D View and Projection'
+      Hint = 'Call Viewport.Setup2D'
+      OnClick = MenuItemViewportCamera2DViewInitialClick
+    end
+    object MenuItemSeparator2: TMenuItem
+      Caption = '-'
+    end
+    object MenuViewportNavigationNone: TMenuItem
+      Caption = 'Set Navigation to None (Viewport.Navigation := nil)'
+      OnClick = MenuViewportNavigationNoneClick
+    end
+    object MenuViewportNavigationExamine: TMenuItem
+      Caption = 'Set Navigation to Examine (Viewport.Navigation := TCastleExamineNavigation.Create)'
+      OnClick = MenuViewportNavigationExamineClick
+    end
+    object MenuViewportNavigationFly: TMenuItem
+      Caption = 'Set Navigation to Fly (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := false)'
+      OnClick = MenuViewportNavigationFlyClick
+    end
+    object MenuViewportNavigationWalk: TMenuItem
+      Caption = 'Set Navigation to Walk (Viewport.Navigation := TCastleWalkNavigation.Create, Gravity := true)'
+      OnClick = MenuViewportNavigationWalkClick
+    end
+    object MenuViewportNavigationThirdPerson: TMenuItem
+      Caption = 'Set Navigation to Third-Person (Viewport.Navigation := TCastleThirdPersonNavigation.Create)'
+      OnClick = MenuViewportNavigationThirdPersonClick
+    end
+    object MenuItemSeparator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItemViewportSort2D: TMenuItem
+      Caption = 'Sort Items For Correct 2D Blending'
+      OnClick = MenuItemViewportSort2DClick
+    end
+  end
+  object MenuTreeView: TPopupMenu
+    Left = 653
+    Top = 139
+    OnPopup = MenuTreeViewPopup
+    object MenuItemRename: TMenuItem
+      Caption = 'Rename'
+      OnClick = MenuItemRenameClick
+    end
+    object MenuTreeViewItemDuplicate: TMenuItem
+      Caption = 'Duplicate'
+      OnClick = MenuTreeViewItemDuplicateClick
+    end
+    object MenuTreeViewItemCopy: TMenuItem
+      Caption = 'Copy'
+      OnClick = MenuTreeViewItemCopyClick
+    end
+    object MenuTreeViewItemPaste: TMenuItem
+      Caption = 'Paste'
+      OnClick = MenuTreeViewItemPasteClick
+    end
+    object MenuTreeViewItemDelete: TMenuItem
+      Caption = 'Delete'
+      OnClick = MenuTreeViewItemDeleteClick
+    end
+    object MenuTreeViewItemAddUserInterface: TMenuItem
+      Caption = 'Add'
+    end
+    object MenuTreeViewItemAddTransform: TMenuItem
+      Caption = 'Add'
+    end
+  end
+  object UpdateObjectInspector: TTimer
+    Interval = 500
+    OnTimer = UpdateObjectInspectorTimer
+    Left = 692
+    Top = 79
   end
 end

@@ -32,10 +32,6 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector2Byte = (Data: (0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
@@ -49,9 +45,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Byte; static; inline;
-    {$endif}
   end;
 
   { Vector of 3 Byte values. }
@@ -67,10 +61,6 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector3Byte = (Data: (0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
@@ -85,9 +75,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Byte; static; inline;
-    {$endif}
   end;
 
   { Vector of 4 Byte values. }
@@ -103,10 +91,6 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector4Byte = (Data: (0, 0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
@@ -122,9 +106,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Byte; static;
-    {$endif}
   end;
 
   PVector2Byte = ^TVector2Byte;
@@ -221,12 +203,10 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Byte.Zero: TVector2Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector3Byte ------------------------------------------------------------ }
 
@@ -288,12 +268,10 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Byte.Zero: TVector3Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector4Byte ------------------------------------------------------------ }
 
@@ -359,12 +337,10 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Byte.Zero: TVector4Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { global routines ------------------------------------------------------------ }
 

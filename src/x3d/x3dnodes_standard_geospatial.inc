@@ -40,7 +40,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec3d;
     public property FdPoint: TMFVec3d read FFdPoint;
@@ -62,7 +61,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_height: TMFDoubleEvent;
@@ -133,7 +131,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
@@ -151,7 +148,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
     strict private FEventChildren: TMFNodeEvent;
@@ -204,7 +200,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdData: TMFNode;
     public property FdData: TMFNode read FFdData;
@@ -222,7 +217,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
@@ -240,7 +234,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFVec3d;
     public property FdKeyValue: TMFVec3d read FFdKeyValue;
@@ -266,7 +259,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
@@ -300,7 +292,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
     strict private FEventHitNormal_changed: TSFVec3fEvent;
@@ -331,7 +322,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
@@ -357,7 +347,7 @@
     {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
   end;
 
-  TGeoViewpointNode = class(TAbstractX3DViewpointNode)
+  TGeoViewpointNode = class(TAbstractViewpointNode)
   strict private
     DummyPositionSingle: TSFVec3f;
   strict protected
@@ -366,7 +356,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_orientation: TSFRotationEvent;
@@ -424,13 +413,6 @@ begin
   Result := 'GeoCoordinate';
 end;
 
-class function TGeoCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TGeoCoordinateNode.CoordCount: Cardinal;
 begin
   Result := FdPoint.Items.Count;
@@ -444,80 +426,80 @@ begin
   AddEvent(FEventSet_height);
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangesAlways := [chGeometry];
+   FdNormal.ChangeAlways := chGeometry;
   AddField(FFdNormal);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangesAlways := [chGeometry];
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 
   FFdYScale := TSFFloat.Create(Self, true, 'yScale', 1.0);
-   FdYScale.ChangesAlways := [chGeometry];
+   FdYScale.ChangeAlways := chGeometry;
   AddField(FFdYScale);
   { X3D specification comment: [0,Inf) }
 
   FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangesAlways := [chGeometry];
+   FdCcw.ChangeAlways := chGeometry;
   AddField(FFdCcw);
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdCreaseAngle := TSFDouble.Create(Self, false, 'creaseAngle', 0);
    FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangesAlways := [chGeometry];
+   FdCreaseAngle.ChangeAlways := chGeometry;
   AddField(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
   FFdGeoGridOrigin := TSFVec3d.Create(Self, false, 'geoGridOrigin', Vector3Double(0, 0, 0));
-   FdGeoGridOrigin.ChangesAlways := [chGeometry];
+   FdGeoGridOrigin.ChangeAlways := chGeometry;
   AddField(FFdGeoGridOrigin);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdGeoOrigin := TSFNode.Create(Self, false, 'geoOrigin', [TGeoOriginNode]);
-   FdGeoOrigin.ChangesAlways := [chGeometry];
+   FdGeoOrigin.ChangeAlways := chGeometry;
   AddField(FFdGeoOrigin);
 
   FFdGeoSystem := TMFString.Create(Self, false, 'geoSystem', ['GD','WE']);
-   FdGeoSystem.ChangesAlways := [chGeometry];
+   FdGeoSystem.ChangeAlways := chGeometry;
   AddField(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
   FFdHeight := TMFDouble.Create(Self, false, 'height', [0, 0]);
-   FdHeight.ChangesAlways := [chGeometry];
+   FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangesAlways := [chGeometry];
+   FdNormalPerVertex.ChangeAlways := chGeometry;
   AddField(FFdNormalPerVertex);
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdXDimension := TSFInt32.Create(Self, false, 'xDimension', 0);
-   FdXDimension.ChangesAlways := [chGeometry];
+   FdXDimension.ChangeAlways := chGeometry;
   AddField(FFdXDimension);
   { X3D specification comment: (0,Inf) }
 
   FFdXSpacing := TSFDouble.Create(Self, false, 'xSpacing', 1.0);
-   FdXSpacing.ChangesAlways := [chGeometry];
+   FdXSpacing.ChangeAlways := chGeometry;
   AddField(FFdXSpacing);
   { X3D specification comment: [0,Inf) }
 
   FFdZDimension := TSFInt32.Create(Self, false, 'zDimension', 0);
-   FdZDimension.ChangesAlways := [chGeometry];
+   FdZDimension.ChangeAlways := chGeometry;
   AddField(FFdZDimension);
   { X3D specification comment: (0,Inf) }
 
   FFdZSpacing := TSFDouble.Create(Self, false, 'zSpacing', 1.0);
-   FdZSpacing.ChangesAlways := [chGeometry];
+   FdZSpacing.ChangeAlways := chGeometry;
   AddField(FFdZSpacing);
   { X3D specification comment: [0,Inf) }
 end;
@@ -526,15 +508,6 @@ class function TGeoElevationGridNode.ClassX3DType: string;
 begin
   Result := 'GeoElevationGrid';
 end;
-
-class function TGeoElevationGridNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    { There is very similar, but not 100% compatible node in VRML 97 }
-    { (URN = URNVRML97Nodes + ClassX3DType) or }
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 
 function TGeoElevationGridNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -576,12 +549,6 @@ end;
 class function TGeoLocationNode.ClassX3DType: string;
 begin
   Result := 'GeoLocation';
-end;
-
-class function TGeoLocationNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoLODNode.CreateNode;
@@ -646,12 +613,6 @@ begin
   Result := 'GeoLOD';
 end;
 
-class function TGeoLODNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TGeoMetadataNode.CreateNode;
 begin
   inherited;
@@ -670,12 +631,6 @@ end;
 class function TGeoMetadataNode.ClassX3DType: string;
 begin
   Result := 'GeoMetadata';
-end;
-
-class function TGeoMetadataNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoOriginNode.CreateNode;
@@ -699,12 +654,6 @@ end;
 class function TGeoOriginNode.ClassX3DType: string;
 begin
   Result := 'GeoOrigin';
-end;
-
-class function TGeoOriginNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoPositionInterpolatorNode.CreateNode;
@@ -731,12 +680,6 @@ end;
 class function TGeoPositionInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'GeoPositionInterpolator';
-end;
-
-class function TGeoPositionInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoProximitySensorNode.CreateNode;
@@ -772,12 +715,6 @@ begin
   Result := 'GeoProximitySensor';
 end;
 
-class function TGeoProximitySensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TGeoTouchSensorNode.CreateNode;
 begin
   inherited;
@@ -805,12 +742,6 @@ end;
 class function TGeoTouchSensorNode.ClassX3DType: string;
 begin
   Result := 'GeoTouchSensor';
-end;
-
-class function TGeoTouchSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoTransformNode.CreateNode;
@@ -848,12 +779,6 @@ end;
 class function TGeoTransformNode.ClassX3DType: string;
 begin
   Result := 'GeoTransform';
-end;
-
-class function TGeoTransformNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TGeoViewpointNode.CreateNode;
@@ -903,12 +828,6 @@ end;
 class function TGeoViewpointNode.ClassX3DType: string;
 begin
   Result := 'GeoViewpoint';
-end;
-
-class function TGeoViewpointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TGeoViewpointNode.PositionField: TSFVec3f;

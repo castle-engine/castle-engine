@@ -1,12 +1,12 @@
 (******************************************************************************
  *                                 PasJSON                                    *
  ******************************************************************************
- *                          Version 2018-12-04-02-58                          *
+ *                          Version 2020-03-04-02-20                          *
  ******************************************************************************
  *                                zlib license                                *
  *============================================================================*
  *                                                                            *
- * Copyright (C) 2016-2017, Benjamin Rosseaux (benjamin@rosseaux.de)          *
+ * Copyright (C) 2016-2020, Benjamin Rosseaux (benjamin@rosseaux.de)          *
  *                                                                            *
  * This software is provided 'as-is', without any express or implied          *
  * warranty. In no event will the authors be held liable for any damages      *
@@ -623,6 +623,7 @@ type PPPasJSONInt8=^PPasJSONInt8;
        class function Parse(const aSource:TPasJSONRawByteString;const aModeFlags:TPasJSONModeFlags=[TPasJSONModeFlag.Comments];const aEncoding:TPasJSONEncoding=TPasJSONEncoding.AutomaticDetection):TPasJSONItem; overload; static;
        class function Parse(const aStream:TStream;const aModeFlags:TPasJSONModeFlags=[TPasJSONModeFlag.Comments];const aEncoding:TPasJSONEncoding=TPasJSONEncoding.AutomaticDetection):TPasJSONItem; overload; static;
        class function Stringify(const aJSONItem:TPasJSONItem;const aFormatting:boolean=false;const aModeFlags:TPasJSONModeFlags=[];const aLevel:TPasJSONInt32=0):TPasJSONRawByteString; static;
+       class procedure StringifyToStream(const aStream:TStream;const aJSONItem:TPasJSONItem;const aFormatting:boolean=false;const aModeFlags:TPasJSONModeFlags=[];const aLevel:TPasJSONInt32=0); static;
        class function GetNumber(const aItem:TPasJSONItem;const aDefault:TPasJSONDouble=0.0):TPasJSONDouble; static;
        class function GetInt64(const aItem:TPasJSONItem;const aDefault:TPasJSONInt64=0):TPasJSONInt64; static;
        class function GetString(const aItem:TPasJSONItem;const aDefault:TPasJSONUTF8String=''):TPasJSONUTF8String; static;
@@ -1858,10 +1859,12 @@ begin
  StringValue:='';
  try
   SetLength(StringValue,aStream.Size);
-  if aStream.Seek(0,soBeginning)<>0 then begin
-   raise EInOutError.Create('Stream seek error');
+  if length(StringValue)>0 then begin
+   if aStream.Seek(0,soBeginning)<>0 then begin
+    raise EInOutError.Create('Stream seek error');
+   end;
+   aStream.ReadBuffer(StringValue[1],aStream.Size);
   end;
-  aStream.ReadBuffer(StringValue[1],aStream.Size);
   result:=TPasJSON.Parse(StringValue,aModeFlags,aEncoding);
  finally
   StringValue:='';
@@ -2013,6 +2016,19 @@ begin
   end;
  end else begin
   result:='null';
+ end;
+end;
+
+class procedure TPasJSON.StringifyToStream(const aStream:TStream;const aJSONItem:TPasJSONItem;const aFormatting:boolean=false;const aModeFlags:TPasJSONModeFlags=[];const aLevel:TPasJSONInt32=0);
+var StringValue:TPasJSONRawByteString;
+begin
+ StringValue:=Stringify(aJSONItem,aFormatting,aModeFlags,aLevel);
+ try
+  if length(StringValue)>0 then begin
+   aStream.WriteBuffer(StringValue[1],length(StringValue));
+  end;
+ finally
+  StringValue:='';
  end;
 end;
 

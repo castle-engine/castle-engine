@@ -299,7 +299,9 @@ begin
     xeXML:
       for I := 0 to Count - 1 do
         FItems[I].NodeSaveToStream(Writer, N);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
+    {$endif}
   end;
 end;
 
@@ -438,7 +440,9 @@ begin
     acAll      : Result := true;
     acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
     acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AllowedChildren?');
+    {$endif}
   end;
 end;
 
@@ -452,7 +456,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TX3DNode);
       [Child.X3DType, X3DName]);
     if ParentNode <> nil then
       S := S + Format(' of the node "%s"', [ParentNode.X3DType]);
-    WritelnWarning('VRML/X3D', S);
+    WritelnWarning('X3D', S);
   end;
 
 begin
@@ -499,11 +503,11 @@ begin
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
-    WritelnWarning('VRML/X3D', Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
+    WritelnWarning('X3D', Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
   end else
   if not UsedNodeFinished then
   begin
-    WritelnWarning('VRML/X3D', Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    WritelnWarning('X3D', Format('Cycles in X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
   end else
   begin
     Add(Node);

@@ -85,12 +85,8 @@ function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
 
 implementation
 
-uses
-  { Required only for randomization based on "Now" function. }
-  SysUtils,
-  { Required for the GetTickCount64 function (not available in FPC 2.6.x).
-    Note that the CastleTimeUtils.GetTickCount64 hides the SysUtils.GetTickCount64
-    in FPC 3.x. }
+uses SysUtils,
+  { Required only for randomization based on CastleNow / CastleGetTickCount64 function. }
   CastleTimeUtils;
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
@@ -195,18 +191,8 @@ begin
      semi-simultaneously will seed them with EQUAL seeds
      which we obviously don't want to.}
 
-    {so let's start by getting tick count as SysUtils does}
-    { TODO: Use CastleTimeUtils.Timer }
-    {$PUSH}{$WARN 5066 OFF}
-    {Yes, we are using a deprecated function, it's ok here,
-     because its goal is not convenient time measurement
-     but getting a semi-random number as fine as possible.
-     We're using CastleTimeUtils.GetTickCount64,
-     as SysUtils.GetTickCount64 is not available in FPC 2.6.4.
-     We will switch to SysUtils.GetTickCount64 implementation when the engine will
-     no longer need to support FPC 2.6.4. }
-    c64 := GetTickCount64;
-    {$POP}
+    {so let's start by getting tick count as SysUtils.Randomize does}
+    c64 := CastleGetTickCount64;
     {just to make sure it's not zero. It's not really important here.}
     if c64 = 0 then
       c64 := 2903758934725;
@@ -227,7 +213,7 @@ begin
      synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
-    c64 += QWord(Round(Now * DateMultiplier));
+    c64 += QWord(Round(CastleNow * DateMultiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
      the OS startup - different date&time will shift the random seed...

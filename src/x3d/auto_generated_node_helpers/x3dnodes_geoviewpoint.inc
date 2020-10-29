@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetFieldOfView: Single;
     procedure SetFieldOfView(const Value: Single);
-    function GetHeadlight: boolean;
-    procedure SetHeadlight(const Value: boolean);
+    function GetHeadlight: Boolean;
+    procedure SetHeadlight(const Value: Boolean);
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
     function GetSpeedFactor: Single;
@@ -38,7 +38,7 @@
     { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
     { X3D field "headlight". } { }
-    property Headlight: boolean read GetHeadlight write SetHeadlight;
+    property Headlight: Boolean read GetHeadlight write SetHeadlight;
     { Set X3D field "navType". } { }
     procedure SetNavType(const Value: array of string);
     { Set X3D field "navType". } { }
@@ -68,12 +68,12 @@ begin
   FdFieldOfView.Send(Value);
 end;
 
-function TGeoViewpointNode.GetHeadlight: boolean;
+function TGeoViewpointNode.GetHeadlight: Boolean;
 begin
   Result := FdHeadlight.Value;
 end;
 
-procedure TGeoViewpointNode.SetHeadlight(const Value: boolean);
+procedure TGeoViewpointNode.SetHeadlight(const Value: Boolean);
 begin
   FdHeadlight.Send(Value);
 end;

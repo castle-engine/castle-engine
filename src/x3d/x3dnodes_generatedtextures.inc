@@ -31,7 +31,7 @@
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string;
       const AValue: TTextureUpdate);
-    function ExecuteChanges: TX3DChanges; override;
+    function ExecuteChange: TX3DChange; override;
 
     { Access the string value as TTextureUpdate enum.
       Takes care of doing warning if the underlying string value (in VRML/X3D)
@@ -95,9 +95,9 @@ begin
   Result := TSFString;
 end;
 
-function TSFTextureUpdate.ExecuteChanges: TX3DChanges;
+function TSFTextureUpdate.ExecuteChange: TX3DChange;
 begin
-  { This causes appropriate @link(Changes): [chRedisplay] if value <> upNone.
+  { This causes appropriate @link(Changes): chRedisplay if value <> upNone.
     Then necessary things will be done automatically
     at next UpdateGeneratedTextures call, so nothing besides chRedisplay
     is required.
@@ -113,8 +113,9 @@ begin
     If value is upNone, nothing needs to be done. }
 
   if Value <> upNone then
-    Result := [chRedisplay] else
-    Result := [];
+    Result := chRedisplay
+  else
+    Result := chNone;
 end;
 
 constructor TGeneratedTextureHandler.Create;

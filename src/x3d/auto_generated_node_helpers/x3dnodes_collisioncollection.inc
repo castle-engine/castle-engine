@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetBounce: Single;
     procedure SetBounce(const Value: Single);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetFrictionCoefficients: TVector2;
     procedure SetFrictionCoefficients(const Value: TVector2);
     function GetMinBounceSpeed: Single;
@@ -50,7 +50,7 @@
     { X3D field "bounce". } { }
     property Bounce: Single read GetBounce write SetBounce;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "frictionCoefficients". } { }
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
     { X3D field "minBounceSpeed". } { }
@@ -90,12 +90,12 @@ begin
   FdBounce.Send(Value);
 end;
 
-function TCollisionCollectionNode.GetEnabled: boolean;
+function TCollisionCollectionNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TCollisionCollectionNode.SetEnabled(const Value: boolean);
+procedure TCollisionCollectionNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

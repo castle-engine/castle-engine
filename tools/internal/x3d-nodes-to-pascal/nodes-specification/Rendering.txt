@@ -1,11 +1,14 @@
 X3DColorNode : X3DGeometricPropertyNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  x3d-nodes-to-pascal: default-container-field color
+  SFString   []   mode   "REPLACE"   # ["REPLACE","MODULATE"] enumerated-type: TColorMode ColorModeNames cmReplace
 }
 
 X3DComposedGeometryNode : X3DGeometryNode {
-  MFNode [in,out] attrib          []   [X3DVertexAttributeNode]
+  MFNode [in,out] attrib          []   [X3DVertexAttributeNode] # NOT-SLIM
   SFNode [in,out] color           NULL [X3DColorNode]
   SFNode [in,out] coord           NULL [X3DCoordinateNode]
-  SFNode [in,out] fogCoord        NULL [FogCoordinate]
+  SFNode [in,out] fogCoord        NULL [FogCoordinate] # NOT-SLIM
   SFNode [in,out] normal          NULL [X3DNormalNode]
   SFNode [in,out] texCoord        NULL [X3DTextureCoordinateNode]
   SFBool []       ccw             TRUE
@@ -14,7 +17,7 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFBool []       solid           TRUE
 
   # EXTENSIONS:
-  MFVec3f    [in,out]      radianceTransfer  []
+  MFVec3f    [in,out]      radianceTransfer  [] # NOT-SLIM
 }
 
 X3DCoordinateNode : X3DGeometricPropertyNode {
@@ -49,10 +52,10 @@ Coordinate : X3DCoordinateNode {
 IndexedLineSet : X3DGeometryNode {
   MFInt32 [in]     set_colorIndex
   MFInt32 [in]     set_coordIndex
-  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode]
+  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode] # NOT-SLIM
   SFNode  [in,out] color          NULL [X3DColorNode]
   SFNode  [in,out] coord          NULL [X3DCoordinateNode]
-  SFNode  [in,out] fogCoord       []   [FogCoordinate]
+  SFNode  [in,out] fogCoord       []   [FogCoordinate] # NOT-SLIM
   MFInt32 []       colorIndex     []   [0,Inf) or -1
   SFBool  []       colorPerVertex TRUE
   MFInt32 []       coordIndex     []   [0,Inf) or -1
@@ -74,10 +77,10 @@ IndexedTriangleStripSet : X3DComposedGeometryNode {
 }
 
 LineSet : X3DGeometryNode {
-  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode]
+  MFNode  [in,out] attrib         []   [X3DVertexAttributeNode] # NOT-SLIM
   SFNode  [in,out] color          NULL [X3DColorNode]
   SFNode  [in,out] coord          NULL [X3DCoordinateNode]
-  SFNode  [in,out] fogCoord       []   [FogCoordinate]
+  SFNode  [in,out] fogCoord       []   [FogCoordinate] # NOT-SLIM
   MFInt32 [in,out] vertexCount    []   [2,Inf)
 }
 
@@ -86,10 +89,10 @@ Normal : X3DNormalNode {
 }
 
 PointSet : X3DGeometryNode {
-  MFNode [in,out] attrib   []   [X3DVertexAttributeNode]
+  MFNode [in,out] attrib   []   [X3DVertexAttributeNode] # NOT-SLIM
   SFNode [in,out] color    NULL [X3DColorNode]
   SFNode [in,out] coord    NULL [X3DCoordinateNode]
-  SFNode [in,out] fogCoord []   [FogCoordinate]
+  SFNode [in,out] fogCoord []   [FogCoordinate] # NOT-SLIM
 }
 
 TriangleFanSet : X3DComposedGeometryNode {

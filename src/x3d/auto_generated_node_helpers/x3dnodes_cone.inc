@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,27 +26,27 @@
 {$ifdef read_interface}
 
   strict private
-    function GetBottom: boolean;
-    procedure SetBottom(const Value: boolean);
+    function GetBottom: Boolean;
+    procedure SetBottom(const Value: Boolean);
     function GetBottomRadius: Single;
     procedure SetBottomRadius(const Value: Single);
     function GetHeight: Single;
     procedure SetHeight(const Value: Single);
-    function GetSide: boolean;
-    procedure SetSide(const Value: boolean);
+    function GetSide: Boolean;
+    procedure SetSide(const Value: Boolean);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
     function GetStacks: Integer;
     procedure SetStacks(const Value: Integer);
   public
     { X3D field "bottom". } { }
-    property Bottom: boolean read GetBottom write SetBottom;
+    property Bottom: Boolean read GetBottom write SetBottom;
     { X3D field "bottomRadius". } { }
     property BottomRadius: Single read GetBottomRadius write SetBottomRadius;
     { X3D field "height". } { }
     property Height: Single read GetHeight write SetHeight;
     { X3D field "side". } { }
-    property Side: boolean read GetSide write SetSide;
+    property Side: Boolean read GetSide write SetSide;
     { X3D field "slices". } { }
     property Slices: Integer read GetSlices write SetSlices;
     { X3D field "stacks". } { }
@@ -58,12 +58,12 @@
 
 { TConeNode ----------------------------------------------- }
 
-function TConeNode.GetBottom: boolean;
+function TConeNode.GetBottom: Boolean;
 begin
   Result := FdBottom.Value;
 end;
 
-procedure TConeNode.SetBottom(const Value: boolean);
+procedure TConeNode.SetBottom(const Value: Boolean);
 begin
   FdBottom.Send(Value);
 end;
@@ -88,12 +88,12 @@ begin
   FdHeight.Send(Value);
 end;
 
-function TConeNode.GetSide: boolean;
+function TConeNode.GetSide: Boolean;
 begin
   Result := FdSide.Value;
 end;
 
-procedure TConeNode.SetSide(const Value: boolean);
+procedure TConeNode.SetSide(const Value: Boolean);
 begin
   FdSide.Send(Value);
 end;

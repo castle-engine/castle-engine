@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<animation>
-  <frame url="idle_0001.x3d.gz" time="0.000000" />
-  <frame url="idle_0006.x3d.gz" time="0.200000" />
-  <frame url="idle_0011.x3d.gz" time="0.400000" />
-  <frame url="idle_0016.x3d.gz" time="0.600000" />
-  <frame url="idle_0021.x3d.gz" time="0.800000" />
-</animation>

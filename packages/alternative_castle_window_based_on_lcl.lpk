@@ -7,8 +7,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window"/>
-        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix"/>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window;../src/deprecated_units"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix;../src/ui/windows;../src/deprecated_units"/>
         <UnitOutputDirectory Value="lib/alternate_window/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -26,25 +26,31 @@
       </CodeGeneration>
       <Other>
         <Verbosity>
+          <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
+        <ConfigFile>
+          <CustomConfigFile Value="True"/>
+          <ConfigFilePath Value="../castle-fpc-messages.cfg"/>
+        </ConfigFile>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE
 -dCASTLE_WINDOW_LCL"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (X3D, Collada, Spine...), we are cross-platform (desktop, mobile), we have an optimized renderer with many cool graphic effects (shadows, mirror, bump mapping...). See https://castle-engine.io/features.php for a complete list of features.
+    <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
 This package, alternative_castle_window_based_on_lcl.lpk, contains the CastleWindow unit version using Lazarus LCL as a backend.
 
-It is practically only useful on Mac OS X (Darwin) systems. On other systems, you should use castle_window.lpk, that includes CastleWindow unit with the default backend.
+It is practically only useful on macOS (Darwin) systems. On other systems, you should use castle_window.lpk, that includes CastleWindow unit with the default backend.
 
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU LGPL with static linking exception >= 2.
 This is the same license as used by Lazarus LCL and FPC RTL.
-See https://castle-engine.io/license.php for details."/>
+See https://castle-engine.io/license.php for details.
+"/>
     <Version Major="6" Minor="5"/>
-    <Files Count="12">
+    <Files Count="14">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -62,8 +68,8 @@ See https://castle-engine.io/license.php for details."/>
         <UnitName Value="CastleWindow"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/window/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/castleinternalwindowmodes.pas"/>
+        <UnitName Value="CastleInternalWindowModes"/>
       </Item5>
       <Item6>
         <Filename Value="../src/window/castlewindowprogress.pas"/>
@@ -94,6 +100,14 @@ See https://castle-engine.io/license.php for details."/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalXlib"/>
       </Item12>
+      <Item13>
+        <Filename Value="../src/deprecated_units/castlewindowtouch.pas"/>
+        <UnitName Value="CastleWindowTouch"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../src/deprecated_units/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item14>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>
@@ -112,7 +126,6 @@ See https://castle-engine.io/license.php for details."/>
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
     </PublishOptions>
     <Provides Count="1">
       <Item1 Value="castle_window"/>

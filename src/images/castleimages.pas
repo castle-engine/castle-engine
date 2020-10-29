@@ -41,8 +41,8 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. See glViewImage documentation
-  ( https://castle-engine.io/glviewimage.php )
+  formats. See castle-view-image documentation
+  ( https://castle-engine.io/castle-view-image.php )
   for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
@@ -71,12 +71,13 @@ unit CastleImages;
 
 interface
 
-uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
-  CastleFileFilters, CastleClassUtils, CastleColors,
-  Generics.Collections, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM
-  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleInternalFPWritePNG
-  {$else} , CastleInternalPng {$endif};
+uses SysUtils, Classes, Math, Generics.Collections,
+  { FPImage and related units }
+  FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
+  FPReadJPEG, FPWriteJPEG, FPReadPNM, FPReadPNG, CastleInternalFPWritePNG,
+  { CGE units }
+  CastleInternalPng, CastleUtils, CastleVectors, CastleRectangles,
+  CastleFileFilters, CastleClassUtils, CastleColors;
 
 type
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
@@ -530,10 +531,10 @@ type
 
       This scales the image in almost the same way as standard @link(Resize).
       However, this is aware of the image corners and edges, which is good
-      if you plan to use this image with @link(TGLImageCore.Draw3x3) drawing.
+      if you plan to use this image with @link(TDrawableImage.Draw3x3) drawing.
 
       The Corners parameter specifies the corners size, in the same
-      clockwise order as for @link(TGLImageCore.Draw3x3): top, right, bottom, left.
+      clockwise order as for @link(TDrawableImage.Draw3x3): top, right, bottom, left.
       The corners will be scaled (proportially to image scaling),
       and new Corners size returned.
       Additionally it makes sure that filtering (especially bilinear)
@@ -548,7 +549,7 @@ type
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
       const Interpolation: TResizeInterpolationInternal);
-      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TGLImageCore.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
+      deprecated 'This method is seldom useful, and it is confused with TCastleImage.DrawFrom3x3 and TDrawableImage.Draw3x3 too often. Please report if you have a use-case when this method is useful, otherwise it may get removed from the engine one day.';
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from the input and appropriately stretched.
@@ -731,11 +732,11 @@ type
 
       @italic(Warning: It is not efficient to use this drawing method.)
       This drawing is performed on CPU and cannot be fast.
-      If possible, use instead @link(TGLImage.DrawFrom),
+      If possible, use instead @link(TDrawableImage.DrawFrom),
       that performs image-on-image drawing using GPU,
-      or just draw @link(TGLImage) straight to the screen by @link(TGLImage.Draw).
+      or just draw @link(TDrawableImage) straight to the screen by @link(TDrawableImage.Draw).
       See examples/images_videos/draw_images_on_gpu.lpr for an example of
-      @link(TGLImage.DrawFrom).
+      @link(TDrawableImage.DrawFrom).
       Using this method makes most sense in image manipulation tools,
       or during the loading / preparation stage of your game,
       not during actual game.
@@ -790,10 +791,10 @@ type
 
       @italic(Warning: It is not efficient to use this drawing method.)
       This drawing is performed on CPU and cannot be fast.
-      If possible, use instead @link(TGLImage),
-      and either draw it to the screen by @link(TGLImageCore.Draw3x3),
-      or draw it to another @link(TGLImage) by combining @link(TGLImageCore.Draw3x3)
-      with @link(TGLImage.RenderToImageBegin).
+      If possible, use instead @link(TDrawableImage),
+      and either draw it to the screen by @link(TDrawableImage.Draw3x3),
+      or draw it to another @link(TDrawableImage) by combining @link(TDrawableImage.Draw3x3)
+      with @link(TDrawableImage.RenderToImageBegin).
       Using this method makes most sense in image manipulation tools,
       or during the loading / preparation stage of your game,
       not during actual game.
@@ -900,7 +901,9 @@ type
 
   TEncodedImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
 
-  { Possible compression of textures for GPU. }
+  { Possible compression of textures for GPU.
+    The compressed texture formats may be automatically created for you by CGE,
+    see https://castle-engine.io/creating_data_auto_generated_textures.php . }
   TTextureCompression = (
     { S3TC DXT1 compression, @bold(for opaque RGB images (no alpha channel)).
       This compression format is often supported by desktop OpenGL implementations.
@@ -942,19 +945,7 @@ type
     tcPvrtc2_2bpp,
 
     { ATI texture compression format, @bold(for RGB images without alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm).
-
-      There is no perfect program to generate such texture, unfortunately.
-      The only sensible choice is to use ATI compressonator from
-      http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/the-compressonator/ .
-      Unfortunately, it's installation may fail on some Windows versions
-      and wine (Linux). We've had most success installing it on 32-bit Windows,
-      and them copying to wine.
-      ATI deprecated this program.
-
-      Adreno SDK contains library to compress to ATITC formats,
-      but no useful program to actually convert files to this format
-      (wrapped in ktx or dds). }
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
     tcATITC_RGB,
 
     { ATI texture compression format, @bold(with sharp alpha).
@@ -968,11 +959,38 @@ type
     { ETC texture compression, @bold(without alpha).
       See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
       Available on almost all Android OpenGLES 2.0 devices,
-      unfortunately it doesn't support alpha channel.
-
-      It can be generated using various tools --- dedicated etcpack,
-      also PVRTexTool and ATI compressonator. }
-    tcETC1
+      unfortunately it doesn't support alpha channel. }
+    tcETC1,
+    { ASTC compression with alpha - should be available on all modern mobile GPU.
+      See https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt}
+    tcASTC_4x4_RGBA,
+    tcASTC_5x4_RGBA,
+    tcASTC_5x5_RGBA,
+    tcASTC_6x5_RGBA,
+    tcASTC_6x6_RGBA,
+    tcASTC_8x5_RGBA,
+    tcASTC_8x6_RGBA,
+    tcASTC_8x8_RGBA,
+    tcASTC_10x5_RGBA,
+    tcASTC_10x6_RGBA,
+    tcASTC_10x8_RGBA,
+    tcASTC_10x10_RGBA,
+    tcASTC_12x10_RGBA,
+    tcASTC_12x12_RGBA,
+    tcASTC_4x4_SRGB8_ALPHA8,
+    tcASTC_5x4_SRGB8_ALPHA8,
+    tcASTC_5x5_SRGB8_ALPHA8,
+    tcASTC_6x5_SRGB8_ALPHA8,
+    tcASTC_6x6_SRGB8_ALPHA8,
+    tcASTC_8x5_SRGB8_ALPHA8,
+    tcASTC_8x6_SRGB8_ALPHA8,
+    tcASTC_8x8_SRGB8_ALPHA8,
+    tcASTC_10x5_SRGB8_ALPHA8,
+    tcASTC_10x6_SRGB8_ALPHA8,
+    tcASTC_10x8_SRGB8_ALPHA8,
+    tcASTC_10x10_SRGB8_ALPHA8,
+    tcASTC_12x10_SRGB8_ALPHA8,
+    tcASTC_12x12_SRGB8_ALPHA8
   );
   TTextureCompressions = set of TTextureCompression;
 
@@ -1647,8 +1665,8 @@ type
     Right now, we simply let these exceptions to "pass through" from this function
     (instead of catching and re-raising).
     So be ready that this function may raise @italic(any) Exception class.
-    In case of local files (file:// URLs), the typical exception class
-    is EFOpenError.)
+    In case of local files (file:// URLs), the typical exceptions are
+    EFOpenError and EReadError.)
 
   @seealso LoadEncodedImage
 
@@ -1787,30 +1805,65 @@ type
       For KTX, we can generate KTX images using PowerVR Texture Tools
       that already have a correct (bottom-to-top) orientation.
       So we can have textures compressed to PVRTC1_4bpp_RGB
-      with correct orientation. }
+      with correct orientation.
+
+      This field is ignored if FileExtension is not .dds. }
     DDSFlipped: boolean;
+
+    { File extension/format the engine expects when try load GPU compressed
+      version of texture. }
+    FileExtension: String;
   end;
 
 const
   TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false),
-    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false; FileExtension: '.dds'),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
     { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.dds'),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true)
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true; FileExtension: '.ktx'),
+
+    (Name: 'ASTC_4x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x4_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x5_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x6_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x8_RGBA'               ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x5_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x6_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x8_RGBA'              ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x10_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x12_RGBA'             ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_4x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x4_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_5x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_6x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x5_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x6_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_8x8_SRGB8_ALPHA8'       ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x5_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x6_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x8_SRGB8_ALPHA8'      ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_10x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x10_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx'),
+    (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx')
   );
 
 { Convert TTextureCompression enum to string. }
@@ -1857,7 +1910,7 @@ var
   various GPU algorithms) in your data.
   Use this procedure to redirect all image loading to use your
   compressed versions, when they are supported by the GPU.
-  By doing it like this we capture all kinds of image loading --- from TGLImageCore,
+  By doing it like this we capture all kinds of image loading --- from TDrawableImage,
   from TCastleScene and so on.
 
   @longCode(#
@@ -1866,7 +1919,7 @@ var
 
     procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
     begin
-      if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
+      if IsPrefix('castle-data:/animation/dragon/', ImageUrl) then
       begin
         if GLFeatures = nil then
           WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
@@ -1908,16 +1961,15 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 {$I castleimages_file_formats.inc}
 {$I castleimages_draw.inc}
 {$I castleimages_paint.inc}
-{$I images_bmp.inc}
-{$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  {$I images_png.inc}
-{$endif}
-{$I images_fpimage.inc}
-{$I images_ppm.inc}
-{$I images_ipl.inc}
-{$I images_rgbe_fileformat.inc}
-{$I images_external_tool.inc}
-{$I images_composite.inc}
+{$I castleimages_bmp.inc}
+{$I castleimages_libpng.inc}
+{$I castleimages_fpimage.inc}
+{$I castleimages_png.inc} // must be included after castleimages_libpng.inc and castleimages_fpimage.inc
+{$I castleimages_ppm.inc}
+{$I castleimages_ipl.inc}
+{$I castleimages_rgbe_fileformat.inc}
+{$I castleimages_external_tool.inc}
+{$I castleimages_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
 
@@ -2163,7 +2215,9 @@ begin
   case Interpolation of
     riNearest : MakeLine := @MakeLineNearest;
     riBilinear: MakeLine := @MakeLineBilinear;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
+    {$endif}
   end;
 
 {$else}
@@ -2670,19 +2724,20 @@ begin
   NamePixels := ImageName + 'Pixels';
 
   CodeInterface := CodeInterface +
-    'var' +nl+
-    '  ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
+    'function ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
   CodeImplementation := CodeImplementation +
-    'const' +nl+
-    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' +nl+
-    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' +nl+
-    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' +nl+
+    'var' + NL +
+    '  F' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'const' + NL +
+    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' + NL +
+    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' + NL +
+    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' + NL +
     '  ' +NamePixels+ ': array[0 .. '
       +NameWidth+ ' * '
       +NameHeight+ ' * '
       +NameDepth+ ' * '
-      +IntToStr(PixelSize) + ' - 1] of Byte = (' +nl+
+      +IntToStr(PixelSize) + ' - 1] of Byte = (' + NL +
     '    ';
 
   if ShowProgress then
@@ -2702,17 +2757,26 @@ begin
       CodeImplementation := CodeImplementation + ' ';
     Inc(pb);
   end;
-  CodeImplementation := CodeImplementation + Format('%4d);', [pb^]) + nl + nl;
+  CodeImplementation := CodeImplementation +
+    Format('%4d);', [pb^]) + NL +
+    NL +
+    'function ' +ImageName+ ': ' +ClassName+ ';' + NL +
+    'begin' + NL +
+    '  if F' +ImageName + ' = nil then' + NL +
+    '  begin' + NL +
+    '    F' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' + NL +
+    '    Move(' +NamePixels+ ', F' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' + NL +
+    '    F' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + NL +
+    '  end;' + NL +
+    '  Result := F' +ImageName+ ';' + NL +
+    'end;' + NL +
+    NL +
+    '';
 
   if ShowProgress then Progress.Fini;
 
-  CodeInitialization := CodeInitialization +
-    '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
-    '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl+
-    '  ' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + nl;
-
   CodeFinalization := CodeFinalization +
-    '  FreeAndNil(' +ImageName+ ');' +nl;
+    '  FreeAndNil(F' +ImageName+ ');' +nl;
 end;
 
 procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
@@ -2775,11 +2839,10 @@ begin
            (CornerBottom + CornerTop < Source.Height) and
            (CornerBottom + CornerTop < DestHeight)) then
   begin
-    if Log then
-      WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
-        [CornerTop, CornerRight, CornerBottom, CornerLeft,
-         Source.Width, Source.Height,
-         DestWidth, DestHeight]);
+    WritelnLog('TCastleImage.Dest3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
+      [CornerTop, CornerRight, CornerBottom, CornerLeft,
+       Source.Width, Source.Height,
+       DestWidth, DestHeight]);
     Exit;
   end;
 
@@ -2887,8 +2950,41 @@ begin
     tcETC1:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
 
+    { size formula from
+      https://www.khronos.org/registry/OpenGL/extensions/KHR/KHR_texture_compression_astc_hdr.txt }
+    tcASTC_4x4_RGBA, tcASTC_4x4_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16;
+    tcASTC_5x4_RGBA, tcASTC_5x4_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 5) * DivRoundUp(FHeight, 4) * 16;
+    tcASTC_5x5_RGBA, tcASTC_5x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 5) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_6x5_RGBA, tcASTC_6x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 6) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_6x6_RGBA, tcASTC_6x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 6) * DivRoundUp(FHeight, 6) * 16;
+    tcASTC_8x5_RGBA, tcASTC_8x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_8x6_RGBA, tcASTC_8x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 6) * 16;
+    tcASTC_8x8_RGBA, tcASTC_8x8_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 8) * 16;
+    tcASTC_10x5_RGBA, tcASTC_10x5_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 5) * 16;
+    tcASTC_10x6_RGBA, tcASTC_10x6_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 6) * 16;
+    tcASTC_10x8_RGBA, tcASTC_10x8_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 8) * 16;
+    tcASTC_10x10_RGBA, tcASTC_10x10_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 10) * DivRoundUp(FHeight, 10) * 16;
+    tcASTC_12x10_RGBA, tcASTC_12x10_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 12) * DivRoundUp(FHeight, 10) * 16;
+    tcASTC_12x12_RGBA, tcASTC_12x12_SRGB8_ALPHA8:
+      FSize := FDepth * DivRoundUp(FWidth, 12) * DivRoundUp(FHeight, 12) * 16;
+
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
       [TextureCompressionInfo[Compression].Name]);
+    {$endif}
   end;
 
   FRawPixels := GetMem(FSize);
@@ -2912,7 +3008,7 @@ begin
   Result := TextureCompressionInfo[Compression].AlphaChannel;
 end;
 
-{$I images_s3tc_flip_vertical.inc}
+{$I castleimages_s3tc_flip_vertical.inc}
 
 function TGPUCompressedImage.Decompress: TCastleImage;
 begin
@@ -3107,11 +3203,11 @@ end;
 
 procedure TRGBImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector3Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var
@@ -3381,11 +3477,11 @@ end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3);
 type PPixel = PVector4Byte;
-{$I images_transformrgb_implement.inc}
+{$I castleimages_transformrgb_implement.inc}
 
 procedure TRGBAlphaImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector4Byte;
-{$I images_modulatergb_implement.inc}
+{$I castleimages_modulatergb_implement.inc}
 
 procedure TRGBAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
   Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
@@ -4508,7 +4604,9 @@ begin
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
           end;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
+        {$endif}
       end;
     end else
     begin
@@ -4550,35 +4648,36 @@ var
   MimeType: string;
   TimeStart: TCastleProfilerTime;
 begin
-  TimeStart := Profiler.Start('Loading ' + URL + ' (CastleImages)');
-
+  F := nil;
+  TimeStart := Profiler.Start('Loading "' + URIDisplay(URL) + '" (CastleImages)');
   try
     try
       LoadImageEvents.Execute(URL);
       F := Download(URL, [soForceMemoryStream], MimeType);
-    except
-      on E: EReadError do raise EImageLoadError.Create(E.Message);
-    end;
-
-    try
       Result := LoadEncodedImage(F, MimeType, AllowedImageClasses, Options);
       Result.FURL := URL;
-    finally F.Free end;
-  except
-    { capture some exceptions to add URL to exception message }
-    on E: EImageLoadError do
-    begin
-      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
-      raise;
+    except
+      { capture some exceptions to add URL to exception message }
+      on E: EReadError do // maybe be raised by Download
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
+      on E: EImageLoadError do
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
+      on E: EImageFormatNotSupported do
+      begin
+        E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
+        raise;
+      end;
     end;
-    on E: EImageFormatNotSupported do
-    begin
-      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
-      raise;
-    end;
+  finally
+    FreeAndNil(F);
+    Profiler.Stop(TimeStart);
   end;
-
-  Profiler.Stop(TimeStart);
 end;
 
 function LoadEncodedImage(const URL: string;
@@ -4699,7 +4798,9 @@ begin
             Save(Img, Stream) else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('SaveImage: SavedClasses?');
+      {$endif}
     end;
   end else
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
@@ -4813,8 +4914,8 @@ end;
 initialization
   RegisterMimeTypes;
   InitializeImagesFileFilters;
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  InitializePNG;
+  {$if defined(CASTLE_PNG_DYNAMIC) or defined(CASTLE_PNG_STATIC)}
+  InitializePNGUsingLibpng;
   {$endif}
   LoadImageEvents := TLoadImageEventList.Create;
 finalization

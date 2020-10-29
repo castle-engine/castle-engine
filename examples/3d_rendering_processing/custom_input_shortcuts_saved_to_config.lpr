@@ -15,16 +15,23 @@
 
 { An example how to create user-configurable input shortcuts
   (own TInputShortcut instances, saved and loaded to UserConfig file)
-  and use them for a camera or for custom actions. }
+  and use them for a TCastleWalkNavigation or for custom actions.
+
+  Use AWSD to move camera (up/down or left/right strife).
+
+  Use C to change material to a random color.
+
+  Note how all key/mouse shortcuts are expressed as TInputShortcut instance,
+  and thus can be easily changed. }
 
 uses
   Classes, SysUtils,
-  CastleWindow, CastleSceneManager, CastleConfig, CastleFilesUtils,
-  CastleScene, X3DNodes,
-  CastleKeysMouse, CastleInputs, CastleCameras, CastleVectors, CastleLog;
+  CastleWindow, CastleConfig, CastleFilesUtils, CastleScene, X3DNodes,
+  CastleKeysMouse, CastleInputs, CastleCameras, CastleVectors, CastleLog,
+  CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 
   MyInputs: TInputShortcutList;
   Input_MoveUp: TInputShortcut;
@@ -33,10 +40,12 @@ var
   Input_MoveRight: TInputShortcut;
   Input_DoSomethingCrazy: TInputShortcut;
 
+  CarScene: TCastleScene;
+
 procedure ApplicationInitialize;
 var
-  SceneManager: TCastleSceneManager;
-  Scene: TCastleScene;
+  Viewport: TCastleViewport;
+  Navigation: TCastleWalkNavigation;
 begin
   { Create your TInputShortcut instances.
 
@@ -102,41 +111,46 @@ begin
     at the next program run.
   }
 
-  { Initialize SceneManager.
-    Since we use TCastleWindow, a full-screen scene manager is already created for us. }
-  SceneManager := Window.SceneManager;
+  { Initialize Viewport }
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Window.Controls.InsertFront(Viewport);
 
-  { Add car model to SceneManager }
-  Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load(ApplicationData('car.x3d'));
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene.ProcessEvents := true;
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
+  { Add car model to Viewport }
+  CarScene := TCastleScene.Create(Application { Owner that will free the Scene });
+  CarScene.Load('castle-data:/car.x3d');
+  CarScene.Spatial := [ssRendering, ssDynamicCollisions];
+  CarScene.ProcessEvents := true;
 
-  { initialize SceneManager.WalkCamera.Input_Xxx to follow our inputs. }
-  SceneManager.WalkCamera.Input_LeftStrafe.Assign(Input_MoveLeft, false);
-  SceneManager.WalkCamera.Input_RightStrafe.Assign(Input_MoveRight, false);
-  SceneManager.WalkCamera.Input_Jump.Assign(Input_MoveUp, false);
-  SceneManager.WalkCamera.Input_Crouch.Assign(Input_MoveDown, false);
+  Viewport.Items.Add(CarScene);
+  Viewport.Items.MainScene := CarScene;
 
-  { clear other SceneManager.WalkCamera inputs }
-  SceneManager.WalkCamera.Input_Forward.MakeClear;
-  SceneManager.WalkCamera.Input_Backward.MakeClear;
-  SceneManager.WalkCamera.Input_LeftRot.MakeClear;
-  SceneManager.WalkCamera.Input_RightRot.MakeClear;
-  SceneManager.WalkCamera.Input_UpRotate.MakeClear;
-  SceneManager.WalkCamera.Input_DownRotate.MakeClear;
-  SceneManager.WalkCamera.Input_IncreasePreferredHeight.MakeClear;
-  SceneManager.WalkCamera.Input_DecreasePreferredHeight.MakeClear;
-  SceneManager.WalkCamera.Input_GravityUp.MakeClear;
-  SceneManager.WalkCamera.Input_Run.MakeClear;
-  SceneManager.WalkCamera.Input_MoveSpeedInc.MakeClear;
-  SceneManager.WalkCamera.Input_MoveSpeedDec.MakeClear;
+  { initialize Navigation }
+  Navigation := TCastleWalkNavigation.Create(Application);
+  Navigation.Gravity := false;
+  Navigation.MoveSpeed := 10;
+  Viewport.Navigation := Navigation;
 
-  { configure other SceneManager.WalkCamera properties }
-  SceneManager.WalkCamera.Gravity := false;
-  SceneManager.WalkCamera.MoveSpeed := 10;
+  { initialize Navigation.Input_Xxx to follow our inputs. }
+  Navigation.Input_LeftStrafe.Assign(Input_MoveLeft, false);
+  Navigation.Input_RightStrafe.Assign(Input_MoveRight, false);
+  Navigation.Input_Jump.Assign(Input_MoveUp, false);
+  Navigation.Input_Crouch.Assign(Input_MoveDown, false);
+
+  { clear other Navigation inputs }
+  Navigation.Input_Forward.MakeClear;
+  Navigation.Input_Backward.MakeClear;
+  Navigation.Input_LeftRotate.MakeClear;
+  Navigation.Input_RightRotate.MakeClear;
+  Navigation.Input_UpRotate.MakeClear;
+  Navigation.Input_DownRotate.MakeClear;
+  Navigation.Input_IncreasePreferredHeight.MakeClear;
+  Navigation.Input_DecreasePreferredHeight.MakeClear;
+  Navigation.Input_GravityUp.MakeClear;
+  Navigation.Input_Run.MakeClear;
+  Navigation.Input_MoveSpeedInc.MakeClear;
+  Navigation.Input_MoveSpeedDec.MakeClear;
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
@@ -148,7 +162,7 @@ begin
 
   if Input_DoSomethingCrazy.IsEvent(Event) then
   begin
-    CarMaterial := Window.SceneManager.MainScene.Node('MA_Material') as TMaterialNode;
+    CarMaterial := CarScene.Node('MA_Material') as TMaterialNode;
     CarMaterial.DiffuseColor := Vector3(Random, Random, Random);
   end;
 end;
@@ -158,7 +172,7 @@ begin
 
   Application.OnInitialize := @ApplicationInitialize;
 
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.OnPress := @WindowPress;
   Window.OpenAndRun;
 

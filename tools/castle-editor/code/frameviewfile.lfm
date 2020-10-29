@@ -1,0 +1,23 @@
+object ViewFileFrame: TViewFileFrame
+  Left = 0
+  Height = 300
+  Top = 0
+  Width = 400
+  ClientHeight = 300
+  ClientWidth = 400
+  DesignTimePPI = 120
+  ParentFont = False
+  TabOrder = 0
+  DesignLeft = 529
+  DesignTop = 334
+  object Control: TCastleControlBase
+    Left = 0
+    Height = 300
+    Top = 0
+    Width = 400
+    Align = alClient
+    StencilBits = 8
+    Options = []
+    TabOrder = 0
+  end
+end

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,16 +17,19 @@
   Call with --help for detailed usage instructions.
 }
 
+{$I castleconf.inc}
+
 { This adds icons and version info for Windows,
-  automatically created by "castle-engine compile".
-  Comment this out if you don't compile using our "castle-engine" build tool. }
-{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+  automatically created by "castle-engine compile". }
+{$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
 uses SysUtils,
+  ToolDisableDynamicLibraries, //< use this unit early, before any other CGE unit
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS, ToolAndroid;
+  ToolPackage, ToolProject, ToolCompile, ToolIOS, ToolAndroid,
+  ToolNintendoSwitch, ToolCommonUtils, ToolArchitectures, ToolUtils;
 
 var
   Target: TTarget;
@@ -37,9 +40,13 @@ var
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
   CompilerExtraOptions: TCastleStringList;
+  PackageFormat: TPackageFormat = pfDefault;
+  PackageNameIncludeVersion: Boolean = true;
+  UpdateOnlyCode: Boolean = false;
+  CleanAll: Boolean = false;
 
 const
-  Options: array [0..13] of TOption =
+  Options: array [0..19] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -54,7 +61,13 @@ const
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
     (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired),
     (Short: #0 ; Long: 'output'; Argument: oaRequired),
-    (Short: #0 ; Long: 'project'; Argument: oaRequired)
+    (Short: #0 ; Long: 'project'; Argument: oaRequired),
+    (Short: #0 ; Long: 'package-format'; Argument: oaRequired),
+    (Short: #0 ; Long: 'package-name-no-version'; Argument: oaNone),
+    (Short: #0 ; Long: 'update-only-code'; Argument: oaNone),
+    (Short: #0 ; Long: 'ios-simulator'; Argument: oaNone),
+    (Short: #0 ; Long: 'all'; Argument: oaNone),
+    (Short: #0 ; Long: 'manifest-name'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -65,7 +78,7 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   var
     Dir: String;
   begin
-    if ExtractFileName(DirOrManifestFile) = 'CastleEngineManifest.xml' then
+    if ExtractFileName(DirOrManifestFile) = ManifestName then
       Dir := ExtractFilePath(DirOrManifestFile)
     else
       Dir := DirOrManifestFile;
@@ -155,7 +168,7 @@ begin
             OptionDescription('-V / --verbose',
               'Verbose mode, output contains e.g. list of packaged files.') +NL+
             OptionDescription('--mode=debug|release',
-              'Compilation mode, used by "compile" command. Also packaging mode for some platforms (right now, Android). By default "release".') +NL+
+              'Compilation mode, used by "compile" and "package" commands. Also packaging mode on some platforms (right now, Android). By default "release".') +NL+
             OptionDescription('--assume-compiled',
               'Do not automatically do "clean" and "compile" before "package". Instead assume that compiled executable for given OS/CPU/mode is already present in the package directory.') +NL+
             OptionDescription('--fast',
@@ -170,9 +183,13 @@ begin
               'Where to place the output executables, packages, and the "castle-engine-output" directory with temporary generated files.') +NL+
             OptionDescription('--project=DIR',
               'Where to search for the project (CastleEngineManifest.xml file). By default we search in the current directory. The argument can either be a directory, or a filename of CastleEngineManifest.xml file.') +NL+
-            TargetOptionHelp +
-            OSOptionHelp +
-            CPUOptionHelp +
+            OptionDescription('--all',
+              'Use by "auto-generate-clean", indicates to clean everything auto-generated. By default we only clean unused files from "auto_generated" directories.') +NL+
+            OptionDescription('--manifest-name=AlternativeManifest.xml',
+              'Search and use given "AlternativeManifest.xml" file instead of standard "CastleEngineManifest.xml". Useful if you need to maintain completely different project configurations for any reason.') +NL+
+            TargetOptionHelp + NL +
+            OSOptionHelp + NL +
+            CPUOptionHelp + NL +
             NL+
             'Full documentation on' + NL +
             'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
@@ -198,37 +215,33 @@ begin
     11: CompilerExtraOptions.Add(Argument);
     12: OutputPathBase := Argument;
     13: ChangeProjectDir(Argument);
+    14: PackageFormat := StringToPackageFormat(Argument);
+    15: PackageNameIncludeVersion := false;
+    16: UpdateOnlyCode := true;
+    17: IosSimulatorSupport := true;
+    18: CleanAll := true;
+    19: ManifestName := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
 
 { For some operations (like creating an Android project), the tool uses
   ApplicationData files. So make sure that ApplicationData is correct.
-  We can use $CASTLE_ENGINE_PATH environment variable for this. }
+  We can use CastleEnginePath (that used $CASTLE_ENGINE_PATH environment variable)
+  for this. }
 procedure AdjustApplicationData;
 var
-  CastleEnginePath, Data1, Data2, Data3, DataSuffix: string;
+  DataPath: string;
 begin
-  CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
   if CastleEnginePath <> '' then
   begin
-    DataSuffix := PathDelim + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
-    Data1 := ExclPathDelim(CastleEnginePath) + DataSuffix;
-    Data2 := InclPathDelim(CastleEnginePath) + 'castle_game_engine' + DataSuffix;
-    Data3 := InclPathDelim(CastleEnginePath) + 'castle-engine' + DataSuffix;
-    if DirectoryExists(Data1) then
-      ApplicationDataOverride := FilenameToURISafe(Data1) else
-    if DirectoryExists(Data2) then
-      ApplicationDataOverride := FilenameToURISafe(Data2) else
-    if DirectoryExists(Data3) then
-      ApplicationDataOverride := FilenameToURISafe(Data3) else
-      { We do not complain about missing or invalid $CASTLE_ENGINE_PATH
-        otherwise, because for some operations ApplicationData is not used,
-        and also sometimes the default ApplicationData (in case of system-wide
-        installation in /usr/share/castle-engine/ ) will be Ok. }
-      Exit;
-    if Verbose then
-      Writeln('Build tool found its data in ' + ApplicationDataOverride);
+    DataPath := CastleEnginePath +
+      'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
+    if DirectoryExists(DataPath) then
+      ApplicationDataOverride := FilenameToURISafe(DataPath);
+
+    { We do not complain when CastleEnginePath is empty or doesn't contain
+      valid data, because CastleEnginePath already did that. }
   end;
 end;
 
@@ -272,10 +285,13 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom:  Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetAndroid: CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
-      targetIOS:     CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetCustom        : Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetAndroid       : CompileAndroid(nil, Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetIOS           : CompileIOS(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      targetNintendoSwitch: CompileNintendoSwitch(Mode, GetCurrentDir, FileName, nil, nil, CompilerExtraOptions);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Operation not implemented for this target');
+      {$endif}
     end;
   end else
   begin
@@ -297,7 +313,7 @@ begin
             Project.DoClean;
           Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
         end;
-        Project.DoPackage(Target, OS, CPU, Plugin, Mode);
+        Project.DoPackage(Target, OS, CPU, Plugin, Mode, PackageFormat, PackageNameIncludeVersion, UpdateOnlyCode);
       end else
       if Command = 'install' then
         Project.DoInstall(Target, OS, CPU, Plugin) else
@@ -314,7 +330,7 @@ begin
       if Command = 'package-source' then
       begin
         Project.DoClean;
-        Project.DoPackageSource;
+        Project.DoPackageSource(PackageFormat, PackageNameIncludeVersion);
       end else
       if Command = 'clean' then
         Project.DoClean
@@ -323,7 +339,7 @@ begin
         Project.DoAutoGenerateTextures
       else
       if Command = 'auto-generate-clean' then
-        Project.DoAutoGenerateClean
+        Project.DoAutoGenerateClean(CleanAll)
       else
       if Command = 'generate-program' then
         Project.DoGenerateProgram

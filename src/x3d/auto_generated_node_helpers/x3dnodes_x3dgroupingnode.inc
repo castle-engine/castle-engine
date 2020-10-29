@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,17 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { Set X3D field "children". } { }
     procedure SetChildren(const Value: array of TAbstractChildNode);
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -56,24 +52,18 @@ begin
   FdChildren.Send(A);
 end;
 
-function TAbstractX3DGroupingNode.GetBboxCenter: TVector3;
+function TAbstractX3DGroupingNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TAbstractX3DGroupingNode.SetBboxCenter(const Value: TVector3);
+procedure TAbstractX3DGroupingNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TAbstractX3DGroupingNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TAbstractX3DGroupingNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

@@ -19,7 +19,7 @@ unit TestCastleParameters;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testutils, testregistry,
+uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
   CastleParameters, CastleUtils;
 
 type

@@ -34,11 +34,11 @@
 
     @item(Load and draw images in 2D.
       This is useful to implement various 2D controls.
-      See TGLImage class and friends.)
+      See TDrawableImage class and friends.)
 
     @item(Save the current OpenGL screen contents to our TCastleImage.
       You usually use this through TCastleWindowBase.SaveScreen
-      or TCastleControl.SaveScreen,
+      or TCastleControlBase.SaveScreen,
       based on SaveScreen_NoFlush in this unit.)
 
     @item(Render to texture, see TGLRenderToTexture class.
@@ -62,7 +62,7 @@ unit CastleGLImages;
 
 interface
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Generics.Collections, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
@@ -73,7 +73,10 @@ uses SysUtils, Generics.Collections,
 {$I castleglimages_miscellaneous.inc}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_tglimage.inc}
+{$I castleglimages_drawableimage.inc}
+{$I castleglimages_drawableimagecache.inc}
+{$I castleglimages_border.inc}
+{$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -90,14 +93,17 @@ implementation
 
 uses Math, Generics.Defaults,
   CastleLog, CastleGLVersion,
-  CastleApplicationProperties, CastleStringUtils, CastleURIUtils;
+  CastleApplicationProperties, CastleStringUtils, CastleURIUtils, CastleRenderContext;
 
 {$define read_implementation}
 
 {$I castleglimages_miscellaneous.inc}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_tglimage.inc}
+{$I castleglimages_drawableimage.inc}
+{$I castleglimages_drawableimagecache.inc}
+{$I castleglimages_border.inc}
+{$I castleglimages_persistentimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
 {$I castleglimages_load_cubemap.inc}
@@ -115,7 +121,7 @@ uses Math, Generics.Defaults,
 procedure ContextClose;
 begin
   TextureMemoryProfiler.CheckLeaks;
-  TGLImageCore.StaticGLContextClose;
+  TDrawableImage.StaticGLContextClose;
 end;
 
 initialization
@@ -123,4 +129,5 @@ initialization
 finalization
   FreeAndNil(BoundFboStack);
   FreeAndNil(FTextureMemoryProfiler);
+  FreeAndNil(FDrawableImageCache);
 end.

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetLoop: boolean;
-    procedure SetLoop(const Value: boolean);
+    function GetLoop: Boolean;
+    procedure SetLoop(const Value: Boolean);
     function GetPauseTime: TFloatTime;
     procedure SetPauseTime(const Value: TFloatTime);
     function GetResumeTime: TFloatTime;
@@ -38,7 +38,7 @@
     procedure SetStopTime(const Value: TFloatTime);
   public
     { X3D field "loop". } { }
-    property Loop: boolean read GetLoop write SetLoop;
+    property Loop: Boolean read GetLoop write SetLoop;
     { X3D field "pauseTime". } { }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
     { X3D field "resumeTime". } { }
@@ -54,12 +54,12 @@
 
 { TAbstractTimeDependentNode ----------------------------------------------- }
 
-function TAbstractTimeDependentNode.GetLoop: boolean;
+function TAbstractTimeDependentNode.GetLoop: Boolean;
 begin
   Result := FdLoop.Value;
 end;
 
-procedure TAbstractTimeDependentNode.SetLoop(const Value: boolean);
+procedure TAbstractTimeDependentNode.SetLoop(const Value: Boolean);
 begin
   FdLoop.Send(Value);
 end;

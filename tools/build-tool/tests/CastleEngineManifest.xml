@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="test_cge_build_tool"
+  standalone_source="test_cge_build_tool.lpr">
+  <compiler_options>
+    <search_paths>
+      <path value="../code/" />
+      <path value="../../common-code/" />
+      <path value="../embedded_images/" />
+      <path value="../../../tests/code/common/" />
+    </search_paths>
+  </compiler_options>
+</project>

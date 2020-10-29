@@ -93,7 +93,7 @@ function RawURIDecode(const S: string): string;
     @item(We always return lowercase protocol. This is comfortable,
       since you almost always calculate protocol to compare it,
       and protocol names are not case-sensitive,
-      and you should always produce URLs with lowercase
+      and you should always produce URLs with lowercase protocol names
       (see http://tools.ietf.org/html/rfc3986#section-3.1).)
   )
 }
@@ -191,8 +191,8 @@ function FilenameToURISafe(FileName: string): string;
   mappings to the @link(URIMimeExtensions).
 
   @groupBegin }
-function URIMimeType(const URI: string): string;
-function URIMimeType(const URI: string; out Gzipped: boolean): string;
+function URIMimeType(const URI: string): string; overload;
+function URIMimeType(const URI: string; out Gzipped: boolean): string; overload;
 { @groupEnd }
 
 { Map from an extension to a MIME type, used by @link(URIMimeType).
@@ -228,7 +228,8 @@ function URIDisplay(const URI: string; const Short: boolean = false): string;
   Returns empty string for empty URI (contrary to most other routines that
   treat empty string like a current directory).
 
-  See URIDisplay documentation for details. }
+  See URIDisplay documentation for details.
+  This calls URIDisplay with Short = @true. }
 function URICaption(const URI: string): string;
 
 { Change extension of the URL. }
@@ -243,9 +244,89 @@ function ExtractURIName(const URL: string): string;
 { Extract path (everything before last part), including final slash, from URL. }
 function ExtractURIPath(const URL: string): string;
 
-{ Does a local file exist. Always answers @true for URLs that do not indicate
-  local files (assume remote file exist). }
-function URIFileExists(const URL: string): boolean;
+{ Ensure URL ends with slash.
+
+  For an empty URL, returns empty string (so it does not turn "" into "/").
+  For an URL ending with bashslash (which usually means you passed Windows
+  path name), it removes the backslash before adding slash.
+
+  This should be used instead of InclPathDelim or IncludeTrailingPathDelimiter,
+  when you use URLs instead of filenames. }
+function URIIncludeSlash(const URL: String): String;
+
+{ Ensure URL does not end with slash.
+  In case you passed Windows path name, it also removes the backslash.
+
+  This should be used instead of ExclPathDelim or ExcludeTrailingPathDelimiter,
+  when you use URLs instead of filenames. }
+function URIExcludeSlash(const URL: String): String;
+
+{ Does a file exist, that is: whether it makes sense to load it with
+  the @link(Download) function.
+
+  Returns @true for URLs where we cannot determine whether the file exists
+  (like http / https).
+
+  This is simply a shortcut for @code(URIExists(URL) in [ueFile, ueUnknown]). }
+function URIFileExists(const URL: string): Boolean;
+
+type
+  { Result of the @link(URIExists) query. }
+  TURIExists = (
+    { Given path does not indicate either a file or directory. }
+    ueNotExists,
+
+    { Given path is a regular file.
+      In particular, this means it can be read with the @link(Download) function.
+
+      Note that there is no @italic(guarantee) that opening it will work.
+      On a multi-process system the file can be always deleted between the call
+      to URIExists and Download.
+      And the file permissions may not allow reading.
+      We merely say that "right now this file exists".
+    }
+    ueFile,
+
+    { Given path is a directory. E.g. it can be used as path for the @link(FindFiles) function. }
+    ueDirectory,
+
+    { Detecting existence of given path is tricky, it could be time-consuming.
+
+      This applies e.g. to URLs using http / https protocols.
+      The only way to detect their existence would be to actually open them.
+      But this involves a network request, so it may take some time,
+      and should be done asynchronously (see @link(TCastleDownload)).
+
+      If you really want to check the file existence, you can always
+      try to open it by @link(Download):
+
+      @longCode(#
+      try
+        Stream := Download(URL);
+        FreeAndNil(Stream);
+        ItExists := true;
+      except
+        on E: Exception do
+        begin
+          WritelnLog('Opening URL %s failed with exception %s', [
+            URICaption(URL),
+            ExceptMessage(E)
+          ]);
+          ItExists := false;
+        end;
+      end;
+      #)
+
+      Depending on the circumstances, the "ueUnknown" can be sometimes interpreted
+      as "it exists" and sometimes as "it doesn't exist".
+      Opening it with @link(Download) may either fail or succeed, we cannot detect.
+    }
+    ueUnknown
+  );
+
+{ Does a file or directory exist under this URL.
+  See TURIExists for possible return values. }
+function URIExists(URL: string): TURIExists;
 
 { Current working directory of the application, expressed as URL,
   including always final slash at the end. }
@@ -254,10 +335,26 @@ function URICurrentPath: string;
 { If this is castle-data:... URL, resolve it using ApplicationData. }
 function ResolveCastleDataURL(const URL: String): String;
 
+{ If this URL indicates something inside the CGE data directory
+  ( https://castle-engine.io/manual_data_directory.php ),
+  then return URL relative to this data directory.
+  E.g. for "castle-data:/foo/bar.txt" it returns "foo/bar.txt".
+
+  It accepts any URL, relative (to the current working directory)
+  or absolute (with any protocol).
+  It works when the URL starts with castle-data:/ protocol,
+  it works when the URL starts with other (like file:/) protocol
+  that still points to a file inside data.
+
+  If the URL does not point to a file in data, it is returned untouched. }
+function RelativeToCastleDataURL(const URL: String; out WasInsideData: Boolean): String;
+
 implementation
 
 uses SysUtils, URIParser,
-  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils;
+  CastleUtils, CastleDataURI, CastleLog, CastleFilesUtils,
+  CastleInternalDirectoryInformation
+  {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
@@ -344,8 +441,10 @@ function RawURIDecode(const S: string): string;
         Exit(false);
       end;
 
-      Byte(DecodedChar) := (HexDigit(S[Position + 1]) shl 4) or
-                            HexDigit(S[Position + 2]);
+      DecodedChar := Chr(
+        (HexDigit(S[Position + 1]) shl 4) or
+         HexDigit(S[Position + 2])
+      );
     end;
   end;
 
@@ -458,11 +557,13 @@ begin
 end;
 
 function CombineURI(const Base, Relative: string): string;
-var
-  RelativeProtocol: string;
+// var
+//   RelativeProtocol: string;
 begin
   { Test for some special protocols first, that may have whitespace before
     the protocol name. }
+  { This is not necessary anymore -- check below for URIProtocol(Relative) <> ''
+    will handle this case anyway.
   RelativeProtocol := URIProtocol(Relative);
   if (RelativeProtocol = 'ecmascript') or
      (RelativeProtocol = 'javascript') or
@@ -470,12 +571,20 @@ begin
      (RelativeProtocol = 'kambiscript') or
      (RelativeProtocol = 'compiled') then
     Exit(Relative);
+  }
 
   { When Base is like 'castle-data:/CastleSettings.xml'
     and Relative is like '../gfx/font.ttf',
     you need to resolve the Base to use the file:/ protocol. }
   if (URIProtocol(Base) = 'castle-data') and IsPrefix('../', Relative) then
     Exit(CombineURI(ResolveCastleDataURL(Base), Relative));
+
+  { Relative is already an absolute URL, no point in doing anything,
+    in particular no point for doing AbsoluteURI(Base) below,
+    which could fail on NX in case Base='', calling ExpandFileName
+    is not allowed on NX. }
+  if URIProtocol(Relative) <> '' then
+    Exit(Relative);
 
   try
     if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
@@ -512,7 +621,7 @@ end;
 
 function URIToFilenameSafe(const URI: string): string;
 var
-  P: string;
+  P, CastleDataResolved: string;
 begin
   { Use our URIProtocol instead of depending that URIToFilename will detect
     empty protocol case correctly. This allows to handle Windows absolute
@@ -537,8 +646,14 @@ begin
     end;
   end else
   if P = 'castle-data' then
-    Result := URIToFilenameSafe(ResolveCastleDataURL(URI))
-  else
+  begin
+    CastleDataResolved := ResolveCastleDataURL(URI);
+    if URIProtocol(CastleDataResolved) = 'castle-data' then
+      raise EInternalError.CreateFmt('ResolveCastleDataURL cannot return URL with castle-data protocol. This probably indicates that ApplicationDataOverride (%s) contains castle-data protocol, which it should not.', [
+        ApplicationDataOverride
+      ]);
+    Result := URIToFilenameSafe(CastleDataResolved);
+  end else
     Result := '';
 end;
 
@@ -587,7 +702,6 @@ const
       Inc(P);
     end;
   end;
-
 
 var
   I: Integer;
@@ -784,6 +898,8 @@ begin
      (P = 'ftp') or
      (P = 'https') or
      (P = 'assets') or
+     (P = 'castle-nx-save') or
+     (P = 'castle-nx-contents') or
      (P = 'castle-android-assets') or
      (P = 'castle-data') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
@@ -893,12 +1009,121 @@ begin
   Result := ExtractFilePath(URL);
 end;
 
-function URIFileExists(const URL: string): boolean;
+function URIIncludeSlash(const URL: String): String;
 var
-  F: string;
+  L: Integer;
 begin
-  F := URIToFilenameSafe(URL);
-  Result := (F = '') or FileExists(F);
+  if URL = '' then
+    Exit('');
+
+  L := Length(URL);
+  case URL[L] of
+    '/': Result := URL; // nothing needs to be done
+    '\': Result := Copy(URL, 1, L - 1) + '/';
+    else Result := URL + '/';
+  end;
+end;
+
+function URIExcludeSlash(const URL: String): String;
+var
+  L: Integer;
+begin
+  L := Length(URL);
+  if (L <> 0) and (URL[L] in ['/', '\']) then
+    Result := Copy(URL, 1, L - 1)
+  else
+    Result := URL;
+end;
+
+function URIFileExists(const URL: string): Boolean;
+begin
+  Result := URIExists(URL) in [ueFile, ueUnknown];
+end;
+
+function URIExists(URL: string): TURIExists;
+
+  // Detect existence of castle-data:/xxx URL using DataDirectoryInformation.
+  function UseDataDirectoryInformation(const URL: string): TURIExists;
+  var
+    U: TURI;
+    URLPath: String;
+    PathEntry: TDirectoryInformation.TEntry;
+  begin
+    U := ParseURI(URL);
+    URLPath := PrefixRemove('/', U.Path + U.Document, false);
+    PathEntry := DataDirectoryInformation.FindEntry(URLPath);
+    if PathEntry = nil then
+      Exit(ueNotExists)
+    else
+    if PathEntry is TDirectoryInformation.TDirectory then
+      Exit(ueDirectory)
+    else
+      Exit(ueFile);
+  end;
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  // Detect existence of castle-nx-contents or castle-nx-save URL using NX-specific function.
+  function UseNXExists(const URL: string): TURIExists;
+  begin
+    Result := NXFileExists(URL);
+  end;
+  {$endif CASTLE_NINTENDO_SWITCH}
+
+  // Detect existence of a filename using FileExists, DirectoryExists.
+  function UseFileDirectoryExists(const FileName: String): TURIExists;
+  var
+    F, D: Boolean;
+  begin
+    F := FileExists(FileName);
+    D := DirectoryExists(FileName);
+
+    { FileExists behaves inconsistently for directories.
+      On non-Windows, returns true.
+      On Windows, returns false.
+      See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
+      http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html
+      So check both, and if DirectoryExists then assume it's a directory
+      (regardless of FileExists result). }
+    if D then
+      Exit(ueDirectory)
+    else
+    if F then
+      Exit(ueFile)
+    else
+      Exit(ueNotExists);
+  end;
+
+var
+  P: String;
+begin
+  { data: URI is like a file, since you can call Download() on it }
+  if TDataURI.IsDataURI(URL) then
+    Exit(ueFile);
+
+  P := URIProtocol(URL);
+
+  if (P = 'castle-data') and
+     (DisableDataDirectoryInformation = 0) and
+     (DataDirectoryInformation <> nil) then
+    Exit(UseDataDirectoryInformation(URL));
+
+  { Resolve castle-data:/xxx now.
+    This way we can work in case we have castle-data:/xxx URL that resolves
+    to something handled below (like file:/xxx) but wasn't handled above
+    (e.g. because DataDirectoryInformation = nil). }
+  URL := ResolveCastleDataURL(URL);
+  P := URIProtocol(URL);
+
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  if (P = 'castle-nx-contents') or
+     (P = 'castle-nx-save') then
+    Exit(UseNXExists(URL));
+  {$endif CASTLE_NINTENDO_SWITCH}
+
+  if (P = '') or (P = 'file') then
+    Exit(UseFileDirectoryExists(URIToFilenameSafe(URL)));
+
+  Result := ueUnknown;
 end;
 
 function URICurrentPath: string;
@@ -914,6 +1139,20 @@ begin
     Result := URL;
 end;
 
+function RelativeToCastleDataURL(const Url: String; out WasInsideData: Boolean): String;
+var
+  FullUrl, DataUrl: String;
+begin
+  FullUrl := ResolveCastleDataURL(AbsoluteURI(Url));
+  DataUrl := ResolveCastleDataURL('castle-data:/');
+  WasInsideData := IsPrefix(DataUrl, FullUrl, true);
+  if WasInsideData then
+    Result := PrefixRemove(DataUrl, FullUrl, true)
+  else
+    Result := Url;
+end;
+
+initialization
 finalization
   FreeAndNil(FURIMimeExtensions);
 end.

@@ -35,6 +35,10 @@
       add themselves to this list. }
     AffectedFields: TX3DFieldList;
 
+    { Ignore the send on fields that do not support lerp
+      (e.g. integer and boolean fields). }
+    IgnoreIfCannotLerp: Boolean;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -72,16 +76,18 @@
   TX3DField = class(TX3DFieldOrEvent)
   strict private
     FExposedEvents: array [boolean] of TX3DEvent;
-    FChangesAlways: TX3DChanges;
+    FChangeAlways: TX3DChange;
 
     // keep booleans together, to pack them together in memory
     FExposed: boolean;
     FValueFromIsClause: boolean;
     FExposedEventsLinked: boolean;
+    FResetValue: TX3DField;
 
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
+    function AbortAssignValue(const Source: TX3DField): Boolean;
   private
     type
       { Tracking of fading-in/out animation state on this particular field. }
@@ -94,7 +100,7 @@
           So e.g. sending two values, one with TPartialSend.Partial = 0.3,
           one with TPartialSend.Partial = 0.7, sets TPartialReceived.Partial = 1.0.
 
-          At the end, PartialValue will be mixed (lerp) with SettledValue,
+          At the end, PartialValue will be mixed (lerp) with FResetValue,
           to produce final Value.
           This way animation blending works in various cases:
           - New animations fades-in, old animation fades-out
@@ -109,10 +115,7 @@
         { Accumulated (this frame) partial values. }
         PartialValue: TX3DField;
 
-        { Last known value when animation blending did not occur. }
-        SettledValue: TX3DField;
-
-        { Should the PartialValue, SettledValue be used to determine
+        { Should the PartialValue, FResetValue be used to determine
           field value this frame.
 
           Why do we need this?
@@ -135,7 +138,7 @@
             Otherwise, the field value would be set immediately to the 1st pose
             of new animation, disregarding smooth animation blending.
 
-            Testcase: examples/play_animation/ , switch to sample 3D,
+            Testcase: examples/animations/play_animation/ , switch to sample 3D,
             increase transition = max, play "idle".
             When "Partial <> 0" is used instead of ToBeApplied,
             the 1st frame of "idle" quickly blinks at the beginning.
@@ -490,18 +493,13 @@
 
     { What always happens when the value of this field changes.
 
-      This is included in the @link(ExecuteChanges) method result. So instead of
-      using this property, you could always override @link(ExecuteChanges)
+      This is included in the @link(ExecuteChange) method result. So instead of
+      using this property, you could always override @link(ExecuteChange)
       method. But often it's easier to use the property.
 
-      By default this is an empty set. This is suitable for
-      things that aren't *directly* an actual content (but only an
-      intermediate value to change other stuff). This includes
-      all metadata fields and nodes, all fields in event utilities,
-      Script node, interpolators...
-
+      By default this is chNone.
       See TX3DChange for possible values. }
-    property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
+    property ChangeAlways: TX3DChange read FChangeAlways write FChangeAlways default chNone;
 
     { What happens when the value of this field changes.
       This is called, exactly once, by TCastleSceneCore.InternalChangedField
@@ -524,7 +522,7 @@
 
       So overridding this is closer to "do something when field value changes"
       than registering notification by @link(TX3DEvent.AddNotification EventOut.AddNotification). }
-    function ExecuteChanges: TX3DChanges; virtual;
+    function ExecuteChange: TX3DChange; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
@@ -563,7 +561,7 @@
       about the field value change (before TCastleSceneCore.InternalChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
-      Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
+      Inline.load or Inline.url changes), and let the TX3DField.ChangeAlways
       cause appropriate action on this change. }
     procedure AddNotification(const Notification: TX3DEventReceive);
     procedure RemoveNotification(const Notification: TX3DEventReceive);
@@ -574,6 +572,14 @@
     procedure InternalRemovePartial;
     { @exclude Internal property, needed by animation blending. }
     property InternalPartialSend: TPartialSend read FPartialSend write FPartialSend;
+    { @exclude Internal property, needed by animation code.
+      Saves the current field value,
+      to be used as "value when this field is not animated". }
+    procedure InternalSaveResetValue;
+    { @exclude Internal property, needed by animation code.
+      Restore the field value last saved by InternalSaveResetValue.
+      Call it only if you previously called InternalSaveResetValue on this instance. }
+    procedure InternalRestoreSaveValue;
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
@@ -623,7 +629,6 @@ end;
 
 destructor TX3DField.TPartialReceived.Destroy;
 begin
-  FreeAndNil(SettledValue);
   FreeAndNil(PartialValue);
   inherited;
 end;
@@ -653,6 +658,7 @@ begin
   FreeAndNil(FExposedEvents[true]);
   // FreeAndNil(FPartialSend); // do not free this, TCastleSceneCore frees it
   FreeAndNil(PartialReceived);
+  FreeAndNil(FResetValue);
   inherited;
 end;
 
@@ -671,6 +677,14 @@ begin
   Result := FExposedEvents[false];
 end;
 
+function TX3DField.AbortAssignValue(const Source: TX3DField): Boolean;
+begin
+  Result :=
+    (Source.InternalPartialSend <> nil) and
+    Source.InternalPartialSend.IgnoreIfCannotLerp and
+    (not CanAssignLerp);
+end;
+
 procedure TX3DField.ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
@@ -679,6 +693,8 @@ begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ExposedEventsFieldClass);
+
+  if AbortAssignValue(Value) then Exit;
 
   { When not ValuePossiblyChanged, we don't have to call InternalChangedField.
     (Although we still have to call FExposedEvents[false].Send,
@@ -715,9 +731,9 @@ begin
   end;
 end;
 
-function TX3DField.ExecuteChanges: TX3DChanges;
+function TX3DField.ExecuteChange: TX3DChange;
 begin
-  Result := ChangesAlways;
+  Result := ChangeAlways;
 end;
 
 function TX3DField.SendsByEvent: boolean;
@@ -737,9 +753,12 @@ begin
     EventIn.Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
   end else
   begin
+    if AbortAssignValue(Value) then Exit;
+
     ValuePossiblyChanged := not FastEqualsValue(Value);
     { Call AssignValue regardless of ValuePossiblyChanged.
-      Reason: AssignValue also removes "IS" clause. }
+      Reason: AssignValue also removes "IS" clause.
+      Also it applies partial result info (in case of animation blending). }
     AssignValue(Value);
     if ValuePossiblyChanged then Changed;
   end;
@@ -847,7 +866,9 @@ begin
         if SaveToXml = sxAttribute then
           Writer.Write('"');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DField.FieldSaveToStream Encoding?');
+    {$endif}
   end;
 end;
 
@@ -1001,9 +1022,18 @@ procedure TX3DField.AssignValue(Source: TX3DField);
     if PartialReceived = nil then
     begin
       PartialReceived := TPartialReceived.Create;
-      { when PartialReceived is created, initialize SettledValue by copying Self }
-      PartialReceived.SettledValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
-      PartialReceived.SettledValue.AssignValue(Self);
+      if FResetValue = nil then
+      begin
+        WritelnWarning('Initializing field "%s" reset value when the animation starts. It is more reliable to set TimeSensor.detectAffectedFields to TRUE to have animation blending (cross-fading) working perfectly.', [NiceName]);
+        { The reason why this is not advised:
+          - The 1st frame of new animation is possibly already applied when this is called.
+            That's because TCastleSceneCore may call HandleChangeTimeStopStart
+            (cause by TTimeSensorNode.Start) before this is called (from Update, between
+            PartialSendBegin and PartialSendEnd).
+          - Also it's not optimal, since we do it in the middle of the game, instead of at loading.
+        }
+        InternalSaveResetValue;
+      end;
     end;
 
     { update PartialReceived.PartialValue, by lerp with weights
@@ -1013,7 +1043,7 @@ procedure TX3DField.AssignValue(Source: TX3DField);
     if PartialReceived.PartialValue = nil then
     begin
       PartialReceived.PartialValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
-      { For the first assignment, it's faster to use AssignValue then AssignLerp.
+      { For the first assignment, it's faster to use AssignValue than AssignLerp.
         Also, AssignLerp expects MF fields to have correct counts. }
       PartialReceived.PartialValue.AssignValue(Source);
     end else
@@ -1055,7 +1085,13 @@ begin
 
   if (PartialReceived <> nil) and PartialReceived.ToBeApplied then
   begin
-    AssignLerp(PartialReceived.Partial, PartialReceived.SettledValue, PartialReceived.PartialValue);
+    if PartialReceived.Partial > 1.01 then
+      WritelnWarning('During animation blending, the partials sum in > 1: %f on field %s', [
+        PartialReceived.Partial,
+        NiceName
+      ]);
+    Assert(FResetValue <> nil);
+    AssignLerp(PartialReceived.Partial, FResetValue, PartialReceived.PartialValue);
     PartialReceived.Partial := 0;
     FreeAndNil(PartialReceived.PartialValue);
     Assert(not PartialReceived.ToBeApplied); // we have destroyed PartialReceived.PartialValue
@@ -1068,9 +1104,24 @@ procedure TX3DField.InternalRemovePartial;
 begin
   { Field is no longer affected by faded-in/out animation.
     Next time it *will* become affected,
-    PartialReceived and in particular PartialReceived.SettledValue
-    will be initialized again. }
+    PartialReceived will be initialized again. }
   FreeAndNil(PartialReceived);
+end;
+
+procedure TX3DField.InternalSaveResetValue;
+begin
+  FreeAndNil(FResetValue);
+
+  FResetValue := TX3DFieldClass(ClassType).CreateUndefined(nil, false, '');
+  FResetValue.AssignValue(Self);
+end;
+
+procedure TX3DField.InternalRestoreSaveValue;
+begin
+  Assert(FResetValue <> nil);
+  // TODO: maybe this should be Send(FResetValue);
+  AssignValue(FResetValue);
+  Changed;
 end;
 
 procedure TX3DField.AssignDefaultValueFromValue;

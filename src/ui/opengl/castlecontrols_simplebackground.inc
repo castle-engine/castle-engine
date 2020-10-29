@@ -19,14 +19,10 @@
   { Fill the whole window with a simple color.
     This is very fast, but it unconditionally clears the whole window,
     and there is no blending (if your @link(Color) has some alpha, it is
-    just copied to the color buffer). To clear the rectangle with a color,
-    with optional blending, use @link(TCastleRectangleControl) instead.
+    just copied to the color buffer).
 
-    Note that @link(TCastleSceneManager) clears the background under itself
-    by default. See TCastleSceneManager.Transparent,
-    TCastleSceneManager.BackgroundColor .
-    So if you use @link(TCastleSceneManager) that fills the whole screen,
-    then there's no need to use this control. }
+    To clear the rectangle with a color,
+    with optional blending, use @link(TCastleRectangleControl) instead. }
   TCastleSimpleBackground = class(TCastleUserInterface)
   strict private
     FColor: TCastleColor;

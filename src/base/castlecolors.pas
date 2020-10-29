@@ -52,6 +52,7 @@ const
   { @groupEnd }
 
   { Additional color constants. } { }
+  LightRed  : TCastleColor = (Data: ( 1.0 , 0.33, 0.33, 1.0));
   LightGreen: TCastleColor = (Data: ( 0.33, 1.0 , 0.33, 1.0));
   LightBlue : TCastleColor = (Data: ( 0.33, 0.33, 1.0 , 1.0));
 

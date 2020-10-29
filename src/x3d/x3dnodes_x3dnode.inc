@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TX3DNode class. Huge class, the basic building block of VRML nodes. }
+{ TX3DNode class. Huge class, the basic building block of X3D nodes. }
 
 {$ifdef read_interface}
 
@@ -41,6 +41,18 @@
   IX3DNode = interface
   ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
   end;
+
+  { Simple component system inside TX3DNode.
+    See @link(TX3DNode.Functionality). }
+  TNodeFunctionality = class
+  strict private
+    FParent: TX3DNode;
+  public
+    constructor Create(const AParent: TX3DNode);
+    property Parent: TX3DNode read FParent;
+  end;
+
+  TNodeFunctionalityClass = class of TNodeFunctionality;
 
   { X3D node. Every VRML/X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem, IX3DNode)
@@ -265,6 +277,10 @@
 
       This should be set in descendants constructor. }
     property CDataField: TMFString read FCDataField write FCDataField;
+
+    { React when this node is processed as an immediate child of a grouping node,
+      within grouping node's BeforeTraverse. }
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); virtual;
   public
     { Node fields.
 
@@ -299,16 +315,22 @@
     { @groupEnd }
 
     { Search by name for given field.
-      @nil if not found. }
-    function Field(const AName: string): TX3DField;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function Field(const AName: string; const RaiseOnError: Boolean = false): TX3DField;
 
     { Search by name for given field or event (exposed by some field or not).
-      @nil if not found. }
-    function FieldOrEvent(const AName: string): TX3DFieldOrEvent;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function FieldOrEvent(const AName: string; const RaiseOnError: Boolean = false): TX3DFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
-      @nil if not found. }
-    function AnyEvent(const AName: string): TX3DEvent;
+      When RaiseOnError=false (default) returns @nil when not found.
+      When RaiseOnError=true raises EX3DNotFound when not found.
+      @raises EX3DNotFound }
+    function AnyEvent(const AName: string; const RaiseOnError: Boolean = false): TX3DEvent;
 
     { VRML 1.0 children nodes. These are nodes directly specified inside
       a VRML 1.0 node, they don't belong to any node field. (In VRML 1.0,
@@ -691,8 +713,15 @@
     function TryFindNode(FindClass: TX3DNodeClass;
       OnlyActive: boolean): TX3DNode;
     function FindNode(FindClass: TX3DNodeClass;
-      OnlyActive: boolean): TX3DNode;
+      OnlyActive: boolean): TX3DNode; overload;
     { @groupEnd }
+
+    { Find a node by name, in this node and children (recursively).
+      Searches both active and inactive graph parts.
+      This is a simpler way to call FindNodeByName,
+      and it is consistent with @link(TCastleSceneCore.Node) method.
+      @raises EX3DNotFound When node is not found. }
+    function FindNode(const FindName: string): TX3DNode; overload;
 
     { Find the first node with given class (NodeClass),
       return it's state or just transformation.
@@ -843,6 +872,7 @@
     property Routes [Index: Integer]: TX3DRoute read GetRoutes;
     function RoutesCount: Integer;
     procedure AddRoute(const Value: TX3DRoute);
+    procedure AddRoute(const Source, Destination: TX3DFieldOrEvent);
 
     property ImportsList [Index: Integer]: TX3DImport read GetImports;
     function ImportsCount: Integer;
@@ -928,14 +958,6 @@
     property PrototypeInstanceHelpers: TX3DNode read FPrototypeInstanceHelpers;
     { @groupEnd }
 
-    { Does this node matches the given URN. This is used when searching for an built-in
-      implementation of a node declared in X3D using the EXTERNPROTO.
-
-      Implementors note: in this class, this returns @false.
-      You can use constants like @link(URNVRML97Nodes) and functions like
-      @link(URNMatchingCastle) to implement this easily. }
-    class function URNMatching(const URN: string): boolean; virtual;
-
     { Default value of "containerField" attribute for this node in X3D XML
       encoding. }
     property DefaultContainerField: string
@@ -1005,7 +1027,6 @@
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); virtual;
 
     { Add to node InterfaceDeclarations given field.
-      Sets the field's exposed to given Exposed parameter, for comfort.
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(AField: TX3DField);
@@ -1060,6 +1081,22 @@
       )
     }
     procedure UnregisterScene;
+
+    { Find field set by given event of this node.
+      @nil if not found (including when this Event doesn't actually belong to this node). }
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; virtual;
+
+    { Find field that sends given event of this node.
+      @nil if not found (including when this Event doesn't actually belong to this node). }
+    function FieldSendingEvent(const Event: TX3DEvent): TX3DField; virtual;
+
+    { Return an instance performing given functionality of this class
+      (like a fog, transformation, material...), or @nil if none.
+      This implements a simple component system inside TX3DNode,
+      allowing some functionality to have common interface and implementation
+      across a few nodes that are not otherwise related in the ancestor hierarchy. }
+    function Functionality(
+      const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; virtual;
   end;
 
   TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
@@ -1119,6 +1156,14 @@ begin
     Result := OriginalNode.DeepCopyCore(Self);
   end else
     Result := New[I];
+end;
+
+{ TNodeFunctionality --------------------------------------------------------- }
+
+constructor TNodeFunctionality.Create(const AParent: TX3DNode);
+begin
+  inherited Create;
+  FParent := AParent;
 end;
 
 { TX3DNode ------------------------------------------------------------------ }
@@ -1633,7 +1678,8 @@ begin
     (that's a general convention used internally by Blender, AFAIK).
     Here we simply remove this "//". }
   if BlenderRelativePath(RelativePath) then
-    Result := CombineURI(BaseUrl, SEnding(RelativePath, 3)) else
+    Result := CombineURI(BaseUrl, SEnding(RelativePath, 3))
+  else
     Result := CombineURI(BaseUrl, RelativePath);
 end;
 
@@ -1668,8 +1714,7 @@ begin
       end else
       begin
         raise EX3DParserError.Create(Lexer,
-          Format('Invalid VRML node content (probably unknown or not allowed' +
-            ' field, prototype or VRML 1.0-style children) inside "%s": got %s',
+          Format('Invalid X3D node content (probably unknown or not allowed field, prototype or VRML 1.0-style children) inside "%s": got %s',
             [X3DType, Lexer.DescribeToken]));
       end;
     end;
@@ -1910,7 +1955,7 @@ var
         Fields[Index].PositionInParent := Position;
         Inc(Position);
       end else
-        WritelnWarning('VRML/X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.NodeName8 + '" in node "' + X3DType + '"');
+        WritelnWarning('X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.NodeName8 + '" in node "' + X3DType + '"');
     end;
   end;
 
@@ -1985,7 +2030,7 @@ var
             end else
             begin
               FreeAndNil(IDecl);
-              WritelnWarning('VRML/X3D', 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
+              WritelnWarning('X3D', 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
             end;
           except
             FreeAndNil(IDecl);
@@ -2007,7 +2052,7 @@ var
                 and is different than current ContainerField. }
               FieldIndex := IndexOfField(Child.DefaultContainerField);
               if FieldIndex >= 0 then
-                WritelnWarning('VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeeded');
+                WritelnWarning('X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeeded');
             end;
 
             if FieldIndex >= 0 then
@@ -2017,7 +2062,7 @@ var
                 SF := Fields[FieldIndex] as TSFNode;
 
                 if SF.Value <> nil then
-                  WritelnWarning('VRML/X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
+                  WritelnWarning('X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
 
                 { Although field doesn't have a set position in XML X3D
                   encoding, when saving later in classic encoding we
@@ -2047,9 +2092,9 @@ var
                 MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else
-                WritelnWarning('VRML/X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                WritelnWarning('X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
             end else
-              WritelnWarning('VRML/X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"');
+              WritelnWarning('X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"');
           finally
             { Any WritelnWarning above makes the Child unused.
               Note that WritelnWarning may, but doesn't have, raise an exception. }
@@ -2085,7 +2130,7 @@ var
     if CDataExists then
       if CDataField <> nil then
         CDataField.Items.Add(CData) else
-        WritelnWarning('VRML/X3D', Format('VRML/X3D node %s doesn''t allow CDATA section, but it''s specified',
+        WritelnWarning('X3D', Format('X3D node %s doesn''t allow CDATA section, but it''s specified',
           [X3DType]));
   end;
 
@@ -2295,9 +2340,14 @@ function TX3DNode.FindNodeByName(
   FindClass: TX3DNodeClass; const FindName: string;
   OnlyActive: boolean): TX3DNode;
 begin
-  result := TryFindNodeByName(FindClass, FindName, OnlyActive);
+  Result := TryFindNodeByName(FindClass, FindName, OnlyActive);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Node name "%s" not found', [FindName]);
+end;
+
+function TX3DNode.FindNode(const FindName: string): TX3DNode;
+begin
+  Result := FindNodeByName(TX3DNode, FindName, false);
 end;
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
@@ -2350,8 +2400,8 @@ var
 begin
   Res := TTryFindNodeTransformResult.Create;
   Res.Node := ANode;
-  Res.Transform := StateStack.Top.Transform;
-  Res.TransformScale := StateStack.Top.TransformScale;
+  Res.Transform := StateStack.Top.Transformation.Transform;
+  Res.TransformScale := StateStack.Top.Transformation.Scale;
   Result := Res;
 end;
 
@@ -2600,7 +2650,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
   begin
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
-      Writer.WriteIndent('USE ' + X3DName);
+      Writer.WriteIndent('USE ' + EncodeX3DName(X3DName));
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2608,7 +2658,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       CollectIsClauses(NodeFields, ProtoFields);
       try
         Writer.WriteIndent('');
-        if X3DName <> '' then Writer.Write('DEF ' + X3DName + ' ');
+        if X3DName <> '' then Writer.Write('DEF ' + EncodeX3DName(X3DName) + ' ');
         Writer.Writeln(X3DType +' {');
 
         Writer.IncIndent;
@@ -2659,7 +2709,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent(Format('<%s USE=%s%s />',
-        [ElementName, StringToX3DXml(X3DName), WriteContainerField]));
+        [ElementName, StringToX3DXml(EncodeX3DName(X3DName)), WriteContainerField]));
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2669,7 +2719,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
         Writer.WriteIndent('<' + ElementName);
         if ProtoInstance then
           Writer.Write(' name=' + StringToX3DXml(X3DType));
-        if X3DName <> '' then Writer.Write(' DEF=' +StringToX3DXml(X3DName));
+        if X3DName <> '' then Writer.Write(' DEF=' +StringToX3DXml(EncodeX3DName(X3DName)));
         Writer.Write(WriteContainerField);
 
         HasContent := false;
@@ -2686,6 +2736,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
                   HasContent := true else
                   FileItems[I].SaveToStream(Writer);
               sxChildElement: HasContent := true;
+              else ;
             end;
           Writer.DecIndent;
 
@@ -2784,7 +2835,9 @@ begin
   case Writer.Encoding of
     xeClassic: Classic;
     xeXML    : Xml;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DNode.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 
@@ -2934,22 +2987,22 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-class function TX3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := false;
-end;
-
-function TX3DNode.Field(const AName: string): TX3DField;
+function TX3DNode.Field(const AName: string; const RaiseOnError: Boolean): TX3DField;
 var
   I: Integer;
 begin
   I := FFields.IndexOfName(AName);
   if I <> -1 then
-    Result := FFields[I] else
-    Result := nil; { not found }
+    Result := FFields[I]
+  else
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find field "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
-function TX3DNode.FieldOrEvent(const AName: string): TX3DFieldOrEvent;
+function TX3DNode.FieldOrEvent(const AName: string; const RaiseOnError: Boolean): TX3DFieldOrEvent;
 var
   I: Integer;
   ResultEvent: TX3DEvent;
@@ -2973,10 +3026,14 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
-  Result := nil; { not found }
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find field or event "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
-function TX3DNode.AnyEvent(const AName: string): TX3DEvent;
+function TX3DNode.AnyEvent(const AName: string; const RaiseOnError: Boolean): TX3DEvent;
 var
   I: Integer;
 begin
@@ -2988,7 +3045,11 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
-  Result := nil; { not found }
+  { not found }
+  if RaiseOnError then
+    raise EX3DNotFound.CreateFmt('Cannot find event "%s" on node "%s"', [AName, NiceName])
+  else
+    Result := nil;
 end;
 
 procedure TX3DNode.SetHasInterfaceDeclarations(const Value: TX3DAccessTypes);
@@ -3167,6 +3228,7 @@ begin
   IDecl := TX3DInterfaceDeclaration.Create(Self);
   IDecl.FieldOrEvent := AFieldOrEvent;
   AFieldOrEvent.ParentInterfaceDeclaration := IDecl;
+  AFieldOrEvent.ParentNode := Self;
   InterfaceDeclarations.Add(IDecl);
   PostAddInterfaceDeclaration(IDecl);
 end;
@@ -3286,6 +3348,16 @@ begin
   FRoutes.Add(Value);
 end;
 
+procedure TX3DNode.AddRoute(const Source, Destination: TX3DFieldOrEvent);
+var
+  Route: TX3DRoute;
+begin
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(Source);
+  Route.SetDestinationDirectly(Destination);
+  AddRoute(Route);
+end;
+
 function TX3DNode.GetImports(const Index: Integer): TX3DImport;
 begin
   if FImports = nil then
@@ -3338,6 +3410,44 @@ end;
 procedure TX3DNode.UnregisterScene;
 begin
   EnumerateNodes(TX3DNode, {$ifdef CASTLE_OBJFPC}@{$endif} UnregisterSceneCallback, false);
+end;
+
+function TX3DNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+var
+  F: TX3DField;
+  I: Integer;
+begin
+  for I := 0 to FieldsCount - 1 do
+  begin
+    F := Fields[I];
+    if F.EventIn = Event then
+      Exit(F);
+  end;
+  Result := nil;
+end;
+
+function TX3DNode.FieldSendingEvent(const Event: TX3DEvent): TX3DField;
+var
+  F: TX3DField;
+  I: Integer;
+begin
+  for I := 0 to FieldsCount - 1 do
+  begin
+    F := Fields[I];
+    if F.EventOut = Event then
+      Exit(F);
+  end;
+  Result := nil;
+end;
+
+function TX3DNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
+  Result := nil;
+end;
+
+procedure TX3DNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

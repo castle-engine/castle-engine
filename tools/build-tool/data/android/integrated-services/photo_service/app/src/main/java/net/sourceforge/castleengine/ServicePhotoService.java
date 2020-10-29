@@ -1,4 +1,20 @@
 /* -*- tab-width: 4 -*- */
+
+/*
+  Copyright 2018-2020 Michalis Kamburelis, Jan Adamec.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+*/
+
 package net.sourceforge.castleengine;
 
 import android.content.Intent;
@@ -60,7 +76,7 @@ public class ServicePhotoService extends ServiceAbstract
                 Toast.makeText(getActivity(), "Image saved", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
-                logWarning(CATEGORY, "Error writing screenshot", e);
+                logWarning(CATEGORY, "Error writing screenshot: " + e.toString());
             }
 
             return true;

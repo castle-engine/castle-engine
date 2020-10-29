@@ -34,7 +34,7 @@ published
     instead read or write @link(FrameColor) directly.
 
     @seealso FrameColor }
-  property FrameColorPersistent: TCastleColorPersistent read FFrameColorPersistent;
+  property FrameColorPersistent: TCastleColorPersistent read FFrameColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

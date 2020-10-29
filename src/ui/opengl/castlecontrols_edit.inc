@@ -44,6 +44,7 @@
     FPlaceholder: String;
     FOnChange: TNotifyEvent;
     FPasswordChar: Char;
+    FTextTranslate, FPlaceholderTranslate: Boolean;
     procedure SetText(const Value: string);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
@@ -61,6 +62,7 @@
     function GetInternalText: String; override;
     procedure SetInternalText(const Value: String); override;
     procedure DoChange; virtual;
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -153,6 +155,16 @@
     property PasswordChar: Char
       read FPasswordChar write SetPasswordChar default #0;
 
+    { Should the @link(Text) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property TextTranslate: Boolean read FTextTranslate write FTextTranslate default true;
+
+    { Should the @link(Placeholder) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property PlaceholderTranslate: Boolean read FPlaceholderTranslate write FPlaceholderTranslate default true;
+
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
   {$undef read_interface_class}
@@ -175,6 +187,8 @@
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
+    property TextTranslate default false;
+
     property Value: Single read GetValue write SetValue default 0;
     { Minimum and maximum limits.
       Applied only if Min <= Max, which is not the case by default. }
@@ -205,6 +219,8 @@
   published
     { In case of this descendant, Text is always derived from Value. }
     property Text stored false;
+    property TextTranslate default false;
+
     property Value: Int64 read GetValue write SetValue default 0;
     { Minimum and maximum limits.
       Applied only if Min <= Max, which is not the case by default. }
@@ -235,6 +251,8 @@ begin
   FAutoOnScreenKeyboard := DefaultAutoOnScreenKeyboard;
   Scissor := TScissor.Create;
   FAutoSizeHeight := true;
+  FTextTranslate := true;
+  FPlaceholderTranslate := true;
 
   {$define read_implementation_constructor}
   {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
@@ -345,7 +363,7 @@ procedure TCastleEdit.PreferredSize(var PreferredWidth, PreferredHeight: Single)
 var
   PaddingVerticalScaled, HeightScaled: Single;
   US: Single;
-  FrameCorners: TVector4Integer;
+  FrameCorners: TVector4;
 begin
   inherited;
 
@@ -399,7 +417,7 @@ var
   SR, RectInside: TFloatRectangle;
   PaddingHorizontalScaled, PaddingVerticalScaled: Single;
   US, TextLeft, TextBottom: Single;
-  FrameCorners: TVector4Integer;
+  FrameCorners: TVector4;
   CaretVisible: boolean;
   S: string;
   Color: TCastleColor;
@@ -496,7 +514,7 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
+  if Event.IsKey(CharBackSpace) or Event.IsKey(keyBackSpace) then
   begin
     if Text <> '' then
     begin
@@ -587,6 +605,26 @@ begin
   Text := Value;
 end;
 
+procedure TCastleEdit.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+var
+  S: String;
+begin
+  if TextTranslate and (Text <> '') then
+  begin
+    S := Text;
+    TranslatePropertyEvent(Self, 'Text', S);
+    Text := S;
+  end;
+
+  if PlaceholderTranslate and (Placeholder <> '') then
+  begin
+    S := Placeholder;
+    TranslatePropertyEvent(Self, 'Placeholder', S);
+    Placeholder := S;
+  end;
+end;
+
 {$define read_implementation_methods}
 {$I auto_generated_persistent_vectors/tcastleedit_persistent_vectors.inc}
 {$undef read_implementation_methods}
@@ -596,6 +634,7 @@ end;
 constructor TCastleFloatEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  TextTranslate := false;
   FMin := 1;
   FMax := 0;
   Assert(not (Min <= Max)); // deliberately, so that limits do not work by default
@@ -625,7 +664,7 @@ end;
 
 function TCastleFloatEdit.GetValue: Single;
 begin
-  Result := StrToFloatDef(Text, 0);
+  Result := StrToFloatDefDot(Text, 0);
   if Min <= Max then
     ClampVar(Result, Min, Max);
 end;
@@ -633,8 +672,9 @@ end;
 procedure TCastleFloatEdit.SetValue(const AValue: Single);
 begin
   if DecimalDigits < 0 then
-    Text := FloatToStr(AValue)
+    Text := FloatToStrDot(AValue)
   else
+    // TODO Add FloatToStrFDot, use it
     Text := FloatToStrF(AValue, ffFixed, 0 { Precision doesn't matter }, DecimalDigits);
 end;
 
@@ -653,6 +693,7 @@ end;
 constructor TCastleIntegerEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  TextTranslate := false;
   FMin := 1;
   FMax := 0;
   Assert(not (Min <= Max)); // deliberately, so that limits do not work by default

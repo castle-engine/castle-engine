@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
     function GetScale: TVector3;
@@ -42,7 +42,7 @@
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "scale". } { }
@@ -68,12 +68,12 @@ begin
   FdCenter.Send(Value);
 end;
 
-function TCADPartNode.GetNameField: string;
+function TCADPartNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure TCADPartNode.SetNameField(const Value: string);
+procedure TCADPartNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;

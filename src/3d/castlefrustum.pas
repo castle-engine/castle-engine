@@ -218,6 +218,13 @@ type
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
     function Transform(const M: TMatrix4): TFrustum;
 
+    { Transform frustum by a matrix, given inverse transformation.
+
+      This is faster than @link(Transform), so prefer using this if you have
+      an inverse matrix ready.
+      See CGE tests (tests/code/testcastlefrustum.pas) for speed testing code. }
+    function TransformByInverse(const MInverse: TMatrix4): TFrustum;
+
     function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
     function ToString(const Indent: string): string;
   end;
@@ -502,6 +509,7 @@ begin
     case Box.PlaneCollision(Planes[fp]) of
       pcInside: Exit(fcNoCollision);
       pcOutside: Inc(InsidePlanesCount);
+      else ;
     end;
   end;
 
@@ -598,6 +606,27 @@ begin
   end else
     for I := Low(I) to High(I) do
       Result.Planes[I] := PlaneTransform(Planes[I], M);
+
+  Result.ZFarInfinity := ZFarInfinity;
+end;
+
+function TFrustum.TransformByInverse(const MInverse: TMatrix4): TFrustum;
+var
+  I: TFrustumPlane;
+begin
+  if ZFarInfinity then
+  begin
+    Assert(High(I) = fpFar);
+    { Multiply by transpose(inverse(M)) to transform plane.
+      This is faster than PlaneTransform since we only need to do one matrix
+      multiplication (in TransposeMultiply), while PlaneTransform needs two.
+      See https://stackoverflow.com/questions/7685495/transforming-a-3d-plane-using-a-4x4-matrix . }
+    for I := Low(I) to Pred(High(I)) do
+      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
+    Result.Planes[fpFar] := TVector4.Zero;
+  end else
+    for I := Low(I) to High(I) do
+      Result.Planes[I] := MInverse.TransposeMultiply(Planes[I]);
 
   Result.ZFarInfinity := ZFarInfinity;
 end;

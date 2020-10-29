@@ -5,12 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.NativeActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.content.pm.PackageManager;
+
+import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends NativeActivity
 {
@@ -123,9 +127,14 @@ public class MainActivity extends NativeActivity
      * Services (except ServiceMessaging) may call this
      * to send message to native code.
      */
-    public void messageSend(String[] s)
+    public void messageSend(String[] message, byte[] messageStream)
     {
-        messaging.sendFromMainActivity(s);
+        messaging.sendFromMainActivity(message, messageStream);
+    }
+
+    public void messageSend(String[] message)
+    {
+        messageSend(message, null);
     }
 
     /**
@@ -136,6 +145,12 @@ public class MainActivity extends NativeActivity
     {
         boolean result = false;
         boolean r;
+
+        // Check messages handled directly in this class
+        if (parts.length == 2 && parts[0].equals("permission-request")) {
+            requestPermission(parts[1]);
+            result = true;
+        }
 
         // Call messageReceived of all services.
         //
@@ -163,7 +178,7 @@ public class MainActivity extends NativeActivity
 
     /* JNI ------------------------------------------------------------------- */
 
-    public native String jniMessage(String javaToNative);
+    public native String jniMessage(String messageToPascal, byte[] messageToPascalStream);
 
     public static final void safeLoadLibrary(String libName)
     {
@@ -183,5 +198,53 @@ public class MainActivity extends NativeActivity
         ${ANDROID_ACTIVITY_LOAD_LIBRARIES}
 
         safeLoadLibrary("${ANDROID_LIBRARY_NAME}");
+    }
+
+    private static final int MY_PERMISSIONS_REQUEST = 1;
+
+    /* Requires Android permission name.
+
+       @param permission Can be one of the Manifest.permission constants,
+         like Manifest.permission.WRITE_EXTERNAL_STORAGE,
+         see https://developer.android.com/reference/android/Manifest.permission.html .
+         You can also just type a string like "android.permission.WRITE_EXTERNAL_STORAGE"
+         (this is useful when permission is not specified in Java code,
+         so it's easier to just provide a string value of it).
+
+       See
+       https://developer.android.com/training/permissions/requesting#java
+       https://developer.android.com/training/permissions/usage-notes
+
+       In response, will always (but maybe asynchronously) answer with
+       "permission-granted" or "permission-cancelled".
+    */
+    public void requestPermission(String permission)
+    {
+        if (ActivityCompat.checkSelfPermission(this, permission)
+          != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                new String[]{permission},
+                MY_PERMISSIONS_REQUEST);
+        } else {
+            messageSend(new String[]{"permission-granted", permission});
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+        String[] permissions, int[] grantResults)
+    {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    messageSend(new String[]{"permission-granted", permissions[0]});
+                } else {
+                    messageSend(new String[]{"permission-cancelled", permissions[0]});
+                }
+                return;
+            }
+        }
     }
 }

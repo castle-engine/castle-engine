@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetNormalizeVelocity: boolean;
-    procedure SetNormalizeVelocity(const Value: boolean);
+    function GetNormalizeVelocity: Boolean;
+    procedure SetNormalizeVelocity(const Value: Boolean);
   public
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector4);
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: TVector4List);
     { X3D field "normalizeVelocity". } { }
-    property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
+    property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdKeyValue.Send(Value);
 end;
 
-function TSquadOrientationInterpolatorNode.GetNormalizeVelocity: boolean;
+function TSquadOrientationInterpolatorNode.GetNormalizeVelocity: Boolean;
 begin
   Result := FdNormalizeVelocity.Value;
 end;
 
-procedure TSquadOrientationInterpolatorNode.SetNormalizeVelocity(const Value: boolean);
+procedure TSquadOrientationInterpolatorNode.SetNormalizeVelocity(const Value: Boolean);
 begin
   FdNormalizeVelocity.Send(Value);
 end;

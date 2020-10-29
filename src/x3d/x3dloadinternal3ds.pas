@@ -892,7 +892,7 @@ begin
   if VectorsParallel(D, StandardUp) then
     result := StandardUpAlt else
     result := StandardUp;
-  result := RotatePointAroundAxisDeg(Bank, result, D);
+  result := RotatePointAroundAxisRad(DegToRad(Bank), result, D);
 end;
 
 { TLights3ds --------------------------------------------------------------- }
@@ -998,16 +998,16 @@ var
     if they were unique in 3DS. }
 
   function MaterialVRMLName(const Mat3dsName: string): string;
-  begin Result := 'Material_' + ToX3DName(Mat3dsName) end;
+  begin Result := 'Material_' + Mat3dsName end;
 
   function TrimeshVRMLName(const Tri3dsName: string): string;
-  begin Result := 'Trimesh_' + ToX3DName(Tri3dsName) end;
+  begin Result := 'Trimesh_' + Tri3dsName end;
 
   function ViewpointVRMLName(const Camera3dsName: string): string;
-  begin Result := 'Camera_' + ToX3DName(Camera3dsName) end;
+  begin Result := 'Camera_' + Camera3dsName end;
 
   function LightVRMLName(const Light3dsName: string): string;
-  begin Result := 'Light_' + ToX3DName(Light3dsName) end;
+  begin Result := 'Light_' + Light3dsName end;
 
   procedure AddViewpoints;
   var
@@ -1082,7 +1082,7 @@ var
         if not TVector2.Equals(
             Material.TextureMap1.Scale,
             Material.TextureMapBump.Scale) then
-          WritelnWarning('VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
+          WritelnWarning('VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to X3D');
       end;
     end;
   end;

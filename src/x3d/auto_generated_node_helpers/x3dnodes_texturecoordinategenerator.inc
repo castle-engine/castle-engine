@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetMode: string;
-    procedure SetMode(const Value: string);
+    function GetMode: String;
+    procedure SetMode(const Value: String);
   public
     { X3D field "mode". } { }
-    property Mode: string read GetMode write SetMode;
+    property Mode: String read GetMode write SetMode;
     { Set X3D field "parameter". } { }
     procedure SetParameter(const Value: array of Single);
     { Set X3D field "parameter". } { }
@@ -42,12 +42,12 @@
 
 { TTextureCoordinateGeneratorNode ----------------------------------------------- }
 
-function TTextureCoordinateGeneratorNode.GetMode: string;
+function TTextureCoordinateGeneratorNode.GetMode: String;
 begin
   Result := FdMode.Value;
 end;
 
-procedure TTextureCoordinateGeneratorNode.SetMode(const Value: string);
+procedure TTextureCoordinateGeneratorNode.SetMode(const Value: String);
 begin
   FdMode.Send(Value);
 end;

@@ -9,7 +9,7 @@ object Main: TMain
   DesignTimePPI = 140
   OnCreate = FormCreate
   LCLVersion = '1.8.0.6'
-  object CastleControl2: TCastleControl
+  object CastleControl2: TCastleControlBase
     AnchorSideLeft.Control = CastleControl1
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = LabelFps2
@@ -22,7 +22,7 @@ object Main: TMain
     BorderSpacing.Bottom = 8
     TabOrder = 0
   end
-  object CastleControl1: TCastleControl
+  object CastleControl1: TCastleControlBase
     AnchorSideBottom.Control = LabelFps1
     Left = 8
     Height = 372
@@ -88,7 +88,7 @@ object Main: TMain
     Caption = 'FPS: 123 (real: 456)'
     ParentColor = False
   end
-  object OpenDialog: TOpenDialog
+  object OpenDialog: TCastleOpen3DDialog
     left = 46
     top = 112
   end

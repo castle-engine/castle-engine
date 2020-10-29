@@ -33,7 +33,7 @@ uses SysUtils, CastleFilesUtils;
 
 procedure InitializeSound;
 begin
-  SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
+  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
   stIntroMusic    := SoundEngine.SoundFromName('intro_music');
   stMainMenuMusic := SoundEngine.SoundFromName('main_menu_music');
 end;

@@ -19,5 +19,8 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   # (from interface, not class, in Object Pascal implementation)
   # needs to be mentioned, to be correctly processed by x3d-nodes-to-pascal.lpr.
   SFBool [in,out] enabled  TRUE
+  # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
   SFBool [in,out] fractionIncreasing TRUE
+  # CGE extension, see https://castle-engine.io/x3d_implementation_time_extensions.php
+  SFBool [] detectAffectedFields TRUE
 }

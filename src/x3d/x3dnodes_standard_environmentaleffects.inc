@@ -26,6 +26,26 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
+
+    { Shaders used to render background geometry. }
+    strict private FFdShaders: TMFNodeShaders;
+    public property FdShaders: TMFNodeShaders read FFdShaders;
+
+    { Shader effects (see https://castle-engine.io/compositing_shaders.php)
+      used to render background geometry. }
+    strict private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
+
+    { Extract only rotation (axis-angle format) from the transformation. }
+    function TransformRotation: TVector4;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
+  end;
+
+  { Abstract type from which 3D backgrounds inherit. }
+  TAbstract3DBackgroundNode = class(TAbstractBackgroundNode)
+  public
+    procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Texture node for given background side.
@@ -53,51 +73,32 @@
     strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
-    strict private FFdShaders: TMFNodeShaders;
-    public property FdShaders: TMFNodeShaders read FFdShaders;
-
-    strict private FFdEffects: TMFNode;
-    public property FdEffects: TMFNode read FFdEffects;
-
-    function TransformRotation: TMatrix4;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
+    {$I auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc}
   end;
 
   TFogTypeOrNone = (ftLinear, ftExp, ftNone);
   TFogType = ftLinear..ftExp;
 
-  { Interface that describes a node that influences the look by blending with fog. }
-  IAbstractFogObject = interface(IX3DNode)
-  ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-
-    property FdColor: TSFColor read GetFdcolor;
-    property FdFogType: TSFString read GetFdfogType;
-    property FdVisibilityRange: TSFFloat read GetFdvisibilityRange;
-    property FdVolumetric: TSFBool read GetFdvolumetric;
-    property FdVolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
-    property FdVolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
-
-    function GetTransformScale: Single;
-    property TransformScale: Single read GetTransformScale;
-
-    function FogType: TFogType;
+  { Functionality that describes a fog (blend objects with a fog color).
+    Used by various X3D fog nodes, like TLocalFogNode, TFogNode. }
+  TFogFunctionality = class(TNodeFunctionality)
+  public
+    function Color: TCastleColorRGB; virtual; abstract;
+    function FogType: TFogType; virtual; abstract;
+    function VisibilityRange: Single; virtual; abstract;
+    function TransformScale: Single; virtual; abstract;
+    function Volumetric: Boolean; virtual; abstract;
+    function VolumetricDirection: TVector3; virtual; abstract;
+    function VolumetricVisibilityStart: Single; virtual; abstract;
   end;
 
   { 3D background of a scene, comprised of sky and ground colors (gradients)
     and optional six textures (skybox). }
-  TBackgroundNode = class(TAbstractBackgroundNode)
+  TBackgroundNode = class(TAbstract3DBackgroundNode)
   public
     procedure CreateNode; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     strict private FFdBackUrl: TMFString;
@@ -123,22 +124,36 @@
 
   { Simulate atmospheric fog effects (for the whole scene) by blending
     with the fog colour, based on the distance from the viewer. }
-  TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
+  TFogNode = class(TAbstractBindableNode)
   strict private
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetTransformScale: Single;
+    type
+      TFogNodeFogFunctionality = class(TFogFunctionality)
+      strict private
+        FParent: TFogNode;
+      public
+        constructor Create(const AParent: TFogNode);
+        property Parent: TFogNode read FParent;
+
+        function Color: TCastleColorRGB; override;
+        function FogType: TFogType; override;
+        function VisibilityRange: Single; override;
+        function TransformScale: Single; override;
+        function Volumetric: Boolean; override;
+        function VolumetricDirection: TVector3; override;
+        function VolumetricVisibilityStart: Single; override;
+      end;
+
+    var
+      FogFunctionality: TFogNodeFogFunctionality;
+
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
+    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -193,7 +208,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDepth: TMFFloat;
     public property FdDepth: TMFFloat read FFdDepth;
@@ -205,22 +219,36 @@
     with the fog colour, based on the distance from the viewer.
     This is the "local" version of the @link(TFogNode), this affects
     only the sibling nodes of the @code(LocalFog) node, not the whole scene. }
-  TLocalFogNode = class(TAbstractChildNode, IAbstractFogObject)
+  TLocalFogNode = class(TAbstractChildNode)
   strict private
-    FTransformScale: Single;
-    function GetFdcolor: TSFColor;
-    function GetFdfogType: TSFString;
-    function GetFdvisibilityRange: TSFFloat;
-    function GetFdvolumetric: TSFBool;
-    function GetFdvolumetricDirection: TSFVec3f;
-    function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetTransformScale: Single;
+    type
+      TFogNodeFogFunctionality = class(TFogFunctionality)
+      strict private
+        FParent: TLocalFogNode;
+      public
+        constructor Create(const AParent: TLocalFogNode);
+        property Parent: TLocalFogNode read FParent;
+
+        function Color: TCastleColorRGB; override;
+        function FogType: TFogType; override;
+        function VisibilityRange: Single; override;
+        function TransformScale: Single; override;
+        function Volumetric: Boolean; override;
+        function VolumetricDirection: TVector3; override;
+        function VolumetricVisibilityStart: Single; override;
+      end;
+
+    var
+      FogFunctionality: TFogNodeFogFunctionality;
+      FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
+    function Functionality(const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality; override;
 
     strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
@@ -257,11 +285,10 @@
     and optional six textures (skybox), with flexible texture nodes.
     This is somewhat more flexible version of the @link(TBackgroundNode),
     with this you can use e.g. @link(TMovieTextureNode) as the skybox textures. }
-  TTextureBackgroundNode = class(TAbstractBackgroundNode)
+  TTextureBackgroundNode = class(TAbstract3DBackgroundNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     strict private FFdBackTexture: TSFNode;
@@ -288,43 +315,19 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TAbstractBackgroundNode ---------------------------------------------------- }
+
 procedure TAbstractBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdGroundAngle := TMFFloat.Create(Self, true, 'groundAngle', []);
-   FdGroundAngle.Angle := true;
-   FdGroundAngle.ChangesAlways := [chBackground];
-  AddField(FFdGroundAngle);
-  { X3D specification comment: [0,Pi/2] }
-
-  FFdGroundColor := TMFColor.Create(Self, true, 'groundColor', []);
-   FdGroundColor.ChangesAlways := [chBackground];
-  AddField(FFdGroundColor);
-  { X3D specification comment: [0,1] }
-
-  FFdSkyAngle := TMFFloat.Create(Self, true, 'skyAngle', []);
-   FdSkyAngle.Angle := true;
-   FdSkyAngle.ChangesAlways := [chBackground];
-  AddField(FFdSkyAngle);
-  { X3D specification comment: [0,Pi] }
-
-  FFdSkyColor := TMFColor.Create(Self, true, 'skyColor', Vector3(0, 0, 0));
-   FdSkyColor.ChangesAlways := [chBackground];
-  AddField(FFdSkyColor);
-  { X3D specification comment: [0,1] }
-
-  FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
-   FdTransparency.ChangesAlways := [chBackground];
-  AddField(FFdTransparency);
-  { X3D specification comment: [0,1] }
-
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangesAlways := [chEverything];
+   FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 
   FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
-   FdEffects.ChangesAlways := [chEverything];
+   FdEffects.ChangeAlways := chEverything;
   AddField(FFdEffects);
 
   DefaultContainerField := 'children';
@@ -335,6 +338,9 @@ end;
 function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FFdEffects.Enumerate(Func);
   if Result <> nil then Exit;
 
   Result := FFdShaders.Enumerate(Func);
@@ -354,23 +360,53 @@ begin
   end;
 end;
 
-function TAbstractBackgroundNode.TransformationChange: TNodeTransformationChange;
+function TAbstractBackgroundNode.TransformRotation: TVector4;
+var
+  IgnoreTranslation, IgnoreScale: TVector3;
+begin
+  MatrixDecompose(Transform, IgnoreTranslation, Result, IgnoreScale);
+end;
+
+{ TAbstract3DBackgroundNode -------------------------------------------------- }
+
+procedure TAbstract3DBackgroundNode.CreateNode;
+begin
+  inherited;
+
+  FFdGroundAngle := TMFFloat.Create(Self, true, 'groundAngle', []);
+   FdGroundAngle.Angle := true;
+   FdGroundAngle.ChangeAlways := chBackground;
+  AddField(FFdGroundAngle);
+  { X3D specification comment: [0,Pi/2] }
+
+  FFdGroundColor := TMFColor.Create(Self, true, 'groundColor', []);
+   FdGroundColor.ChangeAlways := chBackground;
+  AddField(FFdGroundColor);
+  { X3D specification comment: [0,1] }
+
+  FFdSkyAngle := TMFFloat.Create(Self, true, 'skyAngle', []);
+   FdSkyAngle.Angle := true;
+   FdSkyAngle.ChangeAlways := chBackground;
+  AddField(FFdSkyAngle);
+  { X3D specification comment: [0,Pi] }
+
+  FFdSkyColor := TMFColor.Create(Self, true, 'skyColor', Vector3(0, 0, 0));
+   FdSkyColor.ChangeAlways := chBackground;
+  AddField(FFdSkyColor);
+  { X3D specification comment: [0,1] }
+
+  FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
+   FdTransparency.ChangeAlways := chBackground;
+  AddField(FFdTransparency);
+  { X3D specification comment: [0,1] }
+end;
+
+function TAbstract3DBackgroundNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcBackground;
 end;
 
-function TAbstractBackgroundNode.TransformRotation: TMatrix4;
-begin
-  Result := Transform;
-
-  { TODO: We should extract here only rotation from BgTransform matrix.
-    Below is a very hacky way of at least cancelling the translation.
-    This will work OK for any rigid body matrix, i.e. composed only from
-    rotation and translation. }
-  Result.Data[3, 0] := 0;
-  Result.Data[3, 1] := 0;
-  Result.Data[3, 2] := 0;
-end;
+{ TBackgroundNode ------------------------------------------------------------ }
 
 procedure TBackgroundNode.CreateNode;
 begin
@@ -382,32 +418,32 @@ begin
     Current chEverything is very unoptimal. }
 
   FFdBackUrl := TMFString.Create(Self, true, 'backUrl', []);
-   FdBackUrl.ChangesAlways := [chEverything];
+   FdBackUrl.ChangeAlways := chEverything;
   AddField(FFdBackUrl);
   { X3D specification comment: [URI] }
 
   FFdBottomUrl := TMFString.Create(Self, true, 'bottomUrl', []);
-   FdBottomUrl.ChangesAlways := [chEverything];
+   FdBottomUrl.ChangeAlways := chEverything;
   AddField(FFdBottomUrl);
   { X3D specification comment: [URI] }
 
   FFdFrontUrl := TMFString.Create(Self, true, 'frontUrl', []);
-   FdFrontUrl.ChangesAlways := [chEverything];
+   FdFrontUrl.ChangeAlways := chEverything;
   AddField(FFdFrontUrl);
   { X3D specification comment: [URI] }
 
   FFdLeftUrl := TMFString.Create(Self, true, 'leftUrl', []);
-   FdLeftUrl.ChangesAlways := [chEverything];
+   FdLeftUrl.ChangeAlways := chEverything;
   AddField(FFdLeftUrl);
   { X3D specification comment: [URI] }
 
   FFdRightUrl := TMFString.Create(Self, true, 'rightUrl', []);
-   FdRightUrl.ChangesAlways := [chEverything];
+   FdRightUrl.ChangeAlways := chEverything;
   AddField(FFdRightUrl);
   { X3D specification comment: [URI] }
 
   FFdTopUrl := TMFString.Create(Self, true, 'topUrl', []);
-   FdTopUrl.ChangesAlways := [chEverything];
+   FdTopUrl.ChangeAlways := chEverything;
   AddField(FFdTopUrl);
   { X3D specification comment: [URI] }
 
@@ -417,13 +453,6 @@ end;
 class function TBackgroundNode.ClassX3DType: string;
 begin
   Result := 'Background';
-end;
-
-class function TBackgroundNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TBackgroundNode.Texture(const Side: TBackgroundSide): TAbstractTextureNode;
@@ -438,7 +467,9 @@ begin
     bsLeft  : TextureField := FdLeftUrl;
     bsRight : TextureField := FdRightUrl;
     bsTop   : TextureField := FdTopUrl;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Items.Count <> 0 then
   begin
@@ -449,61 +480,103 @@ begin
     Result := nil;
 end;
 
+{ TFogNode.TFogNodeFogFunctionality ------------------------------------------ }
+
+constructor TFogNode.TFogNodeFogFunctionality.Create(const AParent: TFogNode);
+begin
+  inherited Create(AParent);
+  FParent := AParent;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.Color: TCastleColorRGB;
+begin
+  Result := Parent.Color;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.FogType: TFogType;
+begin
+  Result := Parent.FogType;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VisibilityRange: Single;
+begin
+  Result := Parent.VisibilityRange;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.TransformScale: Single;
+begin
+  Result := Parent.TransformScale;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.Volumetric: Boolean;
+begin
+  Result := Parent.Volumetric;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VolumetricDirection: TVector3;
+begin
+  Result := Parent.VolumetricDirection;
+end;
+
+function TFogNode.TFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
+begin
+  Result := Parent.VolumetricVisibilityStart;
+end;
+
+{ TFogNode ------------------------------------------------------------------- }
+
 procedure TFogNode.CreateNode;
 begin
   inherited;
 
-  { TODO: this is very unoptimal.
-    With new renderer, we possible don't have to do *anything*
-    when fog property changes, they will be automatically used? }
-
   FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangesAlways := [chEverything];
+   FdColor.ChangeAlways := chRedisplay;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
   FFdFogType := TSFString.Create(Self, true, 'fogType', 'LINEAR');
-   FdFogType.ChangesAlways := [chEverything];
+   FdFogType.ChangeAlways := chRedisplay;
   AddField(FFdFogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
   FFdVisibilityRange := TSFFloat.Create(Self, true, 'visibilityRange', 0);
-   FdVisibilityRange.ChangesAlways := [chEverything];
+   FdVisibilityRange.ChangeAlways := chRedisplay;
   AddField(FFdVisibilityRange);
   { X3D specification comment: [0,Inf) }
 
   FFdVolumetric := TSFBool.Create(Self, true, 'volumetric', false);
-   FdVolumetric.ChangesAlways := [chEverything];
+   FdVolumetric.ChangeAlways := chRedisplay;
   AddField(FFdVolumetric);
 
   FFdVolumetricDirection := TSFVec3f.Create(Self, true, 'volumetricDirection', Vector3(0, -1, 0));
-   FdVolumetricDirection.ChangesAlways := [chEverything];
+   FdVolumetricDirection.ChangeAlways := chRedisplay;
   AddField(FFdVolumetricDirection);
 
   FFdVolumetricVisibilityStart := TSFFloat.Create(Self, true, 'volumetricVisibilityStart', 0);
-   FdVolumetricVisibilityStart.ChangesAlways := [chEverything];
+   FdVolumetricVisibilityStart.ChangeAlways := chRedisplay;
   AddField(FFdVolumetricVisibilityStart);
 
   { Only for backward compatibility. Not used anymore. }
   FFdAlternative := TSFNode.Create(Self, true, 'alternative', [TFogNode]);
-   FdAlternative.ChangesAlways := [chEverything];
+   FdAlternative.ChangeAlways := chNone;
   AddField(FFdAlternative);
 
   DefaultContainerField := 'children';
 
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+
+  FogFunctionality := TFogNode.TFogNodeFogFunctionality.Create(Self);
+end;
+
+destructor TFogNode.Destroy;
+begin
+  FreeAndNil(FogFunctionality);
+  inherited;
 end;
 
 class function TFogNode.ClassX3DType: string;
 begin
   Result := 'Fog';
-end;
-
-class function TFogNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TFogNode.EventSet_BindReceive(
@@ -522,41 +595,6 @@ end;
 function TFogNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcFog;
-end;
-
-function TFogNode.GetFdcolor: TSFColor;
-begin
-  Result := FFdColor;
-end;
-
-function TFogNode.GetFdfogType: TSFString;
-begin
-  Result := FdFogType;
-end;
-
-function TFogNode.GetFdvisibilityRange: TSFFloat;
-begin
-  Result := FdVisibilityRange;
-end;
-
-function TFogNode.GetFdvolumetric: TSFBool;
-begin
-  Result := FFdVolumetric;
-end;
-
-function TFogNode.GetFdvolumetricDirection: TSFVec3f;
-begin
-  Result := FFdVolumetricDirection;
-end;
-
-function TFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
-begin
-  Result := FFdVolumetricVisibilityStart;
-end;
-
-function TFogNode.GetTransformScale: Single;
-begin
-  Result := TransformScale;
 end;
 
 function TFogNode.FogType: TFogType;
@@ -592,6 +630,7 @@ var
     case AFogType of
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+      ftNone  : F := 1;
     end;
     Color := Lerp(F, FdColor.Value, Color);
   end;
@@ -644,6 +683,17 @@ begin
   end;
 end;
 
+function TFogNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
+  if FogFunctionality.InheritsFrom(FunctionalityClass) then
+    Result := FogFunctionality
+  else
+    Result := nil;
+end;
+
+{ TFogCoordinateNode --------------------------------------------------------- }
+
 procedure TFogCoordinateNode.CreateNode;
 begin
   inherited;
@@ -660,11 +710,53 @@ begin
   Result := 'FogCoordinate';
 end;
 
-class function TFogCoordinateNode.URNMatching(const URN: string): boolean;
+{ TLocalFogNode.TFogNodeFogFunctionality ------------------------------------------ }
+
+constructor TLocalFogNode.TFogNodeFogFunctionality.Create(const AParent: TLocalFogNode);
 begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
+  inherited Create(AParent);
+  FParent := AParent;
 end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.Color: TCastleColorRGB;
+begin
+  Result := Parent.Color;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.FogType: TFogType;
+begin
+  Result := Parent.FogType;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VisibilityRange: Single;
+begin
+  Result := Parent.VisibilityRange;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.TransformScale: Single;
+begin
+  { TODO: this is actually bad, each LocalFog occurrence may have
+    different scale, depending on parent transform node.
+    We should keep LocalFogScale in State, and pass it around. }
+  Result := Parent.FTransformScale;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.Volumetric: Boolean;
+begin
+  Result := Parent.Volumetric;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VolumetricDirection: TVector3;
+begin
+  Result := Parent.VolumetricDirection;
+end;
+
+function TLocalFogNode.TFogNodeFogFunctionality.VolumetricVisibilityStart: Single;
+begin
+  Result := Parent.VolumetricVisibilityStart;
+end;
+
+{ TLocalFogNode -------------------------------------------------------------- }
 
 procedure TLocalFogNode.CreateNode;
 begin
@@ -686,76 +778,45 @@ begin
   { X3D specification comment: [0,-Inf) }
 
   FFdVolumetric := TSFBool.Create(Self, true, 'volumetric', false);
-   FdVolumetric.ChangesAlways := [chEverything];
+   FdVolumetric.ChangeAlways := chEverything;
   AddField(FFdVolumetric);
 
   FFdVolumetricDirection := TSFVec3f.Create(Self, true, 'volumetricDirection', Vector3(0, -1, 0));
-   FdVolumetricDirection.ChangesAlways := [chEverything];
+   FdVolumetricDirection.ChangeAlways := chEverything;
   AddField(FFdVolumetricDirection);
 
   FFdVolumetricVisibilityStart := TSFFloat.Create(Self, true, 'volumetricVisibilityStart', 0);
-   FdVolumetricVisibilityStart.ChangesAlways := [chEverything];
+   FdVolumetricVisibilityStart.ChangeAlways := chEverything;
   AddField(FFdVolumetricVisibilityStart);
 
   DefaultContainerField := 'children';
 
   FTransformScale := 1;
+
+  FogFunctionality := TLocalFogNode.TFogNodeFogFunctionality.Create(Self);
+end;
+
+destructor TLocalFogNode.Destroy;
+begin
+  FreeAndNil(FogFunctionality);
+  inherited;
 end;
 
 procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  FTransformScale := StateStack.Top.TransformScale;
+  FTransformScale := StateStack.Top.Transformation.Scale;
+end;
+
+procedure TLocalFogNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  State.LocalFog := Self;
 end;
 
 class function TLocalFogNode.ClassX3DType: string;
 begin
   Result := 'LocalFog';
-end;
-
-class function TLocalFogNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
-function TLocalFogNode.GetFdcolor: TSFColor;
-begin
-  Result := FFdColor;
-end;
-
-function TLocalFogNode.GetFdfogType: TSFString;
-begin
-  Result := FdFogType;
-end;
-
-function TLocalFogNode.GetFdvisibilityRange: TSFFloat;
-begin
-  Result := FdVisibilityRange;
-end;
-
-function TLocalFogNode.GetFdvolumetric: TSFBool;
-begin
-  Result := FFdVolumetric;
-end;
-
-function TLocalFogNode.GetFdvolumetricDirection: TSFVec3f;
-begin
-  Result := FFdVolumetricDirection;
-end;
-
-function TLocalFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
-begin
-  Result := FFdVolumetricVisibilityStart;
-end;
-
-function TLocalFogNode.GetTransformScale: Single;
-begin
-  { TODO: this is actually bad, each LocalFog occurrence may have
-    different scale, depending on parent transform node.
-    We should keep LocalFogScale in State, and pass it along
-    to RenderShape. This method should not exist. }
-  Result := FTransformScale;
 end;
 
 function TLocalFogNode.FogType: TFogType;
@@ -769,6 +830,17 @@ begin
     Result := ftLinear;
   end;
 end;
+
+function TLocalFogNode.Functionality(
+  const FunctionalityClass: TNodeFunctionalityClass): TNodeFunctionality;
+begin
+  if FogFunctionality.InheritsFrom(FunctionalityClass) then
+    Result := FogFunctionality
+  else
+    Result := nil;
+end;
+
+{ TTextureBackgroundNode ----------------------------------------------------- }
 
 procedure TTextureBackgroundNode.CreateNode;
 begin
@@ -806,7 +878,9 @@ begin
     bsLeft  : TextureField := FdLeftTexture;
     bsRight : TextureField := FdRightTexture;
     bsTop   : TextureField := FdTopTexture;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+    {$endif}
   end;
   if TextureField.Value is TAbstractTextureNode then
     Result := TAbstractTextureNode(TextureField.Value) else
@@ -818,11 +892,7 @@ begin
   Result := 'TextureBackground';
 end;
 
-class function TTextureBackgroundNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterEnvironmentalEffectsNodes;
 begin

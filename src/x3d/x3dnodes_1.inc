@@ -327,16 +327,19 @@
   TMaterialNode_1 = class(TAbstractChildNode)
   strict private
     type
-      TMaterialInfo_1 = class(TMaterialInfo)
+      TMaterialInfo_1 = class(TPhongMaterialInfo)
       strict private
         FNode: TMaterialNode_1;
         FIndex: Integer;
+      protected
+        function GetDiffuseColor: TVector3; override;
+        procedure SetDiffuseColor(const Value: TVector3); override;
+        function GetSpecularColor: TVector3; override;
+        procedure SetSpecularColor(const Value: TVector3); override;
       public
         constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
-        function DiffuseColor: TVector3; override;
-        function SpecularColor: TVector3; override;
         function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
         function ReflectionColor: TVector3; override;
@@ -411,7 +414,7 @@
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
-    procedure ForcePureEmissive;
+    procedure ForcePureEmissive; deprecated 'use X3D with TUnlitMaterialNode';
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -420,7 +423,7 @@
       It is automatically updated when properties of this material change.
       Do not free it yourself, it will be automatically freed when
       this node is freed. }
-    function MaterialInfo(const AIndex: Integer = 0): TMaterialInfo;
+    function MaterialInfo(const AIndex: Integer = 0): TPhongMaterialInfo;
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
@@ -795,8 +798,7 @@
 
   TTransformSeparatorNode_1 = class(TAbstractChildNode)
   strict private
-    OriginalTransform, OriginalInvertedTransform: TMatrix4;
-    OriginalTransformScale: Single;
+    OriginalTransformation: TTransformation;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -844,26 +846,30 @@ begin
   Result := Version.Major <= 1;
 end;
 
+const
+  { Constants for @link(TAsciiTextNode_1.FdJustification).Value. }
+  JUSTIFICATION_LEFT = 0;
+  JUSTIFICATION_CENTER = 1;
+  JUSTIFICATION_RIGHT = 2;
+
 procedure TAsciiTextNode_1.CreateNode;
 begin
   inherited;
 
   FFdString := TMFString.Create(Self, true, 'string', ['']);
-   FdString.ChangesAlways := [chGeometry];
+   FdString.ChangeAlways := chGeometry;
   AddField(FFdString);
 
   FFdSpacing := TSFFloat.Create(Self, true, 'spacing', 1);
-   FdSpacing.ChangesAlways := [chGeometry];
+   FdSpacing.ChangeAlways := chGeometry;
   AddField(FFdSpacing);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdJustification := TSFEnum.Create(Self, true, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
-  {$warnings on}
-   FdJustification.ChangesAlways := [chGeometry];
+   FdJustification.ChangeAlways := chGeometry;
   AddField(FFdJustification);
 
   FFdWidth := TMFFloat.Create(Self, true, 'width', [0]);
-   FdWidth.ChangesAlways := [chGeometry];
+   FdWidth.ChangeAlways := chGeometry;
   AddField(FFdWidth);
 end;
 
@@ -888,11 +894,9 @@ end;
 function TAsciiTextNode_1.Justify: TX3DFontJustify;
 begin
   case FdJustification.Value of
-    {$warnings off} // using deprecated knowingly, it should be internal
     JUSTIFICATION_LEFT  : Result := fjBegin;
     JUSTIFICATION_CENTER: Result := fjMiddle;
     JUSTIFICATION_RIGHT : Result := fjEnd;
-    {$warnings on}
     else
       { something default }
       Result := fjBegin;
@@ -922,7 +926,7 @@ begin
 
     TextProxy(Self,
       State.VRML1State.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,
-      FdString.Items, State.VRML1State.FontStyle.Font,
+      FdString.Items, -1, State.VRML1State.FontStyle.Font,
       false, nil, nil, nil,
       CoordNode.FdPoint, TexCoordNode.FdPoint, nil);
 
@@ -963,15 +967,15 @@ begin
   inherited;
 
   FFdParts := TSFBitMask.Create(Self, true, 'parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
-   FdParts.ChangesAlways := [chGeometry];
+   FdParts.ChangeAlways := chGeometry;
   AddField(FFdParts);
 
   FFdBottomRadius := TSFFloat.Create(Self, true, 'bottomRadius', 1, true);
-   FdBottomRadius.ChangesAlways := [chGeometry];
+   FdBottomRadius.ChangeAlways := chGeometry;
   AddField(FFdBottomRadius);
 
   FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
-   FdHeight.ChangesAlways := [chGeometry];
+   FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 end;
 
@@ -990,15 +994,15 @@ begin
   inherited;
 
   FFdWidth := TSFFloat.Create(Self, true, 'width', 2, true);
-   FdWidth.ChangesAlways := [chGeometry];
+   FdWidth.ChangeAlways := chGeometry;
   AddField(FFdWidth);
 
   FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
-   FdHeight.ChangesAlways := [chGeometry];
+   FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 
   FFdDepth := TSFFloat.Create(Self, true, 'depth', 2, true);
-   FdDepth.ChangesAlways := [chGeometry];
+   FdDepth.ChangeAlways := chGeometry;
   AddField(FFdDepth);
 end;
 
@@ -1017,15 +1021,15 @@ begin
   inherited;
 
   FFdParts := TSFBitMask.Create(Self, true, 'parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
-   FdParts.ChangesAlways := [chGeometry];
+   FdParts.ChangeAlways := chGeometry;
   AddField(FFdParts);
 
   FFdRadius := TSFFloat.Create(Self, true, 'radius', 1, true);
-   FdRadius.ChangesAlways := [chGeometry];
+   FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
 
   FFdHeight := TSFFloat.Create(Self, true, 'height', 2, true);
-   FdHeight.ChangesAlways := [chGeometry];
+   FdHeight.ChangeAlways := chGeometry;
   AddField(FFdHeight);
 end;
 
@@ -1045,20 +1049,20 @@ begin
 
   FFdCoordIndex := TMFLong.Create(Self, true, 'coordIndex', [0]);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangesAlways := [chGeometry];
+   FdCoordIndex.ChangeAlways := chGeometry;
   AddField(FFdCoordIndex);
 
   FFdMaterialIndex := TMFLong.Create(Self, true, 'materialIndex', [-1]);
-   FdMaterialIndex.ChangesAlways := [chGeometry];
+   FdMaterialIndex.ChangeAlways := chGeometry;
   AddField(FFdMaterialIndex);
 
   FFdNormalIndex := TMFLong.Create(Self, true, 'normalIndex', [-1]);
-   FdNormalIndex.ChangesAlways := [chGeometry];
+   FdNormalIndex.ChangeAlways := chGeometry;
   AddField(FFdNormalIndex);
 
   FFdTextureCoordIndex := TMFLong.Create(Self, true, 'textureCoordIndex', [-1]);
    FdTextureCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdTextureCoordIndex.ChangesAlways := [chGeometry];
+   FdTextureCoordIndex.ChangeAlways := chGeometry;
   AddField(FFdTextureCoordIndex);
 end;
 
@@ -1079,7 +1083,7 @@ begin
   inherited;
 
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangesAlways := [chGeometry];
+   FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
 end;
 
@@ -1135,11 +1139,11 @@ begin
   inherited;
 
   FFdStartIndex := TSFLong.Create(Self, true, 'startIndex', 0);
-   FdStartIndex.ChangesAlways := [chGeometry];
+   FdStartIndex.ChangeAlways := chGeometry;
   AddField(FFdStartIndex);
 
   FFdNumPoints := TSFLong.Create(Self, true, 'numPoints', -1);
-   FdNumPoints.ChangesAlways := [chGeometry];
+   FdNumPoints.ChangeAlways := chGeometry;
   AddField(FFdNumPoints);
 
   CoordSubrange := TMFVec3f.Create(Self, true, '', []);
@@ -1221,7 +1225,7 @@ begin
   inherited;
 
   FFdRadius := TSFFloat.Create(Self, true, 'radius', 1, true);
-   FdRadius.ChangesAlways := [chGeometry];
+   FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
 end;
 
@@ -1240,7 +1244,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec3f.Create(Self, true, 'point', [Vector3(0, 0, 0)]);
-   FdPoint.ChangesAlways := [chCoordinate];
+   FdPoint.ChangeAlways := chCoordinate;
   AddField(FFdPoint);
 end;
 
@@ -1254,21 +1258,21 @@ begin
   inherited;
 
   FFdSize := TSFFloat.Create(Self, true, 'size', 10, true);
-   FdSize.ChangesAlways := [chGeometryVRML1State];
+   FdSize.ChangeAlways := chGeometryVRML1State;
   AddField(FFdSize);
 
   {$warnings off}
   FFdFamily := TSFEnum.Create(Self, true, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
   {$warnings on}
-   FdFamily.ChangesAlways := [chGeometryVRML1State];
+   FdFamily.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFamily);
 
   FFdStyle := TSFBitMask.Create(Self, true, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
-   FdStyle.ChangesAlways := [chGeometryVRML1State];
+   FdStyle.ChangeAlways := chGeometryVRML1State;
   AddField(FFdStyle);
 
   FFdBlending := TSFBool.Create(Self, true, 'blending', true);
-   FdBlending.ChangesAlways := [chGeometryVRML1State];
+   FdBlending.ChangeAlways := chGeometryVRML1State;
   AddField(FFdBlending);
 end;
 
@@ -1375,60 +1379,60 @@ procedure TMaterialNode_1.CreateNode;
 begin
   inherited;
 
-  FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TMaterialInfo.DefaultAmbientColor]);
-   FdAmbientColor.ChangesAlways := [chVisibleVRML1State];
+  FFdAmbientColor := TMFColor.Create(Self, true, 'ambientColor', [TPhongMaterialInfo.DefaultAmbientColor]);
+   FdAmbientColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdAmbientColor);
 
-  FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TMaterialInfo.DefaultDiffuseColor]);
-   FdDiffuseColor.ChangesAlways := [chVisibleVRML1State];
+  FFdDiffuseColor := TMFColor.Create(Self, true, 'diffuseColor', [TPhongMaterialInfo.DefaultDiffuseColor]);
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDiffuseColor);
 
-  FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TMaterialInfo.DefaultSpecularColor]);
-   FdSpecularColor.ChangesAlways := [chVisibleVRML1State];
+  FFdSpecularColor := TMFColor.Create(Self, true, 'specularColor', [TPhongMaterialInfo.DefaultSpecularColor]);
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSpecularColor);
 
-  FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TMaterialInfo.DefaultEmissiveColor]);
-   FdEmissiveColor.ChangesAlways := [chVisibleVRML1State];
+  FFdEmissiveColor := TMFColor.Create(Self, true, 'emissiveColor', [TPhongMaterialInfo.DefaultEmissiveColor]);
+   FdEmissiveColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEmissiveColor);
 
-  FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TMaterialInfo.DefaultShininess]);
-   FdShininess.ChangesAlways := [chVisibleVRML1State];
+  FFdShininess := TMFFloat.Create(Self, true, 'shininess', [TPhongMaterialInfo.DefaultShininess]);
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, true, 'transparency', [TMaterialInfo.DefaultTransparency]);
-   FdTransparency.ChangesAlways := [chVisibleVRML1State, chAlphaChannel];
+   FdTransparency.ChangeAlways := chAlphaChannel;
   AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, true, 'mirror', [0.0]);
-   FdMirror.ChangesAlways := [chVisibleVRML1State];
+   FdMirror.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdMirror);
 
   FFdReflSpecular := TMFColor.Create(Self, true, 'reflSpecular', []);
-   FdReflSpecular.ChangesAlways := [chVisibleVRML1State];
+   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecular);
 
   FFdReflDiffuse := TMFColor.Create(Self, true, 'reflDiffuse', []);
-   FdReflDiffuse.ChangesAlways := [chVisibleVRML1State];
+   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflDiffuse);
 
   FFdTransSpecular := TMFColor.Create(Self, true, 'transSpecular', []);
-   FdTransSpecular.ChangesAlways := [chVisibleVRML1State];
+   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecular);
 
   FFdTransDiffuse := TMFColor.Create(Self, true, 'transDiffuse', []);
-   FdTransDiffuse.ChangesAlways := [chVisibleVRML1State];
+   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransDiffuse);
 
-  FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TMaterialInfo.DefaultReflSpecularExp]);
-   FdReflSpecularExp.ChangesAlways := [chVisibleVRML1State];
+  FFdReflSpecularExp := TMFFloat.Create(Self, true, 'reflSpecularExp', [TPhongMaterialInfo.DefaultReflSpecularExp]);
+   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdReflSpecularExp);
 
-  FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TMaterialInfo.DefaultTransSpecularExp]);
-   FdTransSpecularExp.ChangesAlways := [chVisibleVRML1State];
+  FFdTransSpecularExp := TMFFloat.Create(Self, true, 'transSpecularExp', [TPhongMaterialInfo.DefaultTransSpecularExp]);
+   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdTransSpecularExp);
 
   FFdFogImmune := TSFBool.Create(Self, true, 'fogImmune', false);
-   FdFogImmune.ChangesAlways := [chVisibleVRML1State];
+   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdFogImmune);
 end;
 
@@ -1466,7 +1470,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TMaterialInfo;
+function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TPhongMaterialInfo;
 begin
   if AIndex >= Length(FMaterialInfo) then
     SetLength(FMaterialInfo, AIndex + 1);
@@ -1490,31 +1494,41 @@ var
 begin
   A := FNode.FdAmbientColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultAmbientColor
+    Result := TPhongMaterialInfo.DefaultAmbientColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3;
+function TMaterialNode_1.TMaterialInfo_1.GetDiffuseColor: TVector3;
 var
   A: TVector3List;
 begin
   A := FNode.FdDiffuseColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultDiffuseColor
+    Result := TPhongMaterialInfo.DefaultDiffuseColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.SpecularColor: TVector3;
+procedure TMaterialNode_1.TMaterialInfo_1.SetDiffuseColor(const Value: TVector3);
+begin
+  FNode.FdDiffuseColor.Send([Value]);
+end;
+
+function TMaterialNode_1.TMaterialInfo_1.GetSpecularColor: TVector3;
 var
   A: TVector3List;
 begin
   A := FNode.FdSpecularColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultSpecularColor
+    Result := TPhongMaterialInfo.DefaultSpecularColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
+end;
+
+procedure TMaterialNode_1.TMaterialInfo_1.SetSpecularColor(const Value: TVector3);
+begin
+  FNode.FdSpecularColor.Send([Value]);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
@@ -1523,7 +1537,7 @@ var
 begin
   A := FNode.FdEmissiveColor.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultEmissiveColor
+    Result := TPhongMaterialInfo.DefaultEmissiveColor
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1534,7 +1548,7 @@ var
 begin
   A := FNode.FdShininess.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultShininess
+    Result := TPhongMaterialInfo.DefaultShininess
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1570,7 +1584,7 @@ var
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
-    CalculateReflSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1581,7 +1595,7 @@ var
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
-    CalculateReflDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1592,7 +1606,7 @@ var
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
-    CalculateTransSpecular(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1603,7 +1617,7 @@ var
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
-    CalculateTransDiffuse(Result)
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1614,7 +1628,7 @@ var
 begin
   A := FNode.FdReflSpecularExp.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultReflSpecularExp
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1625,7 +1639,7 @@ var
 begin
   A := FNode.FdTransSpecularExp.Items;
   if A.Count = 0 then
-    Result := TMaterialInfo.DefaultTransSpecularExp
+    Result := inherited
   else
     Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
@@ -1637,7 +1651,7 @@ begin
   inherited;
 
   FFdValue := TSFEnum.Create(Self, true, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
-   FdValue.ChangesAlways := [chVisibleVRML1State];
+   FdValue.ChangeAlways := chVisibleVRML1State;
   AddField(FFdValue);
 end;
 
@@ -1651,7 +1665,7 @@ begin
   inherited;
 
   FFdValue := TSFEnum.Create(Self, true, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
-   FdValue.ChangesAlways := [chVisibleVRML1State];
+   FdValue.ChangeAlways := chVisibleVRML1State;
   AddField(FFdValue);
 end;
 
@@ -1660,36 +1674,37 @@ begin
   Result := 'NormalBinding';
 end;
 
+const
+  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value. }
+  TEXWRAP_REPEAT = 0;
+  TEXWRAP_CLAMP = 1;
+
 procedure TTexture2Node_1.CreateNode;
 begin
   inherited;
 
   FFdFilename := TSFString.Create(Self, true, 'filename', '');
-   FdFilename.ChangesAlways := [chVisibleVRML1State, chTextureImage];
+   FdFilename.ChangeAlways := chTextureImage;
   AddField(FFdFilename);
 
   FFdImage := TSFImage.Create(Self, true, 'image', nil);
-   FdImage.ChangesAlways := [chVisibleVRML1State, chTextureImage];
+   FdImage.ChangeAlways := chTextureImage;
   AddField(FFdImage);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapS := TSFEnum.Create(Self, true, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
-  {$warnings on}
-   FdWrapS.ChangesAlways := [chVisibleVRML1State];
+   FdWrapS.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdWrapS);
 
-  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapT := TSFEnum.Create(Self, true, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
-  {$warnings on}
-   FdWrapT.ChangesAlways := [chVisibleVRML1State];
+   FdWrapT.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdWrapT);
 
   FFdModel := TSFEnum.Create(Self, true, 'model', ['DECAL'], 0);
-   FdModel.ChangesAlways := [chVisibleVRML1State];
+   FdModel.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdModel);
 
   FFdBlendColor := TSFVec3f.Create(Self, true, 'blendColor', Vector3(0, 0, 0));
-   FdBlendColor.ChangesAlways := [chVisibleVRML1State];
+   FdBlendColor.ChangeAlways := chTexturePropertiesNode;
   AddField(FFdBlendColor);
 end;
 
@@ -1749,8 +1764,6 @@ begin
     Result := 'none';
 end;
 
-{$warnings off} // using deprecated TEXWRAP_xxx knowingly, it should be internal
-
 function TTexture2Node_1.GetRepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
@@ -1777,26 +1790,24 @@ begin
     FdWrapT.Send(TEXWRAP_CLAMP);
 end;
 
-{$warnings on}
-
 procedure TTexture2TransformNode_1.CreateNode;
 begin
   inherited;
 
   FFdTranslation := TSFVec2f.Create(Self, true, 'translation', Vector2(0, 0));
-   FdTranslation.ChangesAlways := [chEverything];
+   FdTranslation.ChangeAlways := chEverything;
   AddField(FFdTranslation);
 
   FFdRotation := TSFFloat.Create(Self, true, 'rotation', 0);
-   FdRotation.ChangesAlways := [chEverything];
+   FdRotation.ChangeAlways := chEverything;
   AddField(FFdRotation);
 
   FFdScaleFactor := TSFVec2f.Create(Self, true, 'scaleFactor', Vector2(1, 1));
-   FdScaleFactor.ChangesAlways := [chEverything];
+   FdScaleFactor.ChangeAlways := chEverything;
   AddField(FFdScaleFactor);
 
   FFdCenter := TSFVec2f.Create(Self, true, 'center', Vector2(0, 0));
-   FdCenter.ChangesAlways := [chEverything];
+   FdCenter.ChangeAlways := chEverything;
   AddField(FFdCenter);
 end;
 
@@ -1826,7 +1837,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec2f.Create(Self, true, 'point', [Vector2(0, 0)]);
-   FdPoint.ChangesAlways := [chVisibleVRML1State];
+   FdPoint.ChangeAlways := chVisibleVRML1State;
   AddField(FFdPoint);
 end;
 
@@ -1840,20 +1851,20 @@ begin
   inherited;
 
   FFdVertexOrdering := TSFEnum.Create(Self, true, 'vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
-   FdVertexOrdering.ChangesAlways := [chVisibleVRML1State];
+   FdVertexOrdering.ChangeAlways := chVisibleVRML1State;
   AddField(FFdVertexOrdering);
 
   FFdShapeType := TSFEnum.Create(Self, true, 'shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
-   FdShapeType.ChangesAlways := [chVisibleVRML1State];
+   FdShapeType.ChangeAlways := chVisibleVRML1State;
   AddField(FFdShapeType);
 
   FFdFaceType := TSFEnum.Create(Self, true, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
-   FdFaceType.ChangesAlways := [chGeometryVRML1State];
+   FdFaceType.ChangeAlways := chGeometryVRML1State;
   AddField(FFdFaceType);
 
   FFdCreaseAngle := TSFFloat.Create(Self, true, 'creaseAngle', DefaultVRML1CreaseAngle);
    FdCreaseAngle.Angle := true;
-   FdCreaseAngle.ChangesAlways := [chVisibleVRML1State];
+   FdCreaseAngle.ChangeAlways := chVisibleVRML1State;
   AddField(FFdCreaseAngle);
 end;
 
@@ -1903,10 +1914,9 @@ begin
   inherited;
 
   Transformation(M, IM);
-  StateStack.Top.Transform := StateStack.Top.Transform * M;
-  StateStack.Top.InvertedTransform := IM * StateStack.Top.InvertedTransform;
-
-  StateStack.Top.TransformScale := StateStack.Top.TransformScale * TransformScale;
+  StateStack.Top.Transformation.Transform := StateStack.Top.Transformation.Transform * M;
+  StateStack.Top.Transformation.InverseTransform := IM * StateStack.Top.Transformation.InverseTransform;
+  StateStack.Top.Transformation.Scale := StateStack.Top.Transformation.Scale * TransformScale;
 end;
 
 procedure TMatrixTransformNode_1.CreateNode;
@@ -1914,7 +1924,7 @@ begin
   inherited;
 
   FFdMatrix := TSFMatrix.Create(Self, true, 'matrix', TMatrix4.Identity);
-   FdMatrix.ChangesAlways := [chEverything];
+   FdMatrix.ChangeAlways := chEverything;
   AddField(FFdMatrix);
 end;
 
@@ -1930,9 +1940,8 @@ begin
 
   if not TryInverseHarder(Matrix, InvertedMatrix) then
   begin
-    if Log then
-      WritelnLogMultiline('Matrix',
-        'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
+    WritelnLogMultiline('Matrix',
+      'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
     InvertedMatrix := TMatrix4.Identity;
   end;
 end;
@@ -1952,7 +1961,7 @@ begin
   inherited;
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chEverything];
+   FdRotation.ChangeAlways := chEverything;
   AddField(FFdRotation);
 end;
 
@@ -1980,7 +1989,7 @@ begin
   inherited;
 
   FFdScaleFactor := TSFVec3f.Create(Self, true, 'scaleFactor', Vector3(1, 1, 1));
-   FdScaleFactor.ChangesAlways := [chEverything];
+   FdScaleFactor.ChangeAlways := chEverything;
   AddField(FFdScaleFactor);
 end;
 
@@ -2004,23 +2013,23 @@ begin
   inherited;
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chEverything];
+   FdTranslation.ChangeAlways := chEverything;
   AddField(FFdTranslation);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chEverything];
+   FdRotation.ChangeAlways := chEverything;
   AddField(FFdRotation);
 
   FFdScaleFactor := TSFVec3f.Create(Self, true, 'scaleFactor', Vector3(1, 1, 1));
-   FdScaleFactor.ChangesAlways := [chEverything];
+   FdScaleFactor.ChangeAlways := chEverything;
   AddField(FFdScaleFactor);
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chEverything];
+   FdScaleOrientation.ChangeAlways := chEverything;
   AddField(FFdScaleOrientation);
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chEverything];
+   FdCenter.ChangeAlways := chEverything;
   AddField(FFdCenter);
 end;
 
@@ -2085,7 +2094,7 @@ begin
   inherited;
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chEverything];
+   FdTranslation.ChangeAlways := chEverything;
   AddField(FFdTranslation);
 end;
 
@@ -2112,18 +2121,18 @@ begin
   { Note that the default "position" value for VRML 1.0 is different
     than for VRML >= 2.0 (where is (0, 0, 10)). }
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 1));
-   FdPosition.ChangesAlways := [chViewpointVectors];
+   FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
 
   FFdFocalDistance := TSFFloat.Create(Self, true, 'focalDistance', 5, true);
   AddField(FFdFocalDistance);
 
   FFdNearDistance := TSFFloat.Create(Self, true, 'nearDistance', 0);
-   FdNearDistance.ChangesAlways := [chViewpointProjection];
+   FdNearDistance.ChangeAlways := chViewpointProjection;
   AddField(FFdNearDistance);
 
   FFdFarDistance := TSFFloat.Create(Self, true, 'farDistance', 0);
-   FdFarDistance.ChangesAlways := [chViewpointProjection];
+   FdFarDistance.ChangeAlways := chViewpointProjection;
   AddField(FFdFarDistance);
 end;
 
@@ -2235,15 +2244,15 @@ begin
   FdLocation.DefaultValue := Vector3(0, 0, 1);
 
   FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
-   FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+   FdDirection.ChangeAlways := chLightLocationDirection;
   AddField(FFdDirection);
 
   FFdDropOffRate := TSFFloat.Create(Self, true, 'dropOffRate', 0);
-   FdDropOffRate.ChangesAlways := [chVisibleNonGeometry];
+   FdDropOffRate.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDropOffRate);
 
   FFdCutOffAngle := TSFFloat.Create(Self, true, 'cutOffAngle', Pi / 4);
-   FdCutOffAngle.ChangesAlways := [chVisibleNonGeometry];
+   FdCutOffAngle.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdCutOffAngle);
 end;
 
@@ -2433,7 +2442,7 @@ begin
   inherited;
 
   FFdWhichChild := TSFLong.Create(Self, true, 'whichChild', -1);
-   FdWhichChild.ChangesAlways := [chEverything];
+   FdWhichChild.ChangeAlways := chEverything;
   AddField(FFdWhichChild);
 
   VRML1ChildrenAllowed := true;
@@ -2492,18 +2501,15 @@ procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverse
 begin
   inherited;
 
-  { We don't copy whole State here, as changes to other properties of
+  { We don't copy whole State.Top here, as changes to other properties of
     state should "leak out" from TransformSeparator node. }
-  OriginalTransform := StateStack.Top.Transform;
-  OriginalInvertedTransform := StateStack.Top.InvertedTransform;
-  OriginalTransformScale := StateStack.Top.TransformScale;
+
+  OriginalTransformation := StateStack.Top.Transformation;
 end;
 
 procedure TTransformSeparatorNode_1.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
-  StateStack.Top.Transform := OriginalTransform;
-  StateStack.Top.InvertedTransform := OriginalInvertedTransform;
-  StateStack.Top.TransformScale := OriginalTransformScale;
+  StateStack.Top.Transformation := OriginalTransformation;
   inherited;
 end;
 
@@ -2540,7 +2546,7 @@ begin
   FdBboxSize.AssignDefaultValueFromValue;
 
   FFdSeparate := TSFBool.Create(Self, true, 'separate', true);
-   FdSeparate.ChangesAlways := [chEverything];
+   FdSeparate.ChangeAlways := chEverything;
   AddField(FFdSeparate);
 end;
 

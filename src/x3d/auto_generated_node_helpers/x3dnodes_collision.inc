@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetProxy: TAbstractChildNode;
     procedure SetProxy(const Value: TAbstractChildNode);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "proxy". } { }
     property Proxy: TAbstractChildNode read GetProxy write SetProxy;
 
@@ -42,12 +42,12 @@
 
 { TCollisionNode ----------------------------------------------- }
 
-function TCollisionNode.GetEnabled: boolean;
+function TCollisionNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TCollisionNode.SetEnabled(const Value: boolean);
+procedure TCollisionNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

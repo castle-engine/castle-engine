@@ -543,7 +543,7 @@ begin
   end else
   begin
     { Theta ~= 0, so both rotations equal (or opposite, in which case
-      result in undefined anyway). }
+      result is undefined anyway). }
     W1 := 1 - A;
     W2 := A;
   end;
@@ -551,10 +551,23 @@ begin
 end;
 
 function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4;
+var
+  Rot1Axis: TVector3 absolute Rot1;
+  Rot2Axis: TVector3 absolute Rot2;
 begin
-  Result := SLerp(A,
-    QuatFromAxisAngle(Rot1, true),
-    QuatFromAxisAngle(Rot2, true)).ToAxisAngle;
+  { TODO: Why do we need special code when 2 axis are equal?
+    - See TBoneTimelineRotate.BuildNodes
+      (although there we fixed it by TOrientationInterpolator2DNode that doesn't
+      even use SLerp anymore)
+    - See Unholy bug exorcist_hotel_blending_phone - animation transition
+      idle <-> use_phone_loop (SLerp called by TSFRotation.AssignLerp) }
+
+  if TVector3.PerfectlyEquals(Rot1Axis, Rot2Axis) then
+    Result := Vector4(Rot1Axis, AngleLerp(A, Rot1.Data[3], Rot2.Data[3]))
+  else
+    Result := SLerp(A,
+      QuatFromAxisAngle(Rot1, true),
+      QuatFromAxisAngle(Rot2, true)).ToAxisAngle;
 end;
 
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;

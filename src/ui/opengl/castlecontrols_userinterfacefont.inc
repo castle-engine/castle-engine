@@ -46,7 +46,7 @@
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
-    procedure TooltipRender; override;
+    procedure TooltipRender(const TooltipPosition: TVector2); override;
     procedure Render; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
@@ -102,8 +102,7 @@
     { Tooltip string, displayed when user hovers the mouse over a control.
 
       Note that you can override TCastleUserInterface.TooltipExists and
-      TCastleUserInterface.TooltipStyle and TCastleUserInterface.TooltipRender
-      to customize the tooltip drawing. }
+      TCastleUserInterface.TooltipRender to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
@@ -195,7 +194,7 @@ begin
   Result := Tooltip <> '';
 end;
 
-procedure TCastleUserInterfaceFont.TooltipRender;
+procedure TCastleUserInterfaceFont.TooltipRender(const TooltipPosition: TVector2);
 var
   X, Y, TooltipWidth, TooltipHeight: Single;
 begin
@@ -219,8 +218,8 @@ begin
   TCastleLabelTooltip(TooltipLabel).PreferredSize(TooltipWidth, TooltipHeight);
 
   { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
-  X := Container.TooltipPosition[0] / TooltipLabel.UIScale;
-  Y := Container.TooltipPosition[1] / TooltipLabel.UIScale;
+  X := TooltipPosition[0] / TooltipLabel.UIScale;
+  Y := TooltipPosition[1] / TooltipLabel.UIScale;
 
   { now try to fix X, Y to make tooltip fit inside a window }
   MinVar(X, ContainerWidth  - TooltipWidth );
@@ -251,6 +250,18 @@ begin
   if (Container <> nil) and
      (Container.DefaultFont <> nil) then
     Result := Container.DefaultFont
+  else
+  { If the Container is not assigned yet, then assume that UI control
+    will be inserted to the GetMainContainer, and use GetMainContainer.DefaultFont
+    (which is typically adjusted using CastleSettings.xml).
+    This makes calling e.g. TCastleLabel.Font.Text before the TCastleLabel instance
+    is inserted into the Container sensible -- it will measure using the right font
+    (with right sizes, right characters).
+    Testcase: Escape warnings about invalid chars in Japanese version. }
+  if (Container = nil) and
+     (GetMainContainer <> nil) and
+     (GetMainContainer.DefaultFont <> nil) then
+    Result := GetMainContainer.DefaultFont
   else
     Result := UIFont;
 

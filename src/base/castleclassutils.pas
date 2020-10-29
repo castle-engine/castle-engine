@@ -110,9 +110,9 @@ procedure WritelnStr(const S: AnsiString); overload;
 
 { Read one character from stream.
   @raises EReadError If end of stream. }
-function StreamReadChar(Stream: TStream): char;
+function StreamReadChar(Stream: TStream): AnsiChar;
 
-function StreamReadZeroEndString(Stream: TStream): string;
+function StreamReadZeroEndString(Stream: TStream): AnsiString;
 
 { Read stream, until you find some character in EndingChars.
   Returns read contents, without final character (the one in EndingChars set).
@@ -131,12 +131,12 @@ function StreamReadZeroEndString(Stream: TStream): string;
   @raises EReadError If the stream will end before encountering one of EndingChars.
   @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: char): string; overload;
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+  out endingChar: AnsiChar): AnsiString; overload;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
 { Read stream, until you find some character in EndingChars, or end of stream.
@@ -149,12 +149,12 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): string; overload;
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+  out endingChar: integer): AnsiString; overload;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
 { Read a growing stream, and append it to another destination stream.
@@ -168,13 +168,14 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): st
   This procedure ends when GrowingStream ends. If ResetDestStreamPosition
   then at the end we do DestStream.Position := 0 (since it is usually useful
   and it would be easy for you to forget about it). }
-procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
-  ResetDestStreamPosition: boolean);
+procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
+  const ResetDestStreamPosition: Boolean;
+  const BufferSize: Cardinal = 10 * 1000);
 
 { Read a growing stream, and returns it's contents as a string.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end. }
-function ReadGrowingStreamToString(GrowingStream: TStream): string;
+function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
@@ -246,7 +247,7 @@ type
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
-    procedure UpdateLineColumn(const C: char); overload;
+    procedure UpdateLineColumn(const C: AnsiChar); overload;
     procedure UpdateLineColumn(const Buffer; const BufferCount: Integer); overload;
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
@@ -289,7 +290,7 @@ type
     { Read characters, until one of EndingChars (or end of stream) is found.
       The ending character is not "consumed" from the stream.
       The Result is guaranteed to not contain any char from EndingChars. }
-    function ReadUpto(const EndingChars: TSetOfChars): string; virtual;
+    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; virtual;
 
     {$ifndef FPC}
     property Position: Int64 read GetPosition;
@@ -363,7 +364,7 @@ type
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
-    function ReadUpto(const EndingChars: TSetOfChars): string; override;
+    function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
 
     property BufferSize: LongWord read FBufferSize;
   end;
@@ -381,12 +382,39 @@ type
   { Used by @link(TCastleComponent.PropertySection). }
   TPropertySection = (psBasic, psLayout, psOther);
 
+  TCastleComponent = class;
+
+  { Use by @link(TCastleComponent.TranslateProperties). }
+  TTranslatePropertyEvent = procedure (const Sender: TCastleComponent;
+    const PropertyName: String; var PropertyValue: String) of object;
+
   { Component with small CGE extensions. }
   TCastleComponent = class(TComponent)
   protected
     function GetInternalText: String; virtual;
     procedure SetInternalText(const Value: String); virtual;
     procedure SetName(const Value: TComponentName); override;
+
+    { Enumerate all properties that are possible to translate in this component.
+      E.g. in @link(TCastleLabel) it will return @link(TCastleLabel.Caption),
+      in @link(TCastleEdit) it will return @link(TCastleEdit.Text) and
+      @link(TCastleEdit.Placeholder).
+
+      Returns only non-empty properties, thus assuming that if current
+      (by convention, English) text is empty, then there is no point
+      in translating it. Moreover descendants may define boolean properties
+      to exclude particular text from translating, e.g.
+      @link(TCastleLabel.CaptionTranslate),
+      @link(TCastleEdit.TextTranslate),
+      @link(TCastleEdit.PlaceholderTranslate).
+
+      It is not recursive (it doesn't enumerate children properties).
+      Use global @link(TranslateProperties) procedure to call this
+      on a hierarchy of TComponent.
+
+      You usually don't want to call this method (it is called by other engine routines).
+      But you may find it useful to override this, if you define new component. }
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); virtual;
   public
     { Internal field used by CastleComponentSerialize.
       @exclude }
@@ -423,22 +451,50 @@ type
       and TCastleLabel children, but we don't want to serialize or even
       show these children to user.
 
-      Note that if you want to prevent this component from serializing
+      Note that if you want to prevent this component from serializing as part of
       @link(TCastleUserInterface.Controls) list or @link(TCastleTransform.List),
       but you still want it to be visible in CGE editor,
       then make it a "subcomponent" instead, by @code(SetSubComponent(true)).
 
-      In any case (csSubComponent and/or csTransient) the component
-      is just not serialized as part of parent's @link(Controls) list.
-      But if you will make the component published (which is normal for "subcomponents")
+      Note that both csSubComponent and csTransient only disable the component
+      serialization as part of parent's @code(TComponent.GetChildren) list.
+      If you will make the component published in its own property
+      (which is normal for "subcomponents")
       then it will be serialized anyway, just as part of it's own property
       (like TCastleScrollView.ScrollArea).
-      So to @italic(really) avoid serializing the component,
+      So to @italic(really) avoid serializing the component
+      (that you have to insert to @code(TComponent.GetChildren) list),
       make it csSubComponent and/or csTransient,
       and do not publish it.
     }
     procedure SetTransient;
   end;
+
+{ Enumerate all properties that are possible to translate in this component
+  and its children. E.g. in @link(TCastleLabel) it will return @link(TCastleLabel.Caption),
+  in @link(TCastleEdit) it will return @link(TCastleEdit.Text)
+  and @link(TCastleEdit.Placeholder).
+
+  Returns only non-empty properties, thus assuming that if current
+  (by convention, English) text is empty, then there is no point
+  in translating it. Moreover descendants may define boolean properties
+  to exclude particular text from translating, e.g.
+  @link(TCastleLabel.CaptionTranslate),
+  @link(TCastleEdit.TextTranslate),
+  @link(TCastleEdit.PlaceholderTranslate).
+
+  For every TComponent it also recursively enumerates properties
+  to translate in children, i.e. in all published subcomponents and children
+  (returned by TComponent.GetChildren). The goal is to be 100% consistent with
+  CastleComponentSerialize, which is used to (de)serialize hierarchy of
+  components (like TCastleUserInterface or TCastleTransform).
+
+  You usually don't want to call this method (it is called by other engine routines).
+  Use higher-level routines in @link(CastleLocalizationGetText).
+
+  @seealso TCastleComponent.TranslateProperties }
+procedure TranslateProperties(const C: TComponent;
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
 
 { ---------------------------------------------------------------------------- }
 { @section(Variables to read/write standard input/output using TStream classes.
@@ -625,31 +681,62 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
-{ ---------------------------------------------------------------------------- }
-{ @section(Generics) }
-
-type
-  { A generic version of TCollection.
-    Main usage is preventing code redundancy when working with JSON serialisation. }
-  generic TGenericCollection<T> = class(TCollection)
-  private
-    function GetItems(AIndex: Integer): T;
-    procedure SetItems(AIndex: Integer; AValue: T);
-  public
-    constructor Create;
-    function Add: T;
-    property Items[AIndex: Integer]: T read GetItems write SetItems; default;
-  end;
-
 {$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
 {$endif}
 
+type
+  TFreeNotificationObserver = class;
+
+  { Notification from TFreeNotificationObserver.
+    Note that it doesn't specify the freed component,
+    because you can get it from @code(Sender.Observed) if needed. }
+  TFreeNotificationEvent = procedure (const Sender: TFreeNotificationObserver) of object;
+
+  { Observe when something is freed, call an event then.
+    You need to set @link(Observed) of this component
+    to make it notified about freeing of something.
+    (It will use standard FreeNotification / RemoveFreeNotification under the hood.)
+    When the @link(Observed) is freed, this component will make OnFreeNotification event.
+
+    Using this is useful if one class wants to observe freeing of multiple properties,
+    and some of those properties may be sometimes equal.
+    In this case using FreeNotification / RemoveFreeNotification with the main class
+    would be unreliable (as RemoveFreeNotification removes the notification,
+    even if you registered to it twice by FreeNotification), and requires complicated
+    code to handles these special cases.
+
+    Using this component as a "proxy" to track each property is simpler.
+    See e.g. TCastleThirdPersonNavigation implementation for example. }
+  TFreeNotificationObserver = class(TComponent)
+  strict private
+    FObserved: TComponent;
+    FOnFreeNotification: TFreeNotificationEvent;
+    procedure SetObserved(const Value: TComponent);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    destructor Destroy; override;
+
+    { Called when we receive notification that something was freed. }
+    property OnFreeNotification: TFreeNotificationEvent read FOnFreeNotification write FOnFreeNotification;
+
+    { Setting this property makes the given component observed, freeing it will make
+      OnFreeNotification.
+      When setting, the previous value of this property stops being observed.
+
+      Note that this property will be automatically changed to @nil after OnFreeNotification,
+      if the OnFreeNotification will not change it. This is necessary (we need to detach
+      our "free notification" from a component that will be freed) and makes it safer
+      (we will not expose dangling pointer). }
+    property Observed: TComponent read FObserved write SetObserved;
+  end;
+
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, Math {$ifdef FPC}, StreamIO {$endif};
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif}, RTTIUtils, TypInfo;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -753,21 +840,21 @@ begin
   WritelnStr(StdOutStream, S);
 end;
 
-function StreamReadChar(Stream: TStream): char;
+function StreamReadChar(Stream: TStream): AnsiChar;
 begin
   Stream.ReadBuffer(result, SizeOf(result));
 end;
 
-function StreamReadZeroEndString(Stream: TStream): string;
+function StreamReadZeroEndString(Stream: TStream): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, [#0], false);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
   readLen: integer; { ile znakow odczytales }
-  ch: char;
+  ch: AnsiChar;
 begin
   readLen := 0;
   result := '';
@@ -792,28 +879,28 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean):AnsiString; overload;
 var
-  dummy: char;
+  dummy: AnsiChar;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, backEndingChar, dummy);
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: char): string;
+  out endingChar: AnsiChar): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): string;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
 begin
   result := StreamReadUpto_NotEOS(Stream, endingChars, false);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; out endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): AnsiString; overload;
 var readLen: integer; { ile znakow odczytales }
-    ch: char;
+    ch: AnsiChar;
 begin
   readLen := 0;
   result := '';
@@ -843,7 +930,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean): string; overload;
+  backEndingChar: boolean): AnsiString; overload;
 var
   dummy: integer;
 begin
@@ -851,31 +938,35 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): string;
+  out endingChar: integer): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
 
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
 
-procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
-  ResetDestStreamPosition: boolean);
+procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
+  const ResetDestStreamPosition: Boolean;
+  const BufferSize: Cardinal);
 var
   ReadCount: Integer;
-  Buffer: array[1..10000]of Byte;
+  Buffer: Pointer;
 begin
-  repeat
-    ReadCount := GrowingStream.Read(Buffer, SizeOf(Buffer));
-    if ReadCount = 0 then Break;
-    DestStream.WriteBuffer(Buffer, ReadCount);
-  until false;
+  Buffer := GetMem(BufferSize);
+  try
+    repeat
+      ReadCount := GrowingStream.Read(Buffer^, BufferSize);
+      if ReadCount = 0 then Break;
+      DestStream.WriteBuffer(Buffer^, ReadCount);
+    until false;
+  finally FreeMemNiling(Buffer) end;
   if ResetDestStreamPosition then DestStream.Position := 0;
 end;
 
-function ReadGrowingStreamToString(GrowingStream: TStream): string;
+function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 const
   BufferSize = 10000;
 var
@@ -978,7 +1069,7 @@ begin
   Result := 0; { just to get rid of dummy fpc warning }
 end;
 
-procedure TPeekCharStream.UpdateLineColumn(const C: char);
+procedure TPeekCharStream.UpdateLineColumn(const C: AnsiChar);
 begin
   if (C = #13) or
      (C = #10) then
@@ -996,10 +1087,10 @@ var
   I: Integer;
 begin
   for I := 0 to BufferCount - 1 do
-    UpdateLineColumn(PChar(@Buffer)[I]);
+    UpdateLineColumn(PAnsiChar(@Buffer)[I]);
 end;
 
-function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): string;
+function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
 begin
@@ -1007,10 +1098,10 @@ begin
   while true do
   begin
     Peeked := PeekChar;
-    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+    if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
     { ReadChar will return same thing as Peeked now }
-    Result := Result + Chr(ReadChar);
+    Result := Result + AnsiChar(ReadChar);
   end;
 end;
 
@@ -1069,7 +1160,7 @@ function TSimplePeekCharStream.ReadChar: Integer;
 { This is somehow optimized version of TSimplePeekCharStream.Read
   for the case when Count = 1. }
 var
-  C: char;
+  C: AnsiChar;
 begin
   if IsPeekedChar then
   begin
@@ -1087,7 +1178,7 @@ begin
   end;
 
   if Result <> -1 then
-    UpdateLineColumn(Chr(Result));
+    UpdateLineColumn(AnsiChar(Result));
 end;
 
 { TBufferedReadStream ----------------------------------------------------- }
@@ -1193,20 +1284,20 @@ begin
   end;
 
   if Result <> -1 then
-    UpdateLineColumn(Chr(Result));
+    UpdateLineColumn(AnsiChar(Result));
 end;
 
-function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): string;
+function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): AnsiString;
 var
   Peeked: Integer;
   BufferBeginPos, OldResultLength, ReadCount: LongWord;
-  ConsumingChar: char;
+  ConsumingChar: AnsiChar;
 begin
   Result := '';
   while true do
   begin
     Peeked := PeekChar;
-    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+    if (Peeked = -1) or (AnsiChar(Peeked) in EndingChars) then
       Exit;
 
     (*Since this is TBufferedReadStream, we often have a lot of data in our
@@ -1229,7 +1320,7 @@ begin
       chunk from the buffer, and copy it to Result at once.
     *)
 
-    UpdateLineColumn(Chr(Peeked));
+    UpdateLineColumn(AnsiChar(Peeked));
 
     { Increase BufferPos as much as you can. We know that we can increase
       at least by one, since we just called PeekChar and it returned character
@@ -1242,7 +1333,7 @@ begin
         Break
       else
       begin
-        ConsumingChar := Chr(Buffer^[BufferPos]);
+        ConsumingChar := AnsiChar(Buffer^[BufferPos]);
         if ConsumingChar in EndingChars then
           Break
         else
@@ -1295,7 +1386,13 @@ end;
 
 procedure TCastleComponent.InternalLoading;
 begin
+  {$ifdef FPC}
   Loading;
+  {$else}
+  // TODO:
+  // How do we implement this in Delphi?
+  // ComponentState := ComponentState + [csLoading];
+  {$endif}
 end;
 
 procedure TCastleComponent.InternalLoaded;
@@ -1336,6 +1433,74 @@ begin
     Result := psBasic
   else
     Result := psOther;
+end;
+
+procedure TCastleComponent.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+begin
+  // nothing to do in this class
+end;
+
+{ TComponent routines -------------------------------------------------------- }
+
+type
+  { Helper class to implement TranslateProperties. }
+  TTranslatePropertiesGetChildren = class
+    TranslatePropertyEvent: TTranslatePropertyEvent;
+    procedure TranslatePropertiesOnChild(Child: TComponent);
+  end;
+
+procedure TTranslatePropertiesGetChildren.TranslatePropertiesOnChild(Child: TComponent);
+begin
+  TranslateProperties(Child, TranslatePropertyEvent);
+end;
+
+procedure TranslateProperties(const C: TComponent;
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+
+  { Call TranslateProperties on C and its children. }
+  procedure TranslateChildClass(const C: TObject);
+  begin
+    if (C is TComponent) and // also checks is C <> nil
+       (csSubComponent in TComponent(C).ComponentStyle) then
+      TranslateProperties(TComponent(C), TranslatePropertyEvent);
+
+    { One day we may add here special handling
+      of TCollection and TObjectList, like TJSONStreamer.StreamClassProperty. }
+  end;
+
+var
+  PropInfos: TPropInfoList;
+  PropInfo: PPropInfo;
+  TypeInfo: PTypeInfo;
+  I: Integer;
+  GetChildrenHandler: TTranslatePropertiesGetChildren;
+begin
+  if C is TCastleComponent then
+  begin
+    // translate properties of C
+    TCastleComponent(C).TranslateProperties(TranslatePropertyEvent);
+
+    // translate properties of C children in GetChildren
+    GetChildrenHandler := TTranslatePropertiesGetChildren.Create;
+    try
+      GetChildrenHandler.TranslatePropertyEvent := TranslatePropertyEvent;
+      TCastleComponent(C).GetChildren(
+        {$ifdef CASTLE_OBJFPC}@{$endif} GetChildrenHandler.TranslatePropertiesOnChild, nil);
+    finally FreeAndNil(GetChildrenHandler) end;
+  end;
+
+  // translate properties of other C serialized children
+  PropInfos := TPropInfoList.Create(C, tkProperties);
+  try
+    for I := 0 to PropInfos.Count - 1 do
+    begin
+      PropInfo := PropInfos[I];
+      TypeInfo := PropInfo^.PropType {$ifndef FPC}^{$endif};
+      if TypeInfo^.Kind = tkClass then
+        TranslateChildClass(GetObjectProp(C, PropInfo));
+    end;
+  finally FreeAndNil(PropInfos) end;
 end;
 
 { initialization / finalization ---------------------------------------------- }
@@ -1563,7 +1728,17 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Assigned(Items[I]) then
+
+    { TODO: The test "I < Count" is a quick fix for the problem that list
+      may be modified during iteration.
+      E.g. network/remote_logging/gameloghandler.pas in HttpPostFinish
+      sets FreeSender, which means that Application.OnUpdate list
+      is modified while we iterate over it.
+
+      We should introduce a reliable way to handle this, but for now the test
+      at least prevents a crash in this case. }
+
+    if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
 end;
 
@@ -1582,33 +1757,12 @@ begin
       TCastleApplicationProperties._GLContextClose calls
       FOnGLContextCloseObject.ExecuteBackward(Self),
       some "on close" callbacks modify the FOnGLContextCloseObject list.
+
       We should introduce a reliable way to handle this, but for now the test
       at least prevents a crash in this case. }
 
     if (I < Count) and Assigned(Items[I]) then
       Items[I](Sender);
-end;
-
-{ TGenericCollection -------------------------------------------------------- }
-
-function TGenericCollection.GetItems(AIndex: Integer): T;
-begin
-  Result := T(inherited Items[AIndex]);
-end;
-
-procedure TGenericCollection.SetItems(AIndex: Integer; AValue: T);
-begin
-  Items[AIndex].Assign(AValue);
-end;
-
-constructor TGenericCollection.Create;
-begin
-  inherited Create(T);
-end;
-
-function TGenericCollection.Add: T;
-begin
-  Result := T(inherited Add);
 end;
 
 { DumpStack ------------------------------------------------------------------ }
@@ -1631,6 +1785,10 @@ begin
 end;
 
 function DumpExceptionBackTraceToString: string;
+{$ifdef CASTLE_NINTENDO_SWITCH}
+begin
+  Result := ''; // DumpExceptionBackTrace fails with Access Violation
+{$else}
 var
   TextFile: Text;
   StringStream: TStringStream;
@@ -1644,8 +1802,63 @@ begin
     finally CloseFile(TextFile) end;
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
+{$endif}
 end;
 {$endif}
+
+{ TFreeNotificationObserver -------------------------------------------------- }
+
+destructor TFreeNotificationObserver.Destroy;
+begin
+  { detach free notification, if any remains }
+  Observed := nil;
+  inherited;
+end;
+
+procedure TFreeNotificationObserver.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  { Note: initially I tried implementing this class without tracking FObserved,
+    instead user needed to call
+      Xxx.FreeNotification(MyFreeNotificationObserver),
+      Xxx.RemoveFreeNotification(MyFreeNotificationObserver)
+    explicitly. But this was bad: even on TFreeNotificationObserver,
+    we also get notification about freeing of some unrelated components
+    (TCustomHintAction, THintWindow, TCustomTimer...) when using LCL.
+
+    Using Observed property also makes usage simpler:
+    - No need to use RemoveFreeNotification and FreeNotification.
+      Instead just set Observed.
+    - It is obvious that this component observes only *one* component at a time.
+      (Since this is its purpose). }
+
+  if (Operation = opRemove) and
+     (AComponent <> nil) and // should not happen, but better be secure
+     (AComponent = FObserved) and
+     Assigned(OnFreeNotification) then
+  begin
+    OnFreeNotification(Self);
+
+    { Possibly OnFreeNotification already changed Observed, and we no longer observe it.
+      But if it didn't... then let's fix it.
+      We know FObserved will be freed, so we can stop watching. }
+    if AComponent = FObserved then
+      Observed := nil;
+  end;
+end;
+
+procedure TFreeNotificationObserver.SetObserved(const Value: TComponent);
+begin
+  if FObserved <> Value then
+  begin
+    if FObserved <> nil then
+      FObserved.RemoveFreeNotification(Self);
+    FObserved := Value;
+    if FObserved <> nil then
+      FObserved.FreeNotification(Self);
+  end;
+end;
 
 initialization
   InitStdStreams;

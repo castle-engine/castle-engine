@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?> <!-- -*- mode: xml -*-  -->
+<build_gradle_merge>
+  <!-- This will be merged with main build.gradle file.
+       Following
+       https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android -->
+  <dependencies>
+    <!-- The docs say to use 'com.appsflyer:af-android-sdk:4+@aar',
+         but the API is then different than documented - -
+         AppsFlyerLib.getInstance().init seems not existing.
+         So instead we follow
+         https://github.com/AppsFlyerSDK/SampleApp-Examples
+         and declare version 4.8.7 explicitly.
+    -->
+    <!-- <dependency>implementation 'com.appsflyer:af-android-sdk:4+@aar'</dependency> -->
+    <dependency>compile 'com.appsflyer:af-android-sdk:4.8.7@aar'</dependency>
+    <dependency>implementation 'com.android.installreferrer:installreferrer:1.0'</dependency>
+  </dependencies>
+</build_gradle_merge>

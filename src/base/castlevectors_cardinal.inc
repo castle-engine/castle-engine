@@ -32,10 +32,6 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector2Cardinal = (Data: (0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
@@ -49,9 +45,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Cardinal; static; inline;
-    {$endif}
   end;
 
   { Vector of 3 Cardinal values. }
@@ -67,10 +61,6 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector3Cardinal = (Data: (0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
@@ -85,9 +75,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Cardinal; static; inline;
-    {$endif}
   end;
 
   { Vector of 4 Cardinal values. }
@@ -103,10 +91,6 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Zero: TVector4Cardinal = (Data: (0, 0, 0, 0));
-    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
@@ -122,9 +106,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
 
-    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Cardinal; static; inline;
-    {$endif}
   end;
 
   PVector2Cardinal = ^TVector2Cardinal;
@@ -202,12 +184,10 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Cardinal.Zero: TVector2Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector3Cardinal ------------------------------------------------------------ }
 
@@ -269,12 +249,10 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Cardinal.Zero: TVector3Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { TVector4Cardinal ------------------------------------------------------------ }
 
@@ -340,12 +318,10 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Cardinal.Zero: TVector4Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 { global routines ------------------------------------------------------------ }
 

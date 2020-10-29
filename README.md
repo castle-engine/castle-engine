@@ -1,76 +1,63 @@
 Castle Game Engine
 ==================
 
-"Castle Game Engine" ( https://castle-engine.io/ )
-is an open-source 3D and 2D game engine.
+["Castle Game Engine"](https://castle-engine.io/) is an open-source cross-platform 3D and 2D game engine.
 
-We have many graphic features (shadows, mirrors, screen effects...)
-and support many data formats for game assets (X3D, glTF, VRML, Collada, Spine...).
-We have a nice scene manager, with many optional components
-(like instant creatures with simple walking and attacking intelligence).
-We're cross-platform (desktop, mobile).
+We have many graphic features (physically-based rendering, shadows, mirrors, screen effects, gamma correction...) and support many data formats for game assets ([glTF, X3D, Spine JSON, Collada, ...](https://castle-engine.io/creating_data_model_formats.php)).
+We have many user-interface components,
+with a powerful viewport to display 3D or 2D content.
+We're cross-platform (desktop, mobile, Nintendo Switch).
 
 See https://castle-engine.io/features.php
 for the complete list of engine features.
 
 Documentation:
 
-- The "Getting Started" page on
-  https://castle-engine.io/documentation.php
-  describes what to install and how to compile.
-  See also the "Compiling" section below for a short version.
+- The [Getting Started](https://castle-engine.io/documentation.php) page describes what to install and how to compile. See also the "Compiling" section below for a short version.
 
-- Manual: See https://castle-engine.io/manual_intro.php .
+- [Manual](https://castle-engine.io/manual_intro.php) is the most recommended way to learn the engine.
 
-- API reference:
-  Online on https://castle-engine.io/apidoc/html/index.html .
-  Offline in doc/reference/ subdirectory of the engine archive
-  (if you downloaded the zip or tar.gz engine release),
-  just open the file doc/reference/index.html in your WWW browser.
+- [API reference](https://castle-engine.io/apidoc-unstable/html/index.html).
 
-- Numerous examples are provided in the examples/ subdirectory.
-  For example take a look at a simple FPS game example in
-  the examples/fps_game/ subdirectory.
+  It is also available offline in the engine archive (if you downloaded the zip engine release), just open the file `doc/reference/index.html` in your WWW browser.
 
-- Guide to creating game data:
-  https://castle-engine.io/creating_data_intro.php
+- Numerous examples are provided in the `examples/` subdirectory. For example take a look at a simple FPS game example in the `examples/fps_game/` subdirectory.
 
-Questions? Talk to us on forum or chat: https://castle-engine.io/talk.php .
+- [Guide to creating game data](https://castle-engine.io/creating_data_intro.php).
 
-Support us on https://www.patreon.com/castleengine .
+Questions? Talk to us on [forum or Discord chat](https://castle-engine.io/talk.php).
+
+[Support us on Patreon](https://www.patreon.com/castleengine).
 
 Compiling
 ---------
 
-Get Lazarus ( https://www.lazarus-ide.org/ )
-and install in Lazarus two packages:
+There are a couple of options. See the ["Getting Started" page](https://castle-engine.io/documentation.php) for details. In short:
 
-- packages/castle_base.lpk and
-- packages/castle_components.lpk
+- Use our Castle Game Engine Editor to design and build your applications.
+  See https://castle-engine.io/documentation.php for a short introduction
+  and https://castle-engine.io/manual_editor.php for details.
 
-Also, compile (but don't install) this package:
+- Use our Castle Game Engine command-line build tool to build your applications.
+  See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
-- packages/castle_window.lpk
+    The build tool and editor use the project settings
+    from the [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
+    file.
 
-Now you can compile and run all the examples by opening their .lpi files
-and running them as usual from Lazarus.
+- Use Lazarus ( https://www.lazarus-ide.org/ ).
 
-Alternative:
+    Install in Lazarus two packages:
 
-If you prefer to use bare FPC and the command-line
-you can use our build tool (called simply `castle-engine`)
-to compile various examples and your own games for many plaforms:
-https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
-Lazarus and LCL are not necessary in this case.
+    - packages/castle_base.lpk and
+    - packages/castle_components.lpk
 
-The build tool relies on the existence of [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
-file inside your project. The build tool allows to comfortably
-compile and package your game for various platforms,
-including Android and iOS.
+    Also, compile (but don't install) this package:
 
-See the "Getting Started" page on
-https://castle-engine.io/documentation.php
-for more information.
+    - packages/castle_window.lpk
+
+- Use FPC fpmake / fppkg.
+  See https://github.com/castle-engine/castle-engine/wiki/FpMake
 
 License
 -------
@@ -80,8 +67,13 @@ with "static linking exception". This is the same license
 as used by FPC RTL and Lazarus LCL. In short, you *can* make
 commercial and closed-source games using the engine,
 you only have to share your modifications to the engine core.
-See COPYING.md for details.
+See [COPYING.md](https://github.com/castle-engine/castle-engine/blob/master/COPYING.md) for details.
 
 Have fun!
 
-Michalis Kamburelis
+Authors
+-------
+
+This is the life project of _Michalis Kamburelis_.
+
+Thank you to [all the contributors](https://github.com/castle-engine/castle-engine/graphs/contributors) for developing the engine with me throughout the years. Keep it going please :)

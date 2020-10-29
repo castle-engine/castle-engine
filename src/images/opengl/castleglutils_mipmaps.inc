@@ -70,6 +70,7 @@ begin
     case GLFeatures.Framebuffer of
       gsExtension: glGenerateMipmapEXT(Target);
       gsStandard : glGenerateMipmap   (Target);
+      else ;
     end;
 
     if GLVersion.Fglrx then

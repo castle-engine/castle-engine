@@ -235,6 +235,9 @@ type
       Note that this is supposed to contain UTF-8 encoded string for VRML >= 2.0. }
     property TokenName: string read fTokenName;
 
+    { TokenName, decoded using DecodeX3DName. }
+    function TokenX3DName: String;
+
     { When Token = vtFloat or vtInteger, TokenFloat contains a value of
       this token.
 
@@ -383,7 +386,8 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog;
+uses CastleLog,
+  X3DLoadInternalUtils;
 
 const
   { utf8 specific constants below }
@@ -809,27 +813,7 @@ function TX3DLexer.NextToken: TX3DToken;
   const
     NoDigits = AllChars - ['0'..'9'];
     NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
-  { TODO: octal notation not implemented (i simply forgot about it) }
-
-    { StrToFloat a little faster.
-      Assumes that S doesn't contain any whitespace around
-      (StrToFloat does Trim(S), this doesn't).
-      Assumes that decimal separator is '.' (StrToFloat tries to look
-      for FormatSettings.DecimalSeparator and replace with '.').
-
-      This is a small optimization but it matters, since reading fields like
-      SFVec3f / SFVec2f is the main time-eater when reading VRML files.
-      For "the castle" "loading creatures" (with only Alien), it changed time
-      (1-0.5) * old_time = (1-0.46) * new_time, i.e. new_time ~= old_time * 0.92.
-      Small speedup. }
-    function StrToFloatFaster(const S: string): Extended;
-    var
-      Err: Integer;
-    begin
-      Val(S, Result, Err);
-      if Err <> 0 then
-        raise EConvertError.CreateFmt('"%s" is an invalid float', [S]);
-    end;
+    { TODO: octal notation not implemented (I never saw any model using it) }
 
     procedure ReadAfterE(const AlreadyRead: string);
     var CharAfterE: char;
@@ -849,7 +833,7 @@ function TX3DLexer.NextToken: TX3DToken;
          'Unexpected end of file in the middle of real constant');
      CharAfterE := Chr(CharAfterEInt);
      RestOfToken := Stream.ReadUpto(NoDigits);
-     fTokenFloat := StrToFloatFaster(AlreadyRead +'e' +CharAfterE +RestOfToken);
+     fTokenFloat := StrToFloatDot(AlreadyRead +'e' +CharAfterE +RestOfToken);
     end;
 
     procedure ReadAfterDot(const AlreadyRead: string);
@@ -867,7 +851,7 @@ function TX3DLexer.NextToken: TX3DToken;
      end else
      begin
       fToken := vtFloat;
-      fTokenFloat := StrToFloatFaster(s);
+      fTokenFloat := StrToFloatDot(s);
      end;
     end;
 
@@ -912,7 +896,7 @@ function TX3DLexer.NextToken: TX3DToken;
             float value. It's just too large for 64-bit integer... }
           FToken := vtFloat;
           try
-            FTokenFloat := StrToFloat(Dig1);
+            FTokenFloat := StrToFloatDot(Dig1);
           except
             on EFloat: EConvertError do
               { Raise EConvertError with nice error message,
@@ -1060,9 +1044,10 @@ begin
  case Token of
   vtKeyword: result := result +' "' +X3DKeywordsName[TokenKeyword]+'"';
   vtName: result := '"' +TokenName+'"';
-  vtFloat: result := result +' ' +FloatToStr(TokenFloat);
+  vtFloat: result := result +' ' +FloatToStrDot(TokenFloat);
   vtInteger: result := result +' ' +IntToStr(TokenInteger);
   vtString: result := result+' "'+TokenString+'"';
+  else ;
  end;
 end;
 
@@ -1091,6 +1076,11 @@ begin
     raise EX3DParserError.Create(Self,
       Format('Expected keyword "%s", got %s', [X3DKeywordsName[Keyword],
         DescribeToken]));
+end;
+
+function TX3DLexer.TokenX3DName: String;
+begin
+  Result := DecodeX3DName(TokenName);
 end;
 
 { Exceptions ----------------------------------------------------------------- }

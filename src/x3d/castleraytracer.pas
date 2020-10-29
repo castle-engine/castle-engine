@@ -298,10 +298,9 @@ end;
 function GetSceneBackgroundColor(const Background: TAbstractBackgroundNode;
   const Default: TCastleColorRGB): TCastleColorRGB;
 begin
-  if (Background <> nil) and
-     (Background is TBackgroundNode) and
-     (TBackgroundNode(Background).FdSkyColor.Count <> 0) then
-    Result := TBackgroundNode(Background).FdSkyColor.Items[0]
+  if (Background is TAbstract3DBackgroundNode) and
+     (TAbstract3DBackgroundNode(Background).FdSkyColor.Count <> 0) then
+    Result := TAbstract3DBackgroundNode(Background).FdSkyColor.Items[0]
   else
     Result := Default;
 end;
@@ -621,7 +620,7 @@ var
         if LightingCalculationOn then
           Result := M.EmissiveColor
         else
-          Result := M.DiffuseColor;
+          Result := M.MainColor;
       end else
       begin
         if LightingCalculationOn then
@@ -651,14 +650,14 @@ var
       {$endif};
 
     MaterialInfo := IntersectNode^.MaterialInfo;
-    if MaterialInfo <> nil then
+    if MaterialInfo is TPhongMaterialInfo then // also checks MaterialInfo <> nil
     begin
-      MaterialReflectionColor := MaterialInfo.ReflectionColor;
-      MaterialTransparency := MaterialInfo.Transparency;
+      MaterialReflectionColor := TPhongMaterialInfo(MaterialInfo).ReflectionColor;
+      MaterialTransparency := TPhongMaterialInfo(MaterialInfo).Transparency;
     end else
     begin
-      MaterialReflectionColor := TMaterialInfo.DefaultReflectionColor;
-      MaterialTransparency := TMaterialInfo.DefaultTransparency;
+      MaterialReflectionColor := TPhongMaterialInfo.DefaultReflectionColor;
+      MaterialTransparency := TPhongMaterialInfo.DefaultTransparency;
     end;
 
     DiffuseTextureColor :=
@@ -666,7 +665,7 @@ var
       WhiteRGB
       {$else}
       GetDiffuseTexture(
-        IntersectNode^.State.DiffuseAlphaTexture,
+        IntersectNode^.State.MainTexture,
         IntersectNode^.ITexCoord(Intersection))
       {$endif};
 
@@ -840,7 +839,7 @@ end;
     if M <> nil then
       Result := M.EmissiveColor
     else
-      Result := TMaterialInfo.DefaultEmissiveColor;
+      Result := TPhongMaterialInfo.DefaultEmissiveColor;
   end;
 
   function IsLightSource(const Item: TTriangle): boolean;
@@ -1003,7 +1002,7 @@ const
   var
     Intersection: TVector3;
     IntersectNode: PTriangle;
-    MaterialInfo: TMaterialInfo; { = IntersectNode.MaterialInfo }
+    Material: TPhongMaterialInfo; { = IntersectNode.MaterialInfo }
     IntersectNormal: TVector3;
 
     function TraceNonEmissivePart: TVector3;
@@ -1027,7 +1026,7 @@ const
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomHemispherePointCosThetaExp(
-              Round(MaterialInfo.TransSpecularExp),
+              Round(Material.TransSpecularExp),
               PdfValue),
             TransmittedRayDirection);
       end;
@@ -1111,7 +1110,7 @@ const
 
           { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
             materialu }
-          DirectColor := DirectColor * MaterialInfo.DiffuseColor;
+          DirectColor := DirectColor * Material.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
           LightDirNorm.NormalizeMe;
@@ -1203,10 +1202,10 @@ const
           odpowiada DOKLADNIE temu jak wpada swiatlo. }
 
         { calculate Colors[] }
-        Colors[ckRS] := MaterialInfo.ReflSpecular;
-        Colors[ckRD] := MaterialInfo.ReflDiffuse;
-        Colors[ckTS] := MaterialInfo.TransSpecular;
-        Colors[ckTD] := MaterialInfo.TransDiffuse;
+        Colors[ckRS] := Material.ReflSpecular;
+        Colors[ckRD] := Material.ReflDiffuse;
+        Colors[ckTS] := Material.TransSpecular;
+        Colors[ckTD] := Material.TransDiffuse;
 
         { calculate Weights[] and WeightSum }
         WeightsSum := 0;
@@ -1261,7 +1260,7 @@ const
                     IntersectNormal);
             ckRS: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosThetaExp(
-                      Round(MaterialInfo.ReflSpecularExp),
+                      Round(Material.ReflSpecularExp),
                       PdfValue),
                     ReflectedRayDirection(RayDirection.Normalize,
                       IntersectNormal));
@@ -1294,6 +1293,7 @@ const
   var
     i: Integer;
     NonEmissiveColor: TVector3;
+    AnyMaterial: TMaterialInfo;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
@@ -1305,7 +1305,11 @@ const
       Exit;
     end;
 
-    MaterialInfo := IntersectNode^.MaterialInfo;
+    AnyMaterial := IntersectNode^.MaterialInfo;
+    if AnyMaterial is TPhongMaterialInfo then
+      Material := TPhongMaterialInfo(AnyMaterial)
+    else
+      Material := nil; // TODO: path tracer treats all non-Phong materials (like Physical) as unlit
 
     { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
       do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
@@ -1315,7 +1319,7 @@ const
       because this is done even when MaterialInfo is nil. }
     Result := EmissiveColor(IntersectNode^);
 
-    if MaterialInfo <> nil then
+    if Material <> nil then
     begin
       { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
         Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy

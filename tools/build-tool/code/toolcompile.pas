@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,6 +34,11 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
 
+{ Compile with lazbuild. }
+procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
+  const WorkingDirectory, LazarusProjectFile: string);
+
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
@@ -46,40 +51,40 @@ var
   { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FPCVersionForIPhoneSimulator: string = 'auto';
+  FpcVersionForIPhoneSimulator: string = 'auto';
 
 implementation
 
 uses SysUtils, Process,
   CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
-  ToolUtils, ToolFPCVersion;
+  ToolCommonUtils, ToolUtils, ToolFpcVersion, ToolCompilerInfo;
 
 type
-  TFPCVersionForIPhoneSimulatorChecked = class
+  TFpcVersionForIPhoneSimulatorChecked = class
   strict private
     class var
       IsCached: boolean;
       CachedValue: string;
-    class function AutoDetect(const FPCVer: TFPCVersion): string; static;
+    class function AutoDetect(const FpcVer: TFpcVersion): string; static;
   public
-    { Return FPCVersionForIPhoneSimulator, but the 1st time this is run,
+    { Return FpcVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value(const FPCVer: TFPCVersion): string; static;
+    class function Value(const FpcVer: TFpcVersion): string; static;
   end;
 
-class function TFPCVersionForIPhoneSimulatorChecked.AutoDetect(
-  const FPCVer: TFPCVersion): string; static;
+class function TFpcVersionForIPhoneSimulatorChecked.AutoDetect(
+  const FpcVer: TFpcVersion): string; static;
 begin
-  if (not Odd(FPCVer.Minor)) and
-     (not Odd(FPCVer.Release)) then
+  if (not Odd(FpcVer.Minor)) and
+     (not Odd(FpcVer.Release)) then
   begin
     { If we have a stable FPC version (like 3.0.0, 3.0.2, 3.0.4...)
       then for iPhone Simulator pass -V with release bumped +1
       (making it 3.0.1, 3.0.3, 3.0.5...). }
     Result := Format('%d.%d.%d', [
-      FPCVer.Major,
-      FPCVer.Minor,
-      FPCVer.Release + 1]);
+      FpcVer.Major,
+      FpcVer.Minor,
+      FpcVer.Release + 1]);
     Writeln('Auto-detected FPC version for iPhone Simulator as ' + Result);
   end else
     { In other cases, do not pass any -Vxxx for iPhone Simulator.
@@ -87,25 +92,23 @@ begin
     Result := '';
 end;
 
-class function TFPCVersionForIPhoneSimulatorChecked.Value(
-  const FPCVer: TFPCVersion): string; static;
+class function TFpcVersionForIPhoneSimulatorChecked.Value(
+  const FpcVer: TFpcVersion): string; static;
 var
   FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
 begin
   if not IsCached then
   begin
-    CachedValue := FPCVersionForIPhoneSimulator;
+    CachedValue := FpcVersionForIPhoneSimulator;
     IsCached := true;
 
     if CachedValue = 'auto' then
-      CachedValue := AutoDetect(FPCVer);
+      CachedValue := AutoDetect(FpcVer);
 
     if CachedValue <> '' then
     begin
-      FpcExe := FindExe('fpc');
-      if FpcExe = '' then
-        raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+      FpcExe := FindExeFpcCompiler;
       MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
@@ -158,21 +161,117 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
+{ Writeln a message that FPC/Lazarus crashed and we will retry,
+  and clean compilation leftover files. }
+procedure FpcLazarusCrashRetry(const WorkingDirectory, ToolName, ProjectName: String);
+begin
+  Writeln('-------------------------------------------------------------');
+  Writeln('It seems ' + ToolName + ' crashed. If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help ' + ProjectName + ' developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the ' + ProjectName + ' or Castle Game Engine mailing list.');
+  Writeln;
+  Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
+  Writeln('-------------------------------------------------------------');
+  { when we're called to compile a project, WorkingDirectory is the project path }
+  CleanDirectory(WorkingDirectory);
+  CleanDirectory(TempOutputPath(WorkingDirectory, false));
+  if CastleEnginePath <> '' then
+  begin
+    { Compiling project using build tool (through FPC or lazbuild)
+      should *not* leave any file in src/ .
+      But, just to be safe, try to clear it if possible. }
+    CleanDirectory(CastleEnginePath + 'src' + PathDelim);
+    CleanDirectory(CastleEnginePath + 'packages' + PathDelim + 'lib' + PathDelim);
+  end;
+end;
+
+function FilterFpcOutput(var Line: String; const Data: Pointer): Boolean;
+var
+  LineLower: String;
+begin
+  { Lowercase once and later use IsPrefix many times with IgnoreCase=false (faster). }
+  LineLower := LowerCase(Line);
+  Result := not (
+    IsPrefix('generics.collections.pas(', LineLower, false) or
+    IsPrefix('generics.dictionaries.inc(', LineLower, false)
+  );
+  // Uncomment this just to debug that our line splitting in TCaptureOutputFilter works
+  // Line := '<begin>' + Line + '<end>';
+end;
+
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
-  CastleEnginePath, CastleEngineSrc: string;
-  FPCVer: TFPCVersion;
+  CastleEngineSrc: string;
+  FpcVer: TFpcVersion;
   FpcOptions: TCastleStringList;
 
   procedure AddEnginePath(Path: string);
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
-      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (the castle_game_engine/ or castle-engine/ directory)', [Path]);
+      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources.', [Path]);
     FpcOptions.Add('-Fu' + Path);
     FpcOptions.Add('-Fi' + Path);
+  end;
+
+  procedure AddEngineSearchPaths;
+  begin
+    if CastleEngineSrc <> '' then
+    begin
+      { Note that we add OS-specific paths (windows, android, unix)
+        regardless of the target OS. There is no point in filtering them
+        only for specific OS, since all file names must be different anyway,
+        as Lazarus packages could not compile otherwise. }
+
+      AddEnginePath('base');
+      AddEnginePath('base/android');
+      AddEnginePath('base/windows');
+      AddEnginePath('base/unix');
+      AddEnginePath('base/opengl');
+      AddEnginePath('fonts');
+      AddEnginePath('fonts/windows');
+      AddEnginePath('fonts/opengl');
+      AddEnginePath('window');
+      AddEnginePath('window/gtk');
+      AddEnginePath('window/windows');
+      AddEnginePath('window/unix');
+      AddEnginePath('images');
+      AddEnginePath('images/opengl');
+      AddEnginePath('images/opengl/glsl/generated-pascal');
+      AddEnginePath('3d');
+      AddEnginePath('3d/opengl');
+      AddEnginePath('x3d');
+      AddEnginePath('x3d/opengl');
+      AddEnginePath('x3d/opengl/glsl/generated-pascal');
+      AddEnginePath('audio');
+      AddEnginePath('audio/fmod');
+      AddEnginePath('audio/openal');
+      AddEnginePath('audio/ogg_vorbis');
+      AddEnginePath('files');
+      AddEnginePath('castlescript');
+      AddEnginePath('ui');
+      AddEnginePath('ui/windows');
+      AddEnginePath('ui/opengl');
+      AddEnginePath('game');
+      AddEnginePath('services');
+      AddEnginePath('services/opengl');
+      AddEnginePath('physics');
+      AddEnginePath('physics/kraft');
+      AddEnginePath('pasgltf');
+      AddEnginePath('deprecated_units');
+
+      if (not FpcVer.AtLeast(3, 1, 1)) or FpcVer.IsCodeTyphon then
+        AddEnginePath('compatibility/generics.collections/src');
+
+      { Do not add castle-fpc.cfg.
+        Instead, rely on code below duplicating castle-fpc.cfg logic
+        (reasons: engine sources, with castle-fpc.cfg, may not be available
+        where build-tool is called).
+
+      FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
+      FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
+      }
+    end;
   end;
 
   procedure AddSearchPaths;
@@ -219,7 +318,7 @@ var
     if OS = iphonesim then
     begin
       IOS := true;
-      VersionForSimulator := TFPCVersionForIPhoneSimulatorChecked.Value(FPCVer);
+      VersionForSimulator := TFpcVersionForIPhoneSimulatorChecked.Value(FpcVer);
       if VersionForSimulator <> '' then
         FpcOptions.Add('-V' + VersionForSimulator);
       {$ifdef DARWIN}
@@ -289,104 +388,19 @@ var
   end;
 
 var
-  FpcOutput, CastleEngineSrc1, CastleEngineSrc2, CastleEngineSrc3, FpcExe: string;
+  FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
 begin
-  FPCVer := FPCVersion;
+  FpcVer := FpcVersion;
 
   FpcOptions := TCastleStringList.Create;
   try
-    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-    if CastleEnginePath = '' then
-    begin
-      Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file.');
-    end else
-    begin
-      { Use $CASTLE_ENGINE_PATH environment variable as the directory
-        containing castle_game_engine/ or castle-engine/ as subdirectory
-        (or pointing straight to castle_game_engine/ or castle-engine/
-        directory).
-        Then add all -Fu and -Fi options for FPC to include Castle Game Engine
-        sources.
+    if CastleEnginePath <> '' then
+      CastleEngineSrc := CastleEnginePath + 'src' + PathDelim
+    else
+      CastleEngineSrc := '';
 
-        This way you can compile programs using Castle Game Engine
-        from any directory. You just have to
-        set $CASTLE_ENGINE_PATH environment variable
-        (or make sure that units paths are in fpc.cfg). }
-
-      { calculate CastleEngineSrc }
-      CastleEngineSrc1 := InclPathDelim(CastleEnginePath) +
-        'src' + PathDelim;
-      CastleEngineSrc2 := InclPathDelim(CastleEnginePath) +
-        'castle_game_engine' + PathDelim + 'src' + PathDelim;
-      CastleEngineSrc3 := InclPathDelim(CastleEnginePath) +
-        'castle-engine' + PathDelim + 'src' + PathDelim;
-      if DirectoryExists(CastleEngineSrc1) then
-        CastleEngineSrc := CastleEngineSrc1 else
-      if DirectoryExists(CastleEngineSrc2) then
-        CastleEngineSrc := CastleEngineSrc2 else
-      if DirectoryExists(CastleEngineSrc3) then
-        CastleEngineSrc := CastleEngineSrc3 else
-      begin
-        CastleEngineSrc := '';
-        Writeln('CASTLE_ENGINE_PATH environment variable defined, but we cannot find Castle Game Engine sources inside (looking in "' + CastleEngineSrc1 + '" and "' + CastleEngineSrc2 + '" and "' + CastleEngineSrc3 + '").');
-        Writeln('  We continue compilation, assuming that engine unit paths are already specified within fpc.cfg file.');
-      end;
-
-      if CastleEngineSrc <> '' then
-      begin
-        { Note that we add OS-specific paths (windows, android, unix)
-          regardless of the target OS. There is no point in filtering them
-          only for specific OS, since all file names must be different anyway,
-          as Lazarus packages could not compile otherwise. }
-
-        AddEnginePath('base');
-        AddEnginePath('base/android');
-        AddEnginePath('base/windows');
-        AddEnginePath('base/unix');
-        AddEnginePath('base/opengl');
-        AddEnginePath('fonts');
-        AddEnginePath('fonts/windows');
-        AddEnginePath('fonts/opengl');
-        AddEnginePath('window');
-        AddEnginePath('window/gtk');
-        AddEnginePath('window/windows');
-        AddEnginePath('window/unix');
-        AddEnginePath('images');
-        AddEnginePath('images/opengl');
-        AddEnginePath('images/opengl/glsl');
-        AddEnginePath('3d');
-        AddEnginePath('3d/opengl');
-        AddEnginePath('x3d');
-        AddEnginePath('x3d/opengl');
-        AddEnginePath('x3d/opengl/glsl');
-        AddEnginePath('audio');
-        AddEnginePath('files');
-        AddEnginePath('castlescript');
-        AddEnginePath('ui');
-        AddEnginePath('ui/windows');
-        AddEnginePath('ui/opengl');
-        AddEnginePath('game');
-        AddEnginePath('services');
-        AddEnginePath('services/opengl');
-        AddEnginePath('physics');
-        AddEnginePath('physics/kraft');
-        AddEnginePath('pasgltf');
-
-        if (not FPCVer.AtLeast(3, 1, 1)) or FPCVer.IsCodeTyphon then
-          AddEnginePath('compatibility/generics.collections/src');
-
-        { Do not add castle-fpc.cfg.
-          Instead, rely on code below duplicating castle-fpc.cfg logic
-          (reasons: engine sources, with castle-fpc.cfg, may not be available
-          where build-tool is called).
-
-        FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
-        FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
-        }
-      end;
-    end;
-
+    AddEngineSearchPaths;
     AddSearchPaths;
     AddLibraryPaths;
 
@@ -420,28 +434,38 @@ begin
     // do not show
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"
     // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crcBD4794B2" with abstract method "DoMoveNext"
-    // TODO: This is a pity, we also hide useful warnings this way.
-    FpcOptions.Add('-vm04046');
+    // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+    // FpcOptions.Add('-vm04046');
 
-    if FPCVer.AtLeast(3, 1, 1) then
+    if FpcVer.AtLeast(3, 1, 1) then
     begin
       // do not show Warning: Symbol "TArrayHelper$1" is experimental
       // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
-      // TODO: This is a pity, we also hide useful warnings this way.
-      FpcOptions.Add('-vm05063');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm05063');
 
       // do not show
       // Note: Private type "TCustomPointersEnumerator$2<CASTLEVECTORSINTERNALSINGLE.TGenericVector2,CASTLEVECTORS.TCustomList$1$crc1D7BB6F0.PT>.T" never used
-      FpcOptions.Add('-vm5071');
+      // Update: No need to hide it anymore: our FilterFpcOutput handles it, and thus we don't need to hide this useful warning for user code
+      // FpcOptions.Add('-vm5071');
     end;
 
-    if FPCVer.AtLeast(3, 3, 1) then
+    if FpcVer.AtLeast(3, 2, 0) then
     begin
       // do not show
-      // Note:  Call to subroutine "function TGenericVector3.Length:Single;" marked as inline is not inlined
-      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
-      FpcOptions.Add('-vm6058');
+      // Warning: function result variable of a managed type does not seem to be initialized
+      // (a lot of false warnings since FPC 3.3.1)
+      FpcOptions.Add('-vm5093');
 
+      // do not show
+      // Note: Call to subroutine "$1" marked as inline is not inlined
+      // (In FPC 3.3.1, not in FPC 3.1.1 rev 38027)
+      // (flood of notes after using Generics.Collections, but also from other units)
+      FpcOptions.Add('-vm6058');
+    end;
+
+    if FpcVer.AtLeast(3, 3, 1) then
+    begin
       // do not show
       // Warning: Local variable "$1" of a managed type does not seem to be initialized
       // (a lot of false warnings since FPC 3.3.1)
@@ -451,52 +475,68 @@ begin
       // Warning: Variable "OutputFace" of a managed type does not seem to be initialized
       // (3 false warnings since FPC 3.3.1 in Kraft)
       FpcOptions.Add('-vm5090');
-
-      // do not show
-      // Warning: function result variable of a managed type does not seem to be initialized
-      // (a lot of false warnings since FPC 3.3.1)
-      FpcOptions.Add('-vm5093');
     end;
 
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
+    { Release build and valgrind build are quite similar, they share many options. }
+    if Mode in [cmRelease, cmValgrind] then
+    begin
+      { Aarch64 optimizations exhibit bugs, on all OSes, with FPC 3.0.x.
+        Testcases:
+
+        - iOS:
+
+          With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+          it seems all programs compiled with -O1 or -O2 crash at start.
+
+        - Android:
+
+          Reading some PNG fails (testcase: Silhouette), at least with -O2, fails.
+
+          It is unsure with which FPC version this was reproducible.
+          Probably some FPC 3.0.x.
+          Michalis can no longer reproduce it with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05).
+
+        - Android and Nintendo Switch and iOS:
+
+          TDrawableImage.Draw3x3 calculations are wildly wrong,
+          and in effect TDrawableImage.Draw3x3 usually doesn't seem to draw anything.
+          It seems like DrawWidth parameter is not received correctly,
+          but workarounding it only uncovers more problems, it looks like
+          the values in local Single variables there randomly change.
+
+          This is still reproducible with FPC 3.3.1 revision 42921
+          (latest revision as of 2019/09/05),
+          however it is locally workarounded by "$optimizations off" around
+          Draw3x3 implementation now.
+
+        So we disable optimizations on Aarch64.
+        For safety, we disable them always, unless $CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER is set to true.
+        In the future, we would like to disable them only for FPC 3.0.x. }
+
+      if (CPU = Aarch64) and
+         {not FpcVer.AtLeast(3, 1, 1)}
+         not (GetEnvironmentVariable('CASTLE_ENGINE_ENABLE_AARCH64_OPTIMIZER') = 'true') then
+      begin
+        FpcOptions.Add('-O-');
+        WritelnWarning('Disabling optimizations, because they are buggy on Aarch64.');
+      end else
+        FpcOptions.Add('-O2');
+      FpcOptions.Add('-dRELEASE');
+    end;
+
     case Mode of
       cmRelease:
         begin
-          { Aarch64 optimizations exhibit bugs, on both iOS and Android:
-
-            iOS:
-            With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
-            programs compiled with -O1 or -O2 crash at start.
-            Earlier engine version, Draw3x3 was doing something weird.
-
-            (This is confirmed to really be needed only on darwin/aarch64,
-            Michalis simply never tested on darwin/arm.)
-
-            Android:
-            Reading some PNG fails (testcase: Silhouette), at least with -O2.
-
-            Disable optimizations on Aarch64 now. }
-
-          if CPU = aarch64 then
-            FpcOptions.Add('-O-')
-          else
-            FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
-          FpcOptions.Add('-dRELEASE');
         end;
       cmValgrind:
         begin
-          { Like cmRelease, but
-            - without -Xs
-            - with -gv, -gl
-            See ../../doc/profiling_howto.txt }
-          if IsIOS then
-            FpcOptions.Add('-O-')
-          else
-            FpcOptions.Add('-O2');
-          FpcOptions.Add('-dRELEASE');
+          { See https://github.com/castle-engine/castle-engine/wiki/Profiling-Using-Valgrind
+            for reasons of Valgrind options. }
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
         end;
@@ -510,7 +550,9 @@ begin
           FpcOptions.Add('-gl');
           FpcOptions.Add('-dDEBUG');
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('DoCompile: Mode?');
+      {$endif}
     end;
 
     if (OS = Android) and (CPU = arm) then
@@ -590,27 +632,16 @@ begin
       FpcOptions.AddRange(ExtraOptions);
 
     Writeln('FPC executing...');
-    FpcExe := FindExe('fpc');
-    if FpcExe = '' then
-      raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+    FpcExe := FindExeFpcCompiler;
 
-    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
     if FpcExitStatus <> 0 then
     begin
       if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
          (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
-        Writeln('-------------------------------------------------------------');
-        Writeln('It seems FPC crashed with a compiler error (Internal error). If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC or Castle Game Engine mailing list.');
-        Writeln;
-        Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
-        Writeln('-------------------------------------------------------------');
-        { when we're called to compile a project, WorkingDirectory is the project
-          path, so this is always Ok. }
-        CleanDirectory(WorkingDirectory);
-        if CastleEngineSrc <> '' then
-          CleanDirectory(CastleEngineSrc);
-        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+        FpcLazarusCrashRetry(WorkingDirectory, 'FPC', 'FPC');
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus, '', '', @FilterFpcOutput);
         if FpcExitStatus <> 0 then
           { do not retry compiling in a loop, give up }
           raise Exception.Create('Failed to compile');
@@ -618,6 +649,128 @@ begin
         raise Exception.Create('Failed to compile');
     end;
   finally FreeAndNil(FpcOptions) end;
+end;
+
+procedure CompileLazbuild(const OS: TOS; const CPU: TCPU;
+  const Mode: TCompilationMode;
+  const WorkingDirectory, LazarusProjectFile: string);
+var
+  LazbuildExe: String;
+  LazbuildOptions: TCastleStringList;
+
+  procedure RunLazbuild;
+  var
+    LazbuildOutput: String;
+    LazbuildExitStatus: Integer;
+  begin
+    RunCommandIndirPassthrough(WorkingDirectory,
+      LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+    if LazbuildExitStatus <> 0 then
+    begin
+      { Old lazbuild can fail with exception like this:
+
+          An unhandled exception occurred at $0000000000575F5F:
+          EAccessViolation: Access violation
+            $0000000000575F5F line 590 of exttools.pas
+            $000000000057A027 line 1525 of exttools.pas
+            $000000000057B231 line 1814 of exttools.pas
+
+        Simply retrying works.
+      }
+      if (Pos('Fatal: Internal error', LazbuildOutput) <> 0) or
+         (Pos('EAccessViolation: Access violation', LazbuildOutput) <> 0) then
+      begin
+        FpcLazarusCrashRetry(WorkingDirectory, 'Lazarus (lazbuild)', 'Lazarus');
+        RunCommandIndirPassthrough(WorkingDirectory,
+          LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+        if LazbuildExitStatus <> 0 then
+          { do not retry compiling in a loop, give up }
+          raise Exception.Create('Failed to compile');
+      end else
+        raise Exception.Create('Failed to compile');
+    end else
+
+    // lazbuild from Lazarus 1.6.4 doesn't support add-package-link
+    if (Pos('Invalid option at position 3: "add-package-link"', LazbuildOutput) <> 0) and
+       (LazbuildOptions.IndexOf('--add-package-link') <> -1) then
+    begin
+      Writeln('lazbuild does not support --add-package-link, retrying without it');
+      LazbuildOptions.Delete(LazbuildOptions.IndexOf('--add-package-link'));
+      RunCommandIndirPassthrough(WorkingDirectory,
+        LazbuildExe, LazbuildOptions.ToArray, LazbuildOutput, LazbuildExitStatus, '', '', @FilterFpcOutput);
+      if LazbuildExitStatus <> 0 then
+        { do not retry compiling in a loop, give up }
+        raise Exception.Create('Failed to compile');
+    end;
+  end;
+
+begin
+  LazbuildExe := FindExeLazarus('lazbuild');
+  if LazbuildExe = '' then
+    raise EExecutableNotFound.Create('Cannot find "lazbuild" program. Make sure it is installed, and available on environment variable $PATH. If you use the CGE editor, you can also set Lazarus location in "Preferences".');
+
+  LazbuildOptions := TCastleStringList.Create;
+  try
+    // register CGE packages first
+    if CastleEnginePath <> '' then
+    begin
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_base.lpk');
+      RunLazbuild;
+
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_window.lpk');
+      RunLazbuild;
+
+      LazbuildOptions.Clear;
+      LazbuildOptions.Add('--add-package-link');
+      LazbuildOptions.Add(CastleEnginePath + 'packages' + PathDelim + 'castle_components.lpk');
+      RunLazbuild;
+    end;
+
+    LazbuildOptions.Clear;
+    LazbuildOptions.Add('--os=' + OSToString(OS));
+    LazbuildOptions.Add('--cpu=' + CPUToString(CPU));
+    { // Do not pass --build-mode, as project may not have it defined.
+    if Mode = cmDebug then
+      LazbuildOptions.Add('--build-mode=Debug')
+    else
+      LazbuildOptions.Add('--build-mode=Release');
+    }
+
+    { For historic reasons, Lazarus defaults to Carbon on macOS,
+      even on 64-bit macOS where you cannot link with Carbon.
+      And since macOS Catalina (10.15) all applications *must* be 64-bit
+      (32-bit is no longer supported) so this is important.
+      So we change it to cocoa.
+
+      TODO: This likely prevents the project from using it's own,
+      custom widgetset in case of macOS.
+
+      But there doesn't seem any better way of fixing this per-project.
+      I cannot use "Custom Options",
+
+        if (TargetOS='darwin') and (TargetCPU='x86_64') then
+          LCLWidgetType := 'cocoa';
+
+      -- it looks like LCLWidgetType is ignored in "Custom Options".
+
+      I cannot use "Additions and Overrides", as it doesn't seem to allow
+      to choose widgetset per-platform (like per-OS, or per-OS-and-CPU).
+      It would only allow to set Cocoa always.
+      Or in a specific build mode, but then I would need to
+      - maintain this build mode in my examples,
+      - 2 times (for both Debug/Release, I would need a copy DebugMacOS and ReleaseMacOS)
+      - and require it in all user projects (this is not acceptable).
+    }
+    if (OS = darwin) and (CPU = X86_64) then
+      LazbuildOptions.Add('--widgetset=cocoa');
+    LazbuildOptions.Add(LazarusProjectFile);
+
+    RunLazbuild;
+  finally FreeAndNil(LazbuildOptions) end;
 end;
 
 function CompilationOutputPath(const OS: TOS; const CPU: TCPU;

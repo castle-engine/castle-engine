@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,31 +26,39 @@
 {$ifdef read_interface}
 
   strict private
+{$ifndef CASTLE_SLIM_NODES}
     function GetFillProperties: TFillPropertiesNode;
     procedure SetFillProperties(const Value: TFillPropertiesNode);
+{$endif not CASTLE_SLIM_NODES}
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
+    function GetBackMaterial: TAbstractOneSidedMaterialNode;
+    procedure SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
     function GetTextureTransform: TAbstractTextureTransformNode;
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
-    function GetShadowCaster: boolean;
-    procedure SetShadowCaster(const Value: boolean);
+    function GetShadowCaster: Boolean;
+    procedure SetShadowCaster(const Value: Boolean);
     function GetHeightMapScale: Single;
     procedure SetHeightMapScale(const Value: Single);
     function GetBlendMode: TBlendModeNode;
     procedure SetBlendMode(const Value: TBlendModeNode);
   public
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "fillProperties". } { }
     property FillProperties: TFillPropertiesNode read GetFillProperties write SetFillProperties;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "lineProperties". } { }
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
+    { X3D field "backMaterial". } { }
+    property BackMaterial: TAbstractOneSidedMaterialNode read GetBackMaterial write SetBackMaterial;
     { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
     { X3D field "textureTransform". } { }
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
     { Set X3D field "receiveShadows". } { }
-    procedure SetReceiveShadows(const Value: array of TAbstractLightNode);
+    procedure SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
     { X3D field "shadowCaster". } { }
-    property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
+    property ShadowCaster: Boolean read GetShadowCaster write SetShadowCaster;
     { X3D field "heightMapScale". } { }
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
     { X3D field "blendMode". } { }
@@ -64,6 +72,7 @@
 
 { TAppearanceNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 function TAppearanceNode.GetFillProperties: TFillPropertiesNode;
 begin
   if FdFillProperties.Value is TFillPropertiesNode then
@@ -77,6 +86,7 @@ begin
   FdFillProperties.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TAppearanceNode.GetLineProperties: TLinePropertiesNode;
 begin
   if FdLineProperties.Value is TLinePropertiesNode then
@@ -88,6 +98,19 @@ end;
 procedure TAppearanceNode.SetLineProperties(const Value: TLinePropertiesNode);
 begin
   FdLineProperties.Send(Value);
+end;
+
+function TAppearanceNode.GetBackMaterial: TAbstractOneSidedMaterialNode;
+begin
+  if FdBackMaterial.Value is TAbstractOneSidedMaterialNode then
+    Result := TAbstractOneSidedMaterialNode(FdBackMaterial.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetBackMaterial(const Value: TAbstractOneSidedMaterialNode);
+begin
+  FdBackMaterial.Send(Value);
 end;
 
 procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
@@ -115,7 +138,7 @@ begin
   FdTextureTransform.Send(Value);
 end;
 
-procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractLightNode);
+procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractPunctualLightNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -123,16 +146,16 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TAbstractLightNode));
+    Move(Value[0], A[0], L * SizeOf(TAbstractPunctualLightNode));
   FdReceiveShadows.Send(A);
 end;
 
-function TAppearanceNode.GetShadowCaster: boolean;
+function TAppearanceNode.GetShadowCaster: Boolean;
 begin
   Result := FdShadowCaster.Value;
 end;
 
-procedure TAppearanceNode.SetShadowCaster(const Value: boolean);
+procedure TAppearanceNode.SetShadowCaster(const Value: Boolean);
 begin
   FdShadowCaster.Send(Value);
 end;

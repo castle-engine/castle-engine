@@ -44,6 +44,10 @@ unit CastleInternalGzio;
 
 {$I castleconf.inc}
 
+{$ifndef FPC}
+  {$message fatal 'This internal unit is only for FPC, not Delphi.'}
+{$endif}
+
 interface
 
 uses zbase, crc, zdeflate, zinflate, Classes;

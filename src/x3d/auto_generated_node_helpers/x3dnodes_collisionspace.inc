@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetUseGeometry: boolean;
-    procedure SetUseGeometry(const Value: boolean);
+    function GetUseGeometry: Boolean;
+    procedure SetUseGeometry(const Value: Boolean);
   public
     { X3D field "useGeometry". } { }
-    property UseGeometry: boolean read GetUseGeometry write SetUseGeometry;
+    property UseGeometry: Boolean read GetUseGeometry write SetUseGeometry;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TCollisionSpaceNode ----------------------------------------------- }
 
-function TCollisionSpaceNode.GetUseGeometry: boolean;
+function TCollisionSpaceNode.GetUseGeometry: Boolean;
 begin
   Result := FdUseGeometry.Value;
 end;
 
-procedure TCollisionSpaceNode.SetUseGeometry(const Value: boolean);
+procedure TCollisionSpaceNode.SetUseGeometry(const Value: Boolean);
 begin
   FdUseGeometry.Send(Value);
 end;

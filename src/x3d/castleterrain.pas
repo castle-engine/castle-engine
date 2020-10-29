@@ -708,15 +708,19 @@ begin
       niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @BlurredInterpolatedNoise2D_Spline;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
+      {$endif}
     end else
     case Interpolation of
       niNone: NoiseMethod := @InterpolatedNoise2D_None;
       niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @InterpolatedNoise2D_Spline;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
-    end
+      {$endif}
+    end;
 end;
 
 procedure TTerrainNoise.SetInterpolation(const Value: TNoiseInterpolation);

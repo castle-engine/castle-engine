@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="model_3d_viewer"
+  lazarus_project="model_3d_viewer.lpi"
+  build_using_lazbuild="true"
+>
+  <data exists="false"/>
+</project>

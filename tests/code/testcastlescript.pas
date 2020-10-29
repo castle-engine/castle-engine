@@ -20,7 +20,7 @@ unit TestCastleScript;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleScript = class(TCastleTestCase)
@@ -34,6 +34,7 @@ type
     procedure TestBools;
     procedure TestInvalidOps;
     procedure TestTryExecuteMath;
+    procedure TestCoalesce;
   end;
 
 implementation
@@ -585,6 +586,28 @@ begin
   ExpectNonMathErrors('or(sin(123))');
   ExpectNonMathErrors('1 + true');
   ExpectNonMathErrors('image_load(''blah blah'')');
+end;
+
+procedure TTestCastleScript.TestCoalesce;
+
+  function StringExpression(const S: String): String;
+  var
+    E: TCasScriptExpression;
+  begin
+    E := ParseStringExpression(S, []);
+    try
+      Result := E.AsString;
+    finally FreeAndNil(E) end;
+  end;
+
+begin
+  AssertEquals('asd', StringExpression('coalesce(''asd'')'));
+  AssertEquals('', StringExpression('coalesce('''')'));
+  AssertEquals('asd', StringExpression('coalesce(''asd'', ''dfgds'')'));
+  AssertEquals('4rfgdf', StringExpression('coalesce('''', ''4rfgdf'')'));
+  AssertEquals('dfgds', StringExpression('coalesce(''dfgds'', ''asd'')'));
+  AssertEquals('4rfgdf', StringExpression('coalesce(''4rfgdf'', '''')'));
+  AssertEquals('poip', StringExpression('coalesce('''' + '''', ''poip'')'));
 end;
 
 initialization

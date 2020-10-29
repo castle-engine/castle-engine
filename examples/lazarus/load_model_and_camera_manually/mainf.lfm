@@ -8,13 +8,14 @@ object Form1: TForm1
   ClientWidth = 505
   DesignTimePPI = 140
   OnCreate = FormCreate
-  LCLVersion = '1.8.0.6'
-  object Control1: TCastleControl
+  LCLVersion = '2.0.0.4'
+  object Control1: TCastleControlBase
     Left = 0
     Height = 428
     Top = 0
     Width = 505
     Align = alClient
+    Options = []
     TabOrder = 0
   end
 end

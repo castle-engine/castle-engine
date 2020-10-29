@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -58,8 +58,8 @@
     procedure SetStop3Bounce(const Value: Single);
     function GetStop3ErrorCorrection: Single;
     procedure SetStop3ErrorCorrection(const Value: Single);
-    function GetAutoCalc: boolean;
-    procedure SetAutoCalc(const Value: boolean);
+    function GetAutoCalc: Boolean;
+    procedure SetAutoCalc(const Value: Boolean);
   public
     { X3D field "axis1Angle". } { }
     property Axis1Angle: Single read GetAxis1Angle write SetAxis1Angle;
@@ -94,7 +94,7 @@
     { X3D field "stop3ErrorCorrection". } { }
     property Stop3ErrorCorrection: Single read GetStop3ErrorCorrection write SetStop3ErrorCorrection;
     { X3D field "autoCalc". } { }
-    property AutoCalc: boolean read GetAutoCalc write SetAutoCalc;
+    property AutoCalc: Boolean read GetAutoCalc write SetAutoCalc;
 
 {$endif read_interface}
 
@@ -262,12 +262,12 @@ begin
   FdStop3ErrorCorrection.Send(Value);
 end;
 
-function TMotorJointNode.GetAutoCalc: boolean;
+function TMotorJointNode.GetAutoCalc: Boolean;
 begin
   Result := FdAutoCalc.Value;
 end;
 
-procedure TMotorJointNode.SetAutoCalc(const Value: boolean);
+procedure TMotorJointNode.SetAutoCalc(const Value: Boolean);
 begin
   FdAutoCalc.Send(Value);
 end;

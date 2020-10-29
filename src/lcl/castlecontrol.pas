@@ -26,7 +26,7 @@ uses
   StdCtrls, OpenGLContext, Controls, Forms, LCLVersion, LCLType,
   CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, CastleSceneManager, CastleLCLUtils,
+  CastleImages, CastleGLVersion, CastleLCLUtils, CastleViewport,
   CastleGLImages, CastleGLContainer, Castle2DSceneManager,
   CastleApplicationProperties;
 
@@ -42,23 +42,21 @@ const
 
 type
   { Control to render everything (3D or 2D) with Castle Game Engine.
-    Add the user-interface controls to the
-    @link(Controls) property, in particular
-    you can add there scene manager instances (like @link(TCastleSceneManager)
-    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
-    Use events like @link(OnUpdate) to process your game world.
 
-    You can use a descendant of this called TCastleControl to have even
-    more comfort: TCastleControl gives you a ready
-    @link(TCastleControl.SceneManager) for your world.
+    Add the user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously.
 
     By default, the control is filled with simple color from
-    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
+    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
   }
   TCastleControlBase = class(TCustomOpenGLControl)
   private
     type
-      { Non-abstact implementation of TUIContainer that cooperates with
+      { Non-abstract implementation of TUIContainer that cooperates with
         TCastleControlBase. }
       TContainer = class(TUIContainer)
       private
@@ -112,9 +110,10 @@ type
 
       To counteract this, call this method when Shift state is known,
       to update Pressed when needed. }
+    procedure UpdateShiftState(const Shift: TShiftState);
+
     procedure KeyPressHandlerPress(Sender: TObject;
       const Event: TInputPressRelease);
-    procedure UpdateShiftState(const Shift: TShiftState);
 
     procedure SetMousePosition(const Value: TVector2);
     procedure SetAutoRedisplay(const Value: boolean);
@@ -131,7 +130,7 @@ type
       are executed only when there are no events left to process.
       This makes sense, and actually follows the docs and the name "idle".
 
-      In contrast, our DoUpdate expects to be run continously, that is:
+      In contrast, our DoUpdate expects to be run continuously, that is:
       about the same number
       of times per second as the screen Redraw (and if the screen doesn't need to
       be redrawn, our DoUpdate should still run a sensible number of times
@@ -143,7 +142,7 @@ type
       repaint at a constant rate, even when user is moving around.
 
       The problem is most obvious when moving the mouse, for example when using
-      the mouse look to walk and look around in Walk mode (TWalkCamera.MouseLook),
+      the mouse look to walk and look around in Walk mode (TCastleWalkNavigation.MouseLook),
       or when dragging with mouse
       in Examine mode. The event loop is then typically busy processing mouse move
       events all the time, so it's never/seldom empty (note: it doesn't mean that
@@ -152,7 +151,7 @@ type
       like XWindows etc. I think in practice XWindows does it, but I'm not sure).
       Our program should however still be responsive. Not only the screen should
       be redrawn, regardless if our event loop is empty or not, but also
-      our Update event should be continously called. But if we just use LCL Idle/Redraw
+      our Update event should be continuously called. But if we just use LCL Idle/Redraw
       behavior (that descends from other widgetsets) then you may find that:
       - during mouse look things "stutter" --- no Idle, not even Redraw,
         happens regularly.
@@ -180,7 +179,7 @@ type
         down some keys stutter a little (screen seems like not refreshed fast
         enough). Reason for this stutter is not known,
         it also stutters in case of mouse move, but we have no choice in this case:
-        either update with stuttering, or not update (continously) at all.
+        either update with stuttering, or not update (continuously) at all.
         TCastleWindow doesn't have this problem, mouse look is smooth there.
       - It's also not needed from events other than mouse move.
 
@@ -218,7 +217,7 @@ type
 
     { List of user-interface controls currently active.
       You can add your TCastleUserInterface instances
-      (like TCastleSceneManager, TCastleButton and much more) to this list.
+      (like TCastleViewport, TCastleButton and much more) to this list.
       We will pass events to these controls, draw them etc.
       See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
@@ -231,7 +230,7 @@ type
     function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: CastleKeysMouse.TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
@@ -378,8 +377,7 @@ type
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
       It instructs to call EventRender (OnRender) again, as soon as possible.
 
-      When you have some controls on the @link(Controls) list
-      (in particular, the @link(TCastleControl.SceneManager) is also on this list),
+      When you have some controls on the @link(Controls) list,
       the OnRender event is done @bold(last).
       So here you can draw on top of the existing UI controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
@@ -388,15 +386,7 @@ type
     property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
     { Called when the control size (@code(Width), @code(Height)) changes.
-      It's also guaranteed to be called
-      right after the OnOpen event.
-
-      Our OpenGL context is already "current" when this event is called
-      (MakeCurrent is done right before), like for other events.
-      This is a good place to set OpenGL viewport and projection matrix.
-
-      In the usual case, the SceneManager takes care of setting appropriate
-      OpenGL projection, so you don't need to do anything here. }
+      It's also guaranteed to be called right after the OnOpen event. }
     property OnResize: TNotifyEvent read FOnResize write FOnResize;
 
     { Called when user presses a key or mouse button or moves mouse wheel. }
@@ -434,15 +424,15 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
 
-    { Continously occuring event.
+    { Continuously occuring event.
       This event is called roughly as regularly as redraw,
       and you should use this to update your game state.
 
       Note that this is different than LCL "idle" event,
-      as it's guaranteed to be run continously, even when your application
-      is clogged with events (like when using TWalkCamera.MouseLook).
+      as it's guaranteed to be run continuously, even when your application
+      is clogged with events (like when using TCastleWalkNavigation.MouseLook).
 
-      Note: As we need to continously call the "update" event (to update animations
+      Note: As we need to continuously call the "update" event (to update animations
       and more), we listen on the Lazarus Application "idle" event,
       and tell it that we're never "done" with our work.
       We do this only when at least one instance of TCastleControlBase
@@ -528,25 +518,27 @@ type
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneURL: string);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
 
     function MainScene: TCastleScene;
-    function Camera: TCamera;
+    function Camera: TCastleCamera; deprecated 'use SceneManger.Camera or SceneManger.Navigation';
   published
     property SceneManager: TControlGameSceneManager read FSceneManager;
 
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
+      default TCastleViewport.DefaultShadowVolumes;
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
   { Same as TCastle2DSceneManager, redefined only to work as a sub-component
     of TCastleControl, otherwise Lazarus fails to update the uses clause
@@ -556,10 +548,10 @@ type
   end;
 
   { Control to render 2D games with Castle Game Engine,
-    with a default @link(TCastle2DSceneManager) instance already created for you.
+    with a default @code(TCastle2DSceneManager) instance already created for you.
     This is the simplest way to render a game world with 2D controls above.
     Add your
-    game stuff (like @link(TCastle2DScene))
+    game stuff (like @code(TCastle2DScene))
     to the scene manager
     available in @link(SceneManager) property. Add the rest (like 2D user-inteface)
     to the @link(TCastleControlBase.Controls) property (from ancestor TCastleControlBase).
@@ -571,8 +563,8 @@ type
     of this class.
 
     The difference between this and @link(TCastleControl) is that this provides
-    a scene manager descending from @link(TCastle2DSceneManager), which is a little more
-    comfortable for typical 2D games. See @link(TCastle2DSceneManager) description
+    a scene manager descending from @code(TCastle2DSceneManager), which is a little more
+    comfortable for typical 2D games. See @code(TCastle2DSceneManager) description
     for details. But in principle, you can use any of these control classes
     to develop any mix of 3D or 2D game. }
   TCastle2DControl = class(TCastleControlBase)
@@ -582,7 +574,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property SceneManager: TControl2DSceneManager read FSceneManager;
-  end;
+  end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
 procedure Register;
 
@@ -596,7 +588,7 @@ implementation
 
 uses Math, Contnrs, LazUTF8, Clipbrd,
   CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
-  CastleControls;
+  CastleControls, CastleRenderContext;
 
 // TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
 // This may result in confusing Fps.ToString in case AutoRedisplay was false.
@@ -608,11 +600,15 @@ uses Math, Contnrs, LazUTF8, Clipbrd,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    { We hesitated whether to publish TCastleControlBase for a while.
-      Eventually, it seems useful enough to be published. }
-    TCastleControlBase,
+    TCastleControlBase
+  ]);
+  // register deprecated components in a way that they can be serialized, but are not visible on LCL palette
+  RegisterNoIcon([
+    {$warnings off}
     TCastleControl,
-    TCastle2DControl]);
+    TCastle2DControl
+    {$warnings on}
+  ]);
 end;
 
 var
@@ -709,7 +705,7 @@ begin
     demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
     That's because Done := true allows for WidgetSet.AppWaitMessage
     inside lcl/include/application.inc .
-    We don't want that, we want continous DoUpdate events.
+    We don't want that, we want continuous DoUpdate events.
 
     So we have to use Done := false.
 
@@ -1003,9 +999,9 @@ end;
 
 procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
 begin
-  Pressed.Keys[K_Shift] := ssShift in Shift;
-  Pressed.Keys[K_Alt  ] := ssAlt   in Shift;
-  Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
+  Pressed.Keys[keyShift] := ssShift in Shift;
+  Pressed.Keys[keyAlt  ] := ssAlt   in Shift;
+  Pressed.Keys[keyCtrl ] := ssCtrl  in Shift;
 end;
 
 procedure TCastleControlBase.KeyPressHandlerPress(Sender: TObject;
@@ -1068,6 +1064,10 @@ var
   MyKey: TKey;
   MyKeyString: String;
 begin
+  { Do this before anything else, in particular before even Pressed.KeyUp below.
+    This may call OnPress (which sets Pressed to true). }
+  FKeyPressHandler.BeforeKeyUp(Key, Shift);
+
   MyKey := KeyLCLToCastle(Key, Shift);
   if MyKey <> keyNone then
     Pressed.KeyUp(MyKey, MyKeyString);
@@ -1084,7 +1084,7 @@ begin
 
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
-  if (MyKey <> K_None) or (MyKeyString <> '') then
+  if (MyKey <> keyNone) or (MyKeyString <> '') then
     if Container.EventRelease(InputKey(MousePosition, MyKey, MyKeyString)) then
       Key := 0; // handled
 end;
@@ -1092,7 +1092,7 @@ end;
 procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1111,7 +1111,7 @@ end;
 procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
@@ -1245,7 +1245,7 @@ begin
     Mouse.CursorPos := NewCursorPos;
 end;
 
-function TCastleControlBase.MousePressed: CastleKeysMouse.TMouseButtons;
+function TCastleControlBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;
@@ -1295,38 +1295,43 @@ end;
 
 procedure TCastleControl.Load(const SceneURL: string);
 begin
-  Load(Load3D(SceneURL, false), true);
+  {$warnings off} // using one deprecated from another
+  Load(LoadNode(SceneURL), true);
+  {$warnings on}
 end;
 
 procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
-  { destroy MainScene and Camera, we will recreate them }
-  SceneManager.MainScene.Free;
-  SceneManager.MainScene := nil;
+  { destroy MainScene and clear cameras, we will recreate it }
+  SceneManager.Items.MainScene.Free;
+  SceneManager.Items.MainScene := nil;
   SceneManager.Items.Clear;
+  {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
-  Assert(SceneManager.Camera = nil);
+  {$warnings on}
+  Assert(SceneManager.Navigation = nil);
 
-  SceneManager.MainScene := TCastleScene.Create(Self);
-  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.MainScene);
+  SceneManager.Items.MainScene := TCastleScene.Create(Self);
+  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.Add(SceneManager.Items.MainScene);
 
   { initialize octrees titles }
-  MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Camera always non-nil.
-    Useful for model_3d_viewer that wants to initialize NavigationType
-    from camera. }
-  SceneManager.RequiredCamera;
+  { Adjust SceneManager.Navigation and SceneManager.Camera to latest scene }
+  SceneManager.AssignDefaultCamera;
+  SceneManager.AssignDefaultNavigation;
+  // AssignDefaultNavigation should satisfy this, and we need it for backward compatibility
+  Assert(SceneManager.Navigation <> nil);
 end;
 
 function TCastleControl.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
-function TCastleControl.Camera: TCamera;
+function TCastleControl.Camera: TCastleCamera;
 begin
   Result := SceneManager.Camera;
 end;
@@ -1406,7 +1411,7 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
-  OnMainContainer := @TCastleControl(nil).GetMainContainer;
+  OnMainContainer := @TCastleControlBase(nil).GetMainContainer;
 finalization
   OnMainContainer := nil;
   FreeAndNil(ControlsList);

@@ -124,7 +124,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleUtils, CastleVectors, X3DFields, X3DNodes, CastleColors,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
-  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform;
 
@@ -174,8 +174,8 @@ type
     FUseSceneLights: boolean;
     FOpacity: Single;
     FEnableTextures: boolean;
-    FMinificationFilter: TMinificationFilter;
-    FMagnificationFilter: TMagnificationFilter;
+    FMinificationFilter: TAutoMinificationFilter;
+    FMagnificationFilter: TAutoMagnificationFilter;
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
@@ -186,7 +186,9 @@ type
     FDepthTest: boolean;
     FPhongShading: boolean;
     FSolidColor: TCastleColorRGB;
+    FSolidColorBlendingPipeline: Boolean;
     FSeparateDiffuseTexture: boolean;
+    FMaxLightsPerShape: Cardinal;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
     { These methods just set the value on given property,
@@ -195,8 +197,8 @@ type
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
     procedure SetOnVertexColor(const Value: TVertexColorFunction);
     procedure SetEnableTextures(const Value: boolean);
-    procedure SetMinificationFilter(const Value: TMinificationFilter);
-    procedure SetMagnificationFilter(const Value: TMagnificationFilter);
+    procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
+    procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
@@ -225,6 +227,15 @@ type
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
       DefaultPhongShading = false;
+      DefaultMaxLightsPerShape = 8;
+
+    class var
+      { Value used when @link(MinificationFilter) is minDefault.
+        By default, this is minLinearMipmapLinear. }
+      DefaultMinificationFilter: TMinificationFilter;
+      { Value used when @link(MagnificationFilter) is magDefault.
+        By default, this is magLinear. }
+      DefaultMagnificationFilter: TMagnificationFilter;
 
     constructor Create; virtual;
 
@@ -307,11 +318,16 @@ type
       These can be overridden on a per-texture basis in VRML / X3D files
       by X3D TextureProperties node (see X3D specification).
 
+      They can be equal to minDefault, magDefault in which case they
+      actually use the values from
+      DefaultMinificationFilter, DefaultMagnificationFilter
+      (by default minLinearMipmapLinear, magLinear).
+
       @groupBegin }
-    property MinificationFilter: TMinificationFilter
-      read FMinificationFilter write SetMinificationFilter default minLinearMipmapLinear;
-    property MagnificationFilter: TMagnificationFilter
-      read FMagnificationFilter write SetMagnificationFilter default magLinear;
+    property MinificationFilter: TAutoMinificationFilter
+      read FMinificationFilter write SetMinificationFilter default minDefault;
+    property MagnificationFilter: TAutoMagnificationFilter
+      read FMagnificationFilter write SetMagnificationFilter default magDefault;
     function TextureFilter: TTextureFilter;
     { @groupEnd }
 
@@ -414,6 +430,11 @@ type
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
 
+    { Whether to render shapes as transparent, when @link(Mode) is @link(rmSolidColor). }
+    property SolidColorBlendingPipeline: Boolean
+      read FSolidColorBlendingPipeline
+      write FSolidColorBlendingPipeline;
+
     { Set to @true to make diffuse texture affect only material diffuse color
       when the shape is lit and shading is Phong.
       This affects both textures from X3D Appearance.texture,
@@ -433,6 +454,22 @@ type
     property SeparateDiffuseTexture: boolean
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
+      deprecated 'rendering always behaves as if this was true now, with Phong shading';
+
+    { For efficiency reasons, we only allow a finite number of lights that can affect
+      the given shape. You can increase this number if necessary.
+
+      Note that, instead of increasing this limit,
+      you can sometimes adjust your models to fit within this limit.
+      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      it is exported OK to glTF), and make smaller shapes.
+
+      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
+      there is an additional hard limit (dependent on GPU, but usually 8, for this).
+      But on modern desktops, as well as mobile and other platforms, you can increase this limit
+      freely. }
+    property MaxLightsPerShape: Cardinal
+      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -441,18 +478,6 @@ type
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
-
-    { The initial VRML/X3D node that created this cache record.
-      This is only the first node, that initiated this
-      TTextureImageCache item. Note that many TAbstractTexture2DNode nodes
-      may correspond to a single TTextureImageCache (since TTextureImageCache
-      only tries to share GLName between them). So this may help during
-      _IncReference, but nothing more --- it's *not* an exhaustive list
-      of texture nodes related to this video texture!
-
-      It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
-    InitialNode: TAbstractTextureNode;
-
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -464,18 +489,9 @@ type
   TTextureImageCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
-
-    { The initial VRML/X3D node that created this cache record.
-      This is only the first TMovieTextureNode node, that initiated this
-      TTextureVideoCache item. Note that many TMovieTextureNode nodes
-      may correspond to a single TTextureVideoCache (since TTextureVideoCache
-      only tries to share TGLVideo3D between them, they don't have to share
-      other fields like current time etc.). So this may help during
-      _IncReference, but nothing more --- it's *not* an exhaustive list
-      of MovieTexture nodes related to this video texture! }
-    InitialNode: TMovieTextureNode;
-
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -487,7 +503,9 @@ type
   TTextureVideoCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
-    InitialNode: TAbstractEnvironmentTextureNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
@@ -496,7 +514,9 @@ type
   TTextureCubeMapCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
-    InitialNode: TAbstractTexture3DNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
@@ -508,9 +528,9 @@ type
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
   TTextureDepthOrFloatCache = class
-    { The initial VRML/X3D node that created this cache record.
-      For now, this may be TGeneratedShadowMapNode or TRenderedTextureNode. }
-    InitialNode: TAbstractTextureNode;
+    { Full URL of used texture image. Empty ('') if not known
+      (or maybe this texture didn't come from any URL, e.g. it's generated). }
+    FullUrl: string;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
@@ -547,15 +567,25 @@ type
     Vbo: TVboArrays;
     VboAllocatedUsage: TGLenum;
     VboAllocatedSize: array [TVboType] of Cardinal;
+    VboCoordinatePreserveGeometryOrder: Boolean; //< copied from TGeometryArrays.CoordinatePreserveGeometryOrder
 
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
-    procedure LoadArraysToVbo(DynamicGeometry: boolean);
+    procedure LoadArraysToVbo(const DynamicGeometry: boolean);
     procedure FreeVBO;
   public
     constructor Create;
     destructor Destroy; override;
     procedure FreeArrays(const Changed: TVboTypes);
+    { Debug description of this shape cache. }
+    function ToString: String; override;
+    { If possible, update the coordinate/normal data in VBO fast.
+
+      This is carefully implemented to do a specific case of TShapeCache.LoadArraysToVbo.
+      It optimizes the case of animating coordinates/normals using CoordinateInterpolator,
+      which is very important to optimize, since that's how glTF skinned animations
+      are done. }
+    function FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
   end;
 
   TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
@@ -598,7 +628,7 @@ type
     TextureCubeMapCaches: TTextureCubeMapCacheList;
     Texture3DCaches: TTexture3DCacheList;
     TextureDepthOrFloatCaches: TTextureDepthOrFloatCacheList;
-    ShapeCaches: TShapeCacheList;
+    ShapeCaches: array [{ DisableSharedCache } Boolean] of TShapeCacheList;
     ProgramCaches: TShaderProgramCacheList;
 
     { Load given texture to OpenGL, using our cache.
@@ -608,7 +638,6 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TAbstractTextureNode;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -622,7 +651,7 @@ type
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
       const TextureFullUrl: string;
-      const TextureNode: TMovieTextureNode;
+      const FlipVertically: Boolean;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -636,13 +665,13 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      Node: TAbstractEnvironmentTextureNode;
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
-      PositiveX, NegativeX,
-      PositiveY, NegativeY,
-      PositiveZ, NegativeZ: TEncodedImage;
-      CompositeForMipmaps: TCompositeImage): TGLuint;
+      const PositiveX, NegativeX,
+            PositiveY, NegativeY,
+            PositiveZ, NegativeZ: TEncodedImage;
+      const CompositeForMipmaps: TCompositeImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -651,7 +680,7 @@ type
       For interpreating CompareMode, ARB_shadow will be needed
       (but we'll make nice warning if it's not available). }
     function TextureDepth_IncReference(
-      Node: TAbstractTextureNode;
+      const TextureFullUrl: string;
       const TextureWrap: TTextureWrap2D;
       CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
@@ -664,7 +693,8 @@ type
       Required ARB_texture_float or ATI_texture_float before calling this.
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
-    function TextureFloat_IncReference(Node: TAbstractTextureNode;
+    function TextureFloat_IncReference(
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -677,11 +707,12 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      Node: TAbstractTexture3DNode;
+      const TextureFullUrl: string;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
-      Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
+      const Image: TEncodedImage;
+      const Composite: TCompositeImage): TGLuint;
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
@@ -693,10 +724,11 @@ type
       instance from cache or creating and adding a new one.
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
-    function Shape_IncReference(Shape: TX3DRendererShape;
-      Fog: IAbstractFogObject; ARenderer: TGLRenderer): TShapeCache;
+    function Shape_IncReference(const Shape: TX3DRendererShape;
+      const ARenderer: TGLRenderer): TShapeCache;
 
-    procedure Shape_DecReference(var ShapeCache: TShapeCache);
+    procedure Shape_DecReference(const Shape: TX3DRendererShape;
+      var ShapeCache: TShapeCache);
 
     { Shader program cache. We return TShaderProgramCache,
       either taking an existing instance from cache or creating and adding
@@ -742,6 +774,9 @@ type
 
     { Assign this each time before passing this shape to RenderShape. }
     ModelView: TMatrix4;
+
+    { Assign this each time before passing this shape to RenderShape. }
+    Fog: TFogFunctionality;
 
     { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
@@ -855,7 +890,7 @@ type
     LightsRenderer: TVRMLGLLightsRenderer;
 
     { Currently set fog parameters, during render. }
-    FogNode: IAbstractFogObject;
+    FogFunctionality: TFogFunctionality;
     FogEnabled: boolean;
     FogType: TFogType;
     FogColor: TVector3;
@@ -879,7 +914,7 @@ type
     Pass: TTotalRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
-    procedure GetFog(Node: IAbstractFogObject;
+    procedure GetFog(const AFogFunctionality: TFogFunctionality;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3;
       out VolumetricVisibilityStart: Single);
@@ -898,55 +933,64 @@ type
     procedure DisableTexture(const TextureUnit: Cardinal);
     procedure DisableCurrentTexture;
 
-    procedure RenderShapeLineProperties(Shape: TX3DRendererShape;
-      Fog: IAbstractFogObject; Shader: TShader);
-    procedure RenderShapeMaterials(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader);
-    procedure RenderShapeLights(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeLineProperties(const Shape: TX3DRendererShape;
+      const Shader: TShader);
+    procedure RenderShapeMaterials(const Shape: TX3DRendererShape;
+      const Shader: TShader);
+    procedure RenderShapeLights(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeFog(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeFog(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeTextureTransform(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeClipPlanes(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeShaders(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+    procedure RenderShapeShaders(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject);
-    procedure RenderShapeTextures(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject);
+    procedure RenderShapeTextures(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject;
-      UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeInside(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-      Shader: TShader;
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject;
+      const UsedGLSLTexCoordsNeeded: Cardinal);
+    procedure RenderShapeInside(const Shape: TX3DRendererShape;
+      const Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TArraysGeneratorClass;
-      ExposedMeshRenderer: TObject);
+      const GeneratorClass: TArraysGeneratorClass;
+      const ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
   public
-    { If > 0, RenderShape will not actually render, only prepare
-      per-shape resources for fast rendering (arrays and vbos). }
-    PrepareRenderShape: Cardinal;
+    type
+      TRenderMode = (
+        { Normal rendering. }
+        rmRender,
+        { Prepare for future rendering of the same shapes. }
+        rmPrepareRenderSelf,
+        { Prepare for future rendering of the cloned shapes
+          (made by TCastleSceneCore.Clone, or TX3DNode.DeepCopy). }
+        rmPrepareRenderClones
+      );
+    var
+      RenderMode: TRenderMode;
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(AttributesClass: TRenderingAttributesClass;
-      ACache: TGLRendererContextCache);
+    constructor Create(const AttributesClass: TRenderingAttributesClass;
+      const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -985,25 +1029,21 @@ type
       const AUserPass: TUserRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(const Shape: TX3DRendererShape;
-      const Fog: IAbstractFogObject);
+    procedure RenderShape(const Shape: TX3DRendererShape);
 
     { Update generated texture for this shape.
 
-      NeedsRestoreViewport will be set to @true if viewport was
-      (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
-      will not be modified).
-
       The given camera position, direction, up should be in world space
-      (that is, in TCastleSceneManager space,
-      not in space local to this TCastleScene). }
-    procedure UpdateGeneratedTextures(Shape: TX3DRendererShape;
-      TextureNode: TAbstractTextureNode;
+      (that is, in TCastleRootTransform space,
+      not in space local to this TCastleScene).
+
+      This does not change current viewport or projection matrix. }
+    procedure UpdateGeneratedTextures(const Shape: TX3DRendererShape;
+      const TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TAbstractViewpointNode;
-      CameraViewKnown: boolean;
+      const CurrentViewpoint: TAbstractViewpointNode;
+      const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3);
 
     { Load GLSL shader for the ScreenEffect node.
@@ -1048,7 +1088,8 @@ implementation
 uses Math,
   CastleStringUtils, CastleGLVersion, CastleLog,
   X3DCameraUtils, CastleProjection, CastleRectangles, CastleTriangles,
-  CastleSceneInternalShape;
+  CastleCameras, CastleSceneInternalShape, CastleRendererBaseTypes,
+  CastleRenderContext;
 
 {$define read_implementation}
 
@@ -1061,6 +1102,8 @@ uses Math,
 { TGLRendererContextCache -------------------------------------------- }
 
 constructor TGLRendererContextCache.Create;
+var
+  B: Boolean;
 begin
   inherited;
   TextureImageCaches := TTextureImageCacheList.Create;
@@ -1068,7 +1111,8 @@ begin
   TextureCubeMapCaches := TTextureCubeMapCacheList.Create;
   Texture3DCaches := TTexture3DCacheList.Create;
   TextureDepthOrFloatCaches := TTextureDepthOrFloatCacheList.Create;
-  ShapeCaches := TShapeCacheList.Create;
+  for B in Boolean do
+    ShapeCaches[B] := TShapeCacheList.Create;
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
 
@@ -1084,6 +1128,8 @@ destructor TGLRendererContextCache.Destroy;
   end;
 {$endif}
 
+var
+  B: Boolean;
 begin
   if TextureImageCaches <> nil then
   begin
@@ -1120,12 +1166,16 @@ begin
     FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
-  if ShapeCaches <> nil then
-  begin
-    Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
-      ' when freeing TGLRendererContextCache');
-    FreeAndNil(ShapeCaches);
-  end;
+  for B in Boolean do
+    if ShapeCaches[B] <> nil then
+    begin
+      Assert(ShapeCaches[B].Count = 0, Format('%d references to shapes still exist on ShapeCaches[%s] when freeing TGLRendererContextCache', [
+        ShapeCaches[B].Count,
+        BoolToStr(B, true)
+        // ShapeCaches[B][0].ToString // not printed, risks further SEGFAULT during log output in case invalid reference remained on the list
+      ]));
+      FreeAndNil(ShapeCaches[B]);
+    end;
 
   if ProgramCaches <> nil then
   begin
@@ -1140,7 +1190,6 @@ end;
 function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TAbstractTextureNode;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1176,9 +1225,8 @@ begin
 
       For now, I don't use this idea, and rely on TextureFullUrl. }
 
-    if ( ( (TextureFullUrl <> '') and
-           (TextureCached.FullUrl = TextureFullUrl) ) or
-         (TextureCached.InitialNode = TextureNode) ) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
@@ -1186,7 +1234,7 @@ begin
        (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
@@ -1204,7 +1252,6 @@ begin
   TextureImageCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
   TextureCached.FlipVertically := FlipVertically;
-  TextureCached.InitialNode := TextureNode;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
@@ -1212,7 +1259,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
@@ -1225,7 +1272,7 @@ begin
     if TextureImageCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureImageCaches[I].References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', '%s: %d', [TextureImageCaches[I].FullUrl,
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
@@ -1244,7 +1291,7 @@ end;
 function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
-  const TextureNode: TMovieTextureNode;
+  const FlipVertically: Boolean;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1257,17 +1304,16 @@ begin
   begin
     TextureCached := TextureVideoCaches[I];
 
-    if ( ( (TextureFullUrl <> '') and
-           (TextureCached.FullUrl = TextureFullUrl) ) or
-         (TextureCached.InitialNode = TextureNode) ) and
-       (TextureCached.FlipVertically = TextureNode.FlipVertically) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
+       (TextureCached.FlipVertically = FlipVertically) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) and
        (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLVideo);
     end;
@@ -1282,8 +1328,7 @@ begin
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
-  TextureCached.FlipVertically := TextureNode.FlipVertically;
-  TextureCached.InitialNode := TextureNode;
+  TextureCached.FlipVertically := FlipVertically;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
@@ -1291,7 +1336,7 @@ begin
   TextureCached.References := 1;
   TextureCached.GLVideo := Result;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
@@ -1304,9 +1349,11 @@ begin
     if TextureVideoCaches[I].GLVideo = TextureVideo then
     begin
       Dec(TextureVideoCaches[I].References);
-      if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureVideoCaches[I].FullUrl,
-                                    TextureVideoCaches[I].References]);
+      if LogRendererCache then
+        WritelnLog('--', '%s: %d', [
+          TextureVideoCaches[I].FullUrl,
+          TextureVideoCaches[I].References
+        ]);
       if TextureVideoCaches[I].References = 0 then
       begin
         FreeAndNil(TextureVideoCaches[I].GLVideo);
@@ -1321,13 +1368,13 @@ begin
 end;
 
 function TGLRendererContextCache.TextureCubeMap_IncReference(
-  Node: TAbstractEnvironmentTextureNode;
+  const TextureFullUrl: string;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
-  PositiveX, NegativeX,
-  PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TEncodedImage;
-  CompositeForMipmaps: TCompositeImage): TGLuint;
+  const PositiveX, NegativeX,
+        PositiveY, NegativeY,
+        PositiveZ, NegativeZ: TEncodedImage;
+  const CompositeForMipmaps: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
@@ -1336,13 +1383,17 @@ begin
   begin
     TextureCached := TextureCubeMapCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached.References]);
+      if LogRendererCache then
+        WritelnLog('++', 'cube map %s: %d', [
+          TextureFullUrl,
+          TextureCached.References
+        ]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1365,14 +1416,14 @@ begin
 
   TextureCached := TTextureCubeMapCache.Create;
   TextureCubeMapCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
-    WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
+  if LogRendererCache then
+    WritelnLog('++', 'cube map %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureCubeMap_DecReference(
@@ -1384,8 +1435,11 @@ begin
     if TextureCubeMapCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureCubeMapCaches[I].References);
-      if LogRendererCache and Log then
-        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches[I].InitialNode), TextureCubeMapCaches[I].References]);
+      if LogRendererCache then
+        WritelnLog('--', 'cube map %s: %d', [
+          TextureCubeMapCaches[I].FullUrl,
+          TextureCubeMapCaches[I].References
+        ]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
         glFreeTexture(TextureCubeMapCaches[I].GLName);
@@ -1400,11 +1454,12 @@ begin
 end;
 
 function TGLRendererContextCache.Texture3D_IncReference(
-  Node: TAbstractTexture3DNode;
+  const TextureFullUrl: string;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
-  Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
+  const Image: TEncodedImage;
+  const Composite: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTexture3DCache;
@@ -1413,14 +1468,15 @@ begin
   begin
     TextureCached := Texture3DCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      if LogRendererCache then
+        WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1440,15 +1496,15 @@ begin
 
   TextureCached := TTexture3DCache.Create;
   Texture3DCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
-    WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
+  if LogRendererCache then
+    WritelnLog('++', '3d texture %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.Texture3D_DecReference(
@@ -1460,8 +1516,11 @@ begin
     if Texture3DCaches[I].GLName = TextureGLName then
     begin
       Dec(Texture3DCaches[I].References);
-      if LogRendererCache and Log then
-        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches[I].InitialNode), Texture3DCaches[I].References]);
+      if LogRendererCache then
+        WritelnLog('--', '3d texture %s: %d', [
+          Texture3DCaches[I].FullUrl,
+          Texture3DCaches[I].References
+        ]);
       if Texture3DCaches[I].References = 0 then
       begin
         glFreeTexture(Texture3DCaches[I].GLName);
@@ -1476,7 +1535,7 @@ begin
 end;
 
 function TGLRendererContextCache.TextureDepth_IncReference(
-  Node: TAbstractTextureNode;
+  const TextureFullUrl: String;
   const TextureWrap: TTextureWrap2D;
   CompareMode: TShadowMapCompareMode;
   const Width, Height: Cardinal;
@@ -1493,12 +1552,16 @@ begin
   begin
     TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      if LogRendererCache then
+        WritelnLog('++', 'Depth texture %s: %d', [
+          TextureFullUrl,
+          TextureCached.References
+        ]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1562,7 +1625,9 @@ begin
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unhandled value for GeneratedShadowMode.compareMode');
+      {$endif}
     end;
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
@@ -1573,13 +1638,13 @@ begin
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.References := 1;
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
 
-  if LogRendererCache and Log then
-    WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
+  if LogRendererCache then
+    WritelnLog('++', 'Depth texture %s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TGLRendererContextCache.TextureDepth_DecReference(
@@ -1591,8 +1656,11 @@ begin
     if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
-      if LogRendererCache and Log then
-        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+      if LogRendererCache then
+        WritelnLog('--', 'Depth texture %s: %d', [
+          TextureDepthOrFloatCaches[I].FullUrl,
+          TextureDepthOrFloatCaches[I].References
+        ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
@@ -1607,7 +1675,7 @@ begin
 end;
 
 function TGLRendererContextCache.TextureFloat_IncReference(
-  Node: TAbstractTextureNode;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
@@ -1622,12 +1690,13 @@ begin
   begin
     TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached.InitialNode = Node) and
+    if (TextureFullUrl <> '') and
+       (TextureCached.FullUrl = TextureFullUrl) and
        (TextureCached.Wrap = TextureWrap) then
     begin
       Inc(TextureCached.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      if LogRendererCache then
+        WritelnLog('++', 'Float texture %s: %d', [TextureFullUrl, TextureCached.References]);
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1650,7 +1719,7 @@ begin
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
-  TextureCached.InitialNode := Node;
+  TextureCached.FullUrl := TextureFullUrl;
   TextureCached.References := 1;
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
@@ -1658,8 +1727,8 @@ begin
     inside TextureCached as well... Ignore this, useless for now ---
     one Node will require only one float texture anyway. }
 
-  if LogRendererCache and Log then
-    WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
+  if LogRendererCache then
+    WritelnLog('++', 'Float texture %s: %d', [TextureFullUrl, 1]);
 {$else}
 begin
   raise Exception.Create('Float textures not available on OpenGL ES 2.0');
@@ -1676,8 +1745,11 @@ begin
     if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches[I].References);
-      if LogRendererCache and Log then
-        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+      if LogRendererCache then
+        WritelnLog('--', 'Float texture %s: %d', [
+          TextureDepthOrFloatCaches[I].FullUrl,
+          TextureDepthOrFloatCaches[I].References
+        ]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
         glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
@@ -1692,8 +1764,8 @@ begin
 end;
 
 function TGLRendererContextCache.Shape_IncReference(
-  Shape: TX3DRendererShape; Fog: IAbstractFogObject;
-  ARenderer: TGLRenderer): TShapeCache;
+  const Shape: TX3DRendererShape;
+  const ARenderer: TGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
   FogVolumetricDirection: TVector3;
@@ -1736,35 +1808,41 @@ var
 
 var
   I: Integer;
+  DisableSharedCache: Boolean;
+  Caches: TShapeCacheList;
 begin
-  ARenderer.GetFog(Fog, FogEnabled, FogVolumetric,
+  ARenderer.GetFog(Shape.Fog, FogEnabled, FogVolumetric,
     FogVolumetricDirection, FogVolumetricVisibilityStart);
 
-  for I := 0 to ShapeCaches.Count - 1 do
-  begin
-    Result := ShapeCaches[I];
-    if (Result.Geometry = Shape.Geometry) and
-       Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
-       Result.State.Equals(Shape.State, IgnoreStateTransform) and
-       FogVolumetricEqual(
-         Result.FogVolumetric,
-         Result.FogVolumetricDirection,
-         Result.FogVolumetricVisibilityStart,
-         FogVolumetric,
-         FogVolumetricDirection,
-         FogVolumetricVisibilityStart) then
+  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  Caches := ShapeCaches[DisableSharedCache];
+
+  if not DisableSharedCache then
+    for I := 0 to Caches.Count - 1 do
     begin
-      Inc(Result.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
-      Exit(Result);
+      Result := Caches[I];
+      if (Result.Geometry = Shape.Geometry) and
+         Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
+         Result.State.Equals(Shape.State, IgnoreStateTransform) and
+         FogVolumetricEqual(
+           Result.FogVolumetric,
+           Result.FogVolumetricDirection,
+           Result.FogVolumetricVisibilityStart,
+           FogVolumetric,
+           FogVolumetricDirection,
+           FogVolumetricVisibilityStart) then
+      begin
+        Inc(Result.References);
+        if LogRendererCache then
+          WritelnLog('++', Result.ToString);
+        Exit(Result);
+      end;
     end;
-  end;
 
   { not found, so create new }
 
   Result := TShapeCache.Create;
-  ShapeCaches.Add(Result);
+  Caches.Add(Result);
   Result.Attributes := ARenderer.Attributes;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
@@ -1773,30 +1851,32 @@ begin
   Result.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
   Result.References := 1;
 
-  if LogRendererCache and Log then
-    WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
+  if LogRendererCache then
+    WritelnLog('++', Result.ToString);
 end;
 
-procedure TGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
+procedure TGLRendererContextCache.Shape_DecReference(const Shape: TX3DRendererShape;
+  var ShapeCache: TShapeCache);
 var
   I: Integer;
+  DisableSharedCache: Boolean;
+  Caches: TShapeCacheList;
 begin
-  for I := 0 to ShapeCaches.Count - 1 do
-  begin
-    if ShapeCaches[I] = ShapeCache then
-    begin
-      Dec(ShapeCache.References);
-      if LogRendererCache and Log then
-        WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.X3DType, ShapeCache.References]);
-      if ShapeCache.References = 0 then
-        ShapeCaches.Delete(I);
-      ShapeCache := nil;
-      Exit;
-    end;
-  end;
+  DisableSharedCache := TGLShape(Shape).DisableSharedCache;
+  Caches := ShapeCaches[DisableSharedCache];
+  I := Caches.IndexOf(ShapeCache);
 
-  raise EInternalError.Create(
-    'TGLRendererContextCache.Shape_DecReference: no reference found');
+  if I <> -1 then
+  begin
+    Dec(ShapeCache.References);
+    if LogRendererCache then
+      WritelnLog('--', ShapeCache.ToString);
+    if ShapeCache.References = 0 then
+      Caches.Delete(I);
+    ShapeCache := nil;
+  end else
+    raise EInternalError.Create(
+      'TGLRendererContextCache.Shape_DecReference: no reference found');
 end;
 
 function TGLRendererContextCache.Program_IncReference(ARenderer: TGLRenderer;
@@ -1810,7 +1890,7 @@ begin
     if Result.Hash = Shader.CodeHash then
     begin
       Inc(Result.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
       Exit(Result);
     end;
@@ -1851,7 +1931,7 @@ begin
     end;
   end;
 
-  if LogRendererCache and Log then
+  if LogRendererCache then
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
 end;
 
@@ -1864,7 +1944,7 @@ begin
     if ProgramCaches[I] = ProgramCache then
     begin
       Dec(ProgramCache.References);
-      if LogRendererCache and Log then
+      if LogRendererCache then
         WritelnLog('--', 'Shader program (hash %s): %d', [ProgramCache.Hash.ToString, ProgramCache.References]);
       if ProgramCache.References = 0 then
         ProgramCaches.Delete(I);
@@ -1918,14 +1998,15 @@ begin
   FUseSceneLights := true;
   FOpacity := 1;
   FEnableTextures := true;
-  FMinificationFilter := minLinearMipmapLinear;
-  FMagnificationFilter := magLinear;
+  FMinificationFilter := minDefault;
+  FMagnificationFilter := magDefault;
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
   FPhongShading := DefaultPhongShading;
+  FMaxLightsPerShape := DefaultMaxLightsPerShape;
 end;
 
 procedure TRenderingAttributes.ReleaseCachedResources;
@@ -1962,7 +2043,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetMinificationFilter(const Value: TMinificationFilter);
+procedure TRenderingAttributes.SetMinificationFilter(const Value: TAutoMinificationFilter);
 begin
   if MinificationFilter <> Value then
   begin
@@ -1971,7 +2052,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetMagnificationFilter(const Value: TMagnificationFilter);
+procedure TRenderingAttributes.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
 begin
   if MagnificationFilter <> Value then
   begin
@@ -1982,8 +2063,19 @@ end;
 
 function TRenderingAttributes.TextureFilter: TTextureFilter;
 begin
-  Result.Minification := MinificationFilter;
-  Result.Magnification := MagnificationFilter;
+  case MinificationFilter of
+    minDefault: Result.Minification := DefaultMinificationFilter;
+    minFastest: Result.Minification := minNearest;
+    minNicest : Result.Minification := minLinearMipmapLinear;
+    else        Result.Minification := MinificationFilter;
+  end;
+
+  case MagnificationFilter of
+    magDefault: Result.Magnification := DefaultMagnificationFilter;
+    magFastest: Result.Magnification := magNearest;
+    magNicest : Result.Magnification := magLinear;
+    else        Result.Magnification := MagnificationFilter;
+  end;
 end;
 
 procedure TRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
@@ -2044,8 +2136,8 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  AttributesClass: TRenderingAttributesClass;
-  ACache: TGLRendererContextCache);
+  const AttributesClass: TRenderingAttributesClass;
+  const ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
@@ -2114,7 +2206,7 @@ begin
   VboToReload := VboToReload + Changed;
 end;
 
-procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
+procedure TShapeCache.LoadArraysToVbo(const DynamicGeometry: boolean);
 var
   DataUsage: TGLenum;
   NewVbos: boolean;
@@ -2173,20 +2265,28 @@ begin
   if NewVbos then
   begin
     glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
-    if Log and LogRenderer then
+    if LogRenderer then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
   end else
   begin
-    if Log and LogRenderer then
+    if LogRenderer then
       WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
          VboTypesToStr(VboToReload)]));
   end;
 
   if DynamicGeometry then
-    DataUsage := GL_DYNAMIC_DRAW else
+    { GL_STREAM_DRAW is most suitable if we will modify this every frame,
+      according to
+      https://www.khronos.org/opengl/wiki/Buffer_Object
+      https://computergraphics.stackexchange.com/questions/5712/gl-static-draw-vs-gl-dynamic-draw-vs-gl-stream-draw-does-it-matter
+    }
+    DataUsage := GL_STREAM_DRAW
+  else
     DataUsage := GL_STATIC_DRAW;
+
+  VboCoordinatePreserveGeometryOrder := Arrays.CoordinatePreserveGeometryOrder;
 
   BufferData(vtCoordinate, GL_ARRAY_BUFFER,
     Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
@@ -2207,6 +2307,71 @@ begin
     work even if you call FreeArrays multiple times, the needed updates
     are summed). }
   VboToReload := [];
+end;
+
+function TShapeCache.FastCoordinateNormalUpdate(const Coords, Normals: TVector3List): Boolean;
+type
+  TCoordinateNormal = packed record
+    Coord, Normal: TVector3;
+  end;
+var
+  NewCoordinates: array of TCoordinateNormal;
+  Count, Size: Cardinal;
+  I: Integer;
+begin
+  Result := false;
+
+  if { VBO of coordinates was initialized.
+       This also means that Arrays.FreeData was called, as LoadArraysToVbo does it. }
+     (Vbo[vtCoordinate] <> 0) and
+     VboCoordinatePreserveGeometryOrder and
+     (Normals.Count = Coords.Count) then
+  begin
+    Count := Coords.Count;
+    Size := Count * SizeOf(TCoordinateNormal);
+    if (VboAllocatedUsage = GL_STREAM_DRAW) and
+       { Comparing the byte sizes also makes sure that previous and new coordinates
+         count stayed the same.
+         Right now we always pack into TCoordinateNormal record (2 vectors, 3x floats)
+         so VboAllocatedSize[vtCoordinate] just determines the count.
+       }
+       (VboAllocatedSize[vtCoordinate] = Size) then
+    begin
+      Result := true;
+      if Count <> 0 then
+      begin
+        VboToReload := VboToReload + [vtCoordinate];
+
+        // calculate NewCoordinates
+        SetLength(NewCoordinates, Count);
+        for I := 0 to Count - 1 do
+        begin
+          NewCoordinates[I].Coord := Coords.List^[I];
+          NewCoordinates[I].Normal := Normals.List^[I];
+        end;
+
+        // load NewCoordinates to GPU
+        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, Size, Pointer(NewCoordinates));
+      end;
+    end;
+  end;
+end;
+
+function TShapeCache.ToString: String;
+var
+  ShapeNodeName: String;
+begin
+  if State.ShapeNode <> nil then
+    ShapeNodeName := ' ' + State.ShapeNode.X3DName
+  else
+    ShapeNodeName := '';
+  Result := Format('Shape%s %s (%s): %d', [
+    ShapeNodeName,
+    PointerToStr(Self),
+    Geometry.X3DType,
+    References
+  ]);
 end;
 
 { TShaderProgramCache -------------------------------------------------------- }
@@ -2386,21 +2551,24 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
+procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
   Enabled := (Attributes.Mode = rmFull) and
-    (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
-  Volumetric := Enabled and Node.FdVolumetric.Value
+    (AFogFunctionality <> nil) and
+    (AFogFunctionality.VisibilityRange <> 0.0);
+  Volumetric := Enabled and
+    AFogFunctionality.Volumetric
     {$ifndef OpenGLES} and GLFeatures.EXT_fog_coord {$endif};
 
   if Volumetric then
   begin
     VolumetricVisibilityStart :=
-      Node.FdVolumetricVisibilityStart.Value * Node.TransformScale;
-    VolumetricDirection := Node.FdVolumetricDirection.Value;
+      AFogFunctionality.VolumetricVisibilityStart *
+      AFogFunctionality.TransformScale;
+    VolumetricDirection := AFogFunctionality.VolumetricDirection;
   end else
   begin
     { whatever, just set them to any determined values }
@@ -2504,8 +2672,7 @@ begin
 
     if not GLVersion.BuggyLightModelTwoSide then
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
-    if Log then
-      WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
+    WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
     {$endif}
 
@@ -2611,10 +2778,10 @@ begin
     {$endif}
   end;
 
-  Assert(FogNode = nil);
+  Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, Attributes.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
@@ -2627,7 +2794,7 @@ begin
 
   FreeAndNil(LightsRenderer);
 
-  FogNode := nil;
+  FogFunctionality := nil;
   FogEnabled := false;
 
   if GLFeatures.EnableFixedFunction then
@@ -2642,14 +2809,26 @@ begin
   { restore defaults }
   RenderContext.CullFace := false;
   RenderContext.FrontFaceCcw := true;
-  TGLSLProgram.Current := nil;
+  RenderContext.CurrentProgram := nil;
   RenderingCamera := nil;
 end;
 
-procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
-  const Fog: IAbstractFogObject);
+procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
 
-  function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
+  function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
+  var
+    I: Integer;
+    Lights: TLightInstancesList;
+  begin
+    Lights := Shape.State.Lights;
+    if Lights <> nil then
+      for I := 0 to Lights.Count - 1 do
+        if Lights.L[I].Node is TEnvironmentLightNode then
+          Exit(true);
+    Result := false;
+  end;
+
+  function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
   var
     Tex, SubTexture: TX3DNode;
     I: Integer;
@@ -2675,6 +2854,15 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape;
     end;
   end;
 
+  function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
+  begin
+    Result :=
+      (Shape.Node <> nil) and
+      ( (Shape.Node.Material is TTwoSidedMaterialNode) or
+        (Shape.Node.Material is TPhysicalMaterialNode)
+      );
+  end;
+
 var
   PhongShading: boolean;
   Shader: TShader;
@@ -2682,7 +2870,6 @@ begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
-  Shader.SeparateDiffuseTexture := Attributes.SeparateDiffuseTexture;
   Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
@@ -2695,8 +2882,11 @@ begin
     if Shape.Node.Shading = shGouraud then
       PhongShading := false;
   { if some feature requires PhongShading, make it true }
-  if ShapeMaybeUsesPhongSurfaceTexture(Shape) or
-     ShapeMaybeUsesShadowMaps(Shape) then
+  if ShapeMaybeUsesSurfaceTexture(Shape) or
+     ShapeMaybeUsesShadowMaps(Shape) or
+     ShapeMaterialRequiresPhongShading(Shape) or
+     ShapeUsesEnvironmentLight(Shape) or
+     (not Shape.Geometry.Solid) { two-sided lighting required by solid=FALSE } then
     PhongShading := true;
 
   Shader.Initialize(PhongShading);
@@ -2704,13 +2894,13 @@ begin
   if PhongShading then
     Shader.ShapeRequiresShaders := true;
 
-  Shader.ShapeBoundingBox := Shape.BoundingBox;
+  Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
   Shader.ShadowSampling := Attributes.ShadowSampling;
-  RenderShapeLineProperties(Shape, Fog, Shader);
+  RenderShapeLineProperties(Shape, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeLineProperties(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader);
+procedure TGLRenderer.RenderShapeLineProperties(const Shape: TX3DRendererShape;
+  const Shader: TShader);
 var
   LP: TLinePropertiesNode;
 begin
@@ -2727,21 +2917,21 @@ begin
     LineType := ltSolid;
   end;
 
-  RenderShapeMaterials(Shape, Fog, Shader);
+  RenderShapeMaterials(Shape, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeMaterials(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader);
+procedure TGLRenderer.RenderShapeMaterials(const Shape: TX3DRendererShape;
+  const Shader: TShader);
 
   {$I castlerenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
-  RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeLights(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeLights(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
@@ -2759,17 +2949,18 @@ begin
   if Lighting then
   begin
     if Attributes.UseSceneLights then
-      SceneLights := Shape.State.Lights else
+      SceneLights := Shape.State.Lights
+    else
       SceneLights := nil;
 
     LightsRenderer.Render(BaseLights, SceneLights, Shader);
   end;
 
-  RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeFog(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeFog(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeFog(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
 const
@@ -2778,7 +2969,7 @@ const
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
-  procedure RenderFog(Node: IAbstractFogObject;
+  procedure RenderFog(const AFogFunctionality: TFogFunctionality;
     out Volumetric: boolean;
     out VolumetricDirection: TVector3;
     out VolumetricVisibilityStart: Single);
@@ -2787,13 +2978,15 @@ const
   const
     FogDensityFactor = 3.0;
   begin
-    GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
+    GetFog(AFogFunctionality, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
     if FogEnabled then
     begin
-      Assert(Node <> nil);
+      Assert(AFogFunctionality <> nil);
 
-      VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
+      VisibilityRangeScaled :=
+        AFogFunctionality.VisibilityRange *
+        AFogFunctionality.TransformScale;
 
       if GLFeatures.EnableFixedFunction then
       begin
@@ -2802,7 +2995,7 @@ const
           where we know that fog coord is possible and will be realized by passing
           castle_FogCoord to shader. }
 
-        if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
+        if AFogFunctionality.Volumetric and (not GLFeatures.EXT_fog_coord) then
         begin
           { Try to make normal fog that looks similar. This looks poorly,
             but it's not a real problem --- EXT_fog_coord is supported
@@ -2826,22 +3019,24 @@ const
       end;
 
       { calculate FogType and other Fog parameters }
-      FogType := Node.FogType;
-      FogColor := Node.FdColor.Value;
+      FogType := AFogFunctionality.FogType;
+      FogColor := AFogFunctionality.Color;
       case FogType of
         ftLinear: FogLinearEnd := VisibilityRangeScaled;
         ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
+        {$endif}
       end;
     end;
   end;
 
 begin
   { Enable / disable fog and set fog parameters if needed }
-  if Fog <> FogNode then
+  if FogFunctionality <> Shape.Fog then
   begin
-    FogNode := Fog;
-    RenderFog(FogNode, FogVolumetric,
+    FogFunctionality := Shape.Fog;
+    RenderFog(FogFunctionality, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
     if GLFeatures.EnableFixedFunction then
@@ -2862,7 +3057,9 @@ begin
               glFogi(GL_FOG_MODE, GL_EXP);
               glFogf(GL_FOG_DENSITY, FogExpDensity);
             end;
+          {$ifndef COMPILER_CASE_ANALYSIS}
           else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
+          {$endif}
         end;
         { We want to be able to render any scene --- so we have to be prepared
           that fog interpolation has to be corrected for perspective. }
@@ -2877,12 +3074,11 @@ begin
   if FogEnabled then
     Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
       FogColor, FogLinearEnd, FogExpDensity);
-  RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeTextureTransform(Shape, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+procedure TGLRenderer.RenderShapeTextureTransform(const Shape: TX3DRendererShape;
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
@@ -3002,9 +3198,12 @@ begin
           By the way, we don't do any texture transform if Texture = nil,
           since then no texture is used anyway.
 
-          TODO: what to do with CommonSurfaceShader ? }
-        if (State.DiffuseAlphaTexture <> nil) and
-           (not (State.DiffuseAlphaTexture is TMultiTextureNode)) then
+          TODO: what to do with CommonSurfaceShader ?
+
+          TODO: fix for new texture channels, where one TextureTransform
+          should work like MultiTextureTransform with one item. }
+        if (State.MainTexture <> nil) and
+           (not (State.MainTexture is TMultiTextureNode)) then
         begin
           if FirstTexUnit < GLFeatures.MaxTextureUnits then
           begin
@@ -3033,7 +3232,7 @@ begin
     end;
   end;
 
-  RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  RenderShapeClipPlanes(Shape, Shader, MaterialOpacity, Lighting);
 
   if GLFeatures.EnableFixedFunction then
   begin
@@ -3065,8 +3264,8 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderShapeClipPlanes(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeClipPlanes(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
@@ -3123,12 +3322,12 @@ begin
   if GLFeatures.EnableFixedFunction then
   begin
     glPushMatrix;
-      glMultMatrix(Shape.State.Transform);
+      glMultMatrix(Shape.State.Transformation.Transform);
   end;
   {$endif}
 
-    Shape.ModelView := Shape.ModelView * Shape.State.Transform;
-    RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
+    Shape.ModelView := Shape.ModelView * Shape.State.Transformation.Transform;
+    RenderShapeCreateMeshRenderer(Shape, Shader, MaterialOpacity, Lighting);
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
@@ -3138,9 +3337,8 @@ begin
   ClipPlanesEnd;
 end;
 
-procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+procedure TGLRenderer.RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
   MeshRenderer: TMeshRenderer;
@@ -3180,7 +3378,7 @@ begin
   Assert(MeshRenderer <> nil);
 
   try
-    RenderShapeShaders(Shape, Fog, Shader, MaterialOpacity, Lighting,
+    RenderShapeShaders(Shape, Shader, MaterialOpacity, Lighting,
       GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
@@ -3189,11 +3387,11 @@ end;
 
 {$define MeshRenderer := TMeshRenderer(ExposedMeshRenderer) }
 
-procedure TGLRenderer.RenderShapeShaders(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject);
 var
   { > 0 means that we had custom shader node *and* it already
     needs given number texture units. Always 0 otherwise. }
@@ -3276,23 +3474,23 @@ begin
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
       TCD := TextureCoordsDefined;
-      if Log and (TCD > UsedGLSLTexCoordsNeeded) then
+      if TCD > UsedGLSLTexCoordsNeeded then
         WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
           [TCD, UsedGLSLTexCoordsNeeded]));
       MaxVar(UsedGLSLTexCoordsNeeded, TCD);
     end;
   end;
 
-  RenderShapeTextures(Shape, Fog, Shader, MaterialOpacity, Lighting,
+  RenderShapeTextures(Shape, Shader, MaterialOpacity, Lighting,
     GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
-procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject;
-  UsedGLSLTexCoordsNeeded: Cardinal);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject;
+  const UsedGLSLTexCoordsNeeded: Cardinal);
 
   function NodeTextured(Node: TAbstractGeometryNode): boolean;
   begin
@@ -3344,6 +3542,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     AlphaTest: boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
+    MainTextureMapping: Integer;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3353,10 +3552,12 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.DiffuseAlphaTexture;
+    TextureNode := Shape.State.MainTexture(Shape.Geometry, MainTextureMapping);
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
+
+    Shader.MainTextureMapping := MainTextureMapping;
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
     GLFontTextureNode := GLTextureNodes.TextureNode(FontTextureNode);
@@ -3387,17 +3588,18 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
          (Shape.Node.Appearance.Texture <> nil) and
          (TextureNode <> Shape.Node.Appearance.Texture) then
       begin
-        { This means that Shape.State.DiffuseAlphaTexture comes
-          from CommonSurfaceShader (or a weird mix of VRML 1.0 and X3D which
-          is undefined).
+        { This means that Shape.State.MainTexture comes
+          from CommonSurfaceShader or X3Dv4 Material or PhysicalMaterial.
           Make sure to still enable shadow maps from Shape.Appearance.Texture
-          then. }
+          then.
+          TODO: shadow maps should be placed in some special slot,
+          dedicated for them. }
         EnableShadowMaps(Shape.Node.Appearance.Texture, TexCoordsNeeded, Shader);
       end;
 
       { If there is special texture like a normalmap, enable it. }
-      BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
-      SurfaceTexturesEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
+      BumpMappingEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
+      SurfaceTexturesEnable(Shape, BoundTextureUnits, TexCoordsNeeded, Shader);
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).
@@ -3438,21 +3640,25 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeInside(Shape, Fog, Shader, MaterialOpacity, Lighting,
+    RenderShapeInside(Shape, Shader, MaterialOpacity, Lighting,
       GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
 end;
 
-procedure TGLRenderer.RenderShapeInside(Shape: TX3DRendererShape;
-  Fog: IAbstractFogObject; Shader: TShader;
+procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
+  const Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TArraysGeneratorClass;
-  ExposedMeshRenderer: TObject);
+  const GeneratorClass: TArraysGeneratorClass;
+  const ExposedMeshRenderer: TObject);
 var
   Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
   VBO: boolean;
 begin
+  { No point preparing VBO for clones, clones will need own VBOs anyway. }
+  if RenderMode = rmPrepareRenderClones then
+    Exit;
+
   { initialize TBaseCoordinateRenderer.Arrays now }
   if GeneratorClass <> nil then
   begin
@@ -3461,7 +3667,7 @@ begin
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
-      Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
+      Shape.Cache := Cache.Shape_IncReference(Shape, Self);
 
     VBO := GLFeatures.VertexBufferObject;
 
@@ -3509,7 +3715,7 @@ begin
     CoordinateRenderer.Lighting := Lighting;
   end;
 
-  MeshRenderer.PrepareRenderShape := PrepareRenderShape;
+  MeshRenderer.PrepareRenderShape := RenderMode in [rmPrepareRenderSelf, rmPrepareRenderClones];
   MeshRenderer.Render;
 
   if (GeneratorClass <> nil) and VBO then
@@ -3559,13 +3765,12 @@ begin
 end;
 {$endif}
 
-procedure TGLRenderer.UpdateGeneratedTextures(Shape: TX3DRendererShape;
-  TextureNode: TAbstractTextureNode;
+procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
+  const TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TAbstractViewpointNode;
-  CameraViewKnown: boolean;
+  const CurrentViewpoint: TAbstractViewpointNode;
+  const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3);
 var
   { Only for CheckUpdateField and PostUpdateField }
@@ -3608,11 +3813,11 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport, Shape.BoundingBox.Center + TexNode.FdBias.Value);
+          Shape.BoundingBox.Center + TexNode.FdBias.Value);
 
         PostUpdate;
 
-        if Log and LogRenderer then
+        if LogRenderer then
           WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
       end;
     end;
@@ -3624,18 +3829,17 @@ var
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
-      if TexNode.FdLight.Value is TAbstractLightNode then
+      if TexNode.FdLight.Value is TAbstractPunctualLightNode then
       begin
         GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
-            NeedsRestoreViewport,
-            TAbstractLightNode(TexNode.FdLight.Value));
+            TAbstractPunctualLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
 
-          if Log and LogRenderer then
+          if LogRenderer then
             WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
         end;
       end else
@@ -3661,17 +3865,16 @@ var
           GeometryCoords := GeometryCoordsField.Items;
 
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport,
           CurrentViewpoint, CameraViewKnown,
           CameraPosition, CameraDirection, CameraUp,
           Shape.BoundingBox,
-          Shape.State.Transform,
+          Shape.State.Transformation.Transform,
           GeometryCoords,
           Shape.MirrorPlaneUniforms);
 
         PostUpdate;
 
-        if Log and LogRenderer then
+        if LogRenderer then
           WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');
       end;
     end;
@@ -3733,10 +3936,15 @@ begin
       ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
       ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
       ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('LineType?');
+      {$endif}
     end;
     {$endif}
   end;
 end;
 
+initialization
+  TRenderingAttributes.DefaultMinificationFilter := minLinearMipmapLinear;
+  TRenderingAttributes.DefaultMagnificationFilter := magLinear;
 end.

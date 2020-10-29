@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend based on GTK 2 and GtkGLExt.
+{ CastleWindow backend based on GTK 2.
 
   TODO:
   - In OpenBackend implement MaxWidth/Height
@@ -25,13 +25,15 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
+{$I castlewindow_glx.inc}
+
 {$ifdef read_interface_uses}
-Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib,
-{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
+Glib2, Gdk2, Gtk2, CastleDynLib,
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, XUtil, {$endif}
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleFindFiles,
+CastleInternalWindowModes, CastleFindFiles,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -45,15 +47,6 @@ CastleWindowModes, CastleFindFiles,
 private
   WindowGtk: PGtkWindow;
   GLAreaGtk: PGtkGLArea;
-
-  { These should be always equivalent to
-    gtk_widget_get_gl_config(GLAreaGtk),
-    gtk_widget_get_gl_context(GLAreaGtk),
-    gtk_widget_get_gl_drawable(GLAreaGtk).
-    Or nil when GLAreaGtk = nil. }
-  GLConfig: PGdkGLConfig;
-  GLContext: PGdkGLContext;
-  GLDrawable: PGdkGLDrawable;
 
   { These things are initialized only when (MainMenu <> nil) and (not Closed). }
   window_vbox: PGtkVBox;
@@ -84,6 +77,13 @@ private
     ok_button, cancel_button: PGtkWidget): boolean;
   function GtkDialogRun(ADialog: PGtkDialog): gint;
   { @groupEnd }
+  procedure GetInitialCursorPos;
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+  { GLAreaGtk X11 identifier.
+    TODO: Name is confusing, this is about GLAreaGtk, not from WindowGtk.
+    It is used by castlewindow_glx.inc functions. }
+  function WindowXID: TWindow;
+  {$endif}
 private
   FBorderWidth: Cardinal;
 
@@ -98,46 +98,6 @@ public
   property BorderWidth: Cardinal
     read FBorderWidth write FBorderWidth default 0;
 protected
-
-  { Implementation of MakeGLAreaContainer in this class simply
-    returns Result := GLArea.
-    When creating gtk window in Open, I'm 1st creating GLArea widget.
-    Then I'm inserting MakeGLAreaContainer(GLArea) inside my window.
-
-    This means that you can override MakeGLAreaContainer if you want
-    your window to contain something more than just OpenGL drawing area
-    (and some menu, derived from MainMenu property).
-    You can e.g. create in MakeGLAreaContainer some complex container,
-    put there many various GTK widgets, connect your signals to them,
-    and then put GLArea inside it.
-    This way using this function you can extend window TCastleWindowBase
-    with whatever GTK GUI you like.
-
-    The only requirement is that GLArea widget must be placed
-    somewhere inside widget that you return in this function.
-
-    Note: if you create here some widgets, remember to show them
-    using gtk_widget_show.
-
-    Some notes about using this function:
-    Using this function kills some part of portability of CastleWindow unit,
-    as this function exists only when CastleWindow is implemented on top
-    of GTK, so you will have to always use CastleWindow implemented on top GTK
-    on every OS, e.g. with Windows version of your program you will have
-    to distribute GTK and GtkGLExt/GLArea for Windows.
-    This is not really a problem, since GTK 2.x and GtkGLExt work
-    excellent also under Windows (you know, GTK itself is a library
-    that provides great portability). However this raises a question:
-    what are advantages of using in such situation CastleWindow unit
-    (as opposed to just using directly Gtk and GtkGLExt API
-    without any need for CastleWindow unit): well, my advice is that
-    if your program uses it's OpenGL area as it's central and crucial
-    part (and using some GUI only to e.g. get some input from user
-    about what to display in OpenGL area), than using CastleWindow unit
-    may be more straightforward as you have to write much less code in Gtk.
-
-    Example of using this can be found in examples/window/test_window_gtk_mix }
-  function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; virtual;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -185,7 +145,8 @@ private
     (without X server running). }
   procedure InitializeXDisplay;
 
-  {$ifdef CASTLE_WINDOW_USE_XF86VMODE}
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+  { Used by castlewindow_glx.inc functions, used by XF86VMODE functions. }
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
   {$endif}
@@ -199,50 +160,6 @@ public
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
-
-{$ifdef DARWIN}
-  {$linklib gdkglext-x11-1.0}
-  {$linklib gtkglext-x11-1.0}
-{$endif DARWIN}
-
-{ gboolean type stuff --------------------------------------------------------
-
-  TODO: this should be removed now, after adding autotests that it's right.
-  We only support FPC >= 2.6.0 now.
-
-  This was done because
-  under FPC >= 2.4.0 Pascal's "true" is $FFFFFFFF,
-  not equal to GTK's "true" (equal to int 1). Some GTK routines treat
-  $FFFFFFFF as true (since it's <> 0), but some not.
-  For example, passing "true" instead of "LongBool(gtrue)"
-  to gtk_widget_set_gl_capability (as "direct" parameter)
-  causes troubles, gtkglext understood Pascal's "true" as false
-  and returned indirect OpenGL contexts.
-  See http://lists.freepascal.org/lists/fpc-devel/2009-April/016668.html
-
-  That's why you need to use Glib's constants, not Pascal's false/true.
-
-  Also, GTK's unit constants gfalse/gtrue are ints, while gboolean is LongBool,
-  so they are not assigment-compatible. So use our g_false/g_true
-  (with underscore) for best results.
-
-  In FPC >= 2.6.0 this is fixed by gboolean = boolean32. }
-
-const
-  g_true = gtrue;
-  g_false = gfalse;
-
-function PasToGbool(const B: boolean): gboolean;
-const
-  T: array [boolean] of GBoolean = (g_false, g_true);
-begin
-  Result := T[B];
-end;
-
-function GboolToPas(const B: gboolean): boolean;
-begin
-  Result := B <> g_false;
-end;
 
 { various helpers ------------------------------------------------------------ }
 
@@ -265,101 +182,101 @@ function gdk_screen_get_resolution(screen: PGdkScreen): gdouble;
   cdecl; external gdklib;
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
-  K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
+  keyXxx constant (from Keys unit). Returns keyNone if no conversion is possible
   (gdk keysym has no corresponding TKey value). }
 function GdkKeysymToKey(GdkKeysym: guint): TKey;
 begin
- case GdkKeysym of
-  GDK_KEY_BackSpace: Result := K_BackSpace;
-  GDK_KEY_Tab: Result := K_Tab;
-  GDK_KEY_Return: Result := K_Enter;
+  case GdkKeysym of
+    GDK_KEY_BackSpace: Result := keyBackSpace;
+    GDK_KEY_Tab: Result := keyTab;
+    GDK_KEY_Return: Result := keyEnter;
 
-  GDK_KEY_Escape: Result := K_Escape;
-  GDK_KEY_Space: Result := K_Space;
-  GDK_KEY_Page_Up:  Result := K_PageUp;
-  GDK_KEY_Page_Down: Result := K_PageDown;
-  GDK_KEY_End: Result := K_End;
-  GDK_KEY_Home: Result := K_Home;
-  GDK_KEY_Left: Result := K_Left;
-  GDK_KEY_Up: Result := K_Up;
-  GDK_KEY_Right: Result := K_Right;
-  GDK_KEY_Down: Result := K_Down;
-  GDK_KEY_Insert: Result := K_Insert;
-  GDK_KEY_Delete: Result := K_Delete;
-  GDK_KEY_BracketLeft: Result := K_LeftBracket;
-  GDK_KEY_BracketRight: Result := K_RightBracket;
+    GDK_KEY_Escape: Result := keyEscape;
+    GDK_KEY_Space: Result := keySpace;
+    GDK_KEY_Page_Up:  Result := keyPageUp;
+    GDK_KEY_Page_Down: Result := keyPageDown;
+    GDK_KEY_End: Result := keyEnd;
+    GDK_KEY_Home: Result := keyHome;
+    GDK_KEY_Left: Result := keyArrowLeft;
+    GDK_KEY_Up: Result := keyArrowUp;
+    GDK_KEY_Right: Result := keyArrowRight;
+    GDK_KEY_Down: Result := keyArrowDown;
+    GDK_KEY_Insert: Result := keyInsert;
+    GDK_KEY_Delete: Result := keyDelete;
+    GDK_KEY_BracketLeft: Result := keyLeftBracket;
+    GDK_KEY_BracketRight: Result := keyRightBracket;
 
-  GDK_KEY_KP_Add: Result := K_Numpad_Plus;
-  GDK_KEY_KP_Subtract: Result := K_Numpad_Minus;
+    GDK_KEY_KP_Add: Result := keyNumpadPlus;
+    GDK_KEY_KP_Subtract: Result := keyNumpadMinus;
 
-  GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(K_0) + GdkKeysym - GDK_KEY_0);
+    GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(key0) + GdkKeysym - GDK_KEY_0);
 
-  GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_Capital_A);
-  GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_A);
+    GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_Capital_A);
+    GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(keyA) + GdkKeysym - GDK_KEY_A);
 
-  GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(K_F1) + GdkKeysym - GDK_KEY_F1);
+    GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(keyF1) + GdkKeysym - GDK_KEY_F1);
 
-  GDK_KEY_Comma: Result := K_Comma;
-  GDK_KEY_Period: Result := K_Period;
-  GDK_KEY_Print: Result := K_PrintScreen;
-  GDK_KEY_Caps_Lock: Result := K_CapsLock;
-  GDK_KEY_Scroll_Lock: Result := K_ScrollLock;
-  GDK_KEY_Num_Lock: Result := K_NumLock;
-  GDK_KEY_Pause: Result := K_Pause;
+    GDK_KEY_Comma: Result := keyComma;
+    GDK_KEY_Period: Result := keyPeriod;
+    GDK_KEY_Print: Result := keyPrintScreen;
+    GDK_KEY_Caps_Lock: Result := keyCapsLock;
+    GDK_KEY_Scroll_Lock: Result := keyScrollLock;
+    GDK_KEY_Num_Lock: Result := keyNumLock;
+    GDK_KEY_Pause: Result := keyPause;
 
-  GDK_KEY_KP_0: Result := K_Numpad_0;
-  GDK_KEY_KP_1: Result := K_Numpad_1;
-  GDK_KEY_KP_2: Result := K_Numpad_2;
-  GDK_KEY_KP_3: Result := K_Numpad_3;
-  GDK_KEY_KP_4: Result := K_Numpad_4;
-  GDK_KEY_KP_5: Result := K_Numpad_5;
-  GDK_KEY_KP_6: Result := K_Numpad_6;
-  GDK_KEY_KP_7: Result := K_Numpad_7;
-  GDK_KEY_KP_8: Result := K_Numpad_8;
-  GDK_KEY_KP_9: Result := K_Numpad_9;
-  GDK_KEY_KP_End: Result := K_Numpad_End;
-  GDK_KEY_KP_Down: Result := K_Numpad_Down;
-  GDK_KEY_KP_Next: Result := K_Numpad_PageDown;
-  GDK_KEY_KP_Left: Result := K_Numpad_Left;
-  GDK_KEY_KP_Begin: Result := K_Numpad_Begin;
-  GDK_KEY_KP_Right: Result := K_Numpad_Right;
-  GDK_KEY_KP_Home: Result := K_Numpad_Home;
-  GDK_KEY_KP_Up: Result := K_Numpad_Up;
-  GDK_KEY_KP_Prior: Result := K_Numpad_PageUp;
-  GDK_KEY_KP_Insert: Result := K_Numpad_Insert;
-  GDK_KEY_KP_Delete: Result := K_Numpad_Delete;
-  GDK_KEY_KP_Enter: Result := K_Numpad_Enter;
-  GDK_KEY_KP_Multiply: Result := K_Numpad_Multiply;
-  GDK_KEY_KP_Divide: Result := K_Numpad_Divide;
-  GDK_KEY_Apostrophe: Result := K_Apostrophe;
-  GDK_KEY_Semicolon: Result := K_Semicolon;
-  GDK_KEY_Slash: Result := K_Slash;
-  GDK_KEY_Grave: Result := K_BackQuote;
-  GDK_KEY_Minus: Result := K_Minus;
-  GDK_KEY_Plus: Result := K_Plus;
-  GDK_KEY_Equal: Result := K_Equal;
-  GDK_KEY_BackSlash: Result := K_BackSlash;
+    GDK_KEY_KP_0: Result := keyNumpad0;
+    GDK_KEY_KP_1: Result := keyNumpad1;
+    GDK_KEY_KP_2: Result := keyNumpad2;
+    GDK_KEY_KP_3: Result := keyNumpad3;
+    GDK_KEY_KP_4: Result := keyNumpad4;
+    GDK_KEY_KP_5: Result := keyNumpad5;
+    GDK_KEY_KP_6: Result := keyNumpad6;
+    GDK_KEY_KP_7: Result := keyNumpad7;
+    GDK_KEY_KP_8: Result := keyNumpad8;
+    GDK_KEY_KP_9: Result := keyNumpad9;
+    GDK_KEY_KP_End: Result := keyNumpadEnd;
+    GDK_KEY_KP_Down: Result := keyNumpadDown;
+    GDK_KEY_KP_Next: Result := keyNumpadPageDown;
+    GDK_KEY_KP_Left: Result := keyNumpadLeft;
+    GDK_KEY_KP_Begin: Result := keyNumpadBegin;
+    GDK_KEY_KP_Right: Result := keyNumpadRight;
+    GDK_KEY_KP_Home: Result := keyNumpadHome;
+    GDK_KEY_KP_Up: Result := keyNumpadUp;
+    GDK_KEY_KP_Prior: Result := keyNumpadPageUp;
+    GDK_KEY_KP_Insert: Result := keyNumpadInsert;
+    GDK_KEY_KP_Delete: Result := keyNumpadDelete;
+    GDK_KEY_KP_Enter: Result := keyNumpadEnter;
+    GDK_KEY_KP_Multiply: Result := keyNumpadMultiply;
+    GDK_KEY_KP_Divide: Result := keyNumpadDivide;
+    GDK_KEY_Apostrophe: Result := keyApostrophe;
+    GDK_KEY_Semicolon: Result := keySemicolon;
+    GDK_KEY_Slash: Result := keySlash;
+    GDK_KEY_Grave: Result := keyBackQuote;
+    GDK_KEY_Minus: Result := keyMinus;
+    GDK_KEY_Plus: Result := keyPlus;
+    GDK_KEY_Equal: Result := keyEqual;
+    GDK_KEY_BackSlash: Result := keyBackSlash;
 
-  else Result := K_None;
- end;
+    else Result := keyNone;
+  end;
 end;
 
 { Converts GDK mouse button number (from GdkEventButton.button)
-  to TMouseButton. Returns false (and does not change mb) if such
-  button number cannot be represented as TMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; out mb: TMouseButton): boolean;
+  to TCastleMouseButton. Returns false (and does not change mb) if such
+  button number cannot be represented as TCastleMouseButton. }
+function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): boolean;
 begin
- { No need to implement this using dirty typecasts, it's simple enough
-   to do it type-safe. }
- case bn of
-  1: mb := mbLeft;
-  2: mb := mbMiddle;
-  3: mb := mbRight;
-  8: mb := mbExtra1;
-  9: mb := mbExtra2;
-  else Exit(false);
- end;
- Result := true;
+  { No need to implement this using dirty typecasts, it's simple enough
+    to do it type-safe. }
+  case bn of
+    1: mb := buttonLeft;
+    2: mb := buttonMiddle;
+    3: mb := buttonRight;
+    8: mb := buttonExtra1;
+    9: mb := buttonExtra2;
+    else Exit(false);
+  end;
+  Result := true;
 end;
 
 { callbacks for gtk -----------------------------------------------------
@@ -464,7 +381,7 @@ SIGNAL_GLAREA_BEGIN
 
   Invalidate;
 
-  Result := g_true;
+  Result := gtrue;
 SIGNAL_GLAREA_END;
 
 function signal_window_configure_event(AWindowGtk: PGtkWindow;
@@ -484,7 +401,7 @@ SIGNAL_WINDOW_BEGIN
   FLeft := LeftGtk;
   FTop := TopGtk;
   { for the sake of gtk, I can't tell that I "handled" this in any way }
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_WINDOW_END;
 
 function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
@@ -502,14 +419,14 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
 SIGNAL_GLAREA_BEGIN
   DoResize(Event^.Width, Event^.Height, false);
   { for the sake of gtk, I can't tell that I "handled" this in any way }
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_GLAREA_END;
 
 function signal_delete_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
   DoCloseQuery;
-  Result := g_true;
+  Result := gtrue;
 SIGNAL_WINDOW_END;
 
 function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
@@ -530,7 +447,7 @@ SIGNAL_WINDOW_BEGIN
       Key := GdkKeysymToKey(Event^.KeyVal);
       KeyString := Event^._string;
 
-      if (Key <> K_None) or (KeyString <> '') then
+      if (Key <> keyNone) or (KeyString <> '') then
       begin
         { Fix some cases when KeyString should better correspond to Key. }
         if KeyString = '' then
@@ -546,6 +463,7 @@ SIGNAL_WINDOW_BEGIN
             keyTab      : KeyString := CharTab;
             keyBackSpace: KeyString := CharBackSpace;
             keyDelete   : KeyString := CharDelete;
+            else ;
           end;
 
         DoKeyDown(Key, KeyString);
@@ -565,7 +483,7 @@ SIGNAL_WINDOW_BEGIN
     I'm also setting Result := false in signal_key_release_event,
     to be consequent.
   }
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_WINDOW_END;
 
 function signal_key_release_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
@@ -583,32 +501,32 @@ SIGNAL_WINDOW_BEGIN
     else
     begin
       Key := GdkKeysymToKey(Event^.KeyVal);
-      if Key <> K_None then DoKeyUp(Key);
+      if Key <> keyNone then DoKeyUp(Key);
     end;
   end;
 
   { Why false, not true ? See comments at the end of
     signal_key_press_event. }
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_WINDOW_END;
 
 function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
-    ButtonNumberToMouseButton(Event^.button, mb));
-  if GboolToPas(Result) then
+  Result := (Event^._type = GDK_BUTTON_PRESS) and
+    ButtonNumberToMouseButton(Event^.button, mb);
+  if Result then
     DoMouseDown(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
-var mb: TMouseButton;
+var mb: TCastleMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
-    ButtonNumberToMouseButton(Event^.button, mb));
-  if GboolToPas(Result) then
+  Result := (Event^._type = GDK_BUTTON_RELEASE) and
+    ButtonNumberToMouseButton(Event^.button, mb);
+  if Result then
     DoMouseUp(LeftTopToCastle(Event^.x, Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
@@ -617,7 +535,7 @@ function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMoti
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(MousePosition,
     LeftTopToCastle(Event^.x, Event^.y), MousePressed, 0));
-  Result := g_true;
+  Result := gtrue;
 SIGNAL_GLAREA_END;
 
 function signal_scroll_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventScroll;
@@ -628,9 +546,11 @@ SIGNAL_GLAREA_BEGIN
     GDK_SCROLL_DOWN: DoMouseWheel(-1, true);
     GDK_SCROLL_LEFT: DoMouseWheel( 1, false);
     GDK_SCROLL_RIGHT:DoMouseWheel(-1, false);
-    else if Log then WritelnLog('GTK', 'Invalid GdkEventScroll.direction');
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else WritelnWarning('GTK', 'Invalid GdkEventScroll.direction');
+    {$endif}
   end;
-  Result := g_true;
+  Result := gtrue;
 SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
@@ -695,18 +615,20 @@ SIGNAL_WINDOW_BEGIN
   ReleaseAllKeysAndMouse;
   { for the sake of gtk, I can't tell that I "handled" this in any way }
   FFocused := false;
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_WINDOW_END;
 
 function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 SIGNAL_WINDOW_BEGIN
-  { reset FMousePosition, since mouse position is unknown now,
-    and do not activate mouse look at next frame. }
-  FMousePosition := Vector2(-1, -1);
-  Container.IsMousePositionForMouseLook := false;
+  { Reset FMousePosition, since mouse position is unknown now,
+    and do not activate mouse look at next frame.
+    Note: resetting with FMousePosition := Vector2(-1, -1);
+    is not enough, testcase: wrong 1st movement in Unholy after alt+tab to fight. }
+  GetInitialCursorPos;
+  Container.MouseLookIgnoreNextMotion;
   FFocused := true;
-  Result := g_false;
+  Result := gfalse;
 SIGNAL_WINDOW_END;
 
 { TCastleWindowBase ------------------------------------------------------------ }
@@ -788,13 +710,24 @@ begin
   gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[InternalCursor]);
 end;
 
-{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+// Since GDK >= 2.2
+function gdk_x11_screen_lookup_visual(Screen: PGdkScreen; XVisualid: TVisualID): PGdkVisual;
+  cdecl; external gdklib;
+{$else}
 // Since GDK >= 2.8
 procedure gdk_display_warp_pointer(Display: PGdkDisplay;
   Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
 // Since GTK >= 2.18
 procedure gdk_window_get_root_coords(Window: PGdkWindow;
   X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
+{$endif}
+
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+function TCastleWindowBase.WindowXID: TWindow;
+begin
+  Result := gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window);
+end;
 {$endif}
 
 procedure TCastleWindowBase.SetMousePosition(const Value: TVector2);
@@ -806,7 +739,6 @@ var
 begin
   if not Closed then
   begin
-
     { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
       unnecessary OnMotion on some systems while actual MousePosition didn't change. }
     if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
@@ -820,7 +752,7 @@ begin
     XWarpPointer(
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
-      gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
+      WindowXID,
       0, 0, 0, 0, P.X, P.Y);
     {$else}
       gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
@@ -831,11 +763,6 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
-begin
-  gdk_gl_drawable_swap_buffers(GLDrawable);
-end;
-
 procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
@@ -843,35 +770,12 @@ begin
     gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindowBase.GetInitialCursorPos;
+var
+  X, Y: GInt;
 begin
-  Assert(not Closed);
-
-  { When GLAreaGtk is implemented by gdkglwindow-x11 or
-    gdkglpixmap-x11 or gdkglwindow-win32:
-    gdk_gl_drawable_gl_begin simply calls
-    gdk_gl_window_impl_x11_make_context_current
-    and gdk_gl_drawable_gl_end doesn't do anything.
-    So I can simply forget about gdk_gl_drawable_gl
-    and call gdk_gl_drawable_gl_begin on BackendMakeCurrent.
-
-    In case GLAreaGtk is implemented by gdkglpixmap-win32
-    (this is not possible to achieve now in CastleWindow, but maybe
-    in the future will be) or just in case it will be implemented
-    on some system differently, I will have to only slghtly
-    improve this procedure: I will keep track of currently current
-    GLAreaGtk, and I will do something like
-      gdk_gl_drawable_gl_end(currently active);
-      currently active := newly active;
-      gdk_gl_drawable_gl_begin(currently active);
-  }
-
-  gdk_gl_drawable_gl_begin(GLDrawable, GLContext);
-end;
-
-function TCastleWindowBase.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
-begin
-  Result := GTK_WIDGET(GLArea);
+  gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
+  FMousePosition := LeftTopToCastle(X, Y);
 end;
 
 procedure TCastleWindowBase.OpenBackend;
@@ -925,14 +829,6 @@ const
      [ RequestedBufferAttributes ]);
   end;
 
-  procedure GetInitialCursorPos;
-  var
-    X, Y: GInt;
-  begin
-    gdk_window_get_pointer(GTK_WIDGET(GLAreaGtk)^.Window, @X, @Y, nil);
-    FMousePosition := LeftTopToCastle(X, Y);
-  end;
-
   procedure InitializeDpi;
   var
     ScreenWidthMM: Single;
@@ -955,9 +851,8 @@ const
   end;
 
 var
-  ShareContext: PGdkGLContext;
-  VisualAttr: TLongIntList;
-  GLAreaContainer: PGtkWidget;
+  GdkVisual: PGdkVisual;
+  GdkColormap: PGdkColormap;
 begin
   Application.InitializeXDisplay;
 
@@ -973,69 +868,31 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
   gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
-  { Create VisualAttr and then create appropriate GLAreaGtk
-    (and GLConfig in case of GTK 2) honouring this VisualAttr.
+  { Create XVisual }
+  ContextCreateBegin;
 
-    The code for initializing VisualAttr is quite the same
-    as the code from castlewindow_xlib.inc because the meaning of GDK_GL_
-    constants is the same as GLX_ constants. }
-  VisualAttr := TLongIntList.Create;
-  try
-   if DoubleBuffer then
-     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
-   VisualAttr.AddRange([
-     GDK_GL_RGBA,
+  { Create GdkColormap using XVisual }
+  GdkVisual := gdk_x11_screen_lookup_visual(Application.XScreenGdk, XVisual^.VisualId);
+  GdkColormap := gdk_colormap_new(GdkVisual, gfalse);
+  gtk_widget_push_colormap(GdkColormap);
 
-     GDK_GL_RED_SIZE, RedBits,
-     GDK_GL_GREEN_SIZE, GreenBits,
-     GDK_GL_BLUE_SIZE, BlueBits,
+  { Create now GLAreaGtk, which will use GdkColormap }
+  GLAreaGtk := gtk_drawing_area_new;
+  gtk_widget_set_double_buffered(GLAreaGtk, gfalse); // following Lazarus GTK OpenGL, not sure if needed
 
-     { Note that sizes of buffers in VisualAttr must be given in bits
-       (not in e.g. bytes), so this is exactly what I have in my variables. }
-     GDK_GL_DEPTH_SIZE, DepthBits,
+  // Cleanup after gtk_widget_push_colormap called above
+  gtk_widget_pop_colormap();
 
-     { This is a workaround for gtkglext Windows bug,
-       one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise
-       gtkglext will request 32-bits sized color buffer (instead of just accepting
-       any bit depth), that may not be available.
+  { We should pass WindowXID to be correct.
+    But:
+    - it is not ready yet (widget is not realized, and calling WindowXID
+      would just cause warning
+      "... Gdk-WARNING **: ....: /build/gtk+2.0-ABXlu1/gtk+2.0-2.24.32/gdk/x11/gdkdrawable-x11.c:952 drawable is not a pixmap or window"
+    - it is actually not used by castlewindow_glx.inc now.
 
-       I know how to fix it in gtkglext, I submitted this to gtkglext list
-       (mail "Bug at creation of GdkGLConfig on Win32" from 2005-03-01),
-       unfortunately with no response to this day. }
-     GDK_GL_BUFFER_SIZE, 1,
-     GDK_GL_STENCIL_SIZE, StencilBits,
-     GDK_GL_ALPHA_SIZE, AlphaBits,
-     GDK_GL_ACCUM_RED_SIZE, FAccumBits[0],
-     GDK_GL_ACCUM_GREEN_SIZE, FAccumBits[1],
-     GDK_GL_ACCUM_BLUE_SIZE, FAccumBits[2],
-     GDK_GL_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
-
-   if MultiSampling > 1 then
-     { I guess that gtkglext should internally check for
-       glXQueryExtensionsString and GLX_ARB_multisample availability. }
-     VisualAttr.AddRange([
-       GDK_GL_SAMPLE_BUFFERS, 1,
-       GDK_GL_SAMPLES, MultiSampling ]);
-
-   { end of VisualAttr list }
-   VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
-
-   GLConfig := gdk_gl_config_new(PInteger(VisualAttr.L));
-   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
-     to know whether such gl configuration was possible. }
-   if GLConfig = nil then
-    ContextNotPossible;
-
-   { All OpenGL contexts should be shared }
-   if Application.OpenWindowsCount <> 0 then
-     ShareContext := Application.OpenWindows[0].GLContext else
-     ShareContext := nil;
-
-   GLAreaGtk := gtk_drawing_area_new;
-   if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, ShareContext,
-     g_true, GDK_GL_RGBA_TYPE)) then
-    ContextNotPossible;
-  finally FreeAndNil(VisualAttr) end;
+    So, as a quick solution, we pass 0.
+  }
+  ContextCreateEnd({ WindowXID } 0);
 
   gtk_widget_show(GTK_WIDGET(GLAreaGtk));
 
@@ -1091,20 +948,18 @@ begin
   { setup window position from Left, Top }
   gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
 
-  GLAreaContainer := MakeGLAreaContainer(GLAreaGtk);
-
   if (MainMenu <> nil) and MainMenuVisible then
   begin
     window_accel_group := gtk_accel_group_new;
     gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
 
-    window_vbox := PGtkVBox(gtk_vbox_new(g_false, VBoxSpacing));
+    window_vbox := PGtkVBox(gtk_vbox_new(gfalse, VBoxSpacing));
     gtk_widget_show(GTK_WIDGET(window_vbox));
     MenuInitialize;
-    gtk_box_pack_end_defaults(PGtkBox(window_vbox), GLAreaContainer);
+    gtk_box_pack_end_defaults(PGtkBox(window_vbox), GTK_WIDGET(GLAreaGtk));
     gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
   end else
-    gtk_container_add(GTK_CONTAINER(WindowGtk), GLAreaContainer);
+    gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(GLAreaGtk));
 
   { setup window/glarea size and resize policy from
     MinWidth, MinHeight, Width, Height, ResizeAllowed }
@@ -1178,13 +1033,6 @@ begin
   if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
     raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
 
-  { These must be initialized only when I'm sure that window is realized.
-    I checked this even in gtkglext sources:
-    yes, gtk_widget_get_gl_drawable and gtk_widget_get_gl_context check
-    and always return nil if their widget is not realized. }
-  GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
-  GLContext := gtk_widget_get_gl_context(GLAreaGtk);
-
   GetInitialCursorPos;
   UpdateCursor;
   InitializeDpi;
@@ -1204,9 +1052,6 @@ begin
     MenuFinalize;
 
   window_vbox := nil;
-
-  GLDrawable := nil; { TODO -- unref it ? }
-  GLConfig := nil; { TODO -- unref it ? }
 
   if window_accel_group <> nil then
   begin
@@ -1283,7 +1128,7 @@ begin
   Data^.Answer := GTK_RESPONSE_DELETE_EVENT;
   { don't allow to call gtk_widget_destroy, we will call it ourselves
     in BackendFileDialog/ColorDialog. }
-  Result := g_true;
+  Result := gtrue;
 end;
 
 procedure signal_dialog_unmap(ADialog: PGtkDialog; Data: PDialogData); cdecl;
@@ -1312,7 +1157,7 @@ begin
   gtk_signal_connect(GTK_OBJECT(ADialog),
     'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
 
-  gtk_window_set_modal(ADialog, g_true);
+  gtk_window_set_modal(ADialog, gtrue);
   gtk_window_set_transient_for(ADialog, WindowGtk);
 
   { prepare Data }
@@ -1345,7 +1190,7 @@ begin
     registering signal on destroy of ADialog. We do not need this,
     nothing can destroy the dialog AFAIK. }
 
-  gtk_window_set_modal(GTK_WINDOW(ADialog), g_true);
+  gtk_window_set_modal(GTK_WINDOW(ADialog), gtrue);
 
   Data.Answered := false;
 
@@ -1450,7 +1295,7 @@ begin
       For example fink (stable) has only GTK 2.6 for now,
       so we use them only if they can be loaded from GTK lib. }
     if Assigned(@gtk_file_chooser_set_do_overwrite_confirmation) then
-      gtk_file_chooser_set_do_overwrite_confirmation(Dialog, g_true);
+      gtk_file_chooser_set_do_overwrite_confirmation(Dialog, gtrue);
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1899,7 +1744,7 @@ begin
   Result := 'GTK+';
 end;
 
-{$ifdef CASTLE_WINDOW_USE_XF86VMODE}
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 function TCastleApplication.XDisplay: Xlib.PDisplay;
 begin
   InitializeXDisplay;
@@ -1959,8 +1804,6 @@ begin
     gtk_init(@argc, @argv);
     {$endif}
 
-    gtk_gl_init(@argc, @argv);
-
     if XDisplayName <> '' then
       XDisplayGdk := gdk_display_open(PChar(XDisplayName))
     else
@@ -1976,6 +1819,15 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 begin
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  { Confirmed using window_events example that it is "true" for GTK
+    (press "5", OnMotion is generated). }
+  Result := true;
 end;
 
 {$endif read_implementation}

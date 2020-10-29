@@ -25,7 +25,7 @@
 KambiAppearance : Appearance {
 }
 
-GeneratedShadowMap : X3DTextureNode {
+GeneratedShadowMap : X3DSingleTextureNode {
   SFString   [in,out]      update           "NONE"                # ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
   SFInt32    []            size             128
   SFNode     []            light            NULL                  # [X3DLightNode]
@@ -49,7 +49,7 @@ KambiInline : Inline {
 }
 
 KambiNavigationInfo : NavigationInfo {
-  SFBool     []            timeOriginAtLoad    FALSE
+  SFBool []            timeOriginAtLoad           FALSE
   SFNode []            octreeRendering            NULL    # [KambiOctreeProperties]
   SFNode []            octreeDynamicCollisions    NULL    # [KambiOctreeProperties]
   SFNode []            octreeVisibleTriangles     NULL    # [KambiOctreeProperties]
@@ -81,7 +81,7 @@ Teapot : X3DGeometryNode {
   SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
 }
 
-RenderedTexture : X3DTextureNode {
+RenderedTexture : X3DSingleTextureNode {
   MFInt32    [in,out]      dimensions            128 128 4 1 1
   SFString   [in,out]      update                "NONE"           # ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
   SFNode     [in,out]      viewpoint             NULL             # [X3DViewpointNode, ViewpointMirror] (VRML 1.0 camera nodes also allowed)
@@ -103,7 +103,7 @@ MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
   MFNode [in,out] texCoord NULL [TextureCoordinateGenerator, ProjectedTextureCoordinate]
 }
 
-ProjectedTextureCoordinate : X3DTextureCoordinateNode {
+ProjectedTextureCoordinate : X3DSingleTextureCoordinateNode {
   SFNode     [in,out]      projector   NULL        # [SpotLight, DirectionalLight, X3DViewpointNode]
 }
 
@@ -146,7 +146,7 @@ EffectPart : X3DNode, X3DUrlObject {
 }
 
 # See https://castle-engine.io/compositing_shaders.php
-ShaderTexture : X3DTextureNode {
+ShaderTexture : X3DSingleTextureNode {
   MFNode   []       effects         []          # [Effect]; defined in X3DTextureNode
   SFString []       defaultTexCoord "BOUNDS2D"  # ["BOUNDS2D"|"BOUNDS3D"]
 }
@@ -173,7 +173,30 @@ Toggler  : X3DChildNode {
 }
 
 ViewpointMirror {
-  x3d-nodes-to-pascal: auto-generate-fields true
+  x3d-nodes-to-pascal: auto-generate-more true
   x3d-nodes-to-pascal: default-container-field viewpoint
   SFFloat   [in,out]      distanceFromShape 0.01
+}
+
+X3DCubicBezierInterpolator {
+  MFVec4f   [in,out]      controlPoints   []
+}
+
+CubicBezier2DOrientationInterpolator : X3DCubicBezierInterpolator {
+  x3d-nodes-to-pascal: default-container-field children
+  MFFloat    [in,out] keyValue        []
+  SFVec3f    [in,out] axis            0 0 1
+  SFRotation [out]    value_changed
+}
+
+CubicBezierPositionInterpolator : X3DCubicBezierInterpolator {
+  x3d-nodes-to-pascal: default-container-field children
+  MFVec3f    [in,out] keyValue        []
+  SFVec3f    [out]    value_changed
+}
+
+OrientationInterpolator2D : X3DInterpolatorNode {
+  MFFloat    [in,out] keyValue      []
+  SFVec3f    [in,out] axis          0 0 1
+  SFRotation [out]    value_changed
 }

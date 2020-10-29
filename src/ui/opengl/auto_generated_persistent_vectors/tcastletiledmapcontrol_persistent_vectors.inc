@@ -34,7 +34,7 @@ published
     instead read or write @link(Origin) directly.
 
     @seealso Origin }
-  property OriginPersistent: TCastleVector2Persistent read FOriginPersistent;
+  property OriginPersistent: TCastleVector2Persistent read FOriginPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

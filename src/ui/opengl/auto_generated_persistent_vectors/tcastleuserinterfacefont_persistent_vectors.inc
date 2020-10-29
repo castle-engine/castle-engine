@@ -34,7 +34,7 @@ published
     instead read or write @link(OutlineColor) directly.
 
     @seealso OutlineColor }
-  property OutlineColorPersistent: TCastleColorPersistent read FOutlineColorPersistent;
+  property OutlineColorPersistent: TCastleColorPersistent read FOutlineColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

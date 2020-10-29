@@ -1,0 +1,32 @@
+msgctxt "castle-components"
+msgid "state_main.Label1.Caption"
+msgstr "My Label"
+
+msgctxt "castle-components"
+msgid "state_main.Edit.Text"
+msgstr "Initial Edit Contents"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonMessage.Caption"
+msgstr "Show Message"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonSwitchEnglish.Caption"
+msgstr "English"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonSwitchGerman.Caption"
+msgstr "German"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonSwitchPolish.Caption"
+msgstr "Polish"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonSwitchRussian.Caption"
+msgstr "Russian"
+
+msgctxt "castle-components"
+msgid "state_main.ButtonSwitchUkrainian.Caption"
+msgstr "Ukrainian"
+

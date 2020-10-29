@@ -60,7 +60,7 @@ function CGE_VerifyWindow(const FromFunc: string): boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil);
   if not Result then
-    WarningWrite(FromFunc + ' : CGE not initialized (CGE_Open not called)');
+    WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
 function CGE_VerifyScene(const FromFunc: string): boolean;
@@ -70,7 +70,17 @@ begin
     WarningWrite(FromFunc + ': CGE scene not initialized (CGE_LoadSceneFromFile not called)');
 end;
 
-procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGE_Initialize(ApplicationConfigDirectory: PChar); cdecl;
+begin
+  CGEApp_Initialize(ApplicationConfigDirectory);
+end;
+
+procedure CGE_Finalize(); cdecl;
+begin
+  CGEApp_Finalize();
+end;
+
+procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight, Dpi: cUInt32); cdecl;
 begin
   try
     if (flags and 1 {ecgeofSaveMemory}) > 0 then
@@ -85,7 +95,7 @@ begin
     Window := TCastleWindowTouch.Create(nil);
     Application.MainWindow := Window;
 
-    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi, ApplicationConfigDirectory);
+    CGEApp_Open(InitialWidth, InitialHeight, 0, Dpi);
 
     Crosshair := TCrosshairManager.Create;
   except
@@ -93,7 +103,7 @@ begin
   end;
 end;
 
-procedure CGE_Close; cdecl;
+procedure CGE_Close(QuitWhenNoOpenWindows: CBool); cdecl;
 begin
   try
     if not CGE_VerifyWindow('CGE_Close') then Exit;
@@ -102,7 +112,7 @@ begin
       Window.MainScene.OnPointingDeviceSensorsChange := nil;
     FreeAndNil(Crosshair);
 
-    CGEApp_Close;
+    CGEApp_Close(QuitWhenNoOpenWindows);
     FreeAndNil(Window);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -267,7 +277,6 @@ begin
     Window.Load(StrPas(PChar(szFile)));
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     Window.MainScene.ProcessEvents := true;
-    Window.SceneManager.Items.VisibleChangeNotification(Window.SceneManager.CameraToChanges);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -703,14 +712,38 @@ begin
 end;
 
 exports
-  CGE_Open, CGE_Close, CGE_GetOpenGLInformation,
-  CGE_Render, CGE_Resize, CGE_SetLibraryCallbackProc, CGE_Update,
-  CGE_MouseDown, CGE_Motion, CGE_MouseUp, CGE_MouseWheel, CGE_KeyDown, CGE_KeyUp,
-  CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
-  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
-  CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
-  CGE_SetTouchInterface, CGE_SetUserInterface, CGE_IncreaseSceneTime,
-  CGE_SetVariableInt, CGE_GetVariableInt, CGE_SetNodeFieldValue;
+  CGE_Initialize,
+  CGE_Finalize,
+  CGE_Open,
+  CGE_Close,
+  CGE_GetOpenGLInformation,
+  CGE_Render,
+  CGE_Resize,
+  CGE_SetLibraryCallbackProc,
+  CGE_Update,
+  CGE_MouseDown,
+  CGE_Motion,
+  CGE_MouseUp,
+  CGE_MouseWheel,
+  CGE_KeyDown,
+  CGE_KeyUp,
+  CGE_LoadSceneFromFile,
+  CGE_GetNavigationType,
+  CGE_SetNavigationType,
+  CGE_GetViewpointsCount,
+  CGE_GetViewpointName,
+  CGE_MoveToViewpoint,
+  CGE_AddViewpointFromCurrentView,
+  CGE_GetBoundingBox,
+  CGE_GetViewCoords,
+  CGE_MoveViewToCoords,
+  CGE_SaveScreenshotToFile,
+  CGE_SetTouchInterface,
+  CGE_SetUserInterface,
+  CGE_IncreaseSceneTime,
+  CGE_SetVariableInt,
+  CGE_GetVariableInt,
+  CGE_SetNodeFieldValue;
 
 begin
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,

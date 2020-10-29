@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,53 +30,29 @@
     procedure SetAmbientIntensity(const Value: Single);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
-    function GetGlobal: boolean;
-    procedure SetGlobal(const Value: boolean);
+    function GetGlobal: Boolean;
+    procedure SetGlobal(const Value: Boolean);
     function GetIntensity: Single;
     procedure SetIntensity(const Value: Single);
-    function GetIsOn: boolean;
-    procedure SetIsOn(const Value: boolean);
-    function GetShadows: boolean;
-    procedure SetShadows(const Value: boolean);
-    function GetShadowVolumes: boolean;
-    procedure SetShadowVolumes(const Value: boolean);
-    function GetShadowVolumesMain: boolean;
-    procedure SetShadowVolumesMain(const Value: boolean);
-    function GetProjectionNear: Single;
-    procedure SetProjectionNear(const Value: Single);
-    function GetProjectionFar: Single;
-    procedure SetProjectionFar(const Value: Single);
-    function GetUp: TVector3;
-    procedure SetUp(const Value: TVector3);
-    function GetDefaultShadowMap: TGeneratedShadowMapNode;
-    procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
+    function GetIsOn: Boolean;
+    procedure SetIsOn(const Value: Boolean);
+    function GetShadowVolumes: Boolean;
+    procedure SetShadowVolumes(const Value: Boolean);
   public
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { X3D field "global". } { }
-    property Global: boolean read GetGlobal write SetGlobal;
+    property Global: Boolean read GetGlobal write SetGlobal;
     { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
     { X3D field "on". } { }
-    property IsOn: boolean read GetIsOn write SetIsOn;
-    { X3D field "shadows". } { }
-    property Shadows: boolean read GetShadows write SetShadows;
-    { X3D field "shadowVolumes". } { }
-    property ShadowVolumes: boolean read GetShadowVolumes write SetShadowVolumes;
-    { X3D field "shadowVolumesMain". } { }
-    property ShadowVolumesMain: boolean read GetShadowVolumesMain write SetShadowVolumesMain;
-    { X3D field "projectionNear". } { }
-    property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
-    { X3D field "projectionFar". } { }
-    property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
-    { X3D field "up". } { }
-    property Up: TVector3 read GetUp write SetUp;
-    { X3D field "defaultShadowMap". } { }
-    property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
+    property IsOn: Boolean read GetIsOn write SetIsOn;
     { Set X3D field "effects". } { }
     procedure SetEffects(const Value: array of TEffectNode);
+    { X3D field "shadowVolumes". } { }
+    property ShadowVolumes: Boolean read GetShadowVolumes write SetShadowVolumes;
 
 {$endif read_interface}
 
@@ -104,12 +80,12 @@ begin
   FdColor.Send(Value);
 end;
 
-function TAbstractLightNode.GetGlobal: boolean;
+function TAbstractLightNode.GetGlobal: Boolean;
 begin
   Result := FdGlobal.Value;
 end;
 
-procedure TAbstractLightNode.SetGlobal(const Value: boolean);
+procedure TAbstractLightNode.SetGlobal(const Value: Boolean);
 begin
   FdGlobal.Send(Value);
 end;
@@ -124,87 +100,14 @@ begin
   FdIntensity.Send(Value);
 end;
 
-function TAbstractLightNode.GetIsOn: boolean;
+function TAbstractLightNode.GetIsOn: Boolean;
 begin
   Result := FdOn.Value;
 end;
 
-procedure TAbstractLightNode.SetIsOn(const Value: boolean);
+procedure TAbstractLightNode.SetIsOn(const Value: Boolean);
 begin
   FdOn.Send(Value);
-end;
-
-function TAbstractLightNode.GetShadows: boolean;
-begin
-  Result := FdShadows.Value;
-end;
-
-procedure TAbstractLightNode.SetShadows(const Value: boolean);
-begin
-  FdShadows.Send(Value);
-end;
-
-function TAbstractLightNode.GetShadowVolumes: boolean;
-begin
-  Result := FdShadowVolumes.Value;
-end;
-
-procedure TAbstractLightNode.SetShadowVolumes(const Value: boolean);
-begin
-  FdShadowVolumes.Send(Value);
-end;
-
-function TAbstractLightNode.GetShadowVolumesMain: boolean;
-begin
-  Result := FdShadowVolumesMain.Value;
-end;
-
-procedure TAbstractLightNode.SetShadowVolumesMain(const Value: boolean);
-begin
-  FdShadowVolumesMain.Send(Value);
-end;
-
-function TAbstractLightNode.GetProjectionNear: Single;
-begin
-  Result := FdProjectionNear.Value;
-end;
-
-procedure TAbstractLightNode.SetProjectionNear(const Value: Single);
-begin
-  FdProjectionNear.Send(Value);
-end;
-
-function TAbstractLightNode.GetProjectionFar: Single;
-begin
-  Result := FdProjectionFar.Value;
-end;
-
-procedure TAbstractLightNode.SetProjectionFar(const Value: Single);
-begin
-  FdProjectionFar.Send(Value);
-end;
-
-function TAbstractLightNode.GetUp: TVector3;
-begin
-  Result := FdUp.Value;
-end;
-
-procedure TAbstractLightNode.SetUp(const Value: TVector3);
-begin
-  FdUp.Send(Value);
-end;
-
-function TAbstractLightNode.GetDefaultShadowMap: TGeneratedShadowMapNode;
-begin
-  if FdDefaultShadowMap.Value is TGeneratedShadowMapNode then
-    Result := TGeneratedShadowMapNode(FdDefaultShadowMap.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
-begin
-  FdDefaultShadowMap.Send(Value);
 end;
 
 procedure TAbstractLightNode.SetEffects(const Value: array of TEffectNode);
@@ -217,6 +120,16 @@ begin
   if L > 0 then
     Move(Value[0], A[0], L * SizeOf(TEffectNode));
   FdEffects.Send(A);
+end;
+
+function TAbstractLightNode.GetShadowVolumes: Boolean;
+begin
+  Result := FdShadowVolumes.Value;
+end;
+
+procedure TAbstractLightNode.SetShadowVolumes(const Value: Boolean);
+begin
+  FdShadowVolumes.Send(Value);
 end;
 
 {$endif read_implementation}

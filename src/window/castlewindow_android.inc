@@ -206,9 +206,8 @@ begin
   case Command of
     APP_CMD_INIT_WINDOW:
       begin
-        { We will actually process this event (calling TCastleWindow.Open)
-          later, to avoid ANRs when OnOpen does something time-consuming
-          (like SceneManager.LoadLevel). }
+        { We will actually process this event (calling TCastleWindowBase.Open)
+          later, to avoid ANRs when OnOpen does something time-consuming. }
         MainWindow.NativeWindow := App^.Window;
         MainWindow.Dpi := DetermineDpi(App);
         QEvent.EventType := aeOpen;
@@ -242,7 +241,14 @@ begin
       end;
     {$endif CASTLE_PERSISTENT_ANDROID_STATE}
     APP_CMD_PAUSE : ApplicationProperties._Pause;
-    APP_CMD_RESUME: ResumeScheduled := true;
+    APP_CMD_RESUME:
+      { In some cases context is not destroyed, so ContextOpen will not be called.
+        In those cases we need only call _Resume.
+        Test case: share button click and return to app. }
+      if (Application.MainWindow <> nil) and (Application.MainWindow.NativeWindow <> nil) then
+        ApplicationProperties._Resume
+      else
+        ResumeScheduled := true;
   end;
 end;
 
@@ -515,13 +521,15 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 begin
+  ContextCreateBegin;
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
 procedure TCastleWindowBase.CloseBackend;
 begin
-  ContextDestroy;
+  ContextDestroyBegin;
+  ContextDestroyEnd;
   { Note that we do not clear NativeWindow now, because we may need it
     if window is opened again. Although when Android system opens the window,
     NativeWindow is set by OpenContext,
@@ -620,21 +628,25 @@ var
 begin
   MessageHandlingBegin := Timer;
   repeat
-    if WaitForMessage and AllowSuspendForInput and
-      { Unfortunately, we have to be more conservative than
-        AllowSuspendForInput to decide when we can suspend.
+    { When the window is open: We cannot suspend (wait indefinitely for a message)
+      an open window, even when AllowSuspendForInput or WaitForMessage.
+      That's because we would not react to resize events soon enough then,
+      since we have to actually do a couple of loop passes until "resize" event
+      reaches us. Reproducible on drawing_toy.
 
-        Right now we cannot suspend on non-closed window.
-        Otherwise we do not react to resize events soon enough,
-        since we have to actually do a couple of loop passes until resize
-        reaches us. Reproducible on drawing_toy: without this,
-        we will not receive resize before drawing. }
-      ((MainWindow = nil) or MainWindow.Closed) then
+      When the window is closed: We can and should suspend in this case,
+      regardless of AllowSuspendForInput or WaitForMessage,
+      to not waste battery. }
+    if (MainWindow = nil) or MainWindow.Closed then
     begin
       WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
       Ident := ALooper_pollAll(-1 { wait }, nil, @Events, @Source);
     end else
+    begin
       Ident := ALooper_pollAll(0, nil, @Events, @Source);
+      { Uncomment it to test loop suspending solution. }
+      //WritelnLog('Android', 'Looping...');
+    end;
     if Ident < 0 then Break;
 
     if Source <> nil then
@@ -652,13 +664,13 @@ begin
           aeOpen: OpenContext;
           aeMotionDown:
             if not MainWindow.Closed then
-              MainWindow.DoMouseDown(QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
+              MainWindow.DoMouseDown(QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, mbLeft, QEvent.FingerIndex, false);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, buttonLeft, QEvent.FingerIndex, false);
           aeMotionMove:
             if not MainWindow.Closed then
-              MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [mbLeft], QEvent.FingerIndex));
+              MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [buttonLeft], QEvent.FingerIndex));
         end;
       end;
 
@@ -700,11 +712,9 @@ begin
   end;
 
   { Note that we ignore WaitToLimitFPS here, right now.
-    When redrawing (not MainWindow.Closed), it is always "on" in the main loop,
+    When the window is open, it is always "on" in the main loop,
     we don't control it, Android throttles render speed anyway.
-    When not redrawing, then there's not much point in WaitToLimitFPS,
-    we should rather let WaitForMessage mechanism work (when all windows are
-    closed, we should usually have WaitForMessage = true). }
+    When the window is closed, we always wait for message to conserve battery. }
 
   { the result of ProcessMessage must always be "not Terminated"
     to work with TCustomApplication correctly. }
@@ -741,10 +751,8 @@ begin
   VorbisFileInitialization;
   InitializeAndroidCWString;
   LoadFreeTypeLibrary;
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-  {$ifndef CASTLE_PNG_STATIC}
+  {$ifdef CASTLE_PNG_DYNAMIC}
   PngInitialization;
-  {$endif}
   {$endif}
   {$ifndef CASTLE_ZLIB_USING_PASZLIB}
   ZLibInitialization;
@@ -793,6 +801,13 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 begin
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

@@ -25,6 +25,7 @@
 */
 
 #import "GoogleAnalyticsService.h"
+#import "../CgeUtils.h"
 
 // Contrary to docs, this import doesn't work, see comments in Podfile
 //#import <Google/Analytics.h>

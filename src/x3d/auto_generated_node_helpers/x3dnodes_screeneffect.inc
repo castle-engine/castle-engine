@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
-    function GetNeedsDepth: boolean;
-    procedure SetNeedsDepth(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
+    function GetNeedsDepth: Boolean;
+    procedure SetNeedsDepth(const Value: Boolean);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "needsDepth". } { }
-    property NeedsDepth: boolean read GetNeedsDepth write SetNeedsDepth;
+    property NeedsDepth: Boolean read GetNeedsDepth write SetNeedsDepth;
     { Set X3D field "shaders". } { }
     procedure SetShaders(const Value: array of TAbstractShaderNode);
 
@@ -44,22 +44,22 @@
 
 { TScreenEffectNode ----------------------------------------------- }
 
-function TScreenEffectNode.GetEnabled: boolean;
+function TScreenEffectNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TScreenEffectNode.SetEnabled(const Value: boolean);
+procedure TScreenEffectNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
 
-function TScreenEffectNode.GetNeedsDepth: boolean;
+function TScreenEffectNode.GetNeedsDepth: Boolean;
 begin
   Result := FdNeedsDepth.Value;
 end;
 
-procedure TScreenEffectNode.SetNeedsDepth(const Value: boolean);
+procedure TScreenEffectNode.SetNeedsDepth(const Value: Boolean);
 begin
   FdNeedsDepth.Send(Value);
 end;

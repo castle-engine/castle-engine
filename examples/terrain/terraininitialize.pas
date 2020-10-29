@@ -26,7 +26,7 @@ uses SysUtils, Classes,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
-  CastleTransform, CastleFrustum, CastleSceneManager, CastleURIUtils,
+  CastleTransform, CastleFrustum, CastleViewport, CastleURIUtils,
   CastleRectangles, CastleControls, CastleRendererBaseTypes,
   CastleApplicationProperties, CastleLog, CastleScene, X3DLoad,
   TerrainScene;
@@ -36,11 +36,11 @@ type
 
 var
   { global stuff }
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
   Scene: TTerrainScene; //< terrain
   EnvironmentScene: TCastleScene; //< defines sky (background) and fog
-  ExamineCamera: TExamineCamera;
-  WalkCamera: TWalkCamera;
+  ExamineNavigation: TCastleExamineNavigation;
+  WalkNavigation: TCastleWalkNavigation;
   CurrentTerrain: TTerrain;
   TerrainTypeRadio: TMenuItemRadioGroup;
 
@@ -50,7 +50,7 @@ var
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
   Subdivision: Cardinal = 6;
-  Size: Single = 10.0;
+  Size: Single = 100.0;
   OnScreenMenuVisible: boolean = true;
 
 procedure UpdateScene;
@@ -98,7 +98,7 @@ begin
 
   SizeSlider := TCastleFloatSlider.Create(Self);
   SizeSlider.Min := 5;
-  SizeSlider.Max := 100;
+  SizeSlider.Max := 1000;
   SizeSlider.Value := Size;
   SizeSlider.OnChange := @SizeChanged;
 
@@ -136,7 +136,7 @@ begin
   UpdateScene;
   { TODO: Workaround: In case of UseTriangulatedNode = true,
     it seems that UpdateScene doesn't properly cause octree rebuild.
-    But we need it for walk mode (WalkCamera) gravity to work. }
+    But we need it for walk mode (WalkNavigation) gravity to work. }
   Scene.ChangedAll;
 end;
 
@@ -297,7 +297,7 @@ var
   OnScreenMenuNoise: TOnScreenMenuNoise;
   OnScreenMenuImage: TOnScreenMenuImage;
   OnScreenMenuGeneral: TOnScreenMenuGeneral;
-  SceneManager: TCastleSceneManager;
+  Viewport: TCastleViewport;
 
 { Current TCastleOnScreenMenu, or none, based on Terrain class and OnScreenMenuVisible. }
 function CurrentOnScreenMenu: TBaseOnScreenMenu;
@@ -368,6 +368,55 @@ begin
   end;
 end;
 
+var
+  NavigationExamine: Boolean;
+
+procedure SetNavigationExamine(const Value: Boolean);
+var
+  MoveLimit: TBox3D;
+  Y: Single;
+begin
+  if NavigationExamine <> Value then
+  begin
+    NavigationExamine := Value;
+
+    if Value then
+    begin
+      Viewport.Navigation := ExamineNavigation;
+      ExamineNavigation.Init(Box3D(
+        Vector3(-1, -1, -1),
+        Vector3( 1,  1,  1)), { Radius } 0.2);
+      ExamineNavigation.SetView(
+        Vector3(0, 20, 0),
+        Vector3(0, -1, 0),
+        Vector3(0, 0, -1)
+      );
+    end else
+    begin
+      Viewport.Navigation := WalkNavigation;
+      WalkNavigation.Init(
+        Vector3(0, 10, 0),
+        Vector3(0, 0, -1),
+        Vector3(0, 1, 0),
+        Vector3(0, 1, 0),
+        { PreferredHeight } 2,
+        { Radius } 0.02);
+
+      Y := CurrentTerrain.Height(0, 0) + WalkNavigation.PreferredHeight;
+      WalkNavigation.SetView(
+        Vector3(0, Y, 0),
+        Vector3(0, 0, -1),
+        Vector3(0, 1, 0));
+
+      { Make movement possible only within the world box,
+        and make gravity work even if you're far above the world. }
+      MoveLimit := Viewport.Items.BoundingBox;
+      MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
+      Viewport.Items.MoveLimit := MoveLimit;
+    end;
+  end;
+end;
+
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string; const UseTriangulatedNode: boolean);
@@ -394,26 +443,8 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   end;
 
   procedure ToggleWalk;
-  var
-    MoveLimit: TBox3D;
-    Y: Single;
   begin
-    if SceneManager.Camera = ExamineCamera then
-    begin
-      SceneManager.Camera := WalkCamera;
-
-      Y := CurrentTerrain.Height(0, 0) + WalkCamera.PreferredHeight;
-      WalkCamera.SetView(
-        Vector3(0, Y, 0),
-        Vector3(0, 0, -1),
-        Vector3(0, 1, 0));
-
-      // make gravity work even if your position is over the world bbox
-      MoveLimit := SceneManager.Items.BoundingBox;
-      MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-      SceneManager.MoveLimit := MoveLimit;
-    end else
-      SceneManager.Camera := ExamineCamera;
+    SetNavigationExamine(not NavigationExamine);
   end;
 
   procedure ToggleFog;
@@ -489,6 +520,7 @@ begin
         end;
       end;
     120: ToggleWalk;
+    125: WalkNavigation.MouseLook := not WalkNavigation.MouseLook;
     130: Scene.Lighting := not Scene.Lighting;
     140: Scene.Textured := not Scene.Textured;
     142: ToggleFog;
@@ -586,7 +618,8 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (ElevationGrid) ...', 1000));
     M.Append(TMenuItem.Create('Export to _X3D (IndexedTriangleStripSet) ...', 1001));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { SceneManager.Camera = WalkCamera }, true));
+    M.Append(TMenuItemChecked.Create('Walk (AWSD, mose look)', 120, 'c', false { Viewport.Navigation = WalkNavigation }, true));
+    M.Append(TMenuItemChecked.Create('Mouse Look in Walk Mode', 125, CtrlM, false { initial WalkNavigation.MouseLook }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
     Result.Append(M);
@@ -602,7 +635,7 @@ begin
     M.Append(TMenuItemChecked.Create('Fog', 142, 'f',
       true { default Fog on EnvironmentScene }, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, K_F1, OnScreenMenuVisible, true));
+    M.Append(TMenuItemChecked.Create('Sliders Visible', 145, keyF1, OnScreenMenuVisible, true));
     Result.Append(M);
   M := TMenu.Create('_Noise');
     M.AppendRadioGroup(NoiseInterpolationNames, 200, Ord(NoiseInterpolation), true);
@@ -623,39 +656,27 @@ begin
   Window.Container.UIReferenceHeight := 900;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  ExamineCamera := TExamineCamera.Create(Window);
-  ExamineCamera.Init(Box3D(
-    Vector3(-1, -1, -1),
-    Vector3( 1,  1,  1)), { Radius } 0.2);
-  ExamineCamera.SetView(
-    Vector3(0, 20, 0),
-    Vector3(0, -1, 0),
-    Vector3(0, 0, -1)
-  );
+  ExamineNavigation := TCastleExamineNavigation.Create(Window);
 
-  WalkCamera := TWalkCamera.Create(Window);
-  WalkCamera.Init(
-    Vector3(0, 10, 0),
-    Vector3(0, 0, -1),
-    Vector3(0, 1, 0),
-    Vector3(0, 1, 0),
-    { PreferredHeight } 2,
-    { Radius } 0.02);
-  WalkCamera.MoveSpeed := 10.0;
-  WalkCamera.Gravity := true;
-  WalkCamera.MouseLook := true;
+  WalkNavigation := TCastleWalkNavigation.Create(Window);
+  WalkNavigation.MoveSpeed := 10.0;
+  WalkNavigation.Gravity := true;
 
   Scene := TTerrainScene.Create(Window);
   Scene.Spatial := [ssDynamicCollisions]; // for proper walking
 
-  SceneManager := Window.SceneManager;
-  SceneManager.Items.Add(Scene);
-  SceneManager.Camera := ExamineCamera;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
+
+  Viewport.Items.Add(Scene);
+  NavigationExamine := false; // do this only to make sure SetNavigationExamine updates state
+  SetNavigationExamine(true);
 
   EnvironmentScene := TCastleScene.Create(Window);
-  EnvironmentScene.Load(ApplicationData('environment/environment.x3dv'));
-  SceneManager.Items.Add(EnvironmentScene);
-  SceneManager.MainScene := EnvironmentScene;
+  EnvironmentScene.Load('castle-data:/environment/environment.x3dv');
+  Viewport.Items.Add(EnvironmentScene);
+  Viewport.Items.MainScene := EnvironmentScene;
 
   Window.OnMenuClick := @MenuClick;
   Window.FpsShowOnCaption := true;
@@ -686,7 +707,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { Create and assign Application.MainWindow. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
 
   Window.MainMenu := CreateMainMenu;

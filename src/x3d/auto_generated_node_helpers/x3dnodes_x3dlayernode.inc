@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetIsPickable: boolean;
-    procedure SetIsPickable(const Value: boolean);
+    function GetIsPickable: Boolean;
+    procedure SetIsPickable(const Value: Boolean);
     function GetViewport: TAbstractViewportNode;
     procedure SetViewport(const Value: TAbstractViewportNode);
   public
     { X3D field "isPickable". } { }
-    property IsPickable: boolean read GetIsPickable write SetIsPickable;
+    property IsPickable: Boolean read GetIsPickable write SetIsPickable;
     { X3D field "viewport". } { }
     property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
@@ -42,12 +42,12 @@
 
 { TAbstractLayerNode ----------------------------------------------- }
 
-function TAbstractLayerNode.GetIsPickable: boolean;
+function TAbstractLayerNode.GetIsPickable: Boolean;
 begin
   Result := FdIsPickable.Value;
 end;
 
-procedure TAbstractLayerNode.SetIsPickable(const Value: boolean);
+procedure TAbstractLayerNode.SetIsPickable(const Value: Boolean);
 begin
   FdIsPickable.Send(Value);
 end;

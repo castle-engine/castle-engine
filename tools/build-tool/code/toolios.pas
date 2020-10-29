@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,7 +20,17 @@ interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
+  ToolUtils, ToolArchitectures, ToolCompile, ToolProject, ToolPackage;
+
+var
+  IosSimulatorSupport: Boolean = false;
+
+type
+  TIosArchiveType = (
+    atDevelopment,
+    atAdHoc,
+    atAppStore
+  );
 
 procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
@@ -28,7 +38,13 @@ procedure CompileIOS(
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 
-procedure PackageIOS(const Project: TCastleProject);
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+  out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
+
+procedure PackageIOS(const Project: TCastleProject;
+  const UpdateOnlyCode: Boolean);
+{ Call ArchiveIOS immediately after PackageIOS to perform build + archive using Xcode command-line. }
+procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
 procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
@@ -43,7 +59,7 @@ implementation
 
 uses SysUtils, DOM,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices, ToolCommonUtils;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -51,6 +67,8 @@ const
 procedure CompileIOS(
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
+var
+  FinalExtraOptions: TCastleStringList;
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
@@ -59,13 +77,13 @@ procedure CompileIOS(
     I: Integer;
   begin
     Compile(OS, CPU, { Plugin } false, Mode, WorkingDirectory, CompileFile,
-      SearchPaths, LibraryPaths, ExtraOptions);
+      SearchPaths, LibraryPaths, FinalExtraOptions);
 
     { now use libtool to create a static library .a }
 
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
-    LinkRes := CompilationOutput + 'link.res';
-    if not FileExists(LinkRes) then
+    LinkRes := FindLinkRes(CompilationOutput);
+    if not RegularFileExists(LinkRes) then
     begin
       if Verbose then
         Writeln('link.res not found inside "', LinkRes, '", probably what we compiled was only a unit, not a library');
@@ -87,31 +105,57 @@ procedure CompileIOS(
         finally FreeAndNil(ObjectFiles) end;
       finally FreeAndNil(LinkResContents) end;
 
+      DeleteFile(LinkRes); // delete it, to allow later FindLinkRes to work
+
       RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
         CompilationOutput + 'lib_cge_project_object_files.txt']);
-      if not FileExists(OutputLibrary) then
+      if not RegularFileExists(OutputLibrary) then
         raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
     end;
   end;
 
 begin
-  CompileLibrary(iphonesim, i386);
-  CompileLibrary(iphonesim, x86_64);
-  CompileLibrary(darwin, arm);
-  CompileLibrary(darwin, aarch64);
+  FinalExtraOptions := TCastleStringList.Create;
+  try
+    if ExtraOptions <> nil then
+      FinalExtraOptions.AddRange(ExtraOptions);
+    { To compile CastleInternalVorbisFile properly.
+      Later PackageIOS will actually add the static tremolo files to the project. }
+    FinalExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+
+    if IosSimulatorSupport then
+    begin
+      CompileLibrary(iphonesim, i386);
+      CompileLibrary(iphonesim, x86_64);
+    end;
+    CompileLibrary(darwin, arm);
+    CompileLibrary(darwin, aarch64);
+
+  finally FreeAndNil(FinalExtraOptions) end;
 end;
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+var
+  Options: TCastleStringList;
 begin
-  RunCommandSimple('libtool', ['-static', '-o', OutputFile,
-    CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName,
-    CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName
-  ]);
+  Options := TCastleStringList.Create;
+  try
+    Options.Add('-static');
+    Options.Add('-o');
+    Options.Add(OutputFile);
+    if IosSimulatorSupport then
+    begin
+      Options.Add(CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName);
+      Options.Add(CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    end;
+    Options.Add(CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName);
+    Options.Add(CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName);
+    RunCommandSimple('libtool', Options.ToArray);
+  finally FreeAndNil(Options) end;
 end;
 
-procedure PackageIOS(const Project: TCastleProject);
+procedure PackageIOS(const Project: TCastleProject;
+  const UpdateOnlyCode: Boolean);
 var
   XcodeProject: string;
   UsesCocoaPods: boolean;
@@ -146,9 +190,16 @@ var
     for S in Project.IOSServices do
       ExtractService(S.Name);
 
-    if (depOggVorbis in Project.Dependencies) and
+    // Since right now we always compile with CASTLE_TREMOLO_STATIC,
+    // we just always add ogg_vorbis service, otherwise it would not link.
+    if {(depOggVorbis in Project.Dependencies) and}
        not Project.IOSServices.HasService('ogg_vorbis') then
       ExtractService('ogg_vorbis');
+    // Since right now we always compile with CASTLE_FREETYPE_STATIC,
+    // we just always add freetype service, otherwise it would not link.
+    if {(depFreeType in Project.Dependencies) and}
+       not Project.IOSServices.HasService('freetype') then
+      ExtractService('freetype');
   end;
 
   { Generate icons, in various sizes, from the base icon. }
@@ -288,25 +339,8 @@ var
 
   { Copy project data into Xcode project. }
   procedure GenerateData;
-  var
-    I: Integer;
-    OutputDataFolder: string;
-    FileFrom, FileTo: string;
-    Files: TCastleStringList;
   begin
-    OutputDataFolder := XcodeProject + Project.Name + PathDelim + 'data';
-    ForceDirectories(OutputDataFolder);    // create folder even if project does not contain any files (is referenced in Xcode project)
-    Files := Project.PackageFiles(true);
-    try
-      for I := 0 to Files.Count - 1 do
-      begin
-        FileFrom := Project.DataPath + Files[I];
-        FileTo := OutputDataFolder + PathDelim + Files[I];
-        SmartCopyFile(FileFrom, FileTo);
-        if Verbose then
-          Writeln('Packaging data file: ' + Files[I]);
-      end;
-    finally FreeAndNil(Files) end;
+    Project.CopyData(XcodeProject + Project.Name + PathDelim + 'data', cpIOS);
   end;
 
   (* Add a large auto-generated chunk into the pbx file, replacing a special macro
@@ -320,17 +354,22 @@ var
     try
       PbxProject.AddTopLevelDir(XcodeProject, Project.Name);
 
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('Foundation'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('CoreGraphics'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UIKit'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenGLES'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit'));
-      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('Foundation.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('CoreGraphics.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UIKit.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenGLES.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit.framework'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL.framework'));
 
       if Project.IOSServices.HasService('apple_game_center') then
-        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit.framework'));
       if Project.IOSServices.HasService('in_app_purchases') then
-        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit.framework'));
+      if Project.IOSServices.HasService('fmod') then
+      begin
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('libfmod_iphoneos.a'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('libc++.tbd'));
+      end;
 
       PBXContentsGenerated := PbxProject.PBXContents;
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
@@ -347,12 +386,12 @@ var
   { Copy compiled library into Xcode project. }
   procedure GenerateLibrary;
   var
-    OutputFile: string;
+    OutputFileBase: string;
   begin
-    OutputFile := ExtractFileName(Project.IOSLibraryFile);
-    SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFile);
+    OutputFileBase := ExtractFileName(Project.IOSLibraryFile);
+    SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFileBase);
     if Verbose then
-      Writeln('Packaging library file: ' + OutputFile);
+      Writeln('Packaging library file: ' + OutputFileBase);
   end;
 
   procedure GenerateCocoaPods;
@@ -361,26 +400,157 @@ var
       RunCommandSimple(XcodeProject, 'pod', ['install']);
   end;
 
+  procedure CopyExternalLibraries;
+  var
+    InputFile, OutputFile, OutputFileBase: String;
+  begin
+    if Project.IOSServices.HasService('fmod') then
+    begin
+      if not Project.IOSServices.Service('fmod').Parameters.TryGetValue('library_file', InputFile) then
+        raise Exception.Create('Cannot find "library_file" parameter in "fmod" service in CastleEngineManifest.xml');
+      OutputFileBase := ExtractFileName(InputFile);
+      OutputFile := XcodeProject + OutputFileBase;
+      SmartCopyFile(InputFile, OutputFile);
+      if Verbose then
+        Writeln('Packaging FMOD library file: ' + OutputFileBase);
+    end;
+  end;
+
 begin
   UsesCocoaPods := false;
   XcodeProject := TempOutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
-  if DirectoryExists(XcodeProject) then
-    RemoveNonEmptyDir(XcodeProject);
 
-  GenerateFromTemplates;
-  GenerateServicesFromTemplates;
-  FixPbxProjectFile; // must be done *after* all files for services are created
-  GenerateIcons;
-  GenerateLaunchImages;
-  GenerateData;
-  GenerateLibrary;
-  GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
+  if UpdateOnlyCode then
+  begin
+    if not DirectoryExists(XcodeProject) then
+      raise Exception.CreateFmt('Project directory "%s" doesn''t exist. Run "package" without the --update-only-code option', [
+        XcodeProject
+      ]);
+    GenerateLibrary;
+  end else
+  begin
+    if DirectoryExists(XcodeProject) then
+      RemoveNonEmptyDir(XcodeProject);
 
-  Writeln('Xcode project has been created in:');
-  Writeln('  ', XcodeProject);
-  Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
-  Writeln('The generated project should compile and work out-of-the-box.');
+    GenerateFromTemplates;
+    GenerateServicesFromTemplates;
+    FixPbxProjectFile; // must be done *after* all files for services are created
+    GenerateIcons;
+    GenerateLaunchImages;
+    GenerateData;
+    GenerateLibrary;
+    CopyExternalLibraries;
+    GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
+
+    Writeln('Xcode project has been created in:');
+    Writeln('  ', XcodeProject);
+    Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
+    Writeln('The generated project should compile and work out-of-the-box.');
+  end;
+end;
+
+function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
+  out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
+begin
+  case PackageFormat of
+    pfIosArchiveDevelopment:
+      begin
+        ArchiveType := atDevelopment;
+        ExportMethod := 'development';
+        Result := true;
+      end;
+    pfIosArchiveAdHoc:
+      begin
+        ArchiveType := atAdHoc;
+        ExportMethod := 'ad-hoc';
+        Result := true;
+      end;
+    pfIosArchiveAppStore:
+      begin
+        ArchiveType := atAppStore;
+        ExportMethod := 'app-store';
+        Result := true;
+      end;
+    else Result := false;
+  end;
+end;
+
+procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchiveType);
+var
+  XcodeProject: String;
+  XcodeSelectExe, XcodeBuildExe: String;
+  OutputString, ArchivePath, ExportPath: String;
+  ExitStatus: Integer;
+begin
+  XcodeProject := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'xcode_project' + PathDelim; // same as in PackageIOS
+  ArchivePath := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'App.xcarchive';
+  ExportPath := TempOutputPath(Project.Path) +
+    'ios' + PathDelim + 'build' + PathDelim;
+
+  if not DirectoryExists(XcodeProject) then
+    raise Exception.CreateFmt('Cannot read created Xcode project in "%s"', [XcodeProject]);
+
+  XcodeSelectExe := FindExe('xcode-select');
+  if XcodeSelectExe = '' then
+    raise Exception.Create('Cannot find "xcode-select". Make sure that Xcode with command-line utilities is installed.');
+
+  MyRunCommandIndir(XcodeProject, XcodeSelectExe, ['--print-path'], OutputString, ExitStatus);
+
+  if ExitStatus <> 0 then
+    raise Exception.CreateFmt('Running "xcode-select" failed, exit status %d, output "%s".', [
+      ExitStatus,
+      OutputString
+    ]);
+
+  if Trim(OutputString) = '/Library/Developer/CommandLineTools' then
+    WritelnWarning('xcode-select points to only command-line utilities, but not Xcode path. In new Xcode versions, you should do something like "sudo xcode-select -switch /Applications/Xcode.app".');
+
+  Writeln('Using Xcode from: ' + Trim(OutputString));
+
+  { See
+    https://developer.apple.com/library/archive/technotes/tn2339/_index.html
+    https://stackoverflow.com/questions/25678372/xcodebuild-cant-build-when-no-physical-ios
+    about these commands.
+
+    xcodebuild -list -workspace castle-engine-output/ios/xcode_project/PROJ_NAME.xcworkspace
+  }
+
+  XcodeBuildExe := FindExe('xcodebuild');
+  if XcodeBuildExe = '' then
+    raise Exception.Create('Cannot find "xcodebuild". Make sure that Xcode with command-line utilities is installed.');
+
+  if DirectoryExists(ArchivePath) then
+    RemoveNonEmptyDir(ArchivePath);
+  // do not create the archive path, it would be malformed archive to Xcode then
+
+  if DirectoryExists(ExportPath) then
+    RemoveNonEmptyDir(ExportPath);
+  CheckForceDirectories(ExportPath);
+
+  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
+    '-workspace', Project.Name + '.xcworkspace',
+    '-scheme', Project.Caption,
+    '-destination', 'generic/platform=iOS',
+    '-quiet',
+    '-archivePath', ArchivePath,
+    'archive'
+  ]);
+  RunCommandSimple(XcodeProject, XcodeBuildExe, [
+    '-allowProvisioningUpdates',
+    '-archivePath', ArchivePath,
+    '-exportOptionsPlist', XcodeProject + 'export_options.plist',
+    '-exportArchive',
+    '-exportPath', ExportPath
+  ]);
+
+  // TODO: It could be a bit cleaner to keep export_options.plist outside of Xcode project dir,
+  // and copy it here to the final place,
+  // replacing IOS_EXPORT_METHOD by a special code in this unit.
+  // This would allow to simplify PackageFormatWantsIOSArchive?
 end;
 
 procedure InstallIOS(const Project: TCastleProject);

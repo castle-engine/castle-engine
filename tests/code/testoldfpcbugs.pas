@@ -21,7 +21,7 @@ unit TestOldFPCBugs;
 interface
 
 uses
-  fpcunit, testutils, testregistry;
+  FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestOldFPCBugs = class(TTestCase)

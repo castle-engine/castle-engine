@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
@@ -40,7 +40,7 @@
     { Set X3D field "displacements". } { }
     procedure SetDisplacements(const Value: TVector3List);
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "weight". } { }
     property Weight: Single read GetWeight write SetWeight;
 
@@ -70,12 +70,12 @@ begin
   FdDisplacements.Send(Value);
 end;
 
-function THAnimDisplacerNode.GetNameField: string;
+function THAnimDisplacerNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimDisplacerNode.SetNameField(const Value: string);
+procedure THAnimDisplacerNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;

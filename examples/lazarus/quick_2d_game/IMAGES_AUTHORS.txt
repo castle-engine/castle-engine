@@ -4,6 +4,6 @@ The png images in this directory are from:
   (public domain, https://openclipart.org/share )
 
 Note that you could also put them inside "data" subdirectory.
-Loading them using the ApplicationData('my_image.png')
+Loading them using the 'castle-data:/my_image.png'
 will automatically look inside "data" subdirectory,
 if it exists.

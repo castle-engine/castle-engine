@@ -19,7 +19,7 @@ unit TestCastleImages;
 
 interface
 
-uses fpcunit, testutils, testregistry,
+uses FpcUnit, TestUtils, TestRegistry,
   CastleTestCase;
 
 type
@@ -296,11 +296,11 @@ procedure TTestImages.TestLoadSavePreserveAlpha;
   end;
 
 begin
-  TestImage(ApplicationData('images/load-save-alpha-test/1.png'));
-  TestImage(ApplicationData('images/load-save-alpha-test/2.png'));
-  TestImage(ApplicationData('images/load-save-alpha-test/3.png'));
-  TestImage(ApplicationData('images/load-save-alpha-test/4.png'));
-  TestImage(ApplicationData('images/load-save-alpha-test/5.png'));
+  TestImage('castle-data:/images/load-save-alpha-test/1.png');
+  TestImage('castle-data:/images/load-save-alpha-test/2.png');
+  TestImage('castle-data:/images/load-save-alpha-test/3.png');
+  TestImage('castle-data:/images/load-save-alpha-test/4.png');
+  TestImage('castle-data:/images/load-save-alpha-test/5.png');
 end;
 
 initialization

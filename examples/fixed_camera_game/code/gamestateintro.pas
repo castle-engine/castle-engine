@@ -29,8 +29,8 @@ type
     type
       TIntroPart = class
         CorrodeDuration: TFloatTime;
-        Image: TGLImage;
-        ImageCorroded: TGLImage;
+        Image: TDrawableImage;
+        ImageCorroded: TDrawableImage;
         destructor Destroy; override;
       end;
       TIntroPartList = specialize TObjectList<TIntroPart>;
@@ -97,10 +97,10 @@ constructor TStateIntro.Create(AOwner: TComponent);
 
         { calculate Part.Image and ImageCorroded }
         ImageName := Element.AttributeString('image');
-        Part.Image := TGLImage.Create(
-          ApplicationData('images/' + ImageName + '.png'), [TRGBImage]);
-        Part.ImageCorroded := TGLImage.Create(
-          ApplicationData('images/' + ImageName + '_corroded.png'), [TRGBImage]);
+        Part.Image := TDrawableImage.Create(
+          'castle-data:/images/' + ImageName + '.png', [TRGBImage]);
+        Part.ImageCorroded := TDrawableImage.Create(
+          'castle-data:/images/' + ImageName + '_corroded.png', [TRGBImage]);
       end;
     finally FreeAndNil(I) end;
 
@@ -157,8 +157,6 @@ var
 begin
   inherited;
 
-  RenderContext.Clear([cbColor], Black);
-
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
     IntroParts[IntroPart].ImageCorroded.Draw(Container.Rect);
@@ -191,7 +189,7 @@ begin
     TUIState.Current := StateMainMenu;
     Result := true;
   end else
-  if Event.IsMouseButton(mbLeft) or Event.IsKey(K_Space) then
+  if Event.IsMouseButton(buttonLeft) or Event.IsKey(keySpace) then
   begin
     NextIntroPart;
     Result := true;

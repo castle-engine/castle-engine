@@ -13,8 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage large 3D resources (scenes and such)
-  that need to be loaded and reference counted. }
+{ Manage resources with animations that may be reused by multiple instances.
+  This is in practice used for creatures and items animations in our
+  "Utilities for typical 3D games", https://castle-engine.io/manual_high_level_3d_classes.php .
+
+  Note that you @italic(do not) need this unit in many normal cases when dealing with animations.
+  It is generally simpler and more adviced to use TCastleScene and TCastleScene.PlayAnimation
+  to play animations, see https://castle-engine.io/manual_scene.php . }
 unit CastleResources;
 
 {$I castleconf.inc}
@@ -23,7 +28,8 @@ interface
 
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum,
-  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
+  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles,
+  CastleSectors;
 
 type
   T3DResource = class;
@@ -31,23 +37,52 @@ type
   { Animation defined by T3DResource. }
   T3DResourceAnimation = class
   private
-    FName: string;
-    FRequired: boolean;
-    FOwner: T3DResource;
-    FSceneForAnimation: TCastleScene;
-    FDuration: Single;
-    FURL: string;
-    FAnimationName: string;
+    type
+      { Container for a loaded TCastleScene,
+        which may be specific inside animation (T3DResourceAnimation),
+        or may be common to all animations (one scene for the whole T3DResource). }
+      TSceneState = record
+        Scene: TCastleScene;
+        InitialBox: TBox3D; //< Defined only once Scene <> nil
 
-    LastForcedScene: TCastleScene;
-    LastForcedAnimationName: string;
-    LastForcedLoop: boolean;
-    LastForcedActualTime: TFloatTime;
+        ForcedAnimationName: String;
+        ForcedLoop: Boolean;
+        ForcedActualTime: TFloatTime;
 
+        { Prepare scene loading i from given URL.
+          Loads the scene only if URL is not empty and if it's not already loaded (that is, when Scene = nil).
+          Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
+          Calls Progress.Step 2 times, if DoProgress. }
+        procedure Prepare(const URL: String; const Resource: T3DResource;
+          const PrepareParams: TPrepareParams; const DoProgress: Boolean);
+      end;
+    var
+      FName: string;
+      FRequired: boolean;
+      FOwner: T3DResource;
+      FSceneState: TSceneState;
+      FDuration: Single;
+      FURL: string;
+      FAnimationName: string;
     procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
+
+    { Current Scene to render for given time.
+
+      Looping is automatically done here, if parameter Loop is @true.
+      When it is @false, there is no looping, which means that
+      when Time is < 0, we show the first frame,
+      and when Time is > @link(Duration), we show the last frame forever.
+
+      This returns the scene (TCastleScene) with state reflecting given time
+      (TimeSensor forced to given time).
+
+      Note that this should not be used if owner resource uses pooling.
+      In case of pooling, not ForceAnimationPose calls should be done
+      (which is what this method does). }
+    function SceneAtTime(const Time: TFloatTime; const Loop: boolean): TCastleScene;
   public
     constructor Create(const AOwner: T3DResource;
       const AName: string; const ARequired: boolean = true);
@@ -62,21 +97,10 @@ type
       read animation info from resource.xml file. }
     function Defined: boolean;
 
-    { Current Scene to render for given time.
-
-      Looping is automatically done here, if parameter Loop is @true.
-      When it is @false, there is no looping, which means that
-      when Time is < 0, we show the first frame,
-      and when Time is > @link(Duration), we show the last frame forever.
-
-      This returns the scene (TCastleScene) with state reflecting given time
-      (TimeSensor forced to given time). }
-    function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
-
     { Scene URL, only when each animation is inside a separate 3D file.
       See [https://castle-engine.io/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property URL: string read FURL write FURL;
+    property URL: string read FURL write FURL; deprecated 'do not use separate URLs for each animation; use one URL with all animations; see https://castle-engine.io/creating_data_resources.php';
 
     { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
       which is equal to TimeSensor node name.
@@ -103,6 +127,8 @@ type
     function FindName(const AName: string): T3DResourceAnimation;
   end;
 
+  TAbstractLevel = class;
+
   { Display a specified frame of the specified animation.
     This is reliable even when multiple TResourceFrame request different frames
     from the same animation. }
@@ -112,17 +138,37 @@ type
     FTime: TFloatTime;
     FLoop: boolean;
     CurrentChild: TCastleScene;
+    CurrentChildFromPool: Boolean;
   protected
     procedure LocalRender(const Params: TRenderParams); override;
   public
+    destructor Destroy; override;
     property Animation: T3DResourceAnimation read FAnimation;
     { Time within the ResourceAnimation. }
     property Time: TFloatTime read FTime;
     { Should we loop within ResourceAnimation. }
     property Loop: boolean read FLoop;
     { Set which animation and animation frame to display. }
-    procedure SetFrame(const AnAnimation: T3DResourceAnimation;
+    procedure SetFrame(const Level: TAbstractLevel;
+      const AnAnimation: T3DResourceAnimation;
       const ATime: TFloatTime; const ALoop: boolean);
+  end;
+
+  { Abstract level information, with information useful to spawn resources
+    like creatures and items. }
+  TAbstractLevel = class(TComponent)
+  public
+    function GetPlayer: TCastleTransform; virtual; abstract;
+    function GetSectors: TSectorList; virtual; abstract;
+    function RootTransform: TCastleRootTransform; virtual; abstract;
+    { Parameters to prepare rendering for,
+      see @link(TCastleViewport.PrepareParams). }
+    function PrepareParams: TPrepareParams; virtual; abstract;
+    { Use this as Owner of any TComponent, to have something automatically freed
+      when level is being unloaded (at @link(TLevel.Unload) call,
+      or at @link(TLevel.Load) of new level,
+      or at destruction of this TLevel). }
+    function FreeAtUnload: TComponent; virtual; abstract;
   end;
 
   { Resource used for rendering and processing of 3D objects.
@@ -133,19 +179,6 @@ type
     For this purpose, it has a unique identifier in @link(Name) property. }
   T3DResource = class
   private
-  { Internal design notes: Having resource expressed as
-    T3DResource instance, as opposed to overusing dummy T3D instances
-    for it, is sometimes good. That's because such resource may be shared by many
-    3D objects, may be used for different purposes by various 3D objects
-    (e.g. various creatures may be in different state / animation time),
-    it's users (3D objects) may not always initially exist on the level
-    (e.g. TInventoryItem, that is not even T3D, may refer to it), etc.
-    There were ideas to unify T3DResource to be like a T3D descendant
-    (or ancestor), but they turned out to cause more confusion (special cases,
-    special treatment) than the gain from unification (which would
-    be no need of Resources list in TCastleSceneManager, simple
-    TCastleSceneManager.Items would suffice.) }
-
     FName: string;
     FPrepared: boolean;
     FUsageCount: Cardinal;
@@ -154,9 +187,20 @@ type
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
+    FDefaultAnimationTransition: Single;
     FModelURL: string;
     { Model loaded from ModelURL }
-    Model: TCastleScene;
+    ModelState: T3DResourceAnimation.TSceneState;
+    { Non-nil only if we're using Pool to allocate scenes for resource instances.
+      See @link(Pool) description. }
+    ScenePool: TCastleSceneList;
+    { First ScenePoolUsed items on ScenePool are used, rest is unused. }
+    ScenePoolUsed: Cardinal;
+    FPool: Cardinal;
+    FOrientation: TOrientationType;
+    function AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
+    procedure ReleaseSceneFromPool(const Scene: TCastleScene);
+    function CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
   protected
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
@@ -199,7 +243,7 @@ type
 
     { Unique identifier of this resource.
       Used to refer to this resource from level placeholders
-      (see TGameSceneManager.LoadLevel about placeholders),
+      (see TLevel.Load about placeholders),
       from other XML files (for example one creature may shoot another
       creature as a missile using @link(TWalkAttackCreatureResource.FireMissileName)),
       and in other places.
@@ -248,7 +292,8 @@ type
 
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
-    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
+    procedure InstantiatePlaceholder(
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 
@@ -280,7 +325,7 @@ type
     function AlwaysPrepared: boolean; virtual;
 
     property ConfigAlwaysPrepared: boolean
-      read FConfigAlwaysPrepared write FConfigAlwaysPrepared;
+      read FConfigAlwaysPrepared write FConfigAlwaysPrepared default false;
 
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
@@ -324,11 +369,87 @@ type
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
 
+    { See @link(TCastleSceneCore.DefaultAnimationTransition) }
+    property DefaultAnimationTransition: Single
+      read FDefaultAnimationTransition write FDefaultAnimationTransition default 0.0;
+
+    { See @link(TCastleTransform.Orientation), by default this is @link(TCastleTransform.DefaultOrientation).
+
+      In the resource.xml file, this value can be specified using following strings:
+
+      @definitionList(
+        @itemLabel @code(default)
+        @item Use TCastleTransform.DefaultOrientation.
+        @itemLabel @code(up:y,direction:-z)
+        @item Use otUpYDirectionMinusZ.
+        @itemLabel @code(up:y,direction:z)
+        @item Use otUpYDirectionZ. Matches conventional glTF orientation.
+        @itemLabel @code(up:z,direction:-y)
+        @item Use otUpZDirectionMinusY.
+        @itemLabel @code(up:z,direction:x)
+        @item Use otUpZDirectionX.
+      ) }
+    property Orientation: TOrientationType read FOrientation write FOrientation;
+
     { Model URL, only when you define multiple animations inside
       a single 3D file. See
       [https://castle-engine.io/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
     property ModelURL: string read FModelURL write FModelURL;
+
+    { If non-zero, use a pool of TCastleScene to create resource instances.
+
+      To understand what this controls, some explanation is necessary:
+      Multiple instances of the same creature / item may be visible.
+      They all refer to the same "resource" holding one set of data.
+      Our resources mechanism is prepared to handle it efficiently, in 2 ways:
+
+      @orderedList(
+        @item(
+          Without pool: We have a single TCastleScene, which is internally continuosly changed
+          back-and-forth to show various animations (and various moment of these animations),
+          to display all resource instances correctly.
+
+          Advantages: Less loading time, less memory usage (no need to create pool).
+
+          Disadvantages:
+          Worse FPS (need to switch back-and-forth) and no animation blending support.
+        )
+
+        @item(
+          With pool: Each resource instance gets a copy of TCastleScene.
+          This avoids switching one scene back-and-forth.
+          It's particularly beneficial for animations like from glTF or Spine JSON
+          (in general: animations from formats other than castle-anim-frames).
+
+          We keep a pool of TCastleScene that can be allocated for the needed instances.
+
+          The "pool" attribute specifies the initial pool size.
+          It should be large enough to cover practical needs.
+          If it's not large enough then, when necessary, we will increase this pool at runtime,
+          which works but causes one-time lag during game execution
+          (as we need to make TCastleScene.Clone).
+
+          This approach also allows for animation blending. (TODO: in the future)
+
+          Disadvantages: More loading time and memory usage (for pool).
+
+          Advantages:
+          Better FPS and support for animation blending.
+          In general, this uses TCastleScene in more standard way.
+        )
+      )
+
+      Note that Pool only matters if you use a single file
+      for all resource animations. Using multiples files (separate file for each animation)
+      is deprecated anyway, see https://castle-engine.io/creating_data_resources.php .
+
+      In the @code(resource.xml), you can specify this value an explicit integer
+      (0 means to not use pool), or you can write @code("auto") to automatically guess
+      the best value. The best value means to use pool, unless the ModelURL indicates castle-anim-frames
+      or MD3 formats.
+    }
+    property Pool: Cardinal read FPool write FPool default 0;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -345,7 +466,7 @@ type
 
     { Load all resources (creatures and items) information from
       resource.xml files found in given Path.
-      Overloaded version without Path just scans the whole ApplicationData
+      Overloaded version without Path just scans the whole castle-data:/
       directory.
 
       Note that on Android, searching the Android asset filesystem
@@ -401,9 +522,15 @@ implementation
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils, CastleInternalNodeInterpolator;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleURIUtils;
 
-{ TResourceClasses  ---------------------------------------------------------- }
+var
+  UnitFinalization: Boolean;
+
+const
+  ScenePrepareResources = [prRenderSelf, prBoundingBox, prShadowVolume];
+
+{ TResourceClasses ---------------------------------------------------------- }
 
 type
   TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
@@ -418,9 +545,6 @@ type
     property Items [const AKey: string]: T3DResourceClass read GetItems write SetItems; default;
   end;
 
-var
-  ResourceClasses: TResourceClasses;
-
 function TResourceClasses.GetItems(const AKey: string): T3DResourceClass;
 begin
   Result := inherited Items[AKey];
@@ -429,6 +553,50 @@ end;
 procedure TResourceClasses.SetItems(const AKey: string; const AValue: T3DResourceClass);
 begin
   AddOrSetValue(AKey, AValue);
+end;
+
+var
+  FResourceClasses: TResourceClasses;
+
+function ResourceClasses: TResourceClasses;
+begin
+  if (FResourceClasses = nil) and not UnitFinalization then
+    FResourceClasses := TResourceClasses.Create;
+  Result := FResourceClasses;
+end;
+
+{ T3DResourceAnimation.TSceneState ------------------------------------------- }
+
+procedure T3DResourceAnimation.TSceneState.Prepare(
+  const URL: String; const Resource: T3DResource;
+  const PrepareParams: TPrepareParams; const DoProgress: Boolean);
+begin
+  if (URL <> '') and (Scene = nil) then
+  begin
+    Scene := TCastleScene.Create(nil);
+    Scene.Load(Url);
+    Scene.ReceiveShadowVolumes := Resource.ReceiveShadowVolumes;
+
+    { save initial Scene bounding box,
+      to avoid later changing T3DResourceAnimation.BoundingBox
+      result after some animation run and modified scene.
+      This would cause creature radius change.
+
+      Testcase: examples/animations/resource_animations,
+      load same resource 2x in a row,
+      bounding sphere should not change. }
+    InitialBox := Scene.BoundingBox;
+
+    // reset ForcedXxx fields
+    ForcedAnimationName := '';
+    ForcedLoop := false;
+    ForcedActualTime := 0;
+  end;
+  if DoProgress then Progress.Step;
+
+  if Scene <> nil then
+    Scene.PrepareResources(ScenePrepareResources, false, PrepareParams);
+  if DoProgress then Progress.Step;
 end;
 
 { T3DResourceAnimation ------------------------------------------------------- }
@@ -449,22 +617,14 @@ var
   Necessary, Avoided: Int64;
 {$endif}
 
-function T3DResourceAnimation.Scene(const Time: TFloatTime;
+function T3DResourceAnimation.SceneAtTime(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
-var
-  GoodAnimationName: string;
-  ActualTime: TFloatTime;
-  ForceNecessary: boolean;
-begin
-  if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation
-  else
-  if Owner.Model <> nil then
-    Result := Owner.Model
-  else
-    Result := nil;
 
-  if Result <> nil then
+  procedure ForceTime(var SceneState: TSceneState);
+  var
+    GoodAnimationName: string;
+    ActualTime: TFloatTime;
+    ForceNecessary: boolean;
   begin
     if AnimationName <> '' then
       GoodAnimationName := AnimationName
@@ -475,7 +635,8 @@ begin
     //   WritelnWarning('Animation "%s" duration is zero on resource "%s"',
     //     [GoodAnimationName, Owner.Name]);
 
-    { Calculate Time with looping/clamping applied.
+    { Calculate Time with looping/clamping applied, because we want to have
+      ForceNecessary = false as often as possible (to avoid doing work).
       Test Duration <> 0 to avoid dividing by 0 in FloatModulo(Time, 0)
       (testcase: fps_game debug build on Android) }
     if Loop and (Duration <> 0) then
@@ -485,17 +646,15 @@ begin
 
     // call (costly) ForceAnimationPose only if necessary
     ForceNecessary :=
-      (LastForcedScene <> Result) or
-      (LastForcedAnimationName <> AnimationName) or
-      (LastForcedLoop <> Loop) or
-      (LastForcedActualTime <> ActualTime);
+      (SceneState.ForcedAnimationName <> GoodAnimationName) or
+      (SceneState.ForcedLoop <> Loop) or
+      (SceneState.ForcedActualTime <> ActualTime);
     if ForceNecessary then
     begin
-      LastForcedScene := Result;
-      LastForcedAnimationName := AnimationName;
-      LastForcedLoop := Loop;
-      LastForcedActualTime := ActualTime;
-      Result.ForceAnimationPose(GoodAnimationName, Time, Loop);
+      SceneState.ForcedAnimationName := GoodAnimationName;
+      SceneState.ForcedLoop := Loop;
+      SceneState.ForcedActualTime := ActualTime;
+      SceneState.Scene.ForceAnimationPose(GoodAnimationName, ActualTime, Loop);
     end;
 
     {$ifdef STATISTICS_FORCING_OPTIMIZATION}
@@ -508,83 +667,87 @@ begin
         [Necessary, Avoided, Avoided / (Necessary + Avoided)]);
     {$endif}
   end;
+
+begin
+  if FSceneState.Scene <> nil then
+  begin
+    ForceTime(FSceneState);
+    Result := FSceneState.Scene;
+  end else
+  if Owner.ModelState.Scene <> nil then
+  begin
+    ForceTime(Owner.ModelState);
+    Result := Owner.ModelState.Scene;
+  end else
+    Result := nil;
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
 begin
-  if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation.BoundingBox else
-  if Owner.Model <> nil then
-    Result := Owner.Model.BoundingBox else
+  if FSceneState.Scene <> nil then
+    Result := FSceneState.InitialBox
+  else
+  if Owner.ModelState.Scene <> nil then
+    Result := Owner.ModelState.InitialBox
+  else
     { animation 3D model not loaded }
     Result := TBox3D.Empty;
 end;
 
 function T3DResourceAnimation.Defined: boolean;
 begin
+  {$warnings off} // using deprecated to keep it working
   Result := (URL <> '') or (AnimationName <> '');
+  {$warnings on}
 end;
 
 procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
-
-  { Prepare 3D resource loading it from given URL.
-    Loads the resource only if URL is not empty,
-    and only if it's not already loaded (that is,
-    when Scene = nil).
-    Prepares for fast rendering and other processing by TCastleTransform.PrepareResources.
-    Calls Progress.Step 2 times, if DoProgress. }
-  procedure PrepareScene(var Scene: TCastleScene; const URL: string);
-  begin
-    if (URL <> '') and (Scene = nil) then
-    begin
-      Scene := TCastleScene.Create(nil);
-      Scene.Load(URL);
-      Scene.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
-    end;
-    if DoProgress then Progress.Step;
-
-    if Scene <> nil then
-      Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
-        false, Params);
-    if DoProgress then Progress.Step;
-  end;
-
 begin
+  {$warnings off} // using deprecated to keep it working
   if URL <> '' then
   begin
-    PrepareScene(FSceneForAnimation, URL);
+    FSceneState.Prepare(URL, Owner, Params, DoProgress);
     if AnimationName <> '' then
-      FDuration := FSceneForAnimation.AnimationDuration(AnimationName)
+      FDuration := FSceneState.Scene.AnimationDuration(AnimationName)
     else
-      FDuration := FSceneForAnimation.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
+      FDuration := FSceneState.Scene.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
+  {$warnings on}
   if AnimationName <> '' then
   begin
-    if Owner.ModelURL = '' then
-      raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model url is not defined (neither specific to this animation nor containing multiple animations)',
+    if Owner.ModelState.Scene = nil then
+      raise Exception.CreateFmt('Animation "%s" of resource "%s": animation_name is defined, but model url is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
-    PrepareScene(Owner.Model, Owner.ModelURL);
-    FDuration := Owner.Model.AnimationDuration(AnimationName);
+    FDuration := Owner.ModelState.Scene.AnimationDuration(AnimationName);
   end else
   if Required then
-    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or time_sensor for this animation in appropriate resource.xml file',
+    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or animation_name for this animation in appropriate resource.xml file',
       [Name, Owner.Name]);
 end;
 
 procedure T3DResourceAnimation.Release;
 begin
-  FreeAndNil(FSceneForAnimation);
+  FreeAndNil(FSceneState.Scene);
 end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
+  {$warnings off} // using deprecated to keep it working
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
     URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
     WritelnWarning('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
+
+  if URL <> '' then
+    WritelnWarning('Animation "%s" of "%s" has it''s own URL, this is deprecated. Use one URL for all animations. See https://castle-engine.io/creating_data_resources.php .', [
+      Name,
+      Owner.Name
+    ]);
+  {$warnings on}
+
   AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
   begin
@@ -618,7 +781,7 @@ procedure TResourceFrame.LocalRender(const Params: TRenderParams);
     NewChild: TCastleScene;
   begin
     if (FAnimation <> nil) and FAnimation.FOwner.Prepared then
-      NewChild := FAnimation.Scene(FTime, FLoop)
+      NewChild := FAnimation.SceneAtTime(FTime, FLoop)
     else
       NewChild := nil;
 
@@ -633,17 +796,79 @@ procedure TResourceFrame.LocalRender(const Params: TRenderParams);
   end;
 
 begin
-  // before rendering, set correct child
-  UpdateChild;
+  // before rendering, set correct child with correct time
+  if not CurrentChildFromPool then
+    UpdateChild;
   inherited;
 end;
 
-procedure TResourceFrame.SetFrame(const AnAnimation: T3DResourceAnimation;
+procedure TResourceFrame.SetFrame(const Level: TAbstractLevel;
+  const AnAnimation: T3DResourceAnimation;
   const ATime: TFloatTime; const ALoop: boolean);
+var
+  OldResource, NewResource: T3DResource;
+  AnimationChanges: Boolean;
 begin
+  if FAnimation <> nil then
+    OldResource := FAnimation.Owner
+  else
+    OldResource := nil;
+  if AnAnimation <> nil then
+    NewResource := AnAnimation.Owner
+  else
+    NewResource := nil;
+
+  // if changing resource, release previous scene from pool
+  if (OldResource <> NewResource) and
+     (OldResource <> nil) and
+     CurrentChildFromPool then
+  begin
+    CurrentChildFromPool := false;
+    FAnimation.Owner.ReleaseSceneFromPool(CurrentChild);
+    Remove(CurrentChild);
+    CurrentChild := nil;
+  end;
+
+  // change current animation properties
+  AnimationChanges := FAnimation <> AnAnimation;
   FAnimation := AnAnimation;
   FTime := ATime;
   FLoop := ALoop;
+
+  // if setting new resource, allocate new scene from pool
+  if (not CurrentChildFromPool) and
+     (FAnimation <> nil) and
+     FAnimation.FOwner.Prepared and
+     (FAnimation.FSceneState.Scene = nil) and
+     (FAnimation.FOwner.ScenePool <> nil) then
+  begin
+    CurrentChild := FAnimation.FOwner.AllocateSceneFromPool(Level);
+    CurrentChildFromPool := true;
+    Add(CurrentChild);
+  end;
+
+  // change current animation on scene from pool
+  if CurrentChildFromPool and AnimationChanges then
+  begin
+    if AnAnimation <> nil then
+    begin
+      if not CurrentChild.PlayAnimation(FAnimation.AnimationName, FLoop) then
+        WritelnWarning('Missing animation "%s"', [FAnimation.AnimationName]);
+    end else
+      CurrentChild.StopAnimation;
+  end;
+end;
+
+destructor TResourceFrame.Destroy;
+begin
+  if CurrentChildFromPool then
+  begin
+    CurrentChildFromPool := false;
+    FAnimation.FOwner.ReleaseSceneFromPool(CurrentChild);
+    Remove(CurrentChild);
+    CurrentChild := nil;
+  end;
+  inherited;
 end;
 
 { T3DResource ---------------------------------------------------------------- }
@@ -657,6 +882,7 @@ begin
   FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
   FCastShadowVolumes := DefaultCastShadowVolumes;
   FAnimations := T3DResourceAnimationList.Create;
+  FOrientation := TCastleTransform.DefaultOrientation;
 end;
 
 destructor T3DResource.Destroy;
@@ -667,6 +893,13 @@ begin
   inherited;
 end;
 
+function T3DResource.CreateSceneForPool(const Params: TPrepareParams): TCastleScene;
+begin
+  Result := ModelState.Scene.Clone(nil);
+  Result.DefaultAnimationTransition := DefaultAnimationTransition;
+  Result.PrepareResources(ScenePrepareResources, false, Params);
+end;
+
 procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
@@ -674,6 +907,17 @@ var
   TimeStart: TCastleProfilerTime;
 begin
   TimeStart := Profiler.Start('Prepare Animations of Resource ' + Name);
+
+  ModelState.Prepare(ModelURL, Self, Params, DoProgress);
+
+  if (ModelState.Scene <> nil) and (Pool <> 0) then
+  begin
+    ScenePool := TCastleSceneList.Create(true);
+    ScenePool.Count := Pool;
+    for I := 0 to ScenePool.Count - 1 do
+      ScenePool[I] := CreateSceneForPool(Params);
+    ScenePoolUsed := 0;
+  end;
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].Prepare(Params, DoProgress);
@@ -683,15 +927,16 @@ end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
 begin
-  Result := Animations.Count * 2;
+  Result := 2 + Animations.Count * 2;
 end;
 
 procedure T3DResource.ReleaseCore;
 var
   I: Integer;
 begin
-  if Model <> nil then
-    FreeAndNil(Model);
+  FreeAndNil(ModelState.Scene);
+  FreeAndNil(ScenePool);
+  ScenePoolUsed := 0;
   if Animations <> nil then
     for I := 0 to Animations.Count - 1 do
       Animations[I].Release;
@@ -700,6 +945,7 @@ end;
 procedure T3DResource.LoadFromFile(ResourceConfig: TCastleConfig);
 var
   I: Integer;
+  PoolStr: String;
 begin
   ConfigAlwaysPrepared := ResourceConfig.GetValue('always_prepared', false);
   FFallSpeed := ResourceConfig.GetFloat('fall_speed', DefaultFallSpeed);
@@ -708,12 +954,33 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
+  FOrientation := StrToOrientationType(ResourceConfig.GetValue('orientation', 'default'));
+  FDefaultAnimationTransition := ResourceConfig.GetFloat('model/default_animation_transition', 0.0);
   if ResourceConfig.GetValue('model/file_name', '') <> '' then
   begin
     FModelURL := ResourceConfig.GetURL('model/file_name', true);
     WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     FModelURL := ResourceConfig.GetURL('model/url', true);
+
+  { calculate Pool }
+  PoolStr := ResourceConfig.GetValue('model/pool', 'auto');
+  if PoolStr = 'auto' then
+  begin
+    { Do not use Pool for model formats that are
+      - fast to switch current frame (ForceAnimationPose is fast)
+      - do not support animation blending anyway
+      In practice, this means formats with precalculated animation frames, like castle-anim-frames. }
+    if (FModelURL <> '') and
+       ( (URIMimeType(FModelURL) = 'application/x-castle-anim-frames') or
+         (URIMimeType(FModelURL) = 'application/x-md3')
+       ) then
+      Pool := 0
+    else
+      Pool := 1;
+    WritelnLog('Pool for "%s" auto-determined as %d', [Name, Pool]);
+  end else
+    Pool := StrToInt(PoolStr);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
@@ -776,6 +1043,42 @@ begin
   Result := ConfigAlwaysPrepared;
 end;
 
+function T3DResource.AllocateSceneFromPool(const Level: TAbstractLevel): TCastleScene;
+begin
+  Assert(ScenePool <> nil);
+
+  if ScenePoolUsed < ScenePool.Count then
+  begin
+    Result := ScenePool[ScenePoolUsed];
+  end else
+  begin
+    WritelnLog('Need to increase pool of %s at runtime to %d. Better declare larger initial pool, to avoid delay at game runtime.', [
+      Name,
+      ScenePoolUsed + 1
+    ]);
+    Result := CreateSceneForPool(Level.PrepareParams);
+    ScenePool.Add(Result);
+  end;
+
+  Inc(ScenePoolUsed);
+end;
+
+procedure T3DResource.ReleaseSceneFromPool(const Scene: TCastleScene);
+var
+  I: Integer;
+begin
+  // Assert(ScenePool <> nil); // possible to happen during destructor
+  if ScenePool = nil then
+    Exit;
+
+  I := ScenePool.IndexOf(Scene);
+  Assert(I <> -1);
+  { exchange items on ScenePool, to keep the used scenes at the beginning }
+  if I <> ScenePoolUsed - 1 then
+    ScenePool.Exchange(I, ScenePoolUsed - 1);
+  Dec(ScenePoolUsed);
+end;
+
 { T3DResourceList ------------------------------------------------------------- }
 
 procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -796,8 +1099,7 @@ begin
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
       Xml.URL := URL;
-      // if Log then
-      //   WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+      // WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
       if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
@@ -854,7 +1156,7 @@ end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
 begin
-  LoadFromFiles(ApplicationData(''), Reload);
+  LoadFromFiles('castle-data:/', Reload);
 end;
 
 function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;
@@ -966,9 +1268,8 @@ begin
     Resource.UsageCount := Resource.UsageCount - 1;
     if Resource.UsageCount = 0 then
     begin
-      if Log then
-        WritelnLog('Resources', Format(
-          'Resource "%s" is no longer used, releasing', [Resource.Name]));
+      WritelnLog('Resources', Format(
+        'Resource "%s" is no longer used, releasing', [Resource.Name]));
       Resource.FPrepared := false;
       Resource.ReleaseCore;
     end;
@@ -989,13 +1290,13 @@ var
 
 function Resources: T3DResourceList;
 begin
+  if (FResources = nil) and not UnitFinalization then
+    FResources := T3DResourceList.Create(true);
   Result := FResources;
 end;
 
-initialization
-  FResources := T3DResourceList.Create(true);
-  ResourceClasses := TResourceClasses.Create;
 finalization
+  UnitFinalization := true;
   FreeAndNil(FResources);
-  FreeAndNil(ResourceClasses);
+  FreeAndNil(FResourceClasses);
 end.

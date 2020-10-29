@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAddress: string;
-    procedure SetAddress(const Value: string);
+    function GetAddress: String;
+    procedure SetAddress(const Value: String);
     function GetApplicationID: Integer;
     procedure SetApplicationID(const Value: Integer);
     function GetDataLength: Integer;
@@ -36,8 +36,8 @@
     procedure SetEncodingScheme(const Value: Integer);
     function GetEntityID: Integer;
     procedure SetEntityID(const Value: Integer);
-    function GetMulticastRelayHost: string;
-    procedure SetMulticastRelayHost(const Value: string);
+    function GetMulticastRelayHost: String;
+    procedure SetMulticastRelayHost(const Value: String);
     function GetMulticastRelayPort: Integer;
     procedure SetMulticastRelayPort(const Value: Integer);
     function GetPort: Integer;
@@ -46,8 +46,8 @@
     procedure SetRadioID(const Value: Integer);
     function GetReadInterval: Single;
     procedure SetReadInterval(const Value: Single);
-    function GetRtpHeaderExpected: boolean;
-    procedure SetRtpHeaderExpected(const Value: boolean);
+    function GetRtpHeaderExpected: Boolean;
+    procedure SetRtpHeaderExpected(const Value: Boolean);
     function GetSampleRate: Integer;
     procedure SetSampleRate(const Value: Integer);
     function GetSamples: Integer;
@@ -60,13 +60,11 @@
     procedure SetWhichGeometry(const Value: Integer);
     function GetWriteInterval: Single;
     procedure SetWriteInterval(const Value: Single);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "address". } { }
-    property Address: string read GetAddress write SetAddress;
+    property Address: String read GetAddress write SetAddress;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     { Set X3D field "data". } { }
@@ -80,7 +78,7 @@
     { X3D field "entityID". } { }
     property EntityID: Integer read GetEntityID write SetEntityID;
     { X3D field "multicastRelayHost". } { }
-    property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
     { X3D field "port". } { }
@@ -90,7 +88,7 @@
     { X3D field "readInterval". } { }
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
     { X3D field "rtpHeaderExpected". } { }
-    property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+    property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
     { X3D field "sampleRate". } { }
     property SampleRate: Integer read GetSampleRate write SetSampleRate;
     { X3D field "samples". } { }
@@ -103,10 +101,8 @@
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
     { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -114,12 +110,12 @@
 
 { TSignalPduNode ----------------------------------------------- }
 
-function TSignalPduNode.GetAddress: string;
+function TSignalPduNode.GetAddress: String;
 begin
   Result := FdAddress.Value;
 end;
 
-procedure TSignalPduNode.SetAddress(const Value: string);
+procedure TSignalPduNode.SetAddress(const Value: String);
 begin
   FdAddress.Send(Value);
 end;
@@ -174,12 +170,12 @@ begin
   FdEntityID.Send(Value);
 end;
 
-function TSignalPduNode.GetMulticastRelayHost: string;
+function TSignalPduNode.GetMulticastRelayHost: String;
 begin
   Result := FdMulticastRelayHost.Value;
 end;
 
-procedure TSignalPduNode.SetMulticastRelayHost(const Value: string);
+procedure TSignalPduNode.SetMulticastRelayHost(const Value: String);
 begin
   FdMulticastRelayHost.Send(Value);
 end;
@@ -224,12 +220,12 @@ begin
   FdReadInterval.Send(Value);
 end;
 
-function TSignalPduNode.GetRtpHeaderExpected: boolean;
+function TSignalPduNode.GetRtpHeaderExpected: Boolean;
 begin
   Result := FdRtpHeaderExpected.Value;
 end;
 
-procedure TSignalPduNode.SetRtpHeaderExpected(const Value: boolean);
+procedure TSignalPduNode.SetRtpHeaderExpected(const Value: Boolean);
 begin
   FdRtpHeaderExpected.Send(Value);
 end;
@@ -294,24 +290,18 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TSignalPduNode.GetBboxCenter: TVector3;
+function TSignalPduNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TSignalPduNode.SetBboxCenter(const Value: TVector3);
+procedure TSignalPduNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TSignalPduNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TSignalPduNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

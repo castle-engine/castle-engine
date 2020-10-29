@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2018 Michalis Kamburelis.
+  Copyright 2004-2019 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert ttf fonts to Pascal units, to embed fonts inside source code. }
+{ Convert font files (.ttf, .otf and other formats handled by FreeType) to Pascal units,
+  to embed fonts inside source code. }
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 {$I castleconf.inc}
@@ -22,23 +23,27 @@ uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
   CastleParameters, CastleTextureFontData, CastleStringUtils,
   CastleURIUtils, CastleProgress, CastleProgressConsole, CastleUnicode,
-  CastleImages, CastleApplicationProperties;
+  CastleImages, CastleApplicationProperties, CastleLocalizationGetText;
 
 var
   Size: Integer = 10;
   AntiAliasing: boolean = true;
-  SampleText, ParamUnitName: string;
+  ParamUnitName, ParamFunctionName: string;
   OnlySampleText: boolean = false;
   DebugFontImage: boolean = false;
+  Characters: TUnicodeCharList;
 
 const
-  Options: array [0..8] of TOption =
+  Options: array [0..11] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0; Long: 'size'; Argument: oaRequired),
     (Short: #0; Long: 'no-anti-alias'; Argument: oaNone),
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
+    (Short: #0; Long: 'sample-code'; Argument: oaRequired),
+    (Short: #0; Long: 'sample-get-text-mo'; Argument: oaRequired),
+    (Short: #0; Long: 'function-name'; Argument: oaRequired),
     (Short: #0; Long: 'unit-name'; Argument: oaRequired),
     (Short: #0; Long: 'debug-log'; Argument: oaNone),
     (Short: #0; Long: 'debug-font-image'; Argument: oaNone),
@@ -59,18 +64,26 @@ begin
            '  texture-font-to-pascal [options...] MyFontFile.ttf' +NL+
            NL+
            'Available options:' +NL+
-           '  -h / --help           Print this help message and exit' +NL+
-           '  --size FONT-SIZE' +NL+
-           '  --no-anti-alias' +NL+
-           '  --sample-text TEXT    Load (if existing) all characters' +NL+
-           '                        listed here. We also always add ASCII chars,' +NL+
-           '                        unless --only-sample-text given.' + NL+
-           '  --only-sample-text    Load only characters from --sample-text,' +NL+
-           '                        do not add standard ASCII chars.' +NL+
-           '  --unit-name UnitName  Set UnitName, by default we automatically' +NL+
-           '                        calculate it based on font name and size.' +NL+
-           '  --debug-log           See the log, showing e.g. the font image size.' +NL+
-           '  --debug-font-image    Write to disk font images as png.' +NL+
+           OptionDescription('-h / --help',
+             'Print this help message and exit.') + NL +
+           OptionDescription('--size=FONT-SIZE', '') + NL +
+           OptionDescription('--no-anti-alias', '') + NL +
+           OptionDescription('--sample-text=TEXT',
+             'Load (if existing in the font file) all the listed characters. You can use this parameter multiple times.') + NL +
+           OptionDescription('--sample-code=TEXT',
+             'Load (if existing in the font file) the listed character code. You can use this parameter multiple times.') + NL +
+           OptionDescription('--sample-get-text-mo=URL',
+             'Load (if existing in the font file) all the character codes present in translated strings in URL. URL must point to a GetText MO file, it can be a regular filename as well. You can use this parameter multiple times.') + NL +
+           OptionDescription('--only-sample-text',
+             'Load only characters from --sample-text and --sample-code, do not add standard ASCII chars. By default we add standard ASCII chars, regardless of --sample-text and --sample-code.') + NL +
+           OptionDescription('--function-name=PASCAL-FUNCTION-NAME',
+             'Set function name to access the font. By default we automatically calculate it based on font name and size.') + NL +
+           OptionDescription('--unit-name=PASCAL-UNIT-NAME',
+             'Set generated unit name. This also determines the output filename. By default we automatically calculate it based on function name (which in turn is automatically calculated based on font name and size).') + NL +
+           OptionDescription('--debug-log',
+             'See the log, showing e.g. the font image size.') + NL +
+           OptionDescription('--debug-font-image',
+             'Write to disk font images as png.') + NL +
            NL+
            SCastleEngineProgramHelpSuffix('texture-font-to-pascal', CastleEngineVersion, true));
          Halt;
@@ -82,54 +95,60 @@ begin
        end;
     2: Size := StrToInt(Argument);
     3: AntiAliasing := false;
-    4: SampleText := Argument;
-    5: ParamUnitName := Argument;
-    6: InitializeLog;
-    7: DebugFontImage := true;
-    8: OnlySampleText := true;
+    4: Characters.Add(Argument);
+    5: Characters.Add(StrToInt(Argument));
+    6: AddTranslatedCharacters(Argument, Characters);
+    7: ParamFunctionName := Argument;
+    8: ParamUnitName := Argument;
+    9: InitializeLog;
+    10: DebugFontImage := true;
+    11: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
 
 var
   Font: TTextureFontData;
-  PrecedingComment, UnitName, FontConstantName, OutURL, FontURL, FontName: string;
-  Characters: TUnicodeCharList;
+  PrecedingComment, UnitName, FontFunctionName, OutURL, FontURL, FontName: string;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-  Parameters.Parse(Options, @OptionProc, nil);
-  Parameters.CheckHigh(1);
-  FontURL := Parameters[1];
-  if OnlySampleText and (SampleText = '') then
-    raise EInvalidParams.Create('Parameter --only-sample-text specified, but --sample-text not given (or has empty argument). No characters would be loaded.');
-
-  Progress.UserInterface := ProgressConsoleInterface;
-
-  FontName := DeleteURIExt(ExtractURIName(FontURL));
-  FontConstantName := 'TextureFont_' +
-    SDeleteChars(FontName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']) +
-    '_' + IntToStr(Size);
-
-  if ParamUnitName <> '' then
-    UnitName := ParamUnitName else
-    UnitName := 'Castle' + FontConstantName;
-  PrecedingComment := Format(
-    '  Source font:' +NL+
-    '    Name         : %s' +NL+
-    '    Size         : %d' +NL+
-    '    AntiAliasing : %s' +nl,
-    [ FontName, Size, BoolToStr(AntiAliasing, true) ]);
-
   Characters := TUnicodeCharList.Create;
   try
+    Parameters.Parse(Options, @OptionProc, nil);
+    Parameters.CheckHigh(1);
+    FontURL := Parameters[1];
     if not OnlySampleText then
       Characters.Add(SimpleAsciiCharacters);
-    Characters.Add(SampleText);
+    if Characters.Count = 0 then
+      raise EInvalidParams.Create('No font characters requested to be loaded');
+
+    Progress.UserInterface := ProgressConsoleInterface;
+
+    FontName := DeleteURIExt(ExtractURIName(FontURL));
+    if ParamFunctionName <> '' then
+      FontFunctionName := ParamFunctionName
+    else
+      FontFunctionName := 'TextureFont_' +
+        SDeleteChars(FontName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']) +
+        '_' + IntToStr(Size);
+
+    if ParamUnitName <> '' then
+      UnitName := ParamUnitName
+    else
+      UnitName := 'Castle' + FontFunctionName;
+
+    PrecedingComment := Format(
+      '  Source font:' +NL+
+      '    Name         : %s' +NL+
+      '    Size         : %d' +NL+
+      '    AntiAliasing : %s' +nl,
+      [ FontName, Size, BoolToStr(AntiAliasing, true) ]);
+
     Font := TTextureFontData.Create(FontURL, Size, AntiAliasing, Characters);
     try
       OutURL := LowerCase(UnitName) + '.pas';
-      Font2Pascal(Font, UnitName, PrecedingComment, FontConstantName, OutURL);
+      Font2Pascal(Font, UnitName, PrecedingComment, FontFunctionName, OutURL);
       Writeln('texture-font-to-pascal: "' + OutURL + '" generated, texture size ',
         Font.Image.Width, ' x ',
         Font.Image.Height);

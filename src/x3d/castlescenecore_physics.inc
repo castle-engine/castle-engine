@@ -109,18 +109,19 @@ end;
 function TMeshCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 var
-  SI: TShapeTreeIterator;
+  ShapesList: TShapeList;
+  I: Integer;
 begin
   if Scene = nil then
     raise Exception.Create('You must assign a TMeshCollider.Scene to determine the mesh triangles');
 
   Mesh := TKraftMesh.Create(APhysics);
-  SI := TShapeTreeIterator.Create(Scene.Shapes, true);
-  try
-    while SI.GetNext do
-      if SI.Current.Collidable then
-        SI.Current.Triangulate(false, @AddTriangle);
-  finally FreeAndNil(SI) end;
+
+  ShapesList := Scene.Shapes.TraverseList(true);
+  for I := 0 to ShapesList.Count - 1 do
+    if ShapesList[I].Collidable then
+      ShapesList[I].Triangulate(false, @AddTriangle);
+
   if Mesh.CountVertices = 0 then
     raise Exception.Create('The scene assigned to TMeshCollider.Scene is empty (no collidable triangles)');
   Mesh.Finish;

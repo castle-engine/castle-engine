@@ -16,14 +16,14 @@
 { Simple rendering using TCastleImageControl with a custom GLSL shader.
 
   Note that an alternative way of using custom shaders is to use a scene
-  (like TCastle2DScene and TCastle2DSceneManager with a rectangle,
+  (like TCastleScene and TCastleViewport with a rectangle,
   see https://castle-engine.io/x3d_implementation_geometry2d.php ).
   And then you can assign custom shaders using nodes, see the example
   ../3d_rendering_processing/display_box_custom_shaders.lpr .
 
   This method is limited to rendering 2D images.
   It uses TCastleImageControl.CustomShader,
-  that under the hood uses TGLImage.CustomShader.
+  that under the hood uses TDrawableImage.CustomShader.
   It requires manually creating TGLSLProgram instance and linking it. }
 
 uses SysUtils,
@@ -47,7 +47,7 @@ begin
   Window.Controls.InsertFront(Background);
 
   Image := TCastleImageControl.Create(Application);
-  Image.URL := ApplicationData('test_texture.png');
+  Image.URL := 'castle-data:/test_texture.png';
   Image.Stretch := true;
   Image.FullSize := true;
   Window.Controls.InsertFront(Image);
@@ -95,14 +95,14 @@ begin
     '  gl_FragColor = texture2D(texture, tex_coord_frag);' + NL +
 
     // Uncomment to make simple edge detection
-    '#define IMAGE_WIDTH 100' + NL +
-    '#define IMAGE_HEIGHT 100' + NL +
+    '#define IMAGE_WIDTH 100.0' + NL +
+    '#define IMAGE_HEIGHT 100.0' + NL +
     '  gl_FragColor +=' + NL +
     '    texture2D(texture, tex_coord_frag - vec2(0.0, 0.5/IMAGE_HEIGHT)) - texture2D(texture, tex_coord_frag + vec2(0.0, 0.5/IMAGE_HEIGHT)) +' + NL +
     '    texture2D(texture, tex_coord_frag - vec2(0.5/IMAGE_WIDTH, 0.0))  - texture2D(texture, tex_coord_frag + vec2(0.5/IMAGE_WIDTH, 0.0));' + NL +
 
     // Uncomment to animate rgb
-    '  gl_FragColor.rgb = gl_FragColor.rgb * frac(life_time * 0.5);' + NL +
+    '  gl_FragColor.rgb = gl_FragColor.rgb * fract(life_time * 0.5);' + NL +
 
     '}'
   );

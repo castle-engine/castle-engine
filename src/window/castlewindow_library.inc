@@ -24,6 +24,7 @@ CTypes,
 {$endif}
 
 {$ifdef read_implementation_uses}
+CastleJoysticks,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -41,13 +42,25 @@ public
 private
   FScreenWidth, FScreenHeight: Integer;
   FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(Sender: TObject; const Category, S: string);
+  procedure WarningToCallback(const Category, S: string);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
-procedure CGEApp_Close; cdecl;
+{ Initialize / Finalize set up some global things.
+  Call CGEApp_Initialize / CGEApp_Finalize once and only once during the entire application. }
+procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Finalize; cdecl;
+
+{ Used by the external process to ask for context properties from CGE
+  (whether to use alpha channel, depth buffer etc.).
+  CGE answers looking at Application.MainWindow properties. }
+procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits: PCInt); cdecl; export;
+
+{ Notifications from the external process about various events:
+  rendering context was opened, closed, resized etc. }
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
+procedure CGEApp_Close(QuitWhenLastWindowClosed: CBool); cdecl;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight, uiStatusBarHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
 procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
@@ -57,6 +70,8 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
+procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
+procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 {$endif read_global_interface}
@@ -282,6 +297,7 @@ end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
+  Terminate; // set Terminated := true
 end;
 
 function TCastleApplication.ScreenWidth: integer;
@@ -308,7 +324,7 @@ begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(Sender: TObject; const Category, S: string);
+procedure TCastleApplication.WarningToCallback(const Category, S: string);
 var
   sMsg: string;
   szBuffer: PChar;
@@ -353,13 +369,58 @@ begin
     raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
 end;
 
-procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Initialize(ApplicationConfigDirectory: PChar); cdecl;
+begin
+  try
+    // use given ApplicationConfigDirectory
+    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
+    WritelnLog('Library initialized, set application config directory to URL: %s', [ApplicationConfigOverride]);
+
+    ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
+  except
+    on E: TObject do WritelnWarning('CGEApp_Initialize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Finalize; cdecl;
+begin
+  try
+    ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
+  except
+    on E: TObject do WritelnWarning('CGEApp_Finalize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_ContextProperties(RedBits, GreenBits, BlueBits, AlphaBits, DepthBits, StencilBits: PCInt); cdecl;
+var
+  W: TCastleWindowBase;
 begin
   try
     CheckMainWindow;
+    W := Application.MainWindow;
+    RedBits    ^ := Max(1, W.RedBits  );
+    GreenBits  ^ := Max(1, W.GreenBits);
+    BlueBits   ^ := Max(1, W.BlueBits );
+    AlphaBits  ^ := W.AlphaBits  ;
+    DepthBits  ^ := W.DepthBits  ;
+    StencilBits^ := W.StencilBits;
+    WritelnLog('Rendering context will be initialized with these (minimal) buffer sizes: red %d, green %d, blue %d, alpha %d, depth %d, stencil %d', [
+      RedBits    ^,
+      GreenBits  ^,
+      BlueBits   ^,
+      AlphaBits  ^,
+      DepthBits  ^,
+      StencilBits^
+    ]);
+  except
+    on E: TObject do WritelnWarning('CGEApp_ContextProperties', ExceptMessage(E));
+  end;
+end;
 
-    // use given ApplicationConfigDirectory
-    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
+procedure CGEApp_Open(InitialWidth, InitialHeight, InitialStatusBarHeight, ADpi: cUInt32); cdecl;
+begin
+  try
+    CheckMainWindow;
 
     { We have to set window sizes, and Application.Screen* sizes,
       before calling MainWindow.Open. That's because EventOpen may already
@@ -367,7 +428,6 @@ begin
       Yes, other CastleWindow backends also make sure that these are set early. }
 
     WritelnLog('Library received CGEApp_Open (window size: %d %d)', [InitialWidth, InitialHeight]);
-    WritelnLog('Library set application config directory to URL: %s', [ApplicationConfigOverride]);
     Application.FScreenWidth := InitialWidth;
     Application.FScreenHeight := InitialHeight;
     Application.FScreenStatusBarHeight := InitialStatusBarHeight;
@@ -377,20 +437,17 @@ begin
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
     Application.MainWindow.Dpi := ADpi;
-
-    ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
     Application.MainWindow.Open;
   except
     on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
   end;
 end;
 
-procedure CGEApp_Close; cdecl;
+procedure CGEApp_Close(QuitWhenLastWindowClosed: CBool); cdecl;
 begin
   try
     CheckMainWindow;
-    Application.MainWindow.Close;
-    ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
+    Application.MainWindow.Close(QuitWhenLastWindowClosed);
   except
     on E: TObject do WritelnWarning('CGEApp_Close', ExceptMessage(E));
   end;
@@ -441,11 +498,11 @@ end;
 
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    if (bLeftBtn) then MyButton := buttonLeft else MyButton := buttonRight;
     Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
@@ -470,14 +527,14 @@ end;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
   FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 var
-  MyButton: TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   try
     CheckMainWindow;
     if bLeftBtn then
-      MyButton := mbLeft
+      MyButton := buttonLeft
     else
-      MyButton := mbRight;
+      MyButton := buttonRight;
     Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));
@@ -488,9 +545,11 @@ procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 begin
   try
     CheckMainWindow;
-    if TKey(eKey)<>K_None then
+    if TKey(eKey) <> keyNone then
       // TODO: calculate sensible char
       Application.MainWindow.DoKeyDown(TKey(eKey), '');
+    // if TKey(eKey) <> keyNone then
+    //   WritelnLog('key down %s', [KeyToStr(TKey(eKey))]);
   except
     on E: TObject do WritelnWarning('CGEApp_KeyDown', ExceptMessage(E));
   end;
@@ -500,10 +559,34 @@ procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 begin
   try
     CheckMainWindow;
-    if TKey(eKey)<>K_None then
+    if TKey(eKey) <> keyNone then
       Application.MainWindow.DoKeyUp(TKey(eKey));
+    // if TKey(eKey) <> keyNone then
+    //   WritelnLog('key up %s', [KeyToStr(TKey(eKey))]);
   except
     on E: TObject do WritelnWarning('CGEApp_KeyUp', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_JoystickCount(JoystickCount: CInt); cdecl;
+begin
+  try
+    CheckMainWindow;
+    Joysticks.InternalSetJoystickCount(JoystickCount);
+  except
+    on E: TObject do WritelnWarning('CGEApp_JoystickCount', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_JoystickAxis(JoystickIndex: CInt; X, Y: Single); cdecl;
+begin
+  try
+    CheckMainWindow;
+    Joysticks.InternalSetJoystickAxis(JoystickIndex, Vector2(X, Y));
+    // if (X <> 0) or (Y <> 0) then
+    //   WritelnLog('Joy axis %d %f %f %f', [JoystickIndex, X, Y]);
+  except
+    on E: TObject do WritelnWarning('CGEApp_JoystickAxis', ExceptMessage(E));
   end;
 end;
 
@@ -517,6 +600,13 @@ begin
   except
     on E: TObject do WritelnWarning('CGEApp_HandleOpenUrl', ExceptMessage(E));
   end;
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

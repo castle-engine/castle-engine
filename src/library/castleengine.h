@@ -59,7 +59,7 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
     ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
-    ecgevarScenePaused     = 6,   // pause SceneManager (int, 1 = on, 0 = off)
+    ecgevarScenePaused     = 6,   // pause Viewport (int, 1 = on, 0 = off)
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
@@ -211,6 +211,20 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Numpad_Enter    = 161,
   kcge_Numpad_Multiply = 162,
   kcge_Numpad_Divide   = 163,
+  kcge_Pad_A      = 164,
+  kcge_Pad_B      = 165,
+  kcge_Pad_X      = 166,
+  kcge_Pad_Y      = 167,
+  kcge_Pad_L      = 168,
+  kcge_Pad_R      = 169,
+  kcge_Pad_ZL     = 170,
+  kcge_Pad_ZR     = 171,
+  kcge_Pad_Plus   = 172,
+  kcge_Pad_Minus  = 173,
+  kcge_Pad_Left   = 174,
+  kcge_Pad_Up     = 175,
+  kcge_Pad_Right  = 176,
+  kcge_Pad_Down   = 177,
   kcge_Comma       = 188,
   kcge_Period      = 190,
 };
@@ -222,8 +236,14 @@ typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int i
 extern void CGE_LoadLibrary(void);	// function defined in the loader CPP file
 
 //-----------------------------------------------------------------------------
-extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory);     // init the library, this function must be called first (required). Flags is any combination of ECgeOpenFlag
-extern void CGE_Close(void);
+
+// Initialize the library, this function must be called first (required).
+// Then CGEApp_Open and CGEApp_Close may be called multiple times.
+extern void CGE_Initialize(const char *applicationConfigDirectory);
+extern void CGE_Finalize(void);
+
+extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi);
+extern void CGE_Close(bool quitWhenLastWindowClosed);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
@@ -265,7 +285,7 @@ extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
                                   float fVal1, float fVal2, float fVal3, float fVal4);
 
-extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when sceneManager paused
+extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when viewport paused
 
 #ifdef __cplusplus
 }

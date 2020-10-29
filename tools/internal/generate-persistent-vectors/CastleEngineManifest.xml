@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="generate-persistent-vectors" standalone_source="generate-persistent-vectors.lpr">
+  <data exists="false" />
 </project>

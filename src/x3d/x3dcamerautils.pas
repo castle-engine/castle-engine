@@ -229,7 +229,9 @@ begin
     case Version of
       cvVrml1_Inventor: ViewpointNode := TPerspectiveCameraNode_1.Create('', BaseUrl);
       cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', BaseUrl);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
+      {$endif}
     end;
     ViewpointNode.Position := Position;
     ViewpointNode.Orientation := OrientationFromDirectionUp(Direction, Up);
@@ -285,7 +287,9 @@ begin
 
           Result := Transform_2;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
+      {$endif}
     end;
   end;
 end;

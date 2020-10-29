@@ -1,47 +1,72 @@
 Demo how to use localization (translate your game into multiple languages)
 with Castle Game Engine.
 
-We use FPC GetText unit for this:
-https://www.freepascal.org/docs-html/fcl/gettext/index.html
-This translates all strings in `resourcestring` declarations.
+We use CastleLocalizationGetText, based on FPC GetText unit, for this.
+See CGE manual about text and localization: https://castle-engine.io/manual_text.php .
 
 # Creating translations
 
-1. Place everything you may need to translate as a `resourcestring` in Pascal. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
+1. To translate strings used in Pascal code:
 
-2. Create initial `game.pot` file.
+    1. Place strings in `resourcestring`. You can use English text in code, or you can use internal translation identifiers (never to be seen by normal users) -- both approaches are possible.
 
-    _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
+    2. Create initial `game.pot` file (that describes the possible strings to translate).
 
-    The `game.pot` can serve a basis for translations. You can create it using strings from the source code:
+        _Note that this step is optional_. If you want, you can work without any `game.pot` file, and just create translations by manually creating files like `game.pl.po` for each language. The syntax of PO files is trivial, see `po_files` subdirectory here.
 
-    * Compile the game (`castle-engine compile`).
+        The `game.pot` can serve a basis for translations. You can create it using strings from the source code:
 
-    * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
+        * Compile the game (`castle-engine compile`).
 
-    * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
+        * Use `rstconv` (distributed with FPC) like this: `rstconv -i castle-engine-output/compilation/x86_64-linux/game.rsj -o po_files/game.pot`
 
-3. To translate to a new language:
+        * Note that FPC will create one `xxx.rsj` file for each unit. But this should not limit you. It's normal to put all the strings from the *complete* application into a single `xxx.pot` file. In general, the format of the `.pot` and .po` files (they are the same) is trivial, they are simple text files that can be concatenated together etc.
 
-    * For each new language, create a new file like `po_files/game.pl.po` (`pl` for a Polish translation, `de` for German, `en` for English etc.).
+2. To translate user interface:
 
-        * You can start by just copying `game.pl.po` from `game.pot`.
+    1. Design it using the CGE editor, and write as `xxx.castle-user-interface` files. (More complex scenarios can also be handled using CastleLocalizationGetText utilities, like TranslateDesign.)
 
-        * Or you can start by `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+    2. Generate the `user_interface.pot` file using `GenerateGetTextPo`. See the trivial utility inside `po_files/generator/po_generator.lpr` in this example.
+
+3. Then translate the PO files.
+
+    * For each `xxxx.pot`, you create a file like `xxxx.ll.po` inserting the 2-latter character code indicating a language.
+
+        You can create the `.po` file from `.pot` just by copying it -- it's the same file format, the `.pot` (PO Template) extension is just a way to indicate _"this is a basis for translation"_.
+
+        Or you can create the `.po` by calling `msginit --locale=pl --input=game.pot --no-translator --output-file=game.pl.po`. This creates `game.pl.po`, with the initial translated strings having contents from `game.pot`. This makes sense if `game.pot` contains English text, and it's a good starting point for a new translation.
+
+    * E.g. you copy `game.pot` to `game.pl.po` to translate to Polish the resourcestrings, and you copy `user_interface.pot` to `user_interface.pl.po` to translate to Polish the user interface designed using the CGE Editor. `pl` stands for a Polish translation, `de` for German, `en` for English etc.
 
     * Edit the `game.pl.po` using a normal text editor. Or use a specialized editor like https://poedit.net/
 
-    * Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
+    * Note: You cannot force something to be empty by translating it to an empty string. `GetText` treats `msgstr ""` as indicating "not translated", and the `msgfmt` will not even place this mapping in MO file. In turn, the text will be left in the original (English) version. See https://github.com/grosser/gettext_i18n_rails/issues/81 and links from it to other similar issues. To make something empty, for now it's simplest to translate it to a space character.
 
-In code:
+4. Generate .mo file: `msgfmt po_files/game.pl.po --output-file=data/locale/game.pl.mo`. We have a trivial script here `update_translations.sh` doing that. You need to rerun it after every modification to `po_files`.
 
-* Call in Pascal `TranslateResourceStrings(URIToFilenameSafe(ApplicationData('locale/game.pl.mo')));` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
+# Using translations from Pascal code
 
-* Assign the resourcestrings to the approproate properties of appropriate objects, like `TCastleLabel.Caption`.
+## Translating resourcestrings
 
-It's probably easiest to just call `TranslateResourceStrings` once, at the very beginning of your application (at the beginning of `Application.OnInitialize` handler). And then construct UI as usual (just use `resourcestring`s). If the user wants to change the language, it's easiest to just say _"Please restart the application in order for the language change to take effect."_.
+* Call in Pascal `CastleTranslateResourceStrings('castle-data:/locale/game.pl.mo');` to use the Polish translation. This simply updates all `resourcestring` contents to the Polish versions.
 
-That said, if you put some more work, you can allow to dynamically switch the language during the game. Just reassign all captions from the corresponding `resourcestring`s. The demo here shows how to do it: see the `TApplicationLogic.SwitchLanguage` method. It's trivial to write, although it may be a pain to maintain in a larger project.
+* Call `TranslateAllDesigns('castle-data:/locale/user_interface.pl.mo');` to translate all user interface to Polish.
+
+* If needed, you can also translate custom things, using more PO files.
+
+    Load them using `LoadGetTextMo` and use the `Translate` method, see FPC docs of [TMOFile](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.html) and the [TMOFile.Translate](https://www.freepascal.org/docs-html/fcl/gettext/tmofile.translate.html) method. Example:
+
+```
+var
+  Language: String;
+  Translations: TCastleMOFile;
+begin
+  Language := 'pl';
+  Translations := LoadGetTextMo('castle-data:/locale/game.' + Language + '.mo');
+  Writeln('Translated: ', Translations.Translate('message identifier to translate'));
+  FreeAndNil(Translations);
+end.
+```
 
 # Fonts
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2018 Michalis Kamburelis.
+  Copyright 2012-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,14 +28,16 @@ uses SysUtils, Classes,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
-  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
+  CastleVectors, CastleUIControls, CastleGLUtils, CastleViewport,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
+  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties,
+  CastleLoadGltf, CastleSceneCore, CastleScene;
 
 var
-  Window: TCastleWindowTouch;
-  SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
-  Player: TPlayer; //< same thing as Window.SceneManager.Player
+  Window: TCastleWindowBase;
+  Level: TLevel;
+  Player: TPlayer;
+  Viewport: TCastleViewport;
   ExtraViewport: TCastleViewport;
   CreaturesSpawned: Integer;
 
@@ -74,6 +76,15 @@ var
 begin
   inherited;
 
+  { We use TCastleButton from CastleControls unit for buttons drawn using CGE.
+    If you would use Lazarus and TCastleControlBase (instead of TCastleWindowBase)
+    you can also consider using Lazarus standard buttons and other components
+    on your form.
+
+    The advantage of our TCastleButton is that it is drawn completely by our
+    engine, which means that you can style the TCastleButton to match the theme
+    of your game (like medieval fantasy of futuristic sci-fi). }
+
   NextButtonBottom := ControlsMargin;
 
   if not ApplicationProperties.TouchDevice then
@@ -89,11 +100,15 @@ begin
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
     NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.EffectiveHeight + ControlsMargin);
+  end;
 
-    { Do not show this on touch device, as Application.Terminate
-      (or Window.Close, or anything similar) doesn't make sense on mobile devices.
-      Users do not press "exit" button on mobile devices, they just switch
-      to home/other application.
+  if ApplicationProperties.ShowUserInterfaceToQuit then
+  begin
+    { Do not show this on mobile devices / consoles, as
+      - Application.Terminate (or Window.Close, or anything similar)
+        doesn't make sense on these devices,
+      - and users are not accustomed to pressing "Quit" on these devices,
+        they just switch to home/other application.
       See also https://castle-engine.io/manual_cross_platform.php }
     ExitButton := TCastleButton.Create(Application);
     ExitButton.Caption := 'Exit (Escape)';
@@ -158,7 +173,7 @@ end;
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
 begin
   ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
-  Player.Camera.MouseLook := ToggleMouseLookButton.Pressed;
+  Player.Navigation.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
 procedure TButtons.ExitButtonClick(Sender: TObject);
@@ -182,23 +197,17 @@ procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
   URL: string;
 begin
-  { Guess the URL where to write the screenshot.
-    Using ApplicationConfig is safer (on ANY platform, but especially on mobile),
-    because the ApplicationConfig is somewhere we can definitely write files. }
-  if ApplicationProperties.TouchDevice then
-    URL := FileNameAutoInc(ApplicationConfig(ApplicationName + '_screen_%d.png'))
-  else
-    URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
-    (overloaded Window.SaveScreen returns you a TRGBImage and we have
+    (overloaded SaveScreen returns you a TRGBImage and we have
     a whole image library in CastleImages unit to process such image).
     You could also ask use to choose a file (e.g. by Window.FileDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  Window.SaveScreen(URL);
-  Notifications.Show('Saved screen to ' + URL);
+  URL := Window.Container.SaveScreenToDefaultFile;
+  if URL <> '' then
+    Notifications.Show('Saved screen to ' + URL);
+  // when URL = '' it means that recommended directory to store screenshots on this platform cannot be found
 end;
 
 procedure TButtons.AddCreatureButtonClick(Sender: TObject);
@@ -212,8 +221,8 @@ begin
   Translation.Data[1] := Translation.Data[1] + 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
-  { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
-  CreatureResource.CreateCreature(SceneManager.Items, Translation, Direction);
+  { CreateCreature creates TCreature instance and adds it to Viewport.Items }
+  CreatureResource.CreateCreature(Level, Translation, Direction);
 
   // update and show CreaturesSpawned
   Inc(CreaturesSpawned);
@@ -232,8 +241,8 @@ begin
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
-    instance) and adds it to SceneManager.Items. }
-  ItemResource.CreateItem(1).PutOnWorld(SceneManager.Items, Translation);
+    instance) and adds it to Viewport.Items. }
+  ItemResource.CreateItem(1).PutOnWorld(Level, Translation);
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
@@ -256,16 +265,36 @@ type
   end;
 
 procedure TPlayerHUD.Render;
+
+  procedure DisplayCurrentAmmo;
+  var
+    AmmoStr: String;
+    GunResource: TItemWeaponResource;
+    GunIndex: Integer;
+    Gun: TItemWeapon;
+  begin
+    GunResource := Resources.FindName('Gun') as TItemWeaponResource;
+    GunIndex := Player.Inventory.FindResource(GunResource);
+    if GunIndex <> -1 then // owns gun?
+    begin
+      Gun := Player.Inventory[GunIndex] as TItemWeapon;
+      AmmoStr := Format('Loaded Ammo: %d / %d', [
+        Gun.AmmoLoaded,
+        GunResource.AttackAmmoCapacity
+      ]);
+      UIFont.Print(10, ContainerHeight - 220, Green, AmmoStr);
+    end;
+  end;
+
+
 const
   InventoryImageSize = 128;
 var
-  Player: TPlayer;
   I: Integer;
   X, Y: Single;
-  S: string;
+  S: String;
 begin
   inherited;
-  Player := SceneManager.Player;
 
   Y := ContainerHeight;
 
@@ -278,6 +307,8 @@ begin
   Y := Y - (UIFont.RowHeight + ControlsMargin);
   UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  DisplayCurrentAmmo;
 
   { show FPS }
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
@@ -295,7 +326,7 @@ begin
       You could change the image by assigning Theme.Images[tiActiveFrame]
       (and choosing one of your own images or one of the predefined images
       in CastleControlsImages, see main program code for example),
-      or by creating and using TGLImageCore.Draw3x3 or TGLImage.Draw directly. }
+      or by creating and using TDrawableImage.Draw3x3 or TDrawableImage.Draw directly. }
     Theme.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
   end;
 
@@ -303,7 +334,7 @@ begin
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
     as image="xxx" attribute of the root <resource> element.
-    Based on this, the engine initializes TItemResource.Image and TItemResource.GLImage,
+    Based on this, the engine initializes TItemResource.Image and TItemResource.DrawableImage,
     that you can easily use for any purpose.
     We assume below that all item images have square size
     InventoryImageSize x InventoryImageSize,
@@ -311,7 +342,7 @@ begin
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
-    Player.Inventory[I].Resource.GLImage.Draw(X, Y);
+    Player.Inventory[I].Resource.DrawableImage.Draw(FloatRectangle(X, Y, InventoryImageSize, InventoryImageSize));
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
@@ -336,12 +367,75 @@ begin
   if Player.Swimming = psUnderWater then
     DrawRectangle(ParentRect, Vector4(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangleDark(ParentRect, Red, 1.0) else
+    GLFadeRectangleDark(ParentRect, Red, 1.0)
+  else
     GLFadeRectangleDark(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 
 var
   PlayerHUD: TPlayerHUD;
+
+
+{ Create player. Player implements:
+  - inventory,
+  - automatic picking of items by default,
+  - health (can be hurt by enemies),
+  - equipping weapon (a special item can be equipped and used to hurt enemies),
+  - footsteps
+  - and some other nice stuff.
+  - Player.Navigation is also automatically configured as Viewport.Navigation
+    and it follows level's properties like PreferredHeight (from level's
+    NavigationInfo.avatarSize). }
+procedure CreatePlayer;
+
+  procedure SetupThirdPersonNavigation;
+  var
+    Avatar: TCastleScene;
+  begin
+    Player.UseThirdPerson := true;
+
+    // RenderOnTop makes sense only for 1st-person camera
+    Player.RenderOnTop := false;
+
+    // TPlayer already created Avatar instance for us, just use it
+    Avatar := Player.ThirdPersonNavigation.Avatar;
+    Avatar.Load('castle-data:/avatar/avatar.gltf');
+
+    { Make Player collide using a sphere.
+      Sphere is more useful than default bounding box for avatars and creatures
+      that move in the world, look ahead, can climb stairs etc. }
+    Player.MiddleHeight := 0.9;
+    Player.CollisionSphereRadius := 0.5;
+
+    { Gravity means that object tries to maintain a constant height
+      (Player.PreferredHeight) above the ground.
+      GrowSpeed means that object raises properly (makes walking up the stairs work).
+      FallSpeed means that object falls properly (makes walking down the stairs,
+      falling down pit etc. work). }
+    Player.Gravity := true;
+    Player.GrowSpeed := 10.0;
+    Player.FallSpeed := 10.0;
+
+    Player.ThirdPersonNavigation.Input_CameraCloser.Assign(keyNone, keyNone, '', false, buttonLeft, mwUp);
+    Player.ThirdPersonNavigation.Input_CameraFurther.Assign(keyNone, keyNone, '', false, buttonLeft, mwDown);
+    Player.ThirdPersonNavigation.CrouchSpeed := 2;
+    Player.ThirdPersonNavigation.MoveSpeed := 4;
+    Player.ThirdPersonNavigation.RunSpeed := 8;
+  end;
+
+begin
+  FreeAndNil(Player);
+
+  Player := TPlayer.Create(Application);
+
+  { Use this to enable 3rd-person camera }
+  //SetupThirdPersonNavigation;
+
+  Level.Player := Player;
+
+  if Buttons <> nil then
+    Buttons.ToggleMouseLookButton.Pressed := false;
+end;
 
 { Window callbacks ----------------------------------------------------------- }
 
@@ -351,18 +445,20 @@ begin
     mechanism to assign key shortcut to a TCastleButton right now.
     Note that we pass Sender = nil to the callbacks, because we know that
     our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(K_F4) and
+  if Event.IsKey(keyF4) and
      // in case we test touch input in desktop, ToggleMouseLookButton = nil
      (Buttons.ToggleMouseLookButton <> nil) then
     Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
     Buttons.ExitButtonClick(nil) else
-  if Event.IsKey(K_F5) then
+  if Event.IsKey(keyF5) then
     Buttons.ScreenshotButtonClick(nil) else
-  if Event.IsKey(K_F9) then
+  if Event.IsKey(keyF9) then
     Buttons.AddCreatureButtonClick(nil) else
-  if Event.IsKey(K_F10) then
+  if Event.IsKey(keyF10) then
     Buttons.AddItemButtonClick(nil);
+  if Event.IsKey(keyF1) then
+    CreatePlayer;
 end;
 
 { Customized item ------------------------------------------------------------ }
@@ -448,10 +544,20 @@ end;
   This is assigned to Application.OnInitialize, and will be called only once. }
 procedure ApplicationInitialize;
 begin
+  { Turn on some engine optimizations not enabled by default.
+    TODO: In the future they should be default, and these variables should be ignored.
+    See their docs for description why they aren't default yet. }
+  OptimizeExtensiveTransformations := true;
+  InternalFastTransformUpdate := true;
+
   { automatically scale user interface to reference sizes }
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
+
+  { force using Phong lighting model instead of PBR (physically-based rendering) model.
+    Faster, less realistic. }
+  GltfForcePhongMaterials := true;
 
   { Load user preferences file.
     You can use it for your own user persistent data
@@ -459,56 +565,48 @@ begin
     https://castle-engine.io/tutorial_user_prefs.php . }
   //UserConfig.Load;
 
-  { Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
-    gives you a ready instance of SceneManager. SceneManager is a very
-    important object in our engine: it contains the whole knowledge about
-    your 3D world. In fact, we will use it so often that it's comfortable
-    to assign it to a handy variable SceneManager,
-    instead of always writing "Window.SceneManager". }
-  SceneManager := Window.SceneManager;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
+
+  Level := TLevel.Create(Application);
+  Level.Viewport := Viewport;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
+  SoundEngine.RepositoryURL := 'castle-data:/sounds/index.xml';
 
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
-  MaterialProperties.URL := ApplicationData('material_properties.xml');
+  MaterialProperties.URL := 'castle-data:/material_properties.xml';
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
-  Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'));
+  Theme.Images[tiActiveFrame] := LoadImage('castle-data:/box.png');
   Theme.OwnsImages[tiActiveFrame] := true;
-  Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
+  Theme.Corners[tiActiveFrame] := Vector4(38, 38, 38, 38);
 
-  { Create extra viewport to observe the 3D world.
-
-    Note that (by default) SceneManager has two functions:
-    1.The primary function of SceneManager is to keep track of everything inside
-      your 3D world.
-    2.In addition, by default it acts as a full-screen viewport
-      that allows you to actually see and interact with the 3D world.
-
-    But the 2nd feature (SceneManager as viewport) is completely optional
-    and configurable. You can turn it off by SceneManager.DefaultViewport := false.
-    Or you can configure size of the viewport by
-    by SceneManager.FullSize and SceneManager.Left/Bottom/Width/Height.
-
-    Regardless of this, you can also always add additional viewports by
-    TCastleViewport. TCastleViewport refers to the existing SceneManager
-    for 3D world information, like below.
-    Each viewport has it's own camera, so you can even interact with it
-    (the viewport created below uses Examine camera).
+  { Create extra viewport to observe the world.
+    You can always add additional viewports.
+    Each viewport has it's own camera and navigation.
     See
     examples/3d_rendering_processing/multiple_viewports and
     examples/2d_standard_ui/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
-  ExtraViewport.SceneManager := SceneManager;
+  ExtraViewport.Items := Viewport.Items; // share the same world as Viewport
   ExtraViewport.FullSize := false;
   ExtraViewport.Width := 150;
   ExtraViewport.Height := 400;
   ExtraViewport.Anchor(vpMiddle);
   ExtraViewport.Anchor(hpRight, -ControlsMargin);
-  { We insert ExtraViewport to Controls before SceneManager, to be on top. }
   Window.Controls.InsertFront(ExtraViewport);
+
+  { Initialize ExtraViewport.Camera to nicely see the level from above. }
+  ExtraViewport.Camera.SetView(
+    { position } Vector3(0, 55, -44),
+    { direction } Vector3(0, -1, 0),
+    { up } Vector3(0, 0, 1), false
+  );
+  { Allow user to actually edit this view, e.g. by mouse scroll. }
+  ExtraViewport.NavigationType := ntExamine;
 
   { Assign callbacks to some window events.
     Note about initial events: Window.Open calls OnOpen and first OnResize events,
@@ -520,82 +618,53 @@ begin
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
 
+(* TODO: TCastleWindowTouch is deprecated now.
+   Fixing this needs upgrading TCastleTouchNavigation to be easily added to Viewport.
+
   { Enable automatic navigation UI on touch devices. }
   //ApplicationProperties.TouchDevice := true; // use this to test touch behavior on desktop
   Window.AutomaticTouchInterface := ApplicationProperties.TouchDevice;
+*)
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
-  Input_DropItem.Assign(K_R);
+  PlayerInput_DropItem.Assign(keyR);
   if not ApplicationProperties.TouchDevice then
     // allow shooting by clicking or pressing Ctrl key
-    Input_Attack.Assign(K_Ctrl, K_None, '', true, mbLeft);
+    PlayerInput_Attack.Assign(keyCtrl, keyNone, '', true, buttonLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
   RegisterResourceClass(TMedKitResource, 'MedKit');
 
   { Load resources (creatures and items) from resource.xml files. }
-  //Resources.LoadFromFiles; // on non-Android, this finds all resource.xml files in data
-  Resources.AddFromFile(ApplicationData('knight_creature/resource.xml'));
-  Resources.AddFromFile(ApplicationData('item_medkit/resource.xml'));
-  Resources.AddFromFile(ApplicationData('item_shooting_eye/resource.xml'));
+  Resources.LoadFromFiles;
 
   { Load available levels information from level.xml files. }
   //Levels.LoadFromFiles; // on non-Android, this finds all level.xml files in data
-  Levels.AddFromFile(ApplicationData('example_level/level.xml'));
+  Levels.AddFromFile('castle-data:/example_level/level.xml');
 
-  { Create player. This is necessary to represent the player as anything
-    more than a camera. Player adds inventory, with automatic picking of items
-    by default, health (can be hurt by enemies), equipping weapon (a special
-    item can be equipped and used to hurt enemies), footsteps and some other
-    nice stuff.
-
-    It's best to assign SceneManager.Player before SceneManager.LoadLevel,
-    then Player.Camera is automatically configured as SceneManager.Camera
-    and it follows level's properties like PreferredHeight (from level's
-    NavigationInfo.avatarSize). }
-  Player := TPlayer.Create(SceneManager);
-  SceneManager.Items.Add(Player);
-  SceneManager.Player := Player;
+  { Create player. Player implements:
+    - inventory,
+    - automatic picking of items by default,
+    - health (can be hurt by enemies),
+    - equipping weapon (a special item can be equipped and used to hurt enemies),
+    - footsteps
+    - and some other nice stuff.
+    - Player.Navigation is also automatically configured as Viewport.Navigation
+      and it follows level's properties like PreferredHeight (from level's
+      NavigationInfo.avatarSize). }
+  CreatePlayer;
 
   { Load initial level.
     This loads and adds 3D model of your level to the 3D world
-    (that is to SceneManager.Items). It may also load initial creatures/items
+    (that is to Viewport.Items). It may also load initial creatures/items
     on levels, waypoints/sectors and other information from so-called
-    "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
-  SceneManager.LoadLevel('example_level');
+    "placeholders" on the level, see TLevel.Load documentation. }
+  Level.Load('example_level');
 
-  { Initialize ExtraViewport camera to something
-    that nicely views the scene from above. }
-  ExtraViewport.NavigationType := ntExamine;
-  ExtraViewport.RequiredCamera.SetView(
-    { position } Vector3(0, 55, 44),
-    { direction } Vector3(0, -1, 0),
-    { up } Vector3(0, 0, -1), false
-  );
-  { Note we allow user to actually edit this view, e.g. by mouse dragging.
-    But you could always do this to make camera non-editable: }
-  // ExtraViewport.Camera.Input := [];
-
-  { Maybe adjust some rendering properties?
-    (SceneManager.MainScene was initialized by SceneManager.LoadLevel) }
-  // SceneManager.MainScene.Attributes.PhongShading := true; // per-pixel lighting, everything done by shaders
-
-  { Add some buttons.
-    We use TCastleButton from CastleControls unit for buttons,
-    which are drawn using OpenGL.
-    If you use Lazarus and TCastleControl (instead of TCastleWindow)
-    you can also consider using Lazarus standard buttons and other components
-    on your form.
-
-    The advantage of our TCastleButton is that it is drawn completely by our
-    engine, which means that you can style the TCastleButton to match the theme
-    of your game (like medieval fantasy of futuristic sci-fi).
-    For now, you can change the colors (see global Theme (instance
-    of TCastleTheme class) properties), and also TCastleButton.Opacity.
-    Easy way to apply textures on TCastleButton is planned in the future. }
+  { Add some buttons }
   Buttons := TButtons.Create(Application);
 
   { Add the Notifications to our window.
@@ -614,7 +683,7 @@ begin
   Window.Controls.InsertFront(PlayerHUD);
 
   { Insert default crosshair.
-    You can always draw your custom crosshair instead (using TGLImage.Draw
+    You can always draw your custom crosshair instead (using TDrawableImage.Draw
     inside TPlayerHUD, or using TCastleImageControl). }
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 end;
@@ -638,7 +707,7 @@ initialization
   InitializeLog;
 
   { Create a window. }
-  Window := TCastleWindowTouch.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;

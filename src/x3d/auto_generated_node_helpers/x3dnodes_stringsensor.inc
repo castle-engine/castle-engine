@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDeletionAllowed: boolean;
-    procedure SetDeletionAllowed(const Value: boolean);
+    function GetDeletionAllowed: Boolean;
+    procedure SetDeletionAllowed(const Value: Boolean);
   public
     { X3D field "deletionAllowed". } { }
-    property DeletionAllowed: boolean read GetDeletionAllowed write SetDeletionAllowed;
+    property DeletionAllowed: Boolean read GetDeletionAllowed write SetDeletionAllowed;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TStringSensorNode ----------------------------------------------- }
 
-function TStringSensorNode.GetDeletionAllowed: boolean;
+function TStringSensorNode.GetDeletionAllowed: Boolean;
 begin
   Result := FdDeletionAllowed.Value;
 end;
 
-procedure TStringSensorNode.SetDeletionAllowed(const Value: boolean);
+procedure TStringSensorNode.SetDeletionAllowed(const Value: Boolean);
 begin
   FdDeletionAllowed.Send(Value);
 end;

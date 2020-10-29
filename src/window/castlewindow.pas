@@ -95,7 +95,7 @@
 
     procedure Render(Sender: TUIContainer);
     begin
-      // ... e.g. DrawRectangle or TGLImage.Draw calls inside
+      // ... e.g. DrawRectangle or TDrawableImage.Draw calls inside
     end;
 
     begin
@@ -182,7 +182,24 @@ unit CastleWindow;
   Available backends:
 
   CASTLE_WINDOW_GTK_2
-    Based on GTK 2.x, using GtkGLExt extension. Made 2005-02.
+    Based on GTK 2.x.
+
+    Only for Xlib (in practice: only for Unix), as it uses GLX to initialize context.
+    Note: At some point it was using GtkGLExt,
+    and thus was portable to anywhere GtkGLExt runs (so, not only Xlib).
+    However:
+    - This wasn't really utilized in practice by anything.
+      GTK on Xlib was the only real use-case.
+      (GTK on Windows was checked in an ancient times, but it had no real usage.)
+    - This required Unix users to install GtkGLExt.
+      It isn't commonly automatically installed.
+    - Since we can work without GtkGLExt so easily (we had our own code to use GLX anyway),
+      it seems reasonable to remove extra dependency.
+    - If more flexibility will be needed in the future,
+      we can easily add support for initializing GL context in other ways.
+      IOW, we can do on our own what GtkGLExt was doing,
+      we already have code to directly deal with wgl, egl etc.
+
     MainMenu is implemented as a nice-looking GTK menu bar.
     Dialog windows implemented using GTK dialog windows.
     Generally, has a nice native look of GTK application.
@@ -224,6 +241,13 @@ unit CastleWindow;
     Based on XLib units. No X toolkit is used.
     Only for OSes where X is used, which in practice means Unix.
 
+    Allows you to change screen resolution when
+    starting the game, which may be useful.
+
+    TODO: In fullscreen mode, the Alt+Tab and other window manager functions
+    are blocked. That's because we use ancient way to make fullscreen
+    (override_redirect).
+
     For desktop OpenGL (when OpenGLES is not defined) this is implemented
     on top of glX.
     For OpenGL ES (when OpenGLES is defined) this is implemented
@@ -241,24 +265,11 @@ unit CastleWindow;
     Dialog boxes are implemented using CastleMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
 
-    On Unix platforms, whether you should use CASTLE_WINDOW_GTK_2 or
-    this CASTLE_WINDOW_XLIB depends on your program.
-
-    - For utility programs, usually CASTLE_WINDOW_GTK_2.
-      You want the menu bar and native (GTK-themed) look of dialog boxes.
-
-    - For fullscreen games, usually CASTLE_WINDOW_XLIB.
-      You usually do not use the menu bar in fullscreen games,
-      and do not want popup dialog boxes. Instead you draw everything
-      inside your OpenGL context, which makes your game look the same
-      regardless of the platform and GUI can be styled to your game theme.
-      For example, menu may be done by TCastleOnScreenMenu, and dialog boxes
-      by CastleMessages.
-
-      As a bonus, XLIB allows you to change screen resolution when
-      starting the game, which may be useful. And has one dependency less
-      (GTK is commonly installed, but gtkglext is not, and CASTLE_WINDOW_GTK_2
-      requires gtkglext).
+    This backend is rarely used.
+    For normal applications (whether windowed or fullscreen,
+    whether using menubar / dialog boxes or not)
+    use the CASTLE_WINDOW_GTK_2, unless you want to test EGL
+    (then this is your only option, on Unix, for now).
 
   CASTLE_WINDOW_LCL
     Use Lazarus TForm (with menu, dialogs and so on) and TOpenGLControl.
@@ -307,27 +318,6 @@ unit CastleWindow;
     See file CASTLE_WINDOW_backend_template.inc.
 }
 
-{ Define CASTLE_WINDOW_BEST_NOGUI to choose the best backend for programs
-  that do not use native gui (like native dialog boxes in TCastleWindow.MessageOK
-  or native menu bar in TCastleWindow.Menu). On Unix, this will choose Xlib,
-  that allows you to resize the screen and has less dependencies than GtkGlExt
-  backend. }
-{$ifdef CASTLE_WINDOW_BEST_NOGUI}
-  {$ifdef UNIX}
-    {$ifdef ANDROID}
-      {$define CASTLE_WINDOW_ANDROID}
-    {$else}
-      {$define CASTLE_WINDOW_XLIB}
-    {$endif}
-  {$else}
-    {$ifdef MSWINDOWS}
-      {$define CASTLE_WINDOW_WINAPI}
-    {$else}
-      {$fatal CASTLE_WINDOW_BEST_NOGUI is unknown for this operating system.}
-    {$endif}
-  {$endif}
-{$endif}
-
 { If CastleWindow backend is not choosen at this point, choose
   default (best, most functional and stable) for a given OS.
 
@@ -356,9 +346,8 @@ unit CastleWindow;
          {$elseif defined(UNIX)}
            {$if defined(ANDROID)}
              {$define CASTLE_WINDOW_ANDROID}
-           {$elseif defined(IOS)}
+           {$elseif defined(IOS) or defined(CASTLE_NINTENDO_SWITCH)}
              {$define CASTLE_WINDOW_LIBRARY}
-             {$info Compiling CastleWindow with CASTLE_WINDOW_LIBRARY backend on iOS}
            {$elseif defined(DARWIN)}
              // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_XLIB} // easiest to compile
@@ -506,7 +495,7 @@ uses {$define read_interface_uses}
   CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   CastleApplicationProperties,
   { Castle Game Engine units depending on VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
+  X3DNodes, CastleScene, CastleViewport, CastleLevels;
 
 {$define read_interface}
 
@@ -535,7 +524,8 @@ const
   StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay,
     poMacOsXProcessSerialNumber, poLimitFps];
 
-  DefaultDepthBits = 16;
+  DefaultDepthBits = 24;
+  DepthBitsFallback = 16;
 
   DefaultFpsCaptionUpdateDelay = 1.0;
 
@@ -597,7 +587,7 @@ type
 
   TCaptionPart = (cpPublic, cpFps);
 
-  { Non-abstact implementation of TUIContainer that cooperates with
+  { Non-abstract implementation of TUIContainer that cooperates with
     TCastleWindowBase. }
   TWindowContainer = class(TUIContainer)
   private
@@ -619,6 +609,7 @@ type
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
+    function SettingMousePositionCausesMotion: Boolean; override;
   end;
 
   {$define read_interface_types}
@@ -626,13 +617,16 @@ type
   {$undef read_interface_types}
 
   { Window to render everything (3D or 2D) with Castle Game Engine.
-    Add the user-interface controls to the
-    @link(TCastleWindowBase.Controls) property, in particular
-    you can add there scene manager instances (like @link(TCastleSceneManager)
-    and @link(TCastle2DSceneManager)) to render 3D or 2D game worlds.
+
+    Add the user-interface controls to the @link(Controls) property.
+    User-interface controls are any @link(TCastleUserInterface) descendants,
+    like @link(TCastleImageControl) or @link(TCastleButton) or @link(TCastleViewport).
+
+    Use events like @link(OnPress) to react to events.
+    Use event @link(OnUpdate) to do something continuously.
 
     By default, the window is filled with simple color from
-    @link(Container.BackgroundColor TUIContainer.BackgroundColor).
+    @link(TUIContainer.BackgroundColor Container.BackgroundColor).
 
     If you're looking for an analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
@@ -1018,13 +1012,13 @@ type
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
-      Only DoKeyDown: pass also KeyString. Pass Key = K_None if this is not
+      Only DoKeyDown: pass also KeyString. Pass Key = keyNone if this is not
       representable as TKey, pass KeyString = '' if this is not representable
-      as char. But never pass both Key = K_None and KeyString = ''
+      as char. But never pass both Key = keyNone and KeyString = ''
       (this would mean that nothing is pressed, at least nothing that can be represented
       in CGE).
 
-      Only DoKeyUp: never pass Key = K_None.
+      Only DoKeyUp: never pass Key = keyNone.
 
       If you call DoKeyUp while (not Pressed[Key]) it will be ignored
       (will not do any EventRelease etc. - just NOOP).
@@ -1049,9 +1043,9 @@ type
         MakeCurrent
         EventPress/EventRelease }
     procedure DoMouseDown(const Position: TVector2;
-      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
+      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseUp(const Position: TVector2;
-      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0;
+      Button: TCastleMouseButton; const FingerIndex: TFingerIndex = 0;
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoTimer;
@@ -1063,7 +1057,8 @@ type
     procedure DoMenuClick(Item: TMenuItem);
 
     procedure DoDropFiles(const FileNames: array of string);
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
 
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. Also, for OpenDialog, we make sure that initial FileName
@@ -1119,7 +1114,7 @@ type
       Allowing this is a good thing, as it means our process doesn't eat
       your CPU when it simply waits, doing nothing, for user input.
       On the other hand, you cannot allow this if you want to do some
-      things continously, regardless of user input.
+      things continuously, regardless of user input.
 
       The default implementation plays it safe, and does not allow suspending
       if we have OnUpdate, OnTimer or such callback defined. }
@@ -1214,7 +1209,7 @@ type
           fullscreen. So be prepared that changing FullScreen
           may result in OnClose + OnOpen events, and all OpenGL resources
           are reloaded. In most cases, engine takes care of everything
-          automatically (all TCastleScene, TCastleUserInterface, TGLImage and other
+          automatically (all TCastleScene, TCastleUserInterface, TDrawableImage and other
           resources are automatically reloaded), just be aware that
           this operation may take a bit of time.
         )
@@ -1448,16 +1443,19 @@ type
       than requested (we may even get depth buffer when we set
       DepthBits = 0), this all depends on graphic card.
 
-      Default value is 16 (DefaultDepthBits),
-      which is a reasonable default for 3D programs
+      Default value is @link(DefaultDepthBits),
+      which is non-zero and a reasonable default for 3D programs
       that want to work with depth test enabled.
+
+      Note that we have a fallback mechanism in case @link(DepthBits)
+      is too large: we fallback on @link(DepthBitsFallback) then.
 
       @italic(Design notes:) One may ask why default value is not 0?
 
       @orderedList(
         @item(
           Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Window.DepthBits := 16).)
+          would have to call something like @code(Window.DepthBits := DefaultDepthBits).)
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
@@ -1467,16 +1465,16 @@ type
           If you're writing 3d program and sitting on some
           system that always gives you depth buffer (even if DepthBits = 0)
           then it may happen that you forget to write in your program
-          @longCode(#  Window.DepthBits := 16;#)
+          @longCode(#  Window.DepthBits := DefaultDepthBits;#)
 
           And while on your system everything will work, you will
           receive errors on other systems because you forgot to request a
           depth buffer.)
       )
 
-      Of course, if you are writing a program that does not need depth buffer
+      If you are writing a program that does not need depth buffer
       you should set Window.DepthBits := 0. The only advantage of having
-      default DepthBits = 16 is that if you forget to set
+      default DepthBits = DefaultDepthBits is that if you forget to set
       Window.DepthBits := 0 your programs will still work (most graphic cards
       will give you some depth buffer anyway).
       They will just use more resources than they should.
@@ -1495,7 +1493,7 @@ type
       Note that after initializing OpenGL context (when opening the window),
       StencilBits is @italic(not) updated to the current (provided)
       stencil buffer bit size. For example, if you requested StencilBits := 8,
-      and you got 16-bits buffer: StencilBits value will still remain 8.
+      and you got 16-bits stencil buffer: StencilBits value will still remain 8.
       This is sensible in case you close the window, tweak some settings
       and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
       when window is open to query current (actual) buffer size. }
@@ -1659,8 +1657,7 @@ type
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
       It instructs to call EventRender (OnRender) again, as soon as possible.
 
-      When you have some controls on the @link(Controls) list
-      (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
+      When you have some controls on the @link(Controls) list,
       the OnRender event is done @bold(last).
       So here you can draw on top of the existing controls.
       To draw something underneath the existing controls, create a new TCastleUserInterface
@@ -1689,15 +1686,7 @@ type
     { Called when the window size (@link(Width), @link(Height)) changes.
       It's also guaranteed to be called during @link(Open),
       right after the EventOpen (OnOpen) event.
-
-      Our OpenGL context is already "current" when this event is called
-      (MakeCurrent is done right before), like for other events.
-      This is a good place to set OpenGL viewport and projection matrix.
-
-      See also ResizeAllowed.
-
-      In the usual case, the SceneManager takes care of setting appropriate
-      OpenGL projection, so you don't need to do anything here. }
+      @seealso ResizeAllowed }
     property OnResize: TContainerEvent read GetOnResize write SetOnResize;
 
     { Called when the window is closed, right before the OpenGL context
@@ -1778,9 +1767,14 @@ type
       the @italic(new) mouse position. }
     property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
-    { Continously occuring event, called for all open windows.
+    { Send fake motion event, without actually moving the mouse through the backend.
+      This is useful only for automatic tests.
+      @exclude }
+    procedure InternalFakeMotion(const Event: TInputMotion);
+
+    { Continuously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
-      so it is continously called even when your game
+      so it is continuously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws.
 
       Called at the same time when
@@ -1880,12 +1874,8 @@ type
       no MenuItem.DoClick and no OnMenuClick will be called,
       but instead normal EventPress (OnPress) will be called.
 
-      When it is useful to set this to false?
-      For example hen using CastleWindowModes. When you're changing modes (e.g. at the
-      beginning of CastleMessages.MessageOk) you're temporary setting
-      OnMenuClick to nil, but this doesn't block TMenuItem.DoClick
-      functions. The only way to block menu from triggering ANY event is to
-      set this to MainMenu.Enabled to @false. }
+      Disabling MainMenu is useful e.g. during modal dialog box, like @link(MessageOk).
+      This way you can force use to interact with the modal box. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
     { Is MainMenu visible. @false means that we do not show main menu bar,
@@ -1911,7 +1901,7 @@ type
 
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    function MousePressed: TMouseButtons;
+    function MousePressed: TCastleMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -1966,7 +1956,7 @@ type
         @item(Create OpenGL context associated with it's OpenGL area.)
         @item(Show the window.)
         @item(Call GLInformationInitialize to initialize GLVersion,
-          GLUVersion, GLFeatures.)
+          GLUVersion, GLFeatures, show them in log.)
 
         @item(Initial events called:
           @unorderedList(
@@ -2055,7 +2045,7 @@ type
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(QuitWhenLastWindowClosed: boolean = true);
+    procedure Close(const QuitWhenLastWindowClosed: boolean = true);
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -2064,7 +2054,7 @@ type
     procedure Invalidate;
 
     { Make the OpenGL context of this window @italic(current). Following OpenGL
-      commands will apply to this context, and the @link(CastleGLUtils.RenderContext)
+      commands will apply to this context, and the @link(CastleRenderContext.RenderContext RenderContext)
       will also refer to this.
       When the window is opened, and right
       before calling any window callback, we always automatically call
@@ -2088,9 +2078,9 @@ type
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TDrawableImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TDrawableImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -2145,6 +2135,7 @@ type
           @unorderedList(
             @itemSpacing Compact
             @item(@--fullscreen: sets FullScreen to @true.)
+            @item(@--window: sets FullScreen to @false.)
             @item(@--geometry: sets FullScreen to @false
               and changes @link(Width), @link(Height), @link(Left), @link(Top)
               as user wants.)
@@ -2345,8 +2336,8 @@ type
       read FFpsShowOnCaption write FFpsShowOnCaption default false;
 
     { Key to use to switch between FullScreen and not FullScreen.
-      Set to K_None (default) to disable this functionality.
-      Suggested value to enable this functionality is K_F11, this is consistent
+      Set to keyNone (default) to disable this functionality.
+      Suggested value to enable this functionality is keyF11, this is consistent
       will fullscreen key in other programs.
       You can freely modify it at any time, even after calling @link(Open).
 
@@ -2355,7 +2346,7 @@ type
       implementations: you have to be able to recreate in OnOpen everything
       that was released in OnClose. }
     property SwapFullScreen_Key: TKey
-      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_None;
+      read FSwapFullScreen_Key write FSwapFullScreen_Key default keyNone;
 
     { Key to use to close the window.
       Set to '' (default) to disable this functionality.
@@ -2406,7 +2397,9 @@ type
     see @link(TCastleControl) component. }
   TCastleWindow = class(TCastleWindowBase)
   private
+    {$warnings off} // using deprecated in deprecated
     FSceneManager: TGameSceneManager;
+    {$warnings on}
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesRender: boolean;
@@ -2425,30 +2418,35 @@ type
       This is nice for simple 3D model browsers, but usually for games you
       don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
-      scene_manager_basic.lpr. }
-    procedure Load(const SceneURL: string);
-    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      examples/3d_rendering_processing/view_3d_model_basic.lpr .
 
+      See manual for explanation:
+      https://castle-engine.io/manual_load_3d.php }
+    procedure Load(const SceneURL: string);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
+    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+      deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     function MainScene: TCastleScene;
+      deprecated 'create TCastleViewport and use TCastleViewport.Items.MainScene';
+
     property SceneManager: TGameSceneManager read FSceneManager;
 
-    { See TCastleAbstractViewport.ShadowVolumes. }
+    { See @link(TCastleViewport.ShadowVolumes). }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes
-      default TCastleAbstractViewport.DefaultShadowVolumes;
+      default TCastleViewport.DefaultShadowVolumes;
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumes';
 
-    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    { See @link(TCastleViewport.ShadowVolumesRender). }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
+      deprecated 'create TCastleViewport and use TCastleViewport.ShadowVolumesRender';
 
-    { Navigation type of the main camera associated with the default SceneManager.
-      Note that this may not be the only camera used for rendering,
-      it may not even be used at all (you can do all rendering using
-      @link(TCastleAbstractViewport)s.
-      So use this property only if you use only a single default viewport. }
+    { Navigation type of the main camera associated with the default SceneManager. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
-  end;
+      deprecated 'create TCastleViewport and use TCastleViewport.NavigationType';
+  end deprecated 'use TCastleWindowBase and create instance of TCastleViewport explicitly';
 
   TWindowList = class(specialize TObjectList<TCastleWindowBase>)
   private
@@ -2695,8 +2693,8 @@ type
     {property OnInitializeJavaActivity: TProcedure
       read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
-    { Continously occuring event.
-      @seealso TCastleWindowBase.OnUpdate. }
+    { Continuously occuring event.
+      @seealso TCastleWindowBase.OnUpdate }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
 
     { @deprecated Deprecated name for OnUpdate. }
@@ -2762,11 +2760,8 @@ type
           Application.ProcessMessages(...);
       #)
 
-      Often this is used together with TGLMode, TGLModeFrozenScreen
-      and similar utilities from CastleWindowModes unit.
-      They allow you to temporarily replace window callbacks with new ones,
-      and later restore the original ones.
-      This is useful for behavior similar to modal dialog boxes.
+      This can used to implement routines that wait until a modal dialog box
+      returns, like @link(MessageOK) or @link(MessageYesNo).
 
       For comfort, returns @code(not Terminated).
       So it returns @true if we should continue, that is
@@ -2840,6 +2835,8 @@ type
 
     procedure Quit; deprecated 'Use Terminate';
 
+    procedure Terminate; override;
+
     { Run the program using TCastleWindowBase, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
 
@@ -2864,6 +2861,7 @@ type
       @unorderedList(
         @item(@code(-h / --help))
         @item(@code(-v / --version), using @link(Version))
+        @item(@code(--log-file), setting @link(LogFileName))
         @item(All the parameters handled by @link(TCastleWindowBase.ParseParameters).
           Requires @link(MainWindow) to be set.)
         @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
@@ -2901,11 +2899,11 @@ function Application: TCastleApplication;
 procedure Resize2D(Container: TUIContainer);
 
 { Describe given key. Key is given as combination of character (UTF-8 character as String, may be '')
-  and Key code (may be K_None), and additional required @code(Modifiers)
+  and Key code (may be keyNone), and additional required @code(Modifiers)
   (although some modifiers may be already implied by KeyString, e.g. when it is CtrlA).
   See @link(TMenuItem.Key) and @link(TMenuItem.KeyString) and @link(TMenuItem.Modifiers).
 
-  Only when Key = K_None and KeyString = ''
+  Only when Key = keyNone and KeyString = ''
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
 function KeyToString(const KeyString: String; const Key: TKey; const Modifiers: TModifierKeys;
@@ -2926,12 +2924,16 @@ function KeyString(const AKeyString: String; const Key: TKey; const Modifiers: T
 implementation
 
 uses CastleLog, CastleGLVersion, CastleURIUtils, CastleControls, CastleMessaging,
+  CastleRenderContext,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
   X3DLoad, Math;
 
 {$define read_implementation}
+
+var
+  UnitFinalization: Boolean;
 
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
@@ -3048,7 +3050,7 @@ begin
   FMainMenuVisible := true;
   FContainer := CreateContainer;
   Close_KeyString := '';
-  SwapFullScreen_Key := K_None;
+  SwapFullScreen_Key := keyNone;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
   FTouches := TTouchList.Create;
@@ -3106,7 +3108,7 @@ procedure TCastleWindowBase.OpenCore;
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
-    UIScale := Container.DefaultUIScale;
+    UIScale := FRealHeight / Theme.LoadingImageForWindowHeight;
     TextRect := Theme.Images[tiLoading].Rect.
       ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
@@ -3121,7 +3123,7 @@ procedure TCastleWindowBase.OpenCore;
   procedure OpenUnprotected;
   begin
     { Once context is initialized, then Android activity is initialized,
-      or iOS called CGEApp_Open -> so it's safe to access files. }
+      or iOS called CGEApp_Initialize -> so it's safe to access files. }
     ApplicationProperties._FileAccessSafe := true;
 
     { Adjust Left/Top/Width/Height as needed.
@@ -3162,16 +3164,12 @@ procedure TCastleWindowBase.OpenCore;
 
     GLInformationInitialize;
 
-    if Log then
-      WritelnLogMultiline('OpenGL context initialization', GLInformationString);
-
     if GLVersion.BuggyDepth32 and
       (glGetInteger(GL_DEPTH_BITS) >= 32) and
       (StencilBits = 0) then
     begin
-      if Log then
-        WritelnLog('OpenGL context initialization',
-          'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
+      WritelnLog('Rendering Context Initialization',
+        'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
       { Close the window, increase StencilBits to try to force 24-bit
         depth buffer, and call ourselves again.
         Checking "StencilBits = 0" above prevents from getting into
@@ -3196,7 +3194,7 @@ procedure TCastleWindowBase.OpenCore;
 
     try
       { Make ApplicationProperties.IsGLContextOpen true now, to allow creating
-        TGLImage from Application.OnInitialize work Ok. }
+        TDrawableImage from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
       RenderLoadingBackground;
@@ -3262,20 +3260,31 @@ begin
   end;
 end;
 
-{ Try to lower anti-aliasing (multi-sampling) and shadows (stencil buffer)
+{ Try to lower
+  - anti-aliasing (multi-sampling)
+  - shadows (stencil buffer)
+  - depth size
   requirements and initialize worse GL context. }
 function DefaultRetryOpen(Window: TCastleWindowBase): boolean;
 begin
   if Window.AntiAliasing <> aaNone then
   begin
     Window.AntiAliasing := aaNone;
-    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Multi-sampling (anti-aliasing) turned off, trying to initialize once again.');
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Multi-sampling (anti-aliasing) turned off, trying to initialize once again.');
     Result := true;
   end else
   if Window.StencilBits > 0 then
   begin
     Window.StencilBits := 0;
-    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
+    Result := true;
+  end else
+  if Window.DepthBits > DepthBitsFallback then
+  begin
+    Window.DepthBits := DepthBitsFallback;
+    WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Depth bits decreased to %d, trying to initialize once again.', [
+      DepthBitsFallback
+    ]);
     Result := true;
   end else
     Result := false;
@@ -3286,7 +3295,7 @@ begin
   Open(@DefaultRetryOpen);
 end;
 
-procedure TCastleWindowBase.Close(QuitWhenLastWindowClosed: boolean);
+procedure TCastleWindowBase.Close(const QuitWhenLastWindowClosed: boolean);
 begin
   if FClosed then Exit;
 
@@ -3337,7 +3346,7 @@ end;
 procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
 var
   k: TKey;
-  mb: CastleKeysMouse.TMouseButton;
+  mb: TCastleMouseButton;
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   mk: TModifierKey;
   b: boolean;
@@ -3345,7 +3354,7 @@ var
 begin
   {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   { When CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
-    SetPrivateModifiersDown. It would be an error to do DoKeyUp(K_Ctrl)
+    SetPrivateModifiersDown. It would be an error to do DoKeyUp(keyCtrl)
     directly when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
     use SetPrivateModifiersDown(mkCtrl, ...).
     This is the only way to make values in PrivateModifiersDown[]
@@ -3363,7 +3372,7 @@ begin
   for mb := Low(mb) to High(mb) do if mb in MousePressed then
     DoMouseUp(MousePosition, mb);
 
-  Container.IsMousePositionForMouseLook := false;
+  Container.MouseLookIgnoreNextMotion;
 end;
 
 function TCastleWindowBase.GetColorBits: Cardinal;
@@ -3390,7 +3399,7 @@ const
   { Note: when new GPUs appear that support more samples,
     - extend the TAntiAliasing type and related arrays (just recompile to see
       where you need to change),
-    - extend the src/x3d/opengl/glsl/screen_effect_library.glsl
+    - extend the src/x3d/opengl/glsl/source/screen_effect_library.glsl
     - extend the check for samples in ScreenEffectLibrary in CastleScreenEffects
       (this must be synchronized with screen_effect_library.glsl implementation).
   }
@@ -3475,16 +3484,18 @@ end;
 
 procedure TCastleWindowBase.DoRender;
 begin
+  FrameProfiler.Start(fmBeforeRender);
   { We set Invalidated := false before EventRender (that calls OnRender),
     because we guarantee that calling Invalidate within OnRender will
     cause the redraw in next frame. }
   Invalidated := false;
-
   MakeCurrent;
-
   Container.EventBeforeRender;
+  FrameProfiler.Stop(fmBeforeRender);
+
   if Closed then Exit; { check, in case window got closed in the event }
 
+  FrameProfiler.Start(fmRender);
   Fps._RenderBegin;
   try
     Container.EventRender;
@@ -3495,7 +3506,10 @@ begin
 
     if DoubleBuffer then SwapBuffers else glFlush;
     if AutoRedisplay then Invalidate;
-  finally Fps._RenderEnd end;
+  finally
+    Fps._RenderEnd;
+    FrameProfiler.Stop(fmRender);
+  end;
 
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
@@ -3572,12 +3586,17 @@ var
 begin
   if Pressed[Key] then
   begin
-    { K_None key is never pressed, DoKeyDown guarentees this }
-    Assert(Key <> K_None);
+    { keyNone key is never pressed, DoKeyDown guarantees this }
+    Assert(Key <> keyNone);
     Pressed.KeyUp(Key, KeyString);
     MakeCurrent;
     Container.EventRelease(InputKey(MousePosition, Key, KeyString, ModifiersDown(Container.Pressed)));
   end;
+end;
+
+procedure TCastleWindowBase.InternalFakeMotion(const Event: TInputMotion);
+begin
+  DoMotion(Event);
 end;
 
 procedure TCastleWindowBase.DoMotion(const Event: TInputMotion);
@@ -3591,7 +3610,7 @@ begin
 end;
 
 procedure TCastleWindowBase.DoMouseDown(const Position: TVector2;
-  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+  Button: TCastleMouseButton; const FingerIndex: TFingerIndex);
 var
   Event: TInputPressRelease;
 begin
@@ -3608,7 +3627,7 @@ begin
 end;
 
 procedure TCastleWindowBase.DoMouseUp(const Position: TVector2;
-  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex;
+  Button: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const TrackReleased: boolean);
 var
   Event: TInputPressRelease;
@@ -3641,6 +3660,9 @@ end;
 
 procedure TCastleWindowBase.DoUpdate;
 begin
+  FrameProfiler.StartFrame;
+  FrameProfiler.Start(fmUpdate);
+
   {$ifdef CASTLE_WINDOW_LCL}
   FKeyPressHandler.Flush; // finish any pending key presses
   {$endif}
@@ -3657,6 +3679,8 @@ begin
   end;
 
   UpdateFullScreenBackend;
+
+  FrameProfiler.Stop(fmUpdate);
 end;
 
 procedure TCastleWindowBase.DoTimer;
@@ -3687,7 +3711,8 @@ begin
     OnDropFiles(Container, FileNames);
 end;
 
-function TCastleWindowBase.MessageReceived(const Received: TCastleStringList): boolean;
+function TCastleWindowBase.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 var
   Url: string;
 begin
@@ -3761,14 +3786,14 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
+function TCastleWindowBase.SaveScreenToGL(const SmoothScaling: boolean): TDrawableImage;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowBase.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TGLImage;
+  const SmoothScaling: boolean): TDrawableImage;
 begin
   if Closed then
     raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
@@ -3964,11 +3989,12 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData^.SpecifiedOptions, poGeometry);
- case OptionNum of
-  0: ProcData^.Window.FullScreen := true;
-  1: ApplyGeometryParam(Argument);
- end;
+  Include(ProcData^.SpecifiedOptions, poGeometry);
+  case OptionNum of
+    0: ProcData^.Window.FullScreen := true;
+    1: ProcData^.Window.FullScreen := false;
+    2: ApplyGeometryParam(Argument);
+  end;
 end;
 
 procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -3995,10 +4021,10 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData^.SpecifiedOptions, poScreenGeometry);
- case OptionNum of
-  0: ApplyFullScreenCustomParam(Argument);
- end;
+  Include(ProcData^.SpecifiedOptions, poScreenGeometry);
+  case OptionNum of
+    0: ApplyFullScreenCustomParam(Argument);
+  end;
 end;
 
 procedure DisplayOptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -4044,17 +4070,18 @@ procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOp
   out SpecifiedOptions: TWindowParseOptions);
 
 const
-  GeometryOptions: array[0..1]of TOption =
+  GeometryOptions: array [0..2] of TOption =
   ( (Short:#0; Long:'fullscreen'; Argument: oaNone),
+    (Short:#0; Long:'window'; Argument: oaNone),
     (short:#0; Long:'geometry'; Argument: oaRequired) );
 
-  ScreenGeometryOptions: array[0..0]of TOption =
+  ScreenGeometryOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'fullscreen-custom'; Argument: oaRequired) );
 
-  DisplayOptions: array[0..0]of TOption =
+  DisplayOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'display'; Argument: oaRequired) );
 
-  LimitFpsOptions: array[0..0]of TOption =
+  LimitFpsOptions: array [0..0] of TOption =
   ( (Short:#0; Long:'no-limit-fps'; Argument: oaNone) );
 
   OptionsForParam: array[TWindowParseOption] of
@@ -4103,21 +4130,21 @@ var
 var
   ParamKind: TWindowParseOption;
 begin
- Data.SpecifiedOptions := [];
- Data.Window := Self;
+  Data.SpecifiedOptions := [];
+  Data.Window := Self;
 
- for ParamKind := Low(ParamKind) to High(ParamKind) do
-   if ParamKind in AllowedOptions then
-   begin
-     if ParamKind = poMacOsXProcessSerialNumber then
-       HandleMacOsXProcessSerialNumber
-     else
-       Parameters.Parse(OptionsForParam[ParamKind].pOptions,
-         OptionsForParam[ParamKind].Count,
-         OptionsForParam[ParamKind].OptionProc, @Data, true);
-   end;
+  for ParamKind := Low(ParamKind) to High(ParamKind) do
+    if ParamKind in AllowedOptions then
+    begin
+      if ParamKind = poMacOsXProcessSerialNumber then
+        HandleMacOsXProcessSerialNumber
+      else
+        Parameters.Parse(OptionsForParam[ParamKind].pOptions,
+          OptionsForParam[ParamKind].Count,
+          OptionsForParam[ParamKind].OptionProc, @Data, true);
+    end;
 
- SpecifiedOptions := Data.SpecifiedOptions;
+  SpecifiedOptions := Data.SpecifiedOptions;
 end;
 
 procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOptions);
@@ -4131,20 +4158,27 @@ class function TCastleWindowBase.ParseParametersHelp(
   const AllowedOptions: TWindowParseOptions;
   AddHeader: boolean): string;
 const
-  HelpForParam: array[TWindowParseOption] of string =
-  ('  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' +nl+
-   '                        Set initial window size and/or position.' +nl+
-   '  --fullscreen          Set initial window size to cover whole screen.',
-   '  --fullscreen-custom WIDTHxHEIGHT' +nl+
-   '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
-   '                        then set initial window size to cover whole screen.',
-   '  --display DISPLAY-NAME' +nl+
-   '                        Use given X display name.',
-   '',
-   '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' +nl+
-   '                        vertical synchonization in your GPU settings,' +nl+
-   '                        to get maximum FPS.'
-   );
+  HelpForParam: array [TWindowParseOption] of string =
+  (
+    // poGeometry
+    '  --fullscreen          Set window to full-screen (cover whole screen).' + NL +
+    '  --window              Set window to not full-screen.' + NL +
+    '  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' + NL +
+    '                        Set window to not full-screen, and set size and/or position.',
+    // poScreenGeometry
+    '  --fullscreen-custom WIDTHxHEIGHT' + NL +
+    '                        Try to resize the screen to WIDTHxHEIGHT and' + NL +
+    '                        then set window to full-screen.',
+    // poDisplay
+    '  --display DISPLAY-NAME' + NL +
+    '                        Use given X display name.',
+    // poMacOsXProcessSerialNumber
+    '',
+    // poLimitFps
+    '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' + NL +
+    '                        vertical synchonization in your GPU settings,' + NL +
+    '                        to get maximum FPS.'
+  );
 var
   ParamKind: TWindowParseOption;
 begin
@@ -4558,7 +4592,7 @@ begin
   Result := FTouches.Count;
 end;
 
-function TCastleWindowBase.MousePressed: TMouseButtons;
+function TCastleWindowBase.MousePressed: TCastleMouseButtons;
 begin
   Result := Container.MousePressed;
 end;
@@ -4606,8 +4640,10 @@ procedure TWindowSceneManager.BoundNavigationInfoChanged;
 begin
   { Owner will be automatically switched to nil when freeing us
     by TComponent ownership mechanism (TComponent.Remove). }
+  {$warnings off} // this code is only to keep deprecated working
   if Owner <> nil then
     (Owner as TCastleWindow).NavigationInfoChanged;
+  {$warnings on}
   inherited;
 end;
 
@@ -4628,33 +4664,40 @@ end;
 
 procedure TCastleWindow.Load(const SceneURL: string);
 begin
-  Load(Load3D(SceneURL, false), true);
+  {$warnings off} // using one deprecated from another
+  Load(LoadNode(SceneURL), true);
+  {$warnings on}
 end;
 
 procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
-  { destroy MainScene and Camera, we will recreate them }
-  SceneManager.MainScene.Free;
-  SceneManager.MainScene := nil;
+  { destroy MainScene and clear cameras, we will recreate it }
+  SceneManager.Items.MainScene.Free;
+  SceneManager.Items.MainScene := nil;
   SceneManager.Items.Clear;
+  {$warnings off} // using one deprecated from another
   SceneManager.ClearCameras;
-  Assert(SceneManager.Camera = nil);
+  {$warnings on}
+  Assert(SceneManager.Navigation = nil);
 
-  SceneManager.MainScene := TCastleScene.Create(Self);
-  SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
-  SceneManager.Items.Add(SceneManager.MainScene);
+  SceneManager.Items.MainScene := TCastleScene.Create(Self);
+  SceneManager.Items.MainScene.Load(ARootNode, OwnsRootNode);
+  SceneManager.Items.Add(SceneManager.Items.MainScene);
 
   { initialize octrees titles }
-  MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
+  SceneManager.Items.MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  SceneManager.Items.MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Camera always non-nil }
-  SceneManager.RequiredCamera;
+  { Adjust SceneManager.Navigation and SceneManager.Camera to latest scene }
+  SceneManager.AssignDefaultCamera;
+  SceneManager.AssignDefaultNavigation;
+  // AssignDefaultNavigation should satisfy this, and we need it for backward compatibility
+  Assert(SceneManager.Navigation <> nil);
 end;
 
 function TCastleWindow.MainScene: TCastleScene;
 begin
-  Result := SceneManager.MainScene;
+  Result := SceneManager.Items.MainScene;
 end;
 
 function TCastleWindow.GetShadowVolumes: boolean;
@@ -4772,7 +4815,7 @@ end;
 
 procedure TCastleApplication.CastleEngineInitialize;
 var
-  TimeStart: TCastleProfilerTime;
+  TimeStart, TimeStart2: TCastleProfilerTime;
 begin
   if Initialized and not InitializedJavaActivity then
     WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
@@ -4791,23 +4834,27 @@ begin
 
     // Call OnInitialize and OnInitializeEvent, watched by Profiler
 
-    if Assigned(OnInitialize) then
+    if Assigned(OnInitialize) or Assigned(OnInitializeEvent) then
     begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitialize');
-      OnInitialize();
-      Profiler.Stop(TimeStart);
-    end;
+      TimeStart := Profiler.Start('TCastleApplication Initialization');
+      try
+        if Assigned(OnInitialize) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitialize');
+          try
+            OnInitialize();
+          finally Profiler.Stop(TimeStart2) end;
+        end;
 
-    if Assigned(OnInitializeEvent) then
-    begin
-      TimeStart := Profiler.Start('TCastleApplication.OnInitializeEvent');
-      OnInitializeEvent(Self);
-      Profiler.Stop(TimeStart);
+        if Assigned(OnInitializeEvent) then
+        begin
+          TimeStart2 := Profiler.Start('TCastleApplication.OnInitializeEvent');
+          try
+            OnInitializeEvent(Self);
+          finally Profiler.Stop(TimeStart2) end;
+        end;
+      finally Profiler.Stop(TimeStart, true) end;
     end;
-
-    if (Assigned(OnInitialize) or Assigned(OnInitializeEvent)) and
-       Profiler.Enabled then
-      WritelnLogMultiline('Time Profile', Profiler.Summary);
   end;
 end;
 
@@ -4864,6 +4911,18 @@ end;
 procedure TCastleApplication.Quit;
 begin
   Terminate;
+end;
+
+{$ifdef CASTLE_NINTENDO_SWITCH}
+procedure CgeNxApplicationTerminate; cdecl; external;
+{$endif}
+
+procedure TCastleApplication.Terminate;
+begin
+  inherited;
+  {$ifdef CASTLE_NINTENDO_SWITCH}
+  CgeNxApplicationTerminate;
+  {$endif}
 end;
 
 procedure TCastleApplication.CloseAllOpenWindows;
@@ -5127,7 +5186,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     ErrMessage: string;
     ContinueApp: Boolean;
   begin
-    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr) + NL + NL + DumpExceptionBackTraceToString;
+    ErrMessage := ExceptMessage(ExceptObject) + NL + NL + DumpExceptionBackTraceToString;
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);
@@ -5240,16 +5299,18 @@ begin
         Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
+    2:LogFileName := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
 
 procedure TCastleApplication.ParseStandardParameters;
 const
-  Options: array [0..1] of TOption =
+  Options: array [0..2] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
-    (Short: 'v'; Long: 'version'; Argument: oaNone)
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short: #0 ; Long: 'log-file'; Argument: oaRequired)
   );
 begin
   SoundEngine.ParseParameters;
@@ -5316,7 +5377,7 @@ begin
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
-  if Key <> K_None then
+  if Key <> keyNone then
   begin
     S := KeyToStr(Key, Modifiers
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});
@@ -5333,6 +5394,11 @@ end;
 
 function Application: TCastleApplication;
 begin
+  { In case of UnitFinalization,
+    return nil (and acccessing it should cause an error),
+    since we wouldn't free it if we create a new one. }
+  if (FApplication = nil) and not UnitFinalization then
+    FApplication := TCastleApplication.Create(nil);
   Result := FApplication;
 end;
 
@@ -5340,9 +5406,9 @@ end;
 
 initialization
   ApplicationProperties._FileAccessSafe := false;
-  CastleWindowMenu_Init;
-  FApplication := TCastleApplication.Create(nil);
 finalization
+  UnitFinalization := true;
+
   { Instead of using FreeAndNil, just call Free.
     In our destructor we take care of setting Application variable to @nil,
     when it becomes really useless.
@@ -5354,8 +5420,8 @@ finalization
   Application.Free;
   Assert(Application = nil);
 
-  { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
+  { Order is important: we free MenuItems, which are needed
     by TMenu destructor. And some TCastleWindowBase instances may be freed
     only by Application destructor (when they are owned by Application). }
-  CastleWindowMenu_Fini;
+  FreeAndNil(FMenuItems);
 end.

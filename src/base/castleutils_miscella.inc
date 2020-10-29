@@ -42,6 +42,10 @@ type
 
   ECheckFailed = class(Exception);
 
+type
+  { Simple notify event with no Sender }
+  TSimpleNotifyEvent = procedure of object;
+
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
 procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
@@ -142,11 +146,24 @@ type
   {$warnings on}
 
 { Like standard Format, but always uses dot (.) as a decimal separator
-  for the floating point numbers, regardless of the user's locale settings. }
+  for the floating point numbers, regardless of the user's locale settings.
+
+  In general this ignores locale, so also ThousandSeparator doesn't matter
+  (conversion is done like it is #0). }
 function FormatDot(const Fmt: String; const Args: array of const): String;
 
+{ Like standard FloatToStr, but always uses dot (.) as a decimal separator
+  for the floating point numbers, regardless of the user's locale settings.
+
+  In general this ignores locale, so also ThousandSeparator doesn't matter
+  (conversion is done like it is #0). }
+function FloatToStrDot(const Value: Extended): String;
+
 { Like standard TryStrToFloat, but always uses dot (.) as a decimal separator
-  for the floating point numbers, regardless of the user's locale settings. }
+  for the floating point numbers, regardless of the user's locale settings.
+
+  Also it doesn't Trim the argument (so whitespace around number is @italic(not) tolerated),
+  and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function TryStrToFloatDot(const S: String; out Value: Single): Boolean; overload;
 function TryStrToFloatDot(const S: String; out Value: Double): Boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -154,12 +171,25 @@ function TryStrToFloatDot(const S: String; out Value: Extended): Boolean; overlo
 {$endif}
 
 { Like standard StrToFloat, but always uses dot (.) as a decimal separator
-  for the floating point numbers, regardless of the user's locale settings. }
+  for the floating point numbers, regardless of the user's locale settings.
+
+  Also it doesn't Trim the argument (so whitespace around number is @italic(not) tolerated),
+  and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function StrToFloatDot(const S: String): Extended;
 
 { Like standard StrToFloatDef, but always uses dot (.) as a decimal separator
-  for the floating point numbers, regardless of the user's locale settings. }
+  for the floating point numbers, regardless of the user's locale settings.
+
+  Also it doesn't Trim the argument (so whitespace around number is @italic(not) tolerated),
+  and in general ignores locale (standard StrToFloat looks at ThousandSeparator). }
 function StrToFloatDefDot(Const S: String; const Default: Extended): Extended;
+
+var
+  { Are we inside Castle Game Engine designer mode. }
+  CastleDesignMode: Boolean;
+
+  { Refresh UI of CGE editor, because hierarchy of UI/transforms changed. }
+  InternalCastleDesignInvalidate: Boolean;
 
 {$endif read_interface}
 
@@ -231,8 +261,7 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if 
 {$ifdef FPC}
 function SFPCVersion: string;
 begin
-  Result := {$I %FPCVERSION%} +
-    ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
+  Result := {$I %FPCVERSION%} + ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
 end;
 {$endif FPC}
 
@@ -254,6 +283,8 @@ begin
     'Unrecognized compiler'
 
     {$endif} {$endif} {$endif};
+
+  Result := Result + ', platform: ' + PlatformToStr(Platform);
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
@@ -291,15 +322,34 @@ begin
   raise Exception.Create('Parameterless constructor of ' + ClassName + ' should never be called');
 end;
 
+{$ifndef FPC}
+function DefaultFormatSettings: TFormatSettings;
+begin
+  Result := TFormatSettings.Create;
+end;
+{$endif}
+
 function FormatDot(const Fmt: String; const Args: array of const): String;
 var
   FormatSettings: TFormatSettings;
 begin
   FormatSettings := DefaultFormatSettings;
   FormatSettings.DecimalSeparator := '.';
+  FormatSettings.ThousandSeparator := #0;
   Result := Format(Fmt, Args, FormatSettings);
 end;
 
+function FloatToStrDot(const Value: Extended): String;
+var
+  FormatSettings: TFormatSettings;
+begin
+  FormatSettings := DefaultFormatSettings;
+  FormatSettings.DecimalSeparator := '.';
+  FormatSettings.ThousandSeparator := #0;
+  Result := FloatToStr(Value, FormatSettings);
+end;
+
+(*
 function TryStrToFloatDot(const S: String; out Value: Single): Boolean;
 var
   FormatSettings: TFormatSettings;
@@ -346,6 +396,54 @@ begin
   FormatSettings.DecimalSeparator := '.';
   Result := StrToFloatDef(S, Default, FormatSettings);
 end;
+*)
+
+{ We use Val, instead of calling StrToFloat with modified TFormatSettings.
+  This makes our "Dot" routines slightly faster.
+  This matters e.g. when parsing 3D model formats that encode floats in text. }
+
+function TryStrToFloatDot(const S: String; out Value: Single): Boolean;
+var
+  Err: Integer;
+begin
+  Val(S, Value, Err);
+  Result := Err = 0;
+end;
+
+function TryStrToFloatDot(const S: String; out Value: Double): Boolean;
+var
+  Err: Integer;
+begin
+  Val(S, Value, Err);
+  Result := Err = 0;
+end;
+
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function TryStrToFloatDot(const S: String; out Value: Extended): Boolean;
+var
+  Err: Integer;
+begin
+  Val(S, Value, Err);
+  Result := Err = 0;
+end;
+{$endif}
+
+function StrToFloatDot(const S: String): Extended;
+var
+  Err: Integer;
+begin
+  Val(S, Result, Err);
+  if Err <> 0 then
+    raise EConvertError.CreateFmt('"%s" is an invalid float', [S]);
+end;
+
+function StrToFloatDefDot(const S: String; const Default: Extended): Extended;
+var
+  Err: Integer;
+begin
+  Val(S, Result, Err);
+  if Err <> 0 then
+    Result := Default;
+end;
 
 {$endif read_implementation}
-

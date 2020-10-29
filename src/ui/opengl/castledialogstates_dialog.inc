@@ -127,6 +127,7 @@ type
     case TextAlign of
       hpMiddle: X := X + ((Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) / 2);
       hpRight : X := X + ( Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth));
+      else ;
     end;
     if Caret = cmVisible then
       Text := Text + CaretChar;
@@ -179,6 +180,7 @@ begin
   case Dialog.TextAlign of
     hpMiddle: TextX := (SR.Left + SR.Right) / 2;
     hpRight : TextX := SR.Right - Dialog.BoxMarginScaled;
+    else ;
   end;
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
@@ -306,10 +308,10 @@ begin
 
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
-    ScrollBarWidthScaled to be on the safe side, because we don't know
+    EffectiveScrollBarWidth to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
   BreakWidth := Max(0, PR.Width - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - ScrollView.ScrollBarWidth * UIScale);
+    - WindowMarginScaled * 2 - ScrollView.EffectiveScrollBarWidth * UIScale);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
@@ -401,7 +403,7 @@ begin
         even though they actually are not.
 
         Reproducible if you try to resize to small sizes the demo on
-        /home/michalis/sources/castle-engine/castle-engine/examples/android/android_demo/game.pas . }
+        examples/mobile/simple_3d_demo/ . }
       + 2,
       PR.Height - WindowMarginScaled * 2);
 end;

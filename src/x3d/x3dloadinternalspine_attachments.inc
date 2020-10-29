@@ -31,7 +31,7 @@
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
-    Material: TMaterialNode; //< initialized together with Node, always inside
+    Material: TUnlitMaterialNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
     { Create and parse correct TAttachment descendant.
@@ -40,7 +40,7 @@
       const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
     { Some attachments (skinnedmesh) can be attached only to a single bone
-      at a time, and must be transfomed from world to bone space. }
+      at a time, and must be transformed from world to bone space. }
     procedure TransformToBoneSpace(const Bone: TBone); virtual;
   end;
 
@@ -58,9 +58,8 @@
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
-  strict protected
-    Coord: TCoordinateNode;
   public
+    Coord: TCoordinateNode;
     UVs: TVector2List;
     Triangles: TLongIntList;
     Vertices: TVector2List;
@@ -78,34 +77,34 @@
       const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
 
-  TMeshAttachment = class(TAbstractMeshAttachment)
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-  end;
-
-  TSkinnedMeshVertexBone = class
+  TMeshVertexBone = class
     Bone: TBone;
     V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TSkinnedMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertexBone>;
+  TMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertexBone>;
 
-  TSkinnedMeshVertex = class
-    Bones: TSkinnedMeshVertexBoneList;
+  TMeshVertex = class
+    Offset: Integer; // Offset relative to where this Vertex is loaded from the list
+    Bones: TMeshVertexBoneList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const JsonArray: TJSONArray;
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TSkinnedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertex>)
+  TMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
-  TSkinnedMeshAttachment = class(TAbstractMeshAttachment)
-    Weights: TSkinnedMeshVertexList;
+  TMeshAttachment = class(TAbstractMeshAttachment)
+    Weights: TMeshVertexList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+  end;
+
+  TSkinnedMeshAttachment = class(TMeshAttachment)
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
@@ -152,15 +151,6 @@ begin
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
   end else
-  if TypeName = 'skinnedmesh' then
-  begin
-    WritelnWarning('Spine', Format('Spine region type "skinnedmesh" is for now not deformed during animation, for attachment "%s"',
-      [AnAttachmentName]));
-    Result := TSkinnedMeshAttachment.Create;
-    Result.SlotName := ASlotName;
-    Result.AttachmentName := AnAttachmentName;
-    Result.Parse(Json, Bones);
-  end else
   if (TypeName = 'region') or
      (TypeName = 'regionsequence') then
   begin
@@ -181,6 +171,14 @@ begin
   if TypeName = 'clipping' then
   begin
     Result := TClippingAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json, Bones);
+  end else
+  if TypeName = 'skinnedmesh' then
+  begin
+    WritelnWarning('Spine', 'Region type skinnedmesh may not be supported in future CGE versions, please export your model again from latest Spine version');
+    Result := TSkinnedMeshAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
@@ -236,7 +234,7 @@ begin
     WritelnWarning('Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
   Node.Translation := Vector3(XY[0], XY[1], 0);
   Node.Scale := Vector3(Scale[0], Scale[1], 1);
@@ -254,12 +252,12 @@ begin
   if Shape.Appearance.Texture <> nil then
     Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
-  Shape.Material := TMaterialNode.Create(
-    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+  Material := TUnlitMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Shape.Material.ForcePureEmissive;
-  Shape.Material.EmissiveColor := Vector3(1, 1, 1);
-  Material := Shape.Material;
+  Material.EmissiveColor := Vector3(1, 1, 1);
+
+  Shape.Material := Material;
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
@@ -278,7 +276,9 @@ begin
   Faces.Solid := false;
   Faces.SetCoordIndex([0, 1, 2, 3]);
 
-  Coord := TCoordinateNode.Create('', Faces.BaseUrl);
+  Coord := TCoordinateNode.Create(
+    Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
+    Faces.BaseUrl);
   Rect[0] := Vector2(
     MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2),
     MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2));
@@ -355,7 +355,9 @@ begin
   Faces.Solid := false;
   Faces.SetIndex(Triangles);
 
-  Coord := TCoordinateNode.Create('', Faces.BaseUrl);
+  Coord := TCoordinateNode.Create(
+    Format('Coordinate_Slot_%s_Attachment_%s', [SlotName, Name]), // name it, as ROUTE may lead to it
+    Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
     Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
   Faces.Coord := Coord;
@@ -383,7 +385,7 @@ begin
       [SlotName, Name]));
 
   if TexRotated then
-    WritelnWarning('Spine', 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine ' + URIDisplay(BaseUrl), 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);
@@ -400,50 +402,32 @@ end;
 
 { TMeshAttachment ------------------------------------------------------------ }
 
-procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+{ TMeshVertex --------------------------------------------------------- }
+
+constructor TMeshVertex.Create;
 begin
   inherited;
-  ReadVector2List(Json, 'vertices', Vertices);
-
-  if Vertices.Count > UVs.Count then
-  begin
-    WritelnWarning('Spine', 'A weighted mesh (when the number of vertices > number of uvs) is not supported');
-    Invalid := true;
-  end else
-  if UVs.Count <> Vertices.Count then
-  begin
-    WritelnWarning('Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
-      [UVs.Count, Vertices.Count, Name]));
-    Invalid := true;
-  end;
+  Bones := TMeshVertexBoneList.Create;
 end;
 
-{ TSkinnedMeshVertex --------------------------------------------------------- }
-
-constructor TSkinnedMeshVertex.Create;
-begin
-  inherited;
-  Bones := TSkinnedMeshVertexBoneList.Create;
-end;
-
-destructor TSkinnedMeshVertex.Destroy;
+destructor TMeshVertex.Destroy;
 begin
   FreeAndNil(Bones);
   inherited;
 end;
 
-procedure TSkinnedMeshVertex.Parse(const JsonArray: TJSONArray;
+procedure TMeshVertex.Parse(const JsonArray: TJSONArray;
   Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
 var
   I, BoneIndex: Integer;
-  B: TSkinnedMeshVertexBone;
+  B: TMeshVertexBone;
 begin
   for I := 0 to Integer(BonesCount) - 1 do
   begin
     BoneIndex := JsonArray[Index].AsInteger; Inc(Index);
     if not Between(BoneIndex, 0, AllBones.Count - 1) then
-      raise Exception.CreateFmt('Invalid bone index in skinnedmesh.vertices: %d', [BoneIndex]);
-    B := TSkinnedMeshVertexBone.Create;
+      raise Exception.CreateFmt('Invalid bone index in mesh.vertices: %d', [BoneIndex]);
+    B := TMeshVertexBone.Create;
     Bones.Add(B);
     B.Bone := AllBones[BoneIndex];
     B.V[0] := JsonArray[Index].AsFloat; Inc(Index);
@@ -452,13 +436,14 @@ begin
   end;
 end;
 
-{ TSkinnedMeshVertexList ----------------------------------------------------- }
+{ TMeshVertexList ----------------------------------------------------- }
 
-procedure TSkinnedMeshVertexList.Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
+procedure TMeshVertexList.Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
 var
   BonesCount: Cardinal;
-  V: TSkinnedMeshVertex;
+  V: TMeshVertex;
   I: Integer;
+  Offset: Integer = 0;
 begin
   I := 0;
   while I < JsonArray.Count do
@@ -467,13 +452,15 @@ begin
     if I + BonesCount * 4 < JsonArray.Count then
     begin
       if BonesCount = 0 then
-        WritelnWarning('Spine', 'skinnedmesh bonesCount is <= 0');
-      V := TSkinnedMeshVertex.Create;
+        WritelnWarning('Spine', 'mesh bonesCount is <= 0');
+      V := TMeshVertex.Create;
       V.Parse(JsonArray, I + 1, BonesCount, Bones);
+      V.Offset := Offset;
+      Offset := Offset + BonesCount * 2;
       Add(V);
     end else
     begin
-      WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
+      WritelnWarning('Spine', Format('mesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
         [BonesCount]));
       Break;
     end;
@@ -482,53 +469,54 @@ begin
   end;
 end;
 
-{ TSkinnedMeshAttachment ----------------------------------------------------- }
+{ TMeshAttachment ----------------------------------------------------- }
 
-constructor TSkinnedMeshAttachment.Create;
+constructor TMeshAttachment.Create;
 begin
   inherited;
-  Weights := TSkinnedMeshVertexList.Create;
+  Weights := TMeshVertexList.Create;
 end;
 
-destructor TSkinnedMeshAttachment.Destroy;
+destructor TMeshAttachment.Destroy;
 begin
   FreeAndNil(Weights);
   inherited;
 end;
 
-procedure TSkinnedMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 var
   JsonArray: TJSONArray;
   I, J: Integer;
-  VB: TSkinnedMeshVertexBone;
+  VB: TMeshVertexBone;
   V: TVector2;
 begin
   inherited;
-  JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
-  if JsonArray <> nil then
-    Weights.Parse(JsonArray, Bones);
+  ReadVector2List(Json, 'vertices', Vertices);
 
-  if UVs.Count <> Weights.Count then
+  if Vertices.Count > UVs.Count then
   begin
-    WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) and uvs have different number of items, respectively %d and %d, for skinnedmesh attachment %s',
-      [UVs.Count, Vertices.Count, Name]));
-    Exit;
-  end;
-
-  { calculate initial Vertices from Weights.
-    Similar to ComputeWorldVertices in spine-runtimes/spine-csharp/src/Attachments/SkinnedMeshAttachment.cs }
-  Vertices.Count := Weights.Count;
-  for I := 0 to Weights.Count - 1 do
-  begin
-    V := TVector2.Zero;
-    for J := 0 to Weights[I].Bones.Count - 1 do
+    Vertices.Clear;
+    JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
+    if JsonArray <> nil then
+      Weights.Parse(JsonArray, Bones);
+    { calculate initial Vertices from Weights.
+      Similar to ComputeWorldVertices in spine-runtimes/spine-csharp/src/Attachments/SkinnedMeshAttachment.cs }
+    Vertices.Count := Weights.Count;
+    for I := 0 to Weights.Count - 1 do
     begin
-      VB := Weights[I].Bones[J];
-      V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
+      V := TVector2.Zero;
+      for J := 0 to Weights[I].Bones.Count - 1 do
+      begin
+        VB := Weights[I].Bones[J];
+        V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
+      end;
+      Vertices[I] := V;
     end;
-    Vertices[I] := V;
   end;
 end;
+
+
+{ TSkinnedMeshAttachment --------------------------------------------------- }
 
 procedure TSkinnedMeshAttachment.TransformToBoneSpace(const Bone: TBone);
 var
@@ -584,19 +572,19 @@ begin
     WritelnWarning('Spine', 'TPathAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
 
   Shape := TShapeNode.Create('', BaseUrl);
   Node.AddChildren(Shape);
 
-  Shape.Material := TMaterialNode.Create(
-    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+  Material := TUnlitMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
-  Shape.Material.ForcePureEmissive;
-  Shape.Material.EmissiveColor := WhiteRGB;
+  Material.EmissiveColor := WhiteRGB;
+  Shape.Material := Material;
+
   Shape.Render := false;
-  Material := Shape.Material;
 
   ControlPoints := TCoordinateNode.Create('', BaseUrl);
   { we ignore first and last Vertices, they are only handles outside of
@@ -623,6 +611,8 @@ end;
 destructor TClippingAttachment.Destroy;
 begin
   FreeAndNil(Vertices);
+  // If you didn't call VisualizeClipPolygon in BuildNodes, Material node remains unused
+  FreeIfUnusedAndNil(Material);
   inherited;
 end;
 
@@ -648,6 +638,7 @@ procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
     I: Integer;
   begin
     Shape := TShapeNode.Create('', BaseUrl);
+    Shape.Material := Material;
     Node.AddChildren(Shape);
 
     Faces := TIndexedFaceSetNode.Create('', BaseUrl);
@@ -689,8 +680,13 @@ begin
     WritelnWarning('Spine', 'TClippingAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
-    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    Format('Slot_%s_Attachment_%s', [SlotName, Name]),
     BaseUrl);
+
+  Material := TUnlitMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [SlotName, Name]),
+    BaseUrl);
+  Material.EmissiveColor := WhiteRGB;
 
   // debug
   //VisualizeClipPolygon;

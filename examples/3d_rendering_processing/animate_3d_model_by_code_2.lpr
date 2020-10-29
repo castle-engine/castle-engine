@@ -17,17 +17,17 @@
   constructs 3D model (VRML/X3D graph) by code and then animates it by code
   (showing a little more interesting animation, sin*cos displayed in 3D). }
 
-{ $define LOG}
-
 program animate_3d_model_by_code_2;
 
 uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
-  CastleFilesUtils, CastleQuaternions {$ifdef LOG} ,CastleLog {$endif}, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleApplicationProperties;
+  CastleFilesUtils, CastleQuaternions, CastleParameters,
+  CastleStringUtils, CastleKeysMouse, CastleApplicationProperties,
+  CastleViewport, CastleTimeUtils;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 
 const
@@ -35,6 +35,7 @@ const
   YCount = 15;
 
 var
+  Time: TFloatTime;
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
 procedure Update(Container: TUIContainer);
@@ -42,17 +43,15 @@ var
   I, J: Integer;
   T: TVector3;
 begin
-  { We want to keep track of current time here (for calculating
-    below). It's most natural to just use Scene.Time property for this.
-    (Scene.Time is already incremented for us by SceneManager.) }
+  Time += Container.Fps.SecondsPassed;
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
       T := Transform[I, J].Translation;
       T[2] := 2 *
-        Sin(I / 2 + Scene.Time) *
-        Cos(J / 2 + Scene.Time);
+        Sin(I / 2 + Time) *
+        Cos(J / 2 + Time);
       Transform[I, J].Translation := T;
     end;
 end;
@@ -85,35 +84,38 @@ begin
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  InitializeLog;
+  Application.ParseStandardParameters;
+  Parameters.CheckHigh(0); // no command-line options specific to this program are allowed
 
-  Parameters.CheckHigh(0);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
 
   { We use a lot of boxes, so make their rendering fastest. }
   DefaultTriangulationDivisions := 0;
 
-  Scene := TCastleScene.Create(nil);
-  try
-    Scene.Load(CreateVrmlGraph, true);
+  Scene := TCastleScene.Create(Application);
+  Scene.Load(CreateVrmlGraph, true);
 
-    {$ifdef LOG}
-    InitializeLog;
-    Scene.LogChanges := true;
-    {$endif}
+  { init Viewport with our Scene }
+  Viewport.Items.MainScene := Scene;
+  Viewport.Items.Add(Scene);
 
-    { add Scene to SceneManager }
-    Window.SceneManager.MainScene := Scene;
-    Window.SceneManager.Items.Add(Scene);
+  { init Viewport.Camera }
+  Viewport.Camera.SetView(
+    Vector3(45.92, 12.68, 18.15), // position
+    Vector3(-0.83,  0.09, -0.55), // direction
+    Vector3(-0.06,  0.96,  0.26)  // up
+  );
 
-    { init SceneManager.Camera }
-    Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
-    { set more interesting view by default }
-    Window.SceneManager.ExamineCamera.Rotations := QuatFromAxisAngle(
-      Vector3(1, 1, 0).Normalize, Pi/4);
+  { init Viewport.Navigation }
+  Viewport.Navigation := TCastleExamineNavigation.Create(Application);
 
-    Window.OnUpdate := @Update;
-    Window.SetDemoOptions(K_F11, CharEscape, true);
-    Window.OpenAndRun;
-  finally Scene.Free end;
+  Window.OnUpdate := @Update;
+  Window.SetDemoOptions(keyF11, CharEscape, true);
+  Application.Run;
 end.

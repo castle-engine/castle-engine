@@ -67,7 +67,7 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
-  CastleSphereSampling, CastleProgress, CastleProgressConsole,
+  CastleSphereSampling, CastleProgress, CastleProgressConsole, CastleColors,
   CastleSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 
 var
@@ -169,15 +169,15 @@ begin
   finally Progress.Fini end;
 end;
 
-function DiffuseColor(State: TX3DGraphTraverseState): TVector3;
+function MainColor(State: TX3DGraphTraverseState): TVector3;
 var
   MaterialInfo: TMaterialInfo;
 begin
   MaterialInfo := State.MaterialInfo;
   if MaterialInfo <> nil then
-    Result := MaterialInfo.DiffuseColor
+    Result := MaterialInfo.MainColor
   else
-    Result := TMaterialInfo.DefaultDiffuseColor;
+    Result := WhiteRGB;
 end;
 
 const
@@ -196,13 +196,14 @@ const
   end;
 
 var
-  SI: TShapeTreeIterator;
   Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   RadianceTransfer: TVector3List;
   S: string;
   TimeStart: TProcessTimerResult;
   Seconds: TFloatTime;
+  ShapeList: TShapeList;
+  Shape: TShape;
 begin
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(2);
@@ -217,40 +218,38 @@ begin
 
     TimeStart := ProcessTimer;
 
-    SI := TShapeTreeIterator.Create(Scene.Shapes, false);
-    try
-      while SI.GetNext do
+    ShapeList := Scene.Shapes.TraverseList(false);
+    for Shape in ShapeList do
+    begin
+      Geometry := Shape.Geometry;
+      State := Shape.State;
+
+      if Geometry is TAbstractComposedGeometryNode then
+        RadianceTransfer := TAbstractComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
+      if Geometry is TIndexedFaceSetNode_1 then
+        RadianceTransfer := TIndexedFaceSetNode_1(Geometry).FdRadianceTransfer.Items else
+        RadianceTransfer := nil;
+
+      { If we used Proxy to get Geometry, then don't calculate PRT.
+        We could calculate it, but it would not be used: it would not
+        be saved to the actual file, only to the temporary Proxy instance.
+        To make it work, we may in the future implement actually inserting
+        Proxy result into the VRML file. }
+      if Geometry <> Shape.OriginalGeometry then
+        RadianceTransfer := nil;
+
+      if RadianceTransfer <> nil then
       begin
-        Geometry := SI.Current.Geometry;
-        State := SI.Current.State;
-
-        if Geometry is TAbstractComposedGeometryNode then
-          RadianceTransfer := TAbstractComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
-        if Geometry is TIndexedFaceSetNode_1 then
-          RadianceTransfer := TIndexedFaceSetNode_1(Geometry).FdRadianceTransfer.Items else
-          RadianceTransfer := nil;
-
-        { If we used Proxy to get Geometry, then don't calculate PRT.
-          We could calculate it, but it would not be used: it would not
-          be saved to the actual file, only to the temporary Proxy instance.
-          To make it work, we may in the future implement actually inserting
-          Proxy result into the VRML file. }
-        if Geometry <> SI.Current.OriginalGeometry then
-          RadianceTransfer := nil;
-
-        if RadianceTransfer <> nil then
-        begin
-          { For PRT, we need a normal per-vertex, so always calculate
-            smooth normals. Simple, and thanks to CastleInternalNormals
-            this works for all VRML/X3D coord-based nodes (and only for
-            those RadianceTransfer is defined). }
-          Normals := SI.Current.NormalsSmooth(true, true);
-          ComputeTransfer(RadianceTransfer,
-            Geometry.InternalCoordinates(State).Items,
-            State.Transform, DiffuseColor(State));
-        end;
+        { For PRT, we need a normal per-vertex, so always calculate
+          smooth normals. Simple, and thanks to CastleInternalNormals
+          this works for all VRML/X3D coord-based nodes (and only for
+          those RadianceTransfer is defined). }
+        Normals := Shape.NormalsSmooth(true, true);
+        ComputeTransfer(RadianceTransfer,
+          Geometry.InternalCoordinates(State).Items,
+          State.Transform, MainColor(State));
       end;
-    finally FreeAndNil(SI) end;
+    end;
 
     Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
     S := Format('SH bases %d, rays per vertex %d, done in %f secs',

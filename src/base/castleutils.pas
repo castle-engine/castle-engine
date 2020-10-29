@@ -41,14 +41,6 @@
   Initialization of this unit does some generally-useful things:
 
   @unorderedList(
-    @item(Calls @code(Randomize), to initialize random sequence of the standard
-      @code(Random).
-
-      Because the initial value of the random seed if undefined anyway.
-      And forgetting to call @code(Randomize) can easily lead to accidentally
-      getting the same random sequence from multiple runs of the program.
-    )
-
     @item(Sets @code(DecimalSeparator) to '.' (dot).
 
       Bacause Delphi and FPC define DecimalSeparator
@@ -70,9 +62,10 @@
       that the engine overrides a global DecimalSeparator.
       We will remove this feature in the future.)
 
-      Use @link(FormatDot) to reliably output floating point values
+      Use @link(FormatDot) and FloatToStrDot to reliably output floating point values
       with "dot" as a decimal separator.
-      Similarly, use TryStrToFloatDot to read string with dot to a float.
+      Similarly, use StrToFloatDot, TryStrToFloatDot, StrToFloatDefDot
+      to read string with dot to a float.
     )
 
     @item(Makes AnsiString (which is usually just called "string")
@@ -84,8 +77,8 @@
       throughout your code, and everything will just work.
 
       This way your applications will behave the same, whether they use LCL
-      (which happens if you use TCastleControl on Lazarus form) or not
-      (which happens if you use TCastleWindow).
+      (which happens if you use TCastleControlBase on Lazarus form) or not
+      (which happens if you use TCastleWindowBase).
 
       This is also consistent with what our TCastleFont expects (it's
       rendering assumes UTF-8 encoding of strings) and what some of our
@@ -136,6 +129,7 @@ uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
 {$I castleutils_types.inc}
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_basic_algorithms.inc}
+{$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
 {$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
@@ -160,6 +154,7 @@ implementation
 {$I castleutils_types.inc}
 {$I castleutils_delphi_compatibility.inc}
 {$I castleutils_basic_algorithms.inc}
+{$I castleutils_platform.inc}
 {$I castleutils_miscella.inc}
 {$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
@@ -183,8 +178,6 @@ implementation
 
 initialization
   InitializationOSSpecific;
-
-  Randomize; { required by e.g. GetTempFname }
 
   LocaleDecimalSeparator :=
     {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;

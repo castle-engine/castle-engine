@@ -117,6 +117,7 @@ var
             glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
               Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
               Image.RawPixels);
+          else ;
         end;
         LoadedSize := LoadedSize + Image.Size;
       finally AfterUnpackImage(Image) end;

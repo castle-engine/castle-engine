@@ -40,6 +40,11 @@ type
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function HasService(const Name: string): boolean;
     procedure AddService(const Name: string);
+    { Find service by name.
+      Returns @nil if not found.
+      You can check HasService earlier, if HasService('xxx') = @true then Service('xxx')
+      will never be @nil. }
+    function Service(const Name: string): TService;
   end;
 
 implementation
@@ -63,31 +68,9 @@ begin
 end;
 
 procedure TService.ReadCastleEngineManifest(const Element: TDOMElement);
-var
-  ChildElements: TXMLElementIterator;
-  ChildElement: TDOMElement;
-  Key, Value: string;
 begin
   FName := Element.AttributeString('name');
-
-  ChildElements := Element.ChildrenIterator('parameter');
-  try
-    while ChildElements.GetNext do
-    begin
-      ChildElement := ChildElements.Current;
-      Key := ChildElement.AttributeString('key');
-      if ChildElement.HasAttribute('value') then
-        Value := ChildElement.AttributeString('value')
-      else
-      begin
-        Value := ChildElement.TextData;
-        { value cannot be empty in this case }
-        if Value = '' then
-          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
-      end;
-      FParameters.Add(Key, Value);
-    end;
-  finally FreeAndNil(ChildElements) end;
+  ReadParameters(Element, Parameters, []);
 end;
 
 { TServiceList ------------------------------------------------------ }
@@ -96,16 +79,16 @@ procedure TServiceList.ReadCastleEngineManifest(const Element: TDOMElement);
 var
   ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
-  Service: TService;
+  NewService: TService;
 begin
   ChildElements := Element.ChildrenIterator('component');
   try
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      Service := TService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
+      NewService := TService.Create;
+      Add(NewService);
+      NewService.ReadCastleEngineManifest(ChildElement);
     end;
   finally FreeAndNil(ChildElements) end;
 
@@ -114,9 +97,9 @@ begin
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      Service := TService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
+      NewService := TService.Create;
+      Add(NewService);
+      NewService.ReadCastleEngineManifest(ChildElement);
     end;
   finally FreeAndNil(ChildElements) end;
 end;
@@ -131,14 +114,24 @@ begin
   Result := false;
 end;
 
+function TServiceList.Service(const Name: string): TService;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+  Result := nil;
+end;
+
 procedure TServiceList.AddService(const Name: string);
 var
-  Service: TService;
+  NewService: TService;
 begin
   if not HasService(Name) then
   begin
-    Service := TService.Create(Name);
-    Add(Service);
+    NewService := TService.Create(Name);
+    Add(NewService);
   end;
 end;
 

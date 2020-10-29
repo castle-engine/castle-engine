@@ -4,7 +4,7 @@
   you do not want to have the types like TGenericScalar or TGenericVector3
   defined.
 
-  Instead use the types exposed by NewVectors unit, like @link(TVector3). }
+  Instead use the types exposed by CastleVectors unit, like @link(TVector3). }
 unit CastleVectorsInternalSingle;
 
 {$I castleconf.inc}

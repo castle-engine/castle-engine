@@ -106,7 +106,7 @@ function ParseExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
-  This can be used as a drop-in replacement for StrToFloat.
+  This can be used as a drop-in replacement for StrToFloatDot.
   Takes a string with any constant mathematical expression,
   according to CastleScript syntax, parses it and calculates.
 
@@ -129,7 +129,7 @@ function ParseProgram(const S: string;
 
 implementation
 
-uses SysUtils, CastleScriptCoreFunctions;
+uses SysUtils, CastleScriptCoreFunctions, CastleUtils;
 
 function Expression(
   const Lexer: TCasScriptLexer;
@@ -493,15 +493,25 @@ begin
     Result := nil;
     try
       try
-        Result := NonAssignmentExpression(Lexer, nil { no Environment }, false, Variables);
-        Lexer.CheckTokenIs(tokEnd);
+        try
+          Result := NonAssignmentExpression(Lexer, nil { no Environment }, false, Variables);
+          Lexer.CheckTokenIs(tokEnd);
+        except
+          { Change ECasScriptFunctionArgumentsError (raised when
+            creating functions) to ECasScriptParserError.
+            This allows the caller to catch only ECasScriptSyntaxError,
+            and adds position information to error message. }
+          on E: ECasScriptFunctionArgumentsError do
+            raise ECasScriptParserError.Create(Lexer, E.Message);
+        end;
       except
-        { Change ECasScriptFunctionArgumentsError (raised when
-          creating functions) to ECasScriptParserError.
-          This allows the caller to catch only ECasScriptSyntaxError,
-          and adds position information to error message. }
-        on E: ECasScriptFunctionArgumentsError do
-          raise ECasScriptParserError.Create(Lexer, E.Message);
+        on E: ECasScriptError do
+        begin
+          if ScriptVerboseMessages then
+            E.Message := E.Message + NL +
+              'The error above is inside expression:' + NL + S;
+          raise;
+        end;
       end;
     except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;

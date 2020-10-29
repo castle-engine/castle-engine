@@ -30,13 +30,18 @@ type
 
   TUnicodeCharList = class(TCardinalList)
   public
-    { Add a single Unicode character. }
+    { Add a single Unicode character.
+      Doesn't add duplicates (contrary to ancestor Add). }
     procedure Add(const C: TUnicodeChar); reintroduce; overload;
+
     { Add all characters from SampleText.
       Useful to fill TUnicodeCharList
-      when you have a sample text of international letters. }
+      when you have a sample text of international letters.
+      Doesn't add duplicates. }
     procedure Add(const SampleText: string); overload;
-    { Add all characters from given set. Try e.g. SimpleAsciiCharacters. }
+
+    { Add all characters from given set. Try e.g. SimpleAsciiCharacters.
+      Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
   end;
 
@@ -75,11 +80,30 @@ function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
 
+{ Convert all special Unicode characters in the given UTF-8 string to HTML entities.
+  This is a helpful routine to visualize a string with any Unicode characters
+  using simple ASCII.
+
+  "Special" Unicode characters is "anything outside of safe ASCII range,
+  which is between space and ASCII code 128".
+  The resulting string contains these special characters encoded
+  as HTML entities that show the Unicode code point in hex.
+  Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
+  Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.
+
+  Tip: You can check Unicode codes by going to e.g. https://codepoints.net/U+F3
+  for @code(&#xF3;). Just edit this URL in the WWW browser address bar.
+}
+function UTF8ToHtmlEntities(const S: String): String;
+
 implementation
+
+uses SysUtils;
 
 procedure TUnicodeCharList.Add(const C: TUnicodeChar);
 begin
-  inherited Add(C);
+  if IndexOf(C) = -1 then
+    inherited Add(C);
 end;
 
 procedure TUnicodeCharList.Add(const SampleText: string);
@@ -93,11 +117,7 @@ begin
   while (C > 0) and (CharLen > 0) do
   begin
     Inc(TextPtr, CharLen);
-    if IndexOf(C) = -1 then
-    begin
-      Add(C);
-      //Writeln('Adding extra character ', C);
-    end;
+    Add(C);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
@@ -333,6 +353,31 @@ begin
       end;
   else
     Result:=0;
+  end;
+end;
+
+function UTF8ToHtmlEntities(const S: String): String;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+begin
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  Result := '';
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    if (C < Ord(' ')) or (C >= 128) then
+      Result := Result + '&#x' + IntToHex(C, 1) + ';'
+    else
+    if C = Ord('&') then
+      Result := Result + '&amp;'
+    else
+      Result := Result + Chr(C);
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 

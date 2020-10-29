@@ -7,6 +7,6 @@
   image="inventory_image.png"
 >
   <model>
-    <base url="medkit.x3d"/>
+    <base url="medkit.gltf"/>
   </model>
 </resource>

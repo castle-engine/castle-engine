@@ -24,7 +24,7 @@ uses
   { standard units }
   SysUtils, Math,
   { Castle Game Engine units }
-  CastleWindow, CastleFilesUtils, CastleWindowModes, CastleStringUtils,
+  CastleWindow, CastleFilesUtils, CastleStringUtils,
   CastleUtils, CastleGLUtils, CastleKeysMouse, CastleMessages, CastleGLImages,
   CastleImages, CastleColors, CastleLog, CastleApplicationProperties,
   { game units }
@@ -39,7 +39,7 @@ procedure WindowRender(Container: TUIContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
-  procedure DrawImageOnTile(X, Y: Cardinal; GLImage: TGLImage;
+  procedure DrawImageOnTile(X, Y: Cardinal; DrawableImage: TDrawableImage;
     const SpecialMoveX: Integer = 0;
     const SpecialMoveY: Integer = 0);
   var
@@ -51,8 +51,8 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-    GLImage.Alpha := acTest;
-    GLImage.Draw(PosX, PosY);
+    DrawableImage.Alpha := acTest;
+    DrawableImage.Draw(PosX, PosY);
   end;
 
 var
@@ -61,8 +61,6 @@ var
   BaseFitX, BaseFitY: Cardinal;
   X1, X2, Y1, Y2: Integer;
 begin
-  RenderContext.Clear([cbColor], Black);
-
   BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
   BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
 
@@ -103,7 +101,7 @@ begin
     for Y := Y1 to Y2 do
     begin
       MapTile := Map.Items[X, Y];
-      DrawImageOnTile(X, Y, MapTile.BaseTile.GLImage);
+      DrawImageOnTile(X, Y, MapTile.BaseTile.DrawableImage);
     end;
 
   { TODO: unoptimal code, should draw only the part that fits within the window.
@@ -117,17 +115,17 @@ begin
     if Y = Player.Y then
     begin
       if Player.Moving then
-        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction],
+        DrawImageOnTile(Player.X, Player.Y, Player.DrawableImage[Player.Direction],
           Round(Player.MovingSmallMoveX),
           Round(Player.MovingSmallMoveY)) else
-        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction]);
+        DrawImageOnTile(Player.X, Player.Y, Player.DrawableImage[Player.Direction]);
     end;
 
     for X := 0 to Map.Width - 1 do
     begin
       MapTile := Map.Items[X, Y];
       if MapTile.BonusTile <> nil then
-        DrawImageOnTile(X, Y, MapTile.BonusTile.GLImage);
+        DrawImageOnTile(X, Y, MapTile.BonusTile.DrawableImage);
     end;
   end;
 end;
@@ -230,7 +228,7 @@ begin
              URL := 'new';
              if MessageInputQuery(Window, 'Save map as name' +
                ' (don''t specify here initial path and .map extension)', URL) then
-               Map.SaveToFile(ApplicationData('maps/' + URL + '.map'));
+               Map.SaveToFile('castle-data:/maps/' + URL + '.map');
            end;
       'i': ShowFieldInfo;
       CharEscape: Window.Close;
@@ -244,10 +242,10 @@ const
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
-    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowUp]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowDown]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowRight] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[keyArrowLeft]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -255,21 +253,21 @@ begin
       of the screen, user is easily fooled and thinks that they work
       continuously. So he keeps pressing them. So we should check them
       here. }
-    if Window.Pressed[K_Up]    then Player.Move(dirNorth);
-    if Window.Pressed[K_Down]  then Player.Move(dirSouth);
-    if Window.Pressed[K_Left]  then Player.Move(dirWest);
-    if Window.Pressed[K_Right] then Player.Move(dirEast);
+    if Window.Pressed[keyArrowUp]    then Player.Move(dirNorth);
+    if Window.Pressed[keyArrowDown]  then Player.Move(dirSouth);
+    if Window.Pressed[keyArrowLeft]  then Player.Move(dirWest);
+    if Window.Pressed[keyArrowRight] then Player.Move(dirEast);
 
-    if Window.Pressed[K_Numpad_7] then Player.Move(dirNorthWest);
-    if Window.Pressed[K_Numpad_9] then Player.Move(dirNorthEast);
-    if Window.Pressed[K_Numpad_1] then Player.Move(dirSouthWest);
-    if Window.Pressed[K_Numpad_3] then Player.Move(dirSouthEast);
-    if Window.Pressed[K_Numpad_4] then Player.Move(dirWest);
-    if Window.Pressed[K_Numpad_6] then Player.Move(dirEast);
-    if Window.Pressed[K_Numpad_2] then Player.Move(dirSouth);
-    if Window.Pressed[K_Numpad_8] then Player.Move(dirNorth);
+    if Window.Pressed[keyNumpad7] then Player.Move(dirNorthWest);
+    if Window.Pressed[keyNumpad9] then Player.Move(dirNorthEast);
+    if Window.Pressed[keyNumpad1] then Player.Move(dirSouthWest);
+    if Window.Pressed[keyNumpad3] then Player.Move(dirSouthEast);
+    if Window.Pressed[keyNumpad4] then Player.Move(dirWest);
+    if Window.Pressed[keyNumpad6] then Player.Move(dirEast);
+    if Window.Pressed[keyNumpad2] then Player.Move(dirSouth);
+    if Window.Pressed[keyNumpad8] then Player.Move(dirNorth);
 
-    if Window.Pressed[K_F10] then
+    if Window.Pressed[keyF10] then
     begin
       { simulate OpenGL context close + open, this may happen at any time on Android/iOS }
       Window.Close(false);
@@ -295,7 +293,7 @@ begin
   // Window.Container.UIReferenceHeight := 768;
   // Window.Container.UIScaling := usEncloseReferenceSize;
 
-  Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
+  Map := TMap.CreateFromFile('castle-data:/maps/1.map');
   Player := TPlayer.Create;
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
   Player.CalculatePixelPosition;

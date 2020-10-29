@@ -372,7 +372,7 @@ type
   end;
   PTriangle = ^TTriangle;
 
-  TTriangleList = specialize TStructList<TTriangle>;
+  TTriangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle>;
 
   { Return for given Triangle do we want to ignore collisions with it.
     For now, Sender is always TTriangleOctree. }
@@ -424,8 +424,9 @@ function IndexedConvexPolygonNormal(
   Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer;
+  const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 { @groupEnd }
 
@@ -438,11 +439,12 @@ function IndexedConvexPolygonNormal(
 
   @groupBegin }
 function IndexedConvexPolygonArea(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer): Single; overload;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer;
+  const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
 { Are the polygon points ordered CCW (counter-clockwise). When viewed
@@ -597,12 +599,13 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer;
+  const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
 
   { Like Verts^[Indices[I]] but takes into account VertsStride. }
-  function VertsIndices(const I: Integer): PVector3; inline;
+  function VertsIndices(const I: Integer): PVector3;
   begin
     Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
   end;
@@ -666,8 +669,8 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer): Single;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
     Indices, IndicesCount,
@@ -675,11 +678,12 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+  const Indices: PLongintArray; const IndicesCount: integer;
+  const Verts: PVector3Array; const VertsCount: Integer;
+  const VertsStride: PtrUInt): Single;
 
   { Like Verts^[Indices[I]] but takes into account VertsStride. }
-  function VertsIndices(const I: Integer): PVector3; inline;
+  function VertsIndices(const I: Integer): PVector3;
   begin
     Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
   end;

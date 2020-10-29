@@ -14,49 +14,19 @@
 }
 
 {$ifdef read_interface}
-  { Common ancestor for both VRML 1.0 camera nodes and VRML/X3D >= 2.0 viewpoint
-    nodes. }
+  { Base type for viewpoints in X3D,
+    which are locations from which the user may view the scene. }
   TAbstractViewpointNode = class(TAbstractBindableNode)
   strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
-    function GetOrientation: TVector4;
-    procedure SetOrientation(const Value: TVector4);
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
-    procedure CreateNode; override;
+    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
-
-    strict private FFdOrientation: TSFRotation;
-    public property FdOrientation: TSFRotation read FFdOrientation;
-    property Orientation: TVector4 read GetOrientation write SetOrientation;
-
-    strict private FFdDirection: TMFVec3f;
-    public property FdDirection: TMFVec3f read FFdDirection;
-
-    strict private FFdUp: TMFVec3f;
-    public property FdUp: TMFVec3f read FFdUp;
-
-    strict private FFdGravityUp: TSFVec3f;
-    public property FdGravityUp: TSFVec3f read FFdGravityUp;
-
-    strict private FEventCameraMatrix: TSFMatrix4fEvent;
-    public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
-
-    strict private FEventCameraInverseMatrix: TSFMatrix4fEvent;
-    public property EventCameraInverseMatrix: TSFMatrix4fEvent read FEventCameraInverseMatrix;
-
-    strict private FEventCameraRotationMatrix: TSFMatrix3fEvent;
-    public property EventCameraRotationMatrix: TSFMatrix3fEvent read FEventCameraRotationMatrix;
-
-    strict private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
-    public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
-
-    strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
     { Position of the viewpoint. }
     property Position: TVector3 read GetPosition write SetPosition;
@@ -73,7 +43,7 @@
       )
 
       They are all then transformed by the current viewpoint transformation
-      (determined by parent nodes like Transform).
+      (determined by parent nodes like TTransformNode).
 
       One conclusion from the above is that the only way to change the gravity up
       vector (this determines in which direction viewer falls down)
@@ -86,30 +56,9 @@
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
-    strict private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
-
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
     function SmartDescription: string; virtual;
-  end;
-
-  TX3DViewpointClassNode = class of TAbstractViewpointNode;
-
-  { Base type for viewpoints in X3D,
-    which are locations from which the user may view the scene. }
-  TAbstractX3DViewpointNode = class(TAbstractViewpointNode)
-  public
-    procedure CreateNode; override;
-
-    strict private FFdCenterOfRotation: TSFVec3f;
-    public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
-
-    strict private FFdJump: TSFBool;
-    public property FdJump: TSFBool read FFdJump;
-
-    strict private FFdRetainUserOffsets: TSFBool;
-    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
     { Matrices for projecting texture from this viewpoint,
       for ProjectedTextureCoordinate.
@@ -124,6 +73,10 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
   end;
 
+  TAbstractX3DViewpointNode = TAbstractViewpointNode deprecated 'use TAbstractViewpointNode';
+
+  TX3DViewpointClassNode = class of TAbstractViewpointNode;
+
   TCameraVectors = record
     Position, Direction, Up: TVector3;
   end;
@@ -136,11 +89,10 @@
     FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     procedure CameraChanged(const ACameraVectors: TCameraVectors);
@@ -162,7 +114,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -178,16 +129,22 @@
     strict private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
 
-    { Setup this Collision node to show VisibleNode, but collide as
-      a Box. This sets VisibleNode as the only child of this collision node,
-      and sets the @link(Proxy) field to a simple box with given bounds.
+    { Setup this Collision node to collide as a Box.
+
+      This sets the @link(Proxy) field to a simple box with given bounds.
+
       The @code(Enabled) field is unchanged (by default @true).
+
+      The overloaded version with VisibleNode also sets VisibleNode
+      as the only displayed child of this collision node.
+      The overloaded version without VisibleNode doesn't modify the displayed children.
 
       It honors the case of Box being empty correctly. Proxy is then
       non-nil, but without any geometry. So the collisions are
       effectively disabled, in a consistent way (without changing the
       @code(Enabled) field).
     }
+    procedure CollideAsBox(const Box: TBox3D);
     procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
 
     {$I auto_generated_node_helpers/x3dnodes_collision.inc}
@@ -256,7 +213,6 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   { Provides various levels of detail for a given object,
@@ -265,7 +221,6 @@
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
   TLODNode_3 = TLODNode;
 
@@ -281,7 +236,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAvatarSize: TMFFloat;
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
@@ -317,7 +271,7 @@
   end;
 
   { Viewpoint that provides an orthographic view of the scene. }
-  TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
+  TOrthoViewpointNode = class(TAbstractViewpointNode)
   strict private
     function GetFieldOfViewDefault(const Index: Integer): Single;
     function GetFieldOfView(const Index: Integer): Single;
@@ -327,7 +281,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFieldOfView: TMFFloat;
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
@@ -363,25 +316,24 @@
     class function ProjectionType: TProjectionType; override;
     function ProjectionMatrix: TMatrix4; override;
 
-    { Fix given field of view value for window aspect ratio.
+    { Calculate final field of view value, taking into account aspect ratio.
       The idea is that OrthoViewpoint.fieldOfView specifies the minimal
       extents. Depending on your window aspect ratio, you may need to make
       one extent (vertical or horizontal) larger to adjust. }
-    class procedure AspectFieldOfView(
-      var AFieldOfView: TFloatRectangle;
-      const WindowWidthToHeight: Single);
+    class function InternalFieldOfView(
+      const AFieldOfView: TFloatRectangle;
+      const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
 
     {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
   end;
 
   { Viewpoint that provides a perspective view of the scene. }
-  TViewpointNode = class(TAbstractX3DViewpointNode)
+  TViewpointNode = class(TAbstractViewpointNode)
   strict protected
     function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
@@ -394,39 +346,16 @@
 
     class function ProjectionType: TProjectionType; override;
 
-    { Calculate proper angle of view for typical rectangular
-      display, based on given fieldOfView field value.
-      Result is in radians (just like fieldOfView X3D field).
+    { Calculate both perspective angles (in radians),
+      knowing
+      @link(TCastlePerspective.FieldOfView TCastleCamera.Perspective.FieldOfView) and
+      @link(TCastlePerspective.FieldOfViewAxis TCastleCamera.Perspective.FieldOfViewAxis).
 
-      If you want to calculate horizontal angle of view then
-      pass as ThisToOtherSizeRatio your window's width / height.
-      If you want to calculate vertical angle of view then
-      pass as ThisToOtherSizeRatio your window's height / width.
-      For this method it doesn't really matter which is horizontal
-      and which is vertical, both are treated the same.
-
-      This works following X3D spec. So the angle of view for
-      smaller window size is set to fieldOfView. The other angle
-      can always be calculated by AdjustViewAngleRadToAspectRatio
-      (this implements the same equation that is mentioned in X3D spec).
-      The larger angle cannot be larger than Pi, and may force the
-      smaller angle to be smaller than fieldOfView. }
-    function AngleOfView(const ThisToOtherSizeRatio: Single): Single;
-      deprecated 'use only ViewpointAngleOfView for calculating angles';
-
-    { Like AngleOfView, but allows to specify FieldOfView as a parameter. }
-    class function ViewpointAngleOfView(
-      FieldOfView: Single;
-      const ThisToOtherSizeRatio: Single): Single;
-      deprecated 'use only ViewpointAngleOfView for calculating angles';
-
-    { Calculate horizontal and vertical angle of view,
-      assuming given value of FieldOfView and FieldOfViewForceVertical fields,
-      and assuming given viewport size.
-
-      The result is in radians, like the input FieldOfView. }
-    class function ViewpointAngleOfView(
-      const FieldOfView: Single; const FieldOfViewForceVertical: boolean;
+      In particular when FieldOfViewAxis = faSmallest then we perform
+      the calculation requested by X3D specification about
+      ViewpointNode fieldOfView behaviour. }
+    class function InternalFieldOfView(FieldOfView: Single;
+      const FieldOfViewAxis: TFieldOfViewAxis;
       const ViewportWidth, ViewportHeight: Single): TVector2;
 
     function ProjectionMatrix: TMatrix4; override;
@@ -442,7 +371,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -472,51 +400,16 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractX3DViewpointNode -------------------------------------------------- }
+{ TAbstractViewpointNode -------------------------------------------------- }
 
-procedure TAbstractViewpointNode.CreateNode;
+constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
 begin
   inherited;
-
-  { In X3D, this is part of X3DViewpointNode.
-    In our engine, X3DViewpointNode descends from TAbstractViewpointNode
-    inheriting "orientation" field this way. }
-  FFdOrientation := TSFRotation.Create(Self, true, 'orientation', Vector3(0, 0, 1), 0);
-   FdOrientation.ChangesAlways := [chViewpointVectors];
-  AddField(FFdOrientation);
-  { X3D specification comment: [-1,1],(-Inf,Inf) }
-
-  FFdDirection := TMFVec3f.Create(Self, true, 'direction', []);
-   FdDirection.ChangesAlways := [chViewpointVectors];
-  AddField(FFdDirection);
-
-  FFdUp := TMFVec3f.Create(Self, true, 'up', []);
-   FdUp.ChangesAlways := [chViewpointVectors];
-  AddField(FFdUp);
-
-  FFdGravityUp := TSFVec3f.Create(Self, true, 'gravityUp', DefaultX3DGravityUp);
-   FdGravityUp.ChangesAlways := [chViewpointVectors];
-  AddField(FFdGravityUp);
-
-  FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
-  AddEvent(FEventCameraMatrix);
-
-  FEventCameraInverseMatrix := TSFMatrix4fEvent.Create(Self, 'cameraInverseMatrix', false);
-  AddEvent(FEventCameraInverseMatrix);
-
-  FEventCameraRotationMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationMatrix', false);
-  AddEvent(FEventCameraRotationMatrix);
-
-  FEventCameraRotationInverseMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationInverseMatrix', false);
-  AddEvent(FEventCameraRotationInverseMatrix);
-
-  FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, true, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
-  AddField(FFdCameraMatrixSendAlsoOnOffscreenRendering);
-
-  FFdDescription := TSFString.Create(Self, true, 'description', '');
-  AddField(FFdDescription);
-
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  FdOrientation.ChangeAlways := chViewpointVectors;
+  FdDirection.ChangeAlways := chViewpointVectors;
+  FdUp.ChangeAlways := chViewpointVectors;
+  FdGravityUp.ChangeAlways := chViewpointVectors;
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -550,14 +443,17 @@ begin
   if GravityUp.IsZero then
     GravityUp := DefaultX3DGravityUp;
 
-  { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
-    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak Transform.MultDirectionNoScale }
   CamPos    := Transform.MultPoint(CamPos);
+  { Since the Transform can contain scale,
+    we need to always normalize resulting vectors,
+    even if input (like CamDir) was already normalized. }
   CamDir    := Transform.MultDirection(CamDir).Normalize;
   CamUp     := Transform.MultDirection(CamUp).Normalize;
-  GravityUp := Transform.MultDirection(GravityUp).Normalize;
+
+  if GravityTransform then
+    GravityUp := Transform.MultDirection(GravityUp).Normalize
+  else
+    GravityUp.NormalizeMe;
 
   Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
   Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));
@@ -596,39 +492,12 @@ begin
   PositionField.Send(Value);
 end;
 
-function TAbstractViewpointNode.GetOrientation: TVector4;
-begin
-  Result := FdOrientation.Value;
-end;
-
-procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4);
-begin
-  FdOrientation.Send(Value);
-end;
-
-procedure TAbstractX3DViewpointNode.CreateNode;
-begin
-  inherited;
-
-  FFdCenterOfRotation := TSFVec3f.Create(Self, true, 'centerOfRotation', Vector3(0, 0, 0));
-  AddField(FFdCenterOfRotation);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdJump := TSFBool.Create(Self, true, 'jump', true);
-  AddField(FFdJump);
-
-  FFdRetainUserOffsets := TSFBool.Create(Self, true, 'retainUserOffsets', false);
-  AddField(FFdRetainUserOffsets);
-
-  DefaultContainerField := 'children';
-end;
-
-function TAbstractX3DViewpointNode.ProjectionMatrix: TMatrix4;
+function TAbstractViewpointNode.ProjectionMatrix: TMatrix4;
 begin
   Result := TMatrix4.Identity;
 end;
 
-function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4;
+function TAbstractViewpointNode.ModelviewMatrix: TMatrix4;
 var
   CamPos, CamDir, CamUp, CamGravityUp: TVector3;
 begin
@@ -636,7 +505,7 @@ begin
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
-function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4;
+function TAbstractViewpointNode.GetProjectorMatrix: TMatrix4;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
@@ -659,20 +528,13 @@ begin
   Result := 'Billboard';
 end;
 
-class function TBillboardNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
-procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TBillboardNode.ApplyTransform(var Transformation: TTransformation);
 var
   NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3;
   Angle: Single;
@@ -684,10 +546,10 @@ begin
   begin
     if FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := State.InvertedTransform.MultDirection(FCameraVectors.Direction);
-      LocalUp        := State.InvertedTransform.MultDirection(FCameraVectors.Up);
+      LocalDirection := Transformation.InverseTransform.MultDirection(FCameraVectors.Direction);
+      LocalUp        := Transformation.InverseTransform.MultDirection(FCameraVectors.Up);
       { although FCameraVectors.Direction/Up are for sure normalized and orthogonal,
-        but State.InvertedTransform may contain scaling,
+        but Transformation.InverseTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
       LocalDirection.NormalizeMe;
@@ -699,12 +561,12 @@ begin
       NewZ := -LocalDirection;
 
       TransformCoordsMatrices(NewX, NewY, NewZ, M, IM);
-      State.Transform := State.Transform * M;
-      State.InvertedTransform := IM * State.InvertedTransform;
+      Transformation.Transform := Transformation.Transform * M;
+      Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end else
     begin
       { vector from node origin to FCameraVectors.Position, in local coords }
-      BillboardToViewer := State.InvertedTransform.MultPoint(FCameraVectors.Position);
+      BillboardToViewer := Transformation.InverseTransform.MultPoint(FCameraVectors.Position);
 
       { plane of axisOfRotation }
       PlaneAxisDir := FdAxisOfRotation.Value;
@@ -743,8 +605,8 @@ begin
       end;
 
       RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
-      State.Transform := State.Transform * M;
-      State.InvertedTransform := IM * State.InvertedTransform;
+      Transformation.Transform := Transformation.Transform * M;
+      Transformation.InverseTransform := IM * Transformation.InverseTransform;
     end;
   end;
 end;
@@ -771,7 +633,7 @@ begin
     special field "collide". In X3D, "enabled" is used for the exact
     same purpose. }
    FdEnabled.AddAlternativeName('collide', 2);
-   FdEnabled.ChangesAlways := [chEverything];
+   FdEnabled.ChangeAlways := chEverything;
   AddField(FFdEnabled);
 
   FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
@@ -781,7 +643,7 @@ begin
   AddEvent(FEventIsActive);
 
   FFdProxy := TSFNode.Create(Self, false, 'proxy', IAbstractChildNode);
-   FdProxy.ChangesAlways := [chEverything];
+   FdProxy.ChangeAlways := chEverything;
   AddField(FFdProxy);
 
   DefaultContainerField := 'children';
@@ -790,13 +652,6 @@ end;
 class function TCollisionNode.ClassX3DType: string;
 begin
   Result := 'Collision';
-end;
-
-class function TCollisionNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -850,7 +705,7 @@ begin
   end;
 end;
 
-procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+procedure TCollisionNode.CollideAsBox(const Box: TBox3D);
 var
   ProxyTransform: TTransformNode;
   ProxyShape: TShapeNode;
@@ -872,7 +727,11 @@ begin
     ProxyTransform.AddChildren(ProxyShape);
   end;
   Proxy := ProxyTransform;
+end;
 
+procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+begin
+  CollideAsBox(Box);
   FdChildren.Clear;
   FdChildren.Add(VisibleNode);
 end;
@@ -885,12 +744,12 @@ begin
 
   FFdCenter := TSFVec3f.Create(Self, false, 'center', TVector3.Zero);
    { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdCenter.ChangesAlways := [chRedisplay];
+   FdCenter.ChangeAlways := chRedisplay;
   AddField(FFdCenter);
 
   FFdRange := TMFFloat.Create(Self, false, 'range', []);
    { Just redisplay, and new appropriate LOD children will be displayed. }
-   FdRange.ChangesAlways := [chRedisplay];
+   FdRange.ChangeAlways := chRedisplay;
   AddField(FFdRange);
   { X3D specification comment: [0,Inf) or -1 }
 
@@ -954,24 +813,12 @@ begin
   Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
 end;
 
-class function TLODNode_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType);
-end;
-
 class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
 
 { TLODNode ------------------------------------------------------------------- }
-
-class function TLODNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
 
 class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -988,16 +835,16 @@ begin
   inherited;
 
   FFdAvatarSize := TMFFloat.Create(Self, true, 'avatarSize', [0.25, 1.6, 0.75]);
-   FdAvatarSize.ChangesAlways := [chNavigationInfo];
+   FdAvatarSize.ChangeAlways := chNavigationInfo;
   AddField(FFdAvatarSize);
   { X3D specification comment: [0,Inf) }
 
   FFdHeadlight := TSFBool.Create(Self, true, 'headlight', true);
-   FdHeadlight.ChangesAlways := [chHeadLightOn];
+   FdHeadlight.ChangeAlways := chHeadLightOn;
   AddField(FFdHeadlight);
 
   FFdSpeed := TSFFloat.Create(Self, true, 'speed', 1.0);
-   FdSpeed.ChangesAlways := [chNavigationInfo];
+   FdSpeed.ChangeAlways := chNavigationInfo;
   AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
@@ -1012,7 +859,7 @@ begin
   { TODO: default value was ["WALK", "ANY"] in VRML 97.
     X3D changed default value. }
   FFdType := TMFString.Create(Self, true, 'type', ['EXAMINE', 'ANY']);
-   FdType.ChangesAlways := [chNavigationInfo];
+   FdType.ChangeAlways := chNavigationInfo;
   AddField(FFdType);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
@@ -1024,7 +871,7 @@ begin
   AddEvent(FEventTransitionComplete);
 
   FFdBlendingSort := TSFStringEnum.Create(Self, true, 'blendingSort', BlendingSortNames, Ord(obsDefault));
-   FdBlendingSort.ChangesAlways := [];
+   FdBlendingSort.ChangeAlways := chRedisplay;
   AddField(FFdBlendingSort);
 
   DefaultContainerField := 'children';
@@ -1035,13 +882,6 @@ end;
 class function TNavigationInfoNode.ClassX3DType: string;
 begin
   Result := 'NavigationInfo';
-end;
-
-class function TNavigationInfoNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
@@ -1068,12 +908,12 @@ begin
   inherited;
 
   FFdFieldOfView := TMFFloat.Create(Self, true, 'fieldOfView', [-1, -1, 1, 1]);
-   FdFieldOfView.ChangesAlways := [chViewpointProjection];
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
   AddField(FFdFieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangesAlways := [chViewpointVectors];
+   FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1083,12 +923,6 @@ end;
 class function TOrthoViewpointNode.ClassX3DType: string;
 begin
   Result := 'OrthoViewpoint';
-end;
-
-class function TOrthoViewpointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TOrthoViewpointNode.PositionField: TSFVec3f;
@@ -1118,7 +952,7 @@ begin
 
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window,
-    by calling AspectFieldOfView. }
+    by calling InternalFieldOfView. }
 
   Result := OrthoProjectionMatrix(Dimensions,
     1, 100); { TODO: near, far projection testing values }
@@ -1148,10 +982,11 @@ begin
   FdFieldOfView.Changed;
 end;
 
-class procedure TOrthoViewpointNode.AspectFieldOfView(
-  var AFieldOfView: TFloatRectangle; const WindowWidthToHeight: Single);
+class function TOrthoViewpointNode.InternalFieldOfView(
+  const AFieldOfView: TFloatRectangle;
+  const ViewportWidth, ViewportHeight: Single): TFloatRectangle;
 
-  { Scale the extent. Since AspectFieldOfView should only make AFieldOfView
+  { Scale the extent. Since InternalFieldOfView should only make AFieldOfView
     larger (because OrthoViewpoint.fieldOfView gives the minimal extents),
     so given here Scale should always be >= 1. }
   procedure ScaleExtent(const Scale: Single; var Min, Max: Single);
@@ -1163,8 +998,7 @@ class procedure TOrthoViewpointNode.AspectFieldOfView(
 
     if L < 0 then
     begin
-      if Log then
-        WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView max extent smaller than min extent');
+      WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView max extent smaller than min extent');
       Exit;
     end;
 
@@ -1173,18 +1007,20 @@ class procedure TOrthoViewpointNode.AspectFieldOfView(
   end;
 
 var
-  FOVAspect: Single;
+  FOVAspect, WindowWidthToHeight: Single;
   Min, Max: Single;
 begin
-  if (AFieldOfView.Width <= 0) or
-     (AFieldOfView.Height <= 0) then
+  Result := AFieldOfView;
+
+  if (Result.Width <= 0) or
+     (Result.Height <= 0) then
   begin
-    if Log then
-      WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
+    WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
     Exit;
   end;
 
-  FOVAspect := AFieldOfView.Width / AFieldOfView.Height;
+  FOVAspect := Result.Width / Result.Height;
+  WindowWidthToHeight := ViewportWidth / ViewportHeight;
 
   { The idea is to change FieldOfView, such that at the end the above
     equation would calculate FOVAspect as equal to WindowWidthToHeight.
@@ -1195,19 +1031,19 @@ begin
 
   if FOVAspect > WindowWidthToHeight then
   begin
-    Min := AFieldOfView.Bottom;
-    Max := AFieldOfView.Top;
+    Min := Result.Bottom;
+    Max := Result.Top;
     ScaleExtent(FOVAspect / WindowWidthToHeight, Min, Max);
-    AFieldOfView.Bottom := Min;
-    AFieldOfView.Height := Max - Min;
+    Result.Bottom := Min;
+    Result.Height := Max - Min;
   end else
   if FOVAspect < WindowWidthToHeight then
   begin
-    Min := AFieldOfView.Left;
-    Max := AFieldOfView.Right;
+    Min := Result.Left;
+    Max := Result.Right;
     ScaleExtent(WindowWidthToHeight / FOVAspect, Min, Max);
-    AFieldOfView.Left := Min;
-    AFieldOfView.Width := Max - Min;
+    Result.Left := Min;
+    Result.Width := Max - Min;
   end;
 end;
 
@@ -1218,16 +1054,16 @@ begin
   inherited;
 
   FFdFieldOfView := TSFFloat.Create(Self, true, 'fieldOfView', DefaultViewpointFieldOfView);
-   FdFieldOfView.ChangesAlways := [chViewpointProjection];
+   FdFieldOfView.ChangeAlways := chViewpointProjection;
   AddField(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
   FFdFieldOfViewForceVertical := TSFBool.Create(Self, true, 'fieldOfViewForceVertical', false);
-   FdFieldOfViewForceVertical.ChangesAlways := [chViewpointProjection];
+   FdFieldOfViewForceVertical.ChangeAlways := chViewpointProjection;
   AddField(FdFieldOfViewForceVertical);
 
   FFdPosition := TSFVec3f.Create(Self, true, 'position', Vector3(0, 0, 10));
-   FdPosition.ChangesAlways := [chViewpointVectors];
+   FdPosition.ChangeAlways := chViewpointVectors;
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1237,13 +1073,6 @@ end;
 class function TViewpointNode.ClassX3DType: string;
 begin
   Result := 'Viewpoint';
-end;
-
-class function TViewpointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TViewpointNode.PositionField: TSFVec3f;
@@ -1256,61 +1085,6 @@ begin
   Result := ptPerspective;
 end;
 
-class function TViewpointNode.ViewpointAngleOfView(
-  const FieldOfView: Single; const FieldOfViewForceVertical: boolean;
-  const ViewportWidth, ViewportHeight: Single): TVector2;
-begin
-  if FieldOfViewForceVertical then
-  begin
-    Result[1] := FieldOfView;
-    Result[0] := AdjustViewAngleRadToAspectRatio(
-      Result[1], ViewportWidth / ViewportHeight);
-  end else
-  begin
-    {$warnings off} // knowingly using deprecated in deprecated, in the future it should be private
-    Result[0] := ViewpointAngleOfView(
-      FieldOfView, ViewportWidth / ViewportHeight);
-    {$warnings on}
-    Result[1] := AdjustViewAngleRadToAspectRatio(
-      Result[0], ViewportHeight / ViewportWidth);
-  end;
-end;
-
-class function TViewpointNode.ViewpointAngleOfView(
-  FieldOfView: Single;
-  const ThisToOtherSizeRatio: Single): Single;
-var
-  OtherAngle: Single;
-begin
-  ClampVar(FieldOfView, 0.01, Pi - 0.01);
-
-  if ThisToOtherSizeRatio < 1 then
-  begin
-    { So the resulting angle is the smaller one. }
-    Result := FieldOfView;
-    OtherAngle :=
-      AdjustViewAngleRadToAspectRatio(Result, 1 / ThisToOtherSizeRatio);
-    if OtherAngle > Pi then
-      Result := AdjustViewAngleRadToAspectRatio(Pi, ThisToOtherSizeRatio);
-  end else
-  begin
-    { So the resulting angle is the larger one. }
-    OtherAngle := FieldOfView;
-    Result :=
-      AdjustViewAngleRadToAspectRatio(OtherAngle, ThisToOtherSizeRatio);
-    if Result > Pi then
-      Result := Pi;
-  end;
-end;
-
-function TViewpointNode.AngleOfView(
-  const ThisToOtherSizeRatio: Single): Single;
-begin
-  {$warnings off} // knowingly using deprecated in deprecated, in the future these both should be private
-  Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
-  {$warnings on}
-end;
-
 function TViewpointNode.ProjectionMatrix: TMatrix4;
 begin
   { TODO: for currently bound viewpoint, we should honour
@@ -1318,6 +1092,76 @@ begin
   Result := PerspectiveProjectionMatrixRad(
     FdFieldOfView.Value, 1,
     1, 100); { TODO: near, far projection testing values }
+end;
+
+class function TViewpointNode.InternalFieldOfView(FieldOfView: Single;
+  const FieldOfViewAxis: TFieldOfViewAxis;
+  const ViewportWidth, ViewportHeight: Single): TVector2;
+
+  procedure CalculateFovWidth;
+  begin
+    Result.Data[0] := AdjustViewAngleRadToAspectRatio(
+      Result.Data[1], ViewportWidth / ViewportHeight);
+  end;
+
+  procedure CalculateFovHeight;
+  begin
+    Result.Data[1] := AdjustViewAngleRadToAspectRatio(
+      Result.Data[0], ViewportHeight / ViewportWidth);
+  end;
+
+begin
+  case FieldOfViewAxis of
+    faSmallest:
+      begin
+        { This follows X3D specification about ViewpointNode fieldOfView behaviour. }
+        ClampVar(FieldOfView, 0.01, Pi - 0.01);
+        if ViewportWidth < ViewportHeight then
+        begin
+          Result.Data[0] := FieldOfView;
+          CalculateFovHeight;
+          if Result.Data[1] > Pi then
+          begin
+            Result.Data[1] := Pi;
+            CalculateFovWidth;
+          end;
+        end else
+        begin
+          Result.Data[1] := FieldOfView;
+          CalculateFovWidth;
+          if Result.Data[0] > Pi then
+          begin
+            Result.Data[0] := Pi;
+            CalculateFovHeight;
+          end;
+        end;
+      end;
+    faLargest:
+      begin
+        if ViewportWidth > ViewportHeight then
+        begin
+          Result.Data[0] := FieldOfView;
+          CalculateFovHeight;
+        end else
+        begin
+          Result.Data[1] := FieldOfView;
+          CalculateFovWidth;
+        end;
+      end;
+    faHorizontal:
+      begin
+        Result.Data[0] := FieldOfView;
+        CalculateFovHeight;
+      end;
+    faVertical:
+      begin
+        Result.Data[1] := FieldOfView;
+        CalculateFovWidth;
+      end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('ViewpointAngleOfView-FieldOfViewAxis?');
+    {$endif}
+  end;
 end;
 
 { TViewpointGroupNode -------------------------------------------------------- }
@@ -1330,7 +1174,7 @@ begin
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractX3DViewpointNode, TViewpointGroupNode]);
+  FFdChildren := TMFNode.Create(Self, true, 'children', [TAbstractViewpointNode, TViewpointGroupNode]);
   AddField(FFdChildren);
 
   FFdDescription := TSFString.Create(Self, true, 'description', '');
@@ -1352,12 +1196,6 @@ end;
 class function TViewpointGroupNode.ClassX3DType: string;
 begin
   Result := 'ViewpointGroup';
-end;
-
-class function TViewpointGroupNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

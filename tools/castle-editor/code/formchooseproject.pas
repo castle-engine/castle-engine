@@ -28,24 +28,36 @@ uses
 type
   { Choose project (new or existing). }
   TChooseProjectForm = class(TForm)
+    ButtonPreferences: TBitBtn;
     ButtonOpenRecent: TBitBtn;
     ButtonNew: TBitBtn;
     ButtonOpen: TBitBtn;
+    Image1: TImage;
+    Label1: TLabel;
     OpenProject: TCastleOpenDialog;
     ImageLogo: TImage;
     LabelTitle: TLabel;
+    PanelWarningFpcLazarus: TPanel;
     PopupMenuRecentProjects: TPopupMenu;
+    procedure ButtonPreferencesClick(Sender: TObject);
     procedure ButtonNewClick(Sender: TObject);
     procedure ButtonOpenClick(Sender: TObject);
     procedure ButtonOpenRecentClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+  protected
+    procedure Show;
+    procedure Hide;
   private
     RecentProjects: TCastleRecentFiles;
     CommandLineHandled: Boolean;
     procedure MenuItemRecentClick(Sender: TObject);
     procedure OpenProjectFromCommandLine;
+    procedure UpdateWarningFpcLazarus;
+    { Open ProjectForm.
+      ManifestUrl may be absolute or relative here. }
+    procedure ProjectOpen(ManifestUrl: string);
   public
 
   end;
@@ -58,17 +70,69 @@ implementation
 {$R *.lfm}
 
 uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
-  CastleFilesUtils, CastleParameters,
-  ProjectUtils, EditorUtils, FormNewProject;
+  CastleFilesUtils, CastleParameters, CastleLog, CastleStringUtils,
+  ProjectUtils, EditorUtils, FormNewProject, FormPreferences,
+  ToolCompilerInfo, ToolFpcVersion,
+  FormProject;
 
 { TChooseProjectForm ------------------------------------------------------------- }
 
+procedure TChooseProjectForm.Show;
+begin
+  {$ifdef MSWINDOWS}
+  Application.ShowMainForm := True;
+  {$else}
+  inherited Show;
+  {$endif}
+end;
+
+procedure TChooseProjectForm.Hide;
+begin
+  {$ifdef MSWINDOWS}
+  Application.ShowMainForm := False;
+  {$else}
+  inherited Hide;
+  {$endif}
+end;
+
+procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
+begin
+  ManifestUrl := AbsoluteURI(ManifestUrl);
+
+  // Validate
+  if not URIFileExists(ManifestUrl) then
+    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
+      [ManifestUrl]);
+
+  ProjectForm := TProjectForm.Create(Application);
+  ProjectForm.OpenProject(ManifestUrl);
+  ProjectForm.Show;
+
+  { Do this even if you just opened this project through "recent" menu.
+    This way URL is moved to the top. }
+  RecentProjects.Add(ManifestUrl);
+end;
+
 procedure TChooseProjectForm.ButtonOpenClick(Sender: TObject);
 begin
+  { This is critical in a corner case:
+    - You run CGE editor such that it detects as "data directory"
+      current directory. E.g. you compiled it manually and run on Unix as
+      "tools/castle-editor/castle-editor"
+    - Now you open project in subdirectory. (E.g. some CGE example,
+      to continue previous example.)
+    - With UseCastleDataProtocol, OpenProject.URL will now be like
+      'castle-data:/examples/xxx/CastleEngineManifest.xml'.
+      Which means that it's absolute (AbsoluteURI in ProjectOpen will not change it),
+      but it's also bad to be used (because later we will set ApplicationDataOverride
+      to something derived from it, thus ResolveCastleDataURL will resolve
+      castle-data:/ to another castle-data:/ , and it will make no sense
+      since one castle-data:/ assumes ApplicationDataOverride = '' ...).
+  }
+  OpenProject.UseCastleDataProtocol := false;
+
   if OpenProject.Execute then
   begin
-    RecentProjects.Add(OpenProject.URL, false);
-
     Hide;
     try
       ProjectOpen(OpenProject.URL);
@@ -87,6 +151,8 @@ begin
 
   if NewProjectForm.ShowModal = mrOK then
   begin
+    UseEditorApplicationData; // we use our castle-data:/xxx to copy template
+
     try
       // Create project dir
       ProjectDir := InclPathDelim(NewProjectForm.EditLocation.Text) +
@@ -99,25 +165,26 @@ begin
       if NewProjectForm.ButtonTemplateEmpty.Down then
         TemplateName := 'empty'
       else
-      if NewProjectForm.ButtonTemplate3DModel.Down then
-        TemplateName := '3d_model'
+      if NewProjectForm.ButtonTemplate3dModelViewer.Down then
+        TemplateName := '3d_model_viewer'
       else
-      if NewProjectForm.ButtonTemplateFpsGame.Down then
-        TemplateName := 'fps_game'
+      if NewProjectForm.ButtonTemplate3dFps.Down then
+        TemplateName := '3d_fps_game'
       else
-      if NewProjectForm.ButtonTemplate2DGame.Down then
+      if NewProjectForm.ButtonTemplate2d.Down then
         TemplateName := '2d_game'
       else
         raise EInternalError.Create('Unknown project template selected');
 
       // Fill project dir
-      CopyTemplate(ProjectDirUrl, TemplateName, NewProjectForm.EditProjectName.Text);
+      CopyTemplate(ProjectDirUrl, TemplateName,
+        NewProjectForm.EditProjectName.Text,
+        NewProjectForm.EditProjectCaption.Text);
       GenerateProgramWithBuildTool(ProjectDirUrl);
 
       // Open new project
       ManifestUrl := CombineURI(ProjectDirUrl, 'CastleEngineManifest.xml');
       ProjectOpen(ManifestUrl);
-      RecentProjects.Add(ManifestUrl, false);
     except
       on E: Exception do
       begin
@@ -129,18 +196,37 @@ begin
     Show;
 end;
 
+procedure TChooseProjectForm.ButtonPreferencesClick(Sender: TObject);
+begin
+  PreferencesForm.ShowModal;
+  UpdateWarningFpcLazarus;
+end;
+
 procedure TChooseProjectForm.ButtonOpenRecentClick(Sender: TObject);
 var
   MenuItem: TMenuItem;
   I: Integer;
-  Url: String;
+  Url, S, NotExistingSuffix: String;
 begin
   PopupMenuRecentProjects.Items.Clear;
   for I := 0 to RecentProjects.URLs.Count - 1 do
   begin
     Url := RecentProjects.URLs[I];
     MenuItem := TMenuItem.Create(Self);
-    MenuItem.Caption := SQuoteLCLCaption(Url);
+
+    if URIExists(Url) in [ueFile, ueUnknown] then
+      NotExistingSuffix := ''
+    else
+      NotExistingSuffix := ' (PROJECT FILES MISSING)';
+
+    // show file URLs simpler, esp to avoid showing space as %20
+    Url := SuffixRemove('/CastleEngineManifest.xml', Url, true);
+    if URIProtocol(Url) = 'file' then
+      S := URIToFilenameSafeUTF8(Url)
+    else
+      S := URIDisplay(Url);
+    MenuItem.Caption := SQuoteLCLCaption(S + NotExistingSuffix);
+
     MenuItem.Tag := I;
     MenuItem.OnClick := @MenuItemRecentClick;
     PopupMenuRecentProjects.Items.Add(MenuItem);
@@ -150,15 +236,31 @@ begin
 end;
 
 procedure TChooseProjectForm.FormCreate(Sender: TObject);
+
+  procedure PathsConfigLoad;
+  begin
+    FpcCustomPath := UserConfig.GetValue('fpc_custom_path', '');
+    LazarusCustomPath := UserConfig.GetValue('lazarus_custom_path', '');
+  end;
+
 begin
   UserConfig.Load;
   RecentProjects := TCastleRecentFiles.Create(Self);
   RecentProjects.LoadFromConfig(UserConfig);
   //  RecentProjects.NextMenuItem := ; // unused for now
+  PathsConfigLoad;
 end;
 
 procedure TChooseProjectForm.FormDestroy(Sender: TObject);
+
+  procedure PathsConfigSave;
+  begin
+    UserConfig.SetDeleteValue('fpc_custom_path', FpcCustomPath, '');
+    UserConfig.SetDeleteValue('lazarus_custom_path', LazarusCustomPath, '');
+  end;
+
 begin
+  PathsConfigSave;
   RecentProjects.SaveToConfig(UserConfig);
   UserConfig.Save;
 end;
@@ -167,6 +269,30 @@ procedure TChooseProjectForm.FormShow(Sender: TObject);
 begin
   ButtonOpenRecent.Enabled := RecentProjects.URLs.Count <> 0;
   OpenProjectFromCommandLine;
+  UpdateWarningFpcLazarus;
+end;
+
+procedure TChooseProjectForm.UpdateWarningFpcLazarus;
+
+  function FpcOrLazarusMissing: Boolean;
+  begin
+    Result := true;
+    try
+      FindExeFpcCompiler;
+      FpcVersion;
+      FindExeLazarusIDE;
+      Result := false;
+    except
+      { FindExeFpcCompiler or FindExeLazarusIDE exit with EExecutableNotFound,
+        but FpcVersion may fail with any Exception unfortunately
+        (it runs external process, and many things can go wrong). }
+      on E: Exception do
+        WritelnLog('FPC or Lazarus not detected, or cannot run FPC to get version: ' + ExceptMessage(E));
+    end;
+  end;
+
+begin
+  PanelWarningFpcLazarus.Visible := FpcOrLazarusMissing;
 end;
 
 procedure TChooseProjectForm.MenuItemRecentClick(Sender: TObject);
@@ -174,6 +300,18 @@ var
   Url: String;
 begin
   Url := RecentProjects.URLs[(Sender as TMenuItem).Tag];
+
+  if not (URIExists(Url) in [ueFile, ueUnknown]) then
+  begin
+    if YesNoBox(Format('Project file "%s" does not exist. Remove the project from the recent list?', [
+      URIDisplay(Url)
+    ])) then
+    begin
+      RecentProjects.Remove(Url);
+      PopupMenuRecentProjects.Items.Remove(Sender as TMenuItem);
+    end;
+    Exit;
+  end;
 
   Hide;
   try
@@ -195,7 +333,6 @@ begin
     Hide;
     try
       ProjectOpen(Parameters[1]);
-      RecentProjects.Add(Parameters[1], false);
     except
       Show;
       raise;
@@ -204,4 +341,3 @@ begin
 end;
 
 end.
-

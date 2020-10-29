@@ -18,7 +18,7 @@
   in the current directory where the text is drawn.
 
   Of course, you could use the resulting TCastleImage instance in more ways.
-  E.g. load it to TGLImage and display it. This would be an alternative way
+  E.g. load it to TDrawableImage and display it. This would be an alternative way
   to display text: instead of drawing it on screen, you can draw it on an image,
   and then display the image.
 
@@ -56,7 +56,7 @@ begin
 
     MySimpleTextureFont := TSimpleTextureFont.Create(nil);
     try
-      MySimpleTextureFont.Load(LoadImage(ApplicationData('sonic_asalga_0.png')), 8, 12, 2, 2);
+      MySimpleTextureFont.Load(LoadImage('castle-data:/sonic_asalga_0.png'), 8, 12, 2, 2);
       MySimpleTextureFont.TargetImage := Image;
       MySimpleTextureFont.PrintStrings(Image.Width div 2, 100, White,
         ['A simple test of a font from an image.',
@@ -68,7 +68,7 @@ begin
 
     MySimpleTextureFont := TSimpleTextureFont.Create(nil);
     try
-      MySimpleTextureFont.Load(LoadImage(ApplicationData('null_terminator_0.png')), 8, 12, 1, 1);
+      MySimpleTextureFont.Load(LoadImage('castle-data:/null_terminator_0.png'), 8, 12, 1, 1);
       MySimpleTextureFont.TargetImage := Image;
       MySimpleTextureFont.PrintStrings(Image.Width div 2, 200, Red,
         ['Yet another label.',
@@ -78,7 +78,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 15, true);
+      MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 15, true);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 300, White,
         ['DejaVuSans font',
@@ -88,7 +88,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 15, false);
+      MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 15, false);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 400, White,
         ['DejaVuSans font',
@@ -98,7 +98,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 30, true);
+      MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 30, true);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 500, Vector4(0.5, 0.5, 1, 1),
         ['DejaVuSans font with anti-aliasing',
@@ -108,7 +108,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 30, true);
+      MyTextureFont.Load('castle-data:/DejaVuSans.ttf', 30, true);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.Outline := 2;
       MyTextureFont.OutlineHighQuality := true;
@@ -121,7 +121,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('PARPG.ttf'), 15, true);
+      MyTextureFont.Load('castle-data:/PARPG.ttf', 15, true);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 700, White,
         ['Stylish "old typewriter" font',
@@ -131,7 +131,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('PARPG.ttf'), 15, false);
+      MyTextureFont.Load('castle-data:/PARPG.ttf', 15, false);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 800, White,
         ['Stylish "old typewriter" font',
@@ -141,7 +141,7 @@ begin
 
     MyTextureFont := TTextureFont.Create(TComponent(nil));
     try
-      MyTextureFont.Load(ApplicationData('PARPG.ttf'), 30, true);
+      MyTextureFont.Load('castle-data:/PARPG.ttf', 30, true);
       MyTextureFont.TargetImage := Image;
       MyTextureFont.PrintStrings(Image.Width div 2, 900, White,
         ['Stylish "old typewriter" font',

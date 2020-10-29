@@ -109,9 +109,9 @@ begin
     on E: EConvertError do
     begin
       SPosition := 1;
-      Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-      Result.Data[1] := StrToFloat(NextToken(S, SPosition));
-      Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+      Result.Data[0] := StrToFloatDot(NextToken(S, SPosition));
+      Result.Data[1] := StrToFloatDot(NextToken(S, SPosition));
+      Result.Data[2] := StrToFloatDot(NextToken(S, SPosition, OnlyNums));
       if NextToken(S, SPosition) <> '' then
         raise EConvertError.Create('Expected end of data when reading vector from string');
       WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
@@ -294,8 +294,8 @@ var
     SeekPos: integer;
   begin
     SeekPos := 1;
-    result[0] := StrToFloat(NextToken(line, SeekPos));
-    result[1] := StrToFloat(NextToken(line, SeekPos));
+    result[0] := StrToFloatDot(NextToken(line, SeekPos));
+    result[1] := StrToFloatDot(NextToken(line, SeekPos));
     { nie uzywamy DeFormat - bo tex coord w OBJ moze byc 3d (z trzema
       parametrami) a my uzywamy i tak tylko dwoch pierwszych }
   end;
@@ -400,23 +400,30 @@ var
              end;
           5: begin
                CheckIsMaterial('illumination model (illum)');
-               Materials.Last.IlluminationModel := StrToFloat(LineAfterMarker);
+               Materials.Last.IlluminationModel := StrToFloatDot(LineAfterMarker);
              end;
           6: begin
                CheckIsMaterial('dissolve (d)');
-               Materials.Last.Opacity := StrToFloat(LineAfterMarker);
+               Materials.Last.Opacity := StrToFloatDot(LineAfterMarker);
              end;
           7: begin
                CheckIsMaterial('specular exponent (Ns)');
-               Materials.Last.SpecularExponent := StrToFloat(LineAfterMarker);
+               Materials.Last.SpecularExponent := StrToFloatDot(LineAfterMarker);
+               if Materials.Last.SpecularExponent = 0 then
+               begin
+                 WritelnWarning('Wavefront material "%s" specifies specular exponent (Ns) as zero, ignoring', [
+                   Materials.Last.Name
+                 ]);
+                 Materials.Last.SpecularExponent := 1;
+               end;
              end;
           8: begin
                CheckIsMaterial('sharpness');
-               Materials.Last.Sharpness := StrToFloat(LineAfterMarker);
+               Materials.Last.Sharpness := StrToFloatDot(LineAfterMarker);
              end;
           9: begin
                CheckIsMaterial('index of refraction (Ni)');
-               Materials.Last.IndexOfRefraction := StrToFloat(LineAfterMarker);
+               Materials.Last.IndexOfRefraction := StrToFloatDot(LineAfterMarker);
              end;
           10:begin
                CheckIsMaterial('diffuse map (map_Kd)');
@@ -512,7 +519,7 @@ var
 
   function MatOBJNameToX3DName(const MatOBJName: string): string;
   begin
-    Result := 'Material_' + ToX3DName(MatOBJName);
+    Result := 'Material_' + MatOBJName;
   end;
 
   function MaterialToX3D(const Material: TWavefrontMaterial): TAppearanceNode;

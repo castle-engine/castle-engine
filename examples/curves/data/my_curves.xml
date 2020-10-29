@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<curves>
+  <curve type="TPiecewiseCubicBezier">
+    <time begin="0.00" end="1.00" />
+    <control_points>
+      <control_point value="99 491 0"/>
+      <control_point value="174 646 0"/>
+      <control_point value="328 718 0"/>
+      <control_point value="494 664 0"/>
+      <control_point value="573 542 0"/>
+      <control_point value="491 372 0"/>
+      <control_point value="663 228 0"/>
+      <control_point value="914 247 0"/>
+      <control_point value="980 370 0"/>
+      <control_point value="833 618 0"/>
+      <control_point value="961 799 0"/>
+      <control_point value="1182 828 0"/>
+      <control_point value="1263 702 0"/>
+      <control_point value="1104 595 0"/>
+      <control_point value="1041 473 0"/>
+      <control_point value="1129 368 0"/>
+      <control_point value="1414 369 0"/>
+    </control_points>
+  </curve>
+</curves>

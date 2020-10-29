@@ -23,9 +23,9 @@ interface
 uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
-  CastleResources, CastleGLImages,
+  CastleResources, CastleGLImages, CastleTimeUtils,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
-  Castle3D, CastleTransform, CastleColors, CastleDebugTransform;
+  CastleTransformExtra, CastleTransform, CastleColors, CastleDebugTransform;
 
 type
   TInventoryItem = class;
@@ -51,7 +51,7 @@ type
     FCaption: string;
     FImageURL: string;
     FImage: TEncodedImage;
-    FGLImage: TGLImage;
+    FDrawableImage: TDrawableImage;
   private
     { The largest possible bounding box of the 3D item,
       taking into account that actual item 3D model will be rotated when
@@ -92,7 +92,10 @@ type
     property ImageURL: string read FImageURL;
 
     { Resource to draw @link(Image). }
-    function GLImage: TGLImage;
+    function DrawableImage: TDrawableImage;
+
+    property GLImage: TDrawableImage read DrawableImage;
+      deprecated 'use DrawableImage';
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items.
@@ -128,22 +131,21 @@ type
       example how to add an item to your 3D world is this:
 
       @longCode(#
-        Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3(2, 3, 4));
+        Sword.CreateItem(1).PutOnWorld(Level, Vector3(2, 3, 4));
       #)
 
       This adds 1 item of the MyItemResource to the 3D world,
-      on position (2, 3, 4). In simple cases you can get SceneManager
-      instance from TCastleWindow.SceneManager or TCastleControl.SceneManager.
+      on position (2, 3, 4).
 
       If you want to instead add sword to the inventory of Player,
       you can call
 
       @longCode(#
-        SceneManager.Player.PickItem(Sword.CreateItem(1));
+        Player.PickItem(Sword.CreateItem(1));
       #)
 
-      This assumes that you use SceneManager.Player property. It's not really
-      obligatory, but it's the simplest way to have player with an inventory.
+      This assumes that you have Player (TPlayer) instance.
+      It's the simplest way to have player with an inventory.
       See engine tutorial for examples how to create player.
       Anyway, if you have any TInventory instance, you can use
       TInventory.Pick to add TInventoryItem this way. }
@@ -151,7 +153,8 @@ type
 
     { Instantiate placeholder by create new item with CreateItem
       and putting it on level with TInventoryItem.PutOnWorld. }
-    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
+    procedure InstantiatePlaceholder(
+      const ALevel: TAbstractLevel;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -165,21 +168,25 @@ type
     FEquippingSound: TSoundType;
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
+    FReloadAnimation: T3DResourceAnimation;
     FAttackTime: Single;
+    FReloadTime: Single;
     FAttackSoundStart: TSoundType;
-    FAttackAmmo: string;
+    FAttackAmmo: String;
+    FAttackAmmoCapacity: Cardinal;
     FAttackSoundHit: TSoundType;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
-    FAttackShoot: boolean;
-    FFireMissileName: string;
+    FAttackShoot: Boolean;
+    FFireMissileName: String;
     FFireMissileSound: TSoundType;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
     const
       DefaultAttackTime = 0.0;
+      DefaultReloadTime = 0.0;
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
@@ -195,16 +202,23 @@ type
     { Animation of attack with this weapon. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
-    { Animation of keeping weapon ready. }
+    { Animation of keeping weapon ready (idle). }
     property ReadyAnimation: T3DResourceAnimation read FReadyAnimation;
+
+    { Animation of reloading weapon, used only if @link(AttackAmmoCapacity) non-zero. }
+    property ReloadAnimation: T3DResourceAnimation read FReloadAnimation;
 
     { Common properties for all types of attack (short-range/shoot,
       fire missile) below. }
 
-    { A time within AttackAnimationat at which TItemWeapon.Attack
+    { A time within AttackAnimation at at which TItemWeapon.Attack
       method will be called, which actually hits the enemy. }
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
+
+    { A time within ReloadAnimation at at which TItemWeapon.AmmoLoaded is actually refilled. }
+    property ReloadTime: Single read FReloadTime write FReloadTime
+      default DefaultReloadTime;
 
     { Sound when attack starts. This is played when attack animation starts,
       and it means that we already checked that you have necessary ammunition
@@ -232,6 +246,9 @@ type
       fly and can be avoided by fast moving enemies).
       And set AttackAmmo to something like 'Quiver'. }
     property AttackAmmo: string read FAttackAmmo write FAttackAmmo;
+
+    { If non-zero, it indicates that weapon has to be reloaded after making so many shots. }
+    property AttackAmmoCapacity: Cardinal read FAttackAmmoCapacity write FAttackAmmoCapacity;
 
     { Immediate attack (short-range/shoot) damage and knockback.
       This type of attack (along with AttackSoundHit) is only
@@ -363,7 +380,8 @@ type
       so we take AWorld parameter explicitly.
       This is how you should create new TItemOnWorld instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items. }
-    function PutOnWorld(const AWorld: TSceneManagerWorld;
+    function PutOnWorld(
+      const ALevel: TAbstractLevel;
       const APosition: TVector3): TItemOnWorld;
 
     { 3D owner of the item,
@@ -377,26 +395,22 @@ type
       (in case of TItemOnWorld, it does it directly;
       in case of player or creature, it does it by TInventory). }
     property Owner3D: TCastleTransform read FOwner3D;
-
-    { 3D world of this item, if any.
-
-      Although the TInventoryItem, by itself, is not a 3D thing
-      (only pickable TItemOnWorld is a 3D thing).
-      But it exists inside a 3D world: either as pickable (TItemOnWorld),
-      or as being owned by a 3D object (like player or creature) that are
-      part of 3D world. In other words, our Owner3D.World is the 3D world
-      this item lives in. }
-    function World: TSceneManagerWorld;
   end;
 
   TItemWeapon = class(TInventoryItem)
   private
-    { Weapon AttackAnimation is in progress.}
-    Attacking: boolean;
-    { If Attacking, then this is time of attack start, from LifeTime. }
-    AttackStartTime: Single;
-    { If Attacking, then this says whether Attack was already called. }
-    AttackDone: boolean;
+    type
+      TWeaponState = (wsReady, wsAttack, wsReload);
+    var
+      FState: TWeaponState;
+      { Last State change time, assigned from LifeTime. }
+      FStateChangeTime: Single;
+      { If State = wsAttack, then this says whether Attack was already called. }
+      AttackDone: boolean;
+      { If State = wsReload, then this says whether AmmoLoaded was already updated. }
+      ReloadDone: boolean;
+      FAmmoLoaded: Cardinal;
+      LifeTime: TFloatTime;
   protected
     { Make real attack, immediate (short-range/shoot) or firing missile.
       Called during weapon TItemWeaponResource.AttackAnimation,
@@ -404,8 +418,10 @@ type
       The default implementation in @className does a short-range/shoot
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
-    procedure Attack; virtual;
+    procedure Attack(const Level: TAbstractLevel); virtual;
     procedure Use; override;
+    { Make actual reload that refills AmmoLoaded. }
+    procedure ReloadNow; virtual;
   public
     function Resource: TItemWeaponResource;
 
@@ -413,13 +429,19 @@ type
     procedure Equip; virtual;
 
     { Owner starts attack with this equipped weapon. }
-    procedure EquippedAttack(const LifeTime: Single); virtual;
+    procedure EquippedAttack(const Level: TAbstractLevel); virtual;
 
     { Time passses for equipped weapon. }
-    procedure EquippedUpdate(const LifeTime: Single); virtual;
+    procedure EquippedUpdate(const Level: TAbstractLevel; const SecondsPassed: Single;
+      const ResourceFrame: TResourceFrame); virtual;
 
-    { Return the 3D model to render for this equipped weapon, or @nil if none. }
-    function EquippedScene(const LifeTime: Single): TCastleScene; virtual;
+    { Currently loaded capacity in the magazine. }
+    property AmmoLoaded: Cardinal read FAmmoLoaded write FAmmoLoaded;
+
+    { Initiate reload of the equipped weapon (run "reload" animation, refill AmmoLoaded).
+      If IgnorePreviousState then it works unconditionally,
+      otherwise it works only when the current state is not in the middle of shooting/reloading. }
+    procedure EquippedReload(const IgnorePreviousState: Boolean);
   end;
 
   { List of items, with a 3D object (like a player or creature) owning
@@ -473,23 +495,22 @@ type
     type
       { A debug visualization that can be added to TItemOnWorld
         to visualize the parameters of it's parent (bounding volumes and such).
-        See @link(TDebugTransform) for usage details. }
+        See @link(TDebugTransform) for usage details.
+        The @link(TDebugTransform.Parent) must be an instance of TItemOnWorld. }
       TItemDebugTransform = class(TDebugTransform)
       strict private
         FBoxRotated: TDebugBox;
-        FParent: TItemOnWorld;
       strict protected
-        procedure Initialize; override;
+        procedure InitializeNodes; override;
         procedure Update; override;
-      public
-        procedure Attach(const AParent: TItemOnWorld);
       end;
 
     var
       FItem: TInventoryItem;
       FResourceFrame: TResourceFrame;
-      ItemRotation, LifeTime: Single;
+      ItemRotation, LifeTime: TFloatTime;
       FDebugTransform: TItemDebugTransform;
+      Level: TAbstractLevel;
     function BoundingBoxRotated: TBox3D;
   public
     class var
@@ -544,10 +565,14 @@ type
   end;
 
   { Alive 3D thing that has inventory (can keep items). }
-  TAliveWithInventory = class(TAlive)
+  TAliveWithInventory = class(TCastleAlive)
   private
     FInventory: TInventory;
   public
+    var
+      { Set when assigning TPlayer to @link(TLevel.Player). }
+      InternalLevel: TAbstractLevel;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -596,8 +621,8 @@ var
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures;
+uses SysUtils, Math,
+  CastleFilesUtils, CastlePlayer, CastleGameNotifications, CastleConfig, CastleCreatures;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -610,7 +635,7 @@ end;
 destructor TItemResource.Destroy;
 begin
   FreeAndNil(FImage);
-  FreeAndNil(FGLImage);
+  FreeAndNil(FDrawableImage);
   inherited;
 end;
 
@@ -632,20 +657,20 @@ begin
   Result := FImage;
 end;
 
-function TItemResource.GLImage: TGLImage;
+function TItemResource.DrawableImage: TDrawableImage;
 begin
-  if FGLImage = nil then
+  if FDrawableImage = nil then
     { TODO: this will load the ImageURL 2nd time. }
-    FGLImage := TGLImage.Create(ImageURL);
-  Result := FGLImage;
+    FDrawableImage := TDrawableImage.Create(ImageURL);
+  Result := FDrawableImage;
 end;
 
 procedure TItemResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
   inherited;
-  { prepare GLImage now }
-  GLImage;
+  { prepare DrawableImage now }
+  DrawableImage;
 end;
 
 function TItemResource.CreateItem(const AQuantity: Cardinal): TInventoryItem;
@@ -663,7 +688,8 @@ begin
   Result := TInventoryItem;
 end;
 
-procedure TItemResource.InstantiatePlaceholder(World: TSceneManagerWorld;
+procedure TItemResource.InstantiatePlaceholder(
+  const ALevel: TAbstractLevel;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -674,7 +700,7 @@ begin
     ItemQuantity := Number else
     ItemQuantity := 1;
 
-  CreateItem(ItemQuantity).PutOnWorld(World, APosition);
+  CreateItem(ItemQuantity).PutOnWorld(ALevel, APosition);
 end;
 
 function TItemResource.AlwaysPrepared: boolean;
@@ -688,10 +714,10 @@ var
 begin
   B := FBaseAnimation.BoundingBox;
   Result :=
-    B.Transform(RotationMatrixDeg(45         , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
+    B.Transform(RotationMatrixRad(DegToRad(45         ), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90    ), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90 * 2), GravityUp)) +
+    B.Transform(RotationMatrixRad(DegToRad(45 + 90 * 3), GravityUp));
 end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
@@ -701,7 +727,9 @@ begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
   FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
+  FReloadAnimation := T3DResourceAnimation.Create(Self, 'reload');
   FAttackTime := DefaultAttackTime;
+  FReloadTime := DefaultReloadTime;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
@@ -716,9 +744,11 @@ begin
     ResourceConfig.GetValue('equipping_sound', ''));
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
+  ReloadTime := ResourceConfig.GetFloat('attack/time', DefaultReloadTime);
   AttackSoundStart := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_start', ''));
   AttackAmmo := ResourceConfig.GetValue('attack/ammo', '');
+  AttackAmmoCapacity := ResourceConfig.GetValue('attack/ammo_capacity', 0);
   AttackSoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
@@ -760,32 +790,33 @@ begin
   FQuantity := FQuantity - QuantitySplit;
 end;
 
-function TInventoryItem.PutOnWorld(const AWorld: TSceneManagerWorld;
+function TInventoryItem.PutOnWorld(
+  const ALevel: TAbstractLevel;
   const APosition: TVector3): TItemOnWorld;
+var
+  RootTransform: TCastleRootTransform;
 begin
-  Result := TItemOnWorld.Create(AWorld { owner });
+  RootTransform := ALevel.RootTransform;
+
+  Result := TItemOnWorld.Create(ALevel.FreeAtUnload);
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
+  Result.Level := ALevel;
   Result.FItem := Self;
   FOwner3D := Result;
-  Result.SetView(APosition, AnyOrthogonalVector(AWorld.GravityUp), AWorld.GravityUp);
+  Result.Orientation := Resource.Orientation; // must be set before SetView
+  Result.SetView(APosition, AnyOrthogonalVector(RootTransform.GravityUp), RootTransform.GravityUp);
   Result.Gravity := true;
   Result.FallSpeed := Resource.FallSpeed;
   Result.GrowSpeed := Resource.GrowSpeed;
   Result.CastShadowVolumes := Resource.CastShadowVolumes;
-  AWorld.Add(Result);
+
+  RootTransform.Add(Result);
 end;
 
 procedure TInventoryItem.Use;
 begin
   Notifications.Show('This item cannot be used');
-end;
-
-function TInventoryItem.World: TSceneManagerWorld;
-begin
-  if Owner3D <> nil then
-    Result := Owner3D.World else
-    Result := nil;
 end;
 
 procedure TInventoryItem.Picked(const NewOwner: TAliveWithInventory);
@@ -795,13 +826,13 @@ end;
 
 { TItemWeapon ---------------------------------------------------------------- }
 
-procedure TItemWeapon.Attack;
+procedure TItemWeapon.Attack(const Level: TAbstractLevel);
 var
-  Attacker: TAlive;
+  Attacker: TCastleAlive;
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
-  procedure ImmediateAttackHit(Enemy: TAlive);
+  procedure ImmediateAttackHit(Enemy: TCastleAlive);
   begin
     if not AttackSoundHitDone then
     begin
@@ -817,15 +848,15 @@ var
     Hit: TRayCollision;
   begin
     { TODO: allow some helpers for aiming,
-      similar to TCastleSceneManager.ApproximateActivation
+      similar to TCastleViewport.ApproximateActivation
       or maybe just collide a tube (not infinitely thin ray) with world. }
     Hit := Attacker.Ray(Attacker.Middle, Attacker.Direction);
     if Hit <> nil then
     begin
       for I := 0 to Hit.Count - 1 do
-        if Hit[I].Item is TAlive then
+        if Hit[I].Item is TCastleAlive then
         begin
-          ImmediateAttackHit(TAlive(Hit[I].Item));
+          ImmediateAttackHit(TCastleAlive(Hit[I].Item));
           Break;
         end;
       FreeAndNil(Hit);
@@ -835,18 +866,20 @@ var
   procedure ShortRangeAttack;
   var
     I: Integer;
-    Enemy: TAlive;
+    Enemy: TCastleAlive;
     WeaponBoundingBox: TBox3D;
+    RootTransform: TCastleRootTransform;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
+    RootTransform := Level.RootTransform;
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
-    { TODO: we would prefer to use World.BoxCollision for this,
+    { TODO: we would prefer to use RootTransform.BoxCollision for this,
       but we need to know which creature was hit. }
-    for I := 0 to World.Count - 1 do
-      if World[I] is TAlive then
+    for I := 0 to RootTransform.Count - 1 do
+      if RootTransform[I] is TCastleAlive then
       begin
-        Enemy := TAlive(World[I]);
+        Enemy := TCastleAlive(RootTransform[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -857,7 +890,7 @@ var
   procedure FireMissileAttack;
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-       CreateCreature(World, Attacker.Translation, Attacker.Direction);
+      CreateCreature(Level, Attacker.Translation, Attacker.Direction);
     SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
@@ -867,9 +900,9 @@ begin
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
-     (Owner3D is TAlive) then
+     (Owner3D is TCastleAlive) then
   begin
-    Attacker := TAlive(Owner3D);
+    Attacker := TCastleAlive(Owner3D);
 
     AttackDC := Resource.AttackDamageConst;
     AttackDR := Resource.AttackDamageRandom;
@@ -880,7 +913,8 @@ begin
        (AttackKD >= 0) then
     begin
       if Resource.AttackShoot then
-        ShootAttack else
+        ShootAttack
+      else
         ShortRangeAttack;
     end;
 
@@ -904,12 +938,13 @@ end;
 procedure TItemWeapon.Equip;
 begin
   SoundEngine.Sound(Resource.EquippingSound);
-
-  { Just in case we had Attacking=true from previous weapon usage, clear it }
-  Attacking := false;
+  { Just in case we had different State from previous weapon usage, clear it }
+  FState := wsReady;
+  FStateChangeTime := LifeTime;
+  ReloadNow;
 end;
 
-procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
+procedure TItemWeapon.EquippedAttack(const Level: TAbstractLevel);
 
   { Check do you have ammunition to perform attack, and decrease it if yes. }
   function CheckAmmo: boolean;
@@ -948,53 +983,132 @@ procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
   end;
 
 begin
-  if (not Attacking) and CheckAmmo then
+  if (FState = wsReady) and CheckAmmo then
   begin
     SoundEngine.Sound(Resource.AttackSoundStart);
-    AttackStartTime := LifeTime;
-    Attacking := true;
+    FState := wsAttack;
+    FStateChangeTime := LifeTime;
     AttackDone := false;
 
     { if AttackTime = 0, attack immediately, otherwise this could get aborted
-      by TItemWeapon.EquippedScene if AttackAnim.Duration = 0. }
+      by TItemWeapon.EquippedUpdate if AttackAnim.Duration = 0. }
     if Resource.AttackTime = 0 then
     begin
       AttackDone := true;
-      Attack;
+      Attack(Level);
+    end;
+
+    if AmmoLoaded > 0 then
+      Dec(FAmmoLoaded);
+  end;
+end;
+
+procedure TItemWeapon.EquippedReload(const IgnorePreviousState: Boolean);
+begin
+  if IgnorePreviousState or (FState = wsReady) then
+  begin
+    FStateChangeTime := LifeTime;
+    FState := wsReload;
+    ReloadDone := false;
+
+    { if ReloadTime = 0, reload immediately. }
+    if Resource.ReloadTime = 0 then
+    begin
+      ReloadDone := true;
+      ReloadNow;
     end;
   end;
 end;
 
-procedure TItemWeapon.EquippedUpdate(const LifeTime: Single);
-begin
-  if Attacking and (not AttackDone) and
-    (LifeTime - AttackStartTime >= Resource.AttackTime) then
+procedure TItemWeapon.ReloadNow;
+
+  { Limit AmmoLoaded by the currently owned ammunition number. }
+  procedure LimitAmmoLoaded;
+  var
+    Inventory: TInventory;
+    AmmoIndex: Integer;
+    AmmoResource: TItemResource;
+    MaxAmmoLoaded: Cardinal;
   begin
-    AttackDone := true;
-    Attack;
+    if (Resource.AttackAmmo <> '') and
+       (Owner3D <> nil) and
+       (Owner3D is TAliveWithInventory) then
+    begin
+      Inventory := TAliveWithInventory(Owner3D).Inventory;
+
+      AmmoResource := Resources.FindName(Resource.AttackAmmo) as TItemResource;
+      AmmoIndex := Inventory.FindResource(AmmoResource);
+
+      if AmmoIndex <> -1 then
+        MaxAmmoLoaded := Inventory[AmmoIndex].Quantity
+      else
+        MaxAmmoLoaded := 0;
+
+      AmmoLoaded := Min(AmmoLoaded, MaxAmmoLoaded);
+    end;
   end;
+
+begin
+  FAmmoLoaded := Resource.AttackAmmoCapacity;
+  LimitAmmoLoaded;
 end;
 
-function TItemWeapon.EquippedScene(const LifeTime: Single): TCastleScene;
+procedure TItemWeapon.EquippedUpdate(const Level: TAbstractLevel; const SecondsPassed: Single;
+  const ResourceFrame: TResourceFrame);
 var
-  AttackTime: Single;
-  AttackAnim: T3DResourceAnimation;
+  StateTime: Single;
 begin
-  if not Resource.Prepared then Exit(nil);
+  LifeTime := LifeTime + SecondsPassed;
 
-  AttackAnim := Resource.AttackAnimation;
-  AttackTime := LifeTime - AttackStartTime;
-  if Attacking and (AttackTime <= AttackAnim.Duration) then
-  begin
-    Result := AttackAnim.Scene(AttackTime, false);
-  end else
-  begin
-    { turn off Attacking, if AttackTime passed }
-    Attacking := false;
-    { although current weapons animations are just static,
-      we use LifeTime to enable any weapon animation
-      (like weapon swaying, or some fire over the sword or such) in the future. }
-    Result :=  Resource.ReadyAnimation.Scene(LifeTime, true);
+  StateTime := LifeTime - FStateChangeTime;
+
+  { perform action in the middle of state }
+  case FState of
+    wsAttack:
+      if (not AttackDone) and (StateTime >= Resource.AttackTime) then
+      begin
+        AttackDone := true;
+        Attack(Level);
+      end;
+    wsReload:
+      if (not ReloadDone) and (StateTime >= Resource.ReloadTime) then
+      begin
+        ReloadDone := true;
+        ReloadNow;
+      end;
+  end;
+
+  { advance to next State, if necessary }
+  case FState of
+    wsAttack:
+      if StateTime > Resource.AttackAnimation.Duration then
+      begin
+        if (Resource.AttackAmmoCapacity <> 0) and (AmmoLoaded = 0) then
+        begin
+          EquippedReload(true);
+          StateTime := LifeTime - FStateChangeTime; // EquippedReload changed FState and FStateChangeTime
+        end else
+        begin
+          FState := wsReady;
+          FStateChangeTime := LifeTime;
+        end;
+      end;
+    wsReload:
+      if StateTime > Resource.ReloadAnimation.Duration then
+      begin
+        FState := wsReady;
+        FStateChangeTime := LifeTime;
+      end;
+  end;
+
+  { update animation frame to display }
+  case FState of
+    wsAttack: ResourceFrame.SetFrame(Level, Resource.AttackAnimation, StateTime, false);
+    wsReload: ResourceFrame.SetFrame(Level, Resource.ReloadAnimation, StateTime, false);
+    wsReady: ResourceFrame.SetFrame(Level, Resource.ReadyAnimation, StateTime, true);
+    {$ifndef COMPILER_CASE_ANALYSIS}
+    else raise EInternalError.Create('Weapon state?');
+    {$endif}
   end;
 end;
 
@@ -1099,20 +1213,13 @@ end;
 
 { TItemOnWorld.TItemDebugTransform -------------------------------------------------------- }
 
-procedure TItemOnWorld.TItemDebugTransform.Initialize;
+procedure TItemOnWorld.TItemDebugTransform.InitializeNodes;
 begin
   inherited;
 
-  FBoxRotated := TDebugBox.Create(Self, GrayRGB);
-  WorldSpace.AddChildren(FBoxRotated.Root);
-
-  ChangedScene;
-end;
-
-procedure TItemOnWorld.TItemDebugTransform.Attach(const AParent: TItemOnWorld);
-begin
-  FParent := AParent;
-  inherited Attach(AParent);
+  FBoxRotated := TDebugBox.Create(Self);
+  FBoxRotated.Color := Gray;
+  ParentSpace.AddChildren(FBoxRotated.Root);
 end;
 
 procedure TItemOnWorld.TItemDebugTransform.Update;
@@ -1121,8 +1228,8 @@ var
 begin
   inherited;
 
-  // show FParent.BoundingBoxRotated
-  BBoxRotated := FParent.BoundingBoxRotated;
+  // show Parent.BoundingBoxRotated
+  BBoxRotated := (Parent as TItemOnWorld).BoundingBoxRotated;
   FBoxRotated.Box := BBoxRotated;
 end;
 
@@ -1136,7 +1243,7 @@ begin
   Gravity := true;
 
   FDebugTransform := TItemDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
@@ -1163,11 +1270,12 @@ procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemove
   procedure UpdateResourceFrame;
   begin
     if Item = nil then Exit;
-    FResourceFrame.SetFrame(Item.Resource.BaseAnimation, LifeTime, true);
+    FResourceFrame.SetFrame(Level, Item.Resource.BaseAnimation, LifeTime, true);
   end;
 
 var
   DirectionZero, U: TVector3;
+  Player: TAliveWithInventory;
 begin
   inherited;
   if not GetExists then Exit;
@@ -1186,12 +1294,16 @@ begin
 
   FDebugTransform.Exists := RenderDebug;
 
+  if Level.GetPlayer is TAliveWithInventory then
+    Player := TAliveWithInventory(Level.GetPlayer)
+  else
+    Player := nil;
+
   if AutoPick and
-     (World.Player <> nil) and
-     (World.Player is TAliveWithInventory) and
-     (not (World.Player as TAlive).Dead) and
-     BoundingBox.Collision(World.Player.BoundingBox) then
-    ExtractItem.Picked(TAliveWithInventory(World.Player));
+     (Player <> nil) and
+     (not Player.Dead) and
+     BoundingBox.Collision(Player.BoundingBox) then
+    ExtractItem.Picked(Player);
 
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then
@@ -1309,7 +1421,7 @@ begin
     if GetItemDropTranslation(Inventory[Index].Resource, DropTranslation) then
     begin
       DropppedItem := Inventory.Drop(Index);
-      Result := DropppedItem.PutOnWorld(World, DropTranslation);
+      Result := DropppedItem.PutOnWorld(InternalLevel, DropTranslation);
     end;
   end;
 end;

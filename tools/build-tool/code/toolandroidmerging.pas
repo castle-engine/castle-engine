@@ -28,6 +28,8 @@ type
 
 procedure MergeAndroidManifest(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
+procedure MergeStringsXml(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 procedure MergeAppend(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 procedure MergeAndroidMainActivity(const Source, Destination: string;
@@ -40,24 +42,24 @@ implementation
 uses Classes, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
-
 { globals -------------------------------------------------------------------- }
+
+procedure ReadXmlExpandingMacros(out Document: TXMLDocument; const FileName: string;
+  const ReplaceMacros: TReplaceMacros);
+var
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create(
+    ReplaceMacros(FileToString(FilenameToURISafe(FileName))));
+  try
+    ReadXMLFile(Document, StringStream);
+  finally FreeAndNil(StringStream) end;
+end;
 
 procedure MergeAndroidManifest(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 var
   SourceXml, DestinationXml: TXMLDocument;
-
-  procedure ReadXmlExpandingMacros(out Document: TXMLDocument; const FileName: string);
-  var
-    StringStream: TStringStream;
-  begin
-    StringStream := TStringStream.Create(
-      ReplaceMacros(FileToString(FilenameToURISafe(FileName))));
-    try
-      ReadXMLFile(Document, StringStream);
-    finally FreeAndNil(StringStream) end;
-  end;
 
   procedure MergeApplication(const SourceApplication: TDOMElement);
   var
@@ -135,23 +137,61 @@ begin
     { Do not simply read Source by
         ReadXMLFile(SourceXml, Source);
       because we want to call ReplaceMacros() on source contents. }
-    ReadXMLExpandingMacros(SourceXml, Source); // this nils SourceXml in case of error
+    ReadXMLExpandingMacros(SourceXml, Source, ReplaceMacros); // this nils SourceXml in case of error
     try
       ReadXMLFile(DestinationXml, Destination); // this nils DestinationXml in case of error
+
+      if SourceXml.DocumentElement.TagName <> 'manifest' then
+        raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml, root element must be <manifest>');
 
       I := SourceXml.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
         begin
           if I.Current.TagName = 'application' then
-            MergeApplication(I.Current) else
+            MergeApplication(I.Current)
+          else
           if (I.Current.TagName = 'uses-permission') and
              I.Current.HasAttribute('android:name') then
-            MergeUsesPermission(I.Current) else
+            MergeUsesPermission(I.Current)
+          else
           if I.Current.TagName = 'supports-screens' then
-            MergeSupportsScreens(I.Current) else
+            MergeSupportsScreens(I.Current)
+          else
             raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName8 + '>');
         end;
+      finally FreeAndNil(I) end;
+
+      WriteXMLFile(DestinationXml, Destination);
+    finally FreeAndNil(DestinationXml) end;
+  finally FreeAndNil(SourceXml) end;
+end;
+
+procedure MergeStringsXml(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+var
+  SourceXml, DestinationXml: TXMLDocument;
+  I: TXMLElementIterator;
+begin
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
+
+  try
+    { Do not simply read Source by
+        ReadXMLFile(SourceXml, Source);
+      because we want to call ReplaceMacros() on source contents. }
+    ReadXMLExpandingMacros(SourceXml, Source, ReplaceMacros); // this nils SourceXml in case of error
+    try
+      ReadXMLFile(DestinationXml, Destination); // this nils DestinationXml in case of error
+
+      if SourceXml.DocumentElement.TagName <> 'resources' then
+        raise ECannotMergeManifest.Create('Cannot merge strings.xml, root element must be <resources>');
+
+      I := SourceXml.DocumentElement.ChildrenIterator;
+      try
+        while I.GetNext do
+          DestinationXml.DocumentElement.AppendChild(
+            I.Current.CloneNode(true, DestinationXml));
       finally FreeAndNil(I) end;
 
       WriteXMLFile(DestinationXml, Destination);

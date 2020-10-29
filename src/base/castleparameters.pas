@@ -24,9 +24,7 @@ interface
 uses SysUtils, CastleVectors, CastleUtils, CastleStringUtils;
 
 type
-  EInvalidParams = class(EWithHiddenClassName);
-
-type
+  EInvalidParams = class(EShortErrorMessage);
   EInvalidShortOption = class(EInvalidParams);
   EInvalidLongOption = class(EInvalidParams);
   EWrongOptionArgument = class(EInvalidParams);
@@ -237,7 +235,7 @@ type
     function IsPresent(const A: array of string): boolean;
 
     { Parse command-line parameters. Given a specification of your command-line
-      options (in Options), we will find and pass these options to your
+      options (in AOptions), we will find and pass these options to your
       OptionProc callback. The handled options will be removed from
       the @link(Parameters) list.
 
@@ -301,10 +299,10 @@ type
       in some weird situations.
 
       @groupBegin }
-    procedure Parse(Options: POption_Array; OptionsCount: Integer;
+    procedure Parse(AOptions: POption_Array; OptionsCount: Integer;
       OptionProc: TOptionProc; OptionProcData: Pointer;
       ParseOnlyKnownLongOptions: boolean = false); overload;
-    procedure Parse(const Options: array of TOption;
+    procedure Parse(const AOptions: array of TOption;
       OptionProc: TOptionProc; OptionProcData: Pointer;
       ParseOnlyKnownLongOptions: boolean = false); overload;
     { @groupEnd }
@@ -403,10 +401,10 @@ begin
   Result := false;
 end;
 
-procedure TParameters.Parse(const Options: array of TOption; OptionProc: TOptionProc;
+procedure TParameters.Parse(const AOptions: array of TOption; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
-  Parse(@Options, System.High(Options)+1, OptionProc, OptionProcData,
+  Parse(@AOptions, System.High(AOptions)+1, OptionProc, OptionProcData,
     ParseOnlyKnownLongOptions);
 end;
 
@@ -451,7 +449,7 @@ begin
 end;
 
 procedure TParameters.Parse(
-  Options: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
+  AOptions: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 
   function ParseLongParameter(const s: string; out HasArgument: boolean;
@@ -472,7 +470,7 @@ procedure TParameters.Parse(
   begin
    SplitLongParameter(s, ParamLong, HasArgument, Argument, 2);
    for i := 0 to OptionsCount-1 do
-    if Options^[i].Long = ParamLong then
+    if AOptions^[i].Long = ParamLong then
      begin result := i; Exit; end;
 
    if ParseOnlyKnownLongOptions then
@@ -481,7 +479,7 @@ procedure TParameters.Parse(
   end;
 
   function FindShortOption(c: char; const Parameter: string): Integer;
-  { znajdz takie i ze Options[i].Short = c (i c <> #0).
+  { znajdz takie i ze AOptions[i].Short = c (i c <> #0).
     Jesli sie nie uda - wyjatek EInvalidshortOption.
     Parametr "Parameter" jest nam potrzebny
     _tylko_ zeby skomponowac ladniejszy (wiecej mowiacy) Message wyjatku,
@@ -493,7 +491,7 @@ procedure TParameters.Parse(
     raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, ['#0 (null char)', Parameter]);
 
    for result := 0 to OptionsCount-1 do
-    if Options^[result].Short = c then Exit;
+    if AOptions^[result].Short = c then Exit;
 
    raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, [c, Parameter]);
   end;
@@ -508,9 +506,9 @@ procedure TParameters.Parse(
     podane razem z ostatnia opcja (czyli z opcja zwracana pod nazwa).
     Te proste opcje zostaly "skombinowane" razem z ostatnia opcja w
     jednym parametrze. W rezultacie nazywam je "prostymi" bo one nie moga
-    miec argumentu - Options^[].Argument tych opcji moze byc tylko oaNone
+    miec argumentu - AOptions^[].Argument tych opcji moze byc tylko oaNone
     lub oaOptional. Ta procedura NIE sprawdza ze to sie zgadza
-    tak jak w ogole nie sprawdza zadnego Options^[].Argument, takze
+    tak jak w ogole nie sprawdza zadnego AOptions^[].Argument, takze
     dla ostatniej (zwracanej pod nazwa) opcji nie sprawdza - moze wiec
     zwrocic opcje oaNone z HasArgument albo oaRequired[*Separate] z
     not HasArgument.
@@ -569,12 +567,12 @@ begin
     if SCharIs(Strings[i], 2, '-') then
     begin
      OptionNum := ParseLongParameter(Strings[i], HasArgument, Argument);
-     if OptionNum <> -1 then OptionName := '--'+Options^[OptionNum].Long;
+     if OptionNum <> -1 then OptionName := '--'+AOptions^[OptionNum].Long;
     end else
     if not ParseOnlyKnownLongOptions then
     begin
      OptionNum := ParseShortParameter(Strings[i], HasArgument, Argument, SimpleShortOptions);
-     OptionName := '-'+Options^[OptionNum].Short;
+     OptionName := '-'+AOptions^[OptionNum].Short;
     end;
    end;
 
@@ -589,9 +587,9 @@ begin
     { najpierw zajmij sie SimpleShortOptions }
     for k := 0 to SimpleShortOptions.Count-1 do
     begin
-     if not (Options^[SimpleShortOptions[k]].Argument in [oaNone, oaOptional]) then
+     if not (AOptions^[SimpleShortOptions[k]].Argument in [oaNone, oaOptional]) then
       raise EMissingOptionArgument.Create('Missing argument for short option -'+
-        Options^[SimpleShortOptions[k]].Short +'; when combining short options only the last '+
+        AOptions^[SimpleShortOptions[k]].Short +'; when combining short options only the last '+
         'option can have an argument');
      OptionProc(SimpleShortOptions[k], false, '', EmptySeparateArgs, OptionProcData);
     end;
@@ -605,7 +603,7 @@ begin
     { upewnij sie ze HasArgument ma dopuszczalna wartosc. Odczytaj argumenty
       podane jako osobne paranetry dla oaRequired i oaRequired?Separate. }
 
-    if (Options^[OptionNum].Argument = oaRequired) and (not HasArgument) then
+    if (AOptions^[OptionNum].Argument = oaRequired) and (not HasArgument) then
     begin
      if i > High then
       raise EMissingOptionArgument.Create('Missing argument for option '+OptionName);
@@ -613,22 +611,22 @@ begin
      Argument := Strings[i];
      Delete(i);
     end else
-    if (Options^[OptionNum].Argument = oaNone) and HasArgument then
+    if (AOptions^[OptionNum].Argument = oaNone) and HasArgument then
      raise EExcessiveOptionArgument.Create('Excessive argument for option '+OptionName) else
-    if Options^[OptionNum].Argument in OptionArgumentsRequiredSeparate then
+    if AOptions^[OptionNum].Argument in OptionArgumentsRequiredSeparate then
     begin
      if HasArgument then
       raise EExcessiveOptionArgument.CreateFmt('Option %s requires %d arguments, '+
         'you cannot give them using the form --option=argument, you must give '+
         'all the arguments as separate parameters', [OptionName,
-        OptionSeparateArgumentToCount(Options^[OptionNum].Argument) ]);
+        OptionSeparateArgumentToCount(AOptions^[OptionNum].Argument) ]);
 
-     for j := 1 to OptionSeparateArgumentToCount(Options^[OptionNum].Argument) do
+     for j := 1 to OptionSeparateArgumentToCount(AOptions^[OptionNum].Argument) do
      begin
       if i > High then
        raise EMissingOptionArgument.CreateFmt('Not enough arguments for option %s, '+
          'this option needs %d arguments but we have only %d', [OptionName,
-         OptionSeparateArgumentToCount(Options^[OptionNum].Argument), j-1]);
+         OptionSeparateArgumentToCount(AOptions^[OptionNum].Argument), j-1]);
       SeparateArgs[j] := Strings[i];
       Delete(i);
      end;
@@ -646,14 +644,14 @@ end;
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer;
 begin
- result := RequiredSeparateFirstCount + Ord(v) - Ord(oaRequiredSeparateFirst)
+  Result := RequiredSeparateFirstCount + Ord(v) - Ord(oaRequiredSeparateFirst)
 end;
 
 function SeparateArgsToVector3(const v: TSeparateArgs): TVector3;
 begin
- result[0] := StrToFloat(v[1]);
- result[1] := StrToFloat(v[2]);
- result[2] := StrToFloat(v[3]);
+  Result[0] := StrToFloatDot(v[1]);
+  Result[1] := StrToFloatDot(v[2]);
+  Result[2] := StrToFloatDot(v[3]);
 end;
 
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;

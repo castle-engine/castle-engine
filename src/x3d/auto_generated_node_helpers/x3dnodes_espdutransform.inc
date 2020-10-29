@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAddress: string;
-    procedure SetAddress(const Value: string);
+    function GetAddress: String;
+    procedure SetAddress(const Value: String);
     function GetApplicationID: Integer;
     procedure SetApplicationID(const Value: Integer);
     function GetArticulationParameterCount: Integer;
@@ -44,8 +44,8 @@
     procedure SetDetonationRelativeLocation(const Value: TVector3);
     function GetDetonationResult: Integer;
     procedure SetDetonationResult(const Value: Integer);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetEntityCategory: Integer;
     procedure SetEntityCategory(const Value: Integer);
     function GetEntityCountry: Integer;
@@ -70,10 +70,10 @@
     procedure SetEventNumber(const Value: Integer);
     function GetEventSiteID: Integer;
     procedure SetEventSiteID(const Value: Integer);
-    function GetFired1: boolean;
-    procedure SetFired1(const Value: boolean);
-    function GetFired2: boolean;
-    procedure SetFired2(const Value: boolean);
+    function GetFired1: Boolean;
+    procedure SetFired1(const Value: Boolean);
+    function GetFired2: Boolean;
+    procedure SetFired2(const Value: Boolean);
     function GetFireMissionIndex: Integer;
     procedure SetFireMissionIndex(const Value: Integer);
     function GetFiringRange: Single;
@@ -88,10 +88,10 @@
     procedure SetLinearVelocity(const Value: TVector3);
     function GetLinearAcceleration: TVector3;
     procedure SetLinearAcceleration(const Value: TVector3);
-    function GetMarking: string;
-    procedure SetMarking(const Value: string);
-    function GetMulticastRelayHost: string;
-    procedure SetMulticastRelayHost(const Value: string);
+    function GetMarking: String;
+    procedure SetMarking(const Value: String);
+    function GetMulticastRelayHost: String;
+    procedure SetMulticastRelayHost(const Value: String);
     function GetMulticastRelayPort: Integer;
     procedure SetMulticastRelayPort(const Value: Integer);
     function GetMunitionApplicationID: Integer;
@@ -124,11 +124,11 @@
     procedure SetWarhead(const Value: Integer);
     function GetWriteInterval: TFloatTime;
     procedure SetWriteInterval(const Value: TFloatTime);
-    function GetRtpHeaderExpected: boolean;
-    procedure SetRtpHeaderExpected(const Value: boolean);
+    function GetRtpHeaderExpected: Boolean;
+    procedure SetRtpHeaderExpected(const Value: Boolean);
   public
     { X3D field "address". } { }
-    property Address: string read GetAddress write SetAddress;
+    property Address: String read GetAddress write SetAddress;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     { X3D field "articulationParameterCount". } { }
@@ -166,7 +166,7 @@
     { X3D field "detonationResult". } { }
     property DetonationResult: Integer read GetDetonationResult write SetDetonationResult;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "entityCategory". } { }
     property EntityCategory: Integer read GetEntityCategory write SetEntityCategory;
     { X3D field "entityCountry". } { }
@@ -192,9 +192,9 @@
     { X3D field "eventSiteID". } { }
     property EventSiteID: Integer read GetEventSiteID write SetEventSiteID;
     { X3D field "fired1". } { }
-    property Fired1: boolean read GetFired1 write SetFired1;
+    property Fired1: Boolean read GetFired1 write SetFired1;
     { X3D field "fired2". } { }
-    property Fired2: boolean read GetFired2 write SetFired2;
+    property Fired2: Boolean read GetFired2 write SetFired2;
     { X3D field "fireMissionIndex". } { }
     property FireMissionIndex: Integer read GetFireMissionIndex write SetFireMissionIndex;
     { X3D field "firingRange". } { }
@@ -210,9 +210,9 @@
     { X3D field "linearAcceleration". } { }
     property LinearAcceleration: TVector3 read GetLinearAcceleration write SetLinearAcceleration;
     { X3D field "marking". } { }
-    property Marking: string read GetMarking write SetMarking;
+    property Marking: String read GetMarking write SetMarking;
     { X3D field "multicastRelayHost". } { }
-    property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
     { X3D field "munitionApplicationID". } { }
@@ -246,7 +246,7 @@
     { X3D field "writeInterval". } { }
     property WriteInterval: TFloatTime read GetWriteInterval write SetWriteInterval;
     { X3D field "rtpHeaderExpected". } { }
-    property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+    property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
 
 {$endif read_interface}
 
@@ -254,12 +254,12 @@
 
 { TEspduTransformNode ----------------------------------------------- }
 
-function TEspduTransformNode.GetAddress: string;
+function TEspduTransformNode.GetAddress: String;
 begin
   Result := FdAddress.Value;
 end;
 
-procedure TEspduTransformNode.SetAddress(const Value: string);
+procedure TEspduTransformNode.SetAddress(const Value: String);
 begin
   FdAddress.Send(Value);
 end;
@@ -394,12 +394,12 @@ begin
   FdDetonationResult.Send(Value);
 end;
 
-function TEspduTransformNode.GetEnabled: boolean;
+function TEspduTransformNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TEspduTransformNode.SetEnabled(const Value: boolean);
+procedure TEspduTransformNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
@@ -524,22 +524,22 @@ begin
   FdEventSiteID.Send(Value);
 end;
 
-function TEspduTransformNode.GetFired1: boolean;
+function TEspduTransformNode.GetFired1: Boolean;
 begin
   Result := FdFired1.Value;
 end;
 
-procedure TEspduTransformNode.SetFired1(const Value: boolean);
+procedure TEspduTransformNode.SetFired1(const Value: Boolean);
 begin
   FdFired1.Send(Value);
 end;
 
-function TEspduTransformNode.GetFired2: boolean;
+function TEspduTransformNode.GetFired2: Boolean;
 begin
   Result := FdFired2.Value;
 end;
 
-procedure TEspduTransformNode.SetFired2(const Value: boolean);
+procedure TEspduTransformNode.SetFired2(const Value: Boolean);
 begin
   FdFired2.Send(Value);
 end;
@@ -614,22 +614,22 @@ begin
   FdLinearAcceleration.Send(Value);
 end;
 
-function TEspduTransformNode.GetMarking: string;
+function TEspduTransformNode.GetMarking: String;
 begin
   Result := FdMarking.Value;
 end;
 
-procedure TEspduTransformNode.SetMarking(const Value: string);
+procedure TEspduTransformNode.SetMarking(const Value: String);
 begin
   FdMarking.Send(Value);
 end;
 
-function TEspduTransformNode.GetMulticastRelayHost: string;
+function TEspduTransformNode.GetMulticastRelayHost: String;
 begin
   Result := FdMulticastRelayHost.Value;
 end;
 
-procedure TEspduTransformNode.SetMulticastRelayHost(const Value: string);
+procedure TEspduTransformNode.SetMulticastRelayHost(const Value: String);
 begin
   FdMulticastRelayHost.Send(Value);
 end;
@@ -794,12 +794,12 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TEspduTransformNode.GetRtpHeaderExpected: boolean;
+function TEspduTransformNode.GetRtpHeaderExpected: Boolean;
 begin
   Result := FdRtpHeaderExpected.Value;
 end;
 
-procedure TEspduTransformNode.SetRtpHeaderExpected(const Value: boolean);
+procedure TEspduTransformNode.SetRtpHeaderExpected(const Value: Boolean);
 begin
   FdRtpHeaderExpected.Send(Value);
 end;

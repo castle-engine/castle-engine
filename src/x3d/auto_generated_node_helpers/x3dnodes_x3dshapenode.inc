@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,23 +26,75 @@
 {$ifdef read_interface}
 
   strict private
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetAppearance: TAppearanceNode;
+    procedure SetAppearance(const Value: TAppearanceNode);
+    function GetGeometry: TAbstractGeometryNode;
+    procedure SetGeometry(const Value: TAbstractGeometryNode);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
+    function GetShading: TShading;
+    procedure SetShading(const Value: TShading);
+{$ifndef CASTLE_SLIM_NODES}
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
-    function GetRender: boolean;
-    procedure SetRender(const Value: boolean);
+{$endif not CASTLE_SLIM_NODES}
+    function GetRender: Boolean;
+    procedure SetRender(const Value: Boolean);
+    function GetCollision: TShapeCollision;
+    procedure SetCollision(const Value: TShapeCollision);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAppearance: TSFNode;
+    { X3D field "appearance". } { }
+    public property FdAppearance: TSFNode read FFdAppearance;
+    { X3D field "appearance". } { }
+    property Appearance: TAppearanceNode read GetAppearance write SetAppearance;
+
+    strict private FFdGeometry: TSFNode;
+    { X3D field "geometry". } { }
+    public property FdGeometry: TSFNode read FFdGeometry;
+    { X3D field "geometry". } { }
+    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
+
+    strict private FFdBboxCenter: TSFVec3f;
     { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
+
+    strict private FFdBboxSize: TSFVec3f;
     { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    strict private FFdShading: TSFStringEnum;
+    { X3D field "shading". } { }
+    public property FdShading: TSFStringEnum read FFdShading;
+    { X3D field "shading". } { }
+    property Shading: TShading read GetShading write SetShading;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdOctreeTriangles: TSFNode;
+    { X3D field "octreeTriangles". } { }
+    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "octreeTriangles". } { }
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
+{$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdRender: TSFBool;
     { X3D field "render". } { }
-    property Render: boolean read GetRender write SetRender;
+    public property FdRender: TSFBool read FFdRender;
+    { X3D field "render". } { }
+    property Render: Boolean read GetRender write SetRender;
+
+    strict private FFdCollision: TSFStringEnum;
+    { X3D field "collision". } { }
+    public property FdCollision: TSFStringEnum read FFdCollision;
+    { X3D field "collision". } { }
+    property Collision: TShapeCollision read GetCollision write SetCollision;
 
 {$endif read_interface}
 
@@ -50,26 +102,57 @@
 
 { TAbstractShapeNode ----------------------------------------------- }
 
-function TAbstractShapeNode.GetBboxCenter: TVector3;
+function TAbstractShapeNode.GetAppearance: TAppearanceNode;
 begin
-  Result := FdBboxCenter.Value;
+  if FdAppearance.Value is TAppearanceNode then
+    Result := TAppearanceNode(FdAppearance.Value)
+  else
+    Result := nil;
 end;
 
-procedure TAbstractShapeNode.SetBboxCenter(const Value: TVector3);
+procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
-  FdBboxCenter.Send(Value);
+  FdAppearance.Send(Value);
 end;
 
-function TAbstractShapeNode.GetBboxSize: TVector3;
+function TAbstractShapeNode.GetGeometry: TAbstractGeometryNode;
 begin
-  Result := FdBboxSize.Value;
+  if FdGeometry.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdGeometry.Value)
+  else
+    Result := nil;
 end;
 
-procedure TAbstractShapeNode.SetBboxSize(const Value: TVector3);
+procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractGeometryNode);
 begin
-  FdBboxSize.Send(Value);
+  FdGeometry.Send(Value);
 end;
 
+function TAbstractShapeNode.GetBBox: TBox3D;
+begin
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
+end;
+
+procedure TAbstractShapeNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
+begin
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
+end;
+
+function TAbstractShapeNode.GetShading: TShading;
+begin
+  Result := TShading(FdShading.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetShading(const Value: TShading);
+begin
+  FdShading.SendEnumValue(Ord(Value));
+end;
+
+{$ifndef CASTLE_SLIM_NODES}
 function TAbstractShapeNode.GetOctreeTriangles: TKambiOctreePropertiesNode;
 begin
   if FdOctreeTriangles.Value is TKambiOctreePropertiesNode then
@@ -83,14 +166,74 @@ begin
   FdOctreeTriangles.Send(Value);
 end;
 
-function TAbstractShapeNode.GetRender: boolean;
+{$endif not CASTLE_SLIM_NODES}
+function TAbstractShapeNode.GetRender: Boolean;
 begin
   Result := FdRender.Value;
 end;
 
-procedure TAbstractShapeNode.SetRender(const Value: boolean);
+procedure TAbstractShapeNode.SetRender(const Value: Boolean);
 begin
   FdRender.Send(Value);
+end;
+
+function TAbstractShapeNode.GetCollision: TShapeCollision;
+begin
+  Result := TShapeCollision(FdCollision.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetCollision(const Value: TShapeCollision);
+begin
+  FdCollision.SendEnumValue(Ord(Value));
+end;
+
+class function TAbstractShapeNode.ClassX3DType: String;
+begin
+  Result := 'X3DShapeNode';
+end;
+
+procedure TAbstractShapeNode.CreateNode;
+begin
+  inherited;
+
+  FFdAppearance := TSFNode.Create(Self, True, 'appearance', [TAppearanceNode]);
+   FdAppearance.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAppearance);
+
+  FFdGeometry := TSFNode.Create(Self, True, 'geometry', [TAbstractGeometryNode]);
+   FdGeometry.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdGeometry);
+
+  FFdBboxCenter := TSFVec3f.Create(Self, True, 'bboxCenter', Vector3(0, 0, 0));
+   FdBboxCenter.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxCenter);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdBboxSize := TSFVec3f.Create(Self, True, 'bboxSize', Vector3(-1, -1, -1));
+   FdBboxSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdBboxSize);
+  { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdShading := TSFStringEnum.Create(Self, True, 'shading', ShadingNames, Ord(shDefault));
+   FdShading.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShading);
+  { X3D specification comment: ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"] enumerated-type: TShading ShadingNames shDefault }
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdOctreeTriangles := TSFNode.Create(Self, False, 'octreeTriangles', [TKambiOctreePropertiesNode]);
+   FdOctreeTriangles.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOctreeTriangles);
+  { X3D specification comment: # NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdRender := TSFBool.Create(Self, True, 'render', true);
+   FdRender.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRender);
+
+  FFdCollision := TSFStringEnum.Create(Self, False, 'collision', ShapeCollisionNames, Ord(scDefault));
+   FdCollision.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdCollision);
+  { X3D specification comment: ["DEFAULT"|"BOX"] enumerated-type: TShapeCollision ShapeCollisionNames scDefault }
 end;
 
 {$endif read_implementation}

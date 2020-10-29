@@ -22,7 +22,7 @@
   gives you a nice Lazarus component readily integrated with the engine,
   CastleWindow gives you a window (without LCL dependency) integrated with
   engine. Countless other engine units give you useful things
-  (like CastleScene, CastleSceneManager, CastleVectors... see the engine manual).
+  (like CastleScene, CastleViewport, CastleVectors... see the engine manual).
 
   Using the engine units directly gives you a complete object-oriented API
   in ObjectPascal to do everything :) The C library API (exposed in
@@ -123,8 +123,8 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96,
-    PCChar(PChar(GetAppConfigDir(false))));
+  CGE_Initialize(PCChar(PChar(GetAppConfigDir(false))));
+  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true);
   sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
@@ -137,6 +137,7 @@ end;
 procedure TForm1.FormDestroy(Sender: TObject);
 begin
   CGE_Close();
+  CGE_Finalize();
 end;
 
 procedure TForm1.FormResize(Sender: TObject);
@@ -161,7 +162,7 @@ end;
 procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseDown(x, OpenGLControl1.Height - 1 - y, Button=mbLeft, 0);
+  CGE_MouseDown(x, OpenGLControl1.Height - 1 - y, Button=Controls.mbLeft, 0);
 end;
 
 procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState;
@@ -173,7 +174,7 @@ end;
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=mbLeft, 0, true);
+  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=Controls.mbLeft, 0, true);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;

@@ -19,18 +19,24 @@ unit TestCastleComponentSerialize;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleComponentSerialize = class(TCastleTestCase)
     procedure TestDefaultValues;
     procedure TestEmptyCaption;
+    procedure TestSaveLoad1;
+    procedure TestSaveLoad2;
+    procedure TestDeserializeObjectReferences;
   end;
 
 implementation
 
 uses CastleFilesUtils, CastleComponentSerialize, CastleVectors,
-  CastleUIControls, CastleControls;
+  CastleUIControls, CastleControls, CastleUtils, CastleSceneManager,
+  CastleScene,
+  { needed to deserialize castle-data:/designs/test_object_references.castle-user-interface }
+  Castle2DSceneManager;
 
 { TMyComponent -------------------------------------------------------------- }
 
@@ -179,6 +185,114 @@ begin
     AssertEquals('Button1', (UiOwner.FindRequiredComponent('Button1') as TCastleButton).Caption);
     AssertEquals('', (UiOwner.FindRequiredComponent('Button2') as TCastleButton).Caption);
     AssertEquals('Button3', (UiOwner.FindRequiredComponent('Button3') as TCastleButton).Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveLoad1;
+var
+  UiOwner: TComponent;
+  Ui: TCastleButton;
+  Lab: TCastleLabel;
+  LoadedUi: TCastleUserInterface;
+  TempFileName: String;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    Ui := TCastleButton.Create(UiOwner);
+
+    Lab := TCastleLabel.Create(UiOwner);
+    Lab.Color := Vector4(0, 1, 0, 1);
+    Lab.FrameColor := Vector4(0, 1, 0, 1);
+    Lab.Caption := 'test caption' + NL + 'another caption';
+    Lab.LineSpacing := 4;
+    Ui.InsertFront(Lab);
+
+    TempFileName := GetTempFileNameCheck;
+    UserInterfaceSave(Ui, TempFileName);
+  finally FreeAndNil(UiOwner) end;
+
+  Ui := nil; // make sure state is cleared
+  Lab := nil;
+
+  UiOwner := TComponent.Create(nil);
+  try
+    LoadedUi := UserInterfaceLoad(TempFileName, UiOwner);
+    AssertTrue(LoadedUi is TCastleButton);
+    Ui := LoadedUi as TCastleButton;
+
+    AssertEquals(Ui.ControlsCount, 1);
+    AssertTrue(Ui.Controls[0] is TCastleLabel);
+    Lab := Ui.Controls[0] as TCastleLabel;
+
+    AssertVectorEquals(Vector4(0, 1, 0, 1), Lab.Color);
+    AssertVectorEquals(Vector4(0, 1, 0, 1), Lab.FrameColor);
+    AssertEquals(4, Lab.LineSpacing);
+    AssertEquals('test caption' + NL + 'another caption', Lab.Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestSaveLoad2;
+var
+  UiOwner: TComponent;
+  Ui: TCastleButton;
+  Lab: TCastleLabel;
+  LoadedUi: TCastleUserInterface;
+  TempFileName: String;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    Ui := TCastleButton.Create(UiOwner);
+
+    Lab := TCastleLabel.Create(UiOwner);
+    // leave defaults
+    Ui.InsertFront(Lab);
+
+    TempFileName := GetTempFileNameCheck;
+    UserInterfaceSave(Ui, TempFileName);
+  finally FreeAndNil(UiOwner) end;
+
+  Ui := nil; // make sure state is cleared
+  Lab := nil;
+
+  UiOwner := TComponent.Create(nil);
+  try
+    LoadedUi := UserInterfaceLoad(TempFileName, UiOwner);
+    AssertTrue(LoadedUi is TCastleButton);
+    Ui := LoadedUi as TCastleButton;
+
+    AssertEquals(Ui.ControlsCount, 1);
+    AssertTrue(Ui.Controls[0] is TCastleLabel);
+    Lab := Ui.Controls[0] as TCastleLabel;
+
+    AssertVectorEquals(Vector4(0, 0, 0, 1), Lab.Color);
+    AssertVectorEquals(Vector4(1, 1, 1, 1), Lab.FrameColor);
+    AssertEquals(TCastleLabel.DefaultLineSpacing, Lab.LineSpacing);
+    AssertEquals('', Lab.Caption);
+  finally FreeAndNil(UiOwner) end;
+end;
+
+procedure TTestCastleComponentSerialize.TestDeserializeObjectReferences;
+var
+  UiOwner: TComponent;
+  //Ui: TCastleUserInterface;
+  Sm1, Sm2, Sm3: TCastleSceneManager;
+  {Scene1, Scene2, }Scene3, Scene4{, Scene5, Scene6}: TCastleScene;
+begin
+  UiOwner := TComponent.Create(nil);
+  try
+    {Ui := }UserInterfaceLoad('castle-data:/designs/test_object_references.castle-user-interface', UiOwner);
+    Sm1 := UiOwner.FindRequiredComponent('SceneManager1') as TCastleSceneManager;
+    Sm2 := UiOwner.FindRequiredComponent('SceneManager2') as TCastleSceneManager;
+    Sm3 := UiOwner.FindRequiredComponent('SceneManager3') as TCastleSceneManager;
+    // Scene1 := UiOwner.FindRequiredComponent('Scene1') as TCastleScene;
+    // Scene2 := UiOwner.FindRequiredComponent('Scene2') as TCastleScene;
+    Scene3 := UiOwner.FindRequiredComponent('Scene3') as TCastleScene;
+    Scene4 := UiOwner.FindRequiredComponent('Scene4') as TCastleScene;
+    // Scene5 := UiOwner.FindRequiredComponent('Scene5') as TCastleScene;
+    // Scene6 := UiOwner.FindRequiredComponent('Scene6') as TCastleScene;
+    AssertTrue(Sm1.MainScene = Scene3);
+    AssertTrue(Sm2.MainScene = Scene4);
+    AssertTrue(Sm3.MainScene = nil);
   finally FreeAndNil(UiOwner) end;
 end;
 

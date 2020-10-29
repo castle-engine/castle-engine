@@ -21,7 +21,7 @@ type
   { Video as a sequence of OpenGL textures that can be easily played.
     Use TGLVideo3D to have a list of normal OpenGL textures,
     e.g. for rendering video as texture on free 3D objects.
-    Use TGLVideo2D to have a list of GUI textures (TGLImageCore),
+    Use TGLVideo2D to have a list of GUI textures (TDrawableImage),
     e.g. for rendering video as simple 2D control. }
   TGLVideo = class
   private
@@ -81,10 +81,10 @@ type
     function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
   end;
 
-  { Video expressed as a series of TGLImage, to play as 2D GUI control. }
+  { Video expressed as a series of TDrawableImage, to play as 2D GUI control. }
   TGLVideo2D = class(TGLVideo)
   private
-    FItems: array of TGLImage;
+    FItems: array of TDrawableImage;
   public
     constructor Create(Video: TVideo;
       const SmoothScaling: boolean = true); overload;
@@ -96,7 +96,9 @@ type
       const Interpolation: TResizeInterpolation = riBilinear); overload;
     destructor Destroy; override;
 
-    function GLImageFromTime(const Time: TFloatTime): TGLImage;
+    function DrawableImageFromTime(const Time: TFloatTime): TDrawableImage;
+    function GLImageFromTime(const Time: TFloatTime): TDrawableImage;
+      deprecated 'use DrawableImageFromTime';
   end;
 
 {$endif read_interface}
@@ -171,7 +173,7 @@ begin
 
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
-    FItems[I] := TGLImage.Create(Video.Items[I], SmoothScaling, false);
+    FItems[I] := TDrawableImage.Create(Video.Items[I], SmoothScaling, false);
 end;
 
 constructor TGLVideo2D.Create(const URL: string;
@@ -209,9 +211,14 @@ begin
   inherited;
 end;
 
-function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImage;
+function TGLVideo2D.DrawableImageFromTime(const Time: TFloatTime): TDrawableImage;
 begin
   Result := FItems[IndexFromTime(Time)];
+end;
+
+function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TDrawableImage;
+begin
+  Result := DrawableImageFromTime(Time);
 end;
 
 {$endif read_implementation}

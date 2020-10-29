@@ -206,7 +206,7 @@ function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
 
 { Ask user to press any key, return this key as Keys.TKey.
 
-  Never returns K_None (which means that keys that cannot be interpreted
+  Never returns keyNone (which means that keys that cannot be interpreted
   as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
@@ -284,9 +284,9 @@ function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: st
 
   If you give non-empty ValueAsString, it will be used to show
   the initial value for the user. Otherwise, we will just show
-  FloatToStr(Value), which sometimes may be too ugly.
+  FloatToStrDot(Value), which sometimes may be too ugly.
   For example Value = 0.01 cannot be precisely represented as a floating point
-  number, and FloatToStr shows that this is really something like 0.0099xxxxx.
+  number, and FloatToStrDot shows that this is really something like 0.0099xxxxx.
 
   @groupBegin }
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
@@ -364,7 +364,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleImages, CastleClassUtils, CastleWindowModes, CastleLog,
+  CastleImages, CastleClassUtils, CastleInternalWindowModes, CastleLog,
   CastleUIControls, CastleUIState, CastleDialogStates;
 
 { MessageCore ---------------------------------------------------------------- }
@@ -376,8 +376,7 @@ procedure MessageCore(const Window: TCastleWindowBase; const State: TStateDialog
 var
   SavedMode: TGLMode;
 begin
-  // if Log then
-  //   WritelnLogMultiline('Message', TextList.Text);
+  // WritelnLogMultiline('Message', TextList.Text);
 
   State.BackgroundScreenshot := true;
   State.PopOnAnswered := false;
@@ -784,12 +783,13 @@ var
 begin
   Result := false;
   if ValueAsString <> '' then
-    S := ValueAsString else
-    S := FloatToStr(Value);
+    S := ValueAsString
+  else
+    S := FloatToStrDot(Value);
   if MessageInputQuery(Window, Title, S, 0, 0, AllChars, Alignment, Html) then
   begin
     try
-      Value := StrToFloat(s);
+      Value := StrToFloatDot(s);
       Result := true;
     except
       on E: EConvertError do

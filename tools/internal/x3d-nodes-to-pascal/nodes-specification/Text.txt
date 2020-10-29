@@ -5,18 +5,19 @@ FontStyle : X3DFontStyleNode {
   MFString []       family      "SERIF"
   SFBool   []       horizontal  TRUE
   MFString []       justify     "BEGIN" ["BEGIN","END","FIRST","MIDDLE",""]
-  SFString []       language    ""
-  SFBool   []       leftToRight TRUE
+  SFString []       language    "" # NOT-SLIM
+  SFBool   []       leftToRight TRUE # NOT-SLIM
   SFFloat  []       size        1.0     (0,Inf)
   SFFloat  []       spacing     1.0     [0,Inf)
   SFString []       style       "PLAIN" ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
-  SFBool   []       topToBottom TRUE
+  SFBool   []       topToBottom TRUE # NOT-SLIM
 }
 
 Text : X3DGeometryNode {
   SFNode   [in,out] fontStyle  NULL  [X3DFontStyleNode]
   MFFloat  [in,out] length     []    [0,Inf)
   SFFloat  [in,out] maxExtent  0.0   [0,Inf)
+  SFInt32  [in,out] maxDisplayChars -1  [-1,Inf)
   MFString [in,out] string     []
   MFVec2f  [out]    lineBounds
   SFVec3f  [out]    origin

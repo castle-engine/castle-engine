@@ -221,7 +221,7 @@ var
     until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle));
     if Previous = Middle then
     begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
+      WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
       Exit(false);
     end;
 
@@ -235,7 +235,7 @@ var
     until (Next = Previous) or not EarDir.IsZero;
     if Next = Previous then
     begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
+      WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
       Exit(false);
     end;
 
@@ -378,7 +378,7 @@ var
       VBorder + PullDirection * 0.01,
       Triangle3(V0, V1, V2), TriangleNormal)); }
 
-    if Log and LogTriangulation then
+    if LogTriangulation then
       WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
         [Border, BorderPrevious, Border, BorderNext, BoolToStr(Result, true)]));
   end;
@@ -432,7 +432,7 @@ begin
       Assert(not PolygonNormal.IsZero);
       PolygonNormal.NormalizeMe;
 
-      if Log and LogTriangulation then
+      if LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
           [P1, P0, P1, P2, PolygonNormal.ToString]));
 
@@ -475,7 +475,7 @@ begin
             polygon. }
           if P0 = Start then
           begin
-            if Log and LogTriangulation then
+            if LogTriangulation then
               WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
@@ -488,7 +488,7 @@ begin
           EarNormal := TriangleDirection(V0, V1, V2);
           if EarNormal.IsZero then
           begin
-            if Log and LogTriangulation then
+            if LogTriangulation then
               WritelnLog('Triangulation', Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
             { We know in this case we can safely remove P1.
               We cannot remove P0 or P2 (even if they are equal),
@@ -504,7 +504,7 @@ begin
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
           EarFound := DistanceSqr <= 1.0;
-          if Log and LogTriangulation then
+          if LogTriangulation then
             WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
               [P0, P1, P2, BoolToStr(EarFound, true),
                EarNormal.ToString, Sqrt(DistanceSqr)]));
@@ -544,7 +544,7 @@ begin
                      BorderVertexInsideTriangle(V0, V1, V2, EarNormal,
                        Inside1, Inside2, Inside3, I) ) then
                 begin
-                  if Log and LogTriangulation then
+                  if LogTriangulation then
                     WritelnLog('Triangulation', Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
                   EarFound := false;
                   Break;

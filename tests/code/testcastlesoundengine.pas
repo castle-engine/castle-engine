@@ -19,12 +19,12 @@ unit TestCastleSoundEngine;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleSoundEngine = class(TCastleTestCase)
   private
-    procedure WavNonPcmWarning(Sender: TObject; const Category, S: string);
+    procedure WavNonPcmWarning(const Category, S: string);
   published
     procedure TestLoadBufferException;
     procedure TestNotPcmEncodingWarning;
@@ -32,37 +32,37 @@ type
 
 implementation
 
-uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties;
+uses CastleFilesUtils, CastleSoundEngine, CastleApplicationProperties, CastleDownload;
 
 procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.wav'));
-    if not SoundEngine.ALActive then
+    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.wav');
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 1');
-  except on ESoundFileError do ; end;
+  except on EDownloadError{ESoundFileError} do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.ogg'));
-    if not SoundEngine.ALActive then
+    SoundEngine.LoadBuffer('castle-data:/sound/non-existing.ogg');
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 2');
-  except on ESoundFileError do ; end;
+  except on EDownloadError{ESoundFileError} do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/invalid.wav'));
-    if not SoundEngine.ALActive then
+    SoundEngine.LoadBuffer('castle-data:/sound/invalid.wav');
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 3');
   except on ESoundFileError do ; end;
 
   try
-    SoundEngine.LoadBuffer(ApplicationData('sound/invalid.ogg'));
-    if not SoundEngine.ALActive then
+    SoundEngine.LoadBuffer('castle-data:/sound/invalid.ogg');
+    if not SoundEngine.IsContextOpenSuccess then
       Writeln('OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
     else
       Fail('Should have raised ESoundFileError 4');
@@ -72,7 +72,7 @@ end;
 type
   EWavNonPcm = class(Exception);
 
-procedure TTestCastleSoundEngine.WavNonPcmWarning(Sender: TObject; const Category, S: string);
+procedure TTestCastleSoundEngine.WavNonPcmWarning(const Category, S: string);
 begin
   if Pos('Loading WAV files not in PCM format not implemented', S) <> 0 then
     raise EWavNonPcm.Create('Good, we have warning: ' + S);
@@ -80,7 +80,7 @@ end;
 
 procedure TTestCastleSoundEngine.TestNotPcmEncodingWarning;
 begin
-  if SoundEngine.ALActive then
+  if SoundEngine.IsContextOpenSuccess then
   begin
     ApplicationProperties.OnWarning.Add(@WavNonPcmWarning);
     try

@@ -18,10 +18,10 @@ unit TestCastleWindowOpen;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testutils, testregistry, CastleWindow;
+uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleWindow;
 
 type
-  TTestContainer = class(TTestCase)
+  TTestCastleWindowOpen = class(TTestCase)
   published
     procedure TestProgressFromOpen;
     procedure TestSaveScreenFromOpen;
@@ -64,7 +64,7 @@ begin
   finally Progress.Fini end;
 end;
 
-procedure TTestContainer.TestProgressFromOpen;
+procedure TTestCastleWindowOpen.TestProgressFromOpen;
 var
   Window: TCastleWindow;
 begin
@@ -107,7 +107,7 @@ begin
   FreeAndNil(Image);
 end;
 
-procedure TTestContainer.TestSaveScreenFromOpen;
+procedure TTestCastleWindowOpen.TestSaveScreenFromOpen;
 var
   Window: TCastleWindow;
 begin
@@ -144,7 +144,7 @@ begin
   (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
 end;
 
-procedure TTestContainer.TestLoadLevelFromOpen;
+procedure TTestCastleWindowOpen.TestLoadLevelFromOpen;
 
   procedure DoTest(const WithButton: boolean);
   var
@@ -175,5 +175,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestContainer);
+  RegisterTest(TTestCastleWindowOpen);
 end.

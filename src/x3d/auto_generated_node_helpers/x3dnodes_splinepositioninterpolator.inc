@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetClosed: boolean;
-    procedure SetClosed(const Value: boolean);
-    function GetNormalizeVelocity: boolean;
-    procedure SetNormalizeVelocity(const Value: boolean);
+    function GetClosed: Boolean;
+    procedure SetClosed(const Value: Boolean);
+    function GetNormalizeVelocity: Boolean;
+    procedure SetNormalizeVelocity(const Value: Boolean);
   public
     { X3D field "closed". } { }
-    property Closed: boolean read GetClosed write SetClosed;
+    property Closed: Boolean read GetClosed write SetClosed;
     { Set X3D field "keyValue". } { }
     procedure SetKeyValue(const Value: array of TVector3);
     { Set X3D field "keyValue". } { }
@@ -42,7 +42,7 @@
     { Set X3D field "keyVelocity". } { }
     procedure SetKeyVelocity(const Value: TVector3List);
     { X3D field "normalizeVelocity". } { }
-    property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
+    property NormalizeVelocity: Boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}
 
@@ -50,12 +50,12 @@
 
 { TSplinePositionInterpolatorNode ----------------------------------------------- }
 
-function TSplinePositionInterpolatorNode.GetClosed: boolean;
+function TSplinePositionInterpolatorNode.GetClosed: Boolean;
 begin
   Result := FdClosed.Value;
 end;
 
-procedure TSplinePositionInterpolatorNode.SetClosed(const Value: boolean);
+procedure TSplinePositionInterpolatorNode.SetClosed(const Value: Boolean);
 begin
   FdClosed.Send(Value);
 end;
@@ -80,12 +80,12 @@ begin
   FdKeyVelocity.Send(Value);
 end;
 
-function TSplinePositionInterpolatorNode.GetNormalizeVelocity: boolean;
+function TSplinePositionInterpolatorNode.GetNormalizeVelocity: Boolean;
 begin
   Result := FdNormalizeVelocity.Value;
 end;
 
-procedure TSplinePositionInterpolatorNode.SetNormalizeVelocity(const Value: boolean);
+procedure TSplinePositionInterpolatorNode.SetNormalizeVelocity(const Value: Boolean);
 begin
   FdNormalizeVelocity.Send(Value);
 end;

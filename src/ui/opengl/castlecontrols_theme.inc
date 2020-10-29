@@ -21,8 +21,8 @@
   TCastleTheme = class
   strict private
     FImages: array [TThemeImage] of TCastleImage;
-    FCorners: array [TThemeImage] of TVector4Integer;
-    FGLImages: array [TThemeImage] of TGLImageCore;
+    FCorners: array [TThemeImage] of TVector4;
+    FDrawableImages: array [TThemeImage] of TDrawableImage;
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
@@ -30,18 +30,18 @@
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
     procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
-    function GetCorners(const ImageType: TThemeImage): TVector4Integer;
-    procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
-    function GetGLImages(const ImageType: TThemeImage): TGLImageCore;
+    function GetCorners(const ImageType: TThemeImage): TVector4;
+    procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4);
+    function GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
     procedure GLContextClose(Sender: TObject);
     procedure SetMessageFont(const Value: TCastleFont);
   private
-    { TGLImageCore instances for fast and easy drawing of images on 2D screen.
-      Reading them for the 1st time means that the TGLImageCore instance is created,
+    { TDrawableImage instances for fast and easy drawing of images on 2D screen.
+      Reading them for the 1st time means that the TDrawableImage instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
-      at next access) the corresponding TGLImageCore instance. }
-    property GLImages[const ImageType: TThemeImage]: TGLImageCore read GetGLImages;
+      at next access) the corresponding TDrawableImage instance. }
+    property DrawableImages[const ImageType: TThemeImage]: TDrawableImage read GetDrawableImages;
   public
     TooltipTextColor: TCastleColor;
     TextColor, DisabledTextColor: TCastleColor;
@@ -67,6 +67,18 @@
       is resuming. Note that you can also customize the tiLoading image.
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
+
+    { For what window height was the Images[tiLoading] prepared.
+      If you set Images[tiLoading], then most likely you will want to set it too.
+      The rendered size of Images[tiLoading] is adjusted, looking at actual
+      window height and this property.
+
+      Note that when rendering Images[tiLoading], TCastleApplication.OnInitialize
+      is not run, so Container.UIScaling is usually not initialized yet.
+      That's why we instead do this special scaling approach for Images[tiLoading].
+
+      By default this is 1000. }
+    LoadingImageForWindowHeight: Single;
 
     { Width of scrollbar for TCastleScrollView. }
     ScrollBarWidth: Single;
@@ -100,7 +112,7 @@
       used.
 
       The alpha channel of the image, if any, is automatically correctly used
-      (for alpha test or alpha blending, see TGLImageCore). }
+      (for alpha test or alpha blending, see TDrawableImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
 
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
@@ -108,20 +120,20 @@
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
       Together with assigning @link(Images), adjust also this property.
-      It is used for images rendered using TGLImageCore.Draw3x3,
+      It is used for images rendered using TDrawableImage.Draw3x3,
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
-    property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
+    property Corners[const ImageType: TThemeImage]: TVector4 read GetCorners write SetCorners;
 
     { Draw the selected theme image on screen.
 
       @param(Color Color tint of the image.
         If you do not specify a color, white will be used, so image will be displayed
         as-is. Specifying a color means that image will be multiplied by it,
-        just like for @link(TGLImageCore.Color).)
+        just like for @link(TDrawableImage.Color).)
 
-      @param(UIScale Used to properly scale corners, passed to @link(TGLImageCore.ScaleCorners).
+      @param(UIScale Used to properly scale corners, passed to @link(TDrawableImage.ScaleCorners).
         This parameter does @italic(not) scale the place where image is displayed,
         to do this just scale the given Rect parameter yourself.)
     }
@@ -165,81 +177,82 @@ begin
   BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
+  LoadingImageForWindowHeight := 1000;
   ScrollBarWidth := 20;
   MinimumScrollbarSliderHeight := 20;
 
   FOwnsMessageFont := true;
 
   FImages[tiPanel] := Panel;
-  FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiPanel] := Vector4(0, 0, 0, 0);
   FImages[tiPanelSeparator] := PanelSeparator;
-  FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiPanelSeparator] := Vector4(0, 0, 0, 0);
   FImages[tiProgressBar] := ProgressBar;
-  FCorners[tiProgressBar] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiProgressBar] := Vector4(2, 2, 2, 2);
   FImages[tiProgressFill] := ProgressFill;
-  FCorners[tiProgressFill] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiProgressFill] := Vector4(2, 2, 2, 2);
   FImages[tiSwitchControl] := ProgressBar;      // reuse same images as ProgressBar
-  FCorners[tiSwitchControl] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiSwitchControl] := Vector4(2, 2, 2, 2);
   FImages[tiSwitchControlFill] := ProgressFill;
-  FCorners[tiSwitchControlFill] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiSwitchControlFill] := Vector4(2, 2, 2, 2);
   FImages[tiButtonNormal] := ButtonNormal;
-  FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonNormal] := Vector4(2, 2, 2, 2);
   FImages[tiButtonDisabled] := ButtonDisabled;
-  FCorners[tiButtonDisabled] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonDisabled] := Vector4(2, 2, 2, 2);
   FImages[tiButtonPressed] := ButtonPressed;
-  FCorners[tiButtonPressed] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonPressed] := Vector4(2, 2, 2, 2);
   FImages[tiButtonFocused] := ButtonFocused;
-  FCorners[tiButtonFocused] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiButtonFocused] := Vector4(2, 2, 2, 2);
   FImages[tiWindow] := WindowDark;
-  FCorners[tiWindow] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiWindow] := Vector4(2, 2, 2, 2);
   FImages[tiScrollbarFrame] := ScrollbarFrame;
-  FCorners[tiScrollbarFrame] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiScrollbarFrame] := Vector4(1, 1, 1, 1);
   FImages[tiScrollbarSlider] := ScrollbarSlider;
-  FCorners[tiScrollbarSlider] := Vector4Integer(3, 3, 3, 3);
+  FCorners[tiScrollbarSlider] := Vector4(3, 3, 3, 3);
   FImages[tiSlider] := Slider;
-  FCorners[tiSlider] := Vector4Integer(4, 7, 4, 7);
+  FCorners[tiSlider] := Vector4(4, 7, 4, 7);
   FImages[tiSliderPosition] := SliderPosition;
-  FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiSliderPosition] := Vector4(1, 1, 1, 1);
   FImages[tiLabel] := FrameWhiteBlack;
-  FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiLabel] := Vector4(2, 2, 2, 2);
   FImages[tiGroup] := FrameWhiteBlack;
-  FCorners[tiGroup] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiGroup] := Vector4(2, 2, 2, 2);
   FImages[tiActiveFrame] := FrameWhite;
-  FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiActiveFrame] := Vector4(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;
-  FCorners[tiTooltip] := Vector4Integer(1, 1, 1, 1);
+  FCorners[tiTooltip] := Vector4(1, 1, 1, 1);
   FImages[tiTouchCtlInner] := TouchCtlInner;
-  FCorners[tiTouchCtlInner] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlInner] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlOuter] := TouchCtlOuter;
-  FCorners[tiTouchCtlOuter] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlOuter] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlFlyInner] := TouchCtlFlyInner;
-  FCorners[tiTouchCtlFlyInner] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlFlyInner] := Vector4(0, 0, 0, 0);
   FImages[tiTouchCtlFlyOuter] := TouchCtlFlyOuter;
-  FCorners[tiTouchCtlFlyOuter] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiTouchCtlFlyOuter] := Vector4(0, 0, 0, 0);
   FImages[tiCrosshair1] := Crosshair1;
-  FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCrosshair1] := Vector4(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
-  FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCrosshair2] := Vector4(0, 0, 0, 0);
   FImages[tiCheckmark] := Checkmark;
-  FCorners[tiCheckmark] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiCheckmark] := Vector4(0, 0, 0, 0);
 
   { Note that tiSquareEmpty and tiSquarePressedBackground could have
     corners = (4, 4, 4, 4), but tiSquareChecked cannot.
     And these 3 images must be consistent.
     So, do not declare any corners for them. }
   FImages[tiSquareEmpty] := SquareEmpty;
-  FCorners[tiSquareEmpty] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquareEmpty] := Vector4(0, 0, 0, 0);
   FImages[tiSquareChecked] := SquareChecked;
-  FCorners[tiSquareChecked] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquareChecked] := Vector4(0, 0, 0, 0);
   FImages[tiSquarePressedBackground] := SquarePressedBackground;
-  FCorners[tiSquarePressedBackground] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiSquarePressedBackground] := Vector4(0, 0, 0, 0);
 
   FImages[tiDisclosure] := Disclosure;
-  FCorners[tiDisclosure] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiDisclosure] := Vector4(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
-  FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
+  FCorners[tiLoading] := Vector4(0, 0, 0, 0);
   FImages[tiEdit] := Edit;
-  FCorners[tiEdit] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiEdit] := Vector4(2, 2, 2, 2);
 
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
@@ -271,7 +284,7 @@ begin
     if FOwnsImages[ImageType] then
       FreeAndNil(FImages[ImageType]);
     FImages[ImageType] := Value;
-    FreeAndNil(FGLImages[ImageType]);
+    FreeAndNil(FDrawableImages[ImageType]);
   end;
 end;
 
@@ -286,21 +299,21 @@ begin
   FOwnsImages[ImageType] := Value;
 end;
 
-function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4Integer;
+function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4;
 begin
   Result := FCorners[ImageType];
 end;
 
-procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
+procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4);
 begin
   FCorners[ImageType] := Value;
 end;
 
-function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImageCore;
+function TCastleTheme.GetDrawableImages(const ImageType: TThemeImage): TDrawableImage;
 begin
-  if FGLImages[ImageType] = nil then
-    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true, false);
-  Result := FGLImages[ImageType];
+  if FDrawableImages[ImageType] = nil then
+    FDrawableImages[ImageType] := TDrawableImage.Create(FImages[ImageType], true, false);
+  Result := FDrawableImages[ImageType];
 end;
 
 procedure TCastleTheme.GLContextClose(Sender: TObject);
@@ -308,7 +321,7 @@ var
   ImageType: TThemeImage;
 begin
   for ImageType in TThemeImage do
-    FreeAndNil(FGLImages[ImageType]);
+    FreeAndNil(FDrawableImages[ImageType]);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
@@ -320,9 +333,9 @@ end;
 procedure TCastleTheme.Draw(const Rect: TFloatRectangle; const ImageType: TThemeImage;
   const UIScale: Single; const Color: TCastleColor);
 begin
-  GLImages[ImageType].Color := Color;
-  GLImages[ImageType].ScaleCorners := UIScale;
-  GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
+  DrawableImages[ImageType].Color := Color;
+  DrawableImages[ImageType].ScaleCorners := UIScale;
+  DrawableImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;

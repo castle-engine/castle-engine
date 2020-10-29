@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetTitle: string;
-    procedure SetTitle(const Value: string);
+    function GetTitle: String;
+    procedure SetTitle(const Value: String);
   public
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: array of string);
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList);
     { X3D field "title". } { }
-    property Title: string read GetTitle write SetTitle;
+    property Title: String read GetTitle write SetTitle;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdInfo.Send(Value);
 end;
 
-function TWorldInfoNode.GetTitle: string;
+function TWorldInfoNode.GetTitle: String;
 begin
   Result := FdTitle.Value;
 end;
 
-procedure TWorldInfoNode.SetTitle(const Value: string);
+procedure TWorldInfoNode.SetTitle(const Value: String);
 begin
   FdTitle.Send(Value);
 end;

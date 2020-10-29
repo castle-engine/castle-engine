@@ -5,4 +5,5 @@
   standalone_source="edit_test.lpr"
   game_units="GameInitialize"
   author="Michalis Kamburelis">
+  <data exists="false" />
 </project>

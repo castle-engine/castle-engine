@@ -28,7 +28,7 @@
   TX3DNodeNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
   strict private
     FAutoRemove: boolean;
-    procedure DestructionNotification(Node: TX3DNode);
+    procedure DestructionNotification(const Node: TX3DNode);
     function IndexOfNode(Node: TX3DNode): Integer;
     function IndexOfName(const Name: string): Integer;
   public
@@ -50,7 +50,7 @@
       If not NodeFinished, then we understand that we're parsing / saving
       the node's contents now. If NodeFinished, then we know the node
       contents are fully parsed / saved now. This information helps
-      us to detect cycles in VRML/X3D DEF/USE graph.
+      us to detect cycles in X3D DEF/USE graph.
       For now, we just disallow such cycles. Still, we allow
       ROUTEs from inside the node, so calling with NodeFinished = false
       is still useful for parsing. }
@@ -142,7 +142,7 @@ begin
   Result := -1;
 end;
 
-procedure TX3DNodeNames.DestructionNotification(Node: TX3DNode);
+procedure TX3DNodeNames.DestructionNotification(const Node: TX3DNode);
 var
   I: Integer;
 begin

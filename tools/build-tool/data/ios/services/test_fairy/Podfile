@@ -1,0 +1,6 @@
+# This declaration will be inserted into the middle of the project Podfile
+# by the Castle Game Engine build tool.
+#
+# See https://docs.testfairy.com/iOS_SDK/Integrating_iOS_SDK.html#cocoapods
+
+pod 'TestFairy', :inhibit_warnings => true

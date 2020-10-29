@@ -17,7 +17,7 @@ unit TestCastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testutils, testregistry, Generics.Collections,
+uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, Generics.Collections,
   CastleUtils, CastleClassUtils;
 
 type

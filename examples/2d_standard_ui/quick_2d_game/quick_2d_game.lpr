@@ -26,7 +26,7 @@ uses SysUtils, CastleWindow, CastleGLImages, CastleFilesUtils, CastleKeysMouse;
 
 var
   Window: TCastleWindowBase;
-  Image: TGLImage;
+  Image: TDrawableImage;
   X: Single = 0.0;
   Y: Single = 0.0;
 
@@ -41,20 +41,20 @@ var
 begin
   SecondsPassed := Container.Fps.SecondsPassed;
   Y := Y + SecondsPassed * 100.0;
-  if Container.Pressed[K_Left] then
+  if Container.Pressed[keyArrowLeft] then
     X := X - SecondsPassed * 200.0;
-  if Container.Pressed[K_Right] then
+  if Container.Pressed[keyArrowRight] then
     X := X + SecondsPassed * 200.0;
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  if Event.IsKey(K_Space) then
+  if Event.IsKey(keySpace) then
     Y := Y - 200.0;
 end;
 
 begin
-  Image := TGLImage.Create(ApplicationData('my_image.png'));
+  Image := TDrawableImage.Create('castle-data:/my_image.png');
   try
     Window := TCastleWindowBase.Create(Application);
     Window.OnRender := @WindowRender;

@@ -131,11 +131,13 @@ type
 
     FCoordinateArray: Pointer;
     FCoordinateSize: Cardinal;
+    FCoordinatePreserveGeometryOrder: Boolean;
 
     FHasColor: boolean;
+    FColorMode: TColorMode;
     ColorOffset: Integer;
-    FHasDefaultColor: boolean;
-    FDefaultColor: TVector4;
+    FForceUnlit: boolean;
+    FForcedUnlitColor: TVector4;
 
     FHasFogCoord: boolean;
     FogCoordOffset: Integer;
@@ -225,6 +227,13 @@ type
     property CoordinateSize: Cardinal read FCoordinateSize;
     { @groupEnd }
 
+    { Does the order of data in CoordinateArray preserves the order
+      of geometry (order of vectors in TCoordinateNode.Coord
+      in TAbstractGeometryNode.CoordField). }
+    property CoordinatePreserveGeometryOrder: Boolean
+      read FCoordinatePreserveGeometryOrder
+      write FCoordinatePreserveGeometryOrder default false;
+
     { Memory containing everything other vertex attribute, like color,
       texture coordinates and GLSL attributes.
       AttributeSize is size, in bytes, of one item of this array.
@@ -251,16 +260,20 @@ type
     function Normal(const Index: Cardinal): PVector3;
     procedure IncNormal(var P: PVector3);
 
-    procedure AddColor;
+    procedure AddColor(const AMode: TColorMode);
     function Color(const Index: Cardinal = 0): PVector4;
     procedure IncColor(var P: PVector4);
     property HasColor: boolean read FHasColor;
+    property ColorMode: TColorMode read FColorMode;
 
-    { When Color array is not initialized and HasDefaultColor,
-      then the default color will be set to DefaultColor.
+    { When ForceUnlit, the shape must be rendered like with UnlitMaterial,
+      with UnlitMaterial.emissiveColor/alpha = ForcedUnlitColor.
+
+      Note that (as with UnlitMaterial) the colors may be overridden
+      per-vertex using Color array (X3D Color/ColorRGBA nodes).
       @groupBegin }
-    property HasDefaultColor: boolean read FHasDefaultColor write FHasDefaultColor default false;
-    property DefaultColor: TVector4 read FDefaultColor write FDefaultColor;
+    property ForceUnlit: boolean read FForceUnlit write FForceUnlit default false;
+    property ForcedUnlitColor: TVector4 read FForcedUnlitColor write FForcedUnlitColor;
     { @groupEnd }
 
     procedure AddFogCoord;
@@ -453,11 +466,12 @@ begin
   PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
 end;
 
-procedure TGeometryArrays.AddColor;
+procedure TGeometryArrays.AddColor(const AMode: TColorMode);
 begin
   if not HasColor then
   begin
     FHasColor := true;
+    FColorMode := AMode;
     ColorOffset := AttributeSize;
     FAttributeSize += SizeOf(TVector4);
   end;
@@ -571,7 +585,9 @@ begin
     2: AddTexCoord2D(NewTextureUnit);
     3: AddTexCoord3D(NewTextureUnit);
     4: AddTexCoord4D(NewTextureUnit);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TexCoords[ExistingTextureUnit].Dimensions?');
+    {$endif}
   end;
 end;
 

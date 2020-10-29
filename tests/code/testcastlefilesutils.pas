@@ -25,7 +25,7 @@ unit TestCastleFilesUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestOSSpecific = class(TTestCase)

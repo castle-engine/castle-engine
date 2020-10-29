@@ -47,31 +47,29 @@
     TCastleSceneCore.InternalChangedField depends on that. }
   TVRML1State = class
   strict private
+    Owned: array [TVRML1StateNode] of boolean;
+    FNodes: array [TVRML1StateNode] of TX3DNode;
     function GetNode(const StateNode: TVRML1StateNode): TX3DNode;
     procedure SetNode(const StateNode: TVRML1StateNode; const Node: TX3DNode);
-    procedure SetNodeCore(const StateNode: TVRML1StateNode; const Node: TX3DNode);
   public
-    Owned: array [TVRML1StateNode] of boolean;
+    function Coordinate3: TCoordinate3Node_1;
+    function ShapeHints: TShapeHintsNode_1;
+    function FontStyle: TFontStyleNode_1;
+    function Material: TMaterialNode_1;
+    function MaterialBinding: TMaterialBindingNode_1;
+    function Normal: TNormalNode;
+    function NormalBinding: TNormalBindingNode_1;
+    function Texture2: TTexture2Node_1;
+    function TextureCoordinate2: TTextureCoordinate2Node_1;
 
-    Coordinate3: TCoordinate3Node_1;
-    ShapeHints: TShapeHintsNode_1;
-    FontStyle: TFontStyleNode_1;
-    Material: TMaterialNode_1;
-    MaterialBinding: TMaterialBindingNode_1;
-    Normal: TNormalNode;
-    NormalBinding: TNormalBindingNode_1;
-    Texture2: TTexture2Node_1;
-    TextureCoordinate2: TTextureCoordinate2Node_1;
-    { Additions here must be synchronized with additions to TVRML1StateNode }
-
-    { Destructor automatically frees and nils all @link(Nodes) that are @link(Owned). }
+    { Destructor automatically frees and nils all @link(Nodes) that are owned. }
     destructor Destroy; override;
 
     { Last nodes that occured when visiting this VRML 1.0 graph,
       indexed by TVRML1StateNode. }
-    property Nodes [StateNode: TVRML1StateNode]: TX3DNode read GetNode write SetNode;
+    property Nodes [const StateNode: TVRML1StateNode]: TX3DNode read GetNode write SetNode;
 
-    { Create and assign all @link(Nodes). All nodes become @link(Owned). }
+    { Create and assign all @link(Nodes). All nodes become owned. }
     procedure CreateNodes;
 
     { Assign from Source.
@@ -104,49 +102,31 @@
 
 { TVRML1State ---------------------------------------------------- }
 
+function TVRML1State.Coordinate3       : TCoordinate3Node_1       ; begin Result := TCoordinate3Node_1       (FNodes[vsCoordinate3       ]); end;
+function TVRML1State.ShapeHints        : TShapeHintsNode_1        ; begin Result := TShapeHintsNode_1        (FNodes[vsShapeHints        ]); end;
+function TVRML1State.FontStyle         : TFontStyleNode_1         ; begin Result := TFontStyleNode_1         (FNodes[vsFontStyle         ]); end;
+function TVRML1State.Material          : TMaterialNode_1          ; begin Result := TMaterialNode_1          (FNodes[vsMaterial          ]); end;
+function TVRML1State.MaterialBinding   : TMaterialBindingNode_1   ; begin Result := TMaterialBindingNode_1   (FNodes[vsMaterialBinding   ]); end;
+function TVRML1State.Normal            : TNormalNode              ; begin Result := TNormalNode              (FNodes[vsNormal            ]); end;
+function TVRML1State.NormalBinding     : TNormalBindingNode_1     ; begin Result := TNormalBindingNode_1     (FNodes[vsNormalBinding     ]); end;
+function TVRML1State.Texture2          : TTexture2Node_1          ; begin Result := TTexture2Node_1          (FNodes[vsTexture2          ]); end;
+function TVRML1State.TextureCoordinate2: TTextureCoordinate2Node_1; begin Result := TTextureCoordinate2Node_1(FNodes[vsTextureCoordinate2]); end;
+
 function TVRML1State.GetNode(const StateNode: TVRML1StateNode): TX3DNode;
 begin
-  case StateNode of
-    vsCoordinate3       : Result := Coordinate3       ;
-    vsShapeHints        : Result := ShapeHints        ;
-    vsFontStyle         : Result := FontStyle         ;
-    vsMaterial          : Result := Material          ;
-    vsMaterialBinding   : Result := MaterialBinding   ;
-    vsNormal            : Result := Normal            ;
-    vsNormalBinding     : Result := NormalBinding     ;
-    vsTexture2          : Result := Texture2          ;
-    vsTextureCoordinate2: Result := TextureCoordinate2;
-    else raise EInternalError.Create('TVRML1State.GetNode: StateNode?');
-  end;
-end;
-
-procedure TVRML1State.SetNodeCore(
-  const StateNode: TVRML1StateNode; const Node: TX3DNode);
-begin
-  case StateNode of
-    vsCoordinate3       : TX3DNode(Coordinate3       ) := Node;
-    vsShapeHints        : TX3DNode(ShapeHints        ) := Node;
-    vsFontStyle         : TX3DNode(FontStyle         ) := Node;
-    vsMaterial          : TX3DNode(Material          ) := Node;
-    vsMaterialBinding   : TX3DNode(MaterialBinding   ) := Node;
-    vsNormal            : TX3DNode(Normal            ) := Node;
-    vsNormalBinding     : TX3DNode(NormalBinding     ) := Node;
-    vsTexture2          : TX3DNode(Texture2          ) := Node;
-    vsTextureCoordinate2: TX3DNode(TextureCoordinate2) := Node;
-    else raise EInternalError.Create('TVRML1State.SetNode: StateNode?');
-  end;
+  Result := FNodes[StateNode];
 end;
 
 procedure TVRML1State.SetNode(
   const StateNode: TVRML1StateNode; const Node: TX3DNode);
 begin
-  if Nodes[StateNode] <> Node then
+  if FNodes[StateNode] <> Node then
   begin
     Assert((Node = nil) or (Node is VRML1StateClasses[StateNode]));
 
     if Owned[StateNode] then
-      Nodes[StateNode].Free;
-    SetNodeCore(StateNode, Node);
+      FNodes[StateNode].Free;
+    FNodes[StateNode] := Node;
     Owned[StateNode] := false;
   end;
 end;
@@ -171,8 +151,8 @@ destructor TVRML1State.Destroy;
     for SN := Low(SN) to High(SN) do
     begin
       if Owned[SN] then
-        Nodes[SN].Free;
-      SetNodeCore(SN, nil);
+        FNodes[SN].Free;
+      FNodes[SN] := nil;
     end;
   end;
 
@@ -186,7 +166,7 @@ var
   SN: TVRML1StateNode;
 begin
   for SN := Low(SN) to High(SN) do
-    Nodes[SN] := Source.Nodes[SN];
+    Nodes[SN] := Source.FNodes[SN]; // this is called so often that even changing Nodes to FNodes makes a difference
 end;
 
 procedure TVRML1State.SetOwnNode(const StateNode: TVRML1StateNode;

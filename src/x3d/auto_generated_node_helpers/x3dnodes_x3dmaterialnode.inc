@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,11 +25,26 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractMaterialNode ----------------------------------------------- }
+
+class function TAbstractMaterialNode.ClassX3DType: String;
+begin
+  Result := 'X3DMaterialNode';
+end;
+
+procedure TAbstractMaterialNode.CreateNode;
+begin
+  inherited;
+
+  DefaultContainerField := 'material';
+end;
 
 {$endif read_implementation}

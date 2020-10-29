@@ -36,16 +36,14 @@
       it also allows to easily find if some functions are missing in
       libpng.(so|dll).)
 
-    @item(Added all missing constants (probably lost in FPC during h2pas).
-      Added also PNG_LIBPNG_VER_* constants, although don't use them,
-      see comments.)
+    @item(Added all missing constants (probably lost in FPC during h2pas).)
 
     @item(
       Works with Windows libpng version with stdcalls
       (changed "cdecl" to "{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif}"))
 
     @item(
-      Many deprecated functions removed by default.
+      Many deprecated stuff removed by default.
       See LIBPNG_DEPRECATED define.
       Also, there's a define LIBPNG_1_4, to change some types to match 1.4
       headers, see
@@ -74,31 +72,9 @@ uses CastleInternalZLib;
   {$PACKRECORDS C}
 {$endif}
 
-{ Version consts. Added by Kambi.
-
-  Unfortunately, they are specific to so/dll version. Very bad --- I'd like
-  to have application that can run with every version that is compatible
-  instead of only some given version. So I use my functions
-  SO_PNG_LIBPNG_VER_STRING, SO_PNG_VER_MAJOR etc.
-  that return the real .so (or .dll) version number
-  (using png_access_version_number). This version can be then passed to
-  png_create_write_struct to ensure that libpng will not return with error :
-  "png.h and png.c versions not compatible".
-
-  Be aware that using an uncompatible libpng version will probably lead
-  to nasty segfaults or such. }
-const
-  PNG_LIBPNG_VER_STRING = '1.2.13';
-  { These should match the first 3 components of PNG_LIBPNG_VER_STRING: }
-  PNG_LIBPNG_VER_MAJOR  = 1;
-  PNG_LIBPNG_VER_MINOR  = 2;
-  PNG_LIBPNG_VER_RELEASE= 13;
-
-{ All consts below added by Kambi. }
-
 const
 { Supported compression types for text in PNG files (tEXt, and zTXt).
- * The values of the PNG_TEXT_COMPRESSION_ defines should NOT be changed. }
+  The values of the PNG_TEXT_COMPRESSION_ defines should NOT be changed. }
   PNG_TEXT_COMPRESSION_NONE_WR = -3;
   PNG_TEXT_COMPRESSION_zTXt_WR = -2;
   PNG_TEXT_COMPRESSION_NONE = -1;
@@ -908,8 +884,10 @@ var
   png_set_gray_1_2_4_to_8: procedure(png_ptr: png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 {$endif LIBPNG_DEPRECATED}
 
-{ Returns true if libpng was available and all png_xxx functions
-  in this unit are initialized to non-nil values, so you can just use libpng.
+{ Returns true if Libpng was available and has compatible version.
+  When @true, most functions
+  in this unit are guaranteed to be initialized to non-nil values
+  (although there are some functions that are optional, see docs above).
 
   It returns false if libpng library was not available (or maybe the required
   version was not available). Then all png_xxx functions in this unit are nil
@@ -920,7 +898,8 @@ procedure PngInitialization;
 
 implementation
 
-uses SysUtils, CastleDynLib
+uses SysUtils,
+  CastleDynLib, CastleLog
   {$ifdef DARWIN}, { for BundlePath } CastleFilesUtils {$endif};
 
 var
@@ -932,6 +911,23 @@ begin
 end;
 
 procedure PngInitialization;
+
+  function CheckVersion: Boolean;
+  var
+    VerNumber: png_uint_32;
+    Release, Minor, Major: Integer;
+  begin
+    VerNumber := png_access_version_number();
+    Release := VerNumber mod 100;
+    Minor := (VerNumber mod 10000) div 100;
+    Major := VerNumber div 10000;
+
+    Result := Major = 1;
+    if not Result then
+      WritelnWarning('LibPng dynamic library exists, but has incompatible version: %d.%d.%d',
+        [Major, Minor, Release]);
+  end;
+
 begin
   FreeAndNil(PngLibrary);
 
@@ -1153,6 +1149,12 @@ begin
     Pointer(png_set_sCAL_s) := PngLibrary.Symbol('png_set_sCAL_s');
     Pointer(png_set_dither) := PngLibrary.Symbol('png_set_dither');
     {$endif LIBPNG_DEPRECATED}
+
+    { In case of incompatible version, free PngLibrary,
+      making sure that CastlePngInitialized is @false.
+      This way CGE can fallback to use FPImage to load PNG. }
+    if not CheckVersion then
+      FreeAndNil(PngLibrary);
   end;
 end;
 

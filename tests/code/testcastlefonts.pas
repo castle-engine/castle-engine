@@ -17,7 +17,7 @@ unit TestCastleFonts;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleTestCase;
+uses FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleFonts = class(TCastleTestCase)
@@ -67,10 +67,10 @@ end;
 procedure TTestCastleFonts.TestMaxTextWidthHtmlInWindow;
 {$ifdef TEST_CASTLE_WINDOW}
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 begin
   // should work with OpenGL context too, actually it doesn't matter now
-  Window := TCastleWindow.Create(nil);
+  Window := TCastleWindowBase.Create(nil);
   try
     Window.Visible := false;
     Window.Open;

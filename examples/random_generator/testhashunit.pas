@@ -34,7 +34,7 @@ var v: LongWord;
     s: string;
 begin
   v := StringToHash(Edit1.Text);
-  Label1.Caption := 'Random (0..1) = ' + FloatToStr(v/MaxInt/2);
+  Label1.Caption := 'Random (0..1) = ' + FloatToStrDot(v/MaxInt/2);
 
   s := '';
   while Length(s)<32 do begin

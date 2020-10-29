@@ -96,7 +96,7 @@ type
   TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
-    FInterceptInput: boolean;
+    FInterceptInput, FFreeWhenStopped: boolean;
     FFreeAtStop: TComponent;
     procedure InternalStart;
     procedure InternalStop;
@@ -154,8 +154,58 @@ type
     class function StateStackCount: Integer;
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
 
+    { Create an instance of the state.
+      You willl typically create one instance of each state class
+      (like TStateMain, TStatePlay) at the application initialization
+      (e.g. in Application.OnInitialize callback), like
+
+      @longCode(#
+        StateMain := TStateMain.Create(Application);
+        StatePlay := TStateMain.Create(Application);
+      #)
+
+      Later you switch between states using @link(Current) or @link(Push) or @link(Pop),
+      like this:
+
+      @longCode(#
+        TUIState.Current := StateMain;
+      #)
+    }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Create the instance TUIState that will be automatically freed when
+      the state is stopped.
+      This allows alternative usage of states (as opposed to the ones described in @link(Create)
+      docs), where you create short-lived instances of state classes.
+      Use it like this:
+
+      @longCode(#
+        TUIState.Current := TStateMain.CreateUntilStopped;
+      #)
+
+      The advantages:
+
+      @unorderedList(
+        @item(You don't need to worry
+          that some state field value will "survive" with an invalid value after
+          @link(Stop). So you don't need to clear everything in @link(Stop)
+          or initialize everything in @link(Start), instead you can depend
+          that @link(Start) happens only once right after the constructor,
+          so the instance fields are clear.)
+
+        @item(You avoid having global variables, keeping singletons of each state class.
+          So the code is a little safer.)
+
+        @item(You can reintroduce your own constructor to require some parameters,
+          instead of exposing state parameters as public fields/properties.)
+      )
+
+      The disadvantage is that you cannot store in state fields anything
+      that should "survive" the state @link(Stop).
+      You can instead use "class variables" in state class, or any global variable.
+    }
+    constructor CreateUntilStopped;
 
     { State becomes active, it's now part of the state stack.
 
@@ -164,9 +214,9 @@ type
       by @code(TUIState.Current := MyState), this happens:
 
       @orderedList(
-        @item(MyStart is pushed as the top-most state on state stack.)
-        @item(MyStart.Start is called.)
-        @item(MyStart is added to the @code(StateContainer.Controls) list,
+        @item(MyState is pushed as the top-most state on state stack.)
+        @item(MyState.Start is called.)
+        @item(MyState is added to the @code(StateContainer.Controls) list,
           so the state methods GLContextOpen and Resize are called
           (as for all normal TCastleUserInterface instances).)
         @item(MyStar.Resume is called.)
@@ -178,13 +228,13 @@ type
       When the state stops becoming active, this happens:
 
       @orderedList(
-        @item(MyStart.Pause is called.)
-        @item(MyStart is removed from the
+        @item(MyState.Pause is called.)
+        @item(MyState is removed from the
           @code(StateContainer.Controls) list.
           So the state method GLContextClose is called
           (as for all normal TCastleUserInterface instances).)
-        @item(MyStart.Stop is called.)
-        @item(MyStart is removed from the on state stack.)
+        @item(MyState.Stop is called.)
+        @item(MyState is removed from the on state stack.)
       )
 
       This is always called to finalize the started state.
@@ -379,6 +429,9 @@ begin
     else
       WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
 
+    if TopState.FFreeWhenStopped then
+      FreeAndNil(TopState);
+
     { resume new top-most state }
     if (FStateStack <> nil) and
        (FStateStack.Count <> 0) then
@@ -432,13 +485,15 @@ begin
 end;
 
 procedure TUIState.InternalStart;
+var
+  TimeStart: TCastleProfilerTime;
 begin
+  TimeStart := Profiler.Start('Started state ' + Name + ': ' + ClassName);
+
   { typically, the Start method will initialize some stuff,
     making the 1st SecondsPassed non-representatively large. }
   StateContainer.Fps.ZeroNextSecondsPassed;
 
-  if CastleLog.Log and Log then
-    WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -446,14 +501,16 @@ begin
     (like the loading state, that changes to play state immediately in start). }
   if FStateStack.IndexOf(Self) <> -1 then
     StateContainer.Controls.Insert(InsertAtPosition, Self);
+
+  Profiler.Stop(TimeStart, Log);
 end;
 
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
   Stop;
-  if CastleLog.Log and Log then
-    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
+  if Log then
+    WritelnLog('UIState', 'Stopped state ' + Name + ': ' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -465,9 +522,7 @@ begin
     Result := FStartContainer
   else
   begin
-    if not Assigned(OnMainContainer) then
-      raise Exception.Create('OnMainContainer not assigned. Use CastleWindow or CastleControl unit before starting TUIState');
-    Result := OnMainContainer();
+    Result := GetMainContainer;
     if Result = nil then
       raise Exception.Create('Assign Application.MainWindow (if you use CastleWindow) or TCastleControl.MainControl (if you use CastleControl) before starting TUIState');
   end;
@@ -477,6 +532,12 @@ constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
   FullSize := true;
+end;
+
+constructor TUIState.CreateUntilStopped;
+begin
+  Create(nil);
+  FFreeWhenStopped := true;
 end;
 
 destructor TUIState.Destroy;
@@ -500,14 +561,14 @@ end;
 
 procedure TUIState.Resume;
 begin
-  if CastleLog.Log and Log then
-    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
+  if Log then
+    WritelnLog('UIState', 'Resuming state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
-  if CastleLog.Log and Log then
-    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
+  if Log then
+    WritelnLog('UIState', 'Paused state ' + Name + ': ' + ClassName);
 end;
 
 procedure TUIState.Start;

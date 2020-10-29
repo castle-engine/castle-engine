@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,19 +26,19 @@
 {$ifdef read_interface}
 
   strict private
-    function GetStatus: boolean;
-    procedure SetStatus(const Value: boolean);
-    function GetNotStatus: boolean;
-    procedure SetNotStatus(const Value: boolean);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetStatus: Boolean;
+    procedure SetStatus(const Value: Boolean);
+    function GetNotStatus: Boolean;
+    procedure SetNotStatus(const Value: Boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   public
     { X3D field "status". } { }
-    property Status: boolean read GetStatus write SetStatus;
+    property Status: Boolean read GetStatus write SetStatus;
     { X3D field "notStatus". } { }
-    property NotStatus: boolean read GetNotStatus write SetNotStatus;
+    property NotStatus: Boolean read GetNotStatus write SetNotStatus;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}
 
@@ -46,32 +46,32 @@
 
 { TTogglerNode ----------------------------------------------- }
 
-function TTogglerNode.GetStatus: boolean;
+function TTogglerNode.GetStatus: Boolean;
 begin
   Result := FdStatus.Value;
 end;
 
-procedure TTogglerNode.SetStatus(const Value: boolean);
+procedure TTogglerNode.SetStatus(const Value: Boolean);
 begin
   FdStatus.Send(Value);
 end;
 
-function TTogglerNode.GetNotStatus: boolean;
+function TTogglerNode.GetNotStatus: Boolean;
 begin
   Result := FdNotStatus.Value;
 end;
 
-procedure TTogglerNode.SetNotStatus(const Value: boolean);
+procedure TTogglerNode.SetNotStatus(const Value: Boolean);
 begin
   FdNotStatus.Send(Value);
 end;
 
-function TTogglerNode.GetEnabled: boolean;
+function TTogglerNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TTogglerNode.SetEnabled(const Value: boolean);
+procedure TTogglerNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

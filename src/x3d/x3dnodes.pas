@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,10 +15,10 @@
 
 (*
   @abstract(Nodes and other important bulding blocks
-  of VRML/X3D (prototypes, routes and so on).)
+  of X3D (prototypes, routes and so on).)
 
-  This is the central unit for VRML/X3D processing, as VRML/X3D file
-  is basically just a graph of nodes. We represent whole VRML/X3D file
+  This is the central unit for X3D processing, as X3D file
+  is basically just a graph of nodes. We represent whole X3D file
   by it's root node. This is what we load, save and process in this unit.
 
   The chapter "Reading, writing, processing VRML scene graph"
@@ -35,25 +35,25 @@
       For XML encoding, we use standard FPC DOM unit.
       Loading and saving of fields (in both encodings) is inside X3DFields unit.
 
-      When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
-      So we're able to save exactly the same VRML/X3D graph
+      When reading X3D files, we generally do not change the X3D graph.
+      So we're able to save exactly the same X3D graph
       back to another file. See also
       [https://castle-engine.io/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
-      This allows writing various VRML/X3D
+      This allows writing various X3D
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
       parts of graph are preserved perfectly.)
 
-    @item(TX3DNode class offers a lot of methods to process VRML/X3D graph.
+    @item(TX3DNode class offers a lot of methods to process X3D graph.
       See TX3DNode.Traverse, TX3DNode.EnumerateNodes and
       TX3DNode.FindNode. TX3DNode.Traverse is especially important, as it
-      walks through VRML/X3D graph just as the specification says
+      walks through X3D graph just as the specification says
       (accumulating transformation, visiting only active children of
       nodes like Switch or LOD),
       gathering some state (useful especially for VRML 1.0, but also
-      used for various things in later VRML/X3D versions).
+      used for various things in new X3D versions).
 
-      When you want to render VRML/X3D graph, you can just traverse
+      When you want to render X3D graph, you can just traverse
       the graph and render each geometry node (TAbstractGeometryNode instance)
       knowing it's state (that will contain transformation and such).
       Alternatively, simple renderer can also use TAbstractGeometryNode.Triangulate.)
@@ -73,22 +73,18 @@
       method. So it's suitable also for CastleRayTracer, and every other possible
       renderer that will ever get implemented.)
 
-    @item(Your own units can define new VRML/X3D nodes, by declaring
+    @item(Your own units can define new X3D nodes, by declaring
       new classes descending from TX3DNode (or other, more specialized,
       descendant). You should register your new classes by calling
-      @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).
-
-      Examples of defining your own VRML/X3D node types (without modifying
-      sources of this unit, or any other unit) are for example in "malfunction" game
-      on https://github.com/castle-engine/malfunction (see LevelUnit).)
+      @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).)
   )
 
   @bold(Node class names, and inheritance:)
 
   @unorderedList(
-    @item(Normal VRML/X3D nodes are defined by classses
-      named like @code(TXxxNode). These nodes can be specified inside the VRML/X3D
-      files. See VRML/X3D specifications, and also our extensions specification,
+    @item(Normal X3D nodes are defined by classses
+      named like @code(TXxxNode). These nodes can be specified inside the X3D
+      files. See X3D specifications, and also our extensions specification,
       on [https://castle-engine.io/vrml_x3d.php].
 
       There are also abstract node classes. Their definitions are helpful
@@ -99,7 +95,7 @@
       and some of them are just our own inventions.
 
       Finally, there are some special-purpose node classes that play
-      important role in our VRML/X3D organization.
+      important role in our X3D organization.
       They are not abstract, but also their exact instances
       are not created under normal circumstances.
       These are named like @code(TX3DXxxNode), currently
@@ -114,7 +110,7 @@
 
     @item(
       Optional suffix _1 or _2 at the node class name indicates that
-      this is only for a specific VRML/X3D standard version.
+      this is only for a specific X3D or VRML standard version.
       Suffix _1 indicates nodes specific to VRML 1.0.
       Suffix _2 indicates nodes specific to VRML 2.0 (aka 97),
       that are not available in X3D.
@@ -166,9 +162,9 @@ unit X3DNodes;
 interface
 
 uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
-  CastleVectors, CastleInternalDoubleLists, CastleRectangles,
+  CastleVectors, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages, CastleColors,
+  X3DFields, CastleBoxes, CastleImages, CastleColors, CastleCameras,
   CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
@@ -190,6 +186,7 @@ type
   {$I x3dnodes_x3dnodeclasseslist.inc}
   {$I x3dnodes_sfnode.inc}
   {$I x3dnodes_mfnode.inc}
+  {$I x3dnodes_utils_materials.inc}
 
   { Nodes from standard X3D components }
   {$I x3dnodes_standard_core.inc}
@@ -281,7 +278,9 @@ uses
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
-  CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
+  CastleNURBS, CastleQuaternions, CastleXMLUtils, CastleOpenDocument,
+  CastleSoundBase,
+  X3DLoadInternalUtils;
 
 {$warnings on}
 
@@ -321,6 +320,7 @@ uses
 {$I x3dnodes_names.inc}
 {$I x3dnodes_nodesmanager.inc}
 {$I x3dnodes_miscellaneous_globals.inc}
+{$I x3dnodes_utils_materials.inc}
 
 // These must be includes after x3dnodes_encoding_{classic,xml}.inc
 {$I x3dnodes_x3dnode.inc}
@@ -420,6 +420,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_cubicbezier2dorientationinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_cubicbezierpositioninterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
 {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
@@ -431,6 +433,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_effect.inc}
 {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
 {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_environmentlight.inc}
 {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
 {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
 {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
@@ -459,6 +462,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
 {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagebackground.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
@@ -522,9 +526,11 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_orientationchaser.inc}
 {$I auto_generated_node_helpers/x3dnodes_orientationdamper.inc}
 {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
 {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
+{$I auto_generated_node_helpers/x3dnodes_physicalmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
@@ -603,6 +609,8 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
 {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
 {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_unlitmaterial.inc}
+{$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
 {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
 {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
@@ -613,6 +621,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
 {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
 {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3d3dbackgroundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
@@ -622,6 +631,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dcubicbezierinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
@@ -645,18 +655,23 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3donesidedmaterialnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpunctuallightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturecoordinatenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsingletexturetransformnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}

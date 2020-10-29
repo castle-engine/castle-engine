@@ -99,7 +99,7 @@ begin
     Windows[I].Top := 30 + 250 * (I div 3);
 
     Windows[I].Open;
-    Windows[I].SetDemoOptions(K_F11, CharEscape, true);
+    Windows[I].SetDemoOptions(keyF11, CharEscape, true);
   end;
 
   Application.Run;

@@ -25,8 +25,9 @@
 { Streams using zlib compression.
 
   This is adjusted from FPC sources unit fcl/inc/zstream.pp,
-  to use our CastleInternalGzio unit. It is also cut down to TGZFileStream,
-  the only class useful for reading/writing gz files. }
+  - to use our CastleInternalGzio unit.
+  - it is cut down to TGZFileStream, the only class useful for reading/writing gz files.
+  - works on Delphi too. }
 unit CastleInternalZStream;
 
 {$I castleconf.inc}
@@ -34,12 +35,15 @@ unit CastleInternalZStream;
 interface
 
 uses
-  Sysutils, Classes, CastleInternalGzio;
+  Sysutils, Classes
+  {$ifdef FPC} , CastleInternalGzio {$else}, Zlib {$endif};
 
 type
   EZlibError = class(EStreamError);
 
-  TGZFileStream = Class(TOwnerStream)
+  TGZFileStream =
+  {$ifdef FPC}
+  class(TOwnerStream)
   private
     FWriteMode : boolean;
     FFIle : gzfile;
@@ -49,9 +53,15 @@ type
     Function Read(Var Buffer; Count : longint): longint;override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+  {$else}
+  class(TDecompressionStream)
+    constructor Create(const Stream: TStream; const AWriteMode: boolean);
+  {$endif}
   end;
 
 implementation
+
+{$ifdef FPC}
 
 Const
   SReadOnlyStream = 'Decompression streams are read-only';
@@ -99,5 +109,25 @@ begin
   If Result=-1 then
     Raise eZlibError.Create(SSeekError);
 end;
+
+{$else}
+
+constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: boolean);
+begin
+  if AWriteMode then
+    raise EZlibError.Create('Writing gzip data on Delphi not implemented yet');
+
+  inherited Create(Stream,
+    { Simple way to read gzip-compressed data with Delphi,
+      see https://stackoverflow.com/questions/31221429/delphi-xe-8-how-to-decompress-a-gzip-file .
+      31 bit wide window means that we require GZIP header (and not just Zlib header).
+    }
+    15 + 16,
+    { OwnsStream = true, to behave just like TGZFileStream that descends
+      from TOwnerStream. }
+    true);
+end;
+
+{$endif}
 
 end.

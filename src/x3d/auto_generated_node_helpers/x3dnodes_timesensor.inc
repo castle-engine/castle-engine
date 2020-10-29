@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,19 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
-    function GetFractionIncreasing: boolean;
-    procedure SetFractionIncreasing(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
+    function GetFractionIncreasing: Boolean;
+    procedure SetFractionIncreasing(const Value: Boolean);
+    function GetDetectAffectedFields: Boolean;
+    procedure SetDetectAffectedFields(const Value: Boolean);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "fractionIncreasing". } { }
-    property FractionIncreasing: boolean read GetFractionIncreasing write SetFractionIncreasing;
+    property FractionIncreasing: Boolean read GetFractionIncreasing write SetFractionIncreasing;
+    { X3D field "detectAffectedFields". } { }
+    property DetectAffectedFields: Boolean read GetDetectAffectedFields write SetDetectAffectedFields;
 
 {$endif read_interface}
 
@@ -42,24 +46,34 @@
 
 { TTimeSensorNode ----------------------------------------------- }
 
-function TTimeSensorNode.GetEnabled: boolean;
+function TTimeSensorNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TTimeSensorNode.SetEnabled(const Value: boolean);
+procedure TTimeSensorNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
 
-function TTimeSensorNode.GetFractionIncreasing: boolean;
+function TTimeSensorNode.GetFractionIncreasing: Boolean;
 begin
   Result := FdFractionIncreasing.Value;
 end;
 
-procedure TTimeSensorNode.SetFractionIncreasing(const Value: boolean);
+procedure TTimeSensorNode.SetFractionIncreasing(const Value: Boolean);
 begin
   FdFractionIncreasing.Send(Value);
+end;
+
+function TTimeSensorNode.GetDetectAffectedFields: Boolean;
+begin
+  Result := FdDetectAffectedFields.Value;
+end;
+
+procedure TTimeSensorNode.SetDetectAffectedFields(const Value: Boolean);
+begin
+  FdDetectAffectedFields.Send(Value);
 end;
 
 {$endif read_implementation}

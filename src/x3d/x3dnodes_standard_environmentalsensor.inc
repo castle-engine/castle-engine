@@ -42,7 +42,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event out } { }
@@ -67,7 +66,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTargetObject: TSFNode;
     public property FdTargetObject: TSFNode read FFdTargetObject;
@@ -90,7 +88,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
@@ -108,12 +105,12 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
+   FdCenter.ChangeAlways := chEnvironmentalSensorBounds;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(0, 0, 0));
-   FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
+   FdSize.ChangeAlways := chEnvironmentalSensorBounds;
   AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -147,13 +144,6 @@ begin
   Result := 'ProximitySensor';
 end;
 
-class function TProximitySensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TProximitySensorNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcProximitySensor;
@@ -180,12 +170,6 @@ begin
   Result := 'TransformSensor';
 end;
 
-class function TTransformSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TVisibilitySensorNode.CreateNode;
 begin
   inherited;
@@ -195,13 +179,6 @@ end;
 class function TVisibilitySensorNode.ClassX3DType: string;
 begin
   Result := 'VisibilitySensor';
-end;
-
-class function TVisibilitySensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TVisibilitySensorNode.TransformationChange: TNodeTransformationChange;
@@ -215,14 +192,14 @@ begin
      (FdSize.Value[1] < 0) or
      (FdSize.Value[2] < 0) then
   begin
-    WritelnWarning('VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
+    WritelnWarning('X3D', 'All VisibilitySensor.size components must be >= 0');
     Exit(TBox3D.Empty);
   end;
 
   { In case of VisibilitySensor, specification doesn't say that size = 0
     indicates empty box (like in case of ProximitySensor).
     And this is sensible: flat (0 depth or such) VisibilitySensor
-    makes sense. So for a valid VRML/X3D, this box is never TBox3D.Empty. }
+    makes sense. So for a valid X3D, this box is never TBox3D.Empty. }
 
   Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
 end;

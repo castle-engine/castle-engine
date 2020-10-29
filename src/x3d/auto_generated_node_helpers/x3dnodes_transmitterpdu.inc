@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAddress: string;
-    procedure SetAddress(const Value: string);
+    function GetAddress: String;
+    procedure SetAddress(const Value: String);
     function GetAntennaLocation: TVector3;
     procedure SetAntennaLocation(const Value: TVector3);
     function GetAntennaPatternLength: Integer;
@@ -56,8 +56,8 @@
     procedure SetModulationTypeSpreadSpectrum(const Value: Integer);
     function GetModulationTypeSystem: Integer;
     procedure SetModulationTypeSystem(const Value: Integer);
-    function GetMulticastRelayHost: string;
-    procedure SetMulticastRelayHost(const Value: string);
+    function GetMulticastRelayHost: String;
+    procedure SetMulticastRelayHost(const Value: String);
     function GetMulticastRelayPort: Integer;
     procedure SetMulticastRelayPort(const Value: Integer);
     function GetPort: Integer;
@@ -82,8 +82,8 @@
     procedure SetReadInterval(const Value: Single);
     function GetRelativeAntennaLocation: TVector3;
     procedure SetRelativeAntennaLocation(const Value: TVector3);
-    function GetRtpHeaderExpected: boolean;
-    procedure SetRtpHeaderExpected(const Value: boolean);
+    function GetRtpHeaderExpected: Boolean;
+    procedure SetRtpHeaderExpected(const Value: Boolean);
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
     function GetTransmitFrequencyBandwidth: Single;
@@ -94,13 +94,11 @@
     procedure SetWhichGeometry(const Value: Integer);
     function GetWriteInterval: Single;
     procedure SetWriteInterval(const Value: Single);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "address". } { }
-    property Address: string read GetAddress write SetAddress;
+    property Address: String read GetAddress write SetAddress;
     { X3D field "antennaLocation". } { }
     property AntennaLocation: TVector3 read GetAntennaLocation write SetAntennaLocation;
     { X3D field "antennaPatternLength". } { }
@@ -130,7 +128,7 @@
     { X3D field "modulationTypeSystem". } { }
     property ModulationTypeSystem: Integer read GetModulationTypeSystem write SetModulationTypeSystem;
     { X3D field "multicastRelayHost". } { }
-    property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
+    property MulticastRelayHost: String read GetMulticastRelayHost write SetMulticastRelayHost;
     { X3D field "multicastRelayPort". } { }
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
     { X3D field "port". } { }
@@ -156,7 +154,7 @@
     { X3D field "relativeAntennaLocation". } { }
     property RelativeAntennaLocation: TVector3 read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
     { X3D field "rtpHeaderExpected". } { }
-    property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
+    property RtpHeaderExpected: Boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
     { X3D field "siteID". } { }
     property SiteID: Integer read GetSiteID write SetSiteID;
     { X3D field "transmitFrequencyBandwidth". } { }
@@ -167,10 +165,8 @@
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
     { X3D field "writeInterval". } { }
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -178,12 +174,12 @@
 
 { TTransmitterPduNode ----------------------------------------------- }
 
-function TTransmitterPduNode.GetAddress: string;
+function TTransmitterPduNode.GetAddress: String;
 begin
   Result := FdAddress.Value;
 end;
 
-procedure TTransmitterPduNode.SetAddress(const Value: string);
+procedure TTransmitterPduNode.SetAddress(const Value: String);
 begin
   FdAddress.Send(Value);
 end;
@@ -328,12 +324,12 @@ begin
   FdModulationTypeSystem.Send(Value);
 end;
 
-function TTransmitterPduNode.GetMulticastRelayHost: string;
+function TTransmitterPduNode.GetMulticastRelayHost: String;
 begin
   Result := FdMulticastRelayHost.Value;
 end;
 
-procedure TTransmitterPduNode.SetMulticastRelayHost(const Value: string);
+procedure TTransmitterPduNode.SetMulticastRelayHost(const Value: String);
 begin
   FdMulticastRelayHost.Send(Value);
 end;
@@ -458,12 +454,12 @@ begin
   FdRelativeAntennaLocation.Send(Value);
 end;
 
-function TTransmitterPduNode.GetRtpHeaderExpected: boolean;
+function TTransmitterPduNode.GetRtpHeaderExpected: Boolean;
 begin
   Result := FdRtpHeaderExpected.Value;
 end;
 
-procedure TTransmitterPduNode.SetRtpHeaderExpected(const Value: boolean);
+procedure TTransmitterPduNode.SetRtpHeaderExpected(const Value: Boolean);
 begin
   FdRtpHeaderExpected.Send(Value);
 end;
@@ -518,24 +514,18 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TTransmitterPduNode.GetBboxCenter: TVector3;
+function TTransmitterPduNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TTransmitterPduNode.SetBboxCenter(const Value: TVector3);
+procedure TTransmitterPduNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TTransmitterPduNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TTransmitterPduNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

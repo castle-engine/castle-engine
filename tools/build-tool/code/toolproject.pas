@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2018 Michalis Kamburelis.
+  Copyright 2014-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,13 +16,14 @@
 { Project information (from CastleEngineManifest.xml) and operations. }
 unit ToolProject;
 
-{$modeswitch advancedrecords}
+{$I castleconf.inc}
 
 interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes,
+  ToolPackage;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis, depHttps);
@@ -34,7 +35,6 @@ type
 
   ECannotGuessManifest = class(Exception);
 
-type
   TLocalizedAppName = record
     Language: String;
     AppName: String;
@@ -43,14 +43,21 @@ type
 
   TListLocalizedAppName = specialize TList<TLocalizedAppName>;
 
-type
+  TProjectVersion = class(TComponent)
+  public
+    DisplayValue: String;
+    Code: Cardinal;
+  end;
+
   TCastleProject = class
   private
+    OwnerComponent: TComponent;
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
-    FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
+    FIOSOverrideQualifiedName: string;
+    FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
     FUsesNonExemptEncryption: boolean;
-    GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
+    FDataExists: Boolean;
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     ExtraCompilerOptions, ExtraCompilerOptionsAbsolute: TCastleStringList;
@@ -58,10 +65,11 @@ type
     FSearchPaths, FLibraryPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
+    FLazarusProject: String;
+    FBuildUsingLazbuild: Boolean;
     FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
-    FVersion: string;
-    FVersionCode: Cardinal;
+    FVersion: TProjectVersion;
     FFullscreenImmersive: boolean;
     FScreenOrientation: TScreenOrientation;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
@@ -75,15 +83,15 @@ type
     ExtractTemplateOverrideExisting: Boolean;
     // @groupEnd
     IOSTeam: string;
+    IOSExportMethod: String; // set by DoPackage based on PackageFormat, otherwise ''
     { Use to define macros containing the Android architecture names.
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
-    procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-    procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-    function PackageName(const OS: TOS; const CPU: TCPU): string;
-    function SourcePackageName: string;
+    function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
+      const PackageNameIncludeVersion: Boolean): string;
+    function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
     { Convert Name to a valid Pascal identifier. }
@@ -121,6 +129,8 @@ type
     property IOSSource: string read FIOSSource;
     function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
+    function NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
     { Standalone source specified in CastleEngineManifest.xml.
       Most code should use StandaloneSourceFile instead, that can optionally
       auto-create the source file. }
@@ -145,14 +155,22 @@ type
     { }
 
     procedure DoCreateManifest;
-    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
-    procedure DoPackage(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
-    procedure DoPackageSource;
+    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
+    procedure DoPackage(const Target: TTarget;
+      const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
+    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean);
+    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
+      const Plugin: boolean; const Params: TCastleStringList);
+    procedure DoPackageSource(
+      const PackageFormat: TPackageFormat;
+      const PackageNameIncludeVersion: Boolean);
     procedure DoClean;
     procedure DoAutoGenerateTextures;
-    procedure DoAutoGenerateClean;
+    procedure DoAutoGenerateClean(const CleanAll: Boolean);
     procedure DoGenerateProgram;
     procedure DoEditor;
 
@@ -160,13 +178,15 @@ type
       various project operations. }
     { }
 
-    property Version: string read FVersion;
+    property Version: TProjectVersion read FVersion;
     property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
-    { Project data path. Always ends with path delimiter, like a slash or backslash. }
+    property DataExists: Boolean read FDataExists;
+    { Project data path. Always ends with path delimiter, like a slash or backslash.
+      Should be ignored if not @link(DataExists). }
     property DataPath: string read FDataPath;
     property Caption: string read FCaption;
     property Author: string read FAuthor;
@@ -186,11 +206,10 @@ type
     property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
     property ListLocalizedAppName: TListLocalizedAppName read FListLocalizedAppName;
 
-    { Path to the external library in data/external_libraries/ .
-      Right now, these host various Windows-specific DLL files.
-      This checks existence of appropriate files along the way,
-      and raises exception in case of trouble. }
-    function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+    { List filenames of external libraries used by the current project,
+      on given OS/CPU. }
+    procedure ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+      const CheckFilesExistence: Boolean = true);
 
     function ReplaceMacros(const Source: string): string;
 
@@ -226,20 +245,50 @@ type
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
+
       If OnlyData, then only takes stuff inside DataPath,
       and Files will contain URLs relative to DataPath.
       Otherwise, takes all files to be packaged in a project,
-      and Files will contain URLs relative to @link(Path). }
-    function PackageFiles(const OnlyData: boolean): TCastleStringList;
+      and Files will contain URLs relative to @link(Path).
+
+      The copy will only contain files useful on given TargetPlatform.
+      Right now this means we will exclude auto-generated textures not suitable
+      for TargetPlatform. }
+    function PackageFiles(const OnlyData: boolean;
+      const TargetPlatform: TCastlePlatform): TCastleStringList;
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
       otherwise a complete absolute path. }
     function IOSLibraryFile(const AbsolutePath: boolean = true): string;
 
+    { Output Nintendo Switch library resulting from compilation.
+      Relative to @link(Path) if AbsolutePath = @false,
+      otherwise a complete absolute path. }
+    function NXLibraryFile(const AbsolutePath: boolean = true): string;
+
     { Where should we place our output files, calculated looking at OutputPathBase
       and project path. Always an absolute filename ending with path delimiter. }
     function OutputPath: string;
+
+    { Copy project data subdirectory to given path.
+      OutputDataPath may but doesn't have to end with PathDelim.
+
+      The path will be created if necessary (even if there are no files,
+      this is useful at least for XCode as it references the resulting directory,
+      so it must exist).
+
+      The copy will only contain files useful on given TargetPlatform.
+      Right now this means we will exclude auto-generated textures not suitable
+      for TargetPlatform.
+
+      We also generate the auto_generated/CastleDataInformation.xml inside.
+      (Actually, this means the resulting directory is never empty now.) }
+    procedure CopyData(OutputDataPath: string; const TargetPlatform: TCastlePlatform);
+
+    { Is this filename created by some DoPackage or DoPackageSource command.
+      FileName must be relative to project root directory. }
+    function PackageOutput(const FileName: String): Boolean;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -252,8 +301,9 @@ implementation
 
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroid, ToolWindowsRegistry,
-  ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
+  ToolResources, ToolAndroid, ToolWindowsRegistry,
+  ToolTextureGeneration, ToolIOS, ToolAndroidMerging, ToolNintendoSwitch,
+  ToolCommonUtils, ToolMacros, ToolCompilerInfo, ToolPackageCollectFiles;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly.'
@@ -275,11 +325,6 @@ begin
     Result := InsertLibPrefix(Result);
 end;
 
-function AnsiSameFileName(const S1, S2: string): boolean;
-begin
-  Result := AnsiCompareFileName(S1, S2) = 0;
-end;
-
 { TLocalizedAppName ---------------------------------------------------------- }
 
 constructor TLocalizedAppName.Create(ALanguage, AAppName: String);
@@ -290,16 +335,13 @@ end;
 
 { TCastleProject ------------------------------------------------------------- }
 
-const
-  ManifestName = 'CastleEngineManifest.xml';
-
 constructor TCastleProject.Create;
 var
   { look for CastleEngineManifest.xml in this dir, or parents }
   Dir, ParentDir: string;
 begin
   Dir := GetCurrentDir;
-  while not FileExists(InclPathDelim(Dir) + ManifestName) do
+  while not RegularFileExists(InclPathDelim(Dir) + ManifestName) do
   begin
     ParentDir := ExtractFileDir(ExclPathDelim(Dir));
     if (ParentDir = '') or (ParentDir = Dir) then
@@ -324,17 +366,20 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
-    DefaultAndroidCompileSdkVersion = 27;
+    { iOS requires version display to be <> '' }
+    DefautVersionDisplayValue = '0.1';
+    DefaultAndroidCompileSdkVersion = 28;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
       for reasons behind this minimal version. }
     ReallyMinSdkVersion = 16;
     DefaultAndroidMinSdkVersion = ReallyMinSdkVersion;
     DefaultUsesNonExemptEncryption = true;
+    DefaultDataExists = true;
 
     { character sets }
-    ControlChars = [#0..Chr(Ord(' ')-1)];
-    AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+    ControlChars = [#0 .. Chr(Ord(' ') - 1)];
+    AlphaNum = ['a'..'z', 'A'..'Z', '0'..'9'];
 
     { qualified_name is also a Java package name for Android, so it
       cannot contain dash character.
@@ -348,7 +393,10 @@ constructor TCastleProject.Create(const APath: string);
 
     function DefaultQualifiedName: string;
     begin
-      Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      Result := SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+      { On Android, package name cannot be just a word, it must have some dot. }
+      if Pos('.', Result) = 0 then
+        Result := 'com.mycompany.' + Result;
     end;
 
     procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
@@ -371,23 +419,30 @@ constructor TCastleProject.Create(const APath: string);
       if (QualifiedName <> '') and
          ((QualifiedName[1] = '.') or
           (QualifiedName[Length(QualifiedName)] = '.')) then
-        raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) cannot start or end with a dot: "%s"', [OptionName, QualifiedName]);
+        raise Exception.CreateFmt('%s (in %s) cannot start or end with a dot: "%s"', [
+          OptionName,
+          ManifestName,
+          QualifiedName
+        ]);
 
-      Components := SplitString(QualifiedName, '.');
+      Components := CastleStringUtils.SplitString(QualifiedName, '.');
       try
         for I := 0 to Components.Count - 1 do
         begin
           if Components[I] = '' then
-            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) must contain a number of non-empty components separated with dots: "%s"', [OptionName, QualifiedName]);
+            raise Exception.CreateFmt('%s (in %s) must contain a number of non-empty components separated with dots: "%s"', [
+              OptionName,
+              ManifestName,
+              QualifiedName
+            ]);
           if Components[I][1] in ['0'..'9'] then
-            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) components must not start with a digit: "%s"', [OptionName, QualifiedName]);
+            raise Exception.CreateFmt('%s (in %s) components must not start with a digit: "%s"', [
+              OptionName,
+              ManifestName,
+              QualifiedName
+            ]);
         end;
       finally FreeAndNil(Components) end;
-    end;
-
-    procedure CheckValidVersion(const OptionName: string; const Version: string);
-    begin
-      CheckMatches(OptionName, Version, AlphaNum + ['_','-','.']);
     end;
 
     procedure AutoGuessManifest;
@@ -397,7 +452,7 @@ constructor TCastleProject.Create(const APath: string);
         FileInfo: TFileInfo;
       begin
         Result := ExtractFileName(ExtractFileDir(ManifestFile));
-        if not FileExists(Result + '.lpr') then
+        if not RegularFileExists(Result + '.lpr') then
         begin
           if FindFirstFile(GetCurrentDir, '*.lpr', false, [], FileInfo) then
             Result := DeleteFileExt(FileInfo.Name)
@@ -418,13 +473,30 @@ constructor TCastleProject.Create(const APath: string);
       FQualifiedName := DefaultQualifiedName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
-      FVersionCode := DefautVersionCode;
+      FLazarusProject := FName + '.lpi';
+      FFullscreenImmersive := true; // default value if not specified in manifest
+      FVersion := TProjectVersion.Create(OwnerComponent);
+      FVersion.Code := DefautVersionCode;
+      FVersion.DisplayValue := DefautVersionDisplayValue;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
       FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
+      FDataExists := DefaultDataExists;
+    end;
+
+    { Create and read version from given DOM element.
+      Returns @nil if Element is @nil. }
+    function ReadVersion(const Element: TDOMElement): TProjectVersion;
+    begin
+      if Element = nil then
+        Exit(nil);
+      Result := TProjectVersion.Create(OwnerComponent);
+      Result.DisplayValue := Element.AttributeString('value');
+      CheckMatches('version value', Result.DisplayValue, AlphaNum + ['_','-','.']);
+      Result.Code := Element.AttributeCardinalDef('code', DefautVersionCode);
     end;
 
     procedure CheckManifestCorrect;
@@ -433,7 +505,6 @@ constructor TCastleProject.Create(const APath: string);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
       { non-filename stuff: allow also dots }
-      CheckValidVersion('version', Version);
       CheckValidQualifiedName('qualified_name', QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
@@ -465,14 +536,13 @@ constructor TCastleProject.Create(const APath: string);
     ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    NewCompilerOption: String;
+    NewCompilerOption, DefaultLazarusProject: String;
   begin
     ManifestFile := Path + ManifestName;
-    if not FileExists(ManifestFile) then
+    if not RegularFileExists(ManifestFile) then
       AutoGuessManifest else
     begin
-      if Verbose then
-        Writeln('Manifest file found: ' + ManifestFile);
+      WritelnVerbose('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
       Icons.BaseUrl := ManifestURL;
       LaunchImages.BaseUrl := ManifestURL;
@@ -486,6 +556,11 @@ constructor TCastleProject.Create(const APath: string);
         FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+        if FStandaloneSource <> '' then
+          DefaultLazarusProject := ChangeFileExt(FStandaloneSource, '.lpi')
+        else
+          DefaultLazarusProject := '';
+        FLazarusProject := Doc.DocumentElement.AttributeStringDef('lazarus_project', DefaultLazarusProject);
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
@@ -495,13 +570,15 @@ constructor TCastleProject.Create(const APath: string);
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
         FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
+        FBuildUsingLazbuild := Doc.DocumentElement.AttributeBooleanDef('build_using_lazbuild', false);
 
-        Element := Doc.DocumentElement.ChildElement('version', false);
-        FVersionCode := DefautVersionCode;
-        if Element <> nil then
+        FVersion := ReadVersion(Doc.DocumentElement.ChildElement('version', false));
+        // create default FVersion value, if necessary
+        if FVersion = nil then
         begin
-          FVersion := Element.AttributeString('value');
-          FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
+          FVersion := TProjectVersion.Create(OwnerComponent);
+          FVersion.Code := DefautVersionCode;
+          FVersion.DisplayValue := DefautVersionDisplayValue;
         end;
 
         Element := Doc.DocumentElement.ChildElement('dependencies', false);
@@ -623,9 +700,7 @@ constructor TCastleProject.Create(const APath: string);
           if FIOSOverrideQualifiedName <> '' then
             CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
 
-          FIOSOverrideVersion := Element.AttributeStringDef('override_version_value', '');
-          if FIOSOverrideVersion <> '' then
-            CheckValidVersion('override_version_value', FIOSOverrideVersion);
+          FIOSOverrideVersion := ReadVersion(Element.Child('override_version', false));
 
           FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
             DefaultUsesNonExemptEncryption);
@@ -681,23 +756,49 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
+        Element := Doc.DocumentElement.ChildElement('data', false);
+        if Element <> nil then
+          FDataExists := Element.AttributeBooleanDef('exists', DefaultDataExists)
+        else
+          FDataExists := DefaultDataExists;
+
         if FAndroidServices.HasService('open_associated_urls') then
           FAndroidServices.AddService('download_urls'); // downloading is needed when opening files from web
-
       finally FreeAndNil(Doc) end;
     end;
 
     CheckManifestCorrect;
   end;
 
+  { If DataExists, check whether DataPath really exists.
+    If it doesn't exist, make a warning and set FDataExists to false. }
+  procedure CheckDataExists;
+  begin
+    if FDataExists then
+    begin
+      if DirectoryExists(DataPath) then
+        WritelnVerbose('Found data in "' + DataPath + '"')
+      else
+      begin
+        WritelnWarning('Data directory not found (tried "' + DataPath + '"). If this project has no data, add <data exists="false"/> to CastleEngineManifest.xml.');
+        FDataExists := false;
+      end;
+    end else
+    begin
+      if DirectoryExists(DataPath) then
+        WritelnWarning('Possible data directory found in "' + DataPath + '", but your project has <data exists="false"/> in CastleEngineManifest.xml, so it will be ignored.' + NL +
+        '  To remove this warning:' + NL +
+        '  1. Rename this directory to something else than "data" (if it should not be packaged),' + NL +
+        '  2. Remove <data exists="false"/> from CastleEngineManifest.xml (if "data" should be packaged).');
+    end;
+  end;
+
   procedure GuessDependencies;
   var
     FileInfo: TFileInfo;
   begin
-    if DirectoryExists(DataPath) then
+    if DataExists then
     begin
-      if Verbose then
-        Writeln('Found data in "' + DataPath + '"');
       if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) or
          FindFirstFile(DataPath, '*.otf', false, [ffRecursive], FileInfo) then
         AddDependency(depFreetype, FileInfo);
@@ -709,8 +810,7 @@ constructor TCastleProject.Create(const APath: string);
         AddDependency(depSound, FileInfo);
       if FindFirstFile(DataPath, '*.ogg', false, [ffRecursive], FileInfo) then
         AddDependency(depOggVorbis, FileInfo);
-    end else
-      Writeln('Data directory not found (tried "' + DataPath + '")');
+    end;
   end;
 
   procedure CloseDependencies;
@@ -764,11 +864,13 @@ begin
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
   FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
+  OwnerComponent := TComponent.Create(nil);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
 
   ReadManifest;
+  CheckDataExists;
   GuessDependencies;
   CloseDependencies;
   if Verbose then
@@ -777,6 +879,7 @@ end;
 
 destructor TCastleProject.Destroy;
 begin
+  FreeAndNil(OwnerComponent);
   FreeAndNil(IncludePaths);
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
@@ -807,7 +910,7 @@ procedure TCastleProject.DoCreateManifest;
 var
   Contents: string;
 begin
-  if FileExists(ManifestFile) then
+  if RegularFileExists(ManifestFile) then
     raise Exception.CreateFmt('Manifest file "%s" already exists, refusing to overwrite it',
       [ManifestFile]);
   Contents := '<?xml version="1.0" encoding="utf-8"?>' +NL+
@@ -820,12 +923,38 @@ end;
 procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
   const FpcExtraOptions: TStrings);
+
+  { Copy external libraries to LibrariesOutputPath.
+    LibrariesOutputPath must be empty (current dir) or ending with path delimiter. }
+  procedure AddExternalLibraries(const LibrariesOutputPath: String);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, List);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        WritelnVerbose('Copying library to ' + OutputFile);
+        CheckCopyFile(FileName, OutputFile);
+      end;
+    finally FreeAndNil(List) end;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
   ExtraOptions: TCastleStringList;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
-    [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
+
+  if FBuildUsingLazbuild then
+  begin
+    CompileLazbuild(OS, CPU, Mode, Path, FLazarusProject);
+    Exit;
+  end;
 
   ExtraOptions := TCastleStringList.Create;
   try
@@ -841,14 +970,15 @@ begin
         end;
       targetIOS:
         begin
-          if depOggVorbis in Dependencies then
-            { To compile CastleInternalVorbisFile properly.
-              Later PackageIOS will actually add the static tremolo files to the project. }
-            ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
           CompileIOS(Mode, Path, IOSSourceFile(true, true),
             SearchPaths, LibraryPaths, ExtraOptions);
           LinkIOSLibrary(Path, IOSLibraryFile);
           Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+        end;
+      targetNintendoSwitch:
+        begin
+          CompileNintendoSwitchLibrary(Self, Mode, Path, NXSourceFile(true, true),
+            SearchPaths, LibraryPaths, ExtraOptions);
         end;
       targetCustom:
         begin
@@ -876,8 +1006,8 @@ begin
                     raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
                 end;
 
-                if OS in AllWindowsOSes then
-                  GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
+                if MakeAutoGeneratedResources(Self, Path + ExtractFilePath(MainSource), OS, CPU, Plugin) then
+                  ExtraOptions.Add('-dCASTLE_AUTO_GENERATED_RESOURCES');
 
                 Compile(OS, CPU, Plugin, Mode, Path, MainSource,
                   SearchPaths, LibraryPaths, ExtraOptions);
@@ -890,6 +1020,7 @@ begin
                 begin
                   SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
                   DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+                  AddExternalLibraries(ExtractFilePath(DestExe));
                 end;
                 if not SameFileName(SourceExe, DestExe) then
                 begin
@@ -903,7 +1034,9 @@ begin
               end;
           end;
         end;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('Unhandled --target for DoCompile');
+      {$endif}
     end;
   finally FreeAndNil(ExtraOptions) end;
 end;
@@ -916,90 +1049,111 @@ begin
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
-procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  { Add relative paths to GatheringFiles, to make include/exclude
-    only work looking at relative paths. }
-  GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
-end;
-
-function TCastleProject.PackageFiles(const OnlyData: boolean): TCastleStringList;
-
-  procedure Exclude(const PathMask: string; const Files: TCastleStringList);
-  const
-    IgnoreCase = true;
-  var
-    I: Integer;
-    PathMaskSlashes, ItemSlashes: string;
-  begin
-    { replace all backslashes with slashes, so that they are equal for comparison }
-    PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);
-    I := 0;
-    while I < Files.Count do
-    begin
-      ItemSlashes := StringReplace(Files[I], '\', '/', [rfReplaceAll]);
-      if IsWild(ItemSlashes, PathMaskSlashes, IgnoreCase) then
-        Files.Delete(I) else
-        Inc(I);
-    end;
-  end;
-
+function TCastleProject.PackageFiles(const OnlyData: boolean;
+  const TargetPlatform: TCastlePlatform): TCastleStringList;
 var
-  I: Integer;
-  FindOptions: TFindFilesOptions;
+  Collector: TBinaryPackageFiles;
 begin
   Result := TCastleStringList.Create;
-
-  GatheringFiles := Result;
-  FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
-
-  if not OnlyData then
-    for I := 0 to IncludePaths.Count - 1 do
-    begin
-      if IncludePathsRecursive[I] then
-        FindOptions := [ffRecursive] else
-        { not recursive, so that e.g. <include path="README.txt" />
-          or <include path="docs/README.txt" />
-          should not include *all* README.txt files inside. }
-        FindOptions := [];
-      FindFiles(Path + IncludePaths[I], false, @PackageFilesGather, FindOptions);
-    end;
-  GatheringFiles := nil;
-
-  Exclude('*.xcf', Result);
-  Exclude('*.blend*', Result);
-  Exclude('*~', Result);
-  // Note: slash or backslash below doesn't matter, Exclude function converts them
-  Exclude('*/.DS_Store', Result);
-  Exclude('*/thumbs.db', Result);
-  for I := 0 to ExcludePaths.Count - 1 do
-    Exclude(ExcludePaths[I], Result);
-
-  { Change to relative paths vs DataPath.
-    We do it only at the end, this way inclusion/exclusion mechanism
-    works the same, regardless of OnlyData. So e.g. these work the same:
-      <exclude path="data/blahblah/*" />
-    or
-      <exclude path="*/.svn/*" />
-    (even when "data/.svn" exists). }
-  if OnlyData then
-    for I := 0 to Result.Count - 1 do
-      Result[I] := ExtractRelativePath(DataPath, CombinePaths(Path, Result[I]));
+  try
+    Collector := TBinaryPackageFiles.Create(Self);
+    try
+      Collector.IncludePaths := IncludePaths;
+      Collector.ExcludePaths := ExcludePaths;
+      Collector.IncludePathsRecursive := IncludePathsRecursive;
+      Collector.OnlyData := OnlyData;
+      Collector.TargetPlatform := TargetPlatform;
+      Collector.Run;
+      Result.Assign(Collector.CollectedFiles);
+    finally FreeAndNil(Collector) end;
+  except FreeAndNil(Result); raise; end;
 end;
 
-function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
-var
-  LibraryURL: string;
+procedure TCastleProject.ExternalLibraries(const OS: TOS; const CPU: TCPU; const List: TStrings;
+  const CheckFilesExistence: Boolean);
+
+  { Path to the external library in data/external_libraries/ .
+    Right now, these host various Windows-specific DLL files.
+    If CheckFilesExistence then this checks existence of appropriate files along the way,
+    and raises exception in case of trouble. }
+  function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+  var
+    LibraryURL: string;
+  begin
+    LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+    Result := URIToFilenameSafe(LibraryURL);
+    if CheckFilesExistence and (not RegularFileExists(Result)) then
+      raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  end;
+
+  procedure AddExternalLibrary(const LibraryName: string);
+  begin
+    List.Add(ExternalLibraryPath(OS, CPU, LibraryName));
+  end;
+
 begin
-  LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
-  Result := URIToFilenameSafe(LibraryURL);
-  if not FileExists(Result) then
-    raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
+  case OS of
+    win32:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype-6.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng12.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('ogg.dll');
+          AddExternalLibrary('vorbis.dll');
+          AddExternalLibrary('vorbisenc.dll');
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+
+    win64:
+      begin
+        if depFreetype in Dependencies then
+          AddExternalLibrary('freetype-6.dll');
+        if depZlib in Dependencies then
+          AddExternalLibrary('zlib1.dll');
+        if depPng in Dependencies then
+          AddExternalLibrary('libpng14-14.dll');
+        if depSound in Dependencies then
+        begin
+          AddExternalLibrary('OpenAL32.dll');
+          AddExternalLibrary('wrap_oal.dll');
+        end;
+        if depOggVorbis in Dependencies then
+        begin
+          AddExternalLibrary('libogg.dll');
+          AddExternalLibrary('libvorbis.dll');
+          { AddExternalLibrary('vorbisenc.dll'); not present? }
+          AddExternalLibrary('vorbisfile.dll');
+        end;
+        if depHttps in Dependencies then
+        begin
+          AddExternalLibrary('openssl/libeay32.dll');
+          AddExternalLibrary('openssl/ssleay32.dll');
+        end;
+      end;
+    else ; { no need to do anything on other OSes }
+  end;
 end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode);
+  const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
 var
   Pack: TPackageDirectory;
 
@@ -1025,101 +1179,119 @@ var
     end;
   end;
 
-  procedure AddExternalLibrary(const LibraryName: string);
+  procedure AddExternalLibraries;
+  var
+    List: TCastleStringList;
+    FileName: String;
   begin
-    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), ExtractFileName(LibraryName));
+    List := TCastleStringList.Create;
+    try
+      ExternalLibraries(OS, CPU, List);
+      for FileName in List do
+        Pack.Add(FileName, ExtractFileName(FileName));
+    finally FreeAndNil(List) end;
   end;
 
-  procedure AddExternalLibraries;
-  begin
-    case OS of
-      win32:
-        begin
-          if depFreetype in Dependencies then
-            AddExternalLibrary('freetype-6.dll');
-          if depZlib in Dependencies then
-            AddExternalLibrary('zlib1.dll');
-          if depPng in Dependencies then
-            AddExternalLibrary('libpng12.dll');
-          if depSound in Dependencies then
-          begin
-            AddExternalLibrary('OpenAL32.dll');
-            AddExternalLibrary('wrap_oal.dll');
-          end;
-          if depOggVorbis in Dependencies then
-          begin
-            AddExternalLibrary('ogg.dll');
-            AddExternalLibrary('vorbis.dll');
-            AddExternalLibrary('vorbisenc.dll');
-            AddExternalLibrary('vorbisfile.dll');
-          end;
-          if depHttps in Dependencies then
-          begin
-            AddExternalLibrary('openssl/libeay32.dll');
-            AddExternalLibrary('openssl/ssleay32.dll');
-          end;
-        end;
+  { How the targets are detected (at build (right here) and inside the compiled application
+    (in Platform implementation)) is a bit complicated.
 
-      win64:
-        begin
-          if depFreetype in Dependencies then
-            AddExternalLibrary('freetype-6.dll');
-          if depZlib in Dependencies then
-            AddExternalLibrary('zlib1.dll');
-          if depPng in Dependencies then
-            AddExternalLibrary('libpng14-14.dll');
-          if depSound in Dependencies then
-          begin
-            AddExternalLibrary('OpenAL32.dll');
-            AddExternalLibrary('wrap_oal.dll');
-          end;
-          if depOggVorbis in Dependencies then
-          begin
-            AddExternalLibrary('libogg.dll');
-            AddExternalLibrary('libvorbis.dll');
-            { AddExternalLibrary('vorbisenc.dll'); not present? }
-            AddExternalLibrary('vorbisfile.dll');
-          end;
-          if depHttps in Dependencies then
-          begin
-            AddExternalLibrary('openssl/libeay32.dll');
-            AddExternalLibrary('openssl/ssleay32.dll');
-          end;
-        end;
+    - nintendo-switch:
+
+        At build: building for [[Nintendo Switch]] using CGE build tool with --target=nintendo-switch .
+
+        Inside the application: if code was compiled with CASTLE_NINTENDO_SWITCH.
+
+    - Android
+
+        When OS is Android (currently possible values: Android/Arm, Android/Aarch64), and it is *not* detected as _Nintendo Switch_ (for internal reasons, right now _Nintendo Switch_ is also treated as Android by FPC).
+
+        This logic is used both at build, and inside the application.
+
+    - iOS: When OS is iPhoneSim or OS/architecture are Darwin/Arm or Darwin/Aarch64.
+
+        In total this has 4 currently possible values: iPhoneSim/i386, iPhoneSim/x86_64, Darwin/Arm, Darwin/Aarch64.
+
+        This logic is used both at build, and inside the application.
+
+    - desktop: everything else.
+  }
+  function TargetPlatform: TCastlePlatform;
+  begin
+    case Target of
+      targetIOS: Result := cpIOS;
+      targetAndroid: Result := cpAndroid;
+      targetNintendoSwitch: Result := cpNintendoSwitch;
+      else // only targetCustom for now
+      begin
+        if OS = Android then
+          Result := cpAndroid
+        else
+        if (OS = iphonesim) or
+           ((OS = darwin) and (CPU = arm)) or
+           ((OS = darwin) and (CPU = aarch64)) then
+          Result := cpIOS
+        else
+          Result := cpDesktop;
+      end;
     end;
   end;
 
 var
-  Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
+  Files: TCastleStringList;
+  PackageFormatFinal: TPackageFormatNoDefault;
+  WantsIOSArchive: Boolean;
+  IOSArchiveType: TIosArchiveType;
 begin
-  Writeln(Format('Packaging project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+  Writeln(Format('Packaging project "%s" for %s (platform: %s).', [
+    Name,
+    TargetCompleteToString(Target, OS, CPU, Plugin),
+    PlatformToStr(TargetPlatform)
+  ]));
 
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
 
   { for iOS, the packaging process is special }
-  if Target = targetIOS then
+  if (Target = targetIOS) and
+     (PackageFormat in [pfDefault, pfIosArchiveDevelopment, pfIosArchiveAdHoc, pfIosArchiveAppStore]) then
   begin
-    PackageIOS(Self);
+    // set IOSExportMethod early, as it determines IOS_EXPORT_METHOD macro
+    WantsIOSArchive := PackageFormatWantsIOSArchive(PackageFormat, IOSArchiveType, IOSExportMethod);
+    PackageIOS(Self, UpdateOnlyCode);
+    if WantsIOSArchive then
+      ArchiveIOS(Self, IOSArchiveType);
     Exit;
   end;
 
-  { for Android, the packaging process is special }
-  if (Target = targetAndroid) or (OS = Android) then
+  if PackageFormat = pfDefault then
   begin
-    Files := PackageFiles(true);
-    try
+    { for Android, the packaging process is special }
+    if (Target = targetAndroid) or (OS = Android) then
+    begin
       if Target = targetAndroid then
         AndroidCPUS := DetectAndroidCPUS
       else
         AndroidCPUS := [CPU];
-      PackageAndroid(Self, OS, AndroidCPUS, Mode, Files);
-    finally FreeAndNil(Files) end;
-    Exit;
-  end;
+      PackageAndroid(Self, OS, AndroidCPUS, Mode);
+      Exit;
+    end;
+
+    { for Nintendo Switch, the packaging process is special }
+    if Target = targetNintendoSwitch then
+    begin
+      PackageNintendoSwitch(Self);
+      Exit;
+    end;
+
+    { calculate PackageFormatFinal }
+    if OS in AllWindowsOSes then
+      PackageFormatFinal := pfZip
+    else
+      PackageFormatFinal := pfTarGz;
+  end else
+    PackageFormatFinal := PackageFormat;
 
   Pack := TPackageDirectory.Create(Name);
   try
@@ -1128,18 +1300,16 @@ begin
     AddExecutable;
     AddExternalLibraries;
 
-    Files := PackageFiles(false);
+    Files := PackageFiles(false, TargetPlatform);
     try
       for I := 0 to Files.Count - 1 do
         Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
-    PackageFileName := PackageName(OS, CPU);
+    Pack.AddDataInformation(DataName);
 
-    if OS in AllWindowsOSes then
-      Pack.Make(OutputPath, PackageFileName, ptZip)
-    else
-      Pack.Make(OutputPath, PackageFileName, ptTarGz);
+    PackageFileName := PackageName(OS, CPU, PackageFormatFinal, PackageNameIncludeVersion);
+    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -1173,7 +1343,7 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
 
 begin
   Writeln(Format('Installing project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
   if Target = targetIOS then
     InstallIOS(Self)
@@ -1183,7 +1353,7 @@ begin
   else
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, OutputPath,
-      PluginLibraryFile(OS, CPU), Version, Author)
+      PluginLibraryFile(OS, CPU), Version.DisplayValue, Author)
   else
   {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
@@ -1196,12 +1366,34 @@ end;
 procedure TCastleProject.DoRun(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Params: TCastleStringList);
+
+  procedure MaybeUseWrapperToRun(var ExeName: String);
+  var
+    S: String;
+  begin
+    if OS in AllUnixOSes then
+    begin
+      S := Path + ChangeFileExt(ExecutableName, '') + '_run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+
+      S := Path + 'run.sh';
+      if RegularFileExists(S) then
+      begin
+        ExeName := S;
+        Exit;
+      end;
+    end;
+  end;
+
 var
   ExeName: string;
-  ProcessStatus: Integer;
 begin
   Writeln(Format('Running project "%s" for %s.',
-    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
+    [Name, TargetCompleteToString(Target, OS, CPU, Plugin)]));
 
   if Plugin then
     raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
@@ -1212,116 +1404,73 @@ begin
   if (Target = targetAndroid) or (OS = Android) then
     RunAndroid(Self)
   else
+  if Target = targetCustom then
   begin
-    ExeName := OutputPath + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    MaybeUseWrapperToRun(ExeName);
     Writeln('Running ' + ExeName);
-    { Run through ExecuteProcess, because we don't want to capture output,
-      we want to immediately pass it to user.
-      Note that we set current path to Path, not OutputPath,
-      because data/ subdirectory is under Path. }
-    SetCurrentDir(Path);
-    { [ExecInheritsHandles] is necessary on Windows, to inherit our StdOut / StdErr,
-      to in turn enable CastleLog to write to StdOut / StdErr when
-      $CASTLE_ENGINE_INSIDE_EDITOR = true. }
-    ProcessStatus := ExecuteProcess(ExeName, Params.ToArray, [ExecInheritsHandles]);
-    // this will cause our own status be non-zero
-    if ProcessStatus <> 0 then
-      raise Exception.CreateFmt('Process returned non-zero (failure) status %d', [ProcessStatus]);
-  end;
-  //else
-  // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
-end;
-
-procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
-begin
-  if FileInfo.Directory then
-  begin
-    if SpecialDirName(FileInfo.Name) or
-       { exclude version control dirs }
-       AnsiSameFileName(FileInfo.Name, '.git') or
-       AnsiSameFileName(FileInfo.Name, '.svn') or
-       { exclude various build tool output }
-       AnsiSameFileName(FileInfo.Name, 'castle-engine-output') then
-      Exit;
-    { recursively scan children }
-    FindFiles(FileInfo.AbsoluteName, '*', true, @PackageSourceGather, []);
+    { We set current path to Path, not OutputPath, because data/ subdirectory is under Path. }
+    RunCommandSimple(Path, ExeName, Params.ToArray, 'CASTLE_LOG', 'stdout');
   end else
-  begin
-    { add relative filename to GatheringFiles }
-    GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
-  end;
+    raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
-procedure TCastleProject.DoPackageSource;
+procedure TCastleProject.DoPackageSource(const PackageFormat: TPackageFormat;
+  const PackageNameIncludeVersion: Boolean);
 var
+  PackageFormatFinal: TPackageFormatNoDefault;
   Pack: TPackageDirectory;
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
-  Exclude: boolean;
-  OS: TOS;
-  CPU: TCPU;
+  Collector: TSourcePackageFiles;
 begin
   Writeln(Format('Packaging source code of project "%s".', [Name]));
+
+  if PackageFormat = pfDefault then
+    PackageFormatFinal := pfZip
+  else
+    PackageFormatFinal := PackageFormat;
 
   Pack := TPackageDirectory.Create(Name);
   try
     Files := TCastleStringList.Create;
     try
-      GatheringFiles := Files;
-      { Non-recursive FindFiles, we will make recursion manually
-        inside PackageSourceGather }
-      FindFiles(Path, '*', true, @PackageSourceGather, []);
-      GatheringFiles := nil;
+      Collector := TSourcePackageFiles.Create(Self);
+      try
+        Collector.Run;
+        Files.Assign(Collector.CollectedFiles);
+      finally FreeAndNil(Collector) end;
 
       for I := 0 to Files.Count - 1 do
-      begin
-        Exclude := false;
-
-        { Do not pack packages (binary or source) into the source package.
-          The packages are not cleaned by DoClean, so they could otherwise
-          be packed by accident. }
-        for OS in TOS do
-          for CPU in TCPU do
-            if OSCPUSupported[OS, CPU] then
-              if AnsiSameFileName(Files[I], PackageName(OS, CPU)) then
-                Exclude := true;
-
-        if AnsiSameFileName(Files[I], SourcePackageName) or
-           { avoid Android packages }
-           AnsiSameFileName(Files[I], Name + '-debug.apk') or
-           AnsiSameFileName(Files[I], Name + '-release.apk') or
-           { do not pack AndroidAntProperties.txt with private stuff }
-           AnsiSameFileName(Files[I], 'AndroidAntProperties.txt') then
-          Exclude := true;
-
-        if not Exclude then
-          Pack.Add(Path + Files[I], Files[I]);
-      end;
+        Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
-    PackageFileName := SourcePackageName;
-    Pack.Make(OutputPath, PackageFileName, ptTarGz);
+    PackageFileName := SourcePackageName(PackageNameIncludeVersion);
+    Pack.Make(OutputPath, PackageFileName, PackageFormatFinal);
   finally FreeAndNil(Pack) end;
 end;
 
-function TCastleProject.PackageName(
-  const OS: TOS; const CPU: TCPU): string;
+function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU;
+  const PackageFormat: TPackageFormatNoDefault;
+  const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if Version <> '' then
-    Result += '-' + Version;
+  if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
+    Result += '-' + Version.DisplayValue;
   Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
-  if OS in AllWindowsOSes then
-    Result += '.zip' else
-    Result += '.tar.gz';
+  case PackageFormat of
+    pfZip: Result += '.zip';
+    pfTarGz: Result += '.tar.gz';
+    else ; // leave without extension for pfDirectory
+  end;
 end;
 
-function TCastleProject.SourcePackageName: string;
+function TCastleProject.SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
 begin
   Result := Name;
-  if Version <> '' then
-    Result += '-' + Version;
+  if PackageNameIncludeVersion and (Version.DisplayValue <> '') then
+    Result += '-' + Version.DisplayValue;
   Result += '-src';
   Result += '.tar.gz';
 end;
@@ -1336,7 +1485,7 @@ end;
 
 function TCastleProject.NamePascal: string;
 begin
-  Result := SReplaceChars(Name, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
+  Result := MakeProjectPascalName(Name);
 end;
 
 procedure TCastleProject.GeneratedSourceFile(
@@ -1430,6 +1579,25 @@ begin
     Result := RelativeResult;
 end;
 
+function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+var
+  RelativeResult, AbsoluteResult: string;
+begin
+  { Without this, we would also have an error, but NxNotSupported makes
+    nicer error message. }
+  NxNotSupported;
+
+  GeneratedSourceFile('nintendo_switch/library_template.lpr',
+    'nintendo_switch' + PathDelim + 'castle_nx.lpr',
+    'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a Nintendo Switch project.',
+    CreateIfNecessary, RelativeResult, AbsoluteResult);
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
+end;
+
 function TCastleProject.StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
@@ -1490,12 +1658,17 @@ begin
   Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
 end;
 
+function TCastleProject.NXLibraryFile(const AbsolutePath: boolean): string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(NXSourceFile(AbsolutePath, false), '.a'));
+end;
+
 procedure TCastleProject.DoClean;
 
   { Delete a file, given as absolute FileName. }
   procedure TryDeleteAbsoluteFile(FileName: string);
   begin
-    if FileExists(FileName) then
+    if RegularFileExists(FileName) then
     begin
       if Verbose then
         Writeln('Deleting ' + FileName);
@@ -1513,6 +1686,24 @@ procedure TCastleProject.DoClean;
   procedure DeleteFilesRecursive(const Mask: string);
   begin
     FindFiles(Path, Mask, false, @DeleteFoundFile, [ffRecursive]);
+  end;
+
+  procedure DeleteExternalLibraries(const LibrariesOutputPath: String; const OS: TOS; const CPU: TCPU);
+  var
+    List: TCastleStringList;
+    OutputFile, FileName: String;
+  begin
+    List := TCastleStringList.Create;
+    try
+      { CheckFilesExistence parameter for ExternalLibraries may be false.
+        This way you can run "castle-engine clean" without setting $CASTLE_ENGINE_PATH . }
+      ExternalLibraries(OS, CPU, List, false);
+      for FileName in List do
+      begin
+        OutputFile := LibrariesOutputPath + ExtractFileName(FileName);
+        TryDeleteFile(OutputFile);
+      end;
+    finally FreeAndNil(List) end;
   end;
 
 var
@@ -1543,20 +1734,19 @@ begin
   if IOSSource <> '' then
     TryDeleteAbsoluteFile(IOSLibraryFile);
 
-  { packages created by DoPackage? Or not, it's safer to not remove them. }
-  {
   for OS in TOS do
     for CPU in TCPU do
       if OSCPUSupported[OS, CPU] then
-        TryDeleteFile(PackageName(OS, CPU));
-  }
-
-  { possible plugin outputs }
-  if PluginSource <> '' then
-    for OS in TOS do
-      for CPU in TCPU do
-        if OSCPUSupported[OS, CPU] then
+      begin
+        { possible plugin outputs }
+        if PluginSource <> '' then
           TryDeleteFile(PluginLibraryFile(OS, CPU));
+
+        { packages created by DoPackage? Or not, it's safer to not remove them. }
+        // TryDeleteFile(PackageName(OS, CPU));
+
+        DeleteExternalLibraries(ExtractFilePath(ExecutableName), OS, CPU);
+      end;
 
   { compilation and editor backups }
   DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
@@ -1566,13 +1756,8 @@ begin
   DeleteFilesRecursive('*.compiled'); // Lazarus compilation
   DeleteFilesRecursive('*.rst'); // resource strings
   DeleteFilesRecursive('*.rsj'); // resource strings
-
-  { Note that we do not remove
-      automatic-windows-resources.res
-      plugin-automatic-windows-resources.res
-    They can be committed,
-    otherwise compilation without using castle-engine tool
-    will not be easily possible. }
+  TryDeleteFile('castle-auto-generated-resources.res');
+  TryDeleteFile('castle-plugin-auto-generated-resources.res');
 
   Writeln('Deleted ', DeletedFiles, ' files');
 end;
@@ -1582,9 +1767,12 @@ begin
   AutoGenerateTextures(Self);
 end;
 
-procedure TCastleProject.DoAutoGenerateClean;
+procedure TCastleProject.DoAutoGenerateClean(const CleanAll: Boolean);
 begin
-  AutoGenerateClean(Self);
+  if CleanAll then
+    AutoGenerateCleanAll(Self)
+  else
+    AutoGenerateCleanUnused(Self);
 end;
 
 procedure TCastleProject.DoGenerateProgram;
@@ -1614,7 +1802,7 @@ var
 begin
   if Trim(FEditorUnits) = '' then
   begin
-    EditorExe := FindCgeExe('castle-editor');
+    EditorExe := FindExeCastleTool('castle-editor');
     if EditorExe = '' then
       raise Exception.Create('Cannot find "castle-editor" program on $PATH or within $CASTLE_ENGINE_PATH/bin directory.');
   end else
@@ -1633,7 +1821,7 @@ begin
     ExtractTemplate('custom_editor_template/', EditorPath, true);
 
     // use lazbuild to compile CGE packages and CGE editor
-    LazbuildExe := FindExe('lazbuild');
+    LazbuildExe := FindExeLazarus('lazbuild');
     if LazbuildExe = '' then
       raise Exception.Create('Cannot find "lazbuild" program on $PATH. It is needed to build a custom CGE editor version.');
     RunCommandSimple(LazbuildExe, CgePath + 'packages' + PathDelim + 'castle_base.lpk');
@@ -1642,11 +1830,11 @@ begin
     RunCommandSimple(LazbuildExe, EditorPath + 'castle_editor.lpi');
 
     EditorExe := EditorPath + 'castle-editor' + ExeExtension;
-    if not FileExists(EditorExe) then
+    if not RegularFileExists(EditorExe) then
       raise Exception.Create('Editor should be compiled, but (for an unknown reason) we cannot find file "' + EditorExe + '"');
   end;
 
-  RunCommandNoWait(Path, EditorExe, [ManifestFile]);
+  RunCommandNoWait(TempOutputPath(Path), EditorExe, [ManifestFile]);
 end;
 
 procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
@@ -1700,9 +1888,8 @@ const
   end;
 
 var
-  I: Integer;
   AndroidLibraryName: string;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
 begin
   AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
@@ -1718,12 +1905,8 @@ begin
   Macros.Add('ANDROID_ABI_LIST'                    , AndroidAbiList);
   Macros.Add('ANDROID_ABI_LIST_MAKEFILE'           , AndroidAbiListMakefile);
 
-  for I := 0 to AndroidServices.Count - 1 do
-    for ServiceParameterPair in AndroidServices[I].Parameters do
-      Macros.Add('ANDROID.' +
-        UpperCase(AndroidServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in AndroidServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'ANDROID.' + Service.Name + '.');
 end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
@@ -1755,22 +1938,19 @@ const
       Result := QualifiedName;
   end;
 
-  { Version for iOS: either version, or ios.override_version_value. }
-  function IOSVersion: string;
-  begin
-    if FIOSOverrideVersion <> '' then
-      Result := FIOSOverrideVersion
-    else
-      Result := Version;
-  end;
-
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
-  I: Integer;
-  ServiceParameterPair: TStringStringMap.TDictionaryPair;
+  Service: TService;
+  IOSVersion: TProjectVersion;
+  GccPreprocessorDefinitions: String;
 begin
+  if FIOSOverrideVersion <> nil then
+    IOSVersion := FIOSOverrideVersion
+  else
+    IOSVersion := FVersion;
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
-  Macros.Add('IOS_VERSION', IOSVersion);
+  Macros.Add('IOS_VERSION', IOSVersion.DisplayValue);
+  Macros.Add('IOS_VERSION_CODE', IntToStr(IOSVersion.Code));
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
   Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
@@ -1815,23 +1995,22 @@ begin
 
   Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
   Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+  Macros.Add('IOS_EXPORT_METHOD', IOSExportMethod);
 
   if IOSServices.HasService('icloud_for_save_games') then
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
   else
     Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
 
-  if depOggVorbis in Dependencies then
-    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '"ONLY_C=1",' + NL)
-  else
-    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
+  GccPreprocessorDefinitions := '';
+  // Since right now we always compile with CASTLE_TREMOLO_STATIC,
+  // we just always behave like ogg_vorbis service was included.
+  //if depOggVorbis in Dependencies then
+    GccPreprocessorDefinitions := GccPreprocessorDefinitions + '"ONLY_C=1",' + NL;
+  Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', GccPreprocessorDefinitions);
 
-  for I := 0 to IOSServices.Count - 1 do
-    for ServiceParameterPair in IOSServices[I].Parameters do
-      Macros.Add('IOS.' +
-        UpperCase(IOSServices[I].Name) + '.' +
-        UpperCase(ServiceParameterPair.Key),
-        ServiceParameterPair.Value);
+  for Service in IOSServices do
+    ParametersAddMacros(Macros, Service.Parameters, 'IOS.' + Service.Name + '.');
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1853,30 +2032,15 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
     end;
   end;
 
-  { Make CamelCase with only safe characters (digits and letters). }
-  function MakeCamelCase(S: string): string;
-  var
-    I: Integer;
-  begin
-    S := SReplaceChars(S, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], ' ');
-    Result := '';
-    for I := 1 to Length(S) do
-      if S[I] <> ' ' then
-        if (I > 1) and (S[I - 1] <> ' ') then
-          Result += S[I] else
-          Result += UpCase(S[I]);
-  end;
-
 var
-  Macros: TStringStringMap;
   I: Integer;
-  P, NonEmptyAuthor: string;
+  NonEmptyAuthor: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
-  PreviousMacros: array of TStringStringMap.TDictionaryPair;
+  Macros: TStringStringMap;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := SplitString(Version, '.');
+  VersionComponentsString := CastleStringUtils.SplitString(Version.DisplayValue, '.');
   try
     for I := 0 to High(VersionComponents) do
       if I < VersionComponentsString.Count then
@@ -1896,8 +2060,8 @@ begin
     Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
     Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
     Macros.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
-    Macros.Add('VERSION'         , Version);
-    Macros.Add('VERSION_CODE'    , IntToStr(FVersionCode));
+    Macros.Add('VERSION'         , FVersion.DisplayValue);
+    Macros.Add('VERSION_CODE'    , IntToStr(FVersion.Code));
     Macros.Add('NAME'            , Name);
     Macros.Add('NAME_PASCAL'     , NamePascal);
     Macros.Add('QUALIFIED_NAME'  , QualifiedName);
@@ -1920,16 +2084,7 @@ begin
     AddMacrosAndroid(Macros);
     AddMacrosIOS(Macros);
 
-    // add CamelCase() replacements, add ${} around
-    PreviousMacros := Macros.ToArray;
-    Macros.Clear;
-    for I := 0 to Length(PreviousMacros) - 1 do
-    begin
-      P := PreviousMacros[I].Key;
-      Macros.Add('${' + P + '}', PreviousMacros[I].Value);
-      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(PreviousMacros[I].Value));
-    end;
-    Result := SReplacePatterns(Source, Macros, true);
+    Result := ToolMacros.ReplaceMacros(Macros, Source);
   finally FreeAndNil(Macros) end;
 end;
 
@@ -1984,7 +2139,10 @@ var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if (not OverrideExisting) and FileExists(DestinationFileName) then
+  if SameText(DestinationRelativeFileName, 'README.md') then
+    Exit; // do not copy README.md, most services define it and would just overwrite each other
+
+  if (not OverrideExisting) and RegularFileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
@@ -2000,6 +2158,9 @@ begin
     else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/res/values/strings.xml') then
+      MergeStringsXml(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
@@ -2052,6 +2213,60 @@ begin
     Result := InclPathDelim(ExpandFileName(OutputPathBase));
     CheckForceDirectories(Result);
   end;
+end;
+
+procedure TCastleProject.CopyData(OutputDataPath: string; const TargetPlatform: TCastlePlatform);
+var
+  I: Integer;
+  FileFrom, FileTo: string;
+  Files: TCastleStringList;
+begin
+  OutputDataPath := InclPathDelim(OutputDataPath);
+  ForceDirectories(OutputDataPath);
+
+  Files := PackageFiles(true, TargetPlatform);
+  try
+    for I := 0 to Files.Count - 1 do
+    begin
+      FileFrom := DataPath + Files[I];
+      FileTo := OutputDataPath + Files[I];
+      SmartCopyFile(FileFrom, FileTo);
+      if Verbose then
+        Writeln('Packaging data file: ' + Files[I]);
+    end;
+  finally FreeAndNil(Files) end;
+
+  GenerateDataInformation(OutputDataPath);
+end;
+
+function TCastleProject.PackageOutput(const FileName: String): Boolean;
+var
+  OS: TOS;
+  CPU: TCPU;
+  PackageFormat: TPackageFormatNoDefault;
+  HasVersion: Boolean;
+begin
+  for OS in TOS do
+    for CPU in TCPU do
+      // TODO: This will not exclude output of packaging with pfDirectory
+      for PackageFormat in TPackageFormatNoDefault do
+        for HasVersion in Boolean do
+          if OSCPUSupported[OS, CPU] then
+            if SameFileName(FileName, PackageName(OS, CPU, PackageFormat, HasVersion)) then
+              Exit(true);
+
+  for HasVersion in Boolean do
+    if SameFileName(FileName, SourcePackageName(HasVersion)) then
+      Exit(true);
+
+  if { avoid Android packages }
+     SameFileName(FileName, Name + '-debug.apk') or
+     SameFileName(FileName, Name + '-release.apk') or
+     { do not pack AndroidAntProperties.txt with private stuff }
+     SameFileName(FileName, 'AndroidAntProperties.txt') then
+    Exit(true);
+
+  Result := false;
 end;
 
 { globals -------------------------------------------------------------------- }

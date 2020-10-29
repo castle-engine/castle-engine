@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,10 +26,10 @@
 {$ifdef read_interface}
 
   strict private
-    function GetCreateParticles: boolean;
-    procedure SetCreateParticles(const Value: boolean);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetCreateParticles: Boolean;
+    procedure SetCreateParticles(const Value: Boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetLifetimeVariation: Single;
     procedure SetLifetimeVariation(const Value: Single);
     function GetMaxParticles: Integer;
@@ -46,9 +46,9 @@
     procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
   public
     { X3D field "createParticles". } { }
-    property CreateParticles: boolean read GetCreateParticles write SetCreateParticles;
+    property CreateParticles: Boolean read GetCreateParticles write SetCreateParticles;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "lifetimeVariation". } { }
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
     { X3D field "maxParticles". } { }
@@ -80,22 +80,22 @@
 
 { TParticleSystemNode ----------------------------------------------- }
 
-function TParticleSystemNode.GetCreateParticles: boolean;
+function TParticleSystemNode.GetCreateParticles: Boolean;
 begin
   Result := FdCreateParticles.Value;
 end;
 
-procedure TParticleSystemNode.SetCreateParticles(const Value: boolean);
+procedure TParticleSystemNode.SetCreateParticles(const Value: Boolean);
 begin
   FdCreateParticles.Send(Value);
 end;
 
-function TParticleSystemNode.GetEnabled: boolean;
+function TParticleSystemNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TParticleSystemNode.SetEnabled(const Value: boolean);
+procedure TParticleSystemNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

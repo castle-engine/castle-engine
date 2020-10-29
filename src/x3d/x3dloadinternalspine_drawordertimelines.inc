@@ -31,7 +31,7 @@
     destructor Destroy; override;
     procedure BuildNodes(const BaseUrl: string;
       const Time: TSingleList; const MaxAnimationTime: Single;
-      const Container: TX3DRootNode; const SlotsToReset: TSlotsAnimated);
+      const Container: TX3DRootNode);
   end;
 
   TDrawOrderTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TDrawOrderTimeline>)
@@ -44,8 +44,7 @@
     property MaxTime: Single read FMaxTime;
     { Find timeline by a slot. @nil if not exists. }
     function FindSlot(const Slot: TSlot): TDrawOrderTimeline;
-    procedure Parse(const Json: TJSONArray; const Slots: TSlotList;
-      const SlotsAnimated: TSlotsAnimated);
+    procedure Parse(const Json: TJSONArray; const Slots: TSlotList);
   end;
 {$endif}
 
@@ -67,12 +66,12 @@ end;
 
 procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: string;
   const Time: TSingleList; const MaxAnimationTime: Single;
-  const Container: TX3DRootNode; const SlotsToReset: TSlotsAnimated);
+  const Container: TX3DRootNode);
 var
   I: Integer;
   Route: TX3DRoute;
 begin
-  Node := TPositionInterpolatorNode.Create('DrawOrderTimeline_' + ToX3DName(Slot.Name));
+  Node := TPositionInterpolatorNode.Create('DrawOrderTimeline_' + Slot.Name);
 
   for I := 0 to Time.Count - 1 do
   begin
@@ -99,9 +98,6 @@ begin
   Route.SetSourceDirectly(Node.EventValue_changed);
   Route.SetDestinationDirectly(Slot.Node.FdTranslation.EventIn);
   Container.AddRoute(Route);
-
-  if SlotsToReset.DrawOrder.Remove(Slot) = -1 then
-    WritelnWarning('Spine', 'Slot draworder offset is affected multiple times: slot ' + Slot.Name);
 end;
 
 { TDrawOrderTimelineList ----------------------------------------------------- }
@@ -124,8 +120,7 @@ type
   TSlotsByDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<Integer, TSlot>;
   TSlotsToFloatDrawOrder = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TSlot, Single>;
 
-procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
-  const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
+procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlotList);
 
   procedure AddTimelines;
   var
@@ -155,8 +150,6 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
                 Timeline.Slot := Slot;
                 Add(Timeline);
               end;
-              if SlotsAnimated.DrawOrder.IndexOf(Slot) = -1 then
-                SlotsAnimated.DrawOrder.Add(Slot);
             end;
       end;
   end;

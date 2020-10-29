@@ -13,7 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various XML and DOM utilities. }
+{ XML utilities.
+
+  This unit provides a lot of comfortable routines and helpers to manipulate
+  XML files. It builds on top of FPC DOM unit, and you can still use
+  the full power of FPC DOM unit, however we provide helpers to do a lot
+  of things easier.
+
+  The engine example application that manipulates XML files is inside
+  examples/short_api_samples/xml_utils/ . This is the code that loads and saves XML:
+
+  @includeCode(../../examples/short_api_samples/xml_utils/mybookmarks.pas)
+}
 unit CastleXMLUtils;
 
 interface
@@ -33,20 +44,23 @@ type
     procedure SetNodeValue8(const S: string);
   public
     { Node name (attribute, element or such name).
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeName
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the NodeName from FPC DOM unit that is a WideString (DOMString). }
     function NodeName8: string;
 
     { Node value (like an attribute value).
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeValue
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the NodeValue from FPC DOM unit that is a WideString (DOMString). }
     property NodeValue8: string read GetNodeValue8 write SetNodeValue8;
   end;
 
   TDOMCharacterDataHelper = class helper for TDOMCharacterData
     { String data.
-      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the Data
-      from FPC DOM unit that is a WideString (DOMString). }
+
+      In FPC this is expressed as an 8-bit string (in UTF-8 encoding),
+      contrary to the Data from FPC DOM unit that is a WideString (DOMString). }
     function Data8: string;
   end;
 
@@ -56,6 +70,7 @@ type
     { ------------------------------------------------------------------------
       Get an optional attribute to a "var" parameter, returns if found. }
 
+    {$ifdef FPC}
     { Read from Element attribute value and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
@@ -65,6 +80,7 @@ type
       Note that the returned Value may be empty, even when this returns @true,
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
     function AttributeString(const AttrName: string; var Value: string): boolean; overload;
+    {$endif}
 
     { Read from Element attribute value as URL and returns @true,
       or (if there is no such attribute) returns @false
@@ -88,6 +104,11 @@ type
       or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeInt64(const AttrName: string; var Value: Int64): boolean; overload;
+
+    { Read from Element attribute value as QWord and returns @true,
+      or (if there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeQWord(const AttrName: string; var Value: QWord): boolean; overload;
 
     { Read from Element attribute value as Single and returns @true,
       or (if there is no such attribute) returns @false
@@ -186,6 +207,11 @@ type
       @raises EDOMAttributeMissing }
     function AttributeInt64(const AttrName: string): Int64; overload;
 
+    { Retrieves from Element given attribute as an QWord,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeQWord(const AttrName: string): QWord; overload;
+
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
@@ -257,6 +283,9 @@ type
     { Retrieves from Element given attribute as an Int64, or a default value. }
     function AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
 
+    { Retrieves from Element given attribute as an QWord, or a default value. }
+    function AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+
     { Retrieves from Element given attribute as a Single, or a default value. }
     function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
 
@@ -309,11 +338,15 @@ type
       such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
     procedure AttributeSet(const AttrName: string; const Value: Int64); overload;
 
+    { Set the attribute as QWord,
+      such that it's readable back by @link(AttributeQWord) and @link(AttributeQWordDef). }
+    procedure AttributeSet(const AttrName: string; const Value: QWord); overload;
+
     { Set the attribute as Cardinal,
       such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
     procedure AttributeSet(const AttrName: string; const Value: Cardinal); overload;
 
-    { Set the attribute as Int64,
+    { Set the attribute as Single,
       such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
     procedure AttributeSet(const AttrName: string; const Value: Single); overload;
 
@@ -599,22 +632,25 @@ function DOMGetTextChild(const Element: TDOMElement;
       and their Release method doesn't exist (since rev 13113).)
   ) }
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
-  deprecated 'this is useless since a long time (FPC >= 2.4.x), you can remove this a the engine does not support older FPC versions anyway';
+  deprecated 'this is useless since a long time (FPC >= 2.4.x), you can remove this as the engine does not support older FPC versions anyway';
 
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String); overload;
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
 function URLReadXML(const URL: String): TXMLDocument; overload;
-function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String); overload;
+
+{$ifdef FPC}
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+{$endif}
 { @groupEnd }
 
 implementation
 
-uses Classes, XMLRead, XMLWrite, BlowFish,
+uses Classes, XMLRead, XMLWrite, {$ifdef FPC} BlowFish, {$endif}
   CastleURIUtils, CastleClassUtils;
 
 { TDOMNodeHelper ------------------------------------------------------------- }
@@ -645,6 +681,7 @@ end;
   TDOMElementHelper:
   Get an optional attribute to a "var" parameter, returns if found. }
 
+{$ifdef FPC}
 function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): boolean;
 var
   AttrNode: TDOMNode;
@@ -658,6 +695,7 @@ begin
     Value := UTF8Encode((AttrNode as TDOMAttr).Value);
   end;
 end;
+{$endif}
 
 function TDOMElementHelper.AttributeURL(
   const AttrName: string; const BaseUrl: string; var URL: string): boolean;
@@ -697,6 +735,16 @@ begin
     Value := StrToInt64(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeQWord(
+  const AttrName: string; var Value: QWord): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := StrToQWord(ValueStr);
+end;
+
 function TDOMElementHelper.AttributeSingle(
   const AttrName: string; var Value: Single): boolean;
 var
@@ -704,7 +752,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToFloat(ValueStr);
+    Value := StrToFloatDot(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeFloat(
@@ -714,7 +762,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToFloat(ValueStr);
+    Value := StrToFloatDot(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeBoolean(
@@ -814,7 +862,13 @@ end;
 function TDOMElementHelper.AttributeInt64(const AttrName: string): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
-    raise EDOMAttributeMissing.CreateFmt('Missing required (integer 64-bit) attribute "%s" on element "%s"', [AttrName, TagName]);
+    raise EDOMAttributeMissing.CreateFmt('Missing required (64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeQWord(const AttrName: string): QWord;
+begin
+  if not AttributeQWord(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (unsigned 64-bit integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
 function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
@@ -884,6 +938,12 @@ end;
 function TDOMElementHelper.AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
 begin
   if not AttributeInt64(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeQWordDef(const AttrName: string; const DefaultValue: QWord): QWord;
+begin
+  if not AttributeQWord(AttrName, Result) then
     Result := DefaultValue;
 end;
 
@@ -963,6 +1023,11 @@ begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: QWord);
+begin
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
+end;
+
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Cardinal);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
@@ -970,7 +1035,7 @@ end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
 begin
-  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStr(Value)));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStrDot(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: TVector2);
@@ -1056,7 +1121,7 @@ begin
   begin
     Node := Children.Item[I];
     case Node.NodeType of
-      TEXT_NODE: Result := Result + UTF8Encode((Node as TDOMText).Data);
+      TEXT_NODE: Result := Result + (Node as TDOMText).NodeValue8;
       ELEMENT_NODE: raise Exception.CreateFmt(
         'Child elements not allowed within element <%s>, but found %s',
           [TagName, (Node as TDOMElement).TagName]);
@@ -1267,6 +1332,8 @@ begin
   {$ifdef VER2_2} ChildNodes.Release; {$endif}
 end;
 
+{$ifdef FPC}
+
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 var
   Stream: TStream;
@@ -1289,11 +1356,22 @@ begin
       SetLength(DecryptedContent, L);
       DecryptedCorrectStream := TStringStream.Create(DecryptedContent);
       try
-        ReadXMLFile(Doc, DecryptedCorrectStream);
+        try
+          ReadXMLFile(Doc, DecryptedCorrectStream);
+        except
+          // on EXMLReadError, improve exception message and reraise
+          on E: EXMLReadError do
+          begin
+            E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '", encrypted)';
+            raise;
+          end;
+        end;
       finally FreeAndNil(DecryptedCorrectStream) end;
     finally FreeAndNil(DecryptStream) end;
   finally FreeAndNil(Stream) end;
 end;
+
+{$endif}
 
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 var
@@ -1311,7 +1389,16 @@ begin
 
   Stream := Download(URL, StreamOptions);
   try
-    ReadXMLFile(Doc, Stream);
+    try
+      ReadXMLFile(Doc, Stream);
+    except
+      // on EXMLReadError, improve exception message and reraise
+      on E: EXMLReadError do
+      begin
+        E.Message := E.Message + ' (in file "' + URIDisplay(URL) + '")';
+        raise;
+      end;
+    end;
   finally FreeAndNil(Stream) end;
 end;
 
@@ -1322,6 +1409,8 @@ begin
     URLReadXML(Result, URL);     //this one will automatically take care of gzipping
   except FreeAndNil(Result); raise; end;
 end;
+
+{$ifdef FPC}
 
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
 begin
@@ -1344,6 +1433,8 @@ begin
     finally FreeAndNil(EncryptStream) end;
   finally FreeAndNil(Stream) end;
 end;
+
+{$endif}
 
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 var

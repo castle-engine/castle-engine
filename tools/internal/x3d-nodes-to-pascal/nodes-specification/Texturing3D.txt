@@ -1,4 +1,4 @@
-X3DTexture3DNode : X3DTextureNode {
+X3DTexture3DNode : X3DSingleTextureNode {
   SFBool []       repeatS           FALSE
   SFBool []       repeatT           FALSE
   SFBool []       repeatR           FALSE
@@ -17,19 +17,19 @@ PixelTexture3D : X3DTexture3DNode {
   MFInt32 [in,out] image             [0 0 0 0]
 }
 
-TextureCoordinate3D : X3DTextureCoordinateNode {
+TextureCoordinate3D : X3DSingleTextureCoordinateNode {
   MFVec3f [in,out] point    []   (-Inf,Inf)
 }
 
-TextureCoordinate4D : X3DTextureCoordinateNode {
+TextureCoordinate4D : X3DSingleTextureCoordinateNode {
   MFVec4f [in,out] point    []   (-Inf,Inf)
 }
 
-TextureTransformMatrix3D : X3DTextureTransformNode {
+TextureTransformMatrix3D : X3DSingleTextureTransformNode {
   SFMatrix4f [in,out] matrix      1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1  (-Inf,Inf)
 }
 
-TextureTransform3D : X3DTextureTransformNode {
+TextureTransform3D : X3DSingleTextureTransformNode {
   SFVec3f    [in,out] center      0 0 0   (-Inf,Inf)
   SFRotation [in,out] rotation    0 0 1 0 (-Inf,Inf)
   SFVec3f    [in,out] scale       1 1 1   (-Inf,Inf)

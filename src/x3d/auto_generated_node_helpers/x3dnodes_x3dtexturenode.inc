@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -25,41 +25,11 @@
 
 {$ifdef read_interface}
 
-  strict private
-    function GetCrossOrigin: string;
-    procedure SetCrossOrigin(const Value: string);
-  public
-    { Set X3D field "effects". } { }
-    procedure SetEffects(const Value: array of TEffectNode);
-    { X3D field "crossOrigin". } { }
-    property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractTextureNode ----------------------------------------------- }
-
-procedure TAbstractTextureNode.SetEffects(const Value: array of TEffectNode);
-var
-  L: Integer;
-  A: array of TX3DNode;
-begin
-  L := High(Value) + 1;
-  SetLength(A, L);
-  if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TEffectNode));
-  FdEffects.Send(A);
-end;
-
-function TAbstractTextureNode.GetCrossOrigin: string;
-begin
-  Result := FdCrossOrigin.Value;
-end;
-
-procedure TAbstractTextureNode.SetCrossOrigin(const Value: string);
-begin
-  FdCrossOrigin.Send(Value);
-end;
 
 {$endif read_implementation}

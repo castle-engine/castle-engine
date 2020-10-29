@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetGeoCoords: TVector3Double;
     procedure SetGeoCoords(const Value: TVector3Double);
-    function GetRotateYUp: boolean;
-    procedure SetRotateYUp(const Value: boolean);
+    function GetRotateYUp: Boolean;
+    procedure SetRotateYUp(const Value: Boolean);
   public
     { X3D field "geoCoords". } { }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
@@ -38,7 +38,7 @@
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
     { X3D field "rotateYUp". } { }
-    property RotateYUp: boolean read GetRotateYUp write SetRotateYUp;
+    property RotateYUp: Boolean read GetRotateYUp write SetRotateYUp;
 
 {$endif read_interface}
 
@@ -66,12 +66,12 @@ begin
   FdGeoSystem.Send(Value);
 end;
 
-function TGeoOriginNode.GetRotateYUp: boolean;
+function TGeoOriginNode.GetRotateYUp: Boolean;
 begin
   Result := FdRotateYUp.Value;
 end;
 
-procedure TGeoOriginNode.SetRotateYUp(const Value: boolean);
+procedure TGeoOriginNode.SetRotateYUp(const Value: Boolean);
 begin
   FdRotateYUp.Send(Value);
 end;

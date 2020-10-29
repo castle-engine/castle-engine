@@ -16,26 +16,16 @@
 {$ifdef read_interface}
 
 const
-  ProjectionTypeToStr: array [TProjectionType] of string =
-  ('Orthographic', 'Perspective', 'Frustum');
-
-  DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TMaterialInfo.DefaultAmbientColor';
-  DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
-  DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
-  DefaultMaterialSpecularColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultSpecularColor';
-  DefaultMaterialEmissiveColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
-  DefaultMaterialShininess = 0.2 deprecated 'use TMaterialInfo.DefaultShininess';
-  DefaultMaterialTransparency = 0.0 deprecated 'use TMaterialInfo.DefaultTransparency';
-  DefaultMaterialMirror = 0.0 deprecated 'use TMaterialInfo.DefaultMirror';
-  DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultReflSpecularExp';
-  DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultTransSpecularExp';
-
-  { Constants for @link(TAsciiTextNode_1.FdJustification).Value.
-    @groupBegin }
-  JUSTIFICATION_LEFT = 0 deprecated 'use fjBegin (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  JUSTIFICATION_CENTER = 1 deprecated 'use fjMiddle (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  JUSTIFICATION_RIGHT = 2 deprecated 'use fjEnd (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
-  { @groupEnd }
+  DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TPhongMaterialInfo.DefaultAmbientColor';
+  DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TPhongMaterialInfo.DefaultAmbientIntensity';
+  DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TPhongMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TPhongMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TPhongMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialShininess = 0.2 deprecated 'use TPhongMaterialInfo.DefaultShininess';
+  DefaultMaterialTransparency = 0.0 deprecated 'use TPhongMaterialInfo.DefaultTransparency';
+  DefaultMaterialMirror = 0.0 deprecated 'use TPhongMaterialInfo.DefaultMirror';
+  DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultReflSpecularExp';
+  DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TPhongMaterialInfo.DefaultTransSpecularExp';
 
   { Constants for
     @link(TMaterialBindingNode_1.FdValue).Value and
@@ -96,16 +86,10 @@ const
   CYLINDER_PARTS_BOTTOM = 2;
   { @groupEnd }
 
-  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value.
-    @groupBegin }
-  TEXWRAP_REPEAT = 0 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
-  TEXWRAP_CLAMP = 1 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
-  { @groupEnd }
-
   DefaultHeightMapScale = 0.01;
   DefaultVRML1CreaseAngle = 0.5;
 
-  DefaultViewpointFieldOfView = Pi / 4;
+  DefaultViewpointFieldOfView = TCastlePerspective.DefaultFieldOfView;
   DefaultNavigationInfoHeadlight = true;
 
   DefaultRenderedTextureWidth  = 128;
@@ -174,33 +158,6 @@ var
   { @groupEnd }
 
 const
-  { URNs used to indicate standard VRML / X3D nodes.
-
-    Funny thing, I actually didn't found anywhere a definite official
-    statement that they are using such-and-such URNs.
-
-    X3D specification refers to RFC
-    [http://www.ietf.org/rfc/rfc3541.txt?number=3541] which, basically,
-    just says "we like URNs and we'll use them" and nothing more.
-    Same thing for VRML 97 spec
-    [http://www.web3d.org/x3d/specifications/vrml/ISO-IEC-14772-VRML97/part1/extensions.html].
-    There is no precise answer e.g. what URN should be used to
-    Indicate some standard VRML 97 / X3D node.
-
-    I constructed URNs below looking at examples in the RFC,
-    annotated by a funny line "The following examples are not
-    guaranteed to be real. They are presented for pedagogical reasons only."
-
-    @groupBegin }
-  URNVRML97Nodes = 'urn:web3d:vrml97:node:';
-  URNX3DNodes = 'urn:web3d:x3d:node:';
-  { @groupEnd }
-
-  { URN to indicate BitManagement nodes. This should work, according to
-    http://www.bitmanagement.com/developer/contact/examples/layer/index.html
-    example EXTERNPROTO. }
-  URNBitManagementNodes = 'urn:inet:bitmanagement.de:node:';
-
   { Standard prefix name for a time sensor to be recognized as a "named animation"
     for TCastleSceneCore.PlayAnimation and friends. }
   DefaultAnimationPrefix = '';
@@ -306,10 +263,6 @@ function KeyRange(Key: TSingleList;
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
 
-{ Does this URN indicate an X3D node that is a Castle Game Engine extension.
-  This is a helper for implementing @link(TX3DNode.URNMatching). }
-function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -398,15 +351,6 @@ begin
   Temp := TX3DNode(Obj);
   Pointer(Obj) := nil;
   Temp.FreeIfUnused;
-end;
-
-function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
-begin
-  Result :=
-    (URN = 'urn:castle-engine.io:node:' + ClassX3DType) or
-    (URN = 'urn:castle-engine.sourceforge.io:node:' + ClassX3DType) or
-    (URN = 'urn:castle-engine.sourceforge.net:node:' + ClassX3DType) or
-    (URN = 'urn:vrmlengine.sourceforge.net:node:' + ClassX3DType);
 end;
 
 {$endif read_implementation}

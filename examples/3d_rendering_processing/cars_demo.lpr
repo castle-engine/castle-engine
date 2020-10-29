@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TCastleScene, scene manager and related functionality.
+{ Demo of TCastleScene, TCastleViewport and related functionality.
   Follow the relevant tutorial pages
   https://castle-engine.io/tutorial_load_3d.php
   https://castle-engine.io/tutorial_scene.php
@@ -22,10 +22,11 @@ program cars_demo;
 
 uses SysUtils, CastleVectors, CastleTransform, CastleUIControls, CastleUtils,
   CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene,
-  CastleKeysMouse, CastleBoxes, X3DNodes;
+  CastleKeysMouse, CastleBoxes, X3DNodes, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   CarScene, RoadScene: TCastleScene;
   CarTransforms: array [1..20] of TCastleTransform;
 
@@ -58,8 +59,8 @@ begin
     CarTransforms[1].Exists := not CarTransforms[1].Exists;
 
   { capture a screenshot }
-  if Event.IsKey(K_F5) then
-    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
+  if Event.IsKey(keyF5) then
+    Window.Container.SaveScreenToDefaultFile;
 end;
 
 function CreateBoxesScene: TCastleScene;
@@ -127,10 +128,15 @@ end;
 var
   I: Integer;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   CarScene := TCastleScene.Create(Application);
-  CarScene.Load(ApplicationData('car.x3d'));
+  CarScene.Load('castle-data:/car.x3d');
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
   CarScene.PlayAnimation('wheels_turning', true);
@@ -141,26 +147,26 @@ begin
     CarTransforms[I].Translation := Vector3(
       -6 + Random(4) * 6, 0, RandomFloatRange(-70, 50));
     CarTransforms[I].Add(CarScene);
-    Window.SceneManager.Items.Add(CarTransforms[I]);
+    Viewport.Items.Add(CarTransforms[I]);
   end;
 
   RoadScene := TCastleScene.Create(Application);
-  RoadScene.Load(ApplicationData('road.x3d'));
+  RoadScene.Load('castle-data:/road.x3d');
   RoadScene.Spatial := [ssRendering, ssDynamicCollisions];
   RoadScene.ProcessEvents := true;
 
-  Window.SceneManager.Items.Add(RoadScene);
-  Window.SceneManager.MainScene := RoadScene;
+  Viewport.Items.Add(RoadScene);
+  Viewport.Items.MainScene := RoadScene;
 
-  Window.SceneManager.Items.Add(CreateBoxesScene);
+  Viewport.Items.Add(CreateBoxesScene);
 
-  Window.SceneManager.RequiredCamera.SetView(
+  Viewport.Camera.SetView(
     Vector3(-43.30, 27.23, -80.74),
     Vector3(  0.60, -0.36,   0.70),
     Vector3(  0.18,  0.92,   0.32)
   );
   // better camera for only a car:
-  {Window.SceneManager.RequiredCamera.SetView(
+  {Viewport.Camera.SetView(
     Vector3(-7.83,  6.15, -7.55),
     Vector3( 0.47, -0.30,  0.82),
     Vector3( 0.16,  0.95,  0.25)

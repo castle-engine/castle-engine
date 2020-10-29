@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,23 +28,23 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
-    function GetDescription: string;
-    procedure SetDescription(const Value: string);
-    function GetDisplayed: boolean;
-    procedure SetDisplayed(const Value: boolean);
-    function GetRetainUserOffsets: boolean;
-    procedure SetRetainUserOffsets(const Value: boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetDisplayed: Boolean;
+    procedure SetDisplayed(const Value: Boolean);
+    function GetRetainUserOffsets: Boolean;
+    procedure SetRetainUserOffsets(const Value: Boolean);
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
   public
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
     { X3D field "description". } { }
-    property Description: string read GetDescription write SetDescription;
+    property Description: String read GetDescription write SetDescription;
     { X3D field "displayed". } { }
-    property Displayed: boolean read GetDisplayed write SetDisplayed;
+    property Displayed: Boolean read GetDisplayed write SetDisplayed;
     { X3D field "retainUserOffsets". } { }
-    property RetainUserOffsets: boolean read GetRetainUserOffsets write SetRetainUserOffsets;
+    property RetainUserOffsets: Boolean read GetRetainUserOffsets write SetRetainUserOffsets;
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
 
@@ -64,32 +64,32 @@ begin
   FdCenter.Send(Value);
 end;
 
-function TViewpointGroupNode.GetDescription: string;
+function TViewpointGroupNode.GetDescription: String;
 begin
   Result := FdDescription.Value;
 end;
 
-procedure TViewpointGroupNode.SetDescription(const Value: string);
+procedure TViewpointGroupNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
 end;
 
-function TViewpointGroupNode.GetDisplayed: boolean;
+function TViewpointGroupNode.GetDisplayed: Boolean;
 begin
   Result := FdDisplayed.Value;
 end;
 
-procedure TViewpointGroupNode.SetDisplayed(const Value: boolean);
+procedure TViewpointGroupNode.SetDisplayed(const Value: Boolean);
 begin
   FdDisplayed.Send(Value);
 end;
 
-function TViewpointGroupNode.GetRetainUserOffsets: boolean;
+function TViewpointGroupNode.GetRetainUserOffsets: Boolean;
 begin
   Result := FdRetainUserOffsets.Value;
 end;
 
-procedure TViewpointGroupNode.SetRetainUserOffsets(const Value: boolean);
+procedure TViewpointGroupNode.SetRetainUserOffsets(const Value: Boolean);
 begin
   FdRetainUserOffsets.Send(Value);
 end;

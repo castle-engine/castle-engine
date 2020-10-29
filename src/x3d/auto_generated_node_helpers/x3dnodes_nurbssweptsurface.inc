@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,15 +30,15 @@
     procedure SetCrossSectionCurve(const Value: TAbstractNurbsControlCurveNode);
     function GetTrajectoryCurve: TNurbsCurveNode;
     procedure SetTrajectoryCurve(const Value: TNurbsCurveNode);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
   public
     { X3D field "crossSectionCurve". } { }
     property CrossSectionCurve: TAbstractNurbsControlCurveNode read GetCrossSectionCurve write SetCrossSectionCurve;
     { X3D field "trajectoryCurve". } { }
     property TrajectoryCurve: TNurbsCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
 
 {$endif read_interface}
 
@@ -72,12 +72,12 @@ begin
   FdTrajectoryCurve.Send(Value);
 end;
 
-function TNurbsSweptSurfaceNode.GetCcw: boolean;
+function TNurbsSweptSurfaceNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TNurbsSweptSurfaceNode.SetCcw(const Value: boolean);
+procedure TNurbsSweptSurfaceNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;

@@ -5,11 +5,15 @@ program ${NAME_PASCAL}_standalone;
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 { This adds icons and version info for Windows,
-  automatically created by "castle-engine compile".
-  Comment this out if you don't compile using our "castle-engine" build tool. }
-{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+  automatically created by "castle-engine compile". }
+{$ifdef CASTLE_AUTO_GENERATED_RESOURCES} {$R castle-auto-generated-resources.res} {$endif}
 
-uses CastleApplicationProperties, CastleLog, CastleWindow, ${GAME_UNITS};
+uses
+  {$ifndef CASTLE_DISABLE_THREADS}
+    {$info Thread support enabled.}
+    {$ifdef UNIX} CThreads, {$endif}
+  {$endif}
+  CastleApplicationProperties, CastleLog, CastleWindow, ${GAME_UNITS};
 
 begin
   ApplicationProperties.Version := '${VERSION}';
@@ -17,7 +21,8 @@ begin
 
   { On standalone, activate log only after parsing command-line options.
     This allows to handle --version and --help command-line parameters
-    without any extra output on Unix. }
+    without any extra output on Unix.
+    This also allows to set --log-file from Application.ParseStandardParameters. }
   InitializeLog;
 
   Application.MainWindow.OpenAndRun;

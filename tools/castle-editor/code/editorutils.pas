@@ -13,15 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple castle-editor utilities. }
+{ Various castle-editor utilities. }
 unit EditorUtils;
 
 {$mode objfpc}{$H+}
 
 interface
 
-uses Classes, Types, Controls, StdCtrls, Process, Generics.Collections,
+uses Classes, Types, Controls, StdCtrls, Process, Menus, Generics.Collections,
   CastleStringUtils;
+
+type
+  TMenuItemHelper = class helper for TMenuItem
+  public
+    procedure SetEnabledVisible(const Value: Boolean);
+  end;
 
 type
   TOutputKind = (
@@ -125,10 +131,39 @@ procedure ErrorBox(const Message: String);
 procedure WarningBox(const Message: String);
 function YesNoBox(const Message: String): Boolean;
 
+{ Set both C.Enabled and C.Exists. }
+procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+
+const
+  ApiReferenceUrl = 'https://castle-engine.io/apidoc-unstable/html/';
+  FpcRtlApiReferenceUrl = 'https://www.freepascal.org/docs-html/rtl/';
+  LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
+
+{ Get full URL to display API reference of a given property in the given
+  SelectedObject.
+
+  PropertyName may be '', in which case the link leads to the whole class reference.
+  In this case PropertyNameForLink must also be ''.
+  Both PropertyName and PropertyNameForLink should be '',
+  or both should be non-empty.
+}
+function ApiReference(const SelectedObject: TObject;
+  const PropertyName, PropertyNameForLink: String): String;
+
+procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+
 implementation
 
-uses SysUtils, Dialogs, Graphics,
-  CastleUtils;
+uses SysUtils, Dialogs, Graphics, TypInfo,
+  CastleUtils, CastleLog,
+  CastleComponentSerialize, CastleUiControls, CastleCameras, CastleTransform,
+  ToolCompilerInfo;
+
+procedure TMenuItemHelper.SetEnabledVisible(const Value: Boolean);
+begin
+  Visible := Value;
+  Enabled := Value;
+end;
 
 { TAsynchronousProcessQueue.TQueueItem --------------------------------------- }
 
@@ -247,11 +282,19 @@ var
   S, LogLine: String;
   I: Integer;
 begin
-  { copy environment and set $CASTLE_ENGINE_INSIDE_EDITOR }
+  { copy environment }
   Environment := TStringList.Create;
   for I := 1 to GetEnvironmentVariableCount do
     Environment.Add(GetEnvironmentString(I));
-  Environment.Values['CASTLE_ENGINE_INSIDE_EDITOR'] := 'true';
+
+  { Extend PATH, to effectively use FpcCustomPath and LazarusCustomPath
+    in the build tool.
+    Initially we used to just pass them in special environment variables,
+    and restore in ToolCompilerInfo initialization, but this is not enough:
+    on Windows, calling "windres" requires that "cpp" is also on PATH.
+    It seems more reliable to just add them to PATH. }
+  Environment.Values['PATH'] := PathExtendForFpcLazarus(Environment.Values['PATH']);
+  WritelnLog('Calling process with extended PATH: ' + Environment.Values['PATH']);
 
   { create Process and call Process.Execute }
   Process := TProcess.Create(nil);
@@ -526,6 +569,175 @@ end;
 function YesNoBox(const Message: String): Boolean;
 begin
   Result := MessageDlg('Question', Message, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+end;
+
+procedure SetEnabledExists(const C: TControl; const Value: Boolean);
+begin
+  C.Enabled := Value;
+  C.Visible := Value;
+end;
+
+function ApiReference(const SelectedObject: TObject;
+  const PropertyName, PropertyNameForLink: String): String;
+
+  { Knowing that property PropInfo is part of class C,
+    determine the class where it's actually declared (C or ancestor of C).
+
+    Note that we search for property using PropInfo, not a string PropertyName,
+    this means that we don't mix a property with the same name that
+    obscures ancestor property (same name, but actually different property). }
+  function ClassOfPropertyDeclaration(const C: TClass; const PropInfo: PPropInfo): TClass;
+  var
+    ParentC: TClass;
+    PropList: PPropList;
+    PropCount, I: Integer;
+  begin
+    ParentC := C.ClassParent;
+    if ParentC = nil then
+      Exit(C); // no ancestor
+
+    PropCount := GetPropList(ParentC, PropList);
+    for I := 0 to PropCount - 1 do
+      if PropList^[I] = PropInfo then
+        // property found in ancestor
+        Exit(ClassOfPropertyDeclaration(ParentC, PropInfo));
+
+    // property not found in ancestor
+    Exit(C);
+  end;
+
+  function FpDocSuffix(const LinkUnitName, LinkClassName, LinkPropertyName: String): String;
+  begin
+    Result := LowerCase(LinkUnitName) + '/' + LowerCase(LinkClassName) + '.';
+    if LinkPropertyName <> '' then
+      Result := Result + LowerCase(LinkPropertyName) + '.';
+    Result := Result + 'html';
+  end;
+
+  function PasDocSuffix(const LinkUnitName, LinkClassName, LinkPropertyName: String): String;
+  begin
+    Result := LinkUnitName + '.' + LinkClassName + '.html';
+    if LinkPropertyName <> '' then
+      Result := Result + '#' + LinkPropertyName;
+  end;
+
+var
+  LinkUnitName, LinkClassName, LowerLinkUnitName, LinkPropertyName: String;
+  PropInfo: PPropInfo;
+  ClassOfProperty: TClass;
+begin
+  LinkUnitName := SelectedObject.UnitName;
+  LinkClassName := SelectedObject.ClassName;
+  LinkPropertyName := '';
+
+  if PropertyName <> '' then
+  begin
+    { PropertyName doesn't necessarily belong to the exact SelectedObject class,
+      it may belong to ancestor. E.g. TCastleScene.Url is actually from
+      TCastleSceneCore.
+      This is important to construct API links.
+      Unfortunately GetPropInfo doesn't have this info directly. }
+
+     PropInfo := GetPropInfo(SelectedObject, PropertyName);
+     if PropInfo <> nil then
+     begin
+       ClassOfProperty := ClassOfPropertyDeclaration(SelectedObject.ClassType, PropInfo);
+       LinkClassName := ClassOfProperty.ClassName;
+       LinkUnitName := ClassOfProperty.UnitName;
+       LinkPropertyName := PropertyNameForLink;
+     end else
+       WritelnWarning('Cannot get property info "%s"', [PropertyName]);
+  end;
+
+  { construct UrlSuffix, knowing LinkUnit/Class/MemberName }
+  LowerLinkUnitName := LowerCase(LinkUnitName);
+  if (LowerLinkUnitName = 'sysutils') or
+     (LowerLinkUnitName = 'math') or
+     (LowerLinkUnitName = 'system') or
+     (LowerLinkUnitName = 'classes') then
+  begin
+    // adjust for fpdoc links in FPC
+    Result := FpcRtlApiReferenceUrl + FpDocSuffix(LinkUnitName, LinkClassName, LinkPropertyName);
+  end else
+  if (LowerLinkUnitName = 'controls') then
+  begin
+    // adjust for fpdoc links in LCL
+    Result := LclApiReferenceUrl + FpDocSuffix(LinkUnitName, LinkClassName, LinkPropertyName);
+  end else
+  begin
+    // adjust for PasDoc links in CGE
+    Result := ApiReferenceUrl + PasDocSuffix(LinkUnitName, LinkClassName, LinkPropertyName);
+  end;
+end;
+
+procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
+
+  function CreateMenuItemForComponent(const Owner: TComponent; const R: TRegisteredComponent): TMenuItem;
+  var
+    S: String;
+  begin
+    Result := TMenuItem.Create(Owner);
+    S := R.Caption + ' (' + R.ComponentClass.ClassName + ')';
+    if R.IsDeprecated then
+      S := '(Deprecated) ' + S;
+    Result.Caption := S;
+    Result.Tag := PtrInt(Pointer(R));
+  end;
+
+var
+  MenuItem: TMenuItem;
+  R: TRegisteredComponent;
+begin
+  { add non-deprecated components }
+  for R in RegisteredComponents do
+    if not R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUeserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+
+  (*
+  Don't show deprecated -- at least in initial CGE release, keep the menu clean.
+
+  { add separators from deprecated }
+  MenuItem := TMenuItem.Create(ParentUeserInterface);
+  MenuItem.Caption := '-';
+  ParentUeserInterface.Add(MenuItem);
+
+  MenuItem := TMenuItem.Create(ParentTransform);
+  MenuItem.Caption := '-';
+  ParentTransform.Add(MenuItem);
+
+  { add deprecated components }
+  for R in RegisteredComponents do
+    if R.IsDeprecated then
+    begin
+      if R.ComponentClass.InheritsFrom(TCastleUserInterface) and
+         not R.ComponentClass.InheritsFrom(TCastleNavigation) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentUeserInterface, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentUeserInterface.Add(MenuItem);
+      end else
+      if R.ComponentClass.InheritsFrom(TCastleTransform) then
+      begin
+        MenuItem := CreateMenuItemForComponent(ParentTransform, R);
+        MenuItem.OnClick := OnClickEvent;
+        ParentTransform.Add(MenuItem);
+      end;
+    end;
+  *)
 end;
 
 end.

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="play_animation"
+  standalone_source="play_animation_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.play.animation"
+>
+  <data exists="false" />
+</project>

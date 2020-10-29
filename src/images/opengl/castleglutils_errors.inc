@@ -35,7 +35,7 @@ type
     When programming for platforms with limited GPU memory (Android, iOS...)
     you should prepare to handle EOpenGLOutOfMemoryError (corresponding to
     GL_OUT_OF_MEMORY). This can always happen for large GPU data,
-    and you should be prepared to capture it (at least around TGameSceneManager.LoadLevel)
+    and you should be prepared to capture it (around loading your data)
     and display some nice information for user.
     Alternatively, you can leave GLOutOfMemoryError = @false,
     and then EOpenGLOutOfMemoryError will not happen, but you risk all kinds

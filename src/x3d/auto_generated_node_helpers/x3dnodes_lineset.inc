@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,17 +30,23 @@
     procedure SetColor(const Value: TAbstractColorNode);
     function GetCoord: TAbstractCoordinateNode;
     procedure SetCoord(const Value: TAbstractCoordinateNode);
+{$ifndef CASTLE_SLIM_NODES}
     function GetFogCoord: TFogCoordinateNode;
     procedure SetFogCoord(const Value: TFogCoordinateNode);
+{$endif not CASTLE_SLIM_NODES}
   public
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "attrib". } { }
     procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "color". } { }
     property Color: TAbstractColorNode read GetColor write SetColor;
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "fogCoord". } { }
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+{$endif not CASTLE_SLIM_NODES}
     { Set X3D field "vertexCount". } { }
     procedure SetVertexCount(const Value: array of LongInt);
     { Set X3D field "vertexCount". } { }
@@ -52,6 +58,7 @@
 
 { TLineSetNode ----------------------------------------------- }
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TLineSetNode.SetAttrib(const Value: array of TAbstractVertexAttributeNode);
 var
   L: Integer;
@@ -64,6 +71,7 @@ begin
   FdAttrib.Send(A);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TLineSetNode.GetColor: TAbstractColorNode;
 begin
   if FdColor.Value is TAbstractColorNode then
@@ -90,6 +98,7 @@ begin
   FdCoord.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 function TLineSetNode.GetFogCoord: TFogCoordinateNode;
 begin
   if FdFogCoord.Value is TFogCoordinateNode then
@@ -103,6 +112,7 @@ begin
   FdFogCoord.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 procedure TLineSetNode.SetVertexCount(const Value: array of LongInt);
 begin
   FdVertexCount.Send(Value);

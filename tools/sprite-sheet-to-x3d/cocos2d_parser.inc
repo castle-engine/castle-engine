@@ -44,8 +44,8 @@ procedure Cocos2DParser;
       R.Expression := '{(\d+.*\d*),(\d+.*\d*)}';
       if R.Exec(ASrc) and (R.SubExprMatchCount = 2) then
       begin
-        V1 := StrToFloat(R.Match[1]);
-        V2 := StrToFloat(R.Match[2]);
+        V1 := StrToFloatDot(R.Match[1]);
+        V2 := StrToFloatDot(R.Match[2]);
       end;
     finally
       FreeAndNil(R);

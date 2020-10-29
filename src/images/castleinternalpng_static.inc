@@ -1,11 +1,14 @@
-{ Copied from fpc/trunk/packages/libpng/src/png.pp, and basically
-  fixed (added missing constants, added missing png_set_expand_gray_1_2_4_to_8,
+{ Copied from fpc/trunk/packages/libpng/src/png.pp,
+  and somewhat fixed (added missing constants,
+  added missing png_set_expand_gray_1_2_4_to_8,
   removed the deprecated variables and functions).
 
-  This unit should allow both static and dynamic linking to png.
-  Contrary to castleinternalpng_dynamic.inc, that is only for dynamic linking.
+  This unit allows both static and dynamic linking to libpng.
+  (Although we use it only for static linking.)
+  Contrary to castleinternalpng_dynamic.inc, that allows only dynamic linking.
   Advantage of castleinternalpng_dynamic.inc approach is that you can specify
-  alternative names for png library file.
+  alternative names for png library file, and you do the initialization
+  at runtime at any moment.
 }
 
 {$ifndef NO_SMART_LINK}

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,13 +28,13 @@
   strict private
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
-    function GetManifold: boolean;
-    procedure SetManifold(const Value: boolean);
+    function GetManifold: Boolean;
+    procedure SetManifold(const Value: Boolean);
   public
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
     { X3D field "manifold". } { }
-    property Manifold: boolean read GetManifold write SetManifold;
+    property Manifold: Boolean read GetManifold write SetManifold;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdSize.Send(Value);
 end;
 
-function TTeapotNode.GetManifold: boolean;
+function TTeapotNode.GetManifold: Boolean;
 begin
   Result := FdManifold.Value;
 end;
 
-procedure TTeapotNode.SetManifold(const Value: boolean);
+procedure TTeapotNode.SetManifold(const Value: Boolean);
 begin
   FdManifold.Send(Value);
 end;

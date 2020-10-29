@@ -21,7 +21,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    Image: TGLImage;
+    Image: TDrawableImage;
     X, Y: Single;
   public
 
@@ -38,7 +38,7 @@ implementation
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Image := TGLImage.Create(ApplicationData('my_image.png'));
+  Image := TDrawableImage.Create('castle-data:/my_image.png');
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -54,7 +54,7 @@ end;
 procedure TForm1.CastleControl1Press(Sender: TObject;
   const Event: TInputPressRelease);
 begin
-  if Event.IsKey(K_Space) then
+  if Event.IsKey(keySpace) then
     Y := Y - 200.0;
 end;
 
@@ -64,9 +64,9 @@ var
 begin
   SecondsPassed := CastleControl1.Fps.SecondsPassed;
   Y := Y + SecondsPassed * 100.0;
-  if CastleControl1.Pressed[K_Left] then
+  if CastleControl1.Pressed[keyArrowLeft] then
     X := X - SecondsPassed * 200.0;
-  if CastleControl1.Pressed[K_Right] then
+  if CastleControl1.Pressed[keyArrowRight] then
     X := X + SecondsPassed * 200.0;
 end;
 

@@ -1,5 +1,5 @@
-First example of using our engine on Android (2D controls and 3D rendering
-using full-featured SceneManager (TCastleScene underneath)).
+First example of using our engine on Android (2D controls (TCastleUserInterface)
+and 3D rendering (TCastleViewport, TCastleScene)).
 
 Compile and run the application for Android by
 https://github.com/castle-engine/castle-engine/wiki/Build-Tool :

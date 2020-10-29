@@ -25,24 +25,30 @@ uses
 
 { Fill directory for new project with the template. }
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 
 { Fill directory for new project with the build-tool generated stuff. }
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 
-{ Open ProjectForm.
-  ManifestUrl may be absolute or relative here. }
-procedure ProjectOpen(ManifestUrl: string);
-
 type
   TBuildMode = (bmDebug, bmRelease);
+
+{ For some operations (like creating a project from template), the editor uses
+  ApplicationData files (castle-data:/xxx URLs).
+  So make sure that ApplicationData is correct, by setting ApplicationDataOverride.
+  We can use CastleEnginePath (that uses $CASTLE_ENGINE_PATH environment variable)
+  for this. }
+procedure UseEditorApplicationData;
+
+{ URL prefix of editor application data. }
+function EditorApplicationData: String;
 
 implementation
 
 uses Forms,
   CastleURIUtils, CastleStringUtils, CastleFindFiles, CastleUtils,
   CastleFilesUtils,
-  EditorUtils, ToolUtils, FormProject;
+  EditorUtils, ToolCommonUtils, FormProject;
 
 { TTemplateCopyProcess ------------------------------------------------------------ }
 
@@ -58,9 +64,6 @@ procedure TTemplateCopyProcess.FoundFile(const FileInfo: TFileInfo; var StopSear
 var
   Contents, RelativeUrl, TargetUrl, TargetFileName, Mime: String;
 begin
-  if FileInfo.Directory and SpecialDirName(FileInfo.Name) then
-    Exit;
-
   { Ignore case at IsPrefix / PrefixRemove calls,
     in case it's not case-sensitive file-system, then the case in theory
     can differ. }
@@ -97,22 +100,32 @@ end;
 { global routines ------------------------------------------------------------ }
 
 procedure CopyTemplate(const ProjectDirUrl: String;
-  const TemplateName, ProjectName: String);
+  const TemplateName, ProjectName, ProjectCaption: String);
 var
   TemplateUrl, ProjectQualifiedName, ProjectPascalName: String;
   CopyProcess: TTemplateCopyProcess;
   Macros: TStringStringMap;
 begin
-  TemplateUrl := ApplicationData('project_templates/' + TemplateName + '/files/');
+  Assert(ProjectName <> '');
 
-  ProjectQualifiedName := 'com.mycompany.' + SDeleteChars(ProjectName, ['-']);
-  ProjectPascalName := SReplaceChars(ProjectName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
+  TemplateUrl := 'castle-data:/project_templates/' + TemplateName + '/files/';
+  { Logic in TTemplateCopyProcess.FoundFile assumes that
+    TemplateUrl does not any longer start with castle-data:/ }
+  TemplateUrl := ResolveCastleDataURL(TemplateUrl);
+
+  if URIExists(TemplateUrl) <> ueDirectory then
+    raise Exception.CreateFmt('Cannot find template directory %s, make sure that $CASTLE_ENGINE_PATH is configured correctly',
+      [TemplateUrl]);
+
+  ProjectQualifiedName := MakeQualifiedName(ProjectName);
+  ProjectPascalName := MakeProjectPascalName(ProjectName);
 
   Macros := TStringStringMap.Create;
   try
     Macros.Add('${PROJECT_NAME}', ProjectName);
     Macros.Add('${PROJECT_QUALIFIED_NAME}', ProjectQualifiedName);
     Macros.Add('${PROJECT_PASCAL_NAME}', ProjectPascalName);
+    Macros.Add('${PROJECT_CAPTION}', ProjectCaption);
 
     CopyProcess := TTemplateCopyProcess.Create;
     try
@@ -129,7 +142,7 @@ var
   BuildToolExe, BuildToolOutput: String;
   BuildToolStatus: integer;
 begin
-  BuildToolExe := FindExe('castle-engine');
+  BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then
   begin
     WarningBox('Cannot find build tool (castle-engine) on $PATH environment variable. You will need to manually run "castle-engine generate-program" within project''s directory.');
@@ -146,18 +159,33 @@ begin
   end;
 end;
 
-procedure ProjectOpen(ManifestUrl: string);
+procedure UseEditorApplicationData;
+var
+  DataPath: string;
 begin
-  ManifestUrl := AbsoluteURI(ManifestUrl);
+  { start by resetting ApplicationDataOverride to empty, to reset
+    previous customizations of ApplicationDataOverride done by some editor code. }
+  ApplicationDataOverride := '';
 
-  // Validate
-  if not URIFileExists(ManifestUrl) then
-    raise Exception.CreateFmt('Cannot find CastleEngineManifest.xml at this location: "%s". Invalid project opened.',
-      [ManifestUrl]);
+  if CastleEnginePath <> '' then
+  begin
+    DataPath := CastleEnginePath +
+      'tools' + PathDelim + 'castle-editor' + PathDelim + 'data' + PathDelim;
+    if DirectoryExists(DataPath) then
+      ApplicationDataOverride := FilenameToURISafe(DataPath);
+  end;
+end;
 
-  ProjectForm := TProjectForm.Create(Application);
-  ProjectForm.OpenProject(ManifestUrl);
-  ProjectForm.Show;
+function EditorApplicationData: String;
+var
+  ApplicationDataOverrideSaved: String;
+begin
+  ApplicationDataOverrideSaved := ApplicationDataOverride;
+
+  UseEditorApplicationData;
+  Result := ApplicationData('');
+
+  ApplicationDataOverride := ApplicationDataOverrideSaved;
 end;
 
 end.

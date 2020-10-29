@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,17 +28,17 @@
   strict private
     function GetLevel: Integer;
     procedure SetLevel(const Value: Integer);
-    function GetLogFile: string;
-    procedure SetLogFile(const Value: string);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetLogFile: String;
+    procedure SetLogFile(const Value: String);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   public
     { X3D field "level". } { }
     property Level: Integer read GetLevel write SetLevel;
     { X3D field "logFile". } { }
-    property LogFile: string read GetLogFile write SetLogFile;
+    property LogFile: String read GetLogFile write SetLogFile;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}
 
@@ -56,22 +56,22 @@ begin
   FdLevel.Send(Value);
 end;
 
-function TLoggerNode.GetLogFile: string;
+function TLoggerNode.GetLogFile: String;
 begin
   Result := FdLogFile.Value;
 end;
 
-procedure TLoggerNode.SetLogFile(const Value: string);
+procedure TLoggerNode.SetLogFile(const Value: String);
 begin
   FdLogFile.Send(Value);
 end;
 
-function TLoggerNode.GetEnabled: boolean;
+function TLoggerNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TLoggerNode.SetEnabled(const Value: boolean);
+procedure TLoggerNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

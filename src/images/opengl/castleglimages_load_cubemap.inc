@@ -142,9 +142,8 @@ begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);
 
-    if Log then
-      WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
-        [R.Width, R.Height, Size, Size]));
+    WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
+      [R.Width, R.Height, Size, Size]));
 
     result := r.MakeResized(Size, Size, riBilinear);
   end else
@@ -400,8 +399,7 @@ begin
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeY);
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveZ);
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeZ);
-      if Log then
-        WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
+      WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;
   end else
   begin

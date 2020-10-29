@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetToggle: boolean;
-    procedure SetToggle(const Value: boolean);
+    function GetToggle: Boolean;
+    procedure SetToggle(const Value: Boolean);
   public
     { X3D field "toggle". } { }
-    property Toggle: boolean read GetToggle write SetToggle;
+    property Toggle: Boolean read GetToggle write SetToggle;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TBooleanToggleNode ----------------------------------------------- }
 
-function TBooleanToggleNode.GetToggle: boolean;
+function TBooleanToggleNode.GetToggle: Boolean;
 begin
   Result := FdToggle.Value;
 end;
 
-procedure TBooleanToggleNode.SetToggle(const Value: boolean);
+procedure TBooleanToggleNode.SetToggle(const Value: Boolean);
 begin
   FdToggle.Send(Value);
 end;

@@ -43,7 +43,7 @@ begin
         end;
       end;
     if Vec2Index <> 0 then
-      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector. This is possible in case of (unsupported now) weighted mesh.');
+      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector. This is possible in case of weighted mesh.');
   end;
 end;
 
@@ -82,3 +82,4 @@ begin
       List.Add(JsonArray[I].AsFloat);
 end;
 {$endif}
+

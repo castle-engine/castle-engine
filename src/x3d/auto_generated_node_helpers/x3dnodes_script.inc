@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDirectOutput: boolean;
-    procedure SetDirectOutput(const Value: boolean);
-    function GetMustEvaluate: boolean;
-    procedure SetMustEvaluate(const Value: boolean);
+    function GetDirectOutput: Boolean;
+    procedure SetDirectOutput(const Value: Boolean);
+    function GetMustEvaluate: Boolean;
+    procedure SetMustEvaluate(const Value: Boolean);
   public
     { X3D field "directOutput". } { }
-    property DirectOutput: boolean read GetDirectOutput write SetDirectOutput;
+    property DirectOutput: Boolean read GetDirectOutput write SetDirectOutput;
     { X3D field "mustEvaluate". } { }
-    property MustEvaluate: boolean read GetMustEvaluate write SetMustEvaluate;
+    property MustEvaluate: Boolean read GetMustEvaluate write SetMustEvaluate;
 
 {$endif read_interface}
 
@@ -42,22 +42,22 @@
 
 { TScriptNode ----------------------------------------------- }
 
-function TScriptNode.GetDirectOutput: boolean;
+function TScriptNode.GetDirectOutput: Boolean;
 begin
   Result := FdDirectOutput.Value;
 end;
 
-procedure TScriptNode.SetDirectOutput(const Value: boolean);
+procedure TScriptNode.SetDirectOutput(const Value: Boolean);
 begin
   FdDirectOutput.Send(Value);
 end;
 
-function TScriptNode.GetMustEvaluate: boolean;
+function TScriptNode.GetMustEvaluate: Boolean;
 begin
   Result := FdMustEvaluate.Value;
 end;
 
-procedure TScriptNode.SetMustEvaluate(const Value: boolean);
+procedure TScriptNode.SetMustEvaluate(const Value: Boolean);
 begin
   FdMustEvaluate.Send(Value);
 end;

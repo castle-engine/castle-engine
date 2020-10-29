@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,15 +28,15 @@
   strict private
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
     function GetDivisions: Integer;
     procedure SetDivisions(const Value: Integer);
   public
     { X3D field "size". } { }
     property Size: TVector3 read GetSize write SetSize;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
     { X3D field "divisions". } { }
     property Divisions: Integer read GetDivisions write SetDivisions;
 
@@ -56,12 +56,12 @@ begin
   FdSize.Send(Value);
 end;
 
-function TBoxNode.GetCcw: boolean;
+function TBoxNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TBoxNode.SetCcw(const Value: boolean);
+procedure TBoxNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;

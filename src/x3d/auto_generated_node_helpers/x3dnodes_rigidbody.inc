@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,10 +30,10 @@
     procedure SetAngularDampingFactor(const Value: Single);
     function GetAngularVelocity: TVector3;
     procedure SetAngularVelocity(const Value: TVector3);
-    function GetAutoDamp: boolean;
-    procedure SetAutoDamp(const Value: boolean);
-    function GetAutoDisable: boolean;
-    procedure SetAutoDisable(const Value: boolean);
+    function GetAutoDamp: Boolean;
+    procedure SetAutoDamp(const Value: Boolean);
+    function GetAutoDisable: Boolean;
+    procedure SetAutoDisable(const Value: Boolean);
     function GetCenterOfMass: TVector3;
     procedure SetCenterOfMass(const Value: TVector3);
     function GetDisableAngularSpeed: Single;
@@ -42,12 +42,12 @@
     procedure SetDisableLinearSpeed(const Value: Single);
     function GetDisableTime: Single;
     procedure SetDisableTime(const Value: Single);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetFiniteRotationAxis: TVector3;
     procedure SetFiniteRotationAxis(const Value: TVector3);
-    function GetFixed: boolean;
-    procedure SetFixed(const Value: boolean);
+    function GetFixed: Boolean;
+    procedure SetFixed(const Value: Boolean);
     function GetInertia: TMatrix3;
     procedure SetInertia(const Value: TMatrix3);
     function GetLinearDampingFactor: Single;
@@ -60,19 +60,19 @@
     procedure SetOrientation(const Value: TVector4);
     function GetPosition: TVector3;
     procedure SetPosition(const Value: TVector3);
-    function GetUseFiniteRotation: boolean;
-    procedure SetUseFiniteRotation(const Value: boolean);
-    function GetUseGlobalGravity: boolean;
-    procedure SetUseGlobalGravity(const Value: boolean);
+    function GetUseFiniteRotation: Boolean;
+    procedure SetUseFiniteRotation(const Value: Boolean);
+    function GetUseGlobalGravity: Boolean;
+    procedure SetUseGlobalGravity(const Value: Boolean);
   public
     { X3D field "angularDampingFactor". } { }
     property AngularDampingFactor: Single read GetAngularDampingFactor write SetAngularDampingFactor;
     { X3D field "angularVelocity". } { }
     property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
     { X3D field "autoDamp". } { }
-    property AutoDamp: boolean read GetAutoDamp write SetAutoDamp;
+    property AutoDamp: Boolean read GetAutoDamp write SetAutoDamp;
     { X3D field "autoDisable". } { }
-    property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
+    property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
     { X3D field "centerOfMass". } { }
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
     { X3D field "disableAngularSpeed". } { }
@@ -82,11 +82,11 @@
     { X3D field "disableTime". } { }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "finiteRotationAxis". } { }
     property FiniteRotationAxis: TVector3 read GetFiniteRotationAxis write SetFiniteRotationAxis;
     { X3D field "fixed". } { }
-    property Fixed: boolean read GetFixed write SetFixed;
+    property Fixed: Boolean read GetFixed write SetFixed;
     { Set X3D field "forces". } { }
     procedure SetForces(const Value: array of TVector3);
     { Set X3D field "forces". } { }
@@ -110,9 +110,9 @@
     { Set X3D field "torques". } { }
     procedure SetTorques(const Value: TVector3List);
     { X3D field "useFiniteRotation". } { }
-    property UseFiniteRotation: boolean read GetUseFiniteRotation write SetUseFiniteRotation;
+    property UseFiniteRotation: Boolean read GetUseFiniteRotation write SetUseFiniteRotation;
     { X3D field "useGlobalGravity". } { }
-    property UseGlobalGravity: boolean read GetUseGlobalGravity write SetUseGlobalGravity;
+    property UseGlobalGravity: Boolean read GetUseGlobalGravity write SetUseGlobalGravity;
 
 {$endif read_interface}
 
@@ -140,22 +140,22 @@ begin
   FdAngularVelocity.Send(Value);
 end;
 
-function TRigidBodyNode.GetAutoDamp: boolean;
+function TRigidBodyNode.GetAutoDamp: Boolean;
 begin
   Result := FdAutoDamp.Value;
 end;
 
-procedure TRigidBodyNode.SetAutoDamp(const Value: boolean);
+procedure TRigidBodyNode.SetAutoDamp(const Value: Boolean);
 begin
   FdAutoDamp.Send(Value);
 end;
 
-function TRigidBodyNode.GetAutoDisable: boolean;
+function TRigidBodyNode.GetAutoDisable: Boolean;
 begin
   Result := FdAutoDisable.Value;
 end;
 
-procedure TRigidBodyNode.SetAutoDisable(const Value: boolean);
+procedure TRigidBodyNode.SetAutoDisable(const Value: Boolean);
 begin
   FdAutoDisable.Send(Value);
 end;
@@ -200,12 +200,12 @@ begin
   FdDisableTime.Send(Value);
 end;
 
-function TRigidBodyNode.GetEnabled: boolean;
+function TRigidBodyNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TRigidBodyNode.SetEnabled(const Value: boolean);
+procedure TRigidBodyNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
@@ -220,12 +220,12 @@ begin
   FdFiniteRotationAxis.Send(Value);
 end;
 
-function TRigidBodyNode.GetFixed: boolean;
+function TRigidBodyNode.GetFixed: Boolean;
 begin
   Result := FdFixed.Value;
 end;
 
-procedure TRigidBodyNode.SetFixed(const Value: boolean);
+procedure TRigidBodyNode.SetFixed(const Value: Boolean);
 begin
   FdFixed.Send(Value);
 end;
@@ -322,22 +322,22 @@ begin
   FdTorques.Send(Value);
 end;
 
-function TRigidBodyNode.GetUseFiniteRotation: boolean;
+function TRigidBodyNode.GetUseFiniteRotation: Boolean;
 begin
   Result := FdUseFiniteRotation.Value;
 end;
 
-procedure TRigidBodyNode.SetUseFiniteRotation(const Value: boolean);
+procedure TRigidBodyNode.SetUseFiniteRotation(const Value: Boolean);
 begin
   FdUseFiniteRotation.Send(Value);
 end;
 
-function TRigidBodyNode.GetUseGlobalGravity: boolean;
+function TRigidBodyNode.GetUseGlobalGravity: Boolean;
 begin
   Result := FdUseGlobalGravity.Value;
 end;
 
-procedure TRigidBodyNode.SetUseGlobalGravity(const Value: boolean);
+procedure TRigidBodyNode.SetUseGlobalGravity(const Value: Boolean);
 begin
   FdUseGlobalGravity.Send(Value);
 end;

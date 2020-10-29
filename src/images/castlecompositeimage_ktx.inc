@@ -519,26 +519,57 @@ begin
   if (Header.GlType = 0) and
      (Header.GlTypeSize = 1) and
      (Header.GlFormat = 0) and
-     (Header.GlBaseInternalFormat = GL_RGBA) then
+     ((Header.GlBaseInternalFormat = GL_RGBA) or (Header.GlBaseInternalFormat = GL_RGB)) then // GL_RGB is needed by ETC1
   begin
     case Header.GlInternalFormat of
-      GL_COMPRESSED_RGB_S3TC_DXT1_EXT    : Compression := tcDxt1_RGB;
-      GL_COMPRESSED_RGBA_S3TC_DXT1_EXT   : Compression := tcDxt1_RGBA;
-      GL_COMPRESSED_RGBA_S3TC_DXT3_EXT   : Compression := tcDxt3;
-      GL_COMPRESSED_RGBA_S3TC_DXT5_EXT   : Compression := tcDxt5;
+      GL_COMPRESSED_RGB_S3TC_DXT1_EXT          : Compression := tcDxt1_RGB;
+      GL_COMPRESSED_RGBA_S3TC_DXT1_EXT         : Compression := tcDxt1_RGBA;
+      GL_COMPRESSED_RGBA_S3TC_DXT3_EXT         : Compression := tcDxt3;
+      GL_COMPRESSED_RGBA_S3TC_DXT5_EXT         : Compression := tcDxt5;
 
-      GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG : Compression := tcPvrtc1_4bpp_RGB;
-      GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG : Compression := tcPvrtc1_2bpp_RGB;
-      GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: Compression := tcPvrtc1_4bpp_RGBA;
-      GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: Compression := tcPvrtc1_2bpp_RGBA;
-      GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG: Compression := tcPvrtc2_4bpp;
-      GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG: Compression := tcPvrtc2_2bpp;
+      GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG       : Compression := tcPvrtc1_4bpp_RGB;
+      GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG       : Compression := tcPvrtc1_2bpp_RGB;
+      GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG      : Compression := tcPvrtc1_4bpp_RGBA;
+      GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG      : Compression := tcPvrtc1_2bpp_RGBA;
+      GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG      : Compression := tcPvrtc2_4bpp;
+      GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG      : Compression := tcPvrtc2_2bpp;
 
-      GL_ATC_RGB_AMD                     : Compression := tcATITC_RGB;
-      GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD : Compression := tcATITC_RGBA_InterpolatedAlpha;
-      GL_ATC_RGBA_EXPLICIT_ALPHA_AMD     : Compression := tcATITC_RGBA_ExplicitAlpha;
+      GL_ATC_RGB_AMD                           : Compression := tcATITC_RGB;
+      GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD       : Compression := tcATITC_RGBA_InterpolatedAlpha;
+      GL_ATC_RGBA_EXPLICIT_ALPHA_AMD           : Compression := tcATITC_RGBA_ExplicitAlpha;
 
-      GL_ETC1_RGB8_OES                   : Compression := tcETC1;
+      GL_ETC1_RGB8_OES                         : Compression := tcETC1;
+
+      GL_COMPRESSED_RGBA_ASTC_4x4_KHR          : Compression := tcASTC_4x4_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_5x4_KHR          : Compression := tcASTC_5x4_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_5x5_KHR          : Compression := tcASTC_5x5_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_6x5_KHR          : Compression := tcASTC_6x5_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_6x6_KHR          : Compression := tcASTC_6x6_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_8x5_KHR          : Compression := tcASTC_8x5_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_8x6_KHR          : Compression := tcASTC_8x6_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_8x8_KHR          : Compression := tcASTC_8x8_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_10x5_KHR         : Compression := tcASTC_10x5_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_10x6_KHR         : Compression := tcASTC_10x6_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_10x8_KHR         : Compression := tcASTC_10x8_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_10x10_KHR        : Compression := tcASTC_10x10_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_12x10_KHR        : Compression := tcASTC_12x10_RGBA;
+      GL_COMPRESSED_RGBA_ASTC_12x12_KHR        : Compression := tcASTC_12x12_RGBA;
+
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR  : Compression := tcASTC_4x4_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR  : Compression := tcASTC_5x4_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR  : Compression := tcASTC_5x5_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR  : Compression := tcASTC_6x5_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR  : Compression := tcASTC_6x6_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR  : Compression := tcASTC_8x5_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR  : Compression := tcASTC_8x6_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR  : Compression := tcASTC_8x8_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR : Compression := tcASTC_10x5_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR : Compression := tcASTC_10x6_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR : Compression := tcASTC_10x8_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR: Compression := tcASTC_10x10_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR: Compression := tcASTC_12x10_SRGB8_ALPHA8;
+      GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR: Compression := tcASTC_12x12_SRGB8_ALPHA8;
+
       else raise EInvalidKTX.CreateFmt('GPU compression 0x%.4x not supported',
         [Header.GlInternalFormat]);
     end;

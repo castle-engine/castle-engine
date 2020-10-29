@@ -323,6 +323,7 @@ type
       procedure PollTranslation;
       procedure PollKeys;
       procedure Poll;
+      { Get current rotation, with angle in radians. }
       procedure GetSensorRotation(var X, Y, Z, Angle: Double);
       procedure GetSensorTranslation(var X, Y, Z, Length: Double);
       procedure SetExampleCustomEmulations;
@@ -352,7 +353,7 @@ procedure SaveSchemeToFile(const Scheme: TEmulationSettings; const Filename: str
 implementation
 
 uses
-   IniFiles;
+   IniFiles, Math;
 
 const
   {$EXTERNALSYM MOUSEEVENTF_HWHEEL}
@@ -431,29 +432,32 @@ procedure T3DConnexionDevice.FireKeyChange(const KeyIndex: integer;
   const Pressed: boolean);
 var keyFlag: cardinal;
 begin
-   if Assigned(FOnKeyChange)
-    then FOnKeyChange(KeyIndex, Pressed);
-   case Pressed of
-      true: if Assigned(FOnKeyDown)
-       then FOnKeyDown(KeyIndex);
-      false: if Assigned(FOnKeyUp)
-       then FOnKeyUp(KeyIndex);
-   end;
-   case FEmulationType of
-      etNone: ;
-      etMouse, etMouseKeyboard: begin
-         case KeyIndex of
-            1: if Pressed
-             then KeyFlag := MOUSEEVENTF_RIGHTDOWN
-              else KeyFlag := MOUSEEVENTF_RIGHTUP;
-            else if Pressed
-             then KeyFlag := MOUSEEVENTF_LEFTDOWN
-              else KeyFlag := MOUSEEVENTF_LEFTUP;
-         end;
-         Mouse_Event(KeyFlag, 0, 0, 0, 0);
-      end;
-      etKeyboard: ;
-   end;
+  if Assigned(FOnKeyChange) then
+    FOnKeyChange(KeyIndex, Pressed);
+  if Pressed then
+  begin
+    if Assigned(FOnKeyDown) then FOnKeyDown(KeyIndex);
+  end else
+  begin
+    if Assigned(FOnKeyUp) then FOnKeyUp(KeyIndex);
+  end;
+  if FEmulationType in [etMouse, etMouseKeyboard] then
+  begin
+    if KeyIndex = 1 then
+    begin
+      if Pressed then
+        KeyFlag := MOUSEEVENTF_RIGHTDOWN
+      else
+        KeyFlag := MOUSEEVENTF_RIGHTUP;
+    end else
+    begin
+      if Pressed then
+        KeyFlag := MOUSEEVENTF_LEFTDOWN
+      else
+        KeyFlag := MOUSEEVENTF_LEFTUP;
+    end;
+    Mouse_Event(KeyFlag, 0, 0, 0, 0);
+  end;
 end;
 
 {*------------------------------------------------------------------------------
@@ -758,7 +762,7 @@ begin
    X := rotation.X;
    Y := rotation.Y;
    Z := rotation.Z;
-   Angle := rotation.Angle;
+   Angle := DegToRad(rotation.Angle);
 end;
 
 procedure T3DConnexionDevice.GetSensorTranslation(var X, Y, Z, Length: Double);

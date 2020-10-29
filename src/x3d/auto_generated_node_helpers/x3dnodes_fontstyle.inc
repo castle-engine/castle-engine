@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,31 +26,43 @@
 {$ifdef read_interface}
 
   strict private
-    function GetHorizontal: boolean;
-    procedure SetHorizontal(const Value: boolean);
-    function GetLanguage: string;
-    procedure SetLanguage(const Value: string);
-    function GetLeftToRight: boolean;
-    procedure SetLeftToRight(const Value: boolean);
+    function GetHorizontal: Boolean;
+    procedure SetHorizontal(const Value: Boolean);
+{$ifndef CASTLE_SLIM_NODES}
+    function GetLanguage: String;
+    procedure SetLanguage(const Value: String);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    function GetLeftToRight: Boolean;
+    procedure SetLeftToRight(const Value: Boolean);
+{$endif not CASTLE_SLIM_NODES}
     function GetSize: Single;
     procedure SetSize(const Value: Single);
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
-    function GetTopToBottom: boolean;
-    procedure SetTopToBottom(const Value: boolean);
+{$ifndef CASTLE_SLIM_NODES}
+    function GetTopToBottom: Boolean;
+    procedure SetTopToBottom(const Value: Boolean);
+{$endif not CASTLE_SLIM_NODES}
   public
     { X3D field "horizontal". } { }
-    property Horizontal: boolean read GetHorizontal write SetHorizontal;
+    property Horizontal: Boolean read GetHorizontal write SetHorizontal;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "language". } { }
-    property Language: string read GetLanguage write SetLanguage;
+    property Language: String read GetLanguage write SetLanguage;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "leftToRight". } { }
-    property LeftToRight: boolean read GetLeftToRight write SetLeftToRight;
+    property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
+{$endif not CASTLE_SLIM_NODES}
     { X3D field "size". } { }
     property Size: Single read GetSize write SetSize;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "topToBottom". } { }
-    property TopToBottom: boolean read GetTopToBottom write SetTopToBottom;
+    property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -58,36 +70,40 @@
 
 { TFontStyleNode ----------------------------------------------- }
 
-function TFontStyleNode.GetHorizontal: boolean;
+function TFontStyleNode.GetHorizontal: Boolean;
 begin
   Result := FdHorizontal.Value;
 end;
 
-procedure TFontStyleNode.SetHorizontal(const Value: boolean);
+procedure TFontStyleNode.SetHorizontal(const Value: Boolean);
 begin
   FdHorizontal.Send(Value);
 end;
 
-function TFontStyleNode.GetLanguage: string;
+{$ifndef CASTLE_SLIM_NODES}
+function TFontStyleNode.GetLanguage: String;
 begin
   Result := FdLanguage.Value;
 end;
 
-procedure TFontStyleNode.SetLanguage(const Value: string);
+procedure TFontStyleNode.SetLanguage(const Value: String);
 begin
   FdLanguage.Send(Value);
 end;
 
-function TFontStyleNode.GetLeftToRight: boolean;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+function TFontStyleNode.GetLeftToRight: Boolean;
 begin
   Result := FdLeftToRight.Value;
 end;
 
-procedure TFontStyleNode.SetLeftToRight(const Value: boolean);
+procedure TFontStyleNode.SetLeftToRight(const Value: Boolean);
 begin
   FdLeftToRight.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 function TFontStyleNode.GetSize: Single;
 begin
   Result := FdSize.Value;
@@ -108,14 +124,16 @@ begin
   FdSpacing.Send(Value);
 end;
 
-function TFontStyleNode.GetTopToBottom: boolean;
+{$ifndef CASTLE_SLIM_NODES}
+function TFontStyleNode.GetTopToBottom: Boolean;
 begin
   Result := FdTopToBottom.Value;
 end;
 
-procedure TFontStyleNode.SetTopToBottom(const Value: boolean);
+procedure TFontStyleNode.SetTopToBottom(const Value: Boolean);
 begin
   FdTopToBottom.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
 {$endif read_implementation}

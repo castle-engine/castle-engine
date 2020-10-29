@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDescription: string;
-    procedure SetDescription(const Value: string);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
     function GetPitch: Single;
     procedure SetPitch(const Value: Single);
   public
     { X3D field "description". } { }
-    property Description: string read GetDescription write SetDescription;
+    property Description: String read GetDescription write SetDescription;
     { X3D field "pitch". } { }
     property Pitch: Single read GetPitch write SetPitch;
 
@@ -42,12 +42,12 @@
 
 { TAbstractSoundSourceNode ----------------------------------------------- }
 
-function TAbstractSoundSourceNode.GetDescription: string;
+function TAbstractSoundSourceNode.GetDescription: String;
 begin
   Result := FdDescription.Value;
 end;
 
-procedure TAbstractSoundSourceNode.SetDescription(const Value: string);
+procedure TAbstractSoundSourceNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
 end;

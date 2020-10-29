@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -48,7 +48,7 @@
     { Set X3D field "source". } { }
     procedure SetSource(const Value: TCastleStringList);
     { Set X3D field "texture". } { }
-    procedure SetTexture(const Value: array of TAbstractTextureNode);
+    procedure SetTexture(const Value: array of TAbstractSingleTextureNode);
 
 {$endif read_interface}
 
@@ -106,7 +106,7 @@ begin
   FdSource.Send(Value);
 end;
 
-procedure TMultiTextureNode.SetTexture(const Value: array of TAbstractTextureNode);
+procedure TMultiTextureNode.SetTexture(const Value: array of TAbstractSingleTextureNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -114,7 +114,7 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TAbstractTextureNode));
+    Move(Value[0], A[0], L * SizeOf(TAbstractSingleTextureNode));
   FdTexture.Send(A);
 end;
 

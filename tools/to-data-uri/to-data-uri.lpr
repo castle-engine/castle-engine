@@ -35,7 +35,7 @@ var
   Stream: TStream;
   Base64Encode: TBase64EncodingStream;
 begin
-  EnableNetwork := true;
+  EnableBlockingDownloads := true;
   Parameters.CheckHigh(1);
   Stream := Download(Parameters[1], [], MimeType);
   try

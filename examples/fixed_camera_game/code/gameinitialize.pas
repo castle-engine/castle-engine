@@ -45,6 +45,7 @@ begin
   Window.Container.UIReferenceWidth := DefaultWindowWidth;
   Window.Container.UIReferenceHeight := DefaultWindowHeight;
   Window.Container.UIScaling := usEncloseReferenceSize;
+  Window.Container.BackgroundColor := Black;
 
   { configure Notifications }
   Notifications.MaxMessages := 4;
@@ -58,7 +59,7 @@ begin
 
   { load game configuration }
   GameConfig := TCastleConfig.Create(nil);
-  GameConfig.URL := ApplicationData('game.xml');
+  GameConfig.URL := 'castle-data:/game.xml';
   CreatureKinds := TCreatureKindList.Create;
   Locations := TLocationList.Create;
 

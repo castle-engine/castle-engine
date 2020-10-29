@@ -32,6 +32,9 @@ Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
+  {$ifndef OpenGLES}
+  Colormap: TColormap;
+  {$endif}
 
   {$ifdef CASTLE_ENGINE_PLUGIN}
   PluginWindow: TNPWindow;
@@ -58,7 +61,7 @@ private
     byte) to our TKey values. The most significant byte of X keysym determines
     which array to use. }
   KeySym0ToKey, KeySymFFToKey: TKeysBytes;
-  { KeySymToKey; zamienia ksym na TKey, zwraca K_None jezeli
+  { KeySymToKey; zamienia ksym na TKey, zwraca keyNone jezeli
     nie dalo sie skonwertowac (bo moze ten keysym nie ma odpowiednika
     w naszym malym TKey ? a moze ksym byl = NoSymbol ?) }
   function KeySymToKey(ksym: TKeySym): TKey;
@@ -152,7 +155,15 @@ begin
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
-  ContextCreateBegin(Attr, AttrValueMask);
+  { Creates XVisual }
+  ContextCreateBegin;
+
+  {$ifndef OpenGLES}
+  Colormap := XCreateColormap(Application.XDisplay, ParentWinXID,
+    XVisual^.Visual, AllocNone);
+  Attr.Colormap := Colormap;
+  AttrValueMask := AttrValueMask or CWColormap;
+  {$endif}
 
   if FullScreen then
   begin
@@ -284,7 +295,7 @@ procedure TCastleWindowBase.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
-  ContextDestroy;
+  ContextDestroyBegin;
 
   if FFullScreenBackend and Visible then
   begin
@@ -313,9 +324,14 @@ begin
   end;
 
   {$ifndef OpenGLES}
-  if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
-  if XVisual   <> nil  then begin XFree(XVisual);                                  XVisual := nil    end;
+  if Colormap  <> None then
+  begin
+    XFreeColormap(Application.XDisplay, Colormap);
+    Colormap := None;
+  end;
   {$endif}
+
+  ContextDestroyEnd;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -514,7 +530,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
       XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
       else begin
         Key := Application.KeySymToKey(k);
-        if (Key <> K_None) or (EventString <> '') then DoKeyDown(Key, EventString);
+        if (Key <> keyNone) or (EventString <> '') then DoKeyDown(Key, EventString);
       end;
     end;
   end;
@@ -543,7 +559,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
       XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
       else begin
         Key := Application.KeySymToKey(k);
-        if Key <> K_None then DoKeyUp(Key);
+        if Key <> keyNone then DoKeyUp(Key);
       end;
     end;
   end;
@@ -570,20 +586,20 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     DoResize(xEvent.width, xEvent.height, false);
   end;
 
-  function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): boolean;
   begin
     result := true;
     case button of
-      Button1 : mbtn := mbLeft;
-      Button2 : mbtn := mbMiddle;
-      Button3 : mbtn := mbRight;
+      Button1 : mbtn := buttonLeft;
+      Button2 : mbtn := buttonMiddle;
+      Button3 : mbtn := buttonRight;
       else Result := false;
     end;
   end;
 
   procedure X_ButtonPress(const xEvent: TXButtonPressedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseDown(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0) else
@@ -597,7 +613,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
 
   procedure X_ButtonRelease(const xEvent: TXButtonReleasedEvent);
   var
-    btn: TMouseButton;
+    btn: TCastleMouseButton;
   begin
     if xbtnToMouseButton(xEvent.button, btn) then
       DoMouseUp(LeftTopToCastle(xEvent.x, xEvent.y), btn, 0)
@@ -607,9 +623,9 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
   begin
     { We could refresh MousePressed now. But no need for now?
     mousePressed:=[];
-    if (Button1Mask and event.state) <> 0 then Include(mousePressed, mbLeft);
-    if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
-    if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
+    if (Button1Mask and event.state) <> 0 then Include(mousePressed, buttonLeft);
+    if (Button2Mask and event.state) <> 0 then Include(mousePressed, buttonMiddle);
+    if (Button3Mask and event.state) <> 0 then Include(mousePressed, buttonRight);
     }
     DoMotion(InputMotion(MousePosition,
       LeftTopToCastle(xEvent.x, xEvent.y),
@@ -665,10 +681,10 @@ end;
 
 function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
-  Result := K_None;
+  Result := keyNone;
   if ksym <> NoSymbol then
     case ksym and $FF00 of
-      { Note that KeySym*ToKey values may be K_None, and so we may return K_None. }
+      { Note that KeySym*ToKey values may be keyNone, and so we may return keyNone. }
       $0000: Exit(KeySym0ToKey [ksym and $FF]);
       $FF00: Exit(KeySymFFToKey[ksym and $FF]);
    end;
@@ -734,74 +750,74 @@ begin
   { See ~/sources/fpc/trunk/packages/x11/src/keysym.pp }
 
   { initialize KeySym*ToKey }
-  for b := Low(b) to High(b) do KeySym0ToKey[b] := K_None;
-  for b := Low(b) to High(b) do KeySymFFToKey[b] := K_None;
+  for b := Low(b) to High(b) do KeySym0ToKey[b] := keyNone;
+  for b := Low(b) to High(b) do KeySymFFToKey[b] := keyNone;
 
-  KeySymFFToKey[XK_Page_Up and $FF] := K_PageUp;
-  KeySymFFToKey[XK_Page_Down and $FF] := K_PageDown;
-  KeySymFFToKey[XK_Home and $FF] := K_Home;
-  KeySymFFToKey[XK_End and $FF] := K_End;
-  KeySymFFToKey[XK_Left and $FF] := K_Left;
-  KeySymFFToKey[XK_Right and $FF] := K_Right;
-  KeySymFFToKey[XK_Up and $FF] := K_Up;
-  KeySymFFToKey[XK_Down and $FF] := K_Down;
-  KeySymFFToKey[XK_Delete and $FF] := K_Delete;
-  KeySymFFToKey[XK_Insert and $FF] := K_Insert;
-  KeySymFFToKey[XK_BackSpace and $FF] := K_BackSpace;
-  KeySymFFToKey[XK_Tab and $FF] := K_Tab;
-  KeySymFFToKey[XK_KP_Add and $FF] := K_Numpad_Plus;
-  KeySymFFToKey[XK_KP_Subtract and $FF] := K_Numpad_Minus;
-  KeySymFFToKey[XK_Escape and $FF] := K_Escape;
-  KeySymFFToKey[XK_Return and $FF] := K_Enter;
-  KeySymFFToKey[XK_Print and $FF] := K_PrintScreen;
-  KeySymFFToKey[XK_Caps_Lock and $FF] := K_CapsLock;
-  KeySymFFToKey[XK_Scroll_Lock and $FF] := K_ScrollLock;
-  KeySymFFToKey[XK_Num_Lock and $FF] := K_NumLock;
-  KeySymFFToKey[XK_Pause and $FF] := K_Pause;
+  KeySymFFToKey[XK_Page_Up and $FF] := keyPageUp;
+  KeySymFFToKey[XK_Page_Down and $FF] := keyPageDown;
+  KeySymFFToKey[XK_Home and $FF] := keyHome;
+  KeySymFFToKey[XK_End and $FF] := keyEnd;
+  KeySymFFToKey[XK_Left and $FF] := keyArrowLeft;
+  KeySymFFToKey[XK_Right and $FF] := keyArrowRight;
+  KeySymFFToKey[XK_Up and $FF] := keyArrowUp;
+  KeySymFFToKey[XK_Down and $FF] := keyArrowDown;
+  KeySymFFToKey[XK_Delete and $FF] := keyDelete;
+  KeySymFFToKey[XK_Insert and $FF] := keyInsert;
+  KeySymFFToKey[XK_BackSpace and $FF] := keyBackSpace;
+  KeySymFFToKey[XK_Tab and $FF] := keyTab;
+  KeySymFFToKey[XK_KP_Add and $FF] := keyNumpadPlus;
+  KeySymFFToKey[XK_KP_Subtract and $FF] := keyNumpadMinus;
+  KeySymFFToKey[XK_Escape and $FF] := keyEscape;
+  KeySymFFToKey[XK_Return and $FF] := keyEnter;
+  KeySymFFToKey[XK_Print and $FF] := keyPrintScreen;
+  KeySymFFToKey[XK_Caps_Lock and $FF] := keyCapsLock;
+  KeySymFFToKey[XK_Scroll_Lock and $FF] := keyScrollLock;
+  KeySymFFToKey[XK_Num_Lock and $FF] := keyNumLock;
+  KeySymFFToKey[XK_Pause and $FF] := keyPause;
 
-  KeySymFFToKey[XK_KP_0 and $FF] := K_Numpad_0;
-  KeySymFFToKey[XK_KP_1 and $FF] := K_Numpad_1;
-  KeySymFFToKey[XK_KP_2 and $FF] := K_Numpad_2;
-  KeySymFFToKey[XK_KP_3 and $FF] := K_Numpad_3;
-  KeySymFFToKey[XK_KP_4 and $FF] := K_Numpad_4;
-  KeySymFFToKey[XK_KP_5 and $FF] := K_Numpad_5;
-  KeySymFFToKey[XK_KP_6 and $FF] := K_Numpad_6;
-  KeySymFFToKey[XK_KP_7 and $FF] := K_Numpad_7;
-  KeySymFFToKey[XK_KP_8 and $FF] := K_Numpad_8;
-  KeySymFFToKey[XK_KP_9 and $FF] := K_Numpad_9;
-  KeySymFFToKey[XK_KP_End and $FF] := K_Numpad_End;
-  KeySymFFToKey[XK_KP_Down and $FF] := K_Numpad_Down;
-  KeySymFFToKey[XK_KP_Next and $FF] := K_Numpad_PageDown;
-  KeySymFFToKey[XK_KP_Left and $FF] := K_Numpad_Left;
-  KeySymFFToKey[XK_KP_Begin and $FF] := K_Numpad_Begin;
-  KeySymFFToKey[XK_KP_Right and $FF] := K_Numpad_Right;
-  KeySymFFToKey[XK_KP_Home and $FF] := K_Numpad_Home;
-  KeySymFFToKey[XK_KP_Up and $FF] := K_Numpad_Up;
-  KeySymFFToKey[XK_KP_Prior and $FF] := K_Numpad_PageUp;
-  KeySymFFToKey[XK_KP_Insert and $FF] := K_Numpad_Insert;
-  KeySymFFToKey[XK_KP_Delete and $FF] := K_Numpad_Delete;
-  KeySymFFToKey[XK_KP_Enter and $FF] := K_Numpad_Enter;
-  KeySymFFToKey[XK_KP_Multiply and $FF] := K_Numpad_Multiply;
-  KeySymFFToKey[XK_KP_Divide and $FF] := K_Numpad_Divide;
+  KeySymFFToKey[XK_KP_0 and $FF] := keyNumpad0;
+  KeySymFFToKey[XK_KP_1 and $FF] := keyNumpad1;
+  KeySymFFToKey[XK_KP_2 and $FF] := keyNumpad2;
+  KeySymFFToKey[XK_KP_3 and $FF] := keyNumpad3;
+  KeySymFFToKey[XK_KP_4 and $FF] := keyNumpad4;
+  KeySymFFToKey[XK_KP_5 and $FF] := keyNumpad5;
+  KeySymFFToKey[XK_KP_6 and $FF] := keyNumpad6;
+  KeySymFFToKey[XK_KP_7 and $FF] := keyNumpad7;
+  KeySymFFToKey[XK_KP_8 and $FF] := keyNumpad8;
+  KeySymFFToKey[XK_KP_9 and $FF] := keyNumpad9;
+  KeySymFFToKey[XK_KP_End and $FF] := keyNumpadEnd;
+  KeySymFFToKey[XK_KP_Down and $FF] := keyNumpadDown;
+  KeySymFFToKey[XK_KP_Next and $FF] := keyNumpadPageDown;
+  KeySymFFToKey[XK_KP_Left and $FF] := keyNumpadLeft;
+  KeySymFFToKey[XK_KP_Begin and $FF] := keyNumpadBegin;
+  KeySymFFToKey[XK_KP_Right and $FF] := keyNumpadRight;
+  KeySymFFToKey[XK_KP_Home and $FF] := keyNumpadHome;
+  KeySymFFToKey[XK_KP_Up and $FF] := keyNumpadUp;
+  KeySymFFToKey[XK_KP_Prior and $FF] := keyNumpadPageUp;
+  KeySymFFToKey[XK_KP_Insert and $FF] := keyNumpadInsert;
+  KeySymFFToKey[XK_KP_Delete and $FF] := keyNumpadDelete;
+  KeySymFFToKey[XK_KP_Enter and $FF] := keyNumpadEnter;
+  KeySymFFToKey[XK_KP_Multiply and $FF] := keyNumpadMultiply;
+  KeySymFFToKey[XK_KP_Divide and $FF] := keyNumpadDivide;
 
-  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := TKey(Ord(K_F1) + b);
+  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := TKey(Ord(keyF1) + b);
 
   for b := XK_0 to XK_9 do KeySym0ToKey[b] := TKey(b);
   for b := XK_a_lower to XK_z_lower do KeySym0ToKey[b] := TKey(Ord(UpCase(Chr(b))));
   for b := XK_a_upper to XK_z_upper do KeySym0ToKey[b] := TKey(b);
-  KeySym0ToKey[XK_Space] := K_Space;
-  KeySym0ToKey[XK_comma] := K_comma;
-  KeySym0ToKey[XK_period] := K_period;
-  KeySym0ToKey[XK_bracketleft] := K_LeftBracket;
-  KeySym0ToKey[XK_bracketright] := K_RightBracket;
-  KeySym0ToKey[XK_apostrophe] := K_Apostrophe;
-  KeySym0ToKey[XK_semicolon] := K_Semicolon;
-  KeySym0ToKey[XK_slash] := K_Slash;
-  KeySym0ToKey[XK_grave] := K_BackQuote;
-  KeySym0ToKey[XK_minus] := K_Minus;
-  KeySym0ToKey[XK_plus] := K_Plus;
-  KeySym0ToKey[XK_equal] := K_Equal;
-  KeySym0ToKey[XK_backslash] := K_BackSlash;
+  KeySym0ToKey[XK_Space] := keySpace;
+  KeySym0ToKey[XK_comma] := keyComma;
+  KeySym0ToKey[XK_period] := keyPeriod;
+  KeySym0ToKey[XK_bracketleft] := keyLeftBracket;
+  KeySym0ToKey[XK_bracketright] := keyRightBracket;
+  KeySym0ToKey[XK_apostrophe] := keyApostrophe;
+  KeySym0ToKey[XK_semicolon] := keySemicolon;
+  KeySym0ToKey[XK_slash] := keySlash;
+  KeySym0ToKey[XK_grave] := keyBackQuote;
+  KeySym0ToKey[XK_minus] := keyMinus;
+  KeySym0ToKey[XK_plus] := keyPlus;
+  KeySym0ToKey[XK_equal] := keyEqual;
+  KeySym0ToKey[XK_backslash] := keyBackSlash;
 end;
 
 procedure TCastleApplication.DestroyBackend;
@@ -870,6 +886,13 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 begin
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

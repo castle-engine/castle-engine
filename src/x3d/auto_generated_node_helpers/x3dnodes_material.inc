@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,57 +28,241 @@
   strict private
     function GetAmbientIntensity: Single;
     procedure SetAmbientIntensity(const Value: Single);
+    function GetAmbientTexture: TAbstractSingleTextureNode;
+    procedure SetAmbientTexture(const Value: TAbstractSingleTextureNode);
+    function GetAmbientTextureMapping: String;
+    procedure SetAmbientTextureMapping(const Value: String);
     function GetDiffuseColor: TCastleColorRGB;
     procedure SetDiffuseColor(const Value: TCastleColorRGB);
-    function GetEmissiveColor: TCastleColorRGB;
-    procedure SetEmissiveColor(const Value: TCastleColorRGB);
+    function GetDiffuseTexture: TAbstractSingleTextureNode;
+    procedure SetDiffuseTexture(const Value: TAbstractSingleTextureNode);
+    function GetDiffuseTextureMapping: String;
+    procedure SetDiffuseTextureMapping(const Value: String);
+    function GetOcclusionStrength: Single;
+    procedure SetOcclusionStrength(const Value: Single);
+    function GetOcclusionTexture: TAbstractSingleTextureNode;
+    procedure SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
+    function GetOcclusionTextureMapping: String;
+    procedure SetOcclusionTextureMapping(const Value: String);
     function GetShininess: Single;
     procedure SetShininess(const Value: Single);
+    function GetShininessTexture: TAbstractSingleTextureNode;
+    procedure SetShininessTexture(const Value: TAbstractSingleTextureNode);
+    function GetShininessTextureMapping: String;
+    procedure SetShininessTextureMapping(const Value: String);
     function GetSpecularColor: TCastleColorRGB;
     procedure SetSpecularColor(const Value: TCastleColorRGB);
+    function GetSpecularTexture: TAbstractSingleTextureNode;
+    procedure SetSpecularTexture(const Value: TAbstractSingleTextureNode);
+    function GetSpecularTextureMapping: String;
+    procedure SetSpecularTextureMapping(const Value: String);
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
+    function GetFogImmune: Boolean;
+    procedure SetFogImmune(const Value: Boolean);
+{$endif not CASTLE_SLIM_NODES}
     function GetMirror: Single;
     procedure SetMirror(const Value: Single);
+{$ifndef CASTLE_SLIM_NODES}
     function GetReflSpecularExp: Single;
     procedure SetReflSpecularExp(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     function GetTransSpecularExp: Single;
     procedure SetTransSpecularExp(const Value: Single);
+{$endif not CASTLE_SLIM_NODES}
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdAmbientIntensity: TSFFloat;
+    { X3D field "ambientIntensity". } { }
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
     { X3D field "ambientIntensity". } { }
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
+
+    strict private FFdAmbientTexture: TSFNode;
+    { X3D field "ambientTexture". } { }
+    public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
+    { X3D field "ambientTexture". } { }
+    property AmbientTexture: TAbstractSingleTextureNode read GetAmbientTexture write SetAmbientTexture;
+
+    strict private FFdAmbientTextureMapping: TSFString;
+    { X3D field "ambientTextureMapping". } { }
+    public property FdAmbientTextureMapping: TSFString read FFdAmbientTextureMapping;
+    { X3D field "ambientTextureMapping". } { }
+    property AmbientTextureMapping: String read GetAmbientTextureMapping write SetAmbientTextureMapping;
+
+    strict private FFdDiffuseColor: TSFColor;
+    { X3D field "diffuseColor". } { }
+    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
     { X3D field "diffuseColor". } { }
     property DiffuseColor: TCastleColorRGB read GetDiffuseColor write SetDiffuseColor;
-    { X3D field "emissiveColor". } { }
-    property EmissiveColor: TCastleColorRGB read GetEmissiveColor write SetEmissiveColor;
+
+    strict private FFdDiffuseTexture: TSFNode;
+    { X3D field "diffuseTexture". } { }
+    public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
+    { X3D field "diffuseTexture". } { }
+    property DiffuseTexture: TAbstractSingleTextureNode read GetDiffuseTexture write SetDiffuseTexture;
+
+    strict private FFdDiffuseTextureMapping: TSFString;
+    { X3D field "diffuseTextureMapping". } { }
+    public property FdDiffuseTextureMapping: TSFString read FFdDiffuseTextureMapping;
+    { X3D field "diffuseTextureMapping". } { }
+    property DiffuseTextureMapping: String read GetDiffuseTextureMapping write SetDiffuseTextureMapping;
+
+    strict private FFdOcclusionStrength: TSFFloat;
+    { X3D field "occlusionStrength". } { }
+    public property FdOcclusionStrength: TSFFloat read FFdOcclusionStrength;
+    { X3D field "occlusionStrength". } { }
+    property OcclusionStrength: Single read GetOcclusionStrength write SetOcclusionStrength;
+
+    strict private FFdOcclusionTexture: TSFNode;
+    { X3D field "occlusionTexture". } { }
+    public property FdOcclusionTexture: TSFNode read FFdOcclusionTexture;
+    { X3D field "occlusionTexture". } { }
+    property OcclusionTexture: TAbstractSingleTextureNode read GetOcclusionTexture write SetOcclusionTexture;
+
+    strict private FFdOcclusionTextureMapping: TSFString;
+    { X3D field "occlusionTextureMapping". } { }
+    public property FdOcclusionTextureMapping: TSFString read FFdOcclusionTextureMapping;
+    { X3D field "occlusionTextureMapping". } { }
+    property OcclusionTextureMapping: String read GetOcclusionTextureMapping write SetOcclusionTextureMapping;
+
+    strict private FFdShininess: TSFFloat;
+    { X3D field "shininess". } { }
+    public property FdShininess: TSFFloat read FFdShininess;
     { X3D field "shininess". } { }
     property Shininess: Single read GetShininess write SetShininess;
+
+    strict private FFdShininessTexture: TSFNode;
+    { X3D field "shininessTexture". } { }
+    public property FdShininessTexture: TSFNode read FFdShininessTexture;
+    { X3D field "shininessTexture". } { }
+    property ShininessTexture: TAbstractSingleTextureNode read GetShininessTexture write SetShininessTexture;
+
+    strict private FFdShininessTextureMapping: TSFString;
+    { X3D field "shininessTextureMapping". } { }
+    public property FdShininessTextureMapping: TSFString read FFdShininessTextureMapping;
+    { X3D field "shininessTextureMapping". } { }
+    property ShininessTextureMapping: String read GetShininessTextureMapping write SetShininessTextureMapping;
+
+    strict private FFdSpecularColor: TSFColor;
+    { X3D field "specularColor". } { }
+    public property FdSpecularColor: TSFColor read FFdSpecularColor;
     { X3D field "specularColor". } { }
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
+
+    strict private FFdSpecularTexture: TSFNode;
+    { X3D field "specularTexture". } { }
+    public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
+    { X3D field "specularTexture". } { }
+    property SpecularTexture: TAbstractSingleTextureNode read GetSpecularTexture write SetSpecularTexture;
+
+    strict private FFdSpecularTextureMapping: TSFString;
+    { X3D field "specularTextureMapping". } { }
+    public property FdSpecularTextureMapping: TSFString read FFdSpecularTextureMapping;
+    { X3D field "specularTextureMapping". } { }
+    property SpecularTextureMapping: String read GetSpecularTextureMapping write SetSpecularTextureMapping;
+
+    strict private FFdTransparency: TSFFloat;
+    { X3D field "transparency". } { }
+    public property FdTransparency: TSFFloat read FFdTransparency;
     { X3D field "transparency". } { }
     property Transparency: Single read GetTransparency write SetTransparency;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdFogImmune: TSFBool;
+    { X3D field "fogImmune". } { }
+    public property FdFogImmune: TSFBool read FFdFogImmune;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
+    { X3D field "fogImmune". } { }
+    property FogImmune: Boolean read GetFogImmune write SetFogImmune;
+{$endif not CASTLE_SLIM_NODES}
+
+    strict private FFdMirror: TSFFloat;
+    { X3D field "mirror". } { }
+    public property FdMirror: TSFFloat read FFdMirror;
     { X3D field "mirror". } { }
     property Mirror: Single read GetMirror write SetMirror;
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdReflSpecular: TMFColor;
+    { X3D field "reflSpecular". } { }
+    public property FdReflSpecular: TMFColor read FFdReflSpecular;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
     procedure SetReflSpecular(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflSpecular". } { }
     procedure SetReflSpecular(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdReflDiffuse: TMFColor;
+    { X3D field "reflDiffuse". } { }
+    public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
     procedure SetReflDiffuse(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "reflDiffuse". } { }
     procedure SetReflDiffuse(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdTransSpecular: TMFColor;
+    { X3D field "transSpecular". } { }
+    public property FdTransSpecular: TMFColor read FFdTransSpecular;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
     procedure SetTransSpecular(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transSpecular". } { }
     procedure SetTransSpecular(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdTransDiffuse: TMFColor;
+    { X3D field "transDiffuse". } { }
+    public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
     procedure SetTransDiffuse(const Value: array of TCastleColorRGB);
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { Set X3D field "transDiffuse". } { }
     procedure SetTransDiffuse(const Value: TVector3List);
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdReflSpecularExp: TSFFloat;
+    { X3D field "reflSpecularExp". } { }
+    public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "reflSpecularExp". } { }
     property ReflSpecularExp: Single read GetReflSpecularExp write SetReflSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+    strict private FFdTransSpecularExp: TSFFloat;
+    { X3D field "transSpecularExp". } { }
+    public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
     { X3D field "transSpecularExp". } { }
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
+{$endif not CASTLE_SLIM_NODES}
 
 {$endif read_interface}
 
@@ -96,6 +280,29 @@ begin
   FdAmbientIntensity.Send(Value);
 end;
 
+function TMaterialNode.GetAmbientTexture: TAbstractSingleTextureNode;
+begin
+  if FdAmbientTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdAmbientTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetAmbientTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdAmbientTexture.Send(Value);
+end;
+
+function TMaterialNode.GetAmbientTextureMapping: String;
+begin
+  Result := FdAmbientTextureMapping.Value;
+end;
+
+procedure TMaterialNode.SetAmbientTextureMapping(const Value: String);
+begin
+  FdAmbientTextureMapping.Send(Value);
+end;
+
 function TMaterialNode.GetDiffuseColor: TCastleColorRGB;
 begin
   Result := FdDiffuseColor.Value;
@@ -106,14 +313,60 @@ begin
   FdDiffuseColor.Send(Value);
 end;
 
-function TMaterialNode.GetEmissiveColor: TCastleColorRGB;
+function TMaterialNode.GetDiffuseTexture: TAbstractSingleTextureNode;
 begin
-  Result := FdEmissiveColor.Value;
+  if FdDiffuseTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdDiffuseTexture.Value)
+  else
+    Result := nil;
 end;
 
-procedure TMaterialNode.SetEmissiveColor(const Value: TCastleColorRGB);
+procedure TMaterialNode.SetDiffuseTexture(const Value: TAbstractSingleTextureNode);
 begin
-  FdEmissiveColor.Send(Value);
+  FdDiffuseTexture.Send(Value);
+end;
+
+function TMaterialNode.GetDiffuseTextureMapping: String;
+begin
+  Result := FdDiffuseTextureMapping.Value;
+end;
+
+procedure TMaterialNode.SetDiffuseTextureMapping(const Value: String);
+begin
+  FdDiffuseTextureMapping.Send(Value);
+end;
+
+function TMaterialNode.GetOcclusionStrength: Single;
+begin
+  Result := FdOcclusionStrength.Value;
+end;
+
+procedure TMaterialNode.SetOcclusionStrength(const Value: Single);
+begin
+  FdOcclusionStrength.Send(Value);
+end;
+
+function TMaterialNode.GetOcclusionTexture: TAbstractSingleTextureNode;
+begin
+  if FdOcclusionTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdOcclusionTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetOcclusionTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdOcclusionTexture.Send(Value);
+end;
+
+function TMaterialNode.GetOcclusionTextureMapping: String;
+begin
+  Result := FdOcclusionTextureMapping.Value;
+end;
+
+procedure TMaterialNode.SetOcclusionTextureMapping(const Value: String);
+begin
+  FdOcclusionTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetShininess: Single;
@@ -126,6 +379,29 @@ begin
   FdShininess.Send(Value);
 end;
 
+function TMaterialNode.GetShininessTexture: TAbstractSingleTextureNode;
+begin
+  if FdShininessTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdShininessTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetShininessTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdShininessTexture.Send(Value);
+end;
+
+function TMaterialNode.GetShininessTextureMapping: String;
+begin
+  Result := FdShininessTextureMapping.Value;
+end;
+
+procedure TMaterialNode.SetShininessTextureMapping(const Value: String);
+begin
+  FdShininessTextureMapping.Send(Value);
+end;
+
 function TMaterialNode.GetSpecularColor: TCastleColorRGB;
 begin
   Result := FdSpecularColor.Value;
@@ -134,6 +410,29 @@ end;
 procedure TMaterialNode.SetSpecularColor(const Value: TCastleColorRGB);
 begin
   FdSpecularColor.Send(Value);
+end;
+
+function TMaterialNode.GetSpecularTexture: TAbstractSingleTextureNode;
+begin
+  if FdSpecularTexture.Value is TAbstractSingleTextureNode then
+    Result := TAbstractSingleTextureNode(FdSpecularTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TMaterialNode.SetSpecularTexture(const Value: TAbstractSingleTextureNode);
+begin
+  FdSpecularTexture.Send(Value);
+end;
+
+function TMaterialNode.GetSpecularTextureMapping: String;
+begin
+  Result := FdSpecularTextureMapping.Value;
+end;
+
+procedure TMaterialNode.SetSpecularTextureMapping(const Value: String);
+begin
+  FdSpecularTextureMapping.Send(Value);
 end;
 
 function TMaterialNode.GetTransparency: Single;
@@ -146,6 +445,18 @@ begin
   FdTransparency.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
+function TMaterialNode.GetFogImmune: Boolean;
+begin
+  Result := FdFogImmune.Value;
+end;
+
+procedure TMaterialNode.SetFogImmune(const Value: Boolean);
+begin
+  FdFogImmune.Send(Value);
+end;
+
+{$endif not CASTLE_SLIM_NODES}
 function TMaterialNode.GetMirror: Single;
 begin
   Result := FdMirror.Value;
@@ -156,46 +467,63 @@ begin
   FdMirror.Send(Value);
 end;
 
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflSpecular(const Value: array of TCastleColorRGB);
 begin
   FdReflSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflSpecular(const Value: TVector3List);
 begin
   FdReflSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflDiffuse(const Value: array of TCastleColorRGB);
 begin
   FdReflDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetReflDiffuse(const Value: TVector3List);
 begin
   FdReflDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransSpecular(const Value: array of TCastleColorRGB);
 begin
   FdTransSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransSpecular(const Value: TVector3List);
 begin
   FdTransSpecular.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransDiffuse(const Value: array of TCastleColorRGB);
 begin
   FdTransDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 procedure TMaterialNode.SetTransDiffuse(const Value: TVector3List);
 begin
   FdTransDiffuse.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetReflSpecularExp: Single;
 begin
   Result := FdReflSpecularExp.Value;
@@ -206,6 +534,8 @@ begin
   FdReflSpecularExp.Send(Value);
 end;
 
+{$endif not CASTLE_SLIM_NODES}
+{$ifndef CASTLE_SLIM_NODES}
 function TMaterialNode.GetTransSpecularExp: Single;
 begin
   Result := FdTransSpecularExp.Value;
@@ -214,6 +544,143 @@ end;
 procedure TMaterialNode.SetTransSpecularExp(const Value: Single);
 begin
   FdTransSpecularExp.Send(Value);
+end;
+
+{$endif not CASTLE_SLIM_NODES}
+class function TMaterialNode.ClassX3DType: String;
+begin
+  Result := 'Material';
+end;
+
+procedure TMaterialNode.CreateNode;
+begin
+  inherited;
+
+  FFdAmbientIntensity := TSFFloat.Create(Self, True, 'ambientIntensity', 0.2);
+   FdAmbientIntensity.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientIntensity);
+  { X3D specification comment: [0,1] }
+
+  FFdAmbientTexture := TSFNode.Create(Self, True, 'ambientTexture', [TAbstractSingleTextureNode]);
+   FdAmbientTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientTexture);
+
+  FFdAmbientTextureMapping := TSFString.Create(Self, True, 'ambientTextureMapping', '');
+   FdAmbientTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdAmbientTextureMapping);
+
+  FFdDiffuseColor := TSFColor.Create(Self, True, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
+   FdDiffuseColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiffuseColor);
+  { X3D specification comment: [0,1] }
+
+  FFdDiffuseTexture := TSFNode.Create(Self, True, 'diffuseTexture', [TAbstractSingleTextureNode]);
+   FdDiffuseTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiffuseTexture);
+
+  FFdDiffuseTextureMapping := TSFString.Create(Self, True, 'diffuseTextureMapping', '');
+   FdDiffuseTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdDiffuseTextureMapping);
+
+  FFdOcclusionStrength := TSFFloat.Create(Self, True, 'occlusionStrength', 1);
+   FdOcclusionStrength.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionStrength);
+  { X3D specification comment: [0,1] }
+
+  FFdOcclusionTexture := TSFNode.Create(Self, True, 'occlusionTexture', [TAbstractSingleTextureNode]);
+   FdOcclusionTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTexture);
+
+  FFdOcclusionTextureMapping := TSFString.Create(Self, True, 'occlusionTextureMapping', '');
+   FdOcclusionTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdOcclusionTextureMapping);
+
+  FFdShininess := TSFFloat.Create(Self, True, 'shininess', 0.2);
+   FdShininess.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShininess);
+  { X3D specification comment: [0,1] }
+
+  FFdShininessTexture := TSFNode.Create(Self, True, 'shininessTexture', [TAbstractSingleTextureNode]);
+   FdShininessTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShininessTexture);
+
+  FFdShininessTextureMapping := TSFString.Create(Self, True, 'shininessTextureMapping', '');
+   FdShininessTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdShininessTextureMapping);
+
+  FFdSpecularColor := TSFColor.Create(Self, True, 'specularColor', Vector3(0, 0, 0));
+   FdSpecularColor.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpecularColor);
+  { X3D specification comment: [0,1] }
+
+  FFdSpecularTexture := TSFNode.Create(Self, True, 'specularTexture', [TAbstractSingleTextureNode]);
+   FdSpecularTexture.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpecularTexture);
+
+  FFdSpecularTextureMapping := TSFString.Create(Self, True, 'specularTextureMapping', '');
+   FdSpecularTextureMapping.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSpecularTextureMapping);
+
+  FFdTransparency := TSFFloat.Create(Self, True, 'transparency', 0);
+   FdTransparency.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransparency);
+  { X3D specification comment: [0,1] }
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdFogImmune := TSFBool.Create(Self, True, 'fogImmune', false);
+   FdFogImmune.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdFogImmune);
+  { X3D specification comment: NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+  FFdMirror := TSFFloat.Create(Self, True, 'mirror', 0.0);
+   FdMirror.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdMirror);
+  { X3D specification comment: [0.0; 1.0] }
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdReflSpecular := TMFColor.Create(Self, True, 'reflSpecular', []);
+   FdReflSpecular.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReflSpecular);
+  { X3D specification comment: specular reflectance; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdReflDiffuse := TMFColor.Create(Self, True, 'reflDiffuse', []);
+   FdReflDiffuse.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReflDiffuse);
+  { X3D specification comment: diffuse reflectance; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdTransSpecular := TMFColor.Create(Self, True, 'transSpecular', []);
+   FdTransSpecular.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransSpecular);
+  { X3D specification comment: specular transmittance; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdTransDiffuse := TMFColor.Create(Self, True, 'transDiffuse', []);
+   FdTransDiffuse.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransDiffuse);
+  { X3D specification comment: diffuse transmittance; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdReflSpecularExp := TSFFloat.Create(Self, True, 'reflSpecularExp', 1000000);
+   FdReflSpecularExp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdReflSpecularExp);
+  { X3D specification comment: specular reflectance exponent; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+{$ifndef CASTLE_SLIM_NODES}
+  FFdTransSpecularExp := TSFFloat.Create(Self, True, 'transSpecularExp', 1000000);
+   FdTransSpecularExp.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdTransSpecularExp);
+  { X3D specification comment: specular transmittance exponent; NOT-SLIM }
+{$endif not CASTLE_SLIM_NODES}
+
+  DefaultContainerField := 'material';
 end;
 
 {$endif read_implementation}

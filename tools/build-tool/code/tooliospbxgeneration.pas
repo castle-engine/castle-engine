@@ -196,8 +196,6 @@ begin
     Exit;
   end;
 
-  if SpecialDirName(FileInfo.Name) then Exit;
-
   F := TXcodeProjectFile.Create(FileInfo);
   Children.Add(F);
   Project.Files.Add(F);
@@ -240,6 +238,7 @@ function TXcodeProject.SectionPBXFileReference: string;
 var
   F: TXcodeProjectFile;
   Fr: TXcodeProjectFramework;
+  FrameworkInfo: String;
 begin
   Result := '/* Begin PBXFileReference section */' + NL;
 
@@ -252,9 +251,23 @@ begin
     end;
 
   for Fr in Frameworks do
+  begin
+    case ExtractFileExt(Fr.Name) of
+      '.framework': FrameworkInfo := Format(
+        'lastKnownFileType = wrapper.framework; name = %s; path = System/Library/Frameworks/%s; sourceTree = SDKROOT;',
+        [Fr.Name, Fr.Name]);
+      '.a': FrameworkInfo := Format(
+        'lastKnownFileType = archive.ar; path = %s; sourceTree = "<group>";',
+        [Fr.Name]);
+      '.tbd': FrameworkInfo := Format(
+        'lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "%s"; path = "usr/lib/%s"; sourceTree = SDKROOT;',
+        [Fr.Name, Fr.Name]);
+      else raise EInternalError.CreateFmt('Framework file type not supported: %s', [Fr.Name]);
+    end;
     Result := Result + Format(
-      #9#9'%s /* %s.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = %s.framework; path = System/Library/Frameworks/%s.framework; sourceTree = SDKROOT; };' + NL,
-      [Fr.FileUuid, Fr.Name, Fr.Name, Fr.Name]);
+      #9#9'%s /* %s */ = {isa = PBXFileReference; %s };' + NL,
+      [Fr.FileUuid, Fr.Name, FrameworkInfo]);
+  end;
 
   Result := Result +
     { specials }
@@ -287,7 +300,7 @@ begin
 
   for Fr in Frameworks do
     Result := Result + Format(
-      #9#9'%s /* %s.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = %s /* %s.framework */; };' + NL,
+      #9#9'%s /* %s in Frameworks */ = {isa = PBXBuildFile; fileRef = %s /* %s */; };' + NL,
       [Fr.BuildUuid, Fr.Name, Fr.FileUuid, Fr.Name]);
 
   Result := Result +
@@ -357,7 +370,7 @@ begin
     #9#9#9#9'4D629E2A1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} */,' + NL;
   for Fr in Frameworks do
     Result := Result + Format(
-      #9#9#9#9'%s /* %s.framework */,' + NL,
+      #9#9#9#9'%s /* %s */,' + NL,
       [Fr.FileUuid, Fr.Name]);
   Result := Result +
     #9#9#9');' + NL +
@@ -424,7 +437,7 @@ begin
 
   for Fr in Frameworks do
     Result := Result + Format(
-      #9#9#9#9'%s /* %s.framework in Frameworks */,' + NL,
+      #9#9#9#9'%s /* %s in Frameworks */,' + NL,
       [Fr.BuildUuid, Fr.Name]);
 
   Result := Result +

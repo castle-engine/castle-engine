@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -27,7 +27,7 @@
 
   public
     { Set X3D field "textureTransform". } { }
-    procedure SetTextureTransform(const Value: array of TAbstractTextureTransformNode);
+    procedure SetTextureTransform(const Value: array of TAbstractSingleTextureTransformNode);
 
 {$endif read_interface}
 
@@ -35,7 +35,7 @@
 
 { TMultiTextureTransformNode ----------------------------------------------- }
 
-procedure TMultiTextureTransformNode.SetTextureTransform(const Value: array of TAbstractTextureTransformNode);
+procedure TMultiTextureTransformNode.SetTextureTransform(const Value: array of TAbstractSingleTextureTransformNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -43,7 +43,7 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TAbstractTextureTransformNode));
+    Move(Value[0], A[0], L * SizeOf(TAbstractSingleTextureTransformNode));
   FdTextureTransform.Send(A);
 end;
 

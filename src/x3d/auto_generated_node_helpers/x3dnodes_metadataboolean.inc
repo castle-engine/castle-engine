@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
-    function GetReference: string;
-    procedure SetReference(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
+    function GetReference: String;
+    procedure SetReference(const Value: String);
   public
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "reference". } { }
-    property Reference: string read GetReference write SetReference;
+    property Reference: String read GetReference write SetReference;
     { Set X3D field "value". } { }
     procedure SetValue(const Value: array of boolean);
     { Set X3D field "value". } { }
@@ -46,22 +46,22 @@
 
 { TMetadataBooleanNode ----------------------------------------------- }
 
-function TMetadataBooleanNode.GetNameField: string;
+function TMetadataBooleanNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataBooleanNode.SetNameField(const Value: string);
+procedure TMetadataBooleanNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;
 
-function TMetadataBooleanNode.GetReference: string;
+function TMetadataBooleanNode.GetReference: String;
 begin
   Result := FdReference.Value;
 end;
 
-procedure TMetadataBooleanNode.SetReference(const Value: string);
+procedure TMetadataBooleanNode.SetReference(const Value: String);
 begin
   FdReference.Send(Value);
 end;

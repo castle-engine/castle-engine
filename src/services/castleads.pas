@@ -26,22 +26,37 @@ const
   { Test banner ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
     (but eventually you want to create your own, to show non-testing ads!).
 
-    From https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start }
+    From https://developers.google.com/admob/android/test-ads }
   TestAdMobBannerUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
-  { Test interstitial ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+  { Test interstitial static ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
     (but eventually you want to create your own, to show non-testing ads!).
 
-    From http://stackoverflow.com/questions/12553929/is-there-any-admob-dummy-id and
-    https://github.com/googleads/googleads-mobile-android-examples/blob/master/admob/InterstitialExample/app/src/main/res/values/strings.xml }
+    From https://developers.google.com/admob/android/test-ads }
   TestAdMobInterstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
+
+  { Test interstitial video ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+    (but eventually you want to create your own, to show non-testing ads!).
+
+    From https://developers.google.com/admob/android/test-ads }
+  TestAdMobInterstitialVideoUnitId = 'ca-app-pub-3940256099942544/8691691433';
+
+  { Test rewarded video ad "unit id". You can use it with @link(TAds.InitializeAdMob) for testing purposes
+    (but eventually you want to create your own, to show non-testing ads!).
+
+    From https://developers.google.com/admob/android/test-ads }
+  TestAdMobRewardedUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
 type
   TAdNetwork = (anAdMob, anChartboost, anStartApp, anHeyzap);
 
   TFullScreenAdType = (atInterstitialStatic, atInterstitialVideo, atReward);
 
-  TAdClosedEvent = procedure (const Sender: TObject; const Watched: boolean) of object;
+  TAdWatchStatus = (wsWatched, wsUnknownError, wsNetworkNotAvailable, wsNoAdsAvailable,
+    wsUserAborted, wsAdNotReady, wsAdNetworkNotInitialized, wsInvalidRequest,
+    wsAdTypeUnsupported, wsApplicationReinitialized);
+
+  TAdClosedEvent = procedure (const Sender: TObject; const WatchedStatus: TAdWatchStatus) of object;
 
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
@@ -74,8 +89,9 @@ type
         FParent: TAds;
         FBannerShowing: boolean;
         FBannerGravity: Integer;
-        function MessageReceived(const Received: TCastleStringList): boolean;
-        procedure FullScreenAdClosed(const Watched: boolean);
+        function MessageReceived(const Received: TCastleStringList;
+          const ReceivedStream: TMemoryStream): boolean;
+        procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
       strict protected
         FFullScreenAdVisible: boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
@@ -93,13 +109,14 @@ type
 
       TAdMobHandler = class(TAdNetworkHandler)
       strict private
-        FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued: string;
+        FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued: string;
       strict protected
         procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
         constructor Create(const AParent: TAds;
-          const ABannerUnitId, AInterstitialUnitId: string;
+          const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
           const TestDeviceIds: array of string);
+
         class function Name: string; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
@@ -153,7 +170,7 @@ type
     FNetworks: array [TAdNetwork] of TAdNetworkHandler;
     FOnFullScreenAdClosed: TAdClosedEvent;
   protected
-    procedure FullScreenAdClosed(const Watched: boolean); virtual;
+    procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -170,6 +187,9 @@ type
       getting banned for clicking on your own ads.
 
       Usually called from @link(TCastleApplication.OnInitialize). }
+    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
+      const TestDeviceIds: array of string);
+
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
       const TestDeviceIds: array of string);
 
@@ -233,7 +253,7 @@ type
 
 implementation
 
-uses SysUtils,
+uses SysUtils, StrUtils,
   CastleUtils, CastleMessaging, CastleLog, CastleApplicationProperties;
 
 { TAdNetworkHandler ---------------------------------------------------------- }
@@ -255,14 +275,31 @@ begin
   inherited;
 end;
 
-function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList): boolean;
+function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
+var
+  AdWatchStatusInt: Integer;
+  WatchStatus: TAdWatchStatus;
 begin
   Result := false;
 
   if (Received.Count = 2) and
      (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
-    FullScreenAdClosed(StrToBool(Received[1]));
+    if Received[1] = 'true' then
+      WatchStatus := wsWatched
+    else
+    if Received[1] = 'false' then
+      WatchStatus := wsUnknownError
+    else
+    begin
+      if not TryStrToInt(Received[1], AdWatchStatusInt) then
+        raise Exception.CreateFmt('Invalid ad watch status: %s', [Received[1]]);
+      if not Between(AdWatchStatusInt, 0, Ord(High(TAdWatchStatus))) then
+        raise Exception.CreateFmt('Invalid ad watch status: %d', [AdWatchStatusInt]);
+      WatchStatus := TAdWatchStatus(AdWatchStatusInt);
+    end;
+    FullScreenAdClosed(WatchStatus);
     Result := true;
   end else
 
@@ -300,7 +337,7 @@ procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdTyp
 begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-  FullScreenAdClosed(false);
+  FullScreenAdClosed(wsAdTypeUnsupported);
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
@@ -313,35 +350,36 @@ begin
     while waiting for ad to finish. Reproduce: turn on "kill app when sending to bg"
     in Android debug options, then use "watch ad" and return to game. }
   if FFullScreenAdVisible then
-    FullScreenAdClosed(false);
+    FullScreenAdClosed(wsApplicationReinitialized);
   Parent.FBannerSize := TRectangle.Empty;
   { reshow banner, if necessary }
   if FBannerShowing then
     ShowBanner(FBannerGravity);
 end;
 
-procedure TAds.TAdNetworkHandler.FullScreenAdClosed(const Watched: boolean);
+procedure TAds.TAdNetworkHandler.FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
 begin
   FFullScreenAdVisible := false;
-  Parent.FullScreenAdClosed(Watched);
+  Parent.FullScreenAdClosed(WatchedStatus);
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
 
 constructor TAds.TAdMobHandler.Create(const AParent: TAds;
-  const ABannerUnitId, AInterstitialUnitId: string;
+  const ABannerUnitId, AInterstitialUnitId, ARewardedUnitId: string;
   const TestDeviceIds: array of string);
 begin
   inherited Create(AParent);
   FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
   FBannerUnitId := ABannerUnitId;
   FInterstitialUnitId := AInterstitialUnitId;
+  FRewardedUnitId := ARewardedUnitId;
   ReinitializeJavaActivity(nil);
 end;
 
 procedure TAds.TAdMobHandler.ReinitializeJavaActivity(Sender: TObject);
 begin
-  Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued]);
+  Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FRewardedUnitId, FTestDeviceIdsGlued]);
   inherited;
 end;
 
@@ -362,13 +400,16 @@ begin
   inherited;
 end;
 
-procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
+var
+  AdTypeName: String;
+  WaitUntilLoadedStr: String;
 begin
   FFullScreenAdVisible := true;
-  if WaitUntilLoaded then
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'wait-until-loaded']) else
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'no-wait']);
+
+  AdTypeName := IfThen(AdType = atReward, 'reward', 'interstitial');
+  WaitUntilLoadedStr := IfThen(WaitUntilLoaded, 'wait-until-loaded', 'no-wait');
+  Messaging.Send(['ads-' + Name + '-show-' + AdTypeName, WaitUntilLoadedStr]);
 end;
 
 { TChartboostHandler --------------------------------------------------------- }
@@ -495,13 +536,19 @@ begin
   inherited;
 end;
 
-procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId, RewardedUnitId: string;
   const TestDeviceIds: array of string);
 begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
   FNetworks[anAdMob] := TAdMobHandler.Create(Self,
-    BannerUnitId, InterstitialUnitId, TestDeviceIds);
+    BannerUnitId, InterstitialUnitId, RewardedUnitId, TestDeviceIds);
+end;
+
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
+  const TestDeviceIds: array of string);
+begin
+  InitializeAdMob(BannerUnitId, InterstitialUnitId, '', TestDeviceIds);
 end;
 
 procedure TAds.InitializeStartapp(const AppId: string);
@@ -525,10 +572,10 @@ begin
   FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
-procedure TAds.FullScreenAdClosed(const Watched: boolean);
+procedure TAds.FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
 begin
   if Assigned(OnFullScreenAdClosed) then
-    OnFullScreenAdClosed(Self, Watched);
+    OnFullScreenAdClosed(Self, WatchedStatus);
 end;
 
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
@@ -536,15 +583,16 @@ procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
 begin
   {$ifdef ANDROID}
   if FNetworks[AdNetwork] <> nil then
-    FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded) else
+    FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded)
+  else
   { if the network is not initialized, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-    FullScreenAdClosed(false);
+    FullScreenAdClosed(wsAdNetworkNotInitialized);
   {$else}
   { since this is not supported on non-Android now, just make
     FullScreenAdClosed(false) immediately, to avoid the app waiting
     for OnFullScreenAdClosed forever. }
-  FullScreenAdClosed(false);
+  FullScreenAdClosed(wsAdNetworkNotInitialized);
   {$endif}
 end;
 
@@ -574,13 +622,17 @@ procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
       hpLeft: Result := Result or GravityLeft;
       hpRight: Result := Result or GravityRight;
       hpMiddle: Result := Result or GravityCenterHorizontal;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
+      {$endif}
     end;
     case VerticalGravity of
       vpTop: Result := Result or GravityTop;
       vpBottom: Result := Result or GravityBottom;
       vpMiddle: Result := Result or GravityCenterVertical;
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('ShowBanner:VerticalGravity?');
+      {$endif}
     end;
   end;
 

@@ -64,8 +64,8 @@ var
 { funcs ------------------------------------------------------------ }
 
 var
-  FilesCount: Cardinal = 0;
-  FilesSize: Cardinal = 0;
+  FilesCount: QWord = 0;
+  FilesSize: QWord = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
   Data: Pointer; var StopSearch: boolean);
@@ -129,8 +129,6 @@ procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopS
 begin
   if not FileInfo.Directory then Exit;
 
-  if SpecialDirName(ExtractFileName(FileInfo.AbsoluteName)) then Exit;
-
   Inc(DirsCount);
 
   case Action of
@@ -181,14 +179,6 @@ begin
   DefaultFilesToClean.Add('*.cmo');  { -'- }
   DefaultFilesToClean.Add('*.cmx');  { -'- }
   DefaultFilesToClean.Add('.DS_Store'); { macOS (Finder?) }
-
-  // commented for now; castle-engine tool should clear them itself.
-  // And clearing them here is not good for castle-engine tool sources...:)
-  // DefaultFilesToClean.Add('automatic-windows-resources.rc');  { castle-engine tool }
-  // DefaultFilesToClean.Add('automatic-windows.manifest'); { -'- }
-
-  // Note: do not remove automatic-windows-resources.res,
-  // it would prevent compiling without castle-engine tool
 end;
 
 procedure DefaultDirsToCleanInit;

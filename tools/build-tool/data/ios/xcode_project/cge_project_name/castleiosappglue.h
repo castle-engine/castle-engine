@@ -159,6 +159,20 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Numpad_Enter    = 161,
   kcge_Numpad_Multiply = 162,
   kcge_Numpad_Divide   = 163,
+  kcge_Pad_A      = 164,
+  kcge_Pad_B      = 165,
+  kcge_Pad_X      = 166,
+  kcge_Pad_Y      = 167,
+  kcge_Pad_L      = 168,
+  kcge_Pad_R      = 169,
+  kcge_Pad_ZL     = 170,
+  kcge_Pad_ZR     = 171,
+  kcge_Pad_Plus   = 172,
+  kcge_Pad_Minus  = 173,
+  kcge_Pad_Left   = 174,
+  kcge_Pad_Up     = 175,
+  kcge_Pad_Right  = 176,
+  kcge_Pad_Down   = 177,
   kcge_Comma       = 188,
   kcge_Period      = 190,
 };
@@ -170,8 +184,16 @@ typedef int (*TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1
 typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 
 //-----------------------------------------------------------------------------
-extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
-extern void CGEApp_Close(void);
+
+// Initialize the library, this function must be called first (required).
+// Then CGEApp_Open and CGEApp_Close may be called multiple times.
+extern void CGEApp_Initialize(const char *applicationConfigDirectory);
+extern void CGEApp_Finalize(void);
+
+extern int CGEApp_ContextProperties(int* redBits, int* greenBits, int* blueBits, int* alphaBits, int* depthBits, int* stencilBits);
+
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned initialStatusBarHeight, unsigned nDpi);
+extern void CGEApp_Close(bool quitWhenLastWindowClosed);
 
 extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight, unsigned uiStatusBarHeight);       // let the library know about the viewport size changes
 extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context
@@ -184,6 +206,9 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool tra
 
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
+
+extern void CGEApp_JoystickAxis(int joystickIndex, float x, float y);
+extern void CGEApp_JoystickCount(int joystickCount);
 
 extern int CGEApp_HandleOpenUrl(const char *szUrl); // open URL, return 1 if processed
 

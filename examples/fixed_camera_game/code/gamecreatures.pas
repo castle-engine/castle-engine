@@ -207,11 +207,10 @@ begin
 
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
-      [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
+      [prRenderSelf, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
 
-    if Log then
-      WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
+    WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
   end;
 end;
 
@@ -231,7 +230,7 @@ begin
   RandomizeStandTimeToBeBored;
 
   FDebugTransform := TDebugTransform.Create(Self);
-  FDebugTransform.Attach(Self);
+  FDebugTransform.Parent := Self;
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -368,13 +367,16 @@ constructor TPlayer.Create(AKind: TCreatureKind);
   procedure CreateTargetVisualize;
   var
     Sphere: TSphereNode;
+    Material: TMaterialNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
 
+    Material := TMaterialNode.Create;
+    Material.DiffuseColor := RedRGB;
+
     FTargetVisualizeShape := TShapeNode.Create;
-    FTargetVisualizeShape.Material := TMaterialNode.Create;
-    FTargetVisualizeShape.Material.DiffuseColor := RedRGB;
+    FTargetVisualizeShape.Material := Material;
     FTargetVisualizeShape.Geometry := Sphere;
 
     FTargetVisualize := TTransformNode.Create;
@@ -384,7 +386,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 begin
   inherited;
   CreateTargetVisualize;
-  FDebugTransform.WorldSpace.AddChildren(FTargetVisualize);
+  FDebugTransform.ParentSpace.AddChildren(FTargetVisualize);
   FDebugTransform.ChangedScene;
 end;
 

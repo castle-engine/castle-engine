@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,14 +34,14 @@
     procedure SetNormal(const Value: TAbstractNormalNode);
     function GetTexCoord: TAbstractTextureCoordinateNode;
     procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
-    function GetColorPerVertex: boolean;
-    procedure SetColorPerVertex(const Value: boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
+    function GetColorPerVertex: Boolean;
+    procedure SetColorPerVertex(const Value: Boolean);
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
-    function GetNormalPerVertex: boolean;
-    procedure SetNormalPerVertex(const Value: boolean);
+    function GetNormalPerVertex: Boolean;
+    procedure SetNormalPerVertex(const Value: Boolean);
     function GetXDimension: Integer;
     procedure SetXDimension(const Value: Integer);
     function GetXSpacing: Single;
@@ -62,9 +62,9 @@
     { X3D field "texCoord". } { }
     property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
     { X3D field "colorPerVertex". } { }
-    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     { Set X3D field "height". } { }
@@ -72,7 +72,7 @@
     { Set X3D field "height". } { }
     procedure SetHeight(const Value: TSingleList);
     { X3D field "normalPerVertex". } { }
-    property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
     { X3D field "xDimension". } { }
     property XDimension: Integer read GetXDimension write SetXDimension;
     { X3D field "xSpacing". } { }
@@ -152,22 +152,22 @@ begin
   FdTexCoord.Send(Value);
 end;
 
-function TElevationGridNode.GetCcw: boolean;
+function TElevationGridNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TElevationGridNode.SetCcw(const Value: boolean);
+procedure TElevationGridNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;
 
-function TElevationGridNode.GetColorPerVertex: boolean;
+function TElevationGridNode.GetColorPerVertex: Boolean;
 begin
   Result := FdColorPerVertex.Value;
 end;
 
-procedure TElevationGridNode.SetColorPerVertex(const Value: boolean);
+procedure TElevationGridNode.SetColorPerVertex(const Value: Boolean);
 begin
   FdColorPerVertex.Send(Value);
 end;
@@ -192,12 +192,12 @@ begin
   FdHeight.Send(Value);
 end;
 
-function TElevationGridNode.GetNormalPerVertex: boolean;
+function TElevationGridNode.GetNormalPerVertex: Boolean;
 begin
   Result := FdNormalPerVertex.Value;
 end;
 
-procedure TElevationGridNode.SetNormalPerVertex(const Value: boolean);
+procedure TElevationGridNode.SetNormalPerVertex(const Value: Boolean);
 begin
   FdNormalPerVertex.Send(Value);
 end;

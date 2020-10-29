@@ -22,25 +22,26 @@
   TCastleScrollViewCustom = class(TCastleUserInterface)
   strict private
     FScroll: Single;
-    FScrollbarVisible: boolean;
+    FScrollbarVisible: Boolean;
     { Rects in screen coordinates (like RenderRect),
       after UI scaling and anchors. }
     ScrollbarFrame, ScrollbarSlider: TFloatRectangle;
-    ScrollBarDragging: boolean;
+    ScrollBarDragging: Boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Single;
-    FEnableDragging: boolean;
+    FEnableDragging: Boolean;
     DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
     ScrollbarActive: Single;
     FTintScrollBarInactive: TCastleColor;
-    function ScrollBarWidthScaled: Single;
     procedure SetScroll(Value: Single);
     { Stop any movement due to inertial force. }
     procedure ResetInertialForce;
   protected
+    FScrollbarLeft: Boolean;
+
     procedure DoScrollChange; virtual;
 
-    property ScrollbarVisible: boolean read FScrollbarVisible;
+    property ScrollbarVisible: Boolean read FScrollbarVisible;
 
     { Minimum sensible value for @link(Scroll), corresponds to scrollbar slider at the top. }
     function ScrollMin: Single;
@@ -76,6 +77,10 @@
       and thus noticeable, when you start dragging.
       By default it's opaque white, which means that no tint is shown. }
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
+
+    { Scroll bar width, either from @link(ScrollBarWidth) or
+      @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
+    function EffectiveScrollBarWidth: Single;
   published
     { Speed of scrolling by arrow keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
@@ -85,11 +90,22 @@
       Value of 0 means to use global default
       in @link(TCastleTheme.ScrollBarWidth Theme.ScrollBarWidth). }
     property ScrollBarWidth: Single read FScrollBarWidth write FScrollBarWidth default 0;
+    { Position of the scroll bar.
+      @definitionList(
+        @itemLabel(@false)
+        @item(Scroll bar is located on the right side of the ScrollView.)
+        @itemLabel(@true)
+        @item(Scroll bar is located on the left side of the ScrollView.
+          Pay attention, that additional space is not made for the scroll bar,
+          you have to specify ScrollArea.HorizontalAnchorDelta manually,
+          e.g. ScrollArea.HorizontalAnchorDelta := ScrollBarWidth + Gap;)
+      ) }
+    property ScrollBarLeft: Boolean read FScrollBarLeft write FScrollBarLeft default false;
     { Enable scrolling by dragging @italic(anywhere) in the scroll area.
       This is usually suitable for mobile devices.
       Note that this doesn't affect the dragging directly by the scrollbar,
       which is always enabled. }
-    property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
+    property EnableDragging: Boolean read FEnableDragging write FEnableDragging default false;
 
     { How much do we scroll.
       Setting it always clamps the value to a sensible range,
@@ -268,7 +284,10 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     SR := RenderRect;
 
-    ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
+    if FScrollbarLeft then
+      ScrollbarFrame := SR.LeftPart(EffectiveScrollBarWidth * UIScale)
+    else
+      ScrollbarFrame := SR.RightPart(EffectiveScrollBarWidth * UIScale);
 
     ScrollbarSlider := ScrollbarFrame;
     if GetCompleteSize = 0 then
@@ -308,12 +327,14 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollBarVisible and HandleInput then
     begin
-      if Container.Pressed[K_Up  ] then
+      if Container.Pressed[ keyArrowUp] or
+         Container.Pressed[keyNumpadUp] then
       begin
         Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
       end;
-      if Container.Pressed[K_Down] then
+      if Container.Pressed[ keyArrowDown] or
+         Container.Pressed[keyNumpadDown] then
       begin
         Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
         ResetInertialForce;
@@ -333,7 +354,7 @@ procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
   begin
     if ScrollbarVisible then
     begin
-      if mbLeft in Container.MousePressed then
+      if buttonLeft in Container.MousePressed then
       begin
         { note that we update DragSpeed even when DragSinceLastUpdate = 0,
           which means user keeps pressing but doesn't drag }
@@ -415,7 +436,7 @@ begin
     to children (e.g. TCastleButton inside ScrollArea). }
 
   if ScrollBarVisible and
-     Event.IsMouseButton(mbLeft) and
+     Event.IsMouseButton(buttonLeft) and
      ScrollbarFrame.Contains(Event.Position) then
   begin
     if Event.Position[1] < ScrollbarSlider.Bottom then
@@ -441,41 +462,41 @@ begin
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
     This way we allow TStateDialog (that uses TDialog that uses TCastleScrollViewCustom)
-    descendants like TStateDialogKey to handle
-    K_PageDown, K_PageUp, K_Home and K_End keys and mouse wheel.
+    descendants like TStateDialogKey to handle keys and mouse wheel.
     And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
-    K_PageDown, K_PageUp, etc. keys. }
+    keyPageDown, keyPageUp, etc. keys. }
 
   if ScrollBarVisible then
     case Event.EventType of
       itKey:
         case Event.Key of
-          K_PageUp:
+          keyPageUp, keyNumpadPageUp:
             begin
               Scroll := Scroll - GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_PageDown:
+          keyPageDown, keyNumpadPageDown:
             begin
               Scroll := Scroll + GetPageSize;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_Home:
+          keyHome, keyNumpadHome:
             begin
               Scroll := ScrollMin;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
-          K_End:
+          keyEnd, keyNumpadEnd:
             begin
               Scroll := ScrollMax;
               ResetInertialForce;
               Result := ExclusiveEvents;
             end;
+          else ;
         end;
       itMouseWheel:
         if Event.MouseWheelVertical then
@@ -484,12 +505,13 @@ begin
           ResetInertialForce;
           Result := ExclusiveEvents;
         end;
+      else ;
     end;
 
   { We do not process mouse button clicks (or touches) here
     (not on an entire TCastleScrollViewCustom area -- the code in PreviewPress
     handles clicks inside ScrollbarFrame only).
-    We only process dragging (with mbLeft) inside TCastleScrollViewCustom.Update
+    We only process dragging (with buttonLeft) inside TCastleScrollViewCustom.Update
     and TCastleScrollViewCustom.Motion.
 
     But we still have to mark the mouse click as "handled" here.
@@ -502,7 +524,7 @@ begin
     (Testcase: show MessageOK or TStateDialogOK on mobile (Android, iOS)
     with a long text (to make scrolling relevant).)  }
 
-  if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
+  if EnableDragging and Event.IsMouseButton(buttonLeft) and ScrollBarVisible then
     Result := ExclusiveEvents;
 end;
 
@@ -511,7 +533,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     ScrollBarDragging := false;
     Result := ExclusiveEvents;
@@ -534,7 +556,7 @@ begin
     ResetInertialForce;
     Result := ExclusiveEvents;
   end else
-  if EnableDragging and (mbLeft in Event.Pressed) then
+  if EnableDragging and (buttonLeft in Event.Pressed) then
   begin
     Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
     Scroll := Scroll + Drag;
@@ -553,12 +575,12 @@ begin
   Result := Max(0, GetCompleteSize - GetPageSize);
 end;
 
-function TCastleScrollViewCustom.ScrollBarWidthScaled: Single;
+function TCastleScrollViewCustom.EffectiveScrollBarWidth: Single;
 begin
   if ScrollBarWidth = 0 then
-    Result := Theme.ScrollBarWidth * UIScale
+    Result := Theme.ScrollBarWidth
   else
-    Result := ScrollBarWidth * UIScale;
+    Result := ScrollBarWidth;
 end;
 
 {$define read_implementation_methods}

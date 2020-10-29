@@ -19,7 +19,7 @@ unit TestCastleQuaternions;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
   CastleTestCase, CastleVectors, CastleQuaternions;
 
 type
@@ -65,7 +65,7 @@ var
   Translation, Scale: TVector3;
   Rotation: TVector4;
 begin
-  { The order is the same as for TransformMatricesMult,
+  { The order is the same as for @link(TTransformation,Multiply),
     and same as done by TCastleTransform: first translation matrix,
     multiplied by rotation matrix,
     multiplied by scaling matrix. }

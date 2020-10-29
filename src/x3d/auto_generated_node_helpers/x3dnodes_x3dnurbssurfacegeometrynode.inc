@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,14 +32,14 @@
     procedure SetUTessellation(const Value: Integer);
     function GetVTessellation: Integer;
     procedure SetVTessellation(const Value: Integer);
-    function GetUClosed: boolean;
-    procedure SetUClosed(const Value: boolean);
+    function GetUClosed: Boolean;
+    procedure SetUClosed(const Value: Boolean);
     function GetUDimension: Integer;
     procedure SetUDimension(const Value: Integer);
     function GetUOrder: Integer;
     procedure SetUOrder(const Value: Integer);
-    function GetVClosed: boolean;
-    procedure SetVClosed(const Value: boolean);
+    function GetVClosed: Boolean;
+    procedure SetVClosed(const Value: Boolean);
     function GetVDimension: Integer;
     procedure SetVDimension(const Value: Integer);
     function GetVOrder: Integer;
@@ -56,7 +56,7 @@
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList);
     { X3D field "uClosed". } { }
-    property UClosed: boolean read GetUClosed write SetUClosed;
+    property UClosed: Boolean read GetUClosed write SetUClosed;
     { X3D field "uDimension". } { }
     property UDimension: Integer read GetUDimension write SetUDimension;
     { Set X3D field "uKnot". } { }
@@ -66,7 +66,7 @@
     { X3D field "uOrder". } { }
     property UOrder: Integer read GetUOrder write SetUOrder;
     { X3D field "vClosed". } { }
-    property VClosed: boolean read GetVClosed write SetVClosed;
+    property VClosed: Boolean read GetVClosed write SetVClosed;
     { X3D field "vDimension". } { }
     property VDimension: Integer read GetVDimension write SetVDimension;
     { Set X3D field "vKnot". } { }
@@ -125,12 +125,12 @@ begin
   FdWeight.Send(Value);
 end;
 
-function TAbstractNurbsSurfaceGeometryNode.GetUClosed: boolean;
+function TAbstractNurbsSurfaceGeometryNode.GetUClosed: Boolean;
 begin
   Result := FdUClosed.Value;
 end;
 
-procedure TAbstractNurbsSurfaceGeometryNode.SetUClosed(const Value: boolean);
+procedure TAbstractNurbsSurfaceGeometryNode.SetUClosed(const Value: Boolean);
 begin
   FdUClosed.Send(Value);
 end;
@@ -165,12 +165,12 @@ begin
   FdUOrder.Send(Value);
 end;
 
-function TAbstractNurbsSurfaceGeometryNode.GetVClosed: boolean;
+function TAbstractNurbsSurfaceGeometryNode.GetVClosed: Boolean;
 begin
   Result := FdVClosed.Value;
 end;
 
-procedure TAbstractNurbsSurfaceGeometryNode.SetVClosed(const Value: boolean);
+procedure TAbstractNurbsSurfaceGeometryNode.SetVClosed(const Value: Boolean);
 begin
   FdVClosed.Send(Value);
 end;

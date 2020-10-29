@@ -24,3 +24,7 @@ jQuery(window).resize(function() {
 jQuery(document).ready(function() {
   cge_update_download_size();
 });
+
+jQuery("#toggle-details").click(function() {
+  jQuery("#details").toggle(50);
+});

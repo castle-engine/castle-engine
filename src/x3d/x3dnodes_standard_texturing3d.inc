@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { Base type for all node types that specify 3D sources for texture images. }
-  TAbstractTexture3DNode = class(TAbstractTextureNode)
+  TAbstractTexture3DNode = class(TAbstractSingleTextureNode)
   private
     UsedCache: TTexturesVideosCache;
     FTextureLoaded: boolean;
@@ -80,7 +80,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
@@ -100,7 +99,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -117,7 +115,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdImage: TMFInt32;
     public property FdImage: TMFInt32 read FFdImage;
@@ -128,11 +125,10 @@
   end;
 
   { 3D texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate3DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate3DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -141,11 +137,10 @@
   end;
 
   { 4D (homogeneous 3D) texture coordinates, partcularly useful with 3D textures. }
-  TTextureCoordinate4DNode = class(TAbstractTextureCoordinateNode)
+  TTextureCoordinate4DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
@@ -155,11 +150,10 @@
 
   { Transformation of texture coordinates by a 4x4 matrix,
     particularly useful with 3D textures. }
-  TTextureTransformMatrix3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransformMatrix3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
@@ -171,11 +165,10 @@
 
   { Transformation of texture coordinates in 3D,
     partcularly useful with 3D textures. }
-  TTextureTransform3DNode = class(TAbstractTextureTransformNode)
+  TTextureTransform3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -202,19 +195,19 @@ begin
   inherited;
 
   FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', false);
-   FdRepeatS.ChangesAlways := [chTextureRendererProperties];
+   FdRepeatS.ChangeAlways := chTextureRendererProperties;
   AddField(FFdRepeatS);
 
   FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', false);
-   FdRepeatT.ChangesAlways := [chTextureRendererProperties];
+   FdRepeatT.ChangeAlways := chTextureRendererProperties;
   AddField(FFdRepeatT);
 
   FFdRepeatR := TSFBool.Create(Self, false, 'repeatR', false);
-   FdRepeatR.ChangesAlways := [chTextureRendererProperties];
+   FdRepeatR.ChangeAlways := chTextureRendererProperties;
   AddField(FFdRepeatR);
 
   FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
+   FdTextureProperties.ChangeAlways := chTextureRendererProperties;
   AddField(FFdTextureProperties);
 end;
 
@@ -252,19 +245,13 @@ begin
     detect changes inside nodes in "texture". }
 
   FFdTexture := TMFNode.Create(Self, true, 'texture', [TAbstractX3DTexture2DNode]);
-   FdTexture.ChangesAlways := [chTextureImage];
+   FdTexture.ChangeAlways := chTextureImage;
   AddField(FFdTexture);
 end;
 
 class function TComposedTexture3DNode.ClassX3DType: string;
 begin
   Result := 'ComposedTexture3D';
-end;
-
-class function TComposedTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TComposedTexture3DNode.LoadTextureData;
@@ -277,7 +264,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     if not ((FdTexture[Index] <> nil) and
             (FdTexture[Index] is TAbstractTexture2DNode)) then
     begin
-      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
+      WritelnWarning('X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
@@ -290,7 +277,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
 
     if not (Tex.TextureImage is TCastleImage) then
     begin
-      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+      WritelnWarning('X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;
@@ -307,7 +294,7 @@ var
 begin
   if FdTexture.Count = 0 then
   begin
-    WritelnWarning('VRML/X3D', 'ComposedTexture3D has no textures');
+    WritelnWarning('X3D', 'ComposedTexture3D has no textures');
     Exit;
   end;
 
@@ -339,7 +326,7 @@ begin
          (Slice.Height <> FTextureImage.Height) or
          (Slice.ClassType <> FTextureImage.ClassType) then
       begin
-        WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
+        WritelnWarning('X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
           [I, Slice        .Width, Slice        .Height, Slice        .ClassName,
               FTextureImage.Width, FTextureImage.Height, FTextureImage.ClassName]));
         FreeAndNil(FTextureImage);
@@ -365,7 +352,7 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangesAlways := [chTextureImage];
+   FdUrl.ChangeAlways := chTextureImage;
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 end;
@@ -373,12 +360,6 @@ end;
 class function TImageTexture3DNode.ClassX3DType: string;
 begin
   Result := 'ImageTexture3D';
-end;
-
-class function TImageTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TImageTexture3DNode.LoadTextureData;
@@ -397,7 +378,7 @@ begin
       on E: Exception do
       begin
         FTextureComposite := nil;
-        WritelnWarning('VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
+        WritelnWarning('X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
         Continue;
       end;
     end;
@@ -405,14 +386,14 @@ begin
     if FTextureComposite = nil then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      WritelnWarning('VRML/X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+      WritelnWarning('X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
     if FTextureComposite.CompositeType <> ctVolume then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+      WritelnWarning('X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 
@@ -432,19 +413,13 @@ begin
   inherited;
 
   FFdImage := TMFInt32.Create(Self, true, 'image', [0, 0, 0, 0]);
-   FdImage.ChangesAlways := [chTextureImage];
+   FdImage.ChangeAlways := chTextureImage;
   AddField(FFdImage);
 end;
 
 class function TPixelTexture3DNode.ClassX3DType: string;
 begin
   Result := 'PixelTexture3D';
-end;
-
-class function TPixelTexture3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPixelTexture3DNode.LoadTextureData;
@@ -458,7 +433,7 @@ var
 begin
   if FdImage.Count < 4 then
   begin
-    WritelnWarning('VRML/X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
+    WritelnWarning('X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
     Exit;
   end;
 
@@ -469,7 +444,7 @@ begin
 
   if Cardinal(FdImage.Count) < 4 + Width * Height * Depth then
   begin
-    WritelnWarning('VRML/X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
+    WritelnWarning('X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
       [ 4 + Width * Height * Depth,  Width, Height, Depth ]));
     Exit;
   end;
@@ -514,7 +489,7 @@ begin
        end;
     else
     begin
-      WritelnWarning('VRML/X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
+      WritelnWarning('X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
       Exit;
     end;
   end;
@@ -532,7 +507,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chTextureCoordinate];
+   FdPoint.ChangeAlways := chTextureCoordinate;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -542,18 +517,12 @@ begin
   Result := 'TextureCoordinate3D';
 end;
 
-class function TTextureCoordinate3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTextureCoordinate4DNode.CreateNode;
 begin
   inherited;
 
   FFdPoint := TMFVec4f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chTextureCoordinate];
+   FdPoint.ChangeAlways := chTextureCoordinate;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -563,18 +532,12 @@ begin
   Result := 'TextureCoordinate4D';
 end;
 
-class function TTextureCoordinate4DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTextureTransformMatrix3DNode.CreateNode;
 begin
   inherited;
 
   FFdMatrix := TSFMatrix4f.Create(Self, true, 'matrix', TMatrix4.Identity);
-   FdMatrix.ChangesAlways := [chTextureTransform];
+   FdMatrix.ChangeAlways := chTextureTransform;
   AddField(FFdMatrix);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -582,12 +545,6 @@ end;
 class function TTextureTransformMatrix3DNode.ClassX3DType: string;
 begin
   Result := 'TextureTransformMatrix3D';
-end;
-
-class function TTextureTransformMatrix3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4;
@@ -600,22 +557,22 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTextureTransform];
+   FdCenter.ChangeAlways := chTextureTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTextureTransform];
+   FdRotation.ChangeAlways := chTextureTransform;
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTextureTransform];
+   FdScale.ChangeAlways := chTextureTransform;
   AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTextureTransform];
+   FdTranslation.ChangeAlways := chTextureTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -623,12 +580,6 @@ end;
 class function TTextureTransform3DNode.ClassX3DType: string;
 begin
   Result := 'TextureTransform3D';
-end;
-
-class function TTextureTransform3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextureTransform3DNode.TransformMatrix: TMatrix4;

@@ -30,6 +30,7 @@
     FAutoSize: Boolean;
     FFontSize: Single;
     FCheckboxSize: Single;
+    FCaptionTranslate: Boolean;
     procedure SetChecked(const Value: Boolean);
     procedure SetCaption(const Value: String);
     procedure SetTextColor(const Value: TCastleColor);
@@ -42,6 +43,8 @@
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
     procedure SetInternalText(const Value: String); override;
+    procedure DoChange; virtual;
+    procedure TranslateProperties(const TranslatePropertyEvent: TTranslatePropertyEvent); override;
   public
     const
       DefaultCaptionMargin = 10;
@@ -60,10 +63,16 @@
     property CheckboxColor: TCastleColor read FCheckboxColor write SetCheckboxColor;
   published
     property Checked: Boolean read FChecked write SetChecked default false;
+
     property Caption: String read FCaption write SetCaption;
+    { Should the @link(Caption) be localized (translated into other languages).
+      Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
+      which affects the rest of localization routines. }
+    property CaptionTranslate: Boolean read FCaptionTranslate write FCaptionTranslate default true;
     { Margin between checkbox square and a text @link(Caption). }
     property CaptionMargin: Single read FCaptionMargin write SetCaptionMargin
       default DefaultCaptionMargin;
+
     { Event sent when @link(Checked) value was changed by a user click.
       Note that this is @italic(not) called when you change @link(Checked)
       property programmatically. }
@@ -90,6 +99,7 @@
 constructor TCastleCheckbox.Create(AOwner: TComponent);
 begin
   inherited;
+  FCaptionTranslate := true;
   FCaptionMargin := DefaultCaptionMargin;
   FAutoSize := true;
   FTextColor := Black;
@@ -202,7 +212,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Event.IsMouseButton(mbLeft) or
+  if Event.IsMouseButton(buttonLeft) or
      Event.IsKey(keySpace) or
      Event.IsKey(keyEnter) then
   begin
@@ -218,7 +228,7 @@ begin
   if Result then Exit;
 
   if FPressed and (
-     Event.IsMouseButton(mbLeft) or
+     Event.IsMouseButton(buttonLeft) or
      Event.IsKey(keySpace) or
      Event.IsKey(keyEnter)) then
   begin
@@ -235,8 +245,7 @@ begin
     begin
       // change using property, so FImageSquareChecked/Empty.Exists is switched
       Checked := not Checked;
-      if Assigned(FOnChange) then
-        FOnChange(Self);
+      DoChange;
     end;
 
     Exit(ExclusiveEvents);
@@ -323,11 +332,33 @@ end;
 function TCastleCheckbox.PropertySection(
   const PropertyName: String): TPropertySection;
 begin
-  if (PropertyName = 'Caption') or
-     (PropertyName = 'Checked') then
-    Result := psBasic
-  else
-    Result := inherited PropertySection(PropertyName);
+  case PropertyName of
+    'Caption', 'Checked':
+      Result := psBasic;
+    'AutoSize':
+      Result := psLayout;
+    else
+      Result := inherited PropertySection(PropertyName);
+  end;
+end;
+
+procedure TCastleCheckbox.DoChange;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TCastleCheckbox.TranslateProperties(
+  const TranslatePropertyEvent: TTranslatePropertyEvent);
+var
+  S: String;
+begin
+  if CaptionTranslate and (Caption <> '') then
+  begin
+    S := Caption;
+    TranslatePropertyEvent(Self, 'Caption', S);
+    Caption := S;
+  end;
 end;
 
 {$define read_implementation_methods}

@@ -18,7 +18,7 @@ unit TestCastleKeysMouse;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestKeysMouse = class(TTestCase)
@@ -35,53 +35,53 @@ uses CastleKeysMouse, CastleStringUtils;
 
 procedure TTestKeysMouse.TestKey;
 begin
-  AssertTrue(Ord(K_Reserved_28) = 28);
-  AssertTrue(Ord(K_Reserved_139) = 139);
-  AssertTrue(Ord(K_Reserved_186) = 186);
-  AssertTrue(Ord(K_Reserved_191) = 191);
+  AssertTrue(Ord(keyReserved_28) = 28);
+  AssertTrue(Ord(keyReserved_139) = 139);
+  AssertTrue(Ord(keyReserved_186) = 186);
+  AssertTrue(Ord(keyReserved_191) = 191);
 
-  AssertTrue(Ord(K_None) = 0);
-  AssertTrue(Ord(K_BackSpace) = Ord(CharBackSpace));
-  AssertTrue(Ord(K_Tab) = Ord(CharTab));
-  AssertTrue(Ord(K_Enter) = Ord(CharEnter));
-  AssertTrue(Ord(K_Escape) = Ord(CharEscape));
-  AssertTrue(Ord(K_Space) = Ord(' '));
+  AssertTrue(Ord(keyNone) = 0);
+  AssertTrue(Ord(keyBackSpace) = Ord(CharBackSpace));
+  AssertTrue(Ord(keyTab) = Ord(CharTab));
+  AssertTrue(Ord(keyEnter) = Ord(CharEnter));
+  AssertTrue(Ord(keyEscape) = Ord(CharEscape));
+  AssertTrue(Ord(keySpace) = Ord(' '));
 
-  AssertTrue(Ord(K_0) = Ord('0'));
-  AssertTrue(Ord(K_1) = Ord(K_0) + 1);
-  AssertTrue(Ord(K_2) = Ord(K_0) + 2);
-  AssertTrue(Ord(K_3) = Ord(K_0) + 3);
-  AssertTrue(Ord(K_4) = Ord(K_0) + 4);
-  AssertTrue(Ord(K_5) = Ord(K_0) + 5);
-  AssertTrue(Ord(K_6) = Ord(K_0) + 6);
-  AssertTrue(Ord(K_7) = Ord(K_0) + 7);
-  AssertTrue(Ord(K_8) = Ord(K_0) + 8);
-  AssertTrue(Ord(K_9) = Ord(K_0) + 9);
+  AssertTrue(Ord(key0) = Ord('0'));
+  AssertTrue(Ord(key1) = Ord(key0) + 1);
+  AssertTrue(Ord(key2) = Ord(key0) + 2);
+  AssertTrue(Ord(key3) = Ord(key0) + 3);
+  AssertTrue(Ord(key4) = Ord(key0) + 4);
+  AssertTrue(Ord(key5) = Ord(key0) + 5);
+  AssertTrue(Ord(key6) = Ord(key0) + 6);
+  AssertTrue(Ord(key7) = Ord(key0) + 7);
+  AssertTrue(Ord(key8) = Ord(key0) + 8);
+  AssertTrue(Ord(key9) = Ord(key0) + 9);
 
-  AssertTrue(Ord(K_A) = Ord('A'));
-  AssertTrue(Ord(K_Z) = Ord('Z'));
+  AssertTrue(Ord(keyA) = Ord('A'));
+  AssertTrue(Ord(keyZ) = Ord('Z'));
 
-  AssertTrue(Ord(K_Numpad_1) = Ord(K_Numpad_0) + 1);
-  AssertTrue(Ord(K_Numpad_2) = Ord(K_Numpad_0) + 2);
-  AssertTrue(Ord(K_Numpad_3) = Ord(K_Numpad_0) + 3);
-  AssertTrue(Ord(K_Numpad_4) = Ord(K_Numpad_0) + 4);
-  AssertTrue(Ord(K_Numpad_5) = Ord(K_Numpad_0) + 5);
-  AssertTrue(Ord(K_Numpad_6) = Ord(K_Numpad_0) + 6);
-  AssertTrue(Ord(K_Numpad_7) = Ord(K_Numpad_0) + 7);
-  AssertTrue(Ord(K_Numpad_8) = Ord(K_Numpad_0) + 8);
-  AssertTrue(Ord(K_Numpad_9) = Ord(K_Numpad_0) + 9);
+  AssertTrue(Ord(keyNumpad1) = Ord(keyNumpad0) + 1);
+  AssertTrue(Ord(keyNumpad2) = Ord(keyNumpad0) + 2);
+  AssertTrue(Ord(keyNumpad3) = Ord(keyNumpad0) + 3);
+  AssertTrue(Ord(keyNumpad4) = Ord(keyNumpad0) + 4);
+  AssertTrue(Ord(keyNumpad5) = Ord(keyNumpad0) + 5);
+  AssertTrue(Ord(keyNumpad6) = Ord(keyNumpad0) + 6);
+  AssertTrue(Ord(keyNumpad7) = Ord(keyNumpad0) + 7);
+  AssertTrue(Ord(keyNumpad8) = Ord(keyNumpad0) + 8);
+  AssertTrue(Ord(keyNumpad9) = Ord(keyNumpad0) + 9);
 
-  AssertTrue(Ord(K_F2) = Ord(K_F1) + 1);
-  AssertTrue(Ord(K_F3) = Ord(K_F1) + 2);
-  AssertTrue(Ord(K_F4) = Ord(K_F1) + 3);
-  AssertTrue(Ord(K_F5) = Ord(K_F1) + 4);
-  AssertTrue(Ord(K_F6) = Ord(K_F1) + 5);
-  AssertTrue(Ord(K_F7) = Ord(K_F1) + 6);
-  AssertTrue(Ord(K_F8) = Ord(K_F1) + 7);
-  AssertTrue(Ord(K_F9) = Ord(K_F1) + 8);
-  AssertTrue(Ord(K_F10) = Ord(K_F1) + 9);
-  AssertTrue(Ord(K_F11) = Ord(K_F1) + 10);
-  AssertTrue(Ord(K_F12) = Ord(K_F1) + 11);
+  AssertTrue(Ord(keyF2) = Ord(keyF1) + 1);
+  AssertTrue(Ord(keyF3) = Ord(keyF1) + 2);
+  AssertTrue(Ord(keyF4) = Ord(keyF1) + 3);
+  AssertTrue(Ord(keyF5) = Ord(keyF1) + 4);
+  AssertTrue(Ord(keyF6) = Ord(keyF1) + 5);
+  AssertTrue(Ord(keyF7) = Ord(keyF1) + 6);
+  AssertTrue(Ord(keyF8) = Ord(keyF1) + 7);
+  AssertTrue(Ord(keyF9) = Ord(keyF1) + 8);
+  AssertTrue(Ord(keyF10) = Ord(keyF1) + 9);
+  AssertTrue(Ord(keyF11) = Ord(keyF1) + 10);
+  AssertTrue(Ord(keyF12) = Ord(keyF1) + 11);
 end;
 
 procedure TTestKeysMouse.TestKeyToStrAndBack;
@@ -90,7 +90,7 @@ var
 begin
   for K := Low(K) to High(K) do
   begin
-    AssertTrue(StrToKey(KeyToStr(K), K_Reserved_28) = K);
+    AssertTrue(StrToKey(KeyToStr(K), keyReserved_28) = K);
     { no whitespace around }
     AssertTrue(Trim(KeyToStr(K)) =  KeyToStr(K));
   end;
@@ -105,9 +105,9 @@ begin
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl, mkShift]) = 'Shift+Ctrl+A');
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl], false, true) = 'Command+A');
   AssertTrue(CharToNiceStr(CtrlA, [mkCtrl, mkShift], false, true) = 'Shift+Command+A');
-  AssertTrue(KeyToStr(K_F11, []) = 'F11');
-  AssertTrue(KeyToStr(K_F11, [mkCtrl]) = 'Ctrl+F11');
-  AssertTrue(KeyToStr(K_F11, [mkCtrl], true) = 'Command+F11');
+  AssertTrue(KeyToStr(keyF11, []) = 'F11');
+  AssertTrue(KeyToStr(keyF11, [mkCtrl]) = 'Ctrl+F11');
+  AssertTrue(KeyToStr(keyF11, [mkCtrl], true) = 'Command+F11');
 end;
 
 procedure TTestKeysMouse.TestKeyStringToNiceStr;
@@ -121,9 +121,9 @@ begin
   AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl, mkShift]) = 'Shift+Ctrl+A');
   AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl], false, true) = 'Command+A');
   AssertTrue(KeyStringToNiceStr(CtrlA, [mkCtrl, mkShift], false, true) = 'Shift+Command+A');
-  AssertTrue(KeyToStr(K_F11, []) = 'F11');
-  AssertTrue(KeyToStr(K_F11, [mkCtrl]) = 'Ctrl+F11');
-  AssertTrue(KeyToStr(K_F11, [mkCtrl], true) = 'Command+F11');
+  AssertTrue(KeyToStr(keyF11, []) = 'F11');
+  AssertTrue(KeyToStr(keyF11, [mkCtrl]) = 'Ctrl+F11');
+  AssertTrue(KeyToStr(keyF11, [mkCtrl], true) = 'Command+F11');
 end;
 
 initialization

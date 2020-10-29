@@ -84,12 +84,7 @@ type
     Left, Bottom: Integer;
     Width, Height: Cardinal;
 
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
-    {$else}
     class function Empty: TRectangle; static; inline;
-    {$endif}
 
     function IsEmpty: boolean;
 
@@ -277,16 +272,13 @@ type
     }
     function GetLeftBottom: TVector2;
     procedure SetLeftBottom(const Value: TVector2);
+    function GetSize: TVector2;
+    procedure SetSize(const Value: TVector2);
   public
     Left, Bottom: Single;
     Width, Height: Single;
 
-    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
-    const
-      Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: -1; Height: -1);
-    {$else}
     class function Empty: TFloatRectangle; static; inline;
-    {$endif}
 
     function IsEmpty: boolean;
 
@@ -435,11 +427,11 @@ type
 
     { Is another rectangle equal to this one.
       Floating-point values are compared with an epsilon tolerance. }
-    function Equals(const R: TFloatRectangle): Boolean;
+    function Equals(const R: TFloatRectangle): Boolean; overload;
 
     { Is another rectangle equal to this one.
       Floating-point values are compared with an epsilon tolerance. }
-    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean;
+    function Equals(const R: TFloatRectangle; const Epsilon: Single): Boolean; overload;
 
     { Sum of the two rectangles is a bounding rectangle -
       a smallest rectangle that contains them both. }
@@ -447,6 +439,10 @@ type
 
     { Common part of the two rectangles. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
+
+    { Alternative way to access @link(Width) and @link(Height).
+      Name consistent with TBoxNode.Size, TBox3D.Size. }
+    property Size: TVector2 read GetSize write SetSize;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -496,12 +492,10 @@ begin
   Result.Height := Height;
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TRectangle.Empty: TRectangle;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
-{$endif}
 
 function TRectangle.IsEmpty: boolean;
 begin
@@ -989,14 +983,12 @@ begin
   Result.Height := Height;
 end;
 
-{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TFloatRectangle.Empty: TFloatRectangle;
 begin
   FillChar(Result, SizeOf(Result), 0);
   Result.Width := -1;
   Result.Height := -1;
 end;
-{$endif}
 
 function TFloatRectangle.IsEmpty: boolean;
 begin
@@ -1038,6 +1030,18 @@ procedure TFloatRectangle.SetLeftBottom(const Value: TVector2);
 begin
   Left := Value.Data[0];
   Bottom := Value.Data[1];
+end;
+
+function TFloatRectangle.GetSize: TVector2;
+begin
+  Result.Data[0] := Width;
+  Result.Data[1] := Height;
+end;
+
+procedure TFloatRectangle.SetSize(const Value: TVector2);
+begin
+  Width := Value.Data[0];
+  Height := Value.Data[1];
 end;
 
 function TFloatRectangle.Center: TVector2;

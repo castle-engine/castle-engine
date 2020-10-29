@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,8 +30,8 @@
     procedure SetCenter(const Value: TVector3);
     function GetLimitOrientation: TVector4;
     procedure SetLimitOrientation(const Value: TVector4);
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
     function GetScale: TVector3;
@@ -52,7 +52,7 @@
     { Set X3D field "llimit". } { }
     procedure SetLlimit(const Value: TSingleList);
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "scale". } { }
@@ -126,12 +126,12 @@ begin
   FdLlimit.Send(Value);
 end;
 
-function THAnimJointNode.GetNameField: string;
+function THAnimJointNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimJointNode.SetNameField(const Value: string);
+procedure THAnimJointNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;

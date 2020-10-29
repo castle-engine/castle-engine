@@ -34,7 +34,7 @@ published
     instead read or write @link(Color) directly.
 
     @seealso Color }
-  property ColorPersistent: TCastleColorPersistent read FColorPersistent;
+  property ColorPersistent: TCastleColorPersistent read FColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

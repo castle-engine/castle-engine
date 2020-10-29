@@ -19,23 +19,31 @@ unit TestX3DLoadInternalUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestX3DLoadInternalUtils = class(TTestCase)
   published
-    procedure TestToX3DName;
+    procedure TestX3DNameEncode;
   end;
 
 implementation
 
 uses X3DLoadInternalUtils;
 
-procedure TTestX3DLoadInternalUtils.TestToX3DName;
+procedure TTestX3DLoadInternalUtils.TestX3DNameEncode;
 begin
-  AssertEquals('', ToX3DName(''));
-  AssertEquals('_1', ToX3DName('1'));
-  AssertEquals('a_sdsd_XYZ_123', ToX3DName('a_sdsd XYZ-123'));
+  AssertEquals('', EncodeX3DName(''));
+  AssertEquals('', DecodeX3DName(DecodeX3DName('')));
+
+  AssertEquals('CastleEncoded_1', EncodeX3DName('1'));
+  AssertEquals('1', DecodeX3DName(EncodeX3DName('1')));
+
+  AssertEquals('CastleEncoded_a_sdsd$32$XYZ-123', EncodeX3DName('a_sdsd XYZ-123'));
+  AssertEquals('a_sdsd XYZ-123', DecodeX3DName(EncodeX3DName('a_sdsd XYZ-123')));
+
+  AssertEquals('CastleEncoded_a_sdsd$32$$36$$32$XYZ-123', EncodeX3DName('a_sdsd $ XYZ-123'));
+  AssertEquals('a_sdsd $ XYZ-123', DecodeX3DName(EncodeX3DName('a_sdsd $ XYZ-123')));
 end;
 
 initialization

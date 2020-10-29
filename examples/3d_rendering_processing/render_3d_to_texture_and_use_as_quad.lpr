@@ -52,10 +52,10 @@
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
   CastleFilesUtils, CastleImages, CastleGLImages, CastleRectangles,
-  X3DNodes, CastleSceneManager;
+  X3DNodes, CastleViewport;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 
 const
   TextureWidth = 1024;
@@ -65,26 +65,29 @@ const
 function CreateSpriteTexture: TCastleImage;
 var
   SourceScene: TCastleScene;
-  SourceSceneManager: TCastleSceneManager;
+  SourceViewport: TCastleViewport;
   RenderToTexture: TGLRenderToTexture;
   ViewportRect: TRectangle;
 begin
   { nil everything first, to be able to wrap in a simple try..finally clause }
   SourceScene := nil;
-  SourceSceneManager := nil;
+  SourceViewport := nil;
   RenderToTexture := nil;
 
   try
     SourceScene := TCastleScene.Create(nil);
-    SourceScene.Load(ApplicationData(
-      //'bridge_final.x3dv'
-      //'car.x3d'
-      'raptor_1.x3d'
-    ));
+    SourceScene.Load(
+      //'castle-data:/bridge_final.x3dv'
+      //'castle-data:/car.x3d'
+      'castle-data:/raptor_1.x3d'
+    );
 
-    SourceSceneManager := TCastleSceneManager.Create(nil);
-    SourceSceneManager.Items.Add(SourceScene);
-    SourceSceneManager.MainScene := SourceScene;
+    SourceViewport := TCastleViewport.Create(nil);
+    SourceViewport.FullSize := true;
+    SourceViewport.AutoCamera := true;
+    SourceViewport.AutoNavigation := true;
+    SourceViewport.Items.Add(SourceScene);
+    SourceViewport.Items.MainScene := SourceScene;
 
     RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
     RenderToTexture.Buffer := tbNone;
@@ -94,10 +97,10 @@ begin
     ViewportRect := Rectangle(0, 0, TextureWidth, TextureHeight);
 
     { Everything rendered between RenderBegin and RenderEnd is done off-screen.
-      Below, we explicitly render the SourceSceneManager.
-      This way, using this function doesn't change any Window.Controls
-      or Window.SceneManager state, which is a nice thing. }
-    Window.Container.RenderControl(SourceSceneManager, ViewportRect);
+      Below, we explicitly render the SourceViewport.
+      This way, using this function doesn't change Window.Controls
+      state, which is a nice thing. }
+    Window.Container.RenderControl(SourceViewport, ViewportRect);
 
     Result := SaveScreen_NoFlush(TRGBImage, ViewportRect, RenderToTexture.ColorBuffer);
 
@@ -105,7 +108,7 @@ begin
   finally
     FreeAndNil(RenderToTexture);
     FreeAndNil(SourceScene);
-    FreeAndNil(SourceSceneManager);
+    FreeAndNil(SourceViewport);
   end;
 end;
 
@@ -159,21 +162,28 @@ end;
 var
   RuntimeScene: TCastleScene;
   SpriteTexture: TCastleImage;
+  Viewport: TCastleViewport;
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
   SpriteTexture := CreateSpriteTexture;
   // You can save the image to disk.
   // SaveImage(SpriteTexture, '/tmp/test.png');
 
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
+
   RuntimeScene := TCastleScene.Create(Application);
   RuntimeScene.Load(CreateRuntimeSceneNode(SpriteTexture), true);
   RuntimeScene.Spatial := [ssRendering, ssDynamicCollisions];
   RuntimeScene.ProcessEvents := true;
 
-  Window.SceneManager.Items.Add(RuntimeScene);
-  Window.SceneManager.MainScene := RuntimeScene;
+  Viewport.Items.Add(RuntimeScene);
+  Viewport.Items.MainScene := RuntimeScene;
 
   Application.Run;
 end.

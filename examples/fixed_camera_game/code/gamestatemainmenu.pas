@@ -196,7 +196,7 @@ begin
 
   SoundEngine.Device := Device.Name;
   StateMainMenu.SoundMenu.SoundDeviceArgument.RightCaption := SoundEngine.DeviceCaption;
-  if not SoundEngine.ALActive then
+  if not SoundEngine.IsContextOpenSuccess then
     MessageOK(Application.MainWindow, SoundEngine.Information);
 
   StateMainMenu.SetCurrentMenu(StateMainMenu.SoundMenu);

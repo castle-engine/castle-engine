@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,17 +28,29 @@
   strict private
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetVisibilityRange: Single;
     procedure SetVisibilityRange(const Value: Single);
+    function GetVolumetric: Boolean;
+    procedure SetVolumetric(const Value: Boolean);
+    function GetVolumetricDirection: TVector3;
+    procedure SetVolumetricDirection(const Value: TVector3);
+    function GetVolumetricVisibilityStart: Single;
+    procedure SetVolumetricVisibilityStart(const Value: Single);
   public
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "visibilityRange". } { }
     property VisibilityRange: Single read GetVisibilityRange write SetVisibilityRange;
+    { X3D field "volumetric". } { }
+    property Volumetric: Boolean read GetVolumetric write SetVolumetric;
+    { X3D field "volumetricDirection". } { }
+    property VolumetricDirection: TVector3 read GetVolumetricDirection write SetVolumetricDirection;
+    { X3D field "volumetricVisibilityStart". } { }
+    property VolumetricVisibilityStart: Single read GetVolumetricVisibilityStart write SetVolumetricVisibilityStart;
 
 {$endif read_interface}
 
@@ -56,12 +68,12 @@ begin
   FdColor.Send(Value);
 end;
 
-function TLocalFogNode.GetEnabled: boolean;
+function TLocalFogNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TLocalFogNode.SetEnabled(const Value: boolean);
+procedure TLocalFogNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
@@ -74,6 +86,36 @@ end;
 procedure TLocalFogNode.SetVisibilityRange(const Value: Single);
 begin
   FdVisibilityRange.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetric: Boolean;
+begin
+  Result := FdVolumetric.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetric(const Value: Boolean);
+begin
+  FdVolumetric.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetricDirection: TVector3;
+begin
+  Result := FdVolumetricDirection.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetricDirection(const Value: TVector3);
+begin
+  FdVolumetricDirection.Send(Value);
+end;
+
+function TLocalFogNode.GetVolumetricVisibilityStart: Single;
+begin
+  Result := FdVolumetricVisibilityStart.Value;
+end;
+
+procedure TLocalFogNode.SetVolumetricVisibilityStart(const Value: Single);
+begin
+  FdVolumetricVisibilityStart.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -13,10 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Example how to use SceneManager.MouseRayHit to detect clicks on
+{ Example how to use Viewport.MouseRayHit to detect clicks on
   a particular scene.
 
-  Note that you could also look at SceneManager.TriangleHit for details of
+  Note that you could also look at Viewport.TriangleHit for details of
   the triangle under mouse. You can also look at each scene properties
 
     PointingDeviceOverItem: PTriangle;
@@ -28,12 +28,13 @@
 program detect_scene_clicks;
 
 uses SysUtils,
-  CastleWindow, CastleScene, CastleNotifications, CastleSceneManager,
+  CastleWindow, CastleScene, CastleNotifications, CastleViewport,
   CastleColors, CastleVectors, CastleFilesUtils, X3DNodes, CastleTransform,
   CastleKeysMouse, CastleUIControls;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Notifications: TCastleNotifications;
 
 procedure AddHexagon(
@@ -43,7 +44,7 @@ var
   Material: TMaterialNode;
 begin
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('hexagon.x3d'));
+  Scene.Load('castle-data:/hexagon.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   Scene.Translation := Translation;
@@ -52,20 +53,16 @@ begin
   Material := Scene.Node('MA_mat_hexagon') as TMaterialNode;
   Material.DiffuseColor := Color;
 
-  Window.SceneManager.Items.Add(Scene);
+  Viewport.Items.Add(Scene);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   TopMostScene: TCastleTransform;
 begin
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
-    if Window.SceneManager.MouseRayHit <> nil then
-      TopMostScene := Window.SceneManager.MouseRayHit.First.Item
-    else
-      TopMostScene := nil;
-
+    TopMostScene := Viewport.TransformUnderMouse;
     if TopMostScene <> nil then
       Notifications.Show('Clicked on scene ' + IntToStr(TopMostScene.Tag))
     else
@@ -74,9 +71,13 @@ begin
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.OnPress := @WindowPress;
   Window.Open;
+
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Window.Controls.InsertFront(Viewport);
 
   Notifications := TCastleNotifications.Create(Application);
   Notifications.Anchor(hpLeft, 10);
@@ -87,16 +88,14 @@ begin
   AddHexagon(Vector3(1.5, 0, 1), BlueRGB, 2);
   AddHexagon(Vector3(-1.5, 0, 1), RedRGB, 3);
 
-  Window.SceneManager.UseHeadlight := hlOn;
+  Viewport.Items.UseHeadlight := hlOn;
 
   // configure initial camera view
-  Window.SceneManager.WalkCamera.SetView(
+  Viewport.Camera.SetView(
     Vector3(0, 10, 0),
     Vector3(0, -1, 0),
     Vector3(0, 0, -1)
   );
-  // do not allow user to move camera by arrow keys etc. by default
-  Window.SceneManager.WalkCamera.Input := [];
 
   Application.Run;
 end.

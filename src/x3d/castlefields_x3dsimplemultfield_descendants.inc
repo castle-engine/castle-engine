@@ -331,10 +331,10 @@ const
 begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s (not enough points in Coordinate node defined: index is %d, we have only %d vertices)',
+    WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s (not enough points in Coordinate node defined: index is %d, we have only %d vertices)',
       [GeometryX3DType, VertexNum, CoordCount])) else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    WritelnWarning('X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryX3DType, WrongVertexIndexWarnings]));
 end;
 
@@ -698,7 +698,9 @@ begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
     xeXML    : Result := StringToX3DXmlMulti(Items[ItemNum]);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
+    {$endif}
   end;
 end;
 
@@ -731,7 +733,7 @@ begin
   except
     on E: Exception do
     begin
-      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + X3DName + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
+      WritelnWarning('X3D', 'Error when reading MFString field "' + X3DName + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
       Items.Count := 0;
       Items.Add(AttributeValue);
     end;

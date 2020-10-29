@@ -16,11 +16,13 @@
 { Compiling, packaging, installing, running on Android. }
 unit ToolAndroid;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,
   CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
+  ToolArchitectures, ToolCompile, ToolProject;
 
 { Compile (for all possible Android CPUs) Android unit or library.
   When Project <> nil, we assume we compile libraries (one of more .so files),
@@ -37,8 +39,7 @@ function DetectAndroidCPUS: TCPUS;
 function CPUToAndroidArchitecture(const CPU: TCPU): String;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const Files: TCastleStringList);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 
 procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
 
@@ -48,7 +49,7 @@ implementation
 
 uses SysUtils, DOM, XMLWrite,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages, ToolFPCVersion;
+  ToolEmbeddedImages, ToolFPCVersion, ToolPackage, ToolCommonUtils, ToolUtils;
 
 var
   DetectAndroidCPUSCached: TCPUS;
@@ -58,7 +59,7 @@ begin
   if DetectAndroidCPUSCached = [] then
   begin
     DetectAndroidCPUSCached := [Arm];
-    if FPCVersion.AtLeast(3, 3, 1) then
+    if FPCVersion.AtLeast(3, 2, 0) then
       Include(DetectAndroidCPUSCached, Aarch64)
     else
       WritelnWarning('FPC version ' + FPCVersion.ToString + ' does not support compiling for 64-bit Android (Aarch64). Resulting APK will only support 32-bit Android devices.');
@@ -142,7 +143,7 @@ begin
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + ExeName);
-    if not FileExists(Result) then
+    if not RegularFileExists(Result) then
       Result := '';
   end;
   { try to find in $ANDROID_HOME }
@@ -152,7 +153,7 @@ begin
     if Env <> '' then
     begin
       Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
-      if not FileExists(Result) then
+      if not RegularFileExists(Result) then
         Result := '';
     end;
   end;
@@ -177,7 +178,7 @@ begin
   if Env <> '' then
   begin
     Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
-    if not FileExists(Result) then
+    if not RegularFileExists(Result) then
       Result := '';
   end;
   { try to find on $PATH }
@@ -186,8 +187,7 @@ begin
 end;
 
 procedure PackageAndroid(const Project: TCastleProject;
-  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode;
-  const Files: TCastleStringList);
+  const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 var
   AndroidProjectPath: string;
 
@@ -205,7 +205,7 @@ var
   procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
-    if not FileExists(AndroidProjectPath + FileName) then
+    if not RegularFileExists(AndroidProjectPath + FileName) then
       SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
@@ -214,7 +214,7 @@ var
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileTo));
-    if not FileExists(AndroidProjectPath + FileTo) then
+    if not RegularFileExists(AndroidProjectPath + FileTo) then
       SmartCopyFile(FileFrom, AndroidProjectPath + FileTo)
     else
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileTo);
@@ -223,7 +223,7 @@ var
 {
   procedure PackageStringToFile(const FileTo, Contents: string);
   begin
-    if not FileExists(AndroidProjectPath + FileTo) then
+    if not RegularFileExists(AndroidProjectPath + FileTo) then
     begin
       PackageCheckForceDirectories(ExtractFilePath(FileTo));
       StringToFile(FileTo, Contents);
@@ -258,7 +258,9 @@ var
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
       apIntegrated: TemplatePath := 'android/integrated/';
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
+      {$endif}
     end;
     Project.ExtractTemplate(TemplatePath, DestinationPath);
 
@@ -278,6 +280,9 @@ var
       if (depFreeType in Project.Dependencies) and
          not Project.AndroidServices.HasService('freetype') then
         ExtractService('freetype');
+      if (depHttps in Project.Dependencies) and
+         not Project.AndroidServices.HasService('download_urls') then
+        ExtractService('download_urls');
     end;
   end;
 
@@ -318,19 +323,13 @@ var
   end;
 
   procedure GenerateAssets;
-  var
-    I: Integer;
-    FileFrom, FileTo: string;
   begin
-    for I := 0 to Files.Count - 1 do
-    begin
-      FileFrom := Project.DataPath + Files[I];
-      FileTo := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-                'assets' + PathDelim + Files[I];
-      PackageSmartCopyFile(FileFrom, FileTo);
-      if Verbose then
-        Writeln('Packaging data file: ' + Files[I]);
-    end;
+    Project.CopyData(AndroidProjectPath +
+      'app' + PathDelim +
+      'src' + PathDelim +
+      'main' + PathDelim +
+      'assets',
+      cpAndroid);
   end;
 
   procedure GenerateLocalization;
@@ -485,11 +484,11 @@ var
     KeyAlias := '';
     KeyStorePassword := '';
     KeyAliasPassword := '';
-    if FileExists(Project.Path + SourceAntProperties) then
+    if RegularFileExists(Project.Path + SourceAntProperties) then
     begin
       LoadSigningProperties(Project.Path + SourceAntProperties);
     end else
-    if FileExists(Project.Path + SourceAntPropertiesOld) then
+    if RegularFileExists(Project.Path + SourceAntPropertiesOld) then
     begin
       LoadSigningProperties(Project.Path + SourceAntPropertiesOld);
       WritelnWarning('Deprecated', 'Using deprecated configuration file name "' + SourceAntPropertiesOld + '". Rename it to "' + SourceAntProperties + '".');
@@ -511,6 +510,8 @@ var
     library correctly preserced, such that ndk-gdb works and sees our symbols.
   }
   procedure RunNdkBuild;
+  var
+    Args: TCastleStringList;
   begin
     { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
       See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
@@ -523,8 +524,15 @@ var
       as they would not be picked by Gradle from there. But that's
       what ndk-build does: it copies them from jni/ to another directory. }
 
-    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-      NdkBuildExe, ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
+    Args := TCastleStringList.Create;
+    try
+      if not Verbose then
+        Args.Add('--silent');
+      Args.Add('NDK_LIBS_OUT=./jniLibs');
+
+      RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
+        NdkBuildExe, Args.ToArray);
+    finally FreeAndNil(Args) end;
   end;
 
   { Run Gradle to actually build the final apk. }
@@ -570,7 +578,7 @@ var
       end;
 
       {$else}
-      if FileExists(AndroidProjectPath + 'gradlew') then
+      if RegularFileExists(AndroidProjectPath + 'gradlew') then
       begin
         Args.Insert(0, './gradlew');
         RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
@@ -624,12 +632,12 @@ var
 begin
   ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
   ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
-  if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
+  if RegularFileExists(ApkDebugName) and RegularFileExists(ApkReleaseName) then
     raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);
-  if FileExists(ApkDebugName) then
+  if RegularFileExists(ApkDebugName) then
     ApkName := ApkDebugName else
-  if FileExists(ApkReleaseName) then
+  if RegularFileExists(ApkReleaseName) then
     ApkName := ApkReleaseName else
     raise Exception.CreateFmt('No Android apk found in this directory: "%s" or "%s"',
       [ApkDebugName, ApkReleaseName]);

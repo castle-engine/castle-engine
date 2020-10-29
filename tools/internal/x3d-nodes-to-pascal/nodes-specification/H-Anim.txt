@@ -49,6 +49,14 @@ HAnimSegment : X3DGroupingNode {
   SFFloat  [in,out] mass             0                   [0,Inf)
   MFFloat  [in,out] momentsOfInertia [0 0 0 0 0 0 0 0 0] [0,Inf)
   SFString [in,out] name             ""
+
+  # Segment.rotation, scale, translation are extensions of Blaxxun
+  # avatars, at least that's what
+  # http://tecfa.unige.ch/vrml/objects/avatars/blaxxun/ suggests.
+  # They are not conforming to HAnim 1.0 or 200x specification.
+  SFRotation [in,out] rotation         0 0 1 0  (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)|[-1,1]
 }
 
 HAnimSite : X3DGroupingNode {

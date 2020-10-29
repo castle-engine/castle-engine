@@ -17,6 +17,54 @@
 
 {$ifdef read_interface}
 
+  { Configure physics simulation calculation. }
+  TPhysicsProperties = class(TComponent)
+  strict private
+    FAngularVelocityRK4Integration: Boolean;
+    FLinearVelocityRK4Integration: Boolean;
+    FFrequency: Single;
+    FMaxPhysicsTicksPerUpdate: Cardinal;
+
+    procedure SetAngularVelocityRK4Integration(const AValue: Boolean);
+    procedure SetLinearVelocityRK4Integration(const AValue: Boolean);
+    procedure SetFrequency(const AValue: Single);
+
+  private
+    { Buffer to not count physics step time per frame }
+    FPhysicsTimeStep: TFloatTime;
+    RootTransform: TCastleAbstractRootTransform;
+
+  public
+    const
+      DefaultAngularVelocityRK4Integration = false;
+      DefaultLinearVelocityRK4Integration = false;
+      DefaultFrequency = 60.0;
+      DefaultMaxPhysicsTicksPerUpdate = 5;
+
+    constructor Create(AOwner: TComponent); override;
+
+  published
+    { Use a more precise (but also more expensive) method for simulating angular velocity.
+      The "RK4" refers to Runge–Kutta method. }
+    property AngularVelocityRK4Integration: Boolean read FAngularVelocityRK4Integration write SetAngularVelocityRK4Integration default DefaultAngularVelocityRK4Integration;
+    { Use a more precise (but also more expensive) method for simulating linear velocity.
+      The "RK4" refers to Runge–Kutta method. }
+    property LinearVelocityRK4Integration: Boolean read FLinearVelocityRK4Integration write SetLinearVelocityRK4Integration default DefaultLinearVelocityRK4Integration;
+    { How often should the physics simulation run in a second.
+      Larger values increase accuracy (up to a certain point), but also increase the CPU overhead. }
+    property Frequency: Single read FFrequency write SetFrequency default DefaultFrequency;
+
+    { Non-zero value avoids the "spiral of death" when the physics takes
+      a long time to calculate.
+
+      When the value is zero, physics makes always as many steps as necessary,
+      to advance the time by @code(1 / @link(Frequency)) steps.
+      This means that if physics takes a long time to calculate,
+      next time it will take even longer time to calculate (it will need more steps),
+      thus we have a "spiral of death" that leads to lower and lower FPS. }
+    property MaxPhysicsTicksPerUpdate: Cardinal read FMaxPhysicsTicksPerUpdate write FMaxPhysicsTicksPerUpdate default DefaultMaxPhysicsTicksPerUpdate;
+  end;
+
   { Shape used for collision detection of a rigid body @link(TRigidBody). }
   TCollider = class
   private
@@ -100,6 +148,10 @@
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
+  TOnCollision = procedure (const CollisionDetails: TPhysicsCollisionDetails) of object;
+
+  TRigidBodyList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TRigidBody>;
+
   { Rigid body properties for the physics engine,
     see @link(TCastleTransform.RigidBody).
 
@@ -107,18 +159,57 @@
     including the Collider and all properties of Collider,
     must be assigned before setting TCastleTransform.RigidBody . }
   TRigidBody = class(TComponent)
+  strict private
+    { List of collisions from previous step. }
+    FPrevCollisions: TRigidBodyList;
+    { List of collisions from current step. }
+    FCurrentCollisions: TRigidBodyList;
+
+    FOnCollisionEnter: TOnCollision;
+    FOnCollisionStay: TOnCollision;
+    FOnCollisionExit: TOnCollision;
+
+    procedure PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
+    { Assign or unassign PhysicsPostStep in TKraftBody.OnPostStep when needed. }
+    procedure CheckPhysicsPostStepNeeded;
   private
     FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
-    FGravity: boolean;
-    FDynamic: boolean;
-    FAnimated: boolean;
+    FGravity: Boolean;
+    FDynamic: Boolean;
+    FAnimated: Boolean;
+    FTrigger: Boolean;
+    FExists: Boolean;
     FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
-    FInitialAngularVelocity: TVector3;
-    FInitialLinearVelocity: TVector3;
-    FRecreateKraftInstance: boolean;
+    FAngularVelocity: TVector3;
+    FAngularVelocityDamp: Single;
+    FMaximalAngularVelocity: Single;
+    FLinearVelocity: TVector3;
+    FLinearVelocityDamp: Single;
+    FMaximalLinearVelocity: Single;
+    FTransform: TCastleTransform;
+    FCollisionList: TCastleTransformList;
+
     procedure UpdateCollides(const Transform: TCastleTransform);
+
+    { Sets all values from Kraft to CGE private fields. }
+    procedure SynchronizeFromKraft;
+
+    procedure SetAngularVelocity(const AVelocity: TVector3);
+    procedure SetAngularVelocityDamp(const AValue: Single);
+    procedure SetMaximalAngularVelocity(const AValue: Single);
+
+    procedure SetLinearVelocity(const LVelocity: TVector3);
+    procedure SetLinearVelocityDamp(const AValue: Single);
+    procedure SetMaximalLinearVelocity(const AValue: Single);
+
+    procedure SetOnCollisionEnter(const AValue: TOnCollision);
+    procedure SetOnCollisionStay(const AValue: TOnCollision);
+    procedure SetOnCollisionExit(const AValue: TOnCollision);
+
+    procedure SetExists(const Value: Boolean);
+    procedure SetTrigger(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -134,8 +225,52 @@
     procedure DeinitializeTransform(const Transform: TCastleTransform);
     procedure Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
-    property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
-    property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
+    { Transformations that we collide with currently. }
+    function GetCollidingTransforms: TCastleTransformList;
+
+    property AngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
+    property AngularVelocityDamp: Single read FAngularVelocityDamp write SetAngularVelocityDamp;
+    property MaximalAngularVelocity: Single read FMaximalAngularVelocity write SetMaximalAngularVelocity;
+
+    property LinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
+    property LinearVelocityDamp: Single read FLinearVelocityDamp write SetLinearVelocityDamp;
+    property MaximalLinearVelocity: Single read FMaximalLinearVelocity write SetMaximalLinearVelocity;
+
+    property InitialAngularVelocity: TVector3 read FAngularVelocity write SetAngularVelocity;
+      deprecated 'use AngularVelocity';
+    property InitialLinearVelocity: TVector3 read FLinearVelocity write SetLinearVelocity;
+      deprecated 'use LinearVelocity';
+
+    { Occurs when TRigidBody starts colliding with another TRigidBody.
+
+      It can occur repeatedly for the same body (in the same time instant)
+      if the collision has many points of contact.
+
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+    property OnCollisionEnter: TOnCollision read FOnCollisionEnter write SetOnCollisionEnter;
+
+    { Occurs when TRigidBody stops colliding with another TRigidBody.
+
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+    property OnCollisionExit: TOnCollision read FOnCollisionExit write SetOnCollisionExit;
+
+    { Occurs when TRigidBody still collides with another TRigidBody.
+
+      @italic(Warning:) Do not free the @link(TCastleTransform) instances
+      that collide during this event.
+      It would free the rigid body instance, which will crash the physics engine for now.
+      Instead, you can set @link(TCastleTransform.Exists) to @false
+      (you can free it later, e.g. during @link(TInputListener.OnUpdate)). }
+    property OnCollisionStay: TOnCollision read FOnCollisionStay write SetOnCollisionStay;
+
   published
     { Does the physics simulation move and rotate this object
       (because of gravity, or because it collides with others).
@@ -165,7 +300,7 @@
         )
       )
     }
-    property Dynamic: boolean read FDynamic write FDynamic default true;
+    property Dynamic: Boolean read FDynamic write FDynamic default true;
 
     { Is the transformation of this object updated often
       (relevant only when @link(Dynamic) = @false).
@@ -198,7 +333,20 @@
         )
       )
     }
-    property Animated: boolean read FAnimated write FAnimated default false;
+    property Animated: Boolean read FAnimated write FAnimated default false;
+
+    { Triggers report when other object collides with them,
+      but still allow the other object to pass through.
+      In other words, colliding with a trigger will not cause the collider to stop or
+      "bounce off" the trigger.
+
+      They are useful as sensors. E.g. a trigger may be a coin (like in "Mario")
+      that the player can "consume" by colliding with it.
+
+      Triggers report collisions through the same events as other rigid bodies:
+      (@link(TRigidBody.OnCollisionEnter), @link(TRigidBody.OnCollisionStay),
+      @link(TRigidBody.OnCollisionExit)). }
+    property Trigger: Boolean read FTrigger write SetTrigger default false;
 
     { Shape used for collisions with this object.
       You cannot assign this property directly,
@@ -207,7 +355,7 @@
     property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
-    property Gravity: boolean read FGravity write FGravity default true;
+    property Gravity: Boolean read FGravity write FGravity default true;
 
     { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.
@@ -224,6 +372,11 @@
       Instead of directly changing this property,
       you can achieve this by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
+
+    { Controls whether the rigid body is actually processed by the physics engine.
+      When this is @false, the rigid body is not updated by the physics engine,
+      and it does not cause collisions with other rigid bodies. }
+    property Exists: Boolean read FExists write SetExists default true;
   end;
 
 {$endif read_interface}
@@ -265,6 +418,52 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
+{ TPhysicsProperties --------------------------------------------------------- }
+
+procedure TPhysicsProperties.SetFrequency(const AValue: Single);
+begin
+  if FFrequency = AValue then
+    Exit;
+
+  FFrequency := AValue;
+  FPhysicsTimeStep := 1.0 / FFrequency;
+
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.SetFrequency(AValue);
+end;
+
+procedure TPhysicsProperties.SetLinearVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FLinearVelocityRK4Integration = AValue then
+    Exit;
+
+  FLinearVelocityRK4Integration := AValue;
+
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.LinearVelocityRK4Integration := AValue;
+end;
+
+procedure TPhysicsProperties.SetAngularVelocityRK4Integration(const AValue: Boolean);
+begin
+  if FAngularVelocityRK4Integration = AValue then
+    Exit;
+
+  FAngularVelocityRK4Integration := AValue;
+
+  if Assigned(RootTransform.FKraftEngine) then
+    RootTransform.FKraftEngine.AngularVelocityRK4Integration := AValue;
+end;
+
+constructor TPhysicsProperties.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAngularVelocityRK4Integration := DefaultAngularVelocityRK4Integration;
+  FLinearVelocityRK4Integration := DefaultLinearVelocityRK4Integration;
+  FFrequency := DefaultFrequency;
+  FPhysicsTimeStep := 1.0 / FFrequency;
+  FMaxPhysicsTicksPerUpdate := DefaultMaxPhysicsTicksPerUpdate;
+end;
+
 { TCollider ------------------------------------------------------------------ }
 
 constructor TCollider.Create(const AParent: TRigidBody);
@@ -291,6 +490,8 @@ begin
   FKraftShape.Density := Density;
   FKraftShape.Restitution := Restitution;
   FKraftShape.Friction := Friction;
+  if not FParent.Exists then
+    FKraftShape.Flags := FKraftShape.Flags - [ksfCollision];
 end;
 
 destructor TCollider.Destroy;
@@ -344,18 +545,46 @@ begin
   // properties defaults
   FGravity := true;
   FDynamic := true;
+  FExists := true;
+  // default damp values from Kraft
+  FLinearVelocityDamp := 0.1;
+  FAngularVelocityDamp := 0.1;
 
-  FRecreateKraftInstance := true;
+  FKraftBody := nil;
+  FCollisionList := TCastleTransformList.Create(false, nil);
+  FPrevCollisions := TRigidBodyList.Create;
+  FCurrentCollisions := TRigidBodyList.Create;
+
+  FOnCollisionEnter := nil;
+  FOnCollisionExit := nil;
+  FTransform := nil;
 end;
 
 destructor TRigidBody.Destroy;
 begin
+  { In case TRigidBody is destroyed before the connected FTransform is destroyed
+    (testcase: physics_3d_demo exit), it is necessary to clear FTransform.FRigidBody.
+    This avoids having a dangling pointer in FTransform.FRigidBody to half-destroyed
+    instance.
+
+    Otherwise:
+    - "inherited" below calls TComponent free notification,
+    - which calls TCastleTransform.PhysicsNotification,
+    - which would (if FTransform.FRigidBody is not cleared)
+      call DeinitializeTransform on our instance, with FKraftBody = nil.
+  }
+  if FTransform <> nil then
+    FTransform.FRigidBody := nil;
+
   { The FKraftBody will be freed now if you free TRigidBody
     instance explicitly. In most other cases, DeinitializeTransform
     already freed FKraftBody and set it nil. }
 
   FreeAndNil(FKraftBody);
   FreeAndNil(FCollider);
+  FreeAndNil(FCollisionList);
+  FreeAndNil(FPrevCollisions);
+  FreeAndNil(FCurrentCollisions);
   inherited;
 end;
 
@@ -378,14 +607,14 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: TSceneManagerWorld;
+    World: TCastleAbstractRootTransform;
     V: TVector3;
   begin
     World := Transform.World;
     World.InitializePhysicsEngine;
 
-    FreeAndNil(FKraftBody);
     FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
+    FKraftBody.UserData := Self;
 
     if Dynamic then
       FKraftBody.SetRigidBodyType(krbtDynamic)
@@ -395,11 +624,6 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     else
       FKraftBody.SetRigidBodyType(krbtStatic);
 
-    // initialize Kraft shape
-    if Collider = nil then
-      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
-    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
-
     FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
     FKraftBody.ForcedMass := Collider.Mass;
     if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
@@ -408,61 +632,176 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
     if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
     if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
+    if not FExists then
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor];
+
+    // initialize Kraft shape
+    if Collider = nil then
+      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
+    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
+
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
 
-    if (not InitialAngularVelocity.IsPerfectlyZero) or
-       (not InitialLinearVelocity.IsPerfectlyZero) then
+    if (not FAngularVelocity.IsPerfectlyZero) or
+       (not FLinearVelocity.IsPerfectlyZero) then
     begin
-      { The behaviour is more natural when we zero the InitialXxxVelocity
+      { The behaviour is more natural when we zero the XxxVelocity
         components that are locked. (Otherwise testing e.g. Setup2D in a 3D
         world makes a little unexpected motions). }
 
-      V := ZeroLockedComponents(InitialAngularVelocity, FLockRotation);
+      V := ZeroLockedComponents(FAngularVelocity, FLockRotation);
       FKraftBody.AngularVelocity := VectorToKraft(V);
 
-      V := ZeroLockedComponents(InitialLinearVelocity, FLockTranslation);
+      V := ZeroLockedComponents(FLinearVelocity, FLockTranslation);
       FKraftBody.LinearVelocity := VectorToKraft(V);
 
       FKraftBody.SetToAwake;
     end;
 
+    FKraftBody.LinearVelocityDamp := FLinearVelocityDamp;
+    FKraftBody.MaximalLinearVelocity := FMaximalLinearVelocity / Transform.World.FKraftEngine.WorldFrequency;
+
+    FKraftBody.AngularVelocityDamp := FAngularVelocityDamp;
+    FKraftBody.MaximalAngularVelocity := FMaximalAngularVelocity / Transform.World.FKraftEngine.WorldFrequency;
+
     // set initial transformation
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
+
+    { Synchronize Kraft rigid body and shapes (colliders) transform to make
+      collider position correct. Without the SynchronizeTransformIncludingShapes,
+      first (before physics step) TransformationFromKraft
+      would set weird TCastleTransform position.
+
+      Testcase: run physics_2d_collisions, press space (pause) and R (restart).
+      The plane should jump to predictable initial position (TPlane.Create).
+      Without the SynchronizeTransformIncludingShapes call, it jumps to
+      an incorrect position.
+
+      Also, because we use shape InterpolatedWorldTransform we need to store
+      it for correct result. }
+    FKraftBody.SynchronizeTransformIncludingShapes;
+    Collider.FKraftShape.StoreWorldTransform;
+
+    CheckPhysicsPostStepNeeded;
   end;
 
 begin
-  if Transform.FWorldReferences > 1 then
-    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the SceneManager.Items');
+  Assert(FKraftBody = nil, 'Kraft body is initialized!');
 
-  if FRecreateKraftInstance then
-  begin
-    FRecreateKraftInstance := false;
-    RecreateKraftInstance;
-  end;
+  if Transform.FWorldReferences > 1 then
+    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the Viewport.Items');
+
+  FTransform := Transform;
+  RecreateKraftInstance;
 end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 begin
+  Assert(FKraftBody <> nil, 'Second deinitialization!');
   Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
 
-  if Transform.World.FKraftEngine <> nil then
-    FreeAndNil(FKraftBody)
-  else
-    { FKraftBody is owned by FKraftEngine.
-      If FKraftEngine = nil then FKraftBody was already freed.
-      This can happen because TSceneManagerWorld.Destroy frees FKraftEngine,
-      but the TCastleTransform instances (with TRigidBody)
-      may be detached later, see TTestCastleTransform.TestPhysicsWorldOwner. }
-    FKraftBody := nil;
+  Assert(not ((Transform.World.FKraftEngine = nil) and (FKraftBody <> nil)), 'KraftBody should not live longer than KraftEngine!');
+
+  FreeAndNil(FKraftBody);
 
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
     Collider.FKraftShape := nil;
 
-  { we in unintialized state, so initialize at nearest occasion }
-  FRecreateKraftInstance := true;
+  FTransform := nil;
+end;
+
+procedure TRigidBody.PhysicsPostStep(const RigidBody: TKraftRigidBody; const TimeStep: TKraftTimeStep);
+var
+  ContactPairEdge: PKraftContactPairEdge;
+  RBody: TRigidBody;
+  CollisionDetails: TPhysicsCollisionDetails;
+  I: Integer;
+begin
+  FCurrentCollisions.Clear;
+  ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+  while Assigned(ContactPairEdge) do
+  begin
+    { Without this code, OnCollisonEnter reports fake collisons when
+      one of colliding body has non regural shape (for example when
+      TBoxCollider is rotated).
+      kcfColliding = From kraft source comment: "Set when contact
+      collides during a step" }
+    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
+      continue;
+    end;
+
+    RBody := TRigidBody(ContactPairEdge^.OtherRigidBody.UserData);
+
+    // Omit next collision point with the same body.
+    if FCurrentCollisions.IndexOf(RBody) <> - 1 then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
+      continue;
+    end;
+
+    // Add to current collisions.
+    FCurrentCollisions.Add(RBody);
+
+    // Prepare collision data.
+    CollisionDetails.OtherTransform := RBody.FTransform;
+    CollisionDetails.Transforms[0] := FTransform;
+    CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
+
+    // New and ongoing collisions.
+    if FPrevCollisions.IndexOf(RBody) = -1 then
+    begin
+      // New collision.
+      if Assigned(FOnCollisionEnter) then
+        FOnCollisionEnter(CollisionDetails);
+    end else
+    begin
+      // Still in collision.
+      if Assigned(FOnCollisionStay) then
+        FOnCollisionStay(CollisionDetails);
+
+      // Remove used collision.
+      FPrevCollisions.Remove(RBody);
+    end;
+
+    ContactPairEdge := ContactPairEdge^.Next;
+  end;
+
+  // check collision exit
+  if Assigned(FOnCollisionExit) then
+  begin
+    CollisionDetails.Transforms[0] := FTransform;
+
+    for I := 0  to FPrevCollisions.Count - 1 do
+    begin
+      CollisionDetails.OtherTransform := TRigidBody(FPrevCollisions[I]).FTransform;
+      CollisionDetails.Transforms[1] := CollisionDetails.OtherTransform;
+
+      FOnCollisionExit(CollisionDetails);
+    end;
+  end;
+
+  // Make previous list from current list.
+  FPrevCollisions.Clear;
+  FPrevCollisions.AddRange(FCurrentCollisions);
+end;
+
+procedure TRigidBody.CheckPhysicsPostStepNeeded;
+begin
+  if not Assigned(FKraftBody) then
+    Exit;
+
+  if Assigned(FOnCollisionEnter) or Assigned(FOnCollisionStay) or Assigned(FOnCollisionExit) then
+    FKraftBody.OnPostStep := @PhysicsPostStep
+  else
+    FKraftBody.OnPostStep := nil;
 end;
 
 procedure TRigidBody.UpdateCollides(const Transform: TCastleTransform);
@@ -481,6 +820,63 @@ begin
     FKraftBody.CollideWithCollisionGroups := [];
     FKraftBody.CollisionGroups := [];
   end;
+end;
+
+procedure TRigidBody.SetMaximalAngularVelocity(const AValue: Single);
+begin
+  FMaximalAngularVelocity := AValue;
+  { Kraft uses max velocity for delta time which is physics update frequency. }
+  if FKraftBody <> nil then
+    FKraftBody.MaximalAngularVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
+end;
+
+procedure TRigidBody.SetMaximalLinearVelocity(const AValue: Single);
+begin
+  FMaximalLinearVelocity := AValue;
+  { Kraft uses max velocity for delta time which is physics update frequency. }
+  if FKraftBody <> nil then
+    FKraftBody.MaximalLinearVelocity := AValue / FTransform.World.FKraftEngine.WorldFrequency;
+end;
+
+procedure TRigidBody.SetOnCollisionEnter(const AValue: TOnCollision);
+begin
+  FOnCollisionEnter := AValue;
+  CheckPhysicsPostStepNeeded;
+end;
+
+procedure TRigidBody.SetOnCollisionStay(const AValue: TOnCollision);
+begin
+  FOnCollisionStay := AValue;
+  CheckPhysicsPostStepNeeded;
+end;
+
+procedure TRigidBody.SetOnCollisionExit(const AValue: TOnCollision);
+begin
+  FOnCollisionExit := AValue;
+  CheckPhysicsPostStepNeeded;
+end;
+
+procedure TRigidBody.SetAngularVelocityDamp(const AValue: Single);
+begin
+  FAngularVelocityDamp := AValue;
+  if FKraftBody <> nil then
+    FKraftBody.AngularVelocityDamp := AValue;
+end;
+
+procedure TRigidBody.SetLinearVelocityDamp(const AValue: Single);
+begin
+  FLinearVelocityDamp := AValue;
+  if FKraftBody <> nil then
+    FKraftBody.LinearVelocityDamp := AValue;
+end;
+
+procedure TRigidBody.SynchronizeFromKraft;
+begin
+  if FKraftBody = nil then
+    Exit;
+
+  FLinearVelocity := VectorFromKraft(FKraftBody.LinearVelocity);
+  FAngularVelocity := VectorFromKraft(FKraftBody.AngularVelocity);
 end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
@@ -522,11 +918,12 @@ begin
   if (Transform.World <> nil) and (not Transform.World.EnablePhysics) then
     Exit;
 
-  InitializeTransform(Transform);
   UpdateCollides(Transform);
   if Dynamic then
-    TransformationFromKraft
-  else
+  begin
+    TransformationFromKraft;
+    SynchronizeFromKraft; // I think its only required for dynamic bodies.
+  end else
   if Animated then
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
@@ -534,6 +931,91 @@ begin
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
+  end;
+end;
+
+function TRigidBody.GetCollidingTransforms: TCastleTransformList;
+var
+  ContactPairEdge: PKraftContactPairEdge;
+  CastleTransform:TCastleTransform;
+begin
+  Result := FCollisionList;
+  FCollisionList.Clear;
+  ContactPairEdge := FKraftBody.ContactPairEdgeFirst;
+  while Assigned(ContactPairEdge) do
+  begin
+    if not (kcfColliding in ContactPairEdge^.ContactPair^.Flags) then
+    begin
+      ContactPairEdge := ContactPairEdge^.Next;
+      continue;
+    end;
+
+    CastleTransform := (TRigidBody(ContactPairEdge^.OtherRigidBody.UserData)).FTransform;
+    if FCollisionList.IndexOf(CastleTransform) = -1 then
+      FCollisionList.Add(CastleTransform);
+    ContactPairEdge := ContactPairEdge^.Next;
+  end;
+end;
+
+procedure TRigidBody.SetLinearVelocity(const LVelocity: TVector3);
+begin
+  FLinearVelocity := LVelocity;
+  if FKraftBody <> nil then
+  begin
+    FKraftBody.LinearVelocity := VectorToKraft(ZeroLockedComponents(LVelocity, FLockTranslation));
+    if not LVelocity.IsPerfectlyZero then
+      FKraftBody.SetToAwake;
+  end;
+end;
+
+procedure TRigidBody.SetAngularVelocity(const AVelocity: TVector3);
+begin
+  FAngularVelocity := AVelocity;
+  if FKraftBody <> nil then
+  begin
+    FKraftBody.AngularVelocity := VectorToKraft(ZeroLockedComponents(AVelocity, FLockTranslation));
+    if not AVelocity.IsPerfectlyZero then
+      FKraftBody.SetToAwake;
+  end;
+end;
+
+procedure TRigidBody.SetExists(const Value: Boolean);
+begin
+  if FExists = Value then
+    Exit;
+
+  FExists := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FExists then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfActive]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfActive];
+  end;
+
+  if Assigned(Collider) and Assigned(Collider.FKraftShape) then
+  begin
+    if FExists then
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags + [ksfCollision]
+    else
+      Collider.FKraftShape.Flags := Collider.FKraftShape.Flags - [ksfCollision];
+  end;
+end;
+
+procedure TRigidBody.SetTrigger(const Value: Boolean);
+begin
+  if FTrigger = Value then
+    Exit;
+
+  FTrigger := Value;
+
+  if Assigned(FKraftBody) then
+  begin
+    if FTrigger then
+      FKraftBody.Flags := FKraftBody.Flags + [krbfSensor]
+    else
+      FKraftBody.Flags := FKraftBody.Flags - [krbfSensor];
   end;
 end;
 
@@ -584,7 +1066,7 @@ end;
 procedure TCastleTransform.PhysicsChangeWorldDetach;
 begin
   { When removing 3D object from world, remove it also from physics engine world. }
-  if RigidBody <> nil then
+  if (RigidBody <> nil) and (RigidBody.FKraftBody <> nil) then
     RigidBody.DeinitializeTransform(Self);
 end;
 
@@ -592,12 +1074,12 @@ procedure TCastleTransform.PhysicsChangeWorldAttach;
 begin
   { Calling TRigidBody.InitializeTransform explicitly now
     (instead of letting it happen in TRigidBody.Update)
-    makes sure that when TSceneManagerWorld.Update will happen,
+    makes sure that when TCastleAbstractRootTransform.Update will happen,
     the physics engine will know
     the initial position of this object during 1st simulation tick.
 
     TODO: it's not really nice.
-    - If you change a transformation from now to TSceneManagerWorld.Update,
+    - If you change a transformation from now to TCastleAbstractRootTransform.Update,
       then 1st simulation tick will have invalid transformation anyway.
     - If you change some other rigid body parameter between now and
       next FRigidBody.Update, then next FRigidBody would recreate Kraft
@@ -609,34 +1091,74 @@ begin
     RigidBody.InitializeTransform(Self);
 end;
 
-{ TSceneManagerWorld ------------------------------------------------------------------- }
+{ TCastleAbstractRootTransform ------------------------------------------------------------------- }
 
-procedure TSceneManagerWorld.InitializePhysicsEngine;
+procedure TCastleAbstractRootTransform.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
     FKraftEngine := TKraft.Create(-1);
-    //KraftEngine.SetFrequency(120.0); // default is 60
+    { Kraft sets MaximalLinearVelocity in TKraft Constructor to 2.
+      With this limit can't make velocity greater than about 120
+      (2 * engine step frequency = 2 * 60 = 120). That makes physics
+      very slow, so we need remove this limitation. }
+    FKraftEngine.MaximalLinearVelocity := 0;
+    FKraftEngine.SetFrequency(PhysicsProperties.Frequency);
+    FKraftEngine.AngularVelocityRK4Integration := PhysicsProperties.AngularVelocityRK4Integration;
+    FKraftEngine.LinearVelocityRK4Integration := PhysicsProperties.LinearVelocityRK4Integration;
   end;
 end;
 
-destructor TSceneManagerWorld.Destroy;
+destructor TCastleAbstractRootTransform.Destroy;
+var
+  CastleRigidBody: TRigidBody;
+  KraftRigidBody: TKraftRigidBody;
+  NextKraftRigidBody: TKraftRigidBody;
 begin
+  if FKraftEngine <> nil then
+  begin
+    KraftRigidBody := FKraftEngine.RigidBodyFirst;
+
+    while Assigned(KraftRigidBody) do
+    begin
+      NextKraftRigidBody := KraftRigidBody.RigidBodyNext;
+      if Assigned(KraftRigidBody.UserData) then
+      begin
+        CastleRigidBody := TRigidBody(KraftRigidBody.UserData);
+        CastleRigidBody.DeinitializeTransform(CastleRigidBody.FTransform);
+      end;
+      KraftRigidBody := NextKraftRigidBody;
+    end;
+  end;
+
   FreeAndNil(FKraftEngine);
   inherited;
 end;
 
-procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TCastleAbstractRootTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
+  PhysicsTicksCount:Integer;
+  OldTimeAccumulator: TFloatTime;
 begin
+  if not GetExists then Exit;
+
+  { Avoid doing this two times within the same FrameId.
+    Important if the same TCastleAbstractRootTransform is present in multiple viewports. }
+  if UpdateFrameId = TFramesPerSecond.FrameId then
+    Exit;
+  UpdateFrameId := TFramesPerSecond.FrameId;
+
   if EnablePhysics and (FKraftEngine <> nil) then
   begin
+    FrameProfiler.Start(fmUpdatePhysics);
+
     // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
     KraftGravity := -GravityUp * 9.81;
     FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
+
+    PhysicsTicksCount := 0;
 
     if not WasPhysicsStep then
     begin
@@ -645,13 +1167,35 @@ begin
       WasPhysicsStep := true;
     end else
     begin
-      PhysicsTimeStep := 1.0 / FKraftEngine.WorldFrequency;
       TimeAccumulator := TimeAccumulator + SecondsPassed;
-      while TimeAccumulator >= PhysicsTimeStep do
+      while TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep do
       begin
-        TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
+        TimeAccumulator := TimeAccumulator - PhysicsProperties.FPhysicsTimeStep;
         FKraftEngine.StoreWorldTransforms;
-        FKraftEngine.Step(PhysicsTimeStep);
+        FKraftEngine.Step(PhysicsProperties.FPhysicsTimeStep);
+
+        Inc(PhysicsTicksCount);
+
+        { To avoid the spiral of death, we ignore some accumulated time
+          (we will not account for this time in the physics simulation,
+          so physics simulation may be slower than time perceived by user,
+          than non-physics animations etc.).
+          An alternative approach would be to prolong the simulation step
+          sometimes, but this could lead to unreliable collision detection.
+          See description of this in
+          https://github.com/castle-engine/castle-engine/pull/144#issuecomment-562850820 }
+        if (TimeAccumulator >= PhysicsProperties.FPhysicsTimeStep) and (PhysicsProperties.MaxPhysicsTicksPerUpdate <> 0) and
+           (PhysicsTicksCount >= PhysicsProperties.MaxPhysicsTicksPerUpdate) then
+        begin
+          OldTimeAccumulator := TimeAccumulator;
+          TimeAccumulator := TimeAccumulator - (PhysicsProperties.FPhysicsTimeStep * Floor(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep));
+
+          WritelnLog('Max physics ticks in TCastleAbstractRootTransform.Update() exceeded ('
+            + IntTostr(PhysicsTicksCount) + '). TimeAcumulator reduced from '
+            + FloatToStrDot(OldTimeAccumulator) + ' to ' + FloatToStrDot(TimeAccumulator));
+
+          break;
+        end;
       end;
 
       { One can wonder why we do interpolate below between
@@ -675,9 +1219,9 @@ begin
         (The original https://gafferongames.com/post/fix_your_timestep/ no longer
         has comments.)
       }
-
-      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
+      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsProperties.FPhysicsTimeStep);
     end;
+    FrameProfiler.Stop(fmUpdatePhysics);
   end;
 
   { call inherited at the end,

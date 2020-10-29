@@ -679,7 +679,7 @@ begin
     Terrain[3] := StrToInt(NextToken(TmpStr, SPosition, [',']));
   end;
   if Element.AttributeString('probability', TmpStr) then
-    Probability := StrToFloat(TmpStr);
+    Probability := StrToFloatDot(TmpStr);
 
   I := TXMLElementIterator.Create(Element);
   try
@@ -720,35 +720,33 @@ var
   I: TXMLElementIterator;
   TmpStr: string;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
-  const
-    PointsSeparator = Char(' ');
-    SinglePointSeparator = Char(',');
+  function ReadVector(const S: String): TVector2;
   var
-    tmpChar, p: PChar;
-    tmpChar2, p2: PChar;
-    tmpPoint, tmpPoint2: string;
-    VectorPoint: TVector2;
+    SeekPos: Integer;
+    Token: String;
+  begin
+    SeekPos := 1;
+    Token := NextToken(S, SeekPos, [',']);
+    Result[0] := StrToFloatDot(Token);
+    Token := NextToken(S, SeekPos, [',']);
+    Result[1] := StrToFloatDot(Token);
+    Token := NextToken(S, SeekPos, [',']);
+    if Token <> '' then
+      raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
+  end;
+
+  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
+  var
+    SeekPos: Integer;
+    Token: String;
   begin
     if not Assigned(PointsList) then PointsList := TVector2List.Create;
-    p := PChar(PointsString);
+    SeekPos := 1;
     repeat
-      tmpChar := StrPos(p, PointsSeparator);
-      if tmpChar = nil then tmpChar := StrScan(p, #0);
-      SetString(tmpPoint, p, tmpChar - p);
-      p2 := PChar(tmpPoint);
-
-      tmpChar2 := StrPos(p2, SinglePointSeparator);
-      SetString(tmpPoint2, p2, tmpChar2 - p2);
-      VectorPoint[0] := StrToFloat(tmpPoint2);
-      p2 := tmpChar2 + 1;
-      tmpChar2 := StrScan(p2, #0);
-      SetString(tmpPoint2, p2, tmpChar2 - p2);
-      VectorPoint[1] := StrToFloat(tmpPoint2);
-      PointsList.Add(VectorPoint);
-
-      p := tmpChar + 1;
-    until tmpChar^ = #0;
+      Token := NextToken(PointsString, SeekPos, [' ']);
+      if Token = '' then Break;
+      PointsList.Add(ReadVector(Token));
+    until false;
   end;
 
 begin
@@ -763,15 +761,15 @@ begin
   if Element.AttributeString('type', TmpStr) then
     Type_ := TmpStr;
   if Element.AttributeString('x', TmpStr) then
-    X := StrToFloat(TmpStr);
+    X := StrToFloatDot(TmpStr);
   if Element.AttributeString('y', TmpStr) then
-    Y := StrToFloat(TmpStr);
+    Y := StrToFloatDot(TmpStr);
   if Element.AttributeString('width', TmpStr) then
-    Width := StrToFloat(TmpStr);
+    Width := StrToFloatDot(TmpStr);
   if Element.AttributeString('height', TmpStr) then
-    Height := StrToFloat(TmpStr);
+    Height := StrToFloatDot(TmpStr);
   if Element.AttributeString('rotation', TmpStr) then
-    Rotation := StrToFloat(TmpStr);
+    Rotation := StrToFloatDot(TmpStr);
   if Element.AttributeString('gid', TmpStr) then
     GId := StrToInt(TmpStr);
   if Element.AttributeString('visible', TmpStr) then
@@ -827,7 +825,7 @@ begin
   OffsetY := 0;
   Name := Element.AttributeStringDef('name', '');
   if Element.AttributeString('opacity', TmpStr) then
-    Opacity := StrToFloat(TmpStr);
+    Opacity := StrToFloatDot(TmpStr);
   if Element.GetAttribute('visible') = '0' then
     Visible := False;
   OffsetX := Element.AttributeSingleDef('offsetx', 0);

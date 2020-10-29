@@ -3,6 +3,10 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required by OpenAssociatedUrls. -->
+    <!-- TODO: Below are probably not needed.
+         You only need these to open paths on storage (like from Total Commander),
+         but for this we have other services ("read_external_storage", "write_external_storage").
+    -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
 

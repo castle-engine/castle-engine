@@ -145,7 +145,8 @@ type
       FLastAvailableProducts: string;
       FOnRefreshedPrices: TNotifyEvent;
       FOnRefreshedPurchases: TNotifyEvent;
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    function MessageReceived(const Received: TCastleStringList;
+      const ReceivedStream: TMemoryStream): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
     procedure LogProducts(const Message: string);
   protected
@@ -345,7 +346,8 @@ begin
     Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
 
-function TInAppPurchases.MessageReceived(const Received: TCastleStringList): boolean;
+function TInAppPurchases.MessageReceived(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream): boolean;
 var
   P: TInAppProduct;
 begin
@@ -460,20 +462,17 @@ var
   I: Integer;
   LogStr: string;
 begin
-  if Log then
-  begin
-    LogStr := Message + NL;
-    for I := 0 to List.Count - 1 do
-      LogStr += 'Product ' + List[I].Name +
-        ', price: ' + List[I].PriceRaw +
-        ', owned: ' + BoolToStr(List[I].Owns, true) +
-        ', title: ' + List[I].Title +
-        ', description: ' + List[I].Description +
-        ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
-        ', price currency code: ' + List[I].PriceCurrencyCode +
-        NL;
-    WritelnLogMultiline('InAppPurchases', LogStr);
-  end;
+  LogStr := Message + NL;
+  for I := 0 to List.Count - 1 do
+    LogStr += 'Product ' + List[I].Name +
+      ', price: ' + List[I].PriceRaw +
+      ', owned: ' + BoolToStr(List[I].Owns, true) +
+      ', title: ' + List[I].Title +
+      ', description: ' + List[I].Description +
+      ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
+      ', price currency code: ' + List[I].PriceCurrencyCode +
+      NL;
+  WritelnLogMultiline('InAppPurchases', LogStr);
 end;
 
 procedure TInAppPurchases.KnownCompletely;

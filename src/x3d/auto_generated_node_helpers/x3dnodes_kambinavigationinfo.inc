@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetTimeOriginAtLoad: boolean;
-    procedure SetTimeOriginAtLoad(const Value: boolean);
+    function GetTimeOriginAtLoad: Boolean;
+    procedure SetTimeOriginAtLoad(const Value: Boolean);
     function GetOctreeRendering: TKambiOctreePropertiesNode;
     procedure SetOctreeRendering(const Value: TKambiOctreePropertiesNode);
     function GetOctreeDynamicCollisions: TKambiOctreePropertiesNode;
@@ -44,7 +44,7 @@
     procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
     { X3D field "timeOriginAtLoad". } { }
-    property TimeOriginAtLoad: boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
+    property TimeOriginAtLoad: Boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
     { X3D field "octreeRendering". } { }
     property OctreeRendering: TKambiOctreePropertiesNode read GetOctreeRendering write SetOctreeRendering;
     { X3D field "octreeDynamicCollisions". } { }
@@ -66,12 +66,12 @@
 
 { TKambiNavigationInfoNode ----------------------------------------------- }
 
-function TKambiNavigationInfoNode.GetTimeOriginAtLoad: boolean;
+function TKambiNavigationInfoNode.GetTimeOriginAtLoad: Boolean;
 begin
   Result := FdTimeOriginAtLoad.Value;
 end;
 
-procedure TKambiNavigationInfoNode.SetTimeOriginAtLoad(const Value: boolean);
+procedure TKambiNavigationInfoNode.SetTimeOriginAtLoad(const Value: Boolean);
 begin
   FdTimeOriginAtLoad.Send(Value);
 end;

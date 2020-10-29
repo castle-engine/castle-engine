@@ -6,7 +6,7 @@
   for extensive documentation of available properties, in short:
 
   - name: used to refer to this level from ObjectPascal code,
-    e.g. in SceneManager.Load(...)
+    e.g. in TLevel.Load(...)
 
   - type: indicates ObjectPascal class used to handle this level logic,
     usually just 'Level' to use standard TLevelLogic class.
@@ -19,7 +19,7 @@
     in the viewport when level loading started.
 
   - <prepare_resources> should list resources used by this level.
-    These resources will be prepared during SceneManaged.LoadLevel call.
+    These resources will be prepared during TLevel.Load call.
     "Resources" refers to creatures and items (and potentially other types
     of resources you define in your game), although in this special case
     you do not have to list items: all items are (by default)

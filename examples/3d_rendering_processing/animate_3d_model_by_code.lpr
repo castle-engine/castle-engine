@@ -39,59 +39,65 @@
 
 program animate_3d_model_by_code;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleViewport, CastleTimeUtils;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
 
 var
+  Time: TFloatTime;
   TransformBox2: TTransformNode;
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
 procedure Update(Container: TUIContainer);
 begin
-  { We want to keep track of current time here (for calculating rotations
-    below). It's most natural to just use Scene.Time property for this.
-    (Scene.Time is already incremented for us by SceneManager.) }
+  Time += Container.Fps.SecondsPassed;
 
   { change rotation angles (4th component of the vector),
     leaving the rotation axis (XYZ components) unchanged. }
-
-  TransformBox2.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time);
-  TransformBox3.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 2);
-  TransformBox4.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 4);
+  TransformBox2.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time);
+  TransformBox3.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time * 2);
+  TransformBox4.Rotation := Vector4(TransformBox2.Rotation.XYZ, Time * 4);
 end;
 
 begin
-  Window := TCastleWindow.Create(Application);
+  InitializeLog;
+  Application.ParseStandardParameters;
+  Parameters.CheckHigh(0); // no command-line options specific to this program are allowed
 
-  Parameters.CheckHigh(0);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  Window := TCastleWindowBase.Create(Application);
+  Window.Open;
 
-  Scene := TCastleScene.Create(nil);
-  try
-    Scene.Load(ApplicationData('boxes.x3dv'));
-    TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box2Transform', true) as TTransformNode;
-    TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box3Transform', true) as TTransformNode;
-    TransformBox4 := Scene.RootNode.FindNodeByName(TTransformNode,
-      'Box4Transform', true) as TTransformNode;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Window.Controls.InsertFront(Viewport);
 
-    { init SceneManager with our Scene }
-    Window.SceneManager.MainScene := Scene;
-    Window.SceneManager.Items.Add(Scene);
+  Scene := TCastleScene.Create(Application);
+  Scene.Load('castle-data:/boxes.x3dv');
+  TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box2Transform', true) as TTransformNode;
+  TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box3Transform', true) as TTransformNode;
+  TransformBox4 := Scene.RootNode.FindNodeByName(TTransformNode,
+    'Box4Transform', true) as TTransformNode;
 
-    { init SceneManager.Camera }
-    Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
+  { init Viewport with our Scene }
+  Viewport.Items.MainScene := Scene;
+  Viewport.Items.Add(Scene);
 
-    Window.OnUpdate := @Update;
-    Window.SetDemoOptions(K_F11, CharEscape, true);
-    Window.OpenAndRun;
-  finally Scene.Free end;
+  { init Viewport.Navigation }
+  Viewport.Navigation := TCastleExamineNavigation.Create(Application);
+
+  Window.OnUpdate := @Update;
+  Window.SetDemoOptions(keyF11, CharEscape, true);
+  Application.Run;
 end.

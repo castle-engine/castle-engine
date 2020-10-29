@@ -42,3 +42,17 @@ ios:
 ios-release:
 	castle-engine clean
 	$(MAKE) ios MODE=release
+
+# nx -------------------------------------------------------------------------
+
+NX_OUTPUT_PATH:=d:/tmp/dragon_spine/
+
+.PHONY: nx1
+nx1:
+	mkdir -p $(NX_OUTPUT_PATH)
+	castle-engine package --mode=$(MODE) --target=nintendo-switch --output=$(NX_OUTPUT_PATH) --fast
+
+.PHONY: nx2
+nx2:
+	mkdir -p $(NX_OUTPUT_PATH)
+	castle-engine compile --mode=$(MODE) --target=nintendo-switch --output=$(NX_OUTPUT_PATH)

@@ -187,7 +187,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
   begin
-    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.X3DType);
+    WritelnWarning('X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.X3DType);
     Result := TCasScriptFloat.Create(true);
   end;
 
@@ -449,7 +449,6 @@ begin
           LastEventTime := Time;
           SendToEvent.Send(Field, Time);
         end else
-        if Log then
           WritelnLog('X3D Script', Format(
             'Sending event %s from Script ignored at <= timestamp (%f, while last event was on %f). Potential loop avoided',
             [ SendToEvent.X3DName, Time.Seconds, LastEventTime.Seconds ]));

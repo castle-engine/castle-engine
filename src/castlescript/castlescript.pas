@@ -713,6 +713,14 @@ type
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
+  TCasScriptCoalesce = class(TCasScriptFunction)
+  private
+    class procedure HandleCoalesce(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  public
+    class function ShortName: string; override;
+    class function GreedyArgumentsCalculation: Integer; override;
+  end;
+
   TCasScriptRegisteredHandler = class
   private
     FHandler: TCasScriptFunctionHandler;
@@ -914,8 +922,7 @@ type
     property Environment: TCasScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-var
-  FunctionHandlers: TCasScriptFunctionHandlers;
+function FunctionHandlers: TCasScriptFunctionHandlers;
 
 { Make sure Value is assigned and of NeededClass.
   If Value is not assigned, or is not exactly of NeededClass,
@@ -928,6 +935,10 @@ var
   { Global method to output messages done by CastleScript @code(writeln())
     function. If not assigned, we will use CastleLog.WritelnLog. }
   OnScriptMessage: TCasScriptMessage;
+
+  { In case of warnings/errors, output more verbose information
+    about the script in which it occurred. }
+  ScriptVerboseMessages: Boolean;
 
 implementation
 
@@ -949,7 +960,10 @@ begin
     Result := CoreExecute;
 
     { Force raising pending exceptions by FP calculations }
+    // on Nintendo Switch, this raises errors from previous innocent calculations
+    {$ifndef CASTLE_NINTENDO_SWITCH}
     ClearExceptions(true);
+    {$endif}
   except
     { Convert EIntError and EMathError to ECasScriptAnyMathError }
     on E: EIntError do
@@ -1735,7 +1749,7 @@ class procedure TCasScriptFloat.ConvertFromString(AFunction: TCasScriptFunction;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   try
-    TCasScriptFloat(AResult).Value := StrToFloat(TCasScriptString(Arguments[0]).Value);
+    TCasScriptFloat(AResult).Value := StrToFloatDot(TCasScriptString(Arguments[0]).Value);
   except
     on E: EConvertError do
       { Change EConvertError to ECasScriptError }
@@ -1983,7 +1997,7 @@ end;
 class procedure TCasScriptString.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
-  TCasScriptString(AResult).Value := FloatToStr(TCasScriptFloat(Arguments[0]).Value);
+  TCasScriptString(AResult).Value := FloatToStrDot(TCasScriptFloat(Arguments[0]).Value);
 end;
 
 class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -2428,6 +2442,42 @@ begin
   Result := Index = 0;
 end;
 
+{ TCasScriptCoalesce --------------------------------------------------------- }
+
+class function TCasScriptCoalesce.ShortName: string;
+begin
+  Result := 'coalesce';
+end;
+
+class procedure TCasScriptCoalesce.HandleCoalesce(
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  for I := 0 to High(Arguments) - 1 do
+  begin
+    AResult := AFunction.Args[I].CoreExecute;
+    if (AResult as TCasScriptString).Value <> '' then
+      Exit;
+    { Do not free it, it would cause SEGFAULT:
+    AResult.FreeByParentExpression;
+    AResult := nil;
+    }
+  end;
+
+  AResult := AFunction.Args[High(Arguments)].CoreExecute;
+end;
+
+class function TCasScriptCoalesce.GreedyArgumentsCalculation: Integer;
+begin
+  Result := 0;
+end;
+
 { TCasScriptFunctionHandlers ------------------------------------------------- }
 
 constructor TCasScriptFunctionHandlers.Create;
@@ -2742,9 +2792,19 @@ end;
 
 { unit init/fini ------------------------------------------------------------- }
 
-initialization
-  FunctionHandlers := TCasScriptFunctionHandlers.Create;
+var
+  FFunctionHandlers: TCasScriptFunctionHandlers;
 
+function FunctionHandlers: TCasScriptFunctionHandlers;
+begin
+  { Create on-demand, just in case CastleScriptVectors initialization
+    is executed earlier than CastleScript initialization. }
+  if FFunctionHandlers = nil then
+    FFunctionHandlers := TCasScriptFunctionHandlers.Create;
+  Result := FFunctionHandlers;
+end;
+
+initialization
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSequence(nil).HandleSequence, TCasScriptSequence, [TCasScriptValue], true);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptAssignment(nil).HandleAssignment, TCasScriptAssignment, [TCasScriptValue, TCasScriptValue], false);
 
@@ -2752,6 +2812,7 @@ initialization
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhen(nil).HandleWhen, TCasScriptWhen, [TCasScriptBoolean, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptWhile(nil).HandleWhile, TCasScriptWhile, [TCasScriptBoolean, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptFor(nil).HandleFor, TCasScriptFor, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCoalesce(nil).HandleCoalesce, TCasScriptCoalesce, [TCasScriptString], true);
 
   { Register handlers for TCasScriptInteger for functions in
     CastleScriptCoreFunctions. }
@@ -2871,5 +2932,5 @@ initialization
 
   FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 finalization
-  FreeAndNil(FunctionHandlers);
+  FreeAndNil(FFunctionHandlers);
 end.

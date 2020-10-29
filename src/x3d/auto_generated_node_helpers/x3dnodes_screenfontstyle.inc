@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,31 +26,31 @@
 {$ifdef read_interface}
 
   strict private
-    function GetHorizontal: boolean;
-    procedure SetHorizontal(const Value: boolean);
-    function GetLanguage: string;
-    procedure SetLanguage(const Value: string);
-    function GetLeftToRight: boolean;
-    procedure SetLeftToRight(const Value: boolean);
+    function GetHorizontal: Boolean;
+    procedure SetHorizontal(const Value: Boolean);
+    function GetLanguage: String;
+    procedure SetLanguage(const Value: String);
+    function GetLeftToRight: Boolean;
+    procedure SetLeftToRight(const Value: Boolean);
     function GetPointSize: Single;
     procedure SetPointSize(const Value: Single);
     function GetSpacing: Single;
     procedure SetSpacing(const Value: Single);
-    function GetTopToBottom: boolean;
-    procedure SetTopToBottom(const Value: boolean);
+    function GetTopToBottom: Boolean;
+    procedure SetTopToBottom(const Value: Boolean);
   public
     { X3D field "horizontal". } { }
-    property Horizontal: boolean read GetHorizontal write SetHorizontal;
+    property Horizontal: Boolean read GetHorizontal write SetHorizontal;
     { X3D field "language". } { }
-    property Language: string read GetLanguage write SetLanguage;
+    property Language: String read GetLanguage write SetLanguage;
     { X3D field "leftToRight". } { }
-    property LeftToRight: boolean read GetLeftToRight write SetLeftToRight;
+    property LeftToRight: Boolean read GetLeftToRight write SetLeftToRight;
     { X3D field "pointSize". } { }
     property PointSize: Single read GetPointSize write SetPointSize;
     { X3D field "spacing". } { }
     property Spacing: Single read GetSpacing write SetSpacing;
     { X3D field "topToBottom". } { }
-    property TopToBottom: boolean read GetTopToBottom write SetTopToBottom;
+    property TopToBottom: Boolean read GetTopToBottom write SetTopToBottom;
 
 {$endif read_interface}
 
@@ -58,32 +58,32 @@
 
 { TScreenFontStyleNode ----------------------------------------------- }
 
-function TScreenFontStyleNode.GetHorizontal: boolean;
+function TScreenFontStyleNode.GetHorizontal: Boolean;
 begin
   Result := FdHorizontal.Value;
 end;
 
-procedure TScreenFontStyleNode.SetHorizontal(const Value: boolean);
+procedure TScreenFontStyleNode.SetHorizontal(const Value: Boolean);
 begin
   FdHorizontal.Send(Value);
 end;
 
-function TScreenFontStyleNode.GetLanguage: string;
+function TScreenFontStyleNode.GetLanguage: String;
 begin
   Result := FdLanguage.Value;
 end;
 
-procedure TScreenFontStyleNode.SetLanguage(const Value: string);
+procedure TScreenFontStyleNode.SetLanguage(const Value: String);
 begin
   FdLanguage.Send(Value);
 end;
 
-function TScreenFontStyleNode.GetLeftToRight: boolean;
+function TScreenFontStyleNode.GetLeftToRight: Boolean;
 begin
   Result := FdLeftToRight.Value;
 end;
 
-procedure TScreenFontStyleNode.SetLeftToRight(const Value: boolean);
+procedure TScreenFontStyleNode.SetLeftToRight(const Value: Boolean);
 begin
   FdLeftToRight.Send(Value);
 end;
@@ -108,12 +108,12 @@ begin
   FdSpacing.Send(Value);
 end;
 
-function TScreenFontStyleNode.GetTopToBottom: boolean;
+function TScreenFontStyleNode.GetTopToBottom: Boolean;
 begin
   Result := FdTopToBottom.Value;
 end;
 
-procedure TScreenFontStyleNode.SetTopToBottom(const Value: boolean);
+procedure TScreenFontStyleNode.SetTopToBottom(const Value: Boolean);
 begin
   FdTopToBottom.Send(Value);
 end;

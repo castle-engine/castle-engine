@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,6 +30,7 @@
     procedure SetDistanceFromShape(const Value: Single);
   public
     procedure CreateNode; override;
+    class function ClassX3DType: string; override;
 
     strict private FFdDistanceFromShape: TSFFloat;
     { X3D field "distanceFromShape". } { }
@@ -53,12 +54,17 @@ begin
   FdDistanceFromShape.Send(Value);
 end;
 
+class function TViewpointMirrorNode.ClassX3DType: String;
+begin
+  Result := 'ViewpointMirror';
+end;
+
 procedure TViewpointMirrorNode.CreateNode;
 begin
   inherited;
 
   FFdDistanceFromShape := TSFFloat.Create(Self, True, 'distanceFromShape', 0.01);
-   FdDistanceFromShape.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary
+   FdDistanceFromShape.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDistanceFromShape);
 
   DefaultContainerField := 'viewpoint';

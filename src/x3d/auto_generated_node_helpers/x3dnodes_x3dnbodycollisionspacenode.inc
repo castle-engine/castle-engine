@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,19 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -46,34 +42,28 @@
 
 { TAbstractNBodyCollisionSpaceNode ----------------------------------------------- }
 
-function TAbstractNBodyCollisionSpaceNode.GetEnabled: boolean;
+function TAbstractNBodyCollisionSpaceNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TAbstractNBodyCollisionSpaceNode.SetEnabled(const Value: boolean);
+procedure TAbstractNBodyCollisionSpaceNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
 
-function TAbstractNBodyCollisionSpaceNode.GetBboxCenter: TVector3;
+function TAbstractNBodyCollisionSpaceNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TAbstractNBodyCollisionSpaceNode.SetBboxCenter(const Value: TVector3);
+procedure TAbstractNBodyCollisionSpaceNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TAbstractNBodyCollisionSpaceNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TAbstractNBodyCollisionSpaceNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

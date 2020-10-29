@@ -40,6 +40,7 @@ type
 
   TTriangleOctreeNode = class(TBaseTrianglesOctreeNode)
   protected
+    function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
@@ -164,7 +165,7 @@ type
   { Octree based on triangles. Allows for fast collision-detection
     with a set of triangles. Each triangle is a TTriangle structure,
     that keeps triangle geometry in 3D space, and links to parent
-    VRML/X3D Shapes and such. }
+    X3D Shape and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
     function StatisticsBonus: string; override;
@@ -212,6 +213,14 @@ uses CastleShapes;
 {$define read_implementation}
 
 { TTriangleOctreeNode -------------------------------------------------------------- }
+
+function TTriangleOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
+var
+  Triangle: PTriangle3;
+begin
+  Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
+  Result := TriangleBoundingBox(Triangle^);
+end;
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 var

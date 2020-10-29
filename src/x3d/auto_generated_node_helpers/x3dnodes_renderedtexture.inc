@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
-    function GetRepeatR: boolean;
-    procedure SetRepeatR(const Value: boolean);
+    function GetRepeatR: Boolean;
+    procedure SetRepeatR(const Value: Boolean);
   public
     { Set X3D field "dimensions". } { }
     procedure SetDimensions(const Value: array of LongInt);
@@ -38,7 +38,7 @@
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
     { X3D field "repeatR". } { }
-    property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    property RepeatR: Boolean read GetRepeatR write SetRepeatR;
     { Set X3D field "depthMap". } { }
     procedure SetDepthMap(const Value: array of boolean);
     { Set X3D field "depthMap". } { }
@@ -73,12 +73,12 @@ begin
   FdTextureProperties.Send(Value);
 end;
 
-function TRenderedTextureNode.GetRepeatR: boolean;
+function TRenderedTextureNode.GetRepeatR: Boolean;
 begin
   Result := FdRepeatR.Value;
 end;
 
-procedure TRenderedTextureNode.SetRepeatR(const Value: boolean);
+procedure TRenderedTextureNode.SetRepeatR(const Value: Boolean);
 begin
   FdRepeatR.Send(Value);
 end;

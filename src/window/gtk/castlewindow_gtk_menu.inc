@@ -43,7 +43,7 @@ begin
     Dec(Window.MenuRecreateForbidden);
   end;
 
-  Result := g_false;
+  Result := gfalse;
 end;
 
 { This is the only event I found that can be used in GTK 2 to
@@ -87,7 +87,7 @@ begin
     Dec(Window.MenuRecreateForbidden);
   end;
 
-  Result := g_false;
+  Result := gfalse;
 end;
 
 { Block signal_menu_item_activate on this menu item.
@@ -164,7 +164,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
           but it would be bad idea --- I would have no way to specify
           then actual Ctrl+H, Ctrl+I, Ctrl+M shortcuts.
           (While Backspace, Tab, Enter can always be specified by TKey
-          constants K_BackSpace, K_Tab, K_Enter).
+          constants keyBackSpace, keyTab, keyEnter).
         }
         begin
           gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
@@ -182,54 +182,54 @@ procedure TCastleWindowBase.BackendMenuInitialize;
       '?': gdk_keyval := GDK_KEY_question;
       else
         case Key of
-          K_BackSpace: gdk_keyval := GDK_KEY_BackSpace;
-          K_Tab: gdk_keyval := GDK_KEY_Tab;
-          K_Enter: gdk_keyval := GDK_KEY_Return;
+          keyBackSpace: gdk_keyval := GDK_KEY_BackSpace;
+          keyTab: gdk_keyval := GDK_KEY_Tab;
+          keyEnter: gdk_keyval := GDK_KEY_Return;
 
-          { This is not proper translation: K_Xxx constants do not make
+          { This is not proper translation: keyXxx constants do not make
             difference between left/right Ctrl/Shift/Alt,
             while GDK_KEY_Xxx constants do.
 
             Some solution would be to make two accelerators for one
             menu item -- TODO when this will be useful. }
-          K_Shift: gdk_keyval := GDK_KEY_Shift_L;
-          K_Ctrl: gdk_keyval := GDK_KEY_Control_L;
-          K_Alt: gdk_keyval := GDK_KEY_Alt_L;
+          keyShift: gdk_keyval := GDK_KEY_Shift_L;
+          keyCtrl: gdk_keyval := GDK_KEY_Control_L;
+          keyAlt: gdk_keyval := GDK_KEY_Alt_L;
 
-          K_Escape: gdk_keyval := GDK_KEY_Escape;
-          K_Space: gdk_keyval := GDK_KEY_Space;
-          K_PageUp: gdk_keyval := GDK_KEY_Page_Up;
-          K_PageDown: gdk_keyval := GDK_KEY_Page_Down;
-          K_End: gdk_keyval := GDK_KEY_End;
-          K_Home: gdk_keyval := GDK_KEY_Home;
-          K_Left: gdk_keyval := GDK_KEY_Left;
-          K_Up: gdk_keyval := GDK_KEY_Up;
-          K_Right: gdk_keyval := GDK_KEY_Right;
-          K_Down: gdk_keyval := GDK_KEY_Down;
-          K_Insert: gdk_keyval := GDK_KEY_Insert;
-          K_Delete: gdk_keyval := GDK_KEY_Delete;
+          keyEscape: gdk_keyval := GDK_KEY_Escape;
+          keySpace: gdk_keyval := GDK_KEY_Space;
+          keyPageUp: gdk_keyval := GDK_KEY_Page_Up;
+          keyPageDown: gdk_keyval := GDK_KEY_Page_Down;
+          keyEnd: gdk_keyval := GDK_KEY_End;
+          keyHome: gdk_keyval := GDK_KEY_Home;
+          keyArrowLeft: gdk_keyval := GDK_KEY_Left;
+          keyArrowUp: gdk_keyval := GDK_KEY_Up;
+          keyArrowRight: gdk_keyval := GDK_KEY_Right;
+          keyArrowDown: gdk_keyval := GDK_KEY_Down;
+          keyInsert: gdk_keyval := GDK_KEY_Insert;
+          keyDelete: gdk_keyval := GDK_KEY_Delete;
 
-          K_Numpad_Plus: gdk_keyval := GDK_KEY_Plus;
-          K_Numpad_Minus: gdk_keyval := GDK_KEY_Minus;
+          keyNumpadPlus: gdk_keyval := GDK_KEY_Plus;
+          keyNumpadMinus: gdk_keyval := GDK_KEY_Minus;
 
-          K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Ord(Key) - Ord(K_0);
-          K_A .. K_Z: gdk_keyval := GDK_KEY_A + Ord(Key) - Ord(K_A);
+          key0 .. key9: gdk_keyval := GDK_KEY_0 + Ord(Key) - Ord(key0);
+          keyA .. keyZ: gdk_keyval := GDK_KEY_A + Ord(Key) - Ord(keyA);
 
-          K_F1 : gdk_keyval := GDK_KEY_F1;
-          K_F2 : gdk_keyval := GDK_KEY_F2;
-          K_F3 : gdk_keyval := GDK_KEY_F3;
-          K_F4 : gdk_keyval := GDK_KEY_F4;
-          K_F5 : gdk_keyval := GDK_KEY_F5;
-          K_F6 : gdk_keyval := GDK_KEY_F6;
-          K_F7 : gdk_keyval := GDK_KEY_F7;
-          K_F8 : gdk_keyval := GDK_KEY_F8;
-          K_F9 : gdk_keyval := GDK_KEY_F9;
-          K_F10: gdk_keyval := GDK_KEY_F10;
-          K_F11: gdk_keyval := GDK_KEY_F11;
-          K_F12: gdk_keyval := GDK_KEY_F12;
+          keyF1 : gdk_keyval := GDK_KEY_F1;
+          keyF2 : gdk_keyval := GDK_KEY_F2;
+          keyF3 : gdk_keyval := GDK_KEY_F3;
+          keyF4 : gdk_keyval := GDK_KEY_F4;
+          keyF5 : gdk_keyval := GDK_KEY_F5;
+          keyF6 : gdk_keyval := GDK_KEY_F6;
+          keyF7 : gdk_keyval := GDK_KEY_F7;
+          keyF8 : gdk_keyval := GDK_KEY_F8;
+          keyF9 : gdk_keyval := GDK_KEY_F9;
+          keyF10: gdk_keyval := GDK_KEY_F10;
+          keyF11: gdk_keyval := GDK_KEY_F11;
+          keyF12: gdk_keyval := GDK_KEY_F12;
 
-          K_Comma: gdk_keyval := GDK_KEY_Comma;
-          K_Period: gdk_keyval := GDK_KEY_Period;
+          keyComma: gdk_keyval := GDK_KEY_Comma;
+          keyPeriod: gdk_keyval := GDK_KEY_Period;
           else Exit;
         end;
     end;
@@ -279,7 +279,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
             PChar(EntryItem.Caption)));
           gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
             EntryChecked.Checked);
-          gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), g_true);
+          gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), gtrue);
 
           { To implement TMenuItemRadio I use normal GTK check menu items
             and just make them look like radio items.
@@ -369,7 +369,7 @@ begin
 
   make_main_menu;
   gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(MainMenu.Handle),
-    g_false, g_false, 0);
+    gfalse, gfalse, 0);
 end;
 
 procedure TCastleWindowBase.BackendMenuFinalize;
@@ -410,9 +410,9 @@ function CheckEntryGtk(Entry: TMenuEntryWithCaption; out EntryGtk: PGtkWidget): 
 begin
   EntryGtk := PGtkWidget(Entry.Handle);
   Result := EntryGtk <> nil;
-  if (not Result) and Log and
+  if (not Result) and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
-    WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
+    WritelnWarning('Menu', 'Menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);

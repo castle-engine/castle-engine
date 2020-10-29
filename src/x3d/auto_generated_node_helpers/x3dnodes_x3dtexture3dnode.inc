@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetRepeatR: boolean;
-    procedure SetRepeatR(const Value: boolean);
+    function GetRepeatR: Boolean;
+    procedure SetRepeatR(const Value: Boolean);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     { X3D field "repeatR". } { }
-    property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    property RepeatR: Boolean read GetRepeatR write SetRepeatR;
     { X3D field "textureProperties". } { }
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
@@ -42,12 +42,12 @@
 
 { TAbstractTexture3DNode ----------------------------------------------- }
 
-function TAbstractTexture3DNode.GetRepeatR: boolean;
+function TAbstractTexture3DNode.GetRepeatR: Boolean;
 begin
   Result := FdRepeatR.Value;
 end;
 
-procedure TAbstractTexture3DNode.SetRepeatR(const Value: boolean);
+procedure TAbstractTexture3DNode.SetRepeatR(const Value: Boolean);
 begin
   FdRepeatR.Send(Value);
 end;

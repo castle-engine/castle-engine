@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAutoDisable: boolean;
-    procedure SetAutoDisable(const Value: boolean);
+    function GetAutoDisable: Boolean;
+    procedure SetAutoDisable(const Value: Boolean);
     function GetConstantForceMix: Single;
     procedure SetConstantForceMix(const Value: Single);
     function GetContactSurfaceThickness: Single;
@@ -38,8 +38,8 @@
     procedure SetDisableLinearSpeed(const Value: Single);
     function GetDisableTime: Single;
     procedure SetDisableTime(const Value: Single);
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetErrorCorrection: Single;
     procedure SetErrorCorrection(const Value: Single);
     function GetGravity: TVector3;
@@ -48,13 +48,13 @@
     procedure SetIterations(const Value: Integer);
     function GetMaxCorrectionSpeed: Single;
     procedure SetMaxCorrectionSpeed(const Value: Single);
-    function GetPreferAccuracy: boolean;
-    procedure SetPreferAccuracy(const Value: boolean);
+    function GetPreferAccuracy: Boolean;
+    procedure SetPreferAccuracy(const Value: Boolean);
     function GetCollider: TCollisionCollectionNode;
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
     { X3D field "autoDisable". } { }
-    property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
+    property AutoDisable: Boolean read GetAutoDisable write SetAutoDisable;
     { Set X3D field "bodies". } { }
     procedure SetBodies(const Value: array of TRigidBodyNode);
     { X3D field "constantForceMix". } { }
@@ -68,7 +68,7 @@
     { X3D field "disableTime". } { }
     property DisableTime: Single read GetDisableTime write SetDisableTime;
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "errorCorrection". } { }
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
     { X3D field "gravity". } { }
@@ -80,7 +80,7 @@
     { X3D field "maxCorrectionSpeed". } { }
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
     { X3D field "preferAccuracy". } { }
-    property PreferAccuracy: boolean read GetPreferAccuracy write SetPreferAccuracy;
+    property PreferAccuracy: Boolean read GetPreferAccuracy write SetPreferAccuracy;
     { X3D field "collider". } { }
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
@@ -90,12 +90,12 @@
 
 { TRigidBodyCollectionNode ----------------------------------------------- }
 
-function TRigidBodyCollectionNode.GetAutoDisable: boolean;
+function TRigidBodyCollectionNode.GetAutoDisable: Boolean;
 begin
   Result := FdAutoDisable.Value;
 end;
 
-procedure TRigidBodyCollectionNode.SetAutoDisable(const Value: boolean);
+procedure TRigidBodyCollectionNode.SetAutoDisable(const Value: Boolean);
 begin
   FdAutoDisable.Send(Value);
 end;
@@ -162,12 +162,12 @@ begin
   FdDisableTime.Send(Value);
 end;
 
-function TRigidBodyCollectionNode.GetEnabled: boolean;
+function TRigidBodyCollectionNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TRigidBodyCollectionNode.SetEnabled(const Value: boolean);
+procedure TRigidBodyCollectionNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;
@@ -224,12 +224,12 @@ begin
   FdMaxCorrectionSpeed.Send(Value);
 end;
 
-function TRigidBodyCollectionNode.GetPreferAccuracy: boolean;
+function TRigidBodyCollectionNode.GetPreferAccuracy: Boolean;
 begin
   Result := FdPreferAccuracy.Value;
 end;
 
-procedure TRigidBodyCollectionNode.SetPreferAccuracy(const Value: boolean);
+procedure TRigidBodyCollectionNode.SetPreferAccuracy(const Value: Boolean);
 begin
   FdPreferAccuracy.Send(Value);
 end;

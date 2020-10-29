@@ -67,7 +67,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
        WritelnWarning('Collada', 'Expected <param> with type "float"');
        Result := 0;
      end else
-       Result := StrToFloat(Element.TextData);
+       Result := StrToFloatDot(Element.TextData);
   end;
 
 var
@@ -131,7 +131,8 @@ var
                    if ParamName = 'REFLECTIVITY' then
                    begin
                      if AllowKambiExtensions then
-                       Mat.FdMirror.Value := ReadParamAsFloat(I.Current) else
+                       Mat.FdMirror.Value := ReadParamAsFloat(I.Current)
+                     else
                        ReadParamAsFloat(I.Current);
                    end else
                    (*

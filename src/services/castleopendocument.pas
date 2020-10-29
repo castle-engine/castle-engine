@@ -77,7 +77,8 @@ procedure OpenApplicationStore(const ApplicationId: string);
 
 { Vibrate the device.
 
-  This is available only on Android right now, ignored elsewhere.
+  Available on Android, iOS and Nintendo Switch now. Ignored on other platforms.
+
   To include the necessary integration code in your Android project,
   declare your Android project type as "integrated" with
   the "vibrate" service inside CastleEngineManifest.xml.
@@ -91,6 +92,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
   you must declare your Android project type as "integrated".
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
 procedure OnScreenNotification(const Message: string);
+  deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
 implementation
 
@@ -241,9 +243,8 @@ begin
     BrowserProcess.Executable := ProgramFilename;
     BrowserProcess.Parameters.Add(Parameter);
 
-    if Log then
-      WritelnLog('Executing', 'Executable: "' + ProgramFilename +
-        '", Parameter: "' + Parameter + '"');
+    WritelnLog('Executing', 'Executable: "' + ProgramFilename +
+      '", Parameter: "' + Parameter + '"');
 
     BrowserProcess.Execute;
   finally
@@ -338,7 +339,8 @@ var
   lApp: string;
 begin
   Result := True;
-  if not FileExists(APath) then exit(false);
+  if not (FileExists(APath) or DirectoryExists(APath)) then
+    Exit(false);
 
   lApp:=PathFileSearch('xdg-open'); // Portland OSDL/FreeDesktop standard on Linux
   if lApp='' then

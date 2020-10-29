@@ -155,6 +155,7 @@ var
   CoordArray: array of TVector3;
   TexCoordArray: array of TVector2;
   R1, R2, R3, R4: TX3DRoute;
+  Material: TUnlitMaterialNode;
 begin
   for List in Animations.Values do
   begin
@@ -175,11 +176,9 @@ begin
   Root.Meta['source'] := SSName + SSExt;
   try
     Shape:= TShapeNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := Vector3(0, 0, 0);
-    Shape.Material.SpecularColor := Vector3(0, 0, 0);
-    Shape.Material.AmbientIntensity := 0;
-    Shape.Material.EmissiveColor := Vector3(1, 1, 1);
+    Material := TUnlitMaterialNode.Create;
+    Material.EmissiveColor := Vector3(1, 1, 1);
+    Shape.Material := Material;
 
     Tex := TImageTextureNode.Create;
     Tex.FdUrl.Send(Meta.Name);
@@ -373,7 +372,7 @@ begin
         Writeln(ApplicationName + ' ' + CastleEngineVersion);
         Halt;
       end;
-    2:FramesPerSecond := StrToFloat(Argument);
+    2:FramesPerSecond := StrToFloatDot(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;

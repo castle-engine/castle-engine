@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2018 Michalis Kamburelis.
+  Copyright 2003-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,6 +89,7 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; 
   @groupBegin }
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
 function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+  deprecated 'use radians for everything throughout CGE';
 { @groupEnd }
 
 { Rotate Point around the given axis by a given angle.
@@ -101,16 +102,17 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
-function MaxVectorCoord(const v: TVector2): integer; overload;
-function MaxVectorCoord(const v: TVector3): integer; overload;
-function MaxVectorCoord(const v: TVector4): integer; overload;
-function MaxAbsVectorCoord(const v: TVector2): integer; overload;
-function MaxAbsVectorCoord(const v: TVector3): integer; overload;
+function MaxVectorCoord(const V: TVector2): integer; overload;
+function MaxVectorCoord(const V: TVector3): integer; overload;
+function MaxVectorCoord(const V: TVector4): integer; overload;
+function MaxAbsVectorCoord(const V: TVector2): integer; overload;
+function MaxAbsVectorCoord(const V: TVector3): integer; overload;
+function MaxAbsVectorCoord(const V: TVector4): integer; overload;
 { @groupEnd }
 
-function MinVectorCoord(const v: TVector3): integer; overload;
+function MinVectorCoord(const V: TVector3): integer; overload;
 
-procedure SortAbsVectorCoord(const v: TVector3; out Max, Middle, Min: Integer); overload;
+procedure SortAbsVectorCoord(const V: TVector3; out Max, Middle, Min: Integer); overload;
 
 { Vector orthogonal to plane and pointing in the given direction.
 
@@ -136,31 +138,32 @@ function PlaneDirNotInDirection(const Plane: TVector4; const Direction: TVector3
 function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3): TVector3; overload;
 { @groupEnd }
 
-{ Endianess utility functions for vectors  ----------------------------------- }
-
+{ Endianess swapping for vectors. }
 function SwapEndian(const V: TVector2): TVector2; overload;
 function SwapEndian(const V: TVector3): TVector3; overload;
 function SwapEndian(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (little endian to native). }
 function LEtoN(const V: TVector2): TVector2; overload;
 function LEtoN(const V: TVector3): TVector3; overload;
 function LEtoN(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (big endian to native). }
 function BEtoN(const V: TVector2): TVector2; overload;
 function BEtoN(const V: TVector3): TVector3; overload;
 function BEtoN(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (native to little endian). }
 function NtoLE(const V: TVector2): TVector2; overload;
 function NtoLE(const V: TVector3): TVector3; overload;
 function NtoLE(const V: TVector4): TVector4; overload;
 
+{ Endianess conversion for vectors (native to big endian). }
 function NtoBE(const V: TVector2): TVector2; overload;
 function NtoBE(const V: TVector3): TVector3; overload;
 function NtoBE(const V: TVector4): TVector4; overload;
 
-{ Simple vectors operations  ------------------------------------------------- }
-
-{ }
+{ Replace contents of 2 variables. }
 procedure SwapValues(var V1, V2: TVector2); overload;
 procedure SwapValues(var V1, V2: TVector3); overload;
 procedure SwapValues(var V1, V2: TVector4); overload;
@@ -173,7 +176,7 @@ procedure SwapValues(var V1, V2: TVector4); overload;
   this will fail with some awful error (like floating point overflow)
   in case length of plane vector is zero. That's because we know
   that plane vector @italic(must) be always non-zero. }
-procedure NormalizePlaneVar(var v: TVector4); overload;
+procedure NormalizePlaneVar(var V: TVector4); overload;
 
 { Intersection of two 3D planes.
   @raises EPlanesParallel If planes are parallel.
@@ -283,8 +286,8 @@ procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
 { Return, deterministically, some vector orthogonal to V.
   When V is non-zero, then the result is non-zero.
   @groupBegin }
-function AnyOrthogonalVector(const v: TVector2): TVector2; overload;
-function AnyOrthogonalVector(const v: TVector3): TVector3; overload;
+function AnyOrthogonalVector(const V: TVector2): TVector2; overload;
+function AnyOrthogonalVector(const V: TVector3): TVector3; overload;
 { @groupEnd }
 
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean; overload;
@@ -415,11 +418,16 @@ function TryPlaneSegmentDirIntersection(out Intersection: TVector3; out T: Singl
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean; overload;
 
-{ Line passing through two @italic(different) points.
-  When the points are equal, undefined.
-  @groupBegin }
-function LineOfTwoDifferentPoints2d(const p1, p2: TVector2): TVector3; overload;
-{ @groupEnd }
+{ Coefficients of the 2D line equation (Ax + By + C = 0),
+  given 2 @italic(different) points lying on the line.
+  When the points are equal, this is undefined. }
+function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
+function LineOfTwoDifferentPoints2D(const P1, P2: TVector2): TVector3; deprecated 'use Line2DFrom2Points';
+
+{ Coefficients of the 2D line equation (Ax + By + C = 0),
+  given 1 point lying on the line, and non-zero line direction.
+  When LineVector is zero, this is undefined. }
+function Line2DFromOriginVector(const Line0, LineVector: TVector2): TVector3;
 
 function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3): Single; overload;
 
@@ -454,6 +462,14 @@ function TryCylinderRayIntersection(out Intersection: TVector3;
   const CylinderRadius: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 { @groupEnd }
+
+{ Given two 3D lines (both given as an some point + direction in 3D),
+  calculate closest point on 1st line to the 2nd line.
+  Returns @false if lines are parallel, thus is not possible to determine any single
+  closest point. }
+function PointOnLineClosestToLine(
+  out Intersection: TVector3;
+  const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
 
 { Matrix operations ---------------------------------------------------------- }
 
@@ -657,7 +673,7 @@ function ModelViewToNormalMatrix(const M: TMatrix4): TMatrix3;
   we fill the last row and column just like for an identity matrix.
 
   This is useful for calculating rotation matrix. }
-function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+function VectorMultTransposedSameVector(const V: TVector3): TMatrix4;
 
 function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 
@@ -666,9 +682,9 @@ procedure ScalingMatrices(const ScaleFactor: TVector3;
   out Matrix, InvertedMatrix: TMatrix4);
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
-function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload; deprecated 'use radians for everything throughout CGE';
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3;
   out Matrix, InvertedMatrix: TMatrix4); overload;
@@ -695,10 +711,35 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
+function Approximate3DScale(const M: TMatrix4): Single; overload;
 
 function Approximate2DScale(const X, Y: Single): Single; overload;
 function Approximate2DScale(const V: TVector2): Single; overload;
 { @groupEnd }
+
+{ Smoothly change Source to Target.
+
+  The speed decreases as Source is closer to Target,
+  so the animation ends smoothly.
+
+  Note: Initially the argument Speed was represented by 2 values:
+    MaxChangeSpeed, MaxDistance: Single
+  The intended meaning of MaxChangeSpeed was the speed
+  with which Source changes to Target,
+  so that MaxChangeSpeed = 1.0 means that it changes in 1 second,
+  MaxChangeSpeed = 0.5 means that it changes in 2 seconds,
+  MaxChangeSpeed = 2 means that it changes in 0.5 seconds.
+
+  Later: now it's just Speed.
+  You can just passs Speed = MaxChangeSpeed / MaxDistance to get the
+  same logic as above.
+}
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
 
 {$endif read_interface}
 
@@ -860,7 +901,7 @@ begin
   V2 := Tmp;
 end;
 
-procedure NormalizePlaneVar(var v: TVector4);
+procedure NormalizePlaneVar(var V: TVector4);
 var
   Len: Single;
 begin
@@ -995,56 +1036,68 @@ begin
   Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
 end;
 
-function MaxVectorCoord(const v: TVector2): integer;
+function MaxVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if v.Data[1] > v.Data[Result] then Result := 1;
+  if V.Data[1] > V.Data[Result] then Result := 1;
 end;
 
-function MaxVectorCoord(const v: TVector3): integer;
+function MaxVectorCoord(const V: TVector3): integer;
 begin
   Result := 0;
   { order of comparisons is important. We start from 0, then 1 and 2,
     and change only when differ (>, not just >=). This way we
     guarantee that when values are equal, lower coordinate wins. }
-  if v.Data[1] > v.Data[Result] then Result := 1;
-  if v.Data[2] > v.Data[Result] then Result := 2;
+  if V.Data[1] > V.Data[Result] then Result := 1;
+  if V.Data[2] > V.Data[Result] then Result := 2;
 end;
 
-function MinVectorCoord(const v: TVector3): integer;
+function MinVectorCoord(const V: TVector3): integer;
 begin
   Result := 0;
-  if v.Data[1] < v.Data[Result] then Result := 1;
-  if v.Data[2] < v.Data[Result] then Result := 2;
+  if V.Data[1] < V.Data[Result] then Result := 1;
+  if V.Data[2] < V.Data[Result] then Result := 2;
 end;
 
-function MaxVectorCoord(const v: TVector4): integer;
+function MaxVectorCoord(const V: TVector4): integer;
 begin
   Result := 0;
-  if v.Data[1] > v.Data[Result] then Result := 1;
-  if v.Data[2] > v.Data[Result] then Result := 2;
-  if v.Data[3] > v.Data[Result] then Result := 3;
+  if V.Data[1] > V.Data[Result] then Result := 1;
+  if V.Data[2] > V.Data[Result] then Result := 2;
+  if V.Data[3] > V.Data[Result] then Result := 3;
 end;
 
-function MaxAbsVectorCoord(const v: TVector2): integer;
+function MaxAbsVectorCoord(const V: TVector2): integer;
 begin
   Result := 0;
-  if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
+  if Abs(V.Data[1]) > Abs(V.Data[Result]) then Result := 1;
 end;
 
-function MaxAbsVectorCoord(const v: TVector3): integer;
+function MaxAbsVectorCoord(const V: TVector3): integer;
+var
+  Max, New: Single;
 begin
   Result := 0;
-  if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;
-  if Abs(v.Data[2]) > Abs(v.Data[Result]) then Result := 2;
+  Max := Abs(V.Data[0]);
+  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Data[2]); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
 end;
 
-procedure SortAbsVectorCoord(const v: TVector3;
+function MaxAbsVectorCoord(const V: TVector4): integer;
+var
+  Max, New: Single;
+begin
+  Result := 0;
+  Max := Abs(V.Data[0]);
+  New := Abs(V.Data[1]); if New > Max then begin Result := 1; Max := New; end;
+  New := Abs(V.Data[2]); if New > Max then begin Result := 2; Max := New; end;
+  New := Abs(V.Data[3]); if New > Max then begin Result := 3; { Max := New; not needed anymore } end;
+end;
+
+procedure SortAbsVectorCoord(const V: TVector3;
   out Max, Middle, Min: Integer);
 begin
-  Max := 0;
-  if Abs(V.Data[1]) > Abs(V.Data[Max]) then Max := 1;
-  if Abs(V.Data[2]) > Abs(V.Data[Max]) then Max := 2;
+  Max := MaxAbsVectorCoord(V);
   case Max of
     0: if Abs(V.Data[1]) >= Abs(V.Data[2]) then begin Middle := 1; Min := 2; end else begin Middle := 2; Min := 1; end;
     1: if Abs(V.Data[0]) >= Abs(V.Data[2]) then begin Middle := 0; Min := 2; end else begin Middle := 2; Min := 0; end;
@@ -1391,7 +1444,7 @@ begin
   MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi / 2, AnyOrthogonalVector(V2));
 end;
 
-function AnyOrthogonalVector(const v: TVector3): TVector3;
+function AnyOrthogonalVector(const V: TVector3): TVector3;
 begin
   { This uses a simple trick to make an orthogonal vector:
     if you take @code(Result := (V.Data[1], -V.Data[0], 0)) then the dot product
@@ -1399,20 +1452,20 @@ begin
     There's also a small check needed to use a similar but different version
     when the only non-zero component of V is V.Data[2]. }
 
-  if IsZero(v.Data[0]) and IsZero(v.Data[1]) then
+  if IsZero(V.Data[0]) and IsZero(V.Data[1]) then
   begin
     Result.Data[0] := 0;
-    Result.Data[1] := v.Data[2];
-    Result.Data[2] := -v.Data[1];
+    Result.Data[1] := V.Data[2];
+    Result.Data[2] := -V.Data[1];
   end else
   begin
-    Result.Data[0] := v.Data[1];
-    Result.Data[1] := -v.Data[0];
+    Result.Data[0] := V.Data[1];
+    Result.Data[1] := -V.Data[0];
     Result.Data[2] := 0;
   end;
 end;
 
-function AnyOrthogonalVector(const v: TVector2): TVector2;
+function AnyOrthogonalVector(const V: TVector2): TVector2;
 begin
   Result.Data[0] :=  V.Data[1];
   Result.Data[1] := -V.Data[0];
@@ -1748,27 +1801,35 @@ begin
             ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
 end;
 
-function LineOfTwoDifferentPoints2d(const p1, p2: TVector2): TVector3;
-var
-  lineVector: TVector2;
-  cGood, cOther: integer;
+function Line2DFrom2Points(const P1, P2: TVector2): TVector3;
 begin
-  (* chcemy zeby Vector2f(Result) i p2-p1(=lineVector) byly prostopadle czyli ich
-     iloczyn skalarny = 0 czyli Result.Data[0]*lineVector.Data[0] +
-     Result.Data[1]*lineVector.Data[1] = 0. Niech cGood to wspolrzedna
-     lineVector rozna od 0, cOther to ta druga.
-     Niech Result.Data[cOther] = -1 i zobaczmy ze wtedy mozemy skonstruowac
-     Result.Data[cGood] = lineVector.Data[cOther] / lineVector.Data[cGood]. *)
-  lineVector := p2 - p1;
-  if Abs(lineVector.Data[0]) > Abs(lineVector.Data[1]) then
-    begin cGood := 0; cOther := 1 end else
-    begin cOther := 0; cGood := 1 end;
-  Result.Data[cOther] := -1;
-  Result.Data[cGood] := lineVector.Data[cOther] / lineVector.Data[cGood];
+  Result := Line2DFromOriginVector(P1, P2 - P1);
+end;
 
-  (* Result.Data[0]*p1.Data[0] + Result.Data[1]*p1.Data[1] + Result.Data[2] = 0 wiec widac jak obliczyc
-     teraz Result.Data[2] *)
-  Result.Data[2] := -Result.Data[0]*p1.Data[0] -Result.Data[1]*p1.Data[1];
+function LineOfTwoDifferentPoints2D(const P1, P2: TVector2): TVector3;
+begin
+  Result := Line2DFromOriginVector(P1, P2 - P1);
+end;
+
+function Line2DFromOriginVector(const Line0, LineVector: TVector2): TVector3;
+var
+  AxisGood, AxisOther: Integer;
+begin
+  { Set AxisGood to LineVector coordinate that is definitely non-zero,
+    let AxisOther be the other one. }
+  AxisGood := MaxAbsVectorCoord(LineVector);
+  AxisOther := 1 - AxisGood;
+
+  { We want to make Result.XY and LineVector orthogonal (this is how 2D line equation Ax+By+C works).
+
+    So their dot product = 0.
+
+    Let Result.Data[AxisOther] = -1 and then we can construct
+    Result.Data[AxisGood] = LineVector.Data[AxisOther] / LineVector.Data[AxisGood].
+  }
+  Result.Data[AxisOther] := -1;
+  Result.Data[AxisGood] := LineVector.Data[AxisOther] / LineVector.Data[AxisGood];
+  Result.Data[2] := - (Result.Data[0] * Line0.Data[0] + Result.Data[1] * Line0.Data[1]);
 end;
 
 function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: Single;
@@ -1964,6 +2025,68 @@ begin
   Result := TryRayIntersectionQuadraticEquation(T, AA, BB, CC);
   if Result then
     Intersection := RayOrigin + RayDirection * T;
+end;
+
+function PointOnLineClosestToLine(
+  out Intersection: TVector3;
+  const Line1Origin, Line1Vector, Line2Origin, Line2Vector: TVector3): Boolean;
+var
+  Line0, LineVector, Ray0, RayVector: TVector3;
+  N: TVector3;
+  {Dist, }LineF: Single;
+  Ax: Integer;
+  ProjectAxisX, ProjectAxisY: TVector3;
+  ProjectedIntersection, ProjectLine0, ProjectLineVector, ProjectRay0, ProjectRayVector: TVector2;
+begin
+  Line0 := Line1Origin;
+  LineVector := Line1Vector;
+  Ray0 := Line2Origin;
+  RayVector := Line2Vector;
+
+  { See calculate distance between 2 lines in 3D:
+    https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
+    Observation: there must be N,
+    orthogonal to LineVector and RayVector,
+    that determines the vector between 2 closest points on 2 lines. }
+  N := TVector3.CrossProduct(LineVector, RayVector);
+  if N.IsZero then
+    Exit(false); // ray parallel to axis, no sensible answer
+
+  // N.NormalizeMe; // it is not necessary to normalize for anything below
+
+  // Dist := TVector3.DotProduct(N, Line0 - Ray0){ / N.Length}; // not needed in this approach
+
+  { Project our 2 lines on 2D }
+  ProjectAxisX := AnyOrthogonalVector(N);
+  ProjectAxisY := TVector3.CrossProduct(N, ProjectAxisX);
+
+  ProjectLine0 := Vector2(
+    TVector3.DotProduct(ProjectAxisX, Line0),
+    TVector3.DotProduct(ProjectAxisY, Line0)
+  );
+  ProjectLineVector := Vector2(
+    TVector3.DotProduct(ProjectAxisX, LineVector),
+    TVector3.DotProduct(ProjectAxisY, LineVector)
+  );
+  ProjectRay0 := Vector2(
+    TVector3.DotProduct(ProjectAxisX, Ray0),
+    TVector3.DotProduct(ProjectAxisY, Ray0)
+  );
+  ProjectRayVector := Vector2(
+    TVector3.DotProduct(ProjectAxisX, RayVector),
+    TVector3.DotProduct(ProjectAxisY, RayVector)
+  );
+
+  ProjectedIntersection := Lines2DIntersection(
+    Line2DFromOriginVector(ProjectLine0, ProjectLineVector),
+    Line2DFromOriginVector(ProjectRay0, ProjectRayVector)
+  );
+
+  Ax := MaxAbsVectorCoord(ProjectLineVector); // choose non-zero coordinate
+  LineF := (ProjectedIntersection[Ax] - ProjectLine0[Ax]) / ProjectLineVector[Ax];
+
+  Result := true;
+  Intersection := Line0 + LineF * LineVector;
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
@@ -2287,33 +2410,33 @@ begin
     Result := M3.Inverse(D).Transpose;
 end;
 
-function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+function VectorMultTransposedSameVector(const V: TVector3): TMatrix4;
 begin
   (* Naive version:
 
   for i := 0 to 2 do { i = column, j = row }
     for j := 0 to 2 do
-      Result.Data[i, j] := v.Data[i]*v.Data[j];
+      Result.Data[i, j] := V.Data[i]*V.Data[j];
 
   Expanded and optimized version below. *)
 
-  Result.Data[0, 0] := sqr(v.Data[0]);
-  Result.Data[1, 1] := sqr(v.Data[1]);
-  Result.Data[2, 2] := sqr(v.Data[2]);
+  {$ifdef FPC}
+  Assert(SizeOf(Result) mod SizeOf(DWord) = 0);
+  FillDWord(Result, SizeOf(Result) div SizeOf(DWord), 0);
+  {$else}
+  FillChar(Result, SizeOf(Result), 0);
+  {$endif}
 
-  Result.Data[0, 1] := v.Data[0]*v.Data[1]; Result.Data[1, 0] := Result.Data[0, 1];
-  Result.Data[0, 2] := v.Data[0]*v.Data[2]; Result.Data[2, 0] := Result.Data[0, 2];
-  Result.Data[1, 2] := v.Data[1]*v.Data[2]; Result.Data[2, 1] := Result.Data[1, 2];
+  Result.Data[0, 0] := Sqr(V.Data[0]);
+  Result.Data[1, 1] := Sqr(V.Data[1]);
+  Result.Data[2, 2] := Sqr(V.Data[2]);
 
-  { Fill the last row and column like an identity matrix }
-  Result.Data[3, 0] := 0;
-  Result.Data[3, 1] := 0;
-  Result.Data[3, 2] := 0;
+  Result.Data[0, 1] := V.Data[0] * V.Data[1]; Result.Data[1, 0] := Result.Data[0, 1];
+  Result.Data[0, 2] := V.Data[0] * V.Data[2]; Result.Data[2, 0] := Result.Data[0, 2];
+  Result.Data[1, 2] := V.Data[1] * V.Data[2]; Result.Data[2, 1] := Result.Data[1, 2];
 
-  Result.Data[0, 3] := 0;
-  Result.Data[1, 3] := 0;
-  Result.Data[2, 3] := 0;
-
+  { Fill the last row and column like an identity matrix.
+    Note that FillDWord above already took care of zeros. }
   Result.Data[3, 3] := 1;
 end;
 
@@ -2511,6 +2634,18 @@ begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
 end;
 
+function Approximate3DScale(const M: TMatrix4): Single;
+begin
+  Result := Approximate3DScale(
+    { This is a simple method of extracting average scaling factor from a matrix.
+      Works OK for combination of scaling, translation matrices.
+      Will fail on rotation (and possibly many other) matrices. }
+    M.Data[0, 0],
+    M.Data[1, 1],
+    M.Data[2, 2]
+  );
+end;
+
 function Approximate2DScale(const X, Y: Single): Single;
 begin
   if (X * Y < 0) then
@@ -2525,6 +2660,27 @@ end;
 function Approximate2DScale(const V: TVector2): Single;
 begin
   Result := Approximate2DScale(V.Data[0], V.Data[1]);
+end;
+
+function SmoothTowards(const Source, Target, SecondsPassed,
+  Speed: Single): Single;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector2;
+  const SecondsPassed, Speed: Single): TVector2;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
+end;
+
+function SmoothTowards(const Source, Target: TVector3;
+  const SecondsPassed, Speed: Single): TVector3;
+begin
+  Result := Source +
+    Min(1, SecondsPassed * Speed) * (Target - Source);
 end;
 
 {$endif read_implementation}

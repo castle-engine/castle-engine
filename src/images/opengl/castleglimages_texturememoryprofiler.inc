@@ -158,7 +158,7 @@ begin
       AllocatedTextures.Add(AllocatedTex);
   end;
 
-  if LogTextureLoading and Log then
+  if LogTextureLoading then
   begin
     WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
       [URIDisplay(URL), Width, Height]);
@@ -172,7 +172,7 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TDrawableImage) too late, you should move their destruction to an event like TCastleWindowBase.OnClose or TCastleControlBase.OnGLContextClose.',
       [TextureId]));
 
   if FEnabled then

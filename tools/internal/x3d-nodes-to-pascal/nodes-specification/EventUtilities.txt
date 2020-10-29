@@ -1,8 +1,9 @@
-X3DSequencerNode : X3DChildNode { 
+X3DSequencerNode : X3DChildNode {
   SFBool       [in]     next
   SFBool       [in]     previous
-  SFFloat      [in]     set_fraction       (-Inf,Inf)
-  MFFloat      [in,out] key           []   (-Inf,Inf)
+  SFFloat      [in]     set_fraction       # (-Inf,Inf)
+  MFFloat      [in,out] key           []   # (-Inf,Inf)
+  SFBool       [in,out] forceContinuousValue_changed  FALSE
 }
 
 X3DTriggerNode : X3DChildNode  {
@@ -16,18 +17,18 @@ BooleanFilter : X3DChildNode {
 }
 
 BooleanSequencer : X3DSequencerNode {
-  MFBool  [in,out] keyValue 	 [] 
+  MFBool  [in,out] keyValue      []
   SFBool  [out]    value_changed
 }
 
 BooleanToggle : X3DChildNode {
   SFBool [in]     set_boolean
-  SFBool [in,out] toggle      FALSE 
+  SFBool [in,out] toggle      FALSE
 }
 
 BooleanTrigger : X3DTriggerNode {
   SFTime [in]     set_triggerTime
-  SFBool [out]    triggerTrue 
+  SFBool [out]    triggerTrue
 }
 
 IntegerSequencer : X3DSequencerNode {
@@ -38,7 +39,7 @@ IntegerSequencer : X3DSequencerNode {
 IntegerTrigger : X3DTriggerNode {
   SFBool  [in]     set_boolean
   SFInt32 [in,out] integerKey        (-Inf,Inf)
-  SFInt32 [out]    triggerValue  
+  SFInt32 [out]    triggerValue
 }
 
 TimeTrigger : X3DTriggerNode {
@@ -46,3 +47,9 @@ TimeTrigger : X3DTriggerNode {
   SFTime [out]    triggerTime
 }
 
+# InstantReality extension http://doc.instantreality.org/documentation/nodetype/ValueTrigger/
+ValueTrigger : X3DTriggerNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  SFBool  [in,out]  enabled  TRUE
+  SFBool  [in]      trigger
+}

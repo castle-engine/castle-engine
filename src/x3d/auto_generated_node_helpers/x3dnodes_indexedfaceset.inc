@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetConvex: boolean;
-    procedure SetConvex(const Value: boolean);
+    function GetConvex: Boolean;
+    procedure SetConvex(const Value: Boolean);
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
   public
@@ -36,7 +36,7 @@
     { Set X3D field "colorIndex". } { }
     procedure SetColorIndex(const Value: TLongIntList);
     { X3D field "convex". } { }
-    property Convex: boolean read GetConvex write SetConvex;
+    property Convex: Boolean read GetConvex write SetConvex;
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: array of LongInt);
     { Set X3D field "coordIndex". } { }
@@ -68,12 +68,12 @@ begin
   FdColorIndex.Send(Value);
 end;
 
-function TIndexedFaceSetNode.GetConvex: boolean;
+function TIndexedFaceSetNode.GetConvex: Boolean;
 begin
   Result := FdConvex.Value;
 end;
 
-procedure TIndexedFaceSetNode.SetConvex(const Value: boolean);
+procedure TIndexedFaceSetNode.SetConvex(const Value: Boolean);
 begin
   FdConvex.Send(Value);
 end;

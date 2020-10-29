@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="load_model_and_camera_manually"
+  lazarus_project="load_model_and_camera_manually.lpi"
+  build_using_lazbuild="true"
+>
+  <data exists="false"/>
+</project>

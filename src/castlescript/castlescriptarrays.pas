@@ -21,7 +21,7 @@ unit CastleScriptArrays;
 interface
 
 uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils,
-  CastleScriptCoreFunctions, CastleInternalDoubleLists;
+  CastleScriptCoreFunctions;
 
 type
   TCasScriptArrayFun = class;

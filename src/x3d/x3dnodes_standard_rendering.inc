@@ -65,10 +65,16 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
   public
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinJoints: TVector4IntegerList;
+    { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
+    InternalSkinWeights: TVector4List;
+
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
       for all X3D nodes descending from TAbstractGeometryNode. }
     procedure CreateNode; override;
+    destructor Destroy; override;
 
     { Calculate bounding box of this geometry node.
       They require State of this node during VRML traverse state --- this
@@ -227,6 +233,15 @@
       information, but no "coord" field). }
     function CoordField: TSFNode; virtual;
 
+    { Node's "normal" field where you can place TCoordinateNode, or @nil if not available. }
+    function NormalField: TSFNode; virtual;
+
+    { Returns normal vectors that are specified explicitly.
+      The vectors are taken from the Normal node inside our FdNormal field.
+      In case of problems (no Normal node specified, invalid node specified etc.)
+      returns @nil. }
+    function InternalNormal: TVector3List;
+
     { Node's list of coordinate indexes.
 
       In base TAbstractGeometryNode class this always returns @nil.
@@ -288,6 +303,18 @@
       but they may have a texture coordinate node (from the state). }
     function TexCoordField: TSFNode; virtual;
 
+    { Find a texture coordinate node with given Mapping value.
+      Returns nil (and Index = -1) if not found.
+      This implements X3D 4.0 section
+      "12.2.4 Texture mapping specified in material nodes".
+
+      If MakeWarning, we make a warning if Mapping is not empty,
+      and yet it doesn't match anything. This is not allowed, according to spec. }
+    function FindTextureMapping(const Mapping: String;
+      const MakeWarning: Boolean = true): TAbstractSingleTextureCoordinateNode; overload;
+    function FindTextureMapping(const Mapping: String; out TexCoordIndex: Integer;
+      const MakeWarning: Boolean = true): TAbstractSingleTextureCoordinateNode; overload;
+
     { Converts this node to another node class that may be better supported.
 
       Typically, converts some complex geometry node (like
@@ -339,6 +366,7 @@
       @groupBegin }
     function InternalColor: TMFVec3f;
     function InternalColorRGBA: TMFColorRGBA;
+    function InternalColorNode: TAbstractColorNode;
     { @groupEnd }
 
     function InternalFogCoord: TMFFloat; virtual;
@@ -467,9 +495,6 @@
 
   { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
-  public
-    procedure CreateNode; override;
-
     {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
@@ -482,8 +507,10 @@
   public
     procedure CreateNode; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -491,8 +518,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
@@ -512,8 +541,10 @@
     strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
+    {$endif}
 
     { Access the coordinate node, and inside this node access it's points list. }
     function InternalCoord(State: TX3DGraphTraverseState;
@@ -523,14 +554,9 @@
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
     function AttribField: TMFNode; override;
+    function NormalField: TSFNode; override;
 
     function InternalFogCoord: TMFFloat; override;
-
-    { Returns normal vectors that are specified explicitly.
-      The vectors are taken from the Normal node inside our FdNormal field.
-      In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
-    function InternalNormal: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
@@ -553,10 +579,11 @@
 
   { Clip the geometry with a plane. }
   TClipPlaneNode = class(TAbstractChildNode)
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -572,7 +599,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdColor: TMFColor;
     public property FdColor: TMFColor read FFdColor;
@@ -585,7 +611,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdColor: TMFColorRGBA;
     public property FdColor: TMFColorRGBA read FFdColor;
@@ -599,7 +624,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -619,7 +643,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_colorIndex: TMFInt32Event;
@@ -629,8 +652,10 @@
     strict private FEventSet_coordIndex: TMFInt32Event;
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -638,8 +663,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -677,7 +704,7 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -706,7 +733,7 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -735,7 +762,7 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
+    function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
@@ -766,10 +793,11 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -777,8 +805,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     strict private FFdVertexCount: TMFInt32;
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
@@ -798,15 +828,12 @@
   end;
 
   { Normal (information for lighting) node.
-
     Note: It's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
   TNormalNode = class(TAbstractNormalNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdVector: TMFVec3f;
     public property FdVector: TMFVec3f read FFdVector;
@@ -821,10 +848,11 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
+    {$endif}
 
     strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -832,8 +860,10 @@
     strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
+    {$endif}
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -864,7 +894,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
@@ -886,7 +915,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -909,7 +937,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
@@ -927,6 +954,10 @@
 
 {$ifdef read_implementation}
 
+const
+  ColorModeNames: array [TColorMode] of string =
+  ('REPLACE', 'MODULATE');
+
 { TAbstractGeometryNode ---------------------------------------------------------- }
 
 procedure TAbstractGeometryNode.CreateNode;
@@ -934,9 +965,20 @@ begin
   inherited;
 
   DefaultContainerField := 'geometry';
-  { to make notes with and without FdSolid behave consistent }
+
+  { To make nodes without FdSolid and FdConvex field behave consistently,
+    we keep the value you set by SetValue to return it in GetSolid.
+    The defaults are "true", which are more efficient (e.g. solid=true
+    doesn't activate two-sided lighting) and correspond to X3D defaults on other nodes. }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
+end;
+
+destructor TAbstractGeometryNode.Destroy;
+begin
+  FreeAndNil(InternalSkinJoints);
+  FreeAndNil(InternalSkinWeights);
+  inherited;
 end;
 
 constructor TAbstractGeometryNode.CreateWithShape(out Shape: TShapeNode);
@@ -1079,6 +1121,62 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.FindTextureMapping(const Mapping: String;
+  const MakeWarning: Boolean): TAbstractSingleTextureCoordinateNode;
+var
+  TexCoordIndex: Integer;
+begin
+  Result := FindTextureMapping(Mapping, TexCoordIndex, MakeWarning);
+end;
+
+function TAbstractGeometryNode.FindTextureMapping(const Mapping: String;
+  out TexCoordIndex: Integer; const MakeWarning: Boolean): TAbstractSingleTextureCoordinateNode;
+var
+  T: TX3DNode;
+  MultiCoord: TMultiTextureCoordinateNode;
+  I: Integer;
+begin
+  Result := nil;
+  TexCoordIndex := -1;
+
+  if TexCoordField = nil then
+    Exit;
+
+  T := TexCoordField.Value;
+  if T is TMultiTextureCoordinateNode then
+  begin
+    MultiCoord := TMultiTextureCoordinateNode(T);
+    for I := 0 to MultiCoord.FdTexCoord.Count - 1 do
+      if (MultiCoord.FdTexCoord[I] is TAbstractSingleTextureCoordinateNode) and
+         { Mapping empty matches first item.
+           All children of MultiTextureCoordinate should be TAbstractSingleTextureCoordinateNode
+           in valid files. }
+         ( (Mapping = '') or
+           (Mapping = TAbstractSingleTextureCoordinateNode(MultiCoord.FdTexCoord[I]).Mapping) ) then
+      begin
+        Result := TAbstractSingleTextureCoordinateNode(MultiCoord.FdTexCoord[I]);
+        TexCoordIndex := I;
+        Exit;
+      end;
+
+    if MakeWarning and (Mapping <> '') then
+      WritelnWarning('Texture mapping "%s" not found within MultiTextureCoordinate list', [Mapping]);
+  end else
+  if T is TAbstractSingleTextureCoordinateNode then
+  begin
+    if ( (Mapping = '') or
+         (Mapping = TAbstractSingleTextureCoordinateNode(T).Mapping) ) then
+    begin
+      Result := TAbstractSingleTextureCoordinateNode(T);
+      TexCoordIndex := 0;
+      Exit;
+    end;
+
+    if MakeWarning and (Mapping <> '') then
+      WritelnWarning('Texture mapping "%s" not matching the only texture coordinate node possible', [Mapping]);
+  end;
+end;
+
 function TAbstractGeometryNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
@@ -1197,6 +1295,18 @@ begin
   Result := nil;
 end;
 
+function TAbstractGeometryNode.InternalColorNode: TAbstractColorNode;
+var
+  F: TSFNode;
+begin
+  F := ColorField;
+  if (F <> nil) and
+     (F.Value is TAbstractColorNode) then
+    Result := TAbstractColorNode(F.Value)
+  else
+    Result := nil;
+end;
+
 function TAbstractGeometryNode.InternalColor: TMFVec3f;
 var
   F: TSFNode;
@@ -1226,62 +1336,75 @@ begin
   Result := nil;
 end;
 
-{ Normal X3D spec nodes ------------------------------------------------------ }
-
-procedure TAbstractColorNode.CreateNode;
+function TAbstractGeometryNode.NormalField: TSFNode;
 begin
-  inherited;
-
-  DefaultContainerField := 'color';
+  Result := nil;
 end;
+
+function TAbstractGeometryNode.InternalNormal: TVector3List;
+begin
+  if (NormalField <> nil) and
+     (NormalField.Value is TNormalNode) then
+    Result := TNormalNode(NormalField.Value).FdVector.Items
+  else
+    Result := nil;
+end;
+
+{ Normal X3D spec nodes ------------------------------------------------------ }
 
 procedure TAbstractComposedGeometryNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
-   FdNormal.ChangesAlways := [chGeometry];
+   FdNormal.ChangeAlways := chGeometry;
   AddField(FFdNormal);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
-   FdTexCoord.ChangesAlways := [chGeometry];
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
-   FdCcw.ChangesAlways := [chGeometry];
+   FdCcw.ChangeAlways := chGeometry;
   AddField(FFdCcw);
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
-   FdNormalPerVertex.ChangesAlways := [chGeometry];
+   FdNormalPerVertex.ChangeAlways := chGeometry;
   AddField(FFdNormalPerVertex);
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', true);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
-   FdRadianceTransfer.ChangesAlways := [chGeometry];
+   FdRadianceTransfer.ChangeAlways := chGeometry;
   AddField(FFdRadianceTransfer);
+  {$endif}
 end;
 
 function TAbstractComposedGeometryNode.CoordField: TSFNode;
@@ -1316,29 +1439,31 @@ end;
 
 function TAbstractComposedGeometryNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TAbstractComposedGeometryNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
-function TAbstractComposedGeometryNode.InternalNormal: TVector3List;
+function TAbstractComposedGeometryNode.NormalField: TSFNode;
 begin
-  if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNormalNode) then
-    Result := TNormalNode(FdNormal.Value).FdVector.Items else
-    Result := nil;
+  Result := FdNormal;
 end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1346,8 +1471,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdnormal.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1363,16 +1490,18 @@ begin
   DefaultContainerField := 'coord';
 end;
 
+{ TClipPlaneNode ------------------------------------------------------------- }
+
 procedure TClipPlaneNode.CreateNode;
 begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangesAlways := [chClipPlane];
+   FdEnabled.ChangeAlways := chClipPlane;
   AddField(FFdEnabled);
 
   FFdPlane := TSFVec4f.Create(Self, true, 'plane', Vector4(0, 1, 0, 0));
-   FdPlane.ChangesAlways := [chClipPlane];
+   FdPlane.ChangeAlways := chClipPlane;
   AddField(FFdPlane);
   { X3D specification comment: [0,1] }
 
@@ -1382,15 +1511,19 @@ begin
     (inherited from X3DChilNode. }
 end;
 
+procedure TClipPlaneNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+var
+  CP: PClipPlane;
+begin
+  inherited;
+  CP := State.AddClipPlane;
+  CP^.Node := Self;
+  CP^.Transform := State.Transformation.Transform;
+end;
+
 class function TClipPlaneNode.ClassX3DType: string;
 begin
   Result := 'ClipPlane';
-end;
-
-class function TClipPlaneNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TColorNode.CreateNode;
@@ -1398,7 +1531,7 @@ begin
   inherited;
 
   FFdColor := TMFColor.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1408,19 +1541,12 @@ begin
   Result := 'Color';
 end;
 
-class function TColorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TColorRGBANode.CreateNode;
 begin
   inherited;
 
   FFdColor := TMFColorRGBA.Create(Self, true, 'color', []);
-   FdColor.ChangesAlways := [chColorNode];
+   FdColor.ChangeAlways := chColorNode;
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
@@ -1430,18 +1556,12 @@ begin
   Result := 'ColorRGBA';
 end;
 
-class function TColorRGBANode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TCoordinateNode.CreateNode;
 begin
   inherited;
 
   FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chCoordinate];
+   FdPoint.ChangeAlways := chCoordinate;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -1449,13 +1569,6 @@ end;
 class function TCoordinateNode.ClassX3DType: string;
 begin
   Result := 'Coordinate';
-end;
-
-class function TCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCoordinateNode.CoordCount: Cardinal;
@@ -1475,35 +1588,39 @@ begin
   AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.ChangesAlways := [chGeometry];
+   FdColorIndex.ChangeAlways := chGeometry;
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
-   FdColorPerVertex.ChangesAlways := [chGeometry];
+   FdColorPerVertex.ChangeAlways := chGeometry;
   AddField(FFdColorPerVertex);
 
   FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.ChangesAlways := [chGeometry];
+   FdCoordIndex.ChangeAlways := chGeometry;
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1511,13 +1628,6 @@ end;
 class function TIndexedLineSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedLineSet';
-end;
-
-class function TIndexedLineSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1547,15 +1657,18 @@ end;
 
 function TIndexedLineSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TIndexedLineSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TIndexedLineSetNode.CoordIndexField: TMFLong;
@@ -1592,7 +1705,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1600,12 +1713,6 @@ end;
 class function TIndexedTriangleFanSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedTriangleFanSet';
-end;
-
-class function TIndexedTriangleFanSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedTriangleFanSetNode.CoordIndexField: TMFLong;
@@ -1616,8 +1723,14 @@ end;
 procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleFanSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TIndexedTriangleSetNode.CreateNode;
@@ -1629,7 +1742,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
@@ -1637,12 +1750,6 @@ end;
 class function TIndexedTriangleSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedTriangleSet';
-end;
-
-class function TIndexedTriangleSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedTriangleSetNode.CoordIndexField: TMFLong;
@@ -1653,8 +1760,14 @@ end;
 procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TIndexedTriangleStripSetNode.CreateNode;
@@ -1666,7 +1779,7 @@ begin
   Eventset_index.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -1674,12 +1787,6 @@ end;
 class function TIndexedTriangleStripSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedTriangleStripSet';
-end;
-
-class function TIndexedTriangleStripSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedTriangleStripSetNode.CoordIndexField: TMFLong;
@@ -1690,32 +1797,42 @@ end;
 procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
-  FdIndex.Assign(Value);
-  FdIndex.Changed;
+  FdIndex.Send(Value);
+end;
+
+function TIndexedTriangleStripSetNode.FieldSetByEvent(const Event: TX3DEvent): TX3DField;
+begin
+  if Event = EventSet_index then
+    Exit(FdIndex);
+  Result := inherited;
 end;
 
 procedure TLineSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
+  {$endif}
 
   FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
-   FdVertexCount.ChangesAlways := [chGeometry];
+   FdVertexCount.ChangeAlways := chGeometry;
   AddField(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
 end;
@@ -1723,12 +1840,6 @@ end;
 class function TLineSetNode.ClassX3DType: string;
 begin
   Result := 'LineSet';
-end;
-
-class function TLineSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLineSetNode.CoordField: TSFNode;
@@ -1753,15 +1864,18 @@ end;
 
 function TLineSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TLineSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TLineSetNode.InternalCoordRangesCounts(
@@ -1778,8 +1892,10 @@ end;
 
 function TLineSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1787,8 +1903,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 end;
 
 function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
@@ -1802,7 +1920,7 @@ begin
   inherited;
 
   FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
-   FdVector.ChangesAlways := [chVisibleVRML1State];
+   FdVector.ChangeAlways := chNormal;
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
 
@@ -1814,44 +1932,34 @@ begin
   Result := 'Normal';
 end;
 
-class function TNormalNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPointSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
-   FdAttrib.ChangesAlways := [chGeometry];
+   FdAttrib.ChangeAlways := chGeometry;
   AddField(FFdAttrib);
+  {$endif}
 
   FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
-   FdColor.ChangesAlways := [chGeometry];
+   FdColor.ChangeAlways := chGeometry;
   AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
-   FdCoord.ChangesAlways := [chGeometry];
+   FdCoord.ChangeAlways := chGeometry;
   AddField(FFdCoord);
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
-   FdFogCoord.ChangesAlways := [chGeometry];
+   FdFogCoord.ChangeAlways := chGeometry;
   AddField(FFdFogCoord);
+  {$endif}
 end;
 
 class function TPointSetNode.ClassX3DType: string;
 begin
   Result := 'PointSet';
-end;
-
-class function TPointSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1881,21 +1989,26 @@ end;
 
 function TPointSetNode.InternalFogCoord: TMFFloat;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
-    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth
+  else
+  {$endif}
     Result := nil;
 end;
 
 function TPointSetNode.AttribField: TMFNode;
 begin
-  Result := FdAttrib;
+  Result := {$ifndef CASTLE_SLIM_NODES} FdAttrib {$else} nil {$endif};
 end;
 
 function TPointSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 
   Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
@@ -1903,8 +2016,10 @@ begin
   Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
+  {$ifndef CASTLE_SLIM_NODES}
   Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
+  {$endif}
 end;
 
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;
@@ -1917,7 +2032,7 @@ begin
   inherited;
 
   FFdFanCount := TMFInt32.Create(Self, true, 'fanCount', []);
-   FdFanCount.ChangesAlways := [chGeometry];
+   FdFanCount.ChangeAlways := chGeometry;
   AddField(FFdFanCount);
   { X3D specification comment: [3,Inf) }
 end;
@@ -1925,12 +2040,6 @@ end;
 class function TTriangleFanSetNode.ClassX3DType: string;
 begin
   Result := 'TriangleFanSet';
-end;
-
-class function TTriangleFanSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTriangleFanSetNode.InternalCoordRangesCounts(
@@ -1955,18 +2064,12 @@ begin
   Result := 'TriangleSet';
 end;
 
-class function TTriangleSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TTriangleStripSetNode.CreateNode;
 begin
   inherited;
 
   FFdStripCount := TMFInt32.Create(Self, true, 'stripCount', []);
-   FdStripCount.ChangesAlways := [chGeometry];
+   FdStripCount.ChangeAlways := chGeometry;
   AddField(FFdStripCount);
   { X3D specification comment: [3,Inf) }
 end;
@@ -1974,12 +2077,6 @@ end;
 class function TTriangleStripSetNode.ClassX3DType: string;
 begin
   Result := 'TriangleStripSet';
-end;
-
-class function TTriangleStripSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(

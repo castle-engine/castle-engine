@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
     function GetPlane: TVector4;
     procedure SetPlane(const Value: TVector4);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     { X3D field "plane". } { }
     property Plane: TVector4 read GetPlane write SetPlane;
 
@@ -42,12 +42,12 @@
 
 { TClipPlaneNode ----------------------------------------------- }
 
-function TClipPlaneNode.GetEnabled: boolean;
+function TClipPlaneNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TClipPlaneNode.SetEnabled(const Value: boolean);
+procedure TClipPlaneNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
     function GetRotation: TVector4;
     procedure SetRotation(const Value: TVector4);
     function GetScale: TVector3;
@@ -40,12 +40,10 @@
     procedure SetSkinNormal(const Value: TAbstractNormalNode);
     function GetTranslation: TVector3;
     procedure SetTranslation(const Value: TVector3);
-    function GetVersion: string;
-    procedure SetVersion(const Value: string);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetVersion: String;
+    procedure SetVersion(const Value: String);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
@@ -56,7 +54,7 @@
     { Set X3D field "joints". } { }
     procedure SetJoints(const Value: array of THAnimJointNode);
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { X3D field "rotation". } { }
     property Rotation: TVector4 read GetRotation write SetRotation;
     { X3D field "scale". } { }
@@ -74,13 +72,11 @@
     { X3D field "translation". } { }
     property Translation: TVector3 read GetTranslation write SetTranslation;
     { X3D field "version". } { }
-    property Version: string read GetVersion write SetVersion;
+    property Version: String read GetVersion write SetVersion;
     { Set X3D field "viewpoints". } { }
     procedure SetViewpoints(const Value: array of THAnimSiteNode);
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -120,12 +116,12 @@ begin
   FdJoints.Send(A);
 end;
 
-function THAnimHumanoidNode.GetNameField: string;
+function THAnimHumanoidNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimHumanoidNode.SetNameField(const Value: string);
+procedure THAnimHumanoidNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;
@@ -219,12 +215,12 @@ begin
   FdTranslation.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetVersion: string;
+function THAnimHumanoidNode.GetVersion: String;
 begin
   Result := FdVersion.Value;
 end;
 
-procedure THAnimHumanoidNode.SetVersion(const Value: string);
+procedure THAnimHumanoidNode.SetVersion(const Value: String);
 begin
   FdVersion.Send(Value);
 end;
@@ -241,24 +237,18 @@ begin
   FdViewpoints.Send(A);
 end;
 
-function THAnimHumanoidNode.GetBboxCenter: TVector3;
+function THAnimHumanoidNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure THAnimHumanoidNode.SetBboxCenter(const Value: TVector3);
+procedure THAnimHumanoidNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function THAnimHumanoidNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure THAnimHumanoidNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

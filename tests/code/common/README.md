@@ -9,5 +9,5 @@ Useful units to integrate Castle Game Engine applications with FPCUnit.
   which is useful when running it from shell scripts e.g. in Jenkins,
   when you want the failure to be reported upward.
 
-To use these units now, just add them to your project (these it no lpk
+To use these units now, just add them to your project (there is no lpk
 with these units, for now).

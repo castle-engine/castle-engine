@@ -60,7 +60,6 @@
 
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
@@ -74,11 +73,13 @@
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
     property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
     strict private FFdLeftToRight: TSFBool;
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
+    {$endif}
 
     strict private FFdSize: TSFFloat;
     public property FdSize: TSFFloat read FFdSize;
@@ -91,8 +92,10 @@
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
+    {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
+    {$endif}
 
     strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
@@ -142,7 +145,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
@@ -152,6 +154,9 @@
 
     strict private FFdMaxExtent: TSFFloat;
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
+
+    strict private FFdMaxDisplayChars: TSFInt32;
+    public property FdMaxDisplayChars: TSFInt32 read FFdMaxDisplayChars;
 
     strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
@@ -179,6 +184,8 @@
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
 
     { The font rendering style. Returns @nil if not assigned,
@@ -211,60 +218,57 @@ begin
   inherited;
 
   FFdFamily := TMFString.Create(Self, false, 'family', ['SERIF']);
-   FdFamily.ChangesAlways := [chFontStyle];
+   FdFamily.ChangeAlways := chFontStyle;
   AddField(FFdFamily);
 
   FFdHorizontal := TSFBool.Create(Self, false, 'horizontal', true);
-   FdHorizontal.ChangesAlways := [chFontStyle];
+   FdHorizontal.ChangeAlways := chFontStyle;
   AddField(FFdHorizontal);
 
   FFdJustify := TMFString.Create(Self, false, 'justify', ['BEGIN']);
-   FdJustify.ChangesAlways := [chFontStyle];
+   FdJustify.ChangeAlways := chFontStyle;
   AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdLanguage := TSFString.Create(Self, false, 'language', '');
-   FdLanguage.ChangesAlways := [chFontStyle];
+   FdLanguage.ChangeAlways := chFontStyle;
   AddField(FFdLanguage);
 
   FFdLeftToRight := TSFBool.Create(Self, false, 'leftToRight', true);
-   FdLeftToRight.ChangesAlways := [chFontStyle];
+   FdLeftToRight.ChangeAlways := chFontStyle;
   AddField(FFdLeftToRight);
+  {$endif}
 
   FFdSize := TSFFloat.Create(Self, false, 'size', DefaultSize);
-   FdSize.ChangesAlways := [chFontStyle];
+   FdSize.ChangeAlways := chFontStyle;
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   FFdSpacing := TSFFloat.Create(Self, false, 'spacing', DefaultSpacing);
-   FdSpacing.ChangesAlways := [chFontStyle];
+   FdSpacing.ChangeAlways := chFontStyle;
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
   FFdStyle := TSFString.Create(Self, false, 'style', 'PLAIN');
-   FdStyle.ChangesAlways := [chFontStyle];
+   FdStyle.ChangeAlways := chFontStyle;
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
+  {$ifndef CASTLE_SLIM_NODES}
   FFdTopToBottom := TSFBool.Create(Self, false, 'topToBottom', true);
-   FdTopToBottom.ChangesAlways := [chFontStyle];
+   FdTopToBottom.ChangeAlways := chFontStyle;
   AddField(FFdTopToBottom);
+  {$endif}
 
   FFdBlending := TSFBool.Create(Self, false, 'blending', DefaultBlending);
-   FdBlending.ChangesAlways := [chFontStyle];
+   FdBlending.ChangeAlways := chFontStyle;
   AddField(FFdBlending);
 end;
 
 class function TFontStyleNode.ClassX3DType: string;
 begin
   Result := 'FontStyle';
-end;
-
-class function TFontStyleNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -472,21 +476,25 @@ begin
   inherited;
 
   FFdFontStyle := TSFNode.Create(Self, true, 'fontStyle', [TAbstractFontStyleNode]);
-   FdFontStyle.ChangesAlways := [chGeometry];
+   FdFontStyle.ChangeAlways := chGeometry;
   AddField(FFdFontStyle);
 
   FFdLength := TMFFloat.Create(Self, true, 'length', []);
-   FdLength.ChangesAlways := [chGeometry];
+   FdLength.ChangeAlways := chGeometry;
   AddField(FFdLength);
   { X3D specification comment: [0,Inf) }
 
   FFdMaxExtent := TSFFloat.Create(Self, true, 'maxExtent', 0.0);
-   FdMaxExtent.ChangesAlways := [chGeometry];
+   FdMaxExtent.ChangeAlways := chGeometry;
   AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
+  FFdMaxDisplayChars := TSFInt32.Create(Self, true, 'maxDisplayChars', -1);
+   FdMaxDisplayChars.ChangeAlways := chGeometry;
+  AddField(FdMaxDisplayChars);
+
   FFdString := TMFString.Create(Self, true, 'string', []);
-   FdString.ChangesAlways := [chGeometry];
+   FdString.ChangeAlways := chGeometry;
   AddField(FFdString);
 
   FEventLineBounds := TMFVec2fEvent.Create(Self, 'lineBounds', false);
@@ -499,11 +507,11 @@ begin
   AddEvent(FEventTextBounds);
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
-   FdTexCoord.ChangesAlways := [chGeometry];
+   FdTexCoord.ChangeAlways := chGeometry;
   AddField(FFdTexCoord);
 end;
 
@@ -523,13 +531,6 @@ end;
 class function TTextNode.ClassX3DType: string;
 begin
   Result := 'Text';
-end;
-
-class function TTextNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextNode.TexCoordField: TSFNode;
@@ -555,6 +556,15 @@ begin
   Result := FdSolid;
 end;
 
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  { TextProxy implementation is broken by optimizations on Aarch64,
+    it seems like it draws only 1st letter of each line.
+    Testcase: bubbles in unholy_society.
+    TODO: Reproduce this in a simple testcase, submit to FPC devs. }
+  {$optimization OFF}
+  {$info Workaround Aarch64 optimizer: TextProxy not optimized (begin)}
+{$endif}
+
 { Create a simple mesh (filling OutCoords, OutTexCoords fields
   to initialize X3D node like QuadSet) that represents input Text node.
   The interface is suitable for both VRML 2.0 / X3D Text node,
@@ -563,6 +573,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const Size, Spacing: Single;
   const Justify, JustifyMinor: TX3DFontJustify;
   const Strings: TCastleStringList;
+  const MaxDisplayChars: Integer;
   const Font: TTextureFontData;
   const Solid: boolean;
   const EventLineBounds: TMFVec2fEvent;
@@ -582,7 +593,9 @@ var
                 Result := 0;
       fjMiddle: Result := - TextWidths.Items[I] / 2;
       fjEnd   : Result := - TextWidths.Items[I];
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('StringPosX: Invalid font Justify value');
+      {$endif}
     end;
   end;
 
@@ -593,7 +606,9 @@ var
       fjBegin : Result := - (I + 1);
       fjMiddle: Result := Strings.Count / 2 - (I + 1);
       fjEnd   : Result := Strings.Count     - (I + 1);
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('StringPosY: Invalid font JustifyMinor value');
+      {$endif}
     end;
     Result := Result * (Font.RowHeight * Spacing);
   end;
@@ -631,14 +646,18 @@ var
                   Origin[0] := 0;
         fjMiddle: Origin[0] := -MaxTextWidth * XScale / 2;
         fjEnd   : Origin[0] := -MaxTextWidth * XScale    ;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
+        {$endif}
       end;
       case JustifyMinor of
         fjFirst : Origin[1] := -FinalRowHeight;
         fjBegin : Origin[1] := 0;
         fjMiddle: Origin[1] := -FinalRowHeight * Strings.Count / 2;
         fjEnd   : Origin[1] := -FinalRowHeight * Strings.Count;
+        {$ifndef COMPILER_CASE_ANALYSIS}
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
+        {$endif}
       end;
       EventOrigin.Send(Origin, OriginalNode.Scene.NextEventTime);
 
@@ -661,7 +680,9 @@ var
               for I := 0 to TextWidths.Count - 1 do
                 LineBounds.Items.List^[I] := Vector2(
                   MaxTextWidth * XScale, FinalRowHeight);
+            {$ifndef COMPILER_CASE_ANALYSIS}
             else raise EInternalError.Create('Invalid font justify value');
+            {$endif}
           end;
 
           EventLineBounds.Send(LineBounds, OriginalNode.Scene.NextEventTime);
@@ -675,7 +696,7 @@ var
 
   { Print the string, by adding rectangles to current QuadSet.
     This is somewhat analogous to printing straight in 2D done
-    by TCastleFont.Print and TGLImageCore.Draw. }
+    by TCastleFont.Print and TDrawableImage.Draw. }
   procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
 
     function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;
@@ -774,6 +795,7 @@ var
 
 var
   I: Integer;
+  DisplayChars: Integer;
 begin
   YScale := Size / Font.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
@@ -792,8 +814,23 @@ begin
     if Strings.Count <> 0 then
     begin
       ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
-      for I := 0 to Strings.Count - 1 do
-        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      if MaxDisplayChars < 0 then
+        for I := 0 to Strings.Count - 1 do
+          Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale) //optimize in case MaxDisplayChars = -1
+      else
+      begin
+        DisplayChars := MaxDisplayChars;
+        for I := 0 to Strings.Count - 1 do
+        begin
+          if UTF8Length(Strings[I]) < DisplayChars then
+            Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale)
+          else
+            Print(StringPosX(I), StringPosY(I), UTF8Copy(Strings[I], 1, DisplayChars), XScale, YScale);
+          Dec(DisplayChars, UTF8Length(Strings[I]));
+          if DisplayChars <= 0 then
+            Break;
+        end;
+      end;
     end;
 
     { These events should be generated only when
@@ -874,13 +911,22 @@ begin
       ExtraTexCoordField := ExtraTexCoordNode.FdPoint else
       ExtraTexCoordField := nil;
 
-    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items, Font,
+    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items,
+      FdMaxDisplayChars.Value, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;
 end;
+
+{ Turn optimizations back on.
+  FPC $push / $pop unfortunately doesn't save/restore optimization level,
+  so we restore it if -dRELEASE. }
+{$if defined(FPC) and defined(CPUAARCH64) and defined(RELEASE)}
+  {$optimization ON}
+  {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
+{$endif}
 
 function TTextNode.ProxyUsesOverTriangulate: boolean;
 begin
@@ -915,7 +961,9 @@ begin
       if Italic then
         Result := TextureFont_DejaVuSansMonoOblique_20 else
         Result := TextureFont_DejaVuSansMono_20;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('GetFont:Family?');
+    {$endif}
   end;
 {$else}
 begin

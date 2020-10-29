@@ -222,8 +222,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
              my acquired WglExtensions there. }
 
         WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
-        if Log then
-          WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
+        WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
 
         if Load_WGL_ARB_pixel_format then
         begin
@@ -259,8 +258,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
                 VisualAttr.AddRange([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
                   WGL_SAMPLES_ARB, MultiSampling ]);
-                if Log then
-                  WritelnLog('MultiSampling', 'WGL_ARB_multisample supported, using multisampling');
+                WritelnLog('MultiSampling', 'WGL_ARB_multisample supported, using multisampling');
               end else
                 raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
                   'requested, but WGL_ARB_multisample not supported',
@@ -296,14 +294,12 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
               [ RequestedBufferAttributes ]);
         end else
         begin
-          if Log then
-            WritelnLog('wgl', 'WGL_ARB_pixel_format not available, using classic ChoosePixelFormat');
+          WritelnLog('wgl', 'WGL_ARB_pixel_format not available, using classic ChoosePixelFormat');
           SetPixelFormat_ClassicChoose;
         end;
       end else
       begin
-        if Log then
-          WritelnLog('wgl', 'wglGetExtensionsStringARB not available, using classic ChoosePixelFormat');
+        WritelnLog('wgl', 'wglGetExtensionsStringARB not available, using classic ChoosePixelFormat');
         SetPixelFormat_ClassicChoose;
       end;
     finally DestroyTemporaryWindow end;

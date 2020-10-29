@@ -63,11 +63,11 @@ type
       @unorderedList(
         @item(When ScreenCoordinates = @true,
           then Position is relative to the whole container
-          (like TCastleWindow or TCastleControl).
+          (like TCastleWindowBase or TCastleControlBase).
 
           And it is expressed in real device coordinates,
-          just like @link(TInputPressReleaseEvent.Position)
-          when mouse is being clicked, or like @link(TInputMotionEvent.Position)
+          just like @link(TInputPressRelease.Position)
+          when mouse is being clicked, or like @link(TInputMotion.Position)
           when mouse is moved.
         )
 
@@ -107,12 +107,12 @@ type
       @unorderedList(
         @item(When ScreenCoordinates = @true,
           the resulting rectangle is relative to the whole container
-          (like TCastleWindow or TCastleControl).
+          (like TCastleWindowBase or TCastleControlBase).
           And is expressed in real device coordinates.
 
           These are the same coordinates as expressed by @link(RenderRect)
           method. You can pass the resulting rectangle straight
-          to @link(DrawRectangle), or @link(TGLImage.Draw), or @link(TSprite.Draw),
+          to @link(DrawRectangle), or @link(TDrawableImage.Draw), or @link(TSprite.Draw),
           to draw something over this tile.
         )
 

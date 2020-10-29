@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,23 +26,23 @@
 {$ifdef read_interface}
 
   strict private
-    function GetBeginCap: boolean;
-    procedure SetBeginCap(const Value: boolean);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
-    function GetConvex: boolean;
-    procedure SetConvex(const Value: boolean);
+    function GetBeginCap: Boolean;
+    procedure SetBeginCap(const Value: Boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
+    function GetConvex: Boolean;
+    procedure SetConvex(const Value: Boolean);
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
-    function GetEndCap: boolean;
-    procedure SetEndCap(const Value: boolean);
+    function GetEndCap: Boolean;
+    procedure SetEndCap(const Value: Boolean);
   public
     { X3D field "beginCap". } { }
-    property BeginCap: boolean read GetBeginCap write SetBeginCap;
+    property BeginCap: Boolean read GetBeginCap write SetBeginCap;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
     { X3D field "convex". } { }
-    property Convex: boolean read GetConvex write SetConvex;
+    property Convex: Boolean read GetConvex write SetConvex;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     { Set X3D field "crossSection". } { }
@@ -50,7 +50,7 @@
     { Set X3D field "crossSection". } { }
     procedure SetCrossSection(const Value: TVector2List);
     { X3D field "endCap". } { }
-    property EndCap: boolean read GetEndCap write SetEndCap;
+    property EndCap: Boolean read GetEndCap write SetEndCap;
     { Set X3D field "orientation". } { }
     procedure SetOrientation(const Value: array of TVector4);
     { Set X3D field "orientation". } { }
@@ -70,32 +70,32 @@
 
 { TExtrusionNode ----------------------------------------------- }
 
-function TExtrusionNode.GetBeginCap: boolean;
+function TExtrusionNode.GetBeginCap: Boolean;
 begin
   Result := FdBeginCap.Value;
 end;
 
-procedure TExtrusionNode.SetBeginCap(const Value: boolean);
+procedure TExtrusionNode.SetBeginCap(const Value: Boolean);
 begin
   FdBeginCap.Send(Value);
 end;
 
-function TExtrusionNode.GetCcw: boolean;
+function TExtrusionNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TExtrusionNode.SetCcw(const Value: boolean);
+procedure TExtrusionNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;
 
-function TExtrusionNode.GetConvex: boolean;
+function TExtrusionNode.GetConvex: Boolean;
 begin
   Result := FdConvex.Value;
 end;
 
-procedure TExtrusionNode.SetConvex(const Value: boolean);
+procedure TExtrusionNode.SetConvex(const Value: Boolean);
 begin
   FdConvex.Send(Value);
 end;
@@ -120,12 +120,12 @@ begin
   FdCrossSection.Send(Value);
 end;
 
-function TExtrusionNode.GetEndCap: boolean;
+function TExtrusionNode.GetEndCap: Boolean;
 begin
   Result := FdEndCap.Value;
 end;
 
-procedure TExtrusionNode.SetEndCap(const Value: boolean);
+procedure TExtrusionNode.SetEndCap(const Value: Boolean);
 begin
   FdEndCap.Send(Value);
 end;

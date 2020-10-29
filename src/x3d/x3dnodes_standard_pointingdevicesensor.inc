@@ -19,9 +19,9 @@
   TPointingDeviceSensorList = class(TX3DNodeList)
   public
     { Transformation (and inverse) of all the sensors on this list.
-      VRML/X3D specification guarantees that all sensors within a single state
+      X3D specification guarantees that all sensors within a single state
       have the same transform. }
-    Transform, InvertedTransform: TMatrix4;
+    Transformation: TTransformation;
 
     function EnabledCount: Integer;
     function Enabled(Index: Integer): boolean;
@@ -31,6 +31,8 @@
 
   { Base type for all pointing device sensors. }
   TAbstractPointingDeviceSensorNode = class(TAbstractSensorNode)
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
 
@@ -145,7 +147,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -198,7 +199,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -244,7 +244,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdOffset: TSFRotation;
     public property FdOffset: TSFRotation read FFdOffset;
@@ -267,7 +266,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
     strict private FEventHitNormal_changed: TSFVec3fEvent;
@@ -309,8 +307,7 @@ end;
 procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
 begin
   inherited Assign(Source);
-  Transform := Source.Transform;
-  InvertedTransform := Source.InvertedTransform;
+  Transformation := Source.Transformation;
 end;
 
 { Rest of nodes -------------------------------------------------------------- }
@@ -324,6 +321,13 @@ begin
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
   AddEvent(FEventIsOver);
+end;
+
+procedure TAbstractPointingDeviceSensorNode.GroupBeforeTraverse(
+  const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  GroupBeforeTraverse_AddPointingDeviceSensor(Self, State, WasPointingDeviceSensor);
 end;
 
 procedure TAbstractPointingDeviceSensorNode.Activate(const Time: TX3DTime;
@@ -348,7 +352,7 @@ begin
   FEventTrackPoint_changed := TSFVec3fEvent.Create(Self, 'trackPoint_changed', false);
   AddEvent(FEventTrackPoint_changed);
 
-  Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
+  FdEnabled.ChangeAlways := chDragSensorEnabled;
 end;
 
 procedure TAbstractDragSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3);
@@ -404,13 +408,6 @@ end;
 class function TCylinderSensorNode.ClassX3DType: string;
 begin
   Result := 'CylinderSensor';
-end;
-
-class function TCylinderSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCylinderSensorNode.Activate(const Time: TX3DTime;
@@ -486,8 +483,7 @@ begin
     except
       on ETransformedResultInvalid do
       begin
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
         Exit;
       end;
     end;
@@ -541,13 +537,6 @@ begin
   Result := 'PlaneSensor';
 end;
 
-class function TPlaneSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TPlaneSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4;
   const OverPoint: TVector3);
@@ -592,8 +581,7 @@ begin
       PlaneY := TVector3.One[1];
       Transform := TMatrix4.Identity;
       InvertedTransform := TMatrix4.Identity;
-      if Log then
-        WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
+      WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
     end;
   end;
 
@@ -646,8 +634,7 @@ begin
       on ETransformedResultInvalid do
       begin
         EventTrackPoint_changed.Send(Intersection, Time);
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
       end;
     end;
 
@@ -697,13 +684,6 @@ begin
   Result := 'SphereSensor';
 end;
 
-class function TSphereSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TSphereSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4;
   const OverPoint: TVector3);
@@ -746,8 +726,7 @@ begin
     except
       on ETransformedResultInvalid do
       begin
-        if Log then
-          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
         Exit;
       end;
     end;
@@ -792,13 +771,6 @@ end;
 class function TTouchSensorNode.ClassX3DType: string;
 begin
   Result := 'TouchSensor';
-end;
-
-class function TTouchSensorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterPointingDeviceSensorNodes;

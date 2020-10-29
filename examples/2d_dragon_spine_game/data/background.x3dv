@@ -2,9 +2,9 @@
 PROFILE Interchange
 
 # This camera (OrthoViewpoint) and NavigationInfo are not used in the actual game
-# (because in ../code/game.pas we use TCastle2DSceneManager that overrides projection
-# parameters and camera, to set them to somethng suitable for 2D games
-# regardless of what's in the scene).
+# (because in ../code/gameinitialize.pas we use TCastleViewport with default
+# Viewport.AutoCamera = false and Viewport.AutoNavigation = false,
+# and instead we set camera projection using Viewport.Setup2D to always be good for 2D).
 #
 # But it is useful to have OrthoViewpoint to simulate a view equal to the game
 # inside view3dscene (after pressing "Camera View 3D").

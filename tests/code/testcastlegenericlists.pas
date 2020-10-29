@@ -17,7 +17,7 @@ unit TestCastleGenericLists;
 
 interface
 
-uses fpcunit, testutils, testregistry;
+uses FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestGenericLists = class(TTestCase)

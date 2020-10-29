@@ -20,7 +20,7 @@ unit CastleLCLUtils;
 
 interface
 
-uses Dialogs, Classes, Controls, LCLType, Graphics,
+uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
   CastleFileFilters, CastleKeysMouse, CastleVectors;
 
 { Convert file filters into LCL Dialog.Filter, Dialog.FilterIndex.
@@ -40,6 +40,8 @@ uses Dialogs, Classes, Controls, LCLType, Graphics,
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean = true);
+procedure FileFiltersToDialog(const FileFilters: string;
+  const Edit: TFileNameEdit; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
@@ -70,7 +72,7 @@ function KeyLCLToCastle(const Key: Word; const Shift: TShiftState): TKey;
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
   Sets LazKey to VK_UNKNOWN (zero) when conversion not possible
-  (or when Key = K_None and KeyString = '').
+  (or when Key = keyNone and KeyString = '').
 
   @groupBegin }
 procedure KeyCastleToLCL(const Key: TKey; const KeyString: String;
@@ -81,14 +83,14 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
 { @groupEnd }
 
 { Convert Lazarus Controls.TMouseButton value to Castle Game Engine
-  CastleKeysMouse.TMouseButton.
+  CastleKeysMouse.TCastleMouseButton.
 
   (By coincidence, my type name and values are the same as used by LCL;
-  but beware --- the order of values in my type is different (mbMiddle
+  but beware --- the order of values in my type is different (buttonMiddle
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): boolean;
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
@@ -141,13 +143,33 @@ type
     FUnfinishedKeyPress: Boolean;
     FUnfinishedKeyPressKey: TUTF8Char;
   public
+    { Call these events when corresponding Lazarus event
+      (OnKeyDown, OnUTF8KeyPress) occurs.
+
+      They may call OnPress in turn. }
     procedure KeyDown(const Key: Word; const Shift: TShiftState);
     procedure UTF8KeyPress(const UTF8Key: TUTF8Char);
+
+    { Call this when Lazarus OnKeyUp event occurs.
+
+      It may call OnPress in return.
+      Receiving "key up" event from Lazarus may indicate that we have
+      to do OnPress now.
+
+      This matters for keys without corresponding String/Char representation
+      (thus, without UTF8KeyPress call), like keyArrowLeft.
+      If we have buffered to "send the OnPress for this key",
+      we need to send it now, before the OnRelease for the same key is generated.
+      Otherwise the KeyUp would cause OnRelease of the arrow key,
+      and later Flush call would send OnPress for the same key. }
+    procedure BeforeKeyUp(const Key: Word; const Shift: TShiftState);
+
     { If some keypress is half-finished, report it now.
       This should be called before e.g. Update event, to report
       events that result in OnKeyDown but not OnUTF8KeyPress,
       or OnUTF8KeyPress but not OnKeyDown. }
     procedure Flush;
+
     { Called when we collect enough information to make a CGE press event. }
     property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
   end;
@@ -166,6 +188,17 @@ begin
   FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
+end;
+
+procedure FileFiltersToDialog(const FileFilters: string;
+  const Edit: TFileNameEdit; const AllFields: boolean);
+var
+  LCLFilter: string;
+  LCLFilterIndex: Integer;
+begin
+  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
+  Edit.Filter := LCLFilter;
+  Edit.FilterIndex := LCLFilterIndex;
 end;
 
 procedure FileFiltersToDialog(const FileFilters: string;
@@ -278,10 +311,10 @@ begin
     VK_NEXT:       Result := keyPageDown;
     VK_END:        Result := keyEnd;
     VK_HOME:       Result := keyHome;
-    VK_LEFT:       Result := keyLeft;
-    VK_UP:         Result := keyUp;
-    VK_RIGHT:      Result := keyRight;
-    VK_DOWN:       Result := keyDown;
+    VK_LEFT:       Result := keyArrowLeft;
+    VK_UP:         Result := keyArrowUp;
+    VK_RIGHT:      Result := keyArrowRight;
+    VK_DOWN:       Result := keyArrowDown;
     VK_INSERT:     Result := keyInsert;
     VK_DELETE:     Result := keyDelete;
     VK_ADD:        Result := keyNumpadPlus;
@@ -340,60 +373,60 @@ begin
   Shift := [];
   LazKey := VK_UNKNOWN;
   case Key of
-    K_BackSpace:        LazKey := VK_BACK;
-    K_Tab:              LazKey := VK_TAB;
-    K_Enter:            LazKey := VK_RETURN;
-    K_Shift:            LazKey := VK_SHIFT;
-    K_Ctrl:             LazKey := VK_CONTROL;
-    K_Alt:              LazKey := VK_MENU;
-    K_Escape:           LazKey := VK_ESCAPE;
-    K_Space:            LazKey := VK_SPACE;
-    K_PageUp:           LazKey := VK_PRIOR;
-    K_PageDown:         LazKey := VK_NEXT;
-    K_End:              LazKey := VK_END;
-    K_Home:             LazKey := VK_HOME;
-    K_Left:             LazKey := VK_LEFT;
-    K_Up:               LazKey := VK_UP;
-    K_Right:            LazKey := VK_RIGHT;
-    K_Down:             LazKey := VK_DOWN;
-    K_Insert:           LazKey := VK_INSERT;
-    K_Delete:           LazKey := VK_DELETE;
-    K_Numpad_Plus:      LazKey := VK_ADD;
-    K_Numpad_Minus:     LazKey := VK_SUBTRACT;
-    K_PrintScreen:      LazKey := VK_SNAPSHOT;
-    K_NumLock:          LazKey := VK_NUMLOCK;
-    K_ScrollLock:       LazKey := VK_SCROLL;
-    K_CapsLock:         LazKey := VK_CAPITAL;
-    K_Pause:            LazKey := VK_PAUSE;
-    K_Comma:            LazKey := VK_OEM_COMMA;
-    K_Period:           LazKey := VK_OEM_PERIOD;
-    K_Numpad_0:         LazKey := VK_NUMPAD0;
-    K_Numpad_1:         LazKey := VK_NUMPAD1;
-    K_Numpad_2:         LazKey := VK_NUMPAD2;
-    K_Numpad_3:         LazKey := VK_NUMPAD3;
-    K_Numpad_4:         LazKey := VK_NUMPAD4;
-    K_Numpad_5:         LazKey := VK_NUMPAD5;
-    K_Numpad_6:         LazKey := VK_NUMPAD6;
-    K_Numpad_7:         LazKey := VK_NUMPAD7;
-    K_Numpad_8:         LazKey := VK_NUMPAD8;
-    K_Numpad_9:         LazKey := VK_NUMPAD9;
-    K_Numpad_Begin:     LazKey := VK_CLEAR;
-    K_Numpad_Multiply:  LazKey := VK_MULTIPLY;
-    K_Numpad_Divide:    LazKey := VK_DIVIDE;
-    K_Minus:            LazKey := VK_OEM_MINUS;
-    K_Equal:            LazKey := VK_OEM_PLUS;
+    keyBackSpace:        LazKey := VK_BACK;
+    keyTab:              LazKey := VK_TAB;
+    keyEnter:            LazKey := VK_RETURN;
+    keyShift:            LazKey := VK_SHIFT;
+    keyCtrl:             LazKey := VK_CONTROL;
+    keyAlt:              LazKey := VK_MENU;
+    keyEscape:           LazKey := VK_ESCAPE;
+    keySpace:            LazKey := VK_SPACE;
+    keyPageUp:           LazKey := VK_PRIOR;
+    keyPageDown:         LazKey := VK_NEXT;
+    keyEnd:              LazKey := VK_END;
+    keyHome:             LazKey := VK_HOME;
+    keyArrowLeft:        LazKey := VK_LEFT;
+    keyArrowUp:          LazKey := VK_UP;
+    keyArrowRight:       LazKey := VK_RIGHT;
+    keyArrowDown:        LazKey := VK_DOWN;
+    keyInsert:           LazKey := VK_INSERT;
+    keyDelete:           LazKey := VK_DELETE;
+    keyNumpadPlus:       LazKey := VK_ADD;
+    keyNumpadMinus:      LazKey := VK_SUBTRACT;
+    keyPrintScreen:      LazKey := VK_SNAPSHOT;
+    keyNumLock:          LazKey := VK_NUMLOCK;
+    keyScrollLock:       LazKey := VK_SCROLL;
+    keyCapsLock:         LazKey := VK_CAPITAL;
+    keyPause:            LazKey := VK_PAUSE;
+    keyComma:            LazKey := VK_OEM_COMMA;
+    keyPeriod:           LazKey := VK_OEM_PERIOD;
+    keyNumpad0:          LazKey := VK_NUMPAD0;
+    keyNumpad1:          LazKey := VK_NUMPAD1;
+    keyNumpad2:          LazKey := VK_NUMPAD2;
+    keyNumpad3:          LazKey := VK_NUMPAD3;
+    keyNumpad4:          LazKey := VK_NUMPAD4;
+    keyNumpad5:          LazKey := VK_NUMPAD5;
+    keyNumpad6:          LazKey := VK_NUMPAD6;
+    keyNumpad7:          LazKey := VK_NUMPAD7;
+    keyNumpad8:          LazKey := VK_NUMPAD8;
+    keyNumpad9:          LazKey := VK_NUMPAD9;
+    keyNumpadBegin:      LazKey := VK_CLEAR;
+    keyNumpadMultiply:   LazKey := VK_MULTIPLY;
+    keyNumpadDivide:     LazKey := VK_DIVIDE;
+    keyMinus:            LazKey := VK_OEM_MINUS;
+    keyEqual:            LazKey := VK_OEM_PLUS;
 
     { TKey ranges }
-    K_0 ..K_9  : LazKey := Ord('0') + Ord(Key) - Ord(K_0);
-    K_A ..K_Z  : LazKey := Ord('A') + Ord(Key) - Ord(K_A);
-    K_F1..K_F12: LazKey :=    VK_F1 + Ord(Key) - Ord(K_F1);
+    key0 ..key9  : LazKey := Ord('0') + Ord(Key) - Ord(key0);
+    keyA ..keyZ  : LazKey := Ord('A') + Ord(Key) - Ord(keyA);
+    keyF1..keyF12: LazKey :=    VK_F1 + Ord(Key) - Ord(keyF1);
 
     else
       if Length(KeyString) = 1 then
       begin
         KeyChar := KeyString[1];
         case KeyChar of
-          { follow TMenuItem.Key docs: when Key is K_None, only KeyChar indicates
+          { follow TMenuItem.Key docs: when Key is keyNone, only KeyChar indicates
             CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
           //CharBackSpace:              LazKey := VK_BACK;
           //CharTab:                    LazKey := VK_TAB;
@@ -433,16 +466,18 @@ end;
 
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.mbLeft;
-    Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
-    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
-    Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
-    Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;
+    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.buttonLeft;
+    Controls.mbRight : MyMouseButton := CastleKeysMouse.buttonRight;
+    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.buttonMiddle;
+    Controls.mbExtra1: MyMouseButton := CastleKeysMouse.buttonExtra1;
+    Controls.mbExtra2: MyMouseButton := CastleKeysMouse.buttonExtra2;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else Result := false;
+    {$endif}
   end;
 end;
 
@@ -483,6 +518,12 @@ begin
 
   // collected both KeyDown and KeyPress
   if FUnfinishedKeyDown and FUnfinishedKeyPress then
+    Flush;
+end;
+
+procedure TLCLKeyPressHandler.BeforeKeyUp(const Key: Word; const Shift: TShiftState);
+begin
+  if FUnfinishedKeyDown and (FUnfinishedKeyDownKey = Key) then
     Flush;
 end;
 
@@ -538,6 +579,7 @@ begin
       case Key of
         keyTab   : KeyString := CharTab;
         keyDelete: KeyString := CharDelete;
+        else ;
       end;
 
     OnPress(Self, InputKey(TVector2.Zero, Key, KeyString, Modifiers));

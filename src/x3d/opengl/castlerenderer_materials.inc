@@ -14,217 +14,133 @@
 }
 
 var
-  Lighting, MaterialAndShapeLit: boolean;
+  Lighting: Boolean;
   MaterialOpacity: Single;
 
 procedure RenderMaterialsBegin;
 
-  { Apply material (works for all types of materials - VRML 1.0,
-    X3D and VRML 2.0, or CommonSurfaceShader).
-    Assumes MaterialAndShapeLit is already calculated.
-    This sets full glMaterial and glColor. }
-  procedure RenderMaterial(
-    const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TCastleColorRGB;
-    const UnLitColor: TCastleColorRGB;
-    const ShininessExp, ShapeOpacity: Single);
+  { Is this a Phong material that has only emissiveColor non-zero. }
+  function PureEmissivePhong(const Material: TMaterialInfo): Boolean;
   begin
+    Result :=
+      (Material is TPhongMaterialInfo) and
+      TPhongMaterialInfo(Material).PureEmissive and
+      { Existence of Color/ColorRGBA nodes means that we cannot rely on simple
+        "only emissive" lighting calculation, because Color/ColorRGBA
+        nodes replace the diffuse factor, in case of Phong Material. }
+      (Shape.Geometry.InternalColor = nil) and
+      (Shape.Geometry.InternalColorRGBA = nil);
+  end;
+
+  { Apply material for shader and fixed-function pipelines.
+    Assumes Lighting is already calculated.
+    For fixed-function pipeline, this sets full glMaterial and glColor. }
+  procedure RenderMaterial(const M: TMaterialInfo);
+  {$ifndef OpenGLES}
+  var
+    PM: TPhongMaterialInfo;
+    // UM: TUnlitMaterialInfo;
+  {$endif}
+  begin
+    Shader.Material := M;
+
+    if M <> nil then
+      MaterialOpacity := M.Opacity
+    else
+      MaterialOpacity := 1;
+
     if Attributes.Mode <> rmFull then Exit;
-
-    MaterialOpacity := ShapeOpacity * Attributes.Opacity;
-
-    Shader.MaterialAmbient := Vector4(AmbientColor, MaterialOpacity);
-    Shader.MaterialDiffuse := Vector4(DiffuseColor, MaterialOpacity);
-    Shader.MaterialSpecular := Vector4(SpecularColor, MaterialOpacity);
-    Shader.MaterialEmission := Vector4(EmissiveColor, MaterialOpacity);
-    Shader.MaterialShininessExp := ShininessExp;
-
-    if MaterialAndShapeLit then
-      { When the lighting is disabled because of Attributes.Lighting
-        (not because of this shape's material), it's best to use diffuse color.
-        Otherwise most of normal VRML 1.0 scenes would have black shapes
-        (as that's the default emissive color, usually used for unlit)
-        and all VRML 2.0 scenes would have white shapes (as that's
-        the unlit color) or shapes with emissiveColor (as we optimize
-        case when only emissiveColor is non-zero, using then unlit color := emissiveColor).
-
-        VRML/X3D spec doesn't say anything about this,
-        as they are written like Attributes.Lighting = always @true.
-        So we can just do whatever seems natural for user that
-        turned off lighting. }
-      Shader.MaterialUnlit := Vector4(DiffuseColor, MaterialOpacity) else
-      Shader.MaterialUnlit := Vector4(UnLitColor, MaterialOpacity);
 
     if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       if Lighting then
       begin
-        glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Shader.MaterialAmbient);
-        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuse);
-        glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Shader.MaterialSpecular);
-        glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Shader.MaterialEmission);
-        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, Shader.MaterialShininessExp);
+        Assert(M <> nil); // Lighting is always false when M = nil
+
+        if M is TPhongMaterialInfo then
+        begin
+          PM := TPhongMaterialInfo(M);
+          glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4(PM.AmbientColor, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(PM.DiffuseColor, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(PM.SpecularColor, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4(PM.EmissiveColor, M.Opacity));
+          glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, PM.ShininessExp);
+        end else
+        if M is TUnlitMaterialInfo then
+        begin
+          Assert(false, 'UnlitMaterial should not have Lighting=true');
+          // UM := TUnlitMaterialInfo(M);
+          // glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4(TVector3.Zero, M.Opacity));
+          // glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(TVector3.Zero, M.Opacity));
+          // glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(TVector3.Zero, M.Opacity));
+          // glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4(UM.EmissiveColor, M.Opacity));
+          // glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0);
+        end else
+        begin
+          // approximate PhysicalMaterial in fixed-function using Phong with diffuseColor = baseColor
+          glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4(TVector3.Zero, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(M.MainColor, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(TVector3.Zero, M.Opacity));
+          glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4(TVector3.Zero, M.Opacity));
+          glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.0);
+        end;
 
         { If Lighting, we know that GL_LIGHTING is enabled
           (for fixed-function, or shader). So no point in setting glColor. }
       end else
-        glColorv(Shader.MaterialUnlit);
+      if M <> nil then
+      begin
+        { UnlitMaterial is implemented here, as it causes Lighting = false always.
+          We will also use this for fixed-function pipeline when
+          - user set Attributes.Lighting = false and we have Phong Material or PhysicalMaterial.
+          - or we have Phong Material that is PureEmissive. }
+        if PureEmissivePhong(M) then
+          glColorv(Vector4(TPhongMaterialInfo(M).EmissiveColor, M.Opacity))
+        else
+          glColorv(M.MainColor);
+      end else
+      begin
+        { In case of material = nil, behave like UnlitMaterial with emissiveColor = white. }
+        glColorv(WhiteRGB);
+      end;
       {$endif}
     end;
   end;
 
-  { Sets current OpenGL material and color properties for VRML 1.0 material
-    (index 0). }
-  procedure Material_1(M: TMaterialNode_1);
-  var
-    UnlitColor: TVector3;
-    I: TMaterialInfo;
-  begin
-    I := M.MaterialInfo(0);
-
-    { Usually, UnlitColor should be from EmissiveColor3Single.
-
-      However, IndexedLineSet in VRML 1.0 is an exception.
-      MaterialAndShapeLit result for it is determined by whether it has normals
-      (this is contrary to other nodes, that are always lit or unlit;
-      well, forgetting about the "PureEmissive" exceptional situation
-      for the moment).
-
-      If it's determined to be unlit by TIndexedLineSetNode_1.Lit
-      (that is, it has not enough normals), but PureEmissive is @false
-      (we have usable material diffuse), we want the unlit color to be the same
-      as when it was lit but we were watching with GL_LIGHTING off.
-      RenderMaterial uses DiffuseColor in such case.
-
-      Admittedly, I'm doing it all by just guessing what user may want...
-      VRML 1.0 spec doesn't specify here what should really be done, i.e. what
-      unlit color should be used. }
-    if (Shape.Geometry is TIndexedLineSetNode_1) and (not I.PureEmissive) then
-      UnlitColor := I.DiffuseColor else
-      UnlitColor := I.EmissiveColor;
-
-    RenderMaterial(
-      I.AmbientColor,
-      I.DiffuseColor,
-      I.SpecularColor,
-      I.EmissiveColor,
-      UnlitColor,
-      I.ShininessExp,
-      I.Opacity);
-  end;
-
-  { Sets current OpenGL material and color properties for VRML >= 2.0 material.
-    Material may be nil. }
-  procedure Material_2(Material: TMaterialNode);
-  begin
-    if (Material <> nil) and not Material.PureEmissive then
-    begin
-      RenderMaterial(
-        Material.FdDiffuseColor.Value * Material.FdAmbientIntensity.Value,
-        Material.FdDiffuseColor.Value,
-        Material.FdSpecularColor.Value,
-        Material.FdEmissiveColor.Value,
-        WhiteRGB,
-        Material.ShininessExp,
-        Material.Opacity);
-    end else
-    if Material <> nil then
-    begin
-      Assert(Material.PureEmissive);
-      //Assert(not MaterialLit);
-      Assert(not MaterialAndShapeLit);
-      Assert(not Lighting);
-      { In this case we know that Material.PureEmissive = true,
-        so this can be rendered like unlit material with color = emissiveColor. }
-      RenderMaterial(
-        WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
-        Material.FdEmissiveColor.Value,
-        Material.ShininessExp,
-        Material.Opacity);
-    end else
-    begin
-      RenderMaterial(
-        { Colors for lighting don't matter here }
-        WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
-        { From VRML 2.0 spec about Appearance node: when no Material is
-          specified, object is unlit and unlit object color is (1, 1, 1).
-          X3D spec also hints (at Material node) that
-          Material = NULL makes "unlit white color".  }
-        WhiteRGB,
-        { shininess } 0, { opacity } 1);
-    end;
-  end;
-
-  { Sets current OpenGL material and color properties from CommonSurfaceShader. }
-  procedure Material_CommonSurfaceShader(const SurfaceShader: TCommonSurfaceShaderNode);
-  begin
-    RenderMaterial(
-      SurfaceShader.AmbientFactor,
-      SurfaceShader.DiffuseFactor,
-      SurfaceShader.SpecularFactor,
-      SurfaceShader.EmissiveFactor,
-      WhiteRGB,
-      SurfaceShader.ShininessFactorExp,
-      SurfaceShader.AlphaFactor);
-  end;
-
 var
-  M1: TMaterialNode_1;
-  M2: TMaterialNode;
-  SurfaceShader: TCommonSurfaceShaderNode;
-  MaterialLit: boolean;
+  Material: TMaterialInfo;
+  MaterialLit, MaterialAndShapeLit: Boolean;
 begin
-  { calculate material parameters: M1, M2, SurfaceShader, MaterialLit }
-  M1 := nil;
-  M2 := nil;
-  SurfaceShader := nil;
+  // calculate Material
   if Shape.Geometry is TAbstractGeometryNode_1 then
   begin
     { VRML 1.0 }
-    M1 := Shape.State.VRML1State.Material;
-    { VRML 1.0 specification states that this is a special case
-      and we should treat EmissiveColor as precalculated color,
-      and turn lighting off to improve speed. }
-    MaterialLit := not M1.PureEmissive;
+    Material := Shape.State.VRML1State.Material.MaterialInfo(0);
   end else
   begin
-    { VRML >= 2.0 }
-    if Shape.Node <> nil then
-    begin
-      SurfaceShader := Shape.Node.CommonSurfaceShader;
-      M2 := Shape.Node.Material;
-    end else
-      WritelnWarning('VRML/X3D', 'VRML node "' + Shape.Geometry.X3DType +
-        '" can be specified only in a "geometry" field of "Shape" node');
-    { VRML 2.0 spec says that when Material is not assigned, shape is unlit.
-      If the CommonSurfaceShader is present, we also treat it as lit
-      (this way CommonSurfaceShader works regardless if the underlying
-      implementation uses shaders).  }
-    MaterialLit := (SurfaceShader <> nil) or
-      ((M2 <> nil) and not M2.PureEmissive);
+    { VRML >= 2.0, X3D }
+    Material := Shape.State.MaterialInfo;
   end;
 
-  { calculate MaterialAndShapeLit (like Lighting, but ignores things
-    outside this shape and material) }
+  // calculate MaterialLit ("whether Material requires lighting calculation")
+  MaterialLit :=
+    { Material = nil indicates "white unlit material". }
+    (Material <> nil) and
+    { Optimize materials in case of PureEmissive. }
+    (not PureEmissivePhong(Material)) and
+    { UnlitMaterial explicitly says that lighting calculation is not done. }
+    (not (Material is TUnlitMaterialInfo));
+
+  // calculate MaterialAndShapeLit ("whether Material or geometry requires lighting calculation")
   MaterialAndShapeLit := MaterialLit and Shape.Geometry.Lit(Shape.State);
 
-  { calculate and apply Lighting }
+  // calculate Lighting ("whether anything requires lighting calculation")
   Lighting := Attributes.Lighting and MaterialAndShapeLit and
     (Attributes.Mode = rmFull);
   FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 
-  { set material. At the end, since this uses MaterialAndShapeLit, M1, M2, SurfaceShader. }
-  if M1 <> nil then
-    Material_1(M1)
-  else
-  if SurfaceShader <> nil then
-    Material_CommonSurfaceShader(SurfaceShader)
-  else
-    Material_2(M2);
-
-  { override Shader.MaterialUnlit in case rmSolidColor }
-  if Attributes.Mode = rmSolidColor then
-    Shader.MaterialUnlit := Vector4(Attributes.SolidColor, 1);
+  RenderMaterial(Material);
 end;

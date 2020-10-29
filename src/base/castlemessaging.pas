@@ -25,35 +25,37 @@ interface
 uses
   {$ifdef ANDROID} JNI, SyncObjs, {$endif}
   {$ifdef IOS} CTypes, {$endif}
-  Generics.Collections,
+  Generics.Collections, Classes,
   CastleStringUtils, CastleTimeUtils;
 
 type
   { Called by TMessaging when a new message from service is received.
+
     Returns if the message was handled (this does @bold(not) block
     the message from being passed to other callbacks, it only means
-    we will not report a warning about unhandled message). }
-  TMessageReceivedEvent = function (const Received: TCastleStringList): boolean of object;
+    we will not report a warning about unhandled message).
+
+    ReceivedStream may be @nil if service didn't provide any binary data stream.
+  }
+  TMessageReceivedEvent = function (const Received: TCastleStringList;
+    const ReceivedStream: TMemoryStream): Boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
   TMessageReceivedEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TMessageReceivedEvent>)
   public
-    procedure ExecuteAll(const Received: TCastleStringList);
+    procedure ExecuteAll(const Received: TCastleStringList; const ReceivedStream: TMemoryStream);
   end;
 
   { Message system to communicate between native code (Pascal) and other languages
-    (Java on Android, Objective-C on iOS).
+    (Java on Android, Objective-C on iOS) that possibly run in other thread.
     Use through auto-created @link(Messaging) singleton.
     On platforms other than Android / iOS, it simply does nothing
     --- messsages are not send anywhere.
 
     To make this work, on Android you need to declare your Android project type
-    as "integrated". See
-    https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .
-    For iOS, you don't need to do anything.
-    You should also use the @code(game_units) attribute
-    in @code(CastleEngineManifest.xml), so that the build tool automatically
-    generates a proper Android / iOS library code, exporting the proper functions.
+    as "integrated" (this is actually the default now).
+    See https://github.com/castle-engine/castle-engine/wiki/Android-Services .
+    For iOS it is always enabled.
 
     All the communication is asynchronous on all platforms -- Pascal code sends a message,
     and any answers will come asynchronously later. This means that e.g.
@@ -62,7 +64,7 @@ type
     the call to @link(TGameService.OnStatusChanged) will always happen at a later time.
 
     This is used automatically by various engine classes like
-    @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
+    @link(TGameService), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
   TMessaging = class
   private
     {$ifdef ANDROID}
@@ -107,12 +109,18 @@ type
     { Convert float time (in seconds) to integer miliseconds, which are understood correctly
       by the service receiving the messages. }
     class function TimeToStr(const Value: TFloatTime): string;
+
+    { Convert string to a boolean, assuming the string was send by the external service.
+      The counterpart of this in Android is ServiceAbstract.booleanToString . }
+    class function MessageToBoolean(const Value: String): Boolean;
   end;
 
 {$ifdef ANDROID}
 { Export this function from your Android library. }
 function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
-  Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
+  Env: PJNIEnv; This: jobject;
+  MessageToPascal: jstring;
+  MessageToPascalStream: jbyteArray): jstring; cdecl;
 {$endif}
 
 {$ifdef IOS}
@@ -132,19 +140,27 @@ uses SysUtils,
 
 { TMessageReceivedEventList -------------------------------------------------- }
 
-procedure TMessageReceivedEventList.ExecuteAll(const Received: TCastleStringList);
+procedure TMessageReceivedEventList.ExecuteAll(const Received: TCastleStringList;
+  const ReceivedStream: TMemoryStream);
 var
   I: Integer;
   EventResult, Handled: boolean;
 begin
   Handled := false;
+
+  // The permission-xxx messages do not have to be handled by anything.
+  if (Received.Count > 0) and
+     ( (Received[0] = 'permission-granted') or
+       (Received[0] = 'permission-cancelled') ) then
+    Handled := true;
+
   for I := 0 to Count - 1 do
   begin
     { Use EventResult to workaround FPC 3.1.1 bug (reproducible
       with FPC SVN revision 35460 (from 2016-02-20) on Linux x86_64).
       The bug has since been fixed http://bugs.freepascal.org/view.php?id=31421 ,
       so we may remove this workaround soon. }
-    EventResult := Items[I](Received);
+    EventResult := Items[I](Received, ReceivedStream);
     Handled := EventResult or Handled;
   end;
   if not Handled then
@@ -202,7 +218,7 @@ procedure TMessaging.Send(const Strings: array of string);
     { secure in case this is called from state Finish when things are finalized }
     if Self = nil then Exit;
 
-    if CastleLog.Log and Log then
+    if Log then
       WritelnLog('Messaging', 'Pascal code sends a message to service: ' + SReadableForm(Message));
 
     {$ifdef ANDROID}
@@ -227,34 +243,37 @@ end;
 
 procedure TMessaging.Update(Sender: TObject);
 
-  procedure ReceiveStr(const Message: string);
+  { Handle message using Pascal logic.
+    MessageStream may be @nil if service didn't provide any binary data stream. }
+  procedure ReceiveStr(const Message: String; const MessageStream: TMemoryStream);
   var
     MessageAsList: TCastleStringList;
   begin
-    if CastleLog.Log and Log then
+    if Log then
       WritelnLog('Messaging', 'Pascal code received a message from service: ' + SReadableForm(Message));
     if Message = '' then
       WritelnWarning('Messaging', 'Pascal code received an empty message');
 
-    MessageAsList := SplitString(Message, MessageDelimiter);
+    MessageAsList := CastleStringUtils.SplitString(Message, MessageDelimiter);
     try
-      OnReceive.ExecuteAll(MessageAsList);
+      OnReceive.ExecuteAll(MessageAsList, MessageStream);
     finally FreeAndNil(MessageAsList) end;
   end;
 
-  function GetNextMessageToPascal: string;
+  function GetNextMessageToPascal(out Received: String; out ReceivedStream: TMemoryStream): Boolean;
   begin
     {$ifdef ANDROID}
     JavaCommunicationCS.Acquire;
     try
     {$endif ANDROID}
 
-      if ToPascal.Count <> 0 then
-      begin
-        Result := ToPascal[0];
-        ToPascal.Delete(0);
-      end else
-        Result := '';
+    Result := ToPascal.Count <> 0;
+    if Result then
+    begin
+      Received := ToPascal[0];
+      ReceivedStream := ToPascal.Objects[0] as TMemoryStream;
+      ToPascal.Delete(0);
+    end;
 
     {$ifdef ANDROID}
     finally JavaCommunicationCS.Release end;
@@ -262,13 +281,13 @@ procedure TMessaging.Update(Sender: TObject);
   end;
 
 var
-  Received: string;
+  Received: String;
+  ReceivedStream: TMemoryStream;
 begin
-  Received := GetNextMessageToPascal;
-  while Received <> '' do
+  while GetNextMessageToPascal(Received, ReceivedStream) do
   begin
-    ReceiveStr(Received);
-    Received := GetNextMessageToPascal;
+    ReceiveStr(Received, ReceivedStream);
+    FreeAndNil(ReceivedStream);
   end;
 end;
 
@@ -281,6 +300,17 @@ end;
 class function TMessaging.TimeToStr(const Value: TFloatTime): string;
 begin
   Result := IntToStr(Trunc(Value * 1000));
+end;
+
+class function TMessaging.MessageToBoolean(const Value: String): Boolean;
+begin
+  if Value = 'true' then
+    Result := true
+  else
+  if Value = 'false' then
+    Result := false
+  else
+    raise EInternalError.CreateFmt('Invalid boolean value in message: %s', [Value]);
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -327,10 +357,32 @@ end;
 
 {$ifdef ANDROID}
 function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
-  Env: PJNIEnv; This: jobject; JavaToNative: jstring): jstring; cdecl;
+  Env: PJNIEnv; This: jobject;
+  MessageToPascal: jstring;
+  MessageToPascalStream: jbyteArray): jstring; cdecl;
+
+  { Read Java byte[] into TMemoryStream. }
+  function GetBinaryDataStream(const BytesObject: jbyteArray): TMemoryStream;
+  var
+    Bytes: PJByte;
+    Dummy: JBoolean;
+    Len: JSize;
+  begin
+    { See https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html
+      about JNI functions meaning. }
+    Len := Env^^.GetArrayLength(Env, BytesObject);
+    Bytes := Env^^.GetByteArrayElements(Env, BytesObject, Dummy);
+    try
+      Result := TMemoryStream.Create;
+      if Len <> 0 then
+        Result.WriteBuffer(Bytes^, Len);
+    finally Env^^.ReleaseByteArrayElements(Env, BytesObject, Bytes, 0) end;
+  end;
+
 var
-  JavaToNativeStr: PChar;
+  MessageToPascalStr: PChar;
   Dummy: JBoolean;
+  Stream: TObject;
 begin
   { As this may be called from different thread, secure from being called
     in weird state. }
@@ -348,15 +400,20 @@ begin
       end else
         Result := Env^^.NewStringUTF(Env, nil);
 
-      if (JavaToNative <> nil) and
-         (Env^^.GetStringUTFLength(Env, JavaToNative) <> 0) then
+      if MessageToPascalStream <> nil then
+        Stream := GetBinaryDataStream(MessageToPascalStream)
+      else
+        Stream := nil;
+
+      if (MessageToPascal <> nil) and
+         (Env^^.GetStringUTFLength(Env, MessageToPascal) <> 0) then
       begin
         Dummy := 0;
-        JavaToNativeStr := Env^^.GetStringUTFChars(Env, JavaToNative,
+        MessageToPascalStr := Env^^.GetStringUTFChars(Env, MessageToPascal,
           {$ifdef VER2} Dummy {$else} @Dummy {$endif});
         try
-          FMessaging.ToPascal.Add(AnsiString(JavaToNativeStr)); // will copy characters
-        finally Env^^.ReleaseStringUTFChars(Env, JavaToNative, JavaToNativeStr) end;
+          FMessaging.ToPascal.AddObject(AnsiString(MessageToPascalStr), Stream); // will copy characters
+        finally Env^^.ReleaseStringUTFChars(Env, MessageToPascal, MessageToPascalStr) end;
       end;
     finally FMessaging.JavaCommunicationCS.Release end;
   end;

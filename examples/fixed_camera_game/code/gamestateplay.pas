@@ -19,7 +19,7 @@ unit GameStatePlay;
 interface
 
 uses
-  CastleUIState, CastleSceneManager, X3DNodes, CastleProjection,
+  CastleUIState, CastleViewport, X3DNodes, CastleProjection,
   CastleTransform, CastleVectors, CastleKeysMouse, CastleControls,
   GameCreatures, GameLocations;
 
@@ -29,7 +29,7 @@ type
   strict private
     Player: TPlayer;
     CurrentLocation: TLocation;
-    SceneManager: TCastleSceneManager;
+    Viewport: TCastleViewport;
     InfoLabel: TCastleLabel;
   public
     procedure Start; override;
@@ -55,7 +55,7 @@ uses Math, SysUtils,
 procedure TStatePlay.Resize;
 begin
   inherited;
-  CurrentLocation.Scene.SceneManagerRect := SceneManager.RenderRect.Round;
+  CurrentLocation.Scene.ViewportRect := Viewport.RenderRect.Round;
 end;
 
 procedure TStatePlay.Start;
@@ -69,27 +69,29 @@ begin
   Notifications.Clear;
   InsertFront(Notifications);
 
-  SceneManager := TCastleSceneManager.Create(FreeAtStop);
-  InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(FreeAtStop);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  InsertFront(Viewport);
 
   Progress.Init(Locations.Count + CreatureKinds.Count, 'Preparing');
   try
     for Location in Locations do
     begin
-      Location.Load(SceneManager.PrepareParams);
+      Location.Load(Viewport.PrepareParams);
       Progress.Step;
     end;
     for CreatureKind in CreatureKinds do
     begin
-      CreatureKind.Load(SceneManager.PrepareParams);
+      CreatureKind.Load(Viewport.PrepareParams);
       Progress.Step;
     end;
   finally Progress.Fini end;
 
-  SceneManager.Items.Add(CurrentLocation.Scene);
+  Viewport.Items.Add(CurrentLocation.Scene);
   { set as MainScene, to allow location VRML / X3D file to determine
     headlight, viewpoint, shadow volumes light... }
-  SceneManager.MainScene := CurrentLocation.Scene;
+  Viewport.Items.MainScene := CurrentLocation.Scene;
 
   Player := TPlayer.Create(CreatureKinds.PlayerKind);
   Player.SetView(
@@ -97,12 +99,7 @@ begin
     CurrentLocation.PlayerDirection,
     CurrentLocation.PlayerUp);
   Player.LocationChanged;
-  SceneManager.Items.Add(Player);
-
-  { set NavigationType after SceneManager.MainScene is assigned.
-    This way newly created camera will have positio/dir/up derived
-    from location Viewpoint. }
-  SceneManager.NavigationType := ntNone;
+  Viewport.Items.Add(Player);
 
   InfoLabel := TCastleLabel.Create(FreeAtStop);
   InfoLabel.Color := White;
@@ -141,22 +138,22 @@ begin
       else
       { Debug keys }
       case Event.Key of
-        K_F2:
+        keyF2:
           CurrentLocation.Scene.RenderInternalModel :=
             not CurrentLocation.Scene.RenderInternalModel;
-        K_F5:
+        keyF5:
           begin
-            URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-            Container.SaveScreen(URL);
-            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+            URL := Container.SaveScreenToDefaultFile;
+            if URL <> '' then
+              Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
           end;
       end;
     itMouseButton:
       begin
-        if Event.MouseButton = mbLeft then
+        if Event.MouseButton = buttonLeft then
         begin
-          if SceneManager.MouseRayHit <> nil then
-            Player.WantsToWalk(SceneManager.MouseRayHit.Last.Point);
+          if Viewport.MouseRayHit <> nil then
+            Player.WantsToWalk(Viewport.MouseRayHit.Last.Point);
         end;
       end;
   end;

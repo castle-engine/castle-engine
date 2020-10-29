@@ -60,15 +60,11 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   URL without any protocol is treated as a filename (absolute or relative
   to current dir). We can also load network URLs using CastleDownload.
 
-  If AllowStdIn then URL = '-' is understood as "standard input"
-  (StdInStream). Base for resolving relative URLs in this case is
-  the current working directory.
-
   If Gzipped then we can be relatively sure that stream is gzipped.
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
 function LoadX3DClassic(const URL: string;
-  const AllowStdIn: boolean; const Gzipped: boolean = false): TX3DRootNode; overload;
+  const Gzipped: boolean): TX3DRootNode; overload;
 
 {$endif read_interface}
 
@@ -89,6 +85,7 @@ begin
       vtOpenSqBracket: Inc(LevelSqBracket);
       vtCloseSqBracket: Dec(LevelSqBracket);
       vtEnd: raise EX3DParserError.Create(Lexer, 'Unexpected end of stream');
+      else ;
     end;
     Lexer.NextToken;
   end;
@@ -256,14 +253,14 @@ begin
         vkDEF:
           begin
            Lexer.NextTokenForceVTName;
-           NodeName := Lexer.TokenName;
+           NodeName := Lexer.TokenX3DName;
            Lexer.NextToken;
            ParseNamedNode(NodeName);
           end;
         vkUSE:
           begin
            Lexer.NextTokenForceVTName;
-           NodeName := Lexer.TokenName;
+           NodeName := Lexer.TokenX3DName;
 
            {get appropriate node}
            Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
@@ -546,7 +543,7 @@ begin
       except
         on E: EX3DClassicReadError do
         begin
-          WritelnWarning('VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
+          WritelnWarning('VRML/X3D', Format('Error when reading, will skip the rest of X3D file: %s', [E.Message]));
           Break;
         end;
       end;
@@ -571,7 +568,7 @@ begin
 end;
 
 function LoadX3DClassic(const URL: string;
-  const AllowStdIn, Gzipped: boolean): TX3DRootNode;
+  const Gzipped: boolean): TX3DRootNode;
 
   function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
     const BaseUrl: string): TX3DRootNode;
@@ -587,37 +584,30 @@ function LoadX3DClassic(const URL: string;
 var
   BaseUrl: string;
 begin
-  if AllowStdIn and (URL = '-') then
+  BaseUrl := AbsoluteURI(URL);
+
+  if Gzipped then
+    Result := DoIt(Download(URL, [soGzip]), true, BaseUrl) else
   begin
-    BaseUrl := URICurrentPath;
-    Result := DoIt(StdInStream, false, BaseUrl);
-  end else
-  begin
-    BaseUrl := AbsoluteURI(URL);
+    try
+      Result := DoIt(Download(URL, []), true, BaseUrl);
+    except
+      { It's somewhat hacky solution to reopen the file, creating new stream.
+        But in practice, this works OK, and it allows us to read files
+        compressed by gzip but without indicating this by file extension.
+        The other idea would be to pipe the output always by gzip
+        decompression, but:
 
-    if Gzipped then
-      Result := DoIt(Download(URL, [soGzip]), true, BaseUrl) else
-    begin
-      try
-        Result := DoIt(Download(URL, []), true, BaseUrl);
-      except
-        { It's somewhat hacky solution to reopen the file, creating new stream.
-          But in practice, this works OK, and it allows us to read files
-          compressed by gzip but without indicating this by file extension.
-          The other idea would be to pipe the output always by gzip
-          decompression, but:
+        1. I simply prefer to not filter through yet another stream
+           class (we already wrap TFileStream in TBufferedReadStream)
+           when I don't have to.
 
-          1. I simply prefer to not filter through yet another stream
-             class (we already wrap TFileStream in TBufferedReadStream)
-             when I don't have to.
-
-          2. Our Download function uses temporary files to overcome
-             the limitations of TGZFileStream (it cannot compress/decompress
-             memory data, only files on disk) for network data.
-             So it creates even more overhead. }
-        on EX3DGzipCompressed do
-          Result := DoIt(Download(URL, [soGzip]), true, BaseUrl);
-      end;
+        2. Our Download function uses temporary files to overcome
+           the limitations of TGZFileStream (it cannot compress/decompress
+           memory data, only files on disk) for network data.
+           So it creates even more overhead. }
+      on EX3DGzipCompressed do
+        Result := DoIt(Download(URL, [soGzip]), true, BaseUrl);
     end;
   end;
 end;

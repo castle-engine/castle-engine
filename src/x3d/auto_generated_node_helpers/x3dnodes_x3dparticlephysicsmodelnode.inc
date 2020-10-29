@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const Value: Boolean);
   public
     { X3D field "enabled". } { }
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TAbstractParticlePhysicsModelNode ----------------------------------------------- }
 
-function TAbstractParticlePhysicsModelNode.GetEnabled: boolean;
+function TAbstractParticlePhysicsModelNode.GetEnabled: Boolean;
 begin
   Result := FdEnabled.Value;
 end;
 
-procedure TAbstractParticlePhysicsModelNode.SetEnabled(const Value: boolean);
+procedure TAbstractParticlePhysicsModelNode.SetEnabled(const Value: Boolean);
 begin
   FdEnabled.Send(Value);
 end;

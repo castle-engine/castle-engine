@@ -23,7 +23,7 @@ uses Classes, CastleVectors, CastleImages, CastleGLUtils, CastleGLImages;
 type
   TTile = class
   public
-    GLImage: TGLImage;
+    DrawableImage: TDrawableImage;
     { Relative URL vs tiles directory.
       This is read and written from/to a map file. }
     RelativeURL: string;
@@ -90,13 +90,13 @@ uses SysUtils,
 
 destructor TTile.Destroy;
 begin
-  FreeAndNil(GLImage);
+  FreeAndNil(DrawableImage);
   inherited;
 end;
 
 function TTile.FullURL: string;
 begin
-  Result := ApplicationData('tiles/' + RelativeURL);
+  Result := 'castle-data:/tiles/' + RelativeURL;
 end;
 
 { TBaseTile ------------------------------------------------------------------ }
@@ -124,7 +124,7 @@ begin
     SaveImage(Image, FullURL); }
   end;
 
-  GLImage := TGLImage.Create(Image, false, true);
+  DrawableImage := TDrawableImage.Create(Image, false, true);
 end;
 
 { TBonusTile ----------------------------------------------------------------- }
@@ -134,7 +134,7 @@ var
   Image: TCastleImage;
 begin
   Image := LoadImage(FullURL, PixelsImageClasses);
-  GLImage := TGLImage.Create(Image, false, true);
+  DrawableImage := TDrawableImage.Create(Image, false, true);
 end;
 
 { TMap ----------------------------------------------------------------------- }

@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,8 +28,8 @@
   strict private
     function GetTessellation: Integer;
     procedure SetTessellation(const Value: Integer);
-    function GetClosed: boolean;
-    procedure SetClosed(const Value: boolean);
+    function GetClosed: Boolean;
+    procedure SetClosed(const Value: Boolean);
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
@@ -40,7 +40,7 @@
     { Set X3D field "weight". } { }
     procedure SetWeight(const Value: TDoubleList);
     { X3D field "closed". } { }
-    property Closed: boolean read GetClosed write SetClosed;
+    property Closed: Boolean read GetClosed write SetClosed;
     { Set X3D field "knot". } { }
     procedure SetKnot(const Value: array of Double);
     { Set X3D field "knot". } { }
@@ -74,12 +74,12 @@ begin
   FdWeight.Send(Value);
 end;
 
-function TNurbsCurve2DNode.GetClosed: boolean;
+function TNurbsCurve2DNode.GetClosed: Boolean;
 begin
   Result := FdClosed.Value;
 end;
 
-procedure TNurbsCurve2DNode.SetClosed(const Value: boolean);
+procedure TNurbsCurve2DNode.SetClosed(const Value: Boolean);
 begin
   FdClosed.Send(Value);
 end;

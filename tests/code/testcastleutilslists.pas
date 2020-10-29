@@ -18,7 +18,7 @@ unit TestCastleUtilsLists;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestBasicLists = class(TTestCase)
@@ -29,6 +29,7 @@ type
     procedure TestListsAssignLerp;
     procedure TestListsAssignLerpShifted;
     procedure TestZero;
+    procedure TestSortAndRemoveDuplicates;
   end;
 
 implementation
@@ -373,6 +374,70 @@ begin
   F.Count := 10;
   for I := 0 to F.Count - 1 do
     AssertTrue(F[I] = 0);
+  FreeAndNil(F);
+end;
+
+procedure TTestBasicLists.TestSortAndRemoveDuplicates;
+var
+  F: TSingleList;
+begin
+  F := TSingleList.Create;
+  F.Count := 3;
+  F[0] := 10;
+  F[1] := 5;
+  F[2] := 7.5;
+  F.SortAndRemoveDuplicates;
+  AssertEquals(3, F.Count);
+  AssertEquals(5, F[0]);
+  AssertEquals(7.5, F[1]);
+  AssertEquals(10, F[2]);
+  FreeAndNil(F);
+
+  F := TSingleList.Create;
+  F.Count := 5;
+  F[0] := 10;
+  F[1] := 5;
+  F[2] := 7.5;
+  F[3] := 1;
+  F[4] := 7.5;
+  F.SortAndRemoveDuplicates;
+  AssertEquals(4, F.Count);
+  AssertEquals(1, F[0]);
+  AssertEquals(5, F[1]);
+  AssertEquals(7.5, F[2]);
+  AssertEquals(10, F[3]);
+  FreeAndNil(F);
+
+  F := TSingleList.Create;
+  F.Count := 5;
+  F[0] := 10;
+  F[1] := 5;
+  F[2] := 7.5;
+  F[3] := 1;
+  F[4] := 10;
+  F.SortAndRemoveDuplicates;
+  AssertEquals(4, F.Count);
+  AssertEquals(1, F[0]);
+  AssertEquals(5, F[1]);
+  AssertEquals(7.5, F[2]);
+  AssertEquals(10, F[3]);
+  FreeAndNil(F);
+
+  F := TSingleList.Create;
+  F.Count := 7;
+  F[0] := 10;
+  F[1] := 5;
+  F[2] := 7.5;
+  F[3] := 1;
+  F[4] := 5;
+  F[5] := 5;
+  F[6] := 5;
+  F.SortAndRemoveDuplicates;
+  AssertEquals(4, F.Count);
+  AssertEquals(1, F[0]);
+  AssertEquals(5, F[1]);
+  AssertEquals(7.5, F[2]);
+  AssertEquals(10, F[3]);
   FreeAndNil(F);
 end;
 

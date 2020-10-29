@@ -20,7 +20,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
@@ -47,7 +46,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClosureType: TSFString;
     public property FdClosureType: TSFString read FFdClosureType;
@@ -79,7 +77,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
@@ -101,7 +98,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdInnerRadius: TSFFloat;
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
@@ -128,7 +124,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdLineSegments: TMFVec2f;
     { Polyline segments.
@@ -151,7 +146,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
@@ -171,7 +165,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -192,7 +185,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdVertices: TMFVec2f;
     public property FdVertices: TMFVec2f read FFdVertices;
@@ -219,18 +211,18 @@ begin
 
   FFdEndAngle := TSFFloat.Create(Self, false, 'endAngle', Pi/2);
    FdEndAngle.Angle := true;
-   FdEndAngle.ChangesAlways := [chGeometry];
+   FdEndAngle.ChangeAlways := chGeometry;
   AddField(FFdEndAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
   FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
-   FdRadius.ChangesAlways := [chGeometry];
+   FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
   FFdStartAngle := TSFFloat.Create(Self, false, 'startAngle', 0);
    FdStartAngle.Angle := true;
-   FdStartAngle.ChangesAlways := [chGeometry];
+   FdStartAngle.ChangeAlways := chGeometry;
   AddField(FFdStartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 end;
@@ -238,12 +230,6 @@ end;
 class function TArc2DNode.ClassX3DType: string;
 begin
   Result := 'Arc2D';
-end;
-
-class function TArc2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -272,28 +258,28 @@ begin
   inherited;
 
   FFdClosureType := TSFString.Create(Self, false, 'closureType', 'PIE');
-   FdClosureType.ChangesAlways := [chGeometry];
+   FdClosureType.ChangeAlways := chGeometry;
   AddField(FFdClosureType);
   { X3D specification comment: ["PIE"|"CHORD"] }
 
   FFdEndAngle := TSFFloat.Create(Self, false, 'endAngle', Pi/2);
    FdEndAngle.Angle := true;
-   FdEndAngle.ChangesAlways := [chGeometry];
+   FdEndAngle.ChangeAlways := chGeometry;
   AddField(FFdEndAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
   FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
-   FdRadius.ChangesAlways := [chGeometry];
+   FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 
   FFdStartAngle := TSFFloat.Create(Self, false, 'startAngle', 0);
    FdStartAngle.Angle := true;
-   FdStartAngle.ChangesAlways := [chGeometry];
+   FdStartAngle.ChangeAlways := chGeometry;
   AddField(FFdStartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 end;
@@ -301,12 +287,6 @@ end;
 class function TArcClose2DNode.ClassX3DType: string;
 begin
   Result := 'ArcClose2D';
-end;
-
-class function TArcClose2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -335,24 +315,18 @@ begin
   inherited;
 
   FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
-   FdRadius.ChangesAlways := [chGeometry];
+   FdRadius.ChangeAlways := chGeometry;
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
   FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
-   FdSlices.ChangesAlways := [chGeometry];
+   FdSlices.ChangeAlways := chGeometry;
   AddField(FFdSlices);
 end;
 
 class function TCircle2DNode.ClassX3DType: string;
 begin
   Result := 'Circle2D';
-end;
-
-class function TCircle2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
@@ -407,29 +381,23 @@ begin
   inherited;
 
   FFdInnerRadius := TSFFloat.Create(Self, false, 'innerRadius', 0);
-   FdInnerRadius.ChangesAlways := [chGeometry];
+   FdInnerRadius.ChangeAlways := chGeometry;
   AddField(FFdInnerRadius);
   { X3D specification comment: [0,Inf) }
 
   FFdOuterRadius := TSFFloat.Create(Self, false, 'outerRadius', 1);
-   FdOuterRadius.ChangesAlways := [chGeometry];
+   FdOuterRadius.ChangeAlways := chGeometry;
   AddField(FFdOuterRadius);
   { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 end;
 
 class function TDisk2DNode.ClassX3DType: string;
 begin
   Result := 'Disk2D';
-end;
-
-class function TDisk2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TDisk2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -458,7 +426,7 @@ begin
   inherited;
 
   FFdLineSegments := TMFVec2f.Create(Self, false, 'lineSegments', []);
-   FdLineSegments.ChangesAlways := [chGeometry];
+   FdLineSegments.ChangeAlways := chGeometry;
   AddField(FFdLineSegments);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -468,13 +436,6 @@ end;
 class function TPolyline2DNode.ClassX3DType: string;
 begin
   Result := 'Polyline2D';
-end;
-
-class function TPolyline2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TPolyline2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -503,7 +464,7 @@ begin
   inherited;
 
   FFdPoint := TMFVec2f.Create(Self, true, 'point', []);
-   FdPoint.ChangesAlways := [chGeometry];
+   FdPoint.ChangeAlways := chGeometry;
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -511,12 +472,6 @@ end;
 class function TPolypoint2DNode.ClassX3DType: string;
 begin
   Result := 'Polypoint2D';
-end;
-
-class function TPolypoint2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TPolypoint2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -545,24 +500,18 @@ begin
   inherited;
 
   FFdSize := TSFVec2f.Create(Self, false, 'size', Vector2(2, 2));
-   FdSize.ChangesAlways := [chGeometry];
+   FdSize.ChangeAlways := chGeometry;
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 end;
 
 class function TRectangle2DNode.ClassX3DType: string;
 begin
   Result := 'Rectangle2D';
-end;
-
-class function TRectangle2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
@@ -616,24 +565,18 @@ begin
   inherited;
 
   FFdVertices := TMFVec2f.Create(Self, true, 'vertices', []);
-   FdVertices.ChangesAlways := [chGeometry];
+   FdVertices.ChangeAlways := chGeometry;
   AddField(FFdVertices);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdSolid := TSFBool.Create(Self, false, 'solid', false);
-   FdSolid.ChangesAlways := [chGeometry];
+   FdSolid.ChangeAlways := chGeometry;
   AddField(FFdSolid);
 end;
 
 class function TTriangleSet2DNode.ClassX3DType: string;
 begin
   Result := 'TriangleSet2D';
-end;
-
-class function TTriangleSet2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTriangleSet2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;

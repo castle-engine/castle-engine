@@ -19,7 +19,7 @@ unit TestCastleOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleFilesUtils, CastleFindFiles,
+uses FpcUnit, TestUtils, TestRegistry, CastleFilesUtils, CastleFindFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 type
@@ -78,14 +78,14 @@ begin
     Scene.Load(nil, true) else
     Scene.Load(FileName);
 
-  SceneManager.Camera.Free;
+  SceneManager.Navigation.Free;
   // camera should be nil now (thanks to free notification),
   // and no new camera should be automatically created yet.
-  AssertTrue(SceneManager.Camera = nil);
-  SceneManager.RequiredCamera;
+  AssertTrue(SceneManager.Navigation = nil);
+  SceneManager.RequiredNavigation;
 
   SceneManager.ClearCameras;
-  AssertTrue(SceneManager.Camera = nil);
+  AssertTrue(SceneManager.Navigation = nil);
 
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }

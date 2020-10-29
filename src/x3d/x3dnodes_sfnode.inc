@@ -40,12 +40,12 @@
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
     FWeakLink: boolean;
-    procedure SetValue(AValue: TX3DNode);
-    procedure SetDefaultValue(ADefaultValue: TX3DNode);
-    procedure SetDefaultValueExists(AValue: boolean);
+    procedure SetValue(const AValue: TX3DNode);
+    procedure SetDefaultValue(const ADefaultValue: TX3DNode);
+    procedure SetDefaultValueExists(const AValue: boolean);
     procedure SetWeakLink(const AValue: boolean);
     procedure WarningIfUnusedWeakLink;
-    procedure DestructionNotification(Node: TX3DNode);
+    procedure DestructionNotification(const Node: TX3DNode);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -272,7 +272,9 @@ begin
     acAll      : Result := true;
     acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
     acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AllowedChildren?');
+    {$endif}
   end;
 end;
 
@@ -291,7 +293,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
       [Child.X3DType, X3DName]);
     if ParentNode <> nil then
       S := S + Format(' of the node "%s"', [ParentNode.X3DType]);
-    WritelnWarning('VRML/X3D', S);
+    WritelnWarning('X3D', S);
   end;
 
 begin
@@ -310,7 +312,7 @@ begin
     FValue.FreeIfUnused; // we know it will be freed now
     FValue := nil;
     { do a warning after freeing FValue, to avoid memory leaks in case OnWarning makes exception }
-    WritelnWarning('VRML/X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
+    WritelnWarning('X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
       [NiceName]));
   end;
 end;
@@ -348,7 +350,7 @@ begin
   V := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
-    WritelnWarning('VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    WritelnWarning('X3D', Format('Cycles in X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
     Value := nil;
     Exit;
   end;
@@ -357,7 +359,7 @@ begin
   if Value = nil then
   begin
     if AttributeValue <> SNull then
-      WritelnWarning('VRML/X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
+      WritelnWarning('X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
   end else
   begin
     WarningIfChildNotAllowed(Value);
@@ -384,7 +386,7 @@ begin
       end;
 
       if I.GetNext then
-        WritelnWarning('VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
+        WritelnWarning('X3D', Format('Field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
           [X3DName, I.Current.TagName]));
     end;
   finally FreeAndNil(I) end;
@@ -461,7 +463,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFNode.SetValue(AValue: TX3DNode);
+procedure TSFNode.SetValue(const AValue: TX3DNode);
 begin
   if FValue <> AValue then
   begin
@@ -485,7 +487,7 @@ begin
   end;
 end;
 
-procedure TSFNode.SetDefaultValue(ADefaultValue: TX3DNode);
+procedure TSFNode.SetDefaultValue(const ADefaultValue: TX3DNode);
 begin
   if FDefaultValue <> ADefaultValue then
   begin
@@ -509,7 +511,7 @@ begin
   end;
 end;
 
-procedure TSFNode.DestructionNotification(Node: TX3DNode);
+procedure TSFNode.DestructionNotification(const Node: TX3DNode);
 begin
   if WeakLink then
   begin
@@ -520,7 +522,7 @@ begin
   end;
 end;
 
-procedure TSFNode.SetDefaultValueExists(AValue: boolean);
+procedure TSFNode.SetDefaultValueExists(const AValue: boolean);
 begin
   FDefaultValueExists := AValue;
 end;

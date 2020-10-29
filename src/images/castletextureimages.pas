@@ -169,7 +169,9 @@ type
     minLinearMipmapLinear,
 
     { Interpretation of this filter depends on current
-      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter). }
+      @link(TRenderingAttributes.MinificationFilter Scene.Attributes.MinificationFilter).
+      If that is also minDefault, it depends on current
+      @link(TRenderingAttributes.DefaultMinificationFilter). }
     minDefault,
     { Alias for minNearest. }
     minFastest,
@@ -185,7 +187,9 @@ type
     magLinear,
 
     { Interpretation of this filter depends on current
-      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter). }
+      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter).
+      If that is also magDefault, it depends on current
+      @link(TRenderingAttributes.DefaultMagnificationFilter). }
     magDefault,
     { Alias for magnNearest. }
     magFastest,
@@ -283,7 +287,7 @@ begin
     begin
       Inc(C.References);
 
-      if LogTextureCache and Log then
+      if LogTextureCache then
         WritelnLog('++', 'Texture image %s: %d', [URIDisplay(URL), C.References]);
 
       Composite := C.Composite;
@@ -309,7 +313,7 @@ begin
   C.Composite := Composite;
   C.AlphaChannel := AlphaChannel;
 
-  if LogTextureCache and Log then
+  if LogTextureCache then
     WritelnLog('++', 'Texture image %s: %d%s',
       [URIDisplay(URL), 1, AlphaChannelLog(AlphaChannel)]);
 end;
@@ -325,7 +329,7 @@ begin
     C := CachedTextures[I];
     if C.Image = Image then
     begin
-      if LogTextureCache and Log then
+      if LogTextureCache then
         WritelnLog('--', 'Texture image %s: %d', [URIDisplay(C.URL), C.References - 1]);
 
       { We cannot simply assert

@@ -21,13 +21,13 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase,
   CastleVectors, X3DNodes;
 
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
-    procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
+    procedure WeakLinkUnusedWarning(const Category, S: string);
   published
     procedure TestNodesManager;
 
@@ -53,32 +53,16 @@ type
 
     procedure TestGeometryNodesImplemented;
 
-    { Test all geometry nodes should have Changes = [chGeometry]
+    { Test all geometry nodes should have Change = chGeometry
       on all fields (except "metadata").
       All non-geometry nodes should not have chGeometry on any field. }
     procedure TestGeometryNodesChanges;
-
-    { Almost all VRML 1 state nodes should have Changes = [chVisibleVRML1State]
-      (and possibly more, like chAlphaChannel). }
-    procedure TestVisibleVRML1StateChanges;
 
     { All Color nodes should have Changes = [chColorNode] }
     procedure TestColorNodeChanges;
 
     { All tex coord nodes should have Change = [chTextureCoordinate] }
     procedure TestTextureCoordinate;
-
-    { Detect if we consciously set Changes (and ChangesAlways)
-      on all fields correctly.
-
-      By default, ChangesAlways is [] and Changes
-      return it, so there could be a chance that some field are left with
-      [] by accident. This checks all the fields with Changes = [],
-      they *must* be added to ConfirmedEmptyChanges function. }
-    { Later: maintaining a list of exceptions to this test was not efficient.
-      And by default we generate non-empty ChangesAlways, so it's not easy
-      to make this mistake anymore. }
-    // procedure TestEmptyChanges;
 
     { Try calling GetInternalTimeDependentHandler
       on every IAbstractTimeDependentNode, and use the handler.
@@ -100,7 +84,6 @@ type
     procedure TestAttenuation;
     procedure TestAddChildren;
     procedure TestAddChildrenAllowDuplicates;
-    procedure TestNurbsCurvePoint;
   end;
 
 implementation
@@ -189,7 +172,7 @@ procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
       case T.Token of
         vtKeyword: result := result +' "' +X3DKeywordsName[T.Keyword]+'"';
         vtName: result := '"' +T.Name+'"';
-        vtFloat: result := result +' ' +FloatToStr(T.Float);
+        vtFloat: result := result +' ' +FloatToStrDot(T.Float);
         vtInteger: result := result +' ' +IntToStr(T.Integer);
         vtString: result := result+' "'+T.AString+'"';
       end;
@@ -227,7 +210,7 @@ end;
   be correctly parsed by pure Lexer.NextToken calls. All valid VRML >= 2.0
   files are like that, although parser in practice has to use NextTokenForceXxx
   methods because of unfortunately
-  1. invalid VRML files (that use some funny node names)
+  1. invalid X3D files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
 procedure TX3DTokenInfoList.ReadFromFile(const FileName: string);
 var
@@ -280,7 +263,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadX3DClassic(FileName, false, false);
+      Node := LoadX3DClassic(FileName, false);
       NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.x3dv';
       Save3D(Node, NewFile, ApplicationName, '', xeClassic, false);
 
@@ -915,10 +898,10 @@ end;
 
 type
   TMyObject = class
-    procedure Foo(Node: TX3DNode);
+    procedure Foo(const Node: TX3DNode);
   end;
 
-procedure TMyObject.Foo(Node: TX3DNode);
+procedure TMyObject.Foo(const Node: TX3DNode);
 begin
 end;
 
@@ -1008,7 +991,7 @@ begin
         for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].X3DName <> 'metadata' then
           try
-            AssertTrue(N.Fields[J].ExecuteChanges = [chGeometry]);
+            AssertTrue(N.Fields[J].ExecuteChange = chGeometry);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
@@ -1017,56 +1000,11 @@ begin
       begin
         for J := 0 to N.FieldsCount - 1 do
         try
-          AssertTrue(not (chGeometry in N.Fields[J].ExecuteChanges));
+          AssertTrue(chGeometry <> N.Fields[J].ExecuteChange);
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
         end;
-      end
-
-    finally FreeAndNil(N) end;
-  end;
-end;
-
-procedure TTestX3DNodes.TestVisibleVRML1StateChanges;
-var
-  I, J: Integer;
-  N: TX3DNode;
-  VRML1StateNode: TVRML1StateNode;
-begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
-  begin
-    N := NodesManager.Registered[I].Create;
-    try
-      if N.VRML1StateNode(VRML1StateNode) and
-         (VRML1StateNode <> vsCoordinate3) then
-      begin
-        for J := 0 to N.FieldsCount - 1 do
-          { some fields are allowed exception }
-          if (N.Fields[J].X3DName <> 'metadata') and
-             (N.Fields[J].X3DName <> 'effects') and
-             (N.Fields[J].X3DName <> 'crossOrigin') and
-             (N.Fields[J].X3DName <> 'textureProperties') then
-          try
-            AssertTrue(
-              (chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
-              (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
-          except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
-            raise;
-          end;
-      end else
-      begin
-        for J := 0 to N.FieldsCount - 1 do
-          { some fields are allowed exception }
-          if (N.Fields[J].X3DName <> 'alphaChannel') then
-          try
-            AssertTrue(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
-            AssertTrue(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
-          except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
-            raise;
-          end;
       end
 
     finally FreeAndNil(N) end;
@@ -1085,9 +1023,10 @@ begin
       if N is TAbstractColorNode then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if N.Fields[J].X3DName <> 'metadata' then
+          if (N.Fields[J].X3DName <> 'metadata') and
+             (N.Fields[J].X3DName <> 'mode') then
           try
-            AssertTrue(N.Fields[J].ExecuteChanges = [chColorNode]);
+            AssertTrue(N.Fields[J].ExecuteChange = chColorNode);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
@@ -1096,7 +1035,7 @@ begin
       begin
         for J := 0 to N.FieldsCount - 1 do
         try
-          AssertTrue(not (chColorNode in N.Fields[J].ExecuteChanges));
+          AssertTrue(chColorNode <> N.Fields[J].ExecuteChange);
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
@@ -1121,7 +1060,7 @@ begin
         for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].X3DName <> 'metadata' then
           try
-            AssertTrue(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
+            AssertTrue(N.Fields[J].ExecuteChange = chTextureCoordinate);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
@@ -1130,7 +1069,7 @@ begin
       begin
         for J := 0 to N.FieldsCount - 1 do
         try
-          AssertTrue(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
+          AssertTrue(chTextureCoordinate <> N.Fields[J].ExecuteChange);
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
@@ -1140,196 +1079,6 @@ begin
     finally FreeAndNil(N) end;
   end;
 end;
-
-(*
-procedure TTestX3DNodes.TestEmptyChanges;
-
-  { Confirmed fiels that may have Changes = []. }
-  function ConfirmedEmptyChanges(Field: TX3DField): boolean;
-
-    function FieldIs(Field: TX3DField;
-      const NodeClass: TX3DNodeClass; const FieldName: string): boolean;
-    begin
-      Result := (Field.ParentNode is NodeClass) and (Field.X3DName = FieldName);
-    end;
-
-  begin
-    Result :=
-      { Sensors don't affect actual content directly. }
-      (Field.ParentNode is TAbstractSensorNode) or
-      FieldIs(Field, TTimeSensorNode, 'cycleInterval') or
-      FieldIs(Field, TTimeSensorNode, 'enabled') or
-      (Field.ParentNode is TWWWAnchorNode_1) or
-      { metadata, info nodes }
-      FieldIs(Field, TAbstractNode, 'metadata') or
-      (Field.ParentNode is TMetadataBooleanNode) or
-      (Field.ParentNode is TMetadataDoubleNode) or
-      (Field.ParentNode is TMetadataFloatNode) or
-      (Field.ParentNode is TMetadataIntegerNode) or
-      (Field.ParentNode is TMetadataSetNode) or
-      (Field.ParentNode is TMetadataStringNode) or
-      (Field.ParentNode is TWorldInfoNode) or
-      (Field.ParentNode is TInfoNode_1) or
-      { interpolators }
-      (Field.ParentNode is TAbstractInterpolatorNode) or
-      (Field.ParentNode is TNurbsOrientationInterpolatorNode) or
-      (Field.ParentNode is TNurbsPositionInterpolatorNode_3) or
-      (Field.ParentNode is TNurbsSurfaceInterpolatorNode) or
-      (Field.ParentNode is TNurbsPositionInterpolatorNode_2) or
-      { Just like sensors, scripts don't affect actual content directly.
-        Script nodes take care themselves to react to events send to them. }
-      (Field.ParentNode is TAbstractScriptNode) or
-      { event utils }
-      (Field.ParentNode is TAbstractSequencerNode) or
-      (Field.ParentNode is TAbstractTriggerNode) or
-      (Field.ParentNode is TBooleanFilterNode) or
-      (Field.ParentNode is TBooleanToggleNode) or
-      (Field.ParentNode is TTogglerNode) or
-      (Field.ParentNode is TLoggerNode) or
-      { A change to a prototype field has no real effect,
-        TX3DPrototypeNode will only pass it forward to the actual node }
-      (Field.ParentNode is TX3DPrototypeNode) or
-      { no need to do anything }
-      FieldIs(Field, TAbstractTimeDependentNode, 'loop') or
-      FieldIs(Field, TMovieTextureNode, 'loop') or
-      FieldIs(Field, TAbstractViewpointNode, 'description') or
-      FieldIs(Field, TRenderedTextureNode, 'description') or
-      FieldIs(Field, TMovieTextureNode, 'description') or
-      FieldIs(Field, TAbstractX3DViewpointNode, 'jump') or { also not implemented }
-      FieldIs(Field, TAbstractX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
-      FieldIs(Field, TAbstractX3DViewpointNode, 'centerOfRotation') or { also not implemented }
-      FieldIs(Field, TAbstractViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
-      FieldIs(Field, TAbstractCameraNode_1, 'focalDistance') or
-      FieldIs(Field, TPerspectiveCameraNode_1, 'heightAngle') or
-      FieldIs(Field, TOrthographicCameraNode_1, 'height') or
-      FieldIs(Field, TMovieTextureNode, 'speed') or
-      FieldIs(Field, TSeparatorNode_1, 'renderCulling') or { ignored }
-      FieldIs(Field, TInlineNode, 'load') or { handled by eventout callback }
-      FieldIs(Field, TInlineNode, 'url') or { handled by eventout callback }
-      FieldIs(Field, TAnchorNode, 'parameter') or
-      FieldIs(Field, TAnchorNode, 'url') or
-      FieldIs(Field, TAnchorNode, 'description') or
-      { H-Anim nodes. There are a lot of fields we ignore,
-        because we're only interested in animating H-Anim models,
-        not editing them (or using with physics). }
-      (Field.ParentNode is THAnimDisplacerNode) or
-      (Field.ParentNode is THAnimHumanoidNode) or
-      (Field.ParentNode is THAnimJointNode) or
-      (Field.ParentNode is THAnimSegmentNode) or
-      (Field.ParentNode is THAnimSiteNode) or
-      (Field.ParentNode is TDisplacerNode) or
-      (Field.ParentNode is THumanoidNode) or
-      (Field.ParentNode is TJointNode) or
-      (Field.ParentNode is TSegmentNode) or
-      (Field.ParentNode is TSiteNode) or
-      { "update" field of generated textures --- this actually has
-        Changes <> [] when needed }
-      FieldIs(Field, TGeneratedShadowMapNode, 'update') or
-      FieldIs(Field, TRenderedTextureNode, 'update') or
-      FieldIs(Field, TGeneratedCubeMapTextureNode, 'update') or
-      { My own spec doesn't specify what happens when these change.
-        We can just ignore it? }
-      FieldIs(Field, TKambiInlineNode, 'replaceNames') or
-      FieldIs(Field, TKambiInlineNode, 'replaceNodes') or
-      { TODO: stuff implemented, but changes not implemented
-        (not even chEverything would help) }
-      (Field.ParentNode is TNavigationInfoNode) or
-      { TODO: stuff not implemented / things we don't look at all }
-      FieldIs(Field, TAbstractLightNode, 'showProxyGeometry') or
-      FieldIs(Field, TRenderedTextureNode, 'triggerName') or
-      (Field.ParentNode is TLODNode_1) or
-      (Field.X3DName = 'bboxSize') or
-      (Field.X3DName = 'bboxCenter') or
-      (Field.ParentNode is TTextureBackgroundNode) or
-      (Field.ParentNode is TGeoCoordinateNode) or
-      (Field.ParentNode is TGeoLocationNode) or
-      (Field.ParentNode is TGeoLODNode) or
-      (Field.ParentNode is TGeoMetadataNode) or
-      (Field.ParentNode is TGeoOriginNode) or
-      (Field.ParentNode is TGeoTransformNode) or
-      (Field.ParentNode is TGeoViewpointNode) or
-      (Field.ParentNode is TAbstractNBodyCollidableNode) or
-      (Field.ParentNode is TAbstractNBodyCollisionSpaceNode) or
-      (Field.ParentNode is TAbstractRigidJointNode) or
-      (Field.ParentNode is TAbstractPickSensorNode) or
-      (Field.ParentNode is TAbstractFollowerNode) or
-      (Field.ParentNode is TAbstractParticleEmitterNode) or
-      (Field.ParentNode is TAbstractParticlePhysicsModelNode) or
-      (Field.ParentNode is TDisplacerNode) or
-      (Field.ParentNode is TCoordinateDeformerNode) or
-      (Field.ParentNode is TNurbsGroupNode) or
-      (Field.ParentNode is TAudioClipNode) or
-      (Field.ParentNode is TSoundNode) or
-      (Field.ParentNode is TEaseInEaseOutNode) or
-      (Field.ParentNode is TFogCoordinateNode) or
-      (Field.ParentNode is TLocalFogNode) or
-      (Field.ParentNode is TEspduTransformNode) or
-      (Field.ParentNode is TPackagedShaderNode) or
-      (Field.ParentNode is TProgramShaderNode) or
-      (Field.ParentNode is TLayerNode) or
-      (Field.ParentNode is TLayerSetNode) or
-      (Field.ParentNode is TLayoutNode) or
-      (Field.ParentNode is TLayoutLayerNode) or
-      (Field.ParentNode is TLayoutGroupNode) or
-      (Field.ParentNode is TDISEntityTypeMappingNode) or
-      (Field.ParentNode is TDISEntityManagerNode) or
-      (Field.ParentNode is TFillPropertiesNode) or
-      (Field.ParentNode is TLinePropertiesNode) or
-      (Field.ParentNode is TConverterNode) or
-      (Field.ParentNode is TScreenFontStyleNode) or
-      (Field.ParentNode is TScreenGroupNode) or
-      (Field.ParentNode is TCollisionCollectionNode) or
-      (Field.ParentNode is TContactNode) or
-      (Field.ParentNode is TRigidBodyNode) or
-      (Field.ParentNode is TRigidBodyCollectionNode) or
-      (Field.ParentNode is TPickableGroupNode) or
-      (Field.ParentNode is TParticleSystemNode) or
-      (Field.ParentNode is TViewpointGroupNode) or
-      (Field.ParentNode is TViewportNode) or
-      (Field.ParentNode is TShaderProgramNode) or
-      (Field.ParentNode is TAbstractVertexAttributeNode) or
-      FieldIs(Field, TAbstractX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
-      FieldIs(Field, TBillboardNode, 'axisOfRotation') or
-      FieldIs(Field, TAbstractLODNode, 'forceTransitions') or
-      (Field.ParentNode is TCADAssemblyNode) or
-      (Field.ParentNode is TCADFaceNode) or
-      (Field.ParentNode is TCADLayerNode) or
-      (Field.ParentNode is TCADPartNode) or
-      (Field.ParentNode is TNurbsTextureCoordinateNode) or
-      (Field.ParentNode is TNurbsSetNode) or
-      (Field.ParentNode is TNurbsCurve2DNode) or
-      (Field.ParentNode is TContourPolyline2DNode) or
-      (Field.ParentNode is TNurbsTextureSurfaceNode) or
-      FieldIs(Field, TScreenEffectNode, 'needsDepth') or
-      (Field.ParentNode is TLayer2DNode) or
-      (Field.ParentNode is TLayer3DNode) or
-      (Field.ParentNode is TKambiHeadLightNode) or
-      FieldIs(Field, TGeneratedCubeMapTextureNode, 'bias') or
-      FieldIs(Field, TAbstractShapeNode, 'render') or
-      false { just to have nice newlines };
-  end;
-
-var
-  I, J: Integer;
-  N: TX3DNode;
-  Changes: TX3DChanges;
-begin
-  for I := 0 to NodesManager.RegisteredCount - 1 do
-  begin
-    N := NodesManager.Registered[I].Create;
-    try
-      for J := 0 to N.FieldsCount - 1 do
-      try
-        Changes := N.Fields[J].ExecuteChanges;
-        AssertTrue((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
-      except
-        Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].X3DName);
-        raise;
-      end;
-    finally FreeAndNil(N) end;
-  end;
-end;
-*)
 
 procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
 
@@ -1377,7 +1126,7 @@ procedure TTestX3DNodes.TestITransformNode;
     I: Integer;
   begin
     for I := 0 to N.FieldsCount - 1 do
-      if chTransform in N.Fields[I].ExecuteChanges then
+      if chTransform = N.Fields[I].ExecuteChange then
         Exit(true);
     Result := false;
   end;
@@ -2024,7 +1773,7 @@ end;
 type
   EWeakLinkUnused = class(Exception);
 
-procedure TTestX3DNodes.WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
+procedure TTestX3DNodes.WeakLinkUnusedWarning(const Category, S: string);
 begin
   if Pos('GeneratedShadowMap.light', S) <> 0 then
     raise EWeakLinkUnused.Create('We want this warning, good: ' + S)
@@ -2037,7 +1786,7 @@ begin
   ApplicationProperties.OnWarning.Add(@WeakLinkUnusedWarning);
   try
     try
-      Load3D(ApplicationData('warning_when_new_node_as_shadow_map_light.x3dv'));
+      LoadNode('castle-data:/warning_when_new_node_as_shadow_map_light.x3dv');
       raise Exception.Create('We should not get here, expected EWeakLinkUnused on the way');
     except
       on EWeakLinkUnused do ; { good, silence this for the sake of test }
@@ -2202,29 +1951,6 @@ begin
   finally FreeAndNil(G) end;
 end;
 
-procedure TTestX3DNodes.TestNurbsCurvePoint;
-var
-  CurveNode: TNurbsCurveNode;
-  Coordinate: TCoordinateNode;
-begin
-  Coordinate := TCoordinateNode.Create;
-  Coordinate.SetPoint([
-    Vector3(2.285389, 1.235778, 1.636090),
-    Vector3(1, 0, 0),
-    Vector3(1.141864, 1.003204, -1.775073),
-    Vector3(1, 0, 0),
-    Vector3(3.120634, 1.865495, 2.322197)
-  ]);
-
-  CurveNode := TNurbsCurveNode.Create;
-  CurveNode.ControlPoint := Coordinate;
-
-  AssertVectorEquals(Vector3(2.285389, 1.235778, 1.636090), CurveNode.Point(0));
-  AssertVectorEquals(Vector3(3.120634, 1.865495, 2.322197), CurveNode.Point(1));
-
-  FreeAndNil(CurveNode);
-end;
-
 initialization
- RegisterTest(TTestX3DNodes);
+  RegisterTest(TTestX3DNodes);
 end.

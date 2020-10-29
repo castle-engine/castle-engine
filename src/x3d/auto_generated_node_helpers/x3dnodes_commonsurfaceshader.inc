@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,8 +32,8 @@
     procedure SetAlphaTextureId(const Value: Integer);
     function GetAlphaTextureCoordinatesId: Integer;
     procedure SetAlphaTextureCoordinatesId(const Value: Integer);
-    function GetAlphaTextureChannelMask: string;
-    procedure SetAlphaTextureChannelMask(const Value: string);
+    function GetAlphaTextureChannelMask: String;
+    procedure SetAlphaTextureChannelMask(const Value: String);
     function GetAlphaTexture: TAbstractTextureNode;
     procedure SetAlphaTexture(const Value: TAbstractTextureNode);
     function GetAmbientFactor: TVector3;
@@ -42,8 +42,8 @@
     procedure SetAmbientTextureId(const Value: Integer);
     function GetAmbientTextureCoordinatesId: Integer;
     procedure SetAmbientTextureCoordinatesId(const Value: Integer);
-    function GetAmbientTextureChannelMask: string;
-    procedure SetAmbientTextureChannelMask(const Value: string);
+    function GetAmbientTextureChannelMask: String;
+    procedure SetAmbientTextureChannelMask(const Value: String);
     function GetAmbientTexture: TAbstractTextureNode;
     procedure SetAmbientTexture(const Value: TAbstractTextureNode);
     function GetDiffuseFactor: TVector3;
@@ -52,14 +52,14 @@
     procedure SetDiffuseTextureId(const Value: Integer);
     function GetDiffuseTextureCoordinatesId: Integer;
     procedure SetDiffuseTextureCoordinatesId(const Value: Integer);
-    function GetDiffuseTextureChannelMask: string;
-    procedure SetDiffuseTextureChannelMask(const Value: string);
+    function GetDiffuseTextureChannelMask: String;
+    procedure SetDiffuseTextureChannelMask(const Value: String);
     function GetDiffuseTexture: TAbstractTextureNode;
     procedure SetDiffuseTexture(const Value: TAbstractTextureNode);
     function GetDiffuseDisplacementTexture: TAbstractTextureNode;
     procedure SetDiffuseDisplacementTexture(const Value: TAbstractTextureNode);
-    function GetDisplacementAxis: string;
-    procedure SetDisplacementAxis(const Value: string);
+    function GetDisplacementAxis: String;
+    procedure SetDisplacementAxis(const Value: String);
     function GetDisplacementFactor: Single;
     procedure SetDisplacementFactor(const Value: Single);
     function GetDisplacementTextureId: Integer;
@@ -74,8 +74,8 @@
     procedure SetEmissiveTextureId(const Value: Integer);
     function GetEmissiveTextureCoordinatesId: Integer;
     procedure SetEmissiveTextureCoordinatesId(const Value: Integer);
-    function GetEmissiveTextureChannelMask: string;
-    procedure SetEmissiveTextureChannelMask(const Value: string);
+    function GetEmissiveTextureChannelMask: String;
+    procedure SetEmissiveTextureChannelMask(const Value: String);
     function GetEmissiveTexture: TAbstractTextureNode;
     procedure SetEmissiveTexture(const Value: TAbstractTextureNode);
     function GetEnvironmentFactor: TVector3;
@@ -84,8 +84,8 @@
     procedure SetEnvironmentTextureId(const Value: Integer);
     function GetEnvironmentTextureCoordinatesId: Integer;
     procedure SetEnvironmentTextureCoordinatesId(const Value: Integer);
-    function GetEnvironmentTextureChannelMask: string;
-    procedure SetEnvironmentTextureChannelMask(const Value: string);
+    function GetEnvironmentTextureChannelMask: String;
+    procedure SetEnvironmentTextureChannelMask(const Value: String);
     function GetEnvironmentTexture: TAbstractEnvironmentTextureNode;
     procedure SetEnvironmentTexture(const Value: TAbstractEnvironmentTextureNode);
     function GetMultiDiffuseAlphaTexture: TAbstractTextureNode;
@@ -100,8 +100,8 @@
     procedure SetNormalTextureId(const Value: Integer);
     function GetNormalTextureCoordinatesId: Integer;
     procedure SetNormalTextureCoordinatesId(const Value: Integer);
-    function GetNormalTextureChannelMask: string;
-    procedure SetNormalTextureChannelMask(const Value: string);
+    function GetNormalTextureChannelMask: String;
+    procedure SetNormalTextureChannelMask(const Value: String);
     function GetNormalScale: TVector3;
     procedure SetNormalScale(const Value: TVector3);
     function GetNormalBias: TVector3;
@@ -116,8 +116,8 @@
     procedure SetReflectionTextureId(const Value: Integer);
     function GetReflectionTextureCoordinatesId: Integer;
     procedure SetReflectionTextureCoordinatesId(const Value: Integer);
-    function GetReflectionTextureChannelMask: string;
-    procedure SetReflectionTextureChannelMask(const Value: string);
+    function GetReflectionTextureChannelMask: String;
+    procedure SetReflectionTextureChannelMask(const Value: String);
     function GetReflectionTexture: TAbstractTextureNode;
     procedure SetReflectionTexture(const Value: TAbstractTextureNode);
     function GetShininessFactor: Single;
@@ -126,8 +126,8 @@
     procedure SetShininessTextureId(const Value: Integer);
     function GetShininessTextureCoordinatesId: Integer;
     procedure SetShininessTextureCoordinatesId(const Value: Integer);
-    function GetShininessTextureChannelMask: string;
-    procedure SetShininessTextureChannelMask(const Value: string);
+    function GetShininessTextureChannelMask: String;
+    procedure SetShininessTextureChannelMask(const Value: String);
     function GetShininessTexture: TAbstractTextureNode;
     procedure SetShininessTexture(const Value: TAbstractTextureNode);
     function GetSpecularFactor: TVector3;
@@ -136,8 +136,8 @@
     procedure SetSpecularTextureId(const Value: Integer);
     function GetSpecularTextureCoordinatesId: Integer;
     procedure SetSpecularTextureCoordinatesId(const Value: Integer);
-    function GetSpecularTextureChannelMask: string;
-    procedure SetSpecularTextureChannelMask(const Value: string);
+    function GetSpecularTextureChannelMask: String;
+    procedure SetSpecularTextureChannelMask(const Value: String);
     function GetSpecularTexture: TAbstractTextureNode;
     procedure SetSpecularTexture(const Value: TAbstractTextureNode);
     function GetTransmissionFactor: TVector3;
@@ -146,16 +146,16 @@
     procedure SetTransmissionTextureId(const Value: Integer);
     function GetTransmissionTextureCoordinatesId: Integer;
     procedure SetTransmissionTextureCoordinatesId(const Value: Integer);
-    function GetTransmissionTextureChannelMask: string;
-    procedure SetTransmissionTextureChannelMask(const Value: string);
+    function GetTransmissionTextureChannelMask: String;
+    procedure SetTransmissionTextureChannelMask(const Value: String);
     function GetTransmissionTexture: TAbstractTextureNode;
     procedure SetTransmissionTexture(const Value: TAbstractTextureNode);
     function GetTangentTextureCoordinatesId: Integer;
     procedure SetTangentTextureCoordinatesId(const Value: Integer);
     function GetBinormalTextureCoordinatesId: Integer;
     procedure SetBinormalTextureCoordinatesId(const Value: Integer);
-    function GetInvertAlphaTexture: boolean;
-    procedure SetInvertAlphaTexture(const Value: boolean);
+    function GetInvertAlphaTexture: Boolean;
+    procedure SetInvertAlphaTexture(const Value: Boolean);
     function GetRelativeIndexOfRefraction: Single;
     procedure SetRelativeIndexOfRefraction(const Value: Single);
     function GetFresnelBlend: Single;
@@ -168,7 +168,7 @@
     { X3D field "alphaTextureCoordinatesId". } { }
     property AlphaTextureCoordinatesId: Integer read GetAlphaTextureCoordinatesId write SetAlphaTextureCoordinatesId;
     { X3D field "alphaTextureChannelMask". } { }
-    property AlphaTextureChannelMask: string read GetAlphaTextureChannelMask write SetAlphaTextureChannelMask;
+    property AlphaTextureChannelMask: String read GetAlphaTextureChannelMask write SetAlphaTextureChannelMask;
     { X3D field "alphaTexture". } { }
     property AlphaTexture: TAbstractTextureNode read GetAlphaTexture write SetAlphaTexture;
     { X3D field "ambientFactor". } { }
@@ -178,7 +178,7 @@
     { X3D field "ambientTextureCoordinatesId". } { }
     property AmbientTextureCoordinatesId: Integer read GetAmbientTextureCoordinatesId write SetAmbientTextureCoordinatesId;
     { X3D field "ambientTextureChannelMask". } { }
-    property AmbientTextureChannelMask: string read GetAmbientTextureChannelMask write SetAmbientTextureChannelMask;
+    property AmbientTextureChannelMask: String read GetAmbientTextureChannelMask write SetAmbientTextureChannelMask;
     { X3D field "ambientTexture". } { }
     property AmbientTexture: TAbstractTextureNode read GetAmbientTexture write SetAmbientTexture;
     { X3D field "diffuseFactor". } { }
@@ -188,13 +188,13 @@
     { X3D field "diffuseTextureCoordinatesId". } { }
     property DiffuseTextureCoordinatesId: Integer read GetDiffuseTextureCoordinatesId write SetDiffuseTextureCoordinatesId;
     { X3D field "diffuseTextureChannelMask". } { }
-    property DiffuseTextureChannelMask: string read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
+    property DiffuseTextureChannelMask: String read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
     { X3D field "diffuseTexture". } { }
     property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
     { X3D field "diffuseDisplacementTexture". } { }
     property DiffuseDisplacementTexture: TAbstractTextureNode read GetDiffuseDisplacementTexture write SetDiffuseDisplacementTexture;
     { X3D field "displacementAxis". } { }
-    property DisplacementAxis: string read GetDisplacementAxis write SetDisplacementAxis;
+    property DisplacementAxis: String read GetDisplacementAxis write SetDisplacementAxis;
     { X3D field "displacementFactor". } { }
     property DisplacementFactor: Single read GetDisplacementFactor write SetDisplacementFactor;
     { X3D field "displacementTextureId". } { }
@@ -210,7 +210,7 @@
     { X3D field "emissiveTextureCoordinatesId". } { }
     property EmissiveTextureCoordinatesId: Integer read GetEmissiveTextureCoordinatesId write SetEmissiveTextureCoordinatesId;
     { X3D field "emissiveTextureChannelMask". } { }
-    property EmissiveTextureChannelMask: string read GetEmissiveTextureChannelMask write SetEmissiveTextureChannelMask;
+    property EmissiveTextureChannelMask: String read GetEmissiveTextureChannelMask write SetEmissiveTextureChannelMask;
     { X3D field "emissiveTexture". } { }
     property EmissiveTexture: TAbstractTextureNode read GetEmissiveTexture write SetEmissiveTexture;
     { X3D field "environmentFactor". } { }
@@ -220,7 +220,7 @@
     { X3D field "environmentTextureCoordinatesId". } { }
     property EnvironmentTextureCoordinatesId: Integer read GetEnvironmentTextureCoordinatesId write SetEnvironmentTextureCoordinatesId;
     { X3D field "environmentTextureChannelMask". } { }
-    property EnvironmentTextureChannelMask: string read GetEnvironmentTextureChannelMask write SetEnvironmentTextureChannelMask;
+    property EnvironmentTextureChannelMask: String read GetEnvironmentTextureChannelMask write SetEnvironmentTextureChannelMask;
     { X3D field "environmentTexture". } { }
     property EnvironmentTexture: TAbstractEnvironmentTextureNode read GetEnvironmentTexture write SetEnvironmentTexture;
     { X3D field "multiDiffuseAlphaTexture". } { }
@@ -236,7 +236,7 @@
     { X3D field "normalTextureCoordinatesId". } { }
     property NormalTextureCoordinatesId: Integer read GetNormalTextureCoordinatesId write SetNormalTextureCoordinatesId;
     { X3D field "normalTextureChannelMask". } { }
-    property NormalTextureChannelMask: string read GetNormalTextureChannelMask write SetNormalTextureChannelMask;
+    property NormalTextureChannelMask: String read GetNormalTextureChannelMask write SetNormalTextureChannelMask;
     { X3D field "normalScale". } { }
     property NormalScale: TVector3 read GetNormalScale write SetNormalScale;
     { X3D field "normalBias". } { }
@@ -252,7 +252,7 @@
     { X3D field "reflectionTextureCoordinatesId". } { }
     property ReflectionTextureCoordinatesId: Integer read GetReflectionTextureCoordinatesId write SetReflectionTextureCoordinatesId;
     { X3D field "reflectionTextureChannelMask". } { }
-    property ReflectionTextureChannelMask: string read GetReflectionTextureChannelMask write SetReflectionTextureChannelMask;
+    property ReflectionTextureChannelMask: String read GetReflectionTextureChannelMask write SetReflectionTextureChannelMask;
     { X3D field "reflectionTexture". } { }
     property ReflectionTexture: TAbstractTextureNode read GetReflectionTexture write SetReflectionTexture;
     { X3D field "shininessFactor". } { }
@@ -262,7 +262,7 @@
     { X3D field "shininessTextureCoordinatesId". } { }
     property ShininessTextureCoordinatesId: Integer read GetShininessTextureCoordinatesId write SetShininessTextureCoordinatesId;
     { X3D field "shininessTextureChannelMask". } { }
-    property ShininessTextureChannelMask: string read GetShininessTextureChannelMask write SetShininessTextureChannelMask;
+    property ShininessTextureChannelMask: String read GetShininessTextureChannelMask write SetShininessTextureChannelMask;
     { X3D field "shininessTexture". } { }
     property ShininessTexture: TAbstractTextureNode read GetShininessTexture write SetShininessTexture;
     { X3D field "specularFactor". } { }
@@ -272,7 +272,7 @@
     { X3D field "specularTextureCoordinatesId". } { }
     property SpecularTextureCoordinatesId: Integer read GetSpecularTextureCoordinatesId write SetSpecularTextureCoordinatesId;
     { X3D field "specularTextureChannelMask". } { }
-    property SpecularTextureChannelMask: string read GetSpecularTextureChannelMask write SetSpecularTextureChannelMask;
+    property SpecularTextureChannelMask: String read GetSpecularTextureChannelMask write SetSpecularTextureChannelMask;
     { X3D field "specularTexture". } { }
     property SpecularTexture: TAbstractTextureNode read GetSpecularTexture write SetSpecularTexture;
     { X3D field "transmissionFactor". } { }
@@ -282,7 +282,7 @@
     { X3D field "transmissionTextureCoordinatesId". } { }
     property TransmissionTextureCoordinatesId: Integer read GetTransmissionTextureCoordinatesId write SetTransmissionTextureCoordinatesId;
     { X3D field "transmissionTextureChannelMask". } { }
-    property TransmissionTextureChannelMask: string read GetTransmissionTextureChannelMask write SetTransmissionTextureChannelMask;
+    property TransmissionTextureChannelMask: String read GetTransmissionTextureChannelMask write SetTransmissionTextureChannelMask;
     { X3D field "transmissionTexture". } { }
     property TransmissionTexture: TAbstractTextureNode read GetTransmissionTexture write SetTransmissionTexture;
     { X3D field "tangentTextureCoordinatesId". } { }
@@ -290,7 +290,7 @@
     { X3D field "binormalTextureCoordinatesId". } { }
     property BinormalTextureCoordinatesId: Integer read GetBinormalTextureCoordinatesId write SetBinormalTextureCoordinatesId;
     { X3D field "invertAlphaTexture". } { }
-    property InvertAlphaTexture: boolean read GetInvertAlphaTexture write SetInvertAlphaTexture;
+    property InvertAlphaTexture: Boolean read GetInvertAlphaTexture write SetInvertAlphaTexture;
     { X3D field "relativeIndexOfRefraction". } { }
     property RelativeIndexOfRefraction: Single read GetRelativeIndexOfRefraction write SetRelativeIndexOfRefraction;
     { X3D field "fresnelBlend". } { }
@@ -336,12 +336,12 @@ begin
   FdAlphaTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetAlphaTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetAlphaTextureChannelMask: String;
 begin
   Result := FdAlphaTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetAlphaTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetAlphaTextureChannelMask(const Value: String);
 begin
   FdAlphaTextureChannelMask.Send(Value);
 end;
@@ -389,12 +389,12 @@ begin
   FdAmbientTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetAmbientTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetAmbientTextureChannelMask: String;
 begin
   Result := FdAmbientTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetAmbientTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetAmbientTextureChannelMask(const Value: String);
 begin
   FdAmbientTextureChannelMask.Send(Value);
 end;
@@ -442,12 +442,12 @@ begin
   FdDiffuseTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetDiffuseTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetDiffuseTextureChannelMask: String;
 begin
   Result := FdDiffuseTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetDiffuseTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetDiffuseTextureChannelMask(const Value: String);
 begin
   FdDiffuseTextureChannelMask.Send(Value);
 end;
@@ -478,12 +478,12 @@ begin
   FdDiffuseDisplacementTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetDisplacementAxis: string;
+function TCommonSurfaceShaderNode.GetDisplacementAxis: String;
 begin
   Result := FdDisplacementAxis.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetDisplacementAxis(const Value: string);
+procedure TCommonSurfaceShaderNode.SetDisplacementAxis(const Value: String);
 begin
   FdDisplacementAxis.Send(Value);
 end;
@@ -561,12 +561,12 @@ begin
   FdEmissiveTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetEmissiveTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetEmissiveTextureChannelMask: String;
 begin
   Result := FdEmissiveTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetEmissiveTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetEmissiveTextureChannelMask(const Value: String);
 begin
   FdEmissiveTextureChannelMask.Send(Value);
 end;
@@ -614,12 +614,12 @@ begin
   FdEnvironmentTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetEnvironmentTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetEnvironmentTextureChannelMask: String;
 begin
   Result := FdEnvironmentTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetEnvironmentTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetEnvironmentTextureChannelMask(const Value: String);
 begin
   FdEnvironmentTextureChannelMask.Send(Value);
 end;
@@ -709,12 +709,12 @@ begin
   FdNormalTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetNormalTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetNormalTextureChannelMask: String;
 begin
   Result := FdNormalTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetNormalTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetNormalTextureChannelMask(const Value: String);
 begin
   FdNormalTextureChannelMask.Send(Value);
 end;
@@ -792,12 +792,12 @@ begin
   FdReflectionTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetReflectionTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetReflectionTextureChannelMask: String;
 begin
   Result := FdReflectionTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetReflectionTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetReflectionTextureChannelMask(const Value: String);
 begin
   FdReflectionTextureChannelMask.Send(Value);
 end;
@@ -845,12 +845,12 @@ begin
   FdShininessTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetShininessTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetShininessTextureChannelMask: String;
 begin
   Result := FdShininessTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetShininessTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetShininessTextureChannelMask(const Value: String);
 begin
   FdShininessTextureChannelMask.Send(Value);
 end;
@@ -898,12 +898,12 @@ begin
   FdSpecularTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetSpecularTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetSpecularTextureChannelMask: String;
 begin
   Result := FdSpecularTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetSpecularTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetSpecularTextureChannelMask(const Value: String);
 begin
   FdSpecularTextureChannelMask.Send(Value);
 end;
@@ -951,12 +951,12 @@ begin
   FdTransmissionTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetTransmissionTextureChannelMask: string;
+function TCommonSurfaceShaderNode.GetTransmissionTextureChannelMask: String;
 begin
   Result := FdTransmissionTextureChannelMask.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetTransmissionTextureChannelMask(const Value: string);
+procedure TCommonSurfaceShaderNode.SetTransmissionTextureChannelMask(const Value: String);
 begin
   FdTransmissionTextureChannelMask.Send(Value);
 end;
@@ -994,12 +994,12 @@ begin
   FdBinormalTextureCoordinatesId.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetInvertAlphaTexture: boolean;
+function TCommonSurfaceShaderNode.GetInvertAlphaTexture: Boolean;
 begin
   Result := FdInvertAlphaTexture.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetInvertAlphaTexture(const Value: boolean);
+procedure TCommonSurfaceShaderNode.SetInvertAlphaTexture(const Value: Boolean);
 begin
   FdInvertAlphaTexture.Send(Value);
 end;

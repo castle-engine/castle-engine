@@ -19,9 +19,12 @@
   TBoneTimeline = class abstract
   strict private
     FMaxTime: Single;
+  protected
+    IsBackup: Boolean;
   public
     Bone: TBone;
     Time: TSingleList;
+    BackupTime: TSingleList;
     Curve: boolean;
     CurveControlPoints: TVector4List;
     Node: TAbstractInterpolatorNode;
@@ -32,32 +35,35 @@
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); virtual;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: boolean; virtual; abstract;
+    procedure Backup; virtual;
+    procedure Restore; virtual;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
+  public
     { Position or scale values on the timeline.
       This always has the same length as @link(Time) list. }
     Vectors: TVector2List;
+    BackupVectors: TVector2List;
     constructor Create;
     destructor Destroy; override;
+    procedure Backup; override;
+    procedure Restore; override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
   end;
 
@@ -65,13 +71,15 @@
     { Angle values on the timeline.
       This always has the same length as @link(Time) list. }
     Angles: TSingleList;
+    BackupAngles: TSingleList;
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode;
-      const BonesToReset: TBonesAnimated); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: boolean; override;
+    procedure Backup; override;
+    procedure Restore; override;
   end;
 
   TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
@@ -82,7 +90,7 @@
 
 const
   SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
-  SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
+  // SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
 { TBoneTimeline -------------------------------------------------------------- }
 
@@ -90,12 +98,14 @@ constructor TBoneTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
+  BackupTime := TSingleList.Create;
   CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TBoneTimeline.Destroy;
 begin
   FreeAndNil(Time);
+  FreeAndNil(BackupTime);
   FreeAndNil(CurveControlPoints);
   inherited;
 end;
@@ -156,8 +166,7 @@ begin
 end;
 
 procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
 begin
@@ -170,18 +179,52 @@ begin
   Container.AddChildren(Node);
 end;
 
+procedure TBoneTimeline.Backup;
+begin
+end;
+
+procedure TBoneTimeline.Restore;
+begin
+end;
+
 { TBoneTimelineVector2 ------------------------------------------------------- }
 
 constructor TBoneTimelineVector2.Create;
 begin
   inherited Create;
   Vectors := TVector2List.Create;
+  BackupVectors := TVector2List.Create;
 end;
 
 destructor TBoneTimelineVector2.Destroy;
 begin
   FreeAndNil(Vectors);
+  FreeAndNil(BackupVectors);
   inherited;
+end;
+
+procedure TBoneTimelineVector2.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupTime.Clear;
+    BackupVectors.Clear;
+    BackupTime.AddRange(Time);
+    BackupVectors.AddRange(Vectors);
+    IsBackup := True;
+  end;
+end;
+
+procedure TBoneTimelineVector2.Restore;
+begin
+  if IsBackup then
+  begin
+    Time.Clear;
+    Vectors.Clear;
+    Time.AddRange(BackupTime);
+    Vectors.AddRange(BackupVectors);
+    IsBackup := False;
+  end;
 end;
 
 { TBoneTimelineTranslate ----------------------------------------------------- }
@@ -194,8 +237,7 @@ begin
 end;
 
 procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
   N: TPositionInterpolatorNode;
@@ -205,7 +247,7 @@ var
 begin
   if Curve then
   begin
-    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(Vector3(
@@ -220,7 +262,7 @@ begin
     //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
   end else
   begin
-    N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
       N.FdKeyValue.Items.Add(Vector3(
         { add setup pose transform, as bone timeline is relative to setup pose }
@@ -236,9 +278,6 @@ begin
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
   Container.AddRoute(Route);
-
-  if BonesToReset.Translation.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
@@ -268,8 +307,7 @@ begin
 end;
 
 procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   { Combine initial node scale and 2D key scale into a final scale. }
   function FinalScale(const InitialScale: TVector3;
@@ -293,7 +331,7 @@ var
 begin
   if Curve then
   begin
-    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
@@ -305,7 +343,7 @@ begin
     //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
   end else
   begin
-    N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + Bone.Name);
     for I := 0 to Vectors.Count - 1 do
       N.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
     EventValueChanged := N.EventValue_changed;
@@ -317,9 +355,6 @@ begin
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
   Container.AddRoute(Route);
-
-  if BonesToReset.Scale.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
@@ -346,11 +381,13 @@ constructor TBoneTimelineRotate.Create;
 begin
   inherited;
   Angles := TSingleList.Create;
+  BackupAngles := TSingleList.Create;
 end;
 
 destructor TBoneTimelineRotate.Destroy;
 begin
   FreeAndNil(Angles);
+  FreeAndNil(BackupAngles);
   inherited;
 end;
 
@@ -360,24 +397,24 @@ begin
 end;
 
 procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode;
-  const BonesToReset: TBonesAnimated);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
-  N: TOrientationInterpolatorNode;
+  N: TOrientationInterpolator2DNode;
   NC: TCubicBezier2DOrientationInterpolatorNode;
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
+  AngleValue: Single;
 begin
   if Curve then
   begin
-    NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + Bone.Name);
     NC.FdAxis.Value := Vector3(0, 0, 1);
     for I := 0 to Angles.Count - 1 do
     begin
-      NC.FdKeyValue.Items.Add(
-        { add setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]));
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]);
+      NC.FdKeyValue.Items.Add(AngleValue);
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
     NC.OptimizeControlPoints;
@@ -386,12 +423,41 @@ begin
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);
   end else
   begin
-    N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    { We use TOrientationInterpolator2DNode instead of
+      TOrientationInterpolatorNode with constant axis.
+      This is not only for optimization (TOrientationInterpolator2DNode
+      does trivial lerp using AngleLerp, instead of SLerp on 3D rotations),
+      it's also for correctness: TOrientationInterpolatorNode could choose
+      to interpolate through a 3D space sometimes, it seems.
+
+      Testcase: Unholy exorcist going_on_ladder_up animation hand movement.
+      It could do unexpected interpolation using slerp:
+      (this was before SLerp was hacked to specially honor case when Rot1Axis equals Rot2Axis).
+
+          uses CastleVectors, CastleQuaternions;
+          const
+            Steps = 10;
+          var
+            V: TVector4;
+            I: Integer;
+          begin
+            for I := 0 to Steps - 1 do
+            begin
+              V := SLerp(I / (Steps - 1),
+                Vector4(0, 0, 1, -1.6584116220474243),
+                Vector4(0, 0, 1, 4.6247735023498535)
+              );
+              Writeln(V.ToString);
+            end;
+          end.
+    }
+    N := TOrientationInterpolator2DNode.Create('BoneTimeline_rotate_' + Bone.Name);
     for I := 0 to Angles.Count - 1 do
-      N.FdKeyValue.Items.Add(Vector4(0, 0, 1,
-        { add setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdRotation.Value[3] +
-        DegToRad(Angles[I])));
+    begin
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      AngleValue := Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]);
+      N.FdKeyValue.Items.Add(AngleValue);
+    end;
     EventValueChanged := N.EventValue_changed;
     Node := N;
   end;
@@ -402,9 +468,6 @@ begin
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
   Container.AddRoute(Route);
-
-  if BonesToReset.Rotation.Remove(Bone) = -1 then
-    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
@@ -422,6 +485,30 @@ begin
     if Angles[I] <> 0 then
       Exit(true);
   Result := false;
+end;
+
+procedure TBoneTimelineRotate.Backup;
+begin
+  if not IsBackup then
+  begin
+    BackupTime.Clear;
+    BackupAngles.Clear;
+    BackupTime.AddRange(Time);
+    BackupAngles.AddRange(Angles);
+    IsBackup := True;
+  end;
+end;
+
+procedure TBoneTimelineRotate.Restore;
+begin
+  if IsBackup then
+  begin
+    Time.Clear;
+    Angles.Clear;
+    Time.AddRange(BackupTime);
+    Angles.AddRange(BackupAngles);
+    IsBackup := False;
+  end;
 end;
 
 {$endif}

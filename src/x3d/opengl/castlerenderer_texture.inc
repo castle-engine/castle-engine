@@ -270,7 +270,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
       const CurrentViewpoint: TAbstractViewpointNode;
       const CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3;
@@ -335,7 +334,6 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
       const CubeMiddle: TVector3);
   end;
 
@@ -384,8 +382,7 @@
     procedure Update(
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      var NeedsRestoreViewport: boolean;
-      Light: TAbstractLightNode);
+      const Light: TAbstractPunctualLightNode);
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
@@ -397,6 +394,7 @@
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
+    function TextureNode: TShaderTextureNode;
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
@@ -444,7 +442,13 @@ procedure TGLTextureNode.HandleTextureProperties(
   function FinalMinificationFilter(const FilterAuto: TAutoMinificationFilter): TMinificationFilter;
   begin
     case FilterAuto of
-      minDefault: Result := Renderer.Attributes.MinificationFilter;
+      minDefault:
+        case Renderer.Attributes.MinificationFilter of
+          minDefault: Result := TRenderingAttributes.DefaultMinificationFilter;
+          minFastest: Result := minNearest;
+          minNicest : Result := minLinearMipmapLinear;
+          else        Result := Renderer.Attributes.MinificationFilter;
+        end;
       minFastest: Result := minNearest;
       minNicest : Result := minLinearMipmapLinear;
       else        Result := FilterAuto;
@@ -456,7 +460,13 @@ procedure TGLTextureNode.HandleTextureProperties(
   function FinalMagnificationFilter(const FilterAuto: TAutoMagnificationFilter): TMagnificationFilter;
   begin
     case FilterAuto of
-      magDefault: Result := Renderer.Attributes.MagnificationFilter;
+      magDefault:
+        case Renderer.Attributes.MagnificationFilter of
+          magDefault: Result := TRenderingAttributes.DefaultMagnificationFilter;
+          magFastest: Result := magNearest;
+          magNicest : Result := magLinear;
+          else        Result := Renderer.Attributes.MagnificationFilter;
+        end;
       magFastest: Result := magNearest;
       magNicest : Result := magLinear;
       else        Result := FilterAuto;
@@ -912,7 +922,6 @@ begin
   FGLName := Renderer.Cache.TextureImage_IncReference(
     TextureNode.TextureImage,
     TextureNode.TextureUsedFullUrl,
-    TextureNode,
     Filter,
     Anisotropy,
     TextureWrap,
@@ -995,7 +1004,7 @@ begin
   GLVideo := Renderer.Cache.TextureVideo_IncReference(
     TextureNode.TextureVideo,
     TextureNode.TextureUsedFullUrl,
-    TextureNode,
+    TextureNode.FlipVertically,
     Filter,
     Anisotropy,
     TextureWrap,
@@ -1135,7 +1144,8 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, smNone, Width, Height, false);
+      '' { generated texture contents means empty URL },
+      TextureWrap, smNone, Width, Height, false);
   end else
   begin
     InitialImage := TRGBImage.Create(Width, Height);
@@ -1150,8 +1160,7 @@ begin
 
       FGLName := Renderer.Cache.TextureImage_IncReference(
         InitialImage,
-        '',
-        TextureNode,
+        '' { generated texture contents means empty URL },
         Filter,
         Anisotropy,
         TextureWrap,
@@ -1219,7 +1228,6 @@ end;
 procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
   const CurrentViewpoint: TAbstractViewpointNode;
   const CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3;
@@ -1229,13 +1237,13 @@ procedure TGLRenderedTextureNode.Update(
   var MirrorPlaneUniforms: TMirrorPlaneUniforms);
 
   function GetProjectionMatrix(const Viewpoint: TAbstractViewpointNode): TMatrix4;
-  { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
-    we have to calculate projection, given Viewpoint node.
+  { We have to calculate projection, given Viewpoint node.
+    Similar to TCastleSceneCore.InternalUpdateCamera.
 
     We have to calculate things a little differently, e.g. we have
-    no NavigationInfo (it would be bad to use scene bound NavigationInfo,
-    since VRML author cannot change it by any RenderedTexture field,
-    and adding such field could be too much...),
+    no NavigationInfo (it could be undesirable to use scene bound NavigationInfo,
+    since X3D author cannot change it by any RenderedTexture field,
+    and for now we have no field RenderedTexture.navigationInfo...),
     no knowledge of scene box (although we do have ProjectionNear / Far
     already).
   }
@@ -1243,28 +1251,30 @@ procedure TGLRenderedTextureNode.Update(
     procedure DoPerspective;
     var
       FieldOfView, AngleOfViewY: Single;
-      FieldOfViewForceVertical: boolean;
+      FieldOfViewAxis: TFieldOfViewAxis;
       Angles: TVector2;
     begin
       if (Viewpoint <> nil) and
          (Viewpoint is TViewpointNode) then
       begin
         FieldOfView := TViewpointNode(Viewpoint).FieldOfView;
-        FieldOfViewForceVertical := TViewpointNode(Viewpoint).FieldOfViewForceVertical;
+        if TViewpointNode(Viewpoint).FieldOfViewForceVertical then
+          FieldOfViewAxis := faVertical
+        else
+          FieldOfViewAxis := faSmallest;
       end else
       if (Viewpoint <> nil) and
          (Viewpoint is TPerspectiveCameraNode_1) then
       begin
         FieldOfView := TPerspectiveCameraNode_1(Viewpoint).FdHeightAngle.Value;
-        FieldOfViewForceVertical := false;
+        FieldOfViewAxis := faSmallest;
       end else
       begin
         FieldOfView := DefaultViewpointFieldOfView;
-        FieldOfViewForceVertical := false;
+        FieldOfViewAxis := faSmallest;
       end;
 
-      Angles := TViewpointNode.ViewpointAngleOfView(
-        FieldOfView, FieldOfViewForceVertical, Width, Height);
+      Angles := TViewpointNode.InternalFieldOfView(FieldOfView, FieldOfViewAxis, Width, Height);
       AngleOfViewY := RadToDeg(Angles[1]);
 
       Result := PerspectiveProjectionMatrixDeg(AngleOfViewY, Width / Height,
@@ -1301,7 +1311,8 @@ procedure TGLRenderedTextureNode.Update(
         FinalFieldOfView.Height :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value;
       end;
 
-      TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);
+      FinalFieldOfView := TOrthoViewpointNode.InternalFieldOfView(
+        FinalFieldOfView, Width, Height);
 
       Result := OrthoProjectionMatrix(FinalFieldOfView, ProjectionNear, ProjectionFar);
     end;
@@ -1317,8 +1328,9 @@ procedure TGLRenderedTextureNode.Update(
     case ProjectionType of
       ptPerspective: DoPerspective;
       ptOrthographic: DoOrthographic;
-      ptFrustum: raise EInternalError.Create('TGLRenderedTextureNode.Update: X3D Viewpoint node should not be able to specify ptFrustum projection');
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TGLRenderedTextureNode.Update-ProjectionType?');
+      {$endif}
     end;
   end;
 
@@ -1494,6 +1506,7 @@ procedure TGLRenderedTextureNode.Update(
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
   Camera: TRenderingCamera;
+  SavedViewport: TRectangle;
 begin
   if FGLName = 0 then Exit;
 
@@ -1523,6 +1536,7 @@ begin
 
     RenderToTexture.RenderBegin;
 
+      SavedViewport := RenderContext.Viewport;
       RenderContext.Viewport := Rectangle(0, 0, Width, Height);
 
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
@@ -1531,6 +1545,7 @@ begin
       Render(Camera);
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.Viewport := SavedViewport;
 
     RenderToTexture.RenderEnd;
   finally FreeAndNil(Camera) end;
@@ -1543,8 +1558,6 @@ begin
     RenderToTexture.GenerateMipmap;
 
   TextureNode.EventRendering.Send(false);
-
-  NeedsRestoreViewport := true;
 end;
 
 function TGLRenderedTextureNode.GLName: TGLTextureId;
@@ -1634,7 +1647,9 @@ begin
     SetTextureRGBFromImage(RightRot);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      { TODO: we could implement TComposedCubeMapTextureNode.TextureUsedFullUrl
+        by glueing 6 URLs for 6 sides, and pass it below. }
+      '',
       Filter, Anisotropy,
       { positive x } RightRot,
       { negative x } LeftRot,
@@ -1698,7 +1713,8 @@ begin
     SetTextureRGBFromImage(Composite.CubeMapImage(csPositiveX));
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      { TODO: we could implement TImageCubeMapTextureNode.TextureUsedFullUrl and pass it below. }
+      '',
       Filter, Anisotropy,
       Composite.CubeMapImage(csPositiveX),
       Composite.CubeMapImage(csNegativeX),
@@ -1778,7 +1794,7 @@ begin
     SetTextureRGBFromImage(InitialImage);
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
-      TextureNode,
+      '' { generated texture contents means empty URL },
       Filter, Anisotropy,
       InitialImage, InitialImage,
       InitialImage, InitialImage,
@@ -1826,7 +1842,6 @@ end;
 procedure TGLGeneratedCubeMapTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
   const CubeMiddle: TVector3);
 begin
   if GLName = 0 then Exit;
@@ -1840,8 +1855,6 @@ begin
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
-
-  NeedsRestoreViewport := true;
 end;
 
 { TGL3DTextureNode ----------------------------------------------------------- }
@@ -1887,7 +1900,9 @@ begin
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
   GLName := Renderer.Cache.Texture3D_IncReference(
-    TextureNode, Filter, Anisotropy,
+    { TODO: We could implement TAbstractTexture3DNode.TextureUsedFullUrl }
+    '',
+    Filter, Anisotropy,
     TextureWrap, TextureNode.TextureImage, TextureNode.TextureComposite);
 end;
 
@@ -1954,12 +1969,11 @@ begin
 
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
 
-  if Log then
-    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
-      [ BoolToStr(VarianceShadowMaps, true),
-        ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
-        GLSupportNames[GLFeatures.Shaders],
-        BoolToStr(GLFeatures.TextureFloat, true) ]));
+  WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
+    [ BoolToStr(VarianceShadowMaps, true),
+      ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
+      GLSupportNames[GLFeatures.Shaders],
+      BoolToStr(GLFeatures.TextureFloat, true) ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
@@ -1988,7 +2002,8 @@ begin
   if VarianceShadowMaps then
   begin
     FGLName := Renderer.Cache.TextureFloat_IncReference(
-      TextureNode, Filter, TextureWrap, Size, Size, true);
+      '' { generated texture contents means empty URL },
+      Filter, TextureWrap, Size, Size, true);
   end else
   begin
     if not GLFeatures.TextureDepth then
@@ -1998,7 +2013,8 @@ begin
     end;
 
     FGLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, TextureNode.CompareMode, Size, Size,
+      '' { generated texture contents means empty URL },
+      TextureWrap, TextureNode.CompareMode, Size, Size,
       VisualizeDepthMap);
   end;
 
@@ -2053,10 +2069,10 @@ end;
 procedure TGLGeneratedShadowMap.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  var NeedsRestoreViewport: boolean;
-  Light: TAbstractLightNode);
+  const Light: TAbstractPunctualLightNode);
 var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
+  SavedViewport: TRectangle;
   SavedDepthRange: TDepthRange;
   Camera: TRenderingCamera;
 begin
@@ -2079,6 +2095,7 @@ begin
 
     RenderToTexture.RenderBegin;
 
+      SavedViewport := RenderContext.Viewport;
       RenderContext.Viewport := Rectangle(0, 0, Size, Size);
 
       SavedProjectionMatrix := RenderContext.ProjectionMatrix;
@@ -2104,10 +2121,15 @@ begin
         Render(Camera);
 
         glDisable(GL_POLYGON_OFFSET_FILL);
+        {$ifndef OpenGLES} // These do not exist on OpenGLES
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glDisable(GL_POLYGON_OFFSET_POINT);
+        {$endif}
 
         RenderContext.DepthRange := SavedDepthRange;
 
       RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.Viewport := SavedViewport;
 
     RenderToTexture.RenderEnd;
 
@@ -2115,8 +2137,6 @@ begin
 
   if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
-
-  NeedsRestoreViewport := true;
 end;
 
 function TGLGeneratedShadowMap.GLName: TGLTextureId;
@@ -2159,6 +2179,11 @@ begin
   if not Result then Exit;
 
   Shader.EnableTexture(TextureUnit, ttShader, TextureNode, Env);
+end;
+
+function TGLShaderTexture.TextureNode: TShaderTextureNode;
+begin
+  Result := TShaderTextureNode(inherited TextureNode);
 end;
 
 {$endif read_implementation}

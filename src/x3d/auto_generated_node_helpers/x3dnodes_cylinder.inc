@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,31 +26,31 @@
 {$ifdef read_interface}
 
   strict private
-    function GetBottom: boolean;
-    procedure SetBottom(const Value: boolean);
+    function GetBottom: Boolean;
+    procedure SetBottom(const Value: Boolean);
     function GetHeight: Single;
     procedure SetHeight(const Value: Single);
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
-    function GetSide: boolean;
-    procedure SetSide(const Value: boolean);
-    function GetTop: boolean;
-    procedure SetTop(const Value: boolean);
+    function GetSide: Boolean;
+    procedure SetSide(const Value: Boolean);
+    function GetTop: Boolean;
+    procedure SetTop(const Value: Boolean);
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
     function GetStacks: Integer;
     procedure SetStacks(const Value: Integer);
   public
     { X3D field "bottom". } { }
-    property Bottom: boolean read GetBottom write SetBottom;
+    property Bottom: Boolean read GetBottom write SetBottom;
     { X3D field "height". } { }
     property Height: Single read GetHeight write SetHeight;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
     { X3D field "side". } { }
-    property Side: boolean read GetSide write SetSide;
+    property Side: Boolean read GetSide write SetSide;
     { X3D field "top". } { }
-    property Top: boolean read GetTop write SetTop;
+    property Top: Boolean read GetTop write SetTop;
     { X3D field "slices". } { }
     property Slices: Integer read GetSlices write SetSlices;
     { X3D field "stacks". } { }
@@ -62,12 +62,12 @@
 
 { TCylinderNode ----------------------------------------------- }
 
-function TCylinderNode.GetBottom: boolean;
+function TCylinderNode.GetBottom: Boolean;
 begin
   Result := FdBottom.Value;
 end;
 
-procedure TCylinderNode.SetBottom(const Value: boolean);
+procedure TCylinderNode.SetBottom(const Value: Boolean);
 begin
   FdBottom.Send(Value);
 end;
@@ -92,22 +92,22 @@ begin
   FdRadius.Send(Value);
 end;
 
-function TCylinderNode.GetSide: boolean;
+function TCylinderNode.GetSide: Boolean;
 begin
   Result := FdSide.Value;
 end;
 
-procedure TCylinderNode.SetSide(const Value: boolean);
+procedure TCylinderNode.SetSide(const Value: Boolean);
 begin
   FdSide.Send(Value);
 end;
 
-function TCylinderNode.GetTop: boolean;
+function TCylinderNode.GetTop: Boolean;
 begin
   Result := FdTop.Value;
 end;
 
-procedure TCylinderNode.SetTop(const Value: boolean);
+procedure TCylinderNode.SetTop(const Value: Boolean);
 begin
   FdTop.Send(Value);
 end;

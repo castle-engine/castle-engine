@@ -7,5 +7,5 @@ He's also a teacher in Soda Studio ( http://studiosoda.pl/ ),
 Polish art school.
 Thanks!
 
-All the animation/image data is licensed on the GNU GPL >= 2 terms,
-sources are provided here.
+Shared on the same terms as the rest of Castle Game Engine
+(GPL >= 2 or LGPL >= 2 with static linking exception, see COPYING.txt).

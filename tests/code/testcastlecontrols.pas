@@ -19,17 +19,18 @@ unit TestCastleControls;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleControls = class(TCastleTestCase)
   published
     procedure TestFloatSliderRoundAndClamp;
+    procedure TestAssigningImageURL;
   end;
 
 implementation
 
-uses CastleVectors, CastleControls;
+uses CastleVectors, CastleControls, CastleImages;
 
 procedure TTestCastleControls.TestFloatSliderRoundAndClamp;
 const
@@ -90,6 +91,26 @@ begin
     AssertSameValue(-10, F.RoundAndClamp(-5), Epsilon);
     AssertSameValue(-20, F.RoundAndClamp(-25), Epsilon);
   finally FreeAndNil(F) end;
+end;
+
+procedure TTestCastleControls.TestAssigningImageURL;
+var
+  C, C2: TCastleImageControl;
+begin
+  C := TCastleImageControl.Create(nil);
+  try
+    C2 := TCastleImageControl.Create(nil);
+    try
+      C.URL := 'castle-data:/images/alpha.png';
+      C.URL := 'castle-data:/images/alpha.png';
+
+      C2.URL := 'castle-data:/images/alpha.png';
+      C2.URL := '';
+
+      C.Image := LoadImage('castle-data:/images/alpha.png');
+      C.Image := C.Image;
+    finally FreeAndNil(C2) end;
+  finally FreeAndNil(C) end;
 end;
 
 initialization

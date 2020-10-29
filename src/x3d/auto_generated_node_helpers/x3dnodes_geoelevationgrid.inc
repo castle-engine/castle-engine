@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,18 +34,18 @@
     procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetYScale: Single;
     procedure SetYScale(const Value: Single);
-    function GetCcw: boolean;
-    procedure SetCcw(const Value: boolean);
-    function GetColorPerVertex: boolean;
-    procedure SetColorPerVertex(const Value: boolean);
+    function GetCcw: Boolean;
+    procedure SetCcw(const Value: Boolean);
+    function GetColorPerVertex: Boolean;
+    procedure SetColorPerVertex(const Value: Boolean);
     function GetCreaseAngle: Double;
     procedure SetCreaseAngle(const Value: Double);
     function GetGeoGridOrigin: TVector3Double;
     procedure SetGeoGridOrigin(const Value: TVector3Double);
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
-    function GetNormalPerVertex: boolean;
-    procedure SetNormalPerVertex(const Value: boolean);
+    function GetNormalPerVertex: Boolean;
+    procedure SetNormalPerVertex(const Value: Boolean);
     function GetXDimension: Integer;
     procedure SetXDimension(const Value: Integer);
     function GetXSpacing: Double;
@@ -64,9 +64,9 @@
     { X3D field "yScale". } { }
     property YScale: Single read GetYScale write SetYScale;
     { X3D field "ccw". } { }
-    property Ccw: boolean read GetCcw write SetCcw;
+    property Ccw: Boolean read GetCcw write SetCcw;
     { X3D field "colorPerVertex". } { }
-    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property ColorPerVertex: Boolean read GetColorPerVertex write SetColorPerVertex;
     { X3D field "creaseAngle". } { }
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
     { X3D field "geoGridOrigin". } { }
@@ -82,7 +82,7 @@
     { Set X3D field "height". } { }
     procedure SetHeight(const Value: TDoubleList);
     { X3D field "normalPerVertex". } { }
-    property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    property NormalPerVertex: Boolean read GetNormalPerVertex write SetNormalPerVertex;
     { X3D field "xDimension". } { }
     property XDimension: Integer read GetXDimension write SetXDimension;
     { X3D field "xSpacing". } { }
@@ -147,22 +147,22 @@ begin
   FdYScale.Send(Value);
 end;
 
-function TGeoElevationGridNode.GetCcw: boolean;
+function TGeoElevationGridNode.GetCcw: Boolean;
 begin
   Result := FdCcw.Value;
 end;
 
-procedure TGeoElevationGridNode.SetCcw(const Value: boolean);
+procedure TGeoElevationGridNode.SetCcw(const Value: Boolean);
 begin
   FdCcw.Send(Value);
 end;
 
-function TGeoElevationGridNode.GetColorPerVertex: boolean;
+function TGeoElevationGridNode.GetColorPerVertex: Boolean;
 begin
   Result := FdColorPerVertex.Value;
 end;
 
-procedure TGeoElevationGridNode.SetColorPerVertex(const Value: boolean);
+procedure TGeoElevationGridNode.SetColorPerVertex(const Value: Boolean);
 begin
   FdColorPerVertex.Send(Value);
 end;
@@ -220,12 +220,12 @@ begin
   FdHeight.Send(Value);
 end;
 
-function TGeoElevationGridNode.GetNormalPerVertex: boolean;
+function TGeoElevationGridNode.GetNormalPerVertex: Boolean;
 begin
   Result := FdNormalPerVertex.Value;
 end;
 
-procedure TGeoElevationGridNode.SetNormalPerVertex(const Value: boolean);
+procedure TGeoElevationGridNode.SetNormalPerVertex(const Value: Boolean);
 begin
   FdNormalPerVertex.Send(Value);
 end;

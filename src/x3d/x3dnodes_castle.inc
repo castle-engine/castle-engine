@@ -45,8 +45,6 @@
     strict private FFdSpotDropOffRate: TSFFloat;
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
   end;
 
@@ -63,8 +61,6 @@
     strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
   end;
 
@@ -80,7 +76,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdSrcFactor: TSFString;
     public property FdSrcFactor: TSFString read FFdSrcFactor;
@@ -105,8 +100,6 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
 
@@ -122,7 +115,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdReplaceNames: TMFString;
     public property FdReplaceNames: TMFString read FFdReplaceNames;
@@ -145,7 +137,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdTimeOriginAtLoad: TSFBool;
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
@@ -183,7 +174,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdMaxDepth: TSFInt32;
     public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
@@ -201,7 +191,7 @@
 
   { Generate texture by rendering a depth (shadow) map.
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
-  TGeneratedShadowMapNode = class(TAbstractTextureNode)
+  TGeneratedShadowMapNode = class(TAbstractSingleTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
     function GetCompareMode: TShadowMapCompareMode;
@@ -218,7 +208,6 @@
     destructor Destroy; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -255,12 +244,11 @@
 
   { Generate texture coordinates by projection.
     See https://castle-engine.io/x3d_extensions_shadow_maps.php }
-  TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
+  TProjectedTextureCoordinateNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
 
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdProjector: TSFNode;
     public property FdProjector: TSFNode read FFdProjector;
@@ -281,7 +269,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
@@ -326,7 +313,6 @@
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
@@ -339,10 +325,11 @@
   strict private
     function GetLanguage: TShaderLanguage;
     procedure SetLanguage(const Value: TShaderLanguage);
+  protected
+    procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdLanguage: TSFStringEnum;
     public property FdLanguage: TSFStringEnum read FFdLanguage;
@@ -372,7 +359,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
@@ -400,11 +386,10 @@
 
   { Procedural texture defined by shaders.
     See https://castle-engine.io/compositing_shaders.php . }
-  TShaderTextureNode = class(TAbstractTextureNode)
+  TShaderTextureNode = class(TAbstractSingleTextureNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdDefaultTexCoord: TSFString;
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
@@ -416,10 +401,30 @@
     See https://castle-engine.io/x3d_extensions_mirror_plane.php . }
   TViewpointMirrorNode = class(TX3DNode)
   public
-    class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
-
     {$I auto_generated_node_helpers/x3dnodes_viewpointmirror.inc}
+  end;
+
+  { Interpolate (animate) a 2D orientation,
+    during which angle changes but axis remains constant. }
+  TOrientationInterpolator2DNode = class(TAbstractInterpolatorNode)
+  strict private
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
+      const Time: TX3DTime);
+  public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdKeyValue: TMFFloat;
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
+
+    strict private FFdAxis: TSFVec3f;
+    public property FdAxis: TSFVec3f read FFdAxis;
+
+    { Event out } { }
+    strict private FEventValue_changed: TSFRotationEvent;
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator2d.inc}
   end;
 
 {$endif read_interface}
@@ -467,22 +472,9 @@ begin
   AddField(FFdSpotDropOffRate);
 end;
 
-class function TKambiHeadLightNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
-end;
-
 class function TText3DNode.ClassX3DType: string;
 begin
   Result := 'Text3D';
-end;
-
-class function TText3DNode.URNMatching(const URN: string): boolean;
-begin
-  Result :=
-    { do not call (inherited URNMatching(URN)), since we don't match Text node rules }
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TText3DNode.CreateNode;
@@ -490,7 +482,7 @@ begin
   inherited;
 
   FFdDepth := TSFFloat.Create(Self, true, 'depth', 0.1, true);
-   FdDepth.ChangesAlways := [chGeometry];
+   FdDepth.ChangeAlways := chGeometry;
   AddField(FFdDepth);
 end;
 
@@ -501,30 +493,24 @@ begin
   Result := 'BlendMode';
 end;
 
-class function TBlendModeNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TBlendModeNode.CreateNode;
 begin
   inherited;
 
   FFdSrcFactor := TSFString.Create(Self, true, 'srcFactor', 'src_alpha');
-   FdSrcFactor.ChangesAlways := [chVisibleNonGeometry];
+   FdSrcFactor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdSrcFactor);
 
   FFdDestFactor := TSFString.Create(Self, true, 'destFactor', 'one_minus_src_alpha');
-   FdDestFactor.ChangesAlways := [chVisibleNonGeometry];
+   FdDestFactor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdDestFactor);
 
   FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
-   FdColor.ChangesAlways := [chVisibleNonGeometry];
+   FdColor.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdColor);
 
   FFdColorTransparency := TSFFloat.Create(Self, true, 'colorTransparency', 0.0);
-   FdColorTransparency.ChangesAlways := [chVisibleNonGeometry];
+   FdColorTransparency.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdColorTransparency);
 
   DefaultContainerField := 'blendMode';
@@ -533,13 +519,6 @@ end;
 class function TKambiAppearanceNode.ClassX3DType: string;
 begin
   Result := 'KambiAppearance';
-end;
-
-class function TKambiAppearanceNode.URNMatching(const URN: string): boolean;
-begin
-  { Don't call "inherited URNMatching(URN)", since we don't want to
-    "intercept" URNs that should indicate standard Appearance node. }
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TKambiAppearanceNode.CreateNode;
@@ -561,13 +540,6 @@ end;
 class function TKambiInlineNode.ClassX3DType: string;
 begin
   Result := 'KambiInline';
-end;
-
-class function TKambiInlineNode.URNMatching(const URN: string): boolean;
-begin
-  { Don't call "inherited URNMatching(URN)", since we don't want to
-    "intercept" URNs that should indicate standard Inline node. }
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TKambiInlineNode.AfterLoadInlined;
@@ -632,12 +604,12 @@ begin
   FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
-  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
-   FdHeadBobbing.ChangesAlways := [chNavigationInfo];
+  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TCastleWalkNavigation.DefaultHeadBobbing, true);
+   FdHeadBobbing.ChangeAlways := chNavigationInfo;
   AddField(FFdHeadBobbing);
 
-  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
-   FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
+  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TCastleWalkNavigation.DefaultHeadBobbingTime, true);
+   FdHeadBobbingTime.ChangeAlways := chNavigationInfo;
   AddField(FdHeadBobbingTime);
 
   FFdHeadlightNode := TSFNode.Create(Self, true, 'headlightNode', [TAbstractLightNode]);
@@ -647,11 +619,6 @@ end;
 class function TKambiNavigationInfoNode.ClassX3DType: string;
 begin
   Result := 'KambiNavigationInfo';
-end;
-
-class function TKambiNavigationInfoNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TKambiNavigationInfoNode.OctreeProperties(
@@ -664,7 +631,9 @@ begin
     opDynamicCollisions: N := FdOctreeDynamicCollisions  .Value;
     opVisibleTriangles : N := FdOctreeVisibleTriangles   .Value;
     opStaticCollisions : N := FdOctreeStaticCollisions.Value;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TKambiOctreePropertiesNode.OctreeProperties');
+    {$endif}
   end;
   if N is TKambiOctreePropertiesNode then
     Result := TKambiOctreePropertiesNode(N) else
@@ -676,22 +645,17 @@ begin
   inherited;
 
   FFdMaxDepth := TSFInt32.Create(Self, true, 'maxDepth', -1);
-   FdMaxDepth.ChangesAlways := [chEverything];
+   FdMaxDepth.ChangeAlways := chEverything;
   AddField(FFdMaxDepth);
 
   FFdLeafCapacity := TSFInt32.Create(Self, true, 'leafCapacity', -1);
-   FdLeafCapacity.ChangesAlways := [chEverything];
+   FdLeafCapacity.ChangeAlways := chEverything;
   AddField(FFdLeafCapacity);
 end;
 
 class function TKambiOctreePropertiesNode.ClassX3DType: string;
 begin
   Result := 'KambiOctreeProperties';
-end;
-
-class function TKambiOctreePropertiesNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TKambiOctreePropertiesNode.OverrideLimits(var Limits: TOctreeLimits);
@@ -719,7 +683,7 @@ begin
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
   FFdSize := TSFInt32.Create(Self, false, 'size', DefaultSize, { MustBeNonnegative } true);
-   FdSize.ChangesAlways := [chTextureRendererProperties];
+   FdSize.ChangeAlways := chTextureRendererProperties;
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
@@ -729,20 +693,20 @@ begin
     to override it's transform with transformation of this
     GeneratedShadowMap. }
   FFdLight := TSFNode.Create(Self, true, 'light', [TAbstractLightNode]);
-   FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+   FdLight.ChangeAlways := chGeneratedTextureUpdateNeeded;
    FdLight.WeakLink := true;
   AddField(FFdLight);
 
   FFdScale := TSFFloat.Create(Self, true, 'scale', DefaultScale, { MustBeNonnegative } true);
-   FdScale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+   FdScale.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdScale);
 
   FFdBias := TSFFloat.Create(Self, true, 'bias', DefaultBias, { MustBeNonnegative } true);
-   FdBias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+   FdBias.ChangeAlways := chGeneratedTextureUpdateNeeded;
   AddField(FFdBias);
 
   FFdCompareMode := TSFStringEnum.Create(Self, true, 'compareMode', CompareModeNames, Ord(smCompareRLEqual));
-   FdCompareMode.ChangesAlways := [chTextureRendererProperties];
+   FdCompareMode.ChangeAlways := chTextureRendererProperties;
   AddField(FFdCompareMode);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
@@ -758,11 +722,6 @@ end;
 class function TGeneratedShadowMapNode.ClassX3DType: string;
 begin
   Result := 'GeneratedShadowMap';
-end;
-
-class function TGeneratedShadowMapNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TGeneratedShadowMapNode.GetCompareMode: TShadowMapCompareMode;
@@ -794,11 +753,14 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
-  FFdProjector := TSFNode.Create(Self, true, 'projector',
-    [TSpotLightNode_1, TDirectionalLightNode_1,
-     TSpotLightNode  , TDirectionalLightNode  ,
-     TAbstractX3DViewpointNode]);
-   FFdprojector.ChangesAlways := [chTextureCoordinate];
+  FFdProjector := TSFNode.Create(Self, true, 'projector', [
+    TSpotLightNode_1,
+    TDirectionalLightNode_1,
+    TSpotLightNode,
+    TDirectionalLightNode,
+    TAbstractViewpointNode
+  ]);
+   FFdprojector.ChangeAlways := chTextureCoordinate;
   AddField(FFdProjector);
 end;
 
@@ -807,27 +769,20 @@ begin
   Result := 'ProjectedTextureCoordinate';
 end;
 
-class function TProjectedTextureCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 procedure TScreenEffectNode.CreateNode;
 begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangesAlways := [chScreenEffectEnabled];
+   FdEnabled.ChangeAlways := chScreenEffectEnabled;
   AddField(FFdEnabled);
 
   FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
-   FdShaders.ChangesAlways := [chEverything];
+   FdShaders.ChangeAlways := chEverything;
   AddField(FFdShaders);
 
   FFdNeedsDepth := TSFBool.Create(Self, true, 'needsDepth', false);
-   { no change needed, TCastleScene recalculates NeedsDepth every time
-     when ScreenEffectsNeedDepth is called by scene manager. }
-   FdNeedsDepth.ChangesAlways := [];
+   FdNeedsDepth.ChangeAlways := chRedisplay;
   AddField(FFdNeedsDepth);
 
   FStateForShaderPrepare := TX3DGraphTraverseState.Create;
@@ -844,11 +799,6 @@ begin
   Result := 'ScreenEffect';
 end;
 
-class function TScreenEffectNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
 function TScreenEffectNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := inherited;
@@ -863,38 +813,38 @@ begin
   Result := 'MultiGeneratedTextureCoordinate';
 end;
 
-class function TMultiGeneratedTextureCoordinateNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
-end;
+{ TEffectNode ---------------------------------------------------------------- }
 
 procedure TEffectNode.CreateNode;
 begin
   inherited;
 
   FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.ChangesAlways := [chEverything];
+   FdLanguage.ChangeAlways := chEverything;
   AddField(FFdLanguage);
 
   FFdParts := TMFNode.Create(Self, false, 'parts', [TEffectPartNode]);
-   FdParts.ChangesAlways := [chEverything];
+   FdParts.ChangeAlways := chEverything;
   AddField(FFdParts);
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
-   FdEnabled.ChangesAlways := [chVisibleNonGeometry];
+   FdEnabled.ChangeAlways := chVisibleNonGeometry;
   AddField(FFdEnabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
+procedure TEffectNode.GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean);
+begin
+  inherited;
+  if State.Effects = nil then
+    State.Effects := TX3DNodeList.Create(false);
+  State.Effects.Add(Self);
+end;
+
 class function TEffectNode.ClassX3DType: string;
 begin
   Result := 'Effect';
-end;
-
-class function TEffectNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TEffectNode.GetLanguage: TShaderLanguage;
@@ -912,11 +862,11 @@ begin
   inherited;
 
   FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.ChangesAlways := [chEverything];
+   FdType.ChangeAlways := chEverything;
   AddField(FFdType);
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.ChangesAlways := [chEverything];
+   FdUrl.ChangeAlways := chEverything;
    FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
 
@@ -926,11 +876,6 @@ end;
 class function TEffectPartNode.ClassX3DType: string;
 begin
   Result := 'EffectPart';
-end;
-
-class function TEffectPartNode.URNMatching(const URN: string): boolean;
-begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TEffectPartNode.GetContents: string;
@@ -974,7 +919,7 @@ begin
   inherited;
 
   FFdDefaultTexCoord := TSFString.Create(Self, false, 'defaultTexCoord', 'BOUNDS2D');
-   FdDefaultTexCoord.ChangesAlways := [chEverything];
+   FdDefaultTexCoord.ChangeAlways := chEverything;
   AddField(FFdDefaultTexCoord);
 end;
 
@@ -983,21 +928,68 @@ begin
   Result := 'ShaderTexture';
 end;
 
-class function TShaderTextureNode.URNMatching(const URN: string): boolean;
+{ TOrientationInterpolator2DNode ---------------------------------- }
+
+procedure TOrientationInterpolator2DNode.CreateNode;
 begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
+  inherited;
+
+  FFdKeyValue := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'keyValue', []);
+  AddField(FFdKeyValue);
+
+  FFdAxis := TSFVec3f.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'axis', Vector3(0, 0, 1));
+  AddField(FFdAxis);
+
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
+  AddEvent(FEventValue_changed);
+
+  DefaultContainerField := 'children';
+
+  EventSet_Fraction.AddNotification(
+    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-{ TViewpointMirrorNode ----------------------------------------------------- }
-
-class function TViewpointMirrorNode.ClassX3DType: string;
+class function TOrientationInterpolator2DNode.ClassX3DType: string;
 begin
-  Result := 'ViewpointMirror';
+  Result := 'OrientationInterpolator2D';
 end;
 
-class function TViewpointMirrorNode.URNMatching(const URN: string): boolean;
+procedure TOrientationInterpolator2DNode.EventSet_FractionReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+
+  function KeyValue(Index: Integer): Single;
+  begin
+    if Index < FdKeyValue.Items.Count then
+      Result := FdKeyValue.Items.List^[Index]
+    else
+      Result := 0;
+  end;
+
+var
+  T: Single;
+  OutputValueAngle: Single;
+  KeyCount, Range: Integer;
 begin
-  Result := URNMatchingCastle(URN, ClassX3DType);
+  if not EventValue_Changed.SendNeeded then Exit;
+
+  KeyCount := FdKey.Items.Count;
+  if KeyCount = 0 then
+  begin
+    // Interpolator nodes containing no keys in the key field
+    // shall not produce any events.
+    Exit;
+  end else
+  begin
+    Range := KeyRange((Value as TSFFloat).Value, T);
+    if Range = 0 then
+      OutputValueAngle := KeyValue(0)
+    else
+    if Range = KeyCount then
+      OutputValueAngle := KeyValue(KeyCount - 1)
+    else
+      OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
+  end;
+  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time, Value.InternalPartialSend);
 end;
 
 procedure RegisterKambiNodes;
@@ -1017,7 +1009,8 @@ begin
     TEffectNode,
     TEffectPartNode,
     TShaderTextureNode,
-    TViewpointMirrorNode
+    TViewpointMirrorNode,
+    TOrientationInterpolator2DNode
   ]);
 end;
 

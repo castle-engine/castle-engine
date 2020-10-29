@@ -23,12 +23,13 @@ implementation
 uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager,
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleViewport,
   CastleUIControls, CastleApplicationProperties;
 
 var
-  Window: TCastleWindow;
-  SceneManager: TCastleSceneManager; //< Shortcut for Window.SceneManager
+  Window: TCastleWindowBase;
+  Viewport: TCastleViewport;
+  Navigation: TCastleWalkNavigation;
   Level: TCastleScene;
   BoxTemplate, SphereTemplate: TCastleScene;
 
@@ -56,8 +57,7 @@ begin
   { free previous level, which also frees all related rigid bodies }
   FreeAndNil(Level);
 
-  // SceneManager.Items.Clear; // not needed, we already freed everything
-  SceneManager.ClearCameras; // recreate new camera for new level
+  // Viewport.Items.Clear; // not needed, we already freed everything
 
   Level := TCastleScene.Create(Application);
   Level.Load(URL);
@@ -77,13 +77,16 @@ begin
     are fully configured, this initializes physics engine }
   Level.RigidBody := LevelBody;
 
-  SceneManager.Items.Add(Level);
-  SceneManager.MainScene := Level;
+  Viewport.Items.Add(Level);
+  Viewport.Items.MainScene := Level;
 
-  // make gravity work even if your position is over the world bbox
-  MoveLimit := SceneManager.Items.BoundingBox;
+  { Make movement possible only within the world box,
+    and make gravity work even if you're far above the world. }
+  MoveLimit := Viewport.Items.BoundingBox;
   MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-  SceneManager.MoveLimit := MoveLimit;
+  Viewport.Items.MoveLimit := MoveLimit;
+
+  Viewport.AssignDefaultCamera;
 end;
 
 type
@@ -94,12 +97,12 @@ type
 
 class procedure TEventHandler.LoadLevelSimple(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_simple.x3dv'), false);
+  LoadLevel('castle-data:/level_simple.x3dv', false);
 end;
 
 class procedure TEventHandler.LoadLevelComplex(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_complex.x3dv'), true);
+  LoadLevel('castle-data:/level_complex.x3dv', true);
 end;
 
 { One-time initialization of resources. }
@@ -107,22 +110,29 @@ procedure ApplicationInitialize;
 var
   ButtonLevelSimple, ButtonLevelComplex: TCastleButton;
 begin
-  SceneManager := Window.SceneManager;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Window.Controls.InsertFront(Viewport);
 
-  LoadLevel(ApplicationData('level_simple.x3dv'), false);
+  LoadLevel('castle-data:/level_simple.x3dv', false);
 
-  SceneManager.NavigationType := ntWalk;
+  // create Navigation
+  Navigation := TCastleWalkNavigation.Create(Application);
+  Navigation.PreferredHeight := 2;
+  Navigation.Gravity := true;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
-  SceneManager.WalkCamera.Input :=
-    SceneManager.WalkCamera.Input - [ciMouseDragging];
+  Navigation.Input := Navigation.Input - [niMouseDragging];
+  Viewport.Navigation := Navigation;
+
   // easy way to make the simulation feel more dynamic
-  SceneManager.TimeScale := 2;
+  Viewport.Items.TimeScale := 2;
 
   BoxTemplate := TCastleScene.Create(Application);
-  BoxTemplate.Load(ApplicationData('box.x3d'));
+  BoxTemplate.Load('castle-data:/box.x3d');
 
   SphereTemplate := TCastleScene.Create(Application);
-  SphereTemplate.Load(ApplicationData('sphere.x3d'));
+  SphereTemplate.Load('castle-data:/sphere.x3d');
 
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
@@ -164,32 +174,28 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
   begin
     Scene := Template.Clone(Level);
 
-    SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
+    Viewport.Camera.GetView(CameraPos, CameraDir, CameraUp);
     Scene.Translation := CameraPos + CameraDir * 2.0;
     Scene.Direction := CameraDir;
 
-    SceneManager.Items.Add(Scene);
+    Viewport.Items.Add(Scene);
 
-    RigidBody.InitialLinearVelocity := CameraDir * 4.0;
+    RigidBody.LinearVelocity := CameraDir * 4.0;
     Scene.RigidBody := RigidBody;
   end;
 
 var
-  C: TWalkCamera;
   RigidBody: TRigidBody;
   BoxCollider: TBoxCollider;
   SphereCollider: TSphereCollider;
 begin
-  if Event.IsKey(K_F4) then
-  begin
-    C := SceneManager.WalkCamera;
-    C.MouseLook := not C.MouseLook;
-  end;
+  if Event.IsKey(keyF4) then
+    Navigation.MouseLook := not Navigation.MouseLook;
 
-  if Event.IsKey(K_F6) then
-    SceneManager.Items.EnablePhysics := not SceneManager.Items.EnablePhysics;
+  if Event.IsKey(keyF6) then
+    Viewport.Items.EnablePhysics := not Viewport.Items.EnablePhysics;
 
-  if Event.IsMouseButton(mbLeft) then
+  if Event.IsMouseButton(buttonLeft) then
   begin
     RigidBody := TRigidBody.Create(BoxTemplate);
 
@@ -200,7 +206,7 @@ begin
     Spawn(BoxTemplate, BoxCollider, RigidBody);
   end;
 
-  if Event.IsMouseButton(mbRight) then
+  if Event.IsMouseButton(buttonRight) then
   begin
     RigidBody := TRigidBody.Create(SphereTemplate);
 
@@ -223,7 +229,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnPress := @WindowPress;

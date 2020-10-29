@@ -18,7 +18,7 @@ unit TestCastleVideos;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVideos;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVideos;
 
 type
   TTestVideos = class(TTestCase)
@@ -36,15 +36,15 @@ var
 begin
   Video := TVideo.Create;
   try
-    Video.LoadFromFile(ApplicationData('videos/video1_@counter(4).png'));
+    Video.LoadFromFile('castle-data:/videos/video1_@counter(4).png');
     AssertTrue(Video.Count = 3);
-    Video.LoadFromFile(ApplicationData('videos/video2_@counter(4).png'));
+    Video.LoadFromFile('castle-data:/videos/video2_@counter(4).png');
     AssertTrue(Video.Count = 3);
-    Video.LoadFromFile(ApplicationData('videos/video_single.png'));
+    Video.LoadFromFile('castle-data:/videos/video_single.png');
     AssertTrue(Video.Count = 1);
 
     try
-      Video.LoadFromFile(ApplicationData('videos/video_not_existing.png'));
+      Video.LoadFromFile('castle-data:/videos/video_not_existing.png');
       Fail('Should fail');
     except
       on E: Exception do
@@ -54,7 +54,7 @@ begin
     end;
 
     try
-      Video.LoadFromFile(ApplicationData('videos/video_not_existing@counter(1).png'));
+      Video.LoadFromFile('castle-data:/videos/video_not_existing@counter(1).png');
       Fail('Should fail');
     except
       on E: Exception do

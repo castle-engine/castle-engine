@@ -17,9 +17,7 @@
     This is an intelligent walking-attacking creature.
 
   - model: animations 3D models. There are many ways to define them,
-    in this case we use castle-anim-frames.
-    We export animations from Blender to castle-anim-frames using our exporter on
-    https://castle-engine.io/castle_animation_frames.php .
+    in this case we use glTF, exported from Blender.
 
   - radius and preferred_height: important for collision detection.
     These are best visualized with "Render debug 3D" in fps_game.
@@ -39,15 +37,15 @@
   preferred_distance="3.5"
   move_speed="1.75"
 >
-  <model>
-    <idle   url="idle.castle-anim-frames"  />
-    <walk   url="walk.castle-anim-frames"  />
-    <attack url="attack.castle-anim-frames"/>
-    <die    url="die.castle-anim-frames"   />
-    <hurt   url="hurt.castle-anim-frames"  />
+  <model url="knight.gltf" pool="10" default_animation_transition="0.25">
+    <idle   animation_name="Idle"    />
+    <walk   animation_name="Walk"    />
+    <attack animation_name="Attack"  />
+    <die    animation_name="Die"     />
+    <hurt   animation_name="Damaged" />
   </model>
 
-  <!-- Note that time="xxx" attribute should be synchronized with attack.castle-anim-frames
+  <!-- Note that time="xxx" attribute should be synchronized with "attack"
        animation specified above to look good. This is the time during animation
        when the actual "hit" (life loss, pain, knockback, and so on) occurs.
        So this should be synchronized to occur when visually the sword falls

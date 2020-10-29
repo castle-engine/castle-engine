@@ -144,7 +144,7 @@ type
 
 procedure TPointSet_1Generator.GenerateCoordinateBegin;
 var
-  M: TMaterialInfo;
+  M: TPhongMaterialInfo;
 begin
   inherited;
 
@@ -155,11 +155,9 @@ begin
     For now light is already disabled by Render_Material
     from Render_BindMaterial_1 at the beginning. }
 
-  { Render_BindMaterial_1 set unlit color to emissiveColor,
-    so correct it now to diffuseColor. }
-  Arrays.HasDefaultColor := true;
+  Arrays.ForceUnlit := true;
   M := State.VRML1State.Material.MaterialInfo(0);
-  Arrays.DefaultColor := Vector4(M.DiffuseColor, M.Opacity);
+  Arrays.ForcedUnlitColor := Vector4(M.DiffuseColor, M.Opacity);
 end;
 
 procedure TPointSet_1Generator.PrepareIndexesPrimitives;
@@ -203,7 +201,8 @@ begin
   if (Node.FdColor.Value <> nil) and
      (Node.FdColor.Value is TColorNode) then
   begin
-    Color := TColorNode(Node.FdColor.Value).FdColor;
+    ColorNode := TColorNode(Node.FdColor.Value);
+    Color := TColorNode(ColorNode).FdColor;
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
@@ -214,7 +213,8 @@ begin
   if (Node.FdColor.Value <> nil) and
      (Node.FdColor.Value is TColorRGBANode) then
   begin
-    ColorRGBA := TColorRGBANode(Node.FdColor.Value).FdColor;
+    ColorNode := TColorRGBANode(Node.FdColor.Value);
+    ColorRGBA := TColorRGBANode(ColorNode).FdColor;
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
       WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
@@ -229,18 +229,22 @@ var
 begin
   inherited;
 
-  { if base class didn't set color array
-    (in particular when Color = ColorRGBA = nil),
-    then use color for full PointSet following specification. }
-  if Arrays.Color = nil then
-  begin
-    Arrays.HasDefaultColor := true;
-    M := State.MaterialInfo;
-    if M <> nil then
-      Arrays.DefaultColor := Vector4(M.EmissiveColor, MaterialOpacity)
-    else
-      Arrays.DefaultColor := Vector4(WhiteRGB, MaterialOpacity);
-  end;
+  { Follows PointSet spec:
+    If the color field is NULL and there is a Material node
+    defined for the Appearance node affecting this PointSet node,
+    the emissiveColor of the Material node shall be used to draw the points.
+
+    Note that if a Color/ColorRGBA nodes are used, they will override
+    the ForcedUnlitColor (because that's how UnlitMaterial), which also satisfies
+    PointSet spec about Color/ColorRGBA.
+  }
+
+  Arrays.ForceUnlit := true;
+  M := State.MaterialInfo;
+  if M <> nil then
+    Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
+  else
+    Arrays.ForcedUnlitColor := White;
 end;
 
 procedure TPointSetGenerator.PrepareIndexesPrimitives;
@@ -262,6 +266,7 @@ constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -405,6 +410,7 @@ constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: bo
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -620,6 +626,7 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -812,6 +819,7 @@ constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
 
+  ColorNode := Geometry.InternalColorNode;
   Color := Geometry.InternalColor;
   ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -1090,6 +1098,7 @@ begin
   begin
     NodeILS := Geometry as TIndexedLineSetNode;
 
+    ColorNode := NodeILS.InternalColorNode;
     Color := NodeILS.InternalColor;
     ColorRGBA := NodeILS.InternalColorRGBA;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
@@ -1099,10 +1108,15 @@ begin
     Assert(Geometry is TLineSetNode);
     NodeLS := Geometry as TLineSetNode;
 
+    ColorNode := NodeLS.InternalColorNode;
     Color := NodeLS.InternalColor;
     ColorRGBA := NodeLS.InternalColorRGBA;
     ColorPerVertex := true; { always true for LineSet }
   end;
+
+  { do not leave NorImplementation as niNone,
+    only because niNone forces less optimal rendering AllowIndexed=false. }
+  NorImplementation := niUnlit;
 end;
 
 procedure TLineSetGenerator.GenerateCoordinateBegin;
@@ -1113,19 +1127,22 @@ begin
 
   { Implement "one color for the whole lineset" case here.
 
+    Follows X3D spec:
+    If the color field is NULL and there is a Material defined for the
+    Appearance affecting this LineSet, the emissiveColor of the Material
+    shall be used to draw the lines.
+
     IndexedLineSet color may come from various places:
     1. Color node, for each vertex or polyline, if it's not NULL
     2. Material.emissiveColor, for whole line
     3. If no material, we use default WhiteRGB, for whole line
        (following general spec remark at Material node that
        Material = NULL makes unlit white color) }
-  if Color = nil then
-  begin
-    Arrays.HasDefaultColor := true;
-    M := State.MaterialInfo;
-    if M <> nil then
-      Arrays.DefaultColor := Vector4(M.EmissiveColor, MaterialOpacity)
-    else
-      Arrays.DefaultColor := Vector4(WhiteRGB, MaterialOpacity);
-  end;
+
+  Arrays.ForceUnlit := true;
+  M := State.MaterialInfo;
+  if M <> nil then
+    Arrays.ForcedUnlitColor := Vector4(M.EmissiveColor, M.Opacity)
+  else
+    Arrays.ForcedUnlitColor := White;
 end;

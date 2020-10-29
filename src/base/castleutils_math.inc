@@ -154,12 +154,21 @@ function Lerp(const a: Double; const l, h: Cardinal): Double; overload; {$ifdef 
 function Lerp(const a, l, h: Double): Double;                 overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
+{ Linear interpolation between 2 angle values, in radians.
+  Goes from one value to the other through a shortest path.
+  Values are interpreted "modulo 2 * Pi",
+  i.e. there's no difference between Angle1 = 0.1,
+  Angle1 = 2 * Pi + 0.1, Angle1 = -2 * Pi + 0.1 etc. }
+function AngleLerp(T, Angle1, Angle2: Single): Single;
+
 const
-  enatural = 2.71828182845905;
-  sqrt2 = 1.4142135623730950488016887242097;
+  ENatural = 2.71828182845905;
+  Sqrt2 = 1.4142135623730950488016887242097;
   Sqrt3 = 1.7320508075688773;
-  { Half of Pi. Taken from FPC sources, file rtl/inc/genmath.inc }
+  { Pi / 2. }
   HalfPi = 1.57079632679489661923;
+  { Pi * 2. }
+  Pi2 = 6.28318530717958647703;
 
 { Smallest multiple of Multiplicator that is still >= Value. }
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
@@ -614,6 +623,24 @@ function Lerp(const a, l, h: Single): Single;                 begin result := l 
 function Lerp(const a: Double; const l, h: Integer): Double;  begin result := l + (h-l) * a; end;
 function Lerp(const a: Double; const l, h: Cardinal): Double; begin result := l + (h-l) * a; end;
 function Lerp(const a, l, h: Double): Double;                 begin result := l + (h-l) * a; end;
+
+function AngleLerp(T, Angle1, Angle2: Single): Single;
+begin
+  Angle1 := FloatModulo(Angle1, Pi2);
+  Angle2 := FloatModulo(Angle2, Pi2);
+
+  if Angle1 > Angle2 then
+  begin
+    T := 1 - T;
+    SwapValues(Angle1, Angle2);
+  end;
+  { rest of the implementation can assume Angle1 <= Angle2 }
+
+  if Angle1 + Pi2 - Angle2 >= Angle2 - Angle1 then
+    Result := Lerp(T, Angle1, Angle2)
+  else
+    Result := FloatModulo(Lerp(T, Angle1 + Pi2, Angle2), Pi2);
+end;
 
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 begin

@@ -51,8 +51,8 @@ end;
 
 procedure TSoundEngineInfoForm.FormShow(Sender: TObject);
 begin
-  if not SoundEngine.ALInitialized then
-    SoundEngine.ALContextOpen;
+  if not SoundEngine.IsContextOpen then
+    SoundEngine.ContextOpen;
   MemoInfo.Lines.Text := SoundEngine.Information;
 end;
 

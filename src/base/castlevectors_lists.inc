@@ -20,7 +20,9 @@
 type
   TVector4List = class;
 
-  { List of @link(TVector2). }
+  { List of @link(TVector2).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
   TVector2List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
@@ -42,8 +44,9 @@ type
       @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TVector2List); overload;
 
-    procedure AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
-    procedure AddListRange(const Source: TVector2List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+    procedure AddRange(const Source: TVector2List);
+    procedure AddSubRange(const Source: TVector2List; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector2List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
@@ -52,10 +55,12 @@ type
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
-  { List of @link(TVector3). }
+  { List of @link(TVector3).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
   TVector3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
@@ -96,8 +101,11 @@ type
     procedure AssignLerpRgbInHsv(const Fraction: Single;
       V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
-    procedure AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
-    procedure AddListRange(const Source: TVector3List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+    procedure AddRange(const Source: TVector3List);
+    procedure AddSubRange(const Source: TVector3List; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector3List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    procedure AddRangeTransformed(const Source: TVector3List; const Transform: TMatrix4);
 
     { Convert to TVector4List, with 4th vector component in
       new array set to constant W. }
@@ -115,14 +123,17 @@ type
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
-  { List of @link(TVector4). }
+  { List of @link(TVector4).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
   TVector4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4>)
   public
-    procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
-    procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+    procedure AddRange(const Source: TVector4List);
+    procedure AddSubRange(const Source: TVector4List; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector4List; const Index, AddCount: Integer); deprecated 'use AddSubRange';
 
     { Assign linear interpolation between two other vector arrays.
       @raises EListsDifferentCount If V1 and V2 have different count. }
@@ -135,12 +146,30 @@ type
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
-  { List of @link(TMatrix3). }
+  { List of @link(TVector4Integer).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
+  TVector4IntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Integer>)
+  public
+    procedure AddRange(const Source: TVector4IntegerList);
+    procedure AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    { Does the SecondValue have equal length and content. }
+    function Equals(SecondValue: TObject): boolean; override;
+  end;
+
+  { List of @link(TMatrix3).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
   TMatrix3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
   public
+    procedure AddRange(const Source: TMatrix3List);
+    procedure AddSubRange(const Source: TMatrix3List; const Index, AddCount: Integer);
+
     { Assign linear interpolation between two other vector arrays.
       @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
@@ -152,12 +181,17 @@ type
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
-  { List of @link(TMatrix4). }
+  { List of @link(TMatrix4).
+    Note that the notification mechanism (OnNotify) is broken here by routines like AddRange
+    and AddSubRange (for maximum speed). }
   TMatrix4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
   public
+    procedure AddRange(const Source: TMatrix4List);
+    procedure AddSubRange(const Source: TMatrix4List; const Index, AddCount: Integer);
+
     { Assign linear interpolation between two other vector arrays.
       @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
@@ -169,7 +203,7 @@ type
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(const SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector2SmallInt). }
@@ -227,17 +261,22 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-procedure TVector2List.AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
+procedure TVector2List.AddRange(const Source: TVector2List);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector2List.AddSubRange(const Source: TVector2List; const Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
-  if Source.Count <> 0 then
+  if AddCount <> 0 then
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector2) * AddCount);
 end;
 
-procedure TVector2List.AddListRange(const Source: TVector2List; Index, AddCount: Integer);
+procedure TVector2List.AddListRange(const Source: TVector2List; const Index, AddCount: Integer);
 begin
   AddSubRange(Source, Index, AddCount);
 end;
@@ -260,7 +299,7 @@ begin
   end;
 end;
 
-function TVector2List.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector2List.PerfectlyEquals(const SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
@@ -404,17 +443,22 @@ begin
   end;
 end;
 
-procedure TVector3List.AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
+procedure TVector3List.AddRange(const Source: TVector3List);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector3List.AddSubRange(const Source: TVector3List; const Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
-  if Source.Count <> 0 then
+  if AddCount <> 0 then
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector3) * AddCount);
 end;
 
-procedure TVector3List.AddListRange(const Source: TVector3List; Index, AddCount: Integer);
+procedure TVector3List.AddListRange(const Source: TVector3List; const Index, AddCount: Integer);
 begin
   AddSubRange(Source, Index, AddCount);
 end;
@@ -437,7 +481,7 @@ begin
   end;
 end;
 
-function TVector3List.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector3List.PerfectlyEquals(const SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
@@ -455,19 +499,34 @@ begin
   end;
 end;
 
+procedure TVector3List.AddRangeTransformed(const Source: TVector3List; const Transform: TMatrix4);
+var
+  I, OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + Source.Count;
+  for I := 0 to Source.Count - 1 do
+    List^[OldCount + I] := Transform.MultPoint(Source.List^[I]);
+end;
+
 { TVector4List ----------------------------------------------------- }
 
-procedure TVector4List.AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
+procedure TVector4List.AddRange(const Source: TVector4List);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector4List.AddSubRange(const Source: TVector4List; const Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
-  if Source.Count <> 0 then
+  if AddCount <> 0 then
     System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4) * AddCount);
 end;
 
-procedure TVector4List.AddListRange(const Source: TVector4List; Index, AddCount: Integer);
+procedure TVector4List.AddListRange(const Source: TVector4List; const Index, AddCount: Integer);
 begin
   AddSubRange(Source, Index, AddCount);
 end;
@@ -503,7 +562,7 @@ begin
   end;
 end;
 
-function TVector4List.PerfectlyEquals(SecondValue: TObject): boolean;
+function TVector4List.PerfectlyEquals(const SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
@@ -514,6 +573,46 @@ begin
     if Result then
       for I := 0 to Count - 1 do
         if not TVector4.PerfectlyEquals(TVector4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
+
+{ TVector4IntegerList ----------------------------------------------------- }
+
+procedure TVector4IntegerList.AddRange(const Source: TVector4IntegerList);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TVector4IntegerList.AddSubRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if AddCount <> 0 then
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4Integer) * AddCount);
+end;
+
+procedure TVector4IntegerList.AddListRange(const Source: TVector4IntegerList; const Index, AddCount: Integer);
+begin
+  AddSubRange(Source, Index, AddCount);
+end;
+
+function TVector4IntegerList.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector4IntegerList;
+  if Result then
+  begin
+    Result := Count = TVector4IntegerList(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector4Integer.Equals(TVector4IntegerList(SecondValue).List^[I], List^[I]) then
         begin
           Result := false;
           Exit;
@@ -554,7 +653,7 @@ begin
   end;
 end;
 
-function TMatrix3List.PerfectlyEquals(SecondValue: TObject): boolean;
+function TMatrix3List.PerfectlyEquals(const SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
@@ -570,6 +669,21 @@ begin
           Exit;
         end;
   end;
+end;
+
+procedure TMatrix3List.AddRange(const Source: TMatrix3List);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TMatrix3List.AddSubRange(const Source: TMatrix3List; const Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if AddCount <> 0 then
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TMatrix3) * AddCount);
 end;
 
 { TMatrix4List --------------------------------------------------------------- }
@@ -605,7 +719,7 @@ begin
   end;
 end;
 
-function TMatrix4List.PerfectlyEquals(SecondValue: TObject): boolean;
+function TMatrix4List.PerfectlyEquals(const SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
@@ -621,6 +735,21 @@ begin
           Exit;
         end;
   end;
+end;
+
+procedure TMatrix4List.AddRange(const Source: TMatrix4List);
+begin
+  AddSubRange(Source, 0, Source.Count);
+end;
+
+procedure TMatrix4List.AddSubRange(const Source: TMatrix4List; const Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if AddCount <> 0 then
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TMatrix4) * AddCount);
 end;
 
 {$endif read_implementation}

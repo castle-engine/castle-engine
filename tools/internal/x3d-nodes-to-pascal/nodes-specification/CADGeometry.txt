@@ -27,7 +27,7 @@ CADPart : X3DGroupingNode, X3DProductStructureChildNode {
 }
 
 IndexedQuadSet : X3DComposedGeometryNode {
-  MFInt32 [in]     set_index       []   [0,Inf)
+  MFInt32 [in]     set_index       []   [0,Inf) # NOT-SLIM
   MFInt32 []       index           []   [0,Inf)
 }
 

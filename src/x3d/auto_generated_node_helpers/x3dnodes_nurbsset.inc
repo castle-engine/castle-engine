@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,19 +28,15 @@
   strict private
     function GetTessellationScale: Single;
     procedure SetTessellationScale(const Value: Single);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { Set X3D field "geometry". } { }
-    procedure SetGeometry(const Value: array of TNurbsSurfaceNode);
+    procedure SetGeometry(const Value: array of TAbstractNurbsSurfaceGeometryNode);
     { X3D field "tessellationScale". } { }
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -48,7 +44,7 @@
 
 { TNurbsSetNode ----------------------------------------------- }
 
-procedure TNurbsSetNode.SetGeometry(const Value: array of TNurbsSurfaceNode);
+procedure TNurbsSetNode.SetGeometry(const Value: array of TAbstractNurbsSurfaceGeometryNode);
 var
   L: Integer;
   A: array of TX3DNode;
@@ -56,7 +52,7 @@ begin
   L := High(Value) + 1;
   SetLength(A, L);
   if L > 0 then
-    Move(Value[0], A[0], L * SizeOf(TNurbsSurfaceNode));
+    Move(Value[0], A[0], L * SizeOf(TAbstractNurbsSurfaceGeometryNode));
   FdGeometry.Send(A);
 end;
 
@@ -70,24 +66,18 @@ begin
   FdTessellationScale.Send(Value);
 end;
 
-function TNurbsSetNode.GetBboxCenter: TVector3;
+function TNurbsSetNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TNurbsSetNode.SetBboxCenter(const Value: TVector3);
+procedure TNurbsSetNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TNurbsSetNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TNurbsSetNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

@@ -204,9 +204,9 @@ function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): bool
 begin
   EntryLCL := Menus.TMenuItem(Entry.Handle);
   Result := EntryLCL <> nil;
-  if (not Result) and Log and
+  if (not Result) and
      ((Entry.CorrectParentWindow = nil) or Entry.CorrectParentWindow.MainMenuVisible) then
-    WritelnLog('Menu', 'Warning: menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
+    WritelnWarning('Menu', 'Menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateShortcut(Entry: TMenuItem);
@@ -528,7 +528,7 @@ begin
   OpenGLControl.OnMouseWheel := @OpenGLControlMouseWheel;
 
   { Make sure we have OpenGL context created now, and send initial Invalidate
-    (it may not happen automatically, testcase: glViewImage on Carbon).
+    (it may not happen automatically, testcase: castle-view-image on Carbon).
     TCastleWindowBase.OpenCore will call MakeCurrent next. }
   OpenGLControl.HandleNeeded;
   OpenGLControl.Invalidate;
@@ -699,15 +699,16 @@ procedure TCastleWindowBase.OpenGLControlKeyUp(Sender: TObject; var Key: Word;
 var
   MyKey: TKey;
 begin
+  FKeyPressHandler.BeforeKeyUp(Key, Shift);
   MyKey := KeyLCLToCastle(Key, Shift);
-  if MyKey <> K_None then
+  if MyKey <> keyNone then
     DoKeyUp(MyKey);
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseDown(LeftTopToCastle(X, Y), MyButton, 0);
@@ -716,7 +717,7 @@ end;
 procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
   Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: CastleKeysMouse.TMouseButton;
+  MyButton: TCastleMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseUp(LeftTopToCastle(X, Y), MyButton, 0);
@@ -725,7 +726,7 @@ end;
 { Since LCL event loop may become clogged when dragging with mouse
   (like when using mouse look), force doing update and (if needed) redraw
   from time to time.
-  See TCastleControl implementation for analogous AggressiveUpdate
+  See TCastleControlBase implementation for analogous AggressiveUpdate
   procedure with detailed discussion about why this is needed. }
 procedure TCastleWindowBase.AggressiveUpdate;
 var
@@ -892,7 +893,7 @@ end;
 
 {$ifdef LCLCarbon}
 { Only for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
-  is the only way to receive continous messages in some cases.
+  is the only way to receive continuous messages in some cases.
 
   Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
 
@@ -1038,6 +1039,13 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 begin
+end;
+
+{ TWindowContainer ----------------------------------------------------------- }
+
+function TWindowContainer.SettingMousePositionCausesMotion: Boolean;
+begin
+  Result := true;
 end;
 
 {$endif read_implementation}

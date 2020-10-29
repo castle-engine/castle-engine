@@ -3,6 +3,8 @@
 Allows to manage projects,
 where a "project" is a directory containing `CastleEngineManifest.xml` file.
 
+Note: [more concise description of the editor is also in the manual](https://castle-engine.io/manual_editor.php).
+
 ## Features
 
 ### Create, build, run projects
@@ -25,17 +27,19 @@ In this sense, CGE editor may serve as just a GUI wrapper around our "build tool
 
 You can visually design:
 
-* a hierarchy of user-interface controls. Anything descending from `TCastleUserInterface`, like a button, label, or a powerful scene manager (that contains a hierarchy of 3D / 2D scenes and transformations inside).
+* a hierarchy of user-interface controls. Anything descending from `TCastleUserInterface`, like a button, label, or a powerful viewport (that contains a hierarchy of 3D / 2D scenes and transformations inside).
 
     Saved as `xxx.castle-user-interface` files. Load in your game using `UserInterfaceLoad` from `CastleComponentSerialize` unit.
 
-* a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene`, `TCastle2DScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleSceneManager` world.
+* a hierachy of 3D / 2D scenes and transformations. Anything descending from `TCastleTransform`, so `TCastleTransform`, `TCastleScene` classes, that form a piece of 3D / 2D game world. You can add (using code) such hierarchy into an existing `TCastleViewport.Items`.
 
     Saved as `xxx.castle-transform` files. Load in your game using `TransformLoad` from `CastleComponentSerialize` unit.
 
 The `xxx.castle-user-interface` and `xxx.castle-transform` are simple text files (JSON, using FPC FpJsonRtti). You should commit them to the version control, just like your source code. You can have as many such files inside your project as you need to. You load them from code using `CastleComponentSerialize` unit. You can instantiate them whenever you want, as many times as you want etc.
 
 Let me emphasize that *when using the CGE editor, you still code using Pascal, using the same CGE API you already know (TCastleScene, TCastleUserInterface, TCastleWindow and so on)*. It's just that now, as an additional (optional) feature, you can load a designed instance of `TCastleUserInterface` or `TCastleTransform` using the `CastleComponentSerialize` unit. You can use this feature as much or as little as you want.
+
+TODO: `TCastleEditor` component, discussed below and covering 3 use-cases, is not ready yet. Our current editor covers 1st use-case.
 
 The visual editor is available as a component (`TCastleEditor`) that works in 3 use-cases:
 
@@ -61,15 +65,26 @@ Larger projects may define custom components (descendants of the `TCastleUserInt
 
 2. Inside your [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples), set the attribute `editor_units` to list all the units that call the mentioned `RegisterSerializableComponent`. It is a comma-separated list, like `editor_units="MyButtonUnit, MyMenuUnit"`.
 
-3. Make sure you have `lazbuild` available on the environment variable `$PATH`, and that environment variable `$CASTLE_ENGINE_PATH` is correctly defined.
+3. Make sure:
 
-4. Use the [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`. This will automatically build and run a customized version of the editor that includes your custom components. This step can be replaced by calling _"Project -> Restart Editor (may rebuild editor with custom controls)"_ from the editor.
+    - Lazarus location is correctly set. You can set it in the editor "Preferences" window (or by adjusting `$PATH`). We need to execute `lazbuild` from Lazarus, to rebuild an editor with custom components.
+    - Make sure the CGE location is correctly set. It should be detected automatically if you use the engine package (but you can always customize it using the environment variable `$CASTLE_ENGINE_PATH`).
+
+4. Click menu item _"Project -> Restart Editor (With Custom Components)"_ in the editor (once you open a project).
+
+    Alternatively, use the command-line [build tool](https://github.com/castle-engine/castle-engine/wiki/Build-Tool) command: `castle-engine editor`.
+
+    Both ways will rebuild and run a customized version of the editor that includes your custom components.
+
+    You can confirm you are running an editor with custom components by looking at the window title, it should include "_(With Custom Components)_".
 
 ### Open and run source code with external applications
 
 You can open a text editor to edit source code (configurable; by default, we open Lazarus or Delphi, whichever is installed, since they offer advanced code completion for Pascal code).
 
 We automatically set up project files such that you can run the game from Lazarus or Delphi (to use their built-in debugger). So, you can either compile/run from the CGE editor (which will use our build tool, that wraps Lazarus/Delphi) or you can compile/run from Lazarus or Delphi (for desktop platforms).
+
+TODO: For now, we only work with Lazarus. Delphi support is planned.
 
 ### File browser
 
@@ -90,18 +105,18 @@ You can browse the application files. Our "Files Browser" just displays the file
 * Clicking on various files runs a CGE tool suitable to preview/edit them:
 
     * On 3D and 2D models you can run view3dscene.
-    * On 2D images you can run glViewImage.
+    * On images you can run castle-view-image.
     * On text files you can run a text editor (see above -- Lazarus or Delphi or anything else you configure).
-    * On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
-    * On other files, we can run the default OS application for them (`OpenDocument`
+    * TODO: On audio files, you can open them with `examples/audio/audio_player_scrubber/` (should this be moved to tools directory? probably!)
+    * On other files, we can run the default OS application for them (`OpenDocument`)
 
-* We also want to auto-generate and show a quick previews of models/images inside the CGE editor.
-* Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
+* We also show interactive previews of models/images inside the CGE editor.
+* TODO: Dragging files from the "File browser" onto the visual designer should automatically create the appropriate class instance.
 
     * TCastleScene to load a 3D model,
     * TCastle2DScene to load a Spine JSON model,
     * TCastleImageControl to show a 2D image.
-    * This has some requirements (TCastleScene can only be inside a scene manager, TCastleImageControl only inside UI hierarchy).
+    * This has some requirements (TCastleScene can only be inside a TCastleRootTransform, TCastleImageControl only inside UI hierarchy).
 
 ### Distributed in a binary form too
 
@@ -110,9 +125,9 @@ The editor is distributed as part of Castle Game Engine, also in binary form (fo
 - castle-editor
 - castle-engine (our build tool)
 - view3dscene
-- glViewImage
+- castle-view-image
 - other tools from castle-engine/tools/ directory
-- maybe external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
+- TODO: In the future we may add external open-source tools to generate compressed textures, see https://castle-engine.io/creating_data_auto_generated_textures.php
 
 The idea is that you only install FPC/Lazarus, then you run precompiled CGE editor and it all just works. Maybe in the future we could even bundle FPC/Lazarus with CGE editor, but this is not something I want to do initially (as packaging FPC/Lazarus is non-trivial, and I also would always want to have a version "unbundled" for people who prefer to install FPC/Lazarus themselves, or use Delphi).
 
@@ -121,7 +136,6 @@ The idea is that you only install FPC/Lazarus, then you run precompiled CGE edit
 You use modern Pascal language to code your games.
 The Castle Game Engine is documented on https://castle-engine.io/ ,
 in particular see our manual: https://castle-engine.io/manual_intro.php .
-Note that it's not yet updated to describe this visual editor.
 
 ## License
 
@@ -143,7 +157,13 @@ The idea is that we sometimes want to move code from castle-editor to
 the engine core, for technical reasons, and we want the freedom to do so.
 Still, the editor stays GPL for the general public.
 
-## Contributing: When creating a new Lazarus form, remember to...
+## Contributing
+
+- Use desktop settings with 125% font scaling. Unfortunately, your personal desktop settings, at design-time, affect what is saved in LFM files, so it is best if we all use the same scaling, otherwise diffs to LFM files wildly change everything.
+
+    You can set such scaling e.g. by GNOME 3 _"Large fonts"_ accessibilty option, or by adjusting Xorg dpi to 120 (96 * 1.25), Windows also allows to set 125% scaling.
+
+### Contributing: When creating a new Lazarus form, remember to...
 
 - Save form class `TFooForm` (so it will have singleton `FooForm`) in unit name `FormFoo`.
 - Adjust form's `Caption`.

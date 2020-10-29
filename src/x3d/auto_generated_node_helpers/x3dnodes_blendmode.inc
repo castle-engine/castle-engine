@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,19 +26,19 @@
 {$ifdef read_interface}
 
   strict private
-    function GetSrcFactor: string;
-    procedure SetSrcFactor(const Value: string);
-    function GetDestFactor: string;
-    procedure SetDestFactor(const Value: string);
+    function GetSrcFactor: String;
+    procedure SetSrcFactor(const Value: String);
+    function GetDestFactor: String;
+    procedure SetDestFactor(const Value: String);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
     function GetColorTransparency: Single;
     procedure SetColorTransparency(const Value: Single);
   public
     { X3D field "srcFactor". } { }
-    property SrcFactor: string read GetSrcFactor write SetSrcFactor;
+    property SrcFactor: String read GetSrcFactor write SetSrcFactor;
     { X3D field "destFactor". } { }
-    property DestFactor: string read GetDestFactor write SetDestFactor;
+    property DestFactor: String read GetDestFactor write SetDestFactor;
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { X3D field "colorTransparency". } { }
@@ -50,22 +50,22 @@
 
 { TBlendModeNode ----------------------------------------------- }
 
-function TBlendModeNode.GetSrcFactor: string;
+function TBlendModeNode.GetSrcFactor: String;
 begin
   Result := FdSrcFactor.Value;
 end;
 
-procedure TBlendModeNode.SetSrcFactor(const Value: string);
+procedure TBlendModeNode.SetSrcFactor(const Value: String);
 begin
   FdSrcFactor.Send(Value);
 end;
 
-function TBlendModeNode.GetDestFactor: string;
+function TBlendModeNode.GetDestFactor: String;
 begin
   Result := FdDestFactor.Value;
 end;
 
-procedure TBlendModeNode.SetDestFactor(const Value: string);
+procedure TBlendModeNode.SetDestFactor(const Value: String);
 begin
   FdDestFactor.Send(Value);
 end;

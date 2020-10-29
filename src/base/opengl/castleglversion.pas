@@ -48,11 +48,10 @@ type
     Release: Integer;
     { @groupEnd }
 
-    { VendorInfo is whatever vendor-specific information was placed
-      inside VersionString, after the
-      major_number.minor_number.release_number. It never has any whitespace
+    { Vendor-specific version that was at the end of VersionString (after the
+      major_number.minor_number.release_number). It never has any whitespace
       at the beginning (we trim it when initializing). }
-    VendorInfo: string;
+    VendorVersion: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;
   end;
@@ -92,6 +91,8 @@ type
     FBuggyGLSLFrontFacing: boolean;
     FBuggyGLSLReadVarying: boolean;
     FBuggyPureShaderPipeline: boolean;
+    FBuggyTextureSizeAbove2048: Boolean;
+    function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -107,7 +108,7 @@ type
     property Renderer: string read FRenderer;
 
     { Are we using Mesa (http://mesa3d.org/).
-      Detected using VendorSpecific information. }
+      Note that this is detected using VendorVersion, not Vendor. }
     property Mesa: boolean read FMesa;
 
     { Vendor-specific drivers version.
@@ -208,6 +209,9 @@ type
     { Various problems when trying to use shaders to render everything.
       See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
     property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
+
+    { MaxTextureSize above 2048 shall not be trusted. }
+    property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
   end;
 
 var
@@ -315,14 +319,14 @@ begin
     end;
     ParseWhiteSpaces(VersionString, I);
 
-    VendorInfo := SEnding(VersionString, I);
+    VendorVersion := SEnding(VersionString, I);
   except
     { In case of any error here: silence it.
       We want our program to work even with broken GL_VERSION or GLU_VERSION
       strings.
 
       Class constructor always starts with Major and Minor initialized
-      to 0, ReleaseExists initialized to false, and VendorInfo to ''.
+      to 0, ReleaseExists initialized to false, and VendorVersion to ''.
       If we have here an exception, only part of them may be initialized. }
   end;
 end;
@@ -338,7 +342,7 @@ end;
 constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
 
   { Parse VendorMajor / VendorMinor / VendorRelease, starting from S[I]. }
-  procedure ParseVendorVersion(const S: string; var I: Integer);
+  procedure ParseVendorVersionSuffix(const S: string; var I: Integer);
   begin
     ParseWhiteSpaces(S, I);
 
@@ -373,7 +377,69 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
     end;
   end;
 
-  function VendorVersionAtLeast(VerMaj, VerMin, VerRel: Integer): boolean;
+  { Extract information from VendorVersion String. }
+  procedure ParseVendorVersion;
+  const
+    SCompatibilityProfile = '(Compatibility Profile)';
+  var
+    MaybeMesa, S: string;
+    I, MaybeMesaStart: Integer;
+  begin
+    try
+      { Handle the case like this: GL_VERSION = '1.4 (2.1 Mesa 7.0.4)'
+        (Debian testing (lenny) on 2008-12-31).
+        In such case "Mesa" is within parenthesis,
+        preceeded by another version number that we ignore,
+        followed by Mesa version number. }
+      if SCharIs(VendorVersion, 1, '(') and
+         (VendorVersion[Length(VendorVersion)] = ')') then
+      begin
+        S := Copy(VendorVersion, 2, Length(VendorVersion) - 2);
+        I := 1;
+
+        { omit preceeding version number }
+        ParseString(S, I);
+
+        { omit whitespace }
+        ParseWhiteSpaces(S, I);
+
+        { read "Mesa" (possibly) string }
+        MaybeMesa := ParseString(S, I);
+        FMesa := SameText(MaybeMesa, 'Mesa');
+        if Mesa then
+          ParseVendorVersionSuffix(S, I);
+      end else
+      begin
+        { Try to handle normal vendor version.
+          This should work on various GPUs (at least for Mesa, Intel and NVidia). }
+
+        // calculate MaybeMesaStart, to omit SCompatibilityProfile at the beginning
+        if IsPrefix(SCompatibilityProfile, VendorVersion, true) then
+        begin
+          MaybeMesaStart := Length(SCompatibilityProfile) + 1;
+          ParseWhiteSpaces(VendorVersion, MaybeMesaStart);
+        end else
+          MaybeMesaStart := 1;
+
+        // calculate MaybeMesa and FMesa
+        I := MaybeMesaStart;
+        MaybeMesa := ParseString(VendorVersion, I);
+        FMesa := SameText(MaybeMesa, 'Mesa');
+
+        while SCharIs(VendorVersion, I, AllChars - ['0'..'9']) and
+              (I < Length(VendorVersion)) do
+          Inc(I);
+        ParseVendorVersionSuffix(VendorVersion, I);
+      end;
+    except
+      { Just like in TGenericGLVersion: in case of trouble (GL_VERSION
+        string that we don't recognize) just ignore the problem.
+        We don't strictly need the VendorXxx information. }
+    end;
+  end;
+
+  { Compare arguments with VendorMajor / VendorMinor / VendorRelease numbers. }
+  function VendorVersionAtLeast(const VerMaj, VerMin, VerRel: Integer): boolean;
   begin
     Result :=
         (VendorMajor > VerMaj) or
@@ -386,57 +452,10 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
       ))));
   end;
 
-var
-  VendorName, S: string;
-  MesaStartIndex, I: Integer;
 begin
   inherited Create(VersionString);
 
-  try
-    I := 1;
-    while SCharIs(VendorInfo, I, AllChars - WhiteSpaces) do Inc(I);
-
-    VendorName := CopyPos(VendorInfo, 1, I - 1);
-    FMesa := SameText(VendorName, 'Mesa');
-
-    { Handle version strings when vendor version is in parenthesis,
-      like this: GL_VERSION = '1.4 (2.1 Mesa 7.0.4)'
-      (Debian testing (lenny) on 2008-12-31).
-      In such case "Mesa" is within parenthesis, preceeded by another version
-      number. }
-    if SCharIs(VendorInfo, 1, '(') and
-       (VendorInfo[Length(VendorInfo)] = ')') then
-    begin
-      S := Copy(VendorInfo, 2, Length(VendorInfo) - 2);
-      I := 1;
-
-      { omit preceeding version number }
-      while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
-
-      { omit whitespace }
-      ParseWhiteSpaces(S, I);
-
-      { read "Mesa" (hopefully) string }
-      MesaStartIndex := I;
-      while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
-
-      VendorName := CopyPos(S, MesaStartIndex, I - 1);
-      FMesa := SameText(VendorName, 'Mesa');
-      if Mesa then
-        ParseVendorVersion(S, I);
-    end else
-    begin
-      { Try to handle normal vendor version.
-        This should work on various GPUs (at least for Mesa, Intel and NVidia). }
-      while SCharIs(VendorInfo, I, AllChars - ['0'..'9']) and
-            (I < Length(VendorInfo)) do
-        Inc(I);
-      ParseVendorVersion(VendorInfo, I);
-    end;
-  except
-    { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
-      string) ignore the problem. }
-  end;
+  ParseVendorVersion;
 
   FVendor := AVendor;
   FRenderer := ARenderer;
@@ -625,12 +644,38 @@ begin
         Vendor: ATI Technologies Inc.
         Vendor type: ATI
         Renderer: AMD Radeon HD 8200 / R3 Series
+
+      Later: bumped to 13571 after Elmar Knittel mail,
+      https://github.com/castle-engine/view3dscene/issues/9
+      still occurs with later release.
     }
     ( (VendorType = gvATI) and
       ReleaseExists and
-      (Release <= 13492) )
+      (Release <= 13571) )
     {$else} false
     {$endif};
+
+  { On old iPhones, OpenGLES reports it can handle 4096 texture size,
+    but actually it can crash on them.
+    Testcase: Unholy on iOS with Wedding (ice texture).
+    Tested: it works OK on 'Apple A12 GPU' and 'Apple A13 GPU', and crashes on 'Apple A10 GPU'.
+    For safety, assume it crashes too on 'Apple A11 GPU' (not tested). }
+  FBuggyTextureSizeAbove2048 :=
+    {$ifdef IOS}
+    AppleRendererOlderThan(12)
+    {$else}
+    false
+    {$endif};
+end;
+
+function TGLVersion.AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to VersionNumber - 1 do
+    if Renderer = 'Apple A' + IntToStr(I) + ' GPU' then
+      Exit(true);
+  Result := false;
 end;
 
 const

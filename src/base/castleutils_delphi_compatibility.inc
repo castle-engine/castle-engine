@@ -45,6 +45,10 @@ function ApplicationName: string;
 function GetAppConfigDir(Global : Boolean) : String;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
+
+function StrToQWord(const S: String): QWord;
+
+function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -171,6 +175,121 @@ begin
   Result := ResStr;
 end;
 
+function StrToQWord(const S: String): QWord;
+begin
+  Result := StrToUInt64(S);
+end;
+
+Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
+
+  function WildisQuestionmark : boolean;
+begin
+    Result:=CWild <= MaxWilds;
+    if Result then
+      Result:= Wilds[CWild]='?';
+  end;
+
+  function WildisStar : boolean;
+  begin
+    Result:=CWild <= MaxWilds;
+    if Result then
+      Result:= Wilds[CWild]='*';
+  end;
+
+begin
+  EOS:=False;
+  Result:=True;
+  repeat
+    if WildisStar then { handling of '*' }
+      begin
+      inc(CWild);
+      if CWild>MaxWilds then
+        begin
+          EOS:=true;
+          exit;
+        end;
+      while WildisQuestionmark do { equal to '?' }
+        begin
+        { goto next letter }
+        inc(CWild);
+        inc(CinputWord);
+        end;
+      { increase until a match }
+      Repeat
+        while (CinputWord <= MaxinputWord) and (CWild <= MaxWilds) and (inputStr[CinputWord]<>Wilds[CWild]) do
+          inc(CinputWord);
+        Result:=isMatch(Level+1,inputstr,wilds,CWild, CinputWord,MaxInputword,maxwilds,EOS);
+        if not Result then
+          Inc(cInputWord);
+      Until Result or (CinputWord>=MaxinputWord);
+      if Result and EOS then
+        Exit;
+      Continue;
+      end;
+    if WildisQuestionmark then { equal to '?' }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    if (CinputWord>MaxinputWord) or (CWild > MaxWilds) or (inputStr[CinputWord] = Wilds[CWild]) then { equal letters }
+      begin
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+      end;
+    Result:=false;
+    Exit;
+  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
+  { no completed evaluation, we need to check what happened }
+  if (CinputWord <= MaxinputWord) or (CWild < MaxWilds) then
+    Result:=false
+  else if (CWild>Maxwilds) then
+    EOS:=False
+  else
+    begin
+    EOS:=Wilds[CWild]='*';
+    if not EOS then
+      Result:=False;
+    end
+end;
+
+function IsWild(InputStr, Wilds: string; IgnoreCase: Boolean): Boolean;
+
+var
+  i: SizeInt;
+  MaxinputWord, MaxWilds: SizeInt; { Length of inputStr and Wilds }
+  eos : Boolean;
+
+begin
+  Result:=true;
+  if Wilds = inputStr then
+    Exit;
+  { delete '**', because '**' = '*' }
+  i:=Pos('**', Wilds);
+  while i > 0 do
+    begin
+    Delete(Wilds, i, 1);
+    i:=Pos('**', Wilds);
+    end;
+  if Wilds = '*' then { for fast end, if Wilds only '*' }
+    Exit;
+  MaxinputWord:=Length(inputStr);
+  MaxWilds:=Length(Wilds);
+  if (MaxWilds = 0) or (MaxinputWord = 0) then
+    begin
+    Result:=false;
+    Exit;
+    end;
+  if ignoreCase then { upcase all letters }
+    begin
+    inputStr:=AnsiUpperCase(inputStr);
+    Wilds:=AnsiUpperCase(Wilds);
+    end;
+  Result:=isMatch(1,inputStr,wilds,1,1,MaxinputWord, MaxWilds,EOS);
+end;
 {$endif read_implementation}
 
 {$endif not FPC}

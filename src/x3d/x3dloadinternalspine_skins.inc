@@ -112,44 +112,84 @@ procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const
   var
     I: Integer;
     Skin: TSkin;
-    SkinObject, ChildObj: TJSONObject;
+    OneSkinObject, SkinsObject: TJSONObject;
+    SkinsData: TJSONData;
+    SkinsArray: TJSONArray;
   begin
-    ChildObj := Json.Find('skins', jtObject) as TJSONObject;
-    if ChildObj = nil then
-      raise ESpineReadError.Create('Spine JSON skeleton: Missing "skins" object');
+    SkinsData := Json.Find('skins');
+    if SkinsData = nil then
+    begin
+      WritelnWarning('Spine JSON skeleton', 'Missing "skins" data, Spine JSON is empty');
+      Exit;
+    end;
 
-    for I := 0 to ChildObj.Count - 1 do
-      if ChildObj.Items[I] is TJSONObject then
+    if SkinsData is TJSONObject then
+    begin
+      // older Spine (at least <= 3.6.53) has "skins" as object, with skin names as keys
+      SkinsObject := TJSONObject(SkinsData);
+
+      for I := 0 to SkinsObject.Count - 1 do
+        if SkinsObject.Items[I] is TJSONObject then
+        begin
+          OneSkinObject := TJSONObject(SkinsObject.Items[I]);
+          Skin := TSkin.Create;
+          Add(Skin);
+          Skin.Name := SkinsObject.Names[I];
+          Skin.Parse(OneSkinObject, Bones, DragonBonesFormat);
+
+          if Skin.Name = 'default' then
+            DefaultSkin := Skin;
+        end;
+    end else
+    if SkinsData is TJSONArray then
+    begin
+      // newer Spine (at least >= 3.8.28-beta) has "skins" as array, quite like Dragon Bones
+      SkinsArray := TJSONArray(SkinsData);
+
+      for I := 0 to SkinsArray.Count - 1 do
       begin
-        SkinObject := TJSONObject(ChildObj.Items[I]);
+        OneSkinObject := SkinsArray[I] as TJSONObject;
         Skin := TSkin.Create;
         Add(Skin);
-        Skin.Name := ChildObj.Names[I];
-        Skin.Parse(SkinObject, Bones, DragonBonesFormat);
+        Skin.Name := OneSkinObject.Get('name', '');
+
+        // Skin.Parse expects object with attachments inside
+        OneSkinObject := OneSkinObject.Find('attachments', jtObject) as TJSONObject;
+        if OneSkinObject = nil then
+        begin
+          WritelnWarning('Spine JSON skeleton', 'No "attachments" within skin "%s"', [Skin.Name]);
+          Continue;
+        end;
+
+        Skin.Parse(OneSkinObject, Bones, DragonBonesFormat);
 
         if Skin.Name = 'default' then
           DefaultSkin := Skin;
       end;
+    end else
+    begin
+      WritelnWarning('Spine JSON skeleton', '"skins" data is neither object nor array, not supported');
+    end;
   end;
 
   procedure ParseDragonBones;
   var
     I: Integer;
     Skin: TSkin;
-    SkinObject: TJSONObject;
-    ChildArray: TJSONArray;
+    OneSkinObject: TJSONObject;
+    SkinsArray: TJSONArray;
   begin
-    ChildArray := Json.Find('skin', jtArray) as TJSONArray;
-    if ChildArray = nil then
+    SkinsArray := Json.Find('skin', jtArray) as TJSONArray;
+    if SkinsArray = nil then
       raise ESpineReadError.Create('Dragon Bones JSON skeleton: Missing "skin" array');
 
-    for I := 0 to ChildArray.Count - 1 do
+    for I := 0 to SkinsArray.Count - 1 do
     begin
-      SkinObject := TJSONObject(ChildArray[I]);
+      OneSkinObject := SkinsArray[I] as TJSONObject;
       Skin := TSkin.Create;
       Add(Skin);
-      Skin.Name := SkinObject.Get('name', '');
-      Skin.Parse(SkinObject, Bones, DragonBonesFormat);
+      Skin.Name := OneSkinObject.Get('name', '');
+      Skin.Parse(OneSkinObject, Bones, DragonBonesFormat);
 
       if DefaultSkin = nil then // just use 1st skin as default for now
         DefaultSkin := Skin;
@@ -162,8 +202,8 @@ begin
   else
     ParseSpine;
 
-  if DefaultSkin = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "default" skin definition');
+  if DefaultSkin = nil then // DefaultSkin may be nil in case of empty model
+    WritelnWarning('Spine JSON skeleton', 'Missing "default" skin definition, Spine JSON is empty');
 end;
 
 procedure TSkinList.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);

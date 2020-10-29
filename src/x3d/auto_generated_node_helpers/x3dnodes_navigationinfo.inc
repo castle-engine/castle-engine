@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetHeadlight: boolean;
-    procedure SetHeadlight(const Value: boolean);
+    function GetHeadlight: Boolean;
+    procedure SetHeadlight(const Value: Boolean);
     function GetSpeed: Single;
     procedure SetSpeed(const Value: Single);
     function GetTransitionTime: TFloatTime;
@@ -40,7 +40,7 @@
     { Set X3D field "avatarSize". } { }
     procedure SetAvatarSize(const Value: TSingleList);
     { X3D field "headlight". } { }
-    property Headlight: boolean read GetHeadlight write SetHeadlight;
+    property Headlight: Boolean read GetHeadlight write SetHeadlight;
     { X3D field "speed". } { }
     property Speed: Single read GetSpeed write SetSpeed;
     { X3D field "transitionTime". } { }
@@ -72,12 +72,12 @@ begin
   FdAvatarSize.Send(Value);
 end;
 
-function TNavigationInfoNode.GetHeadlight: boolean;
+function TNavigationInfoNode.GetHeadlight: Boolean;
 begin
   Result := FdHeadlight.Value;
 end;
 
-procedure TNavigationInfoNode.SetHeadlight(const Value: boolean);
+procedure TNavigationInfoNode.SetHeadlight(const Value: Boolean);
 begin
   FdHeadlight.Send(Value);
 end;

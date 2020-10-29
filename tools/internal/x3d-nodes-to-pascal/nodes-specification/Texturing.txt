@@ -2,15 +2,28 @@ X3DTextureCoordinateNode : X3DGeometricPropertyNode {
 }
 
 X3DTextureNode : X3DAppearanceChildNode {
+}
+
+X3DSingleTextureCoordinateNode : X3DTextureCoordinateNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  SFString [in,out] mapping  ""
+}
+
+X3DSingleTextureNode : X3DTextureNode {
   # EXTENSIONS:
   MFNode     []            effects          []          # [Effect]
 
   # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
   # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
-  SFString   []   crossOrigin  ""
+  SFString   []   crossOrigin  "" # NOT-SLIM
 }
 
-X3DTexture2DNode : X3DTextureNode {
+X3DSingleTextureTransformNode : X3DTextureTransformNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+  SFString [in,out] mapping  ""
+}
+
+X3DTexture2DNode : X3DSingleTextureNode {
   SFBool []       repeatS           TRUE
   SFBool []       repeatT           TRUE
   SFNode []       textureProperties NULL [TextureProperties]
@@ -51,26 +64,26 @@ MultiTexture : X3DTextureNode {
   MFString [in,out] function []
   MFString [in,out] mode     []
   MFString [in,out] source   []
-  MFNode   [in,out] texture  []    [X3DTextureNode]
+  MFNode   [in,out] texture  []    [X3DSingleTextureNode]
 }
 
 MultiTextureCoordinate : X3DTextureCoordinateNode {
-  MFNode [in,out] texCoord NULL [X3DTextureCoordinateNode]
+  MFNode [in,out] texCoord NULL [X3DSingleTextureCoordinateNode]
 }
 
 MultiTextureTransform : X3DTextureTransformNode {
-  MFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
+  MFNode [in,out] textureTransform NULL [X3DSingleTextureTransformNode]
 }
 
 PixelTexture : X3DTexture2DNode {
   SFImage [in,out] image             0 0 0
 }
 
-TextureCoordinate : X3DTextureCoordinateNode {
+TextureCoordinate : X3DSingleTextureCoordinateNode {
   MFVec2f [in,out] point    []   (-Inf,Inf)
 }
 
-TextureCoordinateGenerator : X3DTextureCoordinateNode {
+TextureCoordinateGenerator : X3DSingleTextureCoordinateNode {
   SFString [in,out] mode      "SPHERE" [see Table 18.6]
   MFFloat  [in,out] parameter []       [see Table 18.6]
 }
@@ -92,7 +105,7 @@ TextureProperties : X3DNode {
   SFBool     []            guiTexture  FALSE
 }
 
-TextureTransform : X3DTextureTransformNode {
+TextureTransform : X3DSingleTextureTransformNode {
   SFVec2f [in,out] center      0 0  (-Inf,Inf)
   SFFloat [in,out] rotation    0    (-Inf,Inf)
   SFVec2f [in,out] scale       1 1  (-Inf,Inf)

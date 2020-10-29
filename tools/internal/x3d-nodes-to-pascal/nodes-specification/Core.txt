@@ -1,6 +1,6 @@
 X3DBindableNode : X3DChildNode {
   SFBool [in]     set_bind
-  SFTime [out]    bindTime
+  SFTime [out]    bindTime # NOT-SLIM
   SFBool [out]    isBound
 }
 
@@ -16,7 +16,7 @@ X3DMetadataObject {
 }
 
 X3DNode {
-  SFNode [in,out] metadata NULL [X3DMetadataObject]
+  SFNode [in,out] metadata NULL [X3DMetadataObject] # NOT-SLIM
 }
 
 X3DSensorNode  : X3DChildNode {

@@ -97,7 +97,9 @@ type
 
 implementation
 
-uses Base64,
+uses {$ifdef FPC} Base64,
+  {$else} System.NetEncoding,
+  {$endif}
   CastleURIUtils, CastleStringUtils, CastleClassUtils, CastleLog;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
@@ -221,7 +223,9 @@ function TDataURI.Stream: TStream;
 var
   MemStream: TMemoryStream;
   Contents: string;
+  {$ifdef FPC}
   DecodingStream: TBase64DecodingStream;
+  {$endif}
 begin
   if Valid then
   begin
@@ -233,6 +237,7 @@ begin
 
       if Base64 then
       begin
+        {$ifdef FPC}
         DecodingStream := TBase64DecodingStream.Create(MemStream, bdmMIME);
         DecodingStream.SourceOwner := true;
         if ForceMemoryStream then
@@ -242,6 +247,13 @@ begin
           FreeAndNil(DecodingStream);
         end else
           FStream := DecodingStream;
+        {$else}
+        FStream := TMemoryStream.Create;
+        // TODO: should we call this repeatedly until the end?
+        TNetEncoding.Base64.Decode(MemStream, FStream);
+        FStream.Position := 0;
+        FreeAndNil(MemStream);
+        {$endif}
       end else
         FStream := MemStream;
     end;

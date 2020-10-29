@@ -1,4 +1,6 @@
 X3DViewpointNode : X3DBindableNode {
+  x3d-nodes-to-pascal: auto-generate-more true
+
   SFVec3f    [in,out] centerOfRotation  0 0 0     (-Inf,Inf)
   SFString   [in,out] description       ""
   SFBool     [in,out] jump              TRUE
@@ -14,6 +16,7 @@ X3DViewpointNode : X3DBindableNode {
   MFVec3f    [in,out]      direction   []
   MFVec3f    [in,out]      up          []
   SFVec3f    [in,out]      gravityUp   0 1 0
+  SFBool     [in,out]      gravityTransform  TRUE
 }
 
 Billboard : X3DGroupingNode {

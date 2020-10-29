@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestGLVersion" -*-
 {
   Copyright 2008-2018 Michalis Kamburelis.
 
@@ -17,12 +18,13 @@ unit TestCastleGLVersion;
 
 interface
 
-uses fpcunit, testutils, testregistry;
+uses FpcUnit, TestUtils, TestRegistry;
 
 type
   TTestGLVersion = class(TTestCase)
   published
     procedure Test1;
+    procedure Test2;
   end;
 
 implementation
@@ -36,7 +38,7 @@ begin
   G := TGLVersion.Create('1.4 (2.1 Mesa 7.0.4)',
     'Mesa project: www.mesa3d.org', 'Mesa GLX Indirect');
   try
-    AssertTrue(G.VendorInfo = '(2.1 Mesa 7.0.4)');
+    AssertTrue(G.VendorVersion = '(2.1 Mesa 7.0.4)');
     AssertTrue(G.Vendor = 'Mesa project: www.mesa3d.org');
     AssertTrue(G.Renderer = 'Mesa GLX Indirect');
 
@@ -62,7 +64,7 @@ begin
   G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul',
     'Mesa DRI Intel(blah blah blah)');
   try
-    AssertTrue(G.VendorInfo = 'Mesa 7.1');
+    AssertTrue(G.VendorVersion = 'Mesa 7.1');
     AssertTrue(G.Vendor = 'Brian Paul');
     AssertTrue(G.Renderer = 'Mesa DRI Intel(blah blah blah)');
 
@@ -79,7 +81,7 @@ begin
 
   G := TGLVersion.Create('1.2.3', 'foobar', '');
   try
-    AssertTrue(G.VendorInfo = '');
+    AssertTrue(G.VendorVersion = '');
     AssertTrue(G.Vendor = 'foobar');
     AssertTrue(G.Renderer = '');
 
@@ -92,7 +94,7 @@ begin
 
   G := TGLVersion.Create('4.2.0 NVIDIA 304.108', 'NVIDIA Corporation', 'GeForce GTS 450/PCIe/SSE2/3DNOW!');
   try
-    AssertEquals('NVIDIA 304.108', G.VendorInfo);
+    AssertEquals('NVIDIA 304.108', G.VendorVersion);
     AssertEquals('NVIDIA Corporation', G.Vendor);
     AssertEquals('GeForce GTS 450/PCIe/SSE2/3DNOW!', G.Renderer);
 
@@ -107,6 +109,30 @@ begin
 
     AssertTrue(not G.Mesa);
     AssertTrue(G.VendorType = gvNvidia);
+  finally FreeAndNil(G) end;
+end;
+
+procedure TTestGLVersion.Test2;
+var
+  G: TGLVersion;
+begin
+  G := TGLVersion.Create(
+    '4.5 (Compatibility Profile) Mesa 19.3.4',
+    'X.Org',
+    'AMD Radeon HD 8600 Series (OLAND, DRM 3.36.0, 5.5.7-150.current, LLVM 9.0.0)');
+  try
+    // parsed from version string
+    AssertTrue(G.Major = 4);
+    AssertTrue(G.Minor = 5);
+    AssertTrue(not G.ReleaseExists);
+    AssertTrue(G.VendorVersion = '(Compatibility Profile) Mesa 19.3.4');
+    AssertTrue(G.Mesa);
+    // AssertTrue(G.VendorMajor = 19);
+    // AssertTrue(G.VendorMinor = 3);
+    // AssertTrue(G.VendorRelease = 4);
+
+    // AssertTrue(G.Vendor = 'X.Org');
+    // AssertTrue(G.Renderer = 'AMD Radeon HD 8600 Series (OLAND, DRM 3.36.0, 5.5.7-150.current, LLVM 9.0.0)');
   finally FreeAndNil(G) end;
 end;
 

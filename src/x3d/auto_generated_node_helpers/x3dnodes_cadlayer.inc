@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,11 +26,11 @@
 {$ifdef read_interface}
 
   strict private
-    function GetNameField: string;
-    procedure SetNameField(const Value: string);
+    function GetNameField: String;
+    procedure SetNameField(const Value: String);
   public
     { X3D field "name". } { }
-    property NameField: string read GetNameField write SetNameField;
+    property NameField: String read GetNameField write SetNameField;
     { Set X3D field "visible". } { }
     procedure SetVisible(const Value: array of boolean);
     { Set X3D field "visible". } { }
@@ -42,12 +42,12 @@
 
 { TCADLayerNode ----------------------------------------------- }
 
-function TCADLayerNode.GetNameField: string;
+function TCADLayerNode.GetNameField: String;
 begin
   Result := FdName.Value;
 end;
 
-procedure TCADLayerNode.SetNameField(const Value: string);
+procedure TCADLayerNode.SetNameField(const Value: String);
 begin
   FdName.Send(Value);
 end;

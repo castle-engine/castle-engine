@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,13 +26,13 @@
 {$ifdef read_interface}
 
   strict private
-    function GetApplied: boolean;
-    procedure SetApplied(const Value: boolean);
+    function GetApplied: Boolean;
+    procedure SetApplied(const Value: Boolean);
     function GetLinewidthScaleFactor: Single;
     procedure SetLinewidthScaleFactor(const Value: Single);
   public
     { X3D field "applied". } { }
-    property Applied: boolean read GetApplied write SetApplied;
+    property Applied: Boolean read GetApplied write SetApplied;
     { X3D field "linewidthScaleFactor". } { }
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;
 
@@ -42,12 +42,12 @@
 
 { TLinePropertiesNode ----------------------------------------------- }
 
-function TLinePropertiesNode.GetApplied: boolean;
+function TLinePropertiesNode.GetApplied: Boolean;
 begin
   Result := FdApplied.Value;
 end;
 
-procedure TLinePropertiesNode.SetApplied(const Value: boolean);
+procedure TLinePropertiesNode.SetApplied(const Value: Boolean);
 begin
   FdApplied.Send(Value);
 end;

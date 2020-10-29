@@ -23,11 +23,11 @@ implementation
 uses SysUtils, Math,
   CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils,
+  CastleVectors, CastleTransform, X3DNodes, CastleTimeUtils, CastleViewport,
   CastleApplicationProperties;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
   SceneVisualizeLight: TCastleScene;
   MainLight: TPointLightNode;
   Time: TFloatTime;
@@ -49,40 +49,49 @@ procedure ApplicationInitialize;
   var
     Sphere: TSphereNode;
     Shape: TShapeNode;
+    Material: TMaterialNode;
   begin
     Sphere := TSphereNode.CreateWithShape(Shape);
     Sphere.Radius := 0.1;
 
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.EmissiveColor := YellowRGB * 0.5;
+    Material := TMaterialNode.Create;
+    Material.EmissiveColor := YellowRGB * 0.5;
+    Shape.Material := Material;
 
     Result := TX3DRootNode.Create;
     Result.AddChildren(Shape);
   end;
 
 var
+  Viewport: TCastleViewport;
   Scene1, Scene2: TCastleScene;
 begin
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoCamera := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
+
   Scene1 := TCastleScene.Create(Application);
-  Scene1.Load(ApplicationData('steep_parallax.x3dv'));
+  Scene1.Load('castle-data:/steep_parallax.x3dv');
   Scene1.Spatial := [ssRendering, ssDynamicCollisions];
   Scene1.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene1);
+  Viewport.Items.Add(Scene1);
 
   SceneVisualizeLight := TCastleScene.Create(Application);
   SceneVisualizeLight.Load(CreateSphereModel, true);
-  Window.SceneManager.Items.Add(SceneVisualizeLight);
+  Viewport.Items.Add(SceneVisualizeLight);
 
   Scene2 := TCastleScene.Create(Application);
-  Scene2.Load(ApplicationData('leaf.x3dv'));
+  Scene2.Load('castle-data:/leaf.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
   Scene2.Translation := Vector3(0, 2, 0);
-  Window.SceneManager.Items.Add(Scene2);
+  Viewport.Items.Add(Scene2);
 
   // make MainLight on Scene1 affect all scenes, Scene1 and Scene2
-  Window.SceneManager.MainScene := Scene1;
-  Window.SceneManager.UseGlobalLights := true;
+  Viewport.Items.MainScene := Scene1;
+  Viewport.UseGlobalLights := true;
 
   MainLight := Scene1.Node('MainLight') as TPointLightNode;
   Time := 0;
@@ -111,7 +120,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;

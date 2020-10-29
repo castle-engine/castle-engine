@@ -1,3 +1,4 @@
+{%MainUnit castletimeutils.pas}
 {
   Copyright 2018-2018 Michalis Kamburelis.
 
@@ -24,10 +25,21 @@ type
     FTimeStart: TTimerResult;
     FProcessTimeStart: TProcessTimerResult;
     FTime: TObject; //< Always TCastleProfiler.TTime
+
+    { Summary of the speed measurements gathered for this TCastleProfilerTime.
+      Useful to investigate time under this TCastleProfilerTime,
+      as opposed to @link(TCastleProfiler.Summary Profiler.Summary) that
+      displays complete profile of everything that happened.
+
+      Note: using Summary on a stopped TCastleProfilerTime is not allowed,
+      may fail with Access Violation.
+      For this reason, this method was removed, as it was a trap.
+      Using LogSummary for Stop instead of both easier, and safe. }
+    //function Summary(const Indent: String = ''): string;
   public
-    { Elapsed time in seconds since calling @link(TProfiler.Start)
-      that returned this. Useful if you use @link(TProfiler),
-      but in addition to @link(TProfiler.Summary) you also want to show
+    { Elapsed time in seconds since calling @link(TCastleProfiler.Start)
+      that returned this. Useful if you use @link(TCastleProfiler),
+      but in addition to @link(TCastleProfiler.Summary) you also want to show
       the operation time in some other way. }
     function ElapsedTime: TFloatTime;
   end;
@@ -63,9 +75,9 @@ type
           WritelnLogMultiline('Time Profile', Profiler.Summary);
         #)
 
-        After displaying the profile,
-        you can clear the profile afterwards by calling @link(Clear),
-        if you prefer the next profile to no longer show what you already output.
+        An alternative way to display the profile is to pass @true as a 2nd
+        argument to any @link(Stop) call. This allows to display a profile
+        limited to given @link(Start) .. @link(Stop) pair.
       )
     )
 
@@ -135,7 +147,7 @@ type
       and stopping it will cause a one-time warning,
       but don't depend on this exact behaviour in the future.
       We will always gracefully accept this case (not crash). }
-    procedure Clear;
+    procedure Clear; deprecated 'This method is not reliable (may cause crashes when used between Start/Stop) and also not comfortable. To display partial profile information, better use Stop with 2nd argument true.';
 
     { Start a task which execution time will be measured.
       You @italic(must) later call @link(Stop) with
@@ -172,8 +184,16 @@ type
     function Start(const Description: String): TCastleProfilerTime;
 
     { Stop a task. This call must match earlier @link(Start) call.
+
+      If LogSummary, and profiling is @link(Enabled), we will output (to CastleLog)
+      a summary of things that happened within this particular TCastleProfilerTime
+      instance (between it's start and stop).
+      This is useful when you are interested not only in adding this
+      TCastleProfilerTime to the profiler tree, but also in immediately viewing the
+      times in this TCastleProfilerTime subtree.
+
       @seealso Start }
-    procedure Stop(const TimeStart: TCastleProfilerTime);
+    procedure Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean = false);
   end;
 
 { Single instance of TCastleProfiler that you can use for all profiling.
@@ -185,12 +205,29 @@ function Profiler: TCastleProfiler;
 
 {$ifdef read_implementation}
 
+const
+  SProfileSummary =
+    'Profile (speed of execution).' + NL +
+    'Each line shows time, followed by [time spent in this process], followed by description.' + NL +
+    'Lines are sorted within each group, to show the most expensive operation at the top.' + NL +
+    NL;
+
 { TCastleProfilerTime -------------------------------------------------------- }
 
 function TCastleProfilerTime.ElapsedTime: TFloatTime;
 begin
   Result := FTimeStart.ElapsedTime;
 end;
+
+{
+function TCastleProfilerTime.Summary(const Indent: String): string;
+var
+  T: TCastleProfiler.TTime;
+begin
+  T := TCastleProfiler.TTime(FTime);
+  Result := SProfileSummary + T.Summary(Indent);
+end;
+}
 
 { TCastleProfiler.TTime ------------------------------------------------------ }
 
@@ -213,7 +250,7 @@ end;
 { TCastleProfiler.TTimes ----------------------------------------------------- }
 
   { Helper for TTimes.Sort }
-  function TimeSort(constref Value1, Value2: TCastleProfiler.TTime): Integer;
+  function TimeSort({$ifdef FPC}constref{$else}const{$endif} Value1, Value2: TCastleProfiler.TTime): Integer;
   begin
     Result := Sign(Value2.Time - Value1.Time);
   end;
@@ -222,7 +259,7 @@ procedure TCastleProfiler.TTimes.Sort;
 type
   TTimeComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TTime>;
 begin
-  inherited Sort(TTimeComparer.Construct(@TimeSort));
+  inherited Sort(TTimeComparer.Construct({$ifdef CASTLE_OBJFPC}@{$endif} TimeSort));
 end;
 
 function TCastleProfiler.TTimes.Summary(const Indent: String): String;
@@ -263,12 +300,7 @@ end;
 
 function TCastleProfiler.Summary: string;
 begin
-  Result :=
-    'Profile (speed of execution).' + NL +
-    'Each line shows time, followed by [time spent in this process], followed by description.' + NL +
-    'Lines are sorted within each group, to show the most expensive operation at the top.' + NL +
-    NL +
-    Times.Summary('');
+  Result := SProfileSummary + Times.Summary('');
 end;
 
 function TCastleProfiler.Start(const Description: String): TCastleProfilerTime;
@@ -302,9 +334,10 @@ begin
   Result.FProcessTimeStart := ProcessTimer;
 end;
 
-procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime);
+procedure TCastleProfiler.Stop(const TimeStart: TCastleProfilerTime; const LogSummary: Boolean);
 var
   T: TTime;
+  IndexInStack: Integer;
 begin
   if TimeStart.FTime = nil then
     Exit; // Start was called when Enabled = false
@@ -319,12 +352,27 @@ begin
   T.Time := TimeStart.FTimeStart.ElapsedTime;
   T.ProcessTime := TimeStart.FProcessTimeStart.ElapsedTime;
 
+  // Call this before CurrentStack.Delete, which may free the T instance
+  if LogSummary then
+    WritelnLogMultiline(T.Description, T.Summary(''));
+
   if (CurrentStack.Count <> 0) and
      (CurrentStack.Last = T) then
     CurrentStack.Delete(CurrentStack.Count - 1)
   else
-    WritelnWarning('Mismatched Profiler.Start/Stop calls, the currently Stopped time measure (%s) was not the last one started',
-      [T.Description]);
+  begin
+    WritelnWarning('Mismatched Profiler.Start/Stop calls, the currently stopped time measurement (%s) is not the last measurement started (%s). Use try...finally to always run "Profiler.Stop" for each "Profiler.Start".', [
+      T.Description,
+      CurrentStack.Last.Description
+    ]);
+    IndexInStack := CurrentStack.IndexOf(T);
+    if IndexInStack <> - 1 then
+      CurrentStack.DeleteRange(IndexInStack, CurrentStack.Count - IndexInStack)
+    else
+      WritelnWarning('Cannot find in stack the start of "%s", profiler information is corrupt, possible Access Violations errors later', [
+        T.Description
+      ]);
+  end;
 end;
 
 procedure TCastleProfiler.Clear;

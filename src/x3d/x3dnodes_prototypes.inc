@@ -268,7 +268,7 @@
     { Loads URL, until the first success. Sets either ReferencedClass to non-nil
       (if it's built-in node) or ReferencedPrototype (if prototype expansion
       found in external file). }
-    procedure LoadReferenced;
+    procedure LoadReferenced(const Version: TX3DVersion);
     procedure UnloadReferenced;
   end;
 
@@ -945,10 +945,13 @@ var
   OldNodeNames: TX3DNodeNames;
   WriterNames: TX3DWriterNames;
 begin
+  // TODO: We should save/load prototype names using EncodeX3DName/DecodeX3DName too
   case Writer.Encoding of
     xeClassic: Writer.WriteIndent('PROTO ' + X3DName + ' ');
     xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(X3DName) + '>');
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DPrototype.SaveToStream Encoding?');
+    {$endif}
   end;
 
   if Writer.Encoding = xeXML then
@@ -975,7 +978,9 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('{');
       xeXML    : Writer.WritelnIndent('<ProtoBody>');
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TX3DPrototype.SaveToStream 2 Encoding?');
+      {$endif}
     end;
     { Node may be TX3DRootNode here, that's OK,
       TX3DRootNode.SaveToStream will magically handle this right. }
@@ -985,7 +990,9 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('}');
       xeXML    : Writer.WritelnIndent('</ProtoBody>');
+      {$ifndef COMPILER_CASE_ANALYSIS}
       else raise EInternalError.Create('TX3DPrototype.SaveToStream 3 Encoding?');
+      {$endif}
     end;
   finally
     FreeAndNil(WriterNames.NodeNames);
@@ -1030,7 +1037,7 @@ begin
 
   Reader.Prototypes.Bind(Self);
 
-  LoadReferenced;
+  LoadReferenced(Reader.Version);
 end;
 
 procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
@@ -1052,7 +1059,7 @@ begin
 
   Reader.Prototypes.Bind(Self);
 
-  LoadReferenced;
+  LoadReferenced(Reader.Version);
 end;
 
 procedure TX3DExternalPrototype.SaveToStream(Writer: TX3DWriter);
@@ -1080,11 +1087,13 @@ begin
 
         Writer.WritelnIndent('</ExternProtoDeclare>');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DExternalPrototype.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 
-procedure TX3DExternalPrototype.LoadReferenced;
+procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
 
   procedure LoadInterfaceDeclarationsValues;
   var
@@ -1159,7 +1168,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
     URL := CombineURI(BaseUrl, RelativeURL);
     URIExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := X3DCache.Load3D(URL);
+      ReferencedPrototypeNode := X3DCache.LoadNode(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -1172,7 +1181,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
     FReferencedPrototype := TryFindProtoNonExternal(Anchor);
     if FReferencedPrototype = nil then
     begin
-      X3DCache.Free3D(ReferencedPrototypeNode);
+      X3DCache.FreeNode(ReferencedPrototypeNode);
       if Anchor = '' then
         ProtoWarning('No PROTO found') else
         ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
@@ -1186,7 +1195,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
 
   function LoadFromURN(const URN: string): boolean;
   begin
-    FReferencedClass := NodesManager.URNToClass(URN);
+    FReferencedClass := NodesManager.URNToClass(URN, Version);
     Result := ReferencedClass <> nil;
     if not Result then
       WritelnWarning('VRML/X3D', Format('Unknown node URN "%s"', [URN]));
@@ -1216,7 +1225,7 @@ begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
 
-  X3DCache.Free3D(ReferencedPrototypeNode);
+  X3DCache.FreeNode(ReferencedPrototypeNode);
 
   FReferencedClass := nil;
 end;

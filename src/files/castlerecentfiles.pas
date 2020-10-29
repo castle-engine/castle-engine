@@ -51,15 +51,16 @@ type
 
     { Adds as the most recent file URL.
 
-      If MaybeStdIn, then we treat URL = '-' specially:
-      it's ignored. Use this if your program interprets '-' as "load file
-      from standard input", such files should not be added to recent files menu.
-
       Note that we want to store only absolute URLs.
       So this method will always call AbsoluteURI (which will eventually
       call ExpandFileName on filename inside, and make sure it has appropriate
       protocol) on the given URL. }
-    procedure Add(const URL: string; const MaybeStdIn: boolean = true); virtual;
+    procedure Add(const URL: String); virtual;
+
+    procedure Add(const URL: String; const Ignored: Boolean); deprecated 'use Add(URL)';
+
+    { Remove URL. }
+    procedure Remove(const URL: String);
 
     { List of currently stored URLs. @italic(This is readonly.) }
     property URLs: TStringList read FURLs;
@@ -112,13 +113,11 @@ procedure TRecentFiles.MenuDestroy;
 begin
 end;
 
-procedure TRecentFiles.Add(const URL: string; const MaybeStdIn: boolean);
+procedure TRecentFiles.Add(const URL: String);
 var
   F: string;
   Index: Integer;
 begin
-  if MaybeStdIn and (URL = '-') then Exit;
-
   F := AbsoluteURI(URL);
 
   { We calculate Index, because if user opens a file already on the "recent files"
@@ -129,8 +128,11 @@ begin
     Exit { user reopens last opened file, nothing to do };
 
   if Index <> -1 then
+  begin
     { Just move Index to the beginning }
-    URLs.Exchange(Index, 0) else
+    URLs.Delete(Index);
+    URLs.Insert(0, F);
+  end else
   begin
     URLs.Insert(0, F);
     Strings_Trim(URLs, MaxCount);
@@ -138,6 +140,30 @@ begin
 
   MenuDestroy;
   MenuCreate;
+end;
+
+procedure TRecentFiles.Add(const URL: String; const Ignored: Boolean);
+begin
+  Add(URL);
+end;
+
+procedure TRecentFiles.Remove(const URL: String);
+var
+  F: string;
+  Index: Integer;
+begin
+  F := AbsoluteURI(URL);
+
+  { We calculate Index, because if user opens a file already on the "recent files"
+    list then we want to just move this URL to the top. }
+  Index := URLs.IndexOf(F);
+
+  if Index <> -1 then
+  begin
+    URLs.Delete(Index);
+    MenuDestroy;
+    MenuCreate;
+  end;
 end;
 
 const

@@ -31,13 +31,13 @@ uses SysUtils, Classes, CastleControls, CastleImages, CastleLog, CastleColors,
 
 var
   ImageControl: TCastleImageControl;
-  Brushes: array [0..6] of TGLImage;
+  Brushes: array [0..6] of TDrawableImage;
 
 procedure ApplicationInitialize;
 
-  function LoadBrush(const Name: string): TGLImage;
+  function LoadBrush(const Name: string): TDrawableImage;
   begin
-    Result := TGLImage.Create(ApplicationData('brush_' + Name + '.png'));
+    Result := TDrawableImage.Create('castle-data:/brush_' + Name + '.png');
   end;
 
 begin
@@ -92,7 +92,7 @@ end;
 
 procedure Draw(const Position: TVector2; const BrushIndex: TFingerIndex);
 var
-  Brush: TGLImage;
+  Brush: TDrawableImage;
   X, Y: Integer;
 begin
   { not enough brushes, this means your touch device supports > High(Brushes) + 1

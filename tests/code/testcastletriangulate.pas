@@ -21,7 +21,7 @@ unit TestCastleTriangulate;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleVectors,
   CastleTriangulate, CastleTriangles, CastleTestCase;
 
 type
@@ -31,7 +31,7 @@ type
     Vertexes: PVector3;
     CountVertexes: Integer;
     procedure Face(const Tri: TVector3Integer);
-    procedure OnWarningRaiseException(Sender: TObject; const Category, S: string);
+    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure TestIndexedConcavePolygonNormal;
     procedure TestTriangulateFace;
@@ -41,7 +41,7 @@ implementation
 
 uses CastleStringUtils, CastleUtils, CastleLog, CastleApplicationProperties;
 
-procedure TTestCastleTriangulate.OnWarningRaiseException(Sender: TObject; const Category, S: string);
+procedure TTestCastleTriangulate.OnWarningRaiseException(const Category, S: string);
 begin
   raise Exception.CreateFmt('CastleTriangulate made warning: %s: %s', [Category, S]);
 end;

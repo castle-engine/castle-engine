@@ -34,7 +34,7 @@ published
     instead read or write @link(CurrentItemBorderColor1) directly.
 
     @seealso CurrentItemBorderColor1 }
-  property CurrentItemBorderColor1Persistent: TCastleColorPersistent read FCurrentItemBorderColor1Persistent;
+  property CurrentItemBorderColor1Persistent: TCastleColorPersistent read FCurrentItemBorderColor1Persistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -96,7 +96,7 @@ published
     instead read or write @link(CurrentItemBorderColor2) directly.
 
     @seealso CurrentItemBorderColor2 }
-  property CurrentItemBorderColor2Persistent: TCastleColorPersistent read FCurrentItemBorderColor2Persistent;
+  property CurrentItemBorderColor2Persistent: TCastleColorPersistent read FCurrentItemBorderColor2Persistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -158,7 +158,7 @@ published
     instead read or write @link(CurrentItemColor) directly.
 
     @seealso CurrentItemColor }
-  property CurrentItemColorPersistent: TCastleColorPersistent read FCurrentItemColorPersistent;
+  property CurrentItemColorPersistent: TCastleColorPersistent read FCurrentItemColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -220,7 +220,7 @@ published
     instead read or write @link(NonCurrentItemColor) directly.
 
     @seealso NonCurrentItemColor }
-  property NonCurrentItemColorPersistent: TCastleColorPersistent read FNonCurrentItemColorPersistent;
+  property NonCurrentItemColorPersistent: TCastleColorPersistent read FNonCurrentItemColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}
@@ -282,7 +282,7 @@ published
     instead read or write @link(NonFocusableItemColor) directly.
 
     @seealso NonFocusableItemColor }
-  property NonFocusableItemColorPersistent: TCastleColorPersistent read FNonFocusableItemColorPersistent;
+  property NonFocusableItemColorPersistent: TCastleColorPersistent read FNonFocusableItemColorPersistent ;
 {$endif read_interface_class}
 
 {$ifdef read_implementation_methods}

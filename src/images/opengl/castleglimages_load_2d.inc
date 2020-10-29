@@ -20,7 +20,7 @@
 
 { ----------------------------------------------------------------------
   Adjusting image sizes to load them as textures.
-  Usually you don't need these functions, LoadGLTexture* and TGLImageCore
+  Usually you don't need these functions, LoadGLTexture* and TDrawableImage
   and such call it automatically when needed. }
 
 type
@@ -54,7 +54,7 @@ type
   Sample model using non-power-of-2 is in inlined_textures.wrl.
 
   Use Sizing = tsAny only for textures that you plan to use
-  for drawing GUI images by TGLImageCore.
+  for drawing GUI images by TDrawableImage.
 
   @groupBegin }
 procedure ResizeForTextureSize(var r: TCastleImage; const Sizing: TTextureSizing);
@@ -77,7 +77,7 @@ var
     So value = 1 means no scaling, value = 2 means that each size is 1/2
     (texture area is 1/4), value = 3 means that each size is 1/4 and so on.
 
-    Note that textures used for GUI, by TGLImageCore
+    Note that textures used for GUI, by TDrawableImage
     (more precisely: all non-power-of-2 textures) avoid this scaling entirely.
 
     This allows to scale the textures at runtime.
@@ -224,9 +224,8 @@ begin
   NewWidth  := ResizeToTextureSize(R.Width , Sizing);
   NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
-  if Log then
-    WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
-      [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
+  WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
+    [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;

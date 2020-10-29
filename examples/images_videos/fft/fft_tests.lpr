@@ -30,7 +30,7 @@ uses SysUtils, Classes, CastleUtils, CastleImages, ImagesFftw, CastleWindow,
 type
   TWindowImage = class(TCastleWindowBase)
   strict private
-    Background: TCastleSimpleBackground;
+    Background: TCastleRectangleControl;
     ImageControl: TCastleImageControl;
     function GetImage: TRGBImage;
     procedure SetImage(const Value: TRGBImage);
@@ -44,7 +44,9 @@ constructor TWindowImage.Create(AOwner: TComponent);
 begin
   inherited;
 
-  Background := TCastleSimpleBackground.Create(Self);
+  Background := TCastleRectangleControl.Create(Self);
+  Background.FullSize := true;
+  Background.Color := Black;
   Controls.InsertFront(Background);
 
   ImageControl := TCastleImageControl.Create(Self);
@@ -265,11 +267,16 @@ begin
     Result.Append(M);
 end;
 
+var
+  ImageUrl: String = 'castle-data:/test_texture.png';
 begin
-  Parameters.CheckHigh(1);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    ImageUrl := Parameters[1];
+
   try
     Source := TWindowImage.Create(nil);
-    Source.Image := LoadImage(Parameters[1], [TRGBImage]) as TRGBImage;
+    Source.Image := LoadImage(ImageUrl, [TRGBImage]) as TRGBImage;
     Source.Width  := Source.Image.Width ;
     Source.Height := Source.Image.Height;
     Source.Caption := 'Source image';

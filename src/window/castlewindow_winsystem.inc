@@ -137,11 +137,11 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   begin
     Result := true;
     {seek for message to any of windows of our thread}
-    if PeekMessage(msg, 0, 0, 0, PM_REMOVE) then
+    if PeekMessageW(msg, 0, 0, 0, PM_REMOVE) then
       HandleEvent else
     (*{seek for messages to our thread with hWnd = 0 (send with PostThreadMessage)
       (NOT NEEDED NOW)}
-    if PeekMessage(msg, HWND(-1), 0, 0, PM_REMOVE) then
+    if PeekMessageW(msg, HWND(-1), 0, 0, PM_REMOVE) then
       HandleEvent else *)
       Result := false;
   {$endif}
@@ -182,7 +182,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   procedure WaitMessage;
   begin
     {$ifdef CASTLE_WINDOW_WINAPI}
-    Check( LongInt(GetMessage(msg, 0, 0, 0)) <> -1, 'GetMessage failed with Result -1.');
+    Check( LongInt(GetMessageW(msg, 0, 0, 0)) <> -1, 'GetMessageW failed with Result -1.');
     {$endif}
     {$ifdef CASTLE_WINDOW_XLIB}
     XNextEvent(XDisplay, @event); { implicit XFlush }

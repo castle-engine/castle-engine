@@ -133,11 +133,15 @@ type
         @item(We can also load a sequence of images with a URL
           like image@@counter(1).png.
 
-          We use FormatNameCounter to recognize URLs with
-          @code(@@counter(*)) macro. If it contains @code(@@counter(*)) macro,
-          then we try to load image sequence starting from counter 1.
-          If not, we just load a single image (and treat it as a movie with only
-          one frame).
+          We use @link(FormatNameCounter) to recognize URLs with
+          @code(@@counter(*)) macro. If URL contains @code(@@counter(*)) macro,
+          then we try to load image sequence starting from counter equal 0
+          or (if that doesn't exist) from counter equal 1.
+          This way your image sequence numbering can start from 0 or from 1,
+          and it will work in any case.
+
+          If URL doesn't contain @code(@@counter(*)) macro,
+          then we just load a single image (and treat it as a movie with only one frame).
 
           Note that this allows you to have alpha channel for the video.
           Since we just load the sequence of images, they can have
@@ -882,7 +886,7 @@ begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
 
-      if LogVideosCache and Log then
+      if LogVideosCache then
         WritelnLog('++', 'Video %s : %d', [URIDisplay(URL), C.References]);
 
       Exit(C.Video);
@@ -894,7 +898,7 @@ begin
     we don't want to add video to cache (because caller would have
     no way to call Video_DecReference later). }
 
-  if LogVideosCache and Log then
+  if LogVideosCache then
     Start := ProcessTimer;
 
   Result := TVideo.Create;
@@ -914,7 +918,7 @@ begin
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
-  if LogVideosCache and Log then
+  if LogVideosCache then
   begin
     S := Format('Video %s : 1. Loading time: %f',
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
@@ -935,7 +939,7 @@ begin
     C := CachedVideos[I];
     if C.Video = Video then
     begin
-      if LogVideosCache and Log then
+      if LogVideosCache then
         WritelnLog('--', 'Video %s : %d', [C.URL, C.References - 1]);
 
       Video := nil;

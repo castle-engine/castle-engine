@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -34,8 +34,8 @@
     procedure SetColor(const Value: TCastleColorRGB);
     function GetIntensity: Single;
     procedure SetIntensity(const Value: Single);
-    function GetSpot: boolean;
-    procedure SetSpot(const Value: boolean);
+    function GetSpot: Boolean;
+    procedure SetSpot(const Value: Boolean);
     function GetSpotDropOffRate: Single;
     procedure SetSpotDropOffRate(const Value: Single);
     function GetSpotCutOffAngle: Single;
@@ -50,7 +50,7 @@
     { X3D field "intensity". } { }
     property Intensity: Single read GetIntensity write SetIntensity;
     { X3D field "spot". } { }
-    property Spot: boolean read GetSpot write SetSpot;
+    property Spot: Boolean read GetSpot write SetSpot;
     { X3D field "spotDropOffRate". } { }
     property SpotDropOffRate: Single read GetSpotDropOffRate write SetSpotDropOffRate;
     { X3D field "spotCutOffAngle". } { }
@@ -102,12 +102,12 @@ begin
   FdIntensity.Send(Value);
 end;
 
-function TKambiHeadLightNode.GetSpot: boolean;
+function TKambiHeadLightNode.GetSpot: Boolean;
 begin
   Result := FdSpot.Value;
 end;
 
-procedure TKambiHeadLightNode.SetSpot(const Value: boolean);
+procedure TKambiHeadLightNode.SetSpot(const Value: Boolean);
 begin
   FdSpot.Send(Value);
 end;

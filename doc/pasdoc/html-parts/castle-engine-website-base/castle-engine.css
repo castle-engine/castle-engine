@@ -159,8 +159,7 @@ dl.vrml_ver_differences > dt {
   font-style: italic;
 }
 
-.program_image_link,
-.main_link {
+.cge-gallery-link {
   /* background: #e8d59a; */
   /* background: #efdfae; */
   border-width: thin;
@@ -172,14 +171,13 @@ dl.vrml_ver_differences > dt {
   width: 100%;
   margin: 20px 0;
 }
-.program_image_link img,
-.main_link img {
+.cge-gallery-link img {
   border: none;
   max-width: 100%; /* force scaling down on narrow window width, for 3-column layout of all_programs.php */
 }
 
 @media only screen and (min-width : 768px) {
-    .program_image_link {
+    .cge-gallery-link {
       min-height: 450px;
     }
 }
@@ -187,12 +185,12 @@ dl.vrml_ver_differences > dt {
 /* Small devices (tablets, 768px and up), see http://getbootstrap.com/css/ */
 /* @media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) { */
 /* @media (min-width: 768px) and (max-width: 992px) { */
-/*   .program_image_link { */
+/*   .cge-gallery-link { */
 /*     min-height: 0 !important; */
 /*   } */
 /* } */
 
-.program_image_link_title { font-size: larger; }
+.cge-gallery-link-title { font-size: larger; }
 
 a.screenshot       img { border: 2pt solid #EEE; }
 a.screenshot:hover img { border: 2pt solid #888; }
@@ -241,6 +239,14 @@ a.download_code {
     text-decoration: underline;
 }
 
+/* make documentation.php lists look good */
+.content-near-sidebar ol,
+.content-near-sidebar ul,
+article.post .entry-content ol,
+article.post .entry-content ul {
+  margin-bottom: 10px !important;
+}
+
 /* main page stuff ----------------------------------------------------------- */
 
 .centered-wrapper {
@@ -258,10 +264,13 @@ a.download_code {
     display: inline-block;
 }
 .download-hints {
-    margin-top: 0.5em;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }
 .download-hints p {
     font-size: 87% !important;
+    margin-top: 0; /* .download-hints already makes margins */
+    margin-bottom: 0; /* .download-hints already makes margins */
 }
 
 /* news on main page --------------------------------------------------------- */
@@ -774,13 +783,77 @@ div.download .download_platform {
 }
 
 .centered-download-wrapper .btn-primary {
-  width: 80%;
+  padding-left: 4em;
+  padding-right: 4em;
+  /* margin vertical matters only in case of narrow screen,
+     when one btn-primary is under another */
+  margin: 0.1em 0.5em;
 }
 
 .jumbotron .btn-patreon {
   margin-right: auto;
   margin-left: auto;
-  margin-top: 1em;
   display: block;
   width: 80%;
+}
+
+.centered-download-wrapper .btn-primary .download-button-hint {
+  font-size: x-small;
+}
+
+/* convert stuff ------------------------------------------------------------- */
+
+.single-column-page {
+  max-width: 60em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.convert-form input[type="file"] {
+  height: auto !important; /* override Bootstrap */
+}
+
+.convert-form .jumbotron {
+  padding: 30px !important;
+}
+
+.convert-form label {
+  font-weight: inherit;
+}
+
+.convert-form p {
+  font-size: inherit !important; /* override Bootstrap */
+  font-weight: inherit !important; /* override Bootstrap */
+}
+
+.convert-form .encoding-title {
+  margin-bottom: 0.5em;
+}
+
+.convert-form .encoding-radio p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.convert-form .encoding-group {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  border: 1px solid #DDD;
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.convert-form .convert-patreon,
+.convert-form .another {
+  margin-top: 2em;
+}
+
+.convert-form .convert-patreon a.btn {
+  max-width: 20em;
+}
+
+.convert-output p {
+  text-align: center;
 }

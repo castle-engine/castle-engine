@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,21 +26,21 @@
 {$ifdef read_interface}
 
   strict private
-    function GetFilled: boolean;
-    procedure SetFilled(const Value: boolean);
+    function GetFilled: Boolean;
+    procedure SetFilled(const Value: Boolean);
     function GetHatchColor: TCastleColorRGB;
     procedure SetHatchColor(const Value: TCastleColorRGB);
-    function GetHatched: boolean;
-    procedure SetHatched(const Value: boolean);
+    function GetHatched: Boolean;
+    procedure SetHatched(const Value: Boolean);
     function GetHatchStyle: Integer;
     procedure SetHatchStyle(const Value: Integer);
   public
     { X3D field "filled". } { }
-    property Filled: boolean read GetFilled write SetFilled;
+    property Filled: Boolean read GetFilled write SetFilled;
     { X3D field "hatchColor". } { }
     property HatchColor: TCastleColorRGB read GetHatchColor write SetHatchColor;
     { X3D field "hatched". } { }
-    property Hatched: boolean read GetHatched write SetHatched;
+    property Hatched: Boolean read GetHatched write SetHatched;
     { X3D field "hatchStyle". } { }
     property HatchStyle: Integer read GetHatchStyle write SetHatchStyle;
 
@@ -50,12 +50,12 @@
 
 { TFillPropertiesNode ----------------------------------------------- }
 
-function TFillPropertiesNode.GetFilled: boolean;
+function TFillPropertiesNode.GetFilled: Boolean;
 begin
   Result := FdFilled.Value;
 end;
 
-procedure TFillPropertiesNode.SetFilled(const Value: boolean);
+procedure TFillPropertiesNode.SetFilled(const Value: Boolean);
 begin
   FdFilled.Send(Value);
 end;
@@ -70,12 +70,12 @@ begin
   FdHatchColor.Send(Value);
 end;
 
-function TFillPropertiesNode.GetHatched: boolean;
+function TFillPropertiesNode.GetHatched: Boolean;
 begin
   Result := FdHatched.Value;
 end;
 
-procedure TFillPropertiesNode.SetHatched(const Value: boolean);
+procedure TFillPropertiesNode.SetHatched(const Value: Boolean);
 begin
   FdHatched.Send(Value);
 end;

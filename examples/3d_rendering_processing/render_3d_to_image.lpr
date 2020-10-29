@@ -13,17 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ Use Window.Container.RenderControl to render various scenes to TGLImage. }
+{ Use Window.Container.RenderControl to render various scenes to TDrawableImage. }
 
 uses SysUtils,
   CastleWindow, CastleScene, CastleVectors,
   CastleFilesUtils, CastleImages, CastleRectangles, CastleGLImages,
-  CastleSceneManager, CastleURIUtils;
+  CastleViewport, CastleURIUtils;
 
 var
   Window: TCastleWindowBase;
-  SceneManager: TCastleSceneManager;
-  Image: TGLImage;
+  Viewport: TCastleViewport;
+  Image: TDrawableImage;
 
 const
   ImageWidth = 1024;
@@ -41,26 +41,25 @@ begin
   try
     Scene.Load(Url);
 
-    SceneManager.Items.Clear;
-    SceneManager.Items.Add(Scene);
-    { Setting MainScene allows SceneManager to adjust
+    Viewport.Items.Clear;
+    Viewport.Items.Add(Scene);
+    { Setting MainScene allows Viewport to adjust
       viewpoint, headlight, background etc. based on MainScene contents. }
-    SceneManager.MainScene := Scene;
-    { Freeing camera each time, forces recreating best camera at render. }
-    SceneManager.Camera.Free;
+    Viewport.Items.MainScene := Scene;
+    Viewport.AssignDefaultCamera;
 
-    Window.Container.RenderControl(SceneManager,
+    Window.Container.RenderControl(Viewport,
       Rectangle(0, 0, ImageWidth, ImageHeight));
   finally FreeAndNil(Scene) end;
 
   Image.RenderToImageEnd;
 
-  { For demo, grab the contents of Image:TGLImage to normal memory.
+  { For demo, grab the contents of Image:TDrawableImage to normal memory.
     Note that *this will always be slow* (grabbing contents from GPU->CPU
-    is always slow). In real applications, it is best to hold on to TGLImage
+    is always slow). In real applications, it is best to hold on to TDrawableImage
     instance, and use it for rendering directly,
     e.g. by TCastleImageControl.DrawableImage,
-    or simply by drawing it later with TGLImage.Draw. }
+    or simply by drawing it later with TDrawableImage.Draw. }
   if not Application.OpenGLES then
   begin
     DestImage := Image.GetContents(TRGBAlphaImage);
@@ -83,53 +82,45 @@ begin
     some backends will just keep showing the window. }
   Window.Visible := false;
 
-  { Create scene manager, which is also a viewport by default,
-    so it is a 2D control that shows 3D world.
+  { Create viewport (a 2D control that shows 3D world).
 
-    Note that in this simple demo, we could as well create
-    TCastleWindow instead of TCastleWindowBase.
-    And then
-    - Instead of creating "TCastleSceneManager.Create",
-      we could have just used ready Window.SceneManager.
-    - There would be no point in calling SceneManager.GLContextOpen then.
-      The scene manager on "Window.SceneManager" is present on
-      "Window.Controls" list, and as such it already has GL resources initialized
-      (GLContextOpen was already called on it).
+    Note that calling manually Viewport.GLContextOpen would not be necessary
+    if Viewport was already part of Window.Controls.
+    In this example, I wanted to show more general approach, that works
+    regardless if the control passed to Window.Container.RenderControl
+    is present on "Window.Controls" list.
 
-    However, I'm showing below an alternative way where we create
-    TCastleSceneManager explicitly, to emphasize that the control passed
-    to Window.Container.RenderControl does *not* need to be present
-    on "Window.Controls" list.
-
-    Note that you *could* create new TCastleSceneManager inside
-    each RenderScene, instead of reusing one SceneManager instance.
-    But then it may be slower, as TCastleSceneManager.GLContextOpen
+    Note that you *could* create new TCastleViewport inside
+    each RenderScene, instead of reusing one Viewport instance.
+    But then it may be slower, as TCastleViewport.GLContextOpen
     will be called many times.
-    Although right now, TCastleSceneManager.GLContextOpen
+    Although right now, TCastleViewport.GLContextOpen
     doesn't do anything, so this optimization actually doesn't matter.
   }
 
-  SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.FullSize := false;
-  SceneManager.Width := ImageWidth;
-  SceneManager.Height := ImageHeight;
-  SceneManager.GLContextOpen;
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.AutoCamera := false;
+  Viewport.AutoNavigation := false;
+  Viewport.FullSize := false;
+  Viewport.Width := ImageWidth;
+  Viewport.Height := ImageHeight;
+  Viewport.GLContextOpen;
 
   { Create an image as a destination for all off-screen rendering.
 
     By reusing the same Image instance for all RenderScene calls, we make it faster.
     The image data, as well as FBO, is created once,
     instead of for each RenderScene call.
-    But it would also be correct (just slower) to create new TGLImage in each
+    But it would also be correct (just slower) to create new TDrawableImage in each
     RenderScene call. }
-  Image := TGLImage.Create(
+  Image := TDrawableImage.Create(
     TRGBAlphaImage.Create(ImageWidth, ImageHeight), true, true);
   try
 
-    RenderScene(ApplicationData('boxes.x3dv'));
-    RenderScene(ApplicationData('bridge_final.x3dv'));
-    RenderScene(ApplicationData('car.x3d'));
-    RenderScene(ApplicationData('teapot.x3dv'));
+    RenderScene('castle-data:/boxes.x3dv');
+    RenderScene('castle-data:/bridge_final.x3dv');
+    RenderScene('castle-data:/car.x3d');
+    RenderScene('castle-data:/teapot.x3dv');
 
   finally FreeAndNil(Image) end;
 end.

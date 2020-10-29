@@ -59,7 +59,7 @@ type
     type
       TSpriteAnimations = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSpriteAnimation>;
     var
-    FImage: TGLImage;
+    FImage: TDrawableImage;
     FX, FY: Single;
     FDrawingWidth, FDrawingHeight: Single;
     FFrames, FFrameWidth, FFrameHeight, FColumns: Cardinal;
@@ -77,22 +77,23 @@ type
     FCustomAnimTimestamp: TFloatTime;
     FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
     FSmoothScalingSafeBorder, FSmoothScaling: Boolean;
+    FOwnsImage: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TFloatRectangle;
     function GetDrawRect: TFloatRectangle;
-    function GetCenter: TVector2;
-    function GetPosition: TVector2Single;
+    function GetRotationCenter: TVector2;
+    function GetPosition: TVector2;
     function GetRotation: Single;
     function GetColor: TCastleColor;
     procedure SetTime(const AValue: TFloatTime);
-    procedure SetCenter(const AValue: TVector2);
+    procedure SetRotationCenter(const AValue: TVector2);
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetDrawRect(const AValue: TFloatRectangle);
     procedure SetFramesPerSecond(const AValue: Single);
     procedure SetFrame(const AValue: Cardinal);
-    procedure SetPosition(const APosition: TVector2Single);
+    procedure SetPosition(const APosition: TVector2);
     procedure SetRotation(const AValue: Single);
     procedure SetColor(const AValue: TCastleColor);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -102,7 +103,7 @@ type
       @param(AFrames Total numer of animation frames.)
       @param(AColumns Mumber of columns.)
       @param(ARows Number of rows.)
-      @param(ASmoothscaling Enables interpolation, see @link(TGLImageCore.SmoothScaling) for details, default @True.)
+      @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor Create(const URL: string;
@@ -110,7 +111,7 @@ type
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 
-    { Constructor that takes explicit frame size, and loaded TGLImage instance.
+    { Constructor that takes explicit frame size, and loaded TDrawableImage instance.
 
       @param(AImage Source image (will be owned by this sprite).)
       @param(AFrames Total numer of animation frames.)
@@ -119,7 +120,7 @@ type
       @param(AFrameHeight Height of each frame.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor CreateFrameSize(const AImage: TGLImage;
+    constructor CreateFrameSize(const AImage: TDrawableImage;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
 
@@ -130,13 +131,20 @@ type
       @param(AColumns Number of columns.)
       @param(AFrameWidth Width of each frame.)
       @param(AFrameHeight Height of each frame.)
-      @param(ASmoothscaling Enables interpolation, see @link(TGLImageCore.SmoothScaling) for details, default @True.)
+      @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default True.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor CreateFrameSize(const URL: string;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
+
+    { By default this class "owns" the underlying image, even when passed explicitly to
+      CreateFrameSize as TDrawableImage instance.
+      That is, the underlying TDrawableImage instance will be automatically freed when
+      the sprite will be freed.
+      You turn it off with this property. }
+    property OwnsImage: Boolean read FOwnsImage write FOwnsImage default true;
 
     destructor Destroy; override;
 
@@ -169,7 +177,7 @@ type
       This is the rotation of the frame on screen.
 
       The overloaded versions deliberately look and work
-      similar to @link(TGLImageCore.Draw) versions.
+      similar to @link(TDrawableImage.Draw) versions.
       @groupBegin }
     procedure Draw; overload;
     procedure Draw(const AX, AY: Single); overload;
@@ -198,9 +206,11 @@ type
 
     { Center X of rotation. Values between 0 and 1. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+      deprecated 'use RotationCenter';
 
     { Center Y of rotation. Values between 0 and 1. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+      deprecated 'use RotationCenter';
 
     { Destination frame width to draw. }
     property DrawingWidth: Single read FDrawingWidth write FDrawingWidth;
@@ -212,13 +222,19 @@ type
       properties @link(X), @link(Y), DrawingWidth, DrawingHeight. }
     property DrawRect: TFloatRectangle read GetDrawRect write SetDrawRect;
 
-    { Center of rotation. Values between 0 and 1. }
-    property Center: TVector2 read GetCenter write SetCenter;
+    { Center of rotation.
+      Expressed as a fraction within the drawn ScreenRectangle,
+      (0,0) means bottom-left corner, (1,1) means top-right corner.
+      Default (0.5,0.5). }
+    property RotationCenter: TVector2 read GetRotationCenter write SetRotationCenter;
+
+    property Center: TVector2 read GetRotationCenter write SetRotationCenter;
+      deprecated 'use RotationCenter';
 
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
 
-    { Color multiplier of the sprite, see @link(TGLImageCore.Color) }
+    { Color multiplier of the sprite, see @link(TDrawableImage.Color) }
     property Color: TCastleColor read GetColor write SetColor;
 
     { Total number of frames. Readonly. Defined at creation. }
@@ -244,7 +260,7 @@ type
 
     { Current time within the animation, it determines the current frame.
       Yoy can set this explicity. Alternatively, you can call the @link(Update)
-      method continously while the animation is @link(Playing), and then
+      method continuously while the animation is @link(Playing), and then
       the time will increase automatically. }
     property Time: TFloatTime read FTime write SetTime;
 
@@ -436,6 +452,7 @@ begin
   begin
     Assert(FCurrentAnimation < FCustomAnimations.Count);
     Anim := FCustomAnimations.Items[FCurrentAnimation];
+    FFrame := Anim.Frames[FCustomFrame].Frame;
     while (FTime - FCustomAnimTimestamp) >= Anim.Frames[FCustomFrame].Duration do
     begin
       // todo: custom animation loops
@@ -470,44 +487,12 @@ begin
   Result.Height := FFrameHeight;
 end;
 
-function TSprite.GetCenterX: Single;
-begin
-  Result := FImage.CenterX;
-end;
-
-function TSprite.GetCenterY: Single;
-begin
-  Result := FImage.CenterY;
-end;
-
 function TSprite.GetDrawRect: TFloatRectangle;
 begin
   Result.Left := FX;
   Result.Bottom := FY;
   Result.Width := FDrawingWidth;
   Result.Height := FDrawingHeight;
-end;
-
-function TSprite.GetCenter: TVector2;
-begin
-  Result[0] := CenterX;
-  Result[1] := CenterY;
-end;
-
-procedure TSprite.SetCenter(const AValue: TVector2);
-begin
-  CenterX := AValue[0];
-  CenterY := AValue[1];
-end;
-
-procedure TSprite.SetCenterX(const AValue: Single);
-begin
-  FImage.CenterX := AValue;
-end;
-
-procedure TSprite.SetCenterY(const AValue: Single);
-begin
-  FImage.CenterY := AValue;
 end;
 
 procedure TSprite.SetDrawRect(const AValue: TFloatRectangle);
@@ -546,7 +531,7 @@ begin
   FImage.Color := AValue;
 end;
 
-constructor TSprite.CreateFrameSize(const AImage: TGLImage;
+constructor TSprite.CreateFrameSize(const AImage: TDrawableImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 begin
@@ -571,6 +556,7 @@ begin
   FCustomFrame := 0;
   FHorizontalFlip := False;
   FVerticalFlip := False;
+  FOwnsImage := true;
 end;
 
 constructor TSprite.CreateFrameSize(const URL: string;
@@ -578,10 +564,10 @@ constructor TSprite.CreateFrameSize(const URL: string;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 var
-  Img: TGLImage;
+  Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TGLImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
@@ -591,10 +577,10 @@ constructor TSprite.Create(const URL: string;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 var
-  Img: TGLImage;
+  Img: TDrawableImage;
 begin
   FSmoothScaling := ASmoothScaling;
-  Img := TGLImage.Create(URL, SmoothScaling);
+  Img := TDrawableImage.Create(URL, SmoothScaling);
   CreateFrameSize(Img, AFrames, AColumns,
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can
@@ -606,7 +592,8 @@ end;
 
 destructor TSprite.Destroy;
 begin
-  FreeAndNil(FImage);
+  if OwnsImage then
+    FreeAndNil(FImage);
   FreeAndNil(FCustomAnimations);
   inherited;
 end;
@@ -733,6 +720,44 @@ begin
     FSmoothScaling := Value;
     FImage.SmoothScaling := Value;
   end;
+end;
+
+function TSprite.GetRotationCenter: TVector2;
+begin
+  Result := FImage.RotationCenter;
+end;
+
+procedure TSprite.SetRotationCenter(const AValue: TVector2);
+begin
+  FImage.RotationCenter := AValue;
+end;
+
+function TSprite.GetCenterX: Single;
+begin
+  Result := RotationCenter.X;
+end;
+
+function TSprite.GetCenterY: Single;
+begin
+  Result := RotationCenter.Y;
+end;
+
+procedure TSprite.SetCenterX(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.X := AValue;
+  RotationCenter := V;
+end;
+
+procedure TSprite.SetCenterY(const AValue: Single);
+var
+  V: TVector2;
+begin
+  V := RotationCenter;
+  V.Y := AValue;
+  RotationCenter := V;
 end;
 
 {$endif read_implementation}

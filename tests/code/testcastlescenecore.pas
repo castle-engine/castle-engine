@@ -5,14 +5,15 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, X3DNodes;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, X3DNodes;
 
 type
   TTestSceneCore = class(TTestCase)
   strict private
     SearchingForDescription: string;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
-    procedure NodeMultipleTimesWarning(Sender: TObject; const Category, S: string);
+    procedure NodeMultipleTimesWarning(const Category, S: string);
+    procedure OnWarningRaiseException(const Category, S: string);
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -25,6 +26,7 @@ type
     procedure TestManifold;
     procedure TestMultipleScenesOneNodeIncorrect;
     procedure TestMultipleScenesOneNodeCorrect;
+    procedure TestSpineUtf8Names;
   end;
 
 implementation
@@ -150,7 +152,13 @@ begin
   CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
 
   // This once failed to be read with FPC 3.1.1
-  CheckIterator('data/escape_from_the_universe_boss/boss.json');
+  CheckIterator('data/spine/escape_from_the_universe_boss/boss.json');
+
+  // This once failed to be read, as the Spine has DefaultSkin = nil
+  CheckIterator('data/spine/empty_spine.json');
+
+  // This once failed with access violation because TClippingAttachment.BuildNodes didn't assign Material
+  CheckIterator('data/spine/clip_region/skeleton.json');
 end;
 
 procedure TTestSceneCore.TestFind;
@@ -238,7 +246,7 @@ begin
   try
     Scene := TCastleScene.Create(nil);
     try
-      Scene.URL := ApplicationData('city_from_bugreport_38.x3dv');
+      Scene.URL := 'castle-data:/city_from_bugreport_38.x3dv';
       Scene.ProcessEvents := true;
       Scene.Spatial := [ssRendering, ssDynamicCollisions];
       SceneManager.Items.Add(Scene);
@@ -265,7 +273,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.URL := ApplicationData('shadow_volumes_tests/should_be_manifold.x3d');
+    Scene.URL := 'castle-data:/shadow_volumes_tests/should_be_manifold.x3d';
     Scene.EdgesCount(ManifoldEdges, BorderEdges);
     AssertEquals(0, BorderEdges);
     AssertEquals(210, ManifoldEdges);
@@ -275,7 +283,7 @@ end;
 type
   ENodeMultipleTimes = class(Exception);
 
-procedure TTestSceneCore.NodeMultipleTimesWarning(Sender: TObject; const Category, S: string);
+procedure TTestSceneCore.NodeMultipleTimesWarning(const Category, S: string);
 begin
   if Pos('is already part of another TCastleScene instance', S) <> 0 then
     raise ENodeMultipleTimes.Create('We want this warning, good: ' + S)
@@ -300,7 +308,7 @@ begin
       Scene1 := nil;
       Scene2 := nil;
       try
-        Node := Load3D('castle-data:/game/scene.x3d');
+        Node := LoadNode('castle-data:/game/scene.x3d');
         Scene1 := TCastleScene.Create(nil);
         Scene2 := TCastleScene.Create(nil);
         Scene1.Load(Node, false);
@@ -331,7 +339,7 @@ begin
   Scene1 := nil;
   Scene2 := nil;
   try
-    Node := Load3D('castle-data:/game/scene.x3d');
+    Node := LoadNode('castle-data:/game/scene.x3d');
     Scene1 := TCastleScene.Create(nil);
     Scene1.Static := true;
     Scene2 := TCastleScene.Create(nil);
@@ -351,7 +359,7 @@ begin
   Scene1 := nil;
   Scene2 := nil;
   try
-    Node := Load3D('castle-data:/game/scene.x3d');
+    Node := LoadNode('castle-data:/game/scene.x3d');
     Scene1 := TCastleScene.Create(nil);
     Scene2 := TCastleScene.Create(nil);
     Scene1.Load(Node.DeepCopy as TX3DRootNode, true);
@@ -376,6 +384,27 @@ begin
     FreeAndNil(SceneTemplate);
     FreeAndNil(Scene1);
     FreeAndNil(Scene2);
+  end;
+end;
+
+procedure TTestSceneCore.OnWarningRaiseException(const Category, S: string);
+begin
+  raise Exception.CreateFmt('TTestSceneCore made a warning, and any warning here is an error: %s: %s', [Category, S]);
+end;
+
+procedure TTestSceneCore.TestSpineUtf8Names;
+var
+  Scene: TCastleScene;
+begin
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.Load('castle-data:/spine/uhholy_chapter_one_end/skeleton.json');
+      Scene.Load('castle-data:/spine/unholy_transition/phone.json');
+    finally FreeAndNil(Scene) end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
 end;
 

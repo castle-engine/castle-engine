@@ -96,7 +96,7 @@ type
 
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
     procedure CalculateFallbackGlyph;
-    procedure MakeFallbackWarning(const C:TUnicodeChar);
+    procedure MakeFallbackWarning(const C: TUnicodeChar);
   public
     { Create by reading a FreeType font file, like ttf.
 
@@ -318,6 +318,11 @@ var
     finally FreeAndNil(Bitmaps) end;
   end;
 
+  function FileNameContainsNonAsciiCharacters(const FileName: String): Boolean;
+  begin
+    Result := CharsPos(AllChars - SimpleAsciiCharacters, FileName) <> 0;
+  end;
+
 const
   { Separate the glyphs for safety, to avoid pulling in colors
     from neighboring letters when drawing (floating point errors could in theory
@@ -348,11 +353,17 @@ begin
     and in effect Size is in nice pixels by default. }
   FontMgr.Resolution := 0;
   FileName := URIToFilenameSafe(URL);
-  if FileName = '' then
+  { About FileNameContainsNonAsciiCharacters:
+    Reading filenames with non-ASCII characters on Windows using FreeType
+    seems not possible, see
+    https://stackoverflow.com/questions/10075032/can-freetype-functions-accept-unicode-filenames .
+    So use temporary file in this case too (just like with e.g. HTTP URLs). }
+  if (FileName = '') {$ifdef MSWINDOWS} or FileNameContainsNonAsciiCharacters(FileName) {$endif} then
   begin
     Cache := Download(URL);
     try
-      CacheURL := ApplicationConfig('cache_' + ExtractURIName(URL));
+      CacheURL := ApplicationConfig('cache_font_' + IntToStr(Random(MaxInt)) + ExtractFileExt(URL));
+      WritelnLog('Loading font through a temporary file "%s"', [CacheURL]);
       StreamSaveToFile(Cache, CacheURL);
       FileName := URIToFilenameSafe(CacheURL);
       IsCachedFile := true;
@@ -365,6 +376,9 @@ begin
   FontId := FontMgr.RequestFont(FileName);
 
   if IsCachedFile then
+    // TODO: It seems on Windows we cannot delete font now.
+    // Because TMgrFont never calls FT_Done_Face?
+    // And when is TMgrFont.Destroy called?
     CheckDeleteFile(FileName, true);
 
   TemporaryCharacters := ACharacters = nil;
@@ -397,7 +411,9 @@ begin
         Inc(GlyphsCount);
         MaxVar(MaxWidth , GlyphInfo.Width);
         MaxVar(MaxHeight, GlyphInfo.Height);
-      end;
+      end else
+        WritelnWarning('Font "%s" does not contain requested character %s (Unicode number %d)',
+          [URIDisplay(URL), UnicodeToUTF8(C), C]);
     end;
 
     if GlyphsCount = 0 then
@@ -530,12 +546,12 @@ begin
   end;
 end;
 
-procedure TTextureFontData.MakeFallbackWarning(const C:TUnicodeChar);
+procedure TTextureFontData.MakeFallbackWarning(const C: TUnicodeChar);
 begin
   if FallbackGlyphWarnings < MaxFallbackGlyphWarnings then
   begin
     Inc(FallbackGlyphWarnings);
-    WritelnWarning('Font is missing glyph for character %s (UTF-8 number %d)',
+    WritelnWarning('Font is missing glyph for character %s (Unicode number %d)',
       [UnicodeToUTF8(C), C]);
     if FallbackGlyphWarnings = MaxFallbackGlyphWarnings then
       WritelnWarning('No further warnings about missing glyphs will be reported for this font (to avoid slowing down the application by flooding the log with warnings)');

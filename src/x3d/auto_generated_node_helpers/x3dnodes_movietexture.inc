@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,10 +26,10 @@
 {$ifdef read_interface}
 
   strict private
-    function GetDescription: string;
-    procedure SetDescription(const Value: string);
-    function GetLoop: boolean;
-    procedure SetLoop(const Value: boolean);
+    function GetDescription: String;
+    procedure SetDescription(const Value: String);
+    function GetLoop: Boolean;
+    procedure SetLoop(const Value: Boolean);
     function GetPauseTime: TFloatTime;
     procedure SetPauseTime(const Value: TFloatTime);
     function GetResumeTime: TFloatTime;
@@ -40,13 +40,13 @@
     procedure SetStartTime(const Value: TFloatTime);
     function GetStopTime: TFloatTime;
     procedure SetStopTime(const Value: TFloatTime);
-    function GetFlipVertically: boolean;
-    procedure SetFlipVertically(const Value: boolean);
+    function GetFlipVertically: Boolean;
+    procedure SetFlipVertically(const Value: Boolean);
   public
     { X3D field "description". } { }
-    property Description: string read GetDescription write SetDescription;
+    property Description: String read GetDescription write SetDescription;
     { X3D field "loop". } { }
-    property Loop: boolean read GetLoop write SetLoop;
+    property Loop: Boolean read GetLoop write SetLoop;
     { X3D field "pauseTime". } { }
     property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
     { X3D field "resumeTime". } { }
@@ -62,7 +62,7 @@
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "flipVertically". } { }
-    property FlipVertically: boolean read GetFlipVertically write SetFlipVertically;
+    property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
 {$endif read_interface}
 
@@ -70,22 +70,22 @@
 
 { TMovieTextureNode ----------------------------------------------- }
 
-function TMovieTextureNode.GetDescription: string;
+function TMovieTextureNode.GetDescription: String;
 begin
   Result := FdDescription.Value;
 end;
 
-procedure TMovieTextureNode.SetDescription(const Value: string);
+procedure TMovieTextureNode.SetDescription(const Value: String);
 begin
   FdDescription.Send(Value);
 end;
 
-function TMovieTextureNode.GetLoop: boolean;
+function TMovieTextureNode.GetLoop: Boolean;
 begin
   Result := FdLoop.Value;
 end;
 
-procedure TMovieTextureNode.SetLoop(const Value: boolean);
+procedure TMovieTextureNode.SetLoop(const Value: Boolean);
 begin
   FdLoop.Send(Value);
 end;
@@ -150,12 +150,12 @@ begin
   FdUrl.Send(Value);
 end;
 
-function TMovieTextureNode.GetFlipVertically: boolean;
+function TMovieTextureNode.GetFlipVertically: Boolean;
 begin
   Result := FdFlipVertically.Value;
 end;
 
-procedure TMovieTextureNode.SetFlipVertically(const Value: boolean);
+procedure TMovieTextureNode.SetFlipVertically(const Value: Boolean);
 begin
   FdFlipVertically.Send(Value);
 end;

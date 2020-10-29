@@ -55,8 +55,15 @@ begin
 end;
 
 procedure TAboutForm.FormCreate(Sender: TObject);
+var
+  VersionMultiline: String;
 begin
-  LabelVersion.Caption := 'Version: ' + CastleEngineVersion;
+  { When a snapshot is packed by pack_release.sh,
+    CastleEngineVersion is long, and contains a commit information.
+    Display it nicer. }
+  VersionMultiline := StringReplace(CastleEngineVersion,
+    ' (commit', NL + '(commit', [rfReplaceAll, rfIgnoreCase]);
+  LabelVersion.Caption := 'Version: ' + VersionMultiline;
 end;
 
 end.

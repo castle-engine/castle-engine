@@ -23,7 +23,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -66,7 +65,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -129,7 +127,7 @@
 
       This method is used by TCastleSceneCore. Don't call this yourself.
 
-      Returns changed VRML/X3D coordinates field (or @nil if there is no skin).
+      Returns changed X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
       TCastleSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
@@ -161,12 +159,11 @@
     function AnimateSkinPoint(const Point: TVector3): TVector3;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(const State: TX3DGraphTraverseState); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -216,11 +213,10 @@
   THAnimSegmentNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenterOfMass: TSFVec3f;
@@ -264,11 +260,10 @@
   THAnimSiteNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -322,12 +317,6 @@ begin
   Result := 'HAnimDisplacer';
 end;
 
-class function THAnimDisplacerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TVertexJoints.Add(Joint: THAnimJointNode; const Weight: Single);
 begin
   Inc(Count);
@@ -342,7 +331,7 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTransform];
+   FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -356,17 +345,17 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chTransform];
+   FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
@@ -394,7 +383,7 @@ begin
   AddField(FFdSkinNormal);
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -411,7 +400,9 @@ begin
       To be on the safest side, I allow both THAnimSiteNode and viewpoint
       classes.  }
     THAnimSiteNode,
-    TAbstractX3DViewpointNode, TViewpointGroupNode ]);
+    TAbstractViewpointNode,
+    TViewpointGroupNode
+  ]);
   AddField(FFdViewpoints);
 
   FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
@@ -434,12 +425,6 @@ end;
 class function THAnimHumanoidNode.ClassX3DType: string;
 begin
   Result := 'HAnimHumanoid';
-end;
-
-class function THAnimHumanoidNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -478,11 +463,14 @@ begin
   StateStack.Push;
 
   StateStack.Top.Humanoid := Self;
-  StateStack.Top.HumanoidTransform := TMatrix4.Identity;
-  StateStack.Top.HumanoidInvertedTransform := TMatrix4.Identity;
+  StateStack.Top.HumanoidTransformation.Init;
 
-  TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  StateStack.Top.Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 end;
 
 function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
@@ -567,7 +555,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
             if (CoordIndex < 0) or
                (CoordIndex >= SkinCoord.Count) then
             begin
-              WritelnWarning('VRML/X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+              WritelnWarning('X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
                 [CoordIndex, SkinCoord.Count]));
               Continue;
             end;
@@ -597,7 +585,7 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTransform];
+   FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -616,17 +604,17 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chTransform];
+   FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
@@ -641,7 +629,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -657,12 +645,6 @@ end;
 class function THAnimJointNode.ClassX3DType: string;
 begin
   Result := 'HAnimJoint';
-end;
-
-class function THAnimJointNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -682,7 +664,7 @@ begin
   RestCenter := FdCenter.Value;
 end;
 
-procedure THAnimJointNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure THAnimJointNode.ApplyTransform(const State: TX3DGraphTraverseState);
 var
   I: Integer;
   ChildJoint: THAnimJointNode;
@@ -700,17 +682,23 @@ begin
 
     Fortunately, normal State isn't really used for skinned animation. }
 
-  LocalCenter := State.HumanoidInvertedTransform.MultPoint(FdCenter.Value);
-  TransformState(State, LocalCenter, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  LocalCenter := State.HumanoidTransformation.InverseTransform.MultPoint(Center);
+  State.Transformation.Multiply(
+    LocalCenter,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 
-  { update State.HumanoidTransform, State.HumanoidInvertedTransform
-    for child joints. }
-  TransformMatricesMult(State.HumanoidTransform, State.HumanoidInvertedTransform,
-    LocalCenter, Fdrotation.Value, Fdscale.Value,
-    FdscaleOrientation.Value, Fdtranslation.Value);
+  { update State.HumanoidTransformation for child joints. }
+  State.HumanoidTransformation.Multiply(
+    LocalCenter,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 
-  AnimateSkinTransform := State.HumanoidTransform;
+  AnimateSkinTransform := State.HumanoidTransformation.Transform;
 
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
@@ -784,17 +772,17 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -806,23 +794,19 @@ begin
   Result := 'HAnimSegment';
 end;
 
-class function THAnimSegmentNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
-procedure THAnimSegmentNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure THAnimSegmentNode.ApplyTransform(var Transformation: TTransformation);
 begin
   inherited;
-  TransformState(State, TVector3.Zero, Fdrotation.Value,
-    Fdscale.Value, TVector4.Zero, Fdtranslation.Value);
+  Transformation.Multiply(
+    Rotation,
+    Scale,
+    Translation);
 end;
 
 function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
@@ -835,7 +819,7 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTransform];
+   FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -843,22 +827,22 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chTransform];
+   FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
@@ -870,23 +854,21 @@ begin
   Result := 'HAnimSite';
 end;
 
-class function THAnimSiteNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
-procedure THAnimSiteNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure THAnimSiteNode.ApplyTransform(var Transformation: TTransformation);
 begin
   inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 end;
 
 function THAnimSiteNode.TransformationChange: TNodeTransformationChange;

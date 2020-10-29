@@ -558,25 +558,25 @@ function TCastleConfig.GetFloat(const APath: string;
 var
   ResultString: string;
 begin
-  ResultString := GetValue(APath, FloatToStr(ADefaultValue));
-  Result := StrToFloatDef(ResultString, ADefaultValue);
+  ResultString := GetValue(APath, FloatToStrDot(ADefaultValue));
+  Result := StrToFloatDefDot(ResultString, ADefaultValue);
 end;
 
 function TCastleConfig.GetFloat(const APath: string): Float;
 begin
-  Result := StrToFloat(GetStringNonEmpty(APath));
+  Result := StrToFloatDot(GetStringNonEmpty(APath));
 end;
 
 procedure TCastleConfig.SetFloat(const APath: string;
   const AValue: Float);
 begin
-  SetValue(APath, FloatToStr(AValue));
+  SetValue(APath, FloatToStrDot(AValue));
 end;
 
 procedure TCastleConfig.SetDeleteFloat(const APath: string;
   const AValue, ADefaultValue: Float);
 begin
-  SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
+  SetDeleteValue(APath, FloatToStrDot(AValue), FloatToStrDot(ADefaultValue));
 end;
 
 { get/set Int64s ------------------------------------------------------------ }
@@ -1126,7 +1126,7 @@ procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
   Flush; // use ancestor method to save
-  if Log and (URL <> '') then
+  if URL <> '' then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
 

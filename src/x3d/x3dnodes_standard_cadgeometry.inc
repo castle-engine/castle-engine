@@ -39,7 +39,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -54,7 +53,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
@@ -75,7 +73,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -90,11 +87,10 @@
   TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -123,11 +119,12 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
+    {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
     strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
+    {$endif}
 
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -149,7 +146,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -189,12 +185,6 @@ begin
   Result := 'CADAssembly';
 end;
 
-class function TCADAssemblyNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdChildren.Enumerate(Func);
@@ -224,12 +214,6 @@ begin
   Result := 'CADFace';
 end;
 
-class function TCADFaceNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   Result := FdShape.Enumerate(Func);
@@ -254,12 +238,6 @@ begin
   Result := 'CADLayer';
 end;
 
-class function TCADLayerNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TCADLayerNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
@@ -280,7 +258,7 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
-   FdCenter.ChangesAlways := [chTransform];
+   FdCenter.ChangeAlways := chTransform;
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -288,22 +266,22 @@ begin
   AddField(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
-   FdRotation.ChangesAlways := [chTransform];
+   FdRotation.ChangeAlways := chTransform;
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
-   FdScale.ChangesAlways := [chTransform];
+   FdScale.ChangeAlways := chTransform;
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
-   FdScaleOrientation.ChangesAlways := [chTransform];
+   FdScaleOrientation.ChangeAlways := chTransform;
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
-   FdTranslation.ChangesAlways := [chTransform];
+   FdTranslation.ChangeAlways := chTransform;
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -313,12 +291,6 @@ end;
 class function TCADPartNode.ClassX3DType: string;
 begin
   Result := 'CADPart';
-end;
-
-class function TCADPartNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -332,22 +304,28 @@ begin
   Result := ntcTransform;
 end;
 
-procedure TCADPartNode.ApplyTransform(State: TX3DGraphTraverseState);
+procedure TCADPartNode.ApplyTransform(var Transformation: TTransformation);
 begin
   inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value,
-    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  Transformation.Multiply(
+    Center,
+    Rotation,
+    Scale,
+    ScaleOrientation,
+    Translation);
 end;
 
 procedure TIndexedQuadSetNode.CreateNode;
 begin
   inherited;
 
+  {$ifndef CASTLE_SLIM_NODES}
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
+  {$endif}
 
   FFdIndex := TMFInt32.Create(Self, false, 'index', []);
-   FdIndex.ChangesAlways := [chGeometry];
+   FdIndex.ChangeAlways := chGeometry;
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
@@ -355,12 +333,6 @@ end;
 class function TIndexedQuadSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedQuadSet';
-end;
-
-class function TIndexedQuadSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedQuadSetNode.CoordIndexField: TMFLong;
@@ -376,12 +348,6 @@ end;
 class function TQuadSetNode.ClassX3DType: string;
 begin
   Result := 'QuadSet';
-end;
-
-class function TQuadSetNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterCADGeometryNodes;

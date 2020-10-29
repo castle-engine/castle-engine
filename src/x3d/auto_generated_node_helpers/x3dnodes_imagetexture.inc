@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,15 +26,15 @@
 {$ifdef read_interface}
 
   strict private
-    function GetFlipVertically: boolean;
-    procedure SetFlipVertically(const Value: boolean);
+    function GetFlipVertically: Boolean;
+    procedure SetFlipVertically(const Value: Boolean);
   public
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "flipVertically". } { }
-    property FlipVertically: boolean read GetFlipVertically write SetFlipVertically;
+    property FlipVertically: Boolean read GetFlipVertically write SetFlipVertically;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdUrl.Send(Value);
 end;
 
-function TImageTextureNode.GetFlipVertically: boolean;
+function TImageTextureNode.GetFlipVertically: Boolean;
 begin
   Result := FdFlipVertically.Value;
 end;
 
-procedure TImageTextureNode.SetFlipVertically(const Value: boolean);
+procedure TImageTextureNode.SetFlipVertically(const Value: Boolean);
 begin
   FdFlipVertically.Send(Value);
 end;

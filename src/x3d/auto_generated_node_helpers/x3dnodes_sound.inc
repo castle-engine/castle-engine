@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,8 +44,8 @@
     procedure SetPriority(const Value: Single);
     function GetSource: TAbstractSoundSourceNode;
     procedure SetSource(const Value: TAbstractSoundSourceNode);
-    function GetSpatialize: boolean;
-    procedure SetSpatialize(const Value: boolean);
+    function GetSpatialize: Boolean;
+    procedure SetSpatialize(const Value: Boolean);
   public
     { X3D field "direction". } { }
     property Direction: TVector3 read GetDirection write SetDirection;
@@ -66,7 +66,7 @@
     { X3D field "source". } { }
     property Source: TAbstractSoundSourceNode read GetSource write SetSource;
     { X3D field "spatialize". } { }
-    property Spatialize: boolean read GetSpatialize write SetSpatialize;
+    property Spatialize: Boolean read GetSpatialize write SetSpatialize;
 
 {$endif read_interface}
 
@@ -167,12 +167,12 @@ begin
   FdSource.Send(Value);
 end;
 
-function TSoundNode.GetSpatialize: boolean;
+function TSoundNode.GetSpatialize: Boolean;
 begin
   Result := FdSpatialize.Value;
 end;
 
-procedure TSoundNode.SetSpatialize(const Value: boolean);
+procedure TSoundNode.SetSpatialize(const Value: Boolean);
 begin
   FdSpatialize.Send(Value);
 end;

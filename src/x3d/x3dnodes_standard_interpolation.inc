@@ -91,7 +91,6 @@
       const V1, V2: TVector3): TVector3; override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
   end;
@@ -108,7 +107,6 @@
       const Index1, Index2, ACount: Integer); override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
   end;
@@ -120,7 +118,6 @@
     TMFVec3fEvent>)
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
   end;
@@ -132,7 +129,6 @@
     TMFVec2fEvent>)
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
@@ -144,7 +140,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
     strict private FEventSet_fraction: TSFFloatEvent;
@@ -173,7 +168,6 @@
       const Index1, Index2, ACount: Integer); override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
   end;
@@ -189,7 +183,6 @@
       const V1, V2: TVector4): TVector4; override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
@@ -205,7 +198,6 @@
       const V1, V2: TVector3): TVector3; override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
@@ -220,7 +212,6 @@
       const V1, V2: TVector2): TVector2; override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
   end;
@@ -236,7 +227,6 @@
       const V1, V2: Single): Single; override;
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
   end;
@@ -247,7 +237,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -274,7 +263,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -301,7 +289,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
@@ -328,7 +315,6 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     strict private FFdKeyValue: TMFRotation;
     public property FdKeyValue: TMFRotation read FFdKeyValue;
@@ -350,7 +336,6 @@
     TMFFloatEvent>)
   public
     class function ClassX3DType: string; override;
-    class function URNMatching(const URN: string): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
   end;
@@ -368,7 +353,7 @@ begin
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
 
-  FFdKey := TMFFloat.Create(Self, true, 'key', []);
+  FFdKey := TMFFloat.Create(Self, {$ifdef CASTLE_SLIM_NODES} false {$else} true {$endif}, 'key', []);
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -588,13 +573,6 @@ begin
   Result := 'ColorInterpolator';
 end;
 
-class function TColorInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TColorInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector3): TVector3;
 begin
@@ -606,14 +584,6 @@ end;
 class function TColorSetInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'ColorSetInterpolator';
-end;
-
-class function TColorSetInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TColorSetInterpolatorNode.InterpolatorLerp(const Target: TMFColor;
@@ -630,22 +600,9 @@ begin
   Result := 'CoordinateInterpolator';
 end;
 
-class function TCoordinateInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TCoordinateInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'CoordinateInterpolator2D';
-end;
-
-class function TCoordinateInterpolator2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TEaseInEaseOutNode.CreateNode;
@@ -674,22 +631,9 @@ begin
   Result := 'EaseInEaseOut';
 end;
 
-class function TEaseInEaseOutNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TNormalInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'NormalInterpolator';
-end;
-
-class function TNormalInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TNormalInterpolatorNode.InterpolatorLerp(
@@ -703,13 +647,6 @@ end;
 class function TOrientationInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'OrientationInterpolator';
-end;
-
-class function TOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TOrientationInterpolatorNode.InterpolatorLerp(const A: Single;
@@ -727,13 +664,6 @@ begin
   Result := 'PositionInterpolator';
 end;
 
-class function TPositionInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TPositionInterpolatorNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector3): TVector3;
 begin
@@ -745,12 +675,6 @@ begin
   Result := 'PositionInterpolator2D';
 end;
 
-class function TPositionInterpolator2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 function TPositionInterpolator2DNode.InterpolatorLerp(const A: Single;
   const V1, V2: TVector2): TVector2;
 begin
@@ -760,13 +684,6 @@ end;
 class function TScalarInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'ScalarInterpolator';
-end;
-
-class function TScalarInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TScalarInterpolatorNode.InterpolatorLerp(const A: Single;
@@ -804,12 +721,6 @@ begin
   Result := 'SplinePositionInterpolator';
 end;
 
-class function TSplinePositionInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TSplinePositionInterpolator2DNode.CreateNode;
 begin
   inherited;
@@ -837,12 +748,6 @@ end;
 class function TSplinePositionInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'SplinePositionInterpolator2D';
-end;
-
-class function TSplinePositionInterpolator2DNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSplineScalarInterpolatorNode.CreateNode;
@@ -874,12 +779,6 @@ begin
   Result := 'SplineScalarInterpolator';
 end;
 
-class function TSplineScalarInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 procedure TSquadOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
@@ -902,23 +801,9 @@ begin
   Result := 'SquadOrientationInterpolator';
 end;
 
-class function TSquadOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassX3DType);
-end;
-
 class function TVectorInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'VectorInterpolator';
-end;
-
-class function TVectorInterpolatorNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassX3DType) or
-    (URN = URNX3DNodes + ClassX3DType) or
-    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure RegisterInterpolationNodes;

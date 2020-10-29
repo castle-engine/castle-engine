@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,13 +28,13 @@
   strict private
     function GetFieldOfView: Single;
     procedure SetFieldOfView(const Value: Single);
-    function GetFieldOfViewForceVertical: boolean;
-    procedure SetFieldOfViewForceVertical(const Value: boolean);
+    function GetFieldOfViewForceVertical: Boolean;
+    procedure SetFieldOfViewForceVertical(const Value: Boolean);
   public
     { X3D field "fieldOfView". } { }
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
     { X3D field "fieldOfViewForceVertical". } { }
-    property FieldOfViewForceVertical: boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
+    property FieldOfViewForceVertical: Boolean read GetFieldOfViewForceVertical write SetFieldOfViewForceVertical;
 
 {$endif read_interface}
 
@@ -52,12 +52,12 @@ begin
   FdFieldOfView.Send(Value);
 end;
 
-function TViewpointNode.GetFieldOfViewForceVertical: boolean;
+function TViewpointNode.GetFieldOfViewForceVertical: Boolean;
 begin
   Result := FdFieldOfViewForceVertical.Value;
 end;
 
-procedure TViewpointNode.SetFieldOfViewForceVertical(const Value: boolean);
+procedure TViewpointNode.SetFieldOfViewForceVertical(const Value: Boolean);
 begin
   FdFieldOfViewForceVertical.Send(Value);
 end;

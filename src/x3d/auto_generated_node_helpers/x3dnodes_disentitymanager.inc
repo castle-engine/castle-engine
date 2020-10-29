@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,8 +26,8 @@
 {$ifdef read_interface}
 
   strict private
-    function GetAddress: string;
-    procedure SetAddress(const Value: string);
+    function GetAddress: String;
+    procedure SetAddress(const Value: String);
     function GetApplicationID: Integer;
     procedure SetApplicationID(const Value: Integer);
     function GetPort: Integer;
@@ -36,7 +36,7 @@
     procedure SetSiteID(const Value: Integer);
   public
     { X3D field "address". } { }
-    property Address: string read GetAddress write SetAddress;
+    property Address: String read GetAddress write SetAddress;
     { X3D field "applicationID". } { }
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     { Set X3D field "mapping". } { }
@@ -52,12 +52,12 @@
 
 { TDISEntityManagerNode ----------------------------------------------- }
 
-function TDISEntityManagerNode.GetAddress: string;
+function TDISEntityManagerNode.GetAddress: String;
 begin
   Result := FdAddress.Value;
 end;
 
-procedure TDISEntityManagerNode.SetAddress(const Value: string);
+procedure TDISEntityManagerNode.SetAddress(const Value: String);
 begin
   FdAddress.Send(Value);
 end;

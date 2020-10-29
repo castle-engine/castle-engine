@@ -46,6 +46,7 @@ type
     { Set this before starting this state. }
     MapName: String;
     procedure Start; override;
+    procedure Stop; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
   end;
@@ -149,6 +150,16 @@ begin
   UpdateTurnStatus;
 end;
 
+procedure TStatePlay.Stop;
+begin
+  { Make sure to clear fields, otherwise stopping + starting this state again
+    (when you exit the game and start a new game) could have non-nil but
+    invalid SelectedUnit reference. }
+  TileUnderMouseExists := false;
+  SelectedUnit := nil;
+  inherited;
+end;
+
 procedure TStatePlay.ClickQuit(Sender: TObject);
 begin
   TUIState.Current := StateMainMenu;
@@ -202,7 +213,7 @@ procedure TStatePlay.MapPress(const Sender: TInputListener;
 var
   UnitUnderMouse: TUnit;
 begin
-  if Event.IsMouseButton(mbLeft) and TileUnderMouseExists then
+  if Event.IsMouseButton(buttonLeft) and TileUnderMouseExists then
   begin
     Handled := true;
     UnitUnderMouse := UnitsOnMap[TileUnderMouse];

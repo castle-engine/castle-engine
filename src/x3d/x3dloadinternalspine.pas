@@ -37,7 +37,7 @@ var
 implementation
 
 uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
-  CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
+  CastleVectors, CastleCurves, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
   CastleTriangles,
   X3DFields;
@@ -45,6 +45,7 @@ uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, M
 type
   ESpineReadError = class(Exception);
 
+{$I x3dloadinternalspine_url.inc}
 {$I x3dloadinternalspine_textureloader.inc}
 {$I x3dloadinternalspine_simpletextureloader.inc}
 {$I x3dloadinternalspine_atlas.inc}
@@ -65,6 +66,8 @@ type
   {$I x3dloadinternalspine_bonetimelines.inc}
   {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_drawordertimelines.inc}
+  {$I x3dloadinternalspine_deformtimelines.inc}
+  {$I x3dloadinternalspine_weightedmeshtimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_interface}
@@ -78,6 +81,8 @@ type
   {$I x3dloadinternalspine_bonetimelines.inc}
   {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_drawordertimelines.inc}
+  {$I x3dloadinternalspine_deformtimelines.inc}
+  {$I x3dloadinternalspine_weightedmeshtimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_implementation}
@@ -86,7 +91,7 @@ type
 
 function LoadSpine(URL: string): TX3DRootNode;
 
-  function CreateTextureLoader: TTextureLoader;
+  function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
     function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): boolean;
     var
@@ -126,7 +131,12 @@ function LoadSpine(URL: string): TX3DRootNode;
     if SpineIgnoreTextures then
       Exit(TSimpleTextureLoader.Create(URL));
 
-    StandardAtlasURL := ChangeURIExt(URL, '.atlas');
+    // calculate StandardAtlasURL
+    if CustomAtlasName <> '' then
+      StandardAtlasURL := ExtractURIPath(URL) + CustomAtlasName + '.atlas'
+    else
+      StandardAtlasURL := ChangeURIExt(URL, '.atlas');
+
     if FindAtlas(StandardAtlasURL, AtlasURL) then
     begin
       Atlas := TAtlas.Create;
@@ -147,13 +157,13 @@ var
   P: TJSONParser;
   S: TStream;
   Skeleton: TSkeleton;
-  SkinName: string;
+  SkinName, CustomAtlasName: string;
   TextureLoader: TTextureLoader;
 begin
-  { Strip SkinName from URL anchor. }
-  URIExtractAnchor(URL, SkinName, true);
+  { strip additional info (in the URL anchor, i.e. '#xxx' suffix) }
+  URIExtractInfo(URL, SkinName, CustomAtlasName);
 
-  TextureLoader := CreateTextureLoader;
+  TextureLoader := CreateTextureLoader(CustomAtlasName);
   try
     S := Download(URL);
     try
@@ -180,8 +190,9 @@ begin
               begin
                 Skeleton := TSkeleton.Create;
                 try
-                  Skeleton.Parse(Json);
-                  Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                  Skeleton.Parse(URL, Json, SkinName);
+                  Skeleton.BuildNodes(URL, TextureLoader, Result);
+                  if Skeleton.DefaultSkin = nil then Exit;
                   Skeleton.Animations.Exported(Result);
                 finally FreeAndNil(Skeleton) end;
               end;

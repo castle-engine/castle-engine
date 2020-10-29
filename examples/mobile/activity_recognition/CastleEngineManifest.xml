@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="activity_recognition"
+  standalone_source="activity_recognition_standalone.lpr"
+  game_units="GameInitialize"
+  qualified_name="io.castleengine.activity.recognition"
+  caption="Activity Recognition CGE"
+  author="Castle Game Engine Devs"
+  screen_orientation="portrait"
+>
+  <ios>
+    <services>
+      <service name="activity_recognition">
+        <parameter key="description" value="Access your motion to display test metrics." />
+      </service>
+    </services>
+  </ios>
+</project>

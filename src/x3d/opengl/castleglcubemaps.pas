@@ -95,7 +95,7 @@ function GLCaptureCubeMapComposite(
   Tex must already be created cube map texture (with OpenGL
   size and internal formats set), with square images of Size.
   This also means that Size must be a valid OpenGL cube map texture size,
-  you can check it by GLImages.IsCubeMapTextureSized.
+  you can check it by IsCubeMapTextureSized.
 
   This captures the cube map images to "zero" texture level.
   If you use mipmaps, it's your problem how to generate other texture levels
@@ -113,7 +113,7 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleRectangles;
+uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -293,8 +293,6 @@ procedure GLCaptureCubeMapTexture(
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
-      RenderContext.Viewport := Rectangle(0, 0, Size, Size);
-
       RenderingCamera := TRenderingCamera.Create;
       try
         RenderingCamera.Target := rtCubeMapEnvironment;
@@ -308,16 +306,21 @@ procedure GLCaptureCubeMapTexture(
 var
   Side: TCubeMapSide;
   SavedProjectionMatrix: TMatrix4;
+  SavedViewport: TRectangle;
 begin
   RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
 
   SavedProjectionMatrix := RenderContext.ProjectionMatrix;
   PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
 
+  SavedViewport := RenderContext.Viewport;
+  RenderContext.Viewport := Rectangle(0, 0, Size, Size);
+
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 
   RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+  RenderContext.Viewport := SavedViewport;
 end;
 
 end.

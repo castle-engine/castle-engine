@@ -20,7 +20,7 @@ unit TestCastleImagesDraw;
 interface
 
 uses
-  fpcunit, testutils, testregistry, CastleImages, CastleTestCase;
+  FpcUnit, TestUtils, TestRegistry, CastleImages, CastleTestCase;
 
 type
   TTestImagesDraw = class(TCastleTestCase)

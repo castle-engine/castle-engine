@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,23 +26,19 @@
 {$ifdef read_interface}
 
   strict private
-    function GetLoad: boolean;
-    procedure SetLoad(const Value: boolean);
-    function GetBboxCenter: TVector3;
-    procedure SetBboxCenter(const Value: TVector3);
-    function GetBboxSize: TVector3;
-    procedure SetBboxSize(const Value: TVector3);
+    function GetLoad: Boolean;
+    procedure SetLoad(const Value: Boolean);
+    function GetBBox: TBox3D;
+    procedure SetBBox(const Value: TBox3D);
   public
     { X3D field "load". } { }
-    property Load: boolean read GetLoad write SetLoad;
+    property Load: Boolean read GetLoad write SetLoad;
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: array of string);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
-    { X3D field "bboxCenter". } { }
-    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
-    { X3D field "bboxSize". } { }
-    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
+    { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
+    property BBox: TBox3D read GetBBox write SetBBox;
 
 {$endif read_interface}
 
@@ -50,12 +46,12 @@
 
 { TInlineNode ----------------------------------------------- }
 
-function TInlineNode.GetLoad: boolean;
+function TInlineNode.GetLoad: Boolean;
 begin
   Result := FdLoad.Value;
 end;
 
-procedure TInlineNode.SetLoad(const Value: boolean);
+procedure TInlineNode.SetLoad(const Value: Boolean);
 begin
   FdLoad.Send(Value);
 end;
@@ -70,24 +66,18 @@ begin
   FdUrl.Send(Value);
 end;
 
-function TInlineNode.GetBboxCenter: TVector3;
+function TInlineNode.GetBBox: TBox3D;
 begin
-  Result := FdBboxCenter.Value;
+  Result := TBox3D.FromCenterSize(FdBBoxCenter.Value, FdBBoxSize.Value);
 end;
 
-procedure TInlineNode.SetBboxCenter(const Value: TVector3);
+procedure TInlineNode.SetBBox(const Value: TBox3D);
+var
+  ValueCenter, ValueSize: TVector3;
 begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TInlineNode.GetBboxSize: TVector3;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TInlineNode.SetBboxSize(const Value: TVector3);
-begin
-  FdBboxSize.Send(Value);
+  Value.ToCenterSize(ValueCenter, ValueSize);
+  FdBBoxCenter.Send(ValueCenter);
+  FdBBoxSize.Send(ValueSize);
 end;
 
 {$endif read_implementation}

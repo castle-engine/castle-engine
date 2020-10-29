@@ -20,7 +20,7 @@ unit TestCastleUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleTestCase;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry, CastleTestCase;
 
 type
   TTestCastleUtils = class(TCastleTestCase)
@@ -44,6 +44,7 @@ type
     procedure TestFloatModulo;
     procedure TestRandomIntRange;
     procedure TestRandomIntRangeInclusive;
+    procedure TestStrToFloatDot;
   end;
 
 implementation
@@ -571,6 +572,41 @@ begin
   TestRange(-5, 5);
 end;
 
+procedure TTestCastleUtils.TestStrToFloatDot;
+var
+  S: Single;
+  D: Double;
+  E: Extended;
+  OldDecimalSeparator: Char;
+begin
+  OldDecimalSeparator := DecimalSeparator;
+  // make sure this works even when DecimalSeparator is non-dot
+  DecimalSeparator := ',';
+
+  AssertSameValue(0.2, StrToFloatDot('0.2'));
+
+  AssertSameValue(0.2, StrToFloatDefDot('0.2', 0.3));
+  AssertSameValue(0.3, StrToFloatDefDot('0,2', 0.3));
+
+  AssertTrue(TryStrToFloatDot('0.2', S));
+  AssertSameValue(0.2, S, 0.001);
+
+  AssertTrue(TryStrToFloatDot('0.2', D));
+  AssertSameValue(0.2, D, 0.001);
+
+  AssertTrue(TryStrToFloatDot('0.2', E));
+  AssertSameValue(0.2, E, 0.001);
+
+  AssertFalse(TryStrToFloatDot('0,2', S));
+  AssertFalse(TryStrToFloatDot('0,2', D));
+  AssertFalse(TryStrToFloatDot('0,2', E));
+
+  AssertEquals('0.10', FormatDot('%f', [0.1]));
+  AssertEquals('0.1', FloatToStrDot(0.1));
+
+  DecimalSeparator := OldDecimalSeparator;
+end;
+
 initialization
- RegisterTest(TTestCastleUtils);
+  RegisterTest(TTestCastleUtils);
 end.

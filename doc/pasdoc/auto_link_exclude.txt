@@ -1,4 +1,5 @@
 active
+activity
 add
 align
 alignment
@@ -57,7 +58,9 @@ comments
 compose
 compression
 config
+consume
 container
+contents
 contribution
 controls
 convex
@@ -219,6 +222,7 @@ mode
 move
 move
 name
+navigation
 negate
 node
 nodes
@@ -238,6 +242,7 @@ open
 openal
 opened
 orientation
+orthographic
 outline
 paint
 parameters
@@ -247,9 +252,11 @@ parse
 pass
 paused
 periodic
+perspective
 pitch
 plane
 planes
+platform
 played
 player
 playing
@@ -333,6 +340,7 @@ start
 state
 static
 statistics
+status
 stencil
 step
 stream

@@ -21,7 +21,7 @@ interface
 uses CastleWindow;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowBase;
 
 implementation
 
@@ -30,7 +30,7 @@ uses SysUtils, Classes, DOM,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
-  CastleApplicationProperties,
+  CastleApplicationProperties, CastleViewport,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -44,6 +44,7 @@ type
   public
     MyFontData: TTextureFontData;
     MyFont: TTextureFont;
+    SceneUsingText: TCastleScene;
     constructor Create;
     destructor Destroy; override;
     procedure GetFont(const FontStyle: TFontStyleNode; var Font: TTextureFontData);
@@ -123,18 +124,18 @@ begin
   { use custom font by default when rendering X3D text }
   TFontStyleNode.OnFont := @FontContainer.GetFont;
   { this is necessary to recalculate 3D shape of the text after font changes }
-  if Window.SceneManager.MainScene <> nil then
-    Window.SceneManager.MainScene.FontChanged;
+  if SceneUsingText <> nil then
+    SceneUsingText.FontChanged;
 end;
 
 procedure TFontContainer.ButtonExternalFontClick(Sender: TObject);
 begin
-  FontContainer.Load(ApplicationData('DejaVuSans.ttf'));
+  FontContainer.Load('castle-data:/DejaVuSans.ttf');
 end;
 
 procedure TFontContainer.ButtonExternalFontChineseClick(Sender: TObject);
 begin
-  FontContainer.Load(ApplicationData('DroidSansFallback.ttf'));
+  FontContainer.Load('castle-data:/DroidSansFallback.ttf');
 end;
 
 procedure TFontContainer.ButtonEmbeddedFontClick(Sender: TObject);
@@ -152,40 +153,42 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  Background: TCastleRectangleControl;
+  Viewport: TCastleViewport;
   Scene: TCastleScene;
   TestLabel: TCastleLabel;
   Config: TCastleConfig;
   Y: Single;
   ButtonExternalFont, ButtonExternalFontChinese: TCastleButton;
   ButtonEmbeddedFont, ButtonEmbeddedFontChinese: TCastleButton;
+  SampleEdit: TCastleEdit;
   Doc: TXMLDocument;
   TextReader: TTextReader;
   StringList: TStringList;
-  StringListStream: TStream;
 begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
 
-  Background := TCastleRectangleControl.Create(Application);
-  Background.Color := Black;
-  Background.FullSize := true;
-  Window.Controls.InsertBack(Background);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.FullSize := true;
+  Viewport.AutoNavigation := true;
+  Window.Controls.InsertFront(Viewport);
 
   Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('scene.x3dv'));
+  Scene.Load('castle-data:/scene.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
 
-  Window.SceneManager.FullSize := false;
-  Window.SceneManager.Anchor(hpRight, -10);
-  Window.SceneManager.Anchor(vpTop, -10);
-  Window.SceneManager.Width := 800;
-  Window.SceneManager.Height := 300;
-  Window.SceneManager.BackgroundColor := Gray;
-  Window.SceneManager.RequiredCamera.SetView(
+  Viewport.Items.Add(Scene);
+  Viewport.Items.MainScene := Scene;
+  FontContainer.SceneUsingText := Scene;
+
+  Viewport.FullSize := false;
+  Viewport.Anchor(hpRight, -10);
+  Viewport.Anchor(vpTop, -10);
+  Viewport.Width := 800;
+  Viewport.Height := 300;
+  Viewport.BackgroundColor := Gray;
+  Viewport.Camera.SetView(
     Vector3(2, -2, 10),
     Vector3(0.5, 0, -1),
     Vector3(0, 1, 0)
@@ -239,7 +242,7 @@ begin
 
   Config := TCastleConfig.Create(application);
   try
-    Config.Load(ApplicationData('example_config.xml'));
+    Config.Load('castle-data:/example_config.xml');
 
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'String from TCastleConfig:' + NL + Config.GetStringNonEmpty('value');
@@ -250,7 +253,7 @@ begin
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Config) end;
 
-  Doc := URLReadXML(ApplicationData('example_strings.xml'));
+  Doc := URLReadXML('castle-data:/example_strings.xml');
   try
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from XML:' + NL +
@@ -265,7 +268,7 @@ begin
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(Doc) end;
 
-  TextReader := TTextReader.Create(ApplicationData('example_text.txt'));
+  TextReader := TTextReader.Create('castle-data:/example_text.txt');
   try
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from txt (TTextReader):' + NL +
@@ -283,13 +286,12 @@ begin
   StringList := TStringList.Create;
   try
     { On desktops, you could also load like this:
-    StringList.LoadFromFile(URIToFilenameSafe(ApplicationData('example_text.txt')));
-      But it will fail on Android, where the ApplicationData('example_text.txt')
-      is an URL inside "assets:/", it doesn't map to the filename. }
-    StringListStream := Download(ApplicationData('example_text.txt'));
-    try
-      StringList.LoadFromStream(StringListStream);
-    finally FreeAndNil(StringListStream) end;
+        StringList.LoadFromFile(URIToFilenameSafe('castle-data:/example_text.txt'), ...);
+      But it will fail on Android, where the 'castle-data:/example_text.txt'
+      is an URL inside "assets:/", it doesn't map to the filename.
+      So instead we use StringList.LoadFromURL.
+    }
+    StringList.LoadFromURL('castle-data:/example_text.txt', TEncoding.UTF8);
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from txt (TStringList):' + NL + StringList.Text;
     TestLabel.Bottom := Y;
@@ -298,6 +300,12 @@ begin
     Window.Controls.InsertFront(TestLabel);
     Y := Y + (TestLabel.EffectiveHeight + 10);
   finally FreeAndNil(StringList) end;
+
+  SampleEdit := TCastleEdit.Create(Application);
+  SampleEdit.Width := 300;
+  SampleEdit.Anchor(vpBottom, 20);
+  SampleEdit.Anchor(hpRight, -20);
+  Window.Controls.InsertFront(SampleEdit);
 end;
 
 initialization
@@ -310,7 +318,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowBase.Create(Application);
   Window.Container.UIScaling := usEncloseReferenceSize;
   Window.Container.UIReferenceWidth := 1600;
   Window.Container.UIReferenceHeight := 900;

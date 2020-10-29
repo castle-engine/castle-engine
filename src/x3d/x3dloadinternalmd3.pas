@@ -514,7 +514,7 @@ var
     IFS.Coord := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
     IFS.TexCoord := MakeTextureCoordinates(Surface.TextureCoords);
 
-    Result := TShapeNode.Create(ToX3DName(Surface.Name), BaseUrl);
+    Result := TShapeNode.Create(Surface.Name, BaseUrl);
     Result.Geometry := IFS;
     Result.Material := TMaterialNode.Create('', BaseUrl);
     Result.Texture := Texture;
@@ -523,11 +523,10 @@ var
 var
   I: Integer;
 begin
-  Result := TX3DRootNode.Create(
-    ToX3DName(Md3.Name
-      { Although adding here FrameNumber is not a bad idea, but TNodeInterpolator
-        requires for now that sequence of models have the same node names. }
-      { + '_Frame' + IntToStr(FrameNumber) }), BaseUrl);
+  Result := TX3DRootNode.Create(Md3.Name
+    { Although adding here FrameNumber is not a bad idea, but TNodeInterpolator
+      requires for now that sequence of models have the same node names. }
+    { + '_Frame' + IntToStr(FrameNumber) }, BaseUrl);
 
   Result.HasForceVersion := true;
   Result.ForceVersion := X3DVersion;

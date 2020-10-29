@@ -16,8 +16,8 @@
 { Demo showing how to visualize a rectangle in 2D.
   In paricualar, a bounding rectangle of a scene in 2D. }
 
-uses CastleWindow, Castle2DSceneManager, X3DNodes, CastleRectangles,
-  CastleColors, CastleVectors, CastleControls, CastleSceneCore;
+uses CastleWindow, CastleViewport, X3DNodes, CastleRectangles,
+  CastleColors, CastleVectors, CastleControls, CastleSceneCore, CastleScene;
 
 procedure UpdateRectangleCoords(const Rect: TFloatRectangle;
   const RectCoords: TCoordinateNode); forward;
@@ -39,6 +39,7 @@ var
   Shape: TShapeNode;
   LineSet: TLineSetNode;
   LineProperties: TLinePropertiesNode;
+  Material: TMaterialNode;
 begin
   RectCoords := TCoordinateNode.Create;
   UpdateRectangleCoords(Rect, RectCoords);
@@ -47,9 +48,10 @@ begin
   LineSet.Coord := RectCoords;
   LineSet.SetVertexCount([RectCoords.FdPoint.Count]);
 
-  Shape.Material := TMaterialNode.Create;
-  Shape.Material.EmissiveColor := Color;
-  //Shape.Material.Transparency := 0.8;
+  Material := TMaterialNode.Create;
+  Material.EmissiveColor := Color;
+  //Material.Transparency := 0.8;
+  Shape.Material := Material;
 
   if LineWidth <> 1 then
   begin
@@ -76,9 +78,9 @@ end;
 
 var
   Window: TCastleWindowBase;
-  SceneManager: TCastle2DSceneManager;
-  Scene: TCastle2DScene;
-  SceneDebugVisualization: TCastle2DScene;
+  Viewport: TCastleViewport;
+  Scene: TCastleScene;
+  SceneDebugVisualization: TCastleScene;
   RectCoords: TCoordinateNode;
   SceneDebugVisualizationRoot: TX3DRootNode;
 
@@ -93,26 +95,28 @@ begin
   Window := TCastleWindowBase.Create(Application);
   Window.Open;
 
-  SceneManager := TCastle2DSceneManager.Create(Application);
-  SceneManager.FullSize := true;
-  SceneManager.ProjectionAutoSize := false;
-  SceneManager.ProjectionHeight := 6000;
-  SceneManager.ProjectionOriginCenter := true;
-  Window.Controls.InsertFront(SceneManager);
+  Viewport := TCastleViewport.Create(Application);
+  Viewport.Setup2D;
+  Viewport.FullSize := true;
+  Viewport.Camera.Orthographic.Height := 6000;
+  Viewport.Camera.Orthographic.Origin := Vector2(0.5, 0.5);
+  Window.Controls.InsertFront(Viewport);
 
-  Scene := TCastle2DScene.Create(Application);
+  Scene := TCastleScene.Create(Application);
+  Scene.Setup2D;
   Scene.Load('../2d_dragon_spine_game/data/dragon/dragon.json');
   Scene.ProcessEvents := true;
   Scene.PlayAnimation('flying', true);
-  SceneManager.Items.Add(Scene);
+  Viewport.Items.Add(Scene);
 
   SceneDebugVisualizationRoot := TX3DRootNode.Create;
   SceneDebugVisualizationRoot.AddChildren(CreateRectangleNode(
     Scene.BoundingBox.RectangleXY, YellowRGB, 2, RectCoords));
 
-  SceneDebugVisualization := TCastle2DScene.Create(Application);
+  SceneDebugVisualization := TCastleScene.Create(Application);
+  SceneDebugVisualization.Setup2D;
   SceneDebugVisualization.Load(SceneDebugVisualizationRoot, true);
-  SceneManager.Items.Add(SceneDebugVisualization);
+  Viewport.Items.Add(SceneDebugVisualization);
 
   { Note 1: instead of creating a new SceneDebugVisualization,
     you could add the rectangle to the main Scene, by doing
@@ -132,7 +136,7 @@ begin
 
     instead of
 
-      SceneManager.Items.Add(SceneDebugVisualization);
+      Viewport.Items.Add(SceneDebugVisualization);
 
     Transforming the Scene (changing Scene.Translation, Scene.Rotation,
     Scene.Scale...) will then transform the SceneDebugVisualization as well.
@@ -148,7 +152,7 @@ begin
     CreateRectangleNode function) and change TShapeNode.Render boolean.
   }
 
-  { This is optional, do this if you want to continously update the displayed
+  { This is optional, do this if you want to continuously update the displayed
     rectangle. }
   Window.OnUpdate := @WindowUpdate;
 

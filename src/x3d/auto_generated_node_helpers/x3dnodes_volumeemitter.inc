@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2018 Michalis Kamburelis.
+  Copyright 2015-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -30,8 +30,8 @@
     procedure SetCoord(const Value: TAbstractCoordinateNode);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
-    function GetInternal: boolean;
-    procedure SetInternal(const Value: boolean);
+    function GetInternal: Boolean;
+    procedure SetInternal(const Value: Boolean);
   public
     { X3D field "coord". } { }
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
@@ -42,7 +42,7 @@
     { Set X3D field "coordIndex". } { }
     procedure SetCoordIndex(const Value: TLongIntList);
     { X3D field "internal". } { }
-    property Internal: boolean read GetInternal write SetInternal;
+    property Internal: Boolean read GetInternal write SetInternal;
 
 {$endif read_interface}
 
@@ -83,12 +83,12 @@ begin
   FdCoordIndex.Send(Value);
 end;
 
-function TVolumeEmitterNode.GetInternal: boolean;
+function TVolumeEmitterNode.GetInternal: Boolean;
 begin
   Result := FdInternal.Value;
 end;
 
-procedure TVolumeEmitterNode.SetInternal(const Value: boolean);
+procedure TVolumeEmitterNode.SetInternal(const Value: Boolean);
 begin
   FdInternal.Send(Value);
 end;

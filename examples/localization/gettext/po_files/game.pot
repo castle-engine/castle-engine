@@ -2,38 +2,6 @@
 msgid "I am 3D Text"
 msgstr ""
 
-#: game:captionbuttonswitchenglish
-msgid "English"
-msgstr ""
-
-#: game:captionbuttonswitchgerman
-msgid "German"
-msgstr ""
-
-#: game:captionbuttonswitchpolish
-msgid "Polish"
-msgstr ""
-
-#: game:captionbuttonswitchrussian
-msgid "Russian"
-msgstr ""
-
-#: game:captionbuttonswitchukrainian
-msgid "Ukrainan"
-msgstr ""
-
-#: game:captionbuttonmessage
-msgid "Show Message"
-msgstr ""
-
-#: game:edittextinitial
-msgid "Initial Edit Contents"
-msgstr ""
-
-#: game:captionlabel
-msgid "My Label"
-msgstr ""
-
 #: game:messagetext
 msgid "I am a message!"
 msgstr ""

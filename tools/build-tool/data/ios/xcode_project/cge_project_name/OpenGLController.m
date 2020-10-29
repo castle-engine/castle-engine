@@ -16,6 +16,7 @@
 
 #import "OpenGLController.h"
 #include "castleiosappglue.h"
+#import "CgeUtils.h"
 
 #define MAX_TOUCHES 12
 
@@ -46,6 +47,33 @@
 
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
+
+    /* Configure OpenGLES buffer sizes.
+       GLKView provides very limited configuration options, see
+       https://developer.apple.com/library/archive/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/DrawingWithOpenGLES/DrawingWithOpenGLES.html#//apple_ref/doc/uid/TP40008793-CH503-SW1
+       https://developer.apple.com/documentation/glkit/glkview
+    */
+    int redBits, greenBits, blueBits, alphaBits, depthBits, stencilBits;
+    CGEApp_ContextProperties(&redBits, &greenBits, &blueBits, &alphaBits, &depthBits, &stencilBits);
+    // view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888; // default
+
+    if (depthBits == 0) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormatNone;
+    } else
+    if (depthBits <= 16) {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat16;
+    } else {
+        view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    }
+
+    if (stencilBits == 0) {
+        view.drawableStencilFormat = GLKViewDrawableStencilFormatNone;
+    } else {
+        view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    }
+    // view.drawableMultisample = GLKViewDrawableMultisample4X;
+
+    // initialize input
 
     self.view.multipleTouchEnabled = YES;
     for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
@@ -134,7 +162,8 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale), [libraryDirectory fileSystemRepresentation]);
+    CGEApp_Initialize([libraryDirectory fileSystemRepresentation]);
+    CGEApp_Open(m_currentViewWidth, m_currentViewHeight, [self statusBarHeight], (unsigned)(dpi * m_fScale));
 
     [self update];
 }
@@ -144,7 +173,8 @@
 {
     [EAGLContext setCurrentContext:self.context];
 
-    CGEApp_Close();
+    CGEApp_Close(true);
+    CGEApp_Finalize();
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods

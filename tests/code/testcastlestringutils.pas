@@ -1,3 +1,4 @@
+// -*- compile-command: "cd ../ && ./compile_console.sh && ./test_castle_game_engine --suite=TTestCastleStringUtils" -*-
 {
   Copyright 2004-2018 Michalis Kamburelis.
 
@@ -20,10 +21,10 @@ unit TestCastleStringUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry;
 
 type
-  TTestCastleStringUtils= class(TTestCase)
+  TTestCastleStringUtils = class(TTestCase)
   published
     procedure TestIntToStrBase;
     procedure TestDeFormat;
@@ -38,6 +39,7 @@ type
     procedure TestGetFileFilter;
     procedure TestSplitString;
     procedure TestTrimEndingNewline;
+    procedure TestAddMultiLine;
   end;
 
 implementation
@@ -436,6 +438,40 @@ begin
   AssertEquals('aa  ', TrimEndingNewline('aa  '#13#10));
   AssertEquals(#13'a'#10'a'#10, TrimEndingNewline(#13'a'#10'a'#10#10));
   AssertEquals(#13'a'#10'a'#10, TrimEndingNewline(#13'a'#10'a'#10#13#10));
+end;
+
+procedure TTestCastleStringUtils.TestAddMultiLine;
+var
+  SList: TStringList;
+begin
+  SList := TStringList.Create;
+  try
+    AssertEquals(0, SList.Count);
+    SList.Add('');
+    AssertEquals(1, SList.Count);
+    SList.Add('');
+    AssertEquals(2, SList.Count);
+    SList.Add('');
+    AssertEquals(3, SList.Count);
+    SList.Add('blahblah'#13'another line'#13#10'yet another line');
+    AssertEquals(4, SList.Count);
+    SList.AddMultiLine('blahblah'#13'another line'#13#10'yet another line');
+    AssertEquals(7, SList.Count);
+    SList.AddMultiLine('simple');
+    AssertEquals(8, SList.Count);
+    SList.AddMultiLine('');
+    AssertEquals(9, SList.Count);
+
+    AssertEquals('', SList[0]);
+    AssertEquals('', SList[1]);
+    AssertEquals('', SList[2]);
+    AssertEquals('blahblah'#13'another line'#13#10'yet another line', SList[3]);
+    AssertEquals('blahblah', SList[4]);
+    AssertEquals('another line', SList[5]);
+    AssertEquals('yet another line', SList[6]);
+    AssertEquals('simple', SList[7]);
+    AssertEquals('', SList[8]);
+  finally FreeAndNil(SList) end;
 end;
 
 initialization

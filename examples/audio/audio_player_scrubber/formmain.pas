@@ -44,6 +44,7 @@ type
     procedure ButtonSoundEngineInformationClick(Sender: TObject);
     procedure ButtonStopClick(Sender: TObject);
     procedure CheckBoxLoopChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure TrackOffsetChange(Sender: TObject);
     procedure TrackVolumeChange(Sender: TObject);
@@ -62,7 +63,7 @@ var
 
 implementation
 
-uses CastleUtils, CastleVectors,
+uses CastleUtils, CastleVectors, CastleLCLUtils,
   FormSoundEngineInfo;
 
 {$R *.lfm}
@@ -82,6 +83,11 @@ procedure TMainForm.CheckBoxLoopChange(Sender: TObject);
 begin
   if Sound <> nil then
     Sound.Looping := CheckBoxLoop.Checked;
+end;
+
+procedure TMainForm.FormCreate(Sender: TObject);
+begin
+  FileFiltersToDialog(LoadSound_FileFilters, OpenDialogSound);
 end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);

@@ -22,7 +22,7 @@ unit TestCastleColors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
+  Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
   CastleTestCase, CastleVectors, CastleColors;
 
 type

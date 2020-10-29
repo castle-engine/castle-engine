@@ -22,25 +22,26 @@ pipeline {
         sh 'make clean tools'
       }
     }
+
     stage('Build Examples (Default FPC)') {
       steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'make clean examples'
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'make clean examples'
       }
     }
     stage('Build Examples Using Lazarus (Default FPC/Lazarus)') {
       steps {
-        sh 'make clean examples-laz'
+	sh 'make clean examples-laz'
       }
     }
     stage('Build And Run Auto-Tests (Default FPC)') {
       steps {
-        sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake (Default FPC)') {
       steps {
-        sh 'make clean build-using-fpmake'
+	sh 'make clean test-fpmake'
       }
     }
 
@@ -50,28 +51,59 @@ pipeline {
 
     stage('Build Tools (FPC 3.0.2)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean tools'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean tools'
       }
     }
     stage('Build Examples (FPC 3.0.2)') {
       steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples'
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples'
       }
     }
     stage('Build Examples Using Lazarus (FPC 3.0.2/Lazarus)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples-laz'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean examples-laz'
       }
     }
     stage('Build And Run Auto-Tests (FPC 3.0.2)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
     stage('Build Using FpMake (FPC 3.0.2)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean build-using-fpmake'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.2 && make clean test-fpmake'
+      }
+    }
+
+    /* Same with FPC 3.0.4.
+       We could use a script to reuse the code,
+       but then the detailed time breakdown/statistics would not be available in Jenkins. */
+
+    stage('Build Tools (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean tools'
+      }
+    }
+    stage('Build Examples (FPC 3.0.4)') {
+      steps {
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean examples'
+      }
+    }
+    stage('Build Examples Using Lazarus (FPC 3.0.4/Lazarus)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean examples-laz'
+      }
+    }
+    stage('Build And Run Auto-Tests (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+      }
+    }
+    stage('Build Using FpMake (FPC 3.0.4)') {
+      steps {
+	sh 'source /usr/local/fpclazarus/bin/setup.sh 3.0.4 && make clean test-fpmake'
       }
     }
 
@@ -81,61 +113,55 @@ pipeline {
 
     stage('Build Tools (FPC trunk)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean tools'
       }
     }
     stage('Build Examples (FPC trunk)') {
       steps {
-        /* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
+	/* clean 1st, to make sure it's OK even when state is "clean" before "make examples" */
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples'
       }
     }
     stage('Build Examples Using Lazarus (FPC trunk/Lazarus)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean examples-laz'
       }
     }
-    /* TODO:
-       For unknown reason, this fails since some time for FPC 3.3.1, with:
-
-       Marked memory at $00007F65B6276C60 invalid
-       Wrong signature $2071BAA5 instead of 243D6DCB
-         $00000000004CB2C0
-
-       FPC rev 40000, Linux/x86_64.
     stage('Build And Run Auto-Tests (FPC trunk)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && export PATH="${PATH}:${CASTLE_ENGINE_PATH}/tools/build-tool/" && make tests'
       }
     }
-    */
     stage('Build Using FpMake (FPC trunk)') {
       steps {
-        sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean build-using-fpmake'
+	sh 'source /usr/local/fpclazarus/bin/setup.sh trunk && make clean test-fpmake'
       }
     }
-    /* update Docker image only when the "master" branch changes */
-    stage('Update Docker Image with CGE') {
-      when { branch 'master' }
+
+    stage('Pack Release') {
       steps {
-        build job: '../castle_game_engine_update_docker_image'
+        sh 'rm -f castle-engine*.zip' /* remove previous artifacts */
+        sh './tools/internal/pack_release/pack_release.sh'
       }
     }
   }
   post {
+    success {
+      archiveArtifacts artifacts: 'castle-engine*.zip'
+    }
     regression {
-      mail to: 'michalis.kambi@gmail.com',
+      mail to: 'michalis@castle-engine.io',
         subject: "[jenkins] Build started failing: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
     failure {
-      mail to: 'michalis.kambi@gmail.com',
+      mail to: 'michalis@castle-engine.io',
         subject: "[jenkins] Build failed: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
     fixed {
-      mail to: 'michalis.kambi@gmail.com',
-        subject: "[jenkins] Build is again successfull: ${currentBuild.fullDisplayName}",
+      mail to: 'michalis@castle-engine.io',
+        subject: "[jenkins] Build is again successful: ${currentBuild.fullDisplayName}",
         body: "See the build details on ${env.BUILD_URL}"
     }
   }

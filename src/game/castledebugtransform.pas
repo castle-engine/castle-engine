@@ -63,14 +63,20 @@ type
     to some graph). }
   TDebugBox = class(TComponent)
   strict private
+    FColor: TCastleColor;
     FTransform: TTransformNode;
     FShape: TShapeNode;
     FGeometry: TBoxNode;
+    FMaterial: TUnlitMaterialNode;
     procedure SetBox(const Value: TBox3D);
+    procedure SetColor(const AValue: TCastleColor);
   public
-    constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
+    constructor Create(AOwner: TComponent); override;
+    constructor Create(const AOwner: TComponent; const AColor: TCastleColorRGB); reintroduce;
+      deprecated 'use Create(AOwner) and adjust Color property';
     property Root: TTransformNode read FTransform;
     property Box: TBox3D {read GetBox} {} write SetBox;
+    property Color: TCastleColor read FColor write SetColor;
   end;
 
   { 3D sphere, as an X3D node, to easily visualize debug things.
@@ -102,51 +108,103 @@ type
     property Radius: Single {read GetRadius} {} write SetRadius;
   end;
 
-  { Visualization of a bounding volume (and maybe other properties)
-    of a TCastleTransform instance.
-    After constructing this, call @link(Attach) to attach this to some
+  { 3D arrow, as an X3D node, to easily visualize debug things.
+
+    This is useful in connection with your custom TDebugTransform descendants,
+    to show an arrow to visualize something.
+
+    Create it and add the @link(Root) to your X3D scene graph
+    within some @link(TCastleSceneCore.RootNode). }
+  TDebugArrow = class(TComponent)
+  strict private
+    FTransform: TTransformNode;
+    FShape: TShapeNode;
+    FOrigin, FDirection: TVector3;
+    Coord: TCoordinateNode;
+    procedure SetOrigin(const Value: TVector3);
+    procedure SetDirection(const Value: TVector3);
+    procedure UpdateGeometry;
+    function GetRender: boolean;
+    procedure SetRender(const Value: boolean);
+  public
+    constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
+    property Root: TTransformNode read FTransform;
+    property Origin: TVector3 read FOrigin write SetOrigin;
+    property Direction: TVector3 read FDirection write SetDirection;
+    property Render: boolean read GetRender write SetRender;
+  end;
+
+  { Visualization of a bounding volume of a TCastleTransform instance.
+    After constructing this, set @link(Parent) to attach this to some
     @link(TCastleTransform) instance.
 
-    Then set @link(Exists) to control whether the debug visualization
+    Then set @link(Exists) (which is by default @false) to control whether the debug visualization
     should actually be shown. We take care to only actually construct
     internal TCastleScene when the @link(Exists) becomes @true,
     so you can construct TDebugTransform instance always, even in release mode --
     it does not take up resources if never visible. }
-  TDebugTransform = class(TComponent)
+  TDebugTransformBox = class(TComponent)
   strict private
     type
       TInternalScene = class(TCastleScene)
-        Container: TDebugTransform;
+        Container: TDebugTransformBox;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
     var
       FBox: TDebugBox;
       FTransform: TMatrixTransformNode;
-      FWorldSpace: TAbstractX3DGroupingNode;
-      FSphere: TDebugSphere;
-      FMiddleAxis: TDebugAxis;
+      FParentSpace: TAbstractX3DGroupingNode;
       FParent: TCastleTransform;
       FScene: TInternalScene;
       FExists: boolean;
+      FBoxColor: TCastleColor;
+    procedure SetBoxColor(const AValue: TCastleColor);
     procedure UpdateSafe;
     procedure SetExists(const Value: boolean);
+    procedure SetParent(const Value: TCastleTransform);
+    procedure Initialize;
   strict protected
     { Called when internal scene is constructed.
-      You can override it in desdendants to e.g. add more stuff to WorldSpace. }
-    procedure Initialize; virtual;
+      You can override it in desdendants to e.g. add more stuff to ParentSpace. }
+    procedure InitializeNodes; virtual;
 
     { Called continuosly when internal scene should be updated.
       You can override it in desdendants to e.g. update the things you added
       in @link(Initialize). }
     procedure Update; virtual;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
-    procedure Attach(const AParent: TCastleTransform);
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Attach(const AParent: TCastleTransform); deprecated 'set Parent instead';
+    { Determines what is visualizated by this component.
+      May be @nil, which means that nothing is visualized. }
+    property Parent: TCastleTransform read FParent write SetParent;
     { Is the debug visualization visible. }
     property Exists: boolean read FExists write SetExists default false;
-    { Add additional things that are expressed in world-space under this transform.
-      Be sure to call @link(ChangedScene) afterwards. }
-    property WorldSpace: TAbstractX3DGroupingNode read FWorldSpace;
+    { Add to this additional things that are expressed in parent coordinate-space.
+      Be sure to call @link(ChangedScene) afterwards, unless you do it in InitializeNodes
+      (then @link(ChangedScene) is not necessary). }
+    property ParentSpace: TAbstractX3DGroupingNode read FParentSpace;
+    property BoxColor: TCastleColor read FBoxColor write SetBoxColor;
     procedure ChangedScene;
+  end;
+
+  { Like TDebugTransformBox, but visualizes also additional properties.
+
+    Adds visualization of:
+    - TCastleTransform.Middle
+    - TCastleTransform.Sphere
+    - TCastleTransform.Direction }
+  TDebugTransform = class(TDebugTransformBox)
+  strict private
+    FDirectionArrow: TDebugArrow;
+    FSphere: TDebugSphere;
+    FMiddleAxis: TDebugAxis;
+  strict protected
+    procedure InitializeNodes; override;
+    procedure Update; override;
   end;
 
 implementation
@@ -156,6 +214,8 @@ uses CastleLog;
 { TDebugAxis ----------------------------------------------------------------- }
 
 constructor TDebugAxis.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+var
+  Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -170,11 +230,12 @@ begin
   FGeometry.SetVertexCount([2, 2, 2]);
   FGeometry.Coord := FCoord;
 
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := Color;
+
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;
-  FShape.Material := TMaterialNode.Create;
-  FShape.Material.ForcePureEmissive;
-  FShape.Material.EmissiveColor := Color;
+  FShape.Material := Material;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -205,18 +266,28 @@ end;
 
 { TDebugBox ----------------------------------------------------------------- }
 
-constructor TDebugBox.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+constructor TDebugBox.Create(const AOwner: TComponent; const AColor: TCastleColorRGB);
+begin
+  Create(AOwner);
+  Color := Vector4(AColor, 1);
+end;
+
+constructor TDebugBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  FColor := White;
 
   FGeometry := TBoxNode.Create;
 
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;
   FShape.Shading := shWireframe;
-  FShape.Material := TMaterialNode.Create;
-  FShape.Material.ForcePureEmissive;
-  FShape.Material.EmissiveColor := Color;
+
+  FMaterial := TUnlitMaterialNode.Create;
+  FMaterial.EmissiveColor := FColor.XYZ;
+  FMaterial.Transparency := 1 - FColor.W;
+  FShape.Material := FMaterial;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -232,9 +303,19 @@ begin
   end;
 end;
 
+procedure TDebugBox.SetColor(const AValue: TCastleColor);
+begin
+  if TCastleColor.PerfectlyEquals(FColor, AValue) then Exit;
+  FColor := AValue;
+  FMaterial.EmissiveColor := FColor.XYZ;
+  FMaterial.Transparency := 1 - FColor.W;
+end;
+
 { TDebugSphere ----------------------------------------------------------------- }
 
 constructor TDebugSphere.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+var
+  Material: TUnlitMaterialNode;
 begin
   inherited Create(AOwner);
 
@@ -245,9 +326,10 @@ begin
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;
   FShape.Shading := shWireframe;
-  FShape.Material := TMaterialNode.Create;
-  FShape.Material.ForcePureEmissive;
-  FShape.Material.EmissiveColor := Color;
+
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := Color;
+  FShape.Material := Material;
 
   FTransform := TTransformNode.Create;
   FTransform.AddChildren(FShape);
@@ -273,31 +355,126 @@ begin
   FGeometry.Radius := Value;
 end;
 
+{ TDebugArrow ----------------------------------------------------------------- }
+
+constructor TDebugArrow.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+var
+  Material: TUnlitMaterialNode;
+  FGeometry: TLineSetNode;
+begin
+  inherited Create(AOwner);
+
+  FGeometry := TLineSetNode.CreateWithTransform(FShape, FTransform);
+
+  Material := TUnlitMaterialNode.Create;
+  Material.EmissiveColor := Color;
+  FShape.Material := Material;
+
+  Coord := TCoordinateNode.Create;
+
+  FGeometry.Coord := Coord;
+  FGeometry.SetVertexCount([2, 2, 2, 2, 2]);
+
+  { Make the initial geometry. Although it is useless, this will avoid warning
+    "Too much lines (not enough coordinates) in LineSet". }
+  UpdateGeometry;
+end;
+
+procedure TDebugArrow.SetOrigin(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FOrigin, Value) then
+  begin
+    FOrigin := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TDebugArrow.SetDirection(const Value: TVector3);
+begin
+  if not TVector3.PerfectlyEquals(FDirection, Value) then
+  begin
+    FDirection := Value;
+    UpdateGeometry;
+  end;
+end;
+
+procedure TDebugArrow.UpdateGeometry;
+var
+  OrthoDirection, OrthoDirection2: TVector3;
+begin
+  OrthoDirection := AnyOrthogonalVector(Direction);
+  OrthoDirection2 := TVector3.CrossProduct(Direction, OrthoDirection);
+
+  OrthoDirection := OrthoDirection.AdjustToLength(Direction.Length / 4);
+  OrthoDirection2 := OrthoDirection2.AdjustToLength(Direction.Length / 4);
+
+  Coord.SetPoint([
+    Origin,
+    Origin + Direction,
+    Origin + Direction,
+    Origin + Direction * 0.75 + OrthoDirection,
+    Origin + Direction,
+    Origin + Direction * 0.75 - OrthoDirection,
+    Origin + Direction,
+    Origin + Direction * 0.75 + OrthoDirection2,
+    Origin + Direction,
+    Origin + Direction * 0.75 - OrthoDirection2
+  ]);
+end;
+
+function TDebugArrow.GetRender: boolean;
+begin
+  Result := FShape.Render;
+end;
+
+procedure TDebugArrow.SetRender(const Value: boolean);
+begin
+  FShape.Render := Value;
+end;
+
 { TDebugTransform.TInternalScene ---------------------------------------------------- }
 
-procedure TDebugTransform.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TDebugTransformBox.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   Container.UpdateSafe;
 end;
 
-{ TDebugTransform ---------------------------------------------------- }
+{ TDebugTransformBox ---------------------------------------------------- }
 
-procedure TDebugTransform.Initialize;
+constructor TDebugTransformBox.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FBoxColor := Gray;
+end;
+
+destructor TDebugTransformBox.Destroy;
+begin
+  { set to nil by SetParent, to detach free notification }
+  Parent := nil;
+  inherited;
+end;
+
+procedure TDebugTransformBox.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FParent) then
+    { set to nil by SetParent, to detach free notification }
+    Parent := nil;
+end;
+
+procedure TDebugTransformBox.Initialize;
 var
   Root: TX3DRootNode;
 begin
   FTransform := TMatrixTransformNode.Create;
-  FWorldSpace := FTransform;
+  FParentSpace := FTransform;
 
-  FBox := TDebugBox.Create(Self, GrayRGB);
-  WorldSpace.AddChildren(FBox.Root);
+  FBox := TDebugBox.Create(Self);
+  FBox.Color := FBoxColor;
+  ParentSpace.AddChildren(FBox.Root);
 
-  FSphere := TDebugSphere.Create(Self, GrayRGB);
-  WorldSpace.AddChildren(FSphere.Root);
-
-  FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
-  WorldSpace.AddChildren(FMiddleAxis.Root);
+  InitializeNodes;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(FTransform);
@@ -311,19 +488,45 @@ begin
   FScene.ExcludeFromStatistics := true;
   FScene.InternalExcludeFromParentBoundingVolume := true;
   FScene.Exists := FExists;
+  FScene.SetTransient;
 end;
 
-procedure TDebugTransform.Attach(const AParent: TCastleTransform);
+procedure TDebugTransformBox.InitializeNodes;
 begin
-  if FScene = nil then
-    Initialize;
-
-  FParent := AParent;
-  FParent.Add(FScene);
-  UpdateSafe;
 end;
 
-procedure TDebugTransform.SetExists(const Value: boolean);
+procedure TDebugTransformBox.SetParent(const Value: TCastleTransform);
+begin
+  if FParent <> Value then
+  begin
+    if FParent <> nil then
+    begin
+      Assert(FScene <> nil);
+      // remove self from previous parent children
+      if not (csDestroying in FParent.ComponentState) then // testcase why it's needed: fps_game exit
+        FParent.Remove(FScene);
+      FParent.RemoveFreeNotification(Self);
+    end;
+
+    FParent := Value;
+
+    if FParent <> nil then
+    begin
+      if FScene = nil then
+        Initialize;
+      FParent.FreeNotification(Self);
+      FParent.Add(FScene);
+      UpdateSafe;
+    end;
+  end;
+end;
+
+procedure TDebugTransformBox.Attach(const AParent: TCastleTransform);
+begin
+  Parent := AParent;
+end;
+
+procedure TDebugTransformBox.SetExists(const Value: boolean);
 begin
   if FExists <> Value then
   begin
@@ -335,13 +538,10 @@ begin
   end;
 end;
 
-procedure TDebugTransform.UpdateSafe;
+procedure TDebugTransformBox.UpdateSafe;
 begin
   if Exists and
-     (FParent <> nil) and
-     { resign when FParent.World unset,
-       as then FParent.Middle and FParent.PreferredHeight cannot be calculated }
-     (FParent.World <> nil) then
+     (FParent <> nil) then
   begin
     if FScene = nil then
       Initialize;
@@ -349,32 +549,75 @@ begin
   end;
 end;
 
-procedure TDebugTransform.Update;
-var
-  R: Single;
+procedure TDebugTransformBox.SetBoxColor(const AValue: TCastleColor);
+begin
+  FBoxColor := AValue;
+  if FBox <> nil then
+    FBox.Color := AValue;
+end;
+
+procedure TDebugTransformBox.Update;
 begin
   // update FTransform to cancel parent's transformation
   FTransform.Matrix := FParent.InverseTransform;
 
   // show FParent.BoundingBox
   FBox.Box := FParent.BoundingBox;
-
-  // show FParent.Sphere
-  FSphere.Render := FParent.Sphere(R);
-  if FSphere.Render then
-  begin
-    FSphere.Position := FParent.Middle;
-    FSphere.Radius := R;
-  end;
-
-  // show FParent.Middle
-  FMiddleAxis.Position := FParent.Middle;
-  FMiddleAxis.ScaleFromBox := FParent.BoundingBox;
 end;
 
-procedure TDebugTransform.ChangedScene;
+procedure TDebugTransformBox.ChangedScene;
 begin
   FScene.ChangedAll;
+end;
+
+{ TDebugTransform ---------------------------------------------------- }
+
+procedure TDebugTransform.InitializeNodes;
+begin
+  inherited;
+
+  FDirectionArrow := TDebugArrow.Create(Self, BlueRGB);
+  ParentSpace.AddChildren(FDirectionArrow.Root);
+
+  FSphere := TDebugSphere.Create(Self, GrayRGB);
+  ParentSpace.AddChildren(FSphere.Root);
+
+  FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
+  ParentSpace.AddChildren(FMiddleAxis.Root);
+end;
+
+procedure TDebugTransform.Update;
+var
+  R: Single;
+  Visible: Boolean;
+begin
+  inherited;
+
+  Visible := Parent.World <> nil;
+
+  // when Parent.World = nil then Parent.Middle and Parent.PreferredHeight cannot be calculated
+  FSphere.Render := Visible;
+  FDirectionArrow.Render := Visible;
+  FMiddleAxis.Render := Visible;
+
+  if Visible then
+  begin
+    // show FParent.Sphere
+    FSphere.Render := Parent.Sphere(R);
+    if FSphere.Render then
+    begin
+      FSphere.Position := Parent.Middle;
+      FSphere.Radius := R;
+    end;
+
+    // show FParent.Direction
+    FDirectionArrow.Origin := Parent.Middle;
+    FDirectionArrow.Direction := Parent.Direction;
+
+    // show FParent.Middle
+    FMiddleAxis.Position := Parent.Middle;
+    FMiddleAxis.ScaleFromBox := Parent.BoundingBox;
+  end;
 end;
 
 end.

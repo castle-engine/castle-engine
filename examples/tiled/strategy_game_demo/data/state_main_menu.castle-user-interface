@@ -15,19 +15,28 @@
       "BorderColorPersistent" : {
         "$ClassName" : "TCastleColorPersistent"
       },
-      "ColorPersistent" : {
-        "$ClassName" : "TCastleColorPersistent"
+      "Content" : {
+        "ClipLinePersistent" : {
+          "$ClassName" : "TCastleVector3Persistent"
+        },
+        "ColorPersistent" : {
+          "$ClassName" : "TCastleColorPersistent"
+        },
+        "ProtectedSides" : {
+          "$ClassName" : "TBorder"
+        },
+        "RotationCenterPersistent" : {
+          "$ClassName" : "TCastleVector2Persistent"
+        },
+        "URL" : "castle-data:/images/main_menu_background/siege.png",
+        "$ClassName" : "TCastleImagePersistent"
       },
       "Height" : 1.0000000000000000E+001,
       "HorizontalAnchorParent" : "hpMiddle",
       "HorizontalAnchorSelf" : "hpMiddle",
       "Name" : "ImageControl1",
       "ProportionalScaling" : "psEnclose",
-      "ProtectedSides" : {
-        "$ClassName" : "TBorder"
-      },
       "Stretch" : true,
-      "URL" : "castle-data:/images/main_menu_background/siege.png",
       "WidthFraction" : 1.0000000000000000E+000,
       "$Children" : [
       ],
@@ -78,18 +87,27 @@
           "BorderColorPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "ColorPersistent" : {
-            "Blue" : 0.0000000000000000E+000,
-            "Green" : 0.0000000000000000E+000,
-            "Red" : 7.4901962280273437E-001,
-            "$ClassName" : "TCastleColorPersistent"
+          "Content" : {
+            "ClipLinePersistent" : {
+              "$ClassName" : "TCastleVector3Persistent"
+            },
+            "ColorPersistent" : {
+              "Blue" : 0.0000000000000000E+000,
+              "Green" : 0.0000000000000000E+000,
+              "Red" : 7.4901962280273437E-001,
+              "$ClassName" : "TCastleColorPersistent"
+            },
+            "ProtectedSides" : {
+              "$ClassName" : "TBorder"
+            },
+            "RotationCenterPersistent" : {
+              "$ClassName" : "TCastleVector2Persistent"
+            },
+            "URL" : "castle-data:/images/title.png",
+            "$ClassName" : "TCastleImagePersistent"
           },
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "ImageControl2",
-          "ProtectedSides" : {
-            "$ClassName" : "TBorder"
-          },
-          "URL" : "castle-data:/images/title.png",
           "VerticalAnchorDelta" : -1.0000000000000000E+001,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
@@ -118,7 +136,7 @@
             "$ClassName" : "TCastleColorPersistent"
           },
           "Text" : "Strategy game demo using Castle Game Engine\n",
-          "VerticalAnchorDelta" : -1.0200000000000000E+002,
+          "VerticalAnchorDelta" : -1.0200000762939453E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -135,7 +153,7 @@
           "Height" : 5.0000000000000000E+001,
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "Spacer",
-          "VerticalAnchorDelta" : -1.3388006591796875E+002,
+          "VerticalAnchorDelta" : -1.3400000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -184,7 +202,7 @@
           "TintPressedPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -1.9388006591796875E+002,
+          "VerticalAnchorDelta" : -1.9400000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -233,7 +251,7 @@
           "TintPressedPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -2.5305348205566406E+002,
+          "VerticalAnchorDelta" : -2.5250000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -282,7 +300,7 @@
           "TintPressedPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -3.1222689819335938E+002,
+          "VerticalAnchorDelta" : -3.1100000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -331,7 +349,7 @@
           "TintPressedPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -3.7140032958984375E+002,
+          "VerticalAnchorDelta" : -3.6950000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -348,7 +366,7 @@
           "Height" : 5.0000000000000000E+001,
           "HorizontalAnchorDelta" : 1.0000000000000000E+001,
           "Name" : "Spacer2",
-          "VerticalAnchorDelta" : -4.3057376098632812E+002,
+          "VerticalAnchorDelta" : -4.2800000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [
@@ -397,7 +415,7 @@
           "TintPressedPersistent" : {
             "$ClassName" : "TCastleColorPersistent"
           },
-          "VerticalAnchorDelta" : -4.9057376098632812E+002,
+          "VerticalAnchorDelta" : -4.8800000000000000E+002,
           "VerticalAnchorParent" : "vpTop",
           "VerticalAnchorSelf" : "vpTop",
           "$Children" : [

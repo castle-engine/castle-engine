@@ -3,9 +3,7 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required by ServiceDownloadUrls. -->
+    <!-- TODO should we ask for these permissions interactively? -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
-
 </manifest>

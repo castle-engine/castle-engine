@@ -17,6 +17,10 @@
   using Xlib and glX (initialize window on X, without any toolkit,
   with OpenGL context). }
 
+{ Define this to use OpenGL 3 forward-compatible context.
+  Not supported for now throughout CGE, but this define is useful to test it. }
+{.$define CASTLE_CONTEXT_FORWARD_3}
+
 {$ifdef read_interface_uses}
 Glx,
 {$endif}
@@ -25,18 +29,20 @@ Glx,
 private
   Context: GLXContext;
   XVisual: PXVisualInfo;
-  Colormap: TColormap;
 
   { Used only by ContextCreateBegin and ContextCreateEnd }
   UseFBConfig: boolean;
   FBConfig: TGLXFBConfig;
 
-  { Methods compatible with castlewindow_egl.inc.
+  { Methods compatible with castlewindow_egl.inc, see there for docs.
+    This creates XVisual in ContextCreateBegin,
+    you *have* to use it (by creating a colormap and attaching it to your window)
+    to actually use the context.
     @groupBegin }
-  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
-    var AttrValueMask: Cardinal);
+  procedure ContextCreateBegin;
   procedure ContextCreateEnd(WndPtr: TWindow);
-  procedure ContextDestroy;
+  procedure ContextDestroyBegin;
+  procedure ContextDestroyEnd;
   { @groupEnd }
 {$endif}
 
@@ -48,12 +54,12 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateBegin(var Attr: TXSetWindowAttributes;
-  var AttrValueMask: Cardinal);
+procedure TCastleWindowBase.ContextCreateBegin;
 var
   Attribs: TLongIntList;
   FBConfigs: PGLXFBConfig;
   FBConfigsCount: Integer;
+{$ifdef CASTLE_CONTEXT_FORWARD_3}
 const
   { Used with glXCreateContextAttribsARB to select 3.0 forward-compatible context }
   Context30Forward: array [0..6] of Integer =
@@ -62,6 +68,7 @@ const
     GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
     None
   );
+{$endif}
 begin
   { Use new glX 1.3 functions to create context, that take TGLXFBConfig?
     About modern GLX context selection, see
@@ -101,8 +108,7 @@ begin
         Attribs.AddRange([
           GLX_SAMPLE_BUFFERS_ARB, 1,
           GLX_SAMPLES_ARB, MultiSampling ]);
-        if Log then
-          WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
+        WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
       end else
         raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
           'requested, but GLX_ARB_multisample not supported on this screen',
@@ -132,11 +138,6 @@ begin
       'X visual with requested attributes (%s) not found',
       [ RequestedBufferAttributes ]);
   { Application.XScreen should always be XVisual.screen now }
-
-  colormap := XCreateColormap(Application.XDisplay, parentwinXID,
-    XVisual^.visual, AllocNone);
-  Attr.colormap := colormap;
-  AttrValueMask := AttrValueMask or CWColormap;
 end;
 
 procedure TCastleWindowBase.ContextCreateEnd(WndPtr: TWindow);
@@ -150,6 +151,7 @@ begin
 
   if UseFBConfig then
   begin
+    {$ifdef CASTLE_CONTEXT_FORWARD_3}
     { For now, we just use GLX_ARB_create_context for testing
       "how much can we render with forward-compatible context".
       TODO:
@@ -160,8 +162,10 @@ begin
         http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29).
         Right now, our XLibUtils catches X errors, but without XSync
         it's not known where they occur anyway. }
-//    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
-//      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward) else
+    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
+      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward)
+    else
+    {$endif}
       Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContext, true);
   end else
     Context := glXCreateContext(Application.XDisplay, XVisual, ShareContext, true);
@@ -169,12 +173,21 @@ begin
   Check(Context <> nil, 'Could not create OpenGL rendering context');
 end;
 
-procedure TCastleWindowBase.ContextDestroy;
+procedure TCastleWindowBase.ContextDestroyBegin;
 begin
   if Context <> nil then
   begin
     glXDestroyContext(Application.XDisplay, Context);
     Context := nil;
+  end;
+end;
+
+procedure TCastleWindowBase.ContextDestroyEnd;
+begin
+  if XVisual   <> nil then
+  begin
+    XFree(XVisual);
+    XVisual := nil;
   end;
 end;
 
@@ -195,9 +208,8 @@ var
 begin
   if not GLX_version_1_0(XDisplay) then
     raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
-  if CastleLog.Log then
   begin
-    GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
+    GlxExtensions := glXQueryExtensionsString(XDisplay, XScreen);
     WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
       'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
       Format('  Version 1.1: %s', [BoolToStr(GLX_version_1_1(XDisplay), true)]) +NL+
@@ -206,8 +218,8 @@ begin
       Format('  Version 1.4: %s', [BoolToStr(GLX_version_1_4(XDisplay), true)]) +NL+
       NL+
       'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
-      Format('  GLX_ARB_multisample: %s'   , [BoolToStr(GLX_ARB_multisample(XDisplay, FXScreen), true)]) + NL+
-      Format('  GLX_ARB_create_context: %s', [BoolToStr(GLX_ARB_create_context(XDisplay, FXScreen), true)]) +NL+
+      Format('  GLX_ARB_multisample: %s'   , [BoolToStr(GLX_ARB_multisample(XDisplay, XScreen), true)]) + NL+
+      Format('  GLX_ARB_create_context: %s', [BoolToStr(GLX_ARB_create_context(XDisplay, XScreen), true)]) +NL+
       NL+
       'All extensions (according to glXQueryExtensionsString):' +NL+
       GlxExtensions);

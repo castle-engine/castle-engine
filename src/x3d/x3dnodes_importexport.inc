@@ -53,21 +53,21 @@ procedure TX3DImport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'Inline node name');
-  InlineNodeName := Lexer.TokenName;
+  InlineNodeName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtPeriod);
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'imported node name');
-  ImportedNodeName := Lexer.TokenName;
+  ImportedNodeName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   if Lexer.TokenIsKeyword(vkAS) then
   begin
     Lexer.NextToken;
     Lexer.CheckTokenIs(vtName, 'alias for imported node name');
-    ImportedNodeAlias := Lexer.TokenName;
+    ImportedNodeAlias := Lexer.TokenX3DName;
 
     Lexer.NextToken;
   end else
@@ -78,23 +78,23 @@ end;
 
 procedure TX3DImport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
-  if not Element.AttributeString('inlineDEF', InlineNodeName) then
+  if not XMLAttributeX3DName(Element, 'inlineDEF', InlineNodeName) then
   begin
     WritelnWarning('VRML/X3D', 'Missing IMPORT "inlineDEF" attribute');
     Exit;
   end;
 
-  if not Element.AttributeString('importedDEF', ImportedNodeName) then
+  if not XMLAttributeX3DName(Element, 'importedDEF', ImportedNodeName) then
   begin
     WritelnWarning('VRML/X3D', 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
-    if not Element.AttributeString('exportedDEF', ImportedNodeName) then
+    if not XMLAttributeX3DName(Element, 'exportedDEF', ImportedNodeName) then
     begin
       WritelnWarning('VRML/X3D', 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
       Exit;
     end;
   end;
 
-  if not Element.AttributeString('AS', ImportedNodeAlias) then
+  if not XMLAttributeX3DName(Element, 'AS', ImportedNodeAlias) then
     ImportedNodeAlias := ImportedNodeName;
 
   Reader.DoImport(Self);
@@ -105,21 +105,23 @@ begin
   case Writer.Encoding of
     xeClassic:
       begin
-        Writer.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
+        Writer.WriteIndent('IMPORT ' + EncodeX3DName(InlineNodeName) + '.' + EncodeX3DName(ImportedNodeName));
         if ImportedNodeName <> ImportedNodeAlias then
-          Writer.Write(' AS ' + ImportedNodeAlias);
+          Writer.Write(' AS ' + EncodeX3DName(ImportedNodeAlias));
         Writer.Writeln('');
       end;
     xeXML:
       begin
         Writer.WriteIndent(Format('<IMPORT inlineDEF=%s importedDEF=%s',
-          [ StringToX3DXml(InlineNodeName),
-            StringToX3DXml(ImportedNodeName) ]));
+          [ StringToX3DXml(EncodeX3DName(InlineNodeName)),
+            StringToX3DXml(EncodeX3DName(ImportedNodeName)) ]));
         if ImportedNodeName <> ImportedNodeAlias then
-          Writer.Write(' AS=' + StringToX3DXml(ImportedNodeAlias));
+          Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ImportedNodeAlias)));
         Writer.Writeln(' />');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DImport.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 
@@ -137,14 +139,14 @@ procedure TX3DExport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'exported node name');
-  ExportedNodeName := Lexer.TokenName;
+  ExportedNodeName := Lexer.TokenX3DName;
 
   Lexer.NextToken;
   if Lexer.TokenIsKeyword(vkAS) then
   begin
     Lexer.NextToken;
     Lexer.CheckTokenIs(vtName, 'alias for exported node name');
-    ExportedNodeAlias := Lexer.TokenName;
+    ExportedNodeAlias := Lexer.TokenX3DName;
 
     Lexer.NextToken;
   end else
@@ -161,7 +163,7 @@ begin
     Exit;
   end;
 
-  if not Element.AttributeString('AS', ExportedNodeAlias) then
+  if not XMLAttributeX3DName(Element, 'AS', ExportedNodeAlias) then
     ExportedNodeAlias := ExportedNodeName;
 
   Reader.DoExport(Self);
@@ -172,19 +174,21 @@ begin
   case Writer.Encoding of
     xeClassic:
       begin
-        Writer.WriteIndent('EXPORT ' + ExportedNodeName);
+        Writer.WriteIndent('EXPORT ' + EncodeX3DName(ExportedNodeName));
         if ExportedNodeName <> ExportedNodeAlias then
-          Writer.Write(' AS ' + ExportedNodeAlias);
+          Writer.Write(' AS ' + EncodeX3DName(ExportedNodeAlias));
         Writer.Writeln('');
       end;
     xeXML:
       begin
-        Writer.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(ExportedNodeName));
+        Writer.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(EncodeX3DName(ExportedNodeName)));
         if ExportedNodeName <> ExportedNodeAlias then
-          Writer.Write(' AS=' + StringToX3DXml(ExportedNodeAlias));
+          Writer.Write(' AS=' + StringToX3DXml(EncodeX3DName(ExportedNodeAlias)));
         Writer.Writeln(' />');
       end;
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DExport.SaveToStream Encoding?');
+    {$endif}
   end;
 end;
 

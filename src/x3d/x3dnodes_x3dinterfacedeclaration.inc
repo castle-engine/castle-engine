@@ -241,7 +241,9 @@ begin
       FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       FieldOrEvent := FieldType.CreateUndefined(ParentNode, Access = atInputOutput, ParsedName);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
+    {$endif}
   end;
 
   Lexer.NextToken;
@@ -304,7 +306,9 @@ begin
       FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       FieldOrEvent := FieldType.CreateUndefined(ParentNode, Access = atInputOutput, ParsedName);
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('AccessType ?');
+    {$endif}
   end;
 
   if Event <> nil then
@@ -521,7 +525,9 @@ begin
           Writer.Writeln(' />');
       end;
 
+    {$ifndef COMPILER_CASE_ANALYSIS}
     else raise EInternalError.Create('TX3DInterfaceDeclaration.IDeclSaveToStream Encoding?');
+    {$endif}
   end;
 end;
 

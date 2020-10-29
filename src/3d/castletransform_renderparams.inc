@@ -17,8 +17,8 @@
 {$ifdef read_interface}
 
   { Statistics about what was rendered during last frame.
-    You will usually access this by scene manager property,
-    see @link(TCastleAbstractViewport.Statistics). }
+    You will usually access this by viewport property,
+    see @link(TCastleViewport.Statistics). }
   TRenderStatistics = record
     { How many shapes were rendered (send to OpenGL)
       versus all shapes that were potentially visible.
@@ -27,11 +27,11 @@
 
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts
-      works good. This includes frustum culling (automatically
-      used by TCastleScene), or occlusion culling (see
-      TSceneRenderingAttributes.UseOcclusionQuery),
-      or any custom algorithm you implement by using TTestShapeVisibility
-      callback with @link(TCastleScene.LocalRender). }
+      works good.
+      This includes per-shape frustum culling (see @link(TCastleScene.FrustumCulling)),
+      distance culling (@link(TCastleScene.DistanceCulling)),
+      occlusion culling (see @link(
+      TSceneRenderingAttributes.UseOcclusionQuery)). }
     ShapesRendered, ShapesVisible: Cardinal;
 
     { The number of shapes that were not rendered,
@@ -40,6 +40,13 @@
       TSceneRenderingAttributes.UseOcclusionQuery).
       Basically, this measures the "invisible overhead" of occlusion query. }
     BoxesOcclusionQueriedCount: Cardinal;
+
+    { TCastleScene rendered vs all visible. }
+    ScenesRendered, ScenesVisible: Cardinal;
+
+    { Present the statistics information as a multi-line string.
+      Display it e.g. by assigning to TCastleLabel.Caption. }
+    function ToString: String;
   end;
 
   { @exclude Internal.
@@ -90,8 +97,8 @@
 
     This is interesting to you only if you write custom rendering code.
 
-    In normal applications, you shoud only get/set camera using TCamera
-    descendants, through TCastleAbstractViewport.Camera and related properties.
+    In normal applications, you shoud only get/set camera using TCastleCamera
+    descendants, through @link(TCastleViewport.Camera) and related properties.
     Do not use the TRenderingCamera class in normal applications. }
   TRenderingCamera = class
   strict private
@@ -147,12 +154,14 @@
     function RotationMatrix3: TMatrix3;
     function RotationInverseMatrix3: TMatrix3;
 
-    { Set all properties (except Target) from TCamera instance in ACamera.
+    { Set all properties (except Target) from TCastleCamera instance in ACamera.
       See @link(FromMatrix) for comments about @link(Target) property.
       The IgnoredViewpoint parameter is only for backward compatibility,
       it is ignored. }
-    procedure FromCameraObject(const ACamera: TCamera;
+    procedure FromCameraObject(const ACamera: TCastleCamera;
       const IgnoredViewpoint: TObject = nil);
+    procedure FromCameraObject(const ACamera: TCastleNavigation;
+      const IgnoredViewpoint: TObject = nil); deprecated 'use FromCameraObject overload with TCastleCamera';
 
     { Set all properties (except Target) from explict matrices.
       ProjectionMatrix is needed to calculate frustum.
@@ -167,9 +176,7 @@
     procedure Assign(const Source: TRenderingCamera);
   end;
 
-  { @exclude Internal.
-
-    Information that a TCastleTransform object needs to render.
+  { Information that a TCastleTransform object needs to render.
     Read-only for @link(TCastleTransform.LocalRender)
     (except @link(Statistics), which should be updated during rendering).
 
@@ -185,10 +192,11 @@
       This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
     Transparent: boolean;
 
-    { Should we render parts that may receive shadow volumes, or ones that don't.
+    { Should we render parts that may receive shadow volumes, or ones that don't, or both.
+      This should never be [].
       During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes.
       This should "filter" the rendered parts by @link(TCastleTransform.LocalRender). }
-    ShadowVolumesReceivers: boolean;
+    ShadowVolumesReceivers: set of Boolean;
 
     { If @true, means that we're using multi-pass
       shadowing technique (like shadow volumes),
@@ -246,6 +254,28 @@
 
 {$ifdef read_implementation}
 
+{ TRenderStatistics ---------------------------------------------------------- }
+
+function TRenderStatistics.ToString: String;
+var
+  OcclusionStats: String;
+begin
+  if BoxesOcclusionQueriedCount <> 0 then
+    OcclusionStats := Format(' (+ %d boxes for occlusion query)', [
+      BoxesOcclusionQueriedCount
+    ])
+  else
+    OcclusionStats := '';
+
+  Result := Format('Shapes %d%s / %d, Scenes: %d / %d', [
+    ShapesRendered,
+    OcclusionStats,
+    ShapesVisible,
+    ScenesRendered,
+    ScenesVisible
+  ]);
+end;
+
 { TRenderingCamera --------------------------------------------------------------- }
 
 procedure TRenderingCamera.InverseMatrixNeeded;
@@ -255,9 +285,8 @@ begin
     if not Matrix.TryInverse(InverseMatrix) then
     begin
       InverseMatrix := TMatrix4.Identity;
-      if Log then
-        WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          Matrix.ToRawString('  '));
+      WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
+        Matrix.ToRawString('  '));
     end;
     InverseMatrixDone := true;
   end;
@@ -270,9 +299,8 @@ begin
     if not RotationMatrix.TryInverse(RotationInverseMatrix) then
     begin
       RotationInverseMatrix := TMatrix4.Identity;
-      if Log then
-        WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          RotationMatrix.ToRawString('  '));
+      WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
+        RotationMatrix.ToRawString('  '));
     end;
     RotationInverseMatrixDone := true;
   end;
@@ -292,7 +320,7 @@ begin
   Move(RotationInverseMatrix.Data[2], Result.Data[2], SizeOf(Single) * 3);
 end;
 
-procedure TRenderingCamera.FromCameraObject(const ACamera: TCamera;
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleCamera;
   const IgnoredViewpoint: TObject = nil);
 begin
   Matrix := ACamera.Matrix;
@@ -300,6 +328,12 @@ begin
   RotationMatrix := ACamera.RotationMatrix;
   RotationInverseMatrixDone := false;
   Frustum := ACamera.Frustum;
+end;
+
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCastleNavigation;
+  const IgnoredViewpoint: TObject = nil);
+begin
+  FromCameraObject(ACamera.Camera, IgnoredViewpoint);
 end;
 
 procedure TRenderingCamera.FromMatrix(
