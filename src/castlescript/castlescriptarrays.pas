@@ -46,19 +46,19 @@ type
       This makes Value an instance of the self class, like TCasScriptLongIntArray,
       when this generic is specialized to TCasScriptLongIntArray. }
     class function CreateValueIfNeededSelf(var Value: TCasScriptValue;
-      var ParentOfValue: boolean): TSelfClass;
+      var ParentOfValue: Boolean): TSelfClass;
 
-    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
     procedure SetValue(const AValue: TXxxList);
     class procedure RegisterFunctions;
   public
-    constructor Create(const AWriteable: boolean; const AValue: TXxxList); overload;
-    constructor Create(const AWriteable: boolean); override; overload;
+    constructor Create(const AWriteable: Boolean; const AValue: TXxxList); overload;
+    constructor Create(const AWriteable: Boolean); override; overload;
     destructor Destroy; override;
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
@@ -78,9 +78,9 @@ type
     TCasScriptFloat,
     TCasScriptArrayFun>)
   private
-    class procedure HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   end;
 
   TCasScriptDoubleArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
@@ -179,7 +179,7 @@ type
   TCasScriptArraySetCount = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
-    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptArrayGet = class(TCasScriptFunction)
@@ -190,7 +190,7 @@ type
   TCasScriptArraySet = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
-    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptCatmullRomSpline = class(TCasScriptFunction)
@@ -218,7 +218,7 @@ class function TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
+  CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: Boolean): TSelfClass;
 begin
   CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
   Result := TSelfClass(Value);
@@ -228,7 +228,7 @@ constructor TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  Create(const AWriteable: boolean; const AValue: TXxxList);
+  Create(const AWriteable: Boolean; const AValue: TXxxList);
 begin
   Create(AWriteable);
   Value := AValue;
@@ -238,7 +238,7 @@ constructor TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  Create(const AWriteable: boolean);
+  Create(const AWriteable: Boolean);
 begin
   inherited;
   FValue := TXxxList.Create;
@@ -297,7 +297,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
   Arr: TXxxList;
@@ -317,7 +317,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := TSelfClass(Arguments[0]).Value.Count;
@@ -327,7 +327,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   NewCount: Int64;
 begin
@@ -351,7 +351,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
   Arr: TXxxList;
@@ -372,7 +372,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
   Arr: TXxxList;
@@ -399,7 +399,7 @@ class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
   TXxxList,
   TCasScriptXxxElement,
   TCasScriptXxxArrayFun> {$endif} .
-  HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
   Arr: TXxxList;
@@ -433,7 +433,7 @@ end;
 
 { TCasScriptSingleArray specials --------------------------------------------- }
 
-class procedure TCasScriptSingleArray.HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptSingleArray.HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := CatmullRomSpline(
@@ -443,7 +443,7 @@ begin
     TCasScriptSingleArray(Arguments[3]).Value);
 end;
 
-class procedure TCasScriptSingleArray.HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptSingleArray.HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := HermiteSpline(
@@ -454,7 +454,7 @@ begin
     TCasScriptSingleArray(Arguments[4]).Value);
 end;
 
-class procedure TCasScriptSingleArray.HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptSingleArray.HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := HermiteTenseSpline(
@@ -486,7 +486,7 @@ begin
   Result := 'array_set_count';
 end;
 
-class function TCasScriptArraySetCount.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptArraySetCount.ArgumentMustBeAssignable(const Index: Integer): Boolean;
 begin
   Result := Index = 0;
 end;
@@ -501,7 +501,7 @@ begin
   Result := 'array_set';
 end;
 
-class function TCasScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): Boolean;
 begin
   Result := Index = 0;
 end;
@@ -525,19 +525,19 @@ end;
 
 type
   TCasScriptCharacterArray = class
-    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   end;
 
-class procedure TCasScriptCharacterArray.HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Length(TCasScriptString(Arguments[0]).Value);
 end;
 
-class procedure TCasScriptCharacterArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   NewCount: Int64;
   NewValue: string;
@@ -561,7 +561,7 @@ begin
   AResult := Arguments[0];
 end;
 
-class procedure TCasScriptCharacterArray.HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
   Arr: string;
@@ -578,7 +578,7 @@ begin
   TCasScriptString(AResult).Value := Arr[Index+1];
 end;
 
-class procedure TCasScriptCharacterArray.HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
   Arr: string;

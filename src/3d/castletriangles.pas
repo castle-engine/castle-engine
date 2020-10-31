@@ -65,7 +65,7 @@ type
     { Check does the triangle define a correct plane in 3D space.
       That is, check does the triangle not degenerate to a point or line segment
       (which can happen when some points are at the same position, or are colinear). }
-    function IsValid: boolean;
+    function IsValid: Boolean;
 
     { Like a normal vector of a triangle (see @link(Normal)), but not necessarily normalized. }
     function Direction: TVector3;
@@ -272,7 +272,7 @@ type
 
       @groupBegin }
     MailboxSavedTag: TMailboxTag;
-    MailboxIsIntersection: boolean;
+    MailboxIsIntersection: Boolean;
     MailboxIntersection: TVector3;
     MailboxIntersectionDistance: Single;
     { @groupEnd }
@@ -328,13 +328,13 @@ type
       out Intersection: TVector3;
       out IntersectionDistance: Single;
       const Segment0, SegmentVector: TVector3;
-      const SegmentTag: TMailboxTag): boolean;
+      const SegmentTag: TMailboxTag): Boolean;
 
     function RayCollision(
       out Intersection: TVector3;
       out IntersectionDistance: Single;
       const RayOrigin, RayDirection: TVector3;
-      const RayTag: TMailboxTag): boolean;
+      const RayTag: TMailboxTag): Boolean;
     { @groupEnd }
 
     {$ifndef CONSERVE_TRIANGLE_MEMORY}
@@ -377,7 +377,7 @@ type
   { Return for given Triangle do we want to ignore collisions with it.
     For now, Sender is always TTriangleOctree. }
   TTriangleIgnoreFunc = function (const Sender: TObject;
-    const Triangle: PTriangle): boolean of object;
+    const Triangle: PTriangle): Boolean of object;
 
   T3DTriangleGeometry = TTriangleGeometry deprecated 'use TTriangleGeometry';
   T3DTriangle = TTriangle deprecated 'use TTriangle';
@@ -477,15 +477,15 @@ function Polygon2dArea(const Verts: array of TVector2): Single; overload;
   Give first 3 components of triangle plane as TriDir.
   @groupBegin }
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
-  const Tri: TTriangle3; const TriDir: TVector3): boolean; overload;
+  const Tri: TTriangle3; const TriDir: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Check does point lie inside a triangle, in 2D.
   @groupBegin }
 function IsPointWithinTriangle2D(const P: TVector2;
-  const Tri: TTriangle2): boolean; overload;
+  const Tri: TTriangle2): Boolean; overload;
 function IsPointWithinTriangle2D(const P: TVector2;
-  const Tri: TTriangle3): boolean; overload;
+  const Tri: TTriangle3): Boolean; overload;
 { @groupEnd }
 
 { Check triangle with line segment collision.
@@ -494,16 +494,16 @@ function IsPointWithinTriangle2D(const P: TVector2;
   @groupBegin }
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 { @groupEnd }
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
-  const SphereCenter: TVector3; SphereRadius: Single): boolean; overload;
+  const SphereCenter: TVector3; SphereRadius: Single): Boolean; overload;
 function IsTriangleSphereCollision(const Tri: TTriangle3;
-  const SphereCenter: TVector3; SphereRadius: Single): boolean; overload;
+  const SphereCenter: TVector3; SphereRadius: Single): Boolean; overload;
 
 { Test collision between triangle and sphere in 2D.
   If you use overloaded version with TTriangle3, the Z coordinate
@@ -511,9 +511,9 @@ function IsTriangleSphereCollision(const Tri: TTriangle3;
   on the Z=0 plane.
   @groupBegin }
 function IsTriangleSphereCollision2D(const Tri: TTriangle2;
-  const SphereCenter: TVector2; SphereRadius: Single): boolean; overload;
+  const SphereCenter: TVector2; SphereRadius: Single): Boolean; overload;
 function IsTriangleSphereCollision2D(const Tri: TTriangle3;
-  const SphereCenter: TVector2; SphereRadius: Single): boolean; overload;
+  const SphereCenter: TVector2; SphereRadius: Single): Boolean; overload;
 { @groupEnd }
 
 { Calculate triangle with line segment collision.
@@ -525,14 +525,14 @@ function IsTriangleSphereCollision2D(const Tri: TTriangle3;
   @groupBegin }
 function TryTriangleSegmentCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 
 function TryTriangleSegmentDirCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Segment0, SegmentVector: TVector3): boolean; overload;
+  const Segment0, SegmentVector: TVector3): Boolean; overload;
 function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: Single;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Segment0, SegmentVector: TVector3): boolean; overload;
+  const Segment0, SegmentVector: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Calculate triangle with ray collision.
@@ -544,10 +544,10 @@ function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: Singl
   @groupBegin }
 function TryTriangleRayCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TryTriangleRayCollision(var Intersection: TVector3; var T: Single;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 { @groupEnd }
 
 function TriangleDirection(const p0, p1, p2: TVector3): TVector3; overload;
@@ -844,7 +844,7 @@ function TTriangle.SegmentDirCollision(
   out Intersection: TVector3;
   out IntersectionDistance: Single;
   const Segment0, SegmentVector: TVector3;
-  const SegmentTag: TMailboxTag): boolean;
+  const SegmentTag: TMailboxTag): Boolean;
 begin
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = SegmentTag then
@@ -882,7 +882,7 @@ function TTriangle.RayCollision(
   out Intersection: TVector3;
   out IntersectionDistance: Single;
   const RayOrigin, RayDirection: TVector3;
-  const RayTag: TMailboxTag): boolean;
+  const RayTag: TMailboxTag): Boolean;
 begin
   { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
     z jednego RayOrigin ale z roznym RayDirection (np. w raytracerze). Wiec lepiej
@@ -973,7 +973,7 @@ end;
 
 { TTriangle3 ----------------------------------------------------------------- }
 
-function TTriangle3.IsValid: boolean;
+function TTriangle3.IsValid: Boolean;
 begin
   (* We want to check is Tri a "non-degenerated" triangle,
      i.e. does not determine a plane in 3D.
@@ -1184,7 +1184,7 @@ end;
 { others --------------------------------------------------------------------- }
 
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
-  const Tri: TTriangle3; const TriDir: TVector3): boolean;
+  const Tri: TTriangle3; const TriDir: TVector3): Boolean;
 
 { We tried many approaches for this:
   - Check do three angles:
@@ -1314,13 +1314,13 @@ end;
 {$endif IsPointOnTrianglePlaneWithinTriangle_Simplified}
 
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
-//  const Tri: TTriangle3): boolean;
+//  const Tri: TTriangle3): Boolean;
 //begin
 //  Result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDirection(Tri));
 //end;
 
 function IsPointWithinTriangle2D(const P: TVector2;
-  const Tri: TTriangle2): boolean;
+  const Tri: TTriangle2): Boolean;
 var
   Area, S, T, One: Single;
 begin
@@ -1360,7 +1360,7 @@ begin
 end;
 
 function IsPointWithinTriangle2D(const P: TVector2;
-  const Tri: TTriangle3): boolean;
+  const Tri: TTriangle3): Boolean;
 var
   Tri2D: TTriangle2;
 begin
@@ -1378,7 +1378,7 @@ begin
 end;
 
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
-  const TriPlane: TVector4; const Pos1, Pos2: TVector3): boolean;
+  const TriPlane: TVector4; const Pos1, Pos2: TVector3): Boolean;
 var
   LineVector, MaybeIntersection: TVector3;
   TriDir: TVector3 absolute TriPlane;
@@ -1389,14 +1389,14 @@ begin
             IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
 end;
 
-function IsTriangleSegmentCollision(const Tri: TTriangle3; const Pos1, Pos2: TVector3): boolean;
+function IsTriangleSegmentCollision(const Tri: TTriangle3; const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := IsTriangleSegmentCollision(Tri, Tri.Plane, Pos1, Pos2);
 end;
 
 function TryTriangleSegmentCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Pos1, Pos2: TVector3): boolean;
+  const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := TryTriangleSegmentDirCollision(Intersection, Tri, TriPlane,
     Pos1, Pos2 - Pos1);
@@ -1404,7 +1404,7 @@ end;
 
 function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: Single;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Segment0, SegmentVector: TVector3): boolean;
+  const Segment0, SegmentVector: TVector3): Boolean;
 var
   MaybeIntersection: TVector3;
   MaybeT: Single;
@@ -1421,7 +1421,7 @@ end;
 
 function TryTriangleSegmentDirCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Segment0, SegmentVector: TVector3): boolean;
+  const Segment0, SegmentVector: TVector3): Boolean;
 var
   MaybeIntersection: TVector3;
   MaybeT: Single;
@@ -1435,17 +1435,17 @@ end;
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
-  const SphereCenter: TVector3; SphereRadius: Single): boolean;
+  const SphereCenter: TVector3; SphereRadius: Single): Boolean;
 (*$define HAS_PRECALC_PLANE*)
 (*$I castletriangles_istrianglespherecollision.inc*)
 (*$undef HAS_PRECALC_PLANE*)
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
-  const SphereCenter: TVector3; SphereRadius: Single): boolean;
+  const SphereCenter: TVector3; SphereRadius: Single): Boolean;
 (*$I castletriangles_istrianglespherecollision.inc*)
 
 function IsTriangleSphereCollision2D(const Tri: TTriangle2;
-  const SphereCenter: TVector2; SphereRadius: Single): boolean;
+  const SphereCenter: TVector2; SphereRadius: Single): Boolean;
 var
   Intersection: TVector2;
   SphereRadiusSqr: Single;
@@ -1479,7 +1479,7 @@ begin
 end;
 
 function IsTriangleSphereCollision2D(const Tri: TTriangle3;
-  const SphereCenter: TVector2; SphereRadius: Single): boolean;
+  const SphereCenter: TVector2; SphereRadius: Single): Boolean;
 var
   Tri2D: TTriangle2;
 begin
@@ -1498,7 +1498,7 @@ end;
 
 function TryTriangleRayCollision(var Intersection: TVector3; var T: Single;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   MaybeIntersection: TVector3;
   MaybeT: Single;
@@ -1515,7 +1515,7 @@ end;
 
 function TryTriangleRayCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   MaybeIntersection: TVector3;
   MaybeT: Single;

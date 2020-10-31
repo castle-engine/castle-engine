@@ -64,10 +64,10 @@ type
     property Boxes: TBox3DList read FBoxes;
 
     { Is Point inside the sector. }
-    function Contains(const Point: TVector3): boolean;
+    function Contains(const Point: TVector3): Boolean;
 
     { Does the box collide (at least partially) with sector. }
-    function Collision(const Box: TBox3D): boolean;
+    function Collision(const Box: TBox3D): Boolean;
 
     { What sectors are visible from this sector.
 
@@ -129,11 +129,11 @@ type
       Right now it uses depth-first search. For small sectors+waypoints
       graphs it doesn't matter. }
     class function FindWay(SectorBegin, SectorEnd: TSector;
-      Waypoints: TWaypointList): boolean;
+      Waypoints: TWaypointList): Boolean;
   end;
 
 var
-  LogSectors: boolean = false;
+  LogSectors: Boolean = false;
 
 implementation
 
@@ -171,7 +171,7 @@ begin
   inherited;
 end;
 
-function TSector.Contains(const Point: TVector3): boolean;
+function TSector.Contains(const Point: TVector3): Boolean;
 var
   I: Integer;
 begin
@@ -181,7 +181,7 @@ begin
   Result := false;
 end;
 
-function TSector.Collision(const Box: TBox3D): boolean;
+function TSector.Collision(const Box: TBox3D): Boolean;
 var
   I: Integer;
 begin
@@ -252,13 +252,13 @@ begin
 end;
 
 class function TSectorList.FindWay(SectorBegin, SectorEnd: TSector;
-  Waypoints: TWaypointList): boolean;
+  Waypoints: TWaypointList): Boolean;
 var
   { This is used to avoid falling into loops. }
   SectorsVisited: TSectorList;
 
   function FindWayToSectorEnd(SectorNow: TSector;
-    SectorDistance: Integer): boolean;
+    SectorDistance: Integer): Boolean;
   var
     WaypointIndex, SectorIndex: Integer;
     W: TWaypoint;

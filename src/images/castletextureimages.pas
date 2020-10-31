@@ -155,7 +155,7 @@ type
     procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage); overload;
     procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
 
-    function Empty: boolean; override;
+    function Empty: Boolean; override;
   end;
 
   { Texture minification filter (what happens when many texture pixels
@@ -204,7 +204,7 @@ var
     A @italic(lot) of log messages.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogTextureCache: boolean = false;
+  LogTextureCache: Boolean = false;
 
   { Cache of texture images, equal to X3DCache
     and automatically initialized / finalized if you use X3DNodes unit. }
@@ -399,7 +399,7 @@ begin
   TextureImage_DecReference(Image, Dummy);
 end;
 
-function TTexturesVideosCache.Empty: boolean;
+function TTexturesVideosCache.Empty: Boolean;
 begin
   Result := (inherited Empty) and (CachedTextures.Count = 0);
 end;

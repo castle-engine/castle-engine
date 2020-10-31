@@ -98,12 +98,12 @@ type
 
       The comparison is case-sensitive, or not, depending on the value
       of CaseSensitive property of this list. }
-    function Equals(SecondValue: TObject): boolean;
+    function Equals(SecondValue: TObject): Boolean;
       // In Delphi, they have non-virtual TStringList.Equals that hides virtual TObject.Equals...
       {$ifdef FPC} override; {$endif}
       overload;
 
-    function Equals(const A: array of string): boolean; overload;
+    function Equals(const A: array of string): Boolean; overload;
 
     { Does the SecondValue have equal length and content.
 
@@ -111,7 +111,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -177,7 +177,7 @@ function RandomString: string;
   StringReplace. }
 procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
-  IgnoreCase: boolean = true); overload;
+  IgnoreCase: Boolean = true); overload;
 
 { Insert newline characters into string S, such that each line
   has at most MaxCol chars.
@@ -290,17 +290,17 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
 function SEnding(const s: string; P: integer): string;
 
 function IsPrefix(const Prefix, S: string;
-  IgnoreCase: boolean = true): boolean; overload;
+  IgnoreCase: Boolean = true): Boolean; overload;
 function IsSuffix(const Suffix, S: string;
-  IgnoreCase: boolean = true): boolean; overload;
+  IgnoreCase: Boolean = true): Boolean; overload;
 
 { Removes the prefix, if it is present. More precisely, if
   IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
-function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
+function PrefixRemove(const Prefix, S: string; IgnoreCase: Boolean): string;
 
 { Like PrefixRemove, but checks for and removes Suffix. }
-function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+function SuffixRemove(const Suffix, S: string; IgnoreCase: Boolean): string;
 
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
@@ -313,8 +313,8 @@ function SChar(const s: string; CharNum: integer): PChar; deprecated 'this funct
   Return false if S is too short, or the chatacter differs.
 
   @groupBegin }
-function SCharIs(const s: string; index: integer; c: char): boolean; overload;
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
+function SCharIs(const s: string; index: integer; c: char): Boolean; overload;
+function SCharIs(const s: string; index: integer; const chars: TSetOfChars): Boolean; overload;
 { @groupEnd }
 
 { Replace typically unreadable characters in string S with #number notation.
@@ -579,12 +579,12 @@ type
     and some not --- no guarantees here, sorry.) }
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
-  const IgnoreCase: boolean = true;
-  const RelaxedWhitespaceChecking: boolean = true); overload;
+  const IgnoreCase: Boolean = true;
+  const RelaxedWhitespaceChecking: Boolean = true); overload;
 function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
-  const IgnoreCase: boolean = true;
-  const RelaxedWhitespaceChecking: boolean = true): integer; overload;
+  const IgnoreCase: Boolean = true;
+  const RelaxedWhitespaceChecking: Boolean = true): integer; overload;
 
 {$ifdef FPC}
 { Extract file extensions from a file filter usually specified
@@ -658,9 +658,9 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   content many times, which is usually not what you want.
 
   That's why you should instead use this function for such situations. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
-function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
-function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
+function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: Boolean): string; overload;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: Boolean): string; overload;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: Boolean): string; overload;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -686,11 +686,11 @@ function SUnformattable(const s: string): string;
 
   Returns value < 0 when S1 < S2, returns 0 when S1 = S2 and value > 0
   when S1 > S2. }
-function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
+function SAnsiCompare(const s1, s2: string; IgnoreCase: Boolean): Integer;
 
 { Check if strings are equal, taking into account current locale.
   Shortcut for SAnsiCompare(S1, S2) = 0 }
-function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
+function SAnsiSame(const s1, s2: string; IgnoreCase: Boolean): Boolean;
 
 type
   TPercentReplace = record
@@ -754,15 +754,15 @@ type
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   out ReplacementsDone: Cardinal;
-  ErrorOnUnknownPercentFormat: boolean = true;
+  ErrorOnUnknownPercentFormat: Boolean = true;
   PercentChar: char ='%';
-  IgnoreCase: boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
+  IgnoreCase: Boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
 
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
-  ErrorOnUnknownPercentFormat: boolean = true;
+  ErrorOnUnknownPercentFormat: Boolean = true;
   PercentChar: char ='%';
-  IgnoreCase: boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
+  IgnoreCase: Boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
 { @groupEnd }
 
 { Replace sequences @code(@@counter(<padding>)) in the NamePattern with Index.
@@ -803,10 +803,10 @@ function SPercentReplace(const InitialFormat: string;
 
   @groupBegin }
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean;
+  const Index: Integer; const AllowOldPercentSyntax: Boolean;
   out ReplacementsDone: Cardinal): string; overload;
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean): string; overload;
+  const Index: Integer; const AllowOldPercentSyntax: Boolean): string; overload;
 { @groupEnd }
 
 { Does this NamePattern contain @code(@@counter) in a format understood
@@ -961,7 +961,7 @@ type
     The exception string is informative, containing the string value,
     character, character position.) }
 procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
-  const RaiseExceptionOnError: boolean = true);
+  const RaiseExceptionOnError: Boolean = true);
 
 { Remove one newline from the end of the string, if any. }
 function TrimEndingNewline(const S: String): String;
@@ -1116,7 +1116,7 @@ begin
 end;
 {$endif}
 
-function TCastleStringList.Equals(SecondValue: TObject): boolean;
+function TCastleStringList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -1134,7 +1134,7 @@ begin
   end;
 end;
 
-function TCastleStringList.Equals(const A: array of string): boolean;
+function TCastleStringList.Equals(const A: array of string): Boolean;
 var
   I: Integer;
 begin
@@ -1145,7 +1145,7 @@ begin
   Result := true;
 end;
 
-function TCastleStringList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TCastleStringList.PerfectlyEquals(SecondValue: TObject): Boolean;
 begin
   Result := Equals(SecondValue);
 end;
@@ -1214,7 +1214,7 @@ end;
 
 procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
-  IgnoreCase: boolean);
+  IgnoreCase: Boolean);
 (*
  { NAIWNA IMPLEMENTACJA : zawsze szuka w nowym s od subs_orig od poczatku
    (w rezultacie poczatek stringa przeszukajac wiele razy niepotrzebnie).
@@ -1248,7 +1248,7 @@ function BreakLine(const S: string; const MaxCol: integer;
 var
   done: integer;
   nowcol, i, brk: integer;
-  BrokenSuccess: boolean;
+  BrokenSuccess: Boolean;
 begin
   // WrapText is not perfect, in looks for AllowedBreakChars after MaxCol.
   // It also doesn't have Indent that is added to existing newlines.
@@ -1422,28 +1422,28 @@ begin
   result := Copy(S, P, MaxInt)
 end;
 
-function IsPrefix(const Prefix, S: string; IgnoreCase: boolean): boolean;
+function IsPrefix(const Prefix, S: string; IgnoreCase: Boolean): Boolean;
 begin
   if IgnoreCase then
     Result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
     Result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
 end;
 
-function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;
+function IsSuffix(const Suffix, S: string; IgnoreCase: Boolean): Boolean;
 begin
   if IgnoreCase then
     result := AnsiCompareText(SRight(S, Length(Suffix)), Suffix) = 0 else
     result := AnsiCompareStr(SRight(S, Length(Suffix)), Suffix) = 0;
 end;
 
-function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
+function PrefixRemove(const Prefix, S: string; IgnoreCase: Boolean): string;
 begin
   if IsPrefix(Prefix, S, IgnoreCase) then
     Result := SEnding(S, Length(Prefix) + 1) else
     Result := S;
 end;
 
-function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
+function SuffixRemove(const Suffix, S: string; IgnoreCase: Boolean): string;
 begin
   Result := S;
   if IsSuffix(Suffix, S, IgnoreCase) then
@@ -1473,12 +1473,12 @@ begin
 end;
 {$Include NoRQCheckEnd.inc}
 
-function SCharIs(const s: string; index: integer; c: char): boolean;
+function SCharIs(const s: string; index: integer; c: char): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] = c)
 end;
 
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean;
+function SCharIs(const s: string; index: integer; const chars: TSetOfChars): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] in chars)
 end;
@@ -1638,7 +1638,7 @@ end;
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
 var S, SubS: string;
 
-  function MatchingPos(i: integer): boolean;
+  function MatchingPos(i: integer): Boolean;
   { sprawdz czy i jest dobra Position wystapienia SubS w S.
     Uwzglednij przy tym czy soWholeWord in Options, zachowuj sie zawsze
     jakby bylo soMatchCase in Options. }
@@ -1695,8 +1695,8 @@ end;
 
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
-  const IgnoreCase: boolean;
-  const RelaxedWhitespaceChecking: boolean);
+  const IgnoreCase: Boolean;
+  const RelaxedWhitespaceChecking: Boolean);
 begin
  if TryDeFormat(Data, Format, args, IgnoreCase,
    RelaxedWhitespaceChecking) < High(args)+1 then
@@ -1707,8 +1707,8 @@ end;
 
 function TryDeFormat(Data: string; const Format: string;
   const args: array of pointer;
-  const IgnoreCase: boolean;
-  const RelaxedWhitespaceChecking: boolean): integer;
+  const IgnoreCase: Boolean;
+  const RelaxedWhitespaceChecking: Boolean): integer;
 var datapos, formpos: integer;
 
   function ReadExtendedData: Extended;
@@ -1768,7 +1768,7 @@ var datapos, formpos: integer;
   end;
 
   procedure CheckBlackChar(formatchar: char);
-  var BlackCharsCheck: boolean;
+  var BlackCharsCheck: Boolean;
   begin
    if IgnoreCase then
     BlackCharsCheck := SameText(Data[datapos], format[formpos]) else
@@ -1986,7 +1986,7 @@ end;
 {$endif}
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: array of string; const IgnoreCase: boolean): string;
+  const Patterns, Values: array of string; const IgnoreCase: Boolean): string;
 begin
   if IgnoreCase then
     Result := StringsReplace(S, Patterns, Values, [rfReplaceAll, rfIgnoreCase]) else
@@ -1994,13 +1994,13 @@ begin
 end;
 
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
-  const IgnoreCase: boolean): string;
+  const IgnoreCase: Boolean): string;
 begin
   Result := SReplacePatterns(S, Parameters.Keys.ToArray, Parameters.Values.ToArray, IgnoreCase);
 end;
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: TStrings; const IgnoreCase: boolean): string;
+  const Patterns, Values: TStrings; const IgnoreCase: Boolean): string;
 begin
   Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
@@ -2035,14 +2035,14 @@ begin
   result := StringReplace(s, '%', '%%', [rfReplaceAll]);
 end;
 
-function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
+function SAnsiCompare(const s1, s2: string; IgnoreCase: Boolean): Integer;
 begin
   if IgnoreCase then
     result := AnsiCompareText(s1, s2) else
     result := AnsiCompareStr(s1, s2);
 end;
 
-function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
+function SAnsiSame(const s1, s2: string; IgnoreCase: Boolean): Boolean;
 begin
   result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
 end;
@@ -2050,9 +2050,9 @@ end;
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   out ReplacementsDone: Cardinal;
-  ErrorOnUnknownPercentFormat: boolean;
+  ErrorOnUnknownPercentFormat: Boolean;
   PercentChar: char;
-  IgnoreCase: boolean): string;
+  IgnoreCase: Boolean): string;
 
   function ReplaceWithC(c: char): Integer;
   var
@@ -2127,9 +2127,9 @@ end;
 
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
-  ErrorOnUnknownPercentFormat: boolean;
+  ErrorOnUnknownPercentFormat: Boolean;
   PercentChar: char;
-  IgnoreCase: boolean): string;
+  IgnoreCase: Boolean): string;
 var
   ReplacementsDone: Cardinal;
 begin
@@ -2252,7 +2252,7 @@ begin
 end;
 
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean;
+  const Index: Integer; const AllowOldPercentSyntax: Boolean;
   out ReplacementsDone: Cardinal): string;
 var
   R: {$ifdef FPC} TRegExpr {$else} TRegEx {$endif};
@@ -2289,7 +2289,7 @@ begin
 end;
 
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean): string;
+  const Index: Integer; const AllowOldPercentSyntax: Boolean): string;
 var
   ReplacementsDone: Cardinal;
 begin
@@ -2374,7 +2374,7 @@ function IntToStr2(n: Int64;
   const ZeroDigit: char;
   const OneDigit: char;
   const MinusSign: char): string;
-var Negative: boolean;
+var Negative: Boolean;
     i: Integer;
 begin
  { Simple implementation : Result := IntToStrBase(n, 2, minLength) }
@@ -2572,7 +2572,7 @@ begin
 end;
 
 procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
-  const RaiseExceptionOnError: boolean);
+  const RaiseExceptionOnError: Boolean);
 var
   I: Integer;
   C: char;

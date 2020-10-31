@@ -32,11 +32,11 @@ type
   TGLShape = class abstract(TX3DRendererShape)
   public
     { Keeps track if this shape was passed to Renderer.Prepare. }
-    PreparedForRenderer: boolean;
+    PreparedForRenderer: Boolean;
 
     UseAlphaChannel: TAlphaChannel;
     { Is UseAlphaChannel calculated and current. }
-    PreparedUseAlphaChannel: boolean;
+    PreparedUseAlphaChannel: Boolean;
 
     PassedShapeCulling: Boolean;
 
@@ -46,7 +46,7 @@ type
       OcclusionQueryAsked is always reset to @false when initializing
       OcclusionQueryId. }
     OcclusionQueryId: TGLint;
-    OcclusionQueryAsked: boolean;
+    OcclusionQueryAsked: Boolean;
 
     { For Hierarchical Occlusion Culling. }
     RenderedFrameId: Cardinal;
@@ -56,7 +56,7 @@ type
       Never change it after initial render. }
     DisableSharedCache: Boolean;
 
-    procedure Changed(const InactiveOnly: boolean;
+    procedure Changed(const InactiveOnly: Boolean;
       const Changes: TX3DChanges); override;
     procedure PrepareResources;
     procedure GLContextClose;
@@ -76,7 +76,7 @@ uses CastleScene, CastleVectors;
 
 { TGLShape --------------------------------------------------------------- }
 
-procedure TGLShape.Changed(const InactiveOnly: boolean;
+procedure TGLShape.Changed(const InactiveOnly: Boolean;
   const Changes: TX3DChanges);
 
   { Assuming Cache <> nil, try to update the Cache VBOs fast

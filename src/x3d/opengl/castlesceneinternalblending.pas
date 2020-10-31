@@ -54,9 +54,9 @@ type
   only transparent shapes (UseBlending = @true). }
 procedure ShapesFilterBlending(
   const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList; const UseBlending: Boolean);
 
 implementation
 
@@ -81,7 +81,7 @@ uses SysUtils,
 }
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
   FactorNames: array [TBlendingSourceFactor] of string =
   (
@@ -150,7 +150,7 @@ end;
 
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingDestinationFactor;
-  var NeedsConstColor, NeedsConstAlpha: boolean): boolean;
+  var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
   FactorNames: array [TBlendingDestinationFactor] of string =
   (
@@ -272,7 +272,7 @@ var
   B: TBlendModeNode;
   NewSrc: TBlendingSourceFactor;
   NewDest: TBlendingDestinationFactor;
-  NeedsConstColor, NeedsConstAlpha: boolean;
+  NeedsConstColor, NeedsConstAlpha: Boolean;
 begin
   if not (Active and Shape.UseBlending) then
     Exit;
@@ -326,9 +326,9 @@ end;
 
 procedure ShapesFilterBlending(
   const Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
+  const OnlyActive, OnlyVisible, OnlyCollidable: Boolean;
   const TestShapeVisibility: TTestShapeVisibility;
-  const FilteredShapes: TShapeList; const UseBlending: boolean);
+  const FilteredShapes: TShapeList; const UseBlending: Boolean);
 
   procedure AddToList(const Shape: TShape);
   begin

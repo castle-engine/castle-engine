@@ -212,7 +212,7 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
 
   function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
 
-    function ShadowCaster(AShape: TShape): boolean;
+    function ShadowCaster(AShape: TShape): Boolean;
     var
       Shape: TAbstractShapeNode;
     begin

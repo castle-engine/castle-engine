@@ -31,7 +31,7 @@ type
   TToken = (tokEnd,
     tokInteger, {< Value of constant integer will be in w TCasScriptLexer.TokenInteger. }
     tokFloat, {< Value of constant float will be in w TCasScriptLexer.TokenFloat. }
-    tokBoolean, {< Value of constant boolean will be in w TCasScriptLexer.TokenBoolean. }
+    tokBoolean, {< Value of constant Boolean will be in w TCasScriptLexer.TokenBoolean. }
     tokString, {< Value of constant string will be in w TCasScriptLexer.TokenString. }
 
     tokIdentifier, {< Identifier will be in TCasScriptLexer.TokenString. }
@@ -53,7 +53,7 @@ type
     FToken: TToken;
     FTokenInteger: Int64;
     FTokenFloat: Float;
-    FTokenBoolean: boolean;
+    FTokenBoolean: Boolean;
     FTokenString: string;
     FTokenFunctionClass: TCasScriptFunctionClass;
 
@@ -65,7 +65,7 @@ type
     property TokenInteger: Int64 read FTokenInteger;
     property TokenFloat: Float read FTokenFloat;
     property TokenString: string read FTokenString;
-    property TokenBoolean: boolean read FTokenBoolean;
+    property TokenBoolean: Boolean read FTokenBoolean;
     property TokenFunctionClass: TCasScriptFunctionClass read FTokenFunctionClass;
 
     { Position of lexer in the @link(Text) string. }
@@ -162,7 +162,7 @@ const
     end;
   end;
 
-  function ReadSimpleToken: boolean;
+  function ReadSimpleToken: Boolean;
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
       wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
@@ -192,7 +192,7 @@ const
     if success.
 
     Results in false if we're not standing at an apostrophe now. }
-  function ReadString: boolean;
+  function ReadString: Boolean;
   var
     NextApos: Integer;
   begin
@@ -222,7 +222,7 @@ const
     if success.
 
     Results in false if we're not standing at a digit now. }
-  function ReadNumber: boolean;
+  function ReadNumber: Boolean;
   var
     digitsCount: cardinal;
     val: Int64;
@@ -287,7 +287,7 @@ const
   FloatConsts: array [0..1] of string = ('pi', 'enat');
   FloatConstsValues: array [0..High(FloatConsts)] of float = (pi, enatural);
   BooleanConsts: array [0..1] of string = ('false', 'true');
-  BooleanConstsValues: array [0..High(BooleanConsts)] of boolean = (false, true);
+  BooleanConstsValues: array [0..High(BooleanConsts)] of Boolean = (false, true);
   IntConsts: array [0..19] of string = (
     'ACTION_KEY_F1',
     'ACTION_KEY_F2',

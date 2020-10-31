@@ -19,10 +19,10 @@
 
 function TCastleTransform.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 var
   I: Integer;
-  NewResult: boolean;
+  NewResult: Boolean;
   NewAboveHeight: Single;
   NewAboveGround: PTriangle;
 begin
@@ -49,9 +49,9 @@ end;
 
 function TCastleTransform.LocalMoveCollision(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   I: Integer;
 begin
@@ -95,9 +95,9 @@ end;
 
 function TCastleTransform.LocalMoveCollision(
   const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   I: Integer;
 begin
@@ -116,7 +116,7 @@ end;
 
 function TCastleTransform.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
+  const ALineOfSight: Boolean): Boolean;
 var
   I: Integer;
 begin
@@ -133,7 +133,7 @@ begin
 end;
 
 function TCastleTransform.LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   I: Integer;
 begin
@@ -151,7 +151,7 @@ end;
 
 function TCastleTransform.LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
+  const Details: TCollisionDetails): Boolean;
 var
   I: Integer;
 begin
@@ -173,7 +173,7 @@ begin
 end;
 
 function TCastleTransform.LocalPointCollision2D(const Point: TVector2;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   I: Integer;
 begin
@@ -190,7 +190,7 @@ begin
 end;
 
 function TCastleTransform.LocalBoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   I: Integer;
 begin
@@ -251,7 +251,7 @@ end;
 
 function TCastleTransform.HeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 var
   MInverse: TMatrix4;
 begin
@@ -283,9 +283,9 @@ end;
 
 function TCastleTransform.MoveCollision(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   T: TVector3;
   Tr: TTransformation;
@@ -327,9 +327,9 @@ end;
 
 function TCastleTransform.MoveCollision(
   const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 var
   T: TVector3;
   MInverse: TMatrix4;
@@ -366,7 +366,7 @@ end;
 
 function TCastleTransform.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
+  const ALineOfSight: Boolean): Boolean;
 var
   T: TVector3;
   MInverse: TMatrix4;
@@ -390,7 +390,7 @@ end;
 
 function TCastleTransform.SphereCollision(
   const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 begin
   { LocalSphereCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -406,7 +406,7 @@ end;
 function TCastleTransform.SphereCollision2D(
   const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
+  const Details: TCollisionDetails): Boolean;
 begin
   { LocalSphereCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -421,7 +421,7 @@ end;
 
 function TCastleTransform.PointCollision2D(
   const Point: TVector2;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 begin
   { LocalPointCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -436,7 +436,7 @@ end;
 
 function TCastleTransform.BoxCollision(
   const Box: TBox3D;
-  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 begin
   { LocalBoxCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }

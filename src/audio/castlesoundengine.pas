@@ -56,7 +56,7 @@ type
     References: Cardinal;
     Backend: TSoundBufferBackend;
     BackendIsOpen: Boolean;
-    procedure ContextOpen(const ExceptionOnError: boolean);
+    procedure ContextOpen(const ExceptionOnError: Boolean);
     procedure ContextClose;
   public
     constructor Create(const SoundEngineBackend: TSoundEngineBackend;
@@ -89,12 +89,12 @@ type
   { Sound source that can be immediately played. }
   TSound = class
   private
-    FUsed: boolean;
+    FUsed: Boolean;
     FOnRelease: TSoundEvent;
     FImportance: Integer;
     FUserData: TObject;
     FPosition, FVelocity: TVector3;
-    FLooping, FRelative: boolean;
+    FLooping, FRelative: Boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
@@ -102,8 +102,8 @@ type
     BackendIsOpen: Boolean;
     procedure SetPosition(const Value: TVector3);
     procedure SetVelocity(const Value: TVector3);
-    procedure SetLooping(const Value: boolean);
-    procedure SetRelative(const Value: boolean);
+    procedure SetLooping(const Value: Boolean);
+    procedure SetRelative(const Value: Boolean);
     procedure SetGain(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
@@ -131,7 +131,7 @@ type
     { Do we play something.
       Sources that are not Used are still allocated on the sound backend (like
       OpenAL), and will be used when we will need them. }
-    property Used: boolean read FUsed default false;
+    property Used: Boolean read FUsed default false;
 
     { The priority of keeping this source, relevant only when @link(Used).
 
@@ -180,8 +180,8 @@ type
 
     property Position: TVector3 read FPosition write SetPosition;
     property Velocity: TVector3 read FVelocity write SetVelocity;
-    property Looping: boolean read FLooping write SetLooping;
-    property Relative: boolean read FRelative write SetRelative;
+    property Looping: Boolean read FLooping write SetLooping;
+    property Relative: Boolean read FRelative write SetRelative;
     property Gain: Single read FGain write SetGain;
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
@@ -215,7 +215,7 @@ type
       --- the sound engine will realize it (soon), which will cause @link(Release)
       and OnRelease being automatically called, and this TSound may then
       be reused for playing other sounds. }
-    function PlayingOrPaused: boolean;
+    function PlayingOrPaused: Boolean;
 
     { Make sure that the sound keeps playing, in case it stopped playing.
 
@@ -291,7 +291,7 @@ type
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   private
     Backend: TSoundEngineBackend;
-    FIsContextOpenSuccess: boolean;
+    FIsContextOpenSuccess: Boolean;
     procedure ContextOpenCore; virtual;
     procedure ContextCloseCore; virtual;
   public
@@ -385,7 +385,7 @@ type
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TSoundParameters = class
     Buffer: TSoundBuffer;
-    Spatial, Looping: boolean;
+    Spatial, Looping: Boolean;
     Importance: Cardinal;
     { Gain is the volume of sound.
       MinGain and MaxGain determine how it can change because of spatialization
@@ -432,8 +432,8 @@ type
       FInformation: string;
       FDevice: string;
       FVolume: Single;
-      FEnabled: boolean;
-      FIsContextOpen: boolean;
+      FEnabled: Boolean;
+      FIsContextOpen: Boolean;
       FDefaultRolloffFactor: Single;
       FDefaultReferenceDistance: Single;
       FDefaultMaxDistance: Single;
@@ -441,23 +441,23 @@ type
       LoadedBuffers: TSoundBuffersList;
       FDevices: TSoundDeviceList;
       FOnOpenClose: TNotifyEventList;
-      FResumeToInitialized, FPaused: boolean;
+      FResumeToInitialized, FPaused: Boolean;
       FListenerPosition, FListenerDirection, FListenerUp: TVector3;
-      FEnableSaveToConfig, DeviceSaveToConfig: boolean;
+      FEnableSaveToConfig, DeviceSaveToConfig: Boolean;
       FInitialPitchMultiplier: Single;
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
     procedure SetDevice(const Value: string);
-    procedure SetEnabled(const Value: boolean);
-    procedure SetPaused(const Value: boolean);
+    procedure SetEnabled(const Value: Boolean);
+    procedure SetPaused(const Value: Boolean);
     procedure ReinitializeJavaActivity(Sender: TObject);
     procedure ApplicationPause(Sender: TObject);
     procedure ApplicationResume(Sender: TObject);
     { Pause the sound engine, useful when Android activity gets inactive.
       When paused, sound backend is for sure inactive, and it cannot be activated
       (calling ContextOpen, or playing a sound, will @bold(not) activate it). }
-    property Paused: boolean read FPaused write SetPaused;
+    property Paused: Boolean read FPaused write SetPaused;
     procedure SetInternalBackend(const Value: TSoundEngineBackend);
 
     procedure ContextOpenCore; override;
@@ -522,8 +522,8 @@ type
       to get the details).
 
       In case of OpenAL backend, this also implies that OpenAL library is loaded. }
-    property IsContextOpenSuccess: boolean read FIsContextOpenSuccess;
-    property ALActive: boolean read FIsContextOpenSuccess;
+    property IsContextOpenSuccess: Boolean read FIsContextOpenSuccess;
+    property ALActive: Boolean read FIsContextOpenSuccess;
       deprecated 'use IsContextOpenSuccess';
 
     { Did we attempt to initialize sound rendering context.
@@ -531,7 +531,7 @@ type
       and not closed with ContextClose yet.
       Contrary to IsContextOpenSuccess,
       this @italic(doesn't care if ContextOpen was a success). }
-    property IsContextOpen: boolean read FIsContextOpen;
+    property IsContextOpen: Boolean read FIsContextOpen;
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
     property SoundInitializationReport: string read FInformation;
@@ -616,12 +616,12 @@ type
     }
     function PlaySound(const Buffer: TSoundBuffer): TSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
-      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Spatial, Looping: Boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single = 1): TSound; overload;
     function PlaySound(const Buffer: TSoundBuffer;
-      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Spatial, Looping: Boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
@@ -673,7 +673,7 @@ type
 
     { Should we save @link(Enable) to config file in SaveToConfig call.
       This is always reset to @true after setting @link(Enable) value. }
-    property EnableSaveToConfig: boolean
+    property EnableSaveToConfig: Boolean
       read FEnableSaveToConfig write FEnableSaveToConfig default true;
 
     class property LogSoundLoading: Boolean
@@ -706,9 +706,9 @@ type
       If the sound context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
       do ContextClose and then ContextOpen again. This behaves correctly.) }
-    property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
+    property Enabled: Boolean read FEnabled write SetEnabled default DefaultEnabled;
 
-    property Enable: boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
+    property Enable: Boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -768,7 +768,7 @@ type
     { Index to TRepoSoundEngine.FSounds array. }
     Index: Cardinal;
   public
-    class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): boolean;
+    class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): Boolean;
   end;
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
@@ -1010,7 +1010,7 @@ type
         So the Required parameter only determines whether we make a warning,
         or not.)
     }
-    function SoundFromName(const SoundName: string; const Required: boolean = true): TSoundType;
+    function SoundFromName(const SoundName: string; const Required: Boolean = true): TSoundType;
 
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -1018,7 +1018,7 @@ type
       Returns used TSound (or nil if none was available).
       You don't have to do anything with this returned TSound. }
     function Sound(const SoundType: TSoundType;
-      const Looping: boolean = false): TSound;
+      const Looping: Boolean = false): TSound;
 
     { Play given sound at appropriate position in 3D space.
 
@@ -1028,7 +1028,7 @@ type
       @noAutoLinkHere }
     function Sound3D(const SoundType: TSoundType;
       const Position: TVector3;
-      const Looping: boolean = false): TSound; overload;
+      const Looping: Boolean = false): TSound; overload;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -1285,7 +1285,7 @@ begin
     Result := -1;
 end;
 
-procedure TSoundBuffer.ContextOpen(const ExceptionOnError: boolean);
+procedure TSoundBuffer.ContextOpen(const ExceptionOnError: Boolean);
 
   procedure OpenCore;
   begin
@@ -1389,13 +1389,13 @@ begin
   Backend.SetVelocity(Value);
 end;
 
-procedure TSound.SetLooping(const Value: boolean);
+procedure TSound.SetLooping(const Value: Boolean);
 begin
   FLooping := Value;
   Backend.SetLooping(Value);
 end;
 
-procedure TSound.SetRelative(const Value: boolean);
+procedure TSound.SetRelative(const Value: Boolean);
 begin
   FRelative := Value;
   Backend.SetRelative(Value);
@@ -1462,7 +1462,7 @@ begin
   Backend.Offset := Value;
 end;
 
-function TSound.PlayingOrPaused: boolean;
+function TSound.PlayingOrPaused: Boolean;
 begin
   Result := Backend.PlayingOrPaused;
 end;
@@ -2065,7 +2065,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
-  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Spatial, Looping: Boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch: Single): TSound;
@@ -2088,7 +2088,7 @@ begin
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
-  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Spatial, Looping: Boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3;
   const Pitch, ReferenceDistance, MaxDistance: Single): TSound;
@@ -2213,7 +2213,7 @@ begin
   end;
 end;
 
-procedure TSoundEngine.SetEnabled(const Value: boolean);
+procedure TSoundEngine.SetEnabled(const Value: Boolean);
 begin
   if Value <> FEnabled then
   begin
@@ -2228,7 +2228,7 @@ begin
   end;
 end;
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Engine: TSoundEngine;
@@ -2338,7 +2338,7 @@ begin
   Paused := false;
 end;
 
-procedure TSoundEngine.SetPaused(const Value: boolean);
+procedure TSoundEngine.SetPaused(const Value: Boolean);
 begin
   if FPaused <> Value then
   begin
@@ -2375,7 +2375,7 @@ end;
 { TSoundType ----------------------------------------------------------------- }
 
 class operator TSoundType.{$ifdef FPC}={$else}Equals{$endif}
-  (const SoundType1, SoundType2: TSoundType): boolean;
+  (const SoundType1, SoundType2: TSoundType): Boolean;
 begin
   Result := SoundType1.Index = SoundType2.Index;
 end;
@@ -2657,7 +2657,7 @@ begin
 end;
 
 function TRepoSoundEngine.Sound(const SoundType: TSoundType;
-  const Looping: boolean): TSound;
+  const Looping: Boolean): TSound;
 var
   SoundInfo: TSoundInfoBuffer;
 begin
@@ -2688,7 +2688,7 @@ end;
 
 function TRepoSoundEngine.Sound3D(const SoundType: TSoundType;
   const Position: TVector3;
-  const Looping: boolean): TSound;
+  const Looping: Boolean): TSound;
 var
   SoundInfo: TSoundInfoBuffer;
 begin
@@ -2906,7 +2906,7 @@ begin
 end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
-  const Required: boolean): TSoundType;
+  const Required: Boolean): TSoundType;
 var
   SoundIndex: Integer;
 begin

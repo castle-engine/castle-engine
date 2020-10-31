@@ -66,7 +66,7 @@ type
       mathematical exressions in XML attributes.
 
       If there is no such attribute returns @false and does not modify Value. }
-    function AttributeFloatExpression(const AttrName: string; var Value: Float): boolean;
+    function AttributeFloatExpression(const AttrName: string; var Value: Float): Boolean;
 
     { Retrieves from Element given attribute as a Float expression,
       raises EDOMAttributeMissing if missing.
@@ -158,7 +158,7 @@ end;
 { TDOMElementScriptHelper ---------------------------------------------------- }
 
 function TDOMElementScriptHelper.AttributeFloatExpression(
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: string; var Value: Float): Boolean;
 var
   ValueStr: string;
   E: TCasScriptExpression;

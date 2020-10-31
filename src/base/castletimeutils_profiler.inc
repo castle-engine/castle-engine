@@ -119,7 +119,7 @@ type
       end;
 
     var
-      FEnabled: boolean;
+      FEnabled: Boolean;
 
       { Collected times tree. }
       Times: TTimes;
@@ -135,7 +135,7 @@ type
     { Whether to gather speed measurements.
       When not enabled, the @link(Start) and @link(Stop) methods do as little
       as possible to not waste time. }
-    property Enabled: boolean read FEnabled write FEnabled;
+    property Enabled: Boolean read FEnabled write FEnabled;
 
     { Summary of the gathered speed measurements. }
     function Summary: string;

@@ -45,7 +45,7 @@
   TODO:
   For now TConvexHullCollider is commented out, as:
   - I'm unsure does this work correctly (in "Wyrd Forest" I had problems with it).
-  - Also, maybe instead of a new class, we should expose "Convex: boolean"
+  - Also, maybe instead of a new class, we should expose "Convex: Boolean"
     on TMeshCollider.
 
   { Collide as a convex hull constructed from the given scene shape.

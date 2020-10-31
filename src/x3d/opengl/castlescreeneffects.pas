@@ -57,7 +57,7 @@ function ScreenEffectVertex: string;
   #)
 
 *)
-function ScreenEffectFragment(const Depth: boolean): string;
+function ScreenEffectFragment(const Depth: Boolean): string;
 
 type
   { GLSL shader program specialized for rendering screen effects.
@@ -73,11 +73,11 @@ type
   TGLSLScreenEffect = class(TGLSLProgram)
   private
     FScreenEffectShader: string;
-    FNeedsDepth: boolean;
+    FNeedsDepth: Boolean;
   public
     constructor Create;
 
-    property NeedsDepth: boolean read FNeedsDepth write FNeedsDepth default false;
+    property NeedsDepth: Boolean read FNeedsDepth write FNeedsDepth default false;
 
     { In this class, UniformNotFoundAction is by default uaIgnore, since it's
       normal that screen effect doesn't use some of it's uniform variables. }
@@ -145,7 +145,7 @@ type
       ScreenEffectTextureHeight: Cardinal;
       { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
       CurrentScreenEffectsCount: Integer;
-      CurrentScreenEffectsNeedDepth: boolean;
+      CurrentScreenEffectsNeedDepth: Boolean;
       ScreenPointVbo: TGLuint;
       ScreenPoint: packed array [0..3] of TScreenPoint;
 
@@ -240,7 +240,7 @@ type
     procedure BeforeRender; override;
     procedure Render; override;
     procedure RenderOverChildren; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure GLContextClose; override;
 
     { Scale time passing inside TimeSensor nodes you add as part of AddScreenEffect.
@@ -272,7 +272,7 @@ begin
   Result := {$I screen_effect.vs.inc};
 end;
 
-function ScreenEffectFragment(const Depth: boolean): string;
+function ScreenEffectFragment(const Depth: Boolean): string;
 begin
   Result := '';
   if Depth then
@@ -459,7 +459,7 @@ var
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
-  function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
+  function CreateScreenEffectTexture(const Depth: Boolean): TGLuint;
 
     { Create new OpenGL texture for screen effect.
       Calls glTexImage2D or glTexImage2DMultisample
@@ -786,7 +786,7 @@ begin
     EndRenderingToTexture;
 end;
 
-procedure TCastleScreenEffects.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TCastleScreenEffects.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 var
   RemoveItem: TRemoveType;
 begin

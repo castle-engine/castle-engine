@@ -210,7 +210,7 @@ begin
 end;
 
 var
-  SHBasisMapInitialized: boolean = false;
+  SHBasisMapInitialized: Boolean = false;
 
 procedure InitializeSHBasisMap;
 var

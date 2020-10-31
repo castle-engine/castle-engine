@@ -109,7 +109,7 @@ type
     FImage: TGrayscaleImage;
     FImageURL: string;
     FImageHeightScale: Single;
-    FImageRepeat: boolean;
+    FImageRepeat: Boolean;
     FImageX1, FImageX2, FImageY1, FImageY2: Single;
   public
     constructor Create;
@@ -124,7 +124,7 @@ type
     property ImageHeightScale: Single
       read FImageHeightScale write FImageHeightScale default 1.0;
 
-    property ImageRepeat: boolean
+    property ImageRepeat: Boolean
       read FImageRepeat write FImageRepeat default false;
 
     property ImageX1: Single read FImageX1 write FImageX1 default -1;
@@ -190,11 +190,11 @@ type
     FFrequency: Single;
     FInterpolation: TNoiseInterpolation;
     NoiseMethod: TNoise2DMethod;
-    FBlur: boolean;
+    FBlur: Boolean;
     FSeed: Cardinal;
     FHeterogeneous: Single;
     procedure SetInterpolation(const Value: TNoiseInterpolation);
-    procedure SetBlur(const Value: boolean);
+    procedure SetBlur(const Value: Boolean);
     procedure UpdateNoiseMethod;
   public
     constructor Create;
@@ -272,7 +272,7 @@ type
       Note about [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm]:
       this "blurring" is called "smoothing" there.
       I call it blurring, as it seems more precise to me. }
-    property Blur: boolean read FBlur write SetBlur default false;
+    property Blur: Boolean read FBlur write SetBlur default false;
 
     { Determines the random seeds used when generating the terrain. }
     property Seed: Cardinal read FSeed write FSeed default 0;
@@ -729,7 +729,7 @@ begin
   UpdateNoiseMethod;
 end;
 
-procedure TTerrainNoise.SetBlur(const Value: boolean);
+procedure TTerrainNoise.SetBlur(const Value: Boolean);
 begin
   FBlur := Value;
   UpdateNoiseMethod;

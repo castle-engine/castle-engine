@@ -79,8 +79,8 @@ type
       and only such values will be set by TTextureEnv.Init. }
     Scale: TScalePerChannel;
 
-    Disabled: boolean;
-    NeedsConstantColor: boolean;
+    Disabled: Boolean;
+    NeedsConstantColor: Boolean;
 
     { If, and only if, one of SourceArgument is not taNone,
       then SourceArgument should be loaded with this color. }
@@ -136,7 +136,7 @@ type
   Strings returned in PerChannel will not contain the separator
   (slash, comma), and will not contain whitespace. }
 function SplitStringPerChannel(const S: string;
-  out PerChannel: TStringPerChannel): boolean;
+  out PerChannel: TStringPerChannel): Boolean;
 var
   P: Integer;
 begin
@@ -155,8 +155,8 @@ procedure ModeFromString(const S: string;
   out CurrentTextureArgument: TArgPerChannel;
   out SourceArgument: TArgPerChannel;
   out Scale: TScalePerChannel;
-  out Disabled: boolean;
-  out NeedsConstantColor: boolean;
+  out Disabled: Boolean;
+  out NeedsConstantColor: Boolean;
   out BlendAlphaSource: TColorSource);
 
   { Interpret simple mode name (this is for sure only one mode,
@@ -408,11 +408,11 @@ end;
 
 { Calculate values knowing MultiTexture.source value. }
 procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
-  var NeedsConstantColor: boolean);
+  var NeedsConstantColor: Boolean);
 
   procedure SimpleSourceFromString(const LS: string;
     out Source: TColorSource;
-    var NeedsConstantColor: boolean);
+    var NeedsConstantColor: Boolean);
   begin
     if LS = '' then
       Source := csPreviousTexture else

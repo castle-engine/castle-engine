@@ -185,9 +185,9 @@ type
     function AsString(const ADefaultValue: string = ''): string;
 
     { Execute expression, return the result as a simple boolean value.
-      It assumes that the expression is written to always return boolean.
+      It assumes that the expression is written to always return Boolean.
       To easily create such expression, use @link(ParseBoolExpression). }
-    function AsBool(const ADefaultValue: boolean = false): boolean;
+    function AsBool(const ADefaultValue: Boolean = false): Boolean;
 
     { Call Free, but only if this is not TCasScriptValue with
       OwnedByParentExpression = false. (This cannot be implemented
@@ -210,10 +210,10 @@ type
 
   TCasScriptValue = class(TCasScriptExpression)
   private
-    FOwnedByParentExpression: boolean;
+    FOwnedByParentExpression: Boolean;
     FName: string;
-    FValueAssigned: boolean;
-    FWriteable: boolean;
+    FValueAssigned: Boolean;
+    FWriteable: Boolean;
   protected
     function CoreExecute: TCasScriptValue; override;
   public
@@ -221,16 +221,16 @@ type
       "overload" keyword, descendants depend that this class hides
       the parameter-less constructor of ancestors. }
     { }
-    constructor Create(const AWriteable: boolean); virtual;
+    constructor Create(const AWriteable: Boolean); virtual;
 
     { Is this value writeable.
       If not, this will not be allowed to change by CastleScript assignment
       and such functions. Note that Writeable = @false will not prevent
       you from changing value internally, by AssignValue or changin
       Value property directly (that would be too uncomfortable). }
-    property Writeable: boolean read FWriteable write FWriteable;
+    property Writeable: Boolean read FWriteable write FWriteable;
 
-    property OwnedByParentExpression: boolean
+    property OwnedByParentExpression: Boolean
       read FOwnedByParentExpression write FOwnedByParentExpression
       default true;
 
@@ -253,7 +253,7 @@ type
       in VRML/X3D Script node.
 
       Descendants note: you have to set this to @true in SetValue. }
-    property ValueAssigned: boolean read FValueAssigned write FValueAssigned
+    property ValueAssigned: Boolean read FValueAssigned write FValueAssigned
       default false;
   end;
 
@@ -299,33 +299,33 @@ type
 
   TCasScriptInteger = class(TCasScriptValue)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
   private
     FPromoteToFloat: TCasScriptFloat;
@@ -336,8 +336,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Int64); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: Boolean; const AValue: Int64); overload;
+    constructor Create(const AWriteable: Boolean); overload; override;
     destructor Destroy; override;
 
     property Value: Int64 read FValue write SetValue;
@@ -356,52 +356,52 @@ type
 
   TCasScriptFloat = class(TCasScriptValue)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArcSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArcCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArcTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArcCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSinh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCosh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleTanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCotanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLog2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLog(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandlePower2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleExp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSqrt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCeil(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleFloor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleRound(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArcSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArcCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArcTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleArcCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSinh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCosh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleTanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCotanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLog2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLog(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandlePower2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleExp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSqrt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCeil(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleFloor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleRound(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
   private
     FValue: Float;
@@ -410,8 +410,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to zero. }
-    constructor Create(const AWriteable: boolean; const AValue: Float); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: Boolean; const AValue: Float); overload;
+    constructor Create(const AWriteable: Boolean); overload; override;
 
     property Value: Float read FValue write SetValue;
 
@@ -420,55 +420,55 @@ type
 
   TCasScriptBoolean = class(TCasScriptValue)
   private
-    class procedure HandleOr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAnd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleOr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleAnd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
   private
-    FValue: boolean;
-    procedure SetValue(const AValue: boolean);
+    FValue: Boolean;
+    procedure SetValue(const AValue: Boolean);
   public
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to false. }
-    constructor Create(const AWriteable: boolean; const AValue: boolean); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: Boolean; const AValue: Boolean); overload;
+    constructor Create(const AWriteable: Boolean); overload; override;
 
-    property Value: boolean read FValue write SetValue;
+    property Value: Boolean read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
   TCasScriptString = class(TCasScriptValue)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-    class procedure HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
+    class procedure HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   private
     FValue: string;
     procedure SetValue(const AValue: string);
@@ -476,8 +476,8 @@ type
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to ''. }
-    constructor Create(const AWriteable: boolean; const AValue: string); overload;
-    constructor Create(const AWriteable: boolean); overload; override;
+    constructor Create(const AWriteable: Boolean; const AValue: string); overload;
+    constructor Create(const AWriteable: Boolean); overload; override;
 
     property Value: string read FValue write SetValue;
 
@@ -487,10 +487,10 @@ type
   TCasScriptRegisteredHandler = class;
 
   TCasScriptSearchArgumentClassesCache = record
-    IsCache: boolean;
+    IsCache: Boolean;
     QueryHandlersByArgument: Contnrs.TObjectList;
     QueryArgumentClasses: TCasScriptValueClassArray;
-    Answer: boolean;
+    Answer: Boolean;
     AnswerArgumentIndex: Integer;
     AnswerHandler: TCasScriptRegisteredHandler;
   end;
@@ -499,7 +499,7 @@ type
   private
     FArgs: TCasScriptExpressionList;
     LastExecuteResult: TCasScriptValue;
-    ParentOfLastExecuteResult: boolean;
+    ParentOfLastExecuteResult: Boolean;
 
     { This is as returned by SearchFunctionClass }
     HandlersByArgument: Contnrs.TObjectList;
@@ -628,7 +628,7 @@ type
 
       This is actually checked by CheckArguments, called from
       constructors. }
-    class function ArgumentMustBeAssignable(const Index: Integer): boolean; virtual;
+    class function ArgumentMustBeAssignable(const Index: Integer): Boolean; virtual;
 
     { Function arguments. Don't modify this list after function is created
       (although you can modify values inside arguments). }
@@ -657,11 +657,11 @@ type
     AFunction: TCasScriptFunction;
     const Arguments: array of TCasScriptValue;
     var AResult: TCasScriptValue;
-    var ParentOfResult: boolean) of object;
+    var ParentOfResult: Boolean) of object;
 
   TCasScriptSequence = class(TCasScriptFunction)
   private
-    class procedure HandleSequence(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSequence(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function Name: string; override;
     class function ShortName: string; override;
@@ -672,17 +672,17 @@ type
     that must have TCasScriptValue (with Writeable = true) as it's 1st argument. }
   TCasScriptAssignment = class(TCasScriptFunction)
   private
-    class procedure HandleAssignment(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAssignment(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
-    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptIf = class(TCasScriptFunction)
   private
-    class procedure HandleIf(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleIf(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
@@ -690,7 +690,7 @@ type
 
   TCasScriptWhen = class(TCasScriptFunction)
   private
-    class procedure HandleWhen(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleWhen(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
@@ -698,7 +698,7 @@ type
 
   TCasScriptWhile = class(TCasScriptFunction)
   private
-    class procedure HandleWhile(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleWhile(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
@@ -706,16 +706,16 @@ type
 
   TCasScriptFor = class(TCasScriptFunction)
   private
-    class procedure HandleFor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleFor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
-    class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
+    class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptCoalesce = class(TCasScriptFunction)
   private
-    class procedure HandleCoalesce(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleCoalesce(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
     class function ShortName: string; override;
     class function GreedyArgumentsCalculation: Integer; override;
@@ -726,13 +726,13 @@ type
     FHandler: TCasScriptFunctionHandler;
     FFunctionClass: TCasScriptFunctionClass;
     FArgumentClasses: TCasScriptValueClassArray;
-    FVariableArgumentsCount: boolean;
+    FVariableArgumentsCount: Boolean;
   public
     constructor Create(
       AHandler: TCasScriptFunctionHandler;
       AFunctionClass: TCasScriptFunctionClass;
       const AArgumentClasses: TCasScriptValueClassArray;
-      const AVariableArgumentsCount: boolean);
+      const AVariableArgumentsCount: Boolean);
     property Handler: TCasScriptFunctionHandler read FHandler;
     property FunctionClass: TCasScriptFunctionClass read FFunctionClass;
     property ArgumentClasses: TCasScriptValueClassArray read FArgumentClasses;
@@ -747,7 +747,7 @@ type
       must be allowed (we have to know the argument class that can
       be repeated at the end), otherwise the handler will not be able to receive
       variable number of arguments anyway. }
-    property VariableArgumentsCount: boolean read FVariableArgumentsCount;
+    property VariableArgumentsCount: Boolean read FVariableArgumentsCount;
   end;
 
   { This specifies for each type combination (array of TCasScriptValue classes)
@@ -797,20 +797,20 @@ type
     function SearchFunctionClass(
       FunctionClass: TCasScriptFunctionClass;
       out FunctionIndex: Integer;
-      out HandlersByArgument: Contnrs.TObjectList): boolean; overload;
+      out HandlersByArgument: Contnrs.TObjectList): Boolean; overload;
     function SearchFunctionClass(
       FunctionClass: TCasScriptFunctionClass;
-      out HandlersByArgument: Contnrs.TObjectList): boolean; overload;
+      out HandlersByArgument: Contnrs.TObjectList): Boolean; overload;
 
     function SearchArgumentClasses(
       HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
       out ArgumentIndex: Integer;
-      out Handler: TCasScriptRegisteredHandler): boolean; overload;
+      out Handler: TCasScriptRegisteredHandler): Boolean; overload;
     function SearchArgumentClasses(
       HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
-      out Handler: TCasScriptRegisteredHandler): boolean; overload;
+      out Handler: TCasScriptRegisteredHandler): Boolean; overload;
 
     { This uses Cache to speed up SearchArgumentClasses.
       The cache remembers last HandlersByArgument, ArgumentClasses,
@@ -822,7 +822,7 @@ type
       HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
       out Handler: TCasScriptRegisteredHandler;
-      var Cache: TCasScriptSearchArgumentClassesCache): boolean; overload;
+      var Cache: TCasScriptSearchArgumentClassesCache): Boolean; overload;
   public
     constructor Create;
     destructor Destroy; override;
@@ -831,7 +831,7 @@ type
       AHandler: TCasScriptFunctionHandler;
       AFunctionClass: TCasScriptFunctionClass;
       const AArgumentClasses: array of TCasScriptValueClass;
-      const AVariableArgumentsCount: boolean);
+      const AVariableArgumentsCount: Boolean);
 
     { Search for function class with matching ShortName.
       Returns @nil if not found. }
@@ -911,7 +911,7 @@ type
     }
     procedure ExecuteFunction(const FunctionName: string;
       const Parameters: array of TCasScriptValue;
-      const IgnoreMissingFunction: boolean = false);
+      const IgnoreMissingFunction: Boolean = false);
 
     { Environment (outside information) for this program.
 
@@ -928,7 +928,7 @@ function FunctionHandlers: TCasScriptFunctionHandlers;
   If Value is not assigned, or is not exactly of NeededClass,
   it will be freed and new will be created. }
 procedure CreateValueIfNeeded(var Value: TCasScriptValue;
-  var ParentOfValue: boolean;
+  var ParentOfValue: Boolean;
   NeededClass: TCasScriptValueClass);
 
 var
@@ -1064,7 +1064,7 @@ begin
   end;
 end;
 
-function TCasScriptExpression.AsBool(const ADefaultValue: boolean): boolean;
+function TCasScriptExpression.AsBool(const ADefaultValue: Boolean): Boolean;
 var
   Res: TCasScriptValue;
 begin
@@ -1082,7 +1082,7 @@ begin
   if Res is TCasScriptBoolean then
     Result := TCasScriptBoolean(Res).Value else
   begin
-    WritelnWarning('CastleScript', 'CastleScript expression result is not boolean');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not Boolean');
     Result := ADefaultValue;
   end;
 end;
@@ -1112,7 +1112,7 @@ end;
 
 { TCasScriptValue ------------------------------------------------------------ }
 
-constructor TCasScriptValue.Create(const AWriteable: boolean);
+constructor TCasScriptValue.Create(const AWriteable: Boolean);
 begin
   inherited Create;
   FOwnedByParentExpression := true;
@@ -1156,13 +1156,13 @@ end;
 
 { TCasScriptInteger ---------------------------------------------------------- }
 
-constructor TCasScriptInteger.Create(const AWriteable: boolean; const AValue: Int64);
+constructor TCasScriptInteger.Create(const AWriteable: Boolean; const AValue: Int64);
 begin
   Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TCasScriptInteger.Create(const AWriteable: boolean);
+constructor TCasScriptInteger.Create(const AWriteable: Boolean);
 begin
   inherited Create(AWriteable);
 end;
@@ -1181,7 +1181,7 @@ begin
   Result := FPromoteToFloat;
 end;
 
-class procedure TCasScriptInteger.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1195,7 +1195,7 @@ begin
       TCasScriptInteger(AResult).Value + TCasScriptInteger(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1206,7 +1206,7 @@ begin
       TCasScriptInteger(AResult).Value - TCasScriptInteger(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1217,7 +1217,7 @@ begin
       TCasScriptInteger(AResult).Value * TCasScriptInteger(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1228,13 +1228,13 @@ begin
       TCasScriptInteger(AResult).Value div TCasScriptInteger(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := - TCasScriptInteger(Arguments[0]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value :=
@@ -1242,7 +1242,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   if (TCasScriptInteger(Arguments[0]).Value < 0) or
@@ -1254,13 +1254,13 @@ begin
     TCasScriptInteger(Arguments[1]).Value );
 end;
 
-class procedure TCasScriptInteger.HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Sqr( TCasScriptInteger(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptInteger.HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1271,7 +1271,7 @@ begin
       TCasScriptInteger(AResult).Value, TCasScriptInteger(Arguments[I]).Value);
 end;
 
-class procedure TCasScriptInteger.HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1282,25 +1282,25 @@ begin
       TCasScriptInteger(AResult).Value, TCasScriptInteger(Arguments[I]).Value);
 end;
 
-class procedure TCasScriptInteger.HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Sign( TCasScriptInteger(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptInteger.HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Abs( TCasScriptInteger(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptInteger.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Random( TCasScriptInteger(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptInteger.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1308,7 +1308,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1316,7 +1316,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1324,7 +1324,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1332,7 +1332,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1340,7 +1340,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1348,7 +1348,7 @@ begin
     TCasScriptInteger(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptInteger.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -1359,7 +1359,7 @@ begin
   ParentOfResult := false;
 end;
 
-class procedure TCasScriptInteger.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   F: Float;
 begin
@@ -1372,15 +1372,15 @@ begin
     TCasScriptInteger(AResult).Value := Ceil(F);
 end;
 
-class procedure TCasScriptInteger.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  BoolTo01: array [boolean] of Int64 = (0, 1);
+  BoolTo01: array [Boolean] of Int64 = (0, 1);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
 
-class procedure TCasScriptInteger.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptInteger.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   try
@@ -1408,18 +1408,18 @@ end;
 
 { TCasScriptFloat ------------------------------------------------------- }
 
-constructor TCasScriptFloat.Create(const AWriteable: boolean; const AValue: Float);
+constructor TCasScriptFloat.Create(const AWriteable: Boolean; const AValue: Float);
 begin
   Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TCasScriptFloat.Create(const AWriteable: boolean);
+constructor TCasScriptFloat.Create(const AWriteable: Boolean);
 begin
   inherited Create(AWriteable);
 end;
 
-class procedure TCasScriptFloat.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1433,7 +1433,7 @@ begin
       TCasScriptFloat(AResult).Value + TCasScriptFloat(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1444,7 +1444,7 @@ begin
       TCasScriptFloat(AResult).Value - TCasScriptFloat(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1455,7 +1455,7 @@ begin
       TCasScriptFloat(AResult).Value * TCasScriptFloat(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1466,7 +1466,7 @@ begin
       TCasScriptFloat(AResult).Value / TCasScriptFloat(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Lerp(
@@ -1475,13 +1475,13 @@ begin
     TCasScriptFloat(Arguments[2]).Value);
 end;
 
-class procedure TCasScriptFloat.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := - TCasScriptFloat(Arguments[0]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value :=
@@ -1491,110 +1491,110 @@ begin
     * TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Sin( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Cos( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Tan( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := CastleCoTan( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleArcSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleArcSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := ArcSin( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleArcCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleArcCos(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := ArcCos( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleArcTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleArcTan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := ArcTan( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleArcCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleArcCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := ArcCot( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleSinh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSinh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := SinH( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleCosh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleCosh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := CosH( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleTanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleTanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := TanH( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleCotanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleCotanh(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := 1 / TanH( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleLog2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLog2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Log2( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleLn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Ln( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleLog(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLog(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Logn( TCasScriptFloat(Arguments[0]).Value,
                                           TCasScriptFloat(Arguments[1]).Value );
 end;
 
-class procedure TCasScriptFloat.HandlePower2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandlePower2(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Power(2, TCasScriptFloat(Arguments[0]).Value);
 end;
 
-class procedure TCasScriptFloat.HandleExp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleExp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Exp( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandlePower(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Power(
@@ -1602,19 +1602,19 @@ begin
     TCasScriptFloat(Arguments[1]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSqr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Sqr( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleSqrt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSqrt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Sqrt( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1625,7 +1625,7 @@ begin
       TCasScriptFloat(AResult).Value, TCasScriptFloat(Arguments[I]).Value);
 end;
 
-class procedure TCasScriptFloat.HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1636,43 +1636,43 @@ begin
       TCasScriptFloat(AResult).Value, TCasScriptFloat(Arguments[I]).Value);
 end;
 
-class procedure TCasScriptFloat.HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleSgn(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Sign( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleAbs(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Abs( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := Random();
 end;
 
-class procedure TCasScriptFloat.HandleCeil(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleCeil(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Ceil( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleFloor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleFloor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Floor( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleRound(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleRound(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
   TCasScriptInteger(AResult).Value := Round( TCasScriptFloat(Arguments[0]).Value );
 end;
 
-class procedure TCasScriptFloat.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1680,7 +1680,7 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1688,7 +1688,7 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1696,7 +1696,7 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1704,7 +1704,7 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1712,7 +1712,7 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1720,13 +1720,13 @@ begin
     TCasScriptFloat(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptFloat.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := TCasScriptInteger(Arguments[0]).Value;
 end;
 
-class procedure TCasScriptFloat.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -1737,15 +1737,15 @@ begin
   ParentOfResult := false;
 end;
 
-class procedure TCasScriptFloat.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  BoolTo01: array [boolean] of Float = (0, 1);
+  BoolTo01: array [Boolean] of Float = (0, 1);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
 
-class procedure TCasScriptFloat.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptFloat.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   try
@@ -1776,18 +1776,18 @@ end;
 
 { TCasScriptBoolean ---------------------------------------------------------- }
 
-constructor TCasScriptBoolean.Create(const AWriteable: boolean; const AValue: boolean);
+constructor TCasScriptBoolean.Create(const AWriteable: Boolean; const AValue: Boolean);
 begin
   Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TCasScriptBoolean.Create(const AWriteable: boolean);
+constructor TCasScriptBoolean.Create(const AWriteable: Boolean);
 begin
   inherited Create(AWriteable);
 end;
 
-class procedure TCasScriptBoolean.HandleOr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleOr(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1798,7 +1798,7 @@ begin
       TCasScriptBoolean(AResult).Value or TCasScriptBoolean(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleAnd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleAnd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1809,13 +1809,13 @@ begin
       TCasScriptBoolean(AResult).Value and TCasScriptBoolean(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleNot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleNot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value := not TCasScriptBoolean(Arguments[0]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1823,7 +1823,7 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1831,7 +1831,7 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1839,7 +1839,7 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1847,7 +1847,7 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1855,7 +1855,7 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1863,19 +1863,19 @@ begin
     TCasScriptBoolean(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptBoolean.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value := TCasScriptInteger(Arguments[0]).Value <> 0;
 end;
 
-class procedure TCasScriptBoolean.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value := TCasScriptFloat(Arguments[0]).Value <> 0;
 end;
 
-class procedure TCasScriptBoolean.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -1886,7 +1886,7 @@ begin
   ParentOfResult := false;
 end;
 
-class procedure TCasScriptBoolean.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptBoolean.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   S: string;
 begin
@@ -1896,7 +1896,7 @@ begin
     TCasScriptBoolean(AResult).Value := false else
   if S = 'true' then
     TCasScriptBoolean(AResult).Value := true else
-    raise ECasScriptError.CreateFmt('Error when converting string "%s" to boolean: invalid value, must be "false" or "true"',
+    raise ECasScriptError.CreateFmt('Error when converting string "%s" to Boolean: invalid value, must be "false" or "true"',
       [TCasScriptString(Arguments[0]).Value]);
 end;
 
@@ -1915,18 +1915,18 @@ end;
 
 { TCasScriptString ---------------------------------------------------------- }
 
-constructor TCasScriptString.Create(const AWriteable: boolean; const AValue: string);
+constructor TCasScriptString.Create(const AWriteable: Boolean; const AValue: string);
 begin
   Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TCasScriptString.Create(const AWriteable: boolean);
+constructor TCasScriptString.Create(const AWriteable: Boolean);
 begin
   inherited Create(AWriteable);
 end;
 
-class procedure TCasScriptString.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -1940,7 +1940,7 @@ begin
       TCasScriptString(AResult).Value + TCasScriptString(Arguments[I]).Value;
 end;
 
-class procedure TCasScriptString.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1948,7 +1948,7 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleLesser(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1956,7 +1956,7 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleGreaterEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1964,7 +1964,7 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleLesserEq(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1972,7 +1972,7 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1980,7 +1980,7 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
@@ -1988,27 +1988,27 @@ begin
     TCasScriptString(Arguments[1]).Value;
 end;
 
-class procedure TCasScriptString.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.ConvertFromInt(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := IntToStr(TCasScriptInteger(Arguments[0]).Value);
 end;
 
-class procedure TCasScriptString.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.ConvertFromFloat(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := FloatToStrDot(TCasScriptFloat(Arguments[0]).Value);
 end;
 
-class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  BoolTo01: array [boolean] of string = ('false', 'true');
+  BoolTo01: array [Boolean] of string = ('false', 'true');
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
 end;
 
-class procedure TCasScriptString.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -2019,7 +2019,7 @@ begin
   ParentOfResult := false;
 end;
 
-class procedure TCasScriptString.HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   S: string;
 begin
@@ -2037,7 +2037,7 @@ begin
     WritelnLog('CastleScript', 'Writeln: '+ S);
 end;
 
-class procedure TCasScriptString.HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptString.HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   CharCode: Int64;
 begin
@@ -2130,7 +2130,7 @@ begin
   Result := -1;
 end;
 
-class function TCasScriptFunction.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptFunction.ArgumentMustBeAssignable(const Index: Integer): Boolean;
 begin
   Result := false;
 end;
@@ -2216,7 +2216,7 @@ constructor TCasScriptRegisteredHandler.Create(
   AHandler: TCasScriptFunctionHandler;
   AFunctionClass: TCasScriptFunctionClass;
   const AArgumentClasses: TCasScriptValueClassArray;
-  const AVariableArgumentsCount: boolean);
+  const AVariableArgumentsCount: Boolean);
 begin
   FHandler := AHandler;
   FFunctionClass := AFunctionClass;
@@ -2242,7 +2242,7 @@ begin
 end;
 
 class procedure TCasScriptSequence.HandleSequence(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -2270,7 +2270,7 @@ begin
 end;
 
 class procedure TCasScriptAssignment.HandleAssignment(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -2282,7 +2282,7 @@ begin
   ParentOfResult := false;
 end;
 
-class function TCasScriptAssignment.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptAssignment.ArgumentMustBeAssignable(const Index: Integer): Boolean;
 begin
   Result := Index = 0;
 end;
@@ -2295,7 +2295,7 @@ begin
 end;
 
 class procedure TCasScriptIf.HandleIf(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;
@@ -2320,7 +2320,7 @@ begin
 end;
 
 class procedure TCasScriptWhen.HandleWhen(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;
@@ -2349,16 +2349,16 @@ begin
 end;
 
 class procedure TCasScriptWhile.HandleWhile(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 
-  function ExecuteCondition: boolean;
+  function ExecuteCondition: Boolean;
   var
     Condition: TCasScriptValue;
   begin
     Condition := AFunction.Args[0].CoreExecute;
     if Condition is TCasScriptBoolean then
       Result := TCasScriptBoolean(Condition).Value else
-      raise ECasScriptError.Create('"if" function "condition" must return a boolean value');
+      raise ECasScriptError.Create('"if" function "condition" must return a Boolean value');
   end;
 
 begin
@@ -2391,7 +2391,7 @@ begin
 end;
 
 class procedure TCasScriptFor.HandleFor(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   BeginVal, EndVal: Int64;
   I: Integer;
@@ -2429,7 +2429,7 @@ begin
   Result := 3;
 end;
 
-class function TCasScriptFor.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptFor.ArgumentMustBeAssignable(const Index: Integer): Boolean;
 begin
   { This will cause checking whether Args[0] is assignable TCasScriptValue.
 
@@ -2450,7 +2450,7 @@ begin
 end;
 
 class procedure TCasScriptCoalesce.HandleCoalesce(
-  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   I: Integer;
 begin
@@ -2495,7 +2495,7 @@ end;
 function TCasScriptFunctionHandlers.SearchFunctionClass(
   FunctionClass: TCasScriptFunctionClass;
   out FunctionIndex: Integer;
-  out HandlersByArgument: Contnrs.TObjectList): boolean;
+  out HandlersByArgument: Contnrs.TObjectList): Boolean;
 var
   I: Integer;
 begin
@@ -2515,7 +2515,7 @@ end;
 
 function TCasScriptFunctionHandlers.SearchFunctionClass(
   FunctionClass: TCasScriptFunctionClass;
-  out HandlersByArgument: Contnrs.TObjectList): boolean;
+  out HandlersByArgument: Contnrs.TObjectList): Boolean;
 var
   FunctionIndex: Integer;
 begin
@@ -2527,7 +2527,7 @@ function TCasScriptFunctionHandlers.SearchArgumentClasses(
   HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
   out ArgumentIndex: Integer;
-  out Handler: TCasScriptRegisteredHandler): boolean;
+  out Handler: TCasScriptRegisteredHandler): Boolean;
 var
   I, J: Integer;
 begin
@@ -2578,7 +2578,7 @@ end;
 function TCasScriptFunctionHandlers.SearchArgumentClasses(
   HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
-  out Handler: TCasScriptRegisteredHandler): boolean;
+  out Handler: TCasScriptRegisteredHandler): Boolean;
 var
   ArgumentIndex: Integer;
 begin
@@ -2590,9 +2590,9 @@ function TCasScriptFunctionHandlers.SearchArgumentClasses(
   HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
   out Handler: TCasScriptRegisteredHandler;
-  var Cache: TCasScriptSearchArgumentClassesCache): boolean;
+  var Cache: TCasScriptSearchArgumentClassesCache): Boolean;
 
-  function ArgumentClassesEqual(const A1, A2: TCasScriptValueClassArray): boolean;
+  function ArgumentClassesEqual(const A1, A2: TCasScriptValueClassArray): Boolean;
   begin
     Result := (Length(A1) = Length(A2)) and
       CompareMem(Pointer(A1), Pointer(A2), SizeOf(TCasScriptValueClass) * Length(A1));
@@ -2639,7 +2639,7 @@ procedure TCasScriptFunctionHandlers.RegisterHandler(
   AHandler: TCasScriptFunctionHandler;
   AFunctionClass: TCasScriptFunctionClass;
   const AArgumentClasses: array of TCasScriptValueClass;
-  const AVariableArgumentsCount: boolean);
+  const AVariableArgumentsCount: Boolean);
 var
   HandlersByArgument: Contnrs.TObjectList;
   Handler: TCasScriptRegisteredHandler;
@@ -2730,7 +2730,7 @@ end;
 
 procedure TCasScriptProgram.ExecuteFunction(const FunctionName: string;
   const Parameters: array of TCasScriptValue;
-  const IgnoreMissingFunction: boolean);
+  const IgnoreMissingFunction: Boolean);
 var
   Func: TCasScriptUserFunction;
   FuncIndex, I: Integer;
@@ -2771,7 +2771,7 @@ end;
 { procedural utils ----------------------------------------------------------- }
 
 procedure CreateValueIfNeeded(var Value: TCasScriptValue;
-  var ParentOfValue: boolean;
+  var ParentOfValue: Boolean;
   NeededClass: TCasScriptValueClass);
 begin
   if Value = nil then

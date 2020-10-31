@@ -56,9 +56,9 @@ type
 
   @groupBegin
 }
-procedure PeanoCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure PeanoCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
-procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure HilbertCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { @groupEnd }
 
@@ -90,7 +90,7 @@ type
 
     constructor Create(ASizeX, ASizeY: Cardinal); virtual;
 
-    function EndOfPixels: boolean; virtual; abstract;
+    function EndOfPixels: Boolean; virtual; abstract;
 
     { Get next point. Do not ever call this when EndOfPixels = @true. }
     function NextPixel: TVector2Cardinal; virtual; abstract;
@@ -134,7 +134,7 @@ type
   public
     constructor Create(ASizeX, ASizeY: Cardinal); override;
     destructor Destroy; override;
-    function EndOfPixels: boolean; override;
+    function EndOfPixels: Boolean; override;
     function NextPixel: TVector2Cardinal; override;
     procedure SkipPixels(SkipCount: Cardinal); override;
     procedure Reset; override;
@@ -202,7 +202,7 @@ const
        result := ChangeIntCycle(Angle, 1, 3) else
        result := ChangeIntCycle(Angle, -1, 3);
     Uzywanie tablicy juz przeliczonych wartosci da nam tutaj maly zysk czasowy. }
-  AngleTurn: array[TSFCAngle, boolean]of TSFCAngle =
+  AngleTurn: array[TSFCAngle, Boolean]of TSFCAngle =
   (
     {Angle = 0} (3, 1),
     {Angle = 1} (0, 2),
@@ -210,14 +210,14 @@ const
     {Angle = 3} (2, 0)
   );
 
-procedure PeanoCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure PeanoCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { na podstawie "Graphic Gems II", gem I.8.
   Zmienna Angle jest globalna z punktu widzenia kolejnych rekurencyjnych
   wywolan Peano(), one wszystkie modyfikuja po prostu zadeklarowany powyzej
   parametr Angle. }
 
-  procedure Peano(Orient: boolean; Level: Cardinal);
+  procedure Peano(Orient: Boolean; Level: Cardinal);
   begin
    if Level = 0 then Exit;
    Dec(Level);
@@ -249,11 +249,11 @@ begin
  Peano(InitialOrient, InitialLevel);
 end;
 
-procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
+procedure HilbertCurve(InitialOrient: Boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 { na podstawie "Graphic Gems II", gem I.8 }
 
-  procedure Hilbert(Orient: boolean; Level: Cardinal);
+  procedure Hilbert(Orient: Boolean; Level: Cardinal);
   begin
    if Level = 0 then Exit;
    Dec(Level);
@@ -303,7 +303,7 @@ begin
  FreeMemNiling(Pixels);
 end;
 
-function TPrecalcCurve.EndOfPixels: boolean;
+function TPrecalcCurve.EndOfPixels: Boolean;
 begin
  result := NextPixelNum >= PixelsCount;
 end;

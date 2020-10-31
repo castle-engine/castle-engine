@@ -66,7 +66,7 @@ type
     function ToString: string;
     procedure Clear;
 
-    class operator = (const A, B: TShaderCodeHash): boolean;
+    class operator = (const A, B: TShaderCodeHash): Boolean;
   end;
 
   { GLSL program that may be used by the X3D renderer.
@@ -170,7 +170,7 @@ type
         So invalid uniform names should be always catched.
         We also catch type mismatches.) }
     procedure SetUniformFromField(const UniformName: string;
-      const UniformValue: TX3DField; const EnableDisable: boolean);
+      const UniformValue: TX3DField; const EnableDisable: Boolean);
 
     procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
@@ -180,7 +180,7 @@ type
       and will automatically update uniform value when we receive an event. }
     procedure BindNonTextureUniform(
       const FieldOrEvent: TX3DInterfaceDeclaration;
-      const EnableDisable: boolean);
+      const EnableDisable: Boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
     UniformsTextures: TX3DFieldList;
@@ -197,8 +197,8 @@ type
       Texture fields have to be updated by descendant (like TX3DGLSLProgram),
       using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
-    procedure BindUniforms(const Node: TX3DNode; const EnableDisable: boolean);
-    procedure BindUniforms(const Nodes: TX3DNodeList; const EnableDisable: boolean);
+    procedure BindUniforms(const Node: TX3DNode; const EnableDisable: Boolean);
+    procedure BindUniforms(const Nodes: TX3DNodeList; const EnableDisable: Boolean);
     { @groupEnd }
   end;
 
@@ -270,14 +270,14 @@ type
 
   TLightShaders = class(specialize TObjectList<TLightShader>)
   private
-    function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
+    function Find(const Node: TAbstractLightNode; out Shader: TLightShader): Boolean;
   end;
 
   { Setup the necessary shader things to pass texture coordinates. }
   TTextureCoordinateShader = class
   private
     TextureUnit: Cardinal;
-    HasMatrixTransform: boolean;
+    HasMatrixTransform: Boolean;
 
     { Name of texture coordinate varying vec4 vector. }
     class function CoordName(const TexUnit: Cardinal): string;
@@ -363,7 +363,7 @@ type
   TDynamicUniformList = specialize TObjectList<TDynamicUniform>;
 
   TSurfaceTextureShader = record
-    Enable: boolean;
+    Enable: Boolean;
     TextureUnit, TextureCoordinatesId: Cardinal;
     UniformTextureName: String;
     PlugCode: String;
@@ -399,28 +399,28 @@ type
     LightShaders: TLightShaders;
     TextureShaders: TTextureCoordinateShaderList;
     FCodeHash: TShaderCodeHash;
-    CodeHashFinalized: boolean;
+    CodeHashFinalized: Boolean;
     SelectedNode: TComposedShaderNode;
-    WarnMissingPlugs: boolean;
-    FShapeRequiresShaders: boolean;
+    WarnMissingPlugs: Boolean;
+    FShapeRequiresShaders: Boolean;
     FBumpMapping: TBumpMapping;
     FNormalMapTextureCoordinatesId: Cardinal;
     FNormalMapTextureUnit: Cardinal;
-    FHeightMapInAlpha: boolean;
+    FHeightMapInAlpha: Boolean;
     FHeightMapScale: Single;
     FSurfaceTextureShaders: array [TSurfaceTexture] of TSurfaceTextureShader;
-    FFogEnabled: boolean;
+    FFogEnabled: Boolean;
     FFogType: TFogType;
     FFogColor: TVector3;
     FFogLinearEnd: Single;
     FFogExpDensity: Single;
     FFogCoordinateSource: TFogCoordinateSource;
-    HasGeometryMain: boolean;
+    HasGeometryMain: Boolean;
     TextureMatrix: TCardinalList;
     NeedsCameraInverseMatrix: Boolean;
     NeedsMirrorPlaneTexCoords: Boolean;
     NeedsNormalsForTexGen: Boolean;
-    FPhongShading: boolean;
+    FPhongShading: Boolean;
     FLightingModel: TLightingModel;
 
     { We have to optimize the most often case of TShader usage,
@@ -446,10 +446,10 @@ type
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
-      const ForwardDeclareInFinalShader: boolean = false);
+      const ForwardDeclareInFinalShader: Boolean = false);
     procedure EnableEffects(Effects: TX3DNodeList;
       const Code: TShaderSource = nil;
-      const ForwardDeclareInFinalShader: boolean = false);
+      const ForwardDeclareInFinalShader: Boolean = false);
 
     { Special form of Plug. It inserts the PlugValue source code directly
       at the position of given plug comment (no function call
@@ -461,7 +461,7 @@ type
     function PlugDirectly(Code: TCastleStringList;
       const CodeIndex: Cardinal;
       const PlugName, PlugValue: string;
-      const InsertAtBeginIfNotFound: boolean): boolean;
+      const InsertAtBeginIfNotFound: Boolean): Boolean;
 
     { Make symbol DefineName to be defined for all GLSL parts of
       Source[ShaderType]. }
@@ -541,7 +541,7 @@ type
       without main(). }
     procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
       CompleteCode: TShaderSource = nil;
-      const ForwardDeclareInFinalShader: boolean = false);
+      const ForwardDeclareInFinalShader: Boolean = false);
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
@@ -573,7 +573,7 @@ type
       const Plane: TVector4);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete;
-      const TransformToWorldSpace: boolean = false);
+      const TransformToWorldSpace: Boolean = false);
     { Disable fixed-function texgen of given texture unit.
       Guarantees to also set active texture unit to TexUnit (if multi-texturing
       available at all). }
@@ -596,7 +596,7 @@ type
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
-      const HeightMapInAlpha: boolean; const HeightMapScale: Single);
+      const HeightMapInAlpha: Boolean; const HeightMapScale: Single);
     procedure EnableSurfaceTexture(const SurfaceTexture: TSurfaceTexture;
       const TextureUnit, TextureCoordinatesId: Cardinal;
       const UniformTextureName, PlugCode: String);
@@ -613,7 +613,7 @@ type
       const FogCoordinateSource: TFogCoordinateSource;
       const FogLinearEnd: Single; const FogExpDensity: Single);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
-      out Node: TComposedShaderNode): boolean;
+      out Node: TComposedShaderNode): Boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
@@ -621,7 +621,7 @@ type
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
-    property ShapeRequiresShaders: boolean read FShapeRequiresShaders
+    property ShapeRequiresShaders: Boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
     property LightingModel: TLightingModel
       read FLightingModel write FLightingModel;
@@ -633,9 +633,9 @@ type
     { Initialize the instance and PhongShading.
       For now, PhongShading must be set early (and cannot be changed later),
       as it determines the initial shader templates that may be used before linking. }
-    procedure Initialize(const APhongShading: boolean);
+    procedure Initialize(const APhongShading: Boolean);
 
-    property PhongShading: boolean read FPhongShading;
+    property PhongShading: Boolean read FPhongShading;
 
     { Set uniforms that should be set each time before using shader
       (because changes to their values may happen at any time,
@@ -643,7 +643,7 @@ type
     procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
 
     { Add a screen effect GLSL code. }
-    procedure AddScreenEffectCode(const Depth: boolean);
+    procedure AddScreenEffectCode(const Depth: Boolean);
 
     { Shader needs normals, for lighting calculation or tex coord generation. }
     function NeedsNormals: Boolean;
@@ -682,7 +682,7 @@ const
   in view3dscene-mobile.
 }
 
-function MoveToOpeningParen(const S: string; var P: Integer): boolean;
+function MoveToOpeningParen(const S: string; var P: Integer): Boolean;
 begin
   Result := true;
   repeat
@@ -704,7 +704,7 @@ begin
   until S[P] = '(';
  end;
 
-function MoveToMatchingParen(const S: string; var P: Integer): boolean;
+function MoveToMatchingParen(const S: string; var P: Integer): Boolean;
 var
   ParenLevel: Cardinal;
 begin
@@ -841,7 +841,7 @@ begin
   XorValue := 0;
 end;
 
-class operator TShaderCodeHash.= (const A, B: TShaderCodeHash): boolean;
+class operator TShaderCodeHash.= (const A, B: TShaderCodeHash): Boolean;
 begin
   Result := (A.Sum = B.Sum) and (A.XorValue = B.XorValue);
 end;
@@ -1136,7 +1136,7 @@ end;
 
 { TLightShaders -------------------------------------------------------------- }
 
-function TLightShaders.Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
+function TLightShaders.Find(const Node: TAbstractLightNode; out Shader: TLightShader): Boolean;
 var
   I: Integer;
 begin
@@ -1236,7 +1236,7 @@ end;
 
 procedure TX3DShaderProgram.BindNonTextureUniform(
   const FieldOrEvent: TX3DInterfaceDeclaration;
-  const EnableDisable: boolean);
+  const EnableDisable: Boolean);
 var
   UniformField: TX3DField;
   UniformEvent, ObservedEvent: TX3DEvent;
@@ -1282,7 +1282,7 @@ end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TX3DField;
-  const EnableDisable: boolean);
+  const EnableDisable: Boolean);
 var
   TempF: TSingleList;
   TempVec2f: TVector2List;
@@ -1474,7 +1474,7 @@ begin
 end;
 
 procedure TX3DShaderProgram.BindUniforms(const Node: TX3DNode;
-  const EnableDisable: boolean);
+  const EnableDisable: Boolean);
 var
   I: Integer;
   IDecl: TX3DInterfaceDeclaration;
@@ -1493,7 +1493,7 @@ begin
 end;
 
 procedure TX3DShaderProgram.BindUniforms(const Nodes: TX3DNodeList;
-  const EnableDisable: boolean);
+  const EnableDisable: Boolean);
 var
   I: Integer;
 begin
@@ -1871,11 +1871,11 @@ begin
 end;
 
 const
-  DefaultVertexShader: array [ { phong shading } boolean ] of string = (
+  DefaultVertexShader: array [ { phong shading } Boolean ] of string = (
     {$I main_shading_gouraud.vs.inc},
     {$I main_shading_phong.vs.inc}
   );
-  DefaultFragmentShader: array [ { phong shading } boolean ] of string = (
+  DefaultFragmentShader: array [ { phong shading } Boolean ] of string = (
     {$I main_shading_gouraud.fs.inc},
     {$I main_shading_phong.fs.inc}
   );
@@ -1986,7 +1986,7 @@ begin
   GammaCorrection := false;
 end;
 
-procedure TShader.Initialize(const APhongShading: boolean);
+procedure TShader.Initialize(const APhongShading: Boolean);
 begin
   FPhongShading := APhongShading;
   FCodeHash.AddInteger(Ord(PhongShading) * 877);
@@ -2000,7 +2000,7 @@ begin
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
-  CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: boolean);
+  CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: Boolean);
 const
   PlugPrefix = 'PLUG_';
 
@@ -2051,7 +2051,7 @@ const
   end;
 
   function FindPlugOccurrence(const CommentBegin, Code: string;
-    const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;
+    const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): Boolean;
   begin
     Result := false;
     PBegin := PosEx(CommentBegin, Code, CodeSearchBegin);
@@ -2074,9 +2074,9 @@ const
 var
   PlugName, ProcedureName, PlugForwardDeclaration: string;
 
-  function LookForPlugDeclaration(CodeForPlugDeclaration: TCastleStringList): boolean;
+  function LookForPlugDeclaration(CodeForPlugDeclaration: TCastleStringList): Boolean;
   var
-    AnyOccurrencesInThisCodeIndex: boolean;
+    AnyOccurrencesInThisCodeIndex: Boolean;
     PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
     CommentBegin, Parameters, Declaration: string;
   begin
@@ -2115,7 +2115,7 @@ var
 var
   Code: TCastleStringList;
   PlugDeclaredParameters: string;
-  AnyOccurrences: boolean;
+  AnyOccurrences: Boolean;
 begin
   if CompleteCode = nil then
     CompleteCode := Source;
@@ -2174,7 +2174,7 @@ end;
 function TShader.PlugDirectly(Code: TCastleStringList;
   const CodeIndex: Cardinal;
   const PlugName, PlugValue: string;
-  const InsertAtBeginIfNotFound: boolean): boolean;
+  const InsertAtBeginIfNotFound: Boolean): Boolean;
 var
   P: Integer;
 begin
@@ -2224,14 +2224,14 @@ end;
 
 procedure TShader.EnableEffects(Effects: TMFNode;
   const Code: TShaderSource;
-  const ForwardDeclareInFinalShader: boolean);
+  const ForwardDeclareInFinalShader: Boolean);
 begin
   EnableEffects(Effects.InternalItems, Code, ForwardDeclareInFinalShader);
 end;
 
 procedure TShader.EnableEffects(Effects: TX3DNodeList;
   const Code: TShaderSource;
-  const ForwardDeclareInFinalShader: boolean);
+  const ForwardDeclareInFinalShader: Boolean);
 
   procedure EnableEffect(Effect: TEffectNode);
 
@@ -2283,7 +2283,7 @@ var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
     GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
-  TextureUniformsSet: boolean;
+  TextureUniformsSet: Boolean;
 
 const
   Structures: array [TLightingModel] of String = (
@@ -2573,7 +2573,7 @@ const
   end;
 
 var
-  PassLightsUniforms: boolean;
+  PassLightsUniforms: Boolean;
 
   procedure EnableLights;
   var
@@ -3073,7 +3073,7 @@ end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComplete;
-  const TransformToWorldSpace: boolean);
+  const TransformToWorldSpace: Boolean);
 var
   TexCoordName: string;
 begin
@@ -3362,7 +3362,7 @@ end;
 
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
   const NormalMapTextureUnit, NormalMapTextureCoordinatesId: Cardinal;
-  const HeightMapInAlpha: boolean; const HeightMapScale: Single);
+  const HeightMapInAlpha: Boolean; const HeightMapScale: Single);
 begin
   FBumpMapping := BumpMapping;
   FNormalMapTextureUnit := NormalMapTextureUnit;
@@ -3490,7 +3490,7 @@ begin
 end;
 
 function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
-  out Node: TComposedShaderNode): boolean;
+  out Node: TComposedShaderNode): Boolean;
 var
   I, J: Integer;
   Part: TShaderPartNode;
@@ -3593,7 +3593,7 @@ end;
 
 function TShader.DeclareShadowFunctions: string;
 const
-  ShadowDeclare: array [boolean { vsm? }] of string =
+  ShadowDeclare: array [Boolean { vsm? }] of string =
   ('float shadow(' + Sampler2DShadow + ' shadowMap, const vec4 shadowMapCoord, const in float size);',
    'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
   ShadowDepthDeclare =
@@ -3632,7 +3632,7 @@ begin
   end;
 end;
 
-procedure TShader.AddScreenEffectCode(const Depth: boolean);
+procedure TShader.AddScreenEffectCode(const Depth: Boolean);
 var
   VS, FS: string;
 begin

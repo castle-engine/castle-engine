@@ -241,7 +241,7 @@ type
     function GetItem(const I: Integer): TCastleTransform;
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
   public
-    constructor Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
+    constructor Create(const FreeObjects: Boolean; const AOwner: TCastleTransform);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
 
@@ -361,16 +361,16 @@ type
     class var
       NextTransformId: Cardinal;
     var
-      FCastShadowVolumes: boolean;
-      FExists: boolean;
-      FCollides: boolean;
-      FPickable: boolean;
-      FVisible: boolean;
+      FCastShadowVolumes: Boolean;
+      FExists: Boolean;
+      FCollides: Boolean;
+      FPickable: Boolean;
+      FVisible: Boolean;
       FCursor: TMouseCursor;
-      FCollidesWithMoving: boolean;
+      FCollidesWithMoving: Boolean;
       Disabled: Cardinal;
       FExcludeFromGlobalLights, FExcludeFromStatistics,
-        FInternalExcludeFromParentBoundingVolume: boolean;
+        FInternalExcludeFromParentBoundingVolume: Boolean;
       FWorld: TCastleAbstractRootTransform;
       FWorldReferences: Cardinal;
       FList: TCastleTransformList;
@@ -385,22 +385,22 @@ type
       FTranslation: TVector3;
 
       // transformation extras
-      FGravity: boolean;
+      FGravity: Boolean;
       FFallingStartMiddle: TVector3;
-      FFalling: boolean;
+      FFalling: Boolean;
       FFallSpeed: Single;
       FGrowSpeed: Single;
       FMiddleHeight: Single;
       FRigidBody: TRigidBody;
       FOrientation: TOrientationType;
-      FOnlyTranslation: boolean;
+      FOnlyTranslation: Boolean;
 
       FTransformation: TTransformation;
-      FTransformationValid: boolean;
+      FTransformationValid: Boolean;
 
       FWorldTransformation: TTransformation;
       FWorldTransformationId: Cardinal;
-      FWorldTransformationValid: boolean;
+      FWorldTransformationValid: Boolean;
 
       FLastParentWorldTransformation: TTransformation;
       FLastParentWorldTransformationId: Cardinal;
@@ -448,7 +448,7 @@ type
       This is used only by TWalkAttackCreature.
       @exclude
       @groupBegin }
-    MiddleForceBox: boolean;
+    MiddleForceBox: Boolean;
     { @exclude }
     MiddleForceBoxValue: TBox3D;
     { @groupEnd }
@@ -506,7 +506,7 @@ type
     }
     function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 
     { Can other 3D object (maybe a player) move without colliding with this object.
 
@@ -534,21 +534,21 @@ type
       @groupBegin }
     function MoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; overload;
     function MoveCollision(
       const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; overload;
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean;
+      const ALineOfSight: Boolean): Boolean;
     function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 
     { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
 
@@ -563,7 +563,7 @@ type
         the 3D objects hierarchy that caused this collision.) }
     function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const Details: TCollisionDetails = nil): boolean;
+      const Details: TCollisionDetails = nil): Boolean;
 
     { Check collision with a point in 2D (which is an infinite line along the Z axis
       in 3D).
@@ -601,10 +601,10 @@ type
       )
     }
     function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 
     function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
 
     { Check collision with a ray, building a TRayCollision result.
       Returns a collision as TRayCollision instance, or @nil if no collision.
@@ -626,29 +626,29 @@ type
 
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean; virtual;
     function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; virtual;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; virtual;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; virtual;
+      const ALineOfSight: Boolean): Boolean; virtual;
     function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; virtual;
     function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-      const Details: TCollisionDetails = nil): boolean; virtual;
+      const Details: TCollisionDetails = nil): Boolean; virtual;
     function LocalPointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; virtual;
     function LocalBoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean; virtual;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; virtual;
 
@@ -668,7 +668,7 @@ type
       then rendering shadow volumes is also automatically handled by TCastleScene. }
     procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
+      const ParentTransformIsIdentity: Boolean;
       const ParentTransform: TMatrix4); virtual;
 
     { Can we use simple @link(Translation) to express our whole transformation
@@ -676,7 +676,7 @@ type
       Returning @true allows optimization in some cases.
       @bold(Internal. Protected instead of private only for testing.)
       @exclude }
-    function OnlyTranslation: boolean;
+    function OnlyTranslation: Boolean;
 
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
     function Translation2D: TVector2; deprecated 'use TranslationXY';
@@ -737,22 +737,22 @@ type
       @link(Disable).
       It TCastleTransform class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
-    function GetExists: boolean; virtual;
+    function GetExists: Boolean; virtual;
 
     { Does item really collide, see @link(Collides).
       It TCastleTransform class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
-    function GetCollides: boolean; virtual;
+    function GetCollides: Boolean; virtual;
 
     { Is item really pickable, see @link(Pickable).
       It TCastleTransform class, returns @link(Pickable) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
-    function GetPickable: boolean; virtual;
+    function GetPickable: Boolean; virtual;
 
     { Is item really visible, see @link(Visible).
       It v class, returns @link(Visible) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
-    function GetVisible: boolean; virtual;
+    function GetVisible: Boolean; virtual;
 
     { Items that are at least once disabled are treated like not existing.
       Every @link(Disable) call should always be paired with @link(Enable) call
@@ -862,7 +862,7 @@ type
 
     { Does the 3D object cast shadows by shadow volumes.
       See also TCastleScene.ReceiveShadowVolumes. }
-    property CastShadowVolumes: boolean
+    property CastShadowVolumes: Boolean
       read FCastShadowVolumes write FCastShadowVolumes default true;
 
     { Render shadow quads for all the things rendered by @link(Render).
@@ -880,7 +880,7 @@ type
       ignored !). }
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
+      const ParentTransformIsIdentity: Boolean;
       const ParentTransform: TMatrix4);
 
     { Prepare resources, making various methods (like rendering and such)
@@ -924,7 +924,7 @@ type
       )
     }
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); virtual;
+      const ProgressStep: Boolean; const Params: TPrepareParams); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -934,8 +934,8 @@ type
     { Press and release events of key and mouse. Return @true if you handled them.
       See also TCastleUserInterface analogous events.
       @groupBegin }
-    function Press(const Event: TInputPressRelease): boolean; virtual;
-    function Release(const Event: TInputPressRelease): boolean; virtual;
+    function Press(const Event: TInputPressRelease): Boolean; virtual;
+    function Release(const Event: TInputPressRelease): Boolean; virtual;
     { @groupEnd }
 
     { Pointing device (mouse or touch) events, you can override these to handle pointing device events.
@@ -1083,7 +1083,7 @@ type
       In particular, when you operate on active X3D pointing-device sensors
       (like drag sensors, e.g. PlaneSensor, but also TouchSensor may
       use it). }
-    function Dragging: boolean; virtual;
+    function Dragging: Boolean; virtual;
 
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center
@@ -1208,7 +1208,7 @@ type
           This would block stair climbing.
         )
       ) }
-    function Sphere(out Radius: Single): boolean; virtual;
+    function Sphere(out Radius: Single): Boolean; virtual;
 
     { Can this object be pushed by (or block movement of) doors, elevators
       and other moving level parts (TCastleMoving instances).
@@ -1221,7 +1221,7 @@ type
       Like elevators (vertical, or horizontal moving platforms).
       We may use sphere (see @link(CollisionSphereRadius) and @link(Sphere)) for checking
       collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
-    property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
+    property CollidesWithMoving: Boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
 
@@ -1234,9 +1234,9 @@ type
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single): boolean; overload;
+      out AboveHeight: Single): Boolean; overload;
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean; overload;
     { @groupEnd }
 
     { Whether there is line of sight (the line segment does not collide with anything)
@@ -1249,7 +1249,7 @@ type
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
-    function LineOfSight(const Pos1, Pos2: TVector3): boolean;
+    function LineOfSight(const Pos1, Pos2: TVector3): Boolean;
 
     { Is the move from OldPos to ProposedNewPos possible for me.
       Returns true and sets NewPos if some move is allowed.
@@ -1271,9 +1271,9 @@ type
       @groupBegin }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
       out NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean; overload;
+      const BecauseOfGravity: Boolean): Boolean; overload;
     function MoveAllowed(const OldPos, NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean; overload;
+      const BecauseOfGravity: Boolean): Boolean; overload;
     { @groupEnd }
 
     { Cast a ray, see what is hit.
@@ -1319,7 +1319,7 @@ type
       (e.g. because this debug geometry visualizes something determined
       by the bounding volume, and it would create a "feedback loop"
       if the visualization itself would enlarge the bounding box). }
-    property InternalExcludeFromParentBoundingVolume: boolean
+    property InternalExcludeFromParentBoundingVolume: Boolean
       read FInternalExcludeFromParentBoundingVolume
       write FInternalExcludeFromParentBoundingVolume;
 
@@ -1374,7 +1374,7 @@ type
       TODO: This will be deprecated at some point, and you will be adviced
       to always use physics, through @link(TCastleTransform.RigidBody),
       to have realistic gravity. }
-    property Gravity: boolean read FGravity write FGravity default false;
+    property Gravity: Boolean read FGravity write FGravity default false;
 
     { Falling speed, in units per second, for @link(Gravity).
 
@@ -1470,7 +1470,7 @@ type
     { All conditions are satisfied to have @link(WorldTransform).
       When this returns @true, you know that @link(WorldTransform)
       and @link(WorldInverseTransform) will not raise @link(ETransformParentUndefined). }
-    function HasWorldTransform: boolean;
+    function HasWorldTransform: Boolean;
 
     { Transformation (from local to world) as a matrix.
       This accumulates the transformation of this instance
@@ -1568,8 +1568,8 @@ type
       @code(Translation := Translation + TranslationChange)
       however this checks collisions. }
     function Move(const TranslationChange: TVector3;
-      const BecauseOfGravity: boolean;
-      const EnableWallSliding: boolean = true): boolean;
+      const BecauseOfGravity: Boolean;
+      const EnableWallSliding: Boolean = true): Boolean;
 
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -1762,9 +1762,9 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
     procedure SetView(const ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
@@ -1812,7 +1812,7 @@ type
       Descendants may also override GetExists method.
 
       @noAutoLinkHere }
-    property Exists: boolean read FExists write FExists default true;
+    property Exists: Boolean read FExists write FExists default true;
 
     { Should this 3D object participate in collision detection.
       You can turn this off, useful to make e.g. "fake" walls
@@ -1845,7 +1845,7 @@ type
       comfortable than changing the property value.
 
       @noAutoLinkHere }
-    property Collides: boolean read FCollides write FCollides default true;
+    property Collides: Boolean read FCollides write FCollides default true;
 
     { Is item pickable by @link(RayCollision) method.
       Note that if not @link(Exists) then this doesn't matter
@@ -1857,7 +1857,7 @@ type
       comfortable than changing the property value.
 
       @noAutoLinkHere }
-    property Pickable: boolean read FPickable write FPickable default true;
+    property Pickable: Boolean read FPickable write FPickable default true;
 
     { Is item visible.
       Note that if not @link(Exists) then this doesn't matter
@@ -1868,7 +1868,7 @@ type
       comfortable than changing the property value.
 
       @noAutoLinkHere }
-    property Visible: boolean read FVisible write FVisible default true;
+    property Visible: Boolean read FVisible write FVisible default true;
 
     { If this 3D object is rendered as part of TCastleViewport,
       and @link(TCastleViewport.UseGlobalLights) is @true, then this property allows
@@ -1879,12 +1879,12 @@ type
       Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
       that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
       unless you do custom rendering on your own. }
-    property ExcludeFromGlobalLights: boolean
+    property ExcludeFromGlobalLights: Boolean
       read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
 
     { Exclude from rendering statistics in
       @link(TCastleViewport.Statistics). }
-    property ExcludeFromStatistics: boolean
+    property ExcludeFromStatistics: Boolean
       read FExcludeFromStatistics write FExcludeFromStatistics default false;
 
   {$define read_interface_class}
@@ -1900,18 +1900,18 @@ type
     This is the base abstract class, the non-abstract descendant is @link(TCastleRootTransform). }
   TCastleAbstractRootTransform = class(TCastleTransform)
   strict private
-    WasPhysicsStep: boolean;
+    WasPhysicsStep: Boolean;
     TimeAccumulator: TFloatTime;
     FCameraPosition, FCameraDirection, FCameraUp, FCameraGravityUp: TVector3;
-    FCameraKnown: boolean;
-    FEnablePhysics: boolean;
+    FCameraKnown: Boolean;
+    FEnablePhysics: Boolean;
     FMoveLimit: TBox3D;
     FPhysicsProperties: TPhysicsProperties;
     UpdateGeneratedTexturesFrameId, UpdateFrameId: TFrameId;
     FTimeScale: Single;
-    FPaused: boolean;
+    FPaused: Boolean;
     FMainCamera: TCastleCamera;
-    procedure SetPaused(const Value: boolean);
+    procedure SetPaused(const Value: Boolean);
     procedure SetMainCamera(const Value: TCastleCamera);
   private
     FKraftEngine: TKraft;
@@ -1962,17 +1962,17 @@ type
       @groupBegin }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload;
+      const BecauseOfGravity: Boolean): Boolean; overload;
     function WorldMoveAllowed(
       const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
+      const IsRadius: Boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload;
+      const BecauseOfGravity: Boolean): Boolean; overload;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+      out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): Boolean;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision;
     { What is hit by this ray.
       Returns the TCastleTransform that is hit (this is the "leaf" TCastleTransform
@@ -1982,12 +1982,12 @@ type
       Use @link(WorldRay) for a more advanced version of this, with more complicated result. }
     function WorldRayCast(const RayOrigin, RayDirection: TVector3; out Distance: Single): TCastleTransform;
     function WorldRayCast(const RayOrigin, RayDirection: TVector3): TCastleTransform;
-    function WorldBoxCollision(const Box: TBox3D): boolean;
-    function WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
-    function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
+    function WorldBoxCollision(const Box: TBox3D): Boolean;
+    function WorldSegmentCollision(const Pos1, Pos2: TVector3): Boolean;
+    function WorldSphereCollision(const Pos: TVector3; const Radius: Single): Boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const Details: TCollisionDetails = nil): boolean;
-    function WorldPointCollision2D(const Point: TVector2): boolean;
+      const Details: TCollisionDetails = nil): Boolean;
+    function WorldPointCollision2D(const Point: TVector2): Boolean;
     { @groupEnd }
 
     { Camera position, direction, up and gravity up vectors.
@@ -2011,14 +2011,14 @@ type
     property CameraDirection: TVector3 read FCameraDirection;
     property CameraUp: TVector3 read FCameraUp;
     property CameraGravityUp: TVector3 read FCameraGravityUp;
-    property CameraKnown: boolean read FCameraKnown;
+    property CameraKnown: Boolean read FCameraKnown;
     { @groupEnd }
 
     procedure CameraChanged(const ACamera: TCastleCamera); override;
 
     { Yoo can temporarily disable physics (no transformations will be updated
       by the physics engine) by setting this property to @false. }
-    property EnablePhysics: boolean read FEnablePhysics write FEnablePhysics
+    property EnablePhysics: Boolean read FEnablePhysics write FEnablePhysics
       default true;
 
     { Limit the movement allowed by @link(WorldMoveAllowed).
@@ -2114,7 +2114,7 @@ type
           this is actually equivalent to what pausing does now for TCastleNavigation.
         )
       ) }
-    property Paused: boolean read FPaused write SetPaused default false;
+    property Paused: Boolean read FPaused write SetPaused default false;
   end;
 
   {$define read_interface}
@@ -2245,7 +2245,7 @@ end;
 
 { TCastleTransformList ------------------------------------------------------------ }
 
-constructor TCastleTransformList.Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
+constructor TCastleTransformList.Create(const FreeObjects: Boolean; const AOwner: TCastleTransform);
 begin
   inherited Create(FreeObjects);
   FOwner := AOwner;
@@ -2396,27 +2396,27 @@ begin
   end;
 end;
 
-function TCastleTransform.GetExists: boolean;
+function TCastleTransform.GetExists: Boolean;
 begin
   Result := FExists and (Disabled = 0);
 end;
 
-function TCastleTransform.GetCollides: boolean;
+function TCastleTransform.GetCollides: Boolean;
 begin
   Result := FCollides and GetExists;
 end;
 
-function TCastleTransform.GetPickable: boolean;
+function TCastleTransform.GetPickable: Boolean;
 begin
   Result := FPickable and GetExists;
 end;
 
-function TCastleTransform.GetVisible: boolean;
+function TCastleTransform.GetVisible: Boolean;
 begin
   Result := FVisible and GetExists;
 end;
 
-function TCastleTransform.Sphere(out Radius: Single): boolean;
+function TCastleTransform.Sphere(out Radius: Single): Boolean;
 begin
   Radius := CollisionSphereRadius;
   Result := Radius <> 0;
@@ -2550,7 +2550,7 @@ begin
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
-  out AboveHeight: Single): boolean;
+  out AboveHeight: Single): Boolean;
 var
   AboveGroundIgnored: PTriangle;
 begin
@@ -2558,7 +2558,7 @@ begin
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 var
   MyPositionWorld: TVector3;
 begin
@@ -2571,7 +2571,7 @@ begin
   finally Enable end;
 end;
 
-function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
+function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): Boolean;
 var
   Pos1World, Pos2World: TVector3;
 begin
@@ -2585,9 +2585,9 @@ end;
 
 function TCastleTransform.MoveAllowed(const OldPos, ProposedNewPos: TVector3;
   out NewPos: TVector3;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity: Boolean): Boolean;
 var
-  Sp: boolean;
+  Sp: Boolean;
   SpRadius, SpRadiusWorld: Single;
   OldBox, NewBox: TBox3D;
   OldPosWorld, ProposedNewPosWorld, NewPosWorld: TVector3;
@@ -2618,9 +2618,9 @@ begin
 end;
 
 function TCastleTransform.MoveAllowed(const OldPos, NewPos: TVector3;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity: Boolean): Boolean;
 var
-  Sp: boolean;
+  Sp: Boolean;
   SpRadius: Single;
   OldBox, NewBox: TBox3D;
 begin
@@ -2786,7 +2786,7 @@ end;
 
 procedure TCastleTransform.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
+  const ParentTransformIsIdentity: Boolean;
   const ParentTransform: TMatrix4);
 var
   I: Integer;
@@ -2800,7 +2800,7 @@ begin
 end;
 
 procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const ProgressStep: Boolean; const Params: TPrepareParams);
 var
   I: Integer;
 begin
@@ -2817,7 +2817,7 @@ begin
     Result := Result + List[I].PrepareResourcesSteps;
 end;
 
-function TCastleTransform.Press(const Event: TInputPressRelease): boolean;
+function TCastleTransform.Press(const Event: TInputPressRelease): Boolean;
 var
   I: Integer;
 begin
@@ -2828,7 +2828,7 @@ begin
     if List[I].Press(Event) then Exit(true);
 end;
 
-function TCastleTransform.Release(const Event: TInputPressRelease): boolean;
+function TCastleTransform.Release(const Event: TInputPressRelease): Boolean;
 var
   I: Integer;
 begin
@@ -2858,7 +2858,7 @@ begin
 end;
 
 function TCastleTransform.PointingDeviceMove(const Pick: TRayCollisionNode;
-  const Distance: Single): boolean;
+  const Distance: Single): Boolean;
 begin
   { This event is not automatically passed to all children on List,
     instead the TCastleViewport has special logic which
@@ -2950,7 +2950,7 @@ begin
   CameraChanged(ACamera.Camera);
 end;
 
-function TCastleTransform.Dragging: boolean;
+function TCastleTransform.Dragging: Boolean;
 var
   I: Integer;
 begin
@@ -3021,7 +3021,7 @@ begin
   Result := FParent;
 end;
 
-function TCastleTransform.HasWorldTransform: boolean;
+function TCastleTransform.HasWorldTransform: Boolean;
 begin
   Result := (Self = World) or ((FWorldReferences = 1) and (FParent <> nil));
 end;
@@ -3029,7 +3029,7 @@ end;
 procedure TCastleTransform.UpdateWorldTransformation;
 var
   Par: TCastleTransform;
-  IsWorld: boolean;
+  IsWorld: Boolean;
 begin
   { The main feature that enables to optimize this (usually reuse previously
     calculated FWorldTransformation) is that we keep
@@ -3226,7 +3226,7 @@ var
   T: TVector3;
   OldParamsTransform, OldParamsInverseTransform: PMatrix4;
   NewParamsTransformation: TTransformation;
-  OldParamsTransformIdentity: boolean;
+  OldParamsTransformIdentity: Boolean;
   OldFrustum: PFrustum;
   NewFrustumValue: TFrustum;
 begin
@@ -3284,7 +3284,7 @@ end;
 
 procedure TCastleTransform.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
+  const ParentTransformIsIdentity: Boolean;
   const ParentTransform: TMatrix4);
 var
   T: TVector3;
@@ -3303,7 +3303,7 @@ begin
       false, Transform * ParentTransform);
 end;
 
-function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
+function Bottom(const Gravity: Boolean; const GravityCoordinate: Integer;
   const BoundingBox: TBox3D): Single;
 begin
   if Gravity then
@@ -3393,9 +3393,9 @@ procedure TCastleTransform.UpdateSimpleGravity(const SecondsPassed: Single);
       or "growing up". }
     HeightMargin = 1.01;
   var
-    IsAbove: boolean;
+    IsAbove: Boolean;
     AboveHeight, RadiusIgnored: Single;
-    OldFalling: boolean;
+    OldFalling: Boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
     if (World = nil) or not World.CameraKnown then Exit;
@@ -3493,7 +3493,7 @@ begin
 end;
 
 function TCastleTransform.Move(const TranslationChange: TVector3;
-  const BecauseOfGravity: boolean; const EnableWallSliding: boolean): boolean;
+  const BecauseOfGravity: Boolean; const EnableWallSliding: Boolean): Boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
 begin
@@ -3557,7 +3557,7 @@ end;
   This allows TCastleTransform to be optimized and accurate
   for the (often) case of pure translation. }
 
-function TCastleTransform.OnlyTranslation: boolean;
+function TCastleTransform.OnlyTranslation: Boolean;
 begin
   Result := FOnlyTranslation;
 end;
@@ -3692,14 +3692,14 @@ begin
 end;
 
 procedure TCastleTransform.SetView(const APos, ADir, AUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 begin
   Translation := APos;
   SetView(ADir, AUp, AdjustUp);
 end;
 
 procedure TCastleTransform.SetView(const ADir, AUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 var
   D, U: TVector3;
 begin
@@ -3753,42 +3753,42 @@ begin
   Result := MaxAbsVectorCoord(FCameraGravityUp);
 end;
 
-function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): boolean;
+function TCastleAbstractRootTransform.WorldBoxCollision(const Box: TBox3D): Boolean;
 begin
   Result := BoxCollision(Box, nil);
 end;
 
-function TCastleAbstractRootTransform.WorldSegmentCollision(const Pos1, Pos2: TVector3): boolean;
+function TCastleAbstractRootTransform.WorldSegmentCollision(const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := SegmentCollision(Pos1, Pos2, nil, false);
 end;
 
 function TCastleAbstractRootTransform.WorldSphereCollision(const Pos: TVector3;
-  const Radius: Single): boolean;
+  const Radius: Single): Boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
 function TCastleAbstractRootTransform.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
-  const Details: TCollisionDetails): boolean;
+  const Details: TCollisionDetails): Boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): boolean;
+function TCastleAbstractRootTransform.WorldPointCollision2D(const Point: TVector2): Boolean;
 begin
   Result := PointCollision2D(Point, nil);
 end;
 
 function TCastleAbstractRootTransform.WorldHeight(const APosition: TVector3;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 begin
   Result := HeightCollision(APosition, CameraGravityUp, nil,
     AboveHeight, AboveGround);
 end;
 
-function TCastleAbstractRootTransform.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+function TCastleAbstractRootTransform.WorldLineOfSight(const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
@@ -3830,9 +3830,9 @@ end;
 
 function TCastleAbstractRootTransform.WorldMoveAllowed(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity: Boolean): Boolean;
 begin
   Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, nil);
@@ -3842,9 +3842,9 @@ end;
 
 function TCastleAbstractRootTransform.WorldMoveAllowed(
   const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
+  const IsRadius: Boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity: Boolean): Boolean;
 begin
   Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, nil);
@@ -3875,7 +3875,7 @@ begin
   inherited;
 end;
 
-procedure TCastleAbstractRootTransform.SetPaused(const Value: boolean);
+procedure TCastleAbstractRootTransform.SetPaused(const Value: Boolean);
 begin
   if FPaused <> Value then
   begin

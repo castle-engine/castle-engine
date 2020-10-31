@@ -110,17 +110,17 @@ type
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
     FScenes: TCastleSceneList;
 
-    FBlending: boolean;
+    FBlending: Boolean;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
-    FOcclusionSort: boolean;
-    FControlBlending: boolean;
+    FOcclusionSort: Boolean;
+    FControlBlending: Boolean;
     FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
-    FUseOcclusionQuery: boolean;
-    FUseHierarchicalOcclusionQuery: boolean;
-    FDebugHierOcclusionQueryResults: boolean;
+    FUseOcclusionQuery: Boolean;
+    FUseHierarchicalOcclusionQuery: Boolean;
+    FDebugHierOcclusionQueryResults: Boolean;
     FSolidWireframeScale: Single;
     FSolidWireframeBias: Single;
     FSilhouetteScale: Single;
@@ -128,14 +128,14 @@ type
   protected
     procedure ReleaseCachedResources; override;
 
-    procedure SetBlending(const Value: boolean); virtual;
+    procedure SetBlending(const Value: Boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor); virtual;
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor); virtual;
     procedure SetBlendingSort(const Value: TBlendingSort); virtual;
-    procedure SetControlBlending(const Value: boolean); virtual;
-    procedure SetUseOcclusionQuery(const Value: boolean); virtual;
+    procedure SetControlBlending(const Value: Boolean); virtual;
+    procedure SetUseOcclusionQuery(const Value: Boolean); virtual;
 
-    procedure SetPhongShading(const Value: boolean); override;
+    procedure SetPhongShading(const Value: Boolean); override;
   public
     const
       { }
@@ -191,7 +191,7 @@ type
       (with depth test off, like they should for OpenGL).
 
       If this attribute is @false, everything will be rendered as opaque. }
-    property Blending: boolean
+    property Blending: Boolean
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
@@ -219,14 +219,14 @@ type
 
     { Sort the opaque objects when rendering.
       This may generate speedup on some scenes. }
-    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
+    property OcclusionSort: Boolean read FOcclusionSort write FOcclusionSort;
 
     { Setting this to @false disables any modification of OpenGL
       blending (and depth mask) state by TCastleScene.
       This makes every other @link(Blending) setting ignored,
       and is useful only if you set your own OpenGL blending parameters
       when rendering this scene. }
-    property ControlBlending: boolean
+    property ControlBlending: Boolean
       read FControlBlending write SetControlBlending default true;
 
     { You can use this to turn on some effects related to rendering model
@@ -273,7 +273,7 @@ type
       query will not be as efficient at culling).
 
       This is ignored if UseHierarchicalOcclusionQuery. }
-    property UseOcclusionQuery: boolean
+    property UseOcclusionQuery: Boolean
       read FUseOcclusionQuery write SetUseOcclusionQuery default false;
 
     { Should we use ARB_occlusion_query (if available) with
@@ -300,7 +300,7 @@ type
       Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
       it is slow and it does not treat transparent shapes correctly.
     }
-    property UseHierarchicalOcclusionQuery: boolean
+    property UseHierarchicalOcclusionQuery: Boolean
       read FUseHierarchicalOcclusionQuery
       write FUseHierarchicalOcclusionQuery default false;
       experimental;
@@ -316,7 +316,7 @@ type
       query done when this debug flag was @false.
 
       Useful to quickly visualize the benefits of occlusion query. }
-    property DebugHierOcclusionQueryResults: boolean
+    property DebugHierOcclusionQueryResults: Boolean
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
 
@@ -328,14 +328,14 @@ type
       --- because then UseHierarchicalOcclusionQuery should take precedence.
 
       @exclude Internal. }
-    function ReallyUseOcclusionQuery: boolean;
+    function ReallyUseOcclusionQuery: Boolean;
 
     { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
       and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
       be used.
 
       @exclude Internal. }
-    function ReallyUseHierarchicalOcclusionQuery: boolean;
+    function ReallyUseHierarchicalOcclusionQuery: Boolean;
   end;
 
 type
@@ -415,15 +415,15 @@ type
 
       { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
         for shadow maps. }
-      AvoidNonShadowCasterRendering: boolean;
+      AvoidNonShadowCasterRendering: Boolean;
 
       VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
       FDistanceCulling: Single;
 
-      FReceiveShadowVolumes: boolean;
-      RegisteredGLContextCloseListener: boolean;
+      FReceiveShadowVolumes: Boolean;
+      RegisteredGLContextCloseListener: Boolean;
       FTempPrepareParams: TPrepareParams;
-      RenderCameraKnown: boolean;
+      RenderCameraKnown: Boolean;
       { Camera position, in local scene coordinates, known (if RenderCameraKnown)
         during the Render call. }
       RenderCameraPosition: TVector3;
@@ -517,16 +517,16 @@ type
     function ShapeFog(const Shape: TShape; const GlobalFog: TFogNode): TFogFunctionality;
     function EffectiveBlendingSort: TBlendingSort;
 
-    function FrustumCulling_None(Shape: TShape): boolean;
-    function FrustumCulling_Sphere(Shape: TShape): boolean;
-    function FrustumCulling_Box(Shape: TShape): boolean;
-    function FrustumCulling_Both(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
-    function DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
+    function FrustumCulling_None(Shape: TShape): Boolean;
+    function FrustumCulling_Sphere(Shape: TShape): Boolean;
+    function FrustumCulling_Box(Shape: TShape): Boolean;
+    function FrustumCulling_Both(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_None(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Sphere(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Box(Shape: TShape): Boolean;
+    function DistanceCulling_FrustumCulling_Both(Shape: TShape): Boolean;
 
-    function DistanceCullingCheck(Shape: TShape): boolean;
+    function DistanceCullingCheck(Shape: TShape): Boolean;
 
     procedure UpdateShapeCullingCallbacks;
     procedure SetFrustumCulling(const Value: TFrustumCulling);
@@ -534,9 +534,9 @@ type
     procedure SetShapeFrustumCulling(const Value: Boolean);
     procedure SetDistanceCulling(const Value: Single);
 
-    function RenderFrustumOctree_TestShape(Shape: TShape): boolean;
+    function RenderFrustumOctree_TestShape(Shape: TShape): Boolean;
     procedure RenderWithOctree_CheckShapeCulling(
-      ShapeIndex: Integer; CollidesForSure: boolean);
+      ShapeIndex: Integer; CollidesForSure: Boolean);
 
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
@@ -547,7 +547,7 @@ type
       when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
     class procedure LightRenderInShadow(const Light: TLightInstance;
-      var LightOn: boolean);
+      var LightOn: Boolean);
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -605,7 +605,7 @@ type
       (i.e. it's considered front face of this shadow volume). }
     procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
+      const ParentTransformIsIdentity: Boolean;
       const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -622,9 +622,9 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const ProgressStep: Boolean; const Params: TPrepareParams); override;
 
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+    procedure BeforeNodesFree(const InternalChangedAll: Boolean = false); override;
 
     { Adjust parameters for rendering 2D scenes. Sets BlendingSort := bs2D,
       which is good when your transparent objects have proper order along the Z axis
@@ -642,12 +642,12 @@ type
       Never set FBackgroundValid to false directly - use InvalidateBackground,
       this will automatically call FreeAndNil(FBackground) before setting
       FBackgroundValid to false. }
-    FBackgroundValid: boolean;
+    FBackgroundValid: Boolean;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
     { Internal hack to avoid checking frustum at rendering in some situations. }
-    InternalIgnoreFrustum: boolean;
+    InternalIgnoreFrustum: Boolean;
     { Internal override test visibility. }
     InternalVisibilityTest: TTestShapeVisibility;
 
@@ -707,7 +707,7 @@ type
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;
     function ScreenEffectsCount: Integer;
-    function ScreenEffectsNeedDepth: boolean;
+    function ScreenEffectsNeedDepth: Boolean;
     { @groupEnd }
 
     { Create a scene with the same contents (X3D scene graph) as this one.
@@ -757,7 +757,7 @@ type
       read FSceneFrustumCulling write FSceneFrustumCulling default true;
 
     { Does this scene receive shadows by shadow volumes. }
-    property ReceiveShadowVolumes: boolean
+    property ReceiveShadowVolumes: Boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes default true;
 
     { Cull shapes farther than this distance. Ignored if <= 0. }
@@ -1303,7 +1303,7 @@ var
   var
     J: Integer;
     Instances: TVisibilitySensorInstanceList;
-    NewActive: boolean;
+    NewActive: Boolean;
     VisibilitySensorsPair: TVisibilitySensors.TDictionaryPair;
   begin
     { optimize for common case: exit early if nothing to do }
@@ -1484,7 +1484,7 @@ end;
 
 procedure TCastleScene.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const ProgressStep: Boolean; const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1683,7 +1683,7 @@ procedure TCastleScene.LocalRenderOutside(
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
-  procedure RenderWireframe(UseWireframeColor: boolean);
+  procedure RenderWireframe(UseWireframeColor: Boolean);
   var
     SavedMode: TRenderingMode;
     SavedSolidColor: TCastleColorRGB;
@@ -1866,7 +1866,7 @@ begin
 end;
 
 class procedure TCastleScene.LightRenderInShadow(const Light: TLightInstance;
-  var LightOn: boolean);
+  var LightOn: Boolean);
 begin
   if Light.Node.FdShadowVolumes.Value then
     LightOn := false;
@@ -1887,7 +1887,7 @@ begin
   (Sender as TCastleScene).PrimitiveGeometry := pgSphere;
 end;
 
-procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: Boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during GLRenderer unprepare
@@ -1908,7 +1908,7 @@ end;
 
 procedure TCastleScene.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
+  const ParentTransformIsIdentity: Boolean;
   const ParentTransform: TMatrix4);
 var
   SceneBox, ShapeBox: TBox3D;
@@ -1916,7 +1916,7 @@ var
   ShapeList: TShapeList;
   Shape: TShape;
   T: TMatrix4;
-  ForceOpaque: boolean;
+  ForceOpaque: Boolean;
 begin
   if GetVisible and CastShadowVolumes then
   begin
@@ -1959,24 +1959,24 @@ end;
 
 { Frustum culling ------------------------------------------------------------ }
 
-function TCastleScene.FrustumCulling_None(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_None(Shape: TShape): Boolean;
 begin
   Result := true;
 end;
 
-function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Sphere(Shape: TShape): Boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 end;
 
-function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Box(Shape: TShape): Boolean;
 begin
   Result :=
     FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
-function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
+function TCastleScene.FrustumCulling_Both(Shape: TShape): Boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -1985,24 +1985,24 @@ begin
       Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_None(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Sphere(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     Shape.FrustumBoundingSphereCollisionPossibleSimple(FrustumForShapeCulling^);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Box(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     FrustumForShapeCulling^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): boolean;
+function TCastleScene.DistanceCulling_FrustumCulling_Both(Shape: TShape): Boolean;
 begin
   Result := DistanceCullingCheck(Shape) and
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -2011,7 +2011,7 @@ begin
       Shape.BoundingBox);
 end;
 
-function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
+function TCastleScene.DistanceCullingCheck(Shape: TShape): Boolean;
 begin
   // This should be only called when DistanceCulling indicates this check is necessary
   Assert(DistanceCulling > 0);
@@ -2111,14 +2111,14 @@ end;
 { Render --------------------------------------------------------------------- }
 
 function TCastleScene.RenderFrustumOctree_TestShape(
-  Shape: TShape): boolean;
+  Shape: TShape): Boolean;
 begin
   { We know that all shapes passed here are TGLShape, so we can cast }
   Result := TGLShape(Shape).PassedShapeCulling;
 end;
 
 procedure TCastleScene.RenderWithOctree_CheckShapeCulling(
-  ShapeIndex: Integer; CollidesForSure: boolean);
+  ShapeIndex: Integer; CollidesForSure: Boolean);
 var
   Shape: TGLShape;
 begin
@@ -2414,7 +2414,7 @@ begin
   raise EInternalError.Create('TCastleScene.ScreenEffects: Invalid index');
 end;
 
-function TCastleScene.ScreenEffectsNeedDepth: boolean;
+function TCastleScene.ScreenEffectsNeedDepth: Boolean;
 var
   I: Integer;
 begin
@@ -2521,7 +2521,7 @@ begin
     FScenes.GLContextClose;
 end;
 
-procedure TSceneRenderingAttributes.SetBlending(const Value: boolean);
+procedure TSceneRenderingAttributes.SetBlending(const Value: Boolean);
 begin
   FBlending := Value;
 end;
@@ -2543,12 +2543,12 @@ begin
   FBlendingSort := Value;
 end;
 
-procedure TSceneRenderingAttributes.SetControlBlending(const Value: boolean);
+procedure TSceneRenderingAttributes.SetControlBlending(const Value: Boolean);
 begin
   FControlBlending := Value;
 end;
 
-procedure TSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
+procedure TSceneRenderingAttributes.SetUseOcclusionQuery(const Value: Boolean);
 var
   I: Integer;
 begin
@@ -2573,7 +2573,7 @@ begin
   end;
 end;
 
-function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
+function TSceneRenderingAttributes.ReallyUseOcclusionQuery: Boolean;
 begin
   {$warnings off}
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
@@ -2583,7 +2583,7 @@ begin
   {$warnings on}
 end;
 
-function TSceneRenderingAttributes.ReallyUseHierarchicalOcclusionQuery: boolean;
+function TSceneRenderingAttributes.ReallyUseHierarchicalOcclusionQuery: Boolean;
 begin
   {$warnings off}
   Result := UseHierarchicalOcclusionQuery and
@@ -2593,7 +2593,7 @@ begin
   {$warnings on}
 end;
 
-procedure TSceneRenderingAttributes.SetPhongShading(const Value: boolean);
+procedure TSceneRenderingAttributes.SetPhongShading(const Value: Boolean);
 var
   I: Integer;
 begin

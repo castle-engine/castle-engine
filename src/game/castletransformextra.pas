@@ -44,8 +44,8 @@ type
     do this. }
   TCastleMoving = class(TCastleTransform)
   private
-    FPushes: boolean;
-    FPushesEverythingInside: boolean;
+    FPushes: Boolean;
+    FPushesEverythingInside: Boolean;
     FAnimationTime: TFloatTime;
   protected
     { Local object time, always increasing, used to track animations. }
@@ -75,7 +75,7 @@ type
       elevators / doors or such).
 
       Only relevant if GetCollides. Non-colliding objects never push others. }
-    property Pushes: boolean read FPushes write FPushes default true;
+    property Pushes: Boolean read FPushes write FPushes default true;
 
     { If @link(Pushes) is @true, this determines how pushing actually works.
       There two methods:
@@ -122,7 +122,7 @@ type
       of 3D stuff. For very large moving stuff, that possibly
       interacts with flying players/creatures in some creative way,
       PushesEverythingInside may be @false. }
-    property PushesEverythingInside: boolean
+    property PushesEverythingInside: Boolean
       read FPushesEverythingInside write FPushesEverythingInside default true;
   end;
 
@@ -136,19 +136,19 @@ type
     SoundGoEndPosition and such. }
   TCastleLinearMoving = class(TCastleMoving)
   private
-    FEndPosition: boolean;
+    FEndPosition: Boolean;
     FEndPositionStateChangeTime: Single;
 
     FSoundGoBeginPosition: TSoundType;
     FSoundGoEndPosition: TSoundType;
-    FSoundGoBeginPositionLooping: boolean;
-    FSoundGoEndPositionLooping: boolean;
-    FSoundTracksCurrentPosition: boolean;
+    FSoundGoBeginPositionLooping: Boolean;
+    FSoundGoEndPositionLooping: Boolean;
+    FSoundTracksCurrentPosition: Boolean;
 
     UsedSound: TSound;
     procedure SoundRelease(Sender: TSound);
     function SoundPosition: TVector3;
-    procedure PlaySound(SoundType: TSoundType; Looping: boolean);
+    procedure PlaySound(SoundType: TSoundType; Looping: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -159,13 +159,13 @@ type
 
       Initially this is @false, and EndPositionStateChangeTime is set such that
       we're sure that we're in CompletelyBeginPosion, }
-    property EndPosition: boolean read FEndPosition;
+    property EndPosition: Boolean read FEndPosition;
 
     { Last time EndPosition changed. }
     property EndPositionStateChangeTime: Single read FEndPositionStateChangeTime;
 
-    function CompletelyEndPosition: boolean;
-    function CompletelyBeginPosition: boolean;
+    function CompletelyEndPosition: Boolean;
+    function CompletelyBeginPosition: Boolean;
 
     { Start going to @italic(begin position), assuming that
       currently we're in @italic(end position) (i.e. CompletelyEndPosion). }
@@ -203,10 +203,10 @@ type
     property SoundGoEndPosition: TSoundType
       read FSoundGoEndPosition write FSoundGoEndPosition;
 
-    property SoundGoBeginPositionLooping: boolean
+    property SoundGoBeginPositionLooping: Boolean
       read FSoundGoBeginPositionLooping write FSoundGoBeginPositionLooping
       default false;
-    property SoundGoEndPositionLooping: boolean
+    property SoundGoEndPositionLooping: Boolean
       read FSoundGoEndPositionLooping write FSoundGoEndPositionLooping
       default false;
 
@@ -217,7 +217,7 @@ type
       Otherwise (default) sound is initially made at initial
       3D position of this object, and then the sound position doesn't change
       (even if the position of the object changes). }
-    property SoundTracksCurrentPosition: boolean
+    property SoundTracksCurrentPosition: Boolean
       read FSoundTracksCurrentPosition write FSoundTracksCurrentPosition
       default false;
   public
@@ -265,7 +265,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     { Shortcut for checking Life <= 0. }
-    function Dead: boolean;
+    function Dead: Boolean;
 
     { Hurt given creature, decreasing it's life by LifeLoss,
       setting last attack direction (used by knockback and some other effects),
@@ -369,7 +369,7 @@ procedure TCastleMoving.BeforeTimeIncrease(
   function SphereCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Pos: TVector3; const Radius: Single;
-    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
   begin
     Result := GetCollides;
     if Result then
@@ -385,7 +385,7 @@ procedure TCastleMoving.BeforeTimeIncrease(
   function BoxCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Box: TBox3D;
-    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): Boolean;
   begin
     Result := GetCollides;
     if Result then
@@ -527,7 +527,7 @@ begin
 end;
 
 procedure TCastleLinearMoving.PlaySound(SoundType: TSoundType;
-  Looping: boolean);
+  Looping: Boolean);
 begin
   { The object can play only one sound (going to begin or end position)
     at a time. }
@@ -608,13 +608,13 @@ begin
   end;
 end;
 
-function TCastleLinearMoving.CompletelyEndPosition: boolean;
+function TCastleLinearMoving.CompletelyEndPosition: Boolean;
 begin
   Result := EndPosition and
     (AnimationTime - EndPositionStateChangeTime > MoveTime);
 end;
 
-function TCastleLinearMoving.CompletelyBeginPosition: boolean;
+function TCastleLinearMoving.CompletelyBeginPosition: Boolean;
 begin
   Result := (not EndPosition) and
     (AnimationTime - EndPositionStateChangeTime > MoveTime);
@@ -653,7 +653,7 @@ begin
   FLife := Value;
 end;
 
-function TCastleAlive.Dead: boolean;
+function TCastleAlive.Dead: Boolean;
 begin
   Result := Life <= 0;
 end;

@@ -139,7 +139,7 @@ function Expression(
 function NonAssignmentExpression(
   const Lexer: TCasScriptLexer;
   Environment: TCasScriptEnvironment;
-  const AllowFullExpressionInFactor: boolean;
+  const AllowFullExpressionInFactor: Boolean;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
   function BinaryOper(tok: TToken): TCasScriptFunctionClass;

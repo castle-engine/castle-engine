@@ -61,7 +61,7 @@ type
 
   Always TimeTickSecond(X, X, 0) = @true. that is, when both times
   are actually equal, it's correctly "later by zero miliseconds". }
-function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): Boolean;
   deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 
 { Difference in times between SecondTime and FirstTime.
@@ -100,7 +100,7 @@ function DateTimeToAtStr(const DateTime: TDateTime): string;
 
 {$ifdef read_implementation}
 
-function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): Boolean;
 var
   SecondTimeMinusDelay: Int64;
 begin

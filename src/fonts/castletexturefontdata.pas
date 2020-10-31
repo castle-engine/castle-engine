@@ -55,11 +55,11 @@ type
       { Map Unicode code to a TGlyph representation. }
       TGlyphDictionary = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
-        FOwnsGlyphs: boolean;
+        FOwnsGlyphs: Boolean;
         function GetItems(const AKey: TUnicodeChar): TGlyph;
         procedure SetItems(const AKey: TUnicodeChar; const AValue: TGlyph);
       public
-        property OwnsGlyphs: boolean read FOwnsGlyphs write FOwnsGlyphs default true;
+        property OwnsGlyphs: Boolean read FOwnsGlyphs write FOwnsGlyphs default true;
         { Access dictionary items.
           Setting this is allowed regardless if the key previously existed or not,
           in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
@@ -74,7 +74,7 @@ type
     const
       MaxFallbackGlyphWarnings = 10;
     var
-      FAntiAliased: boolean;
+      FAntiAliased: Boolean;
       FSize: Integer;
       { For optimization of rendering normal 8-bit fonts (like standard ASCII
         text), we keep glyphs with index < 256 listed in TGlyphCharDictionary.
@@ -83,7 +83,7 @@ type
       FGlyphsByte: TGlyphCharDictionary;
       FGlyphsExtra: TGlyphDictionary;
       FImage: TGrayscaleImage;
-      MeasureDone: boolean;
+      MeasureDone: Boolean;
       FRowHeight, FRowHeightBase, FDescend: Integer;
       FFirstExistingGlyph: TGlyph;
       FFirstExistingGlyphChar: TUnicodeChar;
@@ -107,7 +107,7 @@ type
 
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const URL: string;
-      const ASize: Integer; const AnAntiAliased: boolean;
+      const ASize: Integer; const AnAntiAliased: Boolean;
       ACharacters: TUnicodeCharList = nil);
 
     { Create from a ready data for glyphs and image.
@@ -115,10 +115,10 @@ type
       AGlyphs instance, and AImage instance, become owned by this class. }
     constructor CreateFromData(const AGlyphs: TGlyphDictionary;
       const AImage: TGrayscaleImage;
-      const ASize: Integer; const AnAntiAliased: boolean);
+      const ASize: Integer; const AnAntiAliased: Boolean);
     destructor Destroy; override;
 
-    property AntiAliased: boolean read FAntiAliased;
+    property AntiAliased: Boolean read FAntiAliased;
     property Size: Integer read FSize;
 
     { Read-only information about a glyph for given character.
@@ -212,7 +212,7 @@ end;
 { TTextureFontData ----------------------------------------------------------------- }
 
 constructor TTextureFontData.Create(const URL: string;
-  const ASize: Integer; const AnAntiAliased: boolean;
+  const ASize: Integer; const AnAntiAliased: Boolean;
   ACharacters: TUnicodeCharList);
 var
   FontId: Integer;
@@ -335,7 +335,7 @@ var
   GlyphsCount, ImageSize: Cardinal;
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
   C: TUnicodeChar;
-  TemporaryCharacters: boolean;
+  TemporaryCharacters: Boolean;
   Cache: TStream;
   CacheURL: String;
   IsCachedFile: Boolean;
@@ -466,7 +466,7 @@ end;
 
 constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const AImage: TGrayscaleImage;
-  const ASize: Integer; const AnAntiAliased: boolean);
+  const ASize: Integer; const AnAntiAliased: Boolean);
 var
   C: TUnicodeChar;
   GlyphPair: TGlyphDictionary.TDictionaryPair;

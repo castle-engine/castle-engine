@@ -102,12 +102,12 @@ procedure TriangulateConvexFace(Count: Integer;
 function IndexedPolygonNormal(
   Indices: PLongintArray; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
+  const ResultForIncorrectPoly: TVector3; const Convex: Boolean): TVector3;
 
 var
   { Write to Log a @italic(lot) of comments how the triangulation goes.
     Useful for examples/visualize_triangulation/ . }
-  LogTriangulation: boolean;
+  LogTriangulation: Boolean;
 
 implementation
 
@@ -212,7 +212,7 @@ var
     Searches to make sure we have a good non-colinear triangle around Middle.
     Returns false (and does log message) if not possible. }
   function EarAround(const Middle: Integer; out Previous, Next: Integer;
-    out EarDir: TVector3): boolean;
+    out EarDir: TVector3): Boolean;
   begin
     { Previous := previous from Middle, with different value. }
     Previous := Middle;
@@ -242,7 +242,7 @@ var
     Result := true;
   end;
 
-  function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean;
+  function EarAround(const Middle: Integer; out Previous, Next: Integer): Boolean;
   var
     EarDirIgnored: TVector3;
   begin
@@ -283,7 +283,7 @@ var
     Inside1/2/3 must be the edge comparison results. }
   function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3;
     const Inside1, Inside2, Inside3: Single;
-    const Border: Integer): boolean;
+    const Border: Integer): Boolean;
 
     { Check collision in 2D between a ray and line segment (0,0)-(1,0).
       Ray0 and RayDirection are projected onto 2D space by assuming that
@@ -297,7 +297,7 @@ var
     function RaySegment01Collision2D(Ray0: TVector3;
       const RayDirection: TVector3;
       const Origin, XDirection: TVector3;
-      YDirection: TVector3): boolean;
+      YDirection: TVector3): Boolean;
     var
       R0, RDirection: TVector2;
       X, T, XDirectionLenSqr, YDirectionLenSqr: Single;
@@ -387,7 +387,7 @@ var
   Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
-  EarFound, FailureWarningDone, ValidEar: boolean;
+  EarFound, FailureWarningDone, ValidEar: Boolean;
   Inside1, Inside2, Inside3: Single;
 begin
   if Count = 3 then
@@ -720,7 +720,7 @@ end;
 function IndexedPolygonNormal(
   Indices: PLongintArray; IndicesCount: Integer;
   Vertices: PVector3Array; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
+  const ResultForIncorrectPoly: TVector3; const Convex: Boolean): TVector3;
 begin
   if Convex then
     Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly)
