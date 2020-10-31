@@ -21,13 +21,13 @@
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
   This is just a shortcut for @code(PtrInt(Result) := PtrInt(P)+Add),
   without any range / overflow checks. }
-function PointerAdd(p: pointer; add: integer): pointer;
+function PointerAdd(p: Pointer; add: integer): Pointer;
 
-function GetClearMem(Size: integer; ClearValue: byte = 0): pointer; overload;
+function GetClearMem(Size: integer; ClearValue: byte = 0): Pointer; overload;
 
 { Safer version of FreeMem, checks is parameter @nil, and sets it to @nil
   afterwards. }
-procedure FreeMemNiling(var p: pointer);
+procedure FreeMemNiling(var p: Pointer);
 
 { Check is memory filled with the given character.
   Returns -1 is @true, or the number (between 0 .. Size - 1)
@@ -65,7 +65,7 @@ function SameMethods(const AMethod1, AMethod2: TMethod): Boolean;
 {$ifdef read_implementation}
 
 {$include norqcheckbegin.inc}
-function PointerAdd(p: pointer; Add: integer): pointer;
+function PointerAdd(p: Pointer; Add: integer): Pointer;
 { Ten kod moze powodowac falszywe alarmy co do rangeChecking / arith. overflow,
   dlatego powinien dzialac z R-,Q- }
 var
@@ -78,10 +78,10 @@ begin
 end;
 {$include norqcheckend.inc}
 
-function GetClearMem(Size: integer; clearValue: byte{=0}): pointer;
+function GetClearMem(Size: integer; clearValue: byte{=0}): Pointer;
 begin result := GetMem(Size); FillChar(result^,Size, clearvalue) end;
 
-procedure FreeMemNiling(var p: pointer);
+procedure FreeMemNiling(var p: Pointer);
 begin
   {$ifdef VER3_3} try {$endif}
   if p <> nil then begin FreeMem(p); p := nil end;

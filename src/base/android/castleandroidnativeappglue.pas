@@ -319,7 +319,7 @@ uses SysUtils, Classes, CastleUtils;
 const
   CLibName = 'c';
 Function LibcMalloc (Size : ptruint) : Pointer; cdecl; external CLibName name 'malloc';
-Procedure LibcFree (P : pointer); cdecl; external CLibName name 'free';
+Procedure LibcFree (P : Pointer); cdecl; external CLibName name 'free';
 
 type
   ppthread_t = ^pthread_t;
@@ -722,7 +722,7 @@ end;
 
 function onSaveInstanceState(activity: PANativeActivity; outLen: pcsize_t): Pointer; cdecl;
 var android_app: Pandroid_app;
-    savedState: pointer;
+    savedState: Pointer;
 begin
   result := nil;
   outLen^ := 0;

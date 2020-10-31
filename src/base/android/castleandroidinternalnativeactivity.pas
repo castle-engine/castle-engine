@@ -198,7 +198,7 @@ type
  * any copy of this data you need -- it will be released after you return from
  * this function.
  }
-  ANativeActivity_createFunc = procedure(activity: PANativeActivity; savedState: pointer; savedStateSize: SizeInt); cdecl;
+  ANativeActivity_createFunc = procedure(activity: PANativeActivity; savedState: Pointer; savedStateSize: SizeInt); cdecl;
 
 {*
  * The name of the function that NativeInstance looks for when launching its

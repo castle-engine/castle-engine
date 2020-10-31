@@ -54,8 +54,8 @@ type
   UErrorCode = SizeInt;
   int32_t = longint;
   uint32_t = longword;
-  PUConverter = pointer;
-  PUCollator = pointer;
+  PUConverter = Pointer;
+  PUCollator = Pointer;
   UBool = LongBool;
 
 var
@@ -862,7 +862,7 @@ var
 
   function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): Boolean;
   var
-    p: pointer;
+    p: Pointer;
   begin
     if hLib = 0 then
       hLib:=hlibICU;
@@ -873,7 +873,7 @@ var
       Result:=False;
     end
     else begin
-      pointer(ProcPtr):=p;
+      Pointer(ProcPtr):=p;
       Result:=True;
     end;
   end;

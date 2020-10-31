@@ -348,7 +348,7 @@ end;
 
 { MurMur algorithm works on any memory region at pointer Data
   of length Len, and the result differs depending on Seed. }
-function MurMur2(const Data: pointer; const Len: Integer; const Seed: LongWord): LongWord;
+function MurMur2(const Data: Pointer; const Len: Integer; const Seed: LongWord): LongWord;
 var h, k: LongWord; //MurMur variables
     p: Pointer;
     i: Integer;

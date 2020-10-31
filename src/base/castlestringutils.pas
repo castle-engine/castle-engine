@@ -578,11 +578,11 @@ type
     and Data. Note that in case of error, some of Args may be initialized,
     and some not --- no guarantees here, sorry.) }
 procedure DeFormat(Data: string; const Format: string;
-  const args: array of pointer;
+  const args: array of Pointer;
   const IgnoreCase: Boolean = true;
   const RelaxedWhitespaceChecking: Boolean = true); overload;
 function TryDeFormat(Data: string; const Format: string;
-  const args: array of pointer;
+  const args: array of Pointer;
   const IgnoreCase: Boolean = true;
   const RelaxedWhitespaceChecking: Boolean = true): integer; overload;
 
@@ -1694,7 +1694,7 @@ begin
 end;
 
 procedure DeFormat(Data: string; const Format: string;
-  const args: array of pointer;
+  const args: array of Pointer;
   const IgnoreCase: Boolean;
   const RelaxedWhitespaceChecking: Boolean);
 begin
@@ -1706,7 +1706,7 @@ begin
 end;
 
 function TryDeFormat(Data: string; const Format: string;
-  const args: array of pointer;
+  const args: array of Pointer;
   const IgnoreCase: Boolean;
   const RelaxedWhitespaceChecking: Boolean): integer;
 var datapos, formpos: integer;

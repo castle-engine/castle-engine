@@ -269,8 +269,8 @@ begin
      end;
 
     finally
-     FreeMemNiling(pointer(rowdata));
-     FreeMemNiling(pointer(palette));
+     FreeMemNiling(Pointer(rowdata));
+     FreeMemNiling(Pointer(palette));
     end;
    except Result.Free; raise end;
   end;

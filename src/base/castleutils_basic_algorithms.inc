@@ -101,22 +101,22 @@ const
     behavior. (Unless ArrRecordSize is 0, then ArrStride may be 0 too.).)
 
   @groupBegin }
-procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
+procedure Sort(Arr: Pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
   deprecated 'use Generics.Collections lists and their Sort method';
-procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
+procedure Sort(Arr: Pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
   deprecated 'use Generics.Collections lists and their Sort method';
 
-procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
+procedure SortByObject(Arr: Pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
   deprecated 'use Generics.Collections lists and their Sort method';
-procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
+procedure SortByObject(Arr: Pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
   deprecated 'use Generics.Collections lists and their Sort method';
@@ -126,7 +126,7 @@ procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer
 
 {$ifdef read_implementation}
 
-procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
+procedure Sort(Arr: Pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
@@ -137,13 +137,13 @@ begin
   {$warnings off}
 end;
 
-procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
+procedure Sort(Arr: Pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
 {$I castleutils_implement_sort.inc}
 
-procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
+procedure SortByObject(Arr: Pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFuncByObject;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
@@ -154,7 +154,7 @@ begin
   {$warnings on}
 end;
 
-procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
+procedure SortByObject(Arr: Pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
 { For the sake of maximum speed, I'm not calling here Sort()
