@@ -361,7 +361,7 @@
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     destructor Destroy; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     { Opacity is just a 1 - FdTransparency.Value.
@@ -388,7 +388,7 @@
       configurable (using FdEmissiveColor and FdTransparency fields).
 
       We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+    function PureEmissive: Boolean;
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
@@ -543,7 +543,7 @@ end;
 
 procedure TAbstractShapeNode.TSFShading.ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime);
 var
-  OldWireframe, NewWireframe: boolean;
+  OldWireframe, NewWireframe: Boolean;
 begin
   OldWireframe := TShading(EnumValue) = shWireframe;
   NewWireframe := TShading(StringToEnumValue((NewValue as TSFString).Value)) = shWireframe;
@@ -1162,7 +1162,7 @@ begin
   inherited;
 end;
 
-class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1184,7 +1184,7 @@ begin
   Result := FMaterialInfo;
 end;
 
-function TMaterialNode.PureEmissive: boolean;
+function TMaterialNode.PureEmissive: Boolean;
 begin
   Result := (FdAmbientIntensity.Value = 0) and
             FdDiffuseColor.Value.IsPerfectlyZero and

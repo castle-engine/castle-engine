@@ -30,7 +30,7 @@
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
     procedure ApplyTransform(var Transformation: TTransformation); override;
@@ -64,11 +64,11 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     function TexCoordField: TSFNode; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
   end;
@@ -226,8 +226,8 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
   end;
 
   { Utility for setting and observing a boolean value in various ways. }
@@ -591,7 +591,7 @@ begin
   Result := 'MatrixTransform';
 end;
 
-class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -666,7 +666,7 @@ begin
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 const
   // Uncomment these if you need to temporarily compile without
   // auto_generated_teapot/teapot.inc.
@@ -713,7 +713,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TTeapotNode.ProxyUsesOverTriangulate: boolean;
+function TTeapotNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -732,7 +732,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TTeapotNode.AutoGenerate3DTexCoords: boolean;
+function TTeapotNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -983,12 +983,12 @@ begin
 end;
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TPlaneNode.ProxyUsesOverTriangulate: boolean;
+function TPlaneNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;

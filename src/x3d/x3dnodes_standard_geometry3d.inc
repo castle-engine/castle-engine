@@ -39,14 +39,14 @@
     function CalculateDivisions: Cardinal;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_box.inc}
   end;
@@ -87,17 +87,17 @@
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_cone.inc}
   end;
@@ -142,17 +142,17 @@
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
   end;
@@ -222,7 +222,7 @@
       required number of values. If this returns @false then
       it is understood that ElevationGrid is not rendered, doesn't
       have any vertices/triangles etc. }
-    function IsNotEmpty: boolean;
+    function IsNotEmpty: Boolean;
 
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
@@ -231,14 +231,14 @@
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
@@ -320,23 +320,23 @@
 
     { Check is spine closed. This happens when "spine" field is non-empty
       and it's first and last points are equal. }
-    function SpineClosed: boolean;
+    function SpineClosed: Boolean;
 
     { Check is crossSection closed. This happens when "crossSection"
       field is non-empty and it's first and last points are equal. }
-    function CrossSectionClosed: boolean;
+    function CrossSectionClosed: Boolean;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
   end;
@@ -395,7 +395,7 @@
     strict private FFdTexCoordIndex: TMFInt32;
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     function CoordIndexField: TMFLong; override;
@@ -404,7 +404,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
@@ -436,18 +436,18 @@
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
   end;
@@ -492,7 +492,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TBoxNode.AutoGenerate3DTexCoords: boolean;
+function TBoxNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -557,7 +557,7 @@ begin
   Result := 'Cone';
 end;
 
-class function TConeNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TConeNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -576,7 +576,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TConeNode.AutoGenerate3DTexCoords: boolean;
+function TConeNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -654,7 +654,7 @@ begin
   Result := 'Cylinder';
 end;
 
-class function TCylinderNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TCylinderNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -673,7 +673,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TCylinderNode.AutoGenerate3DTexCoords: boolean;
+function TCylinderNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -784,7 +784,7 @@ begin
   Result := 'ElevationGrid';
 end;
 
-function TElevationGridNode.IsNotEmpty: boolean;
+function TElevationGridNode.IsNotEmpty: Boolean;
 begin
   Result :=
     (FdXDimension.Value >= 2) and
@@ -922,7 +922,7 @@ begin
   Result[2] := FdCrossSection.Items.List^[Index][1];
 end;
 
-function TExtrusionNode.SpineClosed: boolean;
+function TExtrusionNode.SpineClosed: Boolean;
 var
   SpinePoints: TVector3List;
 begin
@@ -932,7 +932,7 @@ begin
                              SpinePoints.First);
 end;
 
-function TExtrusionNode.CrossSectionClosed: boolean;
+function TExtrusionNode.CrossSectionClosed: Boolean;
 var
   CrossSectionPoints: TVector2List;
 begin
@@ -946,7 +946,7 @@ begin
 end;
 
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 
 { Some of the things that are non-optimal when you will render
   Extrusion using this Proxy instead of directly rendering node:
@@ -994,7 +994,7 @@ var
   TexCoords: TVector2List;
 
   procedure NextIndex(SpineIndex, CrossSectionIndex: Integer;
-    SpecialTex: boolean; SpecialTexIndex: Integer);
+    SpecialTex: Boolean; SpecialTexIndex: Integer);
   begin
     if TexCoords <> nil then
     begin
@@ -1209,7 +1209,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TExtrusionNode.ProxyUsesOverTriangulate: boolean;
+function TExtrusionNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -1228,7 +1228,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TExtrusionNode.AutoGenerate3DTexCoords: boolean;
+function TExtrusionNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -1335,7 +1335,7 @@ begin
   Result := 'IndexedFaceSet';
 end;
 
-class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1409,7 +1409,7 @@ begin
   Result := 'Sphere';
 end;
 
-class function TSphereNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TSphereNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1419,7 +1419,7 @@ begin
   Result := FdTexCoord;
 end;
 
-function TSphereNode.AutoGenerate3DTexCoords: boolean;
+function TSphereNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;

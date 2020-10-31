@@ -89,11 +89,11 @@
     { @groupEnd }
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-      FieldValue, IsClauseAllowed: boolean);
+      FieldValue, IsClauseAllowed: Boolean);
 
     { Parse interface declaration encoded in XML.
 
-      Note that classic VRML parser has here IsClauseAllowed: boolean
+      Note that classic VRML parser has here IsClauseAllowed: Boolean
       parameter, this was set to @true when parsing InterfaceDeclarations
       of special nodes (Script, ComposedShader etc.), since they could
       have IS clause (at least, as far as I understood the spec).
@@ -102,7 +102,7 @@
       point from nodeField to any interface field of this node, including
       InterfaceDeclarations. So ParseISStatement handles this. }
     procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames;
-      FieldValue: boolean);
+      FieldValue: Boolean);
 
     { Save this interface declaration to stream.
       This assumes that it starts at the beginning of the line,
@@ -119,7 +119,7 @@
         Otherwise, field's value will not be saved, only IS clauses
         if present.)
     }
-    procedure IDeclSaveToStream(Writer: TX3DWriter; FieldValue: boolean);
+    procedure IDeclSaveToStream(Writer: TX3DWriter; FieldValue: Boolean);
 
     { Save this interface declaration to stream.
       @seealso IDeclSaveToStream }
@@ -198,7 +198,7 @@ begin
 end;
 
 procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  FieldValue, IsClauseAllowed: boolean);
+  FieldValue, IsClauseAllowed: Boolean);
 var
   X3DType: string;
   Access: TX3DAccessType;
@@ -264,7 +264,7 @@ begin
 end;
 
 procedure TX3DInterfaceDeclaration.ParseXML(
-  Element: TDOMElement; Reader: TX3DReaderNames; FieldValue: boolean);
+  Element: TDOMElement; Reader: TX3DReaderNames; FieldValue: Boolean);
 var
   Access: TX3DAccessType;
   AccessIndex: Integer;
@@ -407,12 +407,12 @@ begin
 end;
 
 procedure TX3DInterfaceDeclaration.IDeclSaveToStream(
-  Writer: TX3DWriter; FieldValue: boolean);
+  Writer: TX3DWriter; FieldValue: Boolean);
 
   function ATName(const AccessType: TX3DAccessType): string;
   const
     Names: array
-      [ boolean { is it X3D or XML encoding ? },
+      [ Boolean { is it X3D or XML encoding ? },
         TX3DAccessType] of string =
       ( ('eventIn', 'eventOut', 'field', 'exposedField'),
         ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );

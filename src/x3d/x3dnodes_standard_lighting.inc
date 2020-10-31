@@ -301,20 +301,20 @@
       (should be equal to global coord system for normal cameras).
 
       @groupBegin }
-    function DistanceNeededForAttenuation: boolean;
+    function DistanceNeededForAttenuation: Boolean;
     function CalculateAttenuation(const DistanceToLight: Single): Single; overload;
     { @groupEnd }
 
     { Is attenuation relevant. When @false, you know that @link(Attenuation)
       function always returns 1, so there's no point in using it at all. }
-    function HasAttenuation: boolean;
+    function HasAttenuation: Boolean;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
     property Radius: Single read GetRadius write SetRadius;
 
     { Should the "radius" field be taken into account. }
-    function HasRadius: boolean; virtual;
+    function HasRadius: Boolean; virtual;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
     function PositionAndDirection: TVector4; override;
@@ -339,7 +339,7 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
@@ -352,7 +352,7 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
@@ -383,7 +383,7 @@
     strict private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
@@ -892,13 +892,13 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-function TAbstractPositionalLightNode.DistanceNeededForAttenuation: boolean;
+function TAbstractPositionalLightNode.DistanceNeededForAttenuation: Boolean;
 begin
   Result := (FdAttenuation.Value[1] <> 0) or
             (FdAttenuation.Value[2] <> 0);
 end;
 
-function TAbstractPositionalLightNode.HasAttenuation: boolean;
+function TAbstractPositionalLightNode.HasAttenuation: Boolean;
 begin
   Result := ((FdAttenuation.Value[0] <> 1) and
              (FdAttenuation.Value[0] <> 0)) or
@@ -906,7 +906,7 @@ begin
             (FdAttenuation.Value[2] <> 0);
 end;
 
-function TAbstractPositionalLightNode.HasRadius: boolean;
+function TAbstractPositionalLightNode.HasRadius: Boolean;
 begin
   { When radius < 0, behave like radius is infinite.
     Useful for implementing glTF punctual lights. }
@@ -1030,7 +1030,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1044,7 +1044,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1085,7 +1085,7 @@ begin
   Result := 'SpotLight';
 end;
 
-class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;

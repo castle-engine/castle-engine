@@ -69,8 +69,8 @@ const
 
   { Constants for VRML 1.0 @link(TFontStyleNode_1.FdStyle) flags.
     @groupBegin }
-  FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple boolean';
-  FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple boolean';
+  FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple Boolean';
+  FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple Boolean';
   { @groupEnd }
 
   { Constants for TConeNode.FdParts.Flags.
@@ -182,7 +182,7 @@ var
 
     In your data (X3D, VRML, Collada, OBJ materials...),
     you should always use relative paths. }
-  WarnAboutAbsoluteFilenames: boolean = true;
+  WarnAboutAbsoluteFilenames: Boolean = true;
 
   (*Whether to resolve relative URLs within X3D prototypes with respect
     to the file that instantiated the prototype (false, default, compatible with Instant Player)
@@ -232,7 +232,7 @@ var
     See our testcase in
     https://github.com/castle-engine/demo-models/tree/master/prototypes/relative_urls_test
   *)
-  RebaseRelativeUrlsInPrototypes: boolean = false;
+  RebaseRelativeUrlsInPrototypes: Boolean = false;
 
 { Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }

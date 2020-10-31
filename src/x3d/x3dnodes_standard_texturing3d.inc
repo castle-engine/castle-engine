@@ -18,10 +18,10 @@
   TAbstractTexture3DNode = class(TAbstractSingleTextureNode)
   private
     UsedCache: TTexturesVideosCache;
-    FTextureLoaded: boolean;
+    FTextureLoaded: Boolean;
     FTextureImage: TEncodedImage;
     FTextureComposite: TCompositeImage;
-    procedure SetTextureLoaded(const Value: boolean);
+    procedure SetTextureLoaded(const Value: Boolean);
   strict protected
     { This does the actual loading of texture data.
 
@@ -62,7 +62,7 @@
 
       In case of problems (for example when some URL cannot be loaded),
       we will make WritelnWarning. }
-    property TextureLoaded: boolean
+    property TextureLoaded: Boolean
       read FTextureLoaded write SetTextureLoaded;
 
     property TextureImage: TEncodedImage read FTextureImage;
@@ -217,7 +217,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractTexture3DNode.SetTextureLoaded(const Value: boolean);
+procedure TAbstractTexture3DNode.SetTextureLoaded(const Value: Boolean);
 begin
   if Value <> TextureLoaded then
   begin

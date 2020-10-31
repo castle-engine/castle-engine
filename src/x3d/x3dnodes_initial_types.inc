@@ -85,7 +85,7 @@
   TTraversingFunc = function (Node: TX3DNode;
     StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo;
-    var TraverseIntoChildren: boolean): Pointer of object;
+    var TraverseIntoChildren: Boolean): Pointer of object;
 
   TTraversingAfterFunc = procedure (Node: TX3DNode;
     StateStack: TX3DGraphTraverseStateStack;

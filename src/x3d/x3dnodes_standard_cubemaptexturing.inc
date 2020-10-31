@@ -64,7 +64,7 @@
       Also calculate AlphaChannel for the whole cube map.
       Our AlphaChannel method will reflect the state from
       last call of this. }
-    function LoadSides: boolean;
+    function LoadSides: Boolean;
 
     {$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
   end;
@@ -192,11 +192,11 @@ begin
   Result := 'ComposedCubeMapTexture';
 end;
 
-function TComposedCubeMapTextureNode.LoadSides: boolean;
+function TComposedCubeMapTextureNode.LoadSides: Boolean;
 
   { Checks is given side has non-nil valid node class,
     and then if image there can be loaded. }
-  function SideLoaded(SideField: TSFNode): boolean;
+  function SideLoaded(SideField: TSFNode): Boolean;
   var
     SideTex: TAbstractTexture2DNode;
   begin

@@ -86,7 +86,7 @@
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   strict private
     FCameraVectors: TCameraVectors;
-    FCameraVectorsKnown: boolean;
+    FCameraVectorsKnown: Boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(var Transformation: TTransformation); override;
@@ -179,8 +179,8 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
-    function GetForceTransitions: boolean;
-    procedure SetForceTransitions(const Value: boolean);
+    function GetForceTransitions: Boolean;
+    procedure SetForceTransitions(const Value: Boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -194,7 +194,7 @@
 
     strict private FFdForceTransitions: TSFBool;
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
-    property ForceTransitions: boolean read GetForceTransitions write SetForceTransitions;
+    property ForceTransitions: Boolean read GetForceTransitions write SetForceTransitions;
 
     { Event out } { }
     strict private FEventLevel_changed: TSFInt32Event;
@@ -211,7 +211,7 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -219,7 +219,7 @@
     only one of which will be visible at a given time, for X3D. }
   TLODNode = class(TAbstractLODNode)
   public
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
   TLODNode_3 = TLODNode;
@@ -794,12 +794,12 @@ begin
   FdCenter.Send(Value);
 end;
 
-function TAbstractLODNode.GetForceTransitions: boolean;
+function TAbstractLODNode.GetForceTransitions: Boolean;
 begin
   Result := FdForceTransitions.Value;
 end;
 
-procedure TAbstractLODNode.SetForceTransitions(const Value: boolean);
+procedure TAbstractLODNode.SetForceTransitions(const Value: Boolean);
 begin
   FdForceTransitions.Send(Value);
 end;
@@ -813,14 +813,14 @@ begin
   Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
 end;
 
-class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major = 2;
 end;
 
 { TLODNode ------------------------------------------------------------------- }
 
-class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 3;
 end;

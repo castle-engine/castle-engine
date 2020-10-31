@@ -19,7 +19,7 @@
   TX3DNodeNameRec = object
     Node: TX3DNode;
     Name: string;
-    Finished: boolean;
+    Finished: Boolean;
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
   end;
   PX3DNodeNameRec = ^TX3DNodeNameRec;
@@ -27,12 +27,12 @@
   { List to track node names while parsing VRML/X3D file. }
   TX3DNodeNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
   strict private
-    FAutoRemove: boolean;
+    FAutoRemove: Boolean;
     procedure DestructionNotification(const Node: TX3DNode);
     function IndexOfNode(Node: TX3DNode): Integer;
     function IndexOfName(const Name: string): Integer;
   public
-    constructor Create(const AAutoRemove: boolean);
+    constructor Create(const AAutoRemove: Boolean);
     destructor Destroy; override;
 
     { If @true (determined at construction time),
@@ -43,7 +43,7 @@
 
       Internally, this is done by registering
       itself for AnyNodeDestructionNotifications. }
-    property AutoRemove: boolean read FAutoRemove;
+    property AutoRemove: Boolean read FAutoRemove;
 
     { Associate given node with it's own name.
 
@@ -54,11 +54,11 @@
       For now, we just disallow such cycles. Still, we allow
       ROUTEs from inside the node, so calling with NodeFinished = false
       is still useful for parsing. }
-    procedure Bind(Node: TX3DNode; const NodeFinished: boolean); overload;
-    procedure Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string); overload;
+    procedure Bind(Node: TX3DNode; const NodeFinished: Boolean); overload;
+    procedure Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: string); overload;
 
     { Find node bound to given name. @nil if none. }
-    function Bound(const Name: string; out NodeFinished: boolean): TX3DNode; overload;
+    function Bound(const Name: string; out NodeFinished: Boolean): TX3DNode; overload;
 
     { Check is Node bound in the current namespace.
       @false means that node is not within this namespace,
@@ -68,7 +68,7 @@
       else. So this assumes that node can only be bound (if at all)
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
-    function Bound(Node: TX3DNode): boolean; overload;
+    function Bound(Node: TX3DNode): Boolean; overload;
 
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
@@ -106,7 +106,7 @@ end;
 
 { TX3DNodeNames ----------------------------------------------------------- }
 
-constructor TX3DNodeNames.Create(const AAutoRemove: boolean);
+constructor TX3DNodeNames.Create(const AAutoRemove: Boolean);
 begin
   inherited Create;
   FAutoRemove := AAutoRemove;
@@ -151,7 +151,7 @@ begin
     Delete(I);
 end;
 
-procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string);
+procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: string);
 var
   I: Integer;
   P: PX3DNodeNameRec;
@@ -168,12 +168,12 @@ begin
   end;
 end;
 
-procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean);
+procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: Boolean);
 begin
   Bind(Node, NodeFinished, Node.X3DName);
 end;
 
-function TX3DNodeNames.Bound(const Name: string; out NodeFinished: boolean): TX3DNode;
+function TX3DNodeNames.Bound(const Name: string; out NodeFinished: Boolean): TX3DNode;
 var
   I: Integer;
 begin
@@ -186,7 +186,7 @@ begin
     Result := nil;
 end;
 
-function TX3DNodeNames.Bound(Node: TX3DNode): boolean;
+function TX3DNodeNames.Bound(Node: TX3DNode): Boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
 end;

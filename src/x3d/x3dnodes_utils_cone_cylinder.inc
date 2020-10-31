@@ -63,7 +63,7 @@ end;
 
   @param(InvertT Allows you to invert texture, suitable for top cap.) }
 procedure GenerateTexCoordCircle(const QuadricSlices: Cardinal;
-  Points: PVector2; const InvertT: boolean);
+  Points: PVector2; const InvertT: Boolean);
 var
   AngleRad: Single;
   AngleSin, AngleCos: Float;
@@ -114,8 +114,8 @@ end;
 procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3List; Normal: TVector3List;
   TexCoord: TVector2List; MaterialIndex: TLongIntList;
-  OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
-  const Bottom, Side, Top: boolean;
+  OverTriangulate: Boolean; const BottomRadius, TopRadius, Height: Single;
+  const Bottom, Side, Top: Boolean;
   const QuadricSlices, QuadricStacks: Cardinal);
 
 { How to make nice normals at the top of the cone?
@@ -443,7 +443,7 @@ end;
 { VRML 2 proxy --------------------------------------------------------------- }
 
 function TCylinderNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
@@ -486,7 +486,7 @@ begin
 end;
 
 function TConeNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
@@ -531,7 +531,7 @@ end;
 { VRML 1 proxy --------------------------------------------------------------- }
 
 function TCylinderNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
@@ -602,7 +602,7 @@ begin
 end;
 
 function TConeNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;

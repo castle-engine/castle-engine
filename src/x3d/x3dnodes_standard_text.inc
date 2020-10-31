@@ -32,17 +32,17 @@
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
-      JustifyWarningNotSupportedDone: boolean;
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
+      JustifyWarningNotSupportedDone: Boolean;
+    function GetBlending: Boolean;
+    procedure SetBlending(const Value: Boolean);
     function StringToJustify(const S: string;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
     function GetFamily: TX3DFontFamily;
     procedure SetFamily(const Value: TX3DFontFamily);
-    function GetBold: boolean;
-    procedure SetBold(const Value: boolean);
-    function GetItalic: boolean;
-    procedure SetItalic(const Value: boolean);
+    function GetBold: Boolean;
+    procedure SetBold(const Value: Boolean);
+    function GetItalic: Boolean;
+    procedure SetItalic(const Value: Boolean);
     function GetJustify: TX3DFontJustify;
     procedure SetJustify(const Value: TX3DFontJustify);
     function GetJustifyMinor: TX3DFontJustify;
@@ -89,8 +89,8 @@
 
     strict private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
-    property Bold: boolean read GetBold write SetBold;
-    property Italic: boolean read GetItalic write SetItalic;
+    property Bold: Boolean read GetBold write SetBold;
+    property Italic: Boolean read GetItalic write SetItalic;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdTopToBottom: TSFBool;
@@ -99,9 +99,9 @@
 
     strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
-    property Blending: boolean read GetBlending write SetBlending;
+    property Blending: Boolean read GetBlending write SetBlending;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     type
@@ -181,8 +181,8 @@
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TX3DGraphTraverseState;
@@ -271,7 +271,7 @@ begin
   Result := 'FontStyle';
 end;
 
-class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -309,11 +309,11 @@ const
   StyleBoldItalic = 'BOLDITALIC';
   StyleItalic = 'ITALIC';
   StylePlain = 'PLAIN';
-  StyleString: array[boolean { bold ? }, boolean { italic ? }] of string =
+  StyleString: array[Boolean { bold ? }, Boolean { italic ? }] of string =
   ( (StylePlain, StyleItalic),
     (StyleBold, StyleBoldItalic) );
 
-function TFontStyleNode.GetBold: boolean;
+function TFontStyleNode.GetBold: Boolean;
 var
   S: string;
 begin
@@ -336,12 +336,12 @@ begin
   end;
 end;
 
-procedure TFontStyleNode.SetBold(const Value: boolean);
+procedure TFontStyleNode.SetBold(const Value: Boolean);
 begin
   FdStyle.Send(StyleString[Value, Italic]);
 end;
 
-function TFontStyleNode.GetItalic: boolean;
+function TFontStyleNode.GetItalic: Boolean;
 var
   S: string;
 begin
@@ -364,7 +364,7 @@ begin
   end;
 end;
 
-procedure TFontStyleNode.SetItalic(const Value: boolean);
+procedure TFontStyleNode.SetItalic(const Value: Boolean);
 begin
   FdStyle.Send(StyleString[Bold, Value]);
 end;
@@ -461,12 +461,12 @@ begin
   FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
 end;
 
-function TFontStyleNode.GetBlending: boolean;
+function TFontStyleNode.GetBlending: Boolean;
 begin
   Result := FdBlending.Value;
 end;
 
-procedure TFontStyleNode.SetBlending(const Value: boolean);
+procedure TFontStyleNode.SetBlending(const Value: Boolean);
 begin
   FdBlending.Send(Value);
 end;
@@ -575,7 +575,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const Strings: TCastleStringList;
   const MaxDisplayChars: Integer;
   const Font: TTextureFontData;
-  const Solid: boolean;
+  const Solid: Boolean;
   const EventLineBounds: TMFVec2fEvent;
   const EventOrigin: TSFVec3fEvent;
   const EventTextBounds: TSFVec2fEvent;
@@ -842,7 +842,7 @@ begin
 end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
@@ -928,7 +928,7 @@ end;
   {$info Workaround Aarch64 optimizer: TextProxy not optimized (end)}
 {$endif}
 
-function TTextNode.ProxyUsesOverTriangulate: boolean;
+function TTextNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -991,7 +991,7 @@ end;
 
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 var
-  Blending: boolean;
+  Blending: Boolean;
 begin
   { For now, we assume that font value never changes,
     and so FFontTextureNode is neved changed once it's initially

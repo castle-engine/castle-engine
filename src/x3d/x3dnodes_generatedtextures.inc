@@ -29,7 +29,7 @@
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: string;
       const AValue: TTextureUpdate);
     function ExecuteChange: TX3DChange; override;
 
@@ -45,7 +45,7 @@
   private
     FUpdate: TSFTextureUpdate;
   strict private
-    FUpdateNeeded: boolean;
+    FUpdateNeeded: Boolean;
   public
     constructor Create;
 
@@ -58,7 +58,7 @@
       take care to set this field. After each actual update of the texture,
       it's set to @false. Each time something visible affecting the look
       of this texture possibly changed, it's set to @true. }
-    property UpdateNeeded: boolean read FUpdateNeeded write FUpdateNeeded
+    property UpdateNeeded: Boolean read FUpdateNeeded write FUpdateNeeded
       default true;
 
     property Update: TSFTextureUpdate read FUpdate;
@@ -67,7 +67,7 @@
 
 {$ifdef read_implementation}
 constructor TSFTextureUpdate.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: TTextureUpdate);
+  const AExposed: Boolean; const AName: string; const AValue: TTextureUpdate);
 const
   UpdateNames: array [TTextureUpdate] of string =
   ('NONE', 'NEXT_FRAME_ONLY', 'ALWAYS');

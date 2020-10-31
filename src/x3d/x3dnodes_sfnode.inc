@@ -38,12 +38,12 @@
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenInterface: TGUID;
     FDefaultValue: TX3DNode;
-    FDefaultValueExists: boolean;
-    FWeakLink: boolean;
+    FDefaultValueExists: Boolean;
+    FWeakLink: Boolean;
     procedure SetValue(const AValue: TX3DNode);
     procedure SetDefaultValue(const ADefaultValue: TX3DNode);
-    procedure SetDefaultValueExists(const AValue: boolean);
-    procedure SetWeakLink(const AValue: boolean);
+    procedure SetDefaultValueExists(const AValue: Boolean);
+    procedure SetWeakLink(const AValue: Boolean);
     procedure WarningIfUnusedWeakLink;
     procedure DestructionNotification(const Node: TX3DNode);
   strict protected
@@ -55,21 +55,21 @@
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string); override;
+      const AExposed: Boolean; const AName: string); override;
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: string;
       const AAllowedChildrenClasses: array of TX3DNodeClass;
       const AValue: TX3DNode = nil); overload;
     { Constructor that takes a list of allowed children classes.
       Note that we copy the contents of AAllowedChildrenClasses,
       not the reference. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: string;
       const AAllowedChildrenClasses: TX3DNodeClassesList;
       const AValue: TX3DNode = nil); overload;
     { Constructor that allows as children any implementor of given interface. }
     constructor Create(const AParentNode: TX3DNode;
-      const AExposed: boolean; const AName: string;
+      const AExposed: Boolean; const AName: string;
       const AnAllowedChildrenInterface: TGUID;
       const AValue: TX3DNode = nil); overload;
     destructor Destroy; override;
@@ -94,7 +94,7 @@
       automatically. }
     property DefaultValue: TX3DNode
       read FDefaultValue write SetDefaultValue;
-    property DefaultValueExists: boolean
+    property DefaultValueExists: Boolean
       read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TX3DNode read FValue write SetValue;
@@ -102,8 +102,8 @@
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
 
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField): boolean; override;
+    function EqualsDefaultValue: Boolean; override;
+    function Equals(SecondValue: TX3DField): Boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -119,7 +119,7 @@
     property ParentNode: TX3DNode read FParentNode;
 
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
 
     { Checks is the Child allowed as a value of this SFNode,
       and makes WritelnWarning if not.
@@ -135,8 +135,8 @@
       otherwise WritelnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TX3DNode);
 
-    function ChildAllowed(Child: TX3DNode): boolean;
-    function CurrentChildAllowed: boolean;
+    function ChildAllowed(Child: TX3DNode): Boolean;
+    function CurrentChildAllowed: Boolean;
 
     { Calls Func for our @link(Value), assuming it's set (non-nil).
       The main use for this is to simplify implementation of
@@ -177,7 +177,7 @@
       @link(TGeneratedShadowMapNode.Light), as we know that the light
       must occur somewhere else in the graph anyway to be useful.
     }
-    property WeakLink: boolean
+    property WeakLink: Boolean
       read FWeakLink write SetWeakLink default false;
   end;
 
@@ -194,7 +194,7 @@
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string);
+  const AExposed: Boolean; const AName: string);
 begin
   inherited;
   Value := nil;
@@ -207,7 +207,7 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: string;
   const AAllowedChildrenClasses: array of TX3DNodeClass;
   const AValue: TX3DNode);
 begin
@@ -227,7 +227,7 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: string;
   const AAllowedChildrenClasses: TX3DNodeClassesList;
   const AValue: TX3DNode);
 begin
@@ -239,7 +239,7 @@ begin
 end;
 
 constructor TSFNode.Create(const AParentNode: TX3DNode;
-  const AExposed: boolean; const AName: string;
+  const AExposed: Boolean; const AName: string;
   const AnAllowedChildrenInterface: TGUID;
   const AValue: TX3DNode);
 begin
@@ -266,7 +266,7 @@ begin
   inherited;
 end;
 
-function TSFNode.ChildAllowed(Child: TX3DNode): boolean;
+function TSFNode.ChildAllowed(Child: TX3DNode): Boolean;
 begin
   case AllowedChildren of
     acAll      : Result := true;
@@ -278,7 +278,7 @@ begin
   end;
 end;
 
-function TSFNode.CurrentChildAllowed: boolean;
+function TSFNode.CurrentChildAllowed: Boolean;
 begin
   Result := ChildAllowed(Value);
 end;
@@ -339,7 +339,7 @@ procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DRe
 const
   SNull = 'NULL';
 var
-  UsedNodeFinished: boolean;
+  UsedNodeFinished: Boolean;
   V: TX3DNode;
 begin
   { For SFNode and MFNode, X3D XML encoding has special handling:
@@ -420,12 +420,12 @@ begin
     Result := sxChildElement;
 end;
 
-function TSFNode.EqualsDefaultValue: boolean;
+function TSFNode.EqualsDefaultValue: Boolean;
 begin
   Result := DefaultValueExists and (Value = DefaultValue);
 end;
 
-function TSFNode.Equals(SecondValue: TX3DField): boolean;
+function TSFNode.Equals(SecondValue: TX3DField): Boolean;
 begin
  Result := (inherited Equals(SecondValue)) and
    (SecondValue is TSFNode) and
@@ -522,7 +522,7 @@ begin
   end;
 end;
 
-procedure TSFNode.SetDefaultValueExists(const AValue: boolean);
+procedure TSFNode.SetDefaultValueExists(const AValue: Boolean);
 begin
   FDefaultValueExists := AValue;
 end;
@@ -544,7 +544,7 @@ begin
     Result := nil;
 end;
 
-class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TSFNodeEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -562,7 +562,7 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-procedure TSFNode.SetWeakLink(const AValue: boolean);
+procedure TSFNode.SetWeakLink(const AValue: Boolean);
 begin
   if FWeakLink <> AValue then
   begin

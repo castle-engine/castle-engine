@@ -25,7 +25,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function InternalTexCoord(State: TX3DGraphTraverseState;
-      out ATexCoord: TX3DNode): boolean; override;
+      out ATexCoord: TX3DNode): Boolean; override;
   end;
 
   { RotationXYZ node (from Inventor). It's not in VRML 1.0 spec.
@@ -53,7 +53,7 @@ begin
 end;
 
 function TIndexedTriangleMeshNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
-  out ATexCoord: TX3DNode): boolean;
+  out ATexCoord: TX3DNode): Boolean;
 begin
   Result := true;
   ATexCoord := State.VRML1State.TextureCoordinate2;

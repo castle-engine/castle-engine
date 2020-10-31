@@ -40,7 +40,7 @@
     { X3D field "repeatR". } { }
     property RepeatR: Boolean read GetRepeatR write SetRepeatR;
     { Set X3D field "depthMap". } { }
-    procedure SetDepthMap(const Value: array of boolean);
+    procedure SetDepthMap(const Value: array of Boolean);
     { Set X3D field "depthMap". } { }
     procedure SetDepthMap(const Value: TBooleanList);
 
@@ -83,7 +83,7 @@ begin
   FdRepeatR.Send(Value);
 end;
 
-procedure TRenderedTextureNode.SetDepthMap(const Value: array of boolean);
+procedure TRenderedTextureNode.SetDepthMap(const Value: array of Boolean);
 begin
   FdDepthMap.Send(Value);
 end;

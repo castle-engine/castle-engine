@@ -76,10 +76,10 @@ type
 
     class function Oldest: TX3DTime; static;
 
-    class operator {$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
-    class operator {$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
-    class operator {$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
-    class operator {$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): Boolean;
+    class operator {$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): Boolean;
+    class operator {$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): Boolean;
+    class operator {$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): Boolean;
   end;
   PX3DTime = ^TX3DTime;
 
@@ -101,28 +101,28 @@ begin
   Result := R;
 end;
 
-class operator TX3DTime.{$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): Boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks > Time2.PlusTicks) );
 end;
 
-class operator TX3DTime.{$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): Boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks >= Time2.PlusTicks) );
 end;
 
-class operator TX3DTime.{$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): Boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks < Time2.PlusTicks) );
 end;
 
-class operator TX3DTime.{$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): Boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and

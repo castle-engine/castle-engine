@@ -81,19 +81,19 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
 procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean = false); overload;
+  const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
   const URL: string;
   const Generator: string = '';
@@ -102,7 +102,7 @@ procedure Save3D(Node: TX3DNode;
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean): boolean;
+  const ForceConvertingToX3D: Boolean): Boolean;
 
 {$endif read_interface}
 
@@ -371,7 +371,7 @@ end;
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean): boolean;
+  const ForceConvertingToX3D: Boolean): Boolean;
 begin
   Result := (Version.Major < 3) and
     (ForceConvertingToX3D or (Encoding <> xeClassic));
@@ -381,7 +381,7 @@ procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean);
+  const ForceConvertingToX3D: Boolean);
 var
   Writer: TX3DWriterNames;
 
@@ -601,10 +601,10 @@ end;
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean);
+  const ForceConvertingToX3D: Boolean);
 var
   Stream: TStream;
-  Gzipped: boolean;
+  Gzipped: Boolean;
   StreamOptions: TSaveStreamOptions;
 begin
   { calculate StreamOptions to include gzip compression when necessary }
@@ -623,7 +623,7 @@ end;
 procedure Save3D(Node: TX3DNode;
   const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean);
+  const ForceConvertingToX3D: Boolean);
 begin
   Save3D(Node, Stream, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
@@ -632,7 +632,7 @@ end;
 procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean);
+  const ForceConvertingToX3D: Boolean);
 begin
   Save3D(Node, URL, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);

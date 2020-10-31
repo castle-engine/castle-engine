@@ -26,10 +26,10 @@
   { Base node for a visible geometry in X3D. }
   TAbstractGeometryNode = class(TAbstractNode)
   strict private
-    HasBounds2DST: boolean;
+    HasBounds2DST: Boolean;
     Bounds2DS, Bounds2DT: Integer;
-    FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
-    FIgnoredConvex: boolean; {< keeps value of Convex property when FdConvex is nil }
+    FIgnoredSolid: Boolean; {< keeps value of Solid property when FdSolid is nil }
+    FIgnoredConvex: Boolean; {< keeps value of Convex property when FdConvex is nil }
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -37,15 +37,15 @@
     function CallProxyBoundingBox(
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
     function CallProxyTrianglesCount(
-      OverTriangulate: boolean;
+      OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
     function CallProxyVerticesCount(
-      OverTriangulate: boolean;
+      OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-    function GetSolid: boolean;
-    procedure SetSolid(const Value: boolean);
-    function GetConvex: boolean;
-    procedure SetConvex(const Value: boolean);
+    function GetSolid: Boolean;
+    procedure SetSolid(const Value: Boolean);
+    function GetConvex: Boolean;
+    procedure SetConvex(const Value: Boolean);
   protected
     { Returns an information how to split @link(InternalCoord) array into ranges.
 
@@ -63,7 +63,7 @@
       are mainly to generate proper warnings by MakeCoordRanges. }
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; virtual;
+      out RangeMinimumCount: Cardinal): Boolean; virtual;
   public
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
     InternalSkinJoints: TVector4IntegerList;
@@ -183,10 +183,10 @@
       or some faster approach is possible.
 
       @groupBegin }
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TX3DGraphTraverseState): Cardinal; virtual;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TX3DGraphTraverseState): Cardinal; virtual;
     { @groupEnd }
@@ -210,13 +210,13 @@
       For VRML 1.0, coord may be taken from State, that's why we have to
       pass current traverse state here. }
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; virtual;
+      out ACoord: TMFVec3f): Boolean; virtual;
 
     { Return node's list of coordinates, raising exception if node
       is not based on coordinates.
 
       This is just like the @link(InternalCoord) method,
-      except it simply returns the coordinates, not the boolean result.
+      except it simply returns the coordinates, not the Boolean result.
       If virtual @link(InternalCoord) returns @false (indicating the node
       is not coordinate-based) this raises ENotCoordinateBasedNode.
 
@@ -290,7 +290,7 @@
       In base TAbstractGeometryNode class this looks at TexCoordField,
       eventually returns @false. }
     function InternalTexCoord(State: TX3DGraphTraverseState;
-      out ATexCoord: TX3DNode): boolean; virtual;
+      out ATexCoord: TX3DNode): Boolean; virtual;
 
     { Node's texCoord field, or @nil if not available.
       Various nodes may have different exact rules about what is
@@ -349,13 +349,13 @@
 
       You can modify State variable only when returning non-nil geometry. }
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; virtual;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; virtual;
 
     { Does the @link(Proxy) method look at the OverTriangulate parameter
       at all. Default implementation in TAbstractGeometryNode returns safer @true.
       Descendants may override and return @false, to allow
       e.g. more caching in TShape. }
-    function ProxyUsesOverTriangulate: boolean; virtual;
+    function ProxyUsesOverTriangulate: Boolean; virtual;
 
     { Returns color.point field, assuming that "color" field is set and
       specifies Color (or ColorRGBA) node. Otherwise returns @nil.
@@ -393,7 +393,7 @@
       Implementation in this class (TAbstractGeometryNode) returns always
       @false. Override it for primitives that have no texture coordinates
       to return @true. }
-    function AutoGenerate3DTexCoords: boolean; virtual;
+    function AutoGenerate3DTexCoords: Boolean; virtual;
 
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -406,7 +406,7 @@
 
     { Is this object lit, disregarding the material.
       Default implementation in TAbstractGeometryNode says @true. }
-    function Lit(State: TX3DGraphTraverseState): boolean; virtual;
+    function Lit(State: TX3DGraphTraverseState): Boolean; virtual;
 
     { Should renderer setup an extra texture slot with font texture
       when rendering this node. This is useful for rendering Text nodes,
@@ -418,10 +418,10 @@
     { Are faces guaranteed to be convex.
       If your faces may be concave, you must set this to @false,
       otherwise the results (rendering and collisions) may be incorrect. }
-    property Convex: boolean read GetConvex write SetConvex;
+    property Convex: Boolean read GetConvex write SetConvex;
 
     { Is backface culling used. }
-    property Solid: boolean read GetSolid write SetSolid;
+    property Solid: Boolean read GetSolid write SetSolid;
 
     { Create an instance of this geometry node,
       and make it a child of a new shape node (TShapeNode).
@@ -548,7 +548,7 @@
 
     { Access the coordinate node, and inside this node access it's points list. }
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
     function CoordField: TSFNode; override;
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
@@ -677,15 +677,15 @@
     strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): Boolean; override;
 
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
     function CoordIndexField: TMFLong; override;
     function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
@@ -719,7 +719,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
@@ -748,7 +748,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
@@ -777,7 +777,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
@@ -789,7 +789,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
+      out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -814,15 +814,15 @@
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
 
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
     function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
@@ -865,15 +865,15 @@
     public property FdFogCoord: TSFNode read FFdFogCoord;
     {$endif}
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): Boolean; override;
 
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
     function CoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function InternalFogCoord: TMFFloat; override;
@@ -890,7 +890,7 @@
   protected
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
+      out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -902,7 +902,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
@@ -920,7 +920,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
@@ -933,7 +933,7 @@
   protected
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
+      out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -945,7 +945,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
@@ -1011,7 +1011,7 @@ begin
 end;
 
 function TAbstractGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := false;
 end;
@@ -1036,7 +1036,7 @@ end;
 function TAbstractGeometryNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
-  out RangeMinimumCount: Cardinal): boolean;
+  out RangeMinimumCount: Cardinal): Boolean;
 begin
   Result := false;
 end;
@@ -1106,7 +1106,7 @@ begin
 end;
 
 function TAbstractGeometryNode.InternalTexCoord(State: TX3DGraphTraverseState;
-  out ATexCoord: TX3DNode): boolean;
+  out ATexCoord: TX3DNode): Boolean;
 begin
   Result := TexCoordField <> nil;
   if Result and
@@ -1178,12 +1178,12 @@ begin
 end;
 
 function TAbstractGeometryNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.ProxyUsesOverTriangulate: boolean;
+function TAbstractGeometryNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := true;
 end;
@@ -1198,7 +1198,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.AutoGenerate3DTexCoords: boolean;
+function TAbstractGeometryNode.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := false;
 end;
@@ -1235,7 +1235,7 @@ begin
   T := Bounds2DT;
 end;
 
-function TAbstractGeometryNode.Lit(State: TX3DGraphTraverseState): boolean;
+function TAbstractGeometryNode.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   Result := true;
 end;
@@ -1245,7 +1245,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.GetConvex: boolean;
+function TAbstractGeometryNode.GetConvex: Boolean;
 var
   F: TSFBool;
 begin
@@ -1255,7 +1255,7 @@ begin
     Result := FIgnoredConvex;
 end;
 
-procedure TAbstractGeometryNode.SetConvex(const Value: boolean);
+procedure TAbstractGeometryNode.SetConvex(const Value: Boolean);
 var
   F: TSFBool;
 begin
@@ -1270,7 +1270,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.GetSolid: boolean;
+function TAbstractGeometryNode.GetSolid: Boolean;
 var
   F: TSFBool;
 begin
@@ -1280,7 +1280,7 @@ begin
     Result := FIgnoredSolid;
 end;
 
-procedure TAbstractGeometryNode.SetSolid(const Value: boolean);
+procedure TAbstractGeometryNode.SetSolid(const Value: Boolean);
 var
   F: TSFBool;
 begin
@@ -1413,7 +1413,7 @@ begin
 end;
 
 function TAbstractComposedGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := true;
   if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
@@ -1630,7 +1630,7 @@ begin
   Result := 'IndexedLineSet';
 end;
 
-class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1641,7 +1641,7 @@ begin
 end;
 
 function TIndexedLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := true;
   if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
@@ -1690,7 +1690,7 @@ begin
   FdCoordIndex.Changed;
 end;
 
-function TIndexedLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
+function TIndexedLineSetNode.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   { VRML 2.0 specification says that IndexedLineSet should always be unlit }
   Result := false;
@@ -1848,7 +1848,7 @@ begin
 end;
 
 function TLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := true;
   if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
@@ -1881,7 +1881,7 @@ end;
 function TLineSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
-  out RangeMinimumCount: Cardinal): boolean;
+  out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdVertexCount.Items;
   SRanges := 'lines';
@@ -1909,7 +1909,7 @@ begin
   {$endif}
 end;
 
-function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
+function TLineSetNode.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   { X3D specification says that LineSet should always be unlit }
   Result := false;
@@ -1962,7 +1962,7 @@ begin
   Result := 'PointSet';
 end;
 
-class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1973,7 +1973,7 @@ begin
 end;
 
 function TPointSetNode.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := true;
   if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
@@ -2022,7 +2022,7 @@ begin
   {$endif}
 end;
 
-function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;
+function TPointSetNode.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   Result := false;
 end;
@@ -2045,7 +2045,7 @@ end;
 function TTriangleFanSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
-  out RangeMinimumCount: Cardinal): boolean;
+  out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdFanCount.Items;
   SRanges := 'fans';
@@ -2082,7 +2082,7 @@ end;
 function TTriangleStripSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
-  out RangeMinimumCount: Cardinal): boolean;
+  out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdStripCount.Items;
   SRanges := 'strips';

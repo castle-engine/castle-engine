@@ -64,7 +64,7 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
 function LoadX3DClassic(const URL: string;
-  const Gzipped: boolean): TX3DRootNode; overload;
+  const Gzipped: Boolean): TX3DRootNode; overload;
 
 {$endif read_interface}
 
@@ -124,7 +124,7 @@ end;
   @raises(EX3DParserError On various parsing errors.)
 *)
 function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode;
+  NilIfUnresolvedUSE: Boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
   var
@@ -237,7 +237,7 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
 
 var
   NodeName, S: string;
-  UsedNodeFinished: boolean;
+  UsedNodeFinished: Boolean;
 begin
   Result := nil;
   try
@@ -296,7 +296,7 @@ end;
 function ParseStatements(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const EndToken: TX3DToken;
-  FileTopLevel: boolean): TX3DRootNode; overload;
+  FileTopLevel: Boolean): TX3DRootNode; overload;
 var
   PositionInParent: Integer;
 
@@ -568,9 +568,9 @@ begin
 end;
 
 function LoadX3DClassic(const URL: string;
-  const Gzipped: boolean): TX3DRootNode;
+  const Gzipped: Boolean): TX3DRootNode;
 
-  function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
+  function DoIt(BaseStream: TStream; const FreeBaseStream: Boolean;
     const BaseUrl: string): TX3DRootNode;
   var
     Stream: TPeekCharStream;

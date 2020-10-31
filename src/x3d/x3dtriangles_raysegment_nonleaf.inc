@@ -30,7 +30,7 @@
       this really needs some tolerance. And SingleEpsilon
       was too small. }
     function Box3DContainsTolerant(
-      const pt: TVector3; const box: TBox3D): boolean;
+      const pt: TVector3; const box: TBox3D): Boolean;
     begin
       if box.IsEmpty then exit(false);
       result := Between(pt[0], Box.Data[0].Data[0] - 0.001, Box.Data[1].Data[0] + 0.001) and
@@ -58,7 +58,7 @@
       PlaneIntersectsCount to liczba planes ktore maja Exists.
         PlaneIntersectsCount moze byc <= 3.}
     PlaneIntersects: array[0..2]of record
-      Exists: boolean;
+      Exists: Boolean;
       PlaneIntersectionDistance: Single;
     end;
     ExistingPlaneIntersectsCount: integer;

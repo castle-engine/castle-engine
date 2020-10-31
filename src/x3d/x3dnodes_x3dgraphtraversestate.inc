@@ -83,7 +83,7 @@
       (it means that renderer is absolutely sure that different transformation
       of geometry doesn't affect the generated arrays). }
     function Equals(SecondValue: TX3DGraphTraverseState;
-      const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
+      const IgnoreTransform: Boolean): Boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
 
     { Primary texture that determines RGB color and opacity.
       See @link(TAppearanceNode.MainTexture) for definition. }
@@ -402,7 +402,7 @@ begin
 end;
 
 function TX3DGraphTraverseState.Equals(SecondValue: TX3DGraphTraverseState;
-  const IgnoreTransform: boolean): boolean;
+  const IgnoreTransform: Boolean): Boolean;
 var
   SN: TVRML1StateNode;
 begin

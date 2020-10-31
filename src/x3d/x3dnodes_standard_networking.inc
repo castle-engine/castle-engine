@@ -99,7 +99,7 @@
     function LoadAnchor(
       out NewRootNode: TX3DRootNode;
       out NewViewpoint: TAbstractViewpointNode;
-      CurrentRootNode: TX3DRootNode): boolean;
+      CurrentRootNode: TX3DRootNode): Boolean;
 
     {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
   end;
@@ -117,7 +117,7 @@
       we condider "url" field as handled, and loaded *if possible*.
       If "url" didn't contain anything useful, InlinedLoaded is still set to @true,
       to avoid constantly trying to reload. }
-    InlinedLoaded: boolean;
+    InlinedLoaded: Boolean;
     FInlined: TX3DRootNode;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -146,7 +146,7 @@
     strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    class function VRML1ChildrenSaveToStream: boolean; override;
+    class function VRML1ChildrenSaveToStream: Boolean; override;
 
     { Load inlined content @bold(now).
       If @link(Inlined) is already loaded:
@@ -172,7 +172,7 @@
 
       @param(Exported If non-nil, we will assign here node names
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-    procedure LoadInlined(CanReload: boolean;
+    procedure LoadInlined(CanReload: Boolean;
       const CurrentLengthConversionFactor: Float = 1.0;
       Exported: TX3DNodeNames = nil);
 
@@ -286,7 +286,7 @@ end;
 function TAnchorNode.LoadAnchor(
   out NewRootNode: TX3DRootNode;
   out NewViewpoint: TAbstractViewpointNode;
-  CurrentRootNode: TX3DRootNode): boolean;
+  CurrentRootNode: TX3DRootNode): Boolean;
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin
@@ -458,7 +458,7 @@ begin
   InlinedLoaded := false;
 end;
 
-procedure TInlineNode.LoadInlined(CanReload: boolean;
+procedure TInlineNode.LoadInlined(CanReload: Boolean;
   const CurrentLengthConversionFactor: Float;
   Exported: TX3DNodeNames);
 var
@@ -590,7 +590,7 @@ begin
   inherited;
 end;
 
-class function TInlineNode.VRML1ChildrenSaveToStream: boolean;
+class function TInlineNode.VRML1ChildrenSaveToStream: Boolean;
 begin
   Result := false;
 end;

@@ -36,7 +36,7 @@
     { X3D field "reference". } { }
     property Reference: String read GetReference write SetReference;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of boolean);
+    procedure SetValue(const Value: array of Boolean);
     { Set X3D field "value". } { }
     procedure SetValue(const Value: TBooleanList);
 
@@ -66,7 +66,7 @@ begin
   FdReference.Send(Value);
 end;
 
-procedure TMetadataBooleanNode.SetValue(const Value: array of boolean);
+procedure TMetadataBooleanNode.SetValue(const Value: array of Boolean);
 begin
   FdValue.Send(Value);
 end;

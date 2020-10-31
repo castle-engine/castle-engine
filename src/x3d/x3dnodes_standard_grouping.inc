@@ -23,11 +23,11 @@
     type
       TGeneralGroupingEnumerator = class
         State: TX3DGraphTraverseState;
-        WasPointingDeviceSensor: boolean;
+        WasPointingDeviceSensor: Boolean;
         function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
       end;
     var
-      BeforeTraversePushedState: boolean;
+      BeforeTraversePushedState: Boolean;
       TempEnumerator: TGeneralGroupingEnumerator;
       TempEnumeratorUsed: Boolean;
   protected
@@ -36,7 +36,7 @@
       to "leak out" (transform changes, VRML 1.0 state changes etc.).
       Possibility useful for VRML 1.0 extension
       https://castle-engine.io/x3d_extensions.php#section_ext_wwwinline_separate }
-    function SeparateGroup: boolean; virtual;
+    function SeparateGroup: Boolean; virtual;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -159,7 +159,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
 
@@ -200,8 +200,8 @@
     some namespace information (exported names and such). }
   TX3DRootNode = class(TGroupNode)
   strict private
-    FHasForceVersion: boolean;
-    FSaveAsRootNode: boolean;
+    FHasForceVersion: Boolean;
+    FSaveAsRootNode: Boolean;
     FProfile: string;
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
@@ -218,7 +218,7 @@
       This is a good thing: if root node isn't used as a final TCastleSceneCore.RootNode,
       then it is placed inside Inline node, which will do save/restore anyway.
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
-    function SeparateGroup: boolean; override;
+    function SeparateGroup: Boolean; override;
 
     procedure ApplyTransform(var Transformation: TTransformation); override;
   public
@@ -234,7 +234,7 @@
       (or saving this node may generate dumb contents).
       Although, generally, you should avoid using the TX3DRootNode
       class at all for non-root nodes. }
-    property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
+    property SaveAsRootNode: Boolean read FSaveAsRootNode write FSaveAsRootNode
       default true;
 
     { Save contents to the stream.
@@ -248,7 +248,7 @@
 
     { Set HasForceVersion to @true to force saving this model with
       given ForceVersion. }
-    property HasForceVersion: boolean
+    property HasForceVersion: Boolean
       read FHasForceVersion write FHasForceVersion default false;
 
     { Profile required for this X3D file. See X3D spec about profiles.
@@ -354,7 +354,7 @@
     strict private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
 
@@ -378,14 +378,14 @@
   { Grouping node that transforms (moves, rotates, scales) it's children. }
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   strict private
-    //WarningNegativeScaleDone: boolean;
+    //WarningNegativeScaleDone: Boolean;
   protected
     { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
     procedure ApplyTransform(var Transformation: TTransformation); override;
@@ -454,7 +454,7 @@ begin
   inherited;
 end;
 
-function TAbstractGroupingNode.SeparateGroup: boolean;
+function TAbstractGroupingNode.SeparateGroup: Boolean;
 begin
   Result := true;
 end;
@@ -688,7 +688,7 @@ begin
   Result := 'Group';
 end;
 
-class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -823,7 +823,7 @@ begin
   end;
 end;
 
-function TX3DRootNode.SeparateGroup: boolean;
+function TX3DRootNode.SeparateGroup: Boolean;
 begin
   Result := false;
 end;
@@ -933,7 +933,7 @@ begin
   Result := 'Switch';
 end;
 
-class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -990,7 +990,7 @@ begin
   Result := 'Transform';
 end;
 
-class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major >= 2;
 end;

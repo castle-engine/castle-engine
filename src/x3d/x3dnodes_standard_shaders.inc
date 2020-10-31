@@ -145,7 +145,7 @@
     used inside @link(TComposedShaderNode). }
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
   strict private
-    ContentsCached: boolean;
+    ContentsCached: Boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -362,7 +362,7 @@ end;
 
 function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): string;
 
-  function IsDirectShaderSource(const S: string): boolean;
+  function IsDirectShaderSource(const S: string): Boolean;
   { URL is recognized as direct shader source if it
     doesn't start with any protocol *and*
     has some newlines (needed to recognize relative URLs without

@@ -57,7 +57,7 @@
       When this is true, during rendering we take care to transform this light
       only by camera matrix (not additional scene transformation).
       Useful for example for headlight. }
-    WorldCoordinates: boolean;
+    WorldCoordinates: Boolean;
 
     { Position expressed in homogeneous coordinates.
       For positional lights, the last component is always 1.
@@ -92,7 +92,7 @@
     function IndexOfNode(Node: TAbstractLightNode): integer;
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { Append List to our contents, setting every light's WorldCoordinates = @true. }
     procedure AppendInWorldCoordinates(const AList: TLightInstancesList);
@@ -324,9 +324,9 @@ begin
   Result := nil;
 end;
 
-function TLightInstancesList.Equals(SecondValue: TObject): boolean;
+function TLightInstancesList.Equals(SecondValue: TObject): Boolean;
 
-  function LightInstanceEquals(const L1, L2: TLightInstance): boolean;
+  function LightInstanceEquals(const L1, L2: TLightInstance): Boolean;
   begin
     Result := (L1.Node = L2.Node) and
       TMatrix4.PerfectlyEquals(L1.Transform, L2.Transform);

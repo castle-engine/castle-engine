@@ -20,8 +20,8 @@
   { Abstract node type for all scripting nodes. }
   TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   strict private
-    FInitialized: boolean;
-    procedure SetInitialized(const Value: boolean);
+    FInitialized: Boolean;
+    procedure SetInitialized(const Value: Boolean);
   private
     FInitializedScriptType: TScriptType;
 
@@ -55,7 +55,7 @@
       If you use TCastleSceneCore, this will be done for you automatically
       when you change TCastleSceneCore.ProcessEvents, so it's not a problem in
       practice. }
-    property Initialized: boolean read FInitialized write SetInitialized
+    property Initialized: Boolean read FInitialized write SetInitialized
       default false;
 
     { Clear the memory when the last events were generated from this script.
@@ -207,7 +207,7 @@ begin
   end;
 end;
 
-procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
+procedure TAbstractScriptNode.SetInitialized(const Value: Boolean);
 
   { @raises(ECasScriptSyntaxError in case of program parsing error
       (we just let through ECasScriptSyntaxError from ParseProgram).) }
@@ -236,7 +236,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     CastleScriptProgram.Environment.BaseUrl := BaseUrl;
   end;
 
-  function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
+  function LoadUrl(Url: string; var FailedUrlsLog: string): Boolean;
   var
     ScriptContents, MimeType: string;
     ScriptContentsStream: TStream;
@@ -301,7 +301,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
   end;
 
 var
-  ValidUrlFound: boolean;
+  ValidUrlFound: Boolean;
   I: Integer;
   FailedUrlsLog: string;
 begin

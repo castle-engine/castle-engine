@@ -47,7 +47,7 @@
     TCastleSceneCore.InternalChangedField depends on that. }
   TVRML1State = class
   strict private
-    Owned: array [TVRML1StateNode] of boolean;
+    Owned: array [TVRML1StateNode] of Boolean;
     FNodes: array [TVRML1StateNode] of TX3DNode;
     function GetNode(const StateNode: TVRML1StateNode): TX3DNode;
     procedure SetNode(const StateNode: TVRML1StateNode; const Node: TX3DNode);

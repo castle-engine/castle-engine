@@ -118,8 +118,8 @@
       to this. }
     UsedCache: TTexturesVideosCache;
 
-    FIsTextureLoaded: boolean;
-    procedure SetIsTextureLoaded(Value: boolean);
+    FIsTextureLoaded: Boolean;
+    procedure SetIsTextureLoaded(Value: Boolean);
     procedure FreeAndNilTextureData;
   strict protected
     FTextureUsedFullUrl: string;
@@ -157,12 +157,12 @@
       and we want to at least be able to parse them
       and then ignore (while not overriden abstract method would cause
       simple crashes). }
-    procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
+    procedure LoadTextureData(out WasCacheUsed: Boolean); virtual;
 
-    function GetRepeatS: boolean; virtual; abstract;
-    function GetRepeatT: boolean; virtual; abstract;
-    procedure SetRepeatS(const Value: boolean); virtual; abstract;
-    procedure SetRepeatT(const Value: boolean); virtual; abstract;
+    function GetRepeatS: Boolean; virtual; abstract;
+    function GetRepeatT: Boolean; virtual; abstract;
+    procedure SetRepeatS(const Value: Boolean); virtual; abstract;
+    procedure SetRepeatT(const Value: Boolean); virtual; abstract;
 
     function AlphaChannelData: TAlphaChannel; override;
   public
@@ -195,10 +195,10 @@
 
       @groupBegin }
     function TextureImage: TEncodedImage;
-    function IsTextureImage: boolean;
+    function IsTextureImage: Boolean;
     function TextureComposite: TCompositeImage;
     function TextureVideo: TVideo;
-    function IsTextureVideo: boolean;
+    function IsTextureVideo: Boolean;
     { @groupEnd }
 
     { Is the texture data already loaded.
@@ -226,7 +226,7 @@
       when the file does not exist. Also, the loading errors reported
       by WritelnWarning will not be repeated --- they will
       occur only once, when IsTextureLoaded changes from @false to @true. }
-    property IsTextureLoaded: boolean
+    property IsTextureLoaded: Boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
     { Whether the texture repeats or clamps in given direction.
@@ -234,8 +234,8 @@
       node fields, setting this automatically does all necessary (sends events
       etc., see TVRMLField.Send).
       @groupBegin }
-    property RepeatS: boolean read GetRepeatS write SetRepeatS;
-    property RepeatT: boolean read GetRepeatT write SetRepeatT;
+    property RepeatS: Boolean read GetRepeatS write SetRepeatS;
+    property RepeatT: Boolean read GetRepeatT write SetRepeatT;
     { @groupEnd }
 
     { Once the texture data (image or video) is loaded,
@@ -259,10 +259,10 @@
   { X3D texture that is 2D and can be loaded (from file or some other stream). }
   TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
   strict protected
-    function GetRepeatS: boolean; override;
-    function GetRepeatT: boolean; override;
-    procedure SetRepeatS(const Value: boolean); override;
-    procedure SetRepeatT(const Value: boolean); override;
+    function GetRepeatS: Boolean; override;
+    function GetRepeatT: Boolean; override;
+    procedure SetRepeatS(const Value: Boolean); override;
+    procedure SetRepeatT(const Value: Boolean); override;
   public
     procedure CreateNode; override;
 
@@ -291,7 +291,7 @@
   { Texture image loaded from a file. }
   TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
   strict protected
-    procedure LoadTextureData(out WasCacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -317,7 +317,7 @@
   private
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   strict protected
-    procedure LoadTextureData(out WasCacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: Boolean); override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -389,8 +389,8 @@
       save memory. }
     property Duration: TFloatTime read FDuration;
 
-    function IsActive: boolean;
-    function IsPaused: boolean;
+    function IsActive: Boolean;
+    function IsPaused: Boolean;
     function ElapsedTime: TFloatTime;
     function ElapsedTimeInCycle: TFloatTime;
 
@@ -482,7 +482,7 @@
   }
   TPixelTextureNode = class(TAbstractX3DTexture2DNode)
   strict protected
-    procedure LoadTextureData(out WasCacheUsed: boolean); override;
+    procedure LoadTextureData(out WasCacheUsed: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -753,7 +753,7 @@ begin
   Result := FTextureImage;
 end;
 
-function TAbstractTexture2DNode.IsTextureImage: boolean;
+function TAbstractTexture2DNode.IsTextureImage: Boolean;
 begin
   Result := (TextureImage <> nil) and (not TextureImage.IsEmpty);
 end;
@@ -775,18 +775,18 @@ begin
   Result := FTextureVideo;
 end;
 
-function TAbstractTexture2DNode.IsTextureVideo: boolean;
+function TAbstractTexture2DNode.IsTextureVideo: Boolean;
 begin
   Result := (TextureVideo <> nil) and
     (TextureVideo.Width <> 0) and
     (TextureVideo.Height <> 0);
 end;
 
-procedure TAbstractTexture2DNode.SetIsTextureLoaded(Value: boolean);
+procedure TAbstractTexture2DNode.SetIsTextureLoaded(Value: Boolean);
 
   procedure DoLoadTexture;
   var
-    WasCacheUsed: boolean;
+    WasCacheUsed: Boolean;
   begin
     FreeAndNilTextureData;
 
@@ -812,7 +812,7 @@ begin
   end;
 end;
 
-procedure TAbstractTexture2DNode.LoadTextureData(out WasCacheUsed: boolean);
+procedure TAbstractTexture2DNode.LoadTextureData(out WasCacheUsed: Boolean);
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -840,22 +840,22 @@ begin
   AddField(FFdRepeatT);
 end;
 
-function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
+function TAbstractX3DTexture2DNode.GetRepeatS: Boolean;
 begin
   Result := FdRepeatS.Value;
 end;
 
-function TAbstractX3DTexture2DNode.GetRepeatT: boolean;
+function TAbstractX3DTexture2DNode.GetRepeatT: Boolean;
 begin
   Result := FdRepeatT.Value;
 end;
 
-procedure TAbstractX3DTexture2DNode.SetRepeatS(const Value: boolean);
+procedure TAbstractX3DTexture2DNode.SetRepeatS(const Value: Boolean);
 begin
   FdRepeatS.Send(Value);
 end;
 
-procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: boolean);
+procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: Boolean);
 begin
   FdRepeatT.Send(Value);
 end;
@@ -895,7 +895,7 @@ begin
   Result := 'ImageTexture';
 end;
 
-procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: Boolean);
 
   function LoadOptions: TLoadImageOptions;
   begin
@@ -907,7 +907,7 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
   FullUrl, ErrorMessage: string;
-  Success: boolean;
+  Success: Boolean;
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -1051,7 +1051,7 @@ begin
   Result := 'MovieTexture';
 end;
 
-procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: Boolean);
 
   function LoadOptions: TLoadImageOptions;
   begin
@@ -1101,12 +1101,12 @@ begin
     Result := 0;
 end;
 
-function TMovieTextureNode.IsActive: boolean;
+function TMovieTextureNode.IsActive: Boolean;
 begin
   Result := InternalTimeDependentHandler.IsActive;
 end;
 
-function TMovieTextureNode.IsPaused: boolean;
+function TMovieTextureNode.IsPaused: Boolean;
 begin
   Result := InternalTimeDependentHandler.IsPaused;
 end;
@@ -1228,7 +1228,7 @@ begin
   Result := 'PixelTexture';
 end;
 
-procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: Boolean);
 begin
   WasCacheUsed := false;
 

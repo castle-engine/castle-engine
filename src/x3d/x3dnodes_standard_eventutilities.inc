@@ -404,7 +404,7 @@ end;
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  B: boolean;
+  B: Boolean;
 begin
   B := (Value as TSFBool).Value;
   if B then
@@ -463,7 +463,7 @@ end;
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  B: boolean;
+  B: Boolean;
 begin
   B := (Value as TSFBool).Value;
   if B then

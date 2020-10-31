@@ -24,12 +24,12 @@
     FImported: TX3DNodeNames;
     FExported: TX3DNodeNames;
     FImportable: TX3DImportableNames;
-    procedure CommonCreate(const AAutoRemoveNodes: boolean);
+    procedure CommonCreate(const AAutoRemoveNodes: Boolean);
   public
-    constructor Create(const AAutoRemoveNodes: boolean;
+    constructor Create(const AAutoRemoveNodes: Boolean;
       const ABaseUrl: string;
       const AVersion: TX3DVersion);
-    constructor CreateCopy(const AAutoRemoveNodes: boolean;
+    constructor CreateCopy(const AAutoRemoveNodes: Boolean;
       Source: TX3DReader);
     destructor Destroy; override;
 
@@ -97,21 +97,21 @@
 
 { TX3DReaderNames ----------------------------------------------------------------- }
 
-constructor TX3DReaderNames.Create(const AAutoRemoveNodes: boolean;
+constructor TX3DReaderNames.Create(const AAutoRemoveNodes: Boolean;
   const ABaseUrl: string; const AVersion: TX3DVersion);
 begin
   inherited Create(ABaseUrl, AVersion);
   CommonCreate(AAutoRemoveNodes);
 end;
 
-constructor TX3DReaderNames.CreateCopy(const AAutoRemoveNodes: boolean;
+constructor TX3DReaderNames.CreateCopy(const AAutoRemoveNodes: Boolean;
   Source: TX3DReader);
 begin
   inherited CreateCopy(Source);
   CommonCreate(AAutoRemoveNodes);
 end;
 
-procedure TX3DReaderNames.CommonCreate(const AAutoRemoveNodes: boolean);
+procedure TX3DReaderNames.CommonCreate(const AAutoRemoveNodes: Boolean);
 begin
   FNodes := TX3DNodeNames.Create(AAutoRemoveNodes);
   FPrototypes := TX3DPrototypeNames.Create;
@@ -145,7 +145,7 @@ end;
 procedure TX3DReaderNames.DoExport(E: TX3DExport);
 var
   ExportedNode: TX3DNode;
-  IgnoreNodeFinished: boolean;
+  IgnoreNodeFinished: Boolean;
 begin
   ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
   if ExportedNode = nil then
@@ -162,7 +162,7 @@ var
   ImportedNames: TX3DNodeNames;
   ImportedNamesIndex: Integer;
   ImportedNode: TX3DNode;
-  IgnoreNodeFinished: boolean;
+  IgnoreNodeFinished: Boolean;
 begin
   ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
   if ImportedNamesIndex = -1 then

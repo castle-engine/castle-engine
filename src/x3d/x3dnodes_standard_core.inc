@@ -185,7 +185,7 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
   end;
 
-  { A metadata (extra, custom information at a node) with a boolean type. }
+  { A metadata (extra, custom information at a node) with a Boolean type. }
   TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;

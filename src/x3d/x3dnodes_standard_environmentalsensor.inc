@@ -84,15 +84,15 @@
   { Detects visibility changes of a rectangular box as the user navigates the world. }
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
   strict private
-    FIsActive: boolean;
+    FIsActive: Boolean;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
-    property IsActive: boolean read FIsActive;
-    procedure SetIsActive(const Value: boolean; const Time: TX3DTime);
+    property IsActive: Boolean read FIsActive;
+    procedure SetIsActive(const Value: Boolean; const Time: TX3DTime);
 
     {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
   end;
@@ -204,7 +204,7 @@ begin
   Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
 end;
 
-procedure TVisibilitySensorNode.SetIsActive(const Value: boolean; const Time: TX3DTime);
+procedure TVisibilitySensorNode.SetIsActive(const Value: Boolean; const Time: TX3DTime);
 begin
   if FIsActive <> Value then
   begin

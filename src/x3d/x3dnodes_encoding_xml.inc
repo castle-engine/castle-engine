@@ -31,7 +31,7 @@ const
   it it only used to resolve relative URLs inside content and for error messages.
 
   @groupBegin }
-function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode; overload;
+function LoadX3DXml(const URL: string; Gzipped: Boolean): TX3DRootNode; overload;
 function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode; overload;
 function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; overload;
 { @groupEnd }
@@ -60,16 +60,16 @@ const
 
 function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode; forward;
+  NilIfUnresolvedUSE: Boolean): TX3DNode; forward;
 function ParseStatements(Element: TDOMElement;
-  FileTopLevel: boolean;
+  FileTopLevel: Boolean;
   X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; overload; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
   returns @false. }
 function ParseConnectElement(Element: TDOMElement;
-  out NodeField, ProtoField: string): boolean;
+  out NodeField, ProtoField: string): Boolean;
 begin
   Result := false;
 
@@ -146,7 +146,7 @@ end;
 *)
 function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Reader: TX3DReaderNames;
-  NilIfUnresolvedUSE: boolean): TX3DNode;
+  NilIfUnresolvedUSE: Boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
   var
@@ -256,7 +256,7 @@ function ParseXMLNode(Element: TDOMElement;
 
 var
   NodeName, S: string;
-  UsedNodeFinished: boolean;
+  UsedNodeFinished: Boolean;
 begin
   Result := nil;
   try
@@ -313,7 +313,7 @@ end;
   (Admittedly, it was even implemented by copying and modifying
   classic ParseStatements :) ). }
 function ParseStatements(Element: TDOMElement;
-  FileTopLevel: boolean;
+  FileTopLevel: Boolean;
   X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; overload;
 var
   PositionInParent: Integer;
@@ -517,7 +517,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
+function LoadX3DXml(const URL: string; Gzipped: Boolean): TX3DRootNode;
 var
   Stream: TStream;
   StreamOptions: TStreamOptions;

@@ -183,7 +183,7 @@
 
     { Parses InterfaceDeclarations. Also inits BaseUrl from
       Names.BaseUrl, by the way. }
-    procedure ParseInterfaceDeclarations(ExternalProto: boolean;
+    procedure ParseInterfaceDeclarations(ExternalProto: Boolean;
       Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
     { Parse interface declarations in XML encoding.
@@ -193,13 +193,13 @@
       this doesn't set BaseUrl, do it yourself (because often
       you do not have 'ProtoInterface', so you would have to do it yourself
       anyway). }
-    procedure ParseInterfaceDeclarationsXML(ExternalProto: boolean;
+    procedure ParseInterfaceDeclarationsXML(ExternalProto: Boolean;
       Element: TDOMElement; Reader: TX3DReaderNames);
 
     { Saves interface declarations of the prototype.
       For classic encoding, they are already enclosed in [ ]. }
     procedure SaveInterfaceDeclarationsToStream(
-      Writer: TX3DWriter; ExternalProto: boolean);
+      Writer: TX3DWriter; ExternalProto: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -339,7 +339,7 @@ var
   Route: TX3DRoute;
   I: Integer;
 const
-  InEventName: array [boolean] of string = ( 'output', 'input' );
+  InEventName: array [Boolean] of string = ( 'output', 'input' );
 begin
   { When Source.IsClauseNamesCount <> 0, then we're expanded
     within the definition of another prototype.
@@ -787,7 +787,7 @@ begin
   inherited;
 end;
 
-procedure TX3DPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
+procedure TX3DPrototypeBase.ParseInterfaceDeclarations(ExternalProto: Boolean;
   Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
   I: TX3DInterfaceDeclaration;
@@ -811,7 +811,7 @@ begin
   FBaseUrl := Reader.BaseUrl;
 end;
 
-procedure TX3DPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
+procedure TX3DPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: Boolean;
   Element: TDOMElement; Reader: TX3DReaderNames);
 var
   I: TX3DInterfaceDeclaration;
@@ -833,7 +833,7 @@ begin
 end;
 
 procedure TX3DPrototypeBase.SaveInterfaceDeclarationsToStream(
-  Writer: TX3DWriter; ExternalProto: boolean);
+  Writer: TX3DWriter; ExternalProto: Boolean);
 var
   I: Integer;
 begin
@@ -1131,7 +1131,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     end;
   end;
 
-  function LoadFromExternalVRML(const RelativeURL: string): boolean;
+  function LoadFromExternalVRML(const RelativeURL: string): Boolean;
   var
     URL: string;
     PrototypeNames: TX3DPrototypeNames;
@@ -1193,7 +1193,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     LoadInterfaceDeclarationsValues;
   end;
 
-  function LoadFromURN(const URN: string): boolean;
+  function LoadFromURN(const URN: string): Boolean;
   begin
     FReferencedClass := NodesManager.URNToClass(URN, Version);
     Result := ReferencedClass <> nil;
@@ -1204,7 +1204,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
 var
   I: Integer;
   S: string;
-  ProtoLoaded: boolean;
+  ProtoLoaded: Boolean;
 begin
   UnloadReferenced;
 

@@ -32,9 +32,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
@@ -64,9 +64,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
@@ -86,8 +86,8 @@
     function CalculateSlices: Cardinal;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
   end;
@@ -110,9 +110,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_disk2d.inc}
@@ -132,9 +132,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
@@ -152,9 +152,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
@@ -173,8 +173,8 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
   end;
@@ -194,9 +194,9 @@
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
@@ -239,14 +239,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArc2DNode not implemented. }
   Result := 0;
 end;
 
-function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArc2DNode not implemented. }
@@ -296,14 +296,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArcClose2DNode not implemented. }
   Result := 0;
 end;
 
-function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TArcClose2DNode not implemented. }
@@ -339,7 +339,7 @@ begin
 end;
 
 function TCircle2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   SlicesNow: Integer;
   C: TCoordinateNode;
@@ -371,7 +371,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TCircle2DNode.ProxyUsesOverTriangulate: boolean;
+function TCircle2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -407,14 +407,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TDisk2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TDisk2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TDisk2DNode not implemented. }
   Result := 0;
 end;
 
-function TDisk2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TDisk2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TDisk2DNode not implemented. }
@@ -445,14 +445,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TPolyline2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPolyline2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TPolyline2DNode not implemented. }
   Result := 0;
 end;
 
-function TPolyline2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPolyline2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TPolyline2DNode not implemented. }
@@ -481,14 +481,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TPolypoint2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPolypoint2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TPolypoint2DNode not implemented. }
   Result := 0;
 end;
 
-function TPolypoint2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TPolypoint2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TPolypoint2DNode not implemented. }
@@ -515,7 +515,7 @@ begin
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
-  const Size: TVector2; const Solid: boolean): TAbstractGeometryNode;
+  const Size: TVector2; const Solid: Boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
@@ -550,12 +550,12 @@ begin
 end;
 
 function TRectangle2DNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TRectangle2DNode.ProxyUsesOverTriangulate: boolean;
+function TRectangle2DNode.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -586,14 +586,14 @@ begin
   Result := TBox3D.Empty;
 end;
 
-function TTriangleSet2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TTriangleSet2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TTriangleSet2DNode not implemented. }
   Result := 0;
 end;
 
-function TTriangleSet2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TTriangleSet2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   { Rendering of TTriangleSet2DNode not implemented. }

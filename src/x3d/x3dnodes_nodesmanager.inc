@@ -51,7 +51,7 @@ type
         (so it cannot be even registered), or if
         ((NodeClass was not registered) and ErrorIfNotRegistered)) }
     procedure UnRegisterNodeClass(NodeClass: TX3DNodeClass;
-      ErrorIfNotRegistered: boolean = true);
+      ErrorIfNotRegistered: Boolean = true);
 
     { Return node class for a given name. This method is the main purpose
       of TNodesManager: to map node names into node classes.
@@ -126,7 +126,7 @@ begin
 end;
 
 procedure TNodesManager.UnRegisterNodeClass(NodeClass: TX3DNodeClass;
-  ErrorIfNotRegistered: boolean);
+  ErrorIfNotRegistered: Boolean);
 var i: Integer;
 begin
   if NodeClass.ClassX3DType = '' then

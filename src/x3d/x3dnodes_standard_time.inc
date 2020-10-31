@@ -42,14 +42,14 @@
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.isActive specification at
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsActive: boolean;
+    function IsActive: Boolean;
 
     { Is the sensor paused.
 
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.isPaused specification at
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsPaused: boolean;
+    function IsPaused: Boolean;
 
     { Time in seconds since the sensor was activated and running,
       not counting any time while in pause state.
@@ -99,13 +99,13 @@
     TODO: maybe in the future. }
   TInternalTimeDependentHandler = class
   strict private
-    FIsActive: boolean;
-    FIsPaused: boolean;
+    FIsActive: Boolean;
+    FIsPaused: Boolean;
     FElapsedTime: TFloatTime;
     FElapsedTimeInCycle: TFloatTime;
     StartTimeUsed, NonLoopedStopped: Double; //< same type as TSFTime.Value
-    procedure SetIsActive(const Value: boolean);
-    procedure SetIsPaused(const Value: boolean);
+    procedure SetIsActive(const Value: Boolean);
+    procedure SetIsPaused(const Value: Boolean);
     procedure SetElapsedTime(const Value: TFloatTime);
   public
     Node: TX3DNode;
@@ -134,11 +134,11 @@
 
     { Is the sensor enabled and running (ignoring whether it is paused).
       Changing this automatically causes appropriate events to be generated. }
-    property IsActive: boolean read FIsActive write SetIsActive;
+    property IsActive: Boolean read FIsActive write SetIsActive;
 
     { Is the sensor paused.
       Changing this automatically causes appropriate events to be generated. }
-    property IsPaused: boolean read FIsPaused write SetIsPaused;
+    property IsPaused: Boolean read FIsPaused write SetIsPaused;
 
     { Time in seconds since the sensor was activated and running,
       not counting any time while in pause state.
@@ -172,7 +172,7 @@
 
       @returns(If some state of time-dependent node changed.) }
     function SetTime(const NewTime: TFloatTime;
-      const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
+      const TimeIncrease: TFloatTime; const ResetTime: Boolean): Boolean;
   end;
 
   { Time field, that ignores it's input event when parent time-dependent node
@@ -262,14 +262,14 @@
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.isActive specification at
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsActive: boolean;
+    function IsActive: Boolean;
 
     { Is the sensor paused.
 
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.isPaused specification at
       http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
-    function IsPaused: boolean;
+    function IsPaused: Boolean;
 
     { Time in seconds since the sensor was activated and running,
       not counting any time while in pause state.
@@ -373,10 +373,10 @@
 
       @groupBegin }
     procedure FakeTime(const TimeInAnimation: TFloatTime;
-      const ALoop, AFractionIncreasing: boolean;
+      const ALoop, AFractionIncreasing: Boolean;
       const PartialSend: TPartialSend = nil); overload;
     procedure FakeTime(const TimeInAnimation: TFloatTime;
-      const ALoop, AFractionIncreasing: boolean;
+      const ALoop, AFractionIncreasing: Boolean;
       const TimeOfEvents: TX3DTime;
       const PartialSend: TPartialSend = nil); overload;
     { @groupEnd }
@@ -421,7 +421,7 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Ignore: boolean;
+  function Ignore: Boolean;
   begin
     Result :=
       (NeverIgnore = 0) and
@@ -461,7 +461,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Ignore: boolean;
+  function Ignore: Boolean;
   var
     H: TInternalTimeDependentHandler;
   begin
@@ -498,7 +498,7 @@ end;
 
 { TInternalTimeDependentHandler -------------------------------------------------- }
 
-procedure TInternalTimeDependentHandler.SetIsActive(const Value: boolean);
+procedure TInternalTimeDependentHandler.SetIsActive(const Value: Boolean);
 begin
   if Value <> FIsActive then
   begin
@@ -507,7 +507,7 @@ begin
   end;
 end;
 
-procedure TInternalTimeDependentHandler.SetIsPaused(const Value: boolean);
+procedure TInternalTimeDependentHandler.SetIsPaused(const Value: Boolean);
 begin
   if Value <> FIsPaused then
   begin
@@ -548,13 +548,13 @@ end;
 
 function TInternalTimeDependentHandler.SetTime(
   const NewTime: TFloatTime;
-  const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
+  const TimeIncrease: TFloatTime; const ResetTime: Boolean): Boolean;
 
 var
-  NewIsActive: boolean;
-  NewIsPaused: boolean;
+  NewIsActive: Boolean;
+  NewIsPaused: Boolean;
   NewElapsedTime: TFloatTime;
-  CycleTimeSend: boolean;
+  CycleTimeSend: Boolean;
   CycleTime: TFloatTime;
 
   { $define LOG_TIME_DEPENDENT_NODES_OFTEN}
@@ -569,7 +569,7 @@ var
     and CycleTime value) if the *new* cycle started. This means
     that new ElapsedTime reached the non-zero CycleInterval
     and loop = TRUE. }
-  procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: boolean);
+  procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: Boolean);
   begin
     { In case of time resetting, we can have wild differences
       between stopTime and NewTime, and Increase could get < 0.
@@ -935,12 +935,12 @@ begin
     Result := 1;
 end;
 
-function TAbstractTimeDependentNode.IsActive: boolean;
+function TAbstractTimeDependentNode.IsActive: Boolean;
 begin
   Result := InternalTimeDependentHandler.IsActive;
 end;
 
-function TAbstractTimeDependentNode.IsPaused: boolean;
+function TAbstractTimeDependentNode.IsPaused: Boolean;
 begin
   Result := InternalTimeDependentHandler.IsPaused;
 end;
@@ -1030,7 +1030,7 @@ var
   FakeX3DTime: TX3DTime;
 
 procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
-  const ALoop, AFractionIncreasing: boolean;
+  const ALoop, AFractionIncreasing: Boolean;
   const PartialSend: TPartialSend);
 begin
   { This method may be called with any TimeInAnimation values sequence,
@@ -1051,7 +1051,7 @@ begin
 end;
 
 procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime;
-  const ALoop, AFractionIncreasing: boolean;
+  const ALoop, AFractionIncreasing: Boolean;
   const TimeOfEvents: TX3DTime;
   const PartialSend: TPartialSend);
 var

@@ -135,7 +135,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedquadset.inc}
@@ -151,7 +151,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     {$I auto_generated_node_helpers/x3dnodes_quadset.inc}

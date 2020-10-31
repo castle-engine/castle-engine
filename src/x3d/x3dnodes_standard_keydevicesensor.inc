@@ -42,7 +42,7 @@
   { Generate events when user key presses or releases keys on the keyboard. }
   TKeySensorNode = class(TAbstractKeyDeviceSensorNode)
   strict private
-    AltKey, ControlKey, ShiftKey: boolean;
+    AltKey, ControlKey, ShiftKey: Boolean;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -86,7 +86,7 @@
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
   strict private
     EnteredText: string;
-    Active: boolean;
+    Active: Boolean;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -129,7 +129,7 @@ end;
 
 { Convert TKey to VRML "action" key code.
   As defined by X3D KeySensor node specification. }
-function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
+function KeyToActionKey(Key: TKey; out ActionKey: Integer): Boolean;
 begin
   Result := true;
   case Key of
@@ -181,7 +181,7 @@ end;
 
 procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
+  procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
     if not SpecialPressed then
     begin
@@ -227,7 +227,7 @@ end;
 
 procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
+  procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
     if SpecialPressed then
     begin

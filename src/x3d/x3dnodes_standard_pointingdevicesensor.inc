@@ -24,7 +24,7 @@
     Transformation: TTransformation;
 
     function EnabledCount: Integer;
-    function Enabled(Index: Integer): boolean;
+    function Enabled(Index: Integer): Boolean;
 
     procedure Assign(Source: TPointingDeviceSensorList);
   end;
@@ -123,7 +123,7 @@
   TCylinderSensorNode = class(TAbstractDragSensorNode)
   strict private
     { Are we in caps mode or cylinder mode (determined at activation) }
-    Caps: boolean;
+    Caps: Boolean;
     { If Caps, then this is a plane parallel to Y=0 and coincident with
       original intersection, in global coordinates }
     CapsPlane: TVector4;
@@ -141,7 +141,7 @@
     InvertedTransform: TMatrix4;
 
     { Was a rotation_changed send during this activation of sensor. }
-    WasRotation: boolean;
+    WasRotation: Boolean;
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     RotationAngle: Single;
   public
@@ -193,7 +193,7 @@
     InvertedTransform: TMatrix4;
 
     { Was a translation_changed send during this activation of sensor. }
-    WasTranslation: boolean;
+    WasTranslation: Boolean;
     { Last value of translation_changed send, meaningful only if WasTranslation. }
     Translation: TVector3;
   public
@@ -238,7 +238,7 @@
     InvertedTransform: TMatrix4;
 
     { Was a rotation_changed send during this activation of sensor. }
-    WasRotation: boolean;
+    WasRotation: Boolean;
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     Rotation: TVector4;
   public
@@ -298,7 +298,7 @@ begin
       Inc(Result);
 end;
 
-function TPointingDeviceSensorList.Enabled(Index: Integer): boolean;
+function TPointingDeviceSensorList.Enabled(Index: Integer): Boolean;
 begin
   Result := (not (Items[Index] is TAbstractPointingDeviceSensorNode)) or
     TAbstractPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
@@ -466,7 +466,7 @@ end;
 procedure TCylinderSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3);
 var
   Intersection, LocalIntersection: TVector3;
-  WasIntersection: boolean;
+  WasIntersection: Boolean;
 begin
   inherited;
 

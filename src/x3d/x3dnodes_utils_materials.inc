@@ -94,7 +94,7 @@
       This checks that ambient and diffuse and specular colors are all zero.
       It's an important information about the material sometimes.
       We can optimize this case when rendering. }
-    function PureEmissive: boolean;
+    function PureEmissive: Boolean;
 
     function Shininess: Single; virtual; abstract;
 
@@ -178,7 +178,7 @@ begin
   Result := Vector3(Transparency, Transparency, Transparency);
 end;
 
-function TPhongMaterialInfo.PureEmissive: boolean;
+function TPhongMaterialInfo.PureEmissive: Boolean;
 begin
   Result :=
     AmbientColor.IsPerfectlyZero and
