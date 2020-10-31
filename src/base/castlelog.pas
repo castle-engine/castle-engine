@@ -35,7 +35,7 @@ uses Classes;
 
   @exclude
 }
-function Log: boolean;
+function Log: Boolean;
   deprecated 'do not check is Log initialized';
 
 type
@@ -138,7 +138,7 @@ var
     Displaying line info requires compiling your program with -gl.
     Note that displaying a backtrace may slow down logging considerably,
     so use this only when you really need it, and disable for the final build. }
-  BacktraceOnLog: boolean = false;
+  BacktraceOnLog: Boolean = false;
 
   { Current log date/time prefix style. Can be changed at runtime. }
   LogTimePrefix: TLogTimePrefix;
@@ -192,10 +192,10 @@ uses SysUtils,
 {$ifdef iOS} {$undef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG} {$endif}
 
 var
-  FLog: boolean = false;
+  FLog: Boolean = false;
   FLogOutput: String;
   LogStream: TStream;
-  LogStreamOwned: boolean;
+  LogStreamOwned: Boolean;
   CollectedLog: String; //< log contents not saved to file yet
 
 const
@@ -205,7 +205,7 @@ const
 
 procedure WriteLogCoreCore(const S: string); forward;
 
-function Log: boolean;
+function Log: Boolean;
 begin
   Result := FLog;
 end;
@@ -222,7 +222,7 @@ procedure InitializeLog(
   const ALogStream: TStream;
   const ALogTimePrefix: TLogTimePrefix);
 
-  function InitializeLogFile(const LogFileName: string): boolean;
+  function InitializeLogFile(const LogFileName: string): Boolean;
   begin
     try
       { without fmShareDenyNone, you cannot open the file while plugin runs }

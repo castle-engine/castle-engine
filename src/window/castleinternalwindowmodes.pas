@@ -44,7 +44,7 @@ type
   TGLMode = class
   strict private
     OldWidth, OldHeight: integer;
-    FFakeMouseDown: boolean;
+    FFakeMouseDown: Boolean;
   strict protected
     type
       TWindowState = class(TComponent)
@@ -58,18 +58,18 @@ type
         OldMenuClick: TMenuClickFunc;
         OldCaption: string;
         OldUserdata: Pointer;
-        OldAutoRedisplay: boolean;
+        OldAutoRedisplay: Boolean;
         OldMainMenu: TMenu;
         { This is the saved value of OldMainMenu.Enabled.
           So that you can change MainMenu.Enabled without changing MainMenu
           and SetWindowState will restore this. }
-        OldMainMenuEnabled: boolean;
+        OldMainMenuEnabled: Boolean;
         OldCursor: TMouseCursor;
         OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
         OldClose_KeyString: String;
         OldControls: TChildrenControls;
-        OldAutomaticTouchControl: boolean;
+        OldAutomaticTouchControl: Boolean;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
       public
@@ -112,7 +112,7 @@ type
     var
     OldState: TWindowState;
     Window: TCastleWindowBase;
-    DisabledContextOpenClose: boolean;
+    DisabledContextOpenClose: Boolean;
   public
     { Constructor saves open TCastleWindowBase and OpenGL state.
       Destructor will restore them.
@@ -220,7 +220,7 @@ type
 
     destructor Destroy; override;
 
-    property FakeMouseDown: boolean
+    property FakeMouseDown: Boolean
       read FFakeMouseDown write FFakeMouseDown default false;
   end;
 

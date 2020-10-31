@@ -132,9 +132,9 @@ const
   get non-normalized quaternion that doesn't represent rotation,
   and is usually useless for us. }
 function QuatFromAxisAngle(const Axis: TVector3;
-  const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion; overload;
+  const AngleRad: Single; const NormalizeAxis: Boolean = false): TQuaternion; overload;
 function QuatFromAxisAngle(const AxisAngle: TVector4;
-  const NormalizeAxis: boolean = false): TQuaternion; overload;
+  const NormalizeAxis: Boolean = false): TQuaternion; overload;
 
 { Initialize rotation quaternion from a 3x3 matrix that contains only rotation. }
 function QuatFromRotationMatrix(const Matrix: TMatrix3): TQuaternion;
@@ -181,9 +181,9 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4; overload;
 
   @groupBegin }
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
-  const ForceShortestPath: boolean = true): TQuaternion; overload;
+  const ForceShortestPath: Boolean = true): TQuaternion; overload;
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;
-  const ForceShortestPath: boolean = true): TVector4; overload;
+  const ForceShortestPath: Boolean = true): TVector4; overload;
 { @groupEnd }
 
 implementation
@@ -394,7 +394,7 @@ end;
 { routines ------------------------------------------------------------------- }
 
 function QuatFromAxisAngle(const Axis: TVector3;
-  const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
+  const AngleRad: Single; const NormalizeAxis: Boolean): TQuaternion;
 var
   SinHalfAngle, CosHalfAngle: Float;
 begin
@@ -415,7 +415,7 @@ begin
 end;
 
 function QuatFromAxisAngle(const AxisAngle: TVector4;
-  const NormalizeAxis: boolean): TQuaternion;
+  const NormalizeAxis: Boolean): TQuaternion;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
@@ -571,7 +571,7 @@ begin
 end;
 
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
-  const ForceShortestPath: boolean): TQuaternion;
+  const ForceShortestPath: Boolean): TQuaternion;
 begin
   if ForceShortestPath and (TVector4.DotProduct(Q1.Data.Vector4, Q2.Data.Vector4) < 0) then
   begin
@@ -584,7 +584,7 @@ begin
 end;
 
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;
-  const ForceShortestPath: boolean): TVector4;
+  const ForceShortestPath: Boolean): TVector4;
 begin
   Result := NLerp(A,
     QuatFromAxisAngle(Rot1, true),

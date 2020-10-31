@@ -204,7 +204,7 @@ end;
 
 { lcl/include/unixfileutil.inc ----------------------------------------------- }
 
-function FileIsExecutable(const AFilename: string): boolean;
+function FileIsExecutable(const AFilename: string): Boolean;
 var
   Info : Stat;
 begin

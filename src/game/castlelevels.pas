@@ -40,9 +40,9 @@ type
     FTitle: string;
     FTitleHint: string;
     FNumber: Integer;
-    FDemo: boolean;
-    FPlayed: boolean;
-    FDefaultPlayed: boolean;
+    FDemo: Boolean;
+    FPlayed: Boolean;
+    FDefaultPlayed: Boolean;
     FLoadingImage: TRGBImage;
     FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
@@ -145,7 +145,7 @@ type
       The engine doesn't use this property at all, it's only loaded from level.xml
       file. It is available for your "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    property Demo: boolean read FDemo write FDemo default false;
+    property Demo: Boolean read FDemo write FDemo default false;
 
     { Was the level played.
 
@@ -173,7 +173,7 @@ type
       It is just available for your game, for example to use in your
       "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    property Played: boolean read FPlayed write FPlayed;
+    property Played: Boolean read FPlayed write FPlayed;
 
     { Should the level be initially considered "played".
       This determines the initial value of @link(Played) property
@@ -184,7 +184,7 @@ type
       How is this information useful, depends on a particular game.
       For example, some games may decide to show in the "New Game"
       menu levels only with Played=true. Some games may simply ignore it. }
-    property DefaultPlayed: boolean read FDefaultPlayed write FDefaultPlayed;
+    property DefaultPlayed: Boolean read FDefaultPlayed write FDefaultPlayed;
 
     { Background image shown when loading the level, @nil if none.
       This is loaded from URL indicated by attribute loading_image
@@ -251,7 +251,7 @@ type
     { How many TLevel have references to our children by
       TLevel.Info? }
     References: Cardinal;
-    procedure AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
+    procedure AddFromInfo(const Info: TFileInfo; var StopSearch: Boolean);
   public
     { raises Exception if such Name is not on the list. }
     function FindName(const AName: string): TLevelInfo;
@@ -321,7 +321,7 @@ type
       FInternalLogic: TLevelInternalLogic;
       FLogic: TLevelLogic;
       FInfo: TLevelInfo;
-      LevelResourcesPrepared: boolean;
+      LevelResourcesPrepared: Boolean;
       FWater: TBox3D;
       FSectors: TSectorList;
       Waypoints: TWaypointList;
@@ -334,7 +334,7 @@ type
     { Unload Items from previous level, keeps only Player on Items.
       Returns previous resources. You have to call Release and free them. }
     function UnloadCore: T3DResourceList;
-    function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
+    function Placeholder(Shape: TShape; PlaceholderName: string): Boolean;
     procedure SetPlayer(const Value: TPlayer);
     { Assigns Camera and Navigation on level loading and setting/change player }
     procedure InitializeCamera;
@@ -551,17 +551,17 @@ type
       )
       @groupBegin }
     function LoadLevelScene(const URL: string;
-      const PrepareForCollisions: boolean;
+      const PrepareForCollisions: Boolean;
       const SceneClass: TCastleSceneClass): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     function LoadLevelScene(const URL: string;
-      const PrepareForCollisions: boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
+      const PrepareForCollisions: Boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
       Return @true if this is indeed a recognized placeholder name,
       and it was handled and relevant shape should be removed from level
       geometry (to not be rendered). }
-    function Placeholder(const Shape: TShape; const PlaceholderName: string): boolean; virtual;
+    function Placeholder(const Shape: TShape; const PlaceholderName: string): Boolean; virtual;
 
     { Called after all placeholders have been processed,
       that is after @link(TLevel.Load) placed initial creatures,
@@ -747,7 +747,7 @@ begin
   Result := Viewport.PrepareParams;
 end;
 
-function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): boolean;
+function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): Boolean;
 const
   { Prefix of all placeholders that we seek on 3D models. }
   PlaceholderPrefix = 'Cas';
@@ -760,7 +760,7 @@ const
   procedure PlaceholderResource(Shape: TShape; PlaceholderName: string);
   var
     ResourceName: string;
-    ResourceNumberPresent: boolean;
+    ResourceNumberPresent: Boolean;
     Resource: T3DResource;
     Box: TBox3D;
     Position, Direction: TVector3;
@@ -1107,7 +1107,7 @@ procedure TLevel.Load(const AInfo: TLevelInfo);
 var
   SavedImage: TObject;
   SavedBarYPosition: Single;
-  SavedOwnsImage: boolean;
+  SavedOwnsImage: Boolean;
 begin
   SavedOwnsImage := Progress.UserInterface.OwnsImage;
   SavedImage := Progress.UserInterface.Image;
@@ -1442,7 +1442,7 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const PrepareForCollisions: boolean;
+  const PrepareForCollisions: Boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
@@ -1467,7 +1467,7 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const PrepareForCollisions: boolean): TCastleScene;
+  const PrepareForCollisions: Boolean): TCastleScene;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
@@ -1481,7 +1481,7 @@ begin
 end;
 
 function TLevelLogic.Placeholder(const Shape: TShape;
-  const PlaceholderName: string): boolean;
+  const PlaceholderName: string): Boolean;
 begin
   Result := false;
 end;
@@ -1517,7 +1517,7 @@ procedure TLevelInfo.LoadFromDocument;
 
   { Like DOMGetAttribute, but reads TLevelLogicClass value. }
   function DOMGetLevelLogicClassAttribute(const Element: TDOMElement;
-    const AttrName: string; var Value: TLevelLogicClass): boolean;
+    const AttrName: string; var Value: TLevelLogicClass): Boolean;
   var
     ValueStr: string;
   begin
@@ -1653,7 +1653,7 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
+procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo; var StopSearch: Boolean);
 begin
   AddFromFile(Info.URL);
 end;

@@ -82,7 +82,7 @@ type
     var
       ToPascal: TCastleStringList;
       FOnReceive: TMessageReceivedEventList;
-      FLog: boolean;
+      FLog: Boolean;
     { Called constantly to empty the ToPascal list. }
     procedure Update(Sender: TObject);
   public
@@ -100,17 +100,17 @@ type
       Note that this is sometimes quite verbose, and it also allows cheaters
       to easier debug what happens in your game (e.g. how to fake getting
       some achievement), so in general don't leave it "on" in production. }
-    property Log: boolean read FLog write FLog default false;
+    property Log: Boolean read FLog write FLog default false;
 
-    { Convert boolean to 'true' or 'false' string, which will be understood correctly
+    { Convert Boolean to 'true' or 'false' string, which will be understood correctly
       by the service receiving the messages. }
-    class function BoolToStr(const Value: boolean): string;
+    class function BoolToStr(const Value: Boolean): string;
 
     { Convert float time (in seconds) to integer miliseconds, which are understood correctly
       by the service receiving the messages. }
     class function TimeToStr(const Value: TFloatTime): string;
 
-    { Convert string to a boolean, assuming the string was send by the external service.
+    { Convert String to a Boolean, assuming the string was send by the external service.
       The counterpart of this in Android is ServiceAbstract.booleanToString . }
     class function MessageToBoolean(const Value: String): Boolean;
   end;
@@ -144,7 +144,7 @@ procedure TMessageReceivedEventList.ExecuteAll(const Received: TCastleStringList
   const ReceivedStream: TMemoryStream);
 var
   I: Integer;
-  EventResult, Handled: boolean;
+  EventResult, Handled: Boolean;
 begin
   Handled := false;
 
@@ -291,7 +291,7 @@ begin
   end;
 end;
 
-class function TMessaging.BoolToStr(const Value: boolean): string;
+class function TMessaging.BoolToStr(const Value: Boolean): string;
 begin
   Result := {$ifdef FPC} SysUtils.BoolToStr {$else} Iff {$endif}
     (Value, 'true', 'false');
@@ -317,7 +317,7 @@ end;
 
 var
   FMessaging: TMessaging;
-  FinalizationDone: boolean;
+  FinalizationDone: Boolean;
 
 procedure DoInitialization;
 begin

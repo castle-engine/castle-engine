@@ -114,7 +114,7 @@ type
     @param(Data This is the OptionProcData value you passed to TParameters.Parse,
       use this to pass some pointer to your callback.)
   }
-  TOptionProc = procedure (OptionNum: Integer; HasArgument: boolean;
+  TOptionProc = procedure (OptionNum: Integer; HasArgument: Boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
   { Command-line option specification, for TParameters.Parse.
@@ -232,7 +232,7 @@ type
 
     { Is one of given strings present on the parameters list.
       Looks inside Strings[1..High], case sensitive. }
-    function IsPresent(const A: array of string): boolean;
+    function IsPresent(const A: array of string): Boolean;
 
     { Parse command-line parameters. Given a specification of your command-line
       options (in AOptions), we will find and pass these options to your
@@ -301,10 +301,10 @@ type
       @groupBegin }
     procedure Parse(AOptions: POption_Array; OptionsCount: Integer;
       OptionProc: TOptionProc; OptionProcData: Pointer;
-      ParseOnlyKnownLongOptions: boolean = false); overload;
+      ParseOnlyKnownLongOptions: Boolean = false); overload;
     procedure Parse(const AOptions: array of TOption;
       OptionProc: TOptionProc; OptionProcData: Pointer;
-      ParseOnlyKnownLongOptions: boolean = false); overload;
+      ParseOnlyKnownLongOptions: Boolean = false); overload;
     { @groupEnd }
   end;
 
@@ -390,7 +390,7 @@ begin
       ParametersCountString(High-ParamValue, ' less'));
 end;
 
-function TParameters.IsPresent(const A: array of string): boolean;
+function TParameters.IsPresent(const A: array of string): Boolean;
 var
   I, J: Integer;
 begin
@@ -402,14 +402,14 @@ begin
 end;
 
 procedure TParameters.Parse(const AOptions: array of TOption; OptionProc: TOptionProc;
-  OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
+  OptionProcData: Pointer; ParseOnlyKnownLongOptions: Boolean);
 begin
   Parse(@AOptions, System.High(AOptions)+1, OptionProc, OptionProcData,
     ParseOnlyKnownLongOptions);
 end;
 
 procedure SplitLongParameter(const s: string; out ParamLong: string;
-  out HasArgument: boolean; out Argument: string; PrefixLength: Integer);
+  out HasArgument: Boolean; out Argument: string; PrefixLength: Integer);
 { zadany s musi sie zaczynac od PrefixLength znakow ktore sa ignorowane
   (dla "prawdziwej" long option z definicji TParameters.Parse PrefixLength musi byc
   2 i musza one byc rowne '--').
@@ -450,9 +450,9 @@ end;
 
 procedure TParameters.Parse(
   AOptions: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
-  OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
+  OptionProcData: Pointer; ParseOnlyKnownLongOptions: Boolean);
 
-  function ParseLongParameter(const s: string; out HasArgument: boolean;
+  function ParseLongParameter(const s: string; out HasArgument: Boolean;
     out Argument: string): Integer;
   { s jest jakims parametrem ktory zaczyna sie od '--' i nie jest rowny '--'.
     Wyciaga z s-a opcje jaka reprezentuje (i zwraca jej numer w Params,
@@ -496,7 +496,7 @@ procedure TParameters.Parse(
    raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, [c, Parameter]);
   end;
 
-  function ParseShortParameter(const s: string; var HasArgument: boolean;
+  function ParseShortParameter(const s: string; var HasArgument: Boolean;
     var Argument: string; SimpleShortOptions: TIntegerList): Integer;
   { s jest jakims parametrem zaczynajacym sie od '-' i nie bedacym '-'.
     Dziala tak jak ParseLongParameter tyle ze nigdy nie zwraca -1
@@ -535,7 +535,7 @@ procedure TParameters.Parse(
   end;
 
 var i, j, k, OptionNum: Integer;
-    HasArgument: boolean;
+    HasArgument: Boolean;
     Argument, OptionName: string;
     SeparateArgs: TSeparateArgs;
     SimpleShortOptions: TIntegerList;

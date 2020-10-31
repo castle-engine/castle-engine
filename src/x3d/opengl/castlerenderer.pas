@@ -170,10 +170,10 @@ type
   strict private
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
-    FLighting: boolean;
-    FUseSceneLights: boolean;
+    FLighting: Boolean;
+    FUseSceneLights: Boolean;
     FOpacity: Single;
-    FEnableTextures: boolean;
+    FEnableTextures: Boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
     FPointSize: TGLFloat;
@@ -182,12 +182,12 @@ type
     FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
     FMode: TRenderingMode;
     FShadowSampling: TShadowSampling;
-    FVisualizeDepthMap: boolean;
-    FDepthTest: boolean;
-    FPhongShading: boolean;
+    FVisualizeDepthMap: Boolean;
+    FDepthTest: Boolean;
+    FPhongShading: Boolean;
     FSolidColor: TCastleColorRGB;
     FSolidColorBlendingPipeline: Boolean;
-    FSeparateDiffuseTexture: boolean;
+    FSeparateDiffuseTexture: Boolean;
     FMaxLightsPerShape: Cardinal;
     function GetShaders: TShadersRendering;
     procedure SetShaders(const Value: TShadersRendering);
@@ -196,16 +196,16 @@ type
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction);
     procedure SetOnVertexColor(const Value: TVertexColorFunction);
-    procedure SetEnableTextures(const Value: boolean);
+    procedure SetEnableTextures(const Value: Boolean);
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
     procedure SetMode(const Value: TRenderingMode);
     procedure SetShadowSampling(const Value: TShadowSampling);
-    procedure SetVisualizeDepthMap(const Value: boolean);
+    procedure SetVisualizeDepthMap(const Value: Boolean);
     { @groupEnd }
   protected
-    procedure SetPhongShading(const Value: boolean); virtual;
+    procedure SetPhongShading(const Value: Boolean); virtual;
 
     { Called before changing an attribute that requires the release
       of things cached in a renderer. This includes attributes that affect:
@@ -245,7 +245,7 @@ type
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TRenderingAttributes): boolean; virtual;
+    function EqualForShapeCache(SecondValue: TRenderingAttributes): Boolean; virtual;
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
@@ -279,7 +279,7 @@ type
       work for modern OpenGL, the renderer really has to know if lighting
       is enabled. (to generate proper shaders, and to avoid clumsy
       glPushAttrib / glPopAttrib at some places).) }
-    property Lighting: boolean
+    property Lighting: Boolean
       read FLighting write FLighting default true;
 
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
@@ -298,7 +298,7 @@ type
 
       This is independent from the @link(Lighting) property (which merely
       says whether we will turn OpenGL lighting on at all). }
-    property UseSceneLights: boolean
+    property UseSceneLights: Boolean
       read FUseSceneLights write FUseSceneLights default true;
 
     { Opacity for all rendered shapes. Setting this to something < 1
@@ -311,7 +311,7 @@ type
       disabling textures for non-textured parts.
 
       Otherwise, textures are disabled. }
-    property EnableTextures: boolean
+    property EnableTextures: Boolean
       read FEnableTextures write SetEnableTextures default true;
 
     { Default minification and magnification filters for textures.
@@ -372,7 +372,7 @@ type
 
     { Whether to use Phong shading by default for all shapes.
       Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
-    property PhongShading: boolean read FPhongShading write SetPhongShading
+    property PhongShading: Boolean read FPhongShading write SetPhongShading
       default DefaultPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
@@ -412,7 +412,7 @@ type
       Setting this property to @true has the same effect as setting
       compareMode to "NONE" on all (explicit and implicitly created)
       GeneratedShadowMap nodes. }
-    property VisualizeDepthMap: boolean
+    property VisualizeDepthMap: Boolean
       read FVisualizeDepthMap write SetVisualizeDepthMap default false;
 
     { By default, we use depth testing to determine which objects are in front
@@ -425,7 +425,7 @@ type
       ignoring the contents of the depth buffer. Use only if you know
       what you're doing, if you're sure that the order of rendering will
       always be good. }
-    property DepthTest: boolean read FDepthTest write FDepthTest default true;
+    property DepthTest: Boolean read FDepthTest write FDepthTest default true;
 
     { Color used when @link(Mode) is @link(rmSolidColor). }
     property SolidColor: TCastleColorRGB read FSolidColor write FSolidColor;
@@ -451,7 +451,7 @@ type
       effectively multiplies all factors, so it also multiplies
       e.g. emissive factor for "pure emissive materials",
       which may be useful sometimes). }
-    property SeparateDiffuseTexture: boolean
+    property SeparateDiffuseTexture: Boolean
       read FSeparateDiffuseTexture
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
@@ -482,7 +482,7 @@ type
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
-    GUITexture: boolean;
+    GUITexture: Boolean;
     References: Cardinal;
     GLName: TGLuint;
   end;
@@ -496,7 +496,7 @@ type
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
-    GUITexture: boolean;
+    GUITexture: Boolean;
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
@@ -548,7 +548,7 @@ type
     Attributes: TRenderingAttributes;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
-    FogVolumetric: boolean;
+    FogVolumetric: Boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
     References: Cardinal;
@@ -571,7 +571,7 @@ type
 
     { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
-    procedure LoadArraysToVbo(const DynamicGeometry: boolean);
+    procedure LoadArraysToVbo(const DynamicGeometry: Boolean);
     procedure FreeVBO;
   public
     constructor Create;
@@ -642,7 +642,7 @@ type
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const CompositeForMipmaps: TCompositeImage;
-      const GUITexture: boolean;
+      const GUITexture: Boolean;
       const FlipVertically: Boolean): TGLuint;
 
     procedure TextureImage_DecReference(
@@ -655,7 +655,7 @@ type
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const GUITexture: boolean): TGLVideo3D;
+      const GUITexture: Boolean): TGLVideo3D;
 
     procedure TextureVideo_DecReference(
       const TextureVideo: TGLVideo3D);
@@ -684,7 +684,7 @@ type
       const TextureWrap: TTextureWrap2D;
       CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
-      const VisualizeDepthMap: boolean): TGLuint;
+      const VisualizeDepthMap: Boolean): TGLuint;
 
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
@@ -698,7 +698,7 @@ type
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
-      const Precision32: boolean): TGLuint;
+      const Precision32: Boolean): TGLuint;
     procedure TextureFloat_DecReference(
       const TextureGLName: TGLuint);
 
@@ -807,12 +807,12 @@ type
     { Is bump mapping allowed by the current shape.
       Fully calculated only after InitMeshRenderer, as determining GeneratorClass
       is needed to set this. }
-    ShapeBumpMappingAllowed: boolean;
+    ShapeBumpMappingAllowed: Boolean;
     { Is bump mapping used for current shape.
       This is determined by ShapeBumpMappingAllowed,
       global BumpMapping, and by the texture information for current
       shape (whether user provided normal map, height map etc.) }
-    ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingUsed: Boolean;
     ShapeBumpMappingTextureCoordinatesId: Cardinal;
 
     { How many texture units are used.
@@ -842,9 +842,9 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
 
-    FSmoothShading: boolean;
-    FFixedFunctionLighting: boolean;
-    FFixedFunctionAlphaTest: boolean;
+    FSmoothShading: Boolean;
+    FFixedFunctionLighting: Boolean;
+    FFixedFunctionAlphaTest: Boolean;
     FLineType: TLineType;
 
     function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
@@ -869,17 +869,17 @@ type
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
-    procedure SetSmoothShading(const Value: boolean);
-    procedure SetFixedFunctionLighting(const Value: boolean);
-    procedure SetFixedFunctionAlphaTest(const Value: boolean);
+    procedure SetSmoothShading(const Value: Boolean);
+    procedure SetFixedFunctionLighting(const Value: Boolean);
+    procedure SetFixedFunctionAlphaTest(const Value: Boolean);
     procedure SetLineType(const Value: TLineType);
 
     { Change glShadeModel by this property. }
-    property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
+    property SmoothShading: Boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
-    property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
+    property FixedFunctionLighting: Boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
     { Change GL_ALPHA_TEST enabled by this property. }
-    property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
+    property FixedFunctionAlphaTest: Boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineType: TLineType read FLineType write SetLineType;
 
     {$I castlerenderer_surfacetextures.inc}
@@ -891,12 +891,12 @@ type
 
     { Currently set fog parameters, during render. }
     FogFunctionality: TFogFunctionality;
-    FogEnabled: boolean;
+    FogEnabled: Boolean;
     FogType: TFogType;
     FogColor: TVector3;
     FogLinearEnd: Single;
     FogExpDensity: Single;
-    FogVolumetric: boolean;
+    FogVolumetric: Boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
@@ -915,7 +915,7 @@ type
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(const AFogFunctionality: TFogFunctionality;
-      out Enabled, Volumetric: boolean;
+      out Enabled, Volumetric: Boolean;
       out VolumetricDirection: TVector3;
       out VolumetricVisibilityStart: Single);
 
@@ -939,40 +939,40 @@ type
       const Shader: TShader);
     procedure RenderShapeLights(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean);
+      const MaterialOpacity: Single; const Lighting: Boolean);
     procedure RenderShapeFog(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean);
+      const MaterialOpacity: Single; const Lighting: Boolean);
     procedure RenderShapeTextureTransform(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean);
+      const MaterialOpacity: Single; const Lighting: Boolean);
     procedure RenderShapeClipPlanes(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean);
+      const MaterialOpacity: Single; const Lighting: Boolean);
     procedure RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean);
+      const MaterialOpacity: Single; const Lighting: Boolean);
     procedure RenderShapeShaders(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean;
+      const MaterialOpacity: Single; const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean;
+      const MaterialOpacity: Single; const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject;
       const UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeInside(const Shape: TX3DRendererShape;
       const Shader: TShader;
-      const MaterialOpacity: Single; const Lighting: boolean;
+      const MaterialOpacity: Single; const Lighting: Boolean;
       const GeneratorClass: TArraysGeneratorClass;
       const ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
-    procedure RenderCleanState(const Beginning: boolean);
+    procedure RenderCleanState(const Beginning: Boolean);
   public
     type
       TRenderMode = (
@@ -1043,7 +1043,7 @@ type
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       const CurrentViewpoint: TAbstractViewpointNode;
-      const CameraViewKnown: boolean;
+      const CameraViewKnown: Boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3);
 
     { Load GLSL shader for the ScreenEffect node.
@@ -1074,12 +1074,12 @@ var
     A @italic(lot) of log messages.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogRendererCache: boolean = false;
+  LogRendererCache: Boolean = false;
 
   { Log various renderer information.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogRenderer: boolean = false;
+  LogRenderer: Boolean = false;
 
 {$undef read_interface}
 
@@ -1121,7 +1121,7 @@ destructor TGLRendererContextCache.Destroy;
 { $define ONLY_WARN_ON_CACHE_LEAK}
 
 {$ifdef ONLY_WARN_ON_CACHE_LEAK}
-  procedure Assert(const B: boolean; const S: string = '');
+  procedure Assert(const B: Boolean; const S: string = '');
   begin
     if not B then
       WritelnWarning('VRML/X3D', 'GLRendererContextCache warning: ' + S);
@@ -1194,7 +1194,7 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage;
-  const GUITexture: boolean;
+  const GUITexture: Boolean;
   const FlipVertically: Boolean): TGLuint;
 var
   I: Integer;
@@ -1295,7 +1295,7 @@ function TGLRendererContextCache.TextureVideo_IncReference(
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const GUITexture: boolean): TGLVideo3D;
+  const GUITexture: Boolean): TGLVideo3D;
 var
   I: Integer;
   TextureCached: TTextureVideoCache;
@@ -1539,7 +1539,7 @@ function TGLRendererContextCache.TextureDepth_IncReference(
   const TextureWrap: TTextureWrap2D;
   CompareMode: TShadowMapCompareMode;
   const Width, Height: Cardinal;
-  const VisualizeDepthMap: boolean): TGLuint;
+  const VisualizeDepthMap: Boolean): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
@@ -1679,7 +1679,7 @@ function TGLRendererContextCache.TextureFloat_IncReference(
   const Filter: TTextureFilter;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
-  const Precision32: boolean): TGLuint;
+  const Precision32: Boolean): TGLuint;
 {$ifndef OpenGLES}
 var
   I: Integer;
@@ -1767,11 +1767,11 @@ function TGLRendererContextCache.Shape_IncReference(
   const Shape: TX3DRendererShape;
   const ARenderer: TGLRenderer): TShapeCache;
 var
-  FogEnabled, FogVolumetric: boolean;
+  FogEnabled, FogVolumetric: Boolean;
   FogVolumetricDirection: TVector3;
   FogVolumetricVisibilityStart: Single;
 
-  function IgnoreStateTransform: boolean;
+  function IgnoreStateTransform: Boolean;
   begin
     if { Force CacheIgnoresTransform to be false if our shape uses shaders.
          Shaders may depend on coordinates in eye space, which obviously
@@ -1793,12 +1793,12 @@ var
   end;
 
   function FogVolumetricEqual(
-    const Volumetric1: boolean;
+    const Volumetric1: Boolean;
     const VolumetricDirection1: TVector3;
     const VolumetricVisibilityStart1: Single;
-    const Volumetric2: boolean;
+    const Volumetric2: Boolean;
     const VolumetricDirection2: TVector3;
-    const VolumetricVisibilityStart2: Single): boolean;
+    const VolumetricVisibilityStart2: Single): Boolean;
   begin
     Result := (Volumetric1 = Volumetric2) and
       ( (not Volumetric1) or
@@ -1980,7 +1980,7 @@ begin
 end;
 
 function TRenderingAttributes.EqualForShapeCache(
-  SecondValue: TRenderingAttributes): boolean;
+  SecondValue: TRenderingAttributes): Boolean;
 begin
   {$warnings off} // consciously using deprecated stuff, to keep it working
   Result :=
@@ -2034,7 +2034,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetEnableTextures(const Value: boolean);
+procedure TRenderingAttributes.SetEnableTextures(const Value: Boolean);
 begin
   if EnableTextures <> Value then
   begin
@@ -2106,7 +2106,7 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
+procedure TRenderingAttributes.SetVisualizeDepthMap(const Value: Boolean);
 begin
   if VisualizeDepthMap <> Value then
   begin
@@ -2128,7 +2128,7 @@ begin
   PhongShading := Value = srAlways;
 end;
 
-procedure TRenderingAttributes.SetPhongShading(const Value: boolean);
+procedure TRenderingAttributes.SetPhongShading(const Value: Boolean);
 begin
   FPhongShading := Value;
 end;
@@ -2206,10 +2206,10 @@ begin
   VboToReload := VboToReload + Changed;
 end;
 
-procedure TShapeCache.LoadArraysToVbo(const DynamicGeometry: boolean);
+procedure TShapeCache.LoadArraysToVbo(const DynamicGeometry: Boolean);
 var
   DataUsage: TGLenum;
-  NewVbos: boolean;
+  NewVbos: Boolean;
 
   { Bind Vbo buffer and load data. Updates AllocatedSize.
     Uses glBufferSubData if possible, as it may be faster than glBufferData
@@ -2552,7 +2552,7 @@ begin
 end;
 
 procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
-  out Enabled, Volumetric: boolean;
+  out Enabled, Volumetric: Boolean;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
@@ -2577,7 +2577,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
+procedure TGLRenderer.RenderCleanState(const Beginning: Boolean);
 
   procedure DisabeAllTextureUnits;
   var
@@ -2815,7 +2815,7 @@ end;
 
 procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
 
-  function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): boolean;
+  function ShapeUsesEnvironmentLight(const Shape: TX3DRendererShape): Boolean;
   var
     I: Integer;
     Lights: TLightInstancesList;
@@ -2828,7 +2828,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     Result := false;
   end;
 
-  function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): boolean;
+  function ShapeMaybeUsesShadowMaps(const Shape: TX3DRendererShape): Boolean;
   var
     Tex, SubTexture: TX3DNode;
     I: Integer;
@@ -2854,7 +2854,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
     end;
   end;
 
-  function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): boolean;
+  function ShapeMaterialRequiresPhongShading(const Shape: TX3DRendererShape): Boolean;
   begin
     Result :=
       (Shape.Node <> nil) and
@@ -2864,7 +2864,7 @@ procedure TGLRenderer.RenderShape(const Shape: TX3DRendererShape);
   end;
 
 var
-  PhongShading: boolean;
+  PhongShading: Boolean;
   Shader: TShader;
 begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
@@ -2932,7 +2932,7 @@ end;
 
 procedure TGLRenderer.RenderShapeLights(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+  const MaterialOpacity: Single; const Lighting: Boolean);
 var
   SceneLights: TLightInstancesList;
 begin
@@ -2961,16 +2961,16 @@ end;
 
 procedure TGLRenderer.RenderShapeFog(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+  const MaterialOpacity: Single; const Lighting: Boolean);
 
 const
-  FogCoordinateSource: array [boolean { volumetric }] of TFogCoordinateSource =
+  FogCoordinateSource: array [Boolean { volumetric }] of TFogCoordinateSource =
   ( fcDepth, fcPassedCoordinate );
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
   procedure RenderFog(const AFogFunctionality: TFogFunctionality;
-    out Volumetric: boolean;
+    out Volumetric: Boolean;
     out VolumetricDirection: TVector3;
     out VolumetricVisibilityStart: Single);
   var
@@ -3078,7 +3078,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeTextureTransform(const Shape: TX3DRendererShape;
-  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: Boolean);
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
@@ -3266,7 +3266,7 @@ end;
 
 procedure TGLRenderer.RenderShapeClipPlanes(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean);
+  const MaterialOpacity: Single; const Lighting: Boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -3338,7 +3338,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderShapeCreateMeshRenderer(const Shape: TX3DRendererShape;
-  const Shader: TShader; const MaterialOpacity: Single; const Lighting: boolean);
+  const Shader: TShader; const MaterialOpacity: Single; const Lighting: Boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
   MeshRenderer: TMeshRenderer;
@@ -3349,7 +3349,7 @@ var
 
     Takes care of initializing MeshRenderer, so you have to call only
     MeshRenderer.Render. }
-  function InitMeshRenderer: boolean;
+  function InitMeshRenderer: Boolean;
   begin
     GeneratorClass := GetArraysGenerator(Shape.Geometry);
     Result := GeneratorClass <> nil;
@@ -3389,7 +3389,7 @@ end;
 
 procedure TGLRenderer.RenderShapeShaders(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean;
+  const MaterialOpacity: Single; const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject);
 var
@@ -3487,12 +3487,12 @@ end;
 
 procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean;
+  const MaterialOpacity: Single; const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject;
   const UsedGLSLTexCoordsNeeded: Cardinal);
 
-  function NodeTextured(Node: TAbstractGeometryNode): boolean;
+  function NodeTextured(Node: TAbstractGeometryNode): Boolean;
   begin
     Result := not (
       (Node is TPointSetNode) or
@@ -3539,7 +3539,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
   var
     TextureNode: TAbstractTextureNode;
     GLTextureNode: TGLTextureNode;
-    AlphaTest: boolean;
+    AlphaTest: Boolean;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
     MainTextureMapping: Integer;
@@ -3647,13 +3647,13 @@ end;
 
 procedure TGLRenderer.RenderShapeInside(const Shape: TX3DRendererShape;
   const Shader: TShader;
-  const MaterialOpacity: Single; const Lighting: boolean;
+  const MaterialOpacity: Single; const Lighting: Boolean;
   const GeneratorClass: TArraysGeneratorClass;
   const ExposedMeshRenderer: TObject);
 var
   Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
-  VBO: boolean;
+  VBO: Boolean;
 begin
   { No point preparing VBO for clones, clones will need own VBOs anyway. }
   if RenderMode = rmPrepareRenderClones then
@@ -3770,7 +3770,7 @@ procedure TGLRenderer.UpdateGeneratedTextures(const Shape: TX3DRendererShape;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const CurrentViewpoint: TAbstractViewpointNode;
-  const CameraViewKnown: boolean;
+  const CameraViewKnown: Boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3);
 var
   { Only for CheckUpdateField and PostUpdateField }
@@ -3778,7 +3778,7 @@ var
 
   { Look at the "update" field's value, decide whether we need updating.
     Will take care of making warning on incorrect "update". }
-  function CheckUpdate(Handler: TGeneratedTextureHandler): boolean;
+  function CheckUpdate(Handler: TGeneratedTextureHandler): Boolean;
   var
     Update: TTextureUpdate;
   begin
@@ -3889,7 +3889,7 @@ begin
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
 end;
 
-procedure TGLRenderer.SetSmoothShading(const Value: boolean);
+procedure TGLRenderer.SetSmoothShading(const Value: Boolean);
 begin
   if FSmoothShading <> Value then
   begin
@@ -3902,7 +3902,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SetFixedFunctionLighting(const Value: boolean);
+procedure TGLRenderer.SetFixedFunctionLighting(const Value: Boolean);
 begin
   if FFixedFunctionLighting <> Value then
   begin
@@ -3913,7 +3913,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: boolean);
+procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: Boolean);
 begin
   if FFixedFunctionAlphaTest <> Value then
   begin

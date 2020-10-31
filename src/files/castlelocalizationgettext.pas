@@ -240,10 +240,10 @@ end;
 type
   TFilesHandler = class
     Output: String;
-    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-procedure TFilesHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TFilesHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   GroupName: String;
   C, COwner: TComponent;

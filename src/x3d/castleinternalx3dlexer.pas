@@ -103,10 +103,10 @@ type
   TX3DVersion = object
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: boolean = false): string;
+      const ForceConvertingToX3D: Boolean = false): string;
     { File filters if you want to save a file using Save3D. }
     function FileFilters(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: boolean = false): string;
+      const ForceConvertingToX3D: Boolean = false): string;
   end;
 
   { VRML/X3D (classic encoding) lexer.
@@ -136,7 +136,7 @@ type
     VRMLNameChars, VRMLNameFirstChars: TSetOfChars;
 
     FStream: TPeekCharStream;
-    FOwnsStream: boolean;
+    FOwnsStream: Boolean;
 
     { Reads chars from Stream until EOF or some non-white char will
       be approached. Omits VRML comments. Returns as FirstBlack
@@ -158,7 +158,7 @@ type
 
       @groupBegin }
     procedure CreateCommonBegin(AStream: TPeekCharStream;
-      AOwnsStream: boolean);
+      AOwnsStream: Boolean);
     procedure CreateCommonEnd;
     { @groupEnd }
   public
@@ -167,7 +167,7 @@ type
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
       @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
-    constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean);
+    constructor Create(AStream: TPeekCharStream; AOwnsStream: Boolean);
 
     { Constructor for the case when you only have part of normal
       VRML tokens stream.
@@ -187,7 +187,7 @@ type
 
       @groupBegin }
     constructor CreateForPartialStream(
-      AStream: TPeekCharStream; AOwnsStream: boolean;
+      AStream: TPeekCharStream; AOwnsStream: Boolean;
       const AVersion: TX3DVersion); overload;
     constructor CreateForPartialStream(const S: string;
       const AVersion: TX3DVersion); overload;
@@ -304,8 +304,8 @@ type
     procedure NextTokenForceVTString;
 
     { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }
-    function TokenIsKeyword(const Keyword: TX3DKeyword): boolean; overload;
-    function TokenIsKeyword(const Keywords: TX3DKeywords): boolean; overload;
+    function TokenIsKeyword(const Keyword: TX3DKeyword): Boolean; overload;
+    function TokenIsKeyword(const Keywords: TX3DKeywords): Boolean; overload;
 
     { Nice textual description of current token, suitable to show to user. }
     function DescribeToken: string;
@@ -361,7 +361,7 @@ const
     StringToX3DClassic('say "yes"') = '"say \"yes\""'
   #) }
 function StringToX3DClassic(const s: string;
-  const SurroundWithQuotes: boolean = true): string;
+  const SurroundWithQuotes: Boolean = true): string;
 
 { String encoded for X3D XML, surrounded by double quotes.
   You can use this when generating VRML/X3D content by hand.
@@ -400,9 +400,9 @@ const
 
 var
   { Log all read tokens. Useful for debugging lexer. }
-  LogTokens: boolean = false;
+  LogTokens: Boolean = false;
 
-function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): boolean;
+function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): Boolean;
 var
   I: TX3DKeyword;
 begin
@@ -419,7 +419,7 @@ end;
 { TX3DVersion --------------------------------------------------------------- }
 
 function TX3DVersion.FileExtension(const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean): string;
+  const ForceConvertingToX3D: Boolean): string;
 begin
   if Encoding = xeXML then
     Result := '.x3d' else
@@ -429,7 +429,7 @@ begin
 end;
 
 function TX3DVersion.FileFilters(const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean): string;
+  const ForceConvertingToX3D: Boolean): string;
 const
   SaveVRMLClassic_FileFilters =
   'All files|*|' +
@@ -454,7 +454,7 @@ end;
 { TX3DLexer ------------------------------------------------------------- }
 
 procedure TX3DLexer.CreateCommonBegin(AStream: TPeekCharStream;
-  AOwnsStream: boolean);
+  AOwnsStream: Boolean);
 begin
   inherited Create;
 
@@ -490,7 +490,7 @@ begin
   NextToken;
 end;
 
-constructor TX3DLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean);
+constructor TX3DLexer.Create(AStream: TPeekCharStream; AOwnsStream: Boolean);
 const
   GzipHeader = #$1F + #$8B;
 
@@ -520,7 +520,7 @@ const
   { If Prefix is a prefix of S, then return @true and remove this prefix
     from S. Otherwise return @false (without modifying S).
     Allows also an UTF-8 BOM before a prefix. }
-  function CheckRemoveHeader(Prefix: string; var S: string): boolean;
+  function CheckRemoveHeader(Prefix: string; var S: string): Boolean;
   const
     Utf8Bom = #$EF + #$BB + #$BF;
   begin
@@ -663,7 +663,7 @@ begin
 end;
 
 constructor TX3DLexer.CreateForPartialStream(
-  AStream: TPeekCharStream; AOwnsStream: boolean;
+  AStream: TPeekCharStream; AOwnsStream: Boolean;
   const AVersion: TX3DVersion);
 begin
   CreateCommonBegin(AStream, AOwnsStream);
@@ -1028,12 +1028,12 @@ begin
  CheckTokenIs(vtString);
 end;
 
-function TX3DLexer.TokenIsKeyword(const Keyword: TX3DKeyword): boolean;
+function TX3DLexer.TokenIsKeyword(const Keyword: TX3DKeyword): Boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword = Keyword);
 end;
 
-function TX3DLexer.TokenIsKeyword(const Keywords: TX3DKeywords): boolean;
+function TX3DLexer.TokenIsKeyword(const Keywords: TX3DKeywords): Boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword in Keywords);
 end;
@@ -1094,7 +1094,7 @@ end;
 { global funcs  ------------------------------------------------------------------ }
 
 function StringToX3DClassic(const s: string;
-  const SurroundWithQuotes: boolean): string;
+  const SurroundWithQuotes: Boolean): string;
 const
   Patterns: array [0..1] of string = ('\', '"');
   PatValues: array [0..1] of string = ('\\', '\"');

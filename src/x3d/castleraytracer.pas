@@ -147,7 +147,7 @@ type
 
     { Lights shining on everything, like a headlight. }
     BaseLights: TLightInstancesList;
-    OwnsBaseLights: boolean;
+    OwnsBaseLights: Boolean;
 
     procedure Execute; override;
     destructor Destroy; override;
@@ -247,7 +247,7 @@ function TryTransmittedRayDirection(
   out TransmittedRayDirection: TVector3;
   const NormRayDirection: TVector3;
   const PlaneNormal: TVector3;
-  const EtaFrom, EtaTo: Single): boolean;
+  const EtaFrom, EtaTo: Single): Boolean;
 { Written based on Foley, page 627 }
 var
   EtaTransmission, RayIDotNormal, ToBeSqrRooted: Single;
@@ -318,7 +318,7 @@ function GetDiffuseTexture(const Texture: TAbstractTextureNode;
   end;
 
 var
-  RepeatCoord: array [0..2] of boolean;
+  RepeatCoord: array [0..2] of Boolean;
 
   function SampleNearest(const Image: TCastleImage; const Pixel: TVector3): TCastleColor;
   var
@@ -344,7 +344,7 @@ var
   var
     I: Integer;
     Dimensions: TVector3Cardinal;
-    PixelInt: array [boolean, 0..2] of Integer;
+    PixelInt: array [Boolean, 0..2] of Integer;
     PixelFrac: TVector3;
   begin
     Dimensions := Image.Dimensions;
@@ -379,7 +379,7 @@ var
   var
     I: Integer;
     Dimensions: TVector3Cardinal;
-    PixelInt: array [boolean, 0..1] of Integer;
+    PixelInt: array [Boolean, 0..1] of Integer;
     PixelFrac: TVector2;
   begin
     Dimensions := Image.Dimensions;
@@ -415,7 +415,7 @@ var
   TexCoord3D: TVector3;
   Pixel: TVector3;
   Color: TCastleColor;
-  Bilinear: boolean;
+  Bilinear: Boolean;
 begin
   Result := WhiteRGB;
 
@@ -511,7 +511,7 @@ var
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const RayOrigin, RayDirection: TVector3; const Depth: Cardinal;
-    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean): TCastleColorRGB;
+    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: Boolean): TCastleColorRGB;
   var
     Intersection: TVector3;
     IntersectNormal: TVector3;
@@ -575,7 +575,7 @@ var
       end;
     end;
 
-    function LightNotBlocked(const Light: TLightInstance): boolean;
+    function LightNotBlocked(const Light: TLightInstance): Boolean;
     begin
       { Does the light get to the current surface ?
 
@@ -613,7 +613,7 @@ var
       the scene completely unlit, usually diffuseColor is more useful for this
       (since emissiveColor is often black on everything). }
     function Emission(const M: TMaterialInfo;
-      const LightingCalculationOn: boolean): TVector3;
+      const LightingCalculationOn: Boolean): TVector3;
     begin
       if M <> nil then
       begin
@@ -842,7 +842,7 @@ end;
       Result := TPhongMaterialInfo.DefaultEmissiveColor;
   end;
 
-  function IsLightSource(const Item: TTriangle): boolean;
+  function IsLightSource(const Item: TTriangle): Boolean;
   begin
     Result := EmissiveColor(Item).LengthSqr > Sqr(SingleEpsilon);
   end;
@@ -944,7 +944,7 @@ const
   function IsLightShadowed(const Item: PTriangle;
     const ItemPoint: TVector3;
     const LightSourceIndiceIndex: Integer;
-    LightSourcePoint: TVector3): boolean;
+    LightSourcePoint: TVector3): Boolean;
   { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
@@ -995,7 +995,7 @@ const
 
   function Trace(const RayOrigin, RayDirection: TVector3;
     const Depth: Integer; const TriangleToIgnore: PTriangle;
-    const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
+    const IgnoreMarginAtStart: Boolean; const TraceOnlyIndirect: Boolean)
     : TVector3;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
@@ -1009,7 +1009,7 @@ const
 
       function TryCalculateTransmittedSpecularRayDirection(
         var TracedDir: TVector3;
-        var PdfValue: Single): boolean;
+        var PdfValue: Single): Boolean;
       var
         TransmittedRayDirection: TVector3;
         EtaFrom, EtaTo: Single;

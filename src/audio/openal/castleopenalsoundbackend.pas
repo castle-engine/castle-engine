@@ -113,13 +113,13 @@ type
   public
     procedure ContextOpen; override;
     procedure ContextClose; override;
-    function PlayingOrPaused: boolean; override;
+    function PlayingOrPaused: Boolean; override;
     procedure Play(const BufferChangedRecently: Boolean); override;
     procedure Stop; override;
     procedure SetPosition(const Value: TVector3); override;
     procedure SetVelocity(const Value: TVector3); override;
-    procedure SetLooping(const Value: boolean); override;
-    procedure SetRelative(const Value: boolean); override;
+    procedure SetLooping(const Value: Boolean); override;
+    procedure SetRelative(const Value: Boolean); override;
     procedure SetGain(const Value: Single); override;
     procedure SetMinGain(const Value: Single); override;
     procedure SetMaxGain(const Value: Single); override;
@@ -137,7 +137,7 @@ type
     FALMajorVersion, FALMinorVersion: Integer;
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
-    FEFXSupported: boolean;
+    FEFXSupported: Boolean;
     { ContextOpen was already called once with result @true. }
     WasAlreadyOpen: Boolean;
     WasAlreadyOpenDevice: String;
@@ -164,12 +164,12 @@ type
       Available only when OpenAL is initialized, that is:
       between @link(TSoundEngine.ContextOpen) and @link(TSoundEngine.ContextClose),
       only when @link(TSoundEngine.IsContextOpenSuccess). }
-    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
+    function ALVersionAtLeast(const AMajor, AMinor: Integer): Boolean;
 
     { Are OpenAL effects (EFX) extensions supported.
       Meaningful only after ContextOpen,
       when IsContextOpenSuccess, that is it's initialized by . }
-    property EFXSupported: boolean read FEFXSupported;
+    property EFXSupported: Boolean read FEFXSupported;
   end;
 
 const
@@ -423,7 +423,7 @@ begin
   alDeleteSources(1, @ALSource);
 end;
 
-function TOpenALSoundSourceBackend.PlayingOrPaused: boolean;
+function TOpenALSoundSourceBackend.PlayingOrPaused: Boolean;
 var
   SourceState: TALuint;
 begin
@@ -511,7 +511,7 @@ begin
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
 end;
 
-procedure TOpenALSoundSourceBackend.SetLooping(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetLooping(const Value: Boolean);
 begin
   { This variable is set from main thread but can be read by 2 threads (main and
     TOpenALStreamFeedThread, but I think this is Boolean and changeing Boolean
@@ -524,7 +524,7 @@ begin
   AdjustALLooping;
 end;
 
-procedure TOpenALSoundSourceBackend.SetRelative(const Value: boolean);
+procedure TOpenALSoundSourceBackend.SetRelative(const Value: Boolean);
 begin
   alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
 end;
@@ -705,7 +705,7 @@ begin
   end;
 end;
 
-function TOpenALSoundEngineBackend.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
+function TOpenALSoundEngineBackend.ALVersionAtLeast(const AMajor, AMinor: Integer): Boolean;
 begin
   Result :=
       (AMajor < FALMajorVersion) or

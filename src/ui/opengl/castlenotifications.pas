@@ -61,7 +61,7 @@ type
     FMaxMessages: integer;
     FTimeout, FFade: Single;
     FHistory: TCastleStringList;
-    FCollectHistory: boolean;
+    FCollectHistory: Boolean;
     FTextAlignment: THorizontalPosition;
   protected
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
@@ -87,7 +87,7 @@ type
     procedure Clear;
 
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
 
     procedure Render; override;
 
@@ -123,7 +123,7 @@ type
 
       This is useful if you want to show the player a history of messages
       (in case they missed the message in game). }
-    property CollectHistory: boolean read FCollectHistory write FCollectHistory
+    property CollectHistory: Boolean read FCollectHistory write FCollectHistory
       default false;
 
     { Alignment of the text inside. }
@@ -280,7 +280,7 @@ begin
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   TimerNow: TTimerResult;
   TimeoutToFade: TFloatTime;

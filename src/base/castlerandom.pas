@@ -50,7 +50,7 @@ type
     function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like flipping a coin... }
-    function RandomBoolean: boolean;
+    function RandomBoolean: Boolean;
     { Randomly provides "-1", "0" or "1" with equal chances. }
     function RandomSign: longint;
     { Returns a random number in 1 .. High(LongWord) range. }
@@ -131,7 +131,7 @@ end;
   more comments than the code itself :)
   I hope I've made everything right :) At least formal tests show it is so.}
 var Store64bitSeed: QWord = 0; //this variable stores 64 bit seed for reusing
-   WaitForSeed: boolean = false;
+   WaitForSeed: Boolean = false;
 function Get_Randomseed: longint;
 const DateMultiplier: QWord = 30000000;  // approximate accuracy of the date
       DateOrder: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
@@ -332,7 +332,7 @@ begin
     Result := 0;
 end;
 
-function TCastleRandom.RandomBoolean: boolean;
+function TCastleRandom.RandomBoolean: Boolean;
 begin
   XorShiftCycle;
   Result := Seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...

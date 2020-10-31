@@ -22,7 +22,7 @@
     Renderer: TGLRenderer;
   public
     constructor Create(ARenderer: TGLRenderer);
-    function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
+    function SetupUniforms(var BoundTextureUnits: Cardinal): Boolean; override;
   end;
 
 {$endif read_interface}
@@ -37,13 +37,13 @@ begin
   Renderer := ARenderer;
 end;
 
-function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
+function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): Boolean;
 
   { Bind texture node to a uniform value.
     Returns false if setting this texture node resulted in GLSL error
     (invalid name or type in shader code)
     and it should be removed from UniformsTextures. }
-  function BindTextureUniform(TextureField: TX3DField): boolean;
+  function BindTextureUniform(TextureField: TX3DField): Boolean;
 
     { If TextureNode <> @nil and is a texture node, prepare it.
       Returns bound texture number (or -1 if failed).

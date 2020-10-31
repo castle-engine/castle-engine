@@ -25,7 +25,7 @@ private
     If Node is nil, or it's corresponding OpenGL resource is not initialized
     for whatever reason --- returns 0. }
   function GLTexture2D(Node: TAbstractTextureNode;
-    out TextureHasAlpha: boolean): TGLTextureId;
+    out TextureHasAlpha: Boolean): TGLTextureId;
   function GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
 
   { If this Shape uses a normal map, use it for bump mapping. }
@@ -38,14 +38,14 @@ private
 
   { Does this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+  class function ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): Boolean;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode;
-  out TextureHasAlpha: boolean): TGLTextureId;
+  out TextureHasAlpha: Boolean): TGLTextureId;
 var
   GLNode: TGLTextureNode;
 begin
@@ -63,12 +63,12 @@ end;
 
 function TGLRenderer.GLTexture2D(Node: TAbstractTextureNode): TGLTextureId;
 var
-  IgnoreTextureHasAlpha: boolean;
+  IgnoreTextureHasAlpha: Boolean;
 begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TGLRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+class function TGLRenderer.ShapeMaybeUsesSurfaceTexture(const Shape: TX3DRendererShape): Boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
   MatOne: TAbstractOneSidedMaterialNode;
@@ -135,7 +135,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
   var
     GLNormalTexture: TGLTextureId;
     { Does NormalTexture have alpha channel. }
-    HasAlpha: boolean;
+    HasAlpha: Boolean;
   begin
     if ShapeBumpMappingAllowed and
        (BumpMapping <> bmNone) and

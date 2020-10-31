@@ -25,7 +25,7 @@ var
   function TryTriangleCollision(
     out Intersection: TVector3;
     out IntersectionDistance: Single;
-    var Item: TTriangle): boolean;
+    var Item: TTriangle): Boolean;
   begin
     Result:=
       {$ifdef SEGMENT_COLLISION}
@@ -40,7 +40,7 @@ var
   function FoundIntersection(
     out Intersection: TVector3;
     out IntersectionDistance: Single;
-    const ItemPtr: PTriangle): boolean;
+    const ItemPtr: PTriangle): Boolean;
   begin
     Result := TryTriangleCollision(Intersection, IntersectionDistance,  ItemPtr^) and
        ( TriangleToIgnore <> ItemPtr ) and

@@ -512,7 +512,7 @@ type
       so you can write e.g.
       @code(Window.Pressed[keyX]) instead of
       @code(Window.Pressed.Keys[keyX]). }
-    property Items [const Key: TKey]: boolean read GetItems; default;
+    property Items [const Key: TKey]: Boolean read GetItems; default;
 
     { Does an UTF-8 key represented by this String is pressed.
       Note that internallly we only track 8-bit keys (Char) for now,
@@ -547,7 +547,7 @@ type
   end;
 
 function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys = [];
-  const CtrlIsCommand: boolean = false): string;
+  const CtrlIsCommand: Boolean = false): string;
 
 const
   ModifierKeyToKey: array[TModifierKey]of TKey = (keyCtrl, keyShift, keyAlt);
@@ -581,15 +581,15 @@ function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
   (if BackSpaceTabEnterString = true)
   or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys = [];
-  const BackSpaceTabEnterString: boolean = true;
-  const CtrlIsCommand: boolean = false): string;
+  const BackSpaceTabEnterString: Boolean = true;
+  const CtrlIsCommand: Boolean = false): string;
 
 { Like @link(CharToNiceStr), but accepts UTF-8 characters expressed as String.
   KeyString = '' means "none". }
 function KeyStringToNiceStr(const KeyString: String;
   const Modifiers: TModifierKeys = [];
-  const BackSpaceTabEnterString: boolean = true;
-  const CtrlIsCommand: boolean = false): string;
+  const BackSpaceTabEnterString: Boolean = true;
+  const CtrlIsCommand: Boolean = false): string;
 
 type
   TMouseWheelDirection = (mwNone, mwUp, mwDown, mwLeft, mwRight);
@@ -601,7 +601,7 @@ const
 { Determine simple mouse wheel direction from a Scroll and Vertical
   parameters received from TCastleWindowBase.OnMouseWheel.
   Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
-function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
+function MouseWheelDirection(const Scroll: Single; const Vertical: Boolean): TMouseWheelDirection;
 
 { Convert string value back to a key name, reversing KeyToStr.
   If string does not contain any recognized key name, return DefaultKey. }
@@ -665,7 +665,7 @@ type
       (with delay and frequency depending on keyboard settings).
       Sometimes they are useful, sometimes not -- so you can recognize
       them using this field. }
-    KeyRepeated: boolean;
+    KeyRepeated: Boolean;
 
     { When EventType is itMouseButton, this is the mouse button pressed or released.
       Always buttonLeft for touch device press/release events.
@@ -717,18 +717,18 @@ type
 
       @groupBegin }
     MouseWheelScroll: Single;
-    MouseWheelVertical: boolean;
+    MouseWheelVertical: Boolean;
     function MouseWheel: TMouseWheelDirection;
     { @groupEnd }
 
     { Check is event type correct, and then check if event Key or KeyString
       matches. Always false for AKey = keyNone or AKeyString = ''.
       @groupBegin }
-    function IsKey(const AKey: TKey): boolean; overload;
-    function IsKey(AKeyString: String): boolean; overload;
+    function IsKey(const AKey: TKey): Boolean; overload;
+    function IsKey(AKeyString: String): Boolean; overload;
     { @groupEnd }
-    function IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
-    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+    function IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 
     { Textual description of this event. }
     function ToString: string;
@@ -757,7 +757,7 @@ function InputMouseButton(const Position: TVector2;
   const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseWheel(const Position: TVector2;
-  const Scroll: Single; const Vertical: boolean;
+  const Scroll: Single; const Vertical: Boolean;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 { @groupEnd }
 
@@ -799,7 +799,7 @@ type
 
     FOnGestureChanged: TNotifyEvent;
 
-    FFinger0Pressed, FFinger1Pressed: boolean;
+    FFinger0Pressed, FFinger1Pressed: Boolean;
     FFinger0Pos, FFinger1Pos: TVector2;  // stored position of the fingers, we get only one of them in Motion event
     FFinger0StartPos, FFinger1StartPos: TVector2; // gesture start finger positions
 
@@ -808,9 +808,9 @@ type
 
     { Functions to pass the input to the recognizer from some @link(TInputListener).
       @groupBegin }
-    function Press(const Event: TInputPressRelease): boolean;
-    function Release(const Event: TInputPressRelease): boolean;
-    function Motion(const Event: TInputMotion; const Dpi: Single): boolean;
+    function Press(const Event: TInputPressRelease): Boolean;
+    function Release(const Event: TInputPressRelease): Boolean;
+    function Motion(const Event: TInputMotion; const Dpi: Single): Boolean;
     { @groupEnd }
 
     { Gesture type once it's recognized. Check it inside OnGestureChanged event. }
@@ -1044,7 +1044,7 @@ const
   );
 
 function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys;
-  const CtrlIsCommand: boolean): string;
+  const CtrlIsCommand: Boolean): string;
 begin
   { early exit, key keyNone means "no key", Modifiers are ignored }
   if Key = keyNone then Exit(KeyToStrTable[Key]);
@@ -1105,8 +1105,8 @@ end;
 
 function KeyStringToNiceStr(const KeyString: String;
   const Modifiers: TModifierKeys = [];
-  const BackSpaceTabEnterString: boolean = true;
-  const CtrlIsCommand: boolean = false): string;
+  const BackSpaceTabEnterString: Boolean = true;
+  const CtrlIsCommand: Boolean = false): string;
 begin
   case Length(KeyString) of
     0: Result := 'none';
@@ -1116,7 +1116,7 @@ begin
 end;
 
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
-  const BackSpaceTabEnterString, CtrlIsCommand: boolean): string;
+  const BackSpaceTabEnterString, CtrlIsCommand: Boolean): string;
 var
   CharactersImplicatingCtrlModifier: TSetOfChars;
 begin
@@ -1166,7 +1166,7 @@ begin
   end;
 end;
 
-function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
+function MouseWheelDirection(const Scroll: Single; const Vertical: Boolean): TMouseWheelDirection;
 begin
   if Scroll > 0 then
   begin
@@ -1267,12 +1267,12 @@ begin
     Result := mwNone;
 end;
 
-function TInputPressRelease.IsKey(const AKey: TKey): boolean;
+function TInputPressRelease.IsKey(const AKey: TKey): Boolean;
 begin
   Result := (AKey <> keyNone) and (EventType = itKey) and (Key = AKey);
 end;
 
-function TInputPressRelease.IsKey(AKeystring: String): boolean;
+function TInputPressRelease.IsKey(AKeystring: String): Boolean;
 begin
   // only for backward compatibility (when this parameter was Char) convert #0 to ''
   if AKeystring = #0 then
@@ -1281,12 +1281,12 @@ begin
   Result := (AKeystring <> '') and (EventType = itKey) and (KeyString = AKeystring);
 end;
 
-function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): boolean;
+function TInputPressRelease.IsMouseButton(const AMouseButton: TCastleMouseButton): Boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
 
-function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 begin
   Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
 end;
@@ -1352,7 +1352,7 @@ begin
 end;
 
 function InputMouseWheel(const Position: TVector2;
-  const Scroll: Single; const Vertical: boolean;
+  const Scroll: Single; const Vertical: Boolean;
   const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1405,7 +1405,7 @@ begin
   FFinger1Pressed := false;
 end;
 
-function TCastlePinchPanGestureRecognizer.Press(const Event: TInputPressRelease): boolean;
+function TCastlePinchPanGestureRecognizer.Press(const Event: TInputPressRelease): Boolean;
 begin
   if Event.FingerIndex = 0 then
   begin
@@ -1421,7 +1421,7 @@ begin
   Result := FFinger0Pressed and FFinger1Pressed;
 end;
 
-function TCastlePinchPanGestureRecognizer.Release(const Event: TInputPressRelease): boolean;
+function TCastlePinchPanGestureRecognizer.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := false;
 
@@ -1450,7 +1450,7 @@ begin
 end;
 
 function TCastlePinchPanGestureRecognizer.Motion(const Event: TInputMotion;
-  const Dpi: Single): boolean;
+  const Dpi: Single): Boolean;
 var
   OldDist, NewDist: Single;
   Length0, Length1: Single;

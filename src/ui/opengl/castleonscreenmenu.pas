@@ -46,9 +46,9 @@ type
       it would be nice if Width of this component was appropriate
       for the longest possible string ("Yes" in this case).
       This way the menu could be larger, in preparation of it. }
-    FAutoToggle: boolean;
+    FAutoToggle: Boolean;
   protected
-    procedure SetPressed(const Value: boolean); override;
+    procedure SetPressed(const Value: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure DoClick; override;
@@ -59,7 +59,7 @@ type
       don't need to handle it's @link(TCastleButton.OnClick OnClick) event,
       and you only need to observe it's @link(TCastleButton.Pressed Pressed)
       value. }
-    property AutoToggle: boolean read FAutoToggle write FAutoToggle default false;
+    property AutoToggle: Boolean read FAutoToggle write FAutoToggle default false;
   end deprecated 'use TCastleOnScreenMenuItemToggle';
 
   { Clickable menu item of @link(TCastleOnScreenMenu). }
@@ -73,7 +73,7 @@ type
       FOnClick: TNotifyEvent;
       FRightCaption: String;
       MenuAnimation: Single;
-      ClickStarted: boolean;
+      ClickStarted: Boolean;
       ClickStartedPosition: TVector2;
       FCaptionTranslate: Boolean;
     procedure SetCaption(const Value: String);
@@ -92,10 +92,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
   published
     property AutoSizeToChildren default true;
 
@@ -131,7 +131,7 @@ type
     { Automatically negate @link(Checked) on each click.
       This makes it easy to handle this component, often it means that you
       don't need to handle it's @link(OnClick) event. }
-    property AutoToggle: boolean read FAutoToggle write FAutoToggle default false;
+    property AutoToggle: Boolean read FAutoToggle write FAutoToggle default false;
   end;
 
   { On-screen menu, with all menu items displayed on the screen,
@@ -157,7 +157,7 @@ type
         Menu: TCastleOnScreenMenu;
       end;
     var
-      FCaptureAllEvents: boolean;
+      FCaptureAllEvents: Boolean;
       FOnClick: TNotifyEvent;
       FCurrentItem: Integer;
       FKeyNextItem: TKey;
@@ -170,8 +170,8 @@ type
       FNonCurrentItemColor: TCastleColor;
       FNonFocusableItemColor: TCastleColor;
       FRegularSpaceBetweenItems: Single;
-      FDrawBackgroundRectangle: boolean;
-      FDrawFocusedBorder: boolean;
+      FDrawBackgroundRectangle: Boolean;
+      FDrawFocusedBorder: Boolean;
       FBackgroundOpacityFocused, FBackgroundOpacityNotFocused: Single;
       FMenuItems: TCastleVerticalGroup;
     function GetCurrentItem: Integer;
@@ -229,7 +229,7 @@ type
     procedure PreviousItem;
     { @groupEnd }
 
-    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): Boolean; override;
     procedure Render; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -239,10 +239,10 @@ type
     property KeySelectItem: TKey read FKeySelectItem write FKeySelectItem
       default DefaultMenuKeySelectItem;
 
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function AllowSuspendForInput: boolean; override;
+      var HandleInput: Boolean); override;
+    function AllowSuspendForInput: Boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
@@ -317,7 +317,7 @@ type
       default DefaultBackgroundOpacityNotFocused;
     { @groupEnd }
 
-    property DrawBackgroundRectangle: boolean
+    property DrawBackgroundRectangle: Boolean
       read FDrawBackgroundRectangle write FDrawBackgroundRectangle
       default true;
 
@@ -330,7 +330,7 @@ type
       default DefaultRegularSpaceBetweenItems;
 
     { Draw a flashing border around the menu when we are focused. }
-    property DrawFocusedBorder: boolean read FDrawFocusedBorder write FDrawFocusedBorder
+    property DrawFocusedBorder: Boolean read FDrawFocusedBorder write FDrawFocusedBorder
       default true;
 
     { Should menu intercept all key/mouse input, regardless if mouse position
@@ -338,7 +338,7 @@ type
       This affects key/mouse processing (menu processes input
       before all controls underneath), but not drawing (controls underneath
       are still visible as usual). }
-    property CaptureAllEvents: boolean
+    property CaptureAllEvents: Boolean
       read FCaptureAllEvents write FCaptureAllEvents default false;
 
   {$define read_interface_class}
@@ -381,7 +381,7 @@ begin
   Caption := BoolToStr(Pressed, 'Yes', 'No');
 end;
 
-procedure TCastleMenuToggle.SetPressed(const Value: boolean);
+procedure TCastleMenuToggle.SetPressed(const Value: Boolean);
 begin
   inherited;
   Caption := BoolToStr(Pressed, 'Yes', 'No');
@@ -541,7 +541,7 @@ begin
   end;
 end;
 
-function TCastleOnScreenMenuItem.Press(const Event: TInputPressRelease): boolean;
+function TCastleOnScreenMenuItem.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -552,7 +552,7 @@ begin
   ClickStartedPosition := Event.Position;
 end;
 
-function TCastleOnScreenMenuItem.Release(const Event: TInputPressRelease): boolean;
+function TCastleOnScreenMenuItem.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -566,7 +566,7 @@ begin
   end;
 end;
 
-function TCastleOnScreenMenuItem.Motion(const Event: TInputMotion): boolean;
+function TCastleOnScreenMenuItem.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -590,7 +590,7 @@ begin
 end;
 
 procedure TCastleOnScreenMenuItem.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
   MenuAnimation := MenuAnimation + (0.5 * SecondsPassed);
@@ -619,7 +619,7 @@ begin
   RightCaption := BoolToStr(Checked, 'Yes', 'No');
 end;
 
-procedure TCastleOnScreenMenuItemToggle.SetChecked(const Value: boolean);
+procedure TCastleOnScreenMenuItemToggle.SetChecked(const Value: Boolean);
 begin
   if FChecked <> Value then
   begin
@@ -815,7 +815,7 @@ begin
     Theme.Draw(SR, tiActiveFrame, UIScale, CurrentItemBorderColor);
 end;
 
-function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
+function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -840,7 +840,7 @@ begin
 end;
 
 procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
 
@@ -856,7 +856,7 @@ begin
   VisibleChange([chRender]);
 end;
 
-function TCastleOnScreenMenu.AllowSuspendForInput: boolean;
+function TCastleOnScreenMenu.AllowSuspendForInput: Boolean;
 begin
   Result := false;
 end;
@@ -885,7 +885,7 @@ begin
   {$warnings on}
 end;
 
-function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2): Boolean;
 begin
   Result := CaptureAllEvents or (inherited CapturesEventsAtPosition(Position));
 end;

@@ -105,7 +105,7 @@ type
     { Used (and updated) to the number of OpenGL texture units reserved. }
     BoundTextureUnits: Cardinal;
 
-    Lighting: boolean;
+    Lighting: Boolean;
 
     { Don't override this, it is already overridden here
       to do everything necessary. }
@@ -115,7 +115,7 @@ type
   TTextureCoordinateRenderer = class(TBaseCoordinateRenderer)
   {$ifndef OpenGLES}
   private
-    RestoreDefaultTexCoord: boolean;
+    RestoreDefaultTexCoord: Boolean;
   {$endif}
   protected
     procedure RenderCoordinateBegin; override;
@@ -131,7 +131,7 @@ type
   TColorPerVertexCoordinateRenderer = class(TFogCoordinateRenderer)
   {$ifndef OpenGLES}
   private
-    MaterialFromColorEnabled: boolean;
+    MaterialFromColorEnabled: Boolean;
   {$endif}
   protected
     procedure RenderCoordinateBegin; override;
@@ -621,7 +621,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       (  0,   0, 0.5, 0),
       (0.5, 0.5, 0.5, 1) ));
   var
-    TransformToWorldSpace: boolean;
+    TransformToWorldSpace: Boolean;
     ProjectorMatrix: TMatrix4;
   begin
     { No point in generating for more texture units.
@@ -993,7 +993,7 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
   end;
 
 var
-  UseShaderRendering: boolean;
+  UseShaderRendering: Boolean;
   CurrentX3DProgram: TX3DShaderProgram;
 begin
   inherited;

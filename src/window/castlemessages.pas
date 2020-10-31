@@ -108,13 +108,13 @@ const
   @groupBegin }
 procedure MessageOK(Window: TCastleWindowBase; const s: string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false); overload;
+  const Html: Boolean = false); overload;
 procedure MessageOK(Window: TCastleWindowBase;  const SArray: array of string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false); overload;
+  const Html: Boolean = false); overload;
 procedure MessageOK(Window: TCastleWindowBase;  TextList: TStringList;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false); overload;
+  const Html: Boolean = false); overload;
 { @groupEnd }
 
 { Ask user to input a string.
@@ -129,14 +129,14 @@ function MessageInput(Window: TCastleWindowBase; const s: string;
   const MaxLength: integer = 0;
   const AllowedChars: TSetOfChars = AllChars;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): string; overload;
+  const Html: Boolean = false): string; overload;
 function MessageInput(Window: TCastleWindowBase; TextList: TStringList;
   const answerDefault: string = '';
   const MinLength: integer = 0;
   const MaxLength: integer = 0;
   const AllowedChars: TSetOfChars = AllChars;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): string; overload;
+  const Html: Boolean = false): string; overload;
 { @groupEnd }
 
 { Ask user to input a string, or cancel.
@@ -151,14 +151,14 @@ function MessageInputQuery(Window: TCastleWindowBase; const s: string;
   const MaxLength: integer = 0;
   const AllowedChars: TSetOfChars = AllChars;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean; overload;
+  const Html: Boolean = false): Boolean; overload;
 function MessageInputQuery(Window: TCastleWindowBase; TextList: TStringList;
   var Answer: string;
   const MinLength: integer = 0;
   const MaxLength: integer = 0;
   const AllowedChars: TSetOfChars = AllChars;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean; overload;
+  const Html: Boolean = false): Boolean; overload;
 { @groupEnd }
 
 { Ask user to choose one option from many.
@@ -190,18 +190,18 @@ function MessageInputQuery(Window: TCastleWindowBase; TextList: TStringList;
 function MessageChoice(Window: TCastleWindowBase; const s: string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false;
-  const AllowCancel: boolean = false): char; overload;
+  const Html: Boolean = false;
+  const AllowCancel: Boolean = false): char; overload;
 function MessageChoice(Window: TCastleWindowBase; const SArray: array of string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false;
-  const AllowCancel: boolean = false): char; overload;
+  const Html: Boolean = false;
+  const AllowCancel: Boolean = false): char; overload;
 function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false;
-  const AllowCancel: boolean = false): char; overload;
+  const Html: Boolean = false;
+  const AllowCancel: Boolean = false): char; overload;
 { @groupEnd }
 
 { Ask user to press any key, return this key as Keys.TKey.
@@ -212,13 +212,13 @@ function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
   @groupBegin }
 function MessageKey(Window: TCastleWindowBase; const S: string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): TKey; overload;
+  const Html: Boolean = false): TKey; overload;
 function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): TKey; overload;
+  const Html: Boolean = false): TKey; overload;
 function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): TKey; overload;
+  const Html: Boolean = false): TKey; overload;
 { @groupEnd }
 
 { Ask user to press anything (key or mouse button or mouse wheel),
@@ -229,28 +229,28 @@ function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
 procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   out Event: TInputPressRelease;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false); overload; deprecated 'use the function form of MessageKeyMouse';
+  const Html: Boolean = false); overload; deprecated 'use the function form of MessageKeyMouse';
 procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   out Event: TInputPressRelease;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false); overload; deprecated 'use the function form of MessageKeyMouse';
+  const Html: Boolean = false); overload; deprecated 'use the function form of MessageKeyMouse';
 function MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): TInputPressRelease; overload;
+  const Html: Boolean = false): TInputPressRelease; overload;
 function MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): TInputPressRelease; overload;
+  const Html: Boolean = false): TInputPressRelease; overload;
 { @groupEnd }
 
 function MessageYesNo(Window: TCastleWindowBase; const s: string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean; overload;
+  const Html: Boolean = false): Boolean; overload;
 function MessageYesNo(Window: TCastleWindowBase;  const SArray: array of string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean; overload;
+  const Html: Boolean = false): Boolean; overload;
 function MessageYesNo(Window: TCastleWindowBase;  TextList: TStringList;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean; overload;
+  const Html: Boolean = false): Boolean; overload;
 
 { Ask user to input an unsigned integer.
 
@@ -262,15 +262,15 @@ function MessageYesNo(Window: TCastleWindowBase;  TextList: TStringList;
 function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   const AnswerDefault: string;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): Cardinal; overload;
+  const Html: Boolean = false): Cardinal; overload;
 function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   const AnswerDefault: Cardinal;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): Cardinal; overload;
+  const Html: Boolean = false): Cardinal; overload;
 function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 { @groupEnd }
 
 { Ask user to input a value in hexadecimal.
@@ -278,7 +278,7 @@ function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: strin
 function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; const MaxWidth: Cardinal;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 
 { Ask user to input a floating-point number.
 
@@ -293,18 +293,18 @@ function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Extended;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Single;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Double;
   const ValueAsString: string = '';
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
@@ -312,13 +312,13 @@ function MessageInputQueryVector3(
   Window: TCastleWindowBase; const Title: string;
   var Value: TVector3;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 
 function MessageInputQueryVector4(
   Window: TCastleWindowBase; const Title: string;
   var Value: TVector4;
   const Alignment: THorizontalPosition = DefaultAlign;
-  const Html: boolean = false): boolean;
+  const Html: Boolean = false): Boolean;
 
 var
   { Change MessageOK behaviour to create @link(TStateDialogOK)
@@ -359,7 +359,7 @@ var
     then use explicitly states like @link(TStateDialogYesNo) from
     the @link(CastleDialogStates) unit.
   }
-  MessageOKPushesState: boolean;
+  MessageOKPushesState: Boolean;
 
 implementation
 
@@ -406,7 +406,7 @@ end;
 
 procedure MessageOK(Window: TCastleWindowBase; const SArray: array of string;
   const Alignment: THorizontalPosition;
-  const Html: boolean = false);
+  const Html: Boolean = false);
 var
   TextList: TStringList;
 begin
@@ -419,7 +419,7 @@ end;
 
 procedure MessageOK(Window: TCastleWindowBase; const s: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean = false);
+  const Html: Boolean = false);
 var
   TextList: TStringList;
 begin
@@ -432,7 +432,7 @@ end;
 
 procedure MessageOK(Window: TCastleWindowBase; TextList: TStringList;
   const Alignment: THorizontalPosition;
-  const Html: boolean = false);
+  const Html: Boolean = false);
 var
   State: TStateDialogOK;
 begin
@@ -457,7 +457,7 @@ function MessageInput(Window: TCastleWindowBase; const s: string;
   const MinLength: integer; const MaxLength: integer;
   const AllowedChars: TSetOfChars;
   const Alignment: THorizontalPosition;
-  const Html: boolean): string;
+  const Html: Boolean): string;
 var
   TextList: TStringList;
 begin
@@ -474,7 +474,7 @@ function MessageInput(Window: TCastleWindowBase; TextList: TStringList;
   const MinLength: integer; const MaxLength: integer;
   const AllowedChars: TSetOfChars;
   const Alignment: THorizontalPosition;
-  const Html: boolean): string;
+  const Html: Boolean): string;
 var
   State: TStateDialogInput;
 begin
@@ -499,7 +499,7 @@ function MessageInputQuery(Window: TCastleWindowBase; const s: string;
   const MinLength: integer; const MaxLength: integer;
   const AllowedChars: TSetOfChars;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   TextList: TStringList;
 begin
@@ -516,7 +516,7 @@ function MessageInputQuery(Window: TCastleWindowBase; TextList: TStringList;
   const MinLength: integer; const MaxLength: integer;
   const AllowedChars: TSetOfChars;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   State: TStateDialogInput;
 begin
@@ -544,7 +544,7 @@ function MessageChoice(Window: TCastleWindowBase;
   const s: string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: boolean): char;
+  const Html, AllowCancel: Boolean): char;
 var
   TextList: TStringList;
 begin
@@ -559,7 +559,7 @@ function MessageChoice(Window: TCastleWindowBase;
   const SArray: array of string;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: boolean): char; overload;
+  const Html, AllowCancel: Boolean): char; overload;
 var
   TextList: TStringList;
 begin
@@ -573,7 +573,7 @@ end;
 function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
   const ButtonCaptions: array of string; const ButtonChars: array of char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: boolean): char; overload;
+  const Html, AllowCancel: Boolean): char; overload;
 var
   State: TStateDialogChoice;
   I: Integer;
@@ -601,7 +601,7 @@ end;
 
 function MessageKey(Window: TCastleWindowBase; const S: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): TKey;
+  const Html: Boolean): TKey;
 var
   TextList: TStringList;
 begin
@@ -614,7 +614,7 @@ end;
 
 function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): TKey;
+  const Html: Boolean): TKey;
 var
   TextList: TStringList;
 begin
@@ -627,7 +627,7 @@ end;
 
 function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
   const Alignment: THorizontalPosition;
-  const Html: boolean): TKey;
+  const Html: Boolean): TKey;
 var
   State: TStateDialogKey;
 begin
@@ -644,7 +644,7 @@ end;
 { MessageKeyMouse ------------------------------------------------------------ }
 
 function MessageKeyMouse(Window: TCastleWindowBase; const S: string;
-  const Alignment: THorizontalPosition; const Html: boolean): TInputPressRelease;
+  const Alignment: THorizontalPosition; const Html: Boolean): TInputPressRelease;
 var
   TextList: TStringList;
 begin
@@ -656,7 +656,7 @@ begin
 end;
 
 function MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
-  const Alignment: THorizontalPosition; const Html: boolean): TInputPressRelease;
+  const Alignment: THorizontalPosition; const Html: Boolean): TInputPressRelease;
 var
   State: TStateDialogPressEvent;
 begin
@@ -672,14 +672,14 @@ end;
 
 procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   out Event: TInputPressRelease; const Alignment: THorizontalPosition;
-  const Html: boolean);
+  const Html: Boolean);
 begin
   Event := MessageKeyMouse(Window, S, Alignment, Html);
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   out Event: TInputPressRelease; const Alignment: THorizontalPosition;
-  const Html: boolean);
+  const Html: Boolean);
 begin
   Event := MessageKeyMouse(Window, TextList, Alignment, Html);
 end;
@@ -688,7 +688,7 @@ end;
 
 function MessageYesNo(Window: TCastleWindowBase; const s: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean; overload;
+  const Html: Boolean): Boolean; overload;
 var
   TextList: TStringList;
 begin
@@ -701,7 +701,7 @@ end;
 
 function MessageYesNo(Window: TCastleWindowBase; const SArray: array of string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean; overload;
+  const Html: Boolean): Boolean; overload;
 var
   TextList: TStringList;
 begin
@@ -714,7 +714,7 @@ end;
 
 function MessageYesNo(Window: TCastleWindowBase; TextList: TStringList;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean; overload;
+  const Html: Boolean): Boolean; overload;
 var
   State: TStateDialogYesNo;
 begin
@@ -732,7 +732,7 @@ end;
 
 function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   const AnswerDefault: string; const Alignment: THorizontalPosition;
-  const Html: boolean): Cardinal;
+  const Html: Boolean): Cardinal;
 begin
   result := StrToInt( MessageInput(Window, s, AnswerDefault,
     1, 0, ['0'..'9'], Alignment, Html) );
@@ -740,7 +740,7 @@ end;
 
 function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   const AnswerDefault: Cardinal; const Alignment: THorizontalPosition;
-  const Html: boolean): Cardinal;
+  const Html: Boolean): Cardinal;
 begin
   result := MessageInputCardinal(Window, s, IntToStr(AnswerDefault), Alignment, Html);
 end;
@@ -748,7 +748,7 @@ end;
 function MessageInputQueryCardinal(Window: TCastleWindowBase;
   const Title: string;
   var Value: Cardinal; const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   ValueStr: string;
 begin
@@ -761,7 +761,7 @@ end;
 function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; const MaxWidth: Cardinal;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   ValueStr: string;
 begin
@@ -777,7 +777,7 @@ end;
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Extended; const ValueAsString: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   s: string;
 begin
@@ -801,7 +801,7 @@ end;
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Single; const ValueAsString: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   ValueExtended: Extended;
 begin
@@ -815,7 +815,7 @@ end;
 function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Double; const ValueAsString: string;
   const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   ValueExtended: Extended;
 begin
@@ -831,7 +831,7 @@ end;
 function MessageInputQueryVector3(
   Window: TCastleWindowBase; const Title: string;
   var Value: TVector3; const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var s: string;
 begin
   Result := false;
@@ -853,7 +853,7 @@ end;
 function MessageInputQueryVector4(
   Window: TCastleWindowBase; const Title: string;
   var Value: TVector4; const Alignment: THorizontalPosition;
-  const Html: boolean): boolean;
+  const Html: Boolean): Boolean;
 var
   s: string;
 begin

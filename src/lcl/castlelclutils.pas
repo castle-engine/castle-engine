@@ -39,15 +39,15 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
 
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  Dialog: TFileDialog; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
-  const Edit: TFileNameEdit; const AllFields: boolean = true);
+  const Edit: TFileNameEdit; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean = true);
+  Dialog: TFileDialog; const AllFields: Boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: Boolean = true);
 { @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
@@ -90,7 +90,7 @@ procedure KeyCastleToLCL(const Key: TKey; KeyString: String;
   is in the middle in my type)). }
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: TCastleMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): Boolean;
 
 const
   CursorCastleToLCL: array [TMouseCursor] of TCursor =
@@ -180,7 +180,7 @@ uses SysUtils, FileUtil, LazUTF8, LCLProc,
   CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog; const AllFields: boolean);
+  Dialog: TFileDialog; const AllFields: Boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
@@ -191,7 +191,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  const Edit: TFileNameEdit; const AllFields: boolean);
+  const Edit: TFileNameEdit; const AllFields: Boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
@@ -202,7 +202,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: Boolean);
 var
   FFList: TFileFilterList;
 begin
@@ -214,7 +214,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog; const AllFields: boolean);
+  Dialog: TFileDialog; const AllFields: Boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
@@ -225,7 +225,7 @@ begin
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: Boolean);
 var
   Filter: TFileFilter;
   I, J: Integer;
@@ -466,7 +466,7 @@ end;
 
 function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: TCastleMouseButton): boolean;
+  out MyMouseButton: TCastleMouseButton): Boolean;
 begin
   Result := true;
   case MouseButton of

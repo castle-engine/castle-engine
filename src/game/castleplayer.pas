@@ -90,7 +90,7 @@ type
     var
       FBox: TBox;
       FDebugTransform: TDebugTransform;
-      FRenderDebug: boolean;
+      FRenderDebug: Boolean;
 
       FEquippedWeapon: TItemWeapon;
       FEquippedWeaponResourceFrame: TResourceFrame;
@@ -108,7 +108,7 @@ type
       FSwimming: TPlayerSwimming;
 
       { Did last @link(Update) detected that we're on toxic ground? }
-      IsToxic: boolean;
+      IsToxic: Boolean;
       { Relevant if IsToxic, this is LifeTime when
         last time toxic damage was done. When player steps on toxic for the
         first time, he immediately gets damage, so ToxicLastDamageTime is
@@ -119,7 +119,7 @@ type
       SwimmingSound: TSound;
 
       { Did last @link(Update) detected that we are on the ground. }
-      IsOnTheGround: boolean;
+      IsOnTheGround: Boolean;
       { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
       GroundProperty: TMaterialProperty;
       ReallyIsOnTheGroundTime: Single;
@@ -133,12 +133,12 @@ type
       ReallyWalkingOnTheGroundTime: Single;
 
       FInventoryCurrentItem: Integer;
-      FInventoryVisible: boolean;
+      FInventoryVisible: Boolean;
       FSickProjectionSpeed: Single;
-      FBlocked: boolean;
-      FRenderOnTop: boolean;
+      FBlocked: Boolean;
+      FRenderOnTop: Boolean;
 
-      FFlying: boolean;
+      FFlying: Boolean;
       FFlyingTimeOut: TFloatTime;
       { FadeOut settings. }
       FFadeOutIntensity: Single;
@@ -155,8 +155,8 @@ type
       FDrownDamageConst: Single;
       FDrownDamageRandom: Single;
       FSwimSoundPause: Single;
-      FEnableNavigationDragging: boolean;
-      FFallingEffect: boolean;
+      FEnableNavigationDragging: Boolean;
+      FFallingEffect: Boolean;
       FWalkNavigation: TCastleWalkNavigation;
       FThirdPersonNavigation: TCastleThirdPersonNavigation;
       FUseThirdPerson: Boolean;
@@ -236,7 +236,7 @@ type
       That is, setting this to @true makes player fly indefinitely,
       and setting this to @false makes player stop flying (regardless
       if flying was initialized by @code(Flying := true) or @code(FlyingTimeout)). }
-    property Flying: boolean read FFlying write SetFlying;
+    property Flying: Boolean read FFlying write SetFlying;
 
     { Set this to something > 0 to start flying for a given number of seconds.
       The @link(Flying) property will also change to @true for this time.
@@ -357,7 +357,7 @@ type
       read FInventoryCurrentItem write FInventoryCurrentItem
       default -1;
 
-    property InventoryVisible: boolean
+    property InventoryVisible: Boolean
       read FInventoryVisible write FInventoryVisible default false;
 
     property SickProjectionSpeed: Single
@@ -365,16 +365,16 @@ type
       default DefaultSickProjectionSpeed;
 
     property CollidesWithMoving default true;
-    function Sphere(out Radius: Single): boolean; override;
+    function Sphere(out Radius: Single): Boolean; override;
 
     { Disables changing the camera by user.
       It's useful when you want to temporarily force camera to some specific
       setting (you can even use handy Player.Navigation.AnimateTo method
       to do this easily, see TCastleWalkNavigation.AnimateTo). }
-    property Blocked: boolean read FBlocked write FBlocked;
+    property Blocked: Boolean read FBlocked write FBlocked;
 
     { Render 3D children (like EquippedWeapon) on top of everything else. }
-    property RenderOnTop: boolean read FRenderOnTop write FRenderOnTop
+    property RenderOnTop: Boolean read FRenderOnTop write FRenderOnTop
       default DefaultRenderOnTop;
 
     property FallMinHeightToSound: Single
@@ -423,7 +423,7 @@ type
       Note: do not set @code(Navigation.FallingEffect), as it will
       be overridden in our update. Use only this property to turn on/off
       the effect. }
-    property FallingEffect: boolean
+    property FallingEffect: Boolean
       read FFallingEffect write FFallingEffect default true;
 
     { Navigation synchronized with this player instance.
@@ -471,15 +471,15 @@ type
     { Enable navigation by dragging. This results in including
       niMouseDragging in TCastleNavigation.Input (when player is not
       @link(Dead) or @link(Blocked)). }
-    property EnableNavigationDragging: boolean
+    property EnableNavigationDragging: Boolean
       read FEnableNavigationDragging write SetEnableNavigationDragging default true;
-    property EnableCameraDragging: boolean
+    property EnableCameraDragging: Boolean
       read FEnableNavigationDragging write SetEnableNavigationDragging default true;
       deprecated 'use EnableNavigationDragging';
 
     { Show the debug bounding box of the player.
       Warning: It looks a little confusing (since it's a box around camera). }
-    property RenderDebug: boolean
+    property RenderDebug: Boolean
       read FRenderDebug write FRenderDebug default false;
   end;
 
@@ -488,7 +488,7 @@ const
 
 var
   { Automatically open TCastlePlayer inventory when picking up an item. }
-  AutoOpenInventory: boolean = DefaultAutoOpenInventory;
+  AutoOpenInventory: Boolean = DefaultAutoOpenInventory;
 
 var
   { Player inputs that handle navigation.
@@ -663,7 +663,7 @@ begin
     Result := WalkNavigation;
 end;
 
-procedure TPlayer.SetFlying(const AValue: boolean);
+procedure TPlayer.SetFlying(const AValue: Boolean);
 begin
   FFlyingTimeOut := 0;
   FFlying := AValue;
@@ -1052,7 +1052,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
   procedure UpdateToxic;
   var
-    NewIsToxic: boolean;
+    NewIsToxic: Boolean;
   begin
     NewIsToxic := (GroundProperty <> nil) and GroundProperty.Toxic;
     if NewIsToxic then
@@ -1394,7 +1394,7 @@ end;
 
 function TPlayer.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
+  const ALineOfSight: Boolean): Boolean;
 begin
   if ALineOfSight then
     { Player box is collidable (creatures cannot enter on player),
@@ -1405,7 +1405,7 @@ begin
     Result := inherited;
 end;
 
-function TPlayer.Sphere(out Radius: Single): boolean;
+function TPlayer.Sphere(out Radius: Single): Boolean;
 begin
   { We need to use Sphere for Player for collisions and gravity to make sense.
     So we always return true.
@@ -1428,7 +1428,7 @@ end;
 
 function TPlayer.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 begin
   { instead of allowing inherited to do the work (and allow other stuff
     like items and creatures to stand on player's head), for now just
