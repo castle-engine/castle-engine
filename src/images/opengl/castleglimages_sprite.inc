@@ -70,7 +70,7 @@ type
     FTimeLoop: Boolean;
     FLeftMargin, FTopMargin: Cardinal;
     FHorizontalSpacing, FVerticalSpacing: Cardinal;
-    FVerticalSpacingBottom: boolean;
+    FVerticalSpacingBottom: Boolean;
     FTimeBackwards: Boolean;
     FCustomAnimations: TSpriteAnimations;
     FCurrentAnimation: Integer;
@@ -192,9 +192,9 @@ type
       only on the parameters to these methods.
       @groupBegin }
     procedure DrawFlipped(const ScreenRect: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     { @groupEnd }
 
     { Move sprite to position and rotation. }
@@ -298,7 +298,7 @@ type
 
     { When @true, the @link(VerticalSpacing) is assumed to be at the bottom
       of every frame, not top. }
-    property VerticalSpacingBottom: boolean
+    property VerticalSpacingBottom: Boolean
       read FVerticalSpacingBottom write FVerticalSpacingBottom default false;
 
     { Should we play the animation backwards after playing it forward.
@@ -351,7 +351,7 @@ type
     property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
 
      { Use smooth "bilinear" filtering when this is scaled. }
-    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+    property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling;
 
     { Prevent the color outside of rendered frame from creeping in,
       by scaling image a bit to the inside.
@@ -647,13 +647,13 @@ begin
 end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 begin
   DrawFlipped(FloatRectangle(ScreenRect), FlipHorizontal, FlipVertical);
 end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 var
   F: TFloatRectangle;
 begin

@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
 
-function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
+function IsCubeMapTextureSized(const Size: Cardinal): Boolean; overload;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
 
 { Comfortably load all six cube map texture images.
@@ -69,7 +69,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
   CompositeForMipmaps: TCompositeImage;
-  Mipmaps: boolean);
+  Mipmaps: Boolean);
 
 {$endif read_interface}
 
@@ -78,7 +78,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
 { ----------------------------------------------------------------------------
   Adjusting image size for cube map texture. }
 
-function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
+function IsCubeMapTextureSized(const Size: Cardinal): Boolean; overload;
 begin
   Result :=
     (GLFeatures.TextureCubeMap = gsNone) or
@@ -89,7 +89,7 @@ begin
     );
 end;
 
-function IsCubeMapTextureSized(const R: TEncodedImage): boolean; overload;
+function IsCubeMapTextureSized(const R: TEncodedImage): Boolean; overload;
 begin
   Result :=
     (GLFeatures.TextureCubeMap = gsNone) or
@@ -177,7 +177,7 @@ end;
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.) }
 procedure glTextureCubeMapSide(
-  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean;
+  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: Boolean;
   var LoadedSize: Int64);
 var
   ImageInternalFormat: TGLuint;
@@ -311,12 +311,12 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
   CompositeForMipmaps: TCompositeImage;
-  Mipmaps: boolean);
+  Mipmaps: Boolean);
 var
   LoadedSize: Int64;
 
   { Check should we load mipmaps from Composite. }
-  function HasMipmapsFromComposite(Composite: TCompositeImage): boolean;
+  function HasMipmapsFromComposite(Composite: TCompositeImage): Boolean;
   begin
     Result := (Composite <> nil) and Composite.Mipmaps;
     if not Result then Exit;

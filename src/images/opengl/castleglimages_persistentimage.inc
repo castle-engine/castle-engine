@@ -40,10 +40,10 @@ type
   TCastleImagePersistent = class(TPersistent)
   strict private
     FURL: string;
-    FCache: boolean;
+    FCache: Boolean;
     FScaleFromUrl: Single;
     FDrawableImage: TDrawableImage;
-    FDrawableImageFromCache: boolean;
+    FDrawableImageFromCache: Boolean;
     FOwnsDrawableImage: Boolean;
     FOnChange: TNotifyEvent;
     FInternalVisualizeProtectedSides: Boolean;
@@ -65,13 +65,13 @@ type
     FFlipVertical: Boolean;
 
     function GetImage: TEncodedImage;
-    function GetOwnsImage: boolean;
-    procedure SetOwnsImage(const Value: boolean);
+    function GetOwnsImage: Boolean;
+    procedure SetOwnsImage(const Value: Boolean);
     procedure SetCache(const Value: Boolean);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
-    procedure SetSmoothScaling(const Value: boolean);
+    procedure SetSmoothScaling(const Value: Boolean);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
     procedure SetRotation(const Value: Single);
@@ -123,7 +123,7 @@ type
 
       Note that setting @link(DrawableImage) changes @link(Image) too,
       and changes OwnsImage to the value present in @link(TDrawableImage.OwnsImage). }
-    property OwnsImage: boolean read GetOwnsImage write SetOwnsImage default true;
+    property OwnsImage: Boolean read GetOwnsImage write SetOwnsImage default true;
 
     { Image used for drawing. Never @nil.
       Always @link(TDrawableImage.Image) equals our @link(Image).
@@ -146,7 +146,7 @@ type
       Note that this is restored to @true when we need to recreate the
       TDrawableImage internally, e.g. when @link(Image) instance changed
       (when even size changed, we have to recreate TDrawableImage). }
-    property OwnsDrawableImage: boolean read FOwnsDrawableImage write FOwnsDrawableImage default true;
+    property OwnsDrawableImage: Boolean read FOwnsDrawableImage write FOwnsDrawableImage default true;
 
     { Center of rotation.
       Expressed as a fraction within the drawn ScreenRectangle,
@@ -237,14 +237,14 @@ type
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
       See @link(TDrawableImage.SmoothScaling). }
-    property SmoothScaling: boolean
+    property SmoothScaling: Boolean
       read FSmoothScaling write FSmoothScaling default true;
 
     { Rotation in radians. Default value 0. }
     property Rotation: Single read FRotation write SetRotation default 0;
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read FClip write SetClip default false;
+    property Clip: Boolean read FClip write SetClip default false;
 
     property FlipHorizontal: Boolean read FFlipHorizontal write SetFlipHorizontal
       default false;
@@ -446,12 +446,12 @@ begin
   end;
 end;
 
-function TCastleImagePersistent.GetOwnsImage: boolean;
+function TCastleImagePersistent.GetOwnsImage: Boolean;
 begin
   Result := FDrawableImage.OwnsImage;
 end;
 
-procedure TCastleImagePersistent.SetOwnsImage(const Value: boolean);
+procedure TCastleImagePersistent.SetOwnsImage(const Value: Boolean);
 begin
   { For all TDrawableImage in DrawableImageCache,
     we keep their OwnsImage as @true, to keep the memory management simple.
@@ -559,7 +559,7 @@ begin
   end;
 end;
 
-procedure TCastleImagePersistent.SetSmoothScaling(const Value: boolean);
+procedure TCastleImagePersistent.SetSmoothScaling(const Value: Boolean);
 begin
   if FSmoothScaling <> Value then
   begin

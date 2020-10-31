@@ -27,7 +27,7 @@ type
       TextureId: TGLTextureId;
       URL: string;
       Width, Height, Depth: Integer;
-      Mipmaps: boolean;
+      Mipmaps: Boolean;
       Size: Int64;
       ImageFormat: string;
     end;
@@ -36,18 +36,18 @@ type
     TAllocatedTextures = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
-    FEnabled: boolean;
+    FEnabled: Boolean;
     function FindTextureId(const TextureId: Integer): Integer;
     procedure CheckLeaks;
   public
     constructor Create;
     destructor Destroy; override;
-    property Enabled: boolean read FEnabled write FEnabled;
+    property Enabled: Boolean read FEnabled write FEnabled;
 
     { Notify about texture memory allocation.
       This should be used only by code doing direct OpenGL operations. }
     procedure Allocate(const TextureId: TGLTextureId;
-      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: Boolean;
       const Width, Height, Depth: Integer);
 
     { Notify about texture memory deallocation.
@@ -113,7 +113,7 @@ var
   { Log (through CastleLog) all texture and image loading to GPU.
     If additionally @link(TextureMemoryProfiler) is enabled, then we will dump
     texture memory usage. }
-  LogTextureLoading: boolean = false;
+  LogTextureLoading: Boolean = false;
 
 {$endif read_interface}
 
@@ -135,7 +135,7 @@ end;
 
 procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
   const URL, ImageFormat: string;
-  const Size: Int64; const Mipmaps: boolean;
+  const Size: Int64; const Mipmaps: Boolean;
   const Width, Height, Depth: Integer);
 var
   AllocatedTex: TAllocatedTexture;

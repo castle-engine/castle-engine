@@ -48,7 +48,7 @@ var
     or merely make a warning. Merely making a warning is very risky (you risk all kinds
     of rendering artifacts), but sometimes the rendering is actually smooth
     even though GPU complains. }
-  GLOutOfMemoryError: boolean = false;
+  GLOutOfMemoryError: Boolean = false;
 
 procedure GLOutOfMemory(const AdditionalComment: string = '');
 

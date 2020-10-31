@@ -26,8 +26,8 @@ type
   TGLVideo = class
   private
     FCount: Integer;
-    FTimeLoop: boolean;
-    FTimeBackwards: boolean;
+    FTimeLoop: Boolean;
+    FTimeBackwards: Boolean;
     FFramesPerSecond: Single;
     FWidth, FHeight: Cardinal;
   public
@@ -52,10 +52,10 @@ type
     property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
 
     { See TVideo.TimeLoop. }
-    property TimeLoop: boolean read FTimeLoop write FTimeLoop;
+    property TimeLoop: Boolean read FTimeLoop write FTimeLoop;
 
     { See TVideo.TimeBackwards. }
-    property TimeBackwards: boolean
+    property TimeBackwards: Boolean
       read FTimeBackwards write FTimeBackwards;
 
     { Duration of the movie, in seconds.
@@ -75,7 +75,7 @@ type
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const Wrap: TTextureWrap2D;
-      const GUITexture:  boolean);
+      const GUITexture: Boolean);
     destructor Destroy; override;
 
     function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
@@ -87,9 +87,9 @@ type
     FItems: array of TDrawableImage;
   public
     constructor Create(Video: TVideo;
-      const SmoothScaling: boolean = true); overload;
+      const SmoothScaling: Boolean = true); overload;
     constructor Create(const URL: string;
-      const SmoothScaling: boolean = true); overload;
+      const SmoothScaling: Boolean = true); overload;
     constructor Create(const URL: string;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -134,7 +134,7 @@ end;
 
 constructor TGLVideo3D.Create(Video: TVideo;
   const Filter: TTextureFilter; const Anisotropy: TGLfloat;
-  const Wrap: TTextureWrap2D; const GUITexture: boolean);
+  const Wrap: TTextureWrap2D; const GUITexture: Boolean);
 var
   I: Integer;
 begin
@@ -165,7 +165,7 @@ end;
 { TGLVideo2D ----------------------------------------------------------------- }
 
 constructor TGLVideo2D.Create(Video: TVideo;
-  const SmoothScaling: boolean = true);
+  const SmoothScaling: Boolean = true);
 var
   I: Integer;
 begin
@@ -177,7 +177,7 @@ begin
 end;
 
 constructor TGLVideo2D.Create(const URL: string;
-  const SmoothScaling: boolean = true);
+  const SmoothScaling: Boolean = true);
 var
   Video: TVideo;
 begin

@@ -39,7 +39,7 @@ type
   private
     FDefaultFilter: Integer;
   public
-    constructor Create(AFreeObjects: boolean);
+    constructor Create(AFreeObjects: Boolean);
 
     { Add one file filter, selectable by user.
       @param(Name Is a name displayed for for user.)
@@ -100,7 +100,7 @@ end;
 
 { TFileFilterList ----------------------------------------------------------- }
 
-constructor TFileFilterList.Create(AFreeObjects: boolean);
+constructor TFileFilterList.Create(AFreeObjects: Boolean);
 begin
   inherited;
   FDefaultFilter := 0;
@@ -159,7 +159,7 @@ procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
 
 var
   LastSeparator, NextSeparator: Integer;
-  NamePart: boolean;
+  NamePart: Boolean;
   Part, Name, Patterns: string;
 begin
   NamePart := true;

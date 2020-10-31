@@ -65,9 +65,9 @@ function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing)
 { Does image have proper size for 2D OpenGL texture.
   See ResizeForTextureSize. Note that this checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
-function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean;
+function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): Boolean;
 
-function IsTextureSized(const Width, Height: Cardinal; const Sizing: TTextureSizing): boolean;
+function IsTextureSized(const Width, Height: Cardinal; const Sizing: TTextureSizing): Boolean;
 
 var
   { Scaling for all textures loaded to OpenGL.
@@ -143,13 +143,13 @@ function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage = nil;
-  const GUITexture: boolean = false): TGLTextureId; overload;
+  const GUITexture: Boolean = false): TGLTextureId; overload;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage = nil;
-  const GUITexture: boolean = false): TGLTextureId; overload;
+  const GUITexture: Boolean = false): TGLTextureId; overload;
 { @groupEnd }
 
 { Load OpenGL texture into already reserved texture number.
@@ -169,7 +169,7 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
   Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage = nil;
-  const GUITexture: boolean = false); overload;
+  const GUITexture: Boolean = false); overload;
 { @groupEnd }
 
 { Decompress texture image by loading it to temporary OpenGL texture and
@@ -231,14 +231,14 @@ begin
 end;
 
 function IsTextureSized(const Width, Height: Cardinal;
-  const Sizing: TTextureSizing): boolean;
+  const Sizing: TTextureSizing): Boolean;
 begin
   Result :=
     (Width  = ResizeToTextureSize(Width , Sizing)) and
     (Height = ResizeToTextureSize(Height, Sizing));
 end;
 
-function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean;
+function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): Boolean;
 begin
   Result := IsTextureSized(r.Width, r.Height, Sizing);
 end;
@@ -259,7 +259,7 @@ end;
 
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: Boolean): TGLTextureId;
 begin
   glGenTextures(1, @result);
   LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
@@ -267,7 +267,7 @@ end;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: Boolean): TGLTextureId;
 var
   Image: TEncodedImage;
 begin
@@ -309,8 +309,8 @@ begin
 end;
 
 procedure CalculateImageRightSize(
-  const Image: TCastleImage; const GUITexture: boolean;
-  out ImageRightSize: TCastleImage; out ImageRightSizeFree: boolean);
+  const Image: TCastleImage; const GUITexture: Boolean;
+  out ImageRightSize: TCastleImage; out ImageRightSizeFree: Boolean);
 var
   Sizing: TTextureSizing;
 begin
@@ -330,7 +330,7 @@ end;
 
 procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId;
   const Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean);
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: Boolean);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -389,12 +389,12 @@ var
     --- you could clearly see that mipmaps are ignored and ugly nearest filtering
     gets used.
     Using LoadBase automatically workarounds this. }
-  function LoadMipmapsFromComposite(Composite: TCompositeImage; LoadBase: boolean): boolean;
+  function LoadMipmapsFromComposite(Composite: TCompositeImage; LoadBase: Boolean): Boolean;
   {$ifndef OpenGLES}
   var
     I, FromLevel: Integer;
     ImageRightSize: TCastleImage;
-    ImageRightSizeFree: boolean;
+    ImageRightSizeFree: Boolean;
   {$endif}
   begin
     Result := (Composite <> nil) and Composite.Mipmaps;
@@ -477,7 +477,7 @@ var
 
 var
   ImageRightSize: TCastleImage;
-  ImageRightSizeFree: boolean;
+  ImageRightSizeFree: Boolean;
 begin
   if GUITexture then
     Filter.DisableMipmaps;

@@ -31,7 +31,7 @@ type
   strict private
     FIntensity: Single;
     FColor: TCastleColor;
-    FDark: boolean;
+    FDark: Boolean;
     FDuration: Single;
     FImage: TCastleImagePersistent;
     FDrawableImageAsGrayscale: TDrawableImage;
@@ -41,17 +41,17 @@ type
       DefaultDuration = 0.5;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure Render; override;
 
-    procedure Flash(const AColor: TCastleColor; const ADark: boolean);
+    procedure Flash(const AColor: TCastleColor; const ADark: Boolean);
     procedure Reset;
 
     { Is the effect in-progress.
       This is temporarily @true after calling @link(Flash).
       It automatically ends (switches to @false) after the @link(Duration)
       has passed, and when you call @link(Reset) explicitly. }
-    function Active: boolean;
+    function Active: Boolean;
   published
     property Duration: Single read FDuration write FDuration
       default DefaultDuration;
@@ -133,7 +133,7 @@ begin
   end;
 end;
 
-procedure TCastleFlashEffect.Flash(const AColor: TCastleColor; const ADark: boolean);
+procedure TCastleFlashEffect.Flash(const AColor: TCastleColor; const ADark: Boolean);
 begin
   FColor := AColor;
   FIntensity := 1;
@@ -141,7 +141,7 @@ begin
 end;
 
 procedure TCastleFlashEffect.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
   if FIntensity > 0 then
@@ -202,7 +202,7 @@ begin
   FIntensity := 0;
 end;
 
-function TCastleFlashEffect.Active: boolean;
+function TCastleFlashEffect.Active: Boolean;
 begin
   Result := FIntensity > 0;
 end;

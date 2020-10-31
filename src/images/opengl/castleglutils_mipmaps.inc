@@ -22,7 +22,7 @@ type
 
 { Is GenerateMipmap avaiable. This checks some GL extensions/versions that
   give us glGenerateMipmap or glGenerateMipmapEXT call, used by GenerateMipmap. }
-function HasGenerateMipmap: boolean;
+function HasGenerateMipmap: Boolean;
 
 { Call glGenerateMipmap (or analogous function from some OpenGL extension).
 
@@ -40,7 +40,7 @@ procedure GenerateMipmap(target: TGLenum);
 
 { $define TEST_NO_GENERATE_MIPMAP}
 
-function HasGenerateMipmap: boolean;
+function HasGenerateMipmap: Boolean;
 {$ifdef TEST_NO_GENERATE_MIPMAP}
 begin
   Result := false;

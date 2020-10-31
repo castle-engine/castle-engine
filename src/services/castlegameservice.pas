@@ -37,7 +37,7 @@ type
   { Event for @link(TGameService.OnSaveGameLoaded).
     @param Success Whether we loaded the savegame successfully.
     @param Content The savegame content, if Success. If not Success, this is the error message. }
-  TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: boolean; const Content: string) of object;
+  TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: Boolean; const Content: string) of object;
 
   { Status of TGameService sign-in. }
   TGameServiceStatus = (
@@ -108,20 +108,20 @@ type
     FOnPlayerBestScoreReceived: TPlayerBestScoreEvent;
     FInitialized,
       FInitializedAutoStartSignInFlow,
-      FInitializedSaveGames: boolean;
+      FInitializedSaveGames: Boolean;
     FOnSaveGameChosen: TSaveGameChosenEvent;
     FOnSaveGameLoaded: TSaveGameLoadedEvent;
     FOnStatusChanged: TNotifyEvent;
     FStatus: TGameServiceStatus;
     function MessageReceived(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   protected
     procedure DoSignedInChanged; virtual; deprecated 'use DoStatusChanged';
     procedure DoStatusChanged; virtual;
     procedure DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64); virtual;
     procedure DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string); virtual;
-    procedure DoSaveGameLoaded(const Success: boolean; const Content: string); virtual;
+    procedure DoSaveGameLoaded(const Success: Boolean; const Content: string); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -148,17 +148,17 @@ type
         You can then use @link(ShowSaveGames), @link(SaveGameSave), @link(SaveGameLoad)
         methods. See also the description of this feature in Google Play Games:
         https://developers.google.com/games/services/common/concepts/savedgames.) }
-    procedure Initialize(const AutoStartSignInFlow: boolean = true;
-      const SaveGames: boolean = false);
+    procedure Initialize(const AutoStartSignInFlow: Boolean = true;
+      const SaveGames: Boolean = false);
 
     { Was the @link(Initialize) called. }
-    property Initialized: boolean read FInitialized;
+    property Initialized: Boolean read FInitialized;
 
     { Current status of signing-in. }
     property Status: TGameServiceStatus read FStatus;
 
     { Is user currently signed-in. Just a shortcut for @code(Status = gsSignedIn) check. }
-    function SignedIn: boolean;
+    function SignedIn: Boolean;
 
     { Report the given achievement as achieved.
 
@@ -200,7 +200,7 @@ type
 
       Watch for changes to the @link(Status) property.
       You can register an event on @link(OnStatusChanged) to be notified about this. }
-    procedure RequestSignedIn(const Value: boolean);
+    procedure RequestSignedIn(const Value: Boolean);
 
     { Show the user achievements, using the default UI.
       Automatically connects (signs-in) player to game services,
@@ -259,7 +259,7 @@ type
       @param(MaxNumberOfSaveGamesToShow Maximum number of savegames to show.
         Use -1 to just show all savegames.)
     }
-    procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
+    procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: Boolean;
       const MaxNumberOfSaveGamesToShow: Integer);
 
     { Save a savegame identified by the given name.
@@ -375,7 +375,7 @@ procedure TGameService.DoSignedInChanged;
 begin
 end;
 
-function TGameService.SignedIn: boolean;
+function TGameService.SignedIn: Boolean;
 begin
   Result := FStatus = gsSignedIn;
 end;
@@ -392,14 +392,14 @@ begin
     OnSaveGameChosen(Self, Choice, SaveGameName);
 end;
 
-procedure TGameService.DoSaveGameLoaded(const Success: boolean; const Content: string);
+procedure TGameService.DoSaveGameLoaded(const Success: Boolean; const Content: string);
 begin
   if Assigned(OnSaveGameLoaded) then
     OnSaveGameLoaded(Self, Success, Content);
 end;
 
 function TGameService.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 var
   StatusInt: Int64;
 begin
@@ -455,8 +455,8 @@ begin
   end;
 end;
 
-procedure TGameService.Initialize(const AutoStartSignInFlow: boolean;
-  const SaveGames: boolean);
+procedure TGameService.Initialize(const AutoStartSignInFlow: Boolean;
+  const SaveGames: Boolean);
 begin
   { at first Initialize call, remember AutoStartSignInFlow }
   if not FInitialized then
@@ -490,7 +490,7 @@ begin
   Messaging.Send(['request-player-best-score', LeaderboardId]);
 end;
 
-procedure TGameService.RequestSignedIn(const Value: boolean);
+procedure TGameService.RequestSignedIn(const Value: Boolean);
 begin
   Messaging.Send(['game-service-sign-in', TMessaging.BoolToStr(Value)]);
 end;
@@ -505,7 +505,7 @@ begin
   Messaging.Send(['show', 'leaderboard', LeaderboardId]);
 end;
 
-procedure TGameService.ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
+procedure TGameService.ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: Boolean;
   const MaxNumberOfSaveGamesToShow: Integer);
 begin
   Messaging.Send(['show', 'save-games', Title,

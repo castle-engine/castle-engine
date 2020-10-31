@@ -34,7 +34,7 @@ type
       Size: Single;
       Outline: Cardinal;
       OutlineColor: TCastleColor;
-      OutlineHighQuality: boolean;
+      OutlineHighQuality: Boolean;
       TargetImage: TCastleImage;
     end;
     TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
@@ -42,7 +42,7 @@ type
     FMeasuredSize, FMeasuredRowHeight, FMeasuredRowHeightBase, FMeasuredDescend: Single;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
-    FOutlineHighQuality: boolean;
+    FOutlineHighQuality: Boolean;
     FTargetImage: TCastleImage;
     FPropertiesStack: TSavedPropertiesList;
     FSize: Single;
@@ -130,14 +130,14 @@ type
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
-      const Html: boolean;
+      const Html: Boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft);
     procedure PrintRectMultiline(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
-      const Html: boolean;
+      const Html: Boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft);
 
@@ -218,7 +218,7 @@ type
         Otherwise, MaxTextWidth will treat HTML markup (like @code(<font ...>))
         like a normal text, usually making the width incorrectly large.)
     }
-    function MaxTextWidth(SList: TStrings; const Html: boolean = false): Single;
+    function MaxTextWidth(SList: TStrings; const Html: Boolean = false): Single;
 
     { Print all strings from the list.
 
@@ -262,18 +262,18 @@ type
 
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
-      const Strs: TStrings; const Html: boolean;
+      const Strs: TStrings; const Html: Boolean;
       const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const X0, Y0: Single; const Color: TCastleColor;
-      const Strs: array of string; const Html: boolean;
+      const Strs: array of string; const Html: Boolean;
       const LineSpacing: Single;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Html: boolean; const LineSpacing: Single;
+      const Html: Boolean; const LineSpacing: Single;
       const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     procedure PrintStrings(const Strs: array of string;
-      const Html: boolean; const LineSpacing: Single;
+      const Html: Boolean; const LineSpacing: Single;
       const X0: Single = 0; const Y0: Single = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     { @groupEnd }
 
@@ -312,21 +312,21 @@ type
       const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
-      const Html: boolean = false): Integer;
+      const Html: Boolean = false): Integer;
     function PrintBrokenString(const Rect: TFloatRectangle; const Color: TCastleColor;
       const S: string;
       const LineSpacing: Single;
       const AlignHorizontal: THorizontalPosition;
       const AlignVertical: TVerticalPosition;
-      const Html: boolean = false): Integer;
+      const Html: Boolean = false): Integer;
     function PrintBrokenString(X0, Y0: Single; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Single;
-      const PositionsFirst: boolean;
+      const PositionsFirst: Boolean;
       const LineSpacing: Single;
-      const Html: boolean = false): Integer;
+      const Html: Boolean = false): Integer;
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Single;
-      const PositionsFirst: boolean;
+      const PositionsFirst: Boolean;
       const LineSpacing: Single): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
@@ -346,7 +346,7 @@ type
     { Optionally force better outline quality. Used only if Outline <> 0.
       High quality outline looks better, but is about 2x more expensive to draw.
       @seealso Outline }
-    property OutlineHighQuality: boolean
+    property OutlineHighQuality: Boolean
       read FOutlineHighQuality write FOutlineHighQuality default false;
 
     { Outline color, used only if Outline <> 0. Default is black.
@@ -401,10 +401,10 @@ type
   TTextureFont = class(TCastleFont)
   strict private
     FFont: TTextureFontData;
-    FOwnsFont: boolean;
+    FOwnsFont: Boolean;
     DrawableImage: TDrawableImage;
     GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
-    function GetSmoothScaling: boolean;
+    function GetSmoothScaling: Boolean;
     function GetScale: Single;
     procedure SetScale(const AValue: Single);
   strict protected
@@ -427,14 +427,14 @@ type
       Loading a font data also changes @link(Size) to the underlying
       (optimal to render) font data size. }
     constructor Create(const URL: string;
-      const ASize: Integer; const AnAntiAliased: boolean;
+      const ASize: Integer; const AnAntiAliased: Boolean;
       const ACharacters: TUnicodeCharList = nil); reintroduce;
     procedure Load(const URL: string;
-      const ASize: Integer; const AnAntiAliased: boolean;
+      const ASize: Integer; const AnAntiAliased: Boolean;
       const ACharacters: TUnicodeCharList = nil);
 
     constructor Create(const URL: string;
-      const ASize: Integer; const AnAntiAliased: boolean;
+      const ASize: Integer; const AnAntiAliased: Boolean;
       const ACharacters: TSetOfChars); deprecated;
 
     { Create from a ready TTextureFontData instance.
@@ -447,9 +447,9 @@ type
         the finalization of CastleTextureFont_Xxx unit will already free
         the TTextureFontData instance.) }
     constructor Create(const Data: TTextureFontData;
-      const OwnsData: boolean = false); reintroduce;
+      const OwnsData: Boolean = false); reintroduce;
     procedure Load(const Data: TTextureFontData;
-      const OwnsData: boolean = false);
+      const OwnsData: Boolean = false);
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
       const S: string); override;
@@ -493,7 +493,7 @@ type
     function ScaledCharWidth: Single;
     function ScaledCharHeight: Single;
     function ScaledCharDisplayMargin: Single;
-    function GetSmoothScaling: boolean;
+    function GetSmoothScaling: Boolean;
     { Scale applied to the rendered DrawableImage to honor changing the Size property. }
     function Scale: Single;
   strict protected
@@ -571,7 +571,7 @@ type
 
       This allows to achieve better look than TTexturedFont with one size. }
     procedure Load(const URL: string;
-      const ASizes: array of Integer; const AnAntiAliased: boolean;
+      const ASizes: array of Integer; const AnAntiAliased: Boolean;
       const ACharacters: TUnicodeCharList = nil);
 
     { Return SourceFont or one of the fonts added by @link(AddAlternativeSourceFont),
@@ -686,7 +686,7 @@ procedure TCastleFont.PrintRectMultiline(const Rect: TFloatRectangle; const Colo
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
   const VerticalAlignment: TVerticalPosition;
-  const Html: boolean;
+  const Html: Boolean;
   const LineSpacing: Integer;
   const TextHorizontalAlignment: THorizontalPosition);
 var
@@ -722,7 +722,7 @@ procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TC
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
   const VerticalAlignment: TVerticalPosition;
-  const Html: boolean;
+  const Html: Boolean;
   const LineSpacing: Integer;
   const TextHorizontalAlignment: THorizontalPosition);
 begin
@@ -848,7 +848,7 @@ begin
   end;
 end;
 
-function TCastleFont.MaxTextWidth(SList: TStrings; const Html: boolean): Single;
+function TCastleFont.MaxTextWidth(SList: TStrings; const Html: Boolean): Single;
 var
   I: Integer;
   Text: TRichText;
@@ -870,7 +870,7 @@ end;
 
 procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Single;
+  const Html: Boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 
   function XPos(const Line: Integer; const S: string): Single;
@@ -914,7 +914,7 @@ end;
 
 procedure TCastleFont.PrintStrings(const X0, Y0: Single;
   const Color: TCastleColor; const Strs: array of string;
-  const Html: boolean; const LineSpacing: Single;
+  const Html: Boolean; const LineSpacing: Single;
   const TextHorizontalAlignment: THorizontalPosition);
 var
   SList: TStringList;
@@ -927,7 +927,7 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
-  const Html: boolean; const LineSpacing: Single;
+  const Html: Boolean; const LineSpacing: Single;
   const X0: Single; const Y0: Single);
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
@@ -937,7 +937,7 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
-  const Html: boolean; const LineSpacing: Single; const X0: Single;
+  const Html: Boolean; const LineSpacing: Single; const X0: Single;
   const Y0: Single);
 var
   SList: TStringList;
@@ -954,8 +954,8 @@ end;
 
 function TCastleFont.PrintBrokenString(X0, Y0: Single;
   const Color: TCastleColor; const S: string; const MaxLineWidth: Single;
-  const PositionsFirst: boolean; const LineSpacing: Single;
-  const Html: boolean): Integer;
+  const PositionsFirst: Boolean; const LineSpacing: Single;
+  const Html: Boolean): Integer;
 var
   Text: TRichText;
 begin
@@ -974,7 +974,7 @@ function TCastleFont.PrintBrokenString(const Rect: TFloatRectangle;
   const LineSpacing: Single;
   const AlignHorizontal: THorizontalPosition;
   const AlignVertical: TVerticalPosition;
-  const Html: boolean): Integer;
+  const Html: Boolean): Integer;
 var
   Text: TRichText;
   X0, Y0, BrokenHeight: Single;
@@ -1011,7 +1011,7 @@ function TCastleFont.PrintBrokenString(const Rect: TRectangle; const Color: TCas
   const LineSpacing: Single;
   const AlignHorizontal: THorizontalPosition;
   const AlignVertical: TVerticalPosition;
-  const Html: boolean = false): Integer;
+  const Html: Boolean = false): Integer;
 begin
   Result := PrintBrokenString(FloatRectangle(Rect), Color, S, LineSpacing,
     AlignHorizontal, AlignVertical, Html);
@@ -1019,7 +1019,7 @@ end;
 
 function TCastleFont.PrintBrokenString(const S: string;
   const MaxLineWidth, X0, Y0: Single;
-  const PositionsFirst: boolean;
+  const PositionsFirst: Boolean;
   const LineSpacing: Single): Integer; deprecated;
 begin
   { Deprecated stuff uses other deprecated stuff here, don't warn }
@@ -1123,7 +1123,7 @@ begin
 end;
 
 constructor TTextureFont.Create(const URL: string;
-  const ASize: Integer; const AnAntiAliased: boolean;
+  const ASize: Integer; const AnAntiAliased: Boolean;
   const ACharacters: TUnicodeCharList);
 begin
   Create(TComponent(nil));
@@ -1131,14 +1131,14 @@ begin
 end;
 
 procedure TTextureFont.Load(const URL: string;
-  const ASize: Integer; const AnAntiAliased: boolean;
+  const ASize: Integer; const AnAntiAliased: Boolean;
   const ACharacters: TUnicodeCharList);
 begin
   Load(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true);
 end;
 
 constructor TTextureFont.Create(const URL: string;
-  const ASize: Integer; const AnAntiAliased: boolean;
+  const ASize: Integer; const AnAntiAliased: Boolean;
   const ACharacters: TSetOfChars);
 var
   Chars: TUnicodeCharList;
@@ -1152,13 +1152,13 @@ begin
   finally FreeAndNil(Chars) end;
 end;
 
-constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: boolean);
+constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: Boolean);
 begin
   Create(TComponent(nil));
   Load(Data, OwnsData);
 end;
 
-procedure TTextureFont.Load(const Data: TTextureFontData; const OwnsData: boolean);
+procedure TTextureFont.Load(const Data: TTextureFontData; const OwnsData: Boolean);
 begin
   GLContextClose;
 
@@ -1197,7 +1197,7 @@ begin
     DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
-function TTextureFont.GetSmoothScaling: boolean;
+function TTextureFont.GetSmoothScaling: Boolean;
 begin
   Result := Size <> FFont.Size;
 end;
@@ -1470,7 +1470,7 @@ begin
     DrawableImage.SmoothScaling := GetSmoothScaling;
 end;
 
-function TSimpleTextureFont.GetSmoothScaling: boolean;
+function TSimpleTextureFont.GetSmoothScaling: Boolean;
 begin
   Result := Size <> CharHeight;
 end;
@@ -1817,7 +1817,7 @@ begin
 end;
 
 procedure TCustomizedFont.Load(const URL: string;
-  const ASizes: array of Integer; const AnAntiAliased: boolean;
+  const ASizes: array of Integer; const AnAntiAliased: Boolean;
   const ACharacters: TUnicodeCharList);
 var
   F: TTextureFont;

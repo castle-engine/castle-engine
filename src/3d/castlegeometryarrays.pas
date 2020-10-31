@@ -92,7 +92,7 @@ type
     Name: string;
     { Internal for our engine (as opposed to specified in 3D model file).
       This is only used to change warnings related to this attribute. }
-    Internal: boolean;
+    Internal: Boolean;
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
@@ -120,11 +120,11 @@ type
   private
     FIndexes: TGeometryIndexList;
     FIndexesCount: Cardinal;
-    FHasIndexes: boolean;
+    FHasIndexes: Boolean;
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
     FCounts: TCardinalList;
-    FDataFreed: boolean;
+    FDataFreed: Boolean;
 
     FAttributeArray: Pointer;
     FAttributeSize: Cardinal;
@@ -133,22 +133,22 @@ type
     FCoordinateSize: Cardinal;
     FCoordinatePreserveGeometryOrder: Boolean;
 
-    FHasColor: boolean;
+    FHasColor: Boolean;
     FColorMode: TColorMode;
     ColorOffset: Integer;
-    FForceUnlit: boolean;
+    FForceUnlit: Boolean;
     FForcedUnlitColor: TVector4;
 
-    FHasFogCoord: boolean;
+    FHasFogCoord: Boolean;
     FogCoordOffset: Integer;
-    FFogDirectValues: boolean;
+    FFogDirectValues: Boolean;
 
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;
 
-    FCullFace: boolean;
-    FFrontFaceCcw: boolean;
-    FForceFlatShading: boolean;
+    FCullFace: Boolean;
+    FFrontFaceCcw: Boolean;
+    FForceFlatShading: Boolean;
 
     FFaces: TFaceIndexesList;
 
@@ -157,7 +157,7 @@ type
       const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
     procedure AddGLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Internal: boolean);
+      const Name: string; const Internal: Boolean);
     function GLSLAttribute(const AType: TGeometryAttribType;
       const Name: string; const Index: Cardinal): PtrUInt;
   public
@@ -198,7 +198,7 @@ type
       @groupBegin *)
     function IndexesPtr(const Index: Cardinal): PtrUInt;
     property IndexesCount: Cardinal read FIndexesCount;
-    property HasIndexes: boolean read FHasIndexes;
+    property HasIndexes: Boolean read FHasIndexes;
     { @groupEnd }
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
@@ -263,7 +263,7 @@ type
     procedure AddColor(const AMode: TColorMode);
     function Color(const Index: Cardinal = 0): PVector4;
     procedure IncColor(var P: PVector4);
-    property HasColor: boolean read FHasColor;
+    property HasColor: Boolean read FHasColor;
     property ColorMode: TColorMode read FColorMode;
 
     { When ForceUnlit, the shape must be rendered like with UnlitMaterial,
@@ -272,20 +272,20 @@ type
       Note that (as with UnlitMaterial) the colors may be overridden
       per-vertex using Color array (X3D Color/ColorRGBA nodes).
       @groupBegin }
-    property ForceUnlit: boolean read FForceUnlit write FForceUnlit default false;
+    property ForceUnlit: Boolean read FForceUnlit write FForceUnlit default false;
     property ForcedUnlitColor: TVector4 read FForcedUnlitColor write FForcedUnlitColor;
     { @groupEnd }
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;
-    property HasFogCoord: boolean read FHasFogCoord;
+    property HasFogCoord: Boolean read FHasFogCoord;
 
     { If FogCoord present, does it specify direct fog intensities,
       that should be used to change pixel colors without any further processing.
       When this is @false, then fog coordinates are understood
       as distance from the eye, and they are processed by linear/exp equations
       before being used to blend pixel colors. }
-    property FogDirectValues: boolean
+    property FogDirectValues: Boolean
       read FFogDirectValues write FFogDirectValues default false;
 
     { Allocated in AttributeArray texture coords.
@@ -313,12 +313,12 @@ type
 
     property Attribs: TGeometryAttribList read FAttribs;
 
-    procedure AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeFloat(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeVector2(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeVector3(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeVector4(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: Boolean);
 
     function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
@@ -336,16 +336,16 @@ type
       and thus the faces ordered clockwise will be culled.
       When FrontFaceCcw = @false, the faces ordered counter-clockwise
       will be culled. }
-    property CullFace: boolean
+    property CullFace: Boolean
       read FCullFace write FCullFace default false;
 
     { Which faces are front, for backface-culling (see @link(CullFace))
       and for normals data (see @link(Normal)). }
-    property FrontFaceCcw: boolean
+    property FrontFaceCcw: Boolean
       read FFrontFaceCcw write FFrontFaceCcw default false;
 
     { Make the whole rendering with flat shading. }
-    property ForceFlatShading: boolean
+    property ForceFlatShading: Boolean
       read FForceFlatShading write FForceFlatShading default false;
 
     { Release the allocated memory for arrays (CoordinateArray, AttributeArray,
@@ -357,7 +357,7 @@ type
     procedure FreeData;
 
     { Was FreeData called. }
-    property DataFreed: boolean read FDataFreed;
+    property DataFreed: Boolean read FDataFreed;
 
     { Information about faces. Generated for some geometry types.
       Generated only when TArraysGenerator.FacesNeeded is @true.
@@ -627,7 +627,7 @@ const
   ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
 
 procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Internal: boolean);
+  const Name: string; const Internal: Boolean);
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
@@ -662,32 +662,32 @@ begin
   end;
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atFloat, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector2, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector4, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atMatrix3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
+procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: Boolean);
 begin
   AddGLSLAttribute(atMatrix4, Name, Internal);
 end;

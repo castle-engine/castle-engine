@@ -93,11 +93,11 @@ const
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 
 { Draw a rectangle frame.
 
@@ -109,12 +109,12 @@ procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
   const LineWidth: Single = 1;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 procedure DrawRectangleOutline(const R: TFloatRectangle; const Color: TCastleColor;
   const LineWidth: Single = 1;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 
 { Draw a circle. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -128,14 +128,14 @@ procedure DrawCircle(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 procedure DrawCircle(const Middle: TVector2;
   const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 
 { Draw a circle outline. It may be scaled differently in X than Y, thus resembling an ellipse.
 
@@ -150,7 +150,7 @@ procedure DrawCircleOutline(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 procedure DrawCircleOutline(const Middle: TVector2;
   const HorizontalRadius, VerticalRadius: Single;
   const Color: TCastleColor;
@@ -158,7 +158,7 @@ procedure DrawCircleOutline(const Middle: TVector2;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 
 { Draw a simple 2D primitive with a given color.
   This can be used to draw a series of points, lines or triangles,
@@ -191,7 +191,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false;
+  const ForceBlending: Boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
@@ -199,7 +199,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false;
+  const ForceBlending: Boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 
@@ -211,7 +211,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false;
+  const ForceBlending: Boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 
@@ -355,7 +355,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2SmallInt; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean;
+  const ForceBlending: Boolean;
   const LineWidth: Single;
   const PointSize: Cardinal);
 var
@@ -376,11 +376,11 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean;
+  const ForceBlending: Boolean;
   const LineWidth: Single;
   const PointSize: Cardinal);
 var
-  Blending: boolean;
+  Blending: Boolean;
   I, RequiredPointPtrSize: Integer;
   TargetPointPtr: PVector2;
 begin
@@ -504,7 +504,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false;
+  const ForceBlending: Boolean = false;
   const LineWidth: Single = 1;
   const PointSize: Cardinal = 1);
 begin
@@ -527,7 +527,7 @@ end;
 procedure DrawRectangle(const R: TFloatRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean);
+  const ForceBlending: Boolean);
 var
   RectanglePoint: array [0..3] of TVector2;
 begin
@@ -543,7 +543,7 @@ end;
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean);
+  const ForceBlending: Boolean);
 begin
   DrawRectangle(FloatRectangle(R), Color,
     BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
@@ -553,7 +553,7 @@ procedure DrawRectangleOutline(const R: TFloatRectangle; const Color: TCastleCol
   const LineWidth: Single;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean);
+  const ForceBlending: Boolean);
 var
   RectanglePoint: array [0..3] of TVector2;
 begin
@@ -570,7 +570,7 @@ procedure DrawRectangleOutline(const R: TRectangle; const Color: TCastleColor;
   const LineWidth: Single;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean);
+  const ForceBlending: Boolean);
 begin
   DrawRectangleOutline(FloatRectangle(R), Color, LineWidth,
     BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
@@ -584,7 +584,7 @@ procedure DrawCircle(const Middle: TVector2;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 var
   CirclePoint: array of TVector2;
   PreviousSin, PreviousCos, NextSin, NextCos: Float;
@@ -622,7 +622,7 @@ procedure DrawCircle(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 begin
   DrawCircle(Vector2(Middle), HorizontalRadius, VerticalRadius,
     Color, CircleSlices,
@@ -636,7 +636,7 @@ procedure DrawCircleOutline(const Middle: TVector2;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 var
   CirclePoint: array of TVector2;
   S, C: Float;
@@ -662,7 +662,7 @@ procedure DrawCircleOutline(const Middle: TVector2Integer;
   const CircleSlices: Cardinal = DefaultCircleSlices;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
+  const ForceBlending: Boolean = false);
 begin
   DrawCircleOutline(Vector2(Middle), HorizontalRadius, VerticalRadius,
     Color, LineWidth, CircleSlices,

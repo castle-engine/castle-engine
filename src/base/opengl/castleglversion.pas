@@ -44,7 +44,7 @@ type
 
     { Release is the optional release number (check ReleaseExists first).
       @groupBegin }
-    ReleaseExists: boolean;
+    ReleaseExists: Boolean;
     Release: Integer;
     { @groupEnd }
 
@@ -53,7 +53,7 @@ type
       at the beginning (we trim it when initializing). }
     VendorVersion: string;
 
-    function AtLeast(AMajor, AMinor: Integer): boolean;
+    function AtLeast(AMajor, AMinor: Integer): Boolean;
   end;
 
   TGLVendorType = (
@@ -73,24 +73,24 @@ type
     FVendor: string;
     FVendorType: TGLVendorType;
     FRenderer: string;
-    FFglrx: boolean;
-    FMesa: boolean;
+    FFglrx: Boolean;
+    FMesa: Boolean;
     FVendorMajor: Integer;
     FVendorMinor: Integer;
     FVendorRelease: Integer;
-    FBuggyGenerateMipmap: boolean;
-    FBuggyGenerateCubeMap: boolean;
-    FBuggyFBOCubeMap: boolean;
-    FBuggyLightModelTwoSide: boolean;
+    FBuggyGenerateMipmap: Boolean;
+    FBuggyGenerateCubeMap: Boolean;
+    FBuggyFBOCubeMap: Boolean;
+    FBuggyLightModelTwoSide: Boolean;
     FBuggyLightModelTwoSideMessage: string;
-    FBuggyVBO: boolean;
-    FBuggyShaderShadowMap: boolean;
-    FBuggyFBOMultiSampling: boolean;
-    FBuggySwapNonStandardViewport: boolean;
-    FBuggyDepth32: boolean;
-    FBuggyGLSLFrontFacing: boolean;
-    FBuggyGLSLReadVarying: boolean;
-    FBuggyPureShaderPipeline: boolean;
+    FBuggyVBO: Boolean;
+    FBuggyShaderShadowMap: Boolean;
+    FBuggyFBOMultiSampling: Boolean;
+    FBuggySwapNonStandardViewport: Boolean;
+    FBuggyDepth32: Boolean;
+    FBuggyGLSLFrontFacing: Boolean;
+    FBuggyGLSLReadVarying: Boolean;
+    FBuggyPureShaderPipeline: Boolean;
     FBuggyTextureSizeAbove2048: Boolean;
     function AppleRendererOlderThan(const VersionNumber: Cardinal): Boolean;
   public
@@ -109,7 +109,7 @@ type
 
     { Are we using Mesa (http://mesa3d.org/).
       Note that this is detected using VendorVersion, not Vendor. }
-    property Mesa: boolean read FMesa;
+    property Mesa: Boolean read FMesa;
 
     { Vendor-specific drivers version.
       Right now this is detected for Mesa and Intel.
@@ -120,7 +120,7 @@ type
     { @groupEnd }
 
     { ATI GPU with ATI drivers on Linux. }
-    property Fglrx: boolean read FFglrx;
+    property Fglrx: Boolean read FFglrx;
 
     { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
 
@@ -129,7 +129,7 @@ type
       With Mesa 7.5.1 (but tested only with radeon and radeonhd,
       so possibly it's not really related to Mesa version! Reports welcome)
       no problems. }
-    property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
+    property BuggyGenerateMipmap: Boolean read FBuggyGenerateMipmap;
 
     { Buggy generation of cube maps on FBO (Intel(Windows) bug).
 
@@ -147,7 +147,7 @@ type
         @item Renderer: Intel(R) HD Graphics
       )
     }
-    property BuggyFBOCubeMap: boolean read FBuggyFBOCubeMap;
+    property BuggyFBOCubeMap: Boolean read FBuggyFBOCubeMap;
 
     { Buggy generation of cube maps at all (Intel(Windows) bug).
 
@@ -164,32 +164,32 @@ type
         @item Renderer: Intel(R) HD Graphics 4000
       )
     }
-    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
+    property BuggyGenerateCubeMap: Boolean read FBuggyGenerateCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
-    property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
+    property BuggyLightModelTwoSide: Boolean read FBuggyLightModelTwoSide;
     property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
 
     { Buggy VBO (Intel(Windows) bug). }
-    property BuggyVBO: boolean read FBuggyVBO;
+    property BuggyVBO: Boolean read FBuggyVBO;
 
     { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
-    property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
+    property BuggyShaderShadowMap: Boolean read FBuggyShaderShadowMap;
 
     { Buggy (looks like wireframe) FBO rendering to
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
       This makes our screen effects broken on multi-sampled contexts. }
-    property BuggyFBOMultiSampling: boolean read FBuggyFBOMultiSampling;
+    property BuggyFBOMultiSampling: Boolean read FBuggyFBOMultiSampling;
 
     { Buggy swap buffers when glViewport does not contain
       whole window (ATI(Linux) bug). }
-    property BuggySwapNonStandardViewport: boolean
+    property BuggySwapNonStandardViewport: Boolean
       read FBuggySwapNonStandardViewport;
 
     { Buggy 32-bit depth buffer, 24-bit depth buffer works Ok
       (Mesa on ATI (Linux) bug). }
-    property BuggyDepth32: boolean read FBuggyDepth32;
+    property BuggyDepth32: Boolean read FBuggyDepth32;
 
     { Buggy gl_FrontFacing in GLSL. Observed on Mesa 10.x with OpenGL 3.x
       (see implemenetation for details where it's observed / not observed).
@@ -201,14 +201,14 @@ type
       (so, if you don't look at gl_FrontFacing, you are lit from *both* sides).
       So enable backface culling, or just be prepared that backfaces may be
       incorrectly light. }
-    property BuggyGLSLFrontFacing: boolean read FBuggyGLSLFrontFacing;
+    property BuggyGLSLFrontFacing: Boolean read FBuggyGLSLFrontFacing;
 
     { Do not read varying values in vertex shader, treat them as write-only. }
-    property BuggyGLSLReadVarying: boolean read FBuggyGLSLReadVarying;
+    property BuggyGLSLReadVarying: Boolean read FBuggyGLSLReadVarying;
 
     { Various problems when trying to use shaders to render everything.
       See https://github.com/castle-engine/view3dscene/issues/6#issuecomment-362826781 }
-    property BuggyPureShaderPipeline: boolean read FBuggyPureShaderPipeline;
+    property BuggyPureShaderPipeline: Boolean read FBuggyPureShaderPipeline;
 
     { MaxTextureSize above 2048 shall not be trusted. }
     property BuggyTextureSizeAbove2048: Boolean read FBuggyTextureSizeAbove2048;
@@ -259,7 +259,7 @@ end;
   Moves I to next character.
   Sets out Number on success, returns false on failure (no number,
   or invalid int format). }
-function ParseNumber(const S: string; var I: Integer; out Number: Integer): boolean;
+function ParseNumber(const S: string; var I: Integer; out Number: Integer): Boolean;
 const
   Digits = ['0'..'9'];
 var
@@ -331,7 +331,7 @@ begin
   end;
 end;
 
-function TGenericGLVersion.AtLeast(AMajor, AMinor: Integer): boolean;
+function TGenericGLVersion.AtLeast(AMajor, AMinor: Integer): Boolean;
 begin
   Result := (AMajor < Major) or
     ( (AMajor = Major) and (AMinor <= Minor) );
@@ -439,7 +439,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   end;
 
   { Compare arguments with VendorMajor / VendorMinor / VendorRelease numbers. }
-  function VendorVersionAtLeast(const VerMaj, VerMin, VerRel: Integer): boolean;
+  function VendorVersionAtLeast(const VerMaj, VerMin, VerRel: Integer): Boolean;
   begin
     Result :=
         (VendorMajor > VerMaj) or

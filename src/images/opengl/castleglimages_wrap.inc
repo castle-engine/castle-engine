@@ -21,12 +21,12 @@ type
   { }
   TTextureWrap2D = packed record
     Data: packed array [0..1] of TGLenum;
-    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): boolean;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): Boolean;
   end;
 
   TTextureWrap3D = packed record
     Data: packed array [0..2] of TGLenum;
-    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): boolean;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): Boolean;
   end;
 
 const
@@ -39,12 +39,12 @@ function Texture2DClampToEdge: TTextureWrap2D;
 
 {$ifdef read_implementation}
 
-class operator TTextureWrap2D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): boolean;
+class operator TTextureWrap2D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): Boolean;
 begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
 end;
 
-class operator TTextureWrap3D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): boolean;
+class operator TTextureWrap3D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): Boolean;
 begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
 end;

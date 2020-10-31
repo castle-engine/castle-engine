@@ -63,7 +63,7 @@ procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
 
 {$ifdef read_implementation}
 
-function IsTexture3DSized(const Size: Cardinal): boolean; overload;
+function IsTexture3DSized(const Size: Cardinal): Boolean; overload;
 begin
   Result :=
     (GLFeatures.Texture3D = gsNone) or
@@ -74,7 +74,7 @@ begin
     );
 end;
 
-function IsTexture3DSized(const R: TCastleImage): boolean; overload;
+function IsTexture3DSized(const R: TCastleImage): Boolean; overload;
 begin
   if GLFeatures.Texture3D <> gsNone then
   begin
@@ -132,7 +132,7 @@ var
   end;
 
   { Check should we load mipmaps from Composite. Load them, if yes. }
-  function LoadMipmapsFromComposite(Composite: TCompositeImage): boolean;
+  function LoadMipmapsFromComposite(Composite: TCompositeImage): Boolean;
   var
     I: Integer;
   begin

@@ -37,14 +37,14 @@ type
     FCompleteTextureTarget: TGLenum;
     FDepthTextureTarget: TGLenum;
     FBuffer: TGLRenderToTextureBuffer;
-    FStencil: boolean;
+    FStencil: Boolean;
     FDepthTexture: TGLTextureId;
 
-    FGLInitialized: boolean;
+    FGLInitialized: Boolean;
     Framebuffer, RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
-    FramebufferBound: boolean;
-    FColorBufferAlpha: boolean;
+    FramebufferBound: Boolean;
+    FColorBufferAlpha: Boolean;
     FMultiSampling: Cardinal;
   public
     { Constructor. Doesn't require OpenGL context,
@@ -158,7 +158,7 @@ type
       with GL_DEPTH_STENCIL format, this would work with packed depth/stencil
       (actually, even require it). For now, @italic(it's advised to turn
       off @name when you use @link(Buffer) = tbDepth or tbColorAndDepth). }
-    property Stencil: boolean
+    property Stencil: Boolean
       read FStencil write FStencil default true;
 
     { Initialize OpenGL stuff (framebuffer).
@@ -212,7 +212,7 @@ type
         We will internally leave framebuffer bound, which means that
         this RenderEnd and the very next RenderBegin will actually do nothing.)
     }
-    procedure RenderEnd(const RenderBeginFollows: boolean = false);
+    procedure RenderEnd(const RenderBeginFollows: Boolean = false);
 
     { Generate mipmaps for the texture.
       This will use glGenerateMipmap call, which is actually
@@ -238,7 +238,7 @@ type
       or are ignored).
 
       This must be set before GLContextOpen, cannot be changed later. }
-    property ColorBufferAlpha: boolean read FColorBufferAlpha write FColorBufferAlpha
+    property ColorBufferAlpha: Boolean read FColorBufferAlpha write FColorBufferAlpha
       default false;
 
     { All buffers (color and such) will be created with the
@@ -280,7 +280,7 @@ var
     (see https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
   }
   ScreenFbo: TGLuint;
-  ScreenFboQueried: boolean;
+  ScreenFboQueried: Boolean;
 
 { Use instead of glBindFramebuffer(GL_FRAMEBUFFER, Fbo),
   for non-zero Fbo. This will bind and add this Fbo to stack. }
@@ -379,7 +379,7 @@ end;
 
 { Wrapper around glFramebufferTexture2D }
 procedure FramebufferTexture2D(const Target: TGLenum;
-  const AttachmentDepthAndStencil: boolean;
+  const AttachmentDepthAndStencil: Boolean;
   Attachment, TexTarget: TGLenum; const Texture: TGLTextureId; const Level: TGLint);
 begin
   Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
@@ -487,7 +487,7 @@ procedure TGLRenderToTexture.GLContextOpen;
     and provided Attachment value is ignored. Otherwise, we attach to the given
     Attachment. }
   procedure GenBindRenderbuffer(var RenderbufferId: TGLuint;
-    const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
+    const InternalFormat: TGLenum; const AttachmentDepthAndStencil: Boolean;
     Attachment: TGLenum);
   begin
     case GLFeatures.Framebuffer of
@@ -535,8 +535,8 @@ procedure TGLRenderToTexture.GLContextOpen;
 var
   Status: TGLenum;
   DepthBufferFormatPacked, DepthAttachmentPacked: TGLenum;
-  DepthAttachmentWithStencil: boolean;
-  Success: boolean;
+  DepthAttachmentWithStencil: Boolean;
+  Success: Boolean;
   PreviousFboDefaultBuffer: TGLenum;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
@@ -734,7 +734,7 @@ end;
 { $define DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 { $define DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
-procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
+procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: Boolean);
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   procedure SaveColor(const URL: string);

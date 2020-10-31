@@ -63,7 +63,7 @@ type
         UniformViewportSize, UniformColor, UniformClipLine: TGLSLUniform;
         AttribVertex, AttribTexCoord: TGLSLAttribute;
         procedure InitializeUniformsAttributes(
-          const ClipLineShader: boolean;
+          const ClipLineShader: Boolean;
           const ColorTreatment: TColorTreatment);
       end;
 
@@ -103,21 +103,21 @@ type
       Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
 
       { Used only in shader pipeline }
-      Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
+      Programs: array [Boolean { alpha test? }, Boolean { clip? }, TColorTreatment] of TImageProgram; static;
 
-      TextureHasOnlyAlpha: boolean;
+      TextureHasOnlyAlpha: Boolean;
       FWidth: Cardinal;
       FHeight: Cardinal;
       FAlpha: TAutoAlphaChannel;
-      FIgnoreTooLargeCorners: boolean;
+      FIgnoreTooLargeCorners: Boolean;
       FColor: TCastleColor;
-      FSmoothScaling: boolean;
+      FSmoothScaling: Boolean;
       FScaleCorners: Single;
       FRotation: Single;
       FRotationCenter: TVector2;
       ScreenRotationCenter: TVector2;
-      UseScreenRotationCenter: boolean;
-      FClip: boolean;
+      UseScreenRotationCenter: Boolean;
+      FClip: Boolean;
       FClipLine: TVector3;
       { The detected alpha channel of the loaded image.
         It influences the drawing mode, if @link(Alpha) is acAuto.
@@ -133,16 +133,16 @@ type
 
       FTexture: TGLTextureId;
       FImage: TEncodedImage;
-      FOwnsImage: boolean;
+      FOwnsImage: Boolean;
       FURL: String;
       FRepeatS, FRepeatT: Boolean;
 
       FRenderToImage: TGLRenderToTexture;
-      HasViewportToRestore: boolean;
+      HasViewportToRestore: Boolean;
       ViewportToRestore: TRectangle;
 
     function FinalAlpha: TAlphaChannel;
-    procedure SetSmoothScaling(const Value: boolean);
+    procedure SetSmoothScaling(const Value: Boolean);
     function CurrentFilter: TTextureFilter;
     function CurrentWrap: TTextureWrap2D;
     procedure SetImage(const AImage: TEncodedImage);
@@ -156,7 +156,7 @@ type
     procedure SetRepeatS(const Value: Boolean);
     procedure SetRepeatT(const Value: Boolean);
   private
-    StaticResourcesReady: boolean; static;
+    StaticResourcesReady: Boolean; static;
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
@@ -178,8 +178,8 @@ type
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
-    constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
-      const AOwnsImage: boolean); overload;
+    constructor Create(const AImage: TEncodedImage; const ASmoothScaling: Boolean;
+      const AOwnsImage: Boolean); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -200,7 +200,7 @@ type
         to just set the initial value correctly.)
     }
     constructor Create(const AURL: string;
-      const ASmoothScaling: boolean = true); overload;
+      const ASmoothScaling: Boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -275,7 +275,7 @@ type
     }
     constructor Create(const AURL: string;
       const LoadAsClass: array of TEncodedImageClass;
-      const ASmoothScaling: boolean); overload;
+      const ASmoothScaling: Boolean); overload;
 
     destructor Destroy; override;
 
@@ -393,12 +393,12 @@ type
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRect: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
       ImageRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean); overload;
+      const FlipHorizontal, FlipVertical: Boolean); overload;
 
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
@@ -460,7 +460,7 @@ type
       Otherwise causing this problem makes a flood of errors to the log file,
       and it's easy to make this problem when your UI adjusts to the screen size.
     }
-    property IgnoreTooLargeCorners: boolean
+    property IgnoreTooLargeCorners: Boolean
       read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default true;
 
     { Color to multiply the texture contents (all RGBA channels).
@@ -526,9 +526,9 @@ type
 
       Note that switching this property after this object is constructed
       is possible, but costly. }
-    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+    property SmoothScaling: Boolean read FSmoothScaling write SetSmoothScaling;
 
-    property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
+    property ScalingPossible: Boolean read FSmoothScaling write SetSmoothScaling;
       deprecated 'use SmoothScaling';
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
@@ -552,7 +552,7 @@ type
       read FRotation write FRotation default 0;
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
-    property Clip: boolean read FClip write FClip;
+    property Clip: Boolean read FClip write FClip;
 
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
@@ -605,7 +605,7 @@ type
     property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
 
     property Image: TEncodedImage read FImage write SetImage;
-    property OwnsImage: boolean read FOwnsImage write FOwnsImage;
+    property OwnsImage: Boolean read FOwnsImage write FOwnsImage;
 
     { Start rendering to this image, using an efficient GPU method
       ("Framebuffer Object", FBO).
@@ -626,7 +626,7 @@ type
       creates a TGLRenderToTexture descendant suitable for rendering to this texture.
       It is automatically released on certain events,
       you can also explicitly release it by @link(RenderToImageFree). }
-    procedure RenderToImageBegin(const SetAndRestoreViewport: boolean = true);
+    procedure RenderToImageBegin(const SetAndRestoreViewport: Boolean = true);
     procedure RenderToImageEnd;
     procedure RenderToImageFree;
 
@@ -665,7 +665,7 @@ type
 { TDrawableImage.TImageProgram ------------------------------------------------- }
 
 procedure TDrawableImage.TImageProgram.InitializeUniformsAttributes(
-  const ClipLineShader: boolean;
+  const ClipLineShader: Boolean;
   const ColorTreatment: TColorTreatment);
 begin
   UniformViewportSize := Prog.Uniform('viewport_size');
@@ -684,7 +684,7 @@ end;
 { TDrawableImage ------------------------------------------------------------------- }
 
 constructor TDrawableImage.Create(const AImage: TEncodedImage;
-  const ASmoothScaling, AOwnsImage: boolean);
+  const ASmoothScaling, AOwnsImage: Boolean);
 begin
   inherited Create;
 
@@ -713,7 +713,7 @@ begin
 end;
 
 constructor TDrawableImage.Create(const AURL: string;
-  const ASmoothScaling: boolean);
+  const ASmoothScaling: Boolean);
 begin
   Create(AURL, [], ASmoothScaling);
 end;
@@ -735,7 +735,7 @@ end;
 
 constructor TDrawableImage.Create(const AURL: string;
   const LoadAsClass: array of TEncodedImageClass;
-  const ASmoothScaling: boolean);
+  const ASmoothScaling: Boolean);
 var
   NewImage: TEncodedImage;
 begin
@@ -830,7 +830,7 @@ end;
 
 class procedure TDrawableImage.StaticGLContextOpen;
 var
-  AlphaTestShader, ClipLineShader: boolean;
+  AlphaTestShader, ClipLineShader: Boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TImageProgram;
   VS, FS: string;
@@ -851,8 +851,8 @@ begin
   if UseShaders then
   begin
     { create programs }
-    for AlphaTestShader in boolean do
-      for ClipLineShader in boolean do
+    for AlphaTestShader in Boolean do
+      for ClipLineShader in Boolean do
         for ColorTreatment in TColorTreatment do
           if Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog = nil then
           begin
@@ -884,7 +884,7 @@ end;
 
 class procedure TDrawableImage.StaticGLContextClose;
 var
-  AlphaTestShader, ClipLineShader: boolean;
+  AlphaTestShader, ClipLineShader: Boolean;
   ColorTreatment: TDrawableImage.TColorTreatment;
   I: Integer;
 begin
@@ -899,8 +899,8 @@ begin
   { free below regardless of UseShaders,
     to avoid memory leaks in case we toggle GLFeatures.EnableFixedFunction at runtime }
   // if UseShaders then
-  for AlphaTestShader in boolean do
-    for ClipLineShader in boolean do
+  for AlphaTestShader in Boolean do
+    for ClipLineShader in Boolean do
       for ColorTreatment in TColorTreatment do
         FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
 
@@ -1274,20 +1274,20 @@ begin
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 begin
   DrawFlipped(FloatRectangle(ScreenRect), FlipHorizontal, FlipVertical);
 end;
 
 procedure TDrawableImage.DrawFlipped(const ScreenRect: TFloatRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 begin
   DrawFlipped(ScreenRect, FloatRectangle(Rect), FlipHorizontal, FlipVertical);
 end;
 
 procedure TDrawableImage.DrawFlipped(
   const ScreenRect: TFloatRectangle; ImageRect: TFloatRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: Boolean);
 begin
   if FlipHorizontal then
   begin
@@ -1493,7 +1493,7 @@ begin
   Result.Data[1] := RepeatToGL(RepeatT);
 end;
 
-procedure TDrawableImage.SetSmoothScaling(const Value: boolean);
+procedure TDrawableImage.SetSmoothScaling(const Value: Boolean);
 begin
   if FSmoothScaling <> Value then
   begin
@@ -1538,7 +1538,7 @@ begin
   RenderToImageFree;
 end;
 
-procedure TDrawableImage.RenderToImageBegin(const SetAndRestoreViewport: boolean);
+procedure TDrawableImage.RenderToImageBegin(const SetAndRestoreViewport: Boolean);
 
   procedure RenderToImageCreate;
   begin

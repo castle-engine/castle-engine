@@ -135,7 +135,7 @@ var
 { ---------------------------------------------------------------------------- }
 
 { Enable or disable given OpenGL flag. }
-procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: Boolean);
 
 {$ifndef OpenGLES}
 
@@ -164,7 +164,7 @@ procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   Sets also the GLU_ERROR callback to ReportGLerror.
   @raises Exception If gluNewQuadric fails (returns nil). }
 function NewGLUQuadric(
-  Texture: boolean = true;
+  Texture: Boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; deprecated 'use TCastleScene to draw 3D stuff';
@@ -175,7 +175,7 @@ function NewGLUQuadric(
 procedure CastleGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
-  Texture: boolean = true;
+  Texture: Boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL); deprecated 'use TCastleScene to draw 3D stuff';
@@ -231,7 +231,7 @@ procedure glFreeBuffer(var Buffer: TGLuint);
     glDepthMask(Writeable);
     glColorMask(Writeable, Writeable, Writeable, Writeable);
   #) }
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+procedure glSetDepthAndColorWriteable(const Writeable: Boolean);
 
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
@@ -262,9 +262,9 @@ type
 
   Note that this is only for fixed-function OpenGL pipeline.
   Shader pipeline completely ignores the enabled state of texture units. }
-function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+function GLEnableTexture(const Target: TEnableTextureTarget): Boolean;
 
-function BoolToGL(const Value: boolean): TGLboolean;
+function BoolToGL(const Value: Boolean): TGLboolean;
 
 {$endif read_interface}
 
@@ -396,7 +396,7 @@ end;
 
 { Various helpers ------------------------------------------------------------ }
 
-procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: Boolean);
 begin
   if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
@@ -487,7 +487,7 @@ end;
 *)
 
 {$ifdef CASTLE_OBJFPC}
-function NewGLUQuadric(texture: boolean; normals: TGLenum;
+function NewGLUQuadric(texture: Boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
   result := gluNewQuadric();
@@ -507,7 +507,7 @@ end;
 procedure CastleGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
-  Texture: boolean; Normals: TGLenum;
+  Texture: Boolean; Normals: TGLenum;
   Orientation: TGLenum; DrawStyle: TGLenum);
 var
   Q: PGLUQuadric;
@@ -575,7 +575,7 @@ begin
   end;
 end;
 
-function BoolToGL(const Value: boolean): TGLboolean;
+function BoolToGL(const Value: Boolean): TGLboolean;
 begin
   if Value then
     Result := GL_TRUE
@@ -583,7 +583,7 @@ begin
     Result := GL_FALSE;
 end;
 
-procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+procedure glSetDepthAndColorWriteable(const Writeable: Boolean);
 begin
   glDepthMask(BoolToGL(Writeable));
   if Writeable then
@@ -592,7 +592,7 @@ begin
     RenderContext.ColorChannels := [];
 end;
 
-function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+function GLEnableTexture(const Target: TEnableTextureTarget): Boolean;
 begin
   Result := true;
 

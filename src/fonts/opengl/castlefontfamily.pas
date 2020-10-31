@@ -49,8 +49,8 @@ type
   TFontFamily = class(TCastleFont)
   strict private
     FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleFont;
-    FBold, FItalic: boolean;
-    FCustomizeOutline: boolean;
+    FBold, FItalic: Boolean;
+    FCustomizeOutline: Boolean;
     procedure SetRegularFont(const Value: TCastleFont);
     procedure SetBoldFont(const Value: TCastleFont);
     procedure SetItalicFont(const Value: TCastleFont);
@@ -58,7 +58,7 @@ type
     procedure SubFontCustomizeBegin;
     procedure SubFontCustomizeEnd;
   private
-    function SubFont(const ABold, AItalic: boolean): TCastleFont;
+    function SubFont(const ABold, AItalic: Boolean): TCastleFont;
     function SubFont: TCastleFont;
   strict protected
     procedure GLContextClose; override;
@@ -74,8 +74,8 @@ type
     property ItalicFont: TCastleFont read FItalicFont write SetItalicFont;
     property BoldItalicFont: TCastleFont read FBoldItalicFont write SetBoldItalicFont;
 
-    property Bold: boolean read FBold write FBold default false;
-    property Italic: boolean read FItalic write FItalic default false;
+    property Bold: Boolean read FBold write FBold default false;
+    property Italic: Boolean read FItalic write FItalic default false;
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
@@ -87,7 +87,7 @@ type
     function EffectiveSize: Single; override;
 
     { Should we customize the outline of the underlying font. }
-    property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
+    property CustomizeOutline: Boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
   { @exclude Internal type for TRichText }
@@ -104,7 +104,7 @@ type
     @exclude Internal type for TRichText. }
   TTextLine = class(specialize TObjectList<TTextProperty>)
   strict private
-    FWidthKnown: boolean;
+    FWidthKnown: Boolean;
     FWidth: Single;
     FFont: TFontFamily;
   public
@@ -125,7 +125,7 @@ type
           to use the given variant. }
         Bold, Italic: Cardinal;
         { The default Font.Bold, Font.Italic before whole TRichText processing. }
-        RestoreBold, RestoreItalic: boolean;
+        RestoreBold, RestoreItalic: Boolean;
         destructor Destroy; override;
       end;
 
@@ -198,13 +198,13 @@ type
     we assume that size and other properties of this font remain constant.) }
   TRichText = class(specialize TObjectList<TTextLine>)
   strict private
-    FWidthKnown: boolean;
+    FWidthKnown: Boolean;
     { Known max line width, e.g. calculated by @link(Wrap).
       Using this allows to avoid recalculating this many times,
       e.g. @link(Wrap) always calculates this as a by-product of it's work. }
     FWidth: Single;
     FFont: TFontFamily;
-    FOwnsFont: boolean;
+    FOwnsFont: Boolean;
     procedure SetTextWithoutHtml(Text: TStrings);
     procedure SetTextWithHtml(Text: TStrings);
     procedure AddTextWithHtml(const S: string);
@@ -212,9 +212,9 @@ type
     procedure EndProcessing(var State: TTextLine.TPrintState);
   public
     constructor Create(const AFont: TCastleFont;
-      const Text: TStrings; const Html: boolean);
+      const Text: TStrings; const Html: Boolean);
     constructor Create(const AFont: TCastleFont;
-      const S: string; const Html: boolean);
+      const S: string; const Html: Boolean);
     destructor Destroy; override;
     function Width: Single;
     procedure Wrap(const MaxWidth: Single);
@@ -392,7 +392,7 @@ begin
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
+function TFontFamily.SubFont(const ABold, AItalic: Boolean): TCastleFont;
 begin
   if ABold and AItalic and (BoldItalicFont <> nil) then
     Result := BoldItalicFont else
@@ -745,7 +745,7 @@ end;
 { TRichText ------------------------------------------------------------------ }
 
 constructor TRichText.Create(const AFont: TCastleFont;
-  const Text: TStrings; const Html: boolean);
+  const Text: TStrings; const Html: Boolean);
 begin
   inherited Create(true);
 
@@ -775,7 +775,7 @@ begin
 end;
 
 constructor TRichText.Create(const AFont: TCastleFont;
-  const S: string; const Html: boolean);
+  const S: string; const Html: Boolean);
 var
   Text: TStringList;
 begin
@@ -826,7 +826,7 @@ var
     Does it fast (without creating a temporary copy for a subtring from S).
     Case-sensitive. }
   function SubstringStartsHere(const S: string; const I: Integer;
-    const Substring: string; out NextChar: Integer): boolean;
+    const Substring: string; out NextChar: Integer): Boolean;
   var
     J, SubstringLength, SIndex: Integer;
   begin
@@ -877,7 +877,7 @@ var
 
   { @raises EConvertError In case of invalid color hexadecimal value. }
   function ReadFontColor(const S: string; const I: Integer;
-    out NextChar: Integer; out Color: TCastleColor): boolean;
+    out NextChar: Integer; out Color: TCastleColor): Boolean;
   var
     EndPos: Integer;
   const
@@ -897,7 +897,7 @@ var
   end;
 
   function ReadFontSize(const S: string; const I: Integer;
-    out NextChar: Integer; out HtmlSize: Integer; out PercentSize: Single): boolean;
+    out NextChar: Integer; out HtmlSize: Integer; out PercentSize: Single): Boolean;
   var
     EndPos: Integer;
     SizeRead: Int64;

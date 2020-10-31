@@ -50,13 +50,13 @@ type
       BaseButtonHeight = 200;
     var
     ImageNaked, ImageBadge, ImageWarning: TCastleImage;
-    GiftizStatusVisible: boolean;
+    GiftizStatusVisible: Boolean;
     function MessageReceived(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetExists: boolean; override;
+    function GetExists: Boolean; override;
     procedure DoClick; override;
     procedure Resize; override;
   published
@@ -118,7 +118,7 @@ begin
 end;
 
 function TGiftizButton.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 begin
   Result := false;
 
@@ -150,7 +150,7 @@ begin
   end;
 end;
 
-function TGiftizButton.GetExists: boolean;
+function TGiftizButton.GetExists: Boolean;
 begin
   Result := (inherited GetExists) and GiftizStatusVisible;
 end;

@@ -25,7 +25,7 @@ uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean); experimental;
+  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: Boolean); experimental;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by

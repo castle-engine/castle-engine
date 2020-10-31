@@ -108,7 +108,7 @@ type
       first three values of it's equation will be 0. }
     Planes: array [TFrustumPlane] of TVector4;
 
-    ZFarInfinity: boolean;
+    ZFarInfinity: Boolean;
 
     { Calculate 8 points of frustum. These points are simply
       calculated doing ThreePlanesIntersectionPoint on appropriate planes.
@@ -184,7 +184,7 @@ type
       fcSomeCollisionPossible or fcInsideFrustum cases. }
     function SphereCollisionPossibleSimple(
       const SphereCenter: TVector3; const SphereRadiusSqr: Single):
-      boolean;
+      Boolean;
 
     { Checks for collision between frustum and box.
       Meaning of return value like @link(SphereCollisionPossible). }
@@ -194,7 +194,7 @@ type
     { Checks for collision between frustum and box, faster.
       Meaning of return value like @link(SphereCollisionPossibleSimple). }
     function Box3DCollisionPossibleSimple(
-      const Box: TBox3D): boolean;
+      const Box: TBox3D): Boolean;
 
     function Move(const M: TVector3): TFrustum;
     procedure MoveVar(const M: TVector3);
@@ -203,7 +203,7 @@ type
       direction it as a "point infinitely away in given Direction",
       like the direction to the sun. Note that this ignores
       near/far planes of the frustum, only checking the 4 side planes. }
-    function DirectionInside(const Direction: TVector3): boolean;
+    function DirectionInside(const Direction: TVector3): Boolean;
 
     { Transform frustum by a matrix.
 
@@ -435,7 +435,7 @@ end;
 
 function TFrustum.SphereCollisionPossibleSimple(
   const SphereCenter: TVector3; const SphereRadiusSqr: Single):
-  boolean;
+  Boolean;
 var
   fp: TFrustumPlane;
   Distance, SqrRealDistance: Single;
@@ -519,7 +519,7 @@ begin
 end;
 
 function TFrustum.Box3DCollisionPossibleSimple(
-  const Box: TBox3D): boolean;
+  const Box: TBox3D): Boolean;
 
 { Implementation is obviously based on
   TFrustum.Box3DCollisionPossible above, see there for more comments. }
@@ -575,7 +575,7 @@ begin
   NormalizePlanes;
 end;
 
-function TFrustum.DirectionInside(const Direction: TVector3): boolean;
+function TFrustum.DirectionInside(const Direction: TVector3): Boolean;
 begin
   { First we check fpTop, since this (usually?) has the highest chance
     of failing (when Direction is direction of sun high in the sky) }

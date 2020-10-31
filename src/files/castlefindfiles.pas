@@ -35,7 +35,7 @@ type
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
-    Directory: boolean;
+    Directory: Boolean;
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
@@ -44,8 +44,8 @@ type
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
     the enclosing FindFiles call. }
-  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
-  TFoundFileMethod = procedure (const FileInfo: TFileInfo; var StopSearch: boolean) of object;
+  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
+  TFoundFileMethod = procedure (const FileInfo: TFileInfo; var StopSearch: Boolean) of object;
 
   TFindFilesOption = (
     { If ffRecursive is in Options then FindFiles (and friends) descend into
@@ -123,15 +123,15 @@ type
     files were processed, in particular to warn if nothing was processed.)
 
   @groupBegin }
-function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
-function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal; overload;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
+function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
-function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
+function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal; overload;
 { @groupEnd }
@@ -149,14 +149,14 @@ function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
 
   Returns if some file was found. Note that even when we return @false,
   we still set NewBase (to original Base). }
-function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
+function SearchFileHard(Path: string; const Base: string; out NewBase: string): Boolean;
 
 { Find first file matching given Mask inside Path.
   If found, returns @true and sets FileInfo.
   Otherwise, returns @false and leaves FileInfo undefined. }
 function FindFirstFile(const Path, Mask: string;
-  const FindDirectories: boolean; const Options: TFindFilesOptions;
-  out FileInfo: TFileInfo): boolean;
+  const FindDirectories: Boolean; const Options: TFindFilesOptions;
+  out FileInfo: TFileInfo): Boolean;
 
 implementation
 
@@ -184,9 +184,9 @@ uses URIParser, StrUtils,
 { This is equivalent to FindFiles with Recursive = false
   and ReadAllFirst = false. }
 function FindFiles_NonRecursive(const Path, Mask: string;
-  const FindDirectories: boolean;
+  const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
-  var StopSearch: boolean): Cardinal;
+  var StopSearch: Boolean): Cardinal;
 
   procedure UseLocalFileSystem;
   var
@@ -310,9 +310,9 @@ end;
 
 { This is equivalent to FindFiles with Recursive = true,
   and ReadAllFirst = false. }
-function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
-  const DirContentsLast: boolean; var StopSearch: boolean): Cardinal;
+  const DirContentsLast: Boolean; var StopSearch: Boolean): Cardinal;
 
   procedure WriteDirContent;
   begin
@@ -419,11 +419,11 @@ begin
 end;
 
 { This is equivalent to FindFiles with ReadAllFirst = false. }
-function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
-  const Recursive, DirContentsLast: boolean): Cardinal;
+  const Recursive, DirContentsLast: Boolean): Cardinal;
 var
-  StopSearch: boolean;
+  StopSearch: Boolean;
 begin
   StopSearch := false;
   if Recursive then
@@ -433,18 +433,18 @@ begin
 end;
 
 procedure FileProc_AddToFileInfos(
-  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   TFileInfoList(Data).Add(FileInfo);
 end;
 
-function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
 var
   FileInfos: TFileInfoList;
   i: Integer;
-  StopSearch: boolean;
+  StopSearch: Boolean;
 begin
   if ffReadAllFirst in Options then
   begin
@@ -473,7 +473,7 @@ begin
   end;
 end;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
+function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
 begin
@@ -490,12 +490,12 @@ type
   PFoundFileMethodWrapper = ^TFoundFileMethodWrapper;
 
 procedure FoundFileProcToMethod(
-  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   PFoundFileMethodWrapper(Data)^.Contents(FileInfo, StopSearch);
 end;
 
-function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
+function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 var
   FileMethodWrapper: TFoundFileMethodWrapper;
@@ -506,7 +506,7 @@ begin
     @FileMethodWrapper, Options);
 end;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
+function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 begin
   Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
@@ -518,12 +518,12 @@ end;
 type
   TSearchFileHardHelper = class
     Base: string;
-    IsFound: boolean;
+    IsFound: Boolean;
     Found: string;
-    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-  procedure TSearchFileHardHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+  procedure TSearchFileHardHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   begin
     if AnsiSameText(FileInfo.Name, Base) then
     begin
@@ -533,7 +533,7 @@ type
     end;
   end;
 
-function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
+function SearchFileHard(Path: string; const Base: string; out NewBase: string): Boolean;
 var
   Helper: TSearchFileHardHelper;
   P: string;
@@ -569,12 +569,12 @@ end;
 
 type
   TFindFirstFileHelper = class
-    IsFound: boolean;
+    IsFound: Boolean;
     FoundFile: TFileInfo;
-    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-  procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+  procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   begin
     FoundFile := FileInfo;
     IsFound := true;
@@ -582,8 +582,8 @@ type
   end;
 
 function FindFirstFile(const Path, Mask: string;
-  const FindDirectories: boolean; const Options: TFindFilesOptions;
-  out FileInfo: TFileInfo): boolean;
+  const FindDirectories: Boolean; const Options: TFindFilesOptions;
+  out FileInfo: TFileInfo): Boolean;
 var
   Helper: TFindFirstFileHelper;
 begin
