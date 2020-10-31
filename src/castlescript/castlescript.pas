@@ -2358,7 +2358,7 @@ class procedure TCasScriptWhile.HandleWhile(
     Condition := AFunction.Args[0].CoreExecute;
     if Condition is TCasScriptBoolean then
       Result := TCasScriptBoolean(Condition).Value else
-      raise ECasScriptError.Create('"if" function "condition" must return a Boolean value');
+      raise ECasScriptError.Create('"if" function "condition" must return a boolean value');
   end;
 
 begin

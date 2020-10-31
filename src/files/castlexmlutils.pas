@@ -130,7 +130,7 @@ type
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
-      A Boolean value is interpreted just like FPC's TXMLConfig
+      A boolean value is interpreted just like FPC's TXMLConfig
       objects: true is designated by word @code(true), false by word
       @code(false), case is ignored.
       If attribute exists but it's value
@@ -231,7 +231,7 @@ type
 
     { Retrieves from Element given attribute as a Boolean,
       raises EDOMAttributeMissing if missing or has invalid value.
-      A Boolean value is interpreted just like FPC's TXMLConfig
+      A boolean value is interpreted just like FPC's TXMLConfig
       objects: true is designated by word @code(true), false by word
       @code(false), case is ignored.
 
@@ -578,8 +578,8 @@ function DOMGetFloatAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Float): Boolean;
   deprecated 'use helper method AttributeFloat on TDOMElement';
 
-{ Like DOMGetAttribute, but reads Boolean value.
-  A Boolean value is interpreted just like FPC's TXMLConfig
+{ Like DOMGetAttribute, but reads boolean value.
+  A boolean value is interpreted just like FPC's TXMLConfig
   objects: true is designated by word @code(true), false by word
   @code(false), case is ignored.
 

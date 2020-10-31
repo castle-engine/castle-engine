@@ -125,7 +125,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    { The Boolean value of this menu item. }
+    { The boolean value of this menu item. }
     property Checked: Boolean read FChecked write SetChecked default false;
 
     { Automatically negate @link(Checked) on each click.
@@ -389,7 +389,7 @@ end;
 
 procedure TCastleMenuToggle.DoClick;
 begin
-  // change Boolean value before calling OnClick in inherited
+  // change boolean value before calling OnClick in inherited
   if AutoToggle then
     Pressed := not Pressed;
   inherited;
@@ -630,7 +630,7 @@ end;
 
 procedure TCastleOnScreenMenuItemToggle.DoClick;
 begin
-  // change Boolean value before calling OnClick in inherited
+  // change boolean value before calling OnClick in inherited
   if AutoToggle then
     Checked := not Checked;
   inherited;

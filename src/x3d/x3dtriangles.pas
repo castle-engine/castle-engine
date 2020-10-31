@@ -254,7 +254,7 @@ type
         for ReturnClosestIntersection = @false we can terminate at first
         collision found.)
 
-        The versions that return Boolean value (IsXxxCollision) don't
+        The versions that return boolean value (IsXxxCollision) don't
         take this parameter, as they are naturally interested in existence
         of @italic(any) intersection.)
 
