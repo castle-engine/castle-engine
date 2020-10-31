@@ -664,13 +664,13 @@ begin
         if CurrentAnimFrameCount > 0 then
             AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
-        { Reset variables for new animation }
         if not CheckAnimationNameAvailable(FCocosFrame.AnimationName) then
         begin
           CurrentAnimFrameCount := 0;
           continue;
         end;
 
+        { Reset variables for new animation }
         LastAnimationName := FCocosFrame.AnimationName;
         CurrentAnimFrameCount := 1;
         TimeSensor := TTimeSensorNode.Create(LastAnimationName);

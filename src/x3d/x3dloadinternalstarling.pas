@@ -569,7 +569,11 @@ begin
   Height := SubTextureNode.AttributeInteger('height');
 
   Trimmed := SubTextureNode.HasAttribute('frameX');
-  if Trimmed then
+  { I found some starling files which may have the last frame of the animation
+    with the size set to 0 so we need check this here (division by zero error)
+    example:
+    https://github.com/pammimeow/fatty-starling-as3-game/blob/master/assets/sprite%20elements.xml }
+  if Trimmed and (Width <> 0) and (Height <> 0) then
   begin
     { When frame is trimmed Width and Height does not mean the full size
       of the frame, so we have to calculate the appropriate
