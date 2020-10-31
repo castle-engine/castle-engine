@@ -96,7 +96,7 @@ type
   TUIState = class(TCastleUserInterface)
   private
     FStartContainer: TUIContainer;
-    FInterceptInput, FFreeWhenStopped: boolean;
+    FInterceptInput, FFreeWhenStopped: Boolean;
     FFreeAtStop: TComponent;
     procedure InternalStart;
     procedure InternalStop;
@@ -126,7 +126,7 @@ type
     function FreeAtStop: TComponent;
   public
     { When @true, state operations will send a log to CastleLog. }
-    class var Log: boolean;
+    class var Log: Boolean;
 
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state
@@ -263,7 +263,7 @@ type
       The state is added to the stack before the @link(Start) call,
       and removed after the @link(Stop) call, so this returns @true
       during all the methods --- @link(Start), @link(Resume), @link(Pause), @link(Stop). }
-    function Active: boolean;
+    function Active: Boolean;
 
     { Prevents passing mouse/keyboard events to the UI states underneath.
 
@@ -276,14 +276,14 @@ type
       (TCastleWindowBase, TCastleControlBase) callbacks like
       TCastleWindowBase.OnPress (as these callbacks are always used at the end,
       when nothing else handled the event). }
-    property InterceptInput: boolean read FInterceptInput write FInterceptInput
+    property InterceptInput: Boolean read FInterceptInput write FInterceptInput
       default false;
 
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
 
     { Load and show a user interface from a .castle-user-interface file,
       designed in Castle Game Engine Editor.
@@ -590,32 +590,32 @@ procedure TUIState.Finish;
 begin
 end;
 
-function TUIState.Active: boolean;
+function TUIState.Active: Boolean;
 begin
   Result := (FStateStack <> nil) and
             (FStateStack.IndexOf(Self) <> -1);
 end;
 
-function TUIState.Press(const Event: TInputPressRelease): boolean;
+function TUIState.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TUIState.Release(const Event: TInputPressRelease): boolean;
+function TUIState.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TUIState.Motion(const Event: TInputMotion): boolean;
+function TUIState.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
 procedure TUIState.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   { do not allow controls underneath to handle input }
   if InterceptInput then

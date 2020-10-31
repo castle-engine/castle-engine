@@ -42,8 +42,8 @@ type
     property X: Byte index 0 read GetItemsInt write SetItemsInt;
     property Y: Byte index 1 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector2Byte): Boolean; static; inline;
 
     class function Zero: TVector2Byte; static; inline;
   end;
@@ -72,8 +72,8 @@ type
     property Y: Byte index 1 read GetItemsInt write SetItemsInt;
     property Z: Byte index 2 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector3Byte): Boolean; static; inline;
 
     class function Zero: TVector3Byte; static; inline;
   end;
@@ -103,8 +103,8 @@ type
     property Z: Byte index 2 read GetItemsInt write SetItemsInt;
     property W: Byte index 3 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector4Byte): Boolean; static; inline;
 
     class function Zero: TVector4Byte; static;
   end;
@@ -192,12 +192,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector2Byte.IsZero: boolean;
+function TVector2Byte.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector2Byte.Equals(const V1, V2: TVector2Byte): boolean;
+class function TVector2Byte.Equals(const V1, V2: TVector2Byte): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]);
@@ -256,12 +256,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector3Byte.IsZero: boolean;
+function TVector3Byte.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector3Byte.Equals(const V1, V2: TVector3Byte): boolean;
+class function TVector3Byte.Equals(const V1, V2: TVector3Byte): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and
@@ -324,12 +324,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector4Byte.IsZero: boolean;
+function TVector4Byte.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector4Byte.Equals(const V1, V2: TVector4Byte): boolean;
+class function TVector4Byte.Equals(const V1, V2: TVector4Byte): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and

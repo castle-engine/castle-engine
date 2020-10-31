@@ -48,7 +48,7 @@ type
 
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
-procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
+procedure Check(TrueValue: Boolean; const ErrMessage: string = 'Check failed');
 
 { Arrays searching ----------------------------------------------------------- }
 
@@ -66,16 +66,16 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
   #) }
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
 function ArrayPosText(const A: string; const Arr: array of string;
-  IgnoreCase: boolean = true): Integer; overload;
+  IgnoreCase: Boolean = true): Integer; overload;
 
 { Iff functions ------------------------------------------------------------- }
 
 { }
-function Iff(boolval: boolean; trueval, falseval: string)  : string;   overload;
-function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  overload;
-function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
-function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
-function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
+function Iff(boolval: Boolean; trueval, falseval: string)  : string;   overload;
+function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  overload;
+function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    overload;
+function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; overload;
+function Iff(boolval: Boolean; trueval, falseval: char)    : char;     overload;
 
 { Some helpful version stuff ------------------------------------------------ }
 
@@ -115,11 +115,11 @@ function SCompilerDescription: string;
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean): string;
+  const Version: string; WrapLines: Boolean): string;
 
 { If not TrueValue then RaiseLastOSError. }
-procedure OSCheck(TrueValue: boolean); overload;
-procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+procedure OSCheck(TrueValue: Boolean); overload;
+procedure OSCheck(TrueValue: Boolean; const Place: string); overload;
 
 type
   { Descend from this to hide a parameterless constructor.
@@ -217,7 +217,7 @@ begin
   Create(Format(S, Args));
 end;
 
-procedure Check(TrueValue: boolean; const errMessage: string);
+procedure Check(TrueValue: Boolean; const errMessage: string);
 begin
  if not TrueValue then raise ECheckFailed.Create(errMessage);
 end;
@@ -233,7 +233,7 @@ begin
 end;
 
 function ArrayPosText(const A: string; const Arr: array of string;
-  IgnoreCase: boolean): Integer;
+  IgnoreCase: Boolean): Integer;
 var
   AA: string;
 begin
@@ -250,11 +250,11 @@ end;
 
 { Iff functions ------------------------------------------------------------- }
 
-function Iff(boolval: boolean; trueval, falseval: string)  : string;   begin if boolval then result := trueval else result := falseval end;
-function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  begin if boolval then result := trueval else result := falseval end;
-function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    begin if boolval then result := trueval else result := falseval end;
-function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; begin if boolval then result := trueval else result := falseval end;
-function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: string)  : string;   begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: char)    : char;     begin if boolval then result := trueval else result := falseval end;
 
 { Helpful consts ------------------------------------------------------------ }
 
@@ -288,7 +288,7 @@ begin
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: boolean): string;
+  const Version: string; WrapLines: Boolean): string;
 begin
   if Version <> '' then
     Result := DisplayApplicationName + ' version ' + Version + '.' + NL
@@ -299,12 +299,12 @@ begin
     'Compiled with ' + SCompilerDescription + '.';
 end;
 
-procedure OSCheck(TrueValue: boolean);
+procedure OSCheck(TrueValue: Boolean);
 begin
   if not TrueValue then RaiseLastOSError;
 end;
 
-procedure OSCheck(TrueValue: boolean; const Place: string);
+procedure OSCheck(TrueValue: Boolean; const Place: string);
 begin
   if not TrueValue then
   try

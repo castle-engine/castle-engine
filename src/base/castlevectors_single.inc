@@ -229,14 +229,14 @@ function PlaneAntiMove(const Plane: TVector4;
   You can specify only the first 3 components of plane equation (PlaneDir),
   since the 4th component would be ignored anyway.
   @groupBegin }
-function VectorsSamePlaneDirections(const V1, V2: TVector3; const Plane: TVector4): boolean; overload;
-function VectorsSamePlaneDirections(const V1, V2: TVector3; const PlaneDir: TVector3): boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3; const Plane: TVector4): Boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3; const PlaneDir: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Check if both points are on the same side of given 3D plane.
   If one of the points is exactly on the plane, also returns @true.
   @groupBegin }
-function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): boolean; overload;
+function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): Boolean; overload;
 { @groupEnd }
 
 function PointsDistance(const V1, V2: TVector2): Single; overload;
@@ -250,12 +250,12 @@ function PointsDistanceSqr(const V1, V2: TVector3): Single; overload;
 function PointsDistance2DSqr(const V1, V2: TVector3; const IgnoreIndex: Integer): Single; overload;
 { @groupEnd }
 
-function VectorsPerp(const V1, V2: TVector3): boolean; overload;
+function VectorsPerp(const V1, V2: TVector3): Boolean; overload;
 
 { Are the two vectors parallel (one is a scaled version of another).
   In particular, if one of the vectors is zero, then this is @true.
   @groupBegin }
-function VectorsParallel(const V1, V2: TVector3): boolean; overload;
+function VectorsParallel(const V1, V2: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Adjust the V1 vector to force given angle between V1 and V2.
@@ -290,10 +290,10 @@ function AnyOrthogonalVector(const V: TVector2): TVector2; overload;
 function AnyOrthogonalVector(const V: TVector3): TVector3; overload;
 { @groupEnd }
 
-function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean; overload;
+function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): Boolean; overload;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): boolean; overload;
+  const PlaneConstCoord: integer): Boolean; overload;
 
 { Assuming that Vector1 and Vector2 are parallel,
   check do they point in the same direction.
@@ -302,7 +302,7 @@ function IsLineParallelToSimplePlane(const lineVector: TVector3;
   If one of the vectors is zero, the result is undefined --- false or true.
   (but the function will surely not raise some floating point error etc.) }
 function AreParallelVectorsSameDirection(
-  const Vector1, Vector2: TVector3): boolean; overload;
+  const Vector1, Vector2: TVector3): Boolean; overload;
 
 { Orthogonally project a point on a plane, that is find a closest
   point to Point lying on a Plane.
@@ -353,9 +353,9 @@ function PointToLineDistanceSqr(const point, line0, lineVector: TVector3): Singl
   T is always within [0,1] range.
   @groupBegin }
 function TryPlaneLineIntersection(out intersection: TVector3;
-  const plane: TVector4; const line0, lineVector: TVector3): boolean; overload;
+  const plane: TVector4; const line0, lineVector: TVector3): Boolean; overload;
 function TryPlaneLineIntersection(out t: Single;
-  const plane: TVector4; const line0, lineVector: TVector3): boolean; overload;
+  const plane: TVector4; const line0, lineVector: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Plane and ray intersection.
@@ -371,18 +371,18 @@ function TryPlaneLineIntersection(out t: Single;
   @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TrySimplePlaneRayIntersection(out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 
 function TryPlaneRayIntersection(out Intersection: TVector3;
-  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TryPlaneRayIntersection(out Intersection: TVector3; out T: Single;
-  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Plane and line segment intersection.
@@ -399,24 +399,24 @@ function TryPlaneRayIntersection(out Intersection: TVector3; out T: Single;
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): Boolean; overload;
 
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
-  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean; overload;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): Boolean; overload;
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3; out T: Single;
-  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean; overload;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): Boolean; overload;
 { @groupEnd }
 
-function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean; overload;
-function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): Boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): Boolean; overload;
 
 { Coefficients of the 2D line equation (Ax + By + C = 0),
   given 2 @italic(different) points lying on the line.
@@ -443,24 +443,24 @@ function PlaneTransform(const Plane: TVector4; const Matrix: TMatrix4): TVector4
 
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
   const TunnelRadius: Single; const SphereCenter: TVector3;
-  const SphereRadius: Single): boolean; overload;
+  const SphereRadius: Single): Boolean; overload;
 
 function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: Single;
-  const Sphere2Center: TVector3; const Sphere2Radius: Single): boolean; overload;
+  const Sphere2Center: TVector3; const Sphere2Radius: Single): Boolean; overload;
 
 function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3;
-  const SphereRadius: Single): boolean; overload;
+  const SphereRadius: Single): Boolean; overload;
 
 function TrySphereRayIntersection(out Intersection: TVector3;
   const SphereCenter: TVector3; const SphereRadius: Single;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 
 { Intersection between an (infinitely tall) cylinder and a ray.
   @groupBegin }
 function TryCylinderRayIntersection(out Intersection: TVector3;
   const CylinderAxisOrigin, CylinderAxis: TVector3;
   const CylinderRadius: Single;
-  const RayOrigin, RayDirection: TVector3): boolean; overload;
+  const RayOrigin, RayDirection: TVector3): Boolean; overload;
 { @groupEnd }
 
 { Given two 3D lines (both given as an some point + direction in 3D),
@@ -678,7 +678,7 @@ function VectorMultTransposedSameVector(const V: TVector3): TMatrix4;
 function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
 
 procedure ScalingMatrices(const ScaleFactor: TVector3;
-  InvertedMatrixIdentityIfNotExists: boolean;
+  InvertedMatrixIdentityIfNotExists: Boolean;
   out Matrix, InvertedMatrix: TMatrix4);
 
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3): TMatrix4; overload;
@@ -1325,7 +1325,7 @@ begin
 end;
 
 function VectorsSamePlaneDirections(const V1, V2: TVector3;
-  const Plane: TVector4): boolean;
+  const Plane: TVector4): Boolean;
 var
   PlaneDir: TVector3 absolute Plane;
   V1Dot, V2Dot: Single;
@@ -1336,7 +1336,7 @@ begin
 end;
 
 function VectorsSamePlaneDirections(const V1, V2: TVector3;
-  const PlaneDir: TVector3): boolean;
+  const PlaneDir: TVector3): Boolean;
 var
   V1Dot, V2Dot: Single;
 begin
@@ -1345,7 +1345,7 @@ begin
   Result := IsZero(V1Dot) or IsZero(V2Dot) or ((V1Dot > 0) = (V2Dot > 0));
 end;
 
-function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): boolean;
+function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): Boolean;
 var
   p1Side, p2Side: Single;
 begin
@@ -1399,7 +1399,7 @@ begin
   end;
 end;
 
-function VectorsPerp(const V1, V2: TVector3): boolean;
+function VectorsPerp(const V1, V2: TVector3): Boolean;
 begin
   (* Naive implementation:
 
@@ -1410,7 +1410,7 @@ begin
   Result := IsZero(TVector3.DotProduct(V1, V2));
 end;
 
-function VectorsParallel(const V1, V2: TVector3): boolean;
+function VectorsParallel(const V1, V2: TVector3): Boolean;
 var
   mc, c1, c2: Integer;
   Scale: Single;
@@ -1471,7 +1471,7 @@ begin
   Result.Data[1] := -V.Data[0];
 end;
 
-function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean;
+function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): Boolean;
 var
   PlaneDir: TVector3 absolute plane;
 begin
@@ -1479,13 +1479,13 @@ begin
 end;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): boolean;
+  const PlaneConstCoord: integer): Boolean;
 begin
   Result := IsZero(lineVector.Data[PlaneConstCoord]);
 end;
 
 function AreParallelVectorsSameDirection(
-  const Vector1, Vector2: TVector3): boolean;
+  const Vector1, Vector2: TVector3): Boolean;
 var
   Coord: Integer;
 begin
@@ -1624,7 +1624,7 @@ begin
 end;
 
 function TryPlaneLineIntersection(out t: Single;
-  const plane: TVector4; const line0, lineVector: TVector3): boolean;
+  const plane: TVector4; const line0, lineVector: TVector3): Boolean;
 var
   PlaneDir: TVector3 absolute plane;
   Dot: Single;
@@ -1639,7 +1639,7 @@ begin
 end;
 
 function TryPlaneLineIntersection(out intersection: TVector3;
-  const plane: TVector4; const line0, lineVector: TVector3): boolean;
+  const plane: TVector4; const line0, lineVector: TVector3): Boolean;
 var
   t: Single;
 begin
@@ -1648,7 +1648,7 @@ begin
 end;
 
 function TryPlaneRayIntersection(out Intersection: TVector3;
-  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): Boolean;
 var
   MaybeT: Single;
 begin
@@ -1658,7 +1658,7 @@ end;
 
 function TryPlaneRayIntersection(
   out Intersection: TVector3; out T: Single;
-  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): Boolean;
 var
   MaybeT: Single;
 begin
@@ -1676,7 +1676,7 @@ begin
 end;
 
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
-  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): Boolean;
 var
   MaybeT: Single;
 begin
@@ -1687,7 +1687,7 @@ end;
 
 function TryPlaneSegmentDirIntersection(
   out Intersection: TVector3; out T: Single;
-  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): Boolean;
 var
   MaybeT: Single;
 begin
@@ -1709,7 +1709,7 @@ end;
 
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   T: Single;
 begin
@@ -1721,7 +1721,7 @@ end;
 function TrySimplePlaneRayIntersection(
   out Intersection: TVector3; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   Result := TrySimplePlaneRayIntersection(T, PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection);
   if Result then
@@ -1730,7 +1730,7 @@ end;
 
 function TrySimplePlaneRayIntersection(out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   Result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
   if Result then
@@ -1744,7 +1744,7 @@ end;
 
 function TrySimplePlaneSegmentIntersection(out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean;
+  const Pos1, Pos2: TVector3): Boolean;
 var
   T: Single;
 begin
@@ -1756,7 +1756,7 @@ end;
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean;
+  const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := TrySimplePlaneSegmentIntersection(T, PlaneConstCoord, PlaneConstValue, Pos1, Pos2);
   if Result then
@@ -1765,7 +1765,7 @@ end;
 
 function TrySimplePlaneSegmentIntersection(out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Pos1, Pos2: TVector3): boolean;
+  const Pos1, Pos2: TVector3): Boolean;
 var
   SegmentVector: TVector3;
 begin
@@ -1781,7 +1781,7 @@ end;
 
 { others --------------------------------------------------------------------- }
 
-function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): Boolean;
 var
   c: integer;
 begin
@@ -1791,7 +1791,7 @@ begin
             ((pos1.Data[c] >= intersection.Data[c]) and (intersection.Data[c] >= pos2.Data[c]));
 end;
 
-function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): Boolean;
 var
   c: integer;
 begin
@@ -1833,7 +1833,7 @@ begin
 end;
 
 function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: Single;
-  const Sphere2Center: TVector3; const Sphere2Radius: Single): boolean;
+  const Sphere2Center: TVector3; const Sphere2Radius: Single): Boolean;
 begin
   Result := PointsDistanceSqr(Sphere1Center, Sphere2Center)<=
     Sqr(Sphere1Radius+Sphere2Radius);
@@ -1872,14 +1872,14 @@ end;
 
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
   const TunnelRadius: Single; const SphereCenter: TVector3;
-  const SphereRadius: Single): boolean;
+  const SphereRadius: Single): Boolean;
 begin
   Result := PointToSegmentDistanceSqr(SphereCenter, Tunnel1, Tunnel2)<=
     Sqr(SphereRadius+TunnelRadius);
 end;
 
 function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3;
-  const SphereRadius: Single): boolean;
+  const SphereRadius: Single): Boolean;
 var
   SphereRadiusSqr: Single;
   Intersect: TVector3;
@@ -1899,7 +1899,7 @@ end;
   equation. The solution is such T >= 0 that
     A * T^2 + B * T + C = 0 }
 function TryRayIntersectionQuadraticEquation(out T: Single;
-  const A, B, C: Single): boolean;
+  const A, B, C: Single): Boolean;
 var
   Delta, T1, T2: Single;
 begin
@@ -1936,7 +1936,7 @@ end;
 
 function TrySphereRayIntersection(out Intersection: TVector3;
   const SphereCenter: TVector3; const SphereRadius: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   T, A, B, C: Single;
   RayOriginMinusCenter: TVector3;
@@ -1966,7 +1966,7 @@ end;
 function TryCylinderRayIntersection(out Intersection: TVector3;
   const CylinderAxisOrigin, CylinderAxis: TVector3;
   const CylinderRadius: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   T, AA, BB, CC: Single;
   X, Y, B: TVector3;
@@ -2449,7 +2449,7 @@ begin
 end;
 
 procedure ScalingMatrices(const ScaleFactor: TVector3;
-  InvertedMatrixIdentityIfNotExists: boolean;
+  InvertedMatrixIdentityIfNotExists: Boolean;
   out Matrix, InvertedMatrix: TMatrix4);
 begin
   Matrix := TMatrix4.Identity;

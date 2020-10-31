@@ -33,11 +33,11 @@ uses Classes,
   useless). Unless there's no other sensible way --- e.g. specify
   Spine skin name when opening Spine json file... }
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean = false);
+  const RecognizeEvenEscapedHash: Boolean = false);
 
 { Return URI with anchor (if was any) stripped. }
 function URIDeleteAnchor(const URI: string;
-  const RecognizeEvenEscapedHash: boolean = false): string;
+  const RecognizeEvenEscapedHash: Boolean = false): string;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -103,7 +103,7 @@ function URIProtocol(const URI: string): string;
   This is equivalent to checking URIProtocol(S) = Protocol, ignoring case,
   although may be a little faster. Given Protocol string cannot contain
   ":" character. }
-function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): Boolean;
 
 function URIDeleteProtocol(const S: string): string;
 
@@ -139,7 +139,7 @@ function AbsoluteURI(const URI: string): string;
   you usually do not want to have such paths in data files,
   as they make it impossible to transfer the data (move/copy files)
   to other system/location. }
-function AbsoluteFileURI(const URI: string): boolean;
+function AbsoluteFileURI(const URI: string): Boolean;
 
 { Convert URI (or filename) to a filename.
 
@@ -192,7 +192,7 @@ function FilenameToURISafe(FileName: string): string;
 
   @groupBegin }
 function URIMimeType(const URI: string): string; overload;
-function URIMimeType(const URI: string; out Gzipped: boolean): string; overload;
+function URIMimeType(const URI: string; out Gzipped: Boolean): string; overload;
 { @groupEnd }
 
 { Map from an extension to a MIME type, used by @link(URIMimeType).
@@ -221,7 +221,7 @@ function URIMimeExtensions: TStringStringMap;
   It also means that it returns empty string for empty URI
   (contrary to most other routines that convert empty string
   to a current directory when resolving relative URLs). }
-function URIDisplay(const URI: string; const Short: boolean = false): string;
+function URIDisplay(const URI: string; const Short: Boolean = false): string;
 
 { Convert URI to a nice form for a short caption.
 
@@ -357,7 +357,7 @@ uses SysUtils, URIParser,
   {$ifdef CASTLE_NINTENDO_SWITCH} , CastleInternalNxBase {$endif};
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
-  const RecognizeEvenEscapedHash: boolean);
+  const RecognizeEvenEscapedHash: Boolean);
 var
   HashPos: Integer;
 begin
@@ -390,7 +390,7 @@ begin
 end;
 
 function URIDeleteAnchor(const URI: string;
-  const RecognizeEvenEscapedHash: boolean): string;
+  const RecognizeEvenEscapedHash: Boolean): string;
 var
   Anchor: string;
 begin
@@ -406,7 +406,7 @@ function RawURIDecode(const S: string): string;
     - if yes, but %xx is invalid, report WritelnWarning and exit false
     - if yes and %xx is valid, set DecodedChar and exit true }
   function ValidSequence(const S: string; Position: Integer;
-    out DecodedChar: char): boolean;
+    out DecodedChar: char): Boolean;
   const
     ValidHexaChars = ['a'..'f', 'A'..'F', '0'..'9'];
 
@@ -483,7 +483,7 @@ end;
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
-function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
+function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): Boolean;
 const
   { These constants match URIParser algorithm, which in turn follows RFC. }
   ALPHA = ['A'..'Z', 'a'..'z'];
@@ -531,7 +531,7 @@ begin
     Result := '';
 end;
 
-function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): Boolean;
 var
   FirstCharacter, I: Integer;
 begin
@@ -614,7 +614,7 @@ begin
     Result := URI;
 end;
 
-function AbsoluteFileURI(const URI: string): boolean;
+function AbsoluteFileURI(const URI: string): Boolean;
 begin
   Result := (URIProtocol(URI) = '') and IsPathAbsoluteOnDrive(URI);
 end;
@@ -744,7 +744,7 @@ begin
   Result := FURIMimeExtensions;
 end;
 
-function URIMimeType(const URI: string; out Gzipped: boolean): string;
+function URIMimeType(const URI: string; out Gzipped: Boolean): string;
 
   function ExtToMimeType(Ext, ExtExt: string): string;
   begin
@@ -931,12 +931,12 @@ end;
 
 function URIMimeType(const URI: string): string;
 var
-  Gzipped: boolean;
+  Gzipped: Boolean;
 begin
   Result := URIMimeType(URI, Gzipped);
 end;
 
-function URIDisplay(const URI: string; const Short: boolean): string;
+function URIDisplay(const URI: string; const Short: Boolean): string;
 var
   DataURI: TDataURI;
   NewLinePos: Integer;

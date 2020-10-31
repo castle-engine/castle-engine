@@ -134,7 +134,7 @@ function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double; ov
 { @groupEnd }
 
 { Try to inverse single-precision matrix using double-precision, if necessary. }
-function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): Boolean;
 
 {$endif read_interface}
 
@@ -391,7 +391,7 @@ end;
 
 { TryInverseHarder ----------------------------------------------------------- }
 
-function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): Boolean;
 var
   MInverseDouble: TMatrix4Double;
 begin

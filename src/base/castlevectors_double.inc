@@ -124,7 +124,7 @@ begin
 end;
 
 function TryPlaneLineIntersectionDouble(out t: Double;
-  const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
+  const plane: TVector4Double; const line0, lineVector: TVector3Double): Boolean; overload;
 var
   PlaneDir: TVector3Double absolute plane;
   Dot: Double;
@@ -139,7 +139,7 @@ begin
 end;
 
 function TryPlaneLineIntersectionDouble(out intersection: TVector3Double;
-  const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
+  const plane: TVector4Double; const line0, lineVector: TVector3Double): Boolean; overload;
 var
   T: Double;
 begin

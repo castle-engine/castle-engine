@@ -182,14 +182,14 @@ end;
 
 Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
 
-  function WildisQuestionmark : boolean;
+  function WildisQuestionmark : Boolean;
 begin
     Result:=CWild <= MaxWilds;
     if Result then
       Result:= Wilds[CWild]='?';
   end;
 
-  function WildisStar : boolean;
+  function WildisStar : Boolean;
   begin
     Result:=CWild <= MaxWilds;
     if Result then

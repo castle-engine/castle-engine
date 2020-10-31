@@ -84,19 +84,19 @@ function ExclPathDelim(const s: string): string;
   "not all information is contained in Path".
 
   @seealso IsPathAbsoluteOnDrive }
-function IsPathAbsolute(const Path: string): boolean;
+function IsPathAbsolute(const Path: string): Boolean;
 
 { Just like IsPathAbsolute, but on Windows accepts also paths that specify
   full directory tree without drive letter.
 
   @seealso IsPathAbsolute }
-function IsPathAbsoluteOnDrive(const Path: string): boolean;
+function IsPathAbsoluteOnDrive(const Path: string): Boolean;
 
 { Checks is the directory name special, like "." or "..".
 
   The precise definition of "special" is that you cannot ever create
   or even have any filenames / directories named like this. }
-function SpecialDirName(const DirectoryName: string): boolean;
+function SpecialDirName(const DirectoryName: string): Boolean;
 
 { Add Suffix to the filename, right before extension.
   Returns @code(DeleteFileExt(FileName) + Suffix + ExtractFileExt(FileName)). }
@@ -140,24 +140,24 @@ end;
 
 { This is also defined in CastleStringUtils publicly,
   but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
-function SCharIs(const s: string; index: integer; c: char): boolean;
+function SCharIs(const s: string; index: integer; c: char): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] = c);
 end;
 
-function IsPathAbsolute(const Path: string): boolean;
+function IsPathAbsolute(const Path: string): Boolean;
 begin
   Result := {$ifdef UNIX} SCharIs(Path, 1, PathDelim) {$endif}
             {$ifdef MSWINDOWS} SCharIs(Path, 2, DriveDelim) {$endif};
 end;
 
-function IsPathAbsoluteOnDrive(const Path: string): boolean;
+function IsPathAbsoluteOnDrive(const Path: string): Boolean;
 begin
   Result := IsPathAbsolute(Path)
     {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
 end;
 
-function SpecialDirName(const DirectoryName: string): boolean;
+function SpecialDirName(const DirectoryName: string): Boolean;
 begin
   Result := (DirectoryName = '.') or (DirectoryName = '..');
 end;

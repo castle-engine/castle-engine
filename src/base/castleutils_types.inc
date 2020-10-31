@@ -27,7 +27,7 @@ type
   PShortint = ^Shortint;
 
   {$ifdef FPC}
-  { Pointer to a boolean.
+  { Pointer to a Boolean.
     Defined as ^Byte in some Delphi Windows unit,
     for FPC 1.0.x PBoolean is not available at all. }
   PBoolean = ^Boolean;

@@ -42,8 +42,8 @@ type
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector2Cardinal): Boolean; static; inline;
 
     class function Zero: TVector2Cardinal; static; inline;
   end;
@@ -72,8 +72,8 @@ type
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
     property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector3Cardinal): Boolean; static; inline;
 
     class function Zero: TVector3Cardinal; static; inline;
   end;
@@ -103,8 +103,8 @@ type
     property Z: Cardinal index 2 read GetItemsInt write SetItemsInt;
     property W: Cardinal index 3 read GetItemsInt write SetItemsInt;
 
-    function IsZero: boolean; inline;
-    class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
+    function IsZero: Boolean; inline;
+    class function Equals(const V1, V2: TVector4Cardinal): Boolean; static; inline;
 
     class function Zero: TVector4Cardinal; static; inline;
   end;
@@ -173,12 +173,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector2Cardinal.IsZero: boolean;
+function TVector2Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector2Cardinal.Equals(const V1, V2: TVector2Cardinal): boolean;
+class function TVector2Cardinal.Equals(const V1, V2: TVector2Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]);
@@ -237,12 +237,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector3Cardinal.IsZero: boolean;
+function TVector3Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector3Cardinal.Equals(const V1, V2: TVector3Cardinal): boolean;
+class function TVector3Cardinal.Equals(const V1, V2: TVector3Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and
@@ -305,12 +305,12 @@ begin
   Data[Index] := Value;
 end;
 
-function TVector4Cardinal.IsZero: boolean;
+function TVector4Cardinal.IsZero: Boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
 end;
 
-class function TVector4Cardinal.Equals(const V1, V2: TVector4Cardinal): boolean;
+class function TVector4Cardinal.Equals(const V1, V2: TVector4Cardinal): Boolean;
 begin
   Result := (V1.Data[0] = V2.Data[0]) and
             (V1.Data[1] = V2.Data[1]) and

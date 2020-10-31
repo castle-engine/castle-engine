@@ -71,11 +71,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
 
     function Sum: Single;
 
@@ -100,11 +100,11 @@ type
     { Does the SecondValue have equal length and content.
       The values are compared with an Epsilon tolerance, as usual for floating-point
       values. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
       The values are compared perfectly, without any tolerance for difference. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   TCardinalList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Cardinal>)
@@ -112,7 +112,7 @@ type
     function Sum: Cardinal;
   end;
 
-  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<boolean>)
+  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -126,7 +126,7 @@ type
     function ToLongInt: TLongIntList;
 
     { Does the SecondValue have equal length and content. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
 
@@ -134,7 +134,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   TLongIntArray = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
@@ -149,7 +149,7 @@ type
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: SizeInt);
 
     { Does the SecondValue have equal length and content. }
-    function Equals(SecondValue: TObject): boolean; override;
+    function Equals(SecondValue: TObject): Boolean; override;
 
     { Does the SecondValue have equal length and content.
 
@@ -157,7 +157,7 @@ type
       It is defined for consistency -- on some lists, like @link(TSingleList),
       there is an important difference between Equals (compares with some
       epsilon tolerance) and PerfectlyEquals. }
-    function PerfectlyEquals(SecondValue: TObject): boolean;
+    function PerfectlyEquals(SecondValue: TObject): Boolean;
   end;
 
   TIntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Integer>)
@@ -298,7 +298,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TSingleList.Equals(SecondValue: TObject): boolean;
+function TSingleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -316,7 +316,7 @@ begin
   end;
 end;
 
-function TSingleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TSingleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -414,7 +414,7 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
-function TDoubleList.Equals(SecondValue: TObject): boolean;
+function TDoubleList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -432,7 +432,7 @@ begin
   end;
 end;
 
-function TDoubleList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TDoubleList.PerfectlyEquals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -490,7 +490,7 @@ begin
     Result.Items[I] := Ord(Items[I]);
 end;
 
-function TBooleanList.Equals(SecondValue: TObject): boolean;
+function TBooleanList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -508,7 +508,7 @@ begin
   end;
 end;
 
-function TBooleanList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TBooleanList.PerfectlyEquals(SecondValue: TObject): Boolean;
 begin
   Result := Equals(SecondValue);
 end;
@@ -558,7 +558,7 @@ begin
     Items[I] := Item;
 end;
 
-function TLongIntList.Equals(SecondValue: TObject): boolean;
+function TLongIntList.Equals(SecondValue: TObject): Boolean;
 var
   I: Integer;
 begin
@@ -576,7 +576,7 @@ begin
   end;
 end;
 
-function TLongIntList.PerfectlyEquals(SecondValue: TObject): boolean;
+function TLongIntList.PerfectlyEquals(SecondValue: TObject): Boolean;
 begin
   Result := Equals(SecondValue);
 end;

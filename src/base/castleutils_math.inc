@@ -96,11 +96,11 @@ function IndexMax(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS
 function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
-function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: cardinal): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Int64   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Integer ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: cardinal): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Float   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Char    ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
@@ -194,7 +194,7 @@ function Smallest2Exponent(Value: Cardinal): Integer;
 function Smallest2Power(Value: Cardinal): Cardinal;
 
 { Check is Value an exact power of 2. }
-function IsPowerOf2(Value: Cardinal): boolean;
+function IsPowerOf2(Value: Cardinal): Boolean;
 
 function DivRoundUp(const Value, Divider: Cardinal): Cardinal; overload;
 function DivRoundUp(const Value, Divider: Integer): Integer; overload;
@@ -259,7 +259,7 @@ function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64; overload;
 function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Integer): Integer; overload;
 function RandomIntRangeInclusive(const RangeBegin, RangeEnd: Int64): Int64; overload;
 
-function RandomBoolean: boolean;
+function RandomBoolean: Boolean;
 
 { Random -1 or +1. }
 function RandomPlusMinus: Integer;
@@ -450,11 +450,11 @@ begin
  end;
 end;
 
-function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Int64): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Integer): Boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: cardinal): Boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Float): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Char): Boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
 
 function RoundClamp255(const A: Single): Byte;
 var
@@ -691,7 +691,7 @@ begin
     result := 1 shl Exp;
 end;
 
-function IsPowerOf2(Value: Cardinal): boolean;
+function IsPowerOf2(Value: Cardinal): Boolean;
 var
   i: Cardinal;
 begin
@@ -814,14 +814,14 @@ begin
   Result := RangeBegin + Random(RangeEnd - RangeBegin + 1);
 end;
 
-function RandomBoolean: boolean;
+function RandomBoolean: Boolean;
 begin
   Result := Random(2) = 0;
 end;
 
 function RandomPlusMinus: Integer;
 const
-  PlusMinus: array [boolean] of Integer = (-1, +1);
+  PlusMinus: array [Boolean] of Integer = (-1, +1);
 begin
   Result := PlusMinus[RandomBoolean];
 end;
