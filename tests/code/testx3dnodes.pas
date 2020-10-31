@@ -291,7 +291,7 @@ procedure TTestX3DNodes.TestInterfaceSupports;
 var
   L: TX3DNodeClassesList;
 
-  function IndexOfAnyAncestorByClass(C: TX3DNodeClass): boolean;
+  function IndexOfAnyAncestorByClass(C: TX3DNodeClass): Boolean;
   var
     N: TX3DNode;
   begin
@@ -1084,7 +1084,7 @@ procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
 
   procedure CheckInternalTimeDependentHandler(N: TX3DNode);
   var
-    B: boolean;
+    B: Boolean;
     C: TFloatTime;
   begin
     { CheckInternalTimeDependentHandler is a separate procedure,
@@ -1121,7 +1121,7 @@ end;
 
 procedure TTestX3DNodes.TestITransformNode;
 
-  function ContainsCHTransformField(const N: TX3DNode): boolean;
+  function ContainsCHTransformField(const N: TX3DNode): Boolean;
   var
     I: Integer;
   begin

@@ -24,7 +24,7 @@ uses
 type
   TTestCastleTransform = class(TCastleTestCase)
   strict private
-    procedure DoTestWorld(const PrematureFree: boolean);
+    procedure DoTestWorld(const PrematureFree: Boolean);
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -130,7 +130,7 @@ const
 procedure TTestCastleTransform.TestMy3D;
 var
   M: TMy3D;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -200,7 +200,7 @@ end;
 procedure TTestCastleTransform.TestMy3DNotExists;
 var
   M: TMy3D;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -268,7 +268,7 @@ end;
 procedure TTestCastleTransform.TestMy3DNotCollides;
 var
   M: TMy3D;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -345,7 +345,7 @@ type
 procedure TTestCastleTransform.Test3DTransform;
 var
   M: TMy3DTransform;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -418,7 +418,7 @@ end;
 procedure TTestCastleTransform.Test3DTransformNotExists;
 var
   M: TMy3DTransform;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -488,7 +488,7 @@ end;
 procedure TTestCastleTransform.Test3DTransformNotCollides;
 var
   M: TMy3DTransform;
-  IsAbove: boolean;
+  IsAbove: Boolean;
   AboveHeight: Single;
   AboveGround: PTriangle;
   NewPos: TVector3;
@@ -563,7 +563,7 @@ procedure TTestCastleTransform.Test3DTransformReal;
   { Perform test on M, assuming that it results in box Box20. }
   procedure DoTests(M: TMy3DTransform);
   var
-    IsAbove: boolean;
+    IsAbove: Boolean;
     AboveHeight: Single;
     AboveGround: PTriangle;
     NewPos: TVector3;
@@ -898,7 +898,7 @@ begin
   DoTestWorld(true);
 end;
 
-procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
+procedure TTestCastleTransform.DoTestWorld(const PrematureFree: Boolean);
 var
   World1, World2: TCastleRootTransform;
   O1List, O2List: TCastleTransform;

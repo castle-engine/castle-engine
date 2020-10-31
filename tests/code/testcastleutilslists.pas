@@ -68,7 +68,7 @@ end;
 (*
 procedure TTestBasicLists.TestGenericStringList;
 
-  function Equal(const S1: TGenericStringList; const S2: array of string): boolean;
+  function Equal(const S1: TGenericStringList; const S2: array of string): Boolean;
   var
     I: Integer;
   begin
@@ -153,7 +153,7 @@ end;
 
 procedure TTestBasicLists.TestPrimitiveLists;
 
-  function Equal(const S1: TIntegerList; const S2: array of Integer): boolean;
+  function Equal(const S1: TIntegerList; const S2: array of Integer): Boolean;
   var
     I: Integer;
   begin
@@ -167,7 +167,7 @@ procedure TTestBasicLists.TestPrimitiveLists;
     end;
   end;
 
-  function Equal(const S1, S2: TIntegerList): boolean;
+  function Equal(const S1, S2: TIntegerList): Boolean;
   var
     I: Integer;
   begin

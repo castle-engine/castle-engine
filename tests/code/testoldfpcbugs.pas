@@ -150,7 +150,7 @@ end;
 procedure TestCallFuncOfObject;
 { this is a compile-time bug; do not call this procedure }
 type
-  TFuncByObject = function(i:Integer):boolean of object;
+  TFuncByObject = function(i:Integer):Boolean of object;
 var F:TFuncByObject;
 begin
  F(1);
@@ -191,8 +191,8 @@ end;
   To dziala tylko pod 1.1, 1.0.x musza byc odpowiednio zmodyfikowane
   aby to dzialalo. (wiele mojego kodu wymaga zeby to dzialalo,
   juz CastleUtils.) }
-function TestProc(arg:integer):boolean; overload; begin result:=true  end;
-function TestProc             :boolean; overload; begin result:=false end;
+function TestProc(arg:integer):Boolean; overload; begin result:=true  end;
+function TestProc             :Boolean; overload; begin result:=false end;
 
 procedure TTestOldFPCBugs.TestOthers;
 var b1,b2:array[0..1000]of byte;

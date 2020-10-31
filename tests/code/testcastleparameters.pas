@@ -25,7 +25,7 @@ uses Classes, SysUtils, FpcUnit, TestUtils, TestRegistry,
 type
   TParsedOption = record
     OptionNum: Integer;
-    HasArgument: boolean;
+    HasArgument: Boolean;
     Argument: string;
     SeparateArgs: TSeparateArgs;
   end;
@@ -46,7 +46,7 @@ implementation
 
 uses CastleStringUtils;
 
-procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
+procedure ParseNextParam(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   ParsedArray: TParsedOptionList absolute Data;
@@ -66,7 +66,7 @@ end;
   @groupBegin }
 function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean = false)
+  ParseOnlyKnownLongOptions: Boolean = false)
   : TParsedOptionList;
 begin
  result := TParsedOptionList.Create;
@@ -78,7 +78,7 @@ begin
 end;
 
 function ParseParameters(
-  const Options: array of TOption; ParseOnlyKnownLongOptions: boolean = false)
+  const Options: array of TOption; ParseOnlyKnownLongOptions: Boolean = false)
   : TParsedOptionList;
 begin
  result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
@@ -132,7 +132,7 @@ procedure TTestParsingParameters.TestParsingParameters;
   procedure CheckPars(TestName: string; const StartPars: array of string;
     const Options: array of TOption;
     const GoodAnswer: array of TParsedOption; const GoodRest: array of string;
-    ParseOnlyKnownLongOptions: boolean);
+    ParseOnlyKnownLongOptions: Boolean);
   var Answer: TParsedOptionList;
   begin
    Parameters.AssignArray(StartPars);

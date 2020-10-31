@@ -169,7 +169,7 @@ end;
 procedure TTestCastleStringUtils.TestFormatNameCounter;
 var
   ReplacementsDone: Cardinal;
-  AllowOldPercentSyntax: boolean;
+  AllowOldPercentSyntax: Boolean;
 begin
   AssertTrue(FormatNameCounter('', 0, true, ReplacementsDone) = '');
   AssertTrue(FormatNameCounter('a', 0, true, ReplacementsDone) = 'a');

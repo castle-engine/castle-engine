@@ -57,7 +57,7 @@ procedure TTestSceneCore.TestIteratorSpeed;
     Scene: TCastleSceneCore;
     List: TShapesList;
     SI: TShapeTreeIterator;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     I: Integer;
     Test: Integer;
   begin
@@ -114,7 +114,7 @@ procedure TTestSceneCore.TestIterator;
     Scene: TCastleSceneCore;
     List: TShapeList;
     SI: TShapeTreeIterator;
-    OnlyActive: boolean;
+    OnlyActive: Boolean;
     I: Integer;
   begin
     Scene := TCastleSceneCore.Create(nil);

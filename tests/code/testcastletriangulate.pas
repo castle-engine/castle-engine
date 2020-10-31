@@ -87,7 +87,7 @@ end;
 procedure TTestCastleTriangulate.TestTriangulateFace;
 
   procedure DoPolygon(AVertexes: array of TVector3;
-    const Name: string; const RevertOrder: boolean);
+    const Name: string; const RevertOrder: Boolean);
   var
     I: Integer;
   begin
@@ -470,7 +470,7 @@ const
     (Data: (1, 0, -2.44921e-016))
   );
 var
-  RevertOrder: boolean;
+  RevertOrder: Boolean;
   Polygon_Circle: TVector3Array;
 begin
   { Warnings from CastleTriangulate mean that polygon cannot be triangulated.

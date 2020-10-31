@@ -160,7 +160,7 @@ begin
  Writeln;
 end;
 
-function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): boolean;
+function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): Boolean;
 begin
  result := CheckIsMemCharFilled(Data, Size, AChar) = -1;
 end;
@@ -427,7 +427,7 @@ type
   TRec = record Id: Integer; SortKey: Integer; end;
   PRec = ^TRec;
 
-function IsSmallerRec(const A, B, Data: Pointer): boolean;
+function IsSmallerRec(const A, B, Data: Pointer): Boolean;
 begin
   Result := PRec(A)^.SortKey < PRec(B)^.SortKey;
 end;

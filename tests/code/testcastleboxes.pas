@@ -233,7 +233,7 @@ var
 
   function IsCenteredBox3DPlaneCollision(
     const BoxHalfSize: TVector3;
-    const Plane: TVector4): boolean;
+    const Plane: TVector4): Boolean;
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
     planeBoxOverlap routine, by Tomas Akenine-Moller,
@@ -279,7 +279,7 @@ var
 
   function IsBox3DTriangleCollision(
     const Box: TBox3D;
-    const Triangle: TTriangle3): boolean;
+    const Triangle: TTriangle3): Boolean;
 
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
@@ -300,7 +300,7 @@ var
     BoxHalfSize: TVector3;
 
     { ======================== X-tests ======================== }
-    function AXISTEST_X01(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_X01(const a, b, fa, fb: Single): Boolean;
     var
       p0, p2, rad, min, max: Single;
     begin
@@ -312,7 +312,7 @@ var
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
-    function AXISTEST_X2(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_X2(const a, b, fa, fb: Single): Boolean;
     var
       p0, p1, rad, min, max: Single;
     begin
@@ -325,7 +325,7 @@ var
     end;
 
     { ======================== Y-tests ======================== }
-    function AXISTEST_Y02(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_Y02(const a, b, fa, fb: Single): Boolean;
     var
       p0, p2, rad, min, max: Single;
     begin
@@ -337,7 +337,7 @@ var
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
-    function AXISTEST_Y1(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_Y1(const a, b, fa, fb: Single): Boolean;
     var
       p0, p1, rad, min, max: Single;
     begin
@@ -350,7 +350,7 @@ var
     end;
 
     { ======================== Z-tests ======================== }
-    function AXISTEST_Z12(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_Z12(const a, b, fa, fb: Single): Boolean;
     var
       p1, p2, rad, min, max: Single;
     begin
@@ -362,7 +362,7 @@ var
       Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
-    function AXISTEST_Z0(const a, b, fa, fb: Single): boolean;
+    function AXISTEST_Z0(const a, b, fa, fb: Single): Boolean;
     var
       p0, p1, rad, min, max: Single;
     begin
@@ -472,7 +472,7 @@ var
   Triangle: TTriangle3;
   Box: TBox3D;
 
-  procedure DoTest(const TestName: string; CorrectResult: boolean);
+  procedure DoTest(const TestName: string; CorrectResult: Boolean);
   begin
     try
       { These writelns were used to experimentally check that 1e-4 is still too small,

@@ -209,7 +209,7 @@ var
 // PlaneDir: TVector3 absolute Plane;
   PlaneConstCoord: integer;
   PlaneConstVal: Single;
-  b1, b2: boolean;
+  b1, b2: Boolean;
 // t1, t2: Double;
 
   function RandomVector3: TVector3;
@@ -489,7 +489,7 @@ end;
 
 procedure TTestCastleVectors.TestSphereRayIntersection;
 var
-  Res: boolean;
+  Res: Boolean;
   I: TVector3;
 begin
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
@@ -656,7 +656,7 @@ end;
 
 procedure TTestCastleVectors.TestPlaneTransform;
 
-  function PointLiesOnPlane(const Point: TVector3; const Plane: TVector4): boolean;
+  function PointLiesOnPlane(const Point: TVector3; const Plane: TVector4): Boolean;
   var
     PlaneDir: TVector3 absolute Plane;
   begin
