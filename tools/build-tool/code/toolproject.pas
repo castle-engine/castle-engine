@@ -56,7 +56,7 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName: string;
     FIOSOverrideVersion: TProjectVersion; //< nil if not overridden, should use FVersion then
-    FUsesNonExemptEncryption: boolean;
+    FUsesNonExemptEncryption: Boolean;
     FDataExists: Boolean;
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
@@ -70,7 +70,7 @@ type
     FGameUnits, FEditorUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: TProjectVersion;
-    FFullscreenImmersive: boolean;
+    FFullscreenImmersive: Boolean;
     FScreenOrientation: TScreenOrientation;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
@@ -88,11 +88,11 @@ type
       Must be set by all commands that may use our macro system. }
     AndroidCPUS: TCPUS;
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
-    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
     function PackageName(const OS: TOS; const CPU: TCPU; const PackageFormat: TPackageFormatNoDefault;
       const PackageNameIncludeVersion: Boolean): string;
     function SourcePackageName(const PackageNameIncludeVersion: Boolean): string;
-    procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 
     { Convert Name to a valid Pascal identifier. }
     function NamePascal: string;
@@ -109,39 +109,39 @@ type
       It can also be used directly to expand a single file. }
     procedure ExtractTemplateFile(
       const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
-      const OverrideExisting: boolean);
+      const OverrideExisting: Boolean);
 
     { Generate a program/library file from template. }
     procedure GeneratedSourceFile(
       const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
-      const CreateIfNecessary: boolean;
+      const CreateIfNecessary: Boolean;
       out RelativeResult, AbsoluteResult: string);
 
     { Android source specified in CastleEngineManifest.xml.
       Most code should use AndroidSourceFile instead, that can optionally
       auto-create Android source file. }
     property AndroidSource: string read FAndroidSource;
-    function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 
     { iOS source specified in CastleEngineManifest.xml.
       Most code should use IOSSourceFile instead, that can optionally
       auto-create iOS source file. }
     property IOSSource: string read FIOSSource;
-    function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function IOSSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 
-    function NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function NXSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 
     { Standalone source specified in CastleEngineManifest.xml.
       Most code should use StandaloneSourceFile instead, that can optionally
       auto-create the source file. }
     property StandaloneSource: string read FStandaloneSource;
-    function StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 
     { Plugin source specified in CastleEngineManifest.xml.
       Most code should use PluginSourceFile instead, that can optionally
       auto-create the source file. }
     property PluginSource: string read FPluginSource;
-    function PluginSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function PluginSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
     function PluginLibraryFile(const OS: TOS; const CPU: TCPU): string;
 
     procedure AddMacrosAndroid(const Macros: TStringStringMap);
@@ -156,15 +156,15 @@ type
 
     procedure DoCreateManifest;
     procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
+      const Plugin: Boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
     procedure DoPackage(const Target: TTarget;
-      const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+      const OS: TOS; const CPU: TCPU; const Plugin: Boolean; const Mode: TCompilationMode;
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
     procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Plugin: boolean);
+      const Plugin: Boolean);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU;
-      const Plugin: boolean; const Params: TCastleStringList);
+      const Plugin: Boolean; const Params: TCastleStringList);
     procedure DoPackageSource(
       const PackageFormat: TPackageFormat;
       const PackageNameIncludeVersion: Boolean);
@@ -191,7 +191,7 @@ type
     property Caption: string read FCaption;
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
-    property FullscreenImmersive: boolean read FFullscreenImmersive;
+    property FullscreenImmersive: Boolean read FFullscreenImmersive;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
@@ -241,7 +241,7 @@ type
 
       CPU should be one of CPUs supported on Android platform (arm, aarch64)
       or cpuNone to get the library name without the CPU suffix. }
-    function AndroidLibraryFile(const CPU: TCPU; const AbsolutePath: boolean = true): string;
+    function AndroidLibraryFile(const CPU: TCPU; const AbsolutePath: Boolean = true): string;
 
     { Get platform-independent files that should be included in a package,
       remove files that should be excluded.
@@ -254,18 +254,18 @@ type
       The copy will only contain files useful on given TargetPlatform.
       Right now this means we will exclude auto-generated textures not suitable
       for TargetPlatform. }
-    function PackageFiles(const OnlyData: boolean;
+    function PackageFiles(const OnlyData: Boolean;
       const TargetPlatform: TCastlePlatform): TCastleStringList;
 
     { Output iOS library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
       otherwise a complete absolute path. }
-    function IOSLibraryFile(const AbsolutePath: boolean = true): string;
+    function IOSLibraryFile(const AbsolutePath: Boolean = true): string;
 
     { Output Nintendo Switch library resulting from compilation.
       Relative to @link(Path) if AbsolutePath = @false,
       otherwise a complete absolute path. }
-    function NXLibraryFile(const AbsolutePath: boolean = true): string;
+    function NXLibraryFile(const AbsolutePath: Boolean = true): string;
 
     { Where should we place our output files, calculated looking at OutputPathBase
       and project path. Always an absolute filename ending with path delimiter. }
@@ -921,7 +921,7 @@ begin
 end;
 
 procedure TCastleProject.DoCompile(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+  const OS: TOS; const CPU: TCPU; const Plugin: Boolean; const Mode: TCompilationMode;
   const FpcExtraOptions: TStrings);
 
   { Copy external libraries to LibrariesOutputPath.
@@ -1049,7 +1049,7 @@ begin
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
-function TCastleProject.PackageFiles(const OnlyData: boolean;
+function TCastleProject.PackageFiles(const OnlyData: Boolean;
   const TargetPlatform: TCastlePlatform): TCastleStringList;
 var
   Collector: TBinaryPackageFiles;
@@ -1151,7 +1151,7 @@ begin
 end;
 
 procedure TCastleProject.DoPackage(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
   const Mode: TCompilationMode; const PackageFormat: TPackageFormat;
   const PackageNameIncludeVersion, UpdateOnlyCode: Boolean);
 var
@@ -1160,7 +1160,7 @@ var
   procedure AddExecutable;
   var
     ExecutableNameExt, ExecutableNameFull: string;
-    UnixPermissionsMatter: boolean;
+    UnixPermissionsMatter: Boolean;
   begin
     if OS in [linux, go32v2, win32, os2, freebsd, beos, netbsd,
               amiga, atari, solaris, qnx, netware, openbsd, wdosx,
@@ -1314,7 +1314,7 @@ begin
 end;
 
 procedure TCastleProject.DoInstall(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+  const OS: TOS; const CPU: TCPU; const Plugin: Boolean);
 
   {$ifdef UNIX}
   procedure InstallUnixPlugin;
@@ -1364,7 +1364,7 @@ begin
 end;
 
 procedure TCastleProject.DoRun(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
   const Params: TCastleStringList);
 
   procedure MaybeUseWrapperToRun(var ExeName: String);
@@ -1475,7 +1475,7 @@ begin
   Result += '.tar.gz';
 end;
 
-procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
   if Verbose then
     Writeln('Deleting ' + FileInfo.AbsoluteName);
@@ -1490,7 +1490,7 @@ end;
 
 procedure TCastleProject.GeneratedSourceFile(
   const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
-  const CreateIfNecessary: boolean;
+  const CreateIfNecessary: Boolean;
   out RelativeResult, AbsoluteResult: string);
 var
   TemplateFile: string;
@@ -1510,7 +1510,7 @@ begin
   RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
 end;
 
-function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
   begin
@@ -1557,7 +1557,7 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
 begin
@@ -1579,7 +1579,7 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.NXSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
 begin
@@ -1598,7 +1598,7 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
 begin
@@ -1620,7 +1620,7 @@ begin
     Result := RelativeResult;
 end;
 
-function TCastleProject.PluginSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+function TCastleProject.PluginSourceFile(const AbsolutePath, CreateIfNecessary: Boolean): string;
 var
   RelativeResult, AbsoluteResult: string;
 begin
@@ -1643,7 +1643,7 @@ begin
 end;
 
 function TCastleProject.AndroidLibraryFile(const CPU: TCPU;
-  const AbsolutePath: boolean): string;
+  const AbsolutePath: Boolean): string;
 var
   Ext: String;
 begin
@@ -1653,12 +1653,12 @@ begin
   Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), Ext));
 end;
 
-function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
+function TCastleProject.IOSLibraryFile(const AbsolutePath: Boolean): string;
 begin
   Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
 end;
 
-function TCastleProject.NXLibraryFile(const AbsolutePath: boolean): string;
+function TCastleProject.NXLibraryFile(const AbsolutePath: Boolean): string;
 begin
   Result := InsertLibPrefix(ChangeFileExt(NXSourceFile(AbsolutePath, false), '.a'));
 end;
@@ -2089,7 +2089,7 @@ begin
 end;
 
 procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string;
-  const OverrideExisting: boolean);
+  const OverrideExisting: Boolean);
 var
   TemplateFilesCount: Cardinal;
 begin
@@ -2106,7 +2106,7 @@ begin
       [TemplatePath, TemplateFilesCount, DestinationPath]));
 end;
 
-procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   DestinationRelativeFileName, DestinationFileName: string;
 begin
@@ -2134,10 +2134,10 @@ end;
 
 procedure TCastleProject.ExtractTemplateFile(
   const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
-  const OverrideExisting: boolean);
+  const OverrideExisting: Boolean);
 var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
-  BinaryFile: boolean;
+  BinaryFile: Boolean;
 begin
   if SameText(DestinationRelativeFileName, 'README.md') then
     Exit; // do not copy README.md, most services define it and would just overwrite each other

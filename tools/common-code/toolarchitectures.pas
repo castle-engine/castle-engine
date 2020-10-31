@@ -73,7 +73,7 @@ Const
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos,win16];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
-  OSCPUSupported : array[TOS,TCpu] of boolean = (
+  OSCPUSupported : array[TOS,TCpu] of Boolean = (
     { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  mips   mipsel jvm    i8086 aarch64 sparc64 riscv32 riscv64}
     { none }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,  false,  false),
     { linux }   ( false, true,  true,  true,  true,  true,  true,  true,  false, true , true , true , false, false, true , true ,  true ,  true ),
@@ -119,7 +119,7 @@ Const
 function TargetToString(const Target: TTarget): String;
 Function CPUToString(CPU: TCPU) : String;
 Function OSToString(OS: TOS) : String;
-function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+function TargetCompleteToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: Boolean): String;
 
 function StringToTarget(const S : String): TTarget;
 Function StringToCPU(const S : String) : TCPU;
@@ -187,7 +187,7 @@ function CPUOptionHelp: string;
 
 function ExeExtensionOS(const OS: TOS): string;
 
-function LibraryExtensionOS(const OS: TOS; const Static: boolean = false): string;
+function LibraryExtensionOS(const OS: TOS; const Static: Boolean = false): string;
 
 implementation
 
@@ -249,7 +249,7 @@ begin
 end;
 
 function TargetCompleteToString(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+  const OS: TOS; const CPU: TCPU; const Plugin: Boolean): String;
 begin
   if Target = targetCustom then
     Result := Format('OS / CPU "%s / %s"', [OSToString(OS), CPUToString(CPU)])
@@ -323,7 +323,7 @@ begin
     Result := '';
 end;
 
-function LibraryExtensionOS(const OS: TOS; const Static: boolean): string;
+function LibraryExtensionOS(const OS: TOS; const Static: Boolean): string;
 begin
   if Static then
     // Correct for Unix, not sure about Windows. This is used only for iOS now.

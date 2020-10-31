@@ -29,7 +29,7 @@ type
 
 { Compile with FPC and proper command-line option given file.
   SearchPaths, ExtraOptions may be @nil (same as empty). }
-procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths: TStrings;
   const ExtraOptions: TStrings);
@@ -63,7 +63,7 @@ type
   TFpcVersionForIPhoneSimulatorChecked = class
   strict private
     class var
-      IsCached: boolean;
+      IsCached: Boolean;
       CachedValue: string;
     class function AutoDetect(const FpcVer: TFpcVersion): string; static;
   public
@@ -126,10 +126,10 @@ end;
 type
   TCleanDirectoryHelper = class
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
-    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-procedure TCleanDirectoryHelper.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TCleanDirectoryHelper.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
   if Verbose then
     Writeln('Deleting ' + FileInfo.AbsoluteName);
@@ -197,7 +197,7 @@ begin
   // Line := '<begin>' + Line + '<end>';
 end;
 
-procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: Boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
@@ -295,7 +295,7 @@ var
         FpcOptions.Add('-Fl' + LibraryPaths[I]);
   end;
 
-  function IsIOS: boolean;
+  function IsIOS: Boolean;
   begin
     Result :=
       (OS = iphonesim) or
@@ -310,7 +310,7 @@ var
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
   {$endif}
   var
-    IOS: boolean;
+    IOS: Boolean;
     VersionForSimulator: string;
   begin
     IOS := false;

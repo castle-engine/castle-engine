@@ -41,14 +41,14 @@ type
     { Children references.
       List instance itself is owned, but items on this list are not owned by this object. }
     Children: TXcodeProjectFileList;
-    Directory: boolean;
+    Directory: Boolean;
     Project: TXcodeProject;
     constructor Create; overload;
     constructor Create(const FileInfo: TFileInfo); overload;
     destructor Destroy; override;
     function FileType: string;
     function BuildGroup: string;
-    procedure AddChildFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure AddChildFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
   TXcodeProjectFrameworkList = specialize TObjectList<TXcodeProjectFramework>;
@@ -179,7 +179,7 @@ begin
 end;
 
 procedure TXcodeProjectFile.AddChildFile(
-  const FileInfo: TFileInfo; var StopSearch: boolean);
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   F: TXcodeProjectFile;
 begin

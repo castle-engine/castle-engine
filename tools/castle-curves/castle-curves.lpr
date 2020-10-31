@@ -40,16 +40,16 @@ var
   SelectedPoint: Integer = -1;
 
   RenderSegments: Cardinal = 500;
-  ShowPoints: boolean = true;
-  ShowSelectedCurveConvexHull: boolean = false;
+  ShowPoints: Boolean = true;
+  ShowSelectedCurveConvexHull: Boolean = false;
   LineWidth: Float = 1;
 
   { Indicates dragging with mouse.
     So SelectedPoint and SelectedCurve never change during dragging
     (changing them by any means, like a menu command, breaks dragging).
     Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging. }
-  Dragging: boolean = false;
-  DraggingFarEnoughToBeActive: boolean;
+  Dragging: Boolean = false;
+  DraggingFarEnoughToBeActive: Boolean;
   DraggingStartPosition: TVector2;
 
   { Just an indication of from what URL we loaded these Curves /
@@ -100,7 +100,7 @@ begin
   Window.Caption := Value + ' - Curves plotting';
 end;
 
-function PiecewiseCubicBezierCurveSelected: boolean;
+function PiecewiseCubicBezierCurveSelected: Boolean;
 begin
   Result := (SelectedCurve <> -1) and
             (Curves[SelectedCurve] is TPiecewiseCubicBezier);
@@ -155,10 +155,10 @@ end;
 
 type
   TStatusText = class(TCastleLabel)
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
-procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 
   function IntToStrOrNone(i: Integer): string;
   begin
@@ -454,7 +454,7 @@ end;
 
 procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
-  procedure ChangeSelectedCurve(Next: boolean);
+  procedure ChangeSelectedCurve(Next: Boolean);
   var
     Change: Integer;
   begin
@@ -476,7 +476,7 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
     end;
   end;
 
-  procedure ChangeSelectedPoint(Next: boolean);
+  procedure ChangeSelectedPoint(Next: Boolean);
   var
     Change: Integer;
   begin
@@ -723,7 +723,7 @@ const
     (Short: 'v'; Long: 'version'; Argument: oaNone)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of

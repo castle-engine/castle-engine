@@ -118,7 +118,7 @@ end;
 { Try to find ExeName executable.
   If not found -> exception (if Required) or return '' (if not Required). }
 function FinishExeSearch(const ExeName, BundleName, EnvVarName: string;
-  const Required: boolean): string;
+  const Required: Boolean): string;
 begin
   { try to find on $PATH }
   Result := FindExe(ExeName);
@@ -129,7 +129,7 @@ end;
 
 { Try to find "ndk-build" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
-function NdkBuildExe(const Required: boolean = true): string;
+function NdkBuildExe(const Required: Boolean = true): string;
 const
   ExeName = 'ndk-build';
   BundleName = 'NDK';
@@ -164,7 +164,7 @@ end;
 
 { Try to find "adb" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
-function AdbExe(const Required: boolean = true): string;
+function AdbExe(const Required: Boolean = true): string;
 const
   ExeName = 'adb';
   BundleName = 'SDK';

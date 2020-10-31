@@ -38,7 +38,7 @@ var
   as an absolute path ending with path delimiter.
   Makes sure the dir exists, if CreateIfNecessary. }
 function TempOutputPath(const WorkingDirectory: string;
-  const CreateIfNecessary: boolean = true): string;
+  const CreateIfNecessary: Boolean = true): string;
 
 type
   TReplaceMacros = function (const Source: string): string of object;
@@ -145,7 +145,7 @@ end;
 var
   FOutputPath: string;
 
-function TempOutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
+function TempOutputPath(const WorkingDirectory: string; const CreateIfNecessary: Boolean): string;
 const
   OutputNoteContents = {$I ../embedded_templates/template-castle-engine-output-warning.txt.inc};
 var
@@ -267,10 +267,10 @@ end;
 type
   TFindLinkResHandler = class
     FileName: String;
-    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
-procedure TFindLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+procedure TFindLinkResHandler.FoundFile(const FileInfo: TFileInfo; var StopSearch: Boolean);
 begin
   if FileName <> '' then
     raise Exception.CreateFmt('Multiple linker input files in the same directory: "%s" and "%s". Delete all "link*.res" here and run the process again', [

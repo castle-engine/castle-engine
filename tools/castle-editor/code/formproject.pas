@@ -112,7 +112,7 @@ type
     ProcessUpdateTimer: TTimer;
     TabWarnings: TTabSheet;
     procedure ButtonClearWarningsClick(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ListOutputClick(Sender: TObject);
@@ -326,7 +326,7 @@ begin
   FreeProcess;
 end;
 
-procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+procedure TProjectForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   if ProposeSaveDesign then
     Application.Terminate

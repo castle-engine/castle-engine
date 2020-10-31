@@ -40,15 +40,15 @@ type
     Ancestors: TX3DNodeInformationList;
     { Place more information inside THelperProcessor output:
       define all fields, define and implement CreateNode, ClassX3DType and more. }
-    AutoGenerateMore: boolean;
+    AutoGenerateMore: Boolean;
     { DefaultContainerField for XML encoding.
       Leave empty to use ancestor's DefaultContainerField value. }
     DefaultContainerField: string;
     constructor Create;
     destructor Destroy; override;
-    function PascalType(const ForceAsInterface: boolean = false): string;
-    function IsInterface: boolean;
-    function IsAbstract: boolean;
+    function PascalType(const ForceAsInterface: Boolean = false): string;
+    function IsInterface: Boolean;
+    function IsAbstract: Boolean;
   end;
 
   TX3DNodeInformationList = class(specialize TObjectList<TX3DNodeInformation>)
@@ -77,7 +77,7 @@ type
     { Types of a helper public setter method to set this field. }
     procedure PascalSetterTypes(const Names: TCastleStringList);
 
-    function IsNode: boolean;
+    function IsNode: Boolean;
 
     { Pascal preprocessor conditional expression to include/exclude this field.
       These methods either return empty string, or a line terminated by NL. }
@@ -90,7 +90,7 @@ type
     { Field is SFString with a strictly limited set of values. }
     class function FieldIsEnumString(const LineComment: string;
       const X3DFieldType: string;
-      out AnEnumType, AnEnumNames, AnEnumDefault: String): boolean;
+      out AnEnumType, AnEnumNames, AnEnumDefault: String): Boolean;
   public
     procedure ProcessFile(const InputFileName: string);
     procedure NodeBegin(const Node: TX3DNodeInformation); virtual;
@@ -112,7 +112,7 @@ type
   end;
 
 var
-  Verbose: boolean;
+  Verbose: Boolean;
 
   OutputPath: String;
 
@@ -233,17 +233,17 @@ begin
   inherited;
 end;
 
-function TX3DNodeInformation.IsInterface: boolean;
+function TX3DNodeInformation.IsInterface: Boolean;
 begin
   Result := IsSuffix('Object', X3DType);
 end;
 
-function TX3DNodeInformation.IsAbstract: boolean;
+function TX3DNodeInformation.IsAbstract: Boolean;
 begin
   Result := IsPrefix('X3D', X3DType);
 end;
 
-function TX3DNodeInformation.PascalType(const ForceAsInterface: boolean): string;
+function TX3DNodeInformation.PascalType(const ForceAsInterface: Boolean): string;
 begin
   Result := X3DType;
 
@@ -318,7 +318,7 @@ begin
     raise EInvalidSpecificationFile.Create('Unrecognized field access type "' + X3DAccessType + '"');
 end;
 
-function TX3DFieldInformation.IsNode: boolean;
+function TX3DFieldInformation.IsNode: Boolean;
 begin
   Result := (X3DType = 'SFNode') or (X3DType = 'MFNode');
 end;
@@ -456,7 +456,7 @@ begin
   end else
   if X3DType = 'MFBool' then
   begin
-    Names.Add('array of boolean');
+    Names.Add('array of Boolean');
     Names.Add('TBooleanList');
   end else
   if X3DType = 'MFRotation' then
@@ -521,7 +521,7 @@ end;
 
 class function TProcessor.FieldIsEnumString(const LineComment: string;
   const X3DFieldType: string;
-  out AnEnumType, AnEnumNames, AnEnumDefault: String): boolean;
+  out AnEnumType, AnEnumNames, AnEnumDefault: String): Boolean;
 var
   Tokens: TStringList;
   StartToken: Integer;

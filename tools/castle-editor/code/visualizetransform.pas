@@ -68,7 +68,7 @@ type
         OnParentModified: TNotifyEvent;
         constructor Create(AOwner: TComponent); override;
         procedure CameraChanged(const ACamera: TCastleCamera); override;
-        function Dragging: boolean; override;
+        function Dragging: Boolean; override;
         function PointingDevicePress(const Pick: TRayCollisionNode;
           const Distance: Single): Boolean; override;
         function PointingDeviceMove(const Pick: TRayCollisionNode;
@@ -365,7 +365,7 @@ begin
   end;
 end;
 
-function TVisualizeTransform.TGizmoScene.Dragging: boolean;
+function TVisualizeTransform.TGizmoScene.Dragging: Boolean;
 begin
   Result := (inherited Dragging) or GizmoDragging;
 end;

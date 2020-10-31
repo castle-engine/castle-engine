@@ -158,7 +158,7 @@ procedure PackageIOS(const Project: TCastleProject;
   const UpdateOnlyCode: Boolean);
 var
   XcodeProject: string;
-  UsesCocoaPods: boolean;
+  UsesCocoaPods: Boolean;
 
   { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;

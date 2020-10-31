@@ -27,10 +27,10 @@ uses Classes, SysUtils,
 
 var
   Size: Integer = 10;
-  AntiAliasing: boolean = true;
+  AntiAliasing: Boolean = true;
   ParamUnitName, ParamFunctionName: string;
-  OnlySampleText: boolean = false;
-  DebugFontImage: boolean = false;
+  OnlySampleText: Boolean = false;
+  DebugFontImage: Boolean = false;
   Characters: TUnicodeCharList;
 
 const
@@ -50,7 +50,7 @@ const
     (Short: #0; Long: 'only-sample-text'; Argument: oaNone)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of

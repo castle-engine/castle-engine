@@ -38,7 +38,7 @@ type
   TServiceList = class(specialize TObjectList<TService>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function HasService(const Name: string): boolean;
+    function HasService(const Name: string): Boolean;
     procedure AddService(const Name: string);
     { Find service by name.
       Returns @nil if not found.
@@ -104,7 +104,7 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TServiceList.HasService(const Name: string): boolean;
+function TServiceList.HasService(const Name: string): Boolean;
 var
   I: Integer;
 begin

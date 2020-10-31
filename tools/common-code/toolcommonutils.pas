@@ -24,7 +24,7 @@ uses CastleStringUtils;
 
 var
   { Trivial verbosity global setting. }
-  Verbose: boolean = false;
+  Verbose: Boolean = false;
 
 { In case of console application with Verbose, writes to stduot.
   Otherwise, only to WritelnLog. }
