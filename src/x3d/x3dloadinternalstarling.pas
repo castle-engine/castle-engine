@@ -441,13 +441,14 @@ begin
             if CurrentAnimFrameCount > 0 then
                 AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
-            { Reset variables for new animation }
-            CurrentAnimFrameCount := 0;
-            LastAnimationName := FSubTexture.AnimationName;
-
-            if not CheckAnimationNameAvailable(LastAnimationName) then
+            if not CheckAnimationNameAvailable(FSubTexture.AnimationName) then
+            begin
+              CurrentAnimFrameCount := 0;
               continue;
+            end;
 
+            { Reset variables for new animation }
+            LastAnimationName := FSubTexture.AnimationName;
             CurrentAnimFrameCount := 1;
             TimeSensor := TTimeSensorNode.Create(LastAnimationName);
             CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');

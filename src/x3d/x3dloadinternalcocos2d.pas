@@ -665,12 +665,13 @@ begin
             AddAnimation(CurrentAnimFrameCount, TimeSensor, CoordInterp, TexCoordInterp);
 
         { Reset variables for new animation }
-        CurrentAnimFrameCount := 0;
-        LastAnimationName := FCocosFrame.AnimationName;
-
-        if not CheckAnimationNameAvailable(LastAnimationName) then
+        if not CheckAnimationNameAvailable(FCocosFrame.AnimationName) then
+        begin
+          CurrentAnimFrameCount := 0;
           continue;
+        end;
 
+        LastAnimationName := FCocosFrame.AnimationName;
         CurrentAnimFrameCount := 1;
         TimeSensor := TTimeSensorNode.Create(LastAnimationName);
         CoordInterp := TCoordinateInterpolatorNode.Create(LastAnimationName + '_Coord');
