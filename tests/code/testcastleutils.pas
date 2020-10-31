@@ -169,7 +169,7 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
 
   procedure TimeTestIsMemCharFilled(SizeOfA: Integer);
   SpeedTest_Declare
-  var pa: pointer;
+  var pa: Pointer;
   begin
    { testowanie na danych ktore nie sa CharFilled jest problematyczne.
      Czas wtedy bedzie zalezal liniowo od pozycji na ktorej jest przeklamanie.
