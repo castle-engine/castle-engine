@@ -19,7 +19,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
   public
-    WasWarnings: boolean;
+    WasWarnings: Boolean;
     procedure WarningToConsole(const Category, S: string);
   end;
 

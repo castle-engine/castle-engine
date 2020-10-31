@@ -33,7 +33,7 @@ uses
 var
   Player: TPlayer;
   ViewMoveX, ViewMoveY: Single;
-  ViewFollowsPlayer: boolean = true;
+  ViewFollowsPlayer: Boolean = true;
 
 procedure WindowRender(Container: TUIContainer);
 var

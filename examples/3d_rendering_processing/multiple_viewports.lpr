@@ -110,7 +110,7 @@ type
   TFocusedFrame = class(TCastleUserInterface)
   public
     procedure Render; override;
-    procedure SetFocused(const Value: boolean); override;
+    procedure SetFocused(const Value: Boolean); override;
   end;
 
 procedure TFocusedFrame.Render;
@@ -119,7 +119,7 @@ begin
     Theme.Draw(RenderRect, tiActiveFrame);
 end;
 
-procedure TFocusedFrame.SetFocused(const Value: boolean);
+procedure TFocusedFrame.SetFocused(const Value: Boolean);
 begin
   if Value <> Focused then
     { The TFocusedFrame.Render is based on Focused value. }

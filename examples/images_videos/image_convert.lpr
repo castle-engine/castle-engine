@@ -29,10 +29,10 @@ var
   ResizeY: Cardinal = 0;
   FloatScale: Single = 1.0;
   FloatGamma: Single = 1.0;
-  WasParam_GrayScale: boolean = false;
+  WasParam_GrayScale: Boolean = false;
   Param_ConvertToChannel: Integer = -1; { -1 means "don't convert" }
   Param_StripToChannel: Integer = -1; { -1 means "don't convert" }
-  WasParam_AlphaBleed: boolean = false;
+  WasParam_AlphaBleed: Boolean = false;
 
 const
   Options: array [0..6] of TOption =
@@ -46,7 +46,7 @@ const
     (Short:#0 ; Long:'alpha-bleed'; Argument: oaNone)
   );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of

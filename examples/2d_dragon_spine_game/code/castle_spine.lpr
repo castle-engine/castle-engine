@@ -32,7 +32,7 @@ const
     (Short:  #0; Long: 'debug-log'; Argument: oaNone)
   );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of

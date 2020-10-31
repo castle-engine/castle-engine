@@ -53,7 +53,7 @@ var
     This is only an optimization, to not overwhelm the GameService with useless calls.
     Sending the same achievement many times would be ignored anyway. }
   AchievementMoveSubmitted,
-    AchievementSeeLeftSubmitted, AchievementSeeRightSubmitted: boolean;
+    AchievementSeeLeftSubmitted, AchievementSeeRightSubmitted: Boolean;
 
 { main game stuff ------------------------------------------------------------ }
 
@@ -64,7 +64,7 @@ var
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
   ShowAchievements: TCastleButton;
-  DragonFlying: boolean;
+  DragonFlying: Boolean;
   DragonFlyingTarget: TVector2;
   Status: TCastleLabel;
 
@@ -86,7 +86,7 @@ procedure AddBackgroundItems;
   { Easily add a Spine animation, translated and scaled,
     and run it's animation. }
   procedure AddItem(const X, Y, Z, Scale: Single; const URL: string;
-    const RunAnimation: boolean = true);
+    const RunAnimation: Boolean = true);
   var
     Scene: TCastleScene;
   begin

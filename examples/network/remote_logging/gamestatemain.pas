@@ -35,7 +35,7 @@ type
   public
     procedure Start; override;
     procedure Stop; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
@@ -76,7 +76,7 @@ begin
   inherited;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   { This virtual method is executed every frame.}

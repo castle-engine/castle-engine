@@ -113,11 +113,11 @@ end;
 
 var
   { vars that may be taken from params }
-  DoPeano: boolean = true;
+  DoPeano: Boolean = true;
   Level: Cardinal = 4;
   InitialAngle: TSFCAngle = 0;
 
-  InitialOrient: boolean; { default value depends on DoPeano }
+  InitialOrient: Boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
   Window := TCastleWindowBase.Create(Application);

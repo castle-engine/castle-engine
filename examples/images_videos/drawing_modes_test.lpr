@@ -110,7 +110,7 @@ end;
 const
   ImageSize = 128;
 
-procedure AddLabels(const Horizontal: boolean);
+procedure AddLabels(const Horizontal: Boolean);
 var
   Labels: array [0..3] of TCastleLabel;
   I: Integer;

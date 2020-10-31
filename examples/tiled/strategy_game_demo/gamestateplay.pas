@@ -48,7 +48,7 @@ type
     procedure Start; override;
     procedure Stop; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
   end;
 
 var
@@ -272,7 +272,7 @@ begin
 end;
 
 procedure TStatePlay.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   TileStr: String;
   TileRect: TFloatRectangle;

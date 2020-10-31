@@ -21,7 +21,7 @@
 
     PointingDeviceOverItem: PTriangle;
     PointingDeviceOverPoint: TVector3;
-    PointingDeviceActive: boolean;
+    PointingDeviceActive: Boolean;
 
   Alternative way to capture clicks is to use TouchSensor X3D node
   (not shown in this example). }

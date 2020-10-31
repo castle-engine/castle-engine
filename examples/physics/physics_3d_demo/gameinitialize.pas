@@ -33,7 +33,7 @@ var
   Level: TCastleScene;
   BoxTemplate, SphereTemplate: TCastleScene;
 
-procedure LoadLevel(const URL: string; const MeshCollider: boolean);
+procedure LoadLevel(const URL: string; const MeshCollider: Boolean);
 
   function CreatePlaneCollider(const ParentBody: TRigidBody): TPlaneCollider;
   begin

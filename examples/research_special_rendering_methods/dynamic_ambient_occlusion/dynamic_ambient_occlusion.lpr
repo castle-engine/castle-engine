@@ -512,7 +512,7 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
     glPopAttrib;
   end;
 
-  function CaptureAORect(SizePower2: boolean): TGrayscaleImage;
+  function CaptureAORect(SizePower2: Boolean): TGrayscaleImage;
   var
     TexHeight: Cardinal;
   begin
@@ -656,7 +656,7 @@ type
       VertexIndex: Integer);
 
     class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
-      const SomeLocalGeometryChanged: boolean;
+      const SomeLocalGeometryChanged: Boolean;
       OnlyShapeChanged: TShape);
   end;
 
@@ -692,7 +692,7 @@ begin
 end;
 
 class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
-  const SomeLocalGeometryChanged: boolean;
+  const SomeLocalGeometryChanged: Boolean;
   OnlyShapeChanged: TShape);
 var
   OldElementsTexSize, OldElementsCount: Cardinal;

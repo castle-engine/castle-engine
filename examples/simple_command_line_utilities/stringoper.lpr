@@ -143,7 +143,7 @@ end;
 
 var CommandNum: Integer;
     ResultStr: string;
-    ResultBool: boolean;
+    ResultBool: Boolean;
 begin
  //BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
 

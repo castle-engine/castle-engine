@@ -44,7 +44,7 @@ type
   private
     FName: string;
     Animations: array [TCreatureState] of TCreatureAnimation;
-    Loaded: boolean;
+    Loaded: Boolean;
   public
     constructor Create(const AName: string);
     destructor Destroy; override;
@@ -85,7 +85,7 @@ type
     { SetState actually only "schedules" actual state change at the nearest
       comfortable time (namely, when current animation will get to the state
       when it's sensible to make transition). }
-    ScheduledTransitionBegin: boolean;
+    ScheduledTransitionBegin: Boolean;
     ScheduledTransitionBeginNewState: TCreatureState;
     ScheduledTransitionBeginTime: TFloatTime;
 
@@ -439,7 +439,7 @@ var
   end;
 
 var
-  IsTargetPos, IsTargetDir: boolean;
+  IsTargetPos, IsTargetDir: Boolean;
 begin
   if (not ScheduledTransitionBegin) and (State = csWalk) then
   begin

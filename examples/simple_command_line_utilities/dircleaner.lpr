@@ -46,7 +46,7 @@ var Action: TAction;
 
 var
   StartPath: string = '.' +PathDelim;
-  CleanDirsRecursively: boolean = true;
+  CleanDirsRecursively: Boolean = true;
 
   { note: we're keeping separate DirsToClean and DefaultDirsToClean
     (instead of just filling DirsToClean on start with default state)
@@ -68,7 +68,7 @@ var
   FilesSize: QWord = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
-  Data: Pointer; var StopSearch: boolean);
+  Data: Pointer; var StopSearch: Boolean);
 begin
   Inc(FilesCount);
   FilesSize += FileInfo.Size;
@@ -125,7 +125,7 @@ end;
 
 var DirsCount: Cardinal = 0;
 
-procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   if not FileInfo.Directory then Exit;
 
@@ -196,7 +196,7 @@ const
     (Short:'n'; Long:'no-recursive'; Argument: oaNone)
   );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   var
     i: Integer;

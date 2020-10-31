@@ -45,8 +45,8 @@ type
     destructor Destroy; override;
     procedure Start; override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 var
@@ -143,7 +143,7 @@ begin
     TUIState.Current := StateMainMenu;
 end;
 
-procedure TStateIntro.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStateIntro.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   IntroPartTime := IntroPartTime + SecondsPassed;
@@ -180,7 +180,7 @@ begin
   end;
 end;
 
-function TStateIntro.Press(const Event: TInputPressRelease): boolean;
+function TStateIntro.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
 

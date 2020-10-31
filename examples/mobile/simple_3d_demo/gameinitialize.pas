@@ -217,7 +217,7 @@ begin
   PaddingVertical := 20;
 end;
 
-procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: Boolean);
 begin
   WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
     [FileInfo.URL, FileInfo.Name, FileInfo.AbsoluteName, BoolToStr(FileInfo.Directory, true)]);

@@ -38,7 +38,7 @@ type
     procedure Start; override;
     procedure Resume; override;
     procedure Pause; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -156,7 +156,7 @@ begin
   TUIState.Current := StateMainMenu;
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): boolean;
+function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
   Triangle: PTriangle;
 begin

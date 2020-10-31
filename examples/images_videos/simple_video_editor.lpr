@@ -38,7 +38,7 @@ var
   VideoURL: string;
 
   Time: TFloatTime;
-  TimePlaying: boolean = true;
+  TimePlaying: Boolean = true;
 
   MenuEdit: TMenu;
   MenuTimeBackwards: TMenuItemChecked;

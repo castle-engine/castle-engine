@@ -45,7 +45,7 @@ type
     { If Moving then he moves from (X, Y) position to (NewX, NewY).
       MovingSmallMoveX, MovingSmallMoveX is the exact pixel displacement
       of the player sprite then. }
-    Moving: boolean;
+    Moving: Boolean;
     MovingSmallMoveX, MovingSmallMoveY: Single;
 
     DrawableImage: array [TDirection] of TDrawableImage;

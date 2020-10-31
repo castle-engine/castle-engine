@@ -186,7 +186,7 @@ const
     (Short: 'r'; Long: 'rays-per-vertex'; Argument: oaRequired)
   );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of

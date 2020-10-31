@@ -32,7 +32,7 @@ type
         Image, ShadowedImage: TDrawableImage;
       public
         ViewportRect: TRectangle;
-        RenderInternalModel: boolean;
+        RenderInternalModel: Boolean;
         procedure LocalRender(const Params: TRenderParams); override;
       end;
   private
@@ -46,7 +46,7 @@ type
     FPlayerPosition: TVector3;
     FPlayerDirection: TVector3;
     FPlayerUp: TVector3;
-    Loaded: boolean;
+    Loaded: Boolean;
   public
     destructor Destroy; override;
 

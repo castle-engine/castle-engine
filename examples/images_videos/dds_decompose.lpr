@@ -26,13 +26,13 @@ uses SysUtils, CastleUtils, CastleImages, CastleCompositeImage, CastleLog,
   CastleStringUtils, CastleParameters, CastleURIUtils, CastleApplicationProperties;
 
 var
-  SaveDecomposed: boolean = true;
+  SaveDecomposed: Boolean = true;
 
 const
   Options: array[0..0] of TOption =
   ( (Short:'n'; Long:'no-save'; Argument: oaNone) );
 
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of

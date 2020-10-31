@@ -56,11 +56,11 @@ type
     procedure Face(const Tri: TVector3Integer);
     procedure CreateCommon(
       const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-      const RevertOrder: boolean);
+      const RevertOrder: Boolean);
   public
     constructor Create(AVertexes: array of TVector3;
       const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-      const RevertOrder: boolean);
+      const RevertOrder: Boolean);
     constructor Create(const URL: string);
     destructor Destroy; override;
     procedure VisualizePolygon;
@@ -171,7 +171,7 @@ end;
 
 constructor TVisualizeTriangulation.Create(AVertexes: array of TVector3;
   const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-  const RevertOrder: boolean);
+  const RevertOrder: Boolean);
 var
   I: Integer;
 begin
@@ -188,7 +188,7 @@ end;
 
 procedure TVisualizeTriangulation.CreateCommon(
   const Name: string; AVisualizeX, AVisualizeY: Cardinal;
-  const RevertOrder: boolean);
+  const RevertOrder: Boolean);
 var
   I: Integer;
 begin

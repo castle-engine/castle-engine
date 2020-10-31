@@ -38,7 +38,7 @@ type
     procedure RefreshButtonsPressed;
   public
     procedure Start; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Release(const Event: TInputPressRelease): Boolean; override;
     function Motion(const Event: TInputMotion): Boolean; override;
@@ -98,7 +98,7 @@ begin
   ButtonDragMouseLook.Pressed := MouseLook;
 end;
 
-procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   if Dragging and MouseLook then

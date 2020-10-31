@@ -90,7 +90,7 @@ var
   W, H: Integer;
 
   { Is X, Y inside square with waves of lowest frequency. }
-  function InsideSquare(const X, Y: Integer): boolean;
+  function InsideSquare(const X, Y: Integer): Boolean;
   begin
     Result :=
       ( (X <=     Beta) and ( (Y <= Beta) or (Y >= H - Beta) ) ) or
@@ -98,7 +98,7 @@ var
   end;
 
   { Is X, Y inside circle with waves of lowest frequency. }
-  function InsideCircle(const X, Y: Integer): boolean;
+  function InsideCircle(const X, Y: Integer): Boolean;
   begin
     Result :=
       (Sqr(    X) + Sqr(    Y) < Sqr(Beta)) or

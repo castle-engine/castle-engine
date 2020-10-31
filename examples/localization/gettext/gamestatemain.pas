@@ -53,7 +53,7 @@ type
     procedure Start; override;
     { Animate text rotation. }
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
   end;
 
 var
@@ -181,7 +181,7 @@ begin
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   LifeTime += SecondsPassed;
   TextTransform.Rotation := Vector4(0, 1, 0, LifeTime);

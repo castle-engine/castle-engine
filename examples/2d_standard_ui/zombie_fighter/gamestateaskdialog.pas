@@ -33,14 +33,14 @@ type
         procedure RunClick(Sender: TObject);
         procedure FightClick(Sender: TObject);
       public
-        constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
+        constructor Create(AOwner: TComponent; const Male: Boolean); reintroduce;
       end;
     var
     TransparentBackground: TCastleRectangleControl;
     Dialog: TZombieDialog;
   public
     { Whether to show male image. Set before doing @link(Start). }
-    Male: boolean;
+    Male: Boolean;
     procedure Start; override;
   end;
 
@@ -54,7 +54,7 @@ uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils,
 
 { TStateAskDialog.TZombieDialog ---------------------------------------------- }
 
-constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: boolean);
+constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: Boolean);
 begin
   inherited Create(AOwner);
 

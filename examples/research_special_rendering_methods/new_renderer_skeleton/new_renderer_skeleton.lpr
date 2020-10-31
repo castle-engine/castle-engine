@@ -62,7 +62,7 @@ type
       const ParentInfo: PTraversingInfo): TShape; override;
   public
     procedure PrepareResources(const Options: TPrepareResourcesOptions;
-      const ProgressStep: boolean; const Params: TPrepareParams); override;
+      const ProgressStep: Boolean; const Params: TPrepareParams); override;
     procedure LocalRender(const Params: TRenderParams); override;
   end;
 
@@ -74,7 +74,7 @@ end;
 
 procedure TCastleSceneVulkan.PrepareResources(
   const Options: TPrepareResourcesOptions;
-  const ProgressStep: boolean; const Params: TPrepareParams);
+  const ProgressStep: Boolean; const Params: TPrepareParams);
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -170,7 +170,7 @@ type
   TVulkanApplication = class(TComponent)
   public
     // TODO: Process some inputs in TVulkanWindow, allow setting this to true.
-    Quit: boolean;
+    Quit: Boolean;
   end;
 
   TVulkanWindow = class(TComponent)

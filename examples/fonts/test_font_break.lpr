@@ -64,7 +64,7 @@ const
   Options: array [0..0] of TOption =
   ( (Short:'c'; Long: 'custom-font'; Argument: oaRequired) );
 
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of

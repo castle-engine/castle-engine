@@ -35,8 +35,8 @@ type
     procedure Start; override;
     procedure Stop; override;
     procedure Resize; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   end;
 
 var
@@ -114,7 +114,7 @@ begin
   inherited;
 end;
 
-procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: boolean);
+procedure TStatePlay.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 begin
   inherited;
   InfoLabel.Caption :=
@@ -125,7 +125,7 @@ begin
     '[Escape] exit.';
 end;
 
-function TStatePlay.Press(const Event: TInputPressRelease): boolean;
+function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
   URL: string;
 begin

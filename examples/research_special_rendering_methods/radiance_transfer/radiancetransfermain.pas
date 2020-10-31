@@ -74,7 +74,7 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-procedure DrawLight(ForMap: boolean);
+procedure DrawLight(ForMap: Boolean);
 begin
   glPushMatrix;
     glTranslatev(LightPos);

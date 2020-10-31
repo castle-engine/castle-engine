@@ -85,7 +85,7 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     SceneURL: string;
-    CameraChanged: boolean;
+    CameraChanged: Boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
     CrosshairActive: Boolean;    // there is something to touch under the crosshair
