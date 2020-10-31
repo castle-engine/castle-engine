@@ -83,10 +83,10 @@ type
 
   TOctreeNodeClass = class of TOctreeNode;
 
-  TOctreeSubnodeIndex = array[0..2]of boolean;
+  TOctreeSubnodeIndex = array[0..2] of Boolean;
 
   TEnumerateOctreeItemsFunc = procedure(ItemIndex: Integer;
-    CollidesForSure: boolean) of object;
+    CollidesForSure: Boolean) of object;
 
   { Octree node.
 

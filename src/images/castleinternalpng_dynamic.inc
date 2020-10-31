@@ -892,7 +892,7 @@ var
   It returns false if libpng library was not available (or maybe the required
   version was not available). Then all png_xxx functions in this unit are nil
   and you can't use them. }
-function CastlePngInitialized: boolean;
+function CastlePngInitialized: Boolean;
 
 procedure PngInitialization;
 
@@ -905,7 +905,7 @@ uses SysUtils,
 var
   PngLibrary: TDynLib;
 
-function CastlePngInitialized: boolean;
+function CastlePngInitialized: Boolean;
 begin
   Result := PngLibrary <> nil;
 end;

@@ -46,7 +46,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure RenderOverChildren; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
   published
     property KeepInFront stored false;

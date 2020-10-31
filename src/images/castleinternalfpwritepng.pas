@@ -46,16 +46,16 @@ type
   TFPWriterPNG = class (TFPCustomImageWriter)
     private
       FUsetRNS, FCompressedText, FWordSized, FIndexed,
-      FUseAlpha, FGrayScale : boolean;
+      FUseAlpha, FGrayScale : Boolean;
       FByteWidth : byte;
       FChunk : TChunk;
       CFmt : TColorFormat; // format of the colors to convert from
       FFmtColor : TColorFormatFunction;
       FTransparentColor : TFPColor;
-      FTransparentColorOk: boolean;
+      FTransparentColorOk: Boolean;
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
-      OwnsPalette : boolean;
+      OwnsPalette : Boolean;
       FHeader : THeaderChunk;
       FGetPixel : TGetPixelFunc;
       FDatalineLength : longword;
@@ -100,9 +100,9 @@ type
       function ColorDataGrayAW(color:TFPColor) : TColorData;
       function ColorDataColorAW(color:TFPColor) : TColorData;
       property ChunkDataBuffer : pByteArray read FChunk.data;
-      property UsetRNS : boolean read FUsetRNS;
+      property UsetRNS : Boolean read FUsetRNS;
       property SingleTransparentColor : TFPColor read FTransparentColor;
-      property SingleTransparentColorOk : boolean read FTransparentColorOk;
+      property SingleTransparentColorOk : Boolean read FTransparentColorOk;
       property ThePalette : TFPPalette read FPalette;
       property ColorFormat : TColorformat read CFmt;
       property ColorFormatFunc : TColorFormatFunction read FFmtColor;
@@ -111,11 +111,11 @@ type
     public
       constructor create; override;
       destructor destroy; override;
-      property GrayScale : boolean read FGrayscale write FGrayScale;
-      property Indexed : boolean read FIndexed write FIndexed;
-      property CompressedText : boolean read FCompressedText write FCompressedText;
-      property WordSized : boolean read FWordSized write FWordSized;
-      property UseAlpha : boolean read FUseAlpha write FUseAlpha;
+      property GrayScale : Boolean read FGrayscale write FGrayScale;
+      property Indexed : Boolean read FIndexed write FIndexed;
+      property CompressedText : Boolean read FCompressedText write FCompressedText;
+      property WordSized : Boolean read FWordSized write FWordSized;
+      property UseAlpha : Boolean read FUseAlpha write FUseAlpha;
       property CompressionLevel : TCompressionLevel read FCompressionLevel write FCompressionLevel;
   end;
 
@@ -291,7 +291,7 @@ end;
 procedure TFPWriterPNG.DetermineHeader (var AHeader : THeaderChunk);
 var c : integer;
 
-  function ReducedColorEquals(const c1,c2: TFPColor): boolean;
+  function ReducedColorEquals(const c1,c2: TFPColor): Boolean;
   var g1,g2: word;
   begin
     if FGrayScale then
@@ -312,7 +312,7 @@ var c : integer;
   end;
 
   function CountAlphas : integer;
-  var none, half : boolean;
+  var none, half : Boolean;
       maxTransparentAlpha: word;
 
     procedure CountFromPalettedImage;

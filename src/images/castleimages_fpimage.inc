@@ -146,7 +146,7 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel, and is it grayscale.
     So just iterate over pixels, and check it ourselves. }
-  procedure Detect(out Alpha, Grayscale: boolean);
+  procedure Detect(out Alpha, Grayscale: Boolean);
   var
     X, Y: Integer;
     Col: TFPCompactImgRGBA8BitValue;
@@ -172,7 +172,7 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   end;
 
 var
-  Alpha, Grayscale: boolean;
+  Alpha, Grayscale: Boolean;
   RGBA: TRGBAlphaImage;
 begin
   Detect(Alpha, Grayscale);

@@ -64,7 +64,7 @@ end;
 function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var magic: array[0..1]of char;
-    IsBinary: boolean;
+    IsBinary: Boolean;
     MaxColVal: integer;
     x, y: Cardinal;
     line: PVector3ByteArray;
@@ -145,7 +145,7 @@ begin
  end;
 end;
 
-procedure SavePPM(Img: TEncodedImage; Stream: TStream; Binary: boolean);
+procedure SavePPM(Img: TEncodedImage; Stream: TStream; Binary: Boolean);
 var line: PVector3ByteArray;
     x, y: cardinal;
 begin

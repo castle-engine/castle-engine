@@ -41,7 +41,7 @@ type
   TFreeTypeFont = class (TFPCustomDrawFont)
   private
     FResolution : longword;
-    FAntiAliased : boolean;
+    FAntiAliased : Boolean;
     FLastText : TStringBitmaps;
     FIndex, FFontID : integer;
     FFace : PFT_Face;
@@ -53,8 +53,8 @@ type
     procedure SetName (AValue:string); override;
     procedure SetIndex (AValue : integer);
     procedure SetSize (AValue : integer); override;
-    function GetFlags (index:integer) : boolean; override;
-    procedure SetFlags (index:integer; AValue:boolean); override;
+    function GetFlags (index:integer) : Boolean; override;
+    procedure SetFlags (index:integer; AValue:Boolean); override;
     procedure DoAllocateResources; override;
     procedure DoDeAllocateResources; override;
     procedure DoCopyProps (From:TFPCanvasHelper); override;
@@ -69,7 +69,7 @@ type
     destructor Destroy; override;
     property FontIndex : integer read FIndex write SetIndex;
     property Resolution : longword read FResolution write FResolution;
-    property AntiAliased : boolean read FAntiAliased write FAntiAliased;
+    property AntiAliased : Boolean read FAntiAliased write FAntiAliased;
     property Angle : real read FAngle write FAngle;
   end;
 
@@ -197,7 +197,7 @@ begin
     result := right - left;
 end;
 
-procedure TFreeTypeFont.SetFlags (index:integer; AValue:boolean);
+procedure TFreeTypeFont.SetFlags (index:integer; AValue:Boolean);
 begin
   if not (index in [5,6]) then   // bold,italic
     inherited SetFlags (index, AValue);
@@ -209,7 +209,7 @@ begin
     FFace := FontMgr.GetFreeTypeFont (FFontID);
 end;
 
-function TFreeTypeFont.GetFlags (index:integer) : boolean;
+function TFreeTypeFont.GetFlags (index:integer) : Boolean;
 begin
   if index = 5 then        //bold
     begin
@@ -226,7 +226,7 @@ begin
 end;
 
 procedure TFreeTypeFont.GetText (aText:string);
-var b : boolean;
+var b : Boolean;
 begin
   if assigned (FLastText) then
     begin

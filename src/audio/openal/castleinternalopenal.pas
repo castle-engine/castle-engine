@@ -96,7 +96,7 @@ type
   When OpenAL is not available, alXxx and alcXxx are @nil,
   and this variable is @false, and you can gracefully handle it in your programs
   (for example, continue normal game, just with sound turned off). }
-function ALLibraryAvailable: boolean;
+function ALLibraryAvailable: Boolean;
 
 { Reset OpenAL library.
 
@@ -139,7 +139,7 @@ procedure OpenALRestart;
   until OpenAL-soft came.
 
   Use this only when ALLibraryAvailable, since this is just a call to some alcGetString. }
-function OpenALSampleImplementation: boolean;
+function OpenALSampleImplementation: Boolean;
 
 procedure OpenALInitialization;
 
@@ -147,7 +147,7 @@ implementation
 
 uses CastleUtils, CastleLog, CastleDynLib;
 
-function OpenALSampleImplementation: boolean;
+function OpenALSampleImplementation: Boolean;
 begin
   Result := alGetString(AL_VENDOR) = 'J. Valenzuela';
 end;
@@ -166,7 +166,7 @@ end;
 var
   ALLibrary: TDynLib;
 
-function ALLibraryAvailable: boolean;
+function ALLibraryAvailable: Boolean;
 begin
   Result := ALLibrary <> nil;
 end;

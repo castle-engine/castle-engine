@@ -42,7 +42,7 @@ var LoadResult: TCastleImage absolute result;
   { Read from Stream one scanline (of the length result.Width) to RGBERow. }
   procedure ReadRGBERow(RGBERow: PVector4ByteArray);
 
-    function CompressedLineMarker(const Marker: TVector4Byte): boolean;
+    function CompressedLineMarker(const Marker: TVector4Byte): Boolean;
     begin
      result := (Marker.Data[0] = 2) and (Marker.Data[1] = 2) and ((Marker.Data[2] and $80) = 0);
      Assert((not result) or (LoadResult.Width =
@@ -131,7 +131,7 @@ var LoadResult: TCastleImage absolute result;
    end;
   end;
 
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -139,7 +139,7 @@ var LoadResult: TCastleImage absolute result;
 var
   line: string;
   { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
-  xyzFormat: boolean;
+  xyzFormat: Boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;
   RGBERow: PVector4ByteArray;
   FloatRow: PVector3Array;

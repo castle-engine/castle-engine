@@ -48,7 +48,7 @@ type
 
       TDirectory = class(TEntry)
       strict private
-        procedure AddEntry(const FileInfo: TFileInfo; var StopSearch: boolean);
+        procedure AddEntry(const FileInfo: TFileInfo; var StopSearch: Boolean);
       private
         procedure Generate(const PathURL: String);
         procedure LoadFromFile(const Element: TDOMElement); override;
@@ -103,7 +103,7 @@ uses SysUtils,
 { TDirectory ----------------------------------------------------------------- }
 
 procedure TDirectoryInformation.TDirectory.AddEntry(
-  const FileInfo: TFileInfo; var StopSearch: boolean);
+  const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
   D: TDirectory;
   F: TFile;

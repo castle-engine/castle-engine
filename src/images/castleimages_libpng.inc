@@ -50,9 +50,9 @@ procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop);
   or if it has tRNS chunk (for paletted image this stores alpha values
   for each palette color, for grayscale/rgb it determines one particular
   color to mean "transparent"). Function below checks it. }
-function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
+function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): Boolean; forward;
 
-function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean; forward;
+function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): Boolean; forward;
 
 function PngColorTypeToStr(const PngColorType: longint): string; forward;
 function PngInterlaceTypeToStr(const PngInterlaceType: longint): string; forward;
@@ -322,7 +322,7 @@ end;
 procedure png_transform_to_ga2byte(png_ptr: png_structp; info_ptr: png_infop);
 var
   ColorType, BitDepth: LongWord;
-  TRNSHandled: boolean;
+  TRNSHandled: Boolean;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
   ColorType := png_get_color_type(png_ptr, info_ptr);
@@ -396,7 +396,7 @@ end;
 procedure png_transform_to_rgba4byte(png_ptr: png_structp; info_ptr: png_infop);
 var
   ColorType, BitDepth: LongWord;
-  TRNSHandled: boolean;
+  TRNSHandled: Boolean;
 begin
   BitDepth := png_get_bit_depth(png_ptr, info_ptr);
   ColorType := png_get_color_type(png_ptr, info_ptr);
@@ -451,7 +451,7 @@ begin
     'png_transform_to_rgba4byte failed to apply good png transformations');
 end;
 
-function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): boolean;
+function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): Boolean;
 var
   ColorType: LongWord;
 begin
@@ -459,7 +459,7 @@ begin
   Result := (ColorType and PNG_COLOR_MASK_COLOR) = 0;
 end;
 
-function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): boolean;
+function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): Boolean;
 var
   ColorType: LongWord;
 begin
@@ -593,7 +593,7 @@ end;
 function LoadPNG_LibPng(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -607,7 +607,7 @@ var
   { Allocates Result to given class and applies libpng transforms to
     make resulting data matching given Result class.
     Does this (and returns @true) only if ImageClass is allowed. }
-  function TransformPng(ImageClass: TCastleImageClass): boolean;
+  function TransformPng(ImageClass: TCastleImageClass): Boolean;
   begin
     Result := ClassAllowed(ImageClass);
 
@@ -628,7 +628,7 @@ var
 var
   row_pointers: TFPList;
   i: Cardinal;
-  IsAlpha, IsGrayscale: boolean;
+  IsAlpha, IsGrayscale: Boolean;
 begin
  png_ptr := nil;
  try
@@ -760,7 +760,7 @@ end;
 
 { SavePNG_LibPng --------------------------------------------------------------------- }
 
-procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const Interlaced: boolean = false);
+procedure SavePNG_LibPng(const Img: TEncodedImage; const Stream: TStream; const Interlaced: Boolean = false);
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;

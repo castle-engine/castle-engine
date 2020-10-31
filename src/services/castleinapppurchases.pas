@@ -30,8 +30,8 @@ type
     FName: string;
     FPriceRaw, FTitle, FDescription, FPriceCurrencyCode: string;
     FPriceAmountMicros: Int64;
-    FOwns: boolean;
-    FSuccessfullyConsumed: boolean;
+    FOwns: Boolean;
+    FSuccessfullyConsumed: Boolean;
   public
     { Short product identifier, uniquely identifying it in the store. }
     property Name: string read FName;
@@ -85,13 +85,13 @@ type
       Do not depend on this for consumables (use SuccessfullyConsumed
       for them, and be sure to call @link(TInAppPurchases.SuccessfullyConsumed)
       from @link(TInAppPurchases.Owns) for them). }
-    property Owns: boolean read FOwns;
+    property Owns: Boolean read FOwns;
 
     { Item was consumable, and was just consumed. We should "provision"
       it now, which means that we should set @code(SuccessfullyConsumed:=false),
       and perform whatever is necessary upon consuming --- e.g. continue
       the game or increase player's gold. }
-    property SuccessfullyConsumed: boolean read FSuccessfullyConsumed write FSuccessfullyConsumed;
+    property SuccessfullyConsumed: Boolean read FSuccessfullyConsumed write FSuccessfullyConsumed;
   end;
 
   { Information about product possible to be bought given to
@@ -140,13 +140,13 @@ type
     type
       TProductList = specialize TObjectList<TInAppProduct>;
     var
-      FDebugMockupBuying: boolean;
+      FDebugMockupBuying: Boolean;
       List: TProductList;
       FLastAvailableProducts: string;
       FOnRefreshedPrices: TNotifyEvent;
       FOnRefreshedPurchases: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList;
-      const ReceivedStream: TMemoryStream): boolean;
+      const ReceivedStream: TMemoryStream): Boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
     procedure LogProducts(const Message: string);
   protected
@@ -247,7 +247,7 @@ type
     function Product(const ProductName: string): TInAppProduct;
 
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
-    property DebugMockupBuying: boolean
+    property DebugMockupBuying: Boolean
       read FDebugMockupBuying write FDebugMockupBuying default false;
 
     { Call to refresh the state of owned (purchased) items from server.
@@ -347,7 +347,7 @@ begin
 end;
 
 function TInAppPurchases.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 var
   P: TInAppProduct;
 begin

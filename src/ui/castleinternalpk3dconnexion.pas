@@ -276,7 +276,7 @@ type
    // Translation on X,Y,Z is -N..N, Length is 0..N
    //    N depends on speed setting, up to 1600
    TOnTranslation = procedure(const X, Y, Z, Length: Double) of object;
-   TOnKeyChange = procedure(const KeyIndex: integer; const Pressed: boolean) of object;
+   TOnKeyChange = procedure(const KeyIndex: integer; const Pressed: Boolean) of object;
    TOnKeySomething = procedure(const KeyIndex: integer) of object;
 
 { Surround most of the content in Windows-only ifdef.
@@ -290,10 +290,10 @@ type
       FDevice: ISimpleDevice; /// Device interface
       FKeyboard: IKeyboard; /// Keyboard interface
       FLastResult: HResult; /// Error code for last COM action
-      FLoaded: boolean; /// Whether connection to COM object was successful
+      FLoaded: Boolean; /// Whether connection to COM object was successful
       FRevisionNumber: widestring; /// COM driver revision? (not the same as driver version, e.g. 1.1.0 vs. 3.3.6)
       FSensor: ISensor; /// Sensor interface
-      FKeyStates: array of boolean; /// Internal memory for last key stati
+      FKeyStates: array of Boolean; /// Internal memory for last key stati
       FOnRotation: TOnRotation; /// Event for rotations
       FOnTranslation: TOnTranslation; /// Event for translations
       FOnKeyChange: TOnKeyChange; /// Event for key stati
@@ -302,9 +302,9 @@ type
       FKeyboardEmulationThreshold: integer; /// Only fire keys if amplitude larger than this
       FEmulationType: TEmulationType;
       FCustomEmulations: TEmulationSettings;
-      FEmulatedKeyPressedStates: array[TEmulationAxis, false..true] of boolean;
+      FEmulatedKeyPressedStates: array[TEmulationAxis, false..true] of Boolean;
       procedure HandleCustomDetail(const Axis: TEmulationAxis; const Value: Double);
-      procedure FireKeyChange(const KeyIndex: integer; const Pressed: boolean);
+      procedure FireKeyChange(const KeyIndex: integer; const Pressed: Boolean);
       procedure FireRotation(const X, Y, Z, Angle: Double); overload;
       procedure FireRotation(const Rotation: IAngleAxis); overload;
       procedure FireTranslation(const X, Y, Z, Length: Double); overload;
@@ -334,7 +334,7 @@ type
    published
       property EmulationType: TEmulationType read FEmulationType write FEmulationType;
       property LastResult: HResult read FLastResult;
-      property Loaded: boolean read FLoaded;
+      property Loaded: Boolean read FLoaded;
       property RevisionNumber: widestring read FRevisionNumber;
       property Sensor: ISensor read FSensor;
       property SensorPeriod: Double read GetSensorPeriod;
@@ -429,7 +429,7 @@ end;
   @param Pressed   Whether key is currently down
 ------------------------------------------------------------------------------*}
 procedure T3DConnexionDevice.FireKeyChange(const KeyIndex: integer;
-  const Pressed: boolean);
+  const Pressed: Boolean);
 var keyFlag: cardinal;
 begin
   if Assigned(FOnKeyChange) then
@@ -660,7 +660,7 @@ procedure T3DConnexionDevice.HandleCustomDetail(const Axis: TEmulationAxis;
 var AxisSettings: TEmulationAxisSetting;
 procedure HandleKeyboardEvent(KeyLeft, KeyRight: byte);
 var cValue: integer;
-    bPressed: boolean;
+    bPressed: Boolean;
 begin
    cValue := Round(Value * AxisSettings.Multiplier);
    bPressed := Abs(cValue) > AxisSettings.Threshold;
@@ -873,14 +873,14 @@ end;
 type
    T3DConnexionDevice = class(TObject)
    private
-      FLoaded: boolean; /// Whether connection to COM object was successful
+      FLoaded: Boolean; /// Whether connection to COM object was successful
    public
       constructor Create(const ApplicationName: widestring);
       destructor Destroy; override;
       procedure GetSensorRotation(var X, Y, Z, Angle: Double);
       procedure GetSensorTranslation(var X, Y, Z, Length: Double);
    published
-      property Loaded: boolean read FLoaded;
+      property Loaded: Boolean read FLoaded;
    end;
 
 implementation

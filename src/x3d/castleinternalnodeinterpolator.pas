@@ -56,7 +56,7 @@ type
         Name: string;
         ScenesPerTime: Cardinal;
         Epsilon: Single;
-        Loop, Backwards: boolean;
+        Loop, Backwards: Boolean;
         BoundingBox: TBox3D;
 
         constructor Create;
@@ -92,7 +92,7 @@ type
 
         TimeBegin, TimeEnd: Single;
         Name: string;
-        Loop, Backwards: boolean;
+        Loop, Backwards: Boolean;
         BoundingBox: TBox3D;
 
         constructor Create;
@@ -384,9 +384,9 @@ end;
      up loading time and conserve memory use, if it sees the same
      reference to given GeometryNode twice. }
 function NodesMerge(Model1, Model2: TX3DNode;
-  const Epsilon: Single): boolean;
+  const Epsilon: Single): Boolean;
 
-  function SFNodesMerge(Field1, Field2: TSFNode): boolean;
+  function SFNodesMerge(Field1, Field2: TSFNode): Boolean;
   begin
     Result := true;
 
@@ -403,7 +403,7 @@ function NodesMerge(Model1, Model2: TX3DNode;
     end;
   end;
 
-  function MFNodesMerge(Field1, Field2: TMFNode): boolean;
+  function MFNodesMerge(Field1, Field2: TMFNode): Boolean;
   var
     I: Integer;
   begin
@@ -662,7 +662,7 @@ class function TNodeInterpolator.BakeToSequence(
   const Epsilon: Single): TBakedAnimation;
 var
   I: Integer;
-  StructurallyEqual, KeyNodesEqual: boolean;
+  StructurallyEqual, KeyNodesEqual: Boolean;
   LastNodesIndex: Integer;
   LastKeyNode, NewKeyNode: TX3DRootNode;
   LastTime, NewTime: Single;

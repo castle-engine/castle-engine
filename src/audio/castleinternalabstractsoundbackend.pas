@@ -135,7 +135,7 @@ type
     { }
 
     { Check whether the sound is still playing. }
-    function PlayingOrPaused: boolean; virtual; abstract;
+    function PlayingOrPaused: Boolean; virtual; abstract;
     { Play sound from the beginning.
       May be called on an already playing sound, should then restart playing it from beginning. }
     procedure Play(const BufferChangedRecently: Boolean); virtual; abstract;
@@ -148,8 +148,8 @@ type
 
     procedure SetPosition(const Value: TVector3); virtual; abstract;
     procedure SetVelocity(const Value: TVector3); virtual; abstract;
-    procedure SetLooping(const Value: boolean); virtual; abstract;
-    procedure SetRelative(const Value: boolean); virtual; abstract;
+    procedure SetLooping(const Value: Boolean); virtual; abstract;
+    procedure SetRelative(const Value: Boolean); virtual; abstract;
     procedure SetGain(const Value: Single); virtual; abstract;
     procedure SetMinGain(const Value: Single); virtual; abstract;
     procedure SetMaxGain(const Value: Single); virtual; abstract;

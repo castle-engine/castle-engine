@@ -121,7 +121,7 @@ const
 
 type
 
-  FT_Bool = boolean;
+  FT_Bool = Boolean;
   FT_FWord = smallint;
   FT_UFWord = word;
   FT_Char = char;
@@ -419,13 +419,13 @@ var
 {$endif CASTLE_FREETYPE_STATIC}
 
 //Base Interface - macros
-function FT_IS_SCALABLE(face: PFT_Face): boolean;
+function FT_IS_SCALABLE(face: PFT_Face): Boolean;
 
 procedure LoadFreeTypeLibrary;
 
 { Did we found FreeType library and loaded it's symbols.
   When this is @false, do not use any functions from this unit, they are @nil. }
-function FreeTypeLibraryInitialized: boolean;
+function FreeTypeLibraryInitialized: Boolean;
 
 implementation
 
@@ -433,7 +433,7 @@ uses SysUtils, CastleDynLib;
 
 { FreeType macros ------------------------------------------------------------ }
 
-function FT_IS_SCALABLE(face: PFT_Face): boolean;
+function FT_IS_SCALABLE(face: PFT_Face): Boolean;
 begin
   Result := (face^.face_flags and FT_FACE_FLAG_SCALABLE) = 1;
 end;
@@ -446,7 +446,7 @@ procedure LoadFreeTypeLibrary;
 begin
 end;
 
-function FreeTypeLibraryInitialized: boolean;
+function FreeTypeLibraryInitialized: Boolean;
 begin
   Result := true;
 end;
@@ -457,7 +457,7 @@ end.
 var
   FreeTypeLibrary: TDynLib;
 
-function FreeTypeLibraryInitialized: boolean;
+function FreeTypeLibraryInitialized: Boolean;
 begin
   Result := FreeTypeLibrary <> nil;
 end;

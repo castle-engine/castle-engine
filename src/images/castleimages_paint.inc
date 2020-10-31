@@ -1927,9 +1927,9 @@ var
   OldColor: TCastleColor;
   ix, iy: integer;
   x1, y1, x2, y2: integer;
-  aFinished: boolean;
-  Flood: array of boolean;
-  function isFloodColor(const ax, ay: integer): boolean; {$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}
+  aFinished: Boolean;
+  Flood: array of Boolean;
+  function isFloodColor(const ax, ay: integer): Boolean; {$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}
   begin
     if (ax >= 0) and (ay >=0) and (ax <= Width) and (ay <= Height) then
     begin
@@ -1941,7 +1941,7 @@ var
     else
       Result := false;
   end;
-  function NearbyFloodColor: boolean;
+  function NearbyFloodColor: Boolean;
   begin
     Result := isFloodColor(ix - 1, iy - 1) or isFloodColor(ix, iy - 1)
       or isFloodColor(ix + 1, iy - 1) or isFloodColor(ix - 1, iy)

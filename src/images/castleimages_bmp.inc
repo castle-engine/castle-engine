@@ -136,13 +136,13 @@ var fhead: TBitmapFileHeader;
   end;
 
   { ClassAllowed is only shortcut to global utility. }
-  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): Boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var i: integer;
-    rowsGoingUp: boolean;
+    rowsGoingUp: Boolean;
     rowdata: PByteArray;
     NewResult: TEncodedImage;
 begin

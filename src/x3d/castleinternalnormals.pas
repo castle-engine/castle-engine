@@ -67,7 +67,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCcw, Convex: boolean): TVector3List;
+  const FromCcw, Convex: Boolean): TVector3List;
 
 { Calculate flat per-face normals for indexed faces.
 
@@ -77,7 +77,7 @@ function CreateNormals(CoordIndex: TLongintList;
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TLongintList;
   vertices: TVector3List;
-  const FromCcw, Convex: boolean): TVector3List;
+  const FromCcw, Convex: Boolean): TVector3List;
 
 { Calculate always smooth normals per-vertex, for VRML/X3D coordinate-based
   node. We use TAbstractGeometryNode.InternalCoordPolygons for this, so the node class
@@ -93,7 +93,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCcw: boolean): TVector3List;
+  const FromCcw: Boolean): TVector3List;
 
 implementation
 
@@ -113,7 +113,7 @@ type
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCcw, Convex: boolean): TVector3List;
+  const FromCcw, Convex: Boolean): TVector3List;
 var
   Faces: TFaceList;
   { For each vertex (this array Count is always Vertices.Count),
@@ -178,7 +178,7 @@ var
   procedure SetNormal(VertexNum: integer; const face: TFace; const Normal: TVector3);
   var
     I: Integer;
-    Found: boolean;
+    Found: Boolean;
   begin
     Found := false;
     for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
@@ -196,7 +196,7 @@ var
     ThisVertexFaces: TIntegerList;
 
     { Can face FaceNum1 be smoothed together with face FaceNum2. }
-    function FaceCanBeSmoothedWith(const FaceNum1, FaceNum2: integer): boolean;
+    function FaceCanBeSmoothedWith(const FaceNum1, FaceNum2: integer): Boolean;
     begin
       Result :=
         { I want to check that
@@ -262,7 +262,7 @@ end;
 
 function CreateFlatNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
-  const FromCcw, Convex: boolean): TVector3List;
+  const FromCcw, Convex: Boolean): TVector3List;
 var
   I, StartIndex: Integer;
   FaceNumber: Integer;
@@ -300,7 +300,7 @@ type
     Normals: TVector3List;
     CoordIndex: TLongIntList;
     Coord: TVector3List;
-    Convex: boolean;
+    Convex: Boolean;
     procedure Polygon(const Indexes: array of Cardinal);
   end;
 
@@ -344,7 +344,7 @@ end;
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCcw: boolean): TVector3List;
+  const FromCcw: Boolean): TVector3List;
 var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;

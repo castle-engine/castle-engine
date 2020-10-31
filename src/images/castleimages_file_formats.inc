@@ -194,7 +194,7 @@ procedure SavePNG(Img: TEncodedImage; Stream: TStream); forward;
 { }
 procedure SaveJPEG(Img: TEncodedImage; Stream: TStream); forward;
 { }
-procedure SavePPM(Img: TEncodedImage; Stream: TStream; binary: boolean); overload; forward;
+procedure SavePPM(Img: TEncodedImage; Stream: TStream; binary: Boolean); overload; forward;
 procedure SavePPM(Img: TEncodedImage; Stream: TStream); { binary = true } overload; forward;
 { }
 procedure SaveRGBE(Img: TEncodedImage; Stream: TStream); forward;
@@ -463,7 +463,7 @@ const
 { Helper methods for implementing LoadEncodedImage. }
 
 function ClassAllowed(ImageClass: TEncodedImageClass;
-  const AllowedImageClasses: array of TEncodedImageClass): boolean;
+  const AllowedImageClasses: array of TEncodedImageClass): Boolean;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
@@ -520,7 +520,7 @@ begin
 end;
 
 function MimeTypeToImageFormat(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+  const OnlyLoadable, OnlySaveable: Boolean; out ImgFormat: TImageFormat): Boolean;
 var
   I: TImageFormat;
   M: TImageFormatInfoMimeTypesCount;
@@ -556,14 +556,14 @@ begin
 end;
 
 function IsImageMimeType(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean): boolean;
+  const OnlyLoadable, OnlySaveable: Boolean): Boolean;
 var
   ImgFormat: TImageFormat;
 begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: string): string;
 var
   iff: TImageFormat;
   i: integer;
@@ -587,7 +587,7 @@ begin
     end;
 end;
 
-function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
+function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): string;
 var
   iff: TImageFormat;
   i: integer;

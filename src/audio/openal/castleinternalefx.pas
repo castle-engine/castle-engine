@@ -40,11 +40,11 @@ uses CastleVectors, CastleInternalOpenAL, Math;
 
   Note that if OpenAL is not avaiable at all (ALLibraryAvailable = @false),
   then this will also always return @false. }
-function Load_EFX(Device: PALCDevice): boolean;
+function Load_EFX(Device: PALCDevice): Boolean;
 
 implementation
 
-function Load_EFX(Device: PALCDevice): boolean;
+function Load_EFX(Device: PALCDevice): Boolean;
 begin
   Result := ALLibraryAvailable and alcIsExtensionPresent(Device, ALC_EXT_EFX_NAME);
 
