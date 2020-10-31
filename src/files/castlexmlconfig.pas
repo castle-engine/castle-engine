@@ -56,7 +56,7 @@ type
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
-    FLoaded: boolean;
+    FLoaded: Boolean;
     { Load empty config. This loads a clear content, without any saved
       settings, but it takes care to set @link(Loaded) to @true,
       run OnLoad listeners and so on. Useful if your default config
@@ -76,7 +76,7 @@ type
       const ADefaultValue: Integer): Integer; overload;
     function GetInteger(const APath: String): Integer; overload;
 
-    { Get a @italic(required) boolean attribute, raise exception if missing or invalid.
+    { Get a @italic(required) Boolean attribute, raise exception if missing or invalid.
       @raises(EMissingAttribute If the attribute is missing or empty.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
     function GetBoolean(const APath: String): Boolean; overload;
@@ -291,7 +291,7 @@ type
       you must manually call MarkModified afterwards, to make sure
       it will get saved later. }
     function PathElement(const APath: string;
-      const RaiseExceptionWhenMissing: boolean = false): TDOMElement;
+      const RaiseExceptionWhenMissing: Boolean = false): TDOMElement;
 
     { Similar to PathElement,
       but creates the necessary elements along the way as needed. }
@@ -373,7 +373,7 @@ type
 
       @raises(EMissingAttribute If EmptyIfNoAttribute = @false and no such attribute.) }
     function GetURL(const APath: string;
-      const EmptyIfNoAttribute: boolean = false): string;
+      const EmptyIfNoAttribute: Boolean = false): string;
 
     { Read string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
@@ -406,7 +406,7 @@ type
     procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
     { @groupEnd }
 
-    property Loaded: boolean read FLoaded;
+    property Loaded: Boolean read FLoaded;
 
     { Load the current persistent data (user preferences, savegames etc.).
 
@@ -929,7 +929,7 @@ end;
 { others --------------------------------------------------------------------- }
 
 function TCastleConfig.PathElement(const APath: string;
-  const RaiseExceptionWhenMissing: boolean): TDOMElement;
+  const RaiseExceptionWhenMissing: Boolean): TDOMElement;
 var
   SeekPos: Integer;
   PathComponent: string;
@@ -984,7 +984,7 @@ begin
 end;
 
 function TCastleConfig.GetURL(const APath: string;
-  const EmptyIfNoAttribute: boolean): string;
+  const EmptyIfNoAttribute: Boolean): string;
 begin
   Result := GetValue(APath, '');
   if Result = '' then

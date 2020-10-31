@@ -36,13 +36,13 @@
     XY: TVector2;
     Scale: TVector2;
     Rotation: Single;
-    InheritScale, InheritRotation: boolean;
+    InheritScale, InheritRotation: Boolean;
     Parent: TBone;
     Node: TTransformNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
+      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string);
     function ToWorldSpace(const V: TVector2): TVector2;
     function ToLocalSpace(V: TVector2): TVector2; overload;
@@ -65,7 +65,7 @@
       @return nil if bone does not exist. }
     function FindByName(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone;
-      const DragonBonesFormat: boolean);
+      const DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string);
     procedure Assign(const Source: TBoneList);
   end;
@@ -76,7 +76,7 @@
 { TBone ---------------------------------------------------------------------- }
 
 procedure TBone.Parse(const Json: TJSONObject;
-  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
+  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: Boolean);
 var
   ParentName: string;
   Transform: TJSONObject;
@@ -251,7 +251,7 @@ begin
   Exit(nil);
 end;
 
-procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: boolean);
+procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: Boolean);
 var
   I: Integer;
   Bone: TBone;

@@ -29,7 +29,7 @@ type
     destructor Destroy; override;
     function UseNode(const AttachmentName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
-      out TexRotated: boolean): TImageTextureNode; override;
+      out TexRotated: Boolean): TImageTextureNode; override;
   end;
 
 constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
@@ -47,7 +47,7 @@ end;
 
 function TSimpleTextureLoader.UseNode(const AttachmentName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
-  out TexRotated: boolean): TImageTextureNode;
+  out TexRotated: Boolean): TImageTextureNode;
 begin
   if not Nodes.TryGetValue(AttachmentName, Result) then
   begin

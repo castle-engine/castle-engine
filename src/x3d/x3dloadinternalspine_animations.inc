@@ -24,7 +24,7 @@
     DeformTimelines: TDeformTimelineList;
     WeightedMeshTimelines: TWeightedMeshTimelineList;
     Node: TTimeSensorNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;

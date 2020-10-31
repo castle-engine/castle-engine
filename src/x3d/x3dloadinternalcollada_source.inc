@@ -37,8 +37,8 @@ type
       (if it can be reasonably ignored, e.g. for normals),
       or try AssignToVectorXYZ anyway
       (if it's necessary, e.g. when this is for vertex positions). }
-    function CheckXYZ(out XIndex, YIndex, ZIndex: Integer): boolean;
-    function CheckST(out SIndex, TIndex: Integer): boolean;
+    function CheckXYZ(out XIndex, YIndex, ZIndex: Integer): Boolean;
+    function CheckST(out SIndex, TIndex: Integer): Boolean;
 
     { Extract from source an array of TVector3.
       Params will be checked to contain at least three vector components
@@ -50,12 +50,12 @@ type
       and this method will reorder this suitable for X3D.
 
       Returns if components were fully correct (no warnings). }
-    function AssignToVectorXYZ(const Value: TVector3List): boolean;
+    function AssignToVectorXYZ(const Value: TVector3List): Boolean;
 
     { Extract from source an array of TVector2, for texture coordinates.
       Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'
       (or 'U' and 'V'). }
-    function AssignToVectorST(const Value: TVector2List): boolean;
+    function AssignToVectorST(const Value: TVector2List): Boolean;
   end;
 
   TColladaSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaSource>)
@@ -82,7 +82,7 @@ begin
   inherited;
 end;
 
-function TColladaSource.CheckXYZ(out XIndex, YIndex, ZIndex: Integer): boolean;
+function TColladaSource.CheckXYZ(out XIndex, YIndex, ZIndex: Integer): Boolean;
 var
   MinCount: Integer;
 begin
@@ -122,7 +122,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorXYZ(const Value: TVector3List): boolean;
+function TColladaSource.AssignToVectorXYZ(const Value: TVector3List): Boolean;
 var
   XIndex, YIndex, ZIndex, I: Integer;
 begin
@@ -136,7 +136,7 @@ begin
   end;
 end;
 
-function TColladaSource.CheckST(out SIndex, TIndex: Integer): boolean;
+function TColladaSource.CheckST(out SIndex, TIndex: Integer): Boolean;
 var
   MinCount: Integer;
 begin
@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorST(const Value: TVector2List): boolean;
+function TColladaSource.AssignToVectorST(const Value: TVector2List): Boolean;
 var
   SIndex, TIndex, I: Integer;
 begin

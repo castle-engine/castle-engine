@@ -46,9 +46,9 @@ type
     FHeight: Integer;
     FAngle: Integer;
     FWeight: Integer;
-    FItalic: boolean;
-    FUnderline: boolean;
-    FStrikeOut: boolean;
+    FItalic: Boolean;
+    FUnderline: Boolean;
+    FStrikeOut: Boolean;
     FCharSet: TWinCharSet;
     FOutputPrecision: DWord;
     FClipPrecision: DWord;
@@ -65,9 +65,9 @@ type
     property Angle: Integer read FAngle write FAngle default 0;
 
     property Weight: Integer read FWeight write FWeight default FW_REGULAR;
-    property Italic: boolean read FItalic write FItalic default false;
-    property Underline: boolean read FUnderline write FUnderline default false;
-    property StrikeOut: boolean read FStrikeOut write FStrikeOut default false;
+    property Italic: Boolean read FItalic write FItalic default false;
+    property Underline: Boolean read FUnderline write FUnderline default false;
+    property StrikeOut: Boolean read FStrikeOut write FStrikeOut default false;
     property CharSet: TWinCharSet read FCharSet write FCharSet default wcsDEFAULT;
 
     property OutputPrecision: DWord read FOutputPrecision write FOutputPrecision
@@ -124,7 +124,7 @@ const
   They probably could use some improvements. }
 
 { Is given Windows font possibly true-type. }
-function IsFontTrueType( Font: HFONT ): boolean;
+function IsFontTrueType( Font: HFONT ): Boolean;
 
 type
   TEnumFontCharsetsProc_ByObject = procedure( FontCharset: byte ) of object;
@@ -172,7 +172,7 @@ end;
 
 function TWindowsFont.GetHandle: HFont;
 const
-  BoolTo01: array[boolean]of Cardinal = (0, 1);
+  BoolTo01: array[Boolean]of Cardinal = (0, 1);
 begin
   Result := CreateFont(FHeight, 0, FAngle, FAngle,
     FWeight, BoolTo01[FItalic], BoolTo01[FUnderline], BoolTo01[FStrikeOut],
@@ -209,7 +209,7 @@ begin
   Result := 1;
 end;
 
-function IsFontTrueType( Font: HFONT ): boolean;
+function IsFontTrueType( Font: HFONT ): Boolean;
 { See EnumFontFamProc_IsTrueType implementation comments for more information. }
 var
   LogFont: TLogFont;

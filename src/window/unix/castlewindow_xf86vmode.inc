@@ -21,11 +21,11 @@ XF86VMode,
 
 {$ifdef read_application_interface}
 private
-  VideoModeChanged: boolean;
+  VideoModeChanged: Boolean;
   { *ModeInfos are valid only if VideoModeChanged }
   CurrentModeInfo, OriginalModeInfo: TXF86VidModeModeInfo;
 
-  FUseVirtualXScreen: boolean;
+  FUseVirtualXScreen: Boolean;
 public
   { jezeli UseVirtualXScreen to pod X-ami zmiana rozmiarow Video przez
     VideoChange nie spowoduje zmiany ScreenWidth/H i bedziemy miec
@@ -35,7 +35,7 @@ public
     ale nie dla typowych pelnoekranowych gier/dem : dla nas zmiana
     rozmiaru ekranu ma na celu zmniejszenie/zwiekszenie dokladnosci
     renderowanego obrazu. Wiec domyslnie UseVirtualXScreen = false. }
-  property UseVirtualXScreen: boolean
+  property UseVirtualXScreen: Boolean
     read FUseVirtualXScreen write FUseVirtualXScreen default false;
 {$endif read_application_interface}
 
@@ -61,7 +61,7 @@ begin
     with c_private fields ? Manual is unclear to me... }
 end;
 
-function TCastleApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: Boolean;
 var
   {vidModeMajorVersion, vidModeMinorVersion: integer;}
   i, bestmode: integer;

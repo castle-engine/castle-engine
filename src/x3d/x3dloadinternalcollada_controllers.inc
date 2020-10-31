@@ -20,7 +20,7 @@ type
     Name: string;
     Source: string;
     BoundShapeMatrix: TMatrix4;
-    BoundShapeMatrixIdentity: boolean;
+    BoundShapeMatrixIdentity: Boolean;
   end;
 
   { List of Collada controllers. Read from <library_controllers>, used by

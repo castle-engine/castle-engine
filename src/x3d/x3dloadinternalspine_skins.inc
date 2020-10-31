@@ -22,16 +22,16 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
-      const DragonBonesFormat: boolean);
+      const DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 
   TSkinList = class(specialize TObjectList<TSkin>)
     { Find by name.
       @raises ESpineReadError If does not exist and NilOnError = @false. }
-    function Find(const Name: string; const NilOnError: boolean): TSkin;
+    function Find(const Name: string; const NilOnError: Boolean): TSkin;
     procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
-      const DragonBonesFormat: boolean);
+      const DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 {$endif}
@@ -53,7 +53,7 @@ begin
 end;
 
 procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList;
-  const DragonBonesFormat: boolean);
+  const DragonBonesFormat: Boolean);
 
   procedure ParseSlotMap(const Json: TJSONObject; const SlotName: string);
   var
@@ -90,7 +90,7 @@ end;
 
 { TSkinList ------------------------------------------------------------------ }
 
-function TSkinList.Find(const Name: string; const NilOnError: boolean): TSkin;
+function TSkinList.Find(const Name: string; const NilOnError: Boolean): TSkin;
 var
   I: Integer;
 begin
@@ -106,7 +106,7 @@ begin
 end;
 
 procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
-  const DragonBonesFormat: boolean);
+  const DragonBonesFormat: Boolean);
 
   procedure ParseSpine;
   var

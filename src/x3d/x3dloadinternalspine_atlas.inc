@@ -19,7 +19,7 @@ type
   TAtlasRegion = class
   public
     Name: string;
-    Rotate: boolean;
+    Rotate: Boolean;
     XY, Size, Orig, Offset: TVector2Integer;
     TexCoord: TQuadTexCoord;
     { When Spine atlas creator uses whitespace compression for texture,
@@ -38,11 +38,11 @@ type
     TextureURL: string;
     Format: string;
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
-    IsRepeat: boolean;
+    IsRepeat: Boolean;
     Size: TVector2Integer; //< atlas may (but does not have to) contain this
     Regions: TAtlasRegionList;
     Node: TImageTextureNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure BuildNodes(const BaseUrl: string);
@@ -62,10 +62,10 @@ type
       Returns @false if it does not exist (the out vars are undefined in
       this case). }
     function Find(const RegionName: string;
-      out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
+      out Page: TAtlasPage; out Region: TAtlasRegion): Boolean;
     function UseNode(const RegionName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
-      out TexRotated: boolean): TImageTextureNode; override;
+      out TexRotated: Boolean): TImageTextureNode; override;
   end;
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
@@ -197,7 +197,7 @@ procedure TAtlas.Parse(const URL: string);
     Assumes that whitespace doesn't matter (so we trim it),
     and Name must not be empty. }
   function Split(const Line: string; const Separator: char;
-    out Name, Value: string): boolean;
+    out Name, Value: string): Boolean;
   var
     Index: Integer;
   begin
@@ -216,7 +216,7 @@ procedure TAtlas.Parse(const URL: string);
     only if the line contains (corrent) specification of attribute
     Name. Otherwise, they return @false and leave Value unmodified. }
 
-  function IsNameValueString(const Line, Name: string; var Value: string): boolean;
+  function IsNameValueString(const Line, Name: string; var Value: string): Boolean;
   var
     N, V: string;
   begin
@@ -225,7 +225,7 @@ procedure TAtlas.Parse(const URL: string);
       Value := V;
   end;
 
-  function IsNameValueBoolean(const Line, Name: string; var Value: boolean): boolean;
+  function IsNameValueBoolean(const Line, Name: string; var Value: Boolean): Boolean;
   var
     ValueStr: string;
   begin
@@ -240,7 +240,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueInteger(const Line, Name: string; var Value: Integer): boolean;
+  function IsNameValueInteger(const Line, Name: string; var Value: Integer): Boolean;
   var
     ValueStr: string;
   begin
@@ -256,7 +256,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): boolean;
+  function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): Boolean;
   var
     ValueStr, ValueStr0, ValueStr1: string;
   begin
@@ -275,7 +275,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueFilter(const Line, Name: string; var Filter: string): boolean;
+  function IsNameValueFilter(const Line, Name: string; var Filter: string): Boolean;
   var
     ValueStr: string;
   begin
@@ -292,7 +292,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueRepeat(const Line, Name: string; var IsRepeat: boolean): boolean;
+  function IsNameValueRepeat(const Line, Name: string; var IsRepeat: Boolean): Boolean;
   var
     ValueStr: string;
   begin
@@ -377,7 +377,7 @@ begin
 end;
 
 function TAtlas.Find(const RegionName: string;
-  out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
+  out Page: TAtlasPage; out Region: TAtlasRegion): Boolean;
 var
   I, J: Integer;
 begin
@@ -398,7 +398,7 @@ end;
 
 function TAtlas.UseNode(const RegionName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
-  out TexRotated: boolean): TImageTextureNode;
+  out TexRotated: Boolean): TImageTextureNode;
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;

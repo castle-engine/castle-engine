@@ -35,7 +35,7 @@ CastleJoysticks,
 public
   { Only the library in src/library/castleengine.lpr uses this,
     to notify our window instance about various events. }
-  procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+  procedure LibraryMouseWheel(const Scroll: Single; const Vertical: Boolean);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -195,7 +195,7 @@ end;
 
 { LibraryXxx methods --------------------------------------------------------- }
 
-procedure TCastleWindowBase.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindowBase.LibraryMouseWheel(const Scroll: Single; const Vertical: Boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
 end;
@@ -223,7 +223,7 @@ procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -238,7 +238,7 @@ procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
 begin
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := true;
 end;
@@ -248,12 +248,12 @@ end;
 { Methods below should make native-looking dialog boxes. }
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 begin
   { TODO } Result := false;
 end;
@@ -264,7 +264,7 @@ begin
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   { TODO } Result := true;
 end;
@@ -279,12 +279,12 @@ procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 begin
   Result := true;
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   Result := ProcessMessage(false, false);
 end;

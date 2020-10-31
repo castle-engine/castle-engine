@@ -71,7 +71,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -151,7 +151,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := { TODO } true;
 end;
@@ -179,12 +179,12 @@ end;
   OpenGL context using our CastleMessages unit. }
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 begin
   { TODO } Result := false;
 end;
@@ -195,7 +195,7 @@ begin
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   { TODO } Result := true;
 end;
@@ -213,7 +213,7 @@ begin
   { TODO }
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 begin
   Result := not Terminated;
 
@@ -234,7 +234,7 @@ begin
   end;
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   { This implementation is valid for start: }
   Result := ProcessMessage(false, false);

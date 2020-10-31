@@ -31,7 +31,7 @@ private
   XVisual: PXVisualInfo;
 
   { Used only by ContextCreateBegin and ContextCreateEnd }
-  UseFBConfig: boolean;
+  UseFBConfig: Boolean;
   FBConfig: TGLXFBConfig;
 
   { Methods compatible with castlewindow_egl.inc, see there for docs.

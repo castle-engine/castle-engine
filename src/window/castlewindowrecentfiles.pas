@@ -74,7 +74,7 @@ type
   public
     OnOpenRecent: TOnOpenRecent;
     property URL: string read FURL;
-    function DoClick: boolean; override;
+    function DoClick: Boolean; override;
   end;
 
 constructor TMenuRecentItem.Create(
@@ -94,7 +94,7 @@ begin
   inherited Create(S, AIntData);
 end;
 
-function TMenuRecentItem.DoClick: boolean;
+function TMenuRecentItem.DoClick: Boolean;
 begin
   if Assigned(OnOpenRecent) then
     OnOpenRecent(URL);

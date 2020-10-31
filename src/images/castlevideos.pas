@@ -57,9 +57,9 @@ type
     FItems: array of TCastleImage;
     function GetItems(Index: Integer): TCastleImage;
   private
-    FLoaded: boolean;
-    FTimeLoop: boolean;
-    FTimeBackwards: boolean;
+    FLoaded: Boolean;
+    FTimeLoop: Boolean;
+    FTimeBackwards: Boolean;
     FFramesPerSecond: Single;
   public
     constructor Create;
@@ -180,7 +180,7 @@ type
       this will do nothing. }
     procedure Close;
 
-    property Loaded: boolean read FLoaded;
+    property Loaded: Boolean read FLoaded;
 
     { Play the video in a never-ending loop.
 
@@ -194,7 +194,7 @@ type
       (even when video is not yet loaded), since this doesn't really
       cause any internal recalculation. It only affects what
       *FromTime methods return. }
-    property TimeLoop: boolean read FTimeLoop write FTimeLoop default false;
+    property TimeLoop: Boolean read FTimeLoop write FTimeLoop default false;
 
     { Play the video backwards after playing it forward.
 
@@ -207,7 +207,7 @@ type
       (even when video is not yet loaded), since this doesn't really
       cause any internal recalculation. It only affects what
       *FromTime methods return. }
-    property TimeBackwards: boolean
+    property TimeBackwards: Boolean
       read FTimeBackwards write FTimeBackwards default false;
 
     { Mix the video with itself played backwards,
@@ -265,7 +265,7 @@ type
     class function FrameIndexFromTime(const Time: TFloatTime;
       const ACount: Integer;
       const AFramesPerSecond: Single;
-      const ATimeLoop, ATimeBackwards: boolean): Integer;
+      const ATimeLoop, ATimeBackwards: Boolean): Integer;
 
     { Alpha channel type of loaded video.
       See TCastleImage.AlphaChannel for precise meaning of this.
@@ -346,7 +346,7 @@ type
       const LoadOptions: TLoadImageOptions = []): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
-    function Empty: boolean; virtual;
+    function Empty: Boolean; virtual;
 
     { Called when cache becomes empty. This is only for internal usage
       by X3DNodes unit for now. }
@@ -360,7 +360,7 @@ type
   (use this as output of ffmpeg). FfmpegOutput = @false means you
   want to decode the video, that is use this as an input to ffmpeg. }
 function FfmpegVideoMimeType(const MimeType: string;
-  const FfmpegOutput: boolean): boolean;
+  const FfmpegOutput: Boolean): Boolean;
 
 { Returns full path to ffmpeg-compatible executable.
 
@@ -369,7 +369,7 @@ function FfmpegVideoMimeType(const MimeType: string;
     @item If ExceptionOnError then we raise an exception.
     @item If not ExceptionOnError then we simply return ''.
   ) }
-function FfmpegExecutable(const ExceptionOnError: boolean): string;
+function FfmpegExecutable(const ExceptionOnError: Boolean): string;
 
 { Execute ffmpeg. 1st parameter must not be ''.
   It should usually be calculated by FfmpegExecutable. }
@@ -388,7 +388,7 @@ var
     Use @link(TCastleImage) if you want to always load GIF as static image
     (first frame, if case of animated GIF).
   }
-  LoadAnimatedGifs: boolean = false;
+  LoadAnimatedGifs: Boolean = false;
 
   { Maximum number of video frames to read, for TVideo.LoadFromFile.
 
@@ -407,7 +407,7 @@ var
     be already lengthy).
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
-  LogVideosCache: boolean = false;
+  LogVideosCache: Boolean = false;
 
 const
   DefaultFramesPerSecond = 25.0;
@@ -449,7 +449,7 @@ end;
 class function TVideo.FrameIndexFromTime(const Time: TFloatTime;
   const ACount: Integer;
   const AFramesPerSecond: Single;
-  const ATimeLoop, ATimeBackwards: boolean): Integer;
+  const ATimeLoop, ATimeBackwards: Boolean): Integer;
 var
   DivResult: SmallInt;
   ModResult: Word;
@@ -536,10 +536,10 @@ procedure TVideo.LoadFromFile(const URL: string;
     When RemoveLoadedTempImages, we will remove the loaded image files,
     in this case the URL @italic(must) be a filename. }
   procedure LoadFromImages(const URL: string;
-    RemoveLoadedTempImages: boolean);
+    RemoveLoadedTempImages: Boolean);
 
     { Load movie frame number Index. Returns if success. }
-    function LoadFrame(const Index: Cardinal): boolean;
+    function LoadFrame(const Index: Cardinal): Boolean;
     var
       URLComplete: string;
       NewItem: TCastleImage;
@@ -600,7 +600,7 @@ procedure TVideo.LoadFromFile(const URL: string;
   procedure LoadFromFfmpeg(const URL: string);
   var
     MovieFileName: string;
-    MovieFileNameTemporary: boolean;
+    MovieFileNameTemporary: Boolean;
     TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
     Executable: string;
     S: TStream;
@@ -961,7 +961,7 @@ begin
     [PointerToStr(Video)]);
 end;
 
-function TVideosCache.Empty: boolean;
+function TVideosCache.Empty: Boolean;
 begin
   Result := (CachedVideos.Count = 0);
 end;
@@ -976,7 +976,7 @@ end;
 { non-object routines -------------------------------------------------------- }
 
 function FfmpegVideoMimeType(const MimeType: string;
-  const FfmpegOutput: boolean): boolean;
+  const FfmpegOutput: Boolean): Boolean;
 begin
   { For now we ignore FfmpegOutput, all formats below are good
     for both input and output. (Actually, MIME (always from file extension now)
@@ -994,7 +994,7 @@ begin
     (MimeType = 'video/mp4');
 end;
 
-function FfmpegExecutable(const ExceptionOnError: boolean): string;
+function FfmpegExecutable(const ExceptionOnError: Boolean): string;
 const
   SFfmpegNotFound = 'You must have "ffmpeg" from [http://www.ffmpeg.org/] ' +
     '(or "avconv" from [http://www.libav.org/]) ' +

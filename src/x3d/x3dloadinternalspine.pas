@@ -28,11 +28,11 @@ var
   { Turn this on to see some additional warnings when loading Spine models.
     These warnings are sometimes too verbose (often the models will work fine,
     and these warning can be ignored), so they are disabled by default. }
-  SpineVerboseWarnings: boolean = false;
+  SpineVerboseWarnings: Boolean = false;
 
   { Do not use textures and atlases referenced in the Spine model,
     do not set their URLs and do not try to load them in any way. }
-  SpineIgnoreTextures: boolean = false;
+  SpineIgnoreTextures: Boolean = false;
 
 implementation
 
@@ -93,7 +93,7 @@ function LoadSpine(URL: string): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
-    function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): boolean;
+    function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): Boolean;
     var
       NoExtension: string;
     begin

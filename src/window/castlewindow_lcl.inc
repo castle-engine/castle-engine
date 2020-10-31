@@ -200,7 +200,7 @@ begin
   MainMenu.ClearHandles;
 end;
 
-function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): boolean;
+function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): Boolean;
 begin
   EntryLCL := Menus.TMenuItem(Entry.Handle);
   Result := EntryLCL <> nil;
@@ -337,7 +337,7 @@ begin
   EntryLCL.Checked := Entry.Checked;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := true;
 end;
@@ -623,7 +623,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := false;
 end;
@@ -778,7 +778,7 @@ end;
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 var
   Dialog: TFileDialog;
   ExpandedFileName: string;
@@ -803,7 +803,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
@@ -832,7 +832,7 @@ begin
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   ReleaseAllKeysAndMouse; // do it manually
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
@@ -935,7 +935,7 @@ begin
   Done := false;
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 var
   I: Integer;
 begin
@@ -976,7 +976,7 @@ begin
   end;
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
 //  Result := not Forms.Application.Terminated;
 //  while Result do

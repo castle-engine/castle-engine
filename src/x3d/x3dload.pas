@@ -114,10 +114,10 @@ end;
   of @code('my_model.x3d').
 }
 function LoadNode(const URL: string;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
+  const NilOnUnrecognizedFormat: Boolean = false): TX3DRootNode;
 function Load3D(const URL: string;
-  const AllowStdIn: boolean = false;
-  const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
+  const AllowStdIn: Boolean = false;
+  const NilOnUnrecognizedFormat: Boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
 const
   { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
@@ -170,12 +170,12 @@ const
 }
 procedure Load3DSequence(
   const URL: string;
-  const AllowStdIn: boolean;
+  const AllowStdIn: Boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean); deprecated 'use LoadNode instead of Load3DSequence';
+  out TimeLoop, TimeBackwards: Boolean); deprecated 'use LoadNode instead of Load3DSequence';
 
 const
   { File filters for files loaded by Load3DSequence, suitable
@@ -261,7 +261,7 @@ begin
 end;
 
 function LoadNode(const URL: string;
-  const NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+  const NilOnUnrecognizedFormat: Boolean): TX3DRootNode;
 
   function LoadAnimFrames(const URL: string): TX3DRootNode;
   var
@@ -285,7 +285,7 @@ function LoadNode(const URL: string;
 
 var
   MimeType: string;
-  Gzipped: boolean;
+  Gzipped: Boolean;
 begin
   MimeType := URIMimeType(URL, Gzipped);
 
@@ -359,18 +359,18 @@ begin
 end;
 
 function Load3D(const URL: string;
-  const AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+  const AllowStdIn, NilOnUnrecognizedFormat: Boolean): TX3DRootNode;
 begin
   Result := LoadNode(URL, NilOnUnrecognizedFormat);
 end;
 
 procedure Load3DSequence(const URL: string;
-  const AllowStdIn: boolean;
+  const AllowStdIn: Boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out Epsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
+  out TimeLoop, TimeBackwards: Boolean);
 
   procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
   var

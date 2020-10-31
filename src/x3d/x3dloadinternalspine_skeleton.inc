@@ -104,7 +104,7 @@ procedure TSkeleton.Parse(const BaseUrl: string; const Json: TJSONData; const Sk
 var
   O: TJSONObject;
   JsonArmatureArray: TJSONArray;
-  DragonBonesFormat: boolean;
+  DragonBonesFormat: Boolean;
 begin
   if not (Json is TJSONObject) then
     raise ESpineReadError.Create('Spine JSON skeleton: Expected JSONObject at root');

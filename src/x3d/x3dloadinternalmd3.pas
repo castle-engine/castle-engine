@@ -121,7 +121,7 @@ type
       and reads it. Returns @true and sets TextureURL if skin file
       found and some texture URL was recorded there. }
     class function ReadSkinFile(const Md3URL: string;
-      out ATextureURL: string): boolean;
+      out ATextureURL: string): Boolean;
   end;
 
 { Load a specific animation frame from a given MD3 model.
@@ -358,7 +358,7 @@ begin
 end;
 
 class function TObject3DMD3.ReadSkinFile(const Md3URL: string;
-  out ATextureURL: string): boolean;
+  out ATextureURL: string): Boolean;
 var
   SkinFile: TTextReader;
   S: string;

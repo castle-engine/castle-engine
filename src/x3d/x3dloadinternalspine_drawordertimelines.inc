@@ -26,7 +26,7 @@
     Slot: TSlot;
     DrawOrder: TSingleList;
     Node: TPositionInterpolatorNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure BuildNodes(const BaseUrl: string;

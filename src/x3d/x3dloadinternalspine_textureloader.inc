@@ -26,5 +26,5 @@ type
       May return @nil, and then TexCoord and TexRect are left undefined. }
     function UseNode(const AttachmentName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
-      out TexRotated: boolean): TImageTextureNode; virtual; abstract;
+      out TexRotated: Boolean): TImageTextureNode; virtual; abstract;
   end;

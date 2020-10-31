@@ -186,7 +186,7 @@ var
     I: TXMLElementIterator;
     DiffuseTextureName, DiffuseTexCoordName: string;
     Transparency: Single;
-    HasTransparency: boolean;
+    HasTransparency: Boolean;
   begin
     { We actually treat <phong> and <blinn> and even <lambert> elements the same.
       X3D lighting equations specify that always Blinn
@@ -207,7 +207,7 @@ var
         and forum https://collada.org/public_forum/viewtopic.php?t=386).
         When only one is specified, the other is like 1.
         However, when neither one is specified, we obviously want to leave
-        the model opaque (transparency = 0) so we need boolean HasTransparency. }
+        the model opaque (transparency = 0) so we need Boolean HasTransparency. }
       Transparency := 1;
       HasTransparency := false;
 

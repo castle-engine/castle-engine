@@ -30,7 +30,7 @@
       and it does *not* have to be the same path geometry then. }
     Name: string;
     Node: TTransformNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     Material: TUnlitMaterialNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
@@ -54,7 +54,7 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractGeometryNode; virtual;
+      const TexRotated: Boolean): TAbstractGeometryNode; virtual;
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
@@ -68,13 +68,13 @@
       Looking as official Spine runtime in spine-csharp and spine-unity,
       it is also unused there. }
     Hull: Integer;
-    Invalid: boolean;
+    Invalid: Boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractGeometryNode; override;
+      const TexRotated: Boolean): TAbstractGeometryNode; override;
   end;
 
   TMeshVertexBone = class
@@ -130,7 +130,7 @@
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;
       const FallbackList: TAttachmentList;
-      const NilWhenNotFound: boolean): TAttachment;
+      const NilWhenNotFound: Boolean): TAttachment;
   end;
 {$endif}
 
@@ -228,7 +228,7 @@ var
   TexCoord: TQuadTexCoord;
   Shape: TShapeNode;
   AtlasRegionName: string;
-  TexRotated: boolean;
+  TexRotated: Boolean;
 begin
   if Node <> nil then
     WritelnWarning('Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
@@ -262,7 +262,7 @@ end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractGeometryNode;
+  const TexRotated: Boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
@@ -338,7 +338,7 @@ end;
 
 function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractGeometryNode;
+  const TexRotated: Boolean): TAbstractGeometryNode;
 var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;
@@ -705,7 +705,7 @@ end;
 
 function TAttachmentList.Find(const SlotName, AttachmentName: string;
   const FallbackList: TAttachmentList;
-  const NilWhenNotFound: boolean): TAttachment;
+  const NilWhenNotFound: Boolean): TAttachment;
 var
   I: Integer;
   Err: string;

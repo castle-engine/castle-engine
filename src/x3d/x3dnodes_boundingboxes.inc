@@ -36,7 +36,7 @@ type
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
     Geometry: TAbstractGeometryNode;
-    WasSomeValidIndex: boolean;
+    WasSomeValidIndex: Boolean;
     function GetVertexFromIndex(index: integer): TVector3;
     function GetIndex(indexNum: integer): integer;
   end;
@@ -299,7 +299,7 @@ end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;
   const BottomRadius, Height: Single;
-  const Sides, Bottom, Local: boolean): TBox3D;
+  const Sides, Bottom, Local: Boolean): TBox3D;
 var points: array [0..4] of TVector3;
     firstPoint: integer;
 begin
@@ -394,7 +394,7 @@ end;
 
 function Cylinder_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Height, Radius: Single;
-  const Bottom, Side, Top: boolean): TBox3D;
+  const Bottom, Side, Top: Boolean): TBox3D;
 var points: array[0..3]of TVector3;
 begin
  {points 0 = bottom start, 1 = bottom end}

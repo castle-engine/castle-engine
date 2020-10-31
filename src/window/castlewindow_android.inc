@@ -84,9 +84,9 @@ private
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
-    ResumeScheduled: boolean;
+    ResumeScheduled: Boolean;
 
-  function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+  function HandleInput(App: PAndroid_app; Event: PAInputEvent): Boolean;
   procedure HandleCommand(App: PAndroid_app; Command: Integer);
 {$endif read_application_interface}
 
@@ -252,7 +252,7 @@ begin
   end;
 end;
 
-function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): Boolean;
 
   function CurrentPosition(const PointerIndex: Integer): TVector2;
   begin
@@ -500,7 +500,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -560,7 +560,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   { Call menu shortcuts on key presses.
     Since we don't show MainMenu, this is the only way how we can at least
@@ -594,12 +594,12 @@ procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   Result := ProcessMessage(false, false);
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 
   { Call Update and Timer on Application and all open Windows. }
   procedure WindowsUpdateAndTimer;

@@ -73,7 +73,7 @@ type
   EMaterialNotInitialized = class(EInvalid3dsFile);
 
   TMaterialMap3ds = record
-    Exists: boolean;
+    Exists: Boolean;
     MapURL: string;
     Scale, Offset: TVector2;
   end;
@@ -81,13 +81,13 @@ type
   TMaterial3ds = class
   strict private
     FName: string;
-    FInitialized: boolean;
+    FInitialized: Boolean;
   public
     property Name: string read FName;
 
     { When @false, this material was found in TTrimesh but was not yet
       defined in 3DS file. }
-    property Initialized: boolean read FInitialized default false;
+    property Initialized: Boolean read FInitialized default false;
   public
     { Material properties. Have default values (following VRML and OpenGL
       defaults, as I don't know 3DS defaults) in case they would be
@@ -155,8 +155,8 @@ type
 
   TFace3ds = record
     VertsIndices: TVector3Cardinal;
-    EdgeFlags: packed array[0..2]of boolean;
-    Wrap: packed array[0..1]of boolean;
+    EdgeFlags: packed array [0..2] of Boolean;
+    Wrap: packed array [0..1] of Boolean;
     { Index to the Scene.Materials.
       -1 means "not specified in 3DS file" and means that face
       uses default material. There are some 3DS that have faces without
@@ -180,7 +180,7 @@ type
   TTrimesh3ds = class(TObject3DS)
   strict private
     FVertsCount, FFacesCount: Word;
-    FHasTexCoords: boolean;
+    FHasTexCoords: Boolean;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -188,7 +188,7 @@ type
     Faces: PFace3dsArray;
     { @groupEnd }
     { Do the vertexes have meaningful texture coordinates? }
-    property HasTexCoords: boolean read FHasTexCoords;
+    property HasTexCoords: Boolean read FHasTexCoords;
     { Number of vertexes and faces.
       Remember that VertsCount = FacesCount = 0 is possible, e.g. 0155.3ds.
       @groupBegin }
@@ -223,7 +223,7 @@ type
   public
     Pos: TVector3;
     Col: TVector3;
-    Enabled: boolean;
+    Enabled: Boolean;
     constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
@@ -394,7 +394,7 @@ begin
 end;
 *)
 
-procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
+procedure Check3dsFile(TrueValue: Boolean; const ErrMessg: string);
 begin
   if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
 end;
@@ -408,7 +408,7 @@ end;
 
   Overloaded version with 4 components always returns alpha = 1. }
 function TryReadColorInSubchunks(var Col: TVector3;
-  Stream: TStream; EndPos: Int64): boolean; overload;
+  Stream: TStream; EndPos: Int64): Boolean; overload;
 var
   h: TChunkHeader;
   hEnd: Int64;
@@ -450,7 +450,7 @@ begin
 end;
 
 function TryReadColorInSubchunks(var Col: TVector4;
-  Stream: TStream; EndPos: Int64): boolean; overload;
+  Stream: TStream; EndPos: Int64): Boolean; overload;
 var
   Col3Single: TVector3;
 begin
@@ -462,7 +462,7 @@ end;
   value. Returns the value / 100.
   Similar comments as for TryReadColorInSubchunks. }
 function TryReadPercentageInSubchunks(var Value: Single;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): Boolean;
 var
   h: TChunkHeader;
   hEnd: Int64;

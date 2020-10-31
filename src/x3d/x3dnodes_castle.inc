@@ -261,7 +261,7 @@
   TScreenEffectNode = class(TAbstractChildNode)
   strict private
     FShader: TObject;
-    FShaderLoaded: boolean;
+    FShaderLoaded: Boolean;
     FStateForShaderPrepare: TX3DGraphTraverseState;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -286,7 +286,7 @@
       and loaded successfully) or not.
       @groupBegin }
     property Shader: TObject read FShader write FShader;
-    property ShaderLoaded: boolean read FShaderLoaded write FShaderLoaded;
+    property ShaderLoaded: Boolean read FShaderLoaded write FShaderLoaded;
     property StateForShaderPrepare: TX3DGraphTraverseState
       read FStateForShaderPrepare;
     { @groupEnd }
@@ -348,7 +348,7 @@
     See https://castle-engine.io/compositing_shaders.php . }
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
   strict private
-    ContentsCached: boolean;
+    ContentsCached: Boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);

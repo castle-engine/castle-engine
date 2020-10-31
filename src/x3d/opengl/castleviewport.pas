@@ -43,7 +43,7 @@ type
   TManagerRenderParams = class(TRenderParams)
   private
     MainScene: TCastleTransform;
-    FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
+    FBaseLights: array [Boolean { is main scene }] of TLightInstancesList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -110,27 +110,27 @@ type
       FCamera: TCastleCamera;
       FRenderParams: TManagerRenderParams;
       FPrepareParams: TPrepareParams;
-      FBackgroundWireframe: boolean;
+      FBackgroundWireframe: Boolean;
       FBackgroundColor: TCastleColor;
       FOnRender3D: TRender3DEvent;
-      FUseGlobalLights, FUseGlobalFog: boolean;
-      FApproximateActivation: boolean;
+      FUseGlobalLights, FUseGlobalFog: Boolean;
+      FApproximateActivation: Boolean;
       FDefaultVisibilityLimit: Single;
-      FTransparent, FClearDepth: boolean;
+      FTransparent, FClearDepth: Boolean;
       FInternalExamineNavigation: TCastleExamineNavigation;
       FInternalWalkNavigation: TCastleWalkNavigation;
-      FWithinSetNavigationType: boolean;
+      FWithinSetNavigationType: Boolean;
       LastPressEvent: TInputPressRelease;
       FOnProjection: TProjectionEvent;
-      FEnableParentDragging: boolean;
+      FEnableParentDragging: Boolean;
       AssignDefaultCameraDone: Boolean;
       FAutoCamera: Boolean;
       FAutoNavigation: Boolean;
 
-      FShadowVolumes: boolean;
-      FShadowVolumesRender: boolean;
+      FShadowVolumes: Boolean;
+      FShadowVolumesRender: Boolean;
 
-      FScreenSpaceAmbientOcclusion: boolean;
+      FScreenSpaceAmbientOcclusion: Boolean;
       SSAOShader: TSSAOScreenEffect;
       SSAOShaderInitialized: Boolean;
 
@@ -142,7 +142,7 @@ type
         @nil when OpenGL context is not yet initialized. }
       FShadowVolumeRenderer: TGLShadowVolumeRenderer;
       FItems: TCastleRootTransform;
-      ScheduledVisibleChangeNotification: boolean;
+      ScheduledVisibleChangeNotification: Boolean;
       ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
 
       FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
@@ -154,9 +154,9 @@ type
       FCapturePointingDevice: TCastleTransform;
       FCapturePointingDeviceObserver: TFreeNotificationObserver;
 
-    function FillsWholeContainer: boolean;
+    function FillsWholeContainer: Boolean;
     function IsStoredNavigation: Boolean;
-    procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
+    procedure SetScreenSpaceAmbientOcclusion(const Value: Boolean);
     procedure SSAOShaderInitialize;
     function GetNavigationType: TNavigationType;
     procedure SetAutoCamera(const Value: Boolean);
@@ -172,7 +172,7 @@ type
     procedure MainSceneAndCamera_BoundNavigationInfoChanged(Sender: TObject);
 
     procedure SetMouseRayHit(const Value: TRayCollision);
-    function MouseRayHitContains(const Item: TCastleTransform): boolean;
+    function MouseRayHitContains(const Item: TCastleTransform): Boolean;
     procedure SetAvoidNavigationCollisions(const Value: TCastleTransform);
     procedure SetNavigationType(const Value: TNavigationType);
 
@@ -255,22 +255,22 @@ type
     { Detect position/direction of the main light that produces shadows.
       Looks at MainScene.InternalMainLightForShadows.
       Returns light position (or direction, if W = 0) in world space. }
-    function MainLightForShadows(out AMainLightPosition: TVector4): boolean;
+    function MainLightForShadows(out AMainLightPosition: TVector4): Boolean;
 
     { Pass pointing device (mouse or touch) press event
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
-    function PointingDevicePress: boolean;
+    function PointingDevicePress: Boolean;
 
     { Pass pointing device (mouse or touch) press event
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
-    function PointingDeviceRelease: boolean;
+    function PointingDeviceRelease: Boolean;
 
     { Pass pointing device (mouse or touch) move event
       to TCastleTransform instances in @link(Items).
       Depends that MouseRayHit, MouseRayOrigin, MouseRayDirection are already updated. }
-    function PointingDeviceMove: boolean;
+    function PointingDeviceMove: Boolean;
 
     { Update MouseRayHit. }
     procedure UpdateMouseRayHit;
@@ -376,14 +376,14 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function AllowSuspendForInput: Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
+      const ChangeInitiatedByChildren: Boolean = false); override;
     procedure BeforeRender; override;
 
     function GetMainScene: TCastleScene; deprecated 'use Items.MainScene';
@@ -426,9 +426,9 @@ type
         )
       )
     }
-    function WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
+    function WalkNavigation(const SwitchNavigationTypeIfNeeded: Boolean = true): TCastleWalkNavigation;
       deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-    function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleWalkNavigation;
+    function WalkCamera(const SwitchNavigationTypeIfNeeded: Boolean = true): TCastleWalkNavigation;
       deprecated 'create own instance of TCastleWalkNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
     { Return the currently used camera as TCastleExamineNavigation, making sure that current
@@ -457,9 +457,9 @@ type
         )
       )
     }
-    function ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
+    function ExamineNavigation(const SwitchNavigationTypeIfNeeded: Boolean = true): TCastleExamineNavigation;
       deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
-    function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TCastleExamineNavigation;
+    function ExamineCamera(const SwitchNavigationTypeIfNeeded: Boolean = true): TCastleExamineNavigation;
       deprecated 'create own instance of TCastleExamineNavigation, and assign it to Viewport.Navigation, this is more flexible and predictable';
 
     { Make @link(Navigation) @nil.
@@ -538,14 +538,14 @@ type
       @groupBegin }
     property ScreenEffects [Index: Integer]: TGLSLProgram read GetScreenEffects;
     function ScreenEffectsCount: Integer; virtual;
-    function ScreenEffectsNeedDepth: boolean; virtual;
+    function ScreenEffectsNeedDepth: Boolean; virtual;
     { @groupEnd }
 
     { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
       This does @italic(not) depend on the current state of
       ScreenSpaceAmbientOcclusion property.
       You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
-    function ScreenSpaceAmbientOcclusionAvailable: boolean;
+    function ScreenSpaceAmbientOcclusionAvailable: Boolean;
 
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
@@ -586,11 +586,11 @@ type
       when we return @false.
 
       @exclude }
-    function HeadlightInstance(out Instance: TLightInstance): boolean;
+    function HeadlightInstance(out Instance: TLightInstance): Boolean;
       deprecated 'internal information, do not use this';
 
     { Enable built-in SSAO screen effect in the world. }
-    property ScreenSpaceAmbientOcclusion: boolean
+    property ScreenSpaceAmbientOcclusion: Boolean
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
 
@@ -871,7 +871,7 @@ type
       write SetAvoidNavigationCollisions;
 
     { See @link(TCastleAbstractRootTransform.Paused). }
-    property Paused: boolean read GetPaused write SetPaused default false;
+    property Paused: Boolean read GetPaused write SetPaused default false;
       deprecated 'use Items.Paused';
 
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
@@ -931,7 +931,7 @@ type
       marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
       See [https://castle-engine.io/x3d_extensions.php#section_ext_shadows]
       for details. }
-    property ShadowVolumes: boolean
+    property ShadowVolumes: Boolean
       read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.
@@ -939,7 +939,7 @@ type
       you can use this to actually see shadow volumes, for debug / demo
       purposes. Shadow volumes will be rendered on top of the scene,
       as yellow blended polygons. }
-    property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
+    property ShadowVolumesRender: Boolean read FShadowVolumesRender write FShadowVolumesRender default false;
 
     { If yes then the scene background will be rendered wireframe,
       over the background filled with BackgroundColor.
@@ -954,7 +954,7 @@ type
 
       Useful especially for debugging when you want to see how your background
       geometry looks like. }
-    property BackgroundWireframe: boolean
+    property BackgroundWireframe: Boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
     { If yes then the viewport will not draw a background, letting the window contents
@@ -965,7 +965,7 @@ type
       and any background defined using X3D nodes (like @link(TBackgroundNode),
       @link(TTextureBackgroundNode), @link(TImageBackgroundNode)) inside
       @link(TCastleRootTransform.MainScene MainScene) will be ignored. }
-    property Transparent: boolean read FTransparent write FTransparent default false;
+    property Transparent: Boolean read FTransparent write FTransparent default false;
 
     { At the beginning of rendering, scene manager by default clears
       the depth buffer. This makes every scene manager draw everything
@@ -990,7 +990,7 @@ type
       Note: if you use shadow volumes, we will still clear the stencil buffer
       at the beginning of rendering.
     }
-    property ClearDepth: boolean read FClearDepth write FClearDepth default true;
+    property ClearDepth: Boolean read FClearDepth write FClearDepth default true;
 
     { Let MainScene.GlobalLights shine on every 3D object, not only
       MainScene. This is an easy way to lit your whole world with lights
@@ -1000,13 +1000,13 @@ type
       world coordinates. This means that you should not transform
       the MainScene, it should be placed inside @link(TCastleViewport.Items)
       and not transformed by TCastleTransform. }
-    property UseGlobalLights: boolean
+    property UseGlobalLights: Boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
 
     { Let the fog defined in MainScene affect all objects, not only MainScene.
       This is consistent with @link(UseGlobalLights), that allows lights
       from MainScene to shine on all objects. }
-    property UseGlobalFog: boolean
+    property UseGlobalFog: Boolean
       read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
 
     { Help user to activate pointing device sensors and pick items.
@@ -1028,7 +1028,7 @@ type
       interaction button or key.
       Otherwise, activating a small object is difficult,
       as you don't see the cursor. }
-    property ApproximateActivation: boolean
+    property ApproximateActivation: Boolean
       read FApproximateActivation write FApproximateActivation default false;
 
     { Visibility limit of your 3D world. This is the distance the far projection
@@ -1070,7 +1070,7 @@ type
       here. In effect, scene manager will cancel the click operation
       once you start dragging, which allows the parent to handle
       all the motion events for dragging. }
-    property EnableParentDragging: boolean
+    property EnableParentDragging: Boolean
       read FEnableParentDragging write FEnableParentDragging default false;
 
     { Assign initial camera properties
@@ -1135,7 +1135,7 @@ type
     - set FullSize, AutoCamera and AutoNavigation to true. }
   TCastleSceneManager = class(TCastleViewport)
   strict private
-    FDefaultViewport: boolean;
+    FDefaultViewport: Boolean;
     {$warnings off} // using deprecated in deprecated
     FViewports: TCastleViewportList;
     {$warnings on}
@@ -1144,7 +1144,7 @@ type
     procedure SetMoveLimit(const Value: TBox3D);
     function GetTimeScale: Single;
     procedure SetTimeScale(const Value: Single);
-    procedure SetDefaultViewport(const Value: boolean);
+    procedure SetDefaultViewport(const Value: Boolean);
     function GetMainCamera: TCastleCamera;
     procedure SetMainCamera(const Value: TCastleCamera);
     function GetMainSceneInternal: TCastleScene;
@@ -1212,7 +1212,7 @@ type
       uses, you can turn this off, and use explicit TCastleViewport
       (connected to this scene manager by TCastleViewport.SceneManager property)
       for making your world visible. }
-    property DefaultViewport: boolean
+    property DefaultViewport: Boolean
       read FDefaultViewport write SetDefaultViewport default true;
 
     property FullSize default true;
@@ -1387,7 +1387,7 @@ begin
   CapturePointingDevice := nil;
 end;
 
-function TCastleViewport.FillsWholeContainer: boolean;
+function TCastleViewport.FillsWholeContainer: Boolean;
 begin
   if Container = nil then
     Result := FullSize
@@ -1484,7 +1484,7 @@ begin
   end;
 end;
 
-function TCastleViewport.Press(const Event: TInputPressRelease): boolean;
+function TCastleViewport.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1506,7 +1506,7 @@ begin
     Exit(ExclusiveEvents);
 end;
 
-function TCastleViewport.Release(const Event: TInputPressRelease): boolean;
+function TCastleViewport.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or Items.Paused then Exit;
@@ -1523,7 +1523,7 @@ begin
     Exit(ExclusiveEvents);
 end;
 
-function TCastleViewport.Motion(const Event: TInputMotion): boolean;
+function TCastleViewport.Motion(const Event: TInputMotion): Boolean;
 
   { Call Transform.PointingDeviceRelease with CancelAction = true. }
   procedure PointingDeviceCancel(const Transform: TCastleTransform);
@@ -1538,7 +1538,7 @@ function TCastleViewport.Motion(const Event: TInputMotion): boolean;
     end;
   end;
 
-  function IsTouchSensorActiveInScene(const Scene: TCastleTransform): boolean;
+  function IsTouchSensorActiveInScene(const Scene: TCastleTransform): Boolean;
   var
     ActiveSensorsList: TX3DNodeList;
     I: Integer;
@@ -1681,7 +1681,7 @@ begin
 end;
 
 procedure TCastleViewport.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   SecondsPassedScaled: Single;
 
@@ -1738,7 +1738,7 @@ begin
   DoScheduledVisibleChangeNotification;
 end;
 
-function TCastleViewport.AllowSuspendForInput: boolean;
+function TCastleViewport.AllowSuspendForInput: Boolean;
 begin
   Result := Items.Paused;
 end;
@@ -2016,7 +2016,7 @@ begin
     Result := nil;
 end;
 
-function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): boolean;
+function TCastleViewport.MainLightForShadows(out AMainLightPosition: TVector4): Boolean;
 begin
   if Items.MainScene <> nil then
   begin
@@ -2057,7 +2057,7 @@ begin
   {$warnings on}
 end;
 
-function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
+function TCastleViewport.HeadlightInstance(out Instance: TLightInstance): Boolean;
 var
   Node: TAbstractLightNode;
   HC: TCastleCamera;
@@ -2368,7 +2368,7 @@ begin
     Inc(Result);
 end;
 
-function TCastleViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleViewport.ScreenEffectsNeedDepth: Boolean;
 begin
   if ScreenSpaceAmbientOcclusion then
     SSAOShaderInitialize;
@@ -2436,13 +2436,13 @@ begin
   inherited;
 end;
 
-function TCastleViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
+function TCastleViewport.ScreenSpaceAmbientOcclusionAvailable: Boolean;
 begin
   SSAOShaderInitialize;
   Result := (SSAOShader <> nil);
 end;
 
-procedure TCastleViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
+procedure TCastleViewport.SetScreenSpaceAmbientOcclusion(const Value: Boolean);
 begin
   if FScreenSpaceAmbientOcclusion <> Value then
   begin
@@ -2517,7 +2517,7 @@ begin
   Result := FInternalWalkNavigation;
 end;
 
-function TCastleViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
+function TCastleViewport.ExamineNavigation(const SwitchNavigationTypeIfNeeded: Boolean): TCastleExamineNavigation;
 var
   NewNavigation: TCastleExamineNavigation;
 begin
@@ -2547,14 +2547,14 @@ begin
   Result := Navigation as TCastleExamineNavigation;
 end;
 
-function TCastleViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleExamineNavigation;
+function TCastleViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: Boolean): TCastleExamineNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := ExamineNavigation(SwitchNavigationTypeIfNeeded);
   {$warnings on}
 end;
 
-function TCastleViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
+function TCastleViewport.WalkNavigation(const SwitchNavigationTypeIfNeeded: Boolean): TCastleWalkNavigation;
 var
   NewNavigation: TCastleWalkNavigation;
 begin
@@ -2584,7 +2584,7 @@ begin
   Result := Navigation as TCastleWalkNavigation;
 end;
 
-function TCastleViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TCastleWalkNavigation;
+function TCastleViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: Boolean): TCastleWalkNavigation;
 begin
   {$warnings off} // using deprecated in deprecated
   Result := WalkNavigation(SwitchNavigationTypeIfNeeded);
@@ -2964,7 +2964,7 @@ begin
   Result := Items.MainScene;
 end;
 
-function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): boolean;
+function TCastleViewport.MouseRayHitContains(const Item: TCastleTransform): Boolean;
 begin
   Result := (MouseRayHit <> nil) and
             (MouseRayHit.IndexOfItem(Item) <> -1);
@@ -3132,7 +3132,7 @@ function TCastleViewport.PointingDevicePress: Boolean;
 
   { Pass pointing device (mouse or touch) press event
     to TCastleTransform instances in @link(Items) hit by RayHit. }
-  function PointingDevicePressCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
+  function PointingDevicePressCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): Boolean;
 
     function CallPress(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
@@ -3175,7 +3175,7 @@ var
   { Try PointingDevicePressCore on stuff hit by ray,
     with ray moved by given number of screen pixels from current mouse position.
     Call only if MousePosition is already assigned. }
-  function TryActivateAround(const Change: TVector2): boolean;
+  function TryActivateAround(const Change: TVector2): Boolean;
   var
     RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
@@ -3187,7 +3187,7 @@ var
     finally FreeAndNil(RayHit) end;
   end;
 
-  function TryActivateAroundSquare(const Change: Single): boolean;
+  function TryActivateAroundSquare(const Change: Single): Boolean;
   begin
     Result := TryActivateAround(Vector2(-Change, -Change)) or
               TryActivateAround(Vector2(-Change, +Change)) or
@@ -3224,7 +3224,7 @@ function TCastleViewport.PointingDeviceRelease: Boolean;
 
   { Pass pointing device (mouse or touch) release event
     to TCastleTransform instances in @link(Items) hit by RayHit. }
-  function PointingDeviceReleaseCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
+  function PointingDeviceReleaseCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): Boolean;
 
     function CallRelease(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
@@ -3275,11 +3275,11 @@ begin
   Result := PointingDeviceReleaseCore(MouseRayHit, MouseRayOrigin, MouseRayDirection);
 end;
 
-function TCastleViewport.PointingDeviceMove: boolean;
+function TCastleViewport.PointingDeviceMove: Boolean;
 
   { Pass pointing device (mouse or touch) move event
     to TCastleTransform instances in @link(Items) hit by RayHit. }
-  function PointingDeviceMoveCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): boolean;
+  function PointingDeviceMoveCore(const RayHit: TRayCollision; const RayOrigin, RayDirection: TVector3): Boolean;
 
     function CallMove(const Pick: TRayCollisionNode; const Distance: Single): Boolean;
     begin
@@ -3336,7 +3336,7 @@ begin
 end;
 
 procedure TCastleViewport.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean = false);
+  const ChangeInitiatedByChildren: Boolean = false);
 
   procedure CameraChange;
   var
@@ -3415,7 +3415,7 @@ end;
 
 function TCastleViewport.NavigationHeight(const Sender: TCastleNavigation;
   const Position: TVector3;
-  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): Boolean;
 begin
   { Both version result in calling WorldHeight.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
@@ -3571,7 +3571,7 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
+procedure TCastleSceneManager.SetDefaultViewport(const Value: Boolean);
 begin
   if Value <> FDefaultViewport then
   begin

@@ -41,7 +41,7 @@ private
   PluginStruct: TNPSetWindowCallbackStruct;
   {$endif}
 
-  function HandleXEvent(const Event: TXEvent): boolean;
+  function HandleXEvent(const Event: TXEvent): Boolean;
   procedure UpdateCursor;
 {$endif read_window_interface}
 
@@ -51,7 +51,7 @@ private
   FXDisplayName: string;
   {$endif}
   FXScreen: Integer;
-  InitializeXDisplayDone: boolean;
+  InitializeXDisplayDone: Boolean;
   XCursors: array [TMouseCursor] of TCursor;
   FXDisplay: PDisplay;
 
@@ -85,7 +85,7 @@ private
   procedure InitializeXDisplay;
 
 public
-  function HandleXEvent(Event: TXEvent): boolean;
+  function HandleXEvent(Event: TXEvent): Boolean;
 
   {$ifndef CASTLE_ENGINE_PLUGIN}
   { X display name used to communicate with X server (to open windows,
@@ -458,7 +458,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
  Result := true;
 end;
@@ -488,7 +488,7 @@ begin
   { does nothing }
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
@@ -505,7 +505,7 @@ begin
   { does nothing }
 end;
 
-function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
+function TCastleWindowBase.HandleXEvent(const Event: TXEvent): Boolean;
 
   procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
@@ -586,7 +586,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): boolean;
     DoResize(xEvent.width, xEvent.height, false);
   end;
 
-  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): boolean;
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TCastleMouseButton): Boolean;
   begin
     result := true;
     case button of
@@ -842,7 +842,7 @@ begin
   Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
 end;
 
-function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
+function TCastleApplication.HandleXEvent(Event: TXEvent): Boolean;
 var
   Window: TCastleWindowBase;
 begin

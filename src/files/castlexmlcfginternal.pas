@@ -84,7 +84,7 @@ type
     Doc: TXMLDocument;
     FModified: Boolean;
     procedure Loaded; override;
-    function FindNode(const APath: String; PathHasValue: boolean): TDomNode;
+    function FindNode(const APath: String; PathHasValue: Boolean): TDomNode;
     function Escape(const s: String): String;
   public
     constructor Create(AOwner: TComponent); override;
@@ -347,7 +347,7 @@ begin
 end;
 
 function TXMLConfig.FindNode(const APath: String;
-  PathHasValue: boolean): TDomNode;
+  PathHasValue: Boolean): TDomNode;
 var
   NodePath: String;
   StartPos, EndPos: integer;

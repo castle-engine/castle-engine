@@ -22,10 +22,10 @@ type
     Content: string;
     FCurrent: Int64;
     SeekPos: Integer;
-    Ended: boolean;
+    Ended: Boolean;
   public
     constructor Create(const PElement: TDOMElement);
-    function GetNext: boolean;
+    function GetNext: Boolean;
     property Current: Int64 read FCurrent;
   end;
 
@@ -40,7 +40,7 @@ begin
   SeekPos := 1;
 end;
 
-function TIntegersParser.GetNext: boolean;
+function TIntegersParser.GetNext: Boolean;
 var
   Token: string;
 begin

@@ -74,7 +74,7 @@ private
 
     @groupBegin }
   function GtkDialogRun(ADialog: PGtkWindow;
-    ok_button, cancel_button: PGtkWidget): boolean;
+    ok_button, cancel_button: PGtkWidget): Boolean;
   function GtkDialogRun(ADialog: PGtkDialog): gint;
   { @groupEnd }
   procedure GetInitialCursorPos;
@@ -127,7 +127,7 @@ private
 
   FXDisplayName: string;
 
-  InitializeXDisplayDone: boolean;
+  InitializeXDisplayDone: Boolean;
 
   XDisplayGdk: PGdkDisplay;
   XScreenGdk: PGdkScreen;
@@ -264,7 +264,7 @@ end;
 { Converts GDK mouse button number (from GdkEventButton.button)
   to TCastleMouseButton. Returns false (and does not change mb) if such
   button number cannot be represented as TCastleMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): boolean;
+function ButtonNumberToMouseButton(bn: guint; out mb: TCastleMouseButton): Boolean;
 begin
   { No need to implement this using dirty typecasts, it's simple enough
     to do it type-safe. }
@@ -1103,7 +1103,7 @@ type
     PDialogData will be passed as a 2nd argument to signals
     (and 3rd argument to events) associated with dialog boxes. }
   TDialogData = record
-    Answered: boolean; { = false }
+    Answered: Boolean; { = false }
     Answer: gint;
   end;
   PDialogData = ^TDialogData;
@@ -1145,7 +1145,7 @@ begin
 end;
 
 function TCastleWindowBase.GtkDialogRun(ADialog: PGtkWindow;
-  ok_button, cancel_button: PGtkWidget): boolean;
+  ok_button, cancel_button: PGtkWidget): Boolean;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1215,7 +1215,7 @@ begin
   Result := Data.Answer;
 end;
 
-function GtkVersionAtLeast(const Major, Minor, Micro: Cardinal): boolean;
+function GtkVersionAtLeast(const Major, Minor, Micro: Cardinal): Boolean;
 begin
   Result :=
      (gtk_major_version > Major) or
@@ -1226,7 +1226,7 @@ begin
 end;
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 
 { FileChooser is available only in GTK >= 2.4.
   We assume that everyone with GTK 2 has also newer GTK 2, >= 2.4.
@@ -1234,7 +1234,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   GtkFileSelection is removed.  }
 
 var
-  HasDefaultFilter: boolean;
+  HasDefaultFilter: Boolean;
 
   procedure DialogAddFilters(Dialog: PGtkFileChooserDialog;
     FileFilters: TFileFilterList);
@@ -1392,7 +1392,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1439,7 +1439,7 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): Boolean;
 var
   Dialog: PGtkMessageDialog;
   SNew: string;
@@ -1566,7 +1566,7 @@ begin
     We need to use our ProcessMessage to call our ProcessUpdates. }
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 begin
   { Basically, call gtk_main_iteration (equivalent to
     gtk_main_iteration_do with parameter blocking = always true),
@@ -1598,9 +1598,9 @@ begin
   end;
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 var
-  WasAnyMessage: boolean;
+  WasAnyMessage: Boolean;
 begin
   (* Note that gtk_main_iteration_do result is not useful to us.
      That is, we can't just call here

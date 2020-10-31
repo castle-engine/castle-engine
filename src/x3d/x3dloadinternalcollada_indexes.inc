@@ -35,9 +35,9 @@ type
       const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     destructor Destroy; override;
     procedure BeginElement(const PElement: TDOMElement);
-    function ReadVertex(out Index: TIndex): boolean;
-    function ReadAddVertex(out Index: TIndex): boolean; overload;
-    function ReadAddVertex: boolean; overload;
+    function ReadVertex(out Index: TIndex): Boolean;
+    function ReadAddVertex(out Index: TIndex): Boolean; overload;
+    function ReadAddVertex: Boolean; overload;
     procedure AddVertex(const Index: TIndex);
     procedure PolygonEnd;
   end;
@@ -73,7 +73,7 @@ end;
 const
   EmptyIndex: TIndex = (Coord: -1; TexCoord: -1; Normal: -1);
 
-function TColladaIndexes.ReadVertex(out Index: TIndex): boolean;
+function TColladaIndexes.ReadVertex(out Index: TIndex): Boolean;
 var
   I: Integer;
 begin
@@ -99,14 +99,14 @@ begin
   Result := true;
 end;
 
-function TColladaIndexes.ReadAddVertex(out Index: TIndex): boolean;
+function TColladaIndexes.ReadAddVertex(out Index: TIndex): Boolean;
 begin
   Result := ReadVertex(Index);
   if Result then
     AddVertex(Index);
 end;
 
-function TColladaIndexes.ReadAddVertex: boolean;
+function TColladaIndexes.ReadAddVertex: Boolean;
 var
   IgnoreIndex: TIndex;
 begin

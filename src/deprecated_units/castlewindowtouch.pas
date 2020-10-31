@@ -44,12 +44,12 @@ type
     navigation type of the camera (examine, walk, fly...). }
   TCastleWindowTouch = class(TCastleWindow)
   private
-    FAutomaticTouchInterface: boolean;
-    FControl: array [boolean { right side? }] of TCastleTouchControl;
+    FAutomaticTouchInterface: Boolean;
+    FControl: array [Boolean { right side? }] of TCastleTouchControl;
     FTouchInterface: TTouchInterface;
     FAutomaticWalkTouchCtl, FAutomaticExamineTouchCtl: TTouchInterface;
     procedure SetTouchInterface(const Value: TTouchInterface);
-    procedure SetAutomaticTouchInterface(const Value: boolean);
+    procedure SetAutomaticTouchInterface(const Value: Boolean);
     procedure SetAutomaticWalkTouchCtl(const Value: TTouchInterface);
     procedure SetAutomaticExamineTouchCtl(const Value: TTouchInterface);
     { Sets touch controls depending on the current navigation mode.
@@ -79,7 +79,7 @@ type
       touch controls) based on the current navigation type.
       The navigation type is obtained from the camera of the default viewport,
       see TCastleWindow.NavigationType. }
-    property AutomaticTouchInterface: boolean
+    property AutomaticTouchInterface: Boolean
       read FAutomaticTouchInterface write SetAutomaticTouchInterface
       default false;
     { When using AutomaticTouchInterface = @true,
@@ -119,7 +119,7 @@ end;
 procedure TCastleWindowTouch.DoUpdate;
 var
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
-  RightSide: boolean;
+  RightSide: Boolean;
 begin
   inherited;
 
@@ -129,7 +129,7 @@ begin
     Tx := 0; Ty := 0; Tz := 0; TLength := 0;
     Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
 
-    for RightSide in boolean do
+    for RightSide in Boolean do
       if FControl[RightSide] <> nil then
       begin
         FControl[RightSide].GetSensorTranslation(Tx, Ty, Tz, TLength);
@@ -147,7 +147,7 @@ end;
 procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchInterface);
 
   procedure UpdateTouchController(
-    const RightSide, CtlVisible: boolean; const Mode: TCastleTouchCtlMode);
+    const RightSide, CtlVisible: Boolean; const Mode: TCastleTouchCtlMode);
   var
     NewControl: TCastleTouchControl;
   begin
@@ -171,7 +171,7 @@ procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchInterface);
 
   procedure UpdateTouchControllers(
     const MouseDragMode: TMouseDragMode;
-    const LeftVisible, RightVisible: boolean;
+    const LeftVisible, RightVisible: Boolean;
     const LeftMode: TCastleTouchCtlMode = ctcmWalking;
     const RightMode: TCastleTouchCtlMode = ctcmWalking);
   begin
@@ -221,7 +221,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.SetAutomaticTouchInterface(const Value: boolean);
+procedure TCastleWindowTouch.SetAutomaticTouchInterface(const Value: Boolean);
 begin
   if FAutomaticTouchInterface <> Value then
   begin

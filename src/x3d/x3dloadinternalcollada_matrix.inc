@@ -54,7 +54,7 @@ var
   SeekPos: Integer;
   Content: string;
 
-  function ReadVector(out Vector: TVector3): boolean;
+  function ReadVector(out Vector: TVector3): Boolean;
   var
     Token: string;
     I: Integer;

@@ -79,7 +79,7 @@ type
 
       Note that the returned Value may be empty, even when this returns @true,
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
-    function AttributeString(const AttrName: string; var Value: string): boolean; overload;
+    function AttributeString(const AttrName: string; var Value: string): Boolean; overload;
     {$endif}
 
     { Read from Element attribute value as URL and returns @true,
@@ -88,32 +88,32 @@ type
 
       Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute. }
-    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean; overload;
+    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): Boolean; overload;
 
     { Read from Element attribute value as Cardinal and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean; overload;
+    function AttributeCardinal(const AttrName: string; var Value: Cardinal): Boolean; overload;
 
     { Read from Element attribute value as Integer and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInteger(const AttrName: string; var Value: Integer): boolean; overload;
+    function AttributeInteger(const AttrName: string; var Value: Integer): Boolean; overload;
 
     { Read from Element attribute value as Int64 and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInt64(const AttrName: string; var Value: Int64): boolean; overload;
+    function AttributeInt64(const AttrName: string; var Value: Int64): Boolean; overload;
 
     { Read from Element attribute value as QWord and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeQWord(const AttrName: string; var Value: QWord): boolean; overload;
+    function AttributeQWord(const AttrName: string; var Value: QWord): Boolean; overload;
 
     { Read from Element attribute value as Single and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeSingle(const AttrName: string; var Value: Single): boolean; overload;
+    function AttributeSingle(const AttrName: string; var Value: Single): Boolean; overload;
 
     { Read from Element attribute value as Float and returns @true,
       or (if there is no such attribute) returns @false
@@ -124,50 +124,50 @@ type
       It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
       Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression). }
-    function AttributeFloat(const AttrName: string; var Value: Float): boolean; overload;
+    function AttributeFloat(const AttrName: string; var Value: Float): Boolean; overload;
 
     { Read from Element attribute value as Boolean and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
-      A boolean value is interpreted just like FPC's TXMLConfig
+      A Boolean value is interpreted just like FPC's TXMLConfig
       objects: true is designated by word @code(true), false by word
       @code(false), case is ignored.
       If attribute exists but it's value
       is not @code(true) or @code(false), then returns @false and doesn't
       modify Value paramater. So behaves just like the attribute didn't exist. }
-    function AttributeBoolean(const AttrName: string; var Value: boolean): boolean; overload;
+    function AttributeBoolean(const AttrName: string; var Value: Boolean): Boolean; overload;
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean; overload;
+    function AttributeColor(const AttrName: string; var Value: TCastleColor): Boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean; overload;
+    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): Boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector2(const AttrName: string; var Value: TVector2): boolean; overload;
+    function AttributeVector2(const AttrName: string; var Value: TVector2): Boolean; overload;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector3(const AttrName: string; var Value: TVector3): boolean; overload;
+    function AttributeVector3(const AttrName: string; var Value: TVector3): Boolean; overload;
 
     { Read from Element attribute as a 4D vector(4 floats, e.g. rotation), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector4(const AttrName: string; var Value: TVector4): boolean; overload;
+    function AttributeVector4(const AttrName: string; var Value: TVector4): Boolean; overload;
 
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
@@ -229,9 +229,9 @@ type
       @raises EDOMAttributeMissing }
     function AttributeFloat(const AttrName: string): Float; overload;
 
-    { Retrieves from Element given attribute as a boolean,
+    { Retrieves from Element given attribute as a Boolean,
       raises EDOMAttributeMissing if missing or has invalid value.
-      A boolean value is interpreted just like FPC's TXMLConfig
+      A Boolean value is interpreted just like FPC's TXMLConfig
       objects: true is designated by word @code(true), false by word
       @code(false), case is ignored.
 
@@ -240,7 +240,7 @@ type
       So behaves just like the attribute didn't exist.
 
       @raises EDOMAttributeMissing }
-    function AttributeBoolean(const AttrName: string): boolean; overload;
+    function AttributeBoolean(const AttrName: string): Boolean; overload;
 
     { Retrieves from Element given attribute as a color,
       raises EDOMAttributeMissing if missing or has invalid format.
@@ -298,9 +298,9 @@ type
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpressionDef). }
     function AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
 
-    { Retrieves from Element given attribute as a boolean,
+    { Retrieves from Element given attribute as a Boolean,
       returns a default value if missing or has invalid value. }
-    function AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+    function AttributeBooleanDef(const AttrName: string; const DefaultValue: Boolean): Boolean;
 
     { Retrieves from Element given attribute as a color, or a default value. }
     function AttributeColorDef(const AttrName: string; const DefaultValue: TCastleColor): TCastleColor;
@@ -326,9 +326,9 @@ type
       but provided here for consistency with other AttributeSet overloads. }
     procedure AttributeSet(const AttrName: string; const Value: string); overload;
 
-    { Set the attribute as boolean,
+    { Set the attribute as Boolean,
       such that it's readable back by @link(AttributeBoolean) and @link(AttributeBooleanDef). }
-    procedure AttributeSet(const AttrName: string; const Value: boolean); overload;
+    procedure AttributeSet(const AttrName: string; const Value: Boolean); overload;
 
     { Set the attribute as Integer,
       such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
@@ -387,10 +387,10 @@ type
 
       @raises(EDOMChildElementError
         If child not found (or found more than once), and Required = @true.)  }
-    function Child(const ChildName: string; const Required: boolean = true): TDOMElement;
+    function Child(const ChildName: string; const Required: Boolean = true): TDOMElement;
 
     { Same as @link(Child). }
-    function ChildElement(const ChildName: string; const Required: boolean = true): TDOMElement;
+    function ChildElement(const ChildName: string; const Required: Boolean = true): TDOMElement;
 
     { Create a new child element under this element, and return it. }
     function CreateChild(const ChildName: string): TDOMElement;
@@ -495,7 +495,7 @@ type
     FCurrent: TDOMElement;
   public
     constructor Create(ParentElement: TDOMElement);
-    function GetNext: boolean; virtual;
+    function GetNext: Boolean; virtual;
     property Current: TDOMElement read FCurrent;
     procedure Rewind;
     function Count: Integer;
@@ -507,7 +507,7 @@ type
     FTagName: DOMString;
   public
     constructor Create(ParentElement: TDOMElement; const TagName: string);
-    function GetNext: boolean; override;
+    function GetNext: Boolean; override;
   end;
 
   { Iterate over all CDATA nodes of given XML element.
@@ -535,7 +535,7 @@ type
   public
     constructor Create(ParentElement: TDOMElement);
     destructor Destroy; override;
-    function GetNext: boolean;
+    function GetNext: Boolean;
     property Current: string read FCurrent;
   end;
 
@@ -547,39 +547,39 @@ type
 
   @deprecated Deprecated, use Element.AttributeString instead. }
 function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+  const AttrName: string; var Value: string): Boolean;
   deprecated 'use helper method AttributeString on TDOMElement';
 
 { Like DOMGetAttribute, but reads Cardinal value.
 
   @deprecated Deprecated, use Element.AttributeCardinal instead. }
 function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: string; var Value: Cardinal): Boolean;
   deprecated 'use helper method AttributeCardinal on TDOMElement';
 
 { Like DOMGetAttribute, but reads Integer value.
 
   @deprecated Deprecated, use Element.AttributeInteger instead. }
 function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: string; var Value: Integer): Boolean;
   deprecated 'use helper method AttributeInteger on TDOMElement';
 
 { Like DOMGetAttribute, but reads Single value.
 
   @deprecated Deprecated, use Element.AttributeSingle instead. }
 function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: string; var Value: Single): Boolean;
   deprecated 'use helper method AttributeSingle on TDOMElement';
 
 { Like DOMGetAttribute, but reads Float value.
 
   @deprecated Deprecated, use Element.AttributeFloat instead. }
 function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: string; var Value: Float): Boolean;
   deprecated 'use helper method AttributeFloat on TDOMElement';
 
 { Like DOMGetAttribute, but reads Boolean value.
-  A boolean value is interpreted just like FPC's TXMLConfig
+  A Boolean value is interpreted just like FPC's TXMLConfig
   objects: true is designated by word @code(true), false by word
   @code(false), case is ignored.
 
@@ -589,7 +589,7 @@ function DOMGetFloatAttribute(const Element: TDOMElement;
 
   @deprecated Deprecated, use Element.AttributeBoolean instead. }
 function DOMGetBooleanAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: string; var Value: Boolean): Boolean;
   deprecated 'use helper method AttributeBoolean on TDOMElement';
 
 { Returns the @italic(one and only) child element of this Element.
@@ -601,7 +601,7 @@ function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
   deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
 
 function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+  const ChildName: string; RaiseOnError: Boolean): TDOMElement;
   deprecated 'use TDOMElement helper called ChildElement';
 
 function DOMGetTextData(const Element: TDOMElement): string;
@@ -682,7 +682,7 @@ end;
   Get an optional attribute to a "var" parameter, returns if found. }
 
 {$ifdef FPC}
-function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): boolean;
+function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): Boolean;
 var
   AttrNode: TDOMNode;
 begin
@@ -698,7 +698,7 @@ end;
 {$endif}
 
 function TDOMElementHelper.AttributeURL(
-  const AttrName: string; const BaseUrl: string; var URL: string): boolean;
+  const AttrName: string; const BaseUrl: string; var URL: string): Boolean;
 begin
   Result := AttributeString(AttrName, URL);
   if Result then
@@ -706,7 +706,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeCardinal(
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: string; var Value: Cardinal): Boolean;
 var
   ValueStr: string;
 begin
@@ -716,7 +716,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeInteger(
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: string; var Value: Integer): Boolean;
 var
   ValueStr: string;
 begin
@@ -726,7 +726,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeInt64(
-  const AttrName: string; var Value: Int64): boolean;
+  const AttrName: string; var Value: Int64): Boolean;
 var
   ValueStr: string;
 begin
@@ -736,7 +736,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeQWord(
-  const AttrName: string; var Value: QWord): boolean;
+  const AttrName: string; var Value: QWord): Boolean;
 var
   ValueStr: string;
 begin
@@ -746,7 +746,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeSingle(
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: string; var Value: Single): Boolean;
 var
   ValueStr: string;
 begin
@@ -756,7 +756,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeFloat(
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: string; var Value: Float): Boolean;
 var
   ValueStr: string;
 begin
@@ -766,7 +766,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeBoolean(
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: string; var Value: Boolean): Boolean;
 var
   ValueStr: string;
 begin
@@ -782,7 +782,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeColor(
-  const AttrName: string; var Value: TCastleColor): boolean;
+  const AttrName: string; var Value: TCastleColor): Boolean;
 var
   ValueStr: string;
 begin
@@ -792,7 +792,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeColorRGB(
-  const AttrName: string; var Value: TCastleColorRGB): boolean;
+  const AttrName: string; var Value: TCastleColorRGB): Boolean;
 var
   ValueStr: string;
 begin
@@ -802,7 +802,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector2(
-  const AttrName: string; var Value: TVector2): boolean;
+  const AttrName: string; var Value: TVector2): Boolean;
 var
   ValueStr: string;
 begin
@@ -812,7 +812,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector3(
-  const AttrName: string; var Value: TVector3): boolean;
+  const AttrName: string; var Value: TVector3): Boolean;
 var
   ValueStr: string;
 begin
@@ -822,7 +822,7 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector4(
-  const AttrName: string; var Value: TVector4): boolean;
+  const AttrName: string; var Value: TVector4): Boolean;
 var
   ValueStr: string;
 begin
@@ -883,10 +883,10 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeBoolean(const AttrName: string): boolean;
+function TDOMElementHelper.AttributeBoolean(const AttrName: string): Boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
-    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (Boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
 function TDOMElementHelper.AttributeColor(const AttrName: string): TCastleColor;
@@ -965,7 +965,7 @@ begin
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+function TDOMElementHelper.AttributeBooleanDef(const AttrName: string; const DefaultValue: Boolean): Boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
     Result := DefaultValue;
@@ -1008,7 +1008,7 @@ begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value));
 end;
 
-procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Boolean);
 begin
   SetAttribute(UTF8Decode(AttrName), UTF8Decode(SysUtils.BoolToStr(Value, true)));
 end;
@@ -1057,13 +1057,13 @@ end;
   TDOMElementHelper: Other methods. }
 
 function TDOMElementHelper.ChildElement(const ChildName: string;
-  const Required: boolean): TDOMElement;
+  const Required: Boolean): TDOMElement;
 begin
   Result := Child(ChildName, Required);
 end;
 
 function TDOMElementHelper.Child(const ChildName: string;
-  const Required: boolean): TDOMElement;
+  const Required: Boolean): TDOMElement;
 var
   Children: TDOMNodeList;
   Node: TDOMNode;
@@ -1169,7 +1169,7 @@ begin
   Result := ChildNodes.Count;
 end;
 
-function TXMLElementIterator.GetNext: boolean;
+function TXMLElementIterator.GetNext: Boolean;
 var
   ChildNode: TDOMNode;
 begin
@@ -1201,7 +1201,7 @@ begin
   FTagName := UTF8Decode(TagName);
 end;
 
-function TXMLElementFilteringIterator.GetNext: boolean;
+function TXMLElementFilteringIterator.GetNext: Boolean;
 begin
   repeat
     Result := inherited GetNext;
@@ -1222,7 +1222,7 @@ begin
   inherited;
 end;
 
-function TXMLCDataIterator.GetNext: boolean;
+function TXMLCDataIterator.GetNext: Boolean;
 var
   ChildNode: TDOMNode;
 begin
@@ -1249,43 +1249,43 @@ end;
 { globals -------------------------------------------------------------------- }
 
 function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+  const AttrName: string; var Value: string): Boolean;
 begin
   Result := Element.AttributeString(AttrName, Value);
 end;
 
 function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: string; var Value: Cardinal): Boolean;
 begin
   Result := Element.AttributeCardinal(AttrName, Value);
 end;
 
 function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: string; var Value: Integer): Boolean;
 begin
   Result := Element.AttributeInteger(AttrName, Value);
 end;
 
 function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: string; var Value: Single): Boolean;
 begin
   Result := Element.AttributeSingle(AttrName, Value);
 end;
 
 function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: string; var Value: Float): Boolean;
 begin
   Result := Element.AttributeFloat(AttrName, Value);
 end;
 
 function DOMGetBooleanAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: boolean): boolean;
+  const AttrName: string; var Value: Boolean): Boolean;
 begin
   Result := Element.AttributeBoolean(AttrName, Value);
 end;
 
 function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+  const ChildName: string; RaiseOnError: Boolean): TDOMElement;
 begin
   Result := Element.ChildElement(ChildName, RaiseOnError);
 end;
@@ -1377,7 +1377,7 @@ procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 var
   Stream: TStream;
   StreamOptions: TStreamOptions;
-  Gzipped: boolean;
+  Gzipped: Boolean;
 begin
   Doc := nil; // clean "out" param at start, just like ReadXMLFile
 
@@ -1440,7 +1440,7 @@ procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 var
   Stream: TStream;
   StreamOptions: TSaveStreamOptions;
-  gzipped: boolean;
+  gzipped: Boolean;
 begin
   //guess gzipped based on file extension
   StreamOptions := [];

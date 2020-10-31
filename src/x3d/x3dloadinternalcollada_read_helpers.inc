@@ -44,7 +44,7 @@ end;
   or when text cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Float): boolean; overload;
+  var Value: Float): Boolean; overload;
 var
   Child: TDOMElement;
 begin
@@ -57,7 +57,7 @@ begin
 end;
 
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Single): boolean; overload;
+  var Value: Single): Boolean; overload;
 var
   ValueFloat: Float;
 begin
@@ -74,7 +74,7 @@ end;
   or when cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
 function ReadChildVector(Element: TDOMElement; const ChildTagName: string;
-  var Value: TVector3): boolean;
+  var Value: TVector3): Boolean;
 var
   Child: TDOMElement;
 begin

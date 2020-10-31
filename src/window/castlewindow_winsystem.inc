@@ -27,8 +27,8 @@ private
     This ProcessMessage2 is useful to implement ProcessAllMessages.
     ActuallyProcessMessage is implemented using ProcessMessage2
     (and simply ignoring WasAnyMessage). }
-  function ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
-    var WasAnyMessage: boolean): boolean;
+  function ProcessMessage2(WaitForMessage, WaitToLimitFPS: Boolean;
+    var WasAnyMessage: Boolean): Boolean;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -54,9 +54,9 @@ private
 
 { TCastleApplication ---------------------------------------------------------- }
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: Boolean;
 var
-  WasAnyMessage: boolean;
+  WasAnyMessage: Boolean;
   {$ifdef CASTLE_ENGINE_PLUGIN}
   I: Integer;
   {$endif}
@@ -73,15 +73,15 @@ begin
   {$endif CASTLE_ENGINE_PLUGIN}
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: Boolean): Boolean;
 var
-  Dummy: boolean;
+  Dummy: Boolean;
 begin
   Result := ProcessMessage2(WaitForMessage, WaitToLimitFPS, Dummy);
 end;
 
-function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
-  var WasAnyMessage: boolean): boolean;
+function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: Boolean;
+  var WasAnyMessage: Boolean): Boolean;
 
   { CheckMessage sprawdza czy jest jakis message w naszej queue,
       jesli tak - laduje go do msg/event i wywoluje HandleEvent i zwraca true,
@@ -132,7 +132,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
     {$endif}
   end;
 
-  function CheckMessage: boolean;
+  function CheckMessage: Boolean;
   {$ifdef CASTLE_WINDOW_WINAPI}
   begin
     Result := true;
@@ -198,7 +198,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   end;
 
 var
-  WasAnyRendering: boolean;
+  WasAnyRendering: Boolean;
 begin
   WasAnyMessage := false;
 

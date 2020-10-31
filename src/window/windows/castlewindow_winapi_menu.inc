@@ -84,7 +84,7 @@
   When other menu creates it's children, it passes
   ParentAllowsEnabled = @true. }
 function MakeWinapiMenuCore(Menu: TMenu;
-  MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
+  MenuBar: Boolean; ParentAllowsEnabled: Boolean): HMenu;
 
   function SMnemonicsToWin(const S: string): string;
   var
@@ -124,14 +124,14 @@ function MakeWinapiMenuCore(Menu: TMenu;
     SetLength(Result, ResultPos - 1);
   end;
 
-  function EnabledFlag(Enabled: boolean): UInt;
+  function EnabledFlag(Enabled: Boolean): UInt;
   begin
     if Enabled then
       Result := MF_ENABLED else
       Result := MF_GRAYED;
   end;
 
-  procedure AppendGLMenu(Menu: TMenu; ParentAllowsEnabled: boolean);
+  procedure AppendGLMenu(Menu: TMenu; ParentAllowsEnabled: Boolean);
   begin
     { I'm casting MakeWinapiMenu result (:HMenu)
       to UINT to avoid range check errors }
@@ -141,7 +141,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
       PChar(SMnemonicsToWin(Menu.Caption))) );
   end;
 
-  procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: boolean);
+  procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: Boolean);
   var
     Flags: UInt;
     KeyStr, S: string;
@@ -215,7 +215,7 @@ end;
   If MenuBar then TMenuSeparator entries in Menu.Entries[] are ignored
   (WinAPI toplevel menu bar cannot have a separator, that's quite sensible
   actually). Of course separators at lower depths are not ignored. }
-function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
+function MakeWinapiMenu(Menu: TMenu; MenuBar: Boolean): HMenu;
 begin
   Result := MakeWinapiMenuCore(Menu, MenuBar, Menu.Enabled);
 end;

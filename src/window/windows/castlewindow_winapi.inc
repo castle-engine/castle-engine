@@ -52,7 +52,7 @@ private
   h_Wnd: HWND;
   { InCloseBackend = true means we are currently inside CloseBackend call.
     Useful -- see at WM_ACTIVATE. }
-  InCloseBackend: boolean;
+  InCloseBackend: Boolean;
 
   EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
 
@@ -62,7 +62,7 @@ private
   VK_Semicolon_Exists,
   VK_Slash_Exists,
   VK_BackQuote_Exists,
-  VK_BackSlash_Exists: boolean;
+  VK_BackSlash_Exists: Boolean;
   VK_LeftBracket,
   VK_RightBracket,
   VK_Apostrophe,
@@ -85,7 +85,7 @@ private
 {$ifdef read_application_interface}
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
-  DisplaySettingsChanged: boolean;
+  DisplaySettingsChanged: Boolean;
   WndClassName: {$ifdef CASTLE_WINAPI_UNICODE} UnicodeString {$else} String {$endif};
 
   { A private array, initialized in CreateBackend.
@@ -103,9 +103,9 @@ private
     Handle: HCURSOR;
   end;
 
-  fappActive: boolean;
-  procedure SetAppActive(value: boolean);
-  property appActive: boolean read fappActive write SetAppActive;
+  fappActive: Boolean;
+  procedure SetAppActive(value: Boolean);
+  property appActive: Boolean read fappActive write SetAppActive;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -180,7 +180,7 @@ function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
-  function VK_Stored(VK_Exists: boolean; VK_Value: Byte; KeyValue: TKey): boolean;
+  function VK_Stored(VK_Exists: Boolean; VK_Value: Byte; KeyValue: TKey): Boolean;
   begin
     Result := VK_Exists and (VirtualKey = VK_Value);
     if Result then
@@ -269,7 +269,7 @@ begin
     So you will never get KeyDown/Up with keyPrintScreen. }
 end;
 
-function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
+function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): Boolean;
 var
   Window: TCastleWindowBase;
 begin
@@ -349,7 +349,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
     end;
 
-  function InterceptedSystemKey(key: integer): boolean;
+  function InterceptedSystemKey(key: integer): Boolean;
   begin
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
@@ -559,7 +559,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   end;
 
 var
-  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
+  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: Boolean;
 begin
   Result := 0;
 
@@ -910,7 +910,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: Boolean;
 begin
   Result := true;
 end;
@@ -949,7 +949,7 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: Boolean;
 begin
   Result := false;
 end;
@@ -1304,7 +1304,7 @@ begin
 end;
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
+  OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
     FilePath contains only a path and will always work as it should.
@@ -1527,7 +1527,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3): Boolean;
 
   function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
@@ -1609,7 +1609,7 @@ begin
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
-  const MessageType: TWindowMessageType): boolean;
+  const MessageType: TWindowMessageType): Boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
 
@@ -1784,7 +1784,7 @@ begin
   if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
 end;
 
-function TCastleApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: Boolean;
 
 {$ifdef VER1_9_6}
 { This is to workaround a bug in FPC 1.9.6.
@@ -1885,7 +1885,7 @@ begin
   end;
 end;
 
-procedure TCastleApplication.SetAppActive(value: boolean);
+procedure TCastleApplication.SetAppActive(value: Boolean);
 begin
   { ponizej : gdy fappActive zmienia sie z true na false musimy
     wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy

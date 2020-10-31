@@ -34,7 +34,7 @@ uses X3DNodes;
     extensions. For example, Material.mirror may be <> 0,
     see [https://castle-engine.io/x3d_extensions.php#section_ext_material_mirror].) }
 function LoadCollada(const URL: string;
-  const AllowKambiExtensions: boolean = false): TX3DRootNode;
+  const AllowKambiExtensions: Boolean = false): TX3DRootNode;
 
 implementation
 
@@ -116,11 +116,11 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
 { LoadCollada ---------------------------------------------------------------- }
 
 function LoadCollada(const URL: string;
-  const AllowKambiExtensions: boolean): TX3DRootNode;
+  const AllowKambiExtensions: Boolean): TX3DRootNode;
 var
   BaseUrl: string;
   ResultModel: TGroupNode absolute Result;
-  Version14: boolean; //< Collada version >= 1.4.x
+  Version14: Boolean; //< Collada version >= 1.4.x
 
   {$define read_interface_nested}
   {$I x3dloadinternalcollada_effects.inc}

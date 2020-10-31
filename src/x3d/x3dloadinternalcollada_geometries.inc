@@ -176,7 +176,7 @@ var
     <extra><technique profile="MAYA"><double_sided>1</double_sided></technique></extra>
     Blender Collada 1.4 exporter, as well as various models from collada.org/owl
     use this, so it seems like a standard in practice. }
-  function ReadDoubleSided(GeometryE: TDOMElement): boolean;
+  function ReadDoubleSided(GeometryE: TDOMElement): Boolean;
   var
     Child: TDOMElement;
     Profile: string;
@@ -322,7 +322,7 @@ var
     Based on <source> indicated by last <vertices> element. }
   Coord: TCoordinateNode;
   { Assigning to Coord using AssignToVectorXYZ went without trouble. }
-  CoordCorrect: boolean;
+  CoordCorrect: Boolean;
 
   { Collada texture coords used by last primitive.
     Based on <source> indicated by <input semantic="TEXCOORD"> element within
@@ -335,7 +335,7 @@ var
   LastNormal: TNormalNode;
 
   { DoubleSided, should be used by ReadPrimitiveCommon to set X3D solid field. }
-  DoubleSided: boolean;
+  DoubleSided: Boolean;
 
   { Read <vertices> within <mesh> }
   procedure ReadVertices(VerticesElement: TDOMElement);
@@ -652,7 +652,7 @@ var
     I: TXMLElementIterator;
     Indexes: TColladaIndexes;
     Vertex1, Vertex2, Vertex3, VertexNext: TIndex;
-    Turn: boolean;
+    Turn: Boolean;
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try

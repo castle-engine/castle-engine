@@ -59,7 +59,7 @@ var
 
   { Read a word expecting the ExpectedValue. Returns @true if found expected,
     otherwise returns @false (and the warning is already emitted). }
-  function ReadExpect(const ExpectedValue: string): boolean;
+  function ReadExpect(const ExpectedValue: string): Boolean;
   var
     S: string;
   begin

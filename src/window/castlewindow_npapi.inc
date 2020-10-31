@@ -69,10 +69,10 @@ type
     Npp: PNPP;
     Window: TNPWindow;
     CastleWindow: TCastleWindowBase;
-    FreeCastleWindow: boolean;
+    FreeCastleWindow: Boolean;
     NamedParameters: TCastleStringList;
     {$ifndef DEBUG_WINDOWLESS}
-    HasEventCheckTimer: boolean;
+    HasEventCheckTimer: Boolean;
     EventCheckTimerId: CUInt32;
     {$endif}
   end;
@@ -83,7 +83,7 @@ var
     For safety (in case C code copies only pointers)
     they are read-only after initialization. }
   PluginName, PluginDescription, PluginMimeDescription, PluginVersion: string;
-  StaticResultsInitialized: boolean = false;
+  StaticResultsInitialized: Boolean = false;
 
 procedure InitializeStaticResults;
 begin
@@ -172,7 +172,7 @@ begin
 end;
 
 {$ifdef MOZ_X11}
-function CheckXEmbedSupport(instance: PNPP): boolean;
+function CheckXEmbedSupport(instance: PNPP): Boolean;
 var
   Err: TNPError;
   SupportsXEmbed: TNPBool;
@@ -214,7 +214,7 @@ end;
 
 {$ifndef DEBUG_WINDOWLESS}
 var
-  InsideTimer: boolean;
+  InsideTimer: Boolean;
 
 procedure EventCheckTimer(instance: PNPP; timerID: CUInt32); extdecl;
 const
@@ -380,7 +380,7 @@ end;
 function NPP_SetWindow(instance: PNPP; window: PNPWindow): TNPError; extdecl;
 var
   InstanceData: PInstanceData;
-  WindowInitialize: boolean;
+  WindowInitialize: Boolean;
 begin
   try
     WritelnLog('Plugin', Format('NPP_SetWindow', []));

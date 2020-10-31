@@ -58,8 +58,8 @@ type
 
   TWavefrontFace = class
     VertIndices, TexCoordIndices, NormalIndices: TLongIntList;
-    HasTexCoords: boolean;
-    HasNormals: boolean;
+    HasTexCoords: Boolean;
+    HasNormals: Boolean;
 
     { Material assigned to this face. @nil means that no material was assigned. }
     Material: TWavefrontMaterial;
@@ -204,7 +204,7 @@ var
         Remember that empty indice may be followed by non-empty,
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
-      procedure ReadIndex(out IndiceExists: boolean;
+      procedure ReadIndex(out IndiceExists: Boolean;
         const IndexList: TLongIntList; const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
@@ -242,7 +242,7 @@ var
       end;
 
     var
-      IndiceHasVertex, IndiceHasTexCoord, IndiceHasNormal: boolean;
+      IndiceHasVertex, IndiceHasTexCoord, IndiceHasNormal: Boolean;
     begin
       VertexSeekPos := 1;
 
@@ -319,7 +319,7 @@ var
 
   procedure ReadMaterials(const URL: string);
   var
-    IsMaterial: boolean;
+    IsMaterial: Boolean;
 
     function ReadRGBColor(const Line: string): TVector3;
     var
@@ -558,7 +558,7 @@ var
   Obj: TObject3DOBJ;
   Faces: TIndexedFaceSetNode;
   I: integer;
-  FacesWithTexCoord, FacesWithNormal: boolean;
+  FacesWithTexCoord, FacesWithNormal: Boolean;
   FacesWithMaterial: TWavefrontMaterial;
   Appearances: TX3DNodeList;
   Shape: TShapeNode;

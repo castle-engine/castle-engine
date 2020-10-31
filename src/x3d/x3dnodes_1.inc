@@ -39,7 +39,7 @@
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
   TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractChildNode)
   public
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -66,8 +66,8 @@
     public property FdWidth: TMFFloat read FFdWidth;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: Boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
@@ -94,16 +94,16 @@
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
   end;
 
   TCubeNode_1 = class(TAbstractGeometryNode_1)
@@ -120,16 +120,16 @@
     public property FdDepth: TSFFloat read FFdDepth;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
   end;
 
   TCylinderNode_1 = class(TAbstractGeometryNode_1)
@@ -146,16 +146,16 @@
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
   end;
 
   { Common base class for VRML 1.0 indexed nodes
@@ -177,14 +177,14 @@
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
     function CoordIndexField: TMFLong; override;
   end;
 
   { Common base class for VRML 1.0 indexed polygon nodes
     (IndexedFaceSet and IndexedTriangleMesh). }
   TIndexedFacesOrTrianglesNode_1 = class(TAbstractIndexedNode_1)
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
@@ -202,21 +202,21 @@
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     function InternalTexCoord(State: TX3DGraphTraverseState;
-      out ATexCoord: TX3DNode): boolean; override;
+      out ATexCoord: TX3DNode): Boolean; override;
   end;
 
   TIndexedLineSetNode_1 = class(TAbstractIndexedNode_1)
     class function ClassX3DType: string; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function InternalTexCoord(State: TX3DGraphTraverseState;
-      out ATexCoord: TX3DNode): boolean; override;
+      out ATexCoord: TX3DNode): Boolean; override;
 
     { Do we have enough normals information to render this node lit.
       VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
       specially: it's unlit if there are not enough normals specified. }
-    function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): Boolean; override;
   end;
 
   TPointSetNode_1 = class(TAbstractGeometryNode_1)
@@ -234,11 +234,11 @@
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
     function InternalCoord(State: TX3DGraphTraverseState;
-      out ACoord: TMFVec3f): boolean; override;
+      out ACoord: TMFVec3f): Boolean; override;
 
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Lit(State: TX3DGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): Boolean; override;
   end;
 
   TSphereNode_1 = class(TAbstractGeometryNode_1)
@@ -249,16 +249,16 @@
     public property FdRadius: TSFFloat read FFdRadius;
 
     function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+      const OverTriangulate: Boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: Boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function AutoGenerate3DTexCoords: boolean; override;
+    function AutoGenerate3DTexCoords: Boolean; override;
   end;
 
   TCoordinate3Node_1 = class(TAbstractChildNode)
@@ -271,8 +271,8 @@
 
   TFontStyleNode_1 = class(TAbstractChildNode)
   strict private
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
+    function GetBlending: Boolean;
+    procedure SetBlending(const Value: Boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -288,14 +288,14 @@
 
     strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
-    property Blending: boolean read GetBlending write SetBlending;
+    property Blending: Boolean read GetBlending write SetBlending;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     function Family: TX3DFontFamily;
-    function Bold: boolean;
-    function Italic: boolean;
+    function Bold: Boolean;
+    function Italic: Boolean;
     function Font: TTextureFontData;
   end;
 
@@ -320,7 +320,7 @@
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -410,13 +410,13 @@
       should be unlit.
 
       You should use the EmissiveColor4Single in this case. }
-    function PureEmissive: boolean;
+    function PureEmissive: Boolean;
 
     { Force the material pure emissive (see @link(PureEmissive)) by setting
       other colors to black. }
     procedure ForcePureEmissive; deprecated 'use X3D with TUnlitMaterialNode';
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     { Material information based on this node.
@@ -444,10 +444,10 @@
 
   TTexture2Node_1 = class(TAbstractTexture2DNode)
   strict protected
-    function GetRepeatS: boolean; override;
-    function GetRepeatT: boolean; override;
-    procedure SetRepeatS(const Value: boolean); override;
-    procedure SetRepeatT(const Value: boolean); override;
+    function GetRepeatS: Boolean; override;
+    function GetRepeatT: Boolean; override;
+    procedure SetRepeatS(const Value: Boolean); override;
+    procedure SetRepeatT(const Value: Boolean); override;
 
     { Texture is loaded from file or inlined.
       The priority has the filename, only if it's empty (or an exception
@@ -457,7 +457,7 @@
       (that is, when IsTextureLoaded = true and still
       IsTextureImage = false) is also useful: it turns off using the previous
       texture. }
-    procedure LoadTextureData(out CacheUsed: boolean); override;
+    procedure LoadTextureData(out CacheUsed: Boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -520,7 +520,7 @@
   TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
     function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-      const APositionInParent: Integer): boolean; override;
+      const APositionInParent: Integer): Boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -573,7 +573,7 @@
       4x4 matrix is very difficult. }
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -622,7 +622,7 @@
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -687,7 +687,7 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     function Scope: TLightScope; override;
@@ -696,9 +696,9 @@
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
-    function HasRadius: boolean; override;
+    function HasRadius: Boolean; override;
     function Scope: TLightScope; override;
   end;
 
@@ -739,7 +739,7 @@
 
     function SpotCosCutoff: Single;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
@@ -749,7 +749,7 @@
     function ModelviewRotationMatrix: TMatrix4; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
-    function HasRadius: boolean; override;
+    function HasRadius: Boolean; override;
     function Scope: TLightScope; override;
   end;
 
@@ -758,7 +758,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -792,7 +792,7 @@
     strict private FFdWhichChild: TSFLong;
     public property FdWhichChild: TSFLong read FFdWhichChild;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
   end;
 
@@ -830,7 +830,7 @@
     not just SFString like VRML 1.0 spec says.) }
   TWWWInlineNode_1 = class(TInlineNode)
   protected
-    function SeparateGroup: boolean; override;
+    function SeparateGroup: Boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -841,7 +841,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -904,7 +904,7 @@ begin
 end;
 
 function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+  const OverTriangulate: Boolean): TAbstractGeometryNode;
 var
   FaceSet: TIndexedFaceSetNode_1;
   CoordNode: TCoordinate3Node_1;
@@ -952,7 +952,7 @@ begin
       State.VRML1State.FontStyle.Blending);
 end;
 
-function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
+function TAsciiTextNode_1.ProxyUsesOverTriangulate: Boolean;
 begin
   Result := false;
 end;
@@ -984,7 +984,7 @@ begin
   Result := 'Cone';
 end;
 
-function TConeNode_1.AutoGenerate3DTexCoords: boolean;
+function TConeNode_1.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := true;
 end;
@@ -1011,7 +1011,7 @@ begin
   Result := 'Cube';
 end;
 
-function TCubeNode_1.AutoGenerate3DTexCoords: boolean;
+function TCubeNode_1.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := true;
 end;
@@ -1038,7 +1038,7 @@ begin
   Result := 'Cylinder';
 end;
 
-function TCylinderNode_1.AutoGenerate3DTexCoords: boolean;
+function TCylinderNode_1.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := true;
 end;
@@ -1067,7 +1067,7 @@ begin
 end;
 
 function TAbstractIndexedNode_1.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 begin
   Result := true;
   ACoord := State.VRML1State.Coordinate3.FdPoint;
@@ -1093,7 +1093,7 @@ begin
 end;
 
 function TIndexedFaceSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
-  out ATexCoord: TX3DNode): boolean;
+  out ATexCoord: TX3DNode): Boolean;
 begin
   Result := true;
   ATexCoord := State.VRML1State.TextureCoordinate2;
@@ -1105,13 +1105,13 @@ begin
 end;
 
 function TIndexedLineSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
-  out ATexCoord: TX3DNode): boolean;
+  out ATexCoord: TX3DNode): Boolean;
 begin
   Result := true;
   ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
-function TIndexedLineSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
+function TIndexedLineSetNode_1.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   { This somewhat follows the logic of
     TAbstractNormalGenerator.NorImplementationFromVRML1Binding,
@@ -1161,7 +1161,7 @@ begin
 end;
 
 function TPointSetNode_1.InternalCoord(State: TX3DGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+  out ACoord: TMFVec3f): Boolean;
 
   procedure CalculateRange(CoordsCount: Cardinal;
     out StartIndex, NumPoints: integer);
@@ -1215,7 +1215,7 @@ begin
   end;
 end;
 
-function TPointSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
+function TPointSetNode_1.Lit(State: TX3DGraphTraverseState): Boolean;
 begin
   Result := false;
 end;
@@ -1234,7 +1234,7 @@ begin
   Result := 'Sphere';
 end;
 
-function TSphereNode_1.AutoGenerate3DTexCoords: boolean;
+function TSphereNode_1.AutoGenerate3DTexCoords: Boolean;
 begin
   Result := true;
 end;
@@ -1287,18 +1287,18 @@ begin
 end;
 
 {$warnings off}
-function TFontStyleNode_1.Bold: boolean;
+function TFontStyleNode_1.Bold: Boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_BOLD];
 end;
 
-function TFontStyleNode_1.Italic: boolean;
+function TFontStyleNode_1.Italic: Boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
 {$warnings on}
 
-class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1317,12 +1317,12 @@ begin
   finally FreeAndNil(TemporaryFontStyle) end;
 end;
 
-function TFontStyleNode_1.GetBlending: boolean;
+function TFontStyleNode_1.GetBlending: Boolean;
 begin
   Result := FdBlending.Value;
 end;
 
-procedure TFontStyleNode_1.SetBlending(const Value: boolean);
+procedure TFontStyleNode_1.SetBlending(const Value: Boolean);
 begin
   FdBlending.Send(Value);
 end;
@@ -1370,7 +1370,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-class function TLODNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TLODNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1450,7 +1450,7 @@ begin
   Result := 'Material';
 end;
 
-function TMaterialNode_1.PureEmissive: boolean;
+function TMaterialNode_1.PureEmissive: Boolean;
 begin
   Result := (FdAmbientColor.Count = 0) and
             (FdDiffuseColor.Count = 0) and
@@ -1465,7 +1465,7 @@ begin
   Assert(PureEmissive);
 end;
 
-class function TMaterialNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMaterialNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1713,7 +1713,7 @@ begin
   Result := 'Texture2';
 end;
 
-procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
+procedure TTexture2Node_1.LoadTextureData(out CacheUsed: Boolean);
 var
   FullUrl: string;
 begin
@@ -1764,17 +1764,17 @@ begin
     Result := 'none';
 end;
 
-function TTexture2Node_1.GetRepeatS: boolean;
+function TTexture2Node_1.GetRepeatS: Boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
 end;
 
-function TTexture2Node_1.GetRepeatT: boolean;
+function TTexture2Node_1.GetRepeatT: Boolean;
 begin
   Result := FdWrapT.Value = TEXWRAP_REPEAT;
 end;
 
-procedure TTexture2Node_1.SetRepeatS(const Value: boolean);
+procedure TTexture2Node_1.SetRepeatS(const Value: Boolean);
 begin
   if Value then
     FdWrapS.Send(TEXWRAP_REPEAT)
@@ -1782,7 +1782,7 @@ begin
     FdWrapS.Send(TEXWRAP_CLAMP);
 end;
 
-procedure TTexture2Node_1.SetRepeatT(const Value: boolean);
+procedure TTexture2Node_1.SetRepeatT(const Value: Boolean);
 begin
   if Value then
     FdWrapT.Send(TEXWRAP_REPEAT)
@@ -1874,7 +1874,7 @@ begin
 end;
 
 function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  const APositionInParent: Integer): boolean;
+  const APositionInParent: Integer): Boolean;
 var
   Hints: TSFBitMask;
 begin
@@ -1951,7 +1951,7 @@ begin
   Result := FdMatrix.TransformScale;
 end;
 
-class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2084,7 +2084,7 @@ begin
   Result := Approximate3DScale(FdScaleFactor.Value);
 end;
 
-class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2187,7 +2187,7 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 end;
 
-class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2213,12 +2213,12 @@ begin
   FdLocation.DefaultValue := Vector3(0, 0, 1);
 end;
 
-class function TPointLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TPointLightNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-function TPointLightNode_1.HasRadius: boolean;
+function TPointLightNode_1.HasRadius: Boolean;
 begin
   Result := false;
 end;
@@ -2276,7 +2276,7 @@ begin
   Result := Cos(FdCutOffAngle.Value);
 end;
 
-class function TSpotLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TSpotLightNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2344,7 +2344,7 @@ begin
   FdDirection.Send(Value);
 end;
 
-function TSpotLightNode_1.HasRadius: boolean;
+function TSpotLightNode_1.HasRadius: Boolean;
 begin
   Result := false;
 end;
@@ -2376,7 +2376,7 @@ begin
   Result := 'Group';
 end;
 
-class function TGroupNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TGroupNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2480,7 +2480,7 @@ begin
   end;
 end;
 
-class function TSwitchNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
+class function TSwitchNode_1.ForVRMLVersion(const Version: TX3DVersion): Boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2555,7 +2555,7 @@ begin
   Result := 'WWWInline';
 end;
 
-function TWWWInlineNode_1.SeparateGroup: boolean;
+function TWWWInlineNode_1.SeparateGroup: Boolean;
 begin
   Result := FdSeparate.Value;
 end;

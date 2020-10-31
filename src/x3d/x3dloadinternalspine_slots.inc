@@ -45,12 +45,12 @@
     DrawOrder: Integer;
     Node: TTransformNode;
     SwitchNode: TSwitchNode;
-    NodeUsedAsChild: boolean;
+    NodeUsedAsChild: Boolean;
     Materials: TUnlitMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
-      const DragonBonesFormat: boolean);
+      const DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
@@ -60,7 +60,7 @@
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
-      const DragonBonesFormat: boolean);
+      const DragonBonesFormat: Boolean);
     procedure BuildNodes(const BaseUrl: string;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
     procedure Assign(const Source: TSlotList);
@@ -90,7 +90,7 @@ begin
 end;
 
 procedure TSlot.Parse(const Json: TJSONObject; const Bones: TBoneList;
-  const DragonBonesFormat: boolean);
+  const DragonBonesFormat: Boolean);
 begin
   Name := Json.Get('name', '');
   if DragonBonesFormat then
@@ -207,7 +207,7 @@ begin
   raise ESpineReadError.CreateFmt('Slot name "%s" not found', [SlotName]);
 end;
 
-procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList; const DragonBonesFormat: boolean);
+procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList; const DragonBonesFormat: Boolean);
 var
   I: Integer;
   Slot: TSlot;

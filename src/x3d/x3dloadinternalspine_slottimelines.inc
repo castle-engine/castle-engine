@@ -22,7 +22,7 @@
     EventSet_Fraction: TSFFloatEvent;
     Key: TMFFloat;
     Node: TAbstractChildNode;
-    UsedAsChild: boolean;
+    UsedAsChild: Boolean;
   end;
 
   TSlotTimeline = class
@@ -32,7 +32,7 @@
     Slot: TSlot;
     Time: TSingleList;
     Node1, Node2: TKeyedNode;
-    HasNode2: boolean;
+    HasNode2: Boolean;
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
@@ -53,7 +53,7 @@
 
   TSlotTimelineColor = class(TSlotTimeline)
     Colors: TVector4List;
-    Curve: boolean;
+    Curve: Boolean;
     CurveControlPoints: TVector4List;
     constructor Create;
     destructor Destroy; override;

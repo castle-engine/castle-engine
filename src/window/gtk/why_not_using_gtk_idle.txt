@@ -89,16 +89,16 @@ Reasoning in TCastleWindow.FileDialog when using GtkFileChooser:
 This was done by this code:
 
   GtkIdleHandle: guint;
-  FGtkIdleInstalled: boolean;
-  procedure SetGtkIdleInstalled(value: boolean);
+  FGtkIdleInstalled: Boolean;
+  procedure SetGtkIdleInstalled(value: Boolean);
   { This controls whether GtkIdle is installed (i.e. registered to gtk).
     It is initialized to true in CreateImplDepend, finalized to false
     in DestroyImplDepend and for the most part stays as true.
     BUT it must be temporarily disabled in ProcessAllMesages. }
-  property GtkIdleInstalled: boolean
+  property GtkIdleInstalled: Boolean
     read FGtkIdleInstalled write SetGtkIdleInstalled;
 
-procedure TGLApplication.SetGtkIdleInstalled(value: boolean);
+procedure TGLApplication.SetGtkIdleInstalled(value: Boolean);
 begin
  if FGtkIdleInstalled <> value then
  begin
@@ -150,7 +150,7 @@ About using signal_expose_event:
     So just PostRedisplay. Nearest GtkIdle will handle redraw.
 
 This also means that we do whole PostRedisplay tracking ourselves,
-by RedisplayPosted boolean. No point in using gtk_widget_queue_draw /
+by RedisplayPosted Boolean. No point in using gtk_widget_queue_draw /
 gdk_window_process_updates if they don't behave like we expect.
 
 ------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ AutoRedisplayAddToList hack. Reasoning and code below:
     in TCastleWindow.CloseImplDepend (to make sure that destroyed windows
     are not a memebers of AutoRedisplayList).
 
-    Note that AutoRedisplayAddToList is an integer (not a simple boolean)
+    Note that AutoRedisplayAddToList is an integer (not a simple Boolean)
     to be safe in case someone calls ProcessAllMessages recursively
     (e.g. call ProcessAllMessages that calls OnMouseDown that calls
     ProcessAllMessages inside). }
