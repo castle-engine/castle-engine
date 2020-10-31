@@ -20,12 +20,12 @@ type
   { Common class for reading or writing a stream like a text file. }
   TTextReaderWriter = class
   private
-    FOwnsStream: boolean;
+    FOwnsStream: Boolean;
     FStream: TStream;
   public
     { Open a stream. If AOwnsStream then in destructor we will free
       given AStream object. }
-    constructor Create(AStream: TStream; AOwnsStream: boolean); overload;
+    constructor Create(AStream: TStream; AOwnsStream: Boolean); overload;
     destructor Destroy; override;
   end;
 
@@ -47,7 +47,7 @@ type
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }
-    function IncreaseReadBuf: boolean;
+    function IncreaseReadBuf: Boolean;
   public
     { Download and open a file. }
     constructor Create(const URL: string); overload;
@@ -92,7 +92,7 @@ type
     function ReadVector3: TVector3;
     function ReadVector3Single: TVector3; deprecated 'use ReadVector3';
 
-    function Eof: boolean;
+    function Eof: Boolean;
   end;
 
   { Write to a stream like to a text file.
@@ -117,7 +117,7 @@ type
 
 { TTextReaderWriter ---------------------------------------------------------- }
 
-constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
+constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: Boolean);
 begin
   inherited Create;
   FStream := Astream;
@@ -137,7 +137,7 @@ begin
   inherited Create(Download(URL), true);
 end;
 
-function TTextReader.IncreaseReadBuf: boolean;
+function TTextReader.IncreaseReadBuf: Boolean;
 const
   BufferIncrease = 100;
 var
@@ -243,7 +243,7 @@ begin
   Result := ReadVector3;
 end;
 
-function TTextReader.Eof: boolean;
+function TTextReader.Eof: Boolean;
 begin
   Result := (ReadBuf = '') and not IncreaseReadBuf;
 end;

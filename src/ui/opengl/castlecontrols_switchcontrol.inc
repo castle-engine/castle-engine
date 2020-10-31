@@ -19,13 +19,13 @@
   { Touch-friendly checkbox control with representing on/off state. }
   TCastleSwitchControl = class(TCastleUserInterface)
   strict private
-    FChecked: boolean;
-    FEnabled: boolean;
-    FPressed: boolean;
+    FChecked: Boolean;
+    FEnabled: Boolean;
+    FPressed: Boolean;
     FOnChange: TNotifyEvent;
 
-    procedure SetChecked(const Value: boolean);
-    procedure SetEnabled(const Value: boolean);
+    procedure SetChecked(const Value: Boolean);
+    procedure SetEnabled(const Value: Boolean);
   public
     const
       DefaultSwitchControlWidth = 50;
@@ -34,16 +34,16 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
-    property IsOn: boolean read FChecked write SetChecked default false;
+    property IsOn: Boolean read FChecked write SetChecked default false;
       deprecated 'use Checked instead, consistent with LCL TCheckBox.Checked';
   published
     { Switch state. }
-    property Checked: boolean read FChecked write SetChecked default false;
-    property Enabled: boolean read FEnabled write SetEnabled default true;
+    property Checked: Boolean read FChecked write SetChecked default false;
+    property Enabled: Boolean read FEnabled write SetEnabled default true;
     { Event sent when @link(Checked) value was changed by a user click.
       Note that this is @italic(not) called when you change @link(Checked)
       property programmatically by setting the property. }
@@ -108,7 +108,7 @@ begin
   Theme.Draw(HandleRect, HandleImage, UIScale)
 end;
 
-procedure TCastleSwitchControl.SetEnabled(const Value: boolean);
+procedure TCastleSwitchControl.SetEnabled(const Value: Boolean);
 begin
   if FEnabled <> Value then
   begin
@@ -117,7 +117,7 @@ begin
   end;
 end;
 
-procedure TCastleSwitchControl.SetChecked(const Value: boolean);
+procedure TCastleSwitchControl.SetChecked(const Value: Boolean);
 begin
   if FChecked <> Value then
   begin
@@ -126,7 +126,7 @@ begin
   end;
 end;
 
-function TCastleSwitchControl.Press(const Event: TInputPressRelease): boolean;
+function TCastleSwitchControl.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-function TCastleSwitchControl.Release(const Event: TInputPressRelease): boolean;
+function TCastleSwitchControl.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;

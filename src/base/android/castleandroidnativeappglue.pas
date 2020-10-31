@@ -136,7 +136,7 @@ type
     // the event has already been pre-dispatched, and it will be finished upon
     // return. Return if you have handled the event, 0 for any default
     // dispatching.
-    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): boolean of object;
+    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): Boolean of object;
     // The ANativeActivity object instance that this app is running in.
     activity : PANativeActivity;
     // The current configuration the app is running in.
@@ -489,7 +489,7 @@ end;
 procedure process_input(app: Pandroid_app; source: Pandroid_poll_source);
 var
   Event: PAInputEvent;
-  Handled, Processed: boolean;
+  Handled, Processed: Boolean;
 begin
   { Original native_app_glue was using if and processing only 1 event.
     Fixed to avoid ANRs following
@@ -523,12 +523,12 @@ end;
 type
   TAndroidAppThread = class(TThread)
     Android_app: PAndroid_app;
-    constructor Create(AnAndroid_app: PAndroid_app; const CreateSuspended: boolean);
+    constructor Create(AnAndroid_app: PAndroid_app; const CreateSuspended: Boolean);
     procedure Execute; override;
   end;
 
 constructor TAndroidAppThread.Create(AnAndroid_app: PAndroid_app;
-  const CreateSuspended: boolean);
+  const CreateSuspended: Boolean);
 begin
   Android_app := AnAndroid_app;
   inherited Create(CreateSuspended);

@@ -21,7 +21,7 @@
   TX3DWriter = class abstract
   strict private
     Indent: string;
-    DoDiscardNextIndent: boolean;
+    DoDiscardNextIndent: Boolean;
     FEncoding: TX3DEncoding;
     FStream: TStream;
   public

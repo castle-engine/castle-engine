@@ -281,7 +281,7 @@ type
     FEffectiveProjectionNear, FEffectiveProjectionFar: Single;
     FProjectionType: TProjectionType;
 
-    FAnimation: boolean;
+    FAnimation: Boolean;
     AnimationEndTime: TFloatTime;
     AnimationCurrentTime: TFloatTime;
 
@@ -348,11 +348,11 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const ADir, AUp: TVector3;
-      const AdjustUp: boolean = true);
+      const AdjustUp: Boolean = true);
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
 
     { Camera position, looking direction and up vector.
 
@@ -468,7 +468,7 @@ type
       input handling. E.g. when camera is animating,
       then the gravity in TCastleWalkNavigation should not work,
       key/mouse handling in TCastleWalkNavigation shoult not work etc. }
-    function Animation: boolean;
+    function Animation: Boolean;
 
     { Initial camera values. Can be set by @link(SetInitialView).
       Camera vectors are reset to these values by @link(GoToInitial).
@@ -510,7 +510,7 @@ type
     procedure SetInitialView(
       const AInitialPosition: TVector3;
       AInitialDirection, AInitialUp: TVector3;
-      const TransformCurrentCamera: boolean);
+      const TransformCurrentCamera: Boolean);
 
     { Jump to initial camera view (set by SetInitialView). }
     procedure GoToInitial;
@@ -577,13 +577,13 @@ type
     // using deprecated (without a String too) breaks Lazarus Code Tools now
 
   { }
-  T3BoolInputs = array [0..2, boolean] of TInputShortcut;
+  T3BoolInputs = array [0..2, Boolean] of TInputShortcut;
 
   { See @link(TCastleNavigation.MoveAllowed) and
     @link(TCastleNavigation.OnMoveAllowed) }
   TMoveAllowedFunc = function (const Sender: TCastleNavigation;
     const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-    const Radius: Single; const BecauseOfGravity: Boolean): boolean of object;
+    const Radius: Single; const BecauseOfGravity: Boolean): Boolean of object;
 
   { See @link(TCastleNavigation.OnFall). }
   TFallNotifyFunc = procedure (const Sender: TCastleNavigation;
@@ -660,11 +660,11 @@ type
     MouseDraggingStart: TVector2;
 
     procedure SetInput(const Value: TNavigationInputs); virtual;
-    function GetIgnoreAllInputs: boolean;
-    procedure SetIgnoreAllInputs(const Value: boolean);
+    function GetIgnoreAllInputs: Boolean;
+    procedure SetIgnoreAllInputs(const Value: Boolean);
     procedure SetRadius(const Value: Single); virtual;
 
-    function ReallyEnableMouseDragging: boolean; virtual;
+    function ReallyEnableMouseDragging: Boolean; virtual;
 
     procedure SetModelBox(const B: TBox3D);
 
@@ -723,7 +723,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
-    function GetExists: boolean; override;
+    function GetExists: Boolean; override;
 
     { Used by @link(MoveAllowed), see there for description.
       You can assign this property. }
@@ -776,7 +776,7 @@ type
       @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
       @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultInput).
       @deprecated }
-    property IgnoreAllInputs: boolean
+    property IgnoreAllInputs: Boolean
       read GetIgnoreAllInputs write SetIgnoreAllInputs default false; deprecated;
 
     { Things related to frustum ---------------------------------------- }
@@ -837,10 +837,10 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
       deprecated 'use Viewport.Camera.SetView';
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); overload;
+      const AdjustUp: Boolean = true); overload;
       deprecated 'use Viewport.Camera.SetView';
 
     { Camera position, looking direction and up vector.
@@ -935,20 +935,20 @@ type
       const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3); overload; deprecated 'use Viewport.Camera.CustomRay';
 
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
 
     procedure AnimateTo(const OtherCamera: TCastleCamera; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
     procedure AnimateTo(const OtherNavigation: TCastleNavigation; const Time: TFloatTime); deprecated 'use AnimateTo with TCastleCamera, not TCastleNavigation';
     procedure AnimateTo(const APos, ADir, AUp: TVector3; const Time: TFloatTime); deprecated 'use Viewport.Camera.AnimateTo';
-    function Animation: boolean; deprecated 'use Viewport.Camera.Animation';
+    function Animation: Boolean; deprecated 'use Viewport.Camera.Animation';
     function InitialPosition : TVector3; deprecated 'use Viewport.Camera.InitialPosition';
     function InitialDirection: TVector3; deprecated 'use Viewport.Camera.InitialDirection';
     function InitialUp       : TVector3; deprecated 'use Viewport.Camera.InitialUp';
     procedure SetInitialView(
       const AInitialPosition: TVector3;
       AInitialDirection, AInitialUp: TVector3;
-      const TransformCurrentCamera: boolean);
+      const TransformCurrentCamera: Boolean);
       deprecated 'use Viewport.Camera.SetInitialView';
     procedure GoToInitial; deprecated 'use Viewport.Camera.GoToInitial';
 
@@ -1141,10 +1141,10 @@ type
         the whole exercise useless. }
       FRotationsAnim: TVector3;
       FScaleFactorMin, FScaleFactorMax: Single;
-      FRotationAccelerate: boolean;
+      FRotationAccelerate: Boolean;
       FRotationAccelerationSpeed: Single;
       FRotationSpeed: Single;
-      FTurntable: boolean;
+      FTurntable: Boolean;
       FPinchGestureRecognizer: TCastlePinchPanGestureRecognizer;
 
       FInputs_Move: T3BoolInputs;
@@ -1167,8 +1167,8 @@ type
     procedure SetTranslation(const Value: TVector3);
     { Negative Factor makes "zoom out", positive makes "zoom on",
       zero makes nothing. }
-    function Zoom(const Factor: Single): boolean;
-    procedure SetRotationAccelerate(const Value: boolean);
+    function Zoom(const Factor: Single): Boolean;
+    procedure SetRotationAccelerate(const Value: Boolean);
     procedure OnGestureRecognized(Sender: TObject);
 
     function GetInput_MoveXInc: TInputShortcut;
@@ -1184,8 +1184,8 @@ type
     function GetInput_RotateZInc: TInputShortcut;
     function GetInput_RotateZDec: TInputShortcut;
 
-    function GetMouseNavigation: boolean;
-    procedure SetMouseNavigation(const Value: boolean);
+    function GetMouseNavigation: Boolean;
+    procedure SetMouseNavigation(const Value: Boolean);
 
     { Center of rotation and scale, relative to @link(Translation). }
     function CenterOfRotation: TVector3;
@@ -1202,14 +1202,14 @@ type
     destructor Destroy; override;
 
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+      var HandleInput: Boolean); override;
+    function AllowSuspendForInput: Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
 
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean; override;
 
     { Enable rotating the camera around the model by user input.
       When @false, no keys / mouse dragging / 3D mouse etc. can cause a rotation.
@@ -1283,7 +1283,7 @@ type
     property Translation: TVector3 read GetTranslation write SetTranslation;
 
     { Turntable rotates the scene around its Y axis instead of current camera axis. }
-    property Turntable: boolean
+    property Turntable: Boolean
       read FTurntable write FTurntable default false;
 
     { Scale the projection size. }
@@ -1308,7 +1308,7 @@ type
       Usually you want to just leave this for user to control. --------------- }
 
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
-    function StopRotating: boolean;
+    function StopRotating: Boolean;
 
     procedure Move(coord: integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
 
@@ -1358,7 +1358,7 @@ type
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
 
     { @Deprecated Include/exclude niMouseDragging from @link(Input) instead. }
-    property MouseNavigation: boolean
+    property MouseNavigation: Boolean
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
 
     { Speed to change the rotation acceleration,
@@ -1377,7 +1377,7 @@ type
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
       hold rotation keys to rotate. }
-    property RotationAccelerate: boolean
+    property RotationAccelerate: Boolean
       read FRotationAccelerate write SetRotationAccelerate default true;
   end;
 
@@ -1399,9 +1399,9 @@ type
   strict private
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
-    FInvertVerticalMouseLook: boolean;
-    FMouseLook: boolean;
-    procedure SetMouseLook(const Value: boolean);
+    FInvertVerticalMouseLook: Boolean;
+    FMouseLook: Boolean;
+    procedure SetMouseLook(const Value: Boolean);
   protected
     procedure ProcessMouseLookDelta(const Delta: TVector2); virtual;
   public
@@ -1411,15 +1411,15 @@ type
 
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function Motion(const Event: TInputMotion): boolean; override;
+      var HandleInput: Boolean); override;
+    function Motion(const Event: TInputMotion): Boolean; override;
 
     { Use mouse look to navigate (rotate the camera).
 
       This also makes mouse cursor of Container hidden, and forces
       mouse position to the middle of the window
       (to avoid the situation when mouse movement is blocked by screen borders). }
-    property MouseLook: boolean read FMouseLook write SetMouseLook default false;
+    property MouseLook: Boolean read FMouseLook write SetMouseLook default false;
 
     { Mouse look sensitivity, if @link(MouseLook) is working.
       These properties specify how much angle change is produced by moving mouse by 1 pixel.
@@ -1435,7 +1435,7 @@ type
     { If this is @true and MouseLook works, then the meaning of vertical mouse
       movement is inverted: when user moves mouse up, he looks down.
       Some players are more comfortable with such configuration. }
-    property InvertVerticalMouseLook: boolean
+    property InvertVerticalMouseLook: Boolean
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
   end;
@@ -1448,9 +1448,9 @@ type
   strict private
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FRotationHorizontalPivot: Single;
-    FPreferGravityUpForRotations: boolean;
-    FPreferGravityUpForMoving: boolean;
-    FIsAbove: boolean;
+    FPreferGravityUpForRotations: Boolean;
+    FPreferGravityUpForMoving: Boolean;
+    FIsAbove: Boolean;
     FAboveHeight: Single;
     FAboveGround: PTriangle;
     FMouseDragMode: TMouseDragMode;
@@ -1471,8 +1471,8 @@ type
     FInput_Crouch: TInputShortcut;
     FInput_Run: TInputShortcut;
 
-    FAllowSlowerRotations: boolean;
-    FCheckModsDown: boolean;
+    FAllowSlowerRotations: Boolean;
+    FCheckModsDown: Boolean;
 
     FMinAngleFromGravityUp: Single;
 
@@ -1490,13 +1490,13 @@ type
       The good solution seems to just do head bobbing only once.
       In some special cases this means that head bobbing will be done
       *less often* than it should be, but this doesn't hurt. }
-    HeadBobbingAlreadyDone: boolean;
+    HeadBobbingAlreadyDone: Boolean;
 
     { MoveHorizontal call sets this to @true to indicate that some
       horizontal move was done. }
-    MoveHorizontalDone: boolean;
+    MoveHorizontalDone: Boolean;
 
-    FMoveForward, FMoveBackward: boolean;
+    FMoveForward, FMoveBackward: Boolean;
 
     procedure RotateAroundGravityUp(const Angle: Single);
     procedure RotateAroundUp(const Angle: Single);
@@ -1505,7 +1505,7 @@ type
 
     { Like Move, but you pass here final ProposedNewPos. }
     function MoveTo(const ProposedNewPos: TVector3;
-      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+      const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
     { Try to move from current Position to Position + MoveVector.
       Checks MoveAllowed, also (if CheckClimbHeight is @true)
       checks the ClimbHeight limit.
@@ -1515,7 +1515,7 @@ type
       possibly we didn't move to exactly Position + MoveVector
       because of wall sliding). }
     function Move(const MoveVector: TVector3;
-      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+      const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
     { Forward or backward move. Multiply must be +1 or -1. }
     procedure MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
     { Up or down move, only when flying (ignored when @link(Gravity) is @true). }
@@ -1538,16 +1538,16 @@ type
       Returns if a jump was actually done. For example, you cannot
       jump when there's no gravity, or you're already in the middle
       of the jump. Can be useful to determine if key was handled and such. }
-    function Jump: boolean;
+    function Jump: Boolean;
   private
     { Private things related to gravity ---------------------------- }
 
-    FFalling: boolean;
+    FFalling: Boolean;
     FFallingStartPosition: TVector3;
     FFallSpeedStart: Single;
     FFallSpeed: Single;
     FFallSpeedIncrease: Single;
-    FGravity: boolean;
+    FGravity: Boolean;
     FGrowSpeed: Single;
     { This is used by FallingEffect to temporary modify Matrix result
       by rotating Up around Direction. In degress. }
@@ -1555,24 +1555,24 @@ type
     { This is used by FallingEffect to consistently rotate us.
       This is either -1, 0 or +1. }
     Fde_RotateHorizontal: Integer;
-    FFallingEffect: boolean;
+    FFallingEffect: Boolean;
 
     FJumpMaxHeight: Single;
-    FIsJumping: boolean;
+    FIsJumping: Boolean;
     FJumpHeight: Single;
     FJumpTime: Single;
     FJumpHorizontalSpeedMultiply: Single;
 
     HeadBobbingPosition: Single;
-    function UseHeadBobbing: boolean;
+    function UseHeadBobbing: Boolean;
   private
-    FIsCrouching: boolean;
+    FIsCrouching: Boolean;
 
-    FFallingOnTheGround: boolean;
-    FFallingOnTheGroundAngleIncrease: boolean;
+    FFallingOnTheGround: Boolean;
+    FFallingOnTheGroundAngleIncrease: Boolean;
 
-    FIsOnTheGround: boolean;
-    FIsWalkingOnTheGround: boolean;
+    FIsOnTheGround: Boolean;
+    FIsWalkingOnTheGround: Boolean;
 
     FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
     FMouseDraggingMoveSpeed: Single;
@@ -1580,7 +1580,7 @@ type
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
   protected
-    function ReallyEnableMouseDragging: boolean; override;
+    function ReallyEnableMouseDragging: Boolean; override;
     procedure ProcessMouseLookDelta(const Delta: TVector2); override;
   public
     const
@@ -1601,11 +1601,11 @@ type
     destructor Destroy; override;
 
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+      var HandleInput: Boolean); override;
+    function AllowSuspendForInput: Boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): Boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): Boolean; override;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
@@ -1674,10 +1674,10 @@ type
       )
 
       @groupBegin }
-    property PreferGravityUpForRotations: boolean
+    property PreferGravityUpForRotations: Boolean
       read FPreferGravityUpForRotations write FPreferGravityUpForRotations default true;
 
-    property PreferGravityUpForMoving: boolean
+    property PreferGravityUpForMoving: Boolean
       read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
@@ -1739,7 +1739,7 @@ type
       read FMinAngleFromGravityUp write FMinAngleFromGravityUp
       default DefaultMinAngleFromGravityUp;
 
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
 
     { Initial speed of falling down.
       Of course this is used only when @link(Gravity) is true.
@@ -1769,7 +1769,7 @@ type
       default DefaultFallSpeedIncrease;
 
     { Are we currently falling down because of gravity. }
-    property Falling: boolean read FFalling write FFalling;
+    property Falling: Boolean read FFalling write FFalling;
 
     { If Falling, then this will force Falling to false
       @bold(without calling OnFallenDown). It's much like forcing
@@ -1797,7 +1797,7 @@ type
       Note that changing it from @true to @false doesn't immediately
       "cancel out" this effect if it's currently in progress.
       It only prevents this effect from starting again. }
-    property FallingEffect: boolean
+    property FallingEffect: Boolean
       read FFallingEffect write FFallingEffect default true;
 
     { When @link(Gravity) works and camera height above the ground
@@ -1822,7 +1822,7 @@ type
     function MaxJumpDistance: Single;
 
     { We are in the middle of a "jump" move right now. }
-    property IsJumping: boolean read FIsJumping;
+    property IsJumping: Boolean read FIsJumping;
 
     { Scales the speed of horizontal moving during jump. }
     property JumpHorizontalSpeedMultiply: Single
@@ -1835,7 +1835,7 @@ type
       default DefaultJumpTime;
 
     { Is player crouching right now. }
-    property IsCrouching: boolean read FIsCrouching;
+    property IsCrouching: Boolean read FIsCrouching;
 
     { The PreferredHeight slightly modified by head bobbing
       and crouch. It can be useful for collision detection
@@ -1850,7 +1850,7 @@ type
     procedure FallOnTheGround;
 
     { @true when the effect caused by FallOnTheGround is stil in motion. }
-    property FallingOnTheGround: boolean read FFallingOnTheGround;
+    property FallingOnTheGround: Boolean read FFallingOnTheGround;
 
     { This is @true when gravity works (that is @link(Gravity) is @true),
       and player is standing stable on the ground. This is set in every Update.
@@ -1860,7 +1860,7 @@ type
       standing on some toxical ground.
 
       @seealso IsWalkingOnTheGround }
-    property IsOnTheGround: boolean read FIsOnTheGround;
+    property IsOnTheGround: Boolean read FIsOnTheGround;
 
     { This is @true when gravity works (that is @link(Gravity) is @true),
       and player is standing stable on the ground, and player is moving
@@ -1869,7 +1869,7 @@ type
 
       The intention is that you can use this to make
       some "footsteps" sound for the player. }
-    property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
+    property IsWalkingOnTheGround: Boolean read FIsWalkingOnTheGround;
 
     function GetNavigationType: TNavigationType; override;
 
@@ -1896,7 +1896,7 @@ type
       your octree or such is released.
 
       @groupBegin }
-    property IsAbove: boolean read FIsAbove;
+    property IsAbove: Boolean read FIsAbove;
     property AboveHeight: Single read FAboveHeight;
     property AboveGround: PTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
@@ -1933,14 +1933,14 @@ type
     { @groupEnd }
 
     { Move forward, just like Input_Forward would be pressed. }
-    property MoveForward: boolean read FMoveForward write FMoveForward;
+    property MoveForward: Boolean read FMoveForward write FMoveForward;
     { Move backward, just like Input_Backward would be pressed. }
-    property MoveBackward: boolean read FMoveBackward write FMoveBackward;
+    property MoveBackward: Boolean read FMoveBackward write FMoveBackward;
 
     { If @true then all rotation keys
       (Input_RightRotate, Input_LeftRotate, Input_UpRotate, Input_DownRotate)
       will work 10x slower when Ctrl modified is pressed. }
-    property AllowSlowerRotations: boolean
+    property AllowSlowerRotations: Boolean
       read FAllowSlowerRotations write FAllowSlowerRotations
       default true;
 
@@ -1960,7 +1960,7 @@ type
       modifiers are pressed. And rotation keys never work 10x slower
       (AllowSlowerRotations is ignored),
       also Increase/DecreasePreferredHeight are ignored. }
-    property CheckModsDown: boolean
+    property CheckModsDown: Boolean
       read FCheckModsDown write FCheckModsDown
       default true;
 
@@ -2041,7 +2041,7 @@ type
       PreferGravityUpForRotations or PreferGravityUpForMoving settings ---
       PreferGravityUpXxx say how the player controls work,
       Gravity says what happens to player due to ... well, due to gravity. }
-    property Gravity: boolean
+    property Gravity: Boolean
       read FGravity write FGravity default true;
 
     property PreferredHeight;
@@ -2136,7 +2136,7 @@ function CamDirUp2OrientQuat(const Direction, Up: TVector3): TQuaternion;
   Returned Direction, Up, GravityUp are normalized. }
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean;
+  const WantedDirectionPositive, WantedUpPositive: Boolean;
   out Position, Direction, Up, GravityUp: TVector3);
 
 { Calculate suitable camera to see everything using an orthographic projection.
@@ -2387,7 +2387,7 @@ begin
 end;
 
 procedure TCastleCamera.SetView(const ADir, AUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 begin
   FDirection := ADir.Normalize;
   FUp := AUp.Normalize;
@@ -2400,14 +2400,14 @@ begin
 end;
 
 procedure TCastleCamera.SetView(const APos, ADir, AUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 begin
   FPosition := APos;
   SetView(ADir, AUp, AdjustUp); // calls VisibleChange at the end
 end;
 
 procedure TCastleCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean = true);
+  const AdjustUp: Boolean = true);
 begin
   GravityUp := AGravityUp;
   SetView(APos, ADir, AUp, AdjustUp);
@@ -2563,7 +2563,7 @@ begin
   AnimateTo(APos, ADir, AUp, Time);
 end;
 
-function TCastleCamera.Animation: boolean;
+function TCastleCamera.Animation: Boolean;
 begin
   Result := FAnimation;
 end;
@@ -2571,7 +2571,7 @@ end;
 procedure TCastleCamera.SetInitialView(
   const AInitialPosition: TVector3;
   AInitialDirection, AInitialUp: TVector3;
-  const TransformCurrentCamera: boolean);
+  const TransformCurrentCamera: Boolean);
 var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   APos, ADir, AUp: TVector3;
@@ -2805,7 +2805,7 @@ begin
   Camera.AnimateTo(OtherCamera, Time);
 end;
 
-function TCastleNavigation.Animation: boolean;
+function TCastleNavigation.Animation: Boolean;
 begin
   Result := Camera.Animation;
 end;
@@ -2828,7 +2828,7 @@ end;
 procedure TCastleNavigation.SetInitialView(
   const AInitialPosition: TVector3;
   AInitialDirection, AInitialUp: TVector3;
-  const TransformCurrentCamera: boolean);
+  const TransformCurrentCamera: Boolean);
 begin
   Camera.SetInitialView(AInitialPosition,
     AInitialDirection, AInitialUp, TransformCurrentCamera);
@@ -2839,19 +2839,19 @@ begin
   Camera.GoToInitial;
 end;
 
-function TCastleNavigation.GetIgnoreAllInputs: boolean;
+function TCastleNavigation.GetIgnoreAllInputs: Boolean;
 begin
   Result := Input = [];
 end;
 
-procedure TCastleNavigation.SetIgnoreAllInputs(const Value: boolean);
+procedure TCastleNavigation.SetIgnoreAllInputs(const Value: Boolean);
 begin
   if Value then
     Input := [] else
     Input := DefaultInput;
 end;
 
-function TCastleNavigation.ReallyEnableMouseDragging: boolean;
+function TCastleNavigation.ReallyEnableMouseDragging: Boolean;
 
   function ViewportItemsDragging(const V: TCastleViewport): Boolean;
   begin
@@ -2879,7 +2879,7 @@ begin
       not ViewportItemsDragging(InternalViewport as TCastleViewport) );
 end;
 
-function TCastleNavigation.Press(const Event: TInputPressRelease): boolean;
+function TCastleNavigation.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -2899,7 +2899,7 @@ begin
   end;
 end;
 
-function TCastleNavigation.Release(const Event: TInputPressRelease): boolean;
+function TCastleNavigation.Release(const Event: TInputPressRelease): Boolean;
 begin
   if Event.EventType = itMouseButton then
     MouseDraggingStarted := -1;
@@ -2942,7 +2942,7 @@ begin
     inherited Assign(Source);
 end;
 
-function TCastleNavigation.GetExists: boolean;
+function TCastleNavigation.GetExists: Boolean;
 begin
   Result := (inherited GetExists) and
     ( (InternalViewport = nil) or
@@ -2960,13 +2960,13 @@ begin
 end;
 
 procedure TCastleNavigation.SetView(const APos, ADir, AUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 begin
   Camera.SetView(APos, ADir, AUp, AdjustUp);
 end;
 
 procedure TCastleNavigation.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean);
+  const AdjustUp: Boolean);
 begin
   Camera.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
 end;
@@ -3060,17 +3060,17 @@ end;
 
 constructor TCastleExamineNavigation.Create(AOwner: TComponent);
 type
-  T3BoolKeys = array [0..2, boolean] of TKey;
+  T3BoolKeys = array [0..2, Boolean] of TKey;
 const
   DefaultInputs_Move: T3BoolKeys =
     ((keyArrowLeft, keyArrowRight), (keyArrowDown, keyArrowUp), (keyNone, keyNone));
   DefaultInputs_Rotate: T3BoolKeys =
     ((keyArrowUp, keyArrowDown), (keyArrowLeft, keyArrowRight), (keyNone, keyNone));
   CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
-  IncreaseToStr: array [boolean] of string = ('Dec', 'Inc');
+  IncreaseToStr: array [Boolean] of string = ('Dec', 'Inc');
 var
   I: Integer;
-  B: boolean;
+  B: Boolean;
 begin
   inherited;
 
@@ -3132,7 +3132,7 @@ end;
 destructor TCastleExamineNavigation.Destroy;
 var
   I: Integer;
-  B: boolean;
+  B: Boolean;
 begin
   for I := 0 to 2 do
     for B := false to true do
@@ -3195,7 +3195,7 @@ begin
 end;
 
 procedure TCastleExamineNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 var
   V: TExamineVectors;
 
@@ -3324,12 +3324,12 @@ begin
   end;
 end;
 
-function TCastleExamineNavigation.AllowSuspendForInput: boolean;
+function TCastleExamineNavigation.AllowSuspendForInput: Boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleExamineNavigation.SetRotationAccelerate(const Value: boolean);
+procedure TCastleExamineNavigation.SetRotationAccelerate(const Value: Boolean);
 begin
   if FRotationAccelerate <> Value then
   begin
@@ -3338,7 +3338,7 @@ begin
   end;
 end;
 
-function TCastleExamineNavigation.StopRotating: boolean;
+function TCastleExamineNavigation.StopRotating: Boolean;
 begin
   Result := not FRotationsAnim.IsPerfectlyZero;
   if Result then
@@ -3355,7 +3355,7 @@ begin
 end;
 
 function TCastleExamineNavigation.SensorTranslation(const X, Y, Z, Length: Double;
-  const SecondsPassed: Single): boolean;
+  const SecondsPassed: Single): Boolean;
 var
   Size: Single;
   MoveSize: Double;
@@ -3379,9 +3379,9 @@ begin
 end;
 
 function TCastleExamineNavigation.SensorRotation(const X, Y, Z, Angle: Double;
-  const SecondsPassed: Single): boolean;
+  const SecondsPassed: Single): Boolean;
 var
-  Moved: boolean;
+  Moved: Boolean;
   RotationSize: Double;
   V: TExamineVectors;
 begin
@@ -3510,7 +3510,7 @@ begin
     Result := B.Center;
 end;
 
-function TCastleExamineNavigation.Press(const Event: TInputPressRelease): boolean;
+function TCastleExamineNavigation.Press(const Event: TInputPressRelease): Boolean;
 var
   ZoomScale: Single;
 begin
@@ -3555,7 +3555,7 @@ begin
   end;
 end;
 
-function TCastleExamineNavigation.Release(const Event: TInputPressRelease): boolean;
+function TCastleExamineNavigation.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3564,7 +3564,7 @@ begin
     Exit(ExclusiveEvents);
 end;
 
-function TCastleExamineNavigation.Zoom(const Factor: Single): boolean;
+function TCastleExamineNavigation.Zoom(const Factor: Single): Boolean;
 
   function OrthographicProjection: Boolean;
   begin
@@ -3612,7 +3612,7 @@ begin
   end;
 end;
 
-function TCastleExamineNavigation.Motion(const Event: TInputMotion): boolean;
+function TCastleExamineNavigation.Motion(const Event: TInputMotion): Boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
@@ -3803,12 +3803,12 @@ function TCastleExamineNavigation.GetInput_RotateYDec: TInputShortcut; begin Res
 function TCastleExamineNavigation.GetInput_RotateZInc: TInputShortcut; begin Result := Inputs_Rotate[2, true ] end;
 function TCastleExamineNavigation.GetInput_RotateZDec: TInputShortcut; begin Result := Inputs_Rotate[2, false] end;
 
-function TCastleExamineNavigation.GetMouseNavigation: boolean;
+function TCastleExamineNavigation.GetMouseNavigation: Boolean;
 begin
   Result := niMouseDragging in Input;
 end;
 
-procedure TCastleExamineNavigation.SetMouseNavigation(const Value: boolean);
+procedure TCastleExamineNavigation.SetMouseNavigation(const Value: Boolean);
 begin
   if Value then
     Input := Input + [niMouseDragging] else
@@ -3837,7 +3837,7 @@ begin
 end;
 
 procedure TCastleMouseLookNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 
   procedure MouseLookUpdate;
   begin
@@ -3850,7 +3850,7 @@ begin
   MouseLookUpdate;
 end;
 
-procedure TCastleMouseLookNavigation.SetMouseLook(const Value: boolean);
+procedure TCastleMouseLookNavigation.SetMouseLook(const Value: Boolean);
 begin
   if FMouseLook <> Value then
   begin
@@ -3869,7 +3869,7 @@ begin
   // nothing in this class
 end;
 
-function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): boolean;
+function TCastleMouseLookNavigation.Motion(const Event: TInputMotion): Boolean;
 
   procedure HandleMouseLook;
   var
@@ -4005,7 +4005,7 @@ begin
   inherited;
 end;
 
-function TCastleWalkNavigation.UseHeadBobbing: boolean;
+function TCastleWalkNavigation.UseHeadBobbing: Boolean;
 begin
   Result := Gravity and (HeadBobbing <> 0.0);
 end;
@@ -4219,10 +4219,10 @@ begin
 end;
 
 function TCastleWalkNavigation.MoveTo(const ProposedNewPos: TVector3;
-  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+  const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
 var
   NewPos: TVector3;
-  NewIsAbove: boolean;
+  NewIsAbove: Boolean;
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
   NewAboveGround: PTriangle;
 begin
@@ -4255,7 +4255,7 @@ begin
 end;
 
 function TCastleWalkNavigation.Move(const MoveVector: TVector3;
-  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+  const BecauseOfGravity, CheckClimbHeight: Boolean): Boolean;
 begin
   Result := MoveTo(Camera.Position + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
@@ -4318,13 +4318,13 @@ begin
     RotateAroundUp(Angle);
 end;
 
-function TCastleWalkNavigation.ReallyEnableMouseDragging: boolean;
+function TCastleWalkNavigation.ReallyEnableMouseDragging: Boolean;
 begin
   Result := (inherited ReallyEnableMouseDragging) and not MouseLook;
 end;
 
 procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 
   { Check are keys for left/right/down/up rotations are pressed, and handle them.
     SpeedScale = 1 indicates a normal rotation speed, you can use it to scale
@@ -4345,7 +4345,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     falling down and keeping RealPreferredHeight above the ground. }
   procedure GravityUpdate;
 
-    function TryJump: boolean;
+    function TryJump: Boolean;
     var
       ThisJumpHeight: Single;
     begin
@@ -4366,7 +4366,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       end;
     end;
 
-   function TryFde_Stabilize: boolean; forward;
+   function TryFde_Stabilize: Boolean; forward;
 
     { If our height above the ground is < RealPreferredHeight
       then we try to "grow".
@@ -4375,7 +4375,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       just changed PreferredHeight to something larger
       (because e.g. "duck mode" ended), or we just ended falling dowm
       from high). }
-    function TryGrow: boolean;
+    function TryGrow: Boolean;
     var
       GrowingVectorLength: Single;
     begin
@@ -4401,7 +4401,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       end;
     end;
 
-    function TryFalling: boolean;
+    function TryFalling: Boolean;
     const
       Fde_VerticalRotateDeviation = 50.0;
       Fde_HorizontalRotateDeviation = 15.0;
@@ -4615,7 +4615,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
         FFalling := false;
     end;
 
-    function TryFde_Stabilize: boolean;
+    function TryFde_Stabilize: Boolean;
     const
       Fde_VerticalRotateNormalization = 7 * 50;
     var
@@ -4644,7 +4644,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       end;
     end;
 
-    function TryFallingOnTheGround: boolean;
+    function TryFallingOnTheGround: Boolean;
     var
       Angle, AngleRotate: Single;
     begin
@@ -4728,7 +4728,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
       end;
     end;
 
-    function GetIsOnTheGround: boolean;
+    function GetIsOnTheGround: Boolean;
     var
       MinAboveHeight, MaxAboveHeight, H: Single;
     begin
@@ -4741,7 +4741,7 @@ procedure TCastleWalkNavigation.Update(const SecondsPassed: Single;
     end;
 
   var
-    OldFalling: boolean;
+    OldFalling: Boolean;
   begin
     OldFalling := Falling;
 
@@ -5029,7 +5029,7 @@ begin
     GravityUpdate;
 end;
 
-function TCastleWalkNavigation.Jump: boolean;
+function TCastleWalkNavigation.Jump: Boolean;
 begin
   Result := false;
 
@@ -5056,12 +5056,12 @@ begin
   Result := true;
 end;
 
-function TCastleWalkNavigation.AllowSuspendForInput: boolean;
+function TCastleWalkNavigation.AllowSuspendForInput: Boolean;
 begin
   Result := false;
 end;
 
-function TCastleWalkNavigation.Press(const Event: TInputPressRelease): boolean;
+function TCastleWalkNavigation.Press(const Event: TInputPressRelease): Boolean;
 
   procedure SetUpToGravityUp;
   var
@@ -5129,7 +5129,7 @@ begin
 end;
 
 function TCastleWalkNavigation.SensorTranslation(const X, Y, Z, Length: Double;
-  const SecondsPassed: Single): boolean;
+  const SecondsPassed: Single): Boolean;
 var
   MoveSize: Double;
 begin
@@ -5163,7 +5163,7 @@ begin
 end;
 
 function TCastleWalkNavigation.SensorRotation(const X, Y, Z, Angle: Double;
-  const SecondsPassed: Single): boolean;
+  const SecondsPassed: Single): Boolean;
 const
   SpeedSensor = 2;
 begin
@@ -5275,7 +5275,7 @@ begin
   RotateVertical(Delta[1]);
 end;
 
-function TCastleWalkNavigation.Motion(const Event: TInputMotion): boolean;
+function TCastleWalkNavigation.Motion(const Event: TInputMotion): Boolean;
 
   procedure HandleMouseDrag;
   var
@@ -5499,7 +5499,7 @@ end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean;
+  const WantedDirectionPositive, WantedUpPositive: Boolean;
   out Position, Direction, Up, GravityUp: TVector3);
 var
   Offset: Single;

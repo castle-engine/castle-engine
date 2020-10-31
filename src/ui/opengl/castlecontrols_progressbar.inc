@@ -79,7 +79,7 @@ var
   { Make Text shorter by preserving first and last words, inserting
     dots inside, and preserving as much as possible text between first and last
     words. }
-  function TrimIntelligent: boolean;
+  function TrimIntelligent: Boolean;
   begin
     Result := false;
 

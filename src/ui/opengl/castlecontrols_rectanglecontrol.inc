@@ -21,18 +21,18 @@
   strict private
     FColor: TCastleColor;
     FThemeImage: TThemeImage;
-    FUseThemeImage: boolean;
-    FInterceptInput: boolean;
+    FUseThemeImage: Boolean;
+    FInterceptInput: Boolean;
     procedure SetColor(const Value: TCastleColor);
     procedure SetThemeImage(const Value: TThemeImage);
-    procedure SetUseThemeImage(const Value: boolean);
+    procedure SetUseThemeImage(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Rectangle color. By default, opaque white. }
@@ -42,13 +42,13 @@
     property ThemeImage: TThemeImage read FThemeImage write SetThemeImage;
 
     { Use theme image for drawing instead of color. }
-    property UseThemeImage: boolean read FUseThemeImage write SetUseThemeImage default false;
+    property UseThemeImage: Boolean read FUseThemeImage write SetUseThemeImage default false;
 
     { Prevents passing mouse/keyboard events to the controls underneath.
       More precisely, when this property is @true, then the
       @link(Press), @link(Release) and @link(Motion) events are marked as
       "handled" by this control.  }
-    property InterceptInput: boolean read FInterceptInput write FInterceptInput
+    property InterceptInput: Boolean read FInterceptInput write FInterceptInput
       default false;
 
   {$define read_interface_class}
@@ -100,7 +100,7 @@ begin
   end;
 end;
 
-procedure TCastleRectangleControl.SetUseThemeImage(const Value: boolean);
+procedure TCastleRectangleControl.SetUseThemeImage(const Value: Boolean);
 begin
   if FUseThemeImage <> Value then
   begin
@@ -118,19 +118,19 @@ begin
     DrawRectangle(RenderRect, Color);
 end;
 
-function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;
+function TCastleRectangleControl.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TCastleRectangleControl.Release(const Event: TInputPressRelease): boolean;
+function TCastleRectangleControl.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
 end;
 
-function TCastleRectangleControl.Motion(const Event: TInputMotion): boolean;
+function TCastleRectangleControl.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;

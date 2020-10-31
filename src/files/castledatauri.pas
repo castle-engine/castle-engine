@@ -36,22 +36,22 @@ type
     FStream: TStream;
     FURI: string;
     FMimeType: string;
-    FBase64: boolean;
+    FBase64: Boolean;
     FCharset: string;
-    FValid: boolean;
+    FValid: Boolean;
     FURIPrefix: string;
-    FForceMemoryStream: boolean;
+    FForceMemoryStream: Boolean;
     procedure FreeStream;
     procedure SetURI(const Value: string);
   public
     destructor Destroy; override;
-    class function IsDataURI(const URI: string; out Colon: Integer): boolean; overload;
-    class function IsDataURI(const URI: string): boolean; overload;
+    class function IsDataURI(const URI: string; out Colon: Integer): Boolean; overload;
+    class function IsDataURI(const URI: string): Boolean; overload;
 
     { Force @link(Stream) and @link(ExtractStream) to return a TMemoryStream,
       that is always seekable and fully buffered in memory.
       Without this, they may return TBase64DecodingStream that may not be seekable. }
-    property ForceMemoryStream: boolean
+    property ForceMemoryStream: Boolean
       read FForceMemoryStream write FForceMemoryStream;
 
     { The data URI that this class reads.
@@ -65,9 +65,9 @@ type
       make appropriate warning through WritelnWarning,
       and reset MimeType, Base64, Charset, URIPrefix to some default values. }
     property URI: string read FURI write SetURI;
-    property Valid: boolean read FValid;
+    property Valid: Boolean read FValid;
     property MimeType: string read FMimeType;
-    property Base64: boolean read FBase64;
+    property Base64: Boolean read FBase64;
     property Charset: string read FCharset;
     { URI without the data, nice to show to user. }
     property URIPrefix: string read FURIPrefix;
@@ -116,12 +116,12 @@ begin
   inherited;
 end;
 
-class function TDataURI.IsDataURI(const URI: string; out Colon: Integer): boolean;
+class function TDataURI.IsDataURI(const URI: string; out Colon: Integer): Boolean;
 begin
   Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
-class function TDataURI.IsDataURI(const URI: string): boolean;
+class function TDataURI.IsDataURI(const URI: string): Boolean;
 var
   Colon: Integer; { ignored }
 begin
@@ -131,7 +131,7 @@ end;
 procedure TDataURI.SetURI(const Value: string);
 var
   ValidMimeType, ValidCharset: string;
-  ValidBase64: boolean;
+  ValidBase64: Boolean;
   PosBegin, PosNow, Colon: Integer;
   Part: string;
 begin

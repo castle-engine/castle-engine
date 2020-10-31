@@ -20,7 +20,7 @@
     like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
   TCastleAbstractSlider = class(TCastleUserInterfaceFont)
   strict private
-    FDisplayValue: boolean;
+    FDisplayValue: Boolean;
     FOnChange: TNotifyEvent;
     FCaption: string;
     function IndicatorWidth(const R: TFloatRectangle): Single;
@@ -51,7 +51,7 @@
       DefaultSliderHeight = 20;
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
   published
     property Width default DefaultSliderWidth;
     property Height default DefaultSliderHeight;
@@ -65,7 +65,7 @@
       @link(TCastleFloatSlider.ValueToStr) or
       @link(TCastleIntegerSlider.ValueToStr) (depending on descendant),
       so you can further customize it. }
-    property DisplayValue: boolean
+    property DisplayValue: Boolean
       read FDisplayValue write FDisplayValue default true;
 
     { Displayed on the slider. Right before value, if @link(DisplayValue). }
@@ -97,8 +97,8 @@
       const ValuePointer: PSingle; const AMin, AMax: Single;
       const AOnChange: TNotifyEvent);
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     function ValueToStr(const AValue: Single): string; virtual;
     { Round to multiple of @link(MultipleOf), if non-zero, and clamp
       to @link(Min) and @link(Max) range. }
@@ -149,8 +149,8 @@
       const ValuePointer: PInteger; const AMin, AMax: Integer;
       const AOnChange: TNotifyEvent);
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     function ValueToStr(const AValue: Integer): string; virtual;
   published
     property Min: Integer read FMin write SetMin default DefaultMin;
@@ -242,7 +242,7 @@ begin
 end;
 
 procedure TCastleAbstractSlider.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
   { left / right arrow keys pressed are already handled by slider }
@@ -292,7 +292,7 @@ begin
     DrawSliderText(SR, ValueToStr(Value));
 end;
 
-function TCastleFloatSlider.Press(const Event: TInputPressRelease): boolean;
+function TCastleFloatSlider.Press(const Event: TInputPressRelease): Boolean;
 
   function ValueChange: Single;
   begin
@@ -328,7 +328,7 @@ begin
   end;
 end;
 
-function TCastleFloatSlider.Motion(const Event: TInputMotion): boolean;
+function TCastleFloatSlider.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -447,7 +447,7 @@ begin
     DrawSliderText(SR, ValueToStr(Value));
 end;
 
-function TCastleIntegerSlider.Press(const Event: TInputPressRelease): boolean;
+function TCastleIntegerSlider.Press(const Event: TInputPressRelease): Boolean;
 const
   ValueChange = 1;
 begin
@@ -484,7 +484,7 @@ begin
       Min, Max)), Min, Max);
 end;
 
-function TCastleIntegerSlider.Motion(const Event: TInputMotion): boolean;
+function TCastleIntegerSlider.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
   if Result then Exit;

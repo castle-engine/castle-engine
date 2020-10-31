@@ -52,11 +52,11 @@
     private
       DialogAskDeleteFile: TStateDialogYesNo;
     public
-      function Press(const Event: TInputPressRelease): boolean; override;
+      function Press(const Event: TInputPressRelease): Boolean; override;
       procedure Resume; override;
     end;
 
-  function Press(const Event: TInputPressRelease): boolean; override;
+  function Press(const Event: TInputPressRelease): Boolean; override;
   begin
     Result := inherited;
     if Result then Exit;
@@ -105,13 +105,13 @@ type
       {$undef read_interface}
     var
       FText: TStrings;
-      FHtml: boolean;
+      FHtml: Boolean;
       FAlignment: THorizontalPosition;
-      FAnswered: boolean;
-      FBackground: boolean;
+      FAnswered: Boolean;
+      FBackground: Boolean;
       FBackgroundColor: TCastleColor;
-      FBackgroundScreenshot: boolean;
-      FPopOnAnswered: boolean;
+      FBackgroundScreenshot: Boolean;
+      FPopOnAnswered: Boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
       FOverrrideContainer: TUIContainer;
     function GetCaption: string;
@@ -123,7 +123,7 @@ type
       TButtonArray = array of TCastleButton;
     function StateContainer: TUIContainer; override;
     procedure InitializeButtons(var Buttons: TButtonArray); virtual;
-    function DrawInputText: boolean; virtual;
+    function DrawInputText: Boolean; virtual;
     procedure DoAnswered;
     property InputText: string read GetInputText write SetInputText;
   public
@@ -138,7 +138,7 @@ type
     { When user answers the dialog, this is set to @true.
       The state also normally does TUIState.Pop, so there's no need to check
       this property, unless you set @link(PopOnAnswered) to @false. }
-    property Answered: boolean read FAnswered;
+    property Answered: Boolean read FAnswered;
 
     { Caption displayed in the dialog. }
     property Text: TStrings read FText;
@@ -168,7 +168,7 @@ type
     { Enable a subset of HTML to mark font changes inside the text.
       See the TCastleFont.PrintStrings for a description of supported
       HTML constructs. }
-    property Html: boolean read FHtml write FHtml default false;
+    property Html: Boolean read FHtml write FHtml default false;
 
     { Obscure the state underneath with our own background (using a color or screenshot).
 
@@ -177,7 +177,7 @@ type
       Or it may be a partially-transparent or even completely transparent
       color, showing the state underneath (or showing the screenshot
       of the state underneath, if @link(BackgroundScreenshot)). }
-    property Background: boolean read FBackground write FBackground default false;
+    property Background: Boolean read FBackground write FBackground default false;
 
     { Color of the background obscuring the state underneath,
       if @link(Background) is @true.
@@ -197,12 +197,12 @@ type
       This is less functional (when the user scales the window,
       the screenshot is stretched too), but is safer:
       it means that the state underneath does not need to be "renderable" anymore. }
-    property BackgroundScreenshot: boolean
+    property BackgroundScreenshot: Boolean
       read FBackgroundScreenshot write FBackgroundScreenshot default false;
 
     { Should the state do @link(TUIState.Pop) when answered.
       This is usually most natural. }
-    property PopOnAnswered: boolean
+    property PopOnAnswered: Boolean
       read FPopOnAnswered write FPopOnAnswered default true;
 
     { Force state to use indicated TUIContainer to insert itself and get screenshot.
@@ -226,22 +226,22 @@ type
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
   public
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
   { Ask user a simple "yes" / "no" question.
     See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogYesNo = class(TStateDialog)
   strict private
-    FAnswer: boolean;
+    FAnswer: Boolean;
     procedure ButtonYesClick(Sender: TObject);
     procedure ButtonNoClick(Sender: TObject);
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
   public
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     { User answer to the dialog question, defined when @link(Answered). }
-    property Answer: boolean read FAnswer;
+    property Answer: Boolean read FAnswer;
   end;
 
   { Ask user to choose from a number of options.
@@ -257,8 +257,8 @@ type
   public
     ButtonCaptions: array of string;
     ButtonChars: array of char;
-    AllowCancel: boolean;
-    function Press(const Event: TInputPressRelease): boolean; override;
+    AllowCancel: Boolean;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     { User answer to the dialog question, defined when @link(Answered).
       This is one of the ButtonChars. }
     property Answer: char read FAnswer;
@@ -270,17 +270,17 @@ type
   strict private
     FAllowedChars: TSetOfChars;
     FMinLength, FMaxLength: Cardinal;
-    FCanCancel: boolean;
-    FAnswerCancelled: boolean;
+    FCanCancel: Boolean;
+    FAnswerCancelled: Boolean;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
     function GetAnswer: string;
     procedure SetAnswer(const Value: string);
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
-    function DrawInputText: boolean; override;
+    function DrawInputText: Boolean; override;
   public
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
 
     { Allowed characters that user can input. }
     property AllowedChars: TSetOfChars read FAllowedChars write FAllowedChars;
@@ -293,12 +293,12 @@ type
     property MaxLength: Cardinal read FMaxLength write FMaxLength default 0;
 
     { User can cancel the input by pressing a button like "cancel". }
-    property CanCancel: boolean read FCanCancel write FCanCancel default false;
+    property CanCancel: Boolean read FCanCancel write FCanCancel default false;
 
     { User clicked "cancel" instead of accepting an answer.
       This is defined only when @link(Answered).
       This is possible only if @link(CanCancel). }
-    property AnswerCancelled: boolean read FAnswerCancelled;
+    property AnswerCancelled: Boolean read FAnswerCancelled;
 
     { The user input. May be set before starting the state.
       After the state stopped, if @link(Answered), then this contains user answer.
@@ -312,7 +312,7 @@ type
   strict private
     FAnswer: TKey;
   public
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     { Key pressed by user, defined when @link(Answered). }
     property Answer: TKey read FAnswer;
   end;
@@ -324,7 +324,7 @@ type
   strict private
     FAnswer: TInputPressRelease;
   public
-    function Press(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
     { Key pressed by user, defined when @link(Answered). }
     property Answer: TInputPressRelease read FAnswer;
   end;
@@ -447,7 +447,7 @@ procedure TStateDialog.InitializeButtons(var Buttons: TButtonArray);
 begin
 end;
 
-function TStateDialog.DrawInputText: boolean;
+function TStateDialog.DrawInputText: Boolean;
 begin
   Result := false;
 end;
@@ -474,7 +474,7 @@ begin
   DoAnswered;
 end;
 
-function TStateDialogOK.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogOK.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -513,7 +513,7 @@ begin
   DoAnswered;
 end;
 
-function TStateDialogYesNo.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogYesNo.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -557,7 +557,7 @@ begin
   DoAnswered;
 end;
 
-function TStateDialogChoice.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogChoice.Press(const Event: TInputPressRelease): Boolean;
 var
   C: char;
 begin
@@ -614,7 +614,7 @@ begin
   Press(InputKey(Container.MousePosition, keyEscape, CharEscape, []));
 end;
 
-function TStateDialogInput.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogInput.Press(const Event: TInputPressRelease): Boolean;
 { TODO: copy-paste of TCastleEdit.Press here.
   We should instead reuse TCastleEdit? Although TDialog provides multiline display,
   which may be cool e.g. to edit long URLs in view3dscene. }
@@ -692,7 +692,7 @@ begin
   end;
 end;
 
-function TStateDialogInput.DrawInputText: boolean;
+function TStateDialogInput.DrawInputText: Boolean;
 begin
   Result := true;
 end;
@@ -709,7 +709,7 @@ end;
 
 { TStateDialogKey ------------------------------------------------------------ }
 
-function TStateDialogKey.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogKey.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput
@@ -724,7 +724,7 @@ end;
 
 { TStateDialogPressEvent ------------------------------------------------------------ }
 
-function TStateDialogPressEvent.Press(const Event: TInputPressRelease): boolean;
+function TStateDialogPressEvent.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput

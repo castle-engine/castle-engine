@@ -121,7 +121,7 @@ type
 
       @raises(EDynLibError If library not found and RaiseExceptionOnError
         is @true.) }
-    class function Load(const AName: string; RaiseExceptionOnError: boolean = true): TDynLib;
+    class function Load(const AName: string; RaiseExceptionOnError: Boolean = true): TDynLib;
 
     { What happens when @link(Symbol) fails. }
     property SymbolErrorBehaviour: TDynLibSymbolErrorBehaviour
@@ -198,7 +198,7 @@ begin
   inherited;
 end;
 
-class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean): TDynLib;
+class function TDynLib.Load(const AName: string; RaiseExceptionOnError: Boolean): TDynLib;
 
   { On Unix, right now this simply uses LoadLibrary that calls dlopen(..., RTLD_LAZY)
     (see in FPC rtl/unix/dynlibs.inc).

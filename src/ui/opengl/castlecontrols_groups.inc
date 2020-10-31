@@ -20,7 +20,7 @@
     like @link(TCastleHorizontalGroup) and @link(TCastleVerticalGroup). }
   TCastlePackedGroup = class(TCastleUserInterface)
   strict private
-    FFrame: boolean;
+    FFrame: Boolean;
     FFrameColor: TCastleColor;
     FPadding: Single;
     FSpacing: Single;
@@ -33,7 +33,7 @@
     procedure SetAutoSizeWidth(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
   protected
-    FPackingValid: boolean;
+    FPackingValid: Boolean;
     procedure DoPackChildren(out InsideWidth, InsideHeight: Single); virtual; abstract;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
   public
@@ -45,7 +45,7 @@
     destructor Destroy; override;
     procedure Render; override;
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
+      const ChangeInitiatedByChildren: Boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
@@ -53,7 +53,7 @@
     { If @link(Frame), this is the frame's color. By default white. }
     property FrameColor: TCastleColor read FFrameColor write SetFrameColor;
   published
-    property Frame: boolean read FFrame write SetFrame default false;
+    property Frame: Boolean read FFrame write SetFrame default false;
     property Padding: Single read FPadding write SetPadding default DefaultPadding;
     property Spacing: Single read FSpacing write SetSpacing default DefaultSpacing;
 
@@ -94,8 +94,8 @@
   TCastleHorizontalGroup = class(TCastlePackedGroup)
   strict private
     FAlignment: TVerticalPosition;
-    FLeftToRight: boolean;
-    procedure SetLeftToRight(const Value: boolean);
+    FLeftToRight: Boolean;
+    procedure SetLeftToRight(const Value: Boolean);
     procedure SetAlignment(const Value: TVerticalPosition);
   protected
     procedure DoPackChildren(out W, H: Single); override;
@@ -106,7 +106,7 @@
     { The alignment of children inside this control. }
     property Alignment: TVerticalPosition
       read FAlignment write SetAlignment default vpMiddle;
-    property LeftToRight: boolean read FLeftToRight write SetLeftToRight
+    property LeftToRight: Boolean read FLeftToRight write SetLeftToRight
       default true;
   end;
 
@@ -120,8 +120,8 @@
   TCastleVerticalGroup = class(TCastlePackedGroup)
   strict private
     FAlignment: THorizontalPosition;
-    FTopToBottom: boolean;
-    procedure SetTopToBottom(const Value: boolean);
+    FTopToBottom: Boolean;
+    procedure SetTopToBottom(const Value: Boolean);
     procedure SetAlignment(const Value: THorizontalPosition);
   protected
     procedure DoPackChildren(out W, H: Single); override;
@@ -132,7 +132,7 @@
     { The alignment of children inside this control. }
     property Alignment: THorizontalPosition
       read FAlignment write SetAlignment default hpLeft;
-    property TopToBottom: boolean read FTopToBottom write SetTopToBottom
+    property TopToBottom: Boolean read FTopToBottom write SetTopToBottom
       default true;
   end;
 
@@ -215,7 +215,7 @@ begin
   end;
 end;
 
-procedure TCastlePackedGroup.SetFrame(const Value: boolean);
+procedure TCastlePackedGroup.SetFrame(const Value: Boolean);
 begin
   if FFrame <> Value then
   begin
@@ -243,7 +243,7 @@ begin
 end;
 
 procedure TCastlePackedGroup.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean);
+  const ChangeInitiatedByChildren: Boolean);
 begin
   inherited;
   if [chRectangle, chChildren, chChildrenExists] * Changes <> [] then
@@ -290,7 +290,7 @@ begin
   FLeftToRight := true;
 end;
 
-procedure TCastleHorizontalGroup.SetLeftToRight(const Value: boolean);
+procedure TCastleHorizontalGroup.SetLeftToRight(const Value: Boolean);
 begin
   if FLeftToRight <> Value then
   begin
@@ -363,7 +363,7 @@ begin
   FTopToBottom := true;
 end;
 
-procedure TCastleVerticalGroup.SetTopToBottom(const Value: boolean);
+procedure TCastleVerticalGroup.SetTopToBottom(const Value: Boolean);
 begin
   if FTopToBottom <> Value then
   begin

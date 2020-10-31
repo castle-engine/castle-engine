@@ -37,8 +37,8 @@
     TextWidth, TextHeight: Single;
     FOnClick: TNotifyEvent;
     FCaption: string;
-    FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
-    FPressed: boolean;
+    FAutoSize, FAutoSizeWidth, FAutoSizeHeight: Boolean;
+    FPressed: Boolean;
     FImage,
       FCustomBackgroundPressed,
       FCustomBackgroundDisabled,
@@ -48,11 +48,11 @@
       FCustomColorDisabled,
       FCustomColorFocused,
       FCustomColorNormal: TCastleColor;
-    FCustomBackground: boolean;
+    FCustomBackground: Boolean;
     FCustomTextColor: TCastleColor;
-    FCustomTextColorUse: boolean;
-    FToggle: boolean;
-    ClickStarted: boolean;
+    FCustomTextColorUse: Boolean;
+    FToggle: Boolean;
+    ClickStarted: Boolean;
     ClickStartedPosition: TVector2;
     ClickStartedFinger: Integer;
     FMinImageWidth: Single;
@@ -62,19 +62,19 @@
     FImageMargin: Single;
     FPaddingHorizontal, FPaddingVertical: Single;
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
-    FEnabled: boolean;
-    FEnableParentDragging: boolean;
+    FEnabled: Boolean;
+    FEnableParentDragging: Boolean;
     FTextAlignment: THorizontalPosition;
     FLineSpacing: Single;
-    FHtml: boolean;
+    FHtml: Boolean;
     FCaptionTranslate: Boolean;
     { Make sure FCalculatedSize is true and if necessary
       calculate TextWidth, TextHeight, FCalculatedPreferredWidth/Height. }
     procedure CalculateSizeIfNecessary;
     procedure SetCaption(const Value: string);
-    procedure SetAutoSize(const Value: boolean);
-    procedure SetAutoSizeWidth(const Value: boolean);
-    procedure SetAutoSizeHeight(const Value: boolean);
+    procedure SetAutoSize(const Value: Boolean);
+    procedure SetAutoSizeWidth(const Value: Boolean);
+    procedure SetAutoSizeHeight(const Value: Boolean);
     procedure SetCustomColorDisabled(const AValue: TCastleColor);
     procedure SetCustomColorFocused(const AValue: TCastleColor);
     procedure SetCustomColorNormal(const AValue: TCastleColor);
@@ -83,16 +83,16 @@
     procedure SetMinWidth(const Value: Single);
     procedure SetMinHeight(const Value: Single);
     procedure SetImageMargin(const Value: Single);
-    procedure SetEnabled(const Value: boolean);
+    procedure SetEnabled(const Value: Boolean);
     procedure SetTextAlignment(const Value: THorizontalPosition);
     procedure SetLineSpacing(const Value: Single);
-    procedure SetHtml(const Value: boolean);
+    procedure SetHtml(const Value: Boolean);
     function GetTextToRender: TRichText;
     procedure SetPaddingHorizontal(const Value: Single);
     procedure SetPaddingVertical(const Value: Single);
     procedure SomeImageChanged(Sender: TObject);
   protected
-    procedure SetPressed(const Value: boolean); virtual;
+    procedure SetPressed(const Value: Boolean); virtual;
     procedure UIScaleChanged; override;
     procedure PreferredSize(var PreferredWidth, PreferredHeight: Single); override;
     function GetInternalText: String; override;
@@ -109,15 +109,15 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure FontChanged; override;
     { Internal: set FCalculatedSize to false,
       to make sure TextWidth, TextWidth and FCalculatedPreferredWidth/Height are recalculated
       at next PreferredSize. } { }
     procedure VisibleChange(const Changes: TCastleUserInterfaceChanges;
-      const ChangeInitiatedByChildren: boolean = false); override;
+      const ChangeInitiatedByChildren: Boolean = false); override;
     procedure EditorAllowResize(out ResizeWidth, ResizeHeight: Boolean;
       out Reason: String); override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
@@ -125,7 +125,7 @@
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
     procedure DoClick; virtual;
-    procedure SetFocused(const Value: boolean); override;
+    procedure SetFocused(const Value: Boolean); override;
 
     { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
     property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
@@ -186,7 +186,7 @@
       you need to set the font to be TFontFamily with bold/italic variants.
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
-    property Html: boolean read FHtml write SetHtml default false;
+    property Html: Boolean read FHtml write SetHtml default false;
 
     { Use custom background images. If @true, we use properties
       @unorderedList(
@@ -201,7 +201,7 @@
       They are affected by tint (see @link(TintPressed), @link(TintDisabled),
       @link(TintFocused), @link(TintNormal)).
     }
-    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+    property CustomBackground: Boolean read FCustomBackground write FCustomBackground default false;
 
     { Optional image displayed on the button. }
     property Image: TCastleImagePersistent read FImage;
@@ -217,7 +217,7 @@
 
     { Should we use custom text color in @link(CustomTextColor)
       instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
-    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse default false;
+    property CustomTextColorUse: Boolean read FCustomTextColorUse write FCustomTextColorUse default false;
 
     { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Single
@@ -247,9 +247,9 @@
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
       for UI scaling to determine the font size). }
-    property AutoSize: boolean read FAutoSize write SetAutoSize default true;
-    property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
-    property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
+    property AutoSizeWidth: Boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
+    property AutoSizeHeight: Boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
 
     { When auto-size is in effect, these properties may force
       a minimal width/height of the button. This is useful if you want
@@ -273,7 +273,7 @@
       behave like a checkbox, that is indicate a boolean state.
       When @link(Toggle) is @true, you can set the @link(Pressed) property,
       and the clicks are visualized a little differently. }
-    property Toggle: boolean read FToggle write FToggle default false;
+    property Toggle: Boolean read FToggle write FToggle default false;
 
     { Is the button pressed down. If @link(Toggle) is @true,
       you can read and write this property to set the pressed state.
@@ -282,7 +282,7 @@
       The pressed state is automatically managed then to visualize
       user clicks. In this case, you can read this property,
       but you cannot reliably set it. }
-    property Pressed: boolean read FPressed write SetPressed default false;
+    property Pressed: Boolean read FPressed write SetPressed default false;
 
     { Where the @link(Image) is drawn on a button. }
     property ImageLayout: TCastleButtonImageLayout
@@ -292,7 +292,7 @@
     property ImageMargin: Single read FImageMargin write SetImageMargin
       default DefaultImageMargin;
 
-    property Enabled: boolean read FEnabled write SetEnabled default true;
+    property Enabled: Boolean read FEnabled write SetEnabled default true;
 
     { Enable to drag a parent control, for example to drag a TCastleScrollView
       that contains this button. To do this, you need to turn on
@@ -300,7 +300,7 @@
       on all buttons inside. In effect, buttons will cancel the click operation
       once you start dragging, which allows the parent to handle
       all the motion events for dragging. }
-    property EnableParentDragging: boolean
+    property EnableParentDragging: Boolean
       read FEnableParentDragging write FEnableParentDragging default false;
 
   {$define read_interface_class}
@@ -412,7 +412,7 @@ var
   CustomBackgroundImage: TCastleImagePersistent;
   SR: TFloatRectangle;
   ImageMarginScaled: Single;
-  UseImage, UseText: boolean;
+  UseImage, UseText: Boolean;
   Tint, SolidColor, OriginalColor: TCastleColor;
 begin
   inherited;
@@ -550,7 +550,7 @@ begin
   end;
 end;
 
-function TCastleButton.Press(const Event: TInputPressRelease): boolean;
+function TCastleButton.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -572,7 +572,7 @@ begin
   end;
 end;
 
-function TCastleButton.Release(const Event: TInputPressRelease): boolean;
+function TCastleButton.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -603,7 +603,7 @@ begin
   end;
 end;
 
-function TCastleButton.Motion(const Event: TInputMotion): boolean;
+function TCastleButton.Motion(const Event: TInputMotion): Boolean;
 
   { Similar to Release implementation, but never calls DoClick. }
   procedure CancelDragging;
@@ -654,7 +654,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetAutoSize(const Value: boolean);
+procedure TCastleButton.SetAutoSize(const Value: Boolean);
 begin
   if Value <> FAutoSize then
   begin
@@ -663,7 +663,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetAutoSizeWidth(const Value: boolean);
+procedure TCastleButton.SetAutoSizeWidth(const Value: Boolean);
 begin
   if Value <> FAutoSizeWidth then
   begin
@@ -672,7 +672,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetAutoSizeHeight(const Value: boolean);
+procedure TCastleButton.SetAutoSizeHeight(const Value: Boolean);
 begin
   if Value <> FAutoSizeHeight then
   begin
@@ -743,7 +743,7 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-procedure TCastleButton.SetFocused(const Value: boolean);
+procedure TCastleButton.SetFocused(const Value: Boolean);
 begin
   if Value <> Focused then
   begin
@@ -796,7 +796,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetHtml(const Value: boolean);
+procedure TCastleButton.SetHtml(const Value: Boolean);
 begin
   if FHtml <> Value then
   begin
@@ -805,7 +805,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetPressed(const Value: boolean);
+procedure TCastleButton.SetPressed(const Value: Boolean);
 begin
   if FPressed <> Value then
   begin
@@ -856,7 +856,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetEnabled(const Value: boolean);
+procedure TCastleButton.SetEnabled(const Value: Boolean);
 begin
   if FEnabled <> Value then
   begin
@@ -975,7 +975,7 @@ begin
 end;
 
 procedure TCastleButton.VisibleChange(const Changes: TCastleUserInterfaceChanges;
-  const ChangeInitiatedByChildren: boolean = false);
+  const ChangeInitiatedByChildren: Boolean = false);
 begin
   inherited;
   // react to SetWidth, SetHeight etc.

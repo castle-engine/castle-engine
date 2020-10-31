@@ -118,11 +118,11 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FCompositeType: TCompositeType;
-    FMipmaps: boolean;
+    FMipmaps: Boolean;
     FMipmapsCount: Cardinal;
     FCubeMapSides: TDDSCubeMapSides;
     FDepth: Cardinal;
-    FOwnsFirstImage: boolean;
+    FOwnsFirstImage: Boolean;
     function GetImages(const Index: Integer): TEncodedImage;
     function GetCubeMapSides: TCubeMapSides;
     procedure SetCubeMapSides(const Value: TCubeMapSides);
@@ -135,7 +135,7 @@ type
       To be able to read such DDS files anyway,
       set AutomaticCompression to true and set AutomaticCompressionType
       as appropriate. }
-    class var AutomaticCompression: boolean;
+    class var AutomaticCompression: Boolean;
     class var AutomaticCompressionType: TTextureCompression;
 
     constructor Create;
@@ -156,7 +156,7 @@ type
     { Does this composite image contain mipmaps.
       If @true, then all @link(Images) are guaranteed to have sizes
       being power of 2. }
-    property Mipmaps: boolean read FMipmaps write FMipmaps;
+    property Mipmaps: Boolean read FMipmaps write FMipmaps;
     { Mipmaps count.
       Always 1 when @link(Mipmaps) = @false, this is usually comfortable. }
     property MipmapsCount: Cardinal read FMipmapsCount write FMipmapsCount;
@@ -202,7 +202,7 @@ type
       destructor of this object. When this is @false, you're responsible
       to storing and freeing Images[0] later yourself, or you'll get memory
       leaks. }
-    property OwnsFirstImage: boolean read FOwnsFirstImage write FOwnsFirstImage
+    property OwnsFirstImage: Boolean read FOwnsFirstImage write FOwnsFirstImage
       default true;
 
     { Convert 3D images in @link(Images) list into a sequences of 2D images.
@@ -249,7 +249,7 @@ type
     { Does this URL look like it contains composite (KTX, DDS...) contents.
       Guesses by processing the URL with @link(ProcessImageUrl)
       and then looking at final filename extension. }
-    class function MatchesURL(URL: string): boolean;
+    class function MatchesURL(URL: string): Boolean;
 
     procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
@@ -387,7 +387,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-class function TCompositeImage.MatchesURL(URL: string): boolean;
+class function TCompositeImage.MatchesURL(URL: string): Boolean;
 begin
   URL := ProcessImageUrl(URL);
 

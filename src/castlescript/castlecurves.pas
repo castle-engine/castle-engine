@@ -241,7 +241,7 @@ function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3;
 
   Catmull-Rom splines are a special case of cubic Hermite splines, see
   https://en.wikipedia.org/wiki/Cubic_Hermite_spline . }
-function CatmullRomSpline(const X: Single; const Loop: boolean;
+function CatmullRomSpline(const X: Single; const Loop: Boolean;
   const Arguments: TSingleList;
   const Values: TSingleList): Single;
 
@@ -258,7 +258,7 @@ function CatmullRom(const V0, V1, V2, V3, X: Single): Single;
   reaches certain values, and between interpolates smoothly.
   Requires specifying tangent values (use @link(CatmullRomSpline)
   or @link(HermiteTenseSpline) to use automatic tangents). }
-function HermiteSpline(const X: Single; const Loop: boolean;
+function HermiteSpline(const X: Single; const Loop: Boolean;
   const Arguments, Values, Tangents: TSingleList): Single;
 
 { Hermite spline with tangents zero (it will be horizontal at control points).
@@ -272,7 +272,7 @@ function HermiteSpline(const X: Single; const Loop: boolean;
   Hermite spline, with all tangents calculated with "tension" parameter equal
   to 1 (maximum), which means that all tangents are simply zero (horizontal).
   See https://en.wikipedia.org/wiki/Cubic_Hermite_spline for math behind this. }
-function HermiteTenseSpline(const X: Single; const Loop: boolean;
+function HermiteTenseSpline(const X: Single; const Loop: Boolean;
   const Arguments, Values: TSingleList): Single;
 
 implementation
@@ -806,7 +806,7 @@ type
     const XInSegment: Single): Single is nested;
 
 { General spline calculation, using SegmentFunction for a curve-specific equation. }
-function CalculateSpline(const X: Single; const Loop: boolean;
+function CalculateSpline(const X: Single; const Loop: Boolean;
   const Arguments, Values: TSingleList;
   const SegmentFunction: TCurveSegmentFunction): Single;
 
@@ -871,7 +871,7 @@ begin
   );
 end;
 
-function CatmullRomSpline(const X: Single; const Loop: boolean;
+function CatmullRomSpline(const X: Single; const Loop: Boolean;
   const Arguments: TSingleList;
   const Values: TSingleList): Single;
 
@@ -925,7 +925,7 @@ begin
     (X3 - X2) * Tangent1;
 end;
 
-function HermiteSpline(const X: Single; const Loop: boolean;
+function HermiteSpline(const X: Single; const Loop: Boolean;
   const Arguments, Values, Tangents: TSingleList): Single;
 
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
@@ -954,7 +954,7 @@ begin
     (-2 * X3 + 3 *X2) * V1;
 end;
 
-function HermiteTenseSpline(const X: Single; const Loop: boolean;
+function HermiteTenseSpline(const X: Single; const Loop: Boolean;
   const Arguments, Values: TSingleList): Single;
 
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
@@ -984,7 +984,7 @@ function ConvexHullIndexes(Points: TVector3List): TIntegerList;
 
 var InResult: TBooleanList;
 
-  function FindNext(Start: Integer; var NextI: Integer; RightSide: boolean): boolean;
+  function FindNext(Start: Integer; var NextI: Integer; RightSide: Boolean): Boolean;
   { Starting from Points[Start], knowing that InResult[Start],
     find next vertex on convex hull. If RightSide then we're moving from
     lowest vertex to highest, walking over the right edge of the convex hull.

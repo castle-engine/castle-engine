@@ -32,7 +32,7 @@ type
     function GetURL: string;
     procedure SetURL(AValue: string);
   protected
-    function DoExecute: boolean; override;
+    function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -53,7 +53,7 @@ type
     function GetURL: string;
     procedure SetURL(AValue: string);
   protected
-    function DoExecute: boolean; override;
+    function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -76,9 +76,9 @@ type
     InitialFilter: string;
     function GetURL: string;
     procedure SetURL(AValue: string);
-    function StoreFilterAndFilterIndex: boolean;
+    function StoreFilterAndFilterIndex: Boolean;
   protected
-    function DoExecute: boolean; override;
+    function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -103,9 +103,9 @@ type
     InitialFilter: string;
     function GetURL: string;
     procedure SetURL(AValue: string);
-    function StoreFilterAndFilterIndex: boolean;
+    function StoreFilterAndFilterIndex: Boolean;
   protected
-    function DoExecute: boolean; override;
+    function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -130,9 +130,9 @@ type
     InitialFilter: string;
     function GetURL: string;
     procedure SetURL(AValue: string);
-    function StoreFilterAndFilterIndex: boolean;
+    function StoreFilterAndFilterIndex: Boolean;
   protected
-    function DoExecute: boolean; override;
+    function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -224,12 +224,12 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-function TCastleOpen3DDialog.StoreFilterAndFilterIndex: boolean;
+function TCastleOpen3DDialog.StoreFilterAndFilterIndex: Boolean;
 begin
   Result := (Filter <> InitialFilter) or (FilterIndex <> InitialFilterIndex);
 end;
 
-function TCastleOpen3DDialog.DoExecute: boolean;
+function TCastleOpen3DDialog.DoExecute: Boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
@@ -259,12 +259,12 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-function TCastleSaveImageDialog.StoreFilterAndFilterIndex: boolean;
+function TCastleSaveImageDialog.StoreFilterAndFilterIndex: Boolean;
 begin
   Result := (Filter <> InitialFilter) or (FilterIndex <> InitialFilterIndex);
 end;
 
-function TCastleSaveImageDialog.DoExecute: boolean;
+function TCastleSaveImageDialog.DoExecute: Boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
@@ -294,12 +294,12 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-function TCastleOpenImageDialog.StoreFilterAndFilterIndex: boolean;
+function TCastleOpenImageDialog.StoreFilterAndFilterIndex: Boolean;
 begin
   Result := (Filter <> InitialFilter) or (FilterIndex <> InitialFilterIndex);
 end;
 
-function TCastleOpenImageDialog.DoExecute: boolean;
+function TCastleOpenImageDialog.DoExecute: Boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
@@ -329,7 +329,7 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-function TCastleSaveDialog.DoExecute: boolean;
+function TCastleSaveDialog.DoExecute: Boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then
@@ -356,7 +356,7 @@ begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
 
-function TCastleOpenDialog.DoExecute: boolean;
+function TCastleOpenDialog.DoExecute: Boolean;
 begin
   Result := inherited DoExecute;
   if Result and AdviceDataDirectory then

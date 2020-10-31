@@ -29,150 +29,150 @@
   { }
   TSFBoolEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: boolean; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
-    procedure Send(const Value: boolean); overload;
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
+    procedure Send(const Value: Boolean; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
+    procedure Send(const Value: Boolean); overload;
   end;
 
   TSFDoubleEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: Double); overload;
   end;
 
   TSFTimeEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TFloatTime; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TFloatTime); overload;
   end;
 
   TSFFloatEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: Single; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: Single); overload;
   end;
 
   TSFImageEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TSFLongEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: LongInt); overload;
   end;
 
   TSFInt32Event = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: LongInt; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: LongInt); overload;
   end;
 
   TSFMatrix3dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TMatrix3Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix3Double); overload;
   end;
 
   TSFMatrix3fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TMatrix3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix3); overload;
   end;
 
   TSFMatrix4dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TMatrix4Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix4Double); overload;
   end;
 
   TSFMatrix4fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TMatrix4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TMatrix4); overload;
   end;
 
   TSFNodeEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TSFRotationEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4); overload;
   end;
 
   TSFStringEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: string; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: string); overload;
   end;
 
   TSFVec2dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector2Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector2Double); overload;
   end;
 
   TSFVec2fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector2; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector2); overload;
   end;
 
   TSFVec3dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector3Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3Double); overload;
   end;
 
   TSFVec3fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3); overload;
   end;
 
   TSFVec4dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector4Double; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4Double); overload;
   end;
 
   TSFVec4fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector4; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector4); overload;
   end;
 
   TSFColorEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TVector3; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TVector3); overload;
   end;
 
   TSFColorRGBAEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
     procedure Send(const Value: TCastleColor; const Time: TX3DTime; const PartialSend: TPartialSend = nil); overload;
     procedure Send(const Value: TCastleColor); overload;
   end;
@@ -182,112 +182,112 @@
     InstantReality calls this event type XFAny. }
   TXFAnyEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFBoolEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFDoubleEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFTimeEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFFloatEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFLongEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFInt32Event = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFMatrix3dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFMatrix3fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFMatrix4dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFMatrix4fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFNodeEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFRotationEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFStringEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec2dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec2fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec3dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec3fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec4dEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFVec4fEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFColorEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 
   TMFColorRGBAEvent = class(TX3DEvent)
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
   end;
 {$endif read_interface}
 
@@ -295,12 +295,12 @@
 
 { TSFBoolEvent --------------------------------------------------------------- }
 
-constructor TSFBoolEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFBoolEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFBool, AInEvent);
 end;
 
-procedure TSFBoolEvent.Send(const Value: boolean; const Time: TX3DTime; const PartialSend: TPartialSend);
+procedure TSFBoolEvent.Send(const Value: Boolean; const Time: TX3DTime; const PartialSend: TPartialSend);
 var
   Field: TX3DField;
 begin
@@ -311,7 +311,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFBoolEvent.Send(const Value: boolean);
+procedure TSFBoolEvent.Send(const Value: Boolean);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -320,7 +320,7 @@ end;
 
 { TSFDoubleEvent ------------------------------------------------------------- }
 
-constructor TSFDoubleEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFDoubleEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFDouble, AInEvent);
 end;
@@ -345,7 +345,7 @@ end;
 
 { TSFTimeEvent --------------------------------------------------------------- }
 
-constructor TSFTimeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFTimeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFTime, AInEvent);
 end;
@@ -370,7 +370,7 @@ end;
 
 { TSFFloatEvent -------------------------------------------------------------- }
 
-constructor TSFFloatEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFFloatEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFFloat, AInEvent);
 end;
@@ -395,14 +395,14 @@ end;
 
 { TSFImageEvent -------------------------------------------------------------- }
 
-constructor TSFImageEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFImageEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFImage, AInEvent);
 end;
 
 { TSFLongEvent --------------------------------------------------------------- }
 
-constructor TSFLongEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFLongEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFLong, AInEvent);
 end;
@@ -427,7 +427,7 @@ end;
 
 { TSFInt32Event -------------------------------------------------------------- }
 
-constructor TSFInt32Event.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFInt32Event.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFInt32, AInEvent);
 end;
@@ -452,7 +452,7 @@ end;
 
 { TSFMatrix3dEvent ----------------------------------------------------------- }
 
-constructor TSFMatrix3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFMatrix3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFMatrix3d, AInEvent);
 end;
@@ -477,7 +477,7 @@ end;
 
 { TSFMatrix3fEvent ----------------------------------------------------------- }
 
-constructor TSFMatrix3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFMatrix3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFMatrix3f, AInEvent);
 end;
@@ -502,7 +502,7 @@ end;
 
 { TSFMatrix4dEvent ----------------------------------------------------------- }
 
-constructor TSFMatrix4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFMatrix4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFMatrix4d, AInEvent);
 end;
@@ -527,7 +527,7 @@ end;
 
 { TSFMatrix4fEvent ----------------------------------------------------------- }
 
-constructor TSFMatrix4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFMatrix4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFMatrix4f, AInEvent);
 end;
@@ -552,14 +552,14 @@ end;
 
 { TSFNodeEvent --------------------------------------------------------------- }
 
-constructor TSFNodeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFNodeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFNode, AInEvent);
 end;
 
 { TSFRotationEvent ----------------------------------------------------------- }
 
-constructor TSFRotationEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFRotationEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFRotation, AInEvent);
 end;
@@ -584,7 +584,7 @@ end;
 
 { TSFStringEvent ------------------------------------------------------------- }
 
-constructor TSFStringEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFStringEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFString, AInEvent);
 end;
@@ -609,7 +609,7 @@ end;
 
 { TSFVec2dEvent -------------------------------------------------------------- }
 
-constructor TSFVec2dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec2dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec2d, AInEvent);
 end;
@@ -634,7 +634,7 @@ end;
 
 { TSFVec2fEvent -------------------------------------------------------------- }
 
-constructor TSFVec2fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec2fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec2f, AInEvent);
 end;
@@ -659,7 +659,7 @@ end;
 
 { TSFVec3dEvent -------------------------------------------------------------- }
 
-constructor TSFVec3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec3d, AInEvent);
 end;
@@ -684,7 +684,7 @@ end;
 
 { TSFVec3fEvent -------------------------------------------------------------- }
 
-constructor TSFVec3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec3f, AInEvent);
 end;
@@ -709,7 +709,7 @@ end;
 
 { TSFVec4dEvent -------------------------------------------------------------- }
 
-constructor TSFVec4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec4d, AInEvent);
 end;
@@ -734,7 +734,7 @@ end;
 
 { TSFVec4fEvent -------------------------------------------------------------- }
 
-constructor TSFVec4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFVec4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFVec4f, AInEvent);
 end;
@@ -759,7 +759,7 @@ end;
 
 { TSFColorEvent -------------------------------------------------------------- }
 
-constructor TSFColorEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFColorEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFColor, AInEvent);
 end;
@@ -784,7 +784,7 @@ end;
 
 { TSFColorRGBAEvent ---------------------------------------------------------- }
 
-constructor TSFColorRGBAEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TSFColorRGBAEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TSFColorRGBA, AInEvent);
 end;
@@ -809,112 +809,112 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-constructor TXFAnyEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TXFAnyEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TX3DField, AInEvent);
 end;
 
-constructor TMFBoolEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFBoolEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFBool, AInEvent);
 end;
 
-constructor TMFDoubleEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFDoubleEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFDouble, AInEvent);
 end;
 
-constructor TMFTimeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFTimeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFTime, AInEvent);
 end;
 
-constructor TMFFloatEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFFloatEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFFloat, AInEvent);
 end;
 
-constructor TMFLongEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFLongEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFLong, AInEvent);
 end;
 
-constructor TMFInt32Event.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFInt32Event.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFInt32, AInEvent);
 end;
 
-constructor TMFMatrix3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFMatrix3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFMatrix3d, AInEvent);
 end;
 
-constructor TMFMatrix3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFMatrix3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFMatrix3f, AInEvent);
 end;
 
-constructor TMFMatrix4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFMatrix4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFMatrix4d, AInEvent);
 end;
 
-constructor TMFMatrix4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFMatrix4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFMatrix4f, AInEvent);
 end;
 
-constructor TMFNodeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFNodeEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFNode, AInEvent);
 end;
 
-constructor TMFRotationEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFRotationEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFRotation, AInEvent);
 end;
 
-constructor TMFStringEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFStringEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFString, AInEvent);
 end;
 
-constructor TMFVec2dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec2dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec2d, AInEvent);
 end;
 
-constructor TMFVec2fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec2fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec2f, AInEvent);
 end;
 
-constructor TMFVec3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec3dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec3d, AInEvent);
 end;
 
-constructor TMFVec3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec3fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec3f, AInEvent);
 end;
 
-constructor TMFVec4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec4dEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec4d, AInEvent);
 end;
 
-constructor TMFVec4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFVec4fEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFVec4f, AInEvent);
 end;
 
-constructor TMFColorEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFColorEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFColor, AInEvent);
 end;
 
-constructor TMFColorRGBAEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
+constructor TMFColorRGBAEvent.Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName, TMFColorRGBA, AInEvent);
 end;

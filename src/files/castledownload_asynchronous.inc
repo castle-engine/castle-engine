@@ -145,7 +145,7 @@ type
       and still keep the stream reference.
       It is your responsibility then to keep and free the @link(Contents)
       stream whenever you want. }
-    property OwnsContents: boolean read FOwnsContents write FOwnsContents;
+    property OwnsContents: Boolean read FOwnsContents write FOwnsContents;
 
     { How many bytes were downloaded.
       Together with @link(TotalBytes), you can use it e.g. to show a progress bar
@@ -472,7 +472,7 @@ procedure TCastleDownload.SetContentsApplyOptions(UnderlyingStream: TStream);
   { Decompress gzipped FileName.
     When ForceMemoryStream, always returns TMemoryStream.
     Sets given Stream to @nil (it is owned by us now, possibly it is freed by this function). }
-  function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
+  function ReadGzipped(var Stream: TStream; const ForceMemoryStream: Boolean): TStream;
   var
     NewResult: TMemoryStream;
   begin

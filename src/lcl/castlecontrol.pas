@@ -67,7 +67,7 @@ type
       public
         constructor Create(AParent: TCastleControlBase); reintroduce;
         procedure Invalidate; override;
-        function GLInitialized: boolean; override;
+        function GLInitialized: Boolean; override;
         function Width: Integer; override;
         function Height: Integer; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
@@ -76,8 +76,8 @@ type
 
         procedure EventOpen(const OpenWindowsCount: Cardinal); override;
         procedure EventClose(const OpenWindowsCount: Cardinal); override;
-        function EventPress(const Event: TInputPressRelease): boolean; override;
-        function EventRelease(const Event: TInputPressRelease): boolean; override;
+        function EventPress(const Event: TInputPressRelease): Boolean; override;
+        function EventRelease(const Event: TInputPressRelease): Boolean; override;
         procedure EventUpdate; override;
         procedure EventMotion(const Event: TInputMotion); override;
         procedure EventBeforeRender; override;
@@ -87,10 +87,10 @@ type
     var
       FContainer: TContainer;
       FMousePosition: TVector2;
-      FGLInitialized: boolean;
-      FAutoRedisplay: boolean;
+      FGLInitialized: Boolean;
+      FAutoRedisplay: Boolean;
       { manually track when we need to be repainted, useful for AggressiveUpdate }
-      Invalidated: boolean;
+      Invalidated: Boolean;
       FOnOpen: TNotifyEvent;
       FOnBeforeRender: TNotifyEvent;
       FOnRender: TNotifyEvent;
@@ -116,7 +116,7 @@ type
       const Event: TInputPressRelease);
 
     procedure SetMousePosition(const Value: TVector2);
-    procedure SetAutoRedisplay(const Value: boolean);
+    procedure SetAutoRedisplay(const Value: Boolean);
     class function GetMainContainer: TUIContainer;
 
     { Force DoUpdate and Paint (if invalidated) events to happen,
@@ -205,7 +205,7 @@ type
 
     procedure DoUpdate; virtual;
 
-    property GLInitialized: boolean read FGLInitialized;
+    property GLInitialized: Boolean read FGLInitialized;
   public
     class var
       { Central control where user-interface states (TUIState) are added.
@@ -222,7 +222,7 @@ type
       See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
-    function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
+    function MakeCurrent(SaveOldToStack: Boolean = false): Boolean; override;
     procedure Invalidate; override;
     procedure Paint; override;
 
@@ -467,7 +467,7 @@ type
       Note that the engine components always call @link(Invalidate) when
       necessary, so usually you should only call it yourself if you provide
       a custom @link(OnRender) implementation. }
-    property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
+    property AutoRedisplay: Boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
   end;
 
@@ -501,11 +501,11 @@ type
   private
     FSceneManager: TControlGameSceneManager;
 
-    function GetShadowVolumes: boolean;
-    function GetShadowVolumesRender: boolean;
+    function GetShadowVolumes: Boolean;
+    function GetShadowVolumesRender: Boolean;
     function GetOnCameraChanged: TNotifyEvent;
-    procedure SetShadowVolumes(const Value: boolean);
-    procedure SetShadowVolumesRender(const Value: boolean);
+    procedure SetShadowVolumes(const Value: Boolean);
+    procedure SetShadowVolumesRender(const Value: Boolean);
     procedure SetOnCameraChanged(const Value: TNotifyEvent);
   public
     constructor Create(AOwner: TComponent); override;
@@ -519,7 +519,7 @@ type
       scene_manager_basic.lpr. }
     procedure Load(const SceneURL: string);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
-    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: Boolean);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
 
     function MainScene: TCastleScene;
@@ -531,12 +531,12 @@ type
       read GetOnCameraChanged write SetOnCameraChanged;
 
     { See @link(TCastleViewport.ShadowVolumes). }
-    property ShadowVolumes: boolean
+    property ShadowVolumes: Boolean
       read GetShadowVolumes write SetShadowVolumes
       default TCastleViewport.DefaultShadowVolumes;
 
     { See @link(TCastleViewport.ShadowVolumesRender). }
-    property ShadowVolumesRender: boolean
+    property ShadowVolumesRender: Boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
   end deprecated 'use TCastleControlBase and create instance of TCastleViewport explicitly';
 
@@ -722,7 +722,7 @@ begin
 end;
 
 var
-  ApplicationIdleSet: boolean;
+  ApplicationIdleSet: Boolean;
 
 { TCastleControlBase.TContainer ----------------------------------------------------- }
 
@@ -737,7 +737,7 @@ begin
   Parent.Invalidate;
 end;
 
-function TCastleControlBase.TContainer.GLInitialized: boolean;
+function TCastleControlBase.TContainer.GLInitialized: Boolean;
 begin
   Result := Parent.GLInitialized;
 end;
@@ -805,7 +805,7 @@ begin
   inherited;
 end;
 
-function TCastleControlBase.TContainer.EventPress(const Event: TInputPressRelease): boolean;
+function TCastleControlBase.TContainer.EventPress(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if (not Result) and Assigned(Parent.FOnPress) then
@@ -815,7 +815,7 @@ begin
   end;
 end;
 
-function TCastleControlBase.TContainer.EventRelease(const Event: TInputPressRelease): boolean;
+function TCastleControlBase.TContainer.EventRelease(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if (not Result) and Assigned(Parent.FOnRelease) then
@@ -912,7 +912,7 @@ begin
   inherited;
 end;
 
-procedure TCastleControlBase.SetAutoRedisplay(const Value: boolean);
+procedure TCastleControlBase.SetAutoRedisplay(const Value: Boolean);
 begin
   FAutoRedisplay := value;
   if Value then Invalidate;
@@ -945,7 +945,7 @@ OpenGL context. Looking at implementation of GLGtkGlxContext
 we see that only during MakeCurrent the widget is guaranteed
 to be realized. }
 
-function TCastleControlBase.MakeCurrent(SaveOldToStack: boolean): boolean;
+function TCastleControlBase.MakeCurrent(SaveOldToStack: Boolean): Boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
@@ -1300,7 +1300,7 @@ begin
   {$warnings on}
 end;
 
-procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: Boolean);
 begin
   { destroy MainScene and clear cameras, we will recreate it }
   SceneManager.Items.MainScene.Free;
@@ -1336,22 +1336,22 @@ begin
   Result := SceneManager.Camera;
 end;
 
-function TCastleControl.GetShadowVolumes: boolean;
+function TCastleControl.GetShadowVolumes: Boolean;
 begin
   Result := SceneManager.ShadowVolumes;
 end;
 
-procedure TCastleControl.SetShadowVolumes(const Value: boolean);
+procedure TCastleControl.SetShadowVolumes(const Value: Boolean);
 begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TCastleControl.GetShadowVolumesRender: boolean;
+function TCastleControl.GetShadowVolumesRender: Boolean;
 begin
   Result := SceneManager.ShadowVolumesRender;
 end;
 
-procedure TCastleControl.SetShadowVolumesRender(const Value: boolean);
+procedure TCastleControl.SetShadowVolumesRender(const Value: Boolean);
 begin
   SceneManager.ShadowVolumesRender := Value;
 end;

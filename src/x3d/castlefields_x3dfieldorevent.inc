@@ -136,7 +136,7 @@
     { Returns if S matches current Name or one of the alternative names.
       Think about it like simple test "Name = S", but actually this
       checks also names added by AddAlternativeName method. }
-    function IsName(const S: string): boolean;
+    function IsName(const S: string): Boolean;
 
     { Return how this field should be named for given VRML version.
       In almost all cases, this simply returns current Name.
@@ -245,7 +245,7 @@ begin
     FAlternativeNames[X3DMajorVersion] := '';
 end;
 
-function TX3DFieldOrEvent.IsName(const S: string): boolean;
+function TX3DFieldOrEvent.IsName(const S: string): Boolean;
 var
   I: Integer;
 begin

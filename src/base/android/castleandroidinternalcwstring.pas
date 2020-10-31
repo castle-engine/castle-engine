@@ -79,7 +79,7 @@ var
   u_errorName: function (code: UErrorCode): PAnsiChar; cdecl;
 
 threadvar
-  ThreadDataInited: boolean;
+  ThreadDataInited: Boolean;
   DefConv, LastConv: PUConverter;
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
@@ -860,7 +860,7 @@ procedure LoadICU;
 var
   LibVer: ansistring;
 
-  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): boolean;
+  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): Boolean;
   var
     p: pointer;
   begin

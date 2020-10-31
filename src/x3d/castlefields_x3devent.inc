@@ -28,7 +28,7 @@
 
     var
     FFieldClass: TX3DFieldClass;
-    FInEvent: boolean;
+    FInEvent: Boolean;
     { To avoid allocating memory for FNotifications list in the most-common case
       when 0 or 1 notification is enough, store 1st notification in special
       field instead. }
@@ -36,7 +36,7 @@
     FNotifications: TX3DEventReceiveList;
     FParentExposedField: TX3DField;
     Temp: TX3DField;
-    TempUsed: boolean;
+    TempUsed: Boolean;
 
     SendLevel: Cardinal;
     NotificationsToRemove: TX3DEventReceiveList;
@@ -45,7 +45,7 @@
   public
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
-      const AFieldClass: TX3DFieldClass; const AInEvent: boolean);
+      const AFieldClass: TX3DFieldClass; const AInEvent: Boolean);
     destructor Destroy; override;
 
     { Internal helper utility for SendXxx implementations. @exclude }
@@ -56,7 +56,7 @@
     property FieldClass: TX3DFieldClass read FFieldClass;
 
     { @abstract(Is it "in" or "out" event ?) }
-    property InEvent: boolean read FInEvent;
+    property InEvent: Boolean read FInEvent;
 
     { This only reads (optional) "IS" clause of the event, as may occur
       in VRML nodeBodyStatement. }
@@ -144,7 +144,7 @@
 
       For now, this simply returns whether any callback is registered
       by AddNotification. }
-    function SendNeeded: boolean;
+    function SendNeeded: Boolean;
 
     { Assign from another event. The FieldClass and InEvent is copied.
 
@@ -187,7 +187,7 @@ end;
 
 constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
   const AName: string; const AFieldClass: TX3DFieldClass;
-  const AInEvent: boolean);
+  const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName);
   FFieldClass := AFieldClass;
@@ -255,7 +255,7 @@ begin
     Send(Field, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
-function TX3DEvent.SendNeeded: boolean;
+function TX3DEvent.SendNeeded: Boolean;
 begin
   Result :=
     Assigned(FFirstNotification) or

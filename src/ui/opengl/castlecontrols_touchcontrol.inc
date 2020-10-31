@@ -40,9 +40,9 @@
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure SetTouchMode(const Value: TCastleTouchCtlMode);
     procedure GetSensorRotation(var X, Y, Z, Angle: Double);
     procedure GetSensorTranslation(var X, Y, Z, Length: Double);
@@ -193,7 +193,7 @@ begin
   end;
 end;
 
-function TCastleTouchControl.Press(const Event: TInputPressRelease): boolean;
+function TCastleTouchControl.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -203,7 +203,7 @@ begin
   FLeverOffset := TVector2.Zero;
 end;
 
-function TCastleTouchControl.Release(const Event: TInputPressRelease): boolean;
+function TCastleTouchControl.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result or (Event.EventType <> itMouseButton) then Exit;
@@ -218,7 +218,7 @@ begin
   end;
 end;
 
-function TCastleTouchControl.Motion(const Event: TInputMotion): boolean;
+function TCastleTouchControl.Motion(const Event: TInputMotion): Boolean;
 begin
   Result := inherited;
 

@@ -54,7 +54,7 @@ type
 
     { How Geometry and State are generated from Shape.
       We have to record it, to use with Shape.Normals* later. }
-    OverTriangulate: boolean;
+    OverTriangulate: Boolean;
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TGeometryIndexList;
@@ -104,7 +104,7 @@ type
     { @groupEnd }
 
     procedure WarningShadingProblems(
-      const ColorPerVertex, NormalPerVertex: boolean);
+      const ColorPerVertex, NormalPerVertex: Boolean);
 
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -193,29 +193,29 @@ type
       colors per-face, which means that the same vertex position may have
       different colors,  which means it has to be duplicated in arrays anyway,
       so there's no point in indexing). }
-    procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); virtual;
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
     TexCoordsNeeded: Cardinal;
     MaterialOpacity: Single;
-    FogVolumetric: boolean;
+    FogVolumetric: Boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
-    ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingUsed: Boolean;
     ShapeBumpMappingTextureCoordinatesId: Cardinal;
     OnRadianceTransfer: TRadianceTransferFunction;
     OnVertexColor: TVertexColorFunction;
     { Do we need TGeometryArrays.Faces }
-    FacesNeeded: boolean;
+    FacesNeeded: Boolean;
     { @groupEnd }
 
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); virtual;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); virtual;
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
 
-    class function BumpMappingAllowed: boolean; virtual;
+    class function BumpMappingAllowed: Boolean; virtual;
   end;
 
   TArraysGeneratorClass = class of TArraysGenerator;
@@ -416,17 +416,17 @@ type
       4th texture coordinate, working only when texture coord is
       normal 2D coord. }
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector4): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector4): Boolean;
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector2): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector2): Boolean;
 
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
 
     procedure GenerateVertex(IndexNum: Integer); override;
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -476,12 +476,12 @@ type
     MaterialBinding: Integer;
     procedure UpdateMat1Implementation;
 
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
@@ -532,11 +532,11 @@ type
   protected
     Color: TMFVec3f;
     ColorRGBA: TMFColorRGBA;
-    ColorPerVertex: boolean;
+    ColorPerVertex: Boolean;
     ColorIndex: TMFLong;
     ColorNode: TAbstractColorNode;
 
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -607,7 +607,7 @@ type
   protected
     NormalIndex: TMFLong;
     Normals: TVector3List;
-    NormalsCcw: boolean;
+    NormalsCcw: Boolean;
 
     { This is calculated in constructor. Unlike similar TexImplementation
       (which is calculated only in GenerateCoordinateBegin).
@@ -641,14 +641,14 @@ type
       NorImplementation = niNone case. The implementation in this class
       just derives it from NorImplementation, and for niNone answers @false
       (safer answer). }
-    function NormalsFlat: boolean; virtual;
+    function NormalsFlat: Boolean; virtual;
 
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinateEnd; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
 
     procedure GenerateVertex(IndexNum: Integer); override;
   end;
@@ -660,10 +660,10 @@ type
   private
     FogCoord: TSingleList;
   protected
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
 
   TX3DVertexAttributeNodes = specialize TObjectList<TAbstractVertexAttributeNode>;
@@ -675,10 +675,10 @@ type
   private
     Attrib: TX3DVertexAttributeNodes;
   protected
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
     destructor Destroy; override;
   end;
 
@@ -694,11 +694,11 @@ type
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   private
     { Helpers for bump mapping }
-    HasTangentVectors: boolean;
+    HasTangentVectors: Boolean;
     STangent, TTangent: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
-    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure PrepareAttributes(var AllowIndexed: Boolean); override;
 
     { Update tangent vectors (HasTangentVectors, STangent, TTangent).
       Without this, bump mapping will be wrong.
@@ -713,7 +713,7 @@ type
 
 { TArraysGenerator ------------------------------------------------------ }
 
-constructor TArraysGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TArraysGenerator.Create(AShape: TShape; AOverTriangulate: Boolean);
 begin
   inherited Create;
 
@@ -728,9 +728,9 @@ begin
 end;
 
 procedure TArraysGenerator.WarningShadingProblems(
-  const ColorPerVertex, NormalPerVertex: boolean);
+  const ColorPerVertex, NormalPerVertex: Boolean);
 const
-  SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
+  SPerVertex: array [Boolean] of string = ('per-face', 'per-vertex');
 begin
   WritelnWarning('X3D', Format(
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
@@ -740,7 +740,7 @@ end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
 var
-  AllowIndexed: boolean;
+  AllowIndexed: Boolean;
   MaxIndex: TGeometryIndex;
 begin
   Arrays := TGeometryArrays.Create;
@@ -833,7 +833,7 @@ begin
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;
 
-procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: Boolean);
 begin
   if Geometry is TAbstractComposedGeometryNode then
   begin
@@ -887,14 +887,14 @@ begin
   FCurrentRangeNumber := RangeNumber;
 end;
 
-class function TArraysGenerator.BumpMappingAllowed: boolean;
+class function TArraysGenerator.BumpMappingAllowed: Boolean;
 begin
   Result := false;
 end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape; AOverTriangulate: Boolean);
 begin
   inherited;
   if not Geometry.InternalTexCoord(State, TexCoord) then
@@ -902,14 +902,14 @@ begin
 end;
 
 procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
-  var AllowIndexed: boolean);
+  var AllowIndexed: Boolean);
 
   { Is a texture used on given unit, and it's 3D texture. }
-  function IsTexture3D(const TexUnit: Cardinal): boolean;
+  function IsTexture3D(const TexUnit: Cardinal): Boolean;
 
     { Knowing that Tex is not nil,
       check is it a single (not MultiTexture) 3D texture. }
-    function IsSingleTexture3D(Tex: TX3DNode): boolean;
+    function IsSingleTexture3D(Tex: TX3DNode): Boolean;
     begin
       Result :=
          (Tex is TAbstractTexture3DNode) or
@@ -1055,7 +1055,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       Pass any TexCoord node except TMultiTextureCoordinateNode. }
     procedure AddSingleTexCoord(const TextureUnit: Cardinal; TexCoord: TX3DNode);
 
-      function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
+      function TexCoordGenFromString(const S: string; const IsTexture3D: Boolean): TTextureCoordinateGeneration;
       begin
         if S = 'SPHERE' then
           Result := tgSphereMap else
@@ -1406,7 +1406,7 @@ end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
-  out Tex: TVector4): boolean;
+  out Tex: TVector4): Boolean;
 
   function GenerateTexCoord(const TexCoord: TGeometryTexCoord): TVector4;
   var
@@ -1497,7 +1497,7 @@ end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
-  out Tex: TVector2): boolean;
+  out Tex: TVector2): Boolean;
 var
   Tex4f: TVector4;
 begin
@@ -1530,7 +1530,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractMaterial1Generator.Create(AShape: TShape; AOverTriangulate: Boolean);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -1539,7 +1539,7 @@ end;
 
 procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
 
-  function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
+  function IndexListNotEmpty(MFIndexes: TMFLong): Boolean;
   begin
     Result :=
       (MFIndexes.Count > 0) and
@@ -1572,7 +1572,7 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-procedure TAbstractMaterial1Generator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractMaterial1Generator.PrepareAttributes(var AllowIndexed: Boolean);
 begin
   inherited;
 
@@ -1629,7 +1629,7 @@ end;
 
 { TAbstractColorGenerator --------------------------------------- }
 
-procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: Boolean);
 begin
   inherited;
 
@@ -1784,7 +1784,7 @@ end;
 { TAbstractNormalGenerator ----------------------------------------------------- }
 
 procedure TAbstractNormalGenerator.PrepareAttributes(
-  var AllowIndexed: boolean);
+  var AllowIndexed: Boolean);
 begin
   inherited;
 
@@ -1864,7 +1864,7 @@ begin
   end;
 end;
 
-function TAbstractNormalGenerator.NormalsFlat: boolean;
+function TAbstractNormalGenerator.NormalsFlat: Boolean;
 begin
   Result := NorImplementation in [niUnlit, niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
@@ -1953,7 +1953,7 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractFogGenerator.Create(AShape: TShape; AOverTriangulate: Boolean);
 begin
   inherited;
 
@@ -1962,7 +1962,7 @@ begin
 end;
 
 procedure TAbstractFogGenerator.PrepareAttributes(
-  var AllowIndexed: boolean);
+  var AllowIndexed: Boolean);
 begin
   inherited;
 
@@ -2078,7 +2078,7 @@ end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TAbstractShaderAttribGenerator.Create(AShape: TShape; AOverTriangulate: Boolean);
 var
   A: TMFNode;
   I: Integer;
@@ -2103,7 +2103,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractShaderAttribGenerator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractShaderAttribGenerator.PrepareAttributes(var AllowIndexed: Boolean);
 var
   I: Integer;
 begin
@@ -2180,7 +2180,7 @@ end;
 
 { TAbstractBumpMappingGenerator ----------------------------------------------- }
 
-procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: Boolean);
 begin
   inherited;
   if ShapeBumpMappingUsed then
@@ -2262,9 +2262,9 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
     needless mem copying.
 
     Returns @false if cannot be calculated. }
-  function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3;
+  function CalculateTangent(IsSTangent: Boolean; var Tangent: TVector3;
     var Triangle3D: TTriangle3;
-    var TriangleTexCoord: TTriangle2): boolean;
+    var TriangleTexCoord: TTriangle2): Boolean;
   var
     D: TVector2;
     LineA, LineBC, DIn3D: TVector3;

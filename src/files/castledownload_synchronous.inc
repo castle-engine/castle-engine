@@ -20,7 +20,7 @@ var
   { Log (through CastleLog) all loading, that is: all calls to @link(Download).
     This allows to easily check e.g. whether the engine is not loading something
     during the game (which usually badly affects the performance). }
-  LogAllLoading: boolean = false;
+  LogAllLoading: Boolean = false;
 
 var
   { Does @link(Download) (synchronous downloading routine) support http and https protocol.
@@ -28,7 +28,7 @@ var
     your application, for arbitrarily long time, and you have no way to interrupt it.
     It is recommended to use asynchronous downloading, using @link(TCastleDownload),
     to download resources over the network. }
-  EnableBlockingDownloads: boolean = false;
+  EnableBlockingDownloads: Boolean = false;
 
 type
   EDownloadError = class(Exception);

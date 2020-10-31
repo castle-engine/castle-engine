@@ -65,12 +65,12 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure RenderOverChildren; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function PreviewPress(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
+    function PreviewPress(const Event: TInputPressRelease): Boolean; override;
+    function Motion(const Event: TInputMotion): Boolean; override;
     procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
+      var HandleInput: Boolean); override;
 
     { Color and alpha tint to use when scrollbar is not used.
       May have some alpha, which makes scrollbar "make itself more opaque",
@@ -275,7 +275,7 @@ begin
 end;
 
 procedure TCastleScrollViewCustom.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 
   { Calculate ScrollBarVisible, ScrollbarFrame, ScrollbarFrame }
   procedure UpdateScrollBarVisibleAndRects;
@@ -425,7 +425,7 @@ begin
   UpdateScrollBarActive;
 end;
 
-function TCastleScrollViewCustom.PreviewPress(const Event: TInputPressRelease): boolean;
+function TCastleScrollViewCustom.PreviewPress(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -454,7 +454,7 @@ begin
   end;
 end;
 
-function TCastleScrollViewCustom.Press(const Event: TInputPressRelease): boolean;
+function TCastleScrollViewCustom.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -528,7 +528,7 @@ begin
     Result := ExclusiveEvents;
 end;
 
-function TCastleScrollViewCustom.Release(const Event: TInputPressRelease): boolean;
+function TCastleScrollViewCustom.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -540,7 +540,7 @@ begin
   end;
 end;
 
-function TCastleScrollViewCustom.Motion(const Event: TInputMotion): boolean;
+function TCastleScrollViewCustom.Motion(const Event: TInputMotion): Boolean;
 var
   Drag: Single;
 begin

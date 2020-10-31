@@ -57,7 +57,7 @@ type
     or Lazarus (LCL) TApplication (in case you use CastleControl). }
   TCastleApplicationProperties = class
   private
-    FIsGLContextOpen, FFileAccessSafe: boolean;
+    FIsGLContextOpen, FFileAccessSafe: Boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
@@ -65,7 +65,7 @@ type
     FOnWarning: TWarningEventList;
     FOnLog: TLogEventList;
     FVersion: String;
-    FTouchDevice: boolean;
+    FTouchDevice: Boolean;
     FLimitFPS: Single;
     FShowUserInterfaceToQuit: Boolean;
     function GetApplicationName: String;
@@ -129,7 +129,7 @@ type
         ApplicationProperties.TouchDevice := true;
       #)
     }
-    property TouchDevice: boolean read FTouchDevice write FTouchDevice;
+    property TouchDevice: Boolean read FTouchDevice write FTouchDevice;
 
     { Is it common, on current platform, to show the "Quit" button in your application.
       E.g. it is normal to show "Quit" on PC (Windows, Linux etc.).
@@ -207,7 +207,7 @@ type
 
     { Is the OpenGL context available. IOW, we are between the first OnGLContextOpen
       and last OnGLContextClose. }
-    property IsGLContextOpen: boolean read FIsGLContextOpen;
+    property IsGLContextOpen: Boolean read FIsGLContextOpen;
 
     { Callbacks called continuously when (at least one) window is open.
 
@@ -290,12 +290,12 @@ type
       On Android, opening files before Android application started (on the Java side)
       is not possible.
       On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
-    property _FileAccessSafe: boolean read FFileAccessSafe write FFileAccessSafe;
+    property _FileAccessSafe: Boolean read FFileAccessSafe write FFileAccessSafe;
     { @groupEnd }
   end;
 
 function ApplicationProperties(
-  const CreateIfNotExisting: boolean = true): TCastleApplicationProperties;
+  const CreateIfNotExisting: Boolean = true): TCastleApplicationProperties;
 
 implementation
 
@@ -345,7 +345,7 @@ end;
 var
   FApplicationProperties: TCastleApplicationProperties;
 
-function ApplicationProperties(const CreateIfNotExisting: boolean): TCastleApplicationProperties;
+function ApplicationProperties(const CreateIfNotExisting: Boolean): TCastleApplicationProperties;
 begin
   if (FApplicationProperties = nil) and CreateIfNotExisting then
     FApplicationProperties := TCastleApplicationProperties.Create;

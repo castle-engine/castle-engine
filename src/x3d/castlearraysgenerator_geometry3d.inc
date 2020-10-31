@@ -38,7 +38,7 @@ type
     procedure GenerateTriangle(const TriIndices: TVector3Integer);
   protected
     { Set these in descendant's constructor. }
-    FaceConvex: boolean;
+    FaceConvex: Boolean;
 
     procedure GenerateCoordinate; override;
     procedure GenerateCoordinateEnd; override;
@@ -50,26 +50,26 @@ type
     procedure AutoGenerateNormals(const CreaseAngle: Single);
     procedure PrepareIndexesPrimitives; override;
   public
-    class function BumpMappingAllowed: boolean; override;
+    class function BumpMappingAllowed: Boolean; override;
   end;
 
   TIndexedFaceSet_1Generator = class(TAbstractIndexedFaceSetGenerator)
   private
-    VRML1FrontFaceCcw, VRML1CullFace: boolean;
+    VRML1FrontFaceCcw, VRML1CullFace: Boolean;
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
 
   TIndexedFaceSetGenerator = class(TAbstractIndexedFaceSetGenerator)
   public
-    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
 
 { TAbstractIndexedFaceSetGenerator ------------------------------------------- }
 
-class function TAbstractIndexedFaceSetGenerator.BumpMappingAllowed: boolean;
+class function TAbstractIndexedFaceSetGenerator.BumpMappingAllowed: Boolean;
 begin
   Result := true;
 end;
@@ -276,7 +276,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSet_1Generator.Create(AShape: TShape; AOverTriangulate: Boolean);
 var
   SH: TShapeHintsNode_1;
   ANode: TIndexedFaceSetNode_1;
@@ -325,7 +325,7 @@ end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSetGenerator.Create(AShape: TShape; AOverTriangulate: Boolean);
 var
   ANode: TIndexedFaceSetNode;
 begin

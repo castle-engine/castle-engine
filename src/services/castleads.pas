@@ -87,13 +87,13 @@ type
       TAdNetworkHandler = class abstract
       strict private
         FParent: TAds;
-        FBannerShowing: boolean;
+        FBannerShowing: Boolean;
         FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList;
-          const ReceivedStream: TMemoryStream): boolean;
+          const ReceivedStream: TMemoryStream): Boolean;
         procedure FullScreenAdClosed(const WatchedStatus: TAdWatchStatus);
       strict protected
-        FFullScreenAdVisible: boolean;
+        FFullScreenAdVisible: Boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
       public
         constructor Create(const AParent: TAds);
@@ -103,7 +103,7 @@ type
         procedure ShowBanner(const Gravity: Integer); virtual;
         procedure HideBanner; virtual;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); virtual;
+          const WaitUntilLoaded: Boolean); virtual;
         procedure StartTestActivity; virtual;
       end;
 
@@ -121,7 +121,7 @@ type
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       TChartboostHandler = class(TAdNetworkHandler)
@@ -134,7 +134,7 @@ type
           const AnAppId, AnAppSignature: string);
         class function Name: string; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       TStartappHandler = class(TAdNetworkHandler)
@@ -147,7 +147,7 @@ type
           const AnAppId: string);
         class function Name: string; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
       end;
 
       THeyzapHandler = class(TAdNetworkHandler)
@@ -162,7 +162,7 @@ type
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
-          const WaitUntilLoaded: boolean); override;
+          const WaitUntilLoaded: Boolean); override;
         procedure StartTestActivity; override;
       end;
     var
@@ -227,7 +227,7 @@ type
       OnFullScreenAdClosed sometime. }
     procedure ShowFullScreenAd(const AdNetwork: TAdNetwork;
       const AdType: TFullScreenAdType;
-      const WaitUntilLoaded: boolean);
+      const WaitUntilLoaded: Boolean);
 
     { Show banner ad.
       Banners are not supported by all ad networks (only AdMob and Heyzap now),
@@ -276,7 +276,7 @@ begin
 end;
 
 function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList;
-  const ReceivedStream: TMemoryStream): boolean;
+  const ReceivedStream: TMemoryStream): Boolean;
 var
   AdWatchStatusInt: Integer;
   WatchStatus: TAdWatchStatus;
@@ -333,7 +333,7 @@ begin
 end;
 
 procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
@@ -400,7 +400,7 @@ begin
   inherited;
 end;
 
-procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
+procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType; const WaitUntilLoaded: Boolean);
 var
   AdTypeName: String;
   WaitUntilLoadedStr: String;
@@ -435,7 +435,7 @@ begin
 end;
 
 procedure TAds.TChartboostHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
@@ -463,7 +463,7 @@ begin
 end;
 
 procedure TAds.TStartappHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
@@ -503,7 +503,7 @@ begin
 end;
 
 procedure TAds.THeyzapHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
-  const WaitUntilLoaded: boolean);
+  const WaitUntilLoaded: Boolean);
 begin
   FFullScreenAdVisible := true;
   case AdType of
@@ -579,7 +579,7 @@ begin
 end;
 
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
-  const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
+  const AdType: TFullScreenAdType; const WaitUntilLoaded: Boolean);
 begin
   {$ifdef ANDROID}
   if FNetworks[AdNetwork] <> nil then

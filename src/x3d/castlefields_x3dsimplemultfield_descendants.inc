@@ -19,7 +19,7 @@
 
   { }
   TMFBool = class(specialize TX3DSimpleMultField<
-    boolean,
+    Boolean,
     TSFBool,
     TBooleanList,
     TMFBoolEvent>)
@@ -35,16 +35,16 @@
     TLongIntList,
     TMFLongEvent>)
   strict private
-    FSaveToStreamLineUptoNegative: boolean;
+    FSaveToStreamLineUptoNegative: Boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
   public
     { When saving to VRML/X3D classic encoding,
       make newline after each negative value on the list.
       This makes a nice output for fields like IndexedFaceSet.coordIndex. }
-    property SaveToStreamLineUptoNegative: boolean
+    property SaveToStreamLineUptoNegative: Boolean
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
 
@@ -76,7 +76,7 @@
   TMFInt32 = class(TMFLong)
   public
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFMatrix3f = class(specialize TX3DSimpleMultField<
@@ -88,7 +88,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -101,7 +101,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -114,7 +114,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -127,7 +127,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -140,7 +140,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -153,14 +153,14 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
   TMFColor = class(TMFVec3f)
   public
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFVec4f = class(specialize TX3DSimpleMultField<
@@ -172,14 +172,14 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
   TMFColorRGBA = class(TMFVec4f)
   public
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFVec2d = class(specialize TX3DSimpleMultField<
@@ -191,7 +191,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -204,7 +204,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -217,7 +217,7 @@
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -230,7 +230,7 @@
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -240,19 +240,19 @@
     TSingleList,
     TMFFloatEvent>)
   strict private
-    FAngle: boolean;
+    FAngle: Boolean;
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
     function CreateItemBeforeParse: TSFFloat; override;
   public
     { Value represents an angle. When reading from X3D 3.3 file, we will
       make sure it's expressed in radians, honoring optional "UNIT angle ..."
       declaration in X3D file. }
-    property Angle: boolean read FAngle write FAngle default false;
+    property Angle: Boolean read FAngle write FAngle default false;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
@@ -263,17 +263,17 @@
     TMFDoubleEvent>)
   strict protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
+    function CanAssignLerp: Boolean; override;
     class function X3DType: string; override;
   end;
 
   TMFTime = class(TMFDouble)
   public
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFString = class(specialize TX3DSimpleMultField<
@@ -308,7 +308,7 @@ end;
 
 { TMFLong -------------------------------------------------------------------- }
 
-function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
 begin
   Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
 end;
@@ -345,7 +345,7 @@ begin
   Result := 'MFInt32';
 end;
 
-class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFInt32Event.Create(AParentNode, AName, AInEvent);
 end;
@@ -367,7 +367,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFMatrix3f).Items, (Value2 as TMFMatrix3f).Items);
 end;
 
-function TMFMatrix3f.CanAssignLerp: boolean;
+function TMFMatrix3f.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -389,7 +389,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFMatrix3d).Items, (Value2 as TMFMatrix3d).Items);
 end;
 
-function TMFMatrix3d.CanAssignLerp: boolean;
+function TMFMatrix3d.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -411,7 +411,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFMatrix4f).Items, (Value2 as TMFMatrix4f).Items);
 end;
 
-function TMFMatrix4f.CanAssignLerp: boolean;
+function TMFMatrix4f.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -433,7 +433,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFMatrix4d).Items, (Value2 as TMFMatrix4d).Items);
 end;
 
-function TMFMatrix4d.CanAssignLerp: boolean;
+function TMFMatrix4d.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -455,7 +455,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec2f).Items, (Value2 as TMFVec2f).Items);
 end;
 
-function TMFVec2f.CanAssignLerp: boolean;
+function TMFVec2f.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -477,7 +477,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec3f).Items, (Value2 as TMFVec3f).Items);
 end;
 
-function TMFVec3f.CanAssignLerp: boolean;
+function TMFVec3f.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -489,7 +489,7 @@ begin
   Result := 'MFColor';
 end;
 
-class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFColorEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -511,7 +511,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec4f).Items, (Value2 as TMFVec4f).Items);
 end;
 
-function TMFVec4f.CanAssignLerp: boolean;
+function TMFVec4f.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -523,7 +523,7 @@ begin
   Result := 'MFColorRGBA';
 end;
 
-class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFColorRGBAEvent.Create(AParentNode, AName, AInEvent);
 end;
@@ -545,7 +545,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec2d).Items, (Value2 as TMFVec2d).Items);
 end;
 
-function TMFVec2d.CanAssignLerp: boolean;
+function TMFVec2d.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -567,7 +567,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec3d).Items, (Value2 as TMFVec3d).Items);
 end;
 
-function TMFVec3d.CanAssignLerp: boolean;
+function TMFVec3d.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -589,7 +589,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFVec4d).Items, (Value2 as TMFVec4d).Items);
 end;
 
-function TMFVec4d.CanAssignLerp: boolean;
+function TMFVec4d.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -611,14 +611,14 @@ begin
   Items.AssignLerp(A, (Value1 as TMFRotation).Items, (Value2 as TMFRotation).Items);
 end;
 
-function TMFRotation.CanAssignLerp: boolean;
+function TMFRotation.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
 
 { TMFFloat ------------------------------------------------------------------- }
 
-function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
 begin
   Result := false;
 end;
@@ -633,7 +633,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFFloat).Items, (Value2 as TMFFloat).Items);
 end;
 
-function TMFFloat.CanAssignLerp: boolean;
+function TMFFloat.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -654,7 +654,7 @@ end;
 
 { TMFDouble -------------------------------------------------------------------- }
 
-function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
 begin
   Result := false;
 end;
@@ -669,7 +669,7 @@ begin
   Items.AssignLerp(A, (Value1 as TMFDouble).Items, (Value2 as TMFDouble).Items);
 end;
 
-function TMFDouble.CanAssignLerp: boolean;
+function TMFDouble.CanAssignLerp: Boolean;
 begin
   Result := true;
 end;
@@ -686,7 +686,7 @@ begin
   Result := 'MFTime';
 end;
 
-class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFTimeEvent.Create(AParentNode, AName, AInEvent);
 end;

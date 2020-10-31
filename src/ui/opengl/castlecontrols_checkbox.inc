@@ -51,8 +51,8 @@
       DefaultCheckboxSize = 24;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
+    function Press(const Event: TInputPressRelease): Boolean; override;
+    function Release(const Event: TInputPressRelease): Boolean; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
     procedure EditorAllowResize(
       out ResizeWidth, ResizeHeight: Boolean; out Reason: String); override;
@@ -193,7 +193,7 @@ begin
   end;
 end;
 
-procedure TCastleCheckbox.SetChecked(const Value: boolean);
+procedure TCastleCheckbox.SetChecked(const Value: Boolean);
 begin
   if FChecked <> Value then
   begin
@@ -207,7 +207,7 @@ begin
   end;
 end;
 
-function TCastleCheckbox.Press(const Event: TInputPressRelease): boolean;
+function TCastleCheckbox.Press(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -222,7 +222,7 @@ begin
   end;
 end;
 
-function TCastleCheckbox.Release(const Event: TInputPressRelease): boolean;
+function TCastleCheckbox.Release(const Event: TInputPressRelease): Boolean;
 begin
   Result := inherited;
   if Result then Exit;

@@ -23,18 +23,18 @@
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FLineSpacing: Single;
     FColor: TCastleColor;
-    FHtml: boolean;
-    FFrame: boolean;
+    FHtml: Boolean;
+    FFrame: Boolean;
     FFrameColor: TCastleColor;
     FMaxWidth: Single;
     FAlignment: THorizontalPosition;
     FVerticalAlignment: TVerticalPosition;
-    FAutoSize: boolean;
+    FAutoSize: Boolean;
     FMaxDisplayChars: Integer;
     CachedRichText: TRichText;
     FCaptionTranslate: Boolean;
     function GetTextToRender: TRichText;
-    procedure SetAutoSize(const Value: boolean);
+    procedure SetAutoSize(const Value: Boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
     procedure SetAlignment(const Value: THorizontalPosition);
@@ -84,7 +84,7 @@
 
       When this is @true (the default) then
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
-    property AutoSize: boolean read FAutoSize write SetAutoSize default true;
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
 
     { Caption displayed on the label, each line as a string.
       Setting this property merely copies the contents using TStrings.Assign. }
@@ -135,14 +135,14 @@
       you need to set the font to be TFontFamily with bold/italic variants.
       See the example mentioned above, examples/fonts/html_text.lpr,
       for a code how to do it. }
-    property Html: boolean read FHtml write SetHtml default false;
+    property Html: Boolean read FHtml write SetHtml default false;
 
-    property Tags: boolean read FHtml write SetHtml stored false default false;
+    property Tags: Boolean read FHtml write SetHtml stored false default false;
       deprecated 'use Html instead';
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
-    property Frame: boolean read FFrame write FFrame default false;
+    property Frame: Boolean read FFrame write FFrame default false;
 
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
@@ -362,7 +362,7 @@ begin
   end;
 end;
 
-procedure TCastleLabel.SetAutoSize(const Value: boolean);
+procedure TCastleLabel.SetAutoSize(const Value: Boolean);
 begin
   if FAutoSize <> Value then
   begin

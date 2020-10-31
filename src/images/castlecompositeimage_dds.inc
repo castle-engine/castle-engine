@@ -595,7 +595,7 @@ end;
 
 procedure TDDSHandler.LoadFromStream(const Stream: TStream; const URL: string);
 
-  procedure CheckWarn(const Check: boolean; const Message: string);
+  procedure CheckWarn(const Check: Boolean; const Message: string);
   begin
     if not Check then
       WritelnWarning('DDS image', Message);

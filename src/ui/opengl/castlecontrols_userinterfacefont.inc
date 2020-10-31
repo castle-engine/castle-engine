@@ -23,21 +23,21 @@
     FTooltip: string;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
-    FOwnsCustomFont: boolean;
+    FOwnsCustomFont: Boolean;
     FLastSeenUIFont, FLastSeenDefaultFont: TCastleFont; //< remembered only to call FontChanged
     FFontSize, FFontScale: Single;
     FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
-    FSmallFont: boolean;
+    FSmallFont: Boolean;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
-    FOutlineHighQuality: boolean;
+    FOutlineHighQuality: Boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
     procedure SetFontScale(const Value: Single);
-    procedure SetSmallFont(const Value: boolean);
+    procedure SetSmallFont(const Value: Boolean);
     procedure SetOutline(const Value: Cardinal);
     procedure SetOutlineColor(const Value: TCastleColor);
-    procedure SetOutlineHighQuality(const Value: boolean);
+    procedure SetOutlineHighQuality(const Value: Boolean);
   protected
     procedure UIScaleChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -45,7 +45,7 @@
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GLContextClose; override;
-    function TooltipExists: boolean; override;
+    function TooltipExists: Boolean; override;
     procedure TooltipRender(const TooltipPosition: TVector2); override;
     procedure Render; override;
     function PropertySection(const PropertyName: String): TPropertySection; override;
@@ -86,13 +86,13 @@
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;
 
-    property OwnsCustomFont: boolean
+    property OwnsCustomFont: Boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
       deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
 
     { Use smaller font.
       Right now this just says to scale font by 0.5. }
-    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+    property SmallFont: Boolean read FSmallFont write SetSmallFont default false;
       {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
 
     { Outline color, used only if Outline <> 0. Default is black.
@@ -139,7 +139,7 @@
     { Optionally force better outline quality. Used only if Outline <> 0.
       High quality outline looks better, but is about 2x more expensive to draw.
       @seealso Outline }
-    property OutlineHighQuality: boolean
+    property OutlineHighQuality: Boolean
       read FOutlineHighQuality write SetOutlineHighQuality default false;
 
   {$define read_interface_class}
@@ -189,7 +189,7 @@ begin
   inherited;
 end;
 
-function TCastleUserInterfaceFont.TooltipExists: boolean;
+function TCastleUserInterfaceFont.TooltipExists: Boolean;
 begin
   Result := Tooltip <> '';
 end;
@@ -368,7 +368,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterfaceFont.SetSmallFont(const Value: boolean);
+procedure TCastleUserInterfaceFont.SetSmallFont(const Value: Boolean);
 begin
   if FSmallFont <> Value then
   begin
@@ -395,7 +395,7 @@ begin
   end;
 end;
 
-procedure TCastleUserInterfaceFont.SetOutlineHighQuality(const Value: boolean);
+procedure TCastleUserInterfaceFont.SetOutlineHighQuality(const Value: Boolean);
 begin
   if FOutlineHighQuality <> Value then
   begin

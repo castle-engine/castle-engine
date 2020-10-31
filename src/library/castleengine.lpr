@@ -43,7 +43,7 @@ type
   TCrosshairManager = class(TObject)
   public
     CrosshairCtl: TCastleCrosshair;
-    CrosshairActive: boolean;
+    CrosshairActive: Boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -56,14 +56,14 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-function CGE_VerifyWindow(const FromFunc: string): boolean;
+function CGE_VerifyWindow(const FromFunc: string): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil);
   if not Result then
     WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
-function CGE_VerifyScene(const FromFunc: string): boolean;
+function CGE_VerifyScene(const FromFunc: string): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
   if not Result then
@@ -480,7 +480,7 @@ end;
 
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
 var
-  bHandleControls: boolean;
+  bHandleControls: Boolean;
 begin
   bHandleControls := true;
   try

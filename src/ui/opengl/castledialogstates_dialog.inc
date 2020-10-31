@@ -51,10 +51,10 @@
     Text: TStringList;
     TextAlign: THorizontalPosition;
     { Should we display InputText }
-    DrawInputText: boolean;
+    DrawInputText: Boolean;
     Buttons: array of TCastleButton;
     LifeTime: TFloatTime;
-    FHtml: boolean;
+    FHtml: Boolean;
     ScrollView: TCastleScrollView;
 
     function BoxMarginScaled: Single;
@@ -74,7 +74,7 @@
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
       you should check in your loop whether something set Answered to @true. }
-    Answered: boolean;
+    Answered: Boolean;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -84,13 +84,13 @@
     { Assign display stuff. Call this before adding control to Controls list. }
     procedure Initialize(
       const TextList: TStrings; const ATextAlign: THorizontalPosition;
-      const AHtml: boolean;
+      const AHtml: Boolean;
       const AButtons: array of TCastleButton;
-      const ADrawInputText: boolean);
+      const ADrawInputText: Boolean);
     procedure Resize; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
     procedure Render; override;
-    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): Boolean; override;
   end;
 
 {$endif read_interface}
@@ -139,7 +139,7 @@ type
   { Render all lines in S, and move Y up to the line above. }
   procedure DrawStrings(const X: Single; var Y: Single;
     const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
-    const AddCaret: boolean);
+    const AddCaret: Boolean);
   const
     CaretSpeed = 1; //< how many blinks per second
   var
@@ -205,9 +205,9 @@ begin
 end;
 
 procedure TStateDialog.TDialog.Initialize(const TextList: TStrings;
-  const ATextAlign: THorizontalPosition; const AHtml: boolean;
+  const ATextAlign: THorizontalPosition; const AHtml: Boolean;
   const AButtons: array of TCastleButton;
-  const ADrawInputText: boolean);
+  const ADrawInputText: Boolean);
 var
   I: Integer;
 begin
@@ -361,7 +361,7 @@ begin
 end;
 
 procedure TStateDialog.TDialog.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+  var HandleInput: Boolean);
 begin
   inherited;
   LifeTime := LifeTime + SecondsPassed;
@@ -377,7 +377,7 @@ begin
   Theme.Draw(RenderRect, tiWindow, UIScale);
 end;
 
-function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): Boolean;
 begin
   Result := true; // always capture
 end;

@@ -78,8 +78,8 @@ type
 
     var
       Header: TKTXHeader;
-      SwapEndianness: boolean;
-      RowsTopToBottom, SlicesFrontToBack: boolean;
+      SwapEndianness: Boolean;
+      RowsTopToBottom, SlicesFrontToBack: Boolean;
 
     procedure ReadKeyValues(const Stream: TStream);
     procedure ReadOrientation(const Value: string);

@@ -125,7 +125,7 @@ type
       But actually it works a little faster, by utilizing the assumption
       that TBox3D.Empty is the only allowed value that breaks
       @code(Data[0].Data[0] <= Data[1].Data[0]) rule. }
-    function IsEmpty: boolean;
+    function IsEmpty: Boolean;
 
     { The minimum 3D position within this box. Use only if not @link(IsEmpty),
       in which case this is just a shortcut for @code(Data[0]). }
@@ -136,7 +136,7 @@ type
     property Max: TVector3 read GetMax write SetMax;
 
     { Check is box empty or has all the sizes equal 0. }
-    function IsEmptyOrZero: boolean;
+    function IsEmptyOrZero: Boolean;
 
     procedure CheckNonEmpty;
 
@@ -176,21 +176,21 @@ type
       @param(AllowZero Decides what to do when box is not empty but the result
         would be zero, which means that the box is infinitely thin in all axes.
         If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
-    function AverageSize(const AllowZero: boolean;
+    function AverageSize(const AllowZero: Boolean;
       const EmptyBoxSize: Single): Single; overload;
 
     { Largest size of TBox3D, or EmptyBoxSize if box is empty.
       @param(AllowZero Decides what to do when box is not empty but the result
         would be zero, which means that the box is infinitely thin in all axes.
         If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
-    function MaxSize(const AllowZero: boolean;
+    function MaxSize(const AllowZero: Boolean;
       const EmptyBoxSize: Single): Single; overload;
 
     { Area of the six TBox3D sides, EmptyBoxArea if box is empty.
       @param(AllowZero Decides what to do when box is not empty but the result
         would be zero, which means that the box is infinitely thin in all axes.
         If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
-    function Area(const AllowZero: boolean;
+    function Area(const AllowZero: Boolean;
       const EmptyBoxArea: Single): Single;
 
     { Decrease "minimum corner" by (AExpand, AExpand, AExpand) vector,
@@ -221,31 +221,31 @@ type
       Always false if Box is empty (obviously, no point is inside an empty box).
 
       @groupBegin }
-    function Contains(const Point: TVector3): boolean; overload;
+    function Contains(const Point: TVector3): Boolean; overload;
 
     { Causes FPC errors about "duplicate ASM label",
       see https://bugs.freepascal.org/view.php?id=32188 .
       Also, it's not really very useful. }
-    //function Contains(const Point: TVector3Double): boolean; overload;
+    //function Contains(const Point: TVector3Double): Boolean; overload;
 
     { }
-    function PointInside(const Point: TVector3): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
+    function PointInside(const Point: TVector3): Boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
 
     { Causes FPC errors about "duplicate ASM label",
       see https://bugs.freepascal.org/view.php?id=32188 .
       Also, it's not really very useful. }
-    //function PointInside(const Point: TVector3Double): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
+    //function PointInside(const Point: TVector3Double): Boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
     { @groupEnd }
 
     { Is the 2D point inside the 2D projection of the box, ignores the Z coord of box. }
-    function Contains2D(const Point: TVector2): boolean; overload;
-    function PointInside2D(const Point: TVector2): boolean; overload; deprecated 'use Contains2d method';
+    function Contains2D(const Point: TVector2): Boolean; overload;
+    function PointInside2D(const Point: TVector2): Boolean; overload; deprecated 'use Contains2d method';
 
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
       the IgnoreIndex coordinate (must be 0, 1 or 2). }
-    function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload;
-    function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload; deprecated 'use Contains2D method';
+    function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): Boolean; overload;
+    function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): Boolean; overload; deprecated 'use Contains2D method';
 
     { Add another box to our box.
       This calculates the smallest box that encloses both the current box,
@@ -321,13 +321,13 @@ type
     function TryRayClosestIntersection(
       out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3): boolean; overload;
+      const RayOrigin, RayDirection: TVector3): Boolean; overload;
     function TryRayClosestIntersection(
       out Intersection: TVector3;
-      const RayOrigin, RayDirection: TVector3): boolean; overload;
+      const RayOrigin, RayDirection: TVector3): Boolean; overload;
     function TryRayClosestIntersection(
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3): boolean; overload;
+      const RayOrigin, RayDirection: TVector3): Boolean; overload;
     { @groupEnd }
 
     { Intersection between the ray (returns closest intersection to RayOrigin)
@@ -340,18 +340,18 @@ type
       @groupBegin }
     function TryRayEntrance(
       out Entrance: TVector3; out EntranceDistance: Single;
-      const RayOrigin, RayDirection: TVector3): boolean; overload;
+      const RayOrigin, RayDirection: TVector3): Boolean; overload;
     function TryRayEntrance(
       out Entrance: TVector3;
-      const RayOrigin, RayDirection: TVector3): boolean; overload;
+      const RayOrigin, RayDirection: TVector3): Boolean; overload;
     { @groupEnd }
 
     function SegmentCollision(
-      const Segment1, Segment2: TVector3): boolean;
+      const Segment1, Segment2: TVector3): Boolean;
 
     { Deprecated name for SegmentCollision. @deprecated @exclude }
     function IsSegmentCollision(
-      const Segment1, Segment2: TVector3): boolean; deprecated;
+      const Segment1, Segment2: TVector3): Boolean; deprecated;
 
     { Collision between axis-aligned box (TBox3D) and 3D plane.
       Returns detailed result as TPlaneCollision. }
@@ -372,12 +372,12 @@ type
       But it works (very slightly) faster.
 
       @groupBegin }
-    function PlaneCollisionInside(const Plane: TVector4): boolean;
-    function PlaneCollisionOutside(const Plane: TVector4): boolean;
+    function PlaneCollisionInside(const Plane: TVector4): Boolean;
+    function PlaneCollisionOutside(const Plane: TVector4): Boolean;
     { @groupEnd }
 
     function IsTriangleCollision(
-      const Triangle: TTriangle3): boolean;
+      const Triangle: TTriangle3): Boolean;
 
     { Smallest possible sphere completely enclosing given Box.
       When Box is empty we return SphereRadiusSqr = 0 and undefined SphereCenter. }
@@ -388,10 +388,10 @@ type
       Better use @link(Collides),
       which has a name consistent with @link(TFloatRectangle.Collides),
       this method will be deprecated some day and later removed. }
-    function Collision(const Box2: TBox3D): boolean;
+    function Collision(const Box2: TBox3D): Boolean;
 
     { Does it have any common part with another box. }
-    function Collides(const Box2: TBox3D): boolean;
+    function Collides(const Box2: TBox3D): Boolean;
 
     { Radius of the minimal sphere that contains this box.
       Sphere center is assumed to be in (0, 0, 0).
@@ -419,15 +419,15 @@ type
       relatively small compared to the Box, this may be perfectly
       acceptable. And it's fast. }
     function SphereSimpleCollision(
-      const SphereCenter: TVector3; const SphereRadius: Single): boolean;
+      const SphereCenter: TVector3; const SphereRadius: Single): Boolean;
 
     { Check box vs sphere collision. }
     function SphereCollision(
-      const SphereCenter: TVector3; const SphereRadius: Single): boolean;
+      const SphereCenter: TVector3; const SphereRadius: Single): Boolean;
 
     { Check box vs sphere collision in 2D (ignores Z coordinates of box). }
     function SphereCollision2D(
-      const SphereCenter: TVector2; const SphereRadius: Single): boolean;
+      const SphereCenter: TVector2; const SphereRadius: Single): Boolean;
 
     { Calculate a plane in 3D space with direction = given Direction, moved
       maximally in Direction and still intersecting the given Box.
@@ -512,8 +512,8 @@ type
     function PointMaxDistance(const Point: TVector3;
       const EmptyBoxDistance: Single): Single;
 
-    function Equal(const Box2: TBox3D): boolean; overload;
-    function Equal(const Box2: TBox3D; const Epsilon: Single): boolean; overload;
+    function Equal(const Box2: TBox3D): Boolean; overload;
+    function Equal(const Box2: TBox3D; const Epsilon: Single): Boolean; overload;
 
     { Diagonal of the box, zero if empty. }
     function Diagonal: Single;
@@ -559,7 +559,7 @@ type
     procedure ToCenterSize(out ACenter, ASize: TVector3);
   end;
 
-  TBox3DBool = array [boolean] of TVector3;
+  TBox3DBool = array [Boolean] of TVector3;
   PBox3D = ^TBox3D;
 
 const
@@ -648,7 +648,7 @@ function TriangleBoundingBox(const T: TTriangle3): TBox3D;
   becomes a point).  }
 function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3;
-  const Plane: TVector4): boolean;
+  const Plane: TVector4): Boolean;
 
 { Smallest possible box enclosing a sphere with Center, Radius. }
 function BoundingBox3DFromSphere(const Center: TVector3;
@@ -661,7 +661,7 @@ uses Math;
 // Internal IsCenteredBox3DPlaneCollision alternative with Double-precision.
 function IsCenteredBox3DPlaneCollisionDouble(
   const BoxHalfSize: TVector3Double;
-  const Plane: TVector4Double): boolean; forward;
+  const Plane: TVector4Double): Boolean; forward;
 
 { Special procedures for raising errors, to make GetMin and friends ultra-fast,
   so that they don't need an implicit try-finally section because they have a string. }
@@ -724,12 +724,12 @@ begin
   Result := R;
 end;
 
-function TBox3D.IsEmpty: boolean;
+function TBox3D.IsEmpty: Boolean;
 begin
   Result := Data[0].Data[0] > Data[1].Data[0];
 end;
 
-function TBox3D.IsEmptyOrZero: boolean;
+function TBox3D.IsEmptyOrZero: Boolean;
 begin
   Result := (Data[0].Data[0] > Data[1].Data[0]) or
     ( (Data[0].Data[0] = Data[1].Data[0]) and
@@ -766,7 +766,7 @@ begin
     (Data[1].Data[2] - Data[0].Data[2])) / 3;
 end;
 
-function TBox3D.AverageSize(const AllowZero: boolean;
+function TBox3D.AverageSize(const AllowZero: Boolean;
   const EmptyBoxSize: Single): Single;
 begin
   if IsEmpty then
@@ -790,7 +790,7 @@ begin
   ]);
 end;
 
-function TBox3D.MaxSize(const AllowZero: boolean;
+function TBox3D.MaxSize(const AllowZero: Boolean;
   const EmptyBoxSize: Single): Single;
 begin
   if IsEmpty then
@@ -806,7 +806,7 @@ begin
   end;
 end;
 
-function TBox3D.Area(const AllowZero: boolean;
+function TBox3D.Area(const AllowZero: Boolean;
   const EmptyBoxArea: Single): Single;
 var
   A, B, C: Single;
@@ -917,7 +917,7 @@ begin
   Result := Grow(AExpand);
 end;
 
-function TBox3D.Contains(const Point: TVector3): boolean;
+function TBox3D.Contains(const Point: TVector3): Boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
@@ -930,7 +930,7 @@ end;
   Error: Asm: Duplicate label CASTLEBOXES/home/michalis/bin/castle-engineTBOX3D_$__$$_CONTAINS$TGENERICVECTOR3$$BOOLEAN
   See https://bugs.freepascal.org/view.php?id=32188
 
-function TBox3D.Contains(const Point: TVector3Double): boolean;
+function TBox3D.Contains(const Point: TVector3Double): Boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
@@ -940,7 +940,7 @@ begin
 end;
 }
 
-function TBox3D.PointInside(const Point: TVector3): boolean;
+function TBox3D.PointInside(const Point: TVector3): Boolean;
 begin
   Result := Contains(Point);
 end;
@@ -949,7 +949,7 @@ end;
   Error: Asm: Duplicate label CASTLEBOXES/home/michalis/bin/castle-engineTBOX3D_$__$$_POINTINSIDE$TGENERICVECTOR3$$BOOLEAN
   See https://bugs.freepascal.org/view.php?id=32188
 
-function TBox3D.PointInside(const Point: TVector3Double): boolean;
+function TBox3D.PointInside(const Point: TVector3Double): Boolean;
 begin
   Result := Contains(Point);
 end;
@@ -962,7 +962,7 @@ begin
   raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.Contains2D');
 end;
 
-function TBox3D.Contains2D(const Point: TVector2): boolean;
+function TBox3D.Contains2D(const Point: TVector2): Boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
@@ -971,7 +971,7 @@ begin
 end;
 
 function TBox3D.Contains2D(const Point: TVector3;
-  const IgnoreIndex: Integer): boolean;
+  const IgnoreIndex: Integer): Boolean;
 begin
   if IsEmpty then Exit(false);
   case IgnoreIndex of
@@ -988,13 +988,13 @@ begin
   end;
 end;
 
-function TBox3D.PointInside2D(const Point: TVector2): boolean;
+function TBox3D.PointInside2D(const Point: TVector2): Boolean;
 begin
   Result := Contains2D(Point);
 end;
 
 function TBox3D.PointInside2D(const Point: TVector3;
-  const IgnoreIndex: Integer): boolean;
+  const IgnoreIndex: Integer): Boolean;
 begin
   Result := Contains2D(Point, IgnoreIndex);
 end;
@@ -1302,9 +1302,9 @@ end;
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
-  IntrProposed: boolean absolute result;
+  IntrProposed: Boolean absolute result;
 
   procedure ProposeBoxIntr(const PlaneConstCoord: integer;
     const PlaneConstValue: Single);
@@ -1354,7 +1354,7 @@ end;
 
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   IntersectionDistance: Single;
 begin
@@ -1364,7 +1364,7 @@ end;
 
 function TBox3D.TryRayClosestIntersection(
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 var
   Intersection: TVector3;
 begin
@@ -1374,7 +1374,7 @@ end;
 
 function TBox3D.TryRayEntrance(
   out Entrance: TVector3; out EntranceDistance: Single;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   if Contains(RayOrigin) then
   begin
@@ -1387,7 +1387,7 @@ end;
 
 function TBox3D.TryRayEntrance(
   out Entrance: TVector3;
-  const RayOrigin, RayDirection: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   if Contains(RayOrigin) then
   begin
@@ -1398,16 +1398,16 @@ begin
 end;
 
 function TBox3D.IsSegmentCollision(
-  const Segment1, Segment2: TVector3): boolean;
+  const Segment1, Segment2: TVector3): Boolean;
 begin
   Result := SegmentCollision(Segment1, Segment2);
 end;
 
 function TBox3D.SegmentCollision(
-  const Segment1, Segment2: TVector3): boolean;
+  const Segment1, Segment2: TVector3): Boolean;
 
   function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
-    const PlaneConstValue: Single): boolean;
+    const PlaneConstValue: Single): Boolean;
   var
     NowIntersection: TVector3;
     c1, c2: integer;
@@ -1459,7 +1459,7 @@ function TBox3D.PlaneCollision(
 var
   I: Integer;
   VMin, VMax: TVector3;
-  B: boolean;
+  B: Boolean;
   BoxBool: TBox3DBool absolute Data;
 begin
   if IsEmpty then
@@ -1501,7 +1501,7 @@ begin
 end;
 
 function TBox3D.PlaneCollisionInside(
-  const Plane: TVector4): boolean;
+  const Plane: TVector4): Boolean;
 { Based on Box3DPlaneCollision, except now we need only VMax point.
 
   Actually, we don't even store VMax. Instead, we calculate to
@@ -1526,7 +1526,7 @@ begin
 end;
 
 function TBox3D.PlaneCollisionOutside(
-  const Plane: TVector4): boolean;
+  const Plane: TVector4): Boolean;
 var
   BoxBool: TBox3DBool absolute Data;
 begin
@@ -1540,7 +1540,7 @@ begin
     Plane.Data[3] > 0;
 end;
 
-function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
+function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): Boolean;
 
 { Implementation based on
   [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
@@ -1585,7 +1585,7 @@ var
   BoxHalfSize: TVector3;
 
   { ======================== X-tests ======================== }
-  function AXISTEST_X01(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_X01(const a, b, fa, fb: TScalar): Boolean;
   var
     p0, p2, rad, min, max: TScalar;
   begin
@@ -1597,7 +1597,7 @@ var
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
-  function AXISTEST_X2(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_X2(const a, b, fa, fb: TScalar): Boolean;
   var
     p0, p1, rad, min, max: TScalar;
   begin
@@ -1610,7 +1610,7 @@ var
   end;
 
   { ======================== Y-tests ======================== }
-  function AXISTEST_Y02(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_Y02(const a, b, fa, fb: TScalar): Boolean;
   var
     p0, p2, rad, min, max: TScalar;
   begin
@@ -1622,7 +1622,7 @@ var
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
-  function AXISTEST_Y1(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_Y1(const a, b, fa, fb: TScalar): Boolean;
   var
     p0, p1, rad, min, max: TScalar;
   begin
@@ -1635,7 +1635,7 @@ var
   end;
 
   { ======================== Z-tests ======================== }
-  function AXISTEST_Z12(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_Z12(const a, b, fa, fb: TScalar): Boolean;
   var
     p1, p2, rad, min, max: TScalar;
   begin
@@ -1647,7 +1647,7 @@ var
     Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
-  function AXISTEST_Z0(const a, b, fa, fb: TScalar): boolean;
+  function AXISTEST_Z0(const a, b, fa, fb: TScalar): Boolean;
   var
     p0, p1, rad, min, max: TScalar;
   begin
@@ -1759,12 +1759,12 @@ begin
  end;
 end;
 
-function TBox3D.Collision(const Box2: TBox3D): boolean;
+function TBox3D.Collision(const Box2: TBox3D): Boolean;
 begin
   Result := Collides(Box2);
 end;
 
-function TBox3D.Collides(const Box2: TBox3D): boolean;
+function TBox3D.Collides(const Box2: TBox3D): Boolean;
 begin
   Result :=
     (not IsEmpty) and
@@ -1823,7 +1823,7 @@ begin
 end;
 
 function TBox3D.SphereSimpleCollision(
-  const SphereCenter: TVector3; const SphereRadius: Single): boolean;
+  const SphereCenter: TVector3; const SphereRadius: Single): Boolean;
 begin
   Result := (not IsEmpty) and
     (SphereCenter.Data[0] >= Data[0].Data[0] - SphereRadius) and
@@ -1835,7 +1835,7 @@ begin
 end;
 
 function TBox3D.SphereCollision(
-  const SphereCenter: TVector3; const SphereRadius: Single): boolean;
+  const SphereCenter: TVector3; const SphereRadius: Single): Boolean;
 { This great and simple algorithm  was invented by Arvo, I read about
   it in "Real-Time Rendering" by Moller and Haines.
   The idea is beatifully simple: we can easily find point on the Box
@@ -1877,7 +1877,7 @@ begin
 end;
 
 function TBox3D.SphereCollision2D(
-  const SphereCenter: TVector2; const SphereRadius: Single): boolean;
+  const SphereCenter: TVector2; const SphereRadius: Single): Boolean;
 var
   D: Single;
 begin
@@ -2009,7 +2009,7 @@ procedure TBox3D.DirectionDistances(
   out MinDistance, MaxDistance: Single);
 var
   B: TBox3DBool absolute Data;
-  XMin, YMin, ZMin: boolean;
+  XMin, YMin, ZMin: Boolean;
   MinPoint, MaxPoint: TVector3;
   Coord: Integer;
 begin
@@ -2096,7 +2096,7 @@ begin
     );
 end;
 
-function TBox3D.Equal(const Box2: TBox3D): boolean;
+function TBox3D.Equal(const Box2: TBox3D): Boolean;
 begin
   if IsEmpty then
     Result := Box2.IsEmpty else
@@ -2105,7 +2105,7 @@ begin
       TVector3.Equals(Data[1], Box2.Data[1]);
 end;
 
-function TBox3D.Equal(const Box2: TBox3D; const Epsilon: Single): boolean;
+function TBox3D.Equal(const Box2: TBox3D; const Epsilon: Single): Boolean;
 begin
   if IsEmpty then
     Result := Box2.IsEmpty else
@@ -2262,7 +2262,7 @@ end;
 
 function IsCenteredBox3DPlaneCollisionDouble(
   const BoxHalfSize: TVector3Double;
-  const Plane: TVector4Double): boolean;
+  const Plane: TVector4Double): Boolean;
 
 { Implementation of this is based on
   [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
@@ -2331,7 +2331,7 @@ end;
 
 function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3;
-  const Plane: TVector4): boolean;
+  const Plane: TVector4): Boolean;
 begin
   // redirect to Double-precision version
   Result := IsCenteredBox3DPlaneCollisionDouble(

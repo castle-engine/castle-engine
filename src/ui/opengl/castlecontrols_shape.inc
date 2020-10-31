@@ -22,17 +22,17 @@
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }
   TCastleShape = class(TCastleUserInterface)
   strict private
-    FFilled, FOutline, FOutlineThick: boolean;
+    FFilled, FOutline, FOutlineThick: Boolean;
     FColor, FOutlineColor: TCastleColor;
     FOutlineWidth: Single;
     FShapeType: TShapeType;
     procedure SetShapeType(const Value: TShapeType);
-    procedure SetFilled(const Value: boolean);
+    procedure SetFilled(const Value: Boolean);
     procedure SetColor(const Value: TCastleColor);
-    procedure SetOutline(const Value: boolean);
+    procedure SetOutline(const Value: Boolean);
     procedure SetOutlineColor(const Value: TCastleColor);
     procedure SetOutlineWidth(const Value: Single);
-    procedure SetOutlineThick(const Value: boolean);
+    procedure SetOutlineThick(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -81,7 +81,7 @@
           Advantage: thick OutlineWidth works reliably.)
       )
     }
-    property OutlineThick: boolean read FOutlineThick write SetOutlineThick;
+    property OutlineThick: Boolean read FOutlineThick write SetOutlineThick;
 
     { The outline width, used if @link(Outline).
       It is affected by UI scaling.
@@ -94,9 +94,9 @@
   published
     property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
-    property Filled: boolean read FFilled write SetFilled default true;
+    property Filled: Boolean read FFilled write SetFilled default true;
 
-    property Outline: boolean read FOutline write SetOutline default false;
+    property Outline: Boolean read FOutline write SetOutline default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleshape_persistent_vectors.inc}
@@ -141,7 +141,7 @@ begin
   end;
 end;
 
-procedure TCastleShape.SetFilled(const Value: boolean);
+procedure TCastleShape.SetFilled(const Value: Boolean);
 begin
   if FFilled <> Value then
   begin
@@ -159,7 +159,7 @@ begin
   end;
 end;
 
-procedure TCastleShape.SetOutline(const Value: boolean);
+procedure TCastleShape.SetOutline(const Value: Boolean);
 begin
   if FOutline <> Value then
   begin
@@ -186,7 +186,7 @@ begin
   end;
 end;
 
-procedure TCastleShape.SetOutlineThick(const Value: boolean);
+procedure TCastleShape.SetOutlineThick(const Value: Boolean);
 begin
   if FOutlineThick <> Value then
   begin

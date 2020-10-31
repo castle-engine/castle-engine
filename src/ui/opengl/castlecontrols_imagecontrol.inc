@@ -39,7 +39,7 @@
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TCastleUserInterface)
   strict private
-    FStretch: boolean;
+    FStretch: Boolean;
     FProportionalScaling: TProportionalScaling;
     FDetectScaleFromUrl: Boolean;
     FContent: TCastleImagePersistent;
@@ -54,7 +54,7 @@
     function GetRotationCenter: TVector2;
     function GetAlphaChannel: TAutoAlphaChannel;
     function GetColor: TCastleColor;
-    function GetClip: boolean;
+    function GetClip: Boolean;
     function GetClipLine: TVector3;
     function GetCustomShader: TGLSLProgram;
     function GetFlipVertical: Boolean;
@@ -71,28 +71,28 @@
     procedure SetRotationCenter(const Value: TVector2);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     procedure SetColor(const Value: TCastleColor);
-    procedure SetClip(const Value: boolean);
+    procedure SetClip(const Value: Boolean);
     procedure SetClipLine(const Value: TVector3);
     procedure SetCustomShader(const Value: TGLSLProgram);
     procedure SetFlipVertical(const Value: Boolean);
     procedure SetFlipHorizontal(const Value: Boolean);
-    procedure SetSmoothScaling(const Value: boolean);
-    procedure SetCache(const Value: boolean);
+    procedure SetSmoothScaling(const Value: Boolean);
+    procedure SetCache(const Value: Boolean);
 
     { Properties maintained for backward compatibility. }
     function GetCenterX: Single;
     function GetCenterY: Single;
     procedure SetCenterX(const Value: Single);
     procedure SetCenterY(const Value: Single);
-    function GetBlending: boolean;
-    procedure SetBlending(const Value: boolean);
+    function GetBlending: Boolean;
+    procedure SetBlending(const Value: Boolean);
     function GetCorners: TVector4Integer;
     procedure SetCorners(const Value: TVector4Integer);
 
-    procedure SetStretch(const Value: boolean);
+    procedure SetStretch(const Value: Boolean);
     procedure SetProportionalScaling(const Value: TProportionalScaling);
-    function GetProportional: boolean;
-    procedure SetProportional(const Value: boolean);
+    function GetProportional: Boolean;
+    procedure SetProportional(const Value: Boolean);
     procedure SetDetectScaleFromUrl(const Value: Boolean);
 
     procedure ContentChanged(Sender: TObject);
@@ -138,7 +138,7 @@
       and changes OwnsImage to the value present in @link(TDrawableImage.OwnsImage).
 
       @seealso TCastleImagePersistent.OwnsImage }
-    property OwnsImage: boolean read GetOwnsImage write SetOwnsImage default true;
+    property OwnsImage: Boolean read GetOwnsImage write SetOwnsImage default true;
 
     { Image used for drawing. Never @nil.
       Always @link(TDrawableImage.Image) equals our @link(Image).
@@ -165,7 +165,7 @@
       (when even size changed, we have to recreate TDrawableImage).
 
       @seealso TCastleImagePersistent.OwnsDrawableImage }
-    property OwnsDrawableImage: boolean read GetOwnsDrawableImage write SetOwnsDrawableImage default true;
+    property OwnsDrawableImage: Boolean read GetOwnsDrawableImage write SetOwnsDrawableImage default true;
 
     { If you modified the @link(Image) contents
       (colors, or maybe even image size) you need to call this.
@@ -221,9 +221,9 @@
       @seealso TCastleImagePersistent.CustomShader }
     property CustomShader: TGLSLProgram read GetCustomShader write SetCustomShader;
 
-    property Blending: boolean read GetBlending write SetBlending stored false;
+    property Blending: Boolean read GetBlending write SetBlending stored false;
       deprecated 'use AlphaChannel';
-    property Proportional: boolean read GetProportional write SetProportional stored false default false;
+    property Proportional: Boolean read GetProportional write SetProportional stored false default false;
       deprecated 'use ProportionalScaling';
     property FileName: string read GetURL write SetURL stored false;
       deprecated 'use URL';
@@ -252,7 +252,7 @@
       See @link(TDrawableImage.SmoothScaling).
 
       @seealso TCastleImagePersistent.SmoothScaling }
-    property SmoothScaling: boolean
+    property SmoothScaling: Boolean
       read GetSmoothScaling write SetSmoothScaling stored false default true;
 
     { How does the loaded image size affect the size of the image control.
@@ -306,7 +306,7 @@
       )
 
       @groupBegin }
-    property Stretch: boolean read FStretch write SetStretch default false;
+    property Stretch: Boolean read FStretch write SetStretch default false;
     property ProportionalScaling: TProportionalScaling
       read FProportionalScaling write SetProportionalScaling default psNone;
     { @groupEnd }
@@ -316,7 +316,7 @@
       URL in many TCastleImageControl instances.
 
       @seealso TCastleImagePersistent.Cache }
-    property Cache: boolean read GetCache write SetCache stored false default true;
+    property Cache: Boolean read GetCache write SetCache stored false default true;
 
     { Display image horizontally flipped.
       @seealso TCastleImagePersistent.FlipHorizontal }
@@ -352,7 +352,7 @@
 
     { Clip the image by an arbitrary 2D line defined in @link(ClipLine).
       @seealso TCastleImagePersistent.Clip }
-    property Clip: boolean read GetClip write SetClip stored false default false;
+    property Clip: Boolean read GetClip write SetClip stored false default false;
 
   {$define read_interface_class}
   {$I auto_generated_persistent_vectors/tcastleimagecontrol_persistent_vectors.inc}
@@ -391,22 +391,22 @@ begin
   Result := FContent.ProtectedSides;
 end;
 
-function TCastleImageControl.GetSmoothScaling: boolean;
+function TCastleImageControl.GetSmoothScaling: Boolean;
 begin
   Result := FContent.SmoothScaling;
 end;
 
-procedure TCastleImageControl.SetSmoothScaling(const Value: boolean);
+procedure TCastleImageControl.SetSmoothScaling(const Value: Boolean);
 begin
   FContent.SmoothScaling := Value;
 end;
 
-function TCastleImageControl.GetClip: boolean;
+function TCastleImageControl.GetClip: Boolean;
 begin
   Result := FContent.Clip;
 end;
 
-procedure TCastleImageControl.SetClip(const Value: boolean);
+procedure TCastleImageControl.SetClip(const Value: Boolean);
 begin
   FContent.Clip := Value;
 end;
@@ -526,12 +526,12 @@ begin
   FContent.AlphaChannel := Value;
 end;
 
-function TCastleImageControl.GetBlending: boolean;
+function TCastleImageControl.GetBlending: Boolean;
 begin
   Result := AlphaChannel <> acBlending;
 end;
 
-procedure TCastleImageControl.SetBlending(const Value: boolean);
+procedure TCastleImageControl.SetBlending(const Value: Boolean);
 begin
   if Value then
     AlphaChannel := acBlending
@@ -539,7 +539,7 @@ begin
     AlphaChannel := acTest;
 end;
 
-procedure TCastleImageControl.SetStretch(const Value: boolean);
+procedure TCastleImageControl.SetStretch(const Value: Boolean);
 begin
   if FStretch <> Value then
   begin
@@ -548,12 +548,12 @@ begin
   end;
 end;
 
-function TCastleImageControl.GetProportional: boolean;
+function TCastleImageControl.GetProportional: Boolean;
 begin
   Result := ProportionalScaling <> psNone;
 end;
 
-procedure TCastleImageControl.SetProportional(const Value: boolean);
+procedure TCastleImageControl.SetProportional(const Value: Boolean);
 begin
   if Value then
     ProportionalScaling := psFit
@@ -665,7 +665,7 @@ begin
   Result := FContent.Cache;
 end;
 
-procedure TCastleImageControl.SetCache(const Value: boolean);
+procedure TCastleImageControl.SetCache(const Value: Boolean);
 begin
   FContent.Cache := Value;
 end;
