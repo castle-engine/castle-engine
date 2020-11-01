@@ -121,7 +121,7 @@ var pc,pcc,lastpc : PChar;
     ResStr,
     CompStr       : string;
     Found         : Boolean;
-    sc            : sizeint;
+    sc            : SizeInt;
 
 begin
   sc := length(OldPattern);
