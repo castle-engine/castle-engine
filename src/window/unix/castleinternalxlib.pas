@@ -80,7 +80,7 @@ function XParseGeometry(parsestring: PChar; x_return, y_return: PInteger;
 
 { }
 function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
-  AVisualid: TVisualID; depth: Longword; AProperty: TAtom; replace, retain: XBool)
+  AVisualid: TVisualID; depth: LongWord; AProperty: TAtom; replace, retain: XBool)
   :TStatus; cdecl; external XmuDLL;
 
 implementation
