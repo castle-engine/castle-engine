@@ -250,18 +250,18 @@ type
     See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogChoice = class(TStateDialog)
   strict private
-    FAnswer: char;
+    FAnswer: Char;
     procedure ButtonClick(Sender: TObject);
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
   public
     ButtonCaptions: array of string;
-    ButtonChars: array of char;
+    ButtonChars: array of Char;
     AllowCancel: Boolean;
     function Press(const Event: TInputPressRelease): Boolean; override;
     { User answer to the dialog question, defined when @link(Answered).
       This is one of the ButtonChars. }
-    property Answer: char read FAnswer;
+    property Answer: Char read FAnswer;
   end;
 
   { Ask user to input a string, or cancel.
@@ -559,7 +559,7 @@ end;
 
 function TStateDialogChoice.Press(const Event: TInputPressRelease): Boolean;
 var
-  C: char;
+  C: Char;
 begin
   Result := inherited;
   // if Result then Exit; // ignore inherited Result, always true when InterceptInput

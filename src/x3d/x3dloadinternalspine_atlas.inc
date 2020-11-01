@@ -196,7 +196,7 @@ procedure TAtlas.Parse(const URL: string);
   { Split a Line divided by character Separator into two strings.
     Assumes that whitespace doesn't matter (so we trim it),
     and Name must not be empty. }
-  function Split(const Line: string; const Separator: char;
+  function Split(const Line: string; const Separator: Char;
     out Name, Value: string): Boolean;
   var
     Index: Integer;

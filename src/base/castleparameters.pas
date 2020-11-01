@@ -478,7 +478,7 @@ procedure TParameters.Parse(
     raise EInvalidLongOption.Create('Invalid long option "'+s+'"');
   end;
 
-  function FindShortOption(c: char; const Parameter: string): Integer;
+  function FindShortOption(c: Char; const Parameter: string): Integer;
   { znajdz takie i ze AOptions[i].Short = c (i c <> #0).
     Jesli sie nie uda - wyjatek EInvalidshortOption.
     Parametr "Parameter" jest nam potrzebny

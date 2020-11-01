@@ -398,7 +398,7 @@ class function TWAVReader.Read(const Url: string; const Stream: TStream;
   a little more updated. }
 
 type
-  TID = array [0..3] of char;
+  TID = array [0..3] of Char;
 
   function IdCompare(const id: TID; const s: string): Boolean;
   begin

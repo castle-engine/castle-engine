@@ -147,9 +147,9 @@ const
 
 type
   TMd3Header = record
-    Ident: array [0..3] of char;
+    Ident: array [0..3] of Char;
     Version: LongInt;
-    Name: array [0..Md3MaxQPath - 1] of char;
+    Name: array [0..Md3MaxQPath - 1] of Char;
     Flags: LongInt;
     NumFrames: LongInt;
     NumTags: LongInt;
@@ -166,18 +166,18 @@ type
     MaxBounds: TVector3;
     LocalOrigin: TVector3;
     Radius: Single;
-    Name: array [0..15] of char;
+    Name: array [0..15] of Char;
   end;
 
   TMd3Tag = record
-    Name: array [0..Md3MaxQPath - 1] of char;
+    Name: array [0..Md3MaxQPath - 1] of Char;
     Origin: TVector3;
     Axis: array [0..2] of TVector3;
   end;
 
   TMd3FileSurface = record
-    Ident: array [0..3] of char;
-    Name: array [0..Md3MaxQPath - 1] of char;
+    Ident: array [0..3] of Char;
+    Name: array [0..Md3MaxQPath - 1] of Char;
     Flags: LongInt;
     NumFrames: LongInt;
     NumShaders: LongInt;

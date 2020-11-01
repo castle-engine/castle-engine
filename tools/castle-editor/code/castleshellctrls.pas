@@ -933,7 +933,7 @@ procedure TCustomCastleShellTreeView.PopulateWithBaseFiles;
 {$if defined(windows) and not defined(wince)}
 var
   r: LongWord;
-  Drives: array[0..128] of char;
+  Drives: array[0..128] of Char;
   pDrive: PChar;
   NewNode: TTreeNode;
 begin

@@ -510,7 +510,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): Boolean;
   procedure X_KeyPress(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char;
+    CharKey: Char;
     EventString: string;
     Key: TKey;
   begin
@@ -538,7 +538,7 @@ function TCastleWindowBase.HandleXEvent(const Event: TXEvent): Boolean;
   procedure X_KeyRelease(const xEvent: TXKeyEvent);
   var
     k: TKeySym;
-    CharKey: char; //we don't use it further anywhere
+    CharKey: Char; //we don't use it further anywhere
     Key: TKey;
   begin
     { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on

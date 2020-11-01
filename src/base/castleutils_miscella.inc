@@ -75,7 +75,7 @@ function Iff(boolval: Boolean; trueval, falseval: string)  : string;   overload;
 function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; overload;
-function Iff(boolval: Boolean; trueval, falseval: char)    : char;     overload;
+function Iff(boolval: Boolean; trueval, falseval: Char)    : Char;     overload;
 
 { Some helpful version stuff ------------------------------------------------ }
 
@@ -254,7 +254,7 @@ function Iff(boolval: Boolean; trueval, falseval: string)  : string;   begin if 
 function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; begin if boolval then result := trueval else result := falseval end;
-function Iff(boolval: Boolean; trueval, falseval: char)    : char;     begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: Char)    : Char;     begin if boolval then result := trueval else result := falseval end;
 
 { Helpful consts ------------------------------------------------------------ }
 

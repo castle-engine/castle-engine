@@ -406,12 +406,12 @@ function RawURIDecode(const S: string): string;
     - if yes, but %xx is invalid, report WritelnWarning and exit false
     - if yes and %xx is valid, set DecodedChar and exit true }
   function ValidSequence(const S: string; Position: Integer;
-    out DecodedChar: char): Boolean;
+    out DecodedChar: Char): Boolean;
   const
     ValidHexaChars = ['a'..'f', 'A'..'F', '0'..'9'];
 
     { Assume C is valid hex digit, return it's value (in 0..15 range). }
-    function HexDigit(const C: char): Byte;
+    function HexDigit(const C: Char): Byte;
     begin
       if C in ['0'..'9'] then
         Result := Ord(C) - Ord('0') else
@@ -450,7 +450,7 @@ function RawURIDecode(const S: string): string;
 
 var
   I, ResultI: Integer;
-  DecodedChar: char;
+  DecodedChar: Char;
 begin
   { Allocate Result string at the beginning, to save time later for
     memory reallocations. We can do this, since we know that final

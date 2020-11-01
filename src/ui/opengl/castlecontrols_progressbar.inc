@@ -121,7 +121,7 @@ var
   var
     NewTextDotsWidth, PotentialNewTextDotsWidth: Single;
     NewText, PotentialNewText: string;
-    C: char;
+    C: Char;
   begin
     NewText := '';
     NewTextDotsWidth := DotsWidth;

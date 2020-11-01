@@ -746,7 +746,7 @@ end;
 
 function TX3DLexer.NextToken: TX3DToken;
 
-  procedure ReadNameOrKeyword(FirstLetter: char);
+  procedure ReadNameOrKeyword(FirstLetter: Char);
   {read name token. First letter has been already read.}
   var foundKeyword: TX3DKeyword;
   const
@@ -809,14 +809,14 @@ function TX3DLexer.NextToken: TX3DToken;
     )
   }
 
-  procedure ReadFloatOrInteger(FirstChar: char);
+  procedure ReadFloatOrInteger(FirstChar: Char);
   const
     NoDigits = AllChars - ['0'..'9'];
     NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
     { TODO: octal notation not implemented (I never saw any model using it) }
 
     procedure ReadAfterE(const AlreadyRead: string);
-    var CharAfterE: char;
+    var CharAfterE: Char;
         RestOfToken: string;
         CharAfterEInt: Integer;
     begin
@@ -916,7 +916,7 @@ function TX3DLexer.NextToken: TX3DToken;
    end;
   end;
 
-  procedure RecognizeCommonTokens(FirstBlackChr: char);
+  procedure RecognizeCommonTokens(FirstBlackChr: Char);
   begin
     case FirstBlackChr of
      '{':fToken := vtOpenCurlyBracket;
@@ -935,7 +935,7 @@ function TX3DLexer.NextToken: TX3DToken;
 
 var
   FirstBlack: integer;
-  FirstBlackChr: char;
+  FirstBlackChr: Char;
 begin
   StreamReadUptoFirstBlack(FirstBlack);
 

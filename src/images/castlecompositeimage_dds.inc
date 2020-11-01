@@ -191,7 +191,7 @@ type
     Size: LongWord;
     Flags: LongWord;
     case Integer of
-      0: ( FourCC: array [0 .. 3] of char;
+      0: ( FourCC: array [0 .. 3] of Char;
            RGBBitCount: LongWord;
            RBitMask: LongWord;
            GBitMask: LongWord;
@@ -610,7 +610,7 @@ var
     FCompositeType, FCubeMapSides, FDepth }
   procedure ReadHeader;
   var
-    Magic: array [0 .. 3] of char;
+    Magic: array [0 .. 3] of Char;
   begin
     Stream.ReadBuffer(Magic, SizeOf(Magic));
     Check(Magic = 'DDS ', 'DDS file beginning (magic number) invalid, maybe this is not really a DDS file');
@@ -1226,7 +1226,7 @@ procedure TDDSHandler.SaveToStream(const Stream: TStream);
 
   procedure WriteHeader;
   const
-    Magic: array [0 .. 3] of char = 'DDS ';
+    Magic: array [0 .. 3] of Char = 'DDS ';
   var
     Header: TDDSHeader;
   begin

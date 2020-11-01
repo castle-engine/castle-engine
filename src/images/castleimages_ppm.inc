@@ -36,7 +36,7 @@
   Returns '' if we're standing at the end of file.
   Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
 function ReadPPMToken(Stream: TStream): string;
-var c: char;
+var c: Char;
 begin
  try
   result:='';
@@ -63,7 +63,7 @@ end;
 
 function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
-var magic: array[0..1]of char;
+var magic: array[0..1] of Char;
     IsBinary: Boolean;
     MaxColVal: integer;
     x, y: Cardinal;

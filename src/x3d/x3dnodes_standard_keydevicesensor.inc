@@ -32,8 +32,8 @@
       user holds down a key --- we get many key down messages.
 
       @groupBegin }
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); virtual;
-    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); virtual;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); virtual;
+    procedure KeyUp(Key: TKey; C: Char; const Time: TX3DTime); virtual;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc}
@@ -75,8 +75,8 @@
     strict private FEventShiftKey: TSFBoolEvent;
     public property EventShiftKey: TSFBoolEvent read FEventShiftKey;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
-    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); override;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); override;
+    procedure KeyUp(Key: TKey; C: Char; const Time: TX3DTime); override;
 
     {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
   end;
@@ -102,7 +102,7 @@
     strict private FEventFinalText: TSFStringEvent;
     public property EventFinalText: TSFStringEvent read FEventFinalText;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
+    procedure KeyDown(Key: TKey; C: Char; const Time: TX3DTime); override;
 
     {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
   end;
@@ -117,12 +117,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
+procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
@@ -179,7 +179,7 @@ begin
   Result := 'KeySensor';
 end;
 
-procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
@@ -225,7 +225,7 @@ begin
   end;
 end;
 
-procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
+procedure TKeySensorNode.KeyUp(Key: TKey; C: Char; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: Boolean; SpecialEvent: TSFBoolEvent);
   begin
@@ -283,7 +283,7 @@ begin
   Result := 'StringSensor';
 end;
 
-procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
+procedure TStringSensorNode.KeyDown(Key: TKey; C: Char; const Time: TX3DTime);
 begin
   inherited;
 

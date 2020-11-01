@@ -15,7 +15,7 @@
 
 type
   TBitmapFileHeader = packed record
-    bfType: array[0..1]of char;
+    bfType: array[0..1] of Char;
     bfSize: LongWord;
     bfReserved1: Word;
     bfReserved2: Word;

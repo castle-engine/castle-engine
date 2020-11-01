@@ -142,7 +142,7 @@ function XlibErrorHandler_RaiseEXlibError(display: PDisplay; error: PXErrorEvent
   :integer; cdecl;
 { rzuca wyjatek EXlibError z odpowiednio skonstruowanym Text'em.
   Ta funkcja jest dobra aby ja zarejestrowac przez XSetErrorHandler. }
-var error_name_buf, major_request_name_buf :array[0..1023]of char;
+var error_name_buf, major_request_name_buf :array[0..1023] of Char;
     s: string;
 begin
  XGetErrorText(display, error^.error_code, @error_name_buf, SizeOf(error_name_buf));

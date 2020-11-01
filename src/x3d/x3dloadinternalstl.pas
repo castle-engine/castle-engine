@@ -118,7 +118,7 @@ end;
 procedure LoadSTLBinary(const Stream: TStream;
   const Coordinate, Normal: TVector3List);
 var
-  RestOfHeader: array [0..79 - 5] of char;
+  RestOfHeader: array [0..79 - 5] of Char;
   TriangleCount: LongWord;
   NormalVector: TVector3;
   Triangle: TTriangle3;
@@ -168,7 +168,7 @@ end;
 
 function LoadSTL(const URL: string): TX3DRootNode;
 var
-  Header: array [0..4] of char;
+  Header: array [0..4] of Char;
   Stream: TStream;
   Shape: TShapeNode;
   TriangleSet: TTriangleSetNode;

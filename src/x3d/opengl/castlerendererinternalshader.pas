@@ -3166,9 +3166,9 @@ procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComponent; const Component: TTexComponent;
   const Plane: TVector4);
 const
-  PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
+  PlaneComponentNames: array [TTexComponent] of Char = ('S', 'T', 'R', 'Q');
   { Note: R changes to p ! }
-  VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
+  VectorComponentNames: array [TTexComponent] of Char = ('s', 't', 'p', 'q');
 var
   PlaneName, CoordSource, TexCoordName: string;
   Uniform: TDynamicUniformVec4;

@@ -124,7 +124,7 @@ end;
 
 procedure TUnicodeCharList.Add(const Characters: TSetOfChars);
 var
-  C: char;
+  C: Char;
 begin
   for C in Characters do
     Add(Ord(C));
@@ -328,28 +328,28 @@ begin
     0..$7f:
       begin
         Result:=1;
-        Buf[0]:=char(byte(CodePoint));
+        Buf[0]:=Char(byte(CodePoint));
       end;
     $80..$7ff:
       begin
         Result:=2;
-        Buf[0]:=char(byte($c0 or (CodePoint shr 6)));
-        Buf[1]:=char(byte($80 or (CodePoint and $3f)));
+        Buf[0]:=Char(byte($c0 or (CodePoint shr 6)));
+        Buf[1]:=Char(byte($80 or (CodePoint and $3f)));
       end;
     $800..$ffff:
       begin
         Result:=3;
-        Buf[0]:=char(byte($e0 or (CodePoint shr 12)));
-        Buf[1]:=char(byte((CodePoint shr 6) and $3f) or $80);
-        Buf[2]:=char(byte(CodePoint and $3f) or $80);
+        Buf[0]:=Char(byte($e0 or (CodePoint shr 12)));
+        Buf[1]:=Char(byte((CodePoint shr 6) and $3f) or $80);
+        Buf[2]:=Char(byte(CodePoint and $3f) or $80);
       end;
     $10000..$10ffff:
       begin
         Result:=4;
-        Buf[0]:=char(byte($f0 or (CodePoint shr 18)));
-        Buf[1]:=char(byte((CodePoint shr 12) and $3f) or $80);
-        Buf[2]:=char(byte((CodePoint shr 6) and $3f) or $80);
-        Buf[3]:=char(byte(CodePoint and $3f) or $80);
+        Buf[0]:=Char(byte($f0 or (CodePoint shr 18)));
+        Buf[1]:=Char(byte((CodePoint shr 12) and $3f) or $80);
+        Buf[2]:=Char(byte((CodePoint shr 6) and $3f) or $80);
+        Buf[3]:=Char(byte(CodePoint and $3f) or $80);
       end;
   else
     Result:=0;

@@ -145,7 +145,7 @@ uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
 
 var
   { }
-  LocaleDecimalSeparator: char;
+  LocaleDecimalSeparator: Char;
 
 implementation
 

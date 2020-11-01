@@ -1388,7 +1388,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
 var
   Struct: TOpenFileName;
-  FileNameBuffer: array [0..6000] of char;
+  FileNameBuffer: array [0..6000] of Char;
   FilePath: string;
   Mode: TGLModeFrozenScreen;
   CurrentFileNameExt: string;

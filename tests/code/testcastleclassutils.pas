@@ -220,7 +220,7 @@ procedure TTestCastleClassUtils.TestLineColumnStreamCore(StreamFromStreamFunc: T
 var
   S: TStringStream;
   PS: TPeekCharStream;
-  B: array [0..1000] of char;
+  B: array [0..1000] of Char;
   I: Integer;
 begin
   { ReadBuffer (using Read underneath) advances the Line and Column values correctly }

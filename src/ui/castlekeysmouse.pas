@@ -580,7 +580,7 @@ function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
   #8, #9, #13. These may be either described as Backspace/Tab/Enter
   (if BackSpaceTabEnterString = true)
   or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
-function CharToNiceStr(const C: char; const Modifiers: TModifierKeys = [];
+function CharToNiceStr(const C: Char; const Modifiers: TModifierKeys = [];
   const BackSpaceTabEnterString: Boolean = true;
   const CtrlIsCommand: Boolean = false): string;
 
@@ -736,7 +736,7 @@ type
       Returns #0 if the event was not a keyboard event or it cannot be
       represented as a simple 8-bit character (e.g. it is a Cyrillic or Arabic
       character, or it is a special key like "up arrow"). }
-    function KeyCharacter: char;
+    function KeyCharacter: Char;
     { @deprecated Deprecated name for ToString. }
     function Description: string; deprecated;
   end;
@@ -1115,7 +1115,7 @@ begin
   end;
 end;
 
-function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
+function CharToNiceStr(const C: Char; const Modifiers: TModifierKeys;
   const BackSpaceTabEnterString, CtrlIsCommand: Boolean): string;
 var
   CharactersImplicatingCtrlModifier: TSetOfChars;
@@ -1314,7 +1314,7 @@ begin
     Result := Result + ', modifiers pressed ' + ModifierKeysToNiceStr(ModifiersDown);
 end;
 
-function TInputPressRelease.KeyCharacter: char;
+function TInputPressRelease.KeyCharacter: Char;
 begin
   if Length(KeyString) = 1 then
     Result := KeyString[1]

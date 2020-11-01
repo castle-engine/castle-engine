@@ -411,7 +411,7 @@ procedure TTestCastleStringUtils.TestSplitString;
   end;
 
   procedure TestSplitAndGlue(const CorrectParts: array of string;
-    const S: string; const Delimiter: char);
+    const S: string; const Delimiter: Char);
   var
     List: TCastleStringList;
   begin

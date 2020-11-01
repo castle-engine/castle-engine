@@ -416,7 +416,7 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase);
   var
     Button: TCastleMouseButton;
     Key: TKey;
-    C: char;
+    C: Char;
     ModifiersDown: TModifierKeys;
   begin
     { Simulate (to original callbacks) that user releases

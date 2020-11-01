@@ -160,7 +160,7 @@ begin
  Writeln;
 end;
 
-function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: char): Boolean;
+function NaiveIsMemCharFilled(const Data; Size: Integer; AChar: Char): Boolean;
 begin
  result := CheckIsMemCharFilled(Data, Size, AChar) = -1;
 end;
@@ -189,7 +189,7 @@ procedure TTestCastleUtils.TestCheckIsMemCharFilled;
    finally FreeMem(pa) end;
   end;
 
-var a: array[0..100]of char;
+var a: array[0..100] of Char;
     SizeOfA: Integer;
     i, YPos: Integer;
 begin

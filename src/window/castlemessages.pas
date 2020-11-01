@@ -188,20 +188,20 @@ function MessageInputQuery(Window: TCastleWindowBase; TextList: TStringList;
 
   @groupBegin }
 function MessageChoice(Window: TCastleWindowBase; const s: string;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: Boolean = false;
-  const AllowCancel: Boolean = false): char; overload;
+  const AllowCancel: Boolean = false): Char; overload;
 function MessageChoice(Window: TCastleWindowBase; const SArray: array of string;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: Boolean = false;
-  const AllowCancel: Boolean = false): char; overload;
+  const AllowCancel: Boolean = false): Char; overload;
 function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition = DefaultAlign;
   const Html: Boolean = false;
-  const AllowCancel: Boolean = false): char; overload;
+  const AllowCancel: Boolean = false): Char; overload;
 { @groupEnd }
 
 { Ask user to press any key, return this key as Keys.TKey.
@@ -542,9 +542,9 @@ end;
 
 function MessageChoice(Window: TCastleWindowBase;
   const s: string;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: Boolean): char;
+  const Html, AllowCancel: Boolean): Char;
 var
   TextList: TStringList;
 begin
@@ -557,9 +557,9 @@ end;
 
 function MessageChoice(Window: TCastleWindowBase;
   const SArray: array of string;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: Boolean): char; overload;
+  const Html, AllowCancel: Boolean): Char; overload;
 var
   TextList: TStringList;
 begin
@@ -571,9 +571,9 @@ begin
 end;
 
 function MessageChoice(Window: TCastleWindowBase; TextList: TStringList;
-  const ButtonCaptions: array of string; const ButtonChars: array of char;
+  const ButtonCaptions: array of string; const ButtonChars: array of Char;
   const Alignment: THorizontalPosition;
-  const Html, AllowCancel: Boolean): char; overload;
+  const Html, AllowCancel: Boolean): Char; overload;
 var
   State: TStateDialogChoice;
   I: Integer;

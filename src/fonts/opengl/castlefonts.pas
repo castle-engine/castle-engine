@@ -1142,7 +1142,7 @@ constructor TTextureFont.Create(const URL: string;
   const ACharacters: TSetOfChars);
 var
   Chars: TUnicodeCharList;
-  C: char;
+  C: Char;
 begin
   Chars := TUnicodeCharList.Create;
   try

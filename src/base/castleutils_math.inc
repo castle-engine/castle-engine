@@ -29,7 +29,7 @@ procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inl
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
-procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Pointer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
@@ -386,7 +386,7 @@ procedure SwapValues(var a, b: Double);   var Tmp: Double;   begin Tmp := A; A :
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
-procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Char);     var Tmp: Char;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
 procedure OrderUp(var Smaller, Larger: Int64);    begin if Smaller > Larger then SwapValues(Smaller, Larger); end;

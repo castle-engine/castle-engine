@@ -1014,7 +1014,7 @@ type
 
       Only DoKeyDown: pass also KeyString. Pass Key = keyNone if this is not
       representable as TKey, pass KeyString = '' if this is not representable
-      as char. But never pass both Key = keyNone and KeyString = ''
+      as Char. But never pass both Key = keyNone and KeyString = ''
       (this would mean that nothing is pressed, at least nothing that can be represented
       in CGE).
 
