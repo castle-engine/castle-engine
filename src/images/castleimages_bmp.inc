@@ -286,7 +286,7 @@ end;
 procedure SaveBMP(Img: TEncodedImage; Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
-    i, j, rowPaddedLength, PadSize: cardinal;
+    i, j, rowPaddedLength, PadSize: Cardinal;
     p :PVector3Byte;
     row, rowdata :PRGB_BMP24;
 begin

@@ -98,7 +98,7 @@ function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS
 
 function Between(const a, vBegin, vEnd: Int64   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Integer ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Between(const a, vBegin, vEnd: cardinal): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Cardinal): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Float   ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Between(const a, vBegin, vEnd: Char    ): Boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
@@ -107,7 +107,7 @@ function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Integer ): Integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Cardinal): Cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -117,7 +117,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Cardinal; const vBegin, vEnd: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -126,7 +126,7 @@ procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$i
 
 procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Integer ; const vBegin, vEnd: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Cardinal; const vBegin, vEnd: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$ifndef EXTENDED_EQUALS_DOUBLE}
@@ -452,7 +452,7 @@ end;
 
 function Between(const a, vBegin, vEnd: Int64): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Integer): Boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
-function Between(const a, vBegin, vEnd: cardinal): Boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Cardinal): Boolean; begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Float): Boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Char): Boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
 
@@ -489,7 +489,7 @@ begin
     result := a;
 end;
 
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal;
+function Clamped(const a, vBegin, vEnd: Cardinal): Cardinal;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -537,7 +537,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal);
+procedure ClampVar(var a: Cardinal; const vBegin, vEnd: Cardinal);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -575,7 +575,7 @@ begin
   if a > vEnd then a := vEnd;
 end;
 
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal);
+procedure Clamp(var a: Cardinal; const vBegin, vEnd: Cardinal);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;

@@ -328,7 +328,7 @@ procedure TCastleApplication.WarningToCallback(const Category, S: string);
 var
   sMsg: string;
   szBuffer: PChar;
-  nBufSize: cardinal;
+  nBufSize: Cardinal;
 begin
   if Assigned(LibraryCallbackProc) then
   begin

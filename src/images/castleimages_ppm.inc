@@ -147,7 +147,7 @@ end;
 
 procedure SavePPM(Img: TEncodedImage; Stream: TStream; Binary: Boolean);
 var line: PVector3ByteArray;
-    x, y: cardinal;
+    x, y: Cardinal;
 begin
   if not (Img is TRGBImage) then
     raise EImageSaveError.CreateFmt('Saving to PPM image class %s not possible', [Img.ClassName]);

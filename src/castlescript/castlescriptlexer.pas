@@ -224,7 +224,7 @@ const
     Results in false if we're not standing at a digit now. }
   function ReadNumber: Boolean;
   var
-    digitsCount: cardinal;
+    digitsCount: Cardinal;
     val: Int64;
   begin
    result := text[fTextPos] in digits;
