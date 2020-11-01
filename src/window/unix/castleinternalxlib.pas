@@ -57,11 +57,11 @@ type
 { @section(xutil.h (XLibDLL)) }
 
 { }
-function XSetStandardProperties(dpy: PDisplay; win: TWindow; window_name: pchar;
-  icon_name: pchar; icon_pixmap: TPixmap; argv: PPChar; argc: Integer;
+function XSetStandardProperties(dpy: PDisplay; win: TWindow; window_name: PChar;
+  icon_name: PChar; icon_pixmap: TPixmap; argv: PPChar; argc: Integer;
   hints: PXSizeHints): integer; cdecl; external XLibDLL;
 function XSetStandardProperties_Pascal(dpy: PDisplay; win: TWindow;
-  window_name: pchar; icon_name: pchar; icon_pixmap: TPixmap; hints: PXSizeHints)
+  window_name: PChar; icon_name: PChar; icon_pixmap: TPixmap; hints: PXSizeHints)
   :integer;
 
 procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
@@ -112,7 +112,7 @@ begin
 end;
 
 function XSetStandardProperties_Pascal(dpy: PDisplay; win: TWindow;
-  window_name: pchar; icon_name: pchar;icon_pixmap: TPixmap;
+  window_name: PChar; icon_name: PChar;icon_pixmap: TPixmap;
   hints: PXSizeHints): integer;
 { simplified version of XSetStandardProperties }
 var argc: LongInt;

@@ -116,7 +116,7 @@ end;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
-var pc,pcc,lastpc : pchar;
+var pc,pcc,lastpc : PChar;
     strcount      : integer;
     ResStr,
     CompStr       : string;

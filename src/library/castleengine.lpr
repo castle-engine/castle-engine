@@ -119,7 +119,7 @@ begin
   end;
 end;
 
-procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl;
+procedure CGE_GetOpenGLInformation(szBuffer: PChar; nBufSize: cInt32); cdecl;
 var
   sText: string;
 begin
@@ -301,7 +301,7 @@ begin
   end;
 end;
 
-procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl;
+procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: PChar; nBufSize: cInt32); cdecl;
 var
   sName: string;
 begin
