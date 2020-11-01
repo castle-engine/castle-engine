@@ -24,14 +24,14 @@ type
 
   TBitmapInfoHeader = packed record
     biSize: LongWord;
-    biWidth: Longint;
-    biHeight: Longint;
+    biWidth: LongInt;
+    biHeight: LongInt;
     biPlanes: Word;
     biBitCount: Word;
     biCompression: LongWord;
     biSizeImage: LongWord;
-    biXPelsPerMeter: Longint;
-    biYPelsPerMeter: Longint;
+    biXPelsPerMeter: LongInt;
+    biYPelsPerMeter: LongInt;
     biClrUsed: LongWord;
     biClrImportant: LongWord;
   end;

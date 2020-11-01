@@ -242,7 +242,7 @@ type
     { This stream doesn't support setting size.
       (All other versions of SetSize also call this.)
       @raises(EStreamNotImplementedSetSize Always.) }
-    procedure SetSize(NewSize: Longint); override;
+    procedure SetSize(NewSize: LongInt); override;
 
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
@@ -261,7 +261,7 @@ type
     { This stream doesn't support writing.
       (WriteBuffer also calls this.)
       @raises(EStreamNotImplementedWrite Always.) }
-    function Write(const Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
 
     { Underlying stream. }
     property SourceStream: TStream read FSourceStream;
@@ -314,7 +314,7 @@ type
   protected
     function GetPosition: Int64; override;
   public
-    function Read(var Buffer; Count: Longint): Longint; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
   end;
@@ -361,7 +361,7 @@ type
       ABufferSize: LongWord = DefaultReadBufferSize);
     destructor Destroy; override;
 
-    function Read(var LocalBuffer; Count: Longint): Longint; override;
+    function Read(var LocalBuffer; Count: LongInt): LongInt; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
     function ReadUpto(const EndingChars: TSetOfChars): AnsiString; override;
@@ -1051,7 +1051,7 @@ begin
   Result := SourceStream.Size;
 end;
 
-procedure TPeekCharStream.SetSize(NewSize: Longint);
+procedure TPeekCharStream.SetSize(NewSize: LongInt);
 begin
   raise EStreamNotImplementedSetSize.Create(
     'TPeekCharStream.SetSize not supported');
@@ -1063,7 +1063,7 @@ begin
   Result := 0; { just to get rid of dummy fpc warning }
 end;
 
-function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
+function TPeekCharStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
   raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
   Result := 0; { just to get rid of dummy fpc warning }
@@ -1122,7 +1122,7 @@ begin
   Result := FPosition;
 end;
 
-function TSimplePeekCharStream.Read(var Buffer; Count: Longint): Longint;
+function TSimplePeekCharStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
   if (Count <= 0) or
      (IsPeekedChar and (PeekedChar = -1)) then
@@ -1211,7 +1211,7 @@ begin
   BufferPos := 0;
 end;
 
-function TBufferedReadStream.Read(var LocalBuffer; Count: Longint): Longint;
+function TBufferedReadStream.Read(var LocalBuffer; Count: LongInt): LongInt;
 var
   CopyCount: LongWord;
 begin

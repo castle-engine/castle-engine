@@ -5181,7 +5181,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
   var
     OriginalObj: TObject;
     OriginalAddr: Pointer;
-    OriginalFrameCount: Longint;
+    OriginalFrameCount: LongInt;
     OriginalFrame: Pointer;
     ErrMessage: string;
     ContinueApp: Boolean;

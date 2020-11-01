@@ -120,7 +120,7 @@ type
     sizes under WinAPI. }
   TWMSizing = record
     Msg: Cardinal;    {< wm_SIZING }
-    fwSide: Longint;  {< const WMSZ_xxx }
+    fwSide: LongInt;  {< const WMSZ_xxx }
     lprc: PRect;      {< rectangle with window sizes }
     Result: LongBool; {< should return longbool(true) }
   end;

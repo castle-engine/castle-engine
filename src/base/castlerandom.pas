@@ -290,7 +290,7 @@ begin
 end;
 
 {Result := LongWord((int64(Seed)*N) shr 32)// := seed mod N; works slower
-//Result := Longint((int64(XorShift)*N) shr 32) // works slower}
+//Result := LongInt((int64(XorShift)*N) shr 32) // works slower}
 
 // Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
 //  +35% effective. But I don't think it's a good idea

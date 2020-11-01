@@ -154,7 +154,7 @@ type
       out DataFormat: TSoundDataFormat; out Frequency: LongWord;
       out Duration: TFloatTime);
     destructor Destroy; override;
-    function Read(var Buffer; BufferSize: Longint): Longint; override;
+    function Read(var Buffer; BufferSize: LongInt): LongInt; override;
 
     { Only supports seeking to the beginning (or seeking to current position,
       which does nothing). }
@@ -232,7 +232,7 @@ begin
   end;
 end;
 
-function TOggVorbisStream.Read(var Buffer; BufferSize: Longint): Longint;
+function TOggVorbisStream.Read(var Buffer; BufferSize: LongInt): LongInt;
 (*
 
   This simple implementation may not fill enough space to be useful to streaming.

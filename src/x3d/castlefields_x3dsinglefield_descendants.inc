@@ -296,19 +296,19 @@
   TSFLong = class(TX3DSingleField)
   strict private
     FMustBeNonnegative: Boolean;
-    FValue: Longint;
-    procedure SetValue(const AValue: Longint);
+    FValue: LongInt;
+    procedure SetValue(const AValue: LongInt);
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    DefaultValue: Longint;
+    DefaultValue: LongInt;
     DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: Boolean; const AName: string; const AValue: Longint;
+      const AExposed: Boolean; const AName: string; const AValue: LongInt;
       const AMustBeNonnegative: Boolean = false);
 
-    property Value: Longint read FValue write SetValue;
+    property Value: LongInt read FValue write SetValue;
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: Boolean read FMustBeNonnegative default false;
@@ -1204,7 +1204,7 @@ end;
 
 { TSFLong -------------------------------------------------------------------- }
 
-procedure TSFLong.SetValue(const AValue: Longint);
+procedure TSFLong.SetValue(const AValue: LongInt);
 begin
   if MustBeNonnegative then
     FValue := Abs(AValue) else
@@ -1212,7 +1212,7 @@ begin
 end;
 
 constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: Boolean; const AName: string; const AValue: Longint;
+  const AExposed: Boolean; const AName: string; const AValue: LongInt;
   const AMustBeNonnegative: Boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);

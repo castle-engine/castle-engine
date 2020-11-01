@@ -37,7 +37,7 @@ type
     { This stream doesn't support setting size.
       (All other versions of SetSize also call this.)
       @raises(EStreamNotImplementedSetSize Always.) }
-    procedure SetSize(NewSize: Longint); override;
+    procedure SetSize(NewSize: LongInt); override;
   public
     { Open a stream for an asset on given path.
       The path should be a valid Android asset path,
@@ -53,9 +53,9 @@ type
     { This stream doesn't support writing.
       (WriteBuffer also calls this.)
       @raises(EStreamNotImplementedWrite Always.) }
-    function Write(const Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
 
-    function Read(var Buffer; Count: Longint): Longint; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
   end;
 
 var
@@ -95,7 +95,7 @@ begin
   inherited;
 end;
 
-function TReadAssetStream.Read(var Buffer; Count: Longint): Longint;
+function TReadAssetStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
   Result := AAsset_read(Asset, @Buffer, Count);
   if Result < 0 then
@@ -117,7 +117,7 @@ begin
   Result := FPosition;
 end;
 
-procedure TReadAssetStream.SetSize(NewSize: Longint);
+procedure TReadAssetStream.SetSize(NewSize: LongInt);
 begin
   raise EStreamNotImplementedSetSize.Create(
     'TReadAssetStream.SetSize not supported');
@@ -134,7 +134,7 @@ begin
   Result := 0; // just to get rid of warning
 end;
 
-function TReadAssetStream.Write(const Buffer; Count: Longint): Longint;
+function TReadAssetStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
   raise EStreamNotImplementedWrite.Create('TReadAssetStream.Write not supported');
   Result := 0; // just to get rid of warning

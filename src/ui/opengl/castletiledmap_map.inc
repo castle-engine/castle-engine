@@ -439,7 +439,7 @@ var
   Decompressor: TStream;
   Decoder: TBase64DecodingStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
-  DataCount, DataLength: Longint;
+  DataCount, DataLength: LongInt;
   CSVItem: string;
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;

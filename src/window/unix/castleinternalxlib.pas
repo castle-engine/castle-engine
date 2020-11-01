@@ -89,7 +89,7 @@ type
   TPCharArray = packed array[0..High(Word)]of PChar;
   PPCharArray=^TPCharArray;
 
-procedure CreateArgCV(out argc_ret: Longint; out argv_ret: PPChar);
+procedure CreateArgCV(out argc_ret: LongInt; out argv_ret: PPChar);
 { Na podstawie ParamCount i ParamStr konstruujemy argc i argv
   aby udawaly parametry main () z ANSI C.
   Zawsze zwalniaj potem z pamieci argv przez DestroyArgV. }
@@ -115,7 +115,7 @@ function XSetStandardProperties_Pascal(dpy: PDisplay; win: TWindow;
   window_name: pchar; icon_name: pchar;icon_pixmap: TPixmap;
   hints: PXSizeHints): integer;
 { simplified version of XSetStandardProperties }
-var argc: Longint;
+var argc: LongInt;
     argv: PPChar;
 begin
  CreateArgCV(argc, argv);
@@ -128,7 +128,7 @@ procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
   WindowName: PXTextProperty;
   IconName: PXTextProperty; NormalHints: PXSizeHints; WMHints:
   PXWMHints; ClassHints: PXClassHint);
-var argc: Longint;
+var argc: LongInt;
     argv: PPChar;
 begin
  CreateArgCV(argc, argv);
