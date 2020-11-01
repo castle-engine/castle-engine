@@ -75,7 +75,7 @@ begin
     T := Now;
     for i := 1 to NTests do
       SumInt += Rnd.RandomInt64(2);
-    WriteLn('Castle int64   random   t = ',Round((Now-T)*24*60*60*1000)-BiasInt,' ms average = ',SumInt/NTests);
+    WriteLn('Castle Int64   random   t = ',Round((Now-T)*24*60*60*1000)-BiasInt,' ms average = ',SumInt/NTests);
 
     SumInt := 0;
     T := Now;

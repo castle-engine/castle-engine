@@ -47,7 +47,7 @@ type
     { Returns random integer number in the 0..N-1 range. }
     function Random(N: LongInt): LongInt;
     { A relatively slow procedure to get a 64 bit integer random number. }
-    function RandomInt64(N: int64): int64;
+    function RandomInt64(N: Int64): Int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like flipping a coin... }
     function RandomBoolean: Boolean;
@@ -289,8 +289,8 @@ begin
   //Result := Divisor * LongInt(XorShift shr 1);    // works slower
 end;
 
-{Result := LongWord((int64(Seed)*N) shr 32)// := seed mod N; works slower
-//Result := LongInt((int64(XorShift)*N) shr 32) // works slower}
+{Result := LongWord((Int64(Seed)*N) shr 32)// := seed mod N; works slower
+//Result := LongInt((Int64(XorShift)*N) shr 32) // works slower}
 
 // Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
 //  +35% effective. But I don't think it's a good idea
@@ -306,7 +306,7 @@ end;
 { Works >10 times slower comparing to 32 bit version. And even slower than float version.
   Another problem is that it cycles the seed twice which might cause
   strange results if exact reproduction of the random sequence is required }
-function TCastleRandom.RandomInt64(N: int64): int64;
+function TCastleRandom.RandomInt64(N: Int64): Int64;
 var c64: QWord;
   procedure XorShift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
   begin
@@ -323,7 +323,7 @@ begin
      but slows down execution by ~10%}
     XorShift64;
     {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)
-     There can be no overflow here, because N is int64 and it can't be
+     There can be no overflow here, because N is Int64 and it can't be
      larger than (High(QWORD) div 2), i.e. we can never get "negative" result
      as the first bit of the result will be always zero}
     Result := Int64(QWord(c64) mod QWord(N))
