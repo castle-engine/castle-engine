@@ -52,7 +52,7 @@ type
       Something like flipping a coin... }
     function RandomBoolean: Boolean;
     { Randomly provides "-1", "0" or "1" with equal chances. }
-    function RandomSign: longint;
+    function RandomSign: LongInt;
     { Returns a random number in 1 .. High(LongWord) range. }
     function Random32bit: LongWord;
   private
@@ -109,7 +109,7 @@ end;
 {$ENDIF}
 
 {$IFDEF USE_DEV_URANDOM}
-function DEV_URANDOM: longint;
+function DEV_URANDOM: LongInt;
 var DevRnd: file of integer;
 begin
   { algorithm according to http://wiki.freepascal.org/Dev_random
@@ -132,7 +132,7 @@ end;
   I hope I've made everything right :) At least formal tests show it is so.}
 var Store64bitSeed: QWord = 0; //this variable stores 64 bit seed for reusing
    WaitForSeed: Boolean = false;
-function Get_Randomseed: longint;
+function Get_Randomseed: LongInt;
 const DateMultiplier: QWord = 30000000;  // approximate accuracy of the date
       DateOrder: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
       {p.s. date_order will be true until year ~2119}
@@ -234,7 +234,7 @@ begin
     {cycle everything one more time}
     XorShift64;
     {leave higher 32-bits of c64 as a true random seed}
-    Result := longint(c64 shr 32);
+    Result := LongInt(c64 shr 32);
   until Result <> 0;
   {and strictly demand it's not zero!
    adding a few XorShift64-cycles in case it does.}
@@ -246,7 +246,7 @@ begin
 end;
 {$ENDIF}
 
-function TCastleRandom.GetRandomSeed: longint;
+function TCastleRandom.GetRandomSeed: LongInt;
 begin
   {$IFDEF USE_DEV_URANDOM}
     { guarantees initialization with absolutely random number provided by
@@ -338,7 +338,7 @@ begin
   Result := Seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
 end;
 
-function TCastleRandom.RandomSign: longint;
+function TCastleRandom.RandomSign: LongInt;
 begin
   XorShiftCycle;
   Result := LongInt((Int64(LongWord(Seed))*3) shr 32)-1

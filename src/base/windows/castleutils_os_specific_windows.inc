@@ -41,7 +41,7 @@ procedure WarningBox(const Text:string; const caption:string ='Warning'    ; par
 
 { WinAPI ChangeDisplaySettings declaration. (Was wrong/missing in old
   FPC versions? TODO: check and probably remove this.) }
-function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint;
+function ChangeDisplaySettings(lpDevMode: PDEVMODE; dwFlags: DWORD): LongInt;
   stdcall; external userDLL name 'ChangeDisplaySettingsA';
 
 { Describe ChangeDisplaySettings result. }

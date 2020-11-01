@@ -973,7 +973,7 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   could find directory "fpc" that is under a directory on $PATH. }
 
 Var
-  I : longint;
+  I : LongInt;
   Temp : String;
 
 begin

@@ -4581,7 +4581,7 @@ end;
 
 procedure TCastleUserInterface.DefineProperties(Filer: TFiler);
 Var Ancestor : TComponent;
-    Temp : longint;
+    Temp : LongInt;
 begin
   { Don't call inherited that defines magic left/top.
     This would make reading design-time "left" broken, it seems that our

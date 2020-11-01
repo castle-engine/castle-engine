@@ -370,7 +370,7 @@ var c : integer;
     var
       a : word;
       c : TFPColor;
-      x,y : longint;  // checks on < 0
+      x,y : LongInt;  // checks on < 0
     begin
       with TheImage do
         begin
