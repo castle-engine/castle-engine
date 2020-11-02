@@ -162,8 +162,8 @@ procedure UpdateViewMode;
 begin
   // TODO
   // if ViewMode = vmNormal then
-  //   Scene.Attributes.OnRadianceTransfer := nil else
-  //  Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
+  //   Scene.RenderOptions.OnRadianceTransfer := nil else
+  //  Scene.RenderOptions.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
@@ -172,7 +172,7 @@ begin
     10: ViewMode := vmNormal;
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
-    20: with Scene.Attributes do Lighting := not Lighting;
+    20: with Scene.RenderOptions do Lighting := not Lighting;
     100: Window.Container.SaveScreenToDefaultFile;
     200: Window.Close;
     else Exit;
@@ -248,7 +248,7 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.Attributes.Lighting } true, true));
+    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.RenderOptions.Lighting } true, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, keyF5));
     M.Append(TMenuSeparator.Create);

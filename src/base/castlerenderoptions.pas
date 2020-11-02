@@ -128,8 +128,8 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      @link(TCastleRenderOptions.WireframeColor Scene.Attributes.WireframeColor) and
-      @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      @link(TCastleRenderOptions.WireframeColor Scene.RenderOptions.WireframeColor) and
+      @link(TCastleRenderOptions.LineWidth Scene.RenderOptions.LineWidth) determine the color and width
       of lines.
 
       This is often used together with the
@@ -144,8 +144,8 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      @link(TCastleRenderOptions.WireframeColor Scene.Attributes.WireframeColor) and
-      @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
+      @link(TCastleRenderOptions.WireframeColor Scene.RenderOptions.WireframeColor) and
+      @link(TCastleRenderOptions.LineWidth Scene.RenderOptions.LineWidth) determine the color and width
       of silhouette lines.
 
       This is often used together with the
@@ -189,7 +189,7 @@ type
     minLinearMipmapLinear,
 
     { Interpretation of this filter depends on current
-      @link(TCastleRenderOptions.MinificationFilter Scene.Attributes.MinificationFilter).
+      @link(TCastleRenderOptions.MinificationFilter Scene.RenderOptions.MinificationFilter).
       If that is also minDefault, it depends on current
       @link(TCastleRenderOptions.DefaultMinificationFilter). }
     minDefault,
@@ -207,7 +207,7 @@ type
     magLinear,
 
     { Interpretation of this filter depends on current
-      @link(TCastleRenderOptions.MagnificationFilter Scene.Attributes.MagnificationFilter).
+      @link(TCastleRenderOptions.MagnificationFilter Scene.RenderOptions.MagnificationFilter).
       If that is also magDefault, it depends on current
       @link(TCastleRenderOptions.DefaultMagnificationFilter). }
     magDefault,
@@ -264,13 +264,13 @@ type
     @seealso TCastleRenderOptions.BlendingSort }
   TBlendingSort = (
     { Do not sort.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       is fastest, but will cause artifacts if multiple
       partially-transparent objects may be visible on top of each other. }
     bsNone,
 
     { Sort objects by their Z coordinate.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       is very useful for 2D worlds, with flat 2D objects
       that have zero (or near-zero) size in the Z axis,
       and they are moved in the Z axis to specify which is on top for another.
@@ -287,7 +287,7 @@ type
     bs2D,
 
     { Sort objects by the (3D) distance to the camera.
-      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       is the best sorting method for 3D
       scenes with many partially-transparent objects.
 

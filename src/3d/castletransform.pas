@@ -814,7 +814,7 @@ type
 
       Note that this doesn't take care of sorting the shapes
       within the scenes. For this, you should set
-      @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
+      @link(TCastleRenderOptions.BlendingSort Scene.RenderOptions.BlendingSort)
       to a value like bs3D, to keep it sorted.
       It is actually the default now.
 

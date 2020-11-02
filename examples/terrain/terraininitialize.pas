@@ -464,9 +464,9 @@ begin
     10: begin
           Wireframe := not Wireframe;
           if Wireframe then
-            Scene.Attributes.WireframeEffect := weWireframeOnly
+            Scene.RenderOptions.WireframeEffect := weWireframeOnly
           else
-            Scene.Attributes.WireframeEffect := weNormal;
+            Scene.RenderOptions.WireframeEffect := weNormal;
         end;
     50: begin
           URL := '';

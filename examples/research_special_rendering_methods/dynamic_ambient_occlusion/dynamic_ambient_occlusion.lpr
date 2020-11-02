@@ -852,14 +852,14 @@ begin
     dtNormalGL:
       begin
         // TODO
-        // Scene.Attributes.OnVertexColor := nil;
-        Scene.Attributes.Lighting := true;
+        // Scene.RenderOptions.OnVertexColor := nil;
+        Scene.RenderOptions.Lighting := true;
       end;
     dtPass1, dtPass2:
       begin
-        // TODO: Make it work after Scene.Attributes.OnVertexColor removed
-        // Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
-        Scene.Attributes.Lighting := false;
+        // TODO: Make it work after Scene.RenderOptions.OnVertexColor removed
+        // Scene.RenderOptions.OnVertexColor := @THelper(nil).VertexColor;
+        Scene.RenderOptions.Lighting := false;
       end;
     { else they don't matter }
   end;
