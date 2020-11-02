@@ -333,6 +333,8 @@ var
 
 implementation
 
+uses SysUtils;
+
 {$define read_implementation}
 {$I castlerenderoptions_renderoptions.inc}
 

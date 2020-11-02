@@ -149,7 +149,7 @@ type
       OnCreate: TCastleRenderOptionsEvent;
 
     constructor Create(AOwner: TComponent); override;
-
+    destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
 
     { Is the second TCastleRenderOptions instance on all fields
@@ -490,6 +490,10 @@ type
       This is ignored if HierarchicalOcclusionQuery. }
     property OcclusionQuery: boolean
       read FOcclusionQuery write SetOcclusionQuery default false;
+
+  {$define read_interface_class}
+  {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
+  {$undef read_interface_class}
   end;
 
   TCastleRenderOptionsClass = class of TCastleRenderOptions;
@@ -528,8 +532,20 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
+  {$define read_implementation_constructor}
+  {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
+  {$undef read_implementation_constructor}
+
   if Assigned(OnCreate) then
     OnCreate(Self);
+end;
+
+destructor TCastleRenderOptions.Destroy;
+begin
+  {$define read_implementation_destructor}
+  {$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
+  {$undef read_implementation_destructor}
+  inherited;
 end;
 
 procedure TCastleRenderOptions.Assign(Source: TPersistent);
@@ -696,5 +712,9 @@ begin
     ReleaseCachedResources;
   end;
 end;
+
+{$define read_implementation_methods}
+{$I auto_generated_persistent_vectors/tcastlerenderoptions_persistent_vectors.inc}
+{$undef read_implementation_methods}
 
 {$endif read_implementation}
