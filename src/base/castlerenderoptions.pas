@@ -118,7 +118,7 @@ type
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
           Lighting, UseSceneLights etc. attributes, and you
-          can control texturing by EnableTextures attribute.)
+          can control texturing by @link(TCastleRenderOptions.Textures) attribute.)
       ) }
     weWireframeOnly,
 

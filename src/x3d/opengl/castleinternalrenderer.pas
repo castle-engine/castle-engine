@@ -1994,7 +1994,7 @@ end;
 function TGLRenderer.BumpMapping: TBumpMapping;
 begin
   if (Attributes.BumpMapping <> bmNone) and
-    Attributes.EnableTextures and
+    Attributes.Textures and
     (Attributes.Mode = rmFull) and
     GLFeatures.UseMultiTexturing and
     (GLFeatures.Shaders <> gsNone) then
@@ -3047,7 +3047,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if Attributes.EnableTextures and
+    if Attributes.Textures and
        NodeTextured(Shape.Geometry) then
     begin
       AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;

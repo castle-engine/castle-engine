@@ -28,8 +28,7 @@ type
   strict private
     FLighting: boolean;
     FUseSceneLights: boolean;
-    FOpacity: Single;
-    FEnableTextures: boolean;
+    FTextures: boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
     FPointSize: Single;
@@ -50,7 +49,6 @@ type
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
     FOcclusionSort: boolean;
-    FControlBlending: boolean;
     FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
@@ -66,7 +64,7 @@ type
     { These methods just set the value on given property,
       eventually (some of them) calling ReleaseCachedResources.
       @groupBegin }
-    procedure SetEnableTextures(const Value: boolean);
+    procedure SetTextures(const Value: boolean);
     procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
     procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
     procedure SetBumpMapping(const Value: TBumpMapping);
@@ -77,7 +75,6 @@ type
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
     procedure SetBlendingSort(const Value: TBlendingSort);
-    procedure SetControlBlending(const Value: boolean);
     procedure SetUseOcclusionQuery(const Value: boolean);
     procedure SetPhongShading(const Value: boolean);
     { @groupEnd }
@@ -161,96 +158,9 @@ type
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
-    { Enable OpenGL lighting when rendering.
-      This is @true by default, since it's almost always wanted.
-
-      When Lighting is @false, we disable OpenGL lighting.
-      (We had previously a different approach, when we left GL_LIGHTING
-      untouched and caller could enable/disable it. But this doesn't really
-      work for modern OpenGL, the renderer really has to know if lighting
-      is enabled. (to generate proper shaders, and to avoid clumsy
-      glPushAttrib / glPopAttrib at some places).) }
-    property Lighting: boolean
-      read FLighting write FLighting default true;
-
-    { Should we setup VRML/X3D lights as OpenGL lights during rendering.
-
-      VRML/X3D lights are loaded into OpenGL lights. All OpenGL lights
-      are always used (we always start from the first OpenGL light 0,
-      up to the last available OpenGL light --- this is necessary,
-      as shader pipeline must know all the lights anyway).
-
-      Initial OpenGL lights are reserved for BaseLights
-      (useful for you to define any lights from outside of the scene).
-      Then following OpenGL lights are reserved for the lights defined
-      in your scene (if this property is @true).
-      The remaining OpenGL lights, if any, are not used (we make sure they
-      are disabled for fixed-function pipeline).
-
-      This is independent from the @link(Lighting) property (which merely
-      says whether we will turn OpenGL lighting on at all). }
-    property UseSceneLights: boolean
-      read FUseSceneLights write FUseSceneLights default true;
-
-    { Opacity for all rendered shapes. Setting this to something < 1
-      you can make every shape transparent. }
-    property Opacity: Single read FOpacity write FOpacity default 1;
-
-    { Take model textures into account. When @true (default),
-      then our engine takes care of everything related to texturing
-      for you: enabling and using textures for textured parts of the model,
-      disabling textures for non-textured parts.
-
-      Otherwise, textures are disabled. }
+    { Use textures. }
     property EnableTextures: boolean
-      read FEnableTextures write SetEnableTextures default true;
-
-    { Default minification and magnification filters for textures.
-      These can be overridden on a per-texture basis in VRML / X3D files
-      by X3D TextureProperties node (see X3D specification).
-
-      They can be equal to minDefault, magDefault in which case they
-      actually use the values from
-      DefaultMinificationFilter, DefaultMagnificationFilter
-      (by default minLinearMipmapLinear, magLinear).
-
-      @groupBegin }
-    property MinificationFilter: TAutoMinificationFilter
-      read FMinificationFilter write SetMinificationFilter default minDefault;
-    property MagnificationFilter: TAutoMagnificationFilter
-      read FMagnificationFilter write SetMagnificationFilter default magDefault;
-    { @groupEnd }
-
-    { Size of points. This has an effect on VRML/X3D PointSet rendering.
-      Must be > 0. }
-    property PointSize: Single
-      read FPointSize write FPointSize default DefaultPointSize;
-
-    { Line width. This has an effect on VRML/X3D LineSet rendering,
-      and on wireframe rendering for TCastleRenderOptions.WireframeEffect.
-      Must be > 0. }
-    property LineWidth: Single
-      read FLineWidth write FLineWidth default DefaultLineWidth;
-
-    { Use bump mapping. To actually use this, particular shape must also
-      provide normal map (and height map, if you want parallax bump mapping).
-      This also requires some OpenGL capabilities, in particular GLSL.
-
-      Simple bump mapping (when only normal map is available)
-      means that normals are provided in the texture, and lighting
-      is calculated per-fragment.
-
-      Parallax bump mapping means that additionally the texture coordinate
-      is perturbed, based on height map and camera direction, to create
-      illusion of 3D shape instead of flat surface.
-      This makes e.g. the bricks on the texture really
-      visible as "standing out", in 3D, from the wall. And self-shadowing
-      means that these bricks even cast appropriate shadows on each other.
-
-      Steep parallax mapping requires good GPU to work correctly and fast
-      enough. }
-    property BumpMapping: TBumpMapping
-      read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
+      read FTextures write SetTextures default true; deprecated 'use Textures';
 
     { When GLSL shaders are used.
       This is now a deprecated property, better use @link(PhongShading) to determine
@@ -259,11 +169,6 @@ type
       particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
       and GLFeatures.EnableFixedFunction. }
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
-
-    { Whether to use Phong shading by default for all shapes.
-      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
-    property PhongShading: boolean read FPhongShading write SetPhongShading
-      default DefaultPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
       It must be a @link(TX3DShaderProgramBase) instance.
@@ -274,6 +179,7 @@ type
       https://castle-engine.io/compositing_shaders.php which still allow you
       to write GLSL effects, but they are integrated into standard shader code. }
     property CustomShader: TObject read FCustomShader write FCustomShader;
+      deprecated 'use Effect node to define GLSL shaders that are more flexible';
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       It must be a @link(TX3DShaderProgramBase) instance.
@@ -282,14 +188,10 @@ type
       @italic(Do not use this.) This is a temporary hack to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else. }
     property CustomShaderAlphaTest: TObject read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
+      deprecated 'use Effect node to define GLSL shaders that are more flexible';
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
-
-    { Shadow maps sampling. Various approaches result in various quality and speed. }
-    property ShadowSampling: TShadowSampling
-      read FShadowSampling write SetShadowSampling
-      default DefaultShadowSampling;
 
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow.
@@ -348,113 +250,10 @@ type
       write FSeparateDiffuseTexture default false;
       deprecated 'rendering always behaves as if this was true now, with Phong shading';
 
-    { For efficiency reasons, we only allow a finite number of lights that can affect
-      the given shape. You can increase this number if necessary.
-
-      Note that, instead of increasing this limit,
-      you can sometimes adjust your models to fit within this limit.
-      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
-      it is exported OK to glTF), and make smaller shapes.
-
-      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
-      there is an additional hard limit (dependent on GPU, but usually 8, for this).
-      But on modern desktops, as well as mobile and other platforms, you can increase this limit
-      freely. }
-    property MaxLightsPerShape: Cardinal
-      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
-
-    { Render partially transparent objects.
-
-      More precisely: if this is @true, all shapes with
-      transparent materials or textures with non-trivial (not only yes/no)
-      alpha channel will be rendered using OpenGL blending
-      (with depth test off, like they should for OpenGL).
-
-      If this attribute is @false, everything will be rendered as opaque. }
-    property Blending: boolean
-      read FBlending write SetBlending default true;
-
-    { Blending function parameters, used when @link(Blending).
-      Note that this is only a default, VRML/X3D model can override this
-      for specific shapes by using our extension BlendMode node.
-      See [https://castle-engine.io/x3d_extensions.php#section_ext_blending].
-      @groupBegin }
-    property BlendingSourceFactor: TBlendingSourceFactor
-      read FBlendingSourceFactor write SetBlendingSourceFactor
-      default DefaultBlendingSourceFactor;
-    property BlendingDestinationFactor: TBlendingDestinationFactor
-      read FBlendingDestinationFactor write SetBlendingDestinationFactor
-      default DefaultBlendingDestinationFactor;
-    { @groupEnd }
-
-    { How to sort the rendered objects using blending (partial transparency).
-      See the @link(TBlendingSort) documentation for possible values.
-
-      This may be overridden in a specific 3D models
-      by using NavigationInfo node with blendingSort field,
-      see TNavigationInfoNode.BlendingSort. }
-    property BlendingSort: TBlendingSort
-      read FBlendingSort write SetBlendingSort
-      default DefaultBlendingSort;
-
-    { Sort the opaque objects when rendering.
-      This may generate speedup on some scenes. }
-    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
-
-    { Setting this to @false disables any modification of OpenGL
-      blending (and depth mask) state by TCastleScene.
-      This makes every other @link(Blending) setting ignored,
-      and is useful only if you set your own OpenGL blending parameters
-      when rendering this scene. }
-    property ControlBlending: boolean
-      read FControlBlending write SetControlBlending default true;
-
-    { You can use this to turn on some effects related to rendering model
-      in special modes.
-
-      When this is weNormal (default), nothing special is
-      done, which means that model polygons are simply passed to OpenGL.
-      Whether this results in filled or wireframe, depends on OpenGL
-      glPolygonMode setting, filled by default.
-
-      How the wireframe effects work when Mode = rmDepth is undefined now.
-      Just don't use Mode = rmDepth if you're unsure.
-
-      See description of TWireframeEffect for what other modes do. }
-    property WireframeEffect: TWireframeEffect
-      read FWireframeEffect write FWireframeEffect default weNormal;
-
-    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale default DefaultSolidWireframeScale;
-    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias default DefaultSolidWireframeBias;
-    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale default DefaultSilhouetteScale;
-    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
-
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
     property WireframeColor: TCastleColorRGB
       read FWireframeColor write FWireframeColor;
-
-    { Should we use ARB_occlusion_query (if available) to avoid rendering
-      shapes that didn't pass occlusion test in previous frame.
-      Ignored if GPU doesn't support ARB_occlusion_query.
-
-      @true may give you a large speedup in some scenes.
-      OTOH, a lag of one frame may happen between an object should
-      be rendered and it actually appears.
-
-      When you render more than once the same instance of TCastleScene scene,
-      you should not activate it (as the occlusion query doesn't make sense
-      if each following render of the scene takes place at totally different
-      translation). Also, when rendering something more than just
-      one TCastleScene scene (maybe many times the same TCastleScene instance,
-      maybe many different TCastleScene instances, maybe some other
-      3D objects) you should try to sort rendering order
-      from the most to the least possible occluder (otherwise occlusion
-      query will not be as efficient at culling).
-
-      This is ignored if UseHierarchicalOcclusionQuery. }
-    property UseOcclusionQuery: boolean
-      read FUseOcclusionQuery write SetUseOcclusionQuery default false;
 
     { Should we use ARB_occlusion_query (if available) with
       a hierarchical algorithm  to avoid rendering
@@ -499,6 +298,188 @@ type
     property DebugHierOcclusionQueryResults: boolean
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
+  published
+    { Enable real-time lighting when rendering. }
+    property Lighting: boolean read FLighting write FLighting default true;
+
+    { Use lights defined in this scene (in the model loaded to this TCastleScene).
+
+      If false, only the headlight (depending on
+      @link(TCastleRootTransform.UseHeadlight Viewport.Items.UseHeadlight))
+      and global lights from
+      @link(TCastleRootTransform.MainScene Viewport.Items.MainScene)
+      (depending on
+      @link(TCastleRootTransform.UseGlobalLights Viewport.Items.UseGlobalLights))
+      affect this scene.
+
+      This doesn't matter if @link(Lighting) is @false. }
+    property UseSceneLights: boolean
+      read FUseSceneLights write FUseSceneLights default true;
+
+    { Use textures. }
+    property Textures: boolean
+      read FTextures write SetTextures default true;
+
+    { Default minification and magnification filters for textures.
+      These can be overridden on a per-texture basis in VRML / X3D files
+      by X3D TextureProperties node (see X3D specification).
+
+      They can be equal to minDefault, magDefault in which case they
+      actually use the values from
+      DefaultMinificationFilter, DefaultMagnificationFilter
+      (by default minLinearMipmapLinear, magLinear).
+
+      @groupBegin }
+    property MinificationFilter: TAutoMinificationFilter
+      read FMinificationFilter write SetMinificationFilter default minDefault;
+    property MagnificationFilter: TAutoMagnificationFilter
+      read FMagnificationFilter write SetMagnificationFilter default magDefault;
+    { @groupEnd }
+
+    { Size of points. This has an effect on TPointSetNode rendering.
+      Must be > 0. }
+    property PointSize: Single
+      read FPointSize write FPointSize default DefaultPointSize;
+
+    { Line width. This has an effect on TLineSetNode rendering,
+      and on wireframe rendering when @link(TCastleRenderOptions.WireframeEffect) indicates it.
+      Must be > 0. }
+    property LineWidth: Single
+      read FLineWidth write FLineWidth default DefaultLineWidth;
+
+    { Use bump mapping. The bump mapping is only done when particular shape
+      defines a normal map (and a height map, if you want parallax bump mapping).
+
+      The normal map is usually provided in the @link(TMaterialNode.NormalTexture) (Phong lighting)
+      or @link(TPhysicalMaterialNode.NormalTexture) (PBR lighting) fields.
+      In CGE we also provide a number of alternative ways to provide normal maps
+      ( https://castle-engine.io/x3d_implementation_texturing_extensions.php ),
+      but the @code(NormalTexture) field is most advised.
+
+      See TBumpMapping for various possible values.
+
+      Simple bump mapping (when only normal map is available)
+      means that normals are provided in the texture, and lighting
+      is calculated per-fragment.
+
+      Parallax bump mapping means that additionally the texture coordinate
+      is perturbed, based on height map and camera direction, to create
+      illusion of 3D shape instead of flat surface.
+      This makes e.g. the bricks on the texture really
+      visible as "standing out", in 3D, from the wall. And self-shadowing
+      means that these bricks even cast appropriate shadows on each other. }
+    property BumpMapping: TBumpMapping
+      read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
+
+    { Whether to use Phong shading by default for all shapes.
+      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
+    property PhongShading: boolean read FPhongShading write SetPhongShading
+      default DefaultPhongShading;
+
+    { Shadow maps sampling. Various approaches result in various quality and speed. }
+    property ShadowSampling: TShadowSampling
+      read FShadowSampling write SetShadowSampling
+      default DefaultShadowSampling;
+
+    { For efficiency reasons, we only allow a finite number of lights that can affect
+      the given shape. You can increase this number if necessary.
+
+      Note that, instead of increasing this limit,
+      you can sometimes adjust your models to fit within this limit.
+      Do this using light source radius and/or scope (e.g. you can use "radius" in Blender,
+      it is exported OK to glTF), and make smaller shapes.
+
+      Note that on ancient dekstops, with fixed-function OpenGL pipeline,
+      there is an additional hard limit (dependent on GPU, but usually 8, for this).
+      But on modern desktops, as well as mobile and other platforms, you can increase this limit
+      freely. }
+    property MaxLightsPerShape: Cardinal
+      read FMaxLightsPerShape write FMaxLightsPerShape default DefaultMaxLightsPerShape;
+
+    { Render partially transparent objects.
+
+      More precisely: if this is @true, all shapes with
+      transparent materials or textures with non-trivial (not only yes/no)
+      alpha channel will be rendered using blending.
+      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      for details how it works.
+
+      If this is @false, everything will be rendered as opaque. }
+    property Blending: boolean
+      read FBlending write SetBlending default true;
+
+    { Blending function parameters, used when @link(Blending).
+      Note that this is only a default, each model can override this
+      for specific shapes using @link(TBlendModeNode).
+      See https://castle-engine.io/x3d_extensions.php#section_ext_blending for details of TBlendModeNode.
+
+      See https://github.com/castle-engine/castle-engine/wiki/Blending
+      for details how it works.
+
+      @groupBegin }
+    property BlendingSourceFactor: TBlendingSourceFactor
+      read FBlendingSourceFactor write SetBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+    property BlendingDestinationFactor: TBlendingDestinationFactor
+      read FBlendingDestinationFactor write SetBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
+    { @groupEnd }
+
+    { How to sort the rendered objects using blending (partial transparency).
+      See the @link(TBlendingSort) documentation for possible values.
+
+      This may be overridden in a specific 3D models
+      by using NavigationInfo node with blendingSort field,
+      see TNavigationInfoNode.BlendingSort. }
+    property BlendingSort: TBlendingSort
+      read FBlendingSort write SetBlendingSort
+      default DefaultBlendingSort;
+
+    { Sort the opaque objects when rendering.
+      This may generate speedup on some scenes. }
+    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
+
+    { You can use this to turn on some effects related to rendering model
+      in special modes.
+
+      When this is weNormal (default), nothing special is
+      done, which means that model polygons are simply passed to OpenGL.
+      Whether this results in filled or wireframe, depends on OpenGL
+      glPolygonMode setting, filled by default.
+
+      How the wireframe effects work when Mode = rmDepth is undefined now.
+      Just don't use Mode = rmDepth if you're unsure.
+
+      See description of TWireframeEffect for what other modes do. }
+    property WireframeEffect: TWireframeEffect
+      read FWireframeEffect write FWireframeEffect default weNormal;
+
+    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale default DefaultSolidWireframeScale;
+    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias default DefaultSolidWireframeBias;
+    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale default DefaultSilhouetteScale;
+    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
+
+    { Should we use ARB_occlusion_query (if available) to avoid rendering
+      shapes that didn't pass occlusion test in previous frame.
+      Ignored if GPU doesn't support ARB_occlusion_query.
+
+      @true may give you a large speedup in some scenes.
+      OTOH, a lag of one frame may happen between an object should
+      be rendered and it actually appears.
+
+      When you render more than once the same instance of TCastleScene scene,
+      you should not activate it (as the occlusion query doesn't make sense
+      if each following render of the scene takes place at totally different
+      translation). Also, when rendering something more than just
+      one TCastleScene scene (maybe many times the same TCastleScene instance,
+      maybe many different TCastleScene instances, maybe some other
+      3D objects) you should try to sort rendering order
+      from the most to the least possible occluder (otherwise occlusion
+      query will not be as efficient at culling).
+
+      This is ignored if UseHierarchicalOcclusionQuery. }
+    property UseOcclusionQuery: boolean
+      read FUseOcclusionQuery write SetUseOcclusionQuery default false;
   end;
 
   TCastleRenderOptionsClass = class of TCastleRenderOptions;
@@ -515,8 +496,7 @@ begin
 
   FLighting := true;
   FUseSceneLights := true;
-  FOpacity := 1;
-  FEnableTextures := true;
+  FTextures := true;
   FMinificationFilter := minDefault;
   FMagnificationFilter := magDefault;
   FPointSize := DefaultPointSize;
@@ -531,7 +511,6 @@ begin
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingSort := DefaultBlendingSort;
   FOcclusionSort := false;
-  FControlBlending := true;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
   FSilhouetteScale := DefaultSilhouetteScale;
@@ -549,8 +528,7 @@ begin
   begin
     Lighting := TCastleRenderOptions(Source).Lighting;
     UseSceneLights := TCastleRenderOptions(Source).UseSceneLights;
-    Opacity := TCastleRenderOptions(Source).Opacity;
-    EnableTextures := TCastleRenderOptions(Source).EnableTextures;
+    Textures := TCastleRenderOptions(Source).Textures;
     MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
     PointSize := TCastleRenderOptions(Source).PointSize;
@@ -560,7 +538,6 @@ begin
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
     BlendingSort := TCastleRenderOptions(Source).BlendingSort;
     OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
-    ControlBlending := TCastleRenderOptions(Source).ControlBlending;
     UseOcclusionQuery := TCastleRenderOptions(Source).UseOcclusionQuery;
     {$warnings off}
     UseHierarchicalOcclusionQuery := TCastleRenderOptions(Source).UseHierarchicalOcclusionQuery;
@@ -573,19 +550,19 @@ function TCastleRenderOptions.EqualForShapeCache(
   SecondValue: TCastleRenderOptions): boolean;
 begin
   Result :=
-    (SecondValue.EnableTextures = EnableTextures);
+    (SecondValue.Textures = Textures);
 end;
 
 procedure TCastleRenderOptions.ReleaseCachedResources;
 begin
 end;
 
-procedure TCastleRenderOptions.SetEnableTextures(const Value: boolean);
+procedure TCastleRenderOptions.SetTextures(const Value: boolean);
 begin
-  if EnableTextures <> Value then
+  if Textures <> Value then
   begin
     ReleaseCachedResources;
-    FEnableTextures := Value;
+    FTextures := Value;
   end;
 end;
 
@@ -677,11 +654,6 @@ end;
 procedure TCastleRenderOptions.SetBlendingSort(const Value: TBlendingSort);
 begin
   FBlendingSort := Value;
-end;
-
-procedure TCastleRenderOptions.SetControlBlending(const Value: boolean);
-begin
-  FControlBlending := Value;
 end;
 
 procedure TCastleRenderOptions.SetUseOcclusionQuery(const Value: boolean);
