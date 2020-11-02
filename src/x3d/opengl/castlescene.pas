@@ -646,9 +646,9 @@ begin
 
   OwnerScene.GLContextClose;
 
-  { If UseOcclusionQuery just changed:
-    If you switch UseOcclusionQuery on, then off, then move around the scene
-    a lot, then switch UseOcclusionQuery back on --- you don't want to use
+  { If OcclusionQuery just changed:
+    If you switch OcclusionQuery on, then off, then move around the scene
+    a lot, then switch OcclusionQuery back on --- you don't want to use
     results from previous query that was done many frames ago. }
   OwnerScene.ViewChangedSuddenly;
 end;
@@ -957,14 +957,14 @@ var
         octree nodes (for hierarchical occ query), so all these things
         should have a map "target->oq state" for various rendering targets. }
 
-      if ReallyUseOcclusionQuery(RenderOptions) and
+      if ReallyOcclusionQuery(RenderOptions) and
          (Params.RenderingCamera.Target = rtScreen) then
       begin
         SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_BatchingTest, Params);
       end else
       {$warnings off}
       if RenderOptions.DebugHierOcclusionQueryResults and
-         RenderOptions.UseHierarchicalOcclusionQuery then
+         RenderOptions.HierarchicalOcclusionQuery then
       {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
@@ -1053,7 +1053,7 @@ var
   var
     I: Integer;
   begin
-    if ReallyUseHierarchicalOcclusionQuery(RenderOptions) and
+    if ReallyHierarchicalOcclusionQuery(RenderOptions) and
        (not RenderOptions.DebugHierOcclusionQueryResults) and
        (Params.RenderingCamera.Target = rtScreen) and
        (InternalOctreeRendering <> nil) then
@@ -1068,7 +1068,7 @@ var
         begin
           { draw fully opaque objects }
           if RenderCameraKnown and
-            (ReallyUseOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort) then
+            (ReallyOcclusionQuery(RenderOptions) or RenderOptions.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1136,8 +1136,8 @@ begin
   ModelView := GetModelViewTransform;
 
   { update OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix if necessary }
-  if ReallyUseOcclusionQuery(RenderOptions) or
-     ReallyUseHierarchicalOcclusionQuery(RenderOptions) then
+  if ReallyOcclusionQuery(RenderOptions) or
+     ReallyHierarchicalOcclusionQuery(RenderOptions) then
   begin
     OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
       RenderContext.ProjectionMatrix * ModelView;
@@ -1520,10 +1520,12 @@ procedure TCastleScene.LocalRenderOutside(
         NewShaders := ShadowMapsProgram;
       end;
 
+      {$warnings off}
       SavedShaders.Shader          := RenderOptions.CustomShader as TX3DShaderProgramBase;
       SavedShaders.ShaderAlphaTest := RenderOptions.CustomShaderAlphaTest as TX3DShaderProgramBase;
       RenderOptions.CustomShader          := NewShaders.Shader;
       RenderOptions.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
+      {$warnings on}
     end;
 
     RenderWithWireframeEffect;
@@ -1531,8 +1533,10 @@ procedure TCastleScene.LocalRenderOutside(
     if Params.RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       RenderOptions.Mode := SavedMode;
+      {$warnings off}
       RenderOptions.CustomShader          := SavedShaders.Shader;
       RenderOptions.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
+      {$warnings on}
     end;
   end;
 
@@ -2020,7 +2024,7 @@ var
 begin
   inherited;
 
-  if ReallyUseOcclusionQuery(RenderOptions) then
+  if ReallyOcclusionQuery(RenderOptions) then
   begin
     WritelnLog('Occlusion query', 'View changed suddenly');
 

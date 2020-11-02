@@ -27,7 +27,7 @@ type
   TCastleRenderOptions = class(TComponent)
   strict private
     FLighting: boolean;
-    FUseSceneLights: boolean;
+    FSceneLights: boolean;
     FTextures: boolean;
     FMinificationFilter: TAutoMinificationFilter;
     FMagnificationFilter: TAutoMagnificationFilter;
@@ -51,8 +51,8 @@ type
     FOcclusionSort: boolean;
     FWireframeColor: TCastleColorRGB;
     FWireframeEffect: TWireframeEffect;
-    FUseOcclusionQuery: boolean;
-    FUseHierarchicalOcclusionQuery: boolean;
+    FOcclusionQuery: boolean;
+    FHierarchicalOcclusionQuery: boolean;
     FDebugHierOcclusionQueryResults: boolean;
     FSolidWireframeScale: Single;
     FSolidWireframeBias: Single;
@@ -75,7 +75,7 @@ type
     procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor);
     procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor);
     procedure SetBlendingSort(const Value: TBlendingSort);
-    procedure SetUseOcclusionQuery(const Value: boolean);
+    procedure SetOcclusionQuery(const Value: boolean);
     procedure SetPhongShading(const Value: boolean);
     { @groupEnd }
   protected
@@ -158,7 +158,7 @@ type
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
     function EqualForShapeCache(SecondValue: TCastleRenderOptions): boolean; virtual;
 
-    { Use textures. }
+    { @deprecated @exclude Old name for @link(Textures). }
     property EnableTextures: boolean
       read FTextures write SetTextures default true; deprecated 'use Textures';
 
@@ -229,7 +229,9 @@ type
       read FSolidColorBlendingPipeline
       write FSolidColorBlendingPipeline;
 
-    { Set to @true to make diffuse texture affect only material diffuse color
+    { @deprecated @exclude Ignored now.
+
+      Set to @true to make diffuse texture affect only material diffuse color
       when the shape is lit and shading is Phong.
       This affects both textures from X3D Appearance.texture,
       and textures from CommonSurfaceShader.diffuseTexture.
@@ -256,13 +258,13 @@ type
       read FWireframeColor write FWireframeColor;
 
     { Should we use ARB_occlusion_query (if available) with
-      a hierarchical algorithm  to avoid rendering
+      a hierarchical algorithm to avoid rendering
       shapes that didn't pass occlusion test in previous frame.
       Ignored if GPU doesn't support ARB_occlusion_query.
 
       @true may give you a large speedup in some scenes.
 
-      This method doesn't impose any lag of one frame (like UseOcclusionQuery).
+      This method doesn't impose any lag of one frame (like @link(OcclusionQuery)).
 
       This requires the usage of ssRendering in TCastleSceneCore.Spatial.
       Also, it always does frustum culling (like fcBox for now),
@@ -279,16 +281,16 @@ type
       Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
       it is slow and it does not treat transparent shapes correctly.
     }
-    property UseHierarchicalOcclusionQuery: boolean
-      read FUseHierarchicalOcclusionQuery
-      write FUseHierarchicalOcclusionQuery default false;
+    property HierarchicalOcclusionQuery: boolean
+      read FHierarchicalOcclusionQuery
+      write FHierarchicalOcclusionQuery default false;
       experimental;
 
     { View only the shapes that were detected as visible by occlusion query
       in last Render.
 
-      Use this only after render with UseHierarchicalOcclusionQuery.
-      TODO: for UseOcclusionQuery I would also like to make it work,
+      Use this only after render with HierarchicalOcclusionQuery.
+      TODO: for OcclusionQuery I would also like to make it work,
       for now not done as frustum information is gone.
       This will disable actual occlusion query,
       instead reusing results from last occlusion
@@ -298,6 +300,14 @@ type
     property DebugHierOcclusionQueryResults: boolean
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
+
+    { @deprecated @exclude Old name for @link(SceneLights). }
+    property UseSceneLights: boolean
+      read FSceneLights write FSceneLights default true;
+
+    { @deprecated @exclude Old name for @link(OcclusionQuery). }
+    property UseOcclusionQuery: boolean
+      read FOcclusionQuery write SetOcclusionQuery default false;
   published
     { Enable real-time lighting when rendering. }
     property Lighting: boolean read FLighting write FLighting default true;
@@ -313,8 +323,8 @@ type
       affect this scene.
 
       This doesn't matter if @link(Lighting) is @false. }
-    property UseSceneLights: boolean
-      read FUseSceneLights write FUseSceneLights default true;
+    property SceneLights: boolean
+      read FSceneLights write FSceneLights default true;
 
     { Use textures. }
     property Textures: boolean
@@ -477,9 +487,9 @@ type
       from the most to the least possible occluder (otherwise occlusion
       query will not be as efficient at culling).
 
-      This is ignored if UseHierarchicalOcclusionQuery. }
-    property UseOcclusionQuery: boolean
-      read FUseOcclusionQuery write SetUseOcclusionQuery default false;
+      This is ignored if HierarchicalOcclusionQuery. }
+    property OcclusionQuery: boolean
+      read FOcclusionQuery write SetOcclusionQuery default false;
   end;
 
   TCastleRenderOptionsClass = class of TCastleRenderOptions;
@@ -495,7 +505,7 @@ begin
   inherited;
 
   FLighting := true;
-  FUseSceneLights := true;
+  FSceneLights := true;
   FTextures := true;
   FMinificationFilter := minDefault;
   FMagnificationFilter := magDefault;
@@ -527,7 +537,7 @@ begin
   if Source is TCastleRenderOptions then
   begin
     Lighting := TCastleRenderOptions(Source).Lighting;
-    UseSceneLights := TCastleRenderOptions(Source).UseSceneLights;
+    SceneLights := TCastleRenderOptions(Source).SceneLights;
     Textures := TCastleRenderOptions(Source).Textures;
     MinificationFilter := TCastleRenderOptions(Source).MinificationFilter;
     MagnificationFilter := TCastleRenderOptions(Source).MagnificationFilter;
@@ -538,9 +548,9 @@ begin
     BlendingDestinationFactor := TCastleRenderOptions(Source).BlendingDestinationFactor;
     BlendingSort := TCastleRenderOptions(Source).BlendingSort;
     OcclusionSort := TCastleRenderOptions(Source).OcclusionSort;
-    UseOcclusionQuery := TCastleRenderOptions(Source).UseOcclusionQuery;
+    OcclusionQuery := TCastleRenderOptions(Source).OcclusionQuery;
     {$warnings off}
-    UseHierarchicalOcclusionQuery := TCastleRenderOptions(Source).UseHierarchicalOcclusionQuery;
+    HierarchicalOcclusionQuery := TCastleRenderOptions(Source).HierarchicalOcclusionQuery;
     {$warnings on}
   end else
     inherited;
@@ -656,13 +666,13 @@ begin
   FBlendingSort := Value;
 end;
 
-procedure TCastleRenderOptions.SetUseOcclusionQuery(const Value: boolean);
+procedure TCastleRenderOptions.SetOcclusionQuery(const Value: boolean);
 begin
-  if UseOcclusionQuery <> Value then
+  if OcclusionQuery <> Value then
   begin
-    FUseOcclusionQuery := Value;
+    FOcclusionQuery := Value;
 
-    if UseOcclusionQuery then
+    if OcclusionQuery then
     begin
       { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
         that initializes OcclusionQueryId for each shape }

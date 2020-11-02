@@ -94,8 +94,8 @@ type
   { Values for @link(TCastleRenderOptions.WireframeEffect).
 
     Generally, two other attributes may affect the way wireframe is rendered:
-    TSceneRenderingAttributes.WireframeColor and
-    TSceneRenderingAttributes.LineWidth, quite self-explanatory. }
+    TCastleRenderOptions.WireframeColor and
+    TCastleRenderOptions.LineWidth, quite self-explanatory. }
   TWireframeEffect = (
 
     { Default setting, model polygons are simply passed to OpenGL.
@@ -106,9 +106,9 @@ type
     { The model is rendered in wireframe mode.
 
       LineWidth is used as wireframe line width (regardless of
-      TSceneRenderingAttributes.Mode).
+      TCastleRenderOptions.Mode).
 
-      Depending on TSceneRenderingAttributes.Mode value:
+      Depending on TCastleRenderOptions.Mode value:
 
       @unorderedList(
         @item(If <> rmFull then WireframeColor is used as wireframe
@@ -117,8 +117,9 @@ type
         @item(If rmFull, then lines are colored
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
-          Lighting, UseSceneLights etc. attributes, and you
-          can control texturing by @link(TCastleRenderOptions.Textures) attribute.)
+          @link(TCastleRenderOptions.Lighting),
+          @link(TCastleRenderOptions.SceneLights) etc. properties, and you
+          can control texturing by @link(TCastleRenderOptions.Textures) property.)
       ) }
     weWireframeOnly,
 
@@ -127,7 +128,7 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TCastleRenderOptions.WireframeColor Scene.Attributes.WireframeColor) and
       @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of lines.
 
@@ -143,7 +144,7 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      @link(TSceneRenderingAttributes.WireframeColor Scene.Attributes.WireframeColor) and
+      @link(TCastleRenderOptions.WireframeColor Scene.Attributes.WireframeColor) and
       @link(TCastleRenderOptions.LineWidth Scene.Attributes.LineWidth) determine the color and width
       of silhouette lines.
 
@@ -260,16 +261,16 @@ type
 
   { Various ways to sort the 3D objects, in particular useful to correctly
     render the partially-transparent objects.
-    @seealso TSceneRenderingAttributes.BlendingSort }
+    @seealso TCastleRenderOptions.BlendingSort }
   TBlendingSort = (
     { Do not sort.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
       is fastest, but will cause artifacts if multiple
       partially-transparent objects may be visible on top of each other. }
     bsNone,
 
     { Sort objects by their Z coordinate.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
       is very useful for 2D worlds, with flat 2D objects
       that have zero (or near-zero) size in the Z axis,
       and they are moved in the Z axis to specify which is on top for another.
@@ -286,7 +287,7 @@ type
     bs2D,
 
     { Sort objects by the (3D) distance to the camera.
-      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      Using this for @link(TCastleRenderOptions.BlendingSort Scene.Attributes.BlendingSort)
       is the best sorting method for 3D
       scenes with many partially-transparent objects.
 

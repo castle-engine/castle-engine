@@ -40,7 +40,7 @@ type
 
     PassedShapeCulling: Boolean;
 
-    { Used only when Attributes.ReallyUseOcclusionQuery.
+    { Used only when Attributes.ReallyOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing
@@ -70,22 +70,22 @@ type
     function UseBlending: Boolean;
   end;
 
-{ Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
+{ Checks OcclusionQuery, existence of GL_ARB_occlusion_query,
   and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
   be used.
 
-  Also, returns @false when UseHierarchicalOcclusionQuery is @true
-  --- because then UseHierarchicalOcclusionQuery should take precedence.
+  Also, returns @false when HierarchicalOcclusionQuery is @true
+  --- because then HierarchicalOcclusionQuery should take precedence.
 
   @exclude Internal. }
-function ReallyUseOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
-{ Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+{ Checks HierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
   and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
   be used.
 
   @exclude Internal. }
-function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 
 implementation
 
@@ -189,7 +189,7 @@ begin
   end;
 
   {$ifndef OpenGLES}
-  if ReallyUseOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
+  if ReallyOcclusionQuery(TCastleScene(ParentScene).RenderOptions) and
      (OcclusionQueryId = 0) then
   begin
     glGenQueriesARB(1, @OcclusionQueryId);
@@ -228,21 +228,21 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function ReallyUseOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+function ReallyOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 begin
   {$warnings off}
-  Result := RenderOptions.UseOcclusionQuery and
-    (not RenderOptions.UseHierarchicalOcclusionQuery) and
+  Result := RenderOptions.OcclusionQuery and
+    (not RenderOptions.HierarchicalOcclusionQuery) and
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
   {$warnings on}
 end;
 
-function ReallyUseHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
+function ReallyHierarchicalOcclusionQuery(const RenderOptions: TCastleRenderOptions): boolean;
 begin
   {$warnings off}
-  Result := RenderOptions.UseHierarchicalOcclusionQuery and
+  Result := RenderOptions.HierarchicalOcclusionQuery and
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);

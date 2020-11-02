@@ -295,7 +295,9 @@ var
     end;
 
   begin
+    {$warnings off}
     if Attributes.CustomShader <> nil then
+    {$warnings on}
       // right now CustomShader <> nil means "rendering to shadow map", so no need for any colors
       MaterialUnlitExplicit(White)
     else
@@ -968,9 +970,11 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
     linking the shader). }
   procedure InitializeLightingModel;
   begin
+    {$warnings off}
     if Attributes.CustomShader <> nil then
       Shader.LightingModel := lmUnlit
     else
+    {$warnings on}
     if Attributes.Mode = rmSolidColor then
       Shader.LightingModel := lmUnlit
     else
@@ -1000,6 +1004,7 @@ begin
 
   InitializeLightingModel;
 
+  {$warnings off}
   if Attributes.CustomShader <> nil then
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
@@ -1008,6 +1013,7 @@ begin
     else
       CurrentMeshShader := Attributes.CustomShader as TX3DShaderProgramBase;
   end else
+  {$warnings on}
   begin
     { Finalize Shader settings, before calculating Shader.CodeHash }
     if (Shape.Node <> nil) and

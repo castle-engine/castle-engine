@@ -2423,7 +2423,7 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if Attributes.UseSceneLights then
+    if Attributes.SceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
