@@ -9,7 +9,7 @@ pipeline {
   }
   agent { label 'web-jenkins' }
   environment {
-    PATH = "${PATH}:pasdoc/bin/"
+    PATH = "${PATH}:${WORKSPACE}/pasdoc/bin/"
   }
   stages {
     stage('Regenerate API Docs and Upload') {
