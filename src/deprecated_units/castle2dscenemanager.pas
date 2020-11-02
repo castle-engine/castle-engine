@@ -141,7 +141,7 @@ type
     { Create a scene with the same contents (X3D scene graph) as this one.
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(Attributes). }
+      in @link(RenderOptions). }
     function Clone(const AOwner: TComponent): TCastle2DScene;
   end deprecated 'use TCastleScene, and call Setup2D right after creating';
 

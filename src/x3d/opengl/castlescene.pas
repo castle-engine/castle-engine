@@ -1983,7 +1983,7 @@ end;
 
 function TCastleScene.RenderOptions: TCastleRenderOptions;
 begin
-  Result := Renderer.Attributes;
+  Result := Renderer.RenderOptions;
 end;
 
 procedure TCastleScene.UpdateGeneratedTextures(

@@ -83,7 +83,7 @@ begin
   inherited;
 
   // TODO
-  // Attributes.OnVertexColor := @VertexColor;
+  // RenderOptions.OnVertexColor := @VertexColor;
 
   SphereNode := TSphereNode.Create;
 

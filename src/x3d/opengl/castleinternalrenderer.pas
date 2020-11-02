@@ -134,9 +134,6 @@ type
 
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
-  { Various properties that control rendering. }
-  TRenderingAttributes = CastleRenderOptions.TCastleRenderOptions;
-
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
@@ -208,7 +205,7 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TCastleRenderOptions;
+    RenderOptions: TCastleRenderOptions;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
     FogVolumetric: boolean;
@@ -528,7 +525,7 @@ type
     procedure PushTextureUnit(const TexUnit: Cardinal);
     {$endif}
 
-    { Check Attributes (like Attributes.BumpMapping) and OpenGL
+    { Check RenderOptions (like RenderOptions.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
@@ -563,7 +560,7 @@ type
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TCastleRenderOptions;
+    FRenderOptions: TCastleRenderOptions;
 
     FCache: TGLRendererContextCache;
 
@@ -576,7 +573,7 @@ type
     { Rendering pass. Set in each RenderBegin. }
     Pass: TTotalRenderingPass;
 
-    { Get X3D fog parameters, based on fog node and Attributes. }
+    { Get X3D fog parameters, based on fog node and RenderOptions. }
     procedure GetFog(const AFogFunctionality: TFogFunctionality;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3;
@@ -652,7 +649,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(const AttributesClass: TCastleRenderOptionsClass;
+    constructor Create(const RenderOptionsClass: TCastleRenderOptionsClass;
       const ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -660,7 +657,7 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TCastleRenderOptions read FAttributes;
+    property RenderOptions: TCastleRenderOptions read FRenderOptions;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -1261,7 +1258,7 @@ begin
     case CompareMode of
       smNone:
         begin
-          { Using Attributes.VisualizeDepthMap effectively forces
+          { Using RenderOptions.VisualizeDepthMap effectively forces
             every shadow map's compareMode to be NONE.
             Although on some GPUs (Radeon X1600 (fglrx, chantal))
             setting compareMode to NONE is not needed (one can use them
@@ -1473,7 +1470,7 @@ begin
     begin
       Result := Caches[I];
       if (Result.Geometry = Shape.Geometry) and
-         Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
+         Result.RenderOptions.EqualForShapeCache(ARenderer.RenderOptions) and
          Result.State.Equals(Shape.State, IgnoreStateTransform) and
          FogVolumetricEqual(
            Result.FogVolumetric,
@@ -1494,7 +1491,7 @@ begin
 
   Result := TShapeCache.Create;
   Caches.Add(Result);
-  Result.Attributes := ARenderer.Attributes;
+  Result.RenderOptions := ARenderer.RenderOptions;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
   Result.FogVolumetric := FogVolumetric;
@@ -1611,12 +1608,12 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  const AttributesClass: TCastleRenderOptionsClass;
+  const RenderOptionsClass: TCastleRenderOptionsClass;
   const ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
-  FAttributes := AttributesClass.Create(nil);
+  FRenderOptions := RenderOptionsClass.Create(nil);
 
   GLTextureNodes := TGLTextureNodes.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
@@ -1635,7 +1632,7 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(ScreenEffectPrograms);
-  FreeAndNil(FAttributes);
+  FreeAndNil(FRenderOptions);
   FreeAndNil(PreparedShader);
 
   FCache := nil; // we don't own cache
@@ -1993,12 +1990,12 @@ end;
 
 function TGLRenderer.BumpMapping: TBumpMapping;
 begin
-  if (Attributes.BumpMapping <> bmNone) and
-    Attributes.Textures and
-    (Attributes.Mode = rmFull) and
+  if (RenderOptions.BumpMapping <> bmNone) and
+    RenderOptions.Textures and
+    (RenderOptions.Mode = rmFull) and
     GLFeatures.UseMultiTexturing and
     (GLFeatures.Shaders <> gsNone) then
-    Result := Attributes.BumpMapping else
+    Result := RenderOptions.BumpMapping else
     Result := bmNone;
 end;
 
@@ -2031,7 +2028,7 @@ procedure TGLRenderer.GetFog(const AFogFunctionality: TFogFunctionality;
   out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
-  Enabled := (Attributes.Mode = rmFull) and
+  Enabled := (RenderOptions.Mode = rmFull) and
     (AFogFunctionality <> nil) and
     (AFogFunctionality.VisibilityRange <> 0.0);
   Volumetric := Enabled and
@@ -2089,8 +2086,8 @@ begin
     {$endif}
   end;
 
-  RenderContext.PointSize := Attributes.PointSize;
-  RenderContext.LineWidth := Attributes.LineWidth;
+  RenderContext.PointSize := RenderOptions.PointSize;
+  RenderContext.LineWidth := RenderOptions.LineWidth;
 
   if Beginning then
   begin
@@ -2101,9 +2098,9 @@ begin
   end else
     LineType := ltSolid;
 
-  GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
+  GLSetEnabled(GL_DEPTH_TEST, Beginning and RenderOptions.DepthTest);
 
-  if GLFeatures.EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
+  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode in [rmDepth, rmFull]) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
@@ -2126,7 +2123,7 @@ begin
     {$endif}
   end;
 
-  if GLFeatures.EnableFixedFunction and (Attributes.Mode = rmFull) then
+  if GLFeatures.EnableFixedFunction and (RenderOptions.Mode = rmFull) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
@@ -2160,7 +2157,7 @@ begin
     if Beginning then
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := Attributes.Lighting;
+      FFixedFunctionLighting := RenderOptions.Lighting;
       {$ifndef OpenGLES}
       GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
       {$endif}
@@ -2195,7 +2192,7 @@ begin
     FSmoothShading := true;
     if Beginning then
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
-      FFixedFunctionLighting := Attributes.Lighting;
+      FFixedFunctionLighting := RenderOptions.Lighting;
   end;
 end;
 
@@ -2248,15 +2245,15 @@ begin
     {$ifndef OpenGLES}
     glPushMatrix;
 
-    if Attributes.Mode = rmSolidColor then
-      glColorv(Attributes.SolidColor);
+    if RenderOptions.Mode = rmSolidColor then
+      glColorv(RenderOptions.SolidColor);
     {$endif}
   end;
 
   Assert(FogFunctionality = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, Attributes.MaxLightsPerShape);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent, RenderOptions.MaxLightsPerShape);
   LightsRenderer.RenderingCamera := RenderingCamera;
 end;
 
@@ -2348,7 +2345,7 @@ begin
   Shader.RenderingCamera := RenderingCamera;
 
   { calculate PhongShading }
-  PhongShading := Attributes.PhongShading;
+  PhongShading := RenderOptions.PhongShading;
   { if Shape specifies Shading = Gouraud or Phong, use it }
   if Shape.Node <> nil then
     if Shape.Node.Shading = shPhong then
@@ -2370,7 +2367,7 @@ begin
     Shader.ShapeRequiresShaders := true;
 
   Shader.ShapeBoundingBox := {$ifdef CASTLE_OBJFPC}@{$endif} Shape.BoundingBox;
-  Shader.ShadowSampling := Attributes.ShadowSampling;
+  Shader.ShadowSampling := RenderOptions.ShadowSampling;
   RenderShapeLineProperties(Shape, Shader);
 end;
 
@@ -2384,11 +2381,11 @@ begin
     LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
-    RenderContext.LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    RenderContext.LineWidth := Max(1.0, RenderOptions.LineWidth * LP.FdLineWidthScaleFactor.Value);
     LineType := LP.LineType;
   end else
   begin
-    RenderContext.LineWidth := Attributes.LineWidth;
+    RenderContext.LineWidth := RenderOptions.LineWidth;
     LineType := ltSolid;
   end;
 
@@ -2423,7 +2420,7 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    if Attributes.SceneLights then
+    if RenderOptions.SceneLights then
       SceneLights := Shape.State.Lights
     else
       SceneLights := nil;
@@ -3022,7 +3019,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    if Attributes.Mode = rmSolidColor then
+    if RenderOptions.Mode = rmSolidColor then
       Exit;
 
     AlphaTest := false;
@@ -3047,7 +3044,7 @@ procedure TGLRenderer.RenderShapeTextures(const Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if Attributes.Textures and
+    if RenderOptions.Textures and
        NodeTextured(Shape.Geometry) then
     begin
       AlphaTest := TGLShape(Shape).UseAlphaChannel = acTest;

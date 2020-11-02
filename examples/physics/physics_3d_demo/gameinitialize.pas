@@ -63,7 +63,7 @@ begin
   Level.Load(URL);
   Level.Spatial := [ssRendering, ssDynamicCollisions];
   Level.ProcessEvents := true;
-  Level.Attributes.PhongShading := true; // nicer lighting
+  Level.RenderOptions.PhongShading := true; // nicer lighting
 
   LevelBody := TRigidBody.Create(Level);
   LevelBody.Dynamic := false;

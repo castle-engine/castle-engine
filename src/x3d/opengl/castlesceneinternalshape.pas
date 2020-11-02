@@ -40,7 +40,7 @@ type
 
     PassedShapeCulling: Boolean;
 
-    { Used only when Attributes.ReallyOcclusionQuery.
+    { Used only when RenderOptions.ReallyOcclusionQuery.
       OcclusionQueryId is 0 if not initialized yet.
       When it's 0, value of OcclusionQueryAsked doesn't matter,
       OcclusionQueryAsked is always reset to @false when initializing

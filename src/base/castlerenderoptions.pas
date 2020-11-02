@@ -93,7 +93,7 @@ type
 
   { Values for @link(TCastleRenderOptions.WireframeEffect).
 
-    Generally, two other attributes may affect the way wireframe is rendered:
+    Generally, two other properties may affect the way wireframe is rendered:
     TCastleRenderOptions.WireframeColor and
     TCastleRenderOptions.LineWidth, quite self-explanatory. }
   TWireframeEffect = (
@@ -133,7 +133,7 @@ type
       of lines.
 
       This is often used together with the
-      @link(TCastleRenderOptions.Mode Attributes.Mode)
+      @link(TCastleRenderOptions.Mode RenderOptions.Mode)
       set to rmSolidColor. In such case,
       Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
     weSolidWireframe,
@@ -149,7 +149,7 @@ type
       of silhouette lines.
 
       This is often used together with the
-      @link(TCastleRenderOptions.Mode Attributes.Mode)
+      @link(TCastleRenderOptions.Mode RenderOptions.Mode)
       set to rmSolidColor. In such case,
       Then @link(TCastleRenderOptions.SolidColor) determinesthe fill color. }
     weSilhouette
