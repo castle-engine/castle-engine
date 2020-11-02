@@ -447,7 +447,7 @@ type
 
     { Sort the opaque objects when rendering.
       This may generate speedup on some scenes. }
-    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
+    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort default false;
 
     { You can use this to turn on some effects related to rendering model
       in special modes.
