@@ -10,6 +10,7 @@ pipeline {
   agent { label 'web-jenkins' }
   stages {
     stage('Regenerate API Docs and Upload') {
+      when { branch "master" }
       steps {
         sh 'make upload -C doc/pasdoc/ SSH_PATH=/home/michalis/cge-html/apidoc-unstable/'
       }
