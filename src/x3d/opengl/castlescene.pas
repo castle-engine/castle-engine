@@ -255,6 +255,8 @@ type
       you to make a first pass rendering the scene all shadowed. }
     class procedure LightRenderInShadow(const Light: TLightInstance;
       var LightOn: boolean);
+
+    function GetRenderOptions: TCastleRenderOptions;
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
@@ -391,9 +393,6 @@ type
       @exclude }
     function InternalBackground: TBackground;
 
-    { Rendering options.
-      You are free to change them at any time. }
-    function RenderOptions: TCastleRenderOptions;
     function Attributes: TCastleRenderOptions; deprecated 'use RenderOptions';
 
     procedure UpdateGeneratedTextures(
@@ -466,6 +465,10 @@ type
     { Cull shapes farther than this distance. Ignored if <= 0. }
     property DistanceCulling: Single
       read FDistanceCulling write SetDistanceCulling default 0;
+
+    { Rendering options.
+      You are free to change them at any time. }
+    property RenderOptions: TCastleRenderOptions read GetRenderOptions;
   end;
 
   TCastleSceneClass = class of TCastleScene;
@@ -664,8 +667,11 @@ begin
 
   Renderer := TGLRenderer.Create(TSceneRenderOptions, GLContextCache);
 
-  { Note that this calls Renderer.RenderOptions, so use this only after initializing Renderer. }
+  { Setup RenderOptions as proper sub-component.
+    Note that this calls Renderer.RenderOptions, so use this only after initializing Renderer. }
   (RenderOptions as TSceneRenderOptions).OwnerScene := Self;
+  RenderOptions.SetSubComponent(true);
+  RenderOptions.Name := 'RenderOptions';
 
   inherited Create(AOwner);
 
@@ -1981,7 +1987,7 @@ begin
   Result := RenderOptions;
 end;
 
-function TCastleScene.RenderOptions: TCastleRenderOptions;
+function TCastleScene.GetRenderOptions: TCastleRenderOptions;
 begin
   Result := Renderer.RenderOptions;
 end;
