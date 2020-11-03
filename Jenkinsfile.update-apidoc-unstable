@@ -4,9 +4,6 @@
 */
 
 pipeline {
-  triggers {
-    upstream(upstreamProjects: 'castle_game_engine_organization/castle-engine/master', threshold: hudson.model.Result.SUCCESS)
-  }
   agent { label 'web-jenkins' }
   environment {
     PATH = "${PATH}:${WORKSPACE}/pasdoc/bin/"
@@ -20,7 +17,7 @@ pipeline {
            Yeah, syntax is horrible.
            See also https://stackoverflow.com/questions/42782663/fetch-artifacts-from-other-job-using-jenkins-declarative-pipeline?rq=1
         */
-        step([$class: 'CopyArtifact', projectName: 'pasdoc/master', filter: 'pasdoc-*-linux-x86_64.tar.gz'])
+        step([$class: 'CopyArtifact', projectName: 'pasdoc_organization/pasdoc/master', filter: 'pasdoc-*-linux-x86_64.tar.gz'])
         sh 'tar xzvf pasdoc-*-linux-x86_64.tar.gz'
         sh 'make upload -C doc/pasdoc/ SSH_PATH=/home/michalis/cge-html/apidoc-unstable/'
       }
