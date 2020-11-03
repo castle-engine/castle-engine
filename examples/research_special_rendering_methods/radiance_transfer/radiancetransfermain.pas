@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2018 Michalis Kamburelis.
+  Copyright 2008-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,12 +32,13 @@ implementation
 
 uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, X3DNodes, CastleWindow,
+  CastleVectors, X3DNodes, CastleWindow, CastleShapes,
   CastleClassUtils, CastleUtils, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
   CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
-  CastleApplicationProperties, CastleControls, CastleTransform;
+  CastleApplicationProperties, CastleControls, CastleTransform, X3DFields,
+  SceneUtilities;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
@@ -96,9 +97,79 @@ end;
 
 type
   TMyViewport = class(TCastleViewport)
+  strict private
+    function VertexColor(const Shape: TShape; const VertexPosition: TVector3;
+      const VertexIndex: Integer): TCastleColorRGB;
+  public
     procedure Render; override;
     procedure Render3D(const Params: TRenderParams); override;
   end;
+
+function TMyViewport.VertexColor(const Shape: TShape; const VertexPosition: TVector3;
+  const VertexIndex: Integer): TCastleColorRGB;
+var
+  Geometry: TAbstractGeometryNode;
+  State: TX3DGraphTraverseState;
+  I: Integer;
+  RadianceTransferPtr: PVector3;
+  RadianceTransferList: TVector3List;
+  Coord: TMFVec3f;
+  RadianceTransferVertexSize: Cardinal;
+begin
+  Geometry := Shape.OriginalGeometry;
+  State := Shape.OriginalState;
+  Result := WhiteRGB; // default result, in case of error
+
+  // calculate RadianceTransferList
+  if not (Geometry is TAbstractComposedGeometryNode) then
+    Exit;
+  RadianceTransferList := (Geometry as TAbstractComposedGeometryNode).FdRadianceTransfer.Items;
+
+  if not Geometry.InternalCoord(State, Coord) then
+    Exit;
+
+  // check RadianceTransferList
+  if RadianceTransferList <> nil then
+  begin
+    if RadianceTransferList.Count = 0 then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer field empty');
+      Exit;
+    end;
+
+    if RadianceTransferList.Count mod Coord.Count <> 0 then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer must have a number of items being multiple of coods');
+      Exit;
+    end;
+
+    if RadianceTransferList.Count < Coord.Count then
+    begin
+      WritelnWarning('X3D', 'radianceTransfer must have a number of items >= number of coods');
+      Exit;
+    end;
+  end;
+
+  // calculate RadianceTransferVertexSize
+  RadianceTransferVertexSize := RadianceTransferList.Count div Coord.Count;
+  Assert(RadianceTransferVertexSize > 0);
+
+  RadianceTransferPtr := Addr(RadianceTransferList.List^[VertexIndex * RadianceTransferVertexSize]);
+
+  if ViewMode = vmSimpleOcclusion then
+  begin
+    Result := RadianceTransferPtr[0];
+  end else
+  begin
+    Result := TVector3.Zero;
+    for I := 0 to Min(RadianceTransferVertexSize, LightSHBasisCount) - 1 do
+    begin
+      Result.Data[0] += RadianceTransferPtr[I].Data[0] * LightSHBasis[I];
+      Result.Data[1] += RadianceTransferPtr[I].Data[1] * LightSHBasis[I];
+      Result.Data[2] += RadianceTransferPtr[I].Data[2] * LightSHBasis[I];
+    end;
+  end;
+end;
 
 procedure TMyViewport.Render;
 begin
@@ -121,50 +192,19 @@ end;
 
 procedure TMyViewport.Render3D(const Params: TRenderParams);
 begin
+  if (not Params.Transparent) and (true in Params.ShadowVolumesReceivers) then
+  begin
+    if ViewMode = vmNormal then
+      RemoveSceneColors(Scene)
+    else
+      SetSceneColors(Scene, @VertexColor);
+  end;
   inherited;
   DrawLight(false);
 end;
 
 var
   Viewport: TMyViewport;
-
-type
-  THelper = class
-    function DoRadianceTransfer(Node: TAbstractGeometryNode;
-      RadianceTransfer: PVector3;
-      const RadianceTransferCount: Cardinal): TVector3;
-  end;
-
-function THelper.DoRadianceTransfer(Node: TAbstractGeometryNode;
-  RadianceTransfer: PVector3;
-  const RadianceTransferCount: Cardinal): TVector3;
-var
-  I: Integer;
-begin
-  Assert(RadianceTransferCount > 0);
-
-  if ViewMode = vmSimpleOcclusion then
-  begin
-    Result := RadianceTransfer[0];
-  end else
-  begin
-    Result := TVector3.Zero;
-    for I := 0 to Min(RadianceTransferCount, LightSHBasisCount) - 1 do
-    begin
-      Result.Data[0] += RadianceTransfer[I].Data[0] * LightSHBasis[I];
-      Result.Data[1] += RadianceTransfer[I].Data[1] * LightSHBasis[I];
-      Result.Data[2] += RadianceTransfer[I].Data[2] * LightSHBasis[I];
-    end;
-  end;
-end;
-
-procedure UpdateViewMode;
-begin
-  // TODO
-  // if ViewMode = vmNormal then
-  //   Scene.RenderOptions.OnRadianceTransfer := nil else
-  //  Scene.RenderOptions.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
-end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
@@ -177,7 +217,6 @@ begin
     200: Window.Close;
     else Exit;
   end;
-  UpdateViewMode;
   Window.Invalidate;
 end;
 
@@ -248,7 +287,7 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Apply OpenGL _Lighting', 20, { Scene.RenderOptions.Lighting } true, true));
+    M.Append(TMenuItemChecked.Create('Use Normal _Lighting', 20, { Scene.RenderOptions.Lighting } true, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save Screen ...', 100, keyF5));
     M.Append(TMenuSeparator.Create);
@@ -306,8 +345,6 @@ begin
   Window.OnUpdate := @Update;
 
   InitializeSHBasisMap;
-
-  UpdateViewMode;
 end;
 
 initialization

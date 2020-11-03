@@ -43,6 +43,8 @@ type
 }
 procedure SetSceneColors(const Scene: TCastleScene; const OnVertexColor: TVertexColorEvent);
 
+procedure RemoveSceneColors(const Scene: TCastleScene);
+
 implementation
 
 uses X3DFields, X3DNodes, CastleRenderOptions;
@@ -99,6 +101,30 @@ begin
   { TODO: For some reason, the above Xxx.Changed are not enough,
     even with Scene.ProcessEvents.
     For now, just do (costly) ChangedAll. }
+  Scene.ChangedAll;
+end;
+
+procedure RemoveSceneColors(const Scene: TCastleScene);
+var
+  Geometry: TAbstractGeometryNode;
+  State: TX3DGraphTraverseState;
+  ShapeList: TShapeList;
+  Shape: TShape;
+  ColorField: TSFNode;
+begin
+  ShapeList := Scene.Shapes.TraverseList(
+    { OnlyActive } false, { OnlyVisible } true, { OnlyCollidable } false);
+  for Shape in ShapeList do
+  begin
+    Geometry := Shape.OriginalGeometry;
+    State := Shape.OriginalState;
+
+    ColorField := Geometry.ColorField;
+    if ColorField = nil then Continue;
+
+    ColorField.Value := nil;
+  end;
+
   Scene.ChangedAll;
 end;
 
