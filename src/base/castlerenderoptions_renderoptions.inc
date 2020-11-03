@@ -381,8 +381,18 @@ type
     property BumpMapping: TBumpMapping
       read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
 
-    { Whether to use Phong shading by default for all shapes.
-      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
+    { Whether to use Phong shading by default.
+
+      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field.
+
+      Note that Phong shading is forced anyway by various situations:
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item PBR materials (TPhysicalMaterialNode, in particular imported from glTF)
+        @item Using textures like normal maps, specular maps
+        @item Using shadow maps
+      ) }
     property PhongShading: boolean read FPhongShading write SetPhongShading
       default DefaultPhongShading;
 
