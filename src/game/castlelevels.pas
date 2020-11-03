@@ -869,6 +869,11 @@ begin
   { clear Items, removing everything from previous level }
   Items.Clear;
 
+  { Since the player is removed from Items, we need to remove AvoidNavigationCollisions
+    as well because calling TCastleViewport.CameraRayCollision() will attempt to
+    access Parent from AvoidNavigationCollisions which is nil. }
+  Viewport.AvoidNavigationCollisions := nil;
+
   { free stuff like creatures, items, level logic.
     Note that things not owned by FreeAtUnload, like usual Player and FInternalLogic,
     remain untouched. }
@@ -1043,7 +1048,10 @@ begin
       and it is equal to Player.
     }
     if (Player <> nil) and (Player.World = nil) then
+    begin
       Items.Add(Player);
+      Viewport.AvoidNavigationCollisions := Player;
+    end;
 
     { add FInternalLogic to Items }
     Items.Add(FInternalLogic);
@@ -1191,7 +1199,6 @@ begin
       FPlayer.FreeNotification(Self);
       FPlayer.InternalLevel := Self;
     end;
-    Viewport.AvoidNavigationCollisions := Value;
 
     { Reinitialize camera and navigation only when level was loaded. }
     if FInfo <> nil then
@@ -1206,6 +1213,7 @@ begin
         if FPlayer.World = nil then
         begin
           Items.Insert(1, FPlayer);
+          Viewport.AvoidNavigationCollisions := Value;
           FPlayer.LevelChanged;
         end;
       end;
