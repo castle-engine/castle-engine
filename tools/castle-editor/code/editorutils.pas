@@ -140,14 +140,14 @@ const
   LclApiReferenceUrl = 'https://lazarus-ccr.sourceforge.io/docs/lcl/';
 
 { Get full URL to display API reference of a given property in the given
-  SelectedObject.
+  PropertyObject.
 
   PropertyName may be '', in which case the link leads to the whole class reference.
   In this case PropertyNameForLink must also be ''.
   Both PropertyName and PropertyNameForLink should be '',
   or both should be non-empty.
 }
-function ApiReference(const SelectedObject: TObject;
+function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
 procedure BuildComponentsMenu(const ParentUeserInterface, ParentTransform: TMenuItem; const OnClickEvent: TNotifyEvent);
@@ -577,7 +577,7 @@ begin
   C.Visible := Value;
 end;
 
-function ApiReference(const SelectedObject: TObject;
+function ApiReference(const PropertyObject: TObject;
   const PropertyName, PropertyNameForLink: String): String;
 
   { Knowing that property PropInfo is part of class C,
@@ -626,22 +626,22 @@ var
   PropInfo: PPropInfo;
   ClassOfProperty: TClass;
 begin
-  LinkUnitName := SelectedObject.UnitName;
-  LinkClassName := SelectedObject.ClassName;
+  LinkUnitName := PropertyObject.UnitName;
+  LinkClassName := PropertyObject.ClassName;
   LinkPropertyName := '';
 
   if PropertyName <> '' then
   begin
-    { PropertyName doesn't necessarily belong to the exact SelectedObject class,
+    { PropertyName doesn't necessarily belong to the exact PropertyObject class,
       it may belong to ancestor. E.g. TCastleScene.Url is actually from
       TCastleSceneCore.
       This is important to construct API links.
       Unfortunately GetPropInfo doesn't have this info directly. }
 
-     PropInfo := GetPropInfo(SelectedObject, PropertyName);
+     PropInfo := GetPropInfo(PropertyObject, PropertyName);
      if PropInfo <> nil then
      begin
-       ClassOfProperty := ClassOfPropertyDeclaration(SelectedObject.ClassType, PropInfo);
+       ClassOfProperty := ClassOfPropertyDeclaration(PropertyObject.ClassType, PropInfo);
        LinkClassName := ClassOfProperty.ClassName;
        LinkUnitName := ClassOfProperty.UnitName;
        LinkPropertyName := PropertyNameForLink;

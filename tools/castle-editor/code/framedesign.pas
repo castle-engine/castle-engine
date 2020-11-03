@@ -1614,16 +1614,21 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
   { If a property of the SelectedComponent is now focused
     in one of our object inspectors, return property name. }
-  function SelectedProperty(out PropertyName, PropertyNameForLink: String): Boolean;
+  function SelectedProperty(out PropertyInstance: TObject;
+    out PropertyName, PropertyNameForLink: String): Boolean;
   var
     ParentForm: TCustomForm;
     InspectorType: TInspectorType;
+    ActiveRow: TOIPropertyGridRow;
   begin
     ParentForm := GetParentForm(Self);
     if (ParentForm.ActiveControl <> nil) and
        InspectorTypeFromActiveControl(ParentForm.ActiveControl, InspectorType) and
        (Inspector[InspectorType].GetActiveRow <> nil) then
     begin
+      ActiveRow := Inspector[InspectorType].GetActiveRow;
+      PropertyInstance := ActiveRow.Editor.GetComponent(0);
+
       { Note that "GetActiveRow.Name" may not be the actual property name.
         The actual property name is in "GetActiveRow.Editor.GetPropInfo^.Name",
         and "GetActiveRow.Name" may be overrided by the property editor for presentation.
@@ -1635,8 +1640,8 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
         So we need to pass on this complication to ApiReference.
       }
-      PropertyName := Inspector[InspectorType].GetActiveRow.Editor.GetPropInfo^.Name;
-      PropertyNameForLink := Inspector[InspectorType].GetActiveRow.Name;
+      PropertyName := ActiveRow.Editor.GetPropInfo^.Name;
+      PropertyNameForLink := ActiveRow.Name;
       Result := true;
     end else
       Result := false;
@@ -1644,13 +1649,18 @@ procedure TDesignFrame.CurrentComponentApiUrl(var Url: String);
 
 var
   C: TComponent;
+  PropertyInstance: TObject;
   PropertyName, PropertyNameForLink: String;
 begin
   C := SelectedComponent;
   if C <> nil then
   begin
-    if SelectedProperty(PropertyName, PropertyNameForLink) then
-      Url := ApiReference(C, PropertyName, PropertyNameForLink)
+    { We do not use C for PropertyInstance, because in case of property
+      in SubComponent, PropertyInstance needs to be <> nil.
+      For example if you click F1 when being over "Blending" inside
+      TCastleScene.RenderOptions. }
+    if SelectedProperty(PropertyInstance, PropertyName, PropertyNameForLink) then
+      Url := ApiReference(PropertyInstance, PropertyName, PropertyNameForLink)
     else
       Url := ApiReference(C, '', '');
   end;
