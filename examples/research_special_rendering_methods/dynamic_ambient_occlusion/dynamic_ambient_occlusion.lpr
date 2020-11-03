@@ -36,10 +36,11 @@ uses SysUtils, Classes, Math,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties,
-  CastleRenderContext;
+  CastleRenderContext, CastleColors,
+  SceneUtilities;
 
 type
-  TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
+  TDrawType = (dtNormal, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
   Window: TCastleWindowBase;
@@ -170,7 +171,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          Shape.State.Transform.MultPoint(Coord.Items.List^[I]);
+          Shape.State.Transformation.Transform.MultPoint(Coord.Items.List^[I]);
         ShapeElements[I].Normal := TVector3.Zero;
         ShapeElements[I].Area := 0;
       end;
@@ -442,12 +443,77 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 end;
 
-{ ---------------------------------------------------------------------------- }
+{ Callbacks handle ----------------------------------------------------------- }
 
 var
   FullRenderShape: TShape;
   FullRenderShapeInfo: PShapeInfo;
   FullRenderIntensityTex: TGrayscaleImage;
+
+type
+  THelper = class
+    class function VertexColor(
+      const Shape: TShape;
+      const VertexPosition: TVector3;
+      const VertexIndex: Integer): TCastleColorRGB;
+
+    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
+      const SomeLocalGeometryChanged: boolean;
+      OnlyShapeChanged: TShape);
+  end;
+
+class function THelper.VertexColor(
+  const Shape: TShape;
+  const VertexPosition: TVector3;
+  const VertexIndex: Integer): TCastleColorRGB;
+var
+  ElemIndex, I: Integer;
+  Intensity: Single;
+begin
+  if FullRenderShape <> Shape then
+  begin
+    FullRenderShape := Shape;
+    FullRenderShapeInfo := nil;
+    for I := 0 to Length(Shapes) - 1 do
+      if Shapes[I].Shape = Shape then
+      begin
+        FullRenderShapeInfo := @Shapes[I];
+        Break;
+      end;
+    Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
+  end;
+
+  ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
+  if ElemIndex = -1 then
+    Result := TVector3.Zero { element invalid, probably separate vertex } else
+  begin
+    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
+    Result.Data[0] := Intensity;
+    Result.Data[1] := Intensity;
+    Result.Data[2] := Intensity;
+  end;
+end;
+
+class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
+  const SomeLocalGeometryChanged: boolean;
+  OnlyShapeChanged: TShape);
+var
+  OldElementsTexSize, OldElementsCount: Cardinal;
+begin
+  OldElementsTexSize := ElementsTexSize;
+  OldElementsCount := Elements.Count;
+
+  CalculateElements;
+  CalculateElementsTex;
+
+  if (OldElementsTexSize <> ElementsTexSize) or
+     (OldElementsCount <> Cardinal(Elements.Count)) then
+  begin
+    Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
+  end;
+end;
+
+{ ---------------------------------------------------------------------------- }
 
 type
   TMyViewport = class(TCastleViewport)
@@ -610,16 +676,8 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 var
   ElementsIntensityTex: TGrayscaleImage;
 begin
-  { RenderFromView3D must initialize some Params fields itself }
-  Params.InShadow := false;
-  Params.Frustum := @Params.RenderingCamera.Frustum;
-
   case DrawType of
-    dtNormalGL:
-      begin
-        Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-        Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-      end;
+    dtNormal: inherited;
     dtElements:
       begin
         glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
@@ -642,92 +700,45 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Params.Transparent := false; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
-          Params.Transparent := true ; Params.ShadowVolumesReceivers := [false, true]; Scene.Render(Params);
+          SetSceneColors(Scene, @THelper(nil).VertexColor);
         finally FreeAndNil(FullRenderIntensityTex) end;
+        inherited;
       end;
-  end;
-end;
-
-type
-  THelper = class
-    class procedure VertexColor(var Color: TVector3;
-      Shape: TShape; const VertexPosition: TVector3;
-      VertexIndex: Integer);
-
-    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
-      const SomeLocalGeometryChanged: boolean;
-      OnlyShapeChanged: TShape);
-  end;
-
-class procedure THelper.VertexColor(var Color: TVector3;
-  Shape: TShape; const VertexPosition: TVector3;
-  VertexIndex: Integer);
-var
-  ElemIndex, I: Integer;
-  Intensity: Single;
-begin
-  if FullRenderShape <> Shape then
-  begin
-    FullRenderShape := Shape;
-    FullRenderShapeInfo := nil;
-    for I := 0 to Length(Shapes) - 1 do
-      if Shapes[I].Shape = Shape then
-      begin
-        FullRenderShapeInfo := @Shapes[I];
-        Break;
-      end;
-    Assert(FullRenderShapeInfo <> nil, 'Shape info not found');
-  end;
-
-  ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
-  if ElemIndex = -1 then
-    Color := TVector3.Zero { element invalid, probably separate vertex } else
-  begin
-    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
-    Color.Data[0] := Color.Data[0] * Intensity;
-    Color.Data[1] := Color.Data[1] * Intensity;
-    Color.Data[2] := Color.Data[2] * Intensity;
-  end;
-end;
-
-class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
-  const SomeLocalGeometryChanged: boolean;
-  OnlyShapeChanged: TShape);
-var
-  OldElementsTexSize, OldElementsCount: Cardinal;
-begin
-  OldElementsTexSize := ElementsTexSize;
-  OldElementsCount := Elements.Count;
-
-  CalculateElements;
-  CalculateElementsTex;
-
-  if (OldElementsTexSize <> ElementsTexSize) or
-     (OldElementsCount <> Cardinal(Elements.Count)) then
-  begin
-    Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
   end;
 end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
 procedure Open(Container: TUIContainer);
+
+  procedure Error(const S: String);
+  begin
+    Window.Controls.Remove(Viewport); { do not try to render }
+    MessageOk(Window, S);
+    Window.Close;
+  end;
+
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
   ShaderString: string;
 begin
-  { TODO: this demo uses specialized rendering
-    that currently assumes some fixed-function things set up. }
+  {
+  if GLFeatures.EnableFixedFunction then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. Color.mode="MODULATE" does not work in fixed-function pipeline.');
+    Exit;
+  end;
+  }
+  { TODO: this hacky rendering now requires fixed-function to render AO correctly.
+    Unfortunately Color.mode="MODULATE" will be broken in this case,
+    so e.g. peach has grayscale color in effect. }
   GLFeatures.EnableFixedFunction := true;
 
   if (Elements.Count = 0) or
      Scene.BoundingBox.IsEmpty then
   begin
-    Window.Controls.Remove(Viewport); { do not try to render }
-    MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.');
-    Window.Close;
+    Error('Scene has no elements, or empty bounding box --- we cannot do dynamic ambient occlusion.');
     Exit;
   end;
 
@@ -817,7 +828,7 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    Radio := TMenuItemRadio.Create('Draw _Normal OpenGL', 100, DrawType = dtNormalGL, true);
+    Radio := TMenuItemRadio.Create('Draw _Normal', 100, DrawType = dtNormal, true);
     RadioGroup := Radio.Group;
     M.Append(Radio);
 
@@ -829,11 +840,11 @@ begin
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw Dynamic AO (only _1st pass)', 103, DrawType = dtPass1, true);
+    Radio := TMenuItemRadio.Create('Update and Draw Dynamic AO (only _1st pass)', 103, DrawType = dtPass1, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Draw Dynamic AO (_2 passes)', 104, DrawType = dtPass2, true);
+    Radio := TMenuItemRadio.Create('Update and Draw Dynamic AO (_2 passes)', 104, DrawType = dtPass2, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
 
@@ -848,27 +859,12 @@ end;
 
 procedure UpdateSceneAttribs;
 begin
-  case DrawType of
-    dtNormalGL:
-      begin
-        // TODO
-        // Scene.RenderOptions.OnVertexColor := nil;
-        Scene.RenderOptions.Lighting := true;
-      end;
-    dtPass1, dtPass2:
-      begin
-        // TODO: Make it work after Scene.RenderOptions.OnVertexColor removed
-        // Scene.RenderOptions.OnVertexColor := @THelper(nil).VertexColor;
-        Scene.RenderOptions.Lighting := false;
-      end;
-    { else they don't matter }
-  end;
 end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
   case Item.IntData of
-    100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
+    100: begin DrawType := dtNormal; UpdateSceneAttribs; end;
     101: DrawType := dtElements;
     102: DrawType := dtElementsIntensity;
     103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
