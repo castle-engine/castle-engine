@@ -727,7 +727,7 @@ begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
   FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
-  FReloadAnimation := T3DResourceAnimation.Create(Self, 'reload');
+  FReloadAnimation := T3DResourceAnimation.Create(Self, 'reload', false);
   FAttackTime := DefaultAttackTime;
   FReloadTime := DefaultReloadTime;
   FAttackDamageConst := DefaultAttackDamageConst;
