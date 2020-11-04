@@ -260,6 +260,7 @@ type
   private
     PreparedShapesResources, PreparedRender: Boolean;
     Renderer: TGLRenderer;
+    class procedure CreateComponent2D(Sender: TObject);
     class procedure CreateComponentPrimitive2DRectangle(Sender: TObject);
     class procedure CreateComponentPrimitiveBox(Sender: TObject);
     class procedure CreateComponentPrimitiveSphere(Sender: TObject);
@@ -1584,6 +1585,11 @@ begin
     LightOn := false;
 end;
 
+class procedure TCastleScene.CreateComponent2D(Sender: TObject);
+begin
+  (Sender as TCastleScene).Setup2D;
+end;
+
 class procedure TCastleScene.CreateComponentPrimitive2DRectangle(Sender: TObject);
 begin
   (Sender as TCastleScene).PrimitiveGeometry := pgRectangle2D;
@@ -2221,13 +2227,11 @@ initialization
 
   RegisterSerializableComponent(TCastleScene, 'Scene');
 
-  { TODO:
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
-  R.Caption := 'Scene (Blending Suitable For 2D)';
+  R.Caption := 'Scene (Optimal Blending for 2D Models)';
   R.OnCreate := @TCastleScene(nil).CreateComponent2D;
   RegisterSerializableComponent(R);
-  }
 
   R := TRegisteredComponent.Create;
   R.ComponentClass := TCastleScene;
