@@ -215,6 +215,10 @@ type
       (internally we will convert them to TCastleTransform coordinates). }
     function FakeRayCollisionNode(const RayOriginWorld, RayDirectionWorld: TVector3;
       const Item: TCastleTransform): TRayCollisionNode;
+
+    { Whether to look at AvoidNavigationCollisions.
+      Checks that AvoidNavigationCollisions is set, and it is part of current @link(Items). }
+    function UseAvoidNavigationCollisions: Boolean;
   private
     var
       FNavigation: TCastleNavigation;
@@ -3368,6 +3372,17 @@ begin
     CameraChange;
 end;
 
+function TCastleViewport.UseAvoidNavigationCollisions: Boolean;
+begin
+  { Only use AvoidNavigationCollisions when it is part of current world.
+    Otherwise using methods like TCastleTransform.Ray (by AvoidNavigationCollisions.Ray)
+    would try to access AvoidNavigationCollisions's World,
+    which is not correct now (nil, or points to something else).
+    See https://github.com/castle-engine/castle-engine/pull/220 ,
+    https://trello.com/c/iz7uvjKN/79-frogger3d-crash-when-pressing-enter-on-game-over-message-box . }
+  Result := (AvoidNavigationCollisions <> nil) and (AvoidNavigationCollisions.World = Items);
+end;
+
 function TCastleViewport.NavigationMoveAllowed(const Sender: TCastleNavigation;
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const Radius: Single; const BecauseOfGravity: Boolean): Boolean;
@@ -3403,7 +3418,7 @@ begin
      PositionOutsideBoundingBox then
     Exit(false);
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos, BecauseOfGravity)
   else
     Result := Items.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos, true, Radius,
@@ -3420,7 +3435,7 @@ begin
   { Both version result in calling WorldHeight.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Height(Position, AboveHeight, AboveGround)
   else
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
@@ -3431,7 +3446,7 @@ begin
   { Both version result in calling WorldRay.
     AvoidNavigationCollisions version adds AvoidNavigationCollisions.Disable/Enable around. }
 
-  if AvoidNavigationCollisions <> nil then
+  if UseAvoidNavigationCollisions then
     Result := AvoidNavigationCollisions.Ray(RayOrigin, RayDirection)
   else
     Result := Items.WorldRay(RayOrigin, RayDirection);
