@@ -70,8 +70,8 @@ vec3 screenToWorld(in vec3 screenPos){
 */
 vec3 getNormal(in vec3 worldPos, in vec2 pos) {
   vec2 pixelSize = getPixelSize();
-  float depth2 = texture2D(screen_depth, pos + vec2(pixelSize.x, 0.0));
-  float depth3 = texture2D(screen_depth, pos + vec2(0.0, pixelSize.y));
+  float depth2 = screenf_01_get_depth(pos + vec2(pixelSize.x, 0.0));
+  float depth3 = screenf_01_get_depth(pos + vec2(0.0, pixelSize.y));
   vec3 worldPos2 = screenToWorld(vec3(pos + vec2(pixelSize.x, 0.0), depth2));
   vec3 worldPos3 = screenToWorld(vec3(pos + vec2(0.0, pixelSize.y), depth3));
   vec3 v1 = worldPos3 - worldPos;
@@ -114,7 +114,7 @@ HitResult performRayMarching(in Ray ray){
   for (int i = 0; i < RAY_SAMPLES; i++) {
     sampleWorldPos = ray.worldFrom + ray.worldDir * stepLength;
     sampleScreenPos = worldToScreen(sampleWorldPos);
-    float depth = texture2D(screen_depth, sampleScreenPos.xy);
+    float depth = screenf_01_get_depth(sampleScreenPos.xy);
 
     hitSurfaceScreenPos = vec3(sampleScreenPos.xy, depth);
     vec3 hitSurfaceWorldPos = screenToWorld(hitSurfaceScreenPos);
@@ -135,7 +135,7 @@ HitResult performRayMarching(in Ray ray){
         result.reflStrength = smoothstep(nearFade.x, nearFade.y, result.reflStrength)
             * (1.0 - smoothstep(farFade.x, farFade.y, result.reflStrength));
       }
-      hitSurfaceScreenPos = vec3(sampleScreenPos.xy, texture2D(screen_depth, sampleScreenPos.xy + _SAMPLES[j].xy * ray.pixelSize));
+      hitSurfaceScreenPos = vec3(sampleScreenPos.xy, screenf_01_get_depth(sampleScreenPos.xy + _SAMPLES[j].xy * ray.pixelSize));
       j++;
     } while (j <= NEARBY_SAMPLES);
     // Compute next step length
@@ -146,9 +146,9 @@ HitResult performRayMarching(in Ray ray){
 
 void main(void)
 {
-  vec2 pos = tex_coord_frag;
-  vec4 baseColor = texture2D(screen, pos);
-  float depth = texture2D(screen_depth, pos);
+  vec2 pos = screenf_01_position;
+  vec4 baseColor = screenf_01_get_color(pos);
+  float depth = screenf_01_get_depth(pos);
   _SAMPLES[0] = vec2(1.0, 0.0);
   _SAMPLES[1] = vec2(-1.0, 0.0);
   _SAMPLES[2] = vec2(0.0, 1.0);

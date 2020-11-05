@@ -72,8 +72,8 @@
 '*/' + LineEnding +
 'vec3 getNormal(in vec3 worldPos, in vec2 pos) {' + LineEnding +
 '  vec2 pixelSize = getPixelSize();' + LineEnding +
-'  float depth2 = texture2D(screen_depth, pos + vec2(pixelSize.x, 0.0));' + LineEnding +
-'  float depth3 = texture2D(screen_depth, pos + vec2(0.0, pixelSize.y));' + LineEnding +
+'  float depth2 = screenf_01_get_depth(pos + vec2(pixelSize.x, 0.0));' + LineEnding +
+'  float depth3 = screenf_01_get_depth(pos + vec2(0.0, pixelSize.y));' + LineEnding +
 '  vec3 worldPos2 = screenToWorld(vec3(pos + vec2(pixelSize.x, 0.0), depth2));' + LineEnding +
 '  vec3 worldPos3 = screenToWorld(vec3(pos + vec2(0.0, pixelSize.y), depth3));' + LineEnding +
 '  vec3 v1 = worldPos3 - worldPos;' + LineEnding +
@@ -116,7 +116,7 @@
 '  for (int i = 0; i < RAY_SAMPLES; i++) {' + LineEnding +
 '    sampleWorldPos = ray.worldFrom + ray.worldDir * stepLength;' + LineEnding +
 '    sampleScreenPos = worldToScreen(sampleWorldPos);' + LineEnding +
-'    float depth = texture2D(screen_depth, sampleScreenPos.xy);' + LineEnding +
+'    float depth = screenf_01_get_depth(sampleScreenPos.xy);' + LineEnding +
 '' + LineEnding +
 '    hitSurfaceScreenPos = vec3(sampleScreenPos.xy, depth);' + LineEnding +
 '    vec3 hitSurfaceWorldPos = screenToWorld(hitSurfaceScreenPos);' + LineEnding +
@@ -137,7 +137,7 @@
 '        result.reflStrength = smoothstep(nearFade.x, nearFade.y, result.reflStrength)' + LineEnding +
 '            * (1.0 - smoothstep(farFade.x, farFade.y, result.reflStrength));' + LineEnding +
 '      }' + LineEnding +
-'      hitSurfaceScreenPos = vec3(sampleScreenPos.xy, texture2D(screen_depth, sampleScreenPos.xy + _SAMPLES[j].xy * ray.pixelSize));' + LineEnding +
+'      hitSurfaceScreenPos = vec3(sampleScreenPos.xy, screenf_01_get_depth(sampleScreenPos.xy + _SAMPLES[j].xy * ray.pixelSize));' + LineEnding +
 '      j++;' + LineEnding +
 '    } while (j <= NEARBY_SAMPLES);' + LineEnding +
 '    // Compute next step length' + LineEnding +
@@ -148,9 +148,9 @@
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
-'  vec2 pos = tex_coord_frag;' + LineEnding +
-'  vec4 baseColor = texture2D(screen, pos);' + LineEnding +
-'  float depth = texture2D(screen_depth, pos);' + LineEnding +
+'  vec2 pos = screenf_01_position;' + LineEnding +
+'  vec4 baseColor = screenf_01_get_color(pos);' + LineEnding +
+'  float depth = screenf_01_get_depth(pos);' + LineEnding +
 '  _SAMPLES[0] = vec2(1.0, 0.0);' + LineEnding +
 '  _SAMPLES[1] = vec2(-1.0, 0.0);' + LineEnding +
 '  _SAMPLES[2] = vec2(0.0, 1.0);' + LineEnding +
@@ -176,4 +176,5 @@
 '    }' + LineEnding +
 '  }' + LineEnding +
 '  gl_FragColor = baseColor;' + LineEnding +
-'}'
+'}' + LineEnding +
+''
