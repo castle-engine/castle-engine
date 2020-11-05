@@ -169,7 +169,7 @@
 '' + LineEnding +
 '    // Render reflections' + LineEnding +
 '    if (result.screenPos.x > -1.0) {' + LineEnding +
-'      vec3 color = texture2D(screen, result.screenPos.xy).rgb;' + LineEnding +
+'      vec3 color = screenf_01_get_color(result.screenPos.xy).rgb;' + LineEnding +
 '      float a = d * ray.surfaceGlossiness * result.reflStrength;' + LineEnding +
 '      color = ((1.0 - a) * baseColor.rgb) + (a * color);' + LineEnding +
 '      baseColor.rgb = color.rgb;' + LineEnding +

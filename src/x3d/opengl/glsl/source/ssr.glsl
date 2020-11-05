@@ -167,7 +167,7 @@ void main(void)
 
     // Render reflections
     if (result.screenPos.x > -1.0) {
-      vec3 color = texture2D(screen, result.screenPos.xy).rgb;
+      vec3 color = screenf_01_get_color(result.screenPos.xy).rgb;
       float a = d * ray.surfaceGlossiness * result.reflStrength;
       color = ((1.0 - a) * baseColor.rgb) + (a * color);
       baseColor.rgb = color.rgb;
