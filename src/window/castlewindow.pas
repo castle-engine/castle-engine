@@ -1949,14 +1949,14 @@ type
       which means we are between an @link(Open) and @link(Close) calls. }
     function GLInitialized: boolean;
 
-    { Create the window with associated OpenGL context and show it.
+    { Create the window with associated rendering context and show it.
 
       @unorderedList(
-        @item(Create window, it's OpenGL area, optionally it's menu.)
-        @item(Create OpenGL context associated with it's OpenGL area.)
+        @item(Create window with a rendering area, optionally with a menu bar.)
+        @item(Create rendering context.)
         @item(Show the window.)
-        @item(Call GLInformationInitialize to initialize GLVersion,
-          GLUVersion, GLFeatures, show them in log.)
+        @item(Call @link(GLInformationInitialize) to initialize @link(GLVersion), @link(GLFeatures),
+          show them in log (https://castle-engine.io/manual_log.php).)
 
         @item(Initial events called:
           @unorderedList(
@@ -1964,8 +1964,8 @@ type
             @item Call MakeCurrent, EventOpen (OnOpen)
             @item Call MakeCurrent, EventResize (OnResize)
             @item(Call MakeCurrent once again, to be sure that after Open
-              active OpenGL context is the one associated with newly created
-              window (in case you would change active OpenGL context inside
+              active rendering context is the one associated with newly created
+              window (in case you would change active rendering context inside
               EventResize (OnResize), which is allowed).)
           )
         )

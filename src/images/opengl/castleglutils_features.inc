@@ -327,7 +327,7 @@ type
     function MaxTextureUnits: Cardinal;
   end;
 
-{ Initialize GLVersion and GLUVersion and GLFeatures. }
+{ Initialize GLVersion and GLFeatures. }
 procedure GLInformationInitialize;
 
 var
@@ -342,19 +342,6 @@ begin
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
     PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
-
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  {$warnings off} // consciously initializing deprecated stuff, to keep it working
-  FreeAndNil(GLUVersion);
-  { gluGetString is valid for version 1.1 or later }
-  if Assigned(gluGetString) then
-    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION))
-  else
-    GLUVersion := TGenericGLVersion.Create('1.0');
-  {$warnings on}
-  {$endif CASTLE_OBJFPC}
-  {$endif}
 
   FreeAndNil(GLFeatures);
   GLFeatures := TGLFeatures.Create;

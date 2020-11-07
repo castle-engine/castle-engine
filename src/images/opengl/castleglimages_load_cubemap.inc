@@ -253,13 +253,12 @@ var
     end;
   end;
 
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  { Calls gluBuild2DMipmaps for given image.
+(* TODO:
+  { Generate mipmaps on CPU, load them.
+    (Replaces gluBuild2DMipmaps.)
     Takes care of OpenGL unpacking (alignment etc.).
-    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
-    here. }
-  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
+    Doesn't require initial image to be a power of 2. }
+  procedure Build2DMipmapsImage(Image: TCastleImage);
   begin
     BeforeUnpackImage(Image);
     try
@@ -268,8 +267,7 @@ var
         Image.RawPixels);
     finally AfterUnpackImage(Image) end;
   end;
-  {$endif}
-  {$endif}
+*)
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
@@ -280,11 +278,9 @@ var
       Note: SGIS_generate_mipmap doesn't work on cube map texture,
       testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
 
-    {$if defined(OpenGLES) or not defined(CASTLE_OBJFPC)}
-    raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
-    {$else}
-    gluBuild2DMipmapsImage(Image);
-    {$endif}
+    // TODO: Build2DMipmapsImage(Image);
+
+    raise ETextureLoadError.Create('Cannot create mipmaps on CPU. We require a modern GPUs (or OpenGLES) becuse we need GenerateMipmap for this.');
   end;
 
   procedure LoadNormal(const image: TCastleImage);

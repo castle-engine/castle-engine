@@ -439,13 +439,12 @@ var
     {$endif}
   end;
 
-  {$ifndef OpenGLES}
-  {$ifdef CASTLE_OBJFPC}
-  { Calls gluBuild2DMipmaps for given image.
+(* TODO:
+  { Generate mipmaps on CPU, load them.
+    (Replaces gluBuild2DMipmaps.)
     Takes care of OpenGL unpacking (alignment etc.).
-    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
-    here. }
-  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
+    Doesn't require initial image to be a power of 2. }
+  procedure Build2DMipmapsImage(Image: TCastleImage);
   begin
     BeforeUnpackImage(Image);
     try
@@ -455,8 +454,7 @@ var
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
     finally AfterUnpackImage(Image) end;
   end;
-  {$endif CASTLE_OBJFPC}
-  {$endif}
+*)
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
@@ -468,11 +466,10 @@ var
       GenerateMipmap(GL_TEXTURE_2D);
       LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
     end else
-    {$if defined(OpenGLES) or not defined(CASTLE_OBJFPC)}
-      raise ETextureLoadError.Create('Cannot load texture using gluBuild2DMipmapsImage. On modern GPUs and on OpenGLES the GenerateMipmap should always be available, so this should not be a problem.');
-    {$else}
-      gluBuild2DMipmapsImage(Image);
-    {$endif}
+    begin
+      // TODO Build2DMipmapsImage(Image);
+      raise ETextureLoadError.Create('Cannot create mipmaps on CPU. We require a modern GPUs (or OpenGLES) becuse we need GenerateMipmap for this.');
+    end;
   end;
 
 var
