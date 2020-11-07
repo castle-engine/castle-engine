@@ -31,7 +31,7 @@ pipeline {
       steps {
         sh 'rm -Rf bin/'
         sh 'mkdir -p bin/'
-        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/'
+        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/bin/'
       }
     }
     stage('Build Examples') {
