@@ -107,7 +107,7 @@ end;
 procedure RemoveSceneColors(const Scene: TCastleScene);
 var
   Geometry: TAbstractGeometryNode;
-  State: TX3DGraphTraverseState;
+  //State: TX3DGraphTraverseState;
   ShapeList: TShapeList;
   Shape: TShape;
   ColorField: TSFNode;
@@ -117,7 +117,7 @@ begin
   for Shape in ShapeList do
   begin
     Geometry := Shape.OriginalGeometry;
-    State := Shape.OriginalState;
+    //State := Shape.OriginalState;
 
     ColorField := Geometry.ColorField;
     if ColorField = nil then Continue;
