@@ -1,5 +1,5 @@
 procedure CalculateAnchor(const OX, OY, OW, OH,
-    X, Y, W, H: Integer; out AX, AY: single);
+    X, Y, W, H: Integer; out AX, AY: Single);
 var
   OriginAX, OriginAY,
   TransAX, TransAY: Integer;

@@ -22,13 +22,13 @@
 
 {-----= FILL ELLIPSE =-----}
 
-procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TCastleImage.FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
   const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d, MeanRadius, SqrY: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d, MeanRadius, SqrY: Single;
 begin
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
   Alpha2 := aColor.Data[3];
@@ -68,14 +68,14 @@ begin
     end;
 end;
 
-procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TRGBAlphaImage.FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d, MeanRadius, SqrY: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d, MeanRadius, SqrY: Single;
 begin
   ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
@@ -118,14 +118,14 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TGrayscaleAlphaImage.FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d, MeanRadius, SqrY: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d, MeanRadius, SqrY: Single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
@@ -164,14 +164,14 @@ begin
     end;
 end;
 
-procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TRGBImage.FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  d, MeanRadius, SqrY: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  d, MeanRadius, SqrY: Single;
 begin
   ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
@@ -208,14 +208,14 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TGrayscaleImage.FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
   const aColor: TCastleColor);
 var
   p: PByte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  d, MeanRadius, SqrY: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  d, MeanRadius, SqrY: Single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
@@ -250,13 +250,13 @@ end;
 
 {-----= HOLLOW ELLIPSE =-----}
 
-procedure TCastleImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TCastleImage.Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: Single;
 begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
@@ -298,14 +298,14 @@ begin
     end;
 end;
 
-procedure TRGBAlphaImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBAlphaImage.Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: Single;
 begin
   ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
@@ -350,14 +350,14 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleAlphaImage.Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: Single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
@@ -398,14 +398,14 @@ begin
     end;
 end;
 
-procedure TRGBImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBImage.Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: Single;
 begin
   ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
@@ -444,14 +444,14 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleImage.Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PByte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  d1, d2, MeanRadius1, MeanRadius2, SqrY1, SqrY2: Single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
@@ -488,15 +488,15 @@ end;
 
 {-----= FILL RECTANGLE =-----}
 
-procedure TCastleImage.FillRectangle(const x1, y1, x2, y2: single;
+procedure TCastleImage.FillRectangle(const x1, y1, x2, y2: Single;
   const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  dx, dy: Single;
+  function Min(a, b: Single): Single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
     if a < b then Result := a else Result := b;
   end;
@@ -567,16 +567,16 @@ begin
     end;
 end;
 
-procedure TRGBAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
+procedure TRGBAlphaImage.FillRectangle(const x1, y1, x2, y2: Single;
 const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  dx, dy: Single;
+  function Min(a, b: Single): Single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
     if a < b then Result := a else Result := b;
   end;
@@ -652,16 +652,16 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
+procedure TGrayscaleAlphaImage.FillRectangle(const x1, y1, x2, y2: Single;
 const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  dx, dy: Single;
+  function Min(a, b: Single): Single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
     if a < b then Result := a else Result := b;
   end;
@@ -732,16 +732,16 @@ begin
     end;
 end;
 
-procedure TRGBImage.FillRectangle(const x1, y1, x2, y2: single;
+procedure TRGBImage.FillRectangle(const x1, y1, x2, y2: Single;
 const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  dx, dy: Single;
+  function Min(a, b: Single): Single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
     if a < b then Result := a else Result := b;
   end;
@@ -810,16 +810,16 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.FillRectangle(const x1, y1, x2, y2: single;
+procedure TGrayscaleImage.FillRectangle(const x1, y1, x2, y2: Single;
 const aColor: TCastleColor);
 var
   p: PByte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  dx, dy: Single;
+  function Min(a, b: Single): Single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
     if a < b then Result := a else Result := b;
   end;
@@ -886,14 +886,14 @@ end;
 
 {-----= HOLLOW RECTANGLE =-----}
 
-procedure TCastleImage.Rectangle(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TCastleImage.Rectangle(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  d: Single;
 begin
   if x1 < x2 then
   begin
@@ -986,15 +986,15 @@ begin
     end;
 end;
 
-procedure TRGBAlphaImage.Rectangle(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBAlphaImage.Rectangle(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  d: Single;
 begin
   if x1 < x2 then
   begin
@@ -1090,15 +1090,15 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.Rectangle(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleAlphaImage.Rectangle(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  d: Single;
 begin
   if x1 < x2 then
   begin
@@ -1189,15 +1189,15 @@ begin
     end;
 end;
 
-procedure TRGBImage.Rectangle(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBImage.Rectangle(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  d: Single;
 begin
   if x1 < x2 then
   begin
@@ -1287,15 +1287,15 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.Rectangle(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleImage.Rectangle(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PByte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  d: Single;
 begin
   if x1 < x2 then
   begin
@@ -1383,15 +1383,15 @@ end;
 
 {-----= LINE =-----}
 
-procedure TCastleImage.Line(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TCastleImage.Line(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: Integer;
-  MinX, MaxX, MinY, MaxY: single;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
+  MinX, MaxX, MinY, MaxY: Single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  a: Single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: Single;
 begin
   if x1 < x2 then
   begin
@@ -1491,16 +1491,16 @@ begin
     end;
 end;
 
-procedure TRGBAlphaImage.Line(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBAlphaImage.Line(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  a: Single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: Single;
 begin
   if x1 < x2 then
   begin
@@ -1602,16 +1602,16 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.Line(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleAlphaImage.Line(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  MinX, MaxX, MinY, MaxY: single;
-  a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  a: Single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: Single;
 begin
   if x1 < x2 then
   begin
@@ -1709,16 +1709,16 @@ begin
     end;
 end;
 
-procedure TRGBImage.Line(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TRGBImage.Line(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  a: Single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: Single;
 begin
   if x1 < x2 then
   begin
@@ -1815,16 +1815,16 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.Line(const x1, y1, x2, y2: single;
-  const aWidth: single; const aColor: TCastleColor);
+procedure TGrayscaleImage.Line(const x1, y1, x2, y2: Single;
+  const aWidth: Single; const aColor: TCastleColor);
 var
   p: PByte;
   ByteColor: Byte;
   ix, iy: Integer;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MinX, MaxX, MinY, MaxY: single;
-  a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
+  Alpha1d, Alpha2, Alpha2d: Single;
+  MinX, MaxX, MinY, MaxY: Single;
+  a: Single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: Single;
 begin
   if x1 < x2 then
   begin
@@ -1922,7 +1922,7 @@ end;
   moment. However, as far as it is an extremely rare use case, maybe, there is
   no actual need to improve it ever. }
 procedure TCastleImage.FloodFill(const x, y: Integer; const aColor: TCastleColor;
-    const aThreshold: single = 0);
+    const aThreshold: Single = 0);
 var
   OldColor: TCastleColor;
   ix, iy: Integer;

@@ -43,7 +43,7 @@ type
       even if initialization happens absolutely simultaneously. }
     procedure Initialize(RandomSeed: LongWord = 0);
     { Returns random float value in the 0..1 range. }
-    function Random: single;
+    function Random: Single;
     { Returns random integer number in the 0..N-1 range. }
     function Random(N: LongInt): LongInt;
     { A relatively slow procedure to get a 64 bit integer random number. }
@@ -80,7 +80,7 @@ function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): Lo
 { Single random instance. }
 function Rand: TCastleRandom;
 
-function Rnd: single; deprecated 'use Rand.Random';
+function Rnd: Single; deprecated 'use Rand.Random';
 function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
 
 implementation
@@ -281,8 +281,8 @@ begin
   Result := LongWord(Seed);
 end;
 
-function TCastleRandom.Random: single;
-const Divisor: single = 1 / MaxInt;
+function TCastleRandom.Random: Single;
+const Divisor: Single = 1 / MaxInt;
 begin
   XorShiftCycle;
   Result := Divisor * LongInt(Seed shr 1);       // note: we discard 1 bit of accuracy to gain speed

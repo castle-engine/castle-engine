@@ -32,9 +32,9 @@ type
 
   TFrame = record
     X1, Y1,             { Texture coords }
-    X2, Y2: single;
+    X2, Y2: Single;
     W, H  : Integer;    { Frame size }
-    AX, AY: single;     { Anchor }
+    AX, AY: Single;     { Anchor }
   end;
 
   TFrameList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TFrame>;
@@ -151,7 +151,7 @@ var
   TimeSensorArray: array of TTimeSensorNode;
   CoordInterpArray: array of TCoordinateInterpolatorNode;
   TexCoordInterpArray: array of TCoordinateInterpolator2DNode;
-  Key: single;
+  Key: Single;
   CoordArray: array of TVector3;
   TexCoordArray: array of TVector2;
   R1, R2, R3, R4: TX3DRoute;

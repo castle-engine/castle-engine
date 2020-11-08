@@ -882,18 +882,18 @@ type
   public
     { Draw simple geometric shapes like circles, rectangles, lines, etc.
       @groupBegin }
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); virtual;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); virtual;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); virtual;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); virtual;
     procedure FloodFill(const x, y: Integer; const aColor: TCastleColor;
-      const aThreshold: single = 0);
+      const aThreshold: Single = 0);
     { @groupEnd }
   end;
 
@@ -1212,16 +1212,16 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1311,16 +1311,16 @@ type
     procedure AlphaBleed(const ProgressTitle: string = ''); override;
     function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1456,16 +1456,16 @@ type
 
     procedure Assign(const Source: TCastleImage); override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1518,16 +1518,16 @@ type
     //procedure AlphaBleed(const ProgressTitle: string = ''); override;
     //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   public
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+    procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
-    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure FillRectangle(const x1, y1, x2, y2: single;
+    procedure Ellipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: Single;
       const aColor: TCastleColor); override;
-    procedure Rectangle(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
-    procedure Line(const x1, y1, x2, y2: single;
-      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Rectangle(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: Single;
+      const aWidth: Single; const aColor: TCastleColor); override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }

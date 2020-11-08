@@ -35,7 +35,7 @@ procedure Cocos2DParser;
     end;
   end;
 
-  procedure ReadDual(const ASrc: string; out V1, V2: single);
+  procedure ReadDual(const ASrc: string; out V1, V2: Single);
   var
     R: TRegExpr;
   begin
@@ -59,9 +59,9 @@ var
   Key: string;
   Frame: TFrame;
   HasAnchor,
-  HasOriginFrame: boolean;
+  HasOriginFrame: Boolean;
   X, Y, W, H, OW, OH, FX, FY, FW, FH: Integer;
-  AX, AY: single;
+  AX, AY: Single;
 begin
   Doc := URLReadXML(SSFullPath);
   try
