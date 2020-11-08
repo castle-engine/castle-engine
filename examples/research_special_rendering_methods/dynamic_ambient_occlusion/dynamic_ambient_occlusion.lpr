@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2018 Michalis Kamburelis.
+  Copyright 2009-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,6 +28,7 @@
 }
 program dynamic_ambient_occlusion;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
@@ -265,20 +266,11 @@ begin
 
   Assert(ShapeIndex = Length(Shapes));
 
-  Writeln('Bad elements (vertexes with no neighbors) removed: ',
-    Elements.Count - GoodElementsCount, ', remaining good elements: ',
-    GoodElementsCount);
+  WritelnLog('Bad elements (vertexes with no neighbors) removed: %d, remaining good elements: %d', [
+    Elements.Count - GoodElementsCount,
+    GoodElementsCount
+  ]);
   Elements.Count := GoodElementsCount;
-
-{ Tests:
-
-  Writeln('Elements: ', Elements.Count);
-  for I := 0 to Elements.Count - 1 do
-  begin
-    Writeln('pos ', Elements.List^[I].Position.ToString,
-            ' nor ', Elements.List^[I].Normal.ToString,
-            ' area ', Elements.List^[I].Area:1:10);
-  end;}
 end;
 
 var
@@ -350,8 +342,11 @@ begin
   ElementsTexSize := 1 shl TexSizeExponent;
 
   Assert(Sqr(ElementsTexSize) >= Elements.Count);
-  Writeln('For elements ', Elements.Count,
-    ' we use texture size ', ElementsTexSize, '^2 = ', Sqr(ElementsTexSize), ' pixels');
+  WritelnLog('For elements %d we use texture size %d^2 = %d pixels', [
+    Elements.Count,
+    ElementsTexSize,
+    Sqr(ElementsTexSize)
+  ]);
 
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
@@ -368,11 +363,12 @@ begin
     PositionShift[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
   end;
 
-  Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
-  Writeln('To squeeze positions into texture we use scale = ',
-    PositionScale.ToString, ' and shift ',
-    PositionShift.ToString, ' (bbox is ',
-    Scene.BoundingBox.ToString, ')');
+  WritelnLog('To squeeze area into texture we use area_scale = %f', [AreaScale]);
+  WritelnLog('To squeeze positions into texture we use scale = %s and shift %s (bbox is %s)', [
+    PositionScale.ToString,
+    PositionShift.ToString,
+    Scene.BoundingBox.ToString
+  ]);
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);
@@ -512,7 +508,7 @@ begin
   if (OldElementsTexSize <> ElementsTexSize) or
      (OldElementsCount <> Cardinal(Elements.Count)) then
   begin
-    Writeln('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
+    WritelnWarning('TODO: animation changed elements count / texture size. Shaders need to reinitialiazed.');
   end;
 end;
 
@@ -719,8 +715,7 @@ begin
     development, you can easily comment shader parts. }
   GLSLProgram[0].UniformNotFoundAction := uaWarning;
 
-  Writeln('----------------------------- Shader for 1st pass:');
-  Writeln(GLSLProgram[0].DebugInfo);
+  WritelnLogMultiline('Shader for 1st pass', GLSLProgram[0].DebugInfo);
 
   StringReplaceAllVar(FragmentShader,
     '/*$defines*/',
@@ -732,9 +727,7 @@ begin
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
   GLSLProgram[1].Link;
 
-  Writeln('----------------------------- Shader for 2nd pass:');
-  Writeln(GLSLProgram[1].DebugInfo);
-  Writeln('--------------------------------------------------');
+  WritelnLogMultiline('Shader for 2nd pass', GLSLProgram[1].DebugInfo);
 end;
 
 procedure Close(Container: TUIContainer);
@@ -889,6 +882,9 @@ var
     //'castle-data:/chinchilla_awakens.x3dv';
     'castle-data:/peach.wrl.gz';
 begin
+  ApplicationProperties.ApplicationName := 'dynamic_ambient_occlusion';
+  InitializeLog;
+
   Window := TCastleWindowBase.Create(Application);
 
   Elements := TAOElementList.Create;
@@ -898,8 +894,6 @@ begin
     ModelURL := Parameters[1];
 
   try
-    ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
-
     { inititalize Viewport }
     Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
