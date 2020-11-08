@@ -50,19 +50,19 @@ var
 
 procedure TSetOfImages.Reset(const DrawMode: TDrawMode);
 var
-  i, j: integer;
+  I, J: Integer;
   Source, Dest: TCastleImage;
 begin
-  for i := 0 to 4 do
-    for j := 0 to 4 do
+  for I := 0 to 4 do
+    for J := 0 to 4 do
     begin
       { In case this method is called for the 2nd time
         (because the button to change drawing mode was pressed),
         we need to free the previous TCastleImageControl.
         Otherwise, it would remain visible in Window.Controls
         (there would be no memory leak though, as it's owned by Self). }
-      FreeAndNil(Data[i,j]);
-      Data[i,j] := TCastleImageControl.Create(Self);
+      FreeAndNil(Data[I,J]);
+      Data[I,J] := TCastleImageControl.Create(Self);
     end;
 
   Data[0,0].Image := Legend; Data[0,0].OwnsImage := false;
@@ -75,30 +75,30 @@ begin
   Data[0,3].Image := RGB2;   Data[0,3].OwnsImage := false;
   Data[0,4].Image := G2;     Data[0,4].OwnsImage := false;
 
-  for i := 1 to 4 do
-    for j := 1 to 4 do
+  for I := 1 to 4 do
+    for J := 1 to 4 do
     begin
       try
-        Data[i,j].Image := (Data[i,0].Image as TCastleImage).MakeCopy;
-        Dest := Data[i,j].Image as TCastleImage;
-        Source := Data[0,j].Image as TCastleImage;
+        Data[I,J].Image := (Data[I,0].Image as TCastleImage).MakeCopy;
+        Dest := Data[I,J].Image as TCastleImage;
+        Source := Data[0,I].Image as TCastleImage;
         Dest.DrawFrom(Source, 0, 0, 0, 0, Source.Width, Source.Height, DrawMode);
       except
-        Data[i,j].Image := NotApplicable;
+        Data[I,J].Image := NotApplicable;
         { We will free NotApplicable Image at the end of program, this is better than
           relying on TCastleImageControl.OwnsImage mechanism,
           as it will correctly free it regardless if it's used here or not. }
-        Data[i,j].OwnsImage := false;
+        Data[I,J].OwnsImage := false;
       end;
     end;
 
-  for i := 0 to 4 do
-    for j := 0 to 4 do
+  for I := 0 to 4 do
+    for J := 0 to 4 do
     begin
-      Data[i,j].Anchor(vpTop, -Data[i,j].Image.Height * j);
-      Data[i,j].Anchor(hpLeft, Data[i,j].Image.Width * i);
+      Data[I,J].Anchor(vpTop, -Data[I,J].Image.Height * J);
+      Data[I,J].Anchor(hpLeft, Data[I,J].Image.Width * I);
       { InsertBack, not InsertFront, to be behind the labels and buttons. }
-      Background.InsertBack(Data[i,j]);
+      Background.InsertBack(Data[I,J]);
     end;
 end;
 

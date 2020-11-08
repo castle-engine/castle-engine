@@ -46,7 +46,7 @@ begin
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
-var ix,iy: integer;
+var ix,iy: Integer;
     s: string;
     c: byte;
 begin
