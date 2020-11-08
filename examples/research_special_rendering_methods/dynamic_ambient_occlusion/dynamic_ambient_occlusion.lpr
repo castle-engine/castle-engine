@@ -871,6 +871,8 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
       Window.Invalidate;
 
       case DrawType of
+        dtNormal:
+          RemoveSceneColors(Scene); // clear colors, otherwise dtPass1/2 would leave their colors
         dtElements:
           UpdateElements(nil);
         dtElementsIntensity:
