@@ -523,6 +523,7 @@ type
 
 var
   Viewport: TMyViewport;
+  RectVbo: TGLuint;
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
@@ -542,6 +543,41 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
   end;
 
   procedure RenderAORect;
+
+    { Use direct OpenGL(ES) calls to render rectangle with 2D projection.
+      This is a bit like DrawPrimitive2D implementation, but simplified to only
+      account for rectangle and for EnableFixedFunction = false case. }
+    procedure RenderRect(const Rect: TFloatRectangle);
+    var
+      Points: array [0..3] of TVector2;
+      UniformViewportSize: TGLSLUniform;
+      AttribVertex: TGLSLAttribute;
+    begin
+      Points[0] := Vector2(Rect.Left , Rect.Bottom);
+      Points[1] := Vector2(Rect.Right, Rect.Bottom);
+      Points[2] := Vector2(Rect.Right, Rect.Top);
+      Points[3] := Vector2(Rect.Left , Rect.Top);
+
+      if RectVbo = 0 then
+        glGenBuffers(1, @RectVbo);
+      glBindBuffer(GL_ARRAY_BUFFER, RectVbo);
+      glBufferData(GL_ARRAY_BUFFER, SizeOf(Points), @Points, GL_DYNAMIC_DRAW);
+
+      UniformViewportSize := RenderContext.CurrentProgram.Uniform('viewport_size');
+      AttribVertex := RenderContext.CurrentProgram.Attribute('vertex');
+
+      AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TVector2), 0);
+      UniformViewportSize.SetValue(Vector2(
+        RenderContext.Viewport.Width,
+        RenderContext.Viewport.Height
+      ));
+
+      glDrawArrays(GL_TRIANGLE_FAN, 0, High(Points) + 1);
+
+      AttribVertex.DisableArray;
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    end;
 
     procedure DoRender(Pass: Integer);
     begin
@@ -575,10 +611,14 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       { GLSLProgram[Pass].SetUniform('pi', Pi); <- not used now in shader }
       GLSLProgram[Pass].SetUniform('shadow_scale', ShadowScale);
 
-      { Render rectange with each pixel corresponding to one element
+      { Render rectangle with each pixel corresponding to one element
         that needs intensity calculated. }
-      glRecti(0, 0, ElementsTexSize,
-        DivRoundUp(Cardinal(Elements.Count), ElementsTexSize));
+      RenderRect(FloatRectangle(
+        0,
+        0,
+        ElementsTexSize,
+        DivRoundUp(Cardinal(Elements.Count), ElementsTexSize)
+      ));
 
       GLSLProgram[Pass].Disable;
     end;
@@ -645,25 +685,25 @@ procedure Open(Container: TUIContainer);
     Window.Close;
   end;
 
-const
-  GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
-  ShaderString: string;
+  FragmentShader, VertexShader: string;
 begin
-  {
+  if GLFeatures.Shaders = gsNone then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. GLSL shaders not supported.');
+    Exit;
+  end;
   if GLFeatures.EnableFixedFunction then
   begin
     Error('This GPU cannot handle dynamic ambient occlusion. Color.mode="MODULATE" does not work in fixed-function pipeline.');
     Exit;
   end;
-  }
-  { TODO: this hacky rendering now requires fixed-function to render AO correctly.
-    Unfortunately Color.mode="MODULATE" will be broken in this case,
-    so e.g. peach has grayscale color in effect. }
-  GLFeatures.EnableFixedFunction := true;
-
-  if (Elements.Count = 0) or
-     Scene.BoundingBox.IsEmpty then
+  if not GLFeatures.VertexBufferObject then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. We use direct OpenGL(ES) calls here that use VBO.');
+    Exit;
+  end;
+  if (Elements.Count = 0) or Scene.BoundingBox.IsEmpty then
   begin
     Error('Scene has no elements, or empty bounding box --- we cannot do dynamic ambient occlusion.');
     Exit;
@@ -671,22 +711,12 @@ begin
 
   CalculateElementsTex;
 
-  { initialize GLSL program }
-  GLSLProgram[0] := TGLSLProgram.Create;
-
-  if GLFeatures.Shaders = gsNone then
-  begin
-    Window.Controls.Remove(Viewport); { do not try to render }
-    MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.');
-    Window.Close;
-    Exit;
-  end;
-
-  ShaderString := FileToString(GLSLProgramBaseName + '.fs');
+  FragmentShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.fs');
+  VertexShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.vs');
 
   if GLVersion.Fglrx then
   begin
-    StringReplaceAllVar(ShaderString,
+    StringReplaceAllVar(FragmentShader,
       '/*$defines*/',
       '/*$defines*/' + NL + '#define FGLRX');
   end else
@@ -696,27 +726,33 @@ begin
       Especially important for $elements_count, since then the "for" loop
       inside the shader can be unrolled.
       Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
-    StringReplaceAllVar(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
-    StringReplaceAllVar(ShaderString, '$elements_count', IntToStr(Elements.Count));
+    StringReplaceAllVar(FragmentShader, '$tex_elements_size', IntToStr(ElementsTexSize));
+    StringReplaceAllVar(FragmentShader, '$elements_count', IntToStr(Elements.Count));
   end;
 
-  GLSLProgram[0].AttachFragmentShader(ShaderString);
+  { initialize GLSL program }
+  GLSLProgram[0] := TGLSLProgram.Create;
+  GLSLProgram[0].AttachVertexShader(VertexShader);
+  GLSLProgram[0].AttachFragmentShader(FragmentShader);
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram[0].Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram[0].UniformNotFoundAction := uaWarning;
+
   Writeln('----------------------------- Shader for 1st pass:');
   Writeln(GLSLProgram[0].DebugInfo);
 
   { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
     is that we #define PASS_2 this time. }
-  StringReplaceAllVar(ShaderString,
+  StringReplaceAllVar(FragmentShader,
     '/*$defines*/',
     '/*$defines*/' + NL + '#define PASS_2');
+
   GLSLProgram[1] := TGLSLProgram.Create;
-  GLSLProgram[1].AttachFragmentShader(ShaderString);
+  GLSLProgram[1].AttachVertexShader(VertexShader);
+  GLSLProgram[1].AttachFragmentShader(FragmentShader);
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
   GLSLProgram[1].Link;
   Writeln('----------------------------- Shader for 2nd pass:');
