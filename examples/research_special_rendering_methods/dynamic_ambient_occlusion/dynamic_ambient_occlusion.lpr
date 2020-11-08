@@ -623,42 +623,30 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       GLSLProgram[Pass].Disable;
     end;
 
-  var
-    SavedProjectionMatrix: TMatrix4;
   begin
-    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
-    OrthoProjection(FloatRectangle(Window.Rect));
+    DoRender(0);
 
-    glPushMatrix;
+    if DrawType = dtPass2 then
+    begin
+      { Alternative way to copy texture through CPU:
+      var
+        ElementsIntensityTex: TGrayscaleImage;
+      ElementsIntensityTex := CaptureAORect(true);
+      LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
+        GL_NEAREST, GL_NEAREST);}
 
-      glLoadIdentity;
-      DoRender(0);
+      { Capture result of 1st pass into GLElementsIntensityTex
+        using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
+        to GL_TEXTURE2 texture unit, used by DoRender(1). }
 
-      if DrawType = dtPass2 then
-      begin
-        { Alternative way to copy texture through CPU:
-        var
-          ElementsIntensityTex: TGrayscaleImage;
-        ElementsIntensityTex := CaptureAORect(true);
-        LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
-          GL_NEAREST, GL_NEAREST);}
+      glActiveTexture(GL_TEXTURE2);
+      glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+      glReadBuffer(GL_BACK);
+      glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+        ElementsTexSize, ElementsTexSize);
 
-        { Capture result of 1st pass into GLElementsIntensityTex
-          using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
-          to GL_TEXTURE2 texture unit, used by DoRender(1). }
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
-        glReadBuffer(GL_BACK);
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
-          ElementsTexSize, ElementsTexSize);
-
-        DoRender(1);
-      end;
-
-    glPopMatrix;
-
-    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+      DoRender(1);
+    end;
   end;
 
 begin
