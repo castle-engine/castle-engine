@@ -491,7 +491,7 @@ type
     rendering in engine example programs. Do not use this in your own code.)
 
     This can be used when you have to call TCastleTransform.LocalRender,
-    but you don't use scene manager.
+    but you don't use TCastleViewport.
     Usually this should not be needed.
     This class may be removed at some point!
     You should always try to use TCastleViewport to manage and render
