@@ -630,13 +630,13 @@ procedure TTestCastleBoxes.TestBox3DTransform;
   function Slower(const Box: TBox3D; const Matrix: TMatrix4): TBox3D;
   var
     BoxPoints: TBoxCorners;
-    i: integer;
+    I: Integer;
   begin
     if Box.IsEmpty then
       Exit(TBox3D.Empty);
 
     Box.Corners(BoxPoints);
-    for i := 0 to 7 do BoxPoints[i] := Matrix.MultPoint(BoxPoints[i]);
+    for I := 0 to 7 do BoxPoints[I] := Matrix.MultPoint(BoxPoints[I]);
 
     { Non-optimized version:
         Result := CalculateBoundingBox(@BoxPoints, 8, 0);

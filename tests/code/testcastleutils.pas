@@ -131,9 +131,9 @@ end;
 
 procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
 var a: array[0..2]of Double;
-    i, c1, c2, cm: integer;
+    I, c1, c2, cm: Integer;
 begin
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   a[0] := Random; a[1] := Random; a[2] := Random;
 

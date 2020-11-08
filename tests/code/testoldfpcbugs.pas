@@ -57,7 +57,7 @@ uses SysUtils;
 
 type
   TObj=class
-    a:integer;
+    a: Integer;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -191,11 +191,11 @@ end;
   To dziala tylko pod 1.1, 1.0.x musza byc odpowiednio zmodyfikowane
   aby to dzialalo. (wiele mojego kodu wymaga zeby to dzialalo,
   juz CastleUtils.) }
-function TestProc(arg:integer):Boolean; overload; begin result:=true  end;
-function TestProc             :Boolean; overload; begin result:=false end;
+function TestProc(arg: Integer): Boolean; overload; begin Result := true  end;
+function TestProc              : Boolean; overload; begin Result := false end;
 
 procedure TTestOldFPCBugs.TestOthers;
-var b1,b2:array[0..1000]of byte;
+var b1,b2: array[0..1000] of byte;
 begin
  AssertTrue(not TestProc);
  AssertTrue(TestProc(2));

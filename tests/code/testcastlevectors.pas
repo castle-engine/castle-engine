@@ -159,21 +159,21 @@ begin
 end;
 
 procedure TTestCastleVectors.TestPerpParallel;
-var v: TVector3;
-    i: integer;
+var V: TVector3;
+    I: Integer;
 begin
- for i := 1 to 10 do
+ for I := 1 to 10 do
  try
-  v := RandomVector;
-  AssertTrue( VectorsPerp(AnyOrthogonalVector(v), v) );
+  V := RandomVector;
+  AssertTrue( VectorsPerp(AnyOrthogonalVector(V), V) );
   { I has to comment it out -- it fails too often due to floating point
     inaccuracy. }
-  { AssertTrue( VectorsParallel(v * (Random * 10)), v) ); }
-  AssertTrue( VectorsPerp(TVector3.Zero, v) );
-  AssertTrue( VectorsParallel(TVector3.Zero, v) );
+  { AssertTrue( VectorsParallel(V * (Random * 10)), V) ); }
+  AssertTrue( VectorsPerp(TVector3.Zero, V) );
+  AssertTrue( VectorsParallel(TVector3.Zero, V) );
  except
-  Writeln('and failed : v = ',v.ToString,
-    ' anyPerp = ',AnyOrthogonalVector(v).ToString);
+  Writeln('and failed : v = ',V.ToString,
+    ' anyPerp = ',AnyOrthogonalVector(V).ToString);
   raise;
  end;
 
@@ -207,7 +207,7 @@ var
   I1, I2, RayOrigin, RayDirection: TVector3;
   Plane: TVector4;
 // PlaneDir: TVector3 absolute Plane;
-  PlaneConstCoord: integer;
+  PlaneConstCoord: Integer;
   PlaneConstVal: Single;
   b1, b2: Boolean;
 // t1, t2: Double;
@@ -222,14 +222,14 @@ var
 const VConst: TVector3 = (Data: (1.0, 2.0, 3.0));
 
 var
-  i: integer;
+  I: Integer;
   V: TVector3;
   Time0, Time1, Time2: Double;
   StartTime: TProcessTimerResult;
 begin
  { ------------------------------------------------------------
    testuj TrySimplePlaneRayIntersection przy uzyciu TryPlaneRayIntersection }
- for i := 1 to 100000 do
+ for I := 1 to 100000 do
  begin
   RayOrigin := RandomVector3;
   RayDirection := RandomVector3;
@@ -288,18 +288,18 @@ begin
  WritelnSpeedTest('SPEED TEST 1 ----------------------------------------------');
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do ;
+ for I := 1 to SPEED_TEST_1_CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do
+ for I := 1 to SPEED_TEST_1_CYCLES do
   TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TrySimplePlaneRayIntersection = %f',[Time1]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_1_CYCLES do
+ for I := 1 to SPEED_TEST_1_CYCLES do
   TryPlaneRayIntersection(I1, Plane, RayOrigin, RayDirection);
  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TryPlaneRayIntersection = %f',[Time2]));
@@ -314,12 +314,12 @@ begin
  WritelnSpeedTest('SPEED TEST 2 ----------------------------------------------');
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_2_CYCLES do ;
+ for I := 1 to SPEED_TEST_2_CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to SPEED_TEST_2_CYCLES do
+ for I := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VConst;
   V := V * Pi;
@@ -369,22 +369,22 @@ const
   CYCLES = SPEED_TEST_3_CYCLES;
 var
   Time0, Time1, Time2: Double;
-  i: integer;
+  I: Integer;
   StartTime: TProcessTimerResult;
 begin
  WritelnSpeedTest('SPEED TEST VectorFromStr ------------------------------------------');
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do ;
+ for I := 1 to CYCLES do ;
  Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestVectorFromStr;
+ for I := 1 to CYCLES do OneTestVectorFromStr;
  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
 
  StartTime := ProcessTimer;
- for i := 1 to CYCLES do OneTestByDeFormat;
+ for I := 1 to CYCLES do OneTestByDeFormat;
  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
 

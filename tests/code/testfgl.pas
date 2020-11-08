@@ -60,7 +60,7 @@ procedure TItemList.DeleteDuplicates;
   end;
 
 var
-  I, Index: integer;
+  I, Index: Integer;
 begin
   I := 0;
   while I < Count do

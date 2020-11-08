@@ -95,11 +95,11 @@ procedure TTestBasicLists.TestGenericStringList;
 
 var
   sarr, sarr2: TGenericStringList;
-  i, j: integer;
+  I, J: Integer;
 const
   twoStrings: array[0..1]of string = ('raz','dwa');
 begin
- for i := 1 to 100 do
+ for I := 1 to 100 do
  begin
   sarr := TGenericStringList.Create;
   try
@@ -133,10 +133,10 @@ begin
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}
-   for j := 0 to 20 do
+   for J := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort(@IsSmallerString);
-   for j := 0 to sarr.Count-2 do AssertTrue(sarr[j] <= sarr[j+1]);
+   for J := 0 to sarr.Count-2 do AssertTrue(sarr[J] <= sarr[J+1]);
 
   finally sarr.Free end;
  end;
@@ -213,7 +213,7 @@ begin
 
 procedure DeleteDuplicates;
 var
-  I, Index: integer;
+  I, Index: Integer;
 begin
   I := 0;
   while I < Count do

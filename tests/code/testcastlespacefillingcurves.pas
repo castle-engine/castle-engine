@@ -93,9 +93,9 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
    TestCurve(TPeanoCurve, Width, Height);
   end;
 
-var i: integer;
+var I: Integer;
 begin
- for i := 1 to 20 do TestCurves(Random(100), Random(100));
+ for I := 1 to 20 do TestCurves(Random(100), Random(100));
  { perfidne testy sprawdzajace czy nasze curve'y radza sobie tez gdy jeden
    z Width, Height = 0 }
  TestCurves(0, 0);
