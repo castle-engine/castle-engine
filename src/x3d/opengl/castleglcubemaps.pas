@@ -25,7 +25,7 @@ uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean); experimental;
+  TCubeMapRenderSimpleFunction = procedure (const RenderParams: TRenderParams); experimental;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -113,7 +113,8 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext;
+uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext,
+  CastleProjection, CastleScene, CastleRenderingCamera;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -126,21 +127,28 @@ procedure SHVectorGLCapture(
   var
     Map: TGrayscaleImage;
     I, SHBasis, ScreenX, ScreenY: Integer;
+    RenderParams: TRenderParams;
   begin
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
 
     RenderContext.Viewport := Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
-    {$ifndef OpenGLES}
-    // TODO-es
-    glPushMatrix;
-      glLoadMatrix(LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up));
-    {$endif}
-      Render(true);
-    {$ifndef OpenGLES}
-    glPopMatrix;
-    {$endif}
+    CastleRenderingCamera.RenderingCamera.Target := rtCubeMapEnvironment;
+    CastleRenderingCamera.RenderingCamera.FromMatrix(
+      LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+      LookDirMatrix(TVector3.Zero, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+      PerspectiveProjectionMatrixDeg(90, 1, 0.01, 100)
+    );
+
+    RenderParams := TBasicRenderParams.Create;
+    try
+      { TBasicRenderParams will automatically link to CastleRenderingCamera.RenderingCamera,
+        to CastleRenderingCamera.RenderingCamera.Frustum,
+        and will have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
+      RenderParams.Transparent := false; Render(RenderParams);
+      RenderParams.Transparent := true ; Render(RenderParams);
+    finally FreeAndNil(RenderParams) end;
 
     Map := SaveScreen_noflush(TGrayscaleImage,
       Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize), cbBack) as TGrayscaleImage;

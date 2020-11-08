@@ -46,6 +46,9 @@ type
 var
   Window: TCastleWindowBase;
   Scene: TCastleScene;
+  SceneLightVisualize, SceneLightVisualizeForMap: TCastleScene;
+  MaterialLight, MaterialLightForMap: TUnlitMaterialNode;
+  SphereLight, SphereLightForMap: TSphereNode;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
   LightPos: TVector3;
@@ -75,24 +78,9 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-procedure DrawLight(ForMap: boolean);
+procedure DrawLight(const RenderParams: TRenderParams);
 begin
-  glPushMatrix;
-    glTranslatev(LightPos);
-
-    if not ForMap then
-    begin
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
-      glColor4f(1, 1, 0, 0.1);
-    end else
-      glColor3f(LightIntensity, LightIntensity, LightIntensity);
-
-    CastleGluSphere(LightRadius, 10, 10);
-
-    if not ForMap then
-      glDisable(GL_BLEND);
-  glPopMatrix;
+  SceneLightVisualizeForMap.Render(RenderParams);
 end;
 
 type
@@ -173,6 +161,13 @@ end;
 
 procedure TMyViewport.Render;
 begin
+  { update light visualization (for normal display and for SHVectorGLCapture texture rendering) }
+  SceneLightVisualize.Translation := LightPos;
+  SceneLightVisualizeForMap.Translation := LightPos;
+  MaterialLightForMap.EmissiveColor := Vector3(LightIntensity, LightIntensity, LightIntensity);
+  SphereLight.Radius := LightRadius;
+  SphereLightForMap.Radius := LightRadius;
+
   if not Scene.BoundingBox.IsEmpty then
   begin
     { SHVectorGLCapture wil draw maps, get them,
@@ -200,7 +195,6 @@ begin
       SetSceneColors(Scene, @VertexColor);
   end;
   inherited;
-  DrawLight(false);
 end;
 
 var
@@ -295,6 +289,19 @@ begin
     Result.Append(M);
 end;
 
+function CreateLightVisualizeNodes(out Material: TUnlitMaterialNode; out Sphere: TSphereNode): TX3DRootNode;
+var
+  SphereShape: TShapeNode;
+begin
+  Result := TX3DRootNode.Create;
+
+  Sphere := TSphereNode.CreateWithShape(SphereShape);
+  Result.AddChildren(SphereShape);
+
+  Material := TUnlitMaterialNode.Create;
+  SphereShape.Material := Material;
+end;
+
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
@@ -307,6 +314,14 @@ begin
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
+
+  SceneLightVisualize := TCastleScene.Create(Application);
+  SceneLightVisualize.Load(CreateLightVisualizeNodes(MaterialLight, SphereLight), true);
+  MaterialLight.EmissiveColor := YellowRGB;
+  MaterialLight.Transparency := 0.9;
+
+  SceneLightVisualizeForMap := TCastleScene.Create(Application);
+  SceneLightVisualizeForMap.Load(CreateLightVisualizeNodes(MaterialLightForMap, SphereLightForMap), true);
 
   if Scene.BoundingBox.IsEmpty then
   begin
@@ -334,11 +349,8 @@ begin
     to keep SHVectorGLCapture visible for debugging }
   Viewport.Transparent := true;
   Viewport.Items.Add(Scene);
+  Viewport.Items.Add(SceneLightVisualize);
   Viewport.Items.MainScene := Scene;
-
-  { TODO: this demo uses specialized rendering
-    that currently assumes some fixed-function things set up. }
-  GLFeatures.EnableFixedFunction := true;
 
   Window.Controls.InsertFront(Viewport);
 
