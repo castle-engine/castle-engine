@@ -285,7 +285,7 @@ const
 
 const
   FloatConsts: array [0..1] of string = ('pi', 'enat');
-  FloatConstsValues: array [0..High(FloatConsts)] of float = (pi, enatural);
+  FloatConstsValues: array [0..High(FloatConsts)] of Float = (pi, enatural);
   BooleanConsts: array [0..1] of string = ('false', 'true');
   BooleanConstsValues: array [0..High(BooleanConsts)] of Boolean = (false, true);
   IntConsts: array [0..19] of string = (

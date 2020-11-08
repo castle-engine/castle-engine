@@ -67,12 +67,12 @@ procedure TTestCastleStringUtils.TestDeFormat;
 var
   s, S2: string;
   I: Integer;
-  f: float;
+  F: Float;
 begin
   DeFormat('123FOO98.2e1 '#9'123ioioio-x    /'+nl, '%dfoo%f %s /',
     [@I, @f, @s], true);
   AssertTrue(I = 123);
-  AssertTrue(f = 98.2e1);
+  AssertTrue(F = 98.2e1);
   AssertTrue(s = '123ioioio-x');
 
   { %% test }
