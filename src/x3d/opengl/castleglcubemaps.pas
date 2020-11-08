@@ -25,7 +25,7 @@ uses {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
-  TCubeMapRenderSimpleFunction = procedure (const RenderParams: TRenderParams); experimental;
+  TCubeMapRenderEvent = procedure (const RenderParams: TRenderParams) of object; experimental;
 
 { Calculate spherical harmonics basis describing environment rendered
   by OpenGL. Environment is rendered by
@@ -45,7 +45,7 @@ type
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
-  const Render: TCubeMapRenderSimpleFunction;
+  const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single); experimental;
 
@@ -119,7 +119,7 @@ uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext,
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
   const CapturePoint: TVector3;
-  const Render: TCubeMapRenderSimpleFunction;
+  const Render: TCubeMapRenderEvent;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
 
@@ -142,8 +142,8 @@ procedure SHVectorGLCapture(
       RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
       RenderParams.RenderingCamera.FromMatrix(
         LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-        LookDirMatrix(TVector3.Zero, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-        PerspectiveProjectionMatrixDeg(90, 1, 0.01, 100)
+        FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        RenderContext.ProjectionMatrix
       );
       RenderParams.Transparent := false; Render(RenderParams);
       RenderParams.Transparent := true ; Render(RenderParams);

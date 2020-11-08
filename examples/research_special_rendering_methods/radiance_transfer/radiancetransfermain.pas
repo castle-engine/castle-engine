@@ -33,7 +33,7 @@ implementation
 uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, X3DNodes, CastleWindow, CastleShapes,
-  CastleClassUtils, CastleUtils, CastleRenderingCamera,
+  CastleClassUtils, CastleUtils,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleViewport,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
   CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
@@ -78,20 +78,21 @@ var
     by this. Can be in any range. }
   LightIntensityScale: Single = 100.0;
 
-procedure DrawLight(const RenderParams: TRenderParams);
-begin
-  SceneLightVisualizeForMap.Render(RenderParams);
-end;
-
 type
   TMyViewport = class(TCastleViewport)
   strict private
     function VertexColor(const Shape: TShape; const VertexPosition: TVector3;
       const VertexIndex: Integer): TCastleColorRGB;
+    procedure DrawLight(const RenderParams: TRenderParams);
   public
     procedure Render; override;
     procedure Render3D(const Params: TRenderParams); override;
   end;
+
+procedure TMyViewport.DrawLight(const RenderParams: TRenderParams);
+begin
+  SceneLightVisualizeForMap.Render(RenderParams);
+end;
 
 function TMyViewport.VertexColor(const Shape: TShape; const VertexPosition: TVector3;
   const VertexIndex: Integer): TCastleColorRGB;
