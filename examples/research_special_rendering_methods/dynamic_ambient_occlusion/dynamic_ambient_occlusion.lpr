@@ -14,13 +14,15 @@
 }
 
 { Sample implementation of "Dynamic ambient occlusion".
-  See README for descriptions and links.
+  See README.txt for descriptions and links.
 
-  Run with $1 = 3d model to open.
-  Navigate by mouse/keys like in view3dscene (see
-  https://castle-engine.io/view3dscene.php).
+  By default opens the "peach" model from data/ subdirectory.
+  You can pass on command-line URL of a different model to open,
+  like "castle-data:/chinchilla_awakens.x3dv".
 
-  Keys s / S scale shadow more / less (for more/less dramatic effect;
+  Navigate by mouse/keys like in view3dscene (see https://castle-engine.io/view3dscene.php).
+
+  Use keys s / S scale shadow more / less (for more/less dramatic effect;
   the default scale is anyway 2 times larger than what math suggests,
   to be more dramatic).
 }
@@ -601,14 +603,6 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
       GLSLProgram[Pass].SetUniform('position_scale', PositionScale);
       GLSLProgram[Pass].SetUniform('position_shift', PositionShift);
 
-      if GLVersion.Fglrx then
-      begin
-        GLSLProgram[Pass].SetUniform('elements_count', TGLint(Elements.Count));
-        GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
-      end;
-
-      GLSLProgram[Pass].SetUniform('zero_5', 0.5);
-      { GLSLProgram[Pass].SetUniform('pi', Pi); <- not used now in shader }
       GLSLProgram[Pass].SetUniform('shadow_scale', ShadowScale);
 
       { Render rectangle with each pixel corresponding to one element
@@ -696,27 +690,23 @@ begin
     Error('Scene has no elements, or empty bounding box --- we cannot do dynamic ambient occlusion.');
     Exit;
   end;
+  if GLVersion.Fglrx then
+  begin
+    Error('This GPU cannot handle dynamic ambient occlusion. FGLRX implementation of GLSL had so many bugs that supporting it for this demo was very burdensome.');
+  end;
 
   CalculateElementsTex;
 
   FragmentShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.fs');
   VertexShader := FileToString('castle-data:/shaders/dynamic_ambient_occlusion.vs');
 
-  if GLVersion.Fglrx then
-  begin
-    StringReplaceAllVar(FragmentShader,
-      '/*$defines*/',
-      '/*$defines*/' + NL + '#define FGLRX');
-  end else
-  begin
-    { Integer constants are really constant for the shader.
-      This allows OpenGL to optimize them more.
-      Especially important for $elements_count, since then the "for" loop
-      inside the shader can be unrolled.
-      Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
-    StringReplaceAllVar(FragmentShader, '$tex_elements_size', IntToStr(ElementsTexSize));
-    StringReplaceAllVar(FragmentShader, '$elements_count', IntToStr(Elements.Count));
-  end;
+  { Integer constants are really constant for the shader.
+    This allows OpenGL to optimize them more.
+    Especially important for $elements_count, since then the "for" loop
+    inside the shader can be unrolled.
+    Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
+  StringReplaceAllVar(FragmentShader, '$tex_elements_size', IntToStr(ElementsTexSize));
+  StringReplaceAllVar(FragmentShader, '$elements_count', IntToStr(Elements.Count));
 
   { initialize GLSL program }
   GLSLProgram[0] := TGLSLProgram.Create;
@@ -732,8 +722,6 @@ begin
   Writeln('----------------------------- Shader for 1st pass:');
   Writeln(GLSLProgram[0].DebugInfo);
 
-  { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
-    is that we #define PASS_2 this time. }
   StringReplaceAllVar(FragmentShader,
     '/*$defines*/',
     '/*$defines*/' + NL + '#define PASS_2');
@@ -743,9 +731,9 @@ begin
   GLSLProgram[1].AttachFragmentShader(FragmentShader);
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
   GLSLProgram[1].Link;
+
   Writeln('----------------------------- Shader for 2nd pass:');
   Writeln(GLSLProgram[1].DebugInfo);
-
   Writeln('--------------------------------------------------');
 end;
 
