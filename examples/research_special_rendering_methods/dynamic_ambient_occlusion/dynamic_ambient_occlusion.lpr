@@ -34,9 +34,9 @@ uses SysUtils, Classes, Math,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
-  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
+  X3DFields, X3DNodes, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleViewport, CastleRectangles, CastleApplicationProperties,
-  CastleRenderContext, CastleColors,
+  CastleRenderContext, CastleColors, CastleCameras,
   SceneUtilities;
 
 type
@@ -46,6 +46,7 @@ var
   Window: TCastleWindowBase;
 
   Scene: TCastleScene;
+  SceneElements: TCastleScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
 
@@ -525,59 +526,6 @@ var
 
 procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
 
-  { If ElementsIntensityTex = nil,
-    then all element discs will have the same glMaterial.
-
-    Otherwise, we will assign single glColor for each element,
-    using values from ElementsIntensityTex. }
-  procedure DoShowElements(ElementsIntensityTex: TGrayscaleImage);
-  var
-    I: Integer;
-    Q: PGLUQuadric;
-    NewX, NewY, NewZ: TVector3;
-    Radius: Float;
-    ElementIntensity: PByte;
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glEnable(GL_DEPTH_TEST);
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(0, 0, 0, 1));
-
-      if ElementsIntensityTex = nil then
-      begin
-        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(1, 1, 0, 1));
-      end else
-      begin
-        ElementIntensity := ElementsIntensityTex.Pixels;
-      end;
-
-      Q := NewGLUQuadric(false, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
-
-      for I := 0 to Elements.Count - 1 do
-      begin
-        if ElementsIntensityTex <> nil then
-        begin
-          glColor3ub(ElementIntensity^, ElementIntensity^, ElementIntensity^);
-          Inc(ElementIntensity);
-        end;
-
-        glPushMatrix;
-          NewZ := Elements.List^[I].Normal;
-          NewX := AnyOrthogonalVector(NewZ);
-          NewY := TVector3.CrossProduct(NewZ, NewX);
-          glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
-            NewX, NewY, NewZ));
-
-          { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-          Radius := Sqrt(Elements.List^[I].Area/Pi);
-          gluDisk(Q, 0, Radius, 8, 2);
-
-        glPopMatrix;
-      end;
-
-      gluDeleteQuadric(Q);
-    glPopAttrib;
-  end;
-
   function CaptureAORect(SizePower2: boolean): TGrayscaleImage;
   var
     TexHeight: Cardinal;
@@ -673,38 +621,17 @@ procedure TMyViewport.RenderFromView3D(const Params: TRenderParams);
     RenderContext.ProjectionMatrix := SavedProjectionMatrix;
   end;
 
-var
-  ElementsIntensityTex: TGrayscaleImage;
 begin
-  case DrawType of
-    dtNormal: inherited;
-    dtElements:
-      begin
-        glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
-          glEnable(GL_LIGHTING);
-          glEnable(GL_LIGHT0);
-          DoShowElements(nil);
-        glPopAttrib;
-      end;
-    dtElementsIntensity:
-      begin
-        RenderAORect;
-        ElementsIntensityTex := CaptureAORect(false);
-        try
-          DoShowElements(ElementsIntensityTex);
-        finally FreeAndNil(ElementsIntensityTex) end;
-      end;
-    dtPass1, dtPass2:
-      begin
-        RenderAORect;
-        FullRenderIntensityTex := CaptureAORect(false);
-        try
-          FullRenderShape := nil;
-          SetSceneColors(Scene, @THelper(nil).VertexColor);
-        finally FreeAndNil(FullRenderIntensityTex) end;
-        inherited;
-      end;
+  if DrawType in [dtPass1, dtPass2] then
+  begin
+    FreeAndNil(FullRenderIntensityTex); // free previous FullRenderIntensityTex
+
+    RenderAORect;
+    FullRenderIntensityTex := CaptureAORect(false);
+    FullRenderShape := nil;
+    SetSceneColors(Scene, @THelper(nil).VertexColor);
   end;
+  inherited;
 end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
@@ -857,26 +784,90 @@ begin
     Result.Append(M);
 end;
 
-procedure UpdateSceneAttribs;
-begin
-end;
-
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
+
+  { Update SceneElements contents.
+
+    If ElementsIntensityTex = nil,
+    then all element discs will have the same material.
+    Otherwise, we will assign a color for each element,
+    using values from ElementsIntensityTex. }
+  procedure UpdateElements(const ElementsIntensityTex: TGrayscaleImage);
+  var
+    RootNode: TX3DRootNode;
+    Mat: TUnlitMaterialNode;
+    Disk: TDisk2DNode;
+    DiskShape: TShapeNode;
+    DiskTransform: TTransformNode;
+    I: Integer;
+    ElementIntensity: PByte;
+  begin
+    RootNode := TX3DRootNode.Create;
+
+    if ElementsIntensityTex <> nil then
+      ElementIntensity := ElementsIntensityTex.Pixels;
+
+    for I := 0 to Elements.Count - 1 do
+    begin
+      Disk := TDisk2DNode.CreateWithTransform(DiskShape, DiskTransform);
+      { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
+      Disk.OuterRadius := Sqrt(Elements.List^[I].Area / Pi);
+      Disk.Solid := false;
+
+      if ElementsIntensityTex <> nil then
+      begin
+        Mat := TUnlitMaterialNode.Create;
+        Mat.EmissiveColor := Vector3(
+          ElementIntensity^ / 255,
+          ElementIntensity^ / 255,
+          ElementIntensity^ / 255
+        );
+        DiskShape.Material := Mat;
+        Inc(ElementIntensity);
+      end;
+
+      DiskTransform.Translation := Elements.List^[I].Position;
+      DiskTransform.Rotation := OrientationFromDirectionUp(
+        Elements.List^[I].Normal,
+        AnyOrthogonalVector(Elements.List^[I].Normal)
+      );
+      RootNode.AddChildren(DiskTransform);
+    end;
+
+    SceneElements.Load(RootNode, true);
+  end;
+
+  procedure SetDrawType(const NewDrawType: TDrawType);
+  begin
+    if DrawType <> NewDrawType then
+    begin
+      DrawType := NewDrawType;
+      Scene.Exists := DrawType in [dtNormal, dtPass1, dtPass2];
+      SceneElements.Exists := DrawType in [dtElements, dtElementsIntensity];
+      Window.Invalidate;
+
+      case DrawType of
+        dtElements:
+          UpdateElements(nil);
+        dtElementsIntensity:
+          UpdateElements(FullRenderIntensityTex);
+      end;
+    end;
+  end;
+
 begin
   case Item.IntData of
-    100: begin DrawType := dtNormal; UpdateSceneAttribs; end;
-    101: DrawType := dtElements;
-    102: DrawType := dtElementsIntensity;
-    103: begin DrawType := dtPass1; UpdateSceneAttribs; end;
-    104: begin DrawType := dtPass2; UpdateSceneAttribs; end;
+    100: SetDrawType(dtNormal);
+    101: SetDrawType(dtElements);
+    102: SetDrawType(dtElementsIntensity);
+    103: SetDrawType(dtPass1);
+    104: SetDrawType(dtPass2);
 
     150: Scene.TimePlaying := not Scene.TimePlaying;
 
     200: Window.Close;
     else Exit;
   end;
-
-  Window.Invalidate;
 end;
 
 var
@@ -895,26 +886,26 @@ begin
   try
     ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
-    Scene := TCastleScene.Create(Window);
-    Scene.Load(ModelURL);
-    UpdateSceneAttribs;
-
-    CalculateElements;
-
-    { start Scene animation }
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
-    Scene.ProcessEvents := true;
-
-    { init Viewport, with a Scene inside }
-    Viewport := TMyViewport.Create(Window);
+    { inititalize Viewport }
+    Viewport := TMyViewport.Create(Application);
     Viewport.FullSize := true;
     Viewport.AutoCamera := true;
     Viewport.AutoNavigation := true;
     Window.Controls.InsertFront(Viewport);
 
+    { initialize Scene }
+    Scene := TCastleScene.Create(Application);
+    Scene.Load(ModelURL);
+    Scene.Spatial := [ssRendering, ssDynamicCollisions];
+    Scene.OnGeometryChanged := @THelper(nil).SceneGeometryChanged;
+    Scene.ProcessEvents := true; { allow Scene animation }
+    CalculateElements;
     Viewport.Items.MainScene := Scene;
     Viewport.Items.Add(Scene);
+
+    { initialize SceneElements }
+    SceneElements := TCastleScene.Create(Application);
+    Viewport.Items.Add(SceneElements);
 
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuClick := @MenuClick;
@@ -925,9 +916,9 @@ begin
     Window.SetDemoOptions(keyF11, CharEscape, true);
     Window.OpenAndRun;
   finally
-    FreeAndNil(Viewport);
     FreeAndNil(Elements);
     FreeAndNil(ElementsPositionAreaTex);
     FreeAndNil(ElementsNormalTex);
+    FreeAndNil(FullRenderIntensityTex);
   end;
 end.
