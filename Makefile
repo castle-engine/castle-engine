@@ -421,6 +421,7 @@ clean: cleanexamples
 	                      -name 'castle-engine-output' ')' \
 	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf bin/ \
+	  'tools/castle-editor/Castle Game Engine.app' \
 	  packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \

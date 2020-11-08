@@ -32,6 +32,7 @@ backup
 xcuserdata
 !xcshareddata
 /bin/
+/tools/castle-editor/Castle Game Engine.app/
 
 # cge build tool stuff
 castle-engine-output
