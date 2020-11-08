@@ -16,7 +16,8 @@ pipeline {
        According to https://github.com/jenkinsci/pipeline-model-definition-plugin/pull/110
        this should be supported. */
     CASTLE_ENGINE_PATH = "${WORKSPACE}"
-    PATH = "${PATH}:${CASTLE_ENGINE_PATH}/bin/"
+    CGE_INSTALL_PREFIX = "${CASTLE_ENGINE_PATH}/jenkins-installed/"
+    PATH = "${PATH}:${CGE_INSTALL_PREFIX}/bin/"
   }
   stages {
     stage('Info') {
@@ -29,9 +30,9 @@ pipeline {
     }
     stage('Build Tools') {
       steps {
-        sh 'rm -Rf bin/'
-        sh 'mkdir -p bin/'
-        sh 'make clean tools install PREFIX=${CASTLE_ENGINE_PATH}/'
+        sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
+        sh 'mkdir -p ${CGE_INSTALL_PREFIX}'
+        sh 'make clean tools install PREFIX=${CGE_INSTALL_PREFIX}'
       }
     }
     stage('Build Examples') {
@@ -56,6 +57,10 @@ pipeline {
     stage('Package macOS') {
       steps {
         sh 'make clean'
+        // Make binaries packaged in bin/ (similar to official release), remove rest from "make install"
+        sh 'rm -Rf bin/'
+        sh 'mv ${CGE_INSTALL_PREFIX}/bin bin'
+        sh 'rm -Rf ${CGE_INSTALL_PREFIX}'
         sh 'tar czvf castle-game-engine-macos.tar.gz .'
       }
     }
