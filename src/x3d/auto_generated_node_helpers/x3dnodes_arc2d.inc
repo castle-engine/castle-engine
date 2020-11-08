@@ -33,10 +33,24 @@
     function GetStartAngle: Single;
     procedure SetStartAngle(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdEndAngle: TSFFloat;
+    { X3D field "endAngle". } { }
+    public property FdEndAngle: TSFFloat read FFdEndAngle;
     { X3D field "endAngle". } { }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
+
+    strict private FFdRadius: TSFFloat;
+    { X3D field "radius". } { }
+    public property FdRadius: TSFFloat read FFdRadius;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdStartAngle: TSFFloat;
+    { X3D field "startAngle". } { }
+    public property FdStartAngle: TSFFloat read FFdStartAngle;
     { X3D field "startAngle". } { }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
 
@@ -74,6 +88,31 @@ end;
 procedure TArc2DNode.SetStartAngle(const Value: Single);
 begin
   FdStartAngle.Send(Value);
+end;
+
+class function TArc2DNode.ClassX3DType: String;
+begin
+  Result := 'Arc2D';
+end;
+
+procedure TArc2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
+   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEndAngle);
+  { X3D specification comment: [-2Pi,2Pi] }
+
+  FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
+   FdRadius.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRadius);
+  { X3D specification comment: (0,Inf) }
+
+  FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
+   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStartAngle);
+  { X3D specification comment: [-2Pi,2Pi] }
 end;
 
 {$endif read_implementation}

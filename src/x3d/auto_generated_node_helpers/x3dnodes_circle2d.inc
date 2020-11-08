@@ -31,8 +31,18 @@
     function GetSlices: Integer;
     procedure SetSlices(const Value: Integer);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdRadius: TSFFloat;
+    { X3D field "radius". } { }
+    public property FdRadius: TSFFloat read FFdRadius;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdSlices: TSFInt32;
+    { X3D field "slices". } { }
+    public property FdSlices: TSFInt32 read FFdSlices;
     { X3D field "slices". } { }
     property Slices: Integer read GetSlices write SetSlices;
 
@@ -60,6 +70,26 @@ end;
 procedure TCircle2DNode.SetSlices(const Value: Integer);
 begin
   FdSlices.Send(Value);
+end;
+
+class function TCircle2DNode.ClassX3DType: String;
+begin
+  Result := 'Circle2D';
+end;
+
+procedure TCircle2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
+   FdRadius.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRadius);
+  { X3D specification comment: (0,Inf) }
+
+  FFdSlices := TSFInt32.Create(Self, True, 'slices', -1);
+   FdSlices.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSlices);
+  { X3D specification comment: _-1_ + [3, infinity) }
 end;
 
 {$endif read_implementation}

@@ -26,6 +26,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetClosureType: TArcClosureType;
+    procedure SetClosureType(const Value: TArcClosureType);
     function GetEndAngle: Single;
     procedure SetEndAngle(const Value: Single);
     function GetRadius: Single;
@@ -33,10 +35,34 @@
     function GetStartAngle: Single;
     procedure SetStartAngle(const Value: Single);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdClosureType: TSFStringEnum;
+    { X3D field "closureType". } { }
+    public property FdClosureType: TSFStringEnum read FFdClosureType;
+    { X3D field "closureType". } { }
+    property ClosureType: TArcClosureType read GetClosureType write SetClosureType;
+
+    strict private FFdEndAngle: TSFFloat;
+    { X3D field "endAngle". } { }
+    public property FdEndAngle: TSFFloat read FFdEndAngle;
     { X3D field "endAngle". } { }
     property EndAngle: Single read GetEndAngle write SetEndAngle;
+
+    strict private FFdRadius: TSFFloat;
+    { X3D field "radius". } { }
+    public property FdRadius: TSFFloat read FFdRadius;
     { X3D field "radius". } { }
     property Radius: Single read GetRadius write SetRadius;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
+
+    strict private FFdStartAngle: TSFFloat;
+    { X3D field "startAngle". } { }
+    public property FdStartAngle: TSFFloat read FFdStartAngle;
     { X3D field "startAngle". } { }
     property StartAngle: Single read GetStartAngle write SetStartAngle;
 
@@ -45,6 +71,16 @@
 {$ifdef read_implementation}
 
 { TArcClose2DNode ----------------------------------------------- }
+
+function TArcClose2DNode.GetClosureType: TArcClosureType;
+begin
+  Result := TArcClosureType(FdClosureType.EnumValue);
+end;
+
+procedure TArcClose2DNode.SetClosureType(const Value: TArcClosureType);
+begin
+  FdClosureType.SendEnumValue(Ord(Value));
+end;
 
 function TArcClose2DNode.GetEndAngle: Single;
 begin
@@ -74,6 +110,40 @@ end;
 procedure TArcClose2DNode.SetStartAngle(const Value: Single);
 begin
   FdStartAngle.Send(Value);
+end;
+
+class function TArcClose2DNode.ClassX3DType: String;
+begin
+  Result := 'ArcClose2D';
+end;
+
+procedure TArcClose2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdClosureType := TSFStringEnum.Create(Self, False, 'closureType', ArcClosureTypeNames, Ord(acPie));
+   FdClosureType.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdClosureType);
+  { X3D specification comment: ["PIE"|"CHORD"] enumerated-type: TArcClosureType ArcClosureTypeNames acPie }
+
+  FFdEndAngle := TSFFloat.Create(Self, False, 'endAngle', Pi/2);
+   FdEndAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdEndAngle);
+  { X3D specification comment: [-2Pi,2Pi] }
+
+  FFdRadius := TSFFloat.Create(Self, False, 'radius', 1);
+   FdRadius.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdRadius);
+  { X3D specification comment: (0,Inf) }
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', false);
+   FdSolid.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSolid);
+
+  FFdStartAngle := TSFFloat.Create(Self, False, 'startAngle', 0);
+   FdStartAngle.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdStartAngle);
+  { X3D specification comment: [-2Pi,2Pi] }
 end;
 
 {$endif read_implementation}

@@ -29,8 +29,18 @@
     function GetSize: TVector2;
     procedure SetSize(const Value: TVector2);
   public
+    procedure CreateNode; override;
+    class function ClassX3DType: string; override;
+
+    strict private FFdSize: TSFVec2f;
+    { X3D field "size". } { }
+    public property FdSize: TSFVec2f read FFdSize;
     { X3D field "size". } { }
     property Size: TVector2 read GetSize write SetSize;
+
+    strict private FFdSolid: TSFBool;
+    { X3D field "solid". } { }
+    public property FdSolid: TSFBool read FFdSolid;
 
 {$endif read_interface}
 
@@ -46,6 +56,25 @@ end;
 procedure TRectangle2DNode.SetSize(const Value: TVector2);
 begin
   FdSize.Send(Value);
+end;
+
+class function TRectangle2DNode.ClassX3DType: String;
+begin
+  Result := 'Rectangle2D';
+end;
+
+procedure TRectangle2DNode.CreateNode;
+begin
+  inherited;
+
+  FFdSize := TSFVec2f.Create(Self, False, 'size', Vector2(2, 2));
+   FdSize.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSize);
+  { X3D specification comment: (0,Inf) }
+
+  FFdSolid := TSFBool.Create(Self, False, 'solid', false);
+   FdSolid.ChangeAlways := chVisibleNonGeometry;
+  AddField(FFdSolid);
 end;
 
 {$endif read_implementation}
