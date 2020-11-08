@@ -255,6 +255,114 @@ begin
   end;
 end;
 
+{ Call glTexImage2D to load given image.
+  Takes care of OpenGL(ES) unpacking (alignment etc.).
+  Assumes that image already has the right size
+  (power of 2 and within OpenGL(ES) required sizes).
+
+  Level = 0 for base (not a mipmap sublevel) image.
+
+  Target has the same meaning as for glTexImage2D.
+
+  LoadedSize will be increased. }
+procedure CastleTexImage2D(const Target: TGLenum; const Level: TGLint; const Image: TCastleImage;
+  var LoadedSize: Int64);
+begin
+  BeforeUnpackImage(Image);
+  try
+    {$ifndef OpenGLES}
+    { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
+      on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
+      enables GL_TEXTURE_2D. }
+    if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
+      glPushAttrib(GL_ENABLE_BIT);
+    {$endif}
+
+    glTexImage2D(Target, Level, ImageGLInternalFormat(Image),
+      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+      Image.RawPixels);
+    LoadedSize := LoadedSize + Image.Size;
+
+    {$ifndef OpenGLES}
+    if GLFeatures.EnableFixedFunction and GLVersion.Mesa then
+      glPopAttrib;
+    {$endif}
+  finally AfterUnpackImage(Image) end;
+end;
+
+{ Load the image, loading also mipmaps, generating mipmaps for all the levels.
+  As mipmaps only make sense for power-of-2 images,
+  this also resizes original image to be power-of-2, if necessary.
+
+  This is similar to libGLU gluBuild2DMipmaps.
+
+  Note that mipmaps are done by our code, on CPU.
+  You should prefer using OpenGL(ES) GenerateMipmap feature,
+  available on modern OpenGL and on all OpenGLES >= 2,
+  than this routine.
+
+  Target has the same meaning as for glTexImage2D.
+
+  LoadedSize will be increased. }
+procedure CastleBuild2DMipmaps(const Target: TGLenum; const Image: TCastleImage; var LoadedSize: Int64);
+const
+  Interpolation = riBilinear;
+var
+  W, H, Level: Cardinal;
+  NewImage: TCastleImage;
+begin
+  (* For history: implementation using libGLU:
+
+  BeforeUnpackImage(Image);
+  try
+    gluBuild2DMipmaps(Target, ImageInternalFormat,
+      Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
+      Image.RawPixels);
+    LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
+  finally AfterUnpackImage(Image) end;
+  *)
+
+  if Image.Depth <> 1 then
+    raise ETextureLoadError.Create('Cannot generate mipmaps on CPU for 3D texture (depth <> 1)');
+
+  WritelnWarning('CastleBuild2DMipmaps', 'Generating mipmaps on CPU for texture "%s". This indicates very old GPU (not capable of glGenerateMipmap), and will be slow.', [
+    URIDisplay(Image.URL)
+  ]);
+
+  Level := 0;
+  W := ResizeToTextureSize(Image.Width , tsScalablePowerOf2);
+  H := ResizeToTextureSize(Image.Height, tsScalablePowerOf2);
+
+  // WritelnLog('CastleBuild2DMipmaps', Format('Resizing 2D texture "%s" from %dx%d to %dx%d', [
+  //   URIDisplay(Image.URL),
+  //   Image.Width,
+  //   Image.Height,
+  //   W,
+  //   H
+  // ]));
+
+  NewImage := Image.MakeResized(W, H, riBilinear);
+  try
+    repeat
+      CastleTexImage2D(Target, Level, NewImage, LoadedSize);
+
+      if not ((W > 1) or (H > 1)) then Break; // no size > 1 ? then finish
+      if W > 1 then W := W div 2;
+      if H > 1 then H := H div 2;
+      Inc(Level);
+
+      // WritelnLog('CastleBuild2DMipmaps', Format('Resizing 2D texture "%s" from %dx%d to %dx%d', [
+      //   URIDisplay(NewImage.URL),
+      //   NewImage.Width,
+      //   NewImage.Height,
+      //   W,
+      //   H
+      // ]));
+      NewImage.Resize(W, H, riBilinear);
+    until false;
+  finally FreeAndNil(NewImage) end;
+end;
+
 { 2D texture loading --------------------------------------------------------- }
 
 function LoadGLTexture(const image: TEncodedImage;
@@ -332,46 +440,11 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId;
   const Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean);
 var
-  ImageInternalFormat: TGLuint;
-  ImageFormat: TGLuint;
   LoadedSize: Int64;
 
-  { Calls glTexImage2D for given image.
-    Takes care of OpenGL unpacking (alignment etc.).
-    Assumes that image already has the right size
-    (power of 2, within OpenGL required sizes).
-    Level = 0 for base (not a mipmap sublevel) image. }
-  procedure glTexImage2DImage(Image: TCastleImage; Level: TGLint);
+  procedure LoadNormal(const Image: TCastleImage);
   begin
-    { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
-      dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
-      jesli tekstura ma szerokosc 1 lub 2  ?
-      Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
-      wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
-      niepodzielne na 4). }
-    BeforeUnpackImage(Image);
-    try
-      {$ifndef OpenGLES}
-      { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
-        on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
-        enables GL_TEXTURE_2D. }
-      if GLVersion.Mesa then glPushAttrib(GL_ENABLE_BIT);
-      {$endif}
-
-      glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
-        Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
-        Image.RawPixels);
-      LoadedSize := LoadedSize + Image.Size;
-
-      {$ifndef OpenGLES}
-      if GLVersion.Mesa then glPopAttrib;
-      {$endif}
-    finally AfterUnpackImage(Image) end;
-  end;
-
-  procedure LoadNormal(const image: TCastleImage);
-  begin
-    glTexImage2DImage(Image, 0);
+    CastleTexImage2D(GL_TEXTURE_2D, 0, Image, LoadedSize);
   end;
 
   { Check should we load mipmaps from Composite image. Load them, if yes.
@@ -426,10 +499,11 @@ var
         CalculateImageRightSize(TCastleImage(Composite.Images[I]), GUITexture,
           ImageRightSize, ImageRightSizeFree);
         try
-          glTexImage2DImage(ImageRightSize, I);
+          CastleTexImage2D(GL_TEXTURE_2D, I, ImageRightSize, LoadedSize);
         finally
           if ImageRightSizeFree then
-            FreeAndNil(ImageRightSize) else
+            FreeAndNil(ImageRightSize)
+          else
             ImageRightSize := nil;
         end;
       end else
@@ -439,36 +513,20 @@ var
     {$endif}
   end;
 
-(* TODO:
-  { Generate mipmaps on CPU, load them.
-    (Replaces gluBuild2DMipmaps.)
-    Takes care of OpenGL unpacking (alignment etc.).
-    Doesn't require initial image to be a power of 2. }
-  procedure Build2DMipmapsImage(Image: TCastleImage);
-  begin
-    BeforeUnpackImage(Image);
-    try
-      gluBuild2DMipmaps(GL_TEXTURE_2D, ImageInternalFormat,
-        Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
-        Image.RawPixels);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
-    finally AfterUnpackImage(Image) end;
-  end;
-*)
-
-  procedure LoadMipmapped(const image: TCastleImage);
+  procedure LoadMipmapped(const Image: TCastleImage);
   begin
     if not LoadMipmapsFromComposite(CompositeForMipmaps, true) then
-    if HasGenerateMipmap then
     begin
-      glTexImage2DImage(Image, 0);
-      { hardware-accelerated mipmap generation }
-      GenerateMipmap(GL_TEXTURE_2D);
-      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
-    end else
-    begin
-      // TODO Build2DMipmapsImage(Image);
-      raise ETextureLoadError.Create('Cannot create mipmaps on CPU. We require a modern GPUs (or OpenGLES) becuse we need GenerateMipmap for this.');
+      if HasGenerateMipmap then
+      begin
+        CastleTexImage2D(GL_TEXTURE_2D, 0, Image, LoadedSize);
+        { hardware-accelerated mipmap generation }
+        GenerateMipmap(GL_TEXTURE_2D);
+        LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
+      end else
+      begin
+        CastleBuild2DMipmaps(GL_TEXTURE_2D, Image, LoadedSize);
+      end;
     end;
   end;
 
@@ -490,22 +548,21 @@ begin
   { give the texture data }
   if Image is TCastleImage then
   begin
-    ImageInternalFormat := ImageGLInternalFormat(Image);
-    ImageFormat := ImageGLFormat(TCastleImage(Image));
-
     CalculateImageRightSize(TCastleImage(Image), GUITexture,
       ImageRightSize, ImageRightSizeFree);
     try
       { Load uncompressed }
       if Filter.NeedsMipmaps then
-        LoadMipmapped(ImageRightSize) else
+        LoadMipmapped(ImageRightSize)
+      else
         LoadNormal(ImageRightSize);
 
       TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
         Filter.NeedsMipmaps, ImageRightSize.Width, ImageRightSize.Height, 1);
     finally
       if ImageRightSizeFree then
-        FreeAndNil(ImageRightSize) else
+        FreeAndNil(ImageRightSize)
+      else
         ImageRightSize := nil;
     end;
   end else

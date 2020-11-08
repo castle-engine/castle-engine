@@ -2407,6 +2407,9 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Height, Width);
+    { It is nice to keep URL meaningful,
+      shown e.g. for rotated cubemap sides loaded to OpenGL, in TextureProfiler. }
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
@@ -2417,6 +2420,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Width, Height);
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
@@ -2427,6 +2431,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
     X, Y: Integer;
   begin
     Result := TCastleImageClass(ClassType).Create(Height, Width);
+    Result.URL := URL + '[rotated]';
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
@@ -2441,7 +2446,7 @@ begin
     1: Rotate90;
     2: Rotate180;
     3: Rotate270;
-    { else Angle = 0, nothing to do }
+    else Result := MakeCopy; // else Angle = 0
   end;
 end;
 
@@ -2449,6 +2454,8 @@ procedure TCastleImage.Rotate(const Angle: Integer);
 var
   New: TCastleImage;
 begin
+  if Angle mod 4 = 0 then Exit; // nothing to do
+
   New := MakeRotated(Angle);
   try
     Assign(New);
