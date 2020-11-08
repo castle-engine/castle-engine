@@ -89,7 +89,7 @@ begin System.Writeln(ErrOutput, s); end;
 
 procedure TProgressConsoleInterface.Init(Progress: TProgress);
 var
-  LeftSpace, RightSpace: integer;
+  LeftSpace, RightSpace: Integer;
 begin
   if Length(Progress.Title) > ConsoleWidth-2 then
   begin
@@ -111,7 +111,7 @@ end;
 
 procedure TProgressConsoleInterface.Update(Progress: TProgress);
 var
-  DotsNow: integer;
+  DotsNow: Integer;
 begin
   DotsNow := Progress.Position * ConsoleWidth div Progress.Max;
   if DotsNow > DotsWritten then

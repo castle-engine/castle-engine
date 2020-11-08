@@ -175,7 +175,7 @@ var
     Vertex must be present at least once on a given face.
     Works OK also in cases when vertex is duplicated (present more than once)
     on a single face. }
-  procedure SetNormal(VertexNum: integer; const face: TFace; const Normal: TVector3);
+  procedure SetNormal(VertexNum: Integer; const face: TFace; const Normal: TVector3);
   var
     I: Integer;
     Found: Boolean;
@@ -196,7 +196,7 @@ var
     ThisVertexFaces: TIntegerList;
 
     { Can face FaceNum1 be smoothed together with face FaceNum2. }
-    function FaceCanBeSmoothedWith(const FaceNum1, FaceNum2: integer): Boolean;
+    function FaceCanBeSmoothedWith(const FaceNum1, FaceNum2: Integer): Boolean;
     begin
       Result :=
         { I want to check that

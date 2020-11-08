@@ -58,7 +58,7 @@ type
     { Messages, ordered from oldest (new mesages are added at the end).}
     Messages: TNotificationList;
     FColor: TCastleColor;
-    FMaxMessages: integer;
+    FMaxMessages: Integer;
     FTimeout, FFade: Single;
     FHistory: TCastleStringList;
     FCollectHistory: Boolean;
@@ -99,7 +99,7 @@ type
     property History: TCastleStringList read FHistory;
   published
     { How many message lines should be visible on the screen, at maximum.  }
-    property MaxMessages: integer
+    property MaxMessages: Integer
       read FMaxMessages write FMaxMessages default DefaultMaxMessages;
 
     { How long a given message should be visible on the screen, in seconds.
@@ -195,15 +195,15 @@ procedure TCastleNotifications.Show(S: TStringList);
   procedure AddStrings(S: TStrings);
   var
     N: TNotification;
-    i: integer;
+    I: Integer;
   begin
     { Below could be optimized. But we use this only for a small number
       of messages, so no need to. }
-    for i := 0 to S.Count - 1 do
+    for I := 0 to S.Count - 1 do
     begin
       if Messages.Count = MaxMessages then Messages.Delete(0);
       N := TNotification.Create;
-      N.Text := S[i];
+      N.Text := S[I];
       N.Time := Timer;
       N.Width := Font.TextWidth(N.Text);
       N.Color := Color;
@@ -255,7 +255,7 @@ end;
 
 procedure TCastleNotifications.PreferredSize(var PreferredWidth, PreferredHeight: Single);
 var
-  I: integer;
+  I: Integer;
 begin
   inherited;
   PreferredWidth := 0;
@@ -266,7 +266,7 @@ end;
 
 procedure TCastleNotifications.Render;
 var
-  I: integer;
+  I: Integer;
   SR: TFloatRectangle;
 begin
   SR := RenderRect;
@@ -284,7 +284,7 @@ procedure TCastleNotifications.Update(const SecondsPassed: Single;
 var
   TimerNow: TTimerResult;
   TimeoutToFade: TFloatTime;
-  I: integer;
+  I: Integer;
   C: TCastleColor;
 begin
   inherited;

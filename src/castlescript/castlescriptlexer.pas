@@ -173,13 +173,13 @@ const
      (tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
       tokEqual, tokPlus, tokMinus, tokMultiply, tokDivide, tokComma, tokLParen, tokRParen,
       tokPower, tokLQaren, tokRQaren, tokModulo, tokSemicolon, tokAssignment);
-  var i: integer;
+  var I: Integer;
   begin
-   for i := 0 to High(toks_strs) do
-    if Copy(text, TextPos, Length(toks_strs[i])) = toks_strs[i] then
+   for I := 0 to High(toks_strs) do
+    if Copy(text, TextPos, Length(toks_strs[I])) = toks_strs[I] then
     begin
-     ftoken := toks_tokens[i];
-     Inc(fTextPos, Length(toks_strs[i]));
+     ftoken := toks_tokens[I];
+     Inc(fTextPos, Length(toks_strs[I]));
      result := true;
      exit;
     end;
@@ -272,7 +272,7 @@ const
     Always returns non-empty string (length >= 1) }
   const identStartChars = Letters;
         identChars = identStartChars + digits;
-  var startPos: integer;
+  var startPos: Integer;
   begin
    if not (text[fTextPos] in identStartChars) then
     raise ECasScriptLexerError.CreateFmt(Self,
@@ -314,7 +314,7 @@ const
     1, 2, 3, 4, 5, 6, 7, 8, 9,10,
    11,12,13,14,15,16,17,18,19,20 );
 var
-  p: integer;
+  p: Integer;
   fc: TCasScriptFunctionClass;
 begin
  OmitWhiteSpace;

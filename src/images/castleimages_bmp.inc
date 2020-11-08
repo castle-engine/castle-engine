@@ -56,12 +56,12 @@ function LoadBMP(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
-    paletteSize: integer;    { rozmiar palety (0 jesli brak) }
+    paletteSize: Integer;    { rozmiar palety (0 jesli brak) }
     palette: PRGBQuadArray; { odczytana paleta (nil jesli paletteSize = 0) }
-    rowLength: integer;      { dlugosc wiersza (bez 32bit padding !) }
-    rownum: integer;
+    rowLength: Integer;      { dlugosc wiersza (bez 32bit padding !) }
+    rownum: Integer;
 
-  procedure PutPaletteColor(paletteIndex: integer; var rgb3: TVector3Byte);
+  procedure PutPaletteColor(paletteIndex: Integer; var rgb3: TVector3Byte);
   { ustaw rgb3 na kolor numer paletteIndex wziety z palety }
   begin
    rgb3.Data[0] := palette^[paletteIndex].red;
@@ -80,7 +80,7 @@ var fhead: TBitmapFileHeader;
     end;
 
   var
-    bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
+    bmpi, rgbi: Integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
     rgbrow: PVector3ByteArray absolute Row;
     rgbarow: PVector4ByteArray absolute Row;
   begin
@@ -141,7 +141,7 @@ var fhead: TBitmapFileHeader;
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
-var i: integer;
+var I: Integer;
     rowsGoingUp: Boolean;
     rowdata: PByteArray;
     NewResult: TEncodedImage;
@@ -286,7 +286,7 @@ end;
 procedure SaveBMP(Img: TEncodedImage; Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
-    i, j, rowPaddedLength, PadSize: Cardinal;
+    I, J, rowPaddedLength, PadSize: Cardinal;
     p :PVector3Byte;
     row, rowdata :PRGB_BMP24;
 begin

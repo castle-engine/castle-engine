@@ -26,7 +26,7 @@ uses SysUtils, Generics.Collections,
 type
   EBox3DEmpty = class(Exception);
 
-  TGetIndexFromIndexNumFunc = function (indexNum: integer): integer of object;
+  TGetIndexFromIndexNumFunc = function (indexNum: Integer): Integer of object;
 
   { State of collision between a plane and some other object.
 
@@ -607,7 +607,7 @@ function CalculateBoundingBox(Verts: TVector3List;
   const Transform: TMatrix4): TBox3D; overload;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
-  VertsCount: integer): TBox3D; overload;
+  VertsCount: Integer): TBox3D; overload;
 { @groupEnd }
 
 { Calculate bounding box of a set of indexed 3D points.
@@ -628,11 +628,11 @@ function CalculateBoundingBox(
   @groupBegin }
 function CalculateBoundingBoxFromIndices(
   const GetVertIndex: TGetIndexFromIndexNumFunc;
-  const VertsIndicesCount: integer;
+  const VertsIndicesCount: Integer;
   const GetVertex: TGetVertexFromIndexFunc): TBox3D; overload;
 function CalculateBoundingBoxFromIndices(
   const GetVertIndex: TGetIndexFromIndexNumFunc;
-  const VertsIndicesCount: integer;
+  const VertsIndicesCount: Integer;
   const GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4): TBox3D; overload;
 { @groupEnd }
@@ -1120,10 +1120,10 @@ function TBox3D.Transform(
   function Slower(const Matrix: TMatrix4): TBox3D;
   var
     BoxPoints: TBoxCorners;
-    i: integer;
+    I: Integer;
   begin
     Corners(BoxPoints);
-    for i := 0 to 7 do BoxPoints[i] := Matrix.MultPoint(BoxPoints[i]);
+    for I := 0 to 7 do BoxPoints[I] := Matrix.MultPoint(BoxPoints[I]);
 
     { Non-optimized version:
         Result := CalculateBoundingBox(@BoxPoints, 8, 0);
@@ -1306,12 +1306,12 @@ function TBox3D.TryRayClosestIntersection(
 var
   IntrProposed: Boolean absolute result;
 
-  procedure ProposeBoxIntr(const PlaneConstCoord: integer;
+  procedure ProposeBoxIntr(const PlaneConstCoord: Integer;
     const PlaneConstValue: Single);
   var
     NowIntersection: TVector3;
     NowIntersectionDistance: Single;
-    c1, c2: integer;
+    c1, c2: Integer;
   begin
     if TrySimplePlaneRayIntersection(NowIntersection, NowIntersectionDistance,
       PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
@@ -1332,7 +1332,7 @@ var
   end;
 
 var
-  I: integer;
+  I: Integer;
 begin
   IntrProposed := false;
   for I := 0 to 2 do
@@ -1406,11 +1406,11 @@ end;
 function TBox3D.SegmentCollision(
   const Segment1, Segment2: TVector3): Boolean;
 
-  function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
+  function IsCollisionWithBoxPlane(const PlaneConstCoord: Integer;
     const PlaneConstValue: Single): Boolean;
   var
     NowIntersection: TVector3;
-    c1, c2: integer;
+    c1, c2: Integer;
   begin
     if TrySimplePlaneSegmentIntersection(NowIntersection,
       PlaneConstCoord, PlaneConstValue, Segment1, Segment2) then
@@ -1424,7 +1424,7 @@ function TBox3D.SegmentCollision(
   end;
 
 var
-  I: integer;
+  I: Integer;
 begin
   for I := 0 to 2 do
   begin
@@ -2377,7 +2377,7 @@ end;
 
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
-  VertsCount: integer): TBox3D;
+  VertsCount: Integer): TBox3D;
 var
   I: Integer;
   V: TVector3;
@@ -2407,16 +2407,16 @@ type
     Verts: PVector3;
     VertsStride: Cardinal; { tutaj VertsStride juz nie moze byc = 0 }
     PMatrix: PMatrix4;
-    function GetVertexNotTransform(index: integer): TVector3;
-    function GetVertexTransform(index: integer): TVector3;
+    function GetVertexNotTransform(index: Integer): TVector3;
+    function GetVertexTransform(index: Integer): TVector3;
   end;
 
-  function TBBox_Calculator.GetVertexNotTransform(index: integer): TVector3;
+  function TBBox_Calculator.GetVertexNotTransform(index: Integer): TVector3;
   begin
    result := PVector3(PointerAdd(Verts, VertsStride*Cardinal(index)))^;
   end;
 
-  function TBBox_Calculator.GetVertexTransform(index: integer): TVector3;
+  function TBBox_Calculator.GetVertexTransform(index: Integer): TVector3;
   begin
    result := PMatrix^.MultPoint(PVector3(PointerAdd(Verts, VertsStride*Cardinal(index)))^);
   end;
@@ -2467,14 +2467,14 @@ end;
 
 function CalculateBoundingBoxFromIndices(
   const GetVertIndex: TGetIndexFromIndexNumFunc;
-  const VertsIndicesCount: integer;
+  const VertsIndicesCount: Integer;
   const GetVertex: TGetVertexFromIndexFunc): TBox3D;
 var
   { pozycja pierwszego nieujemnego indexu.
     Zwracamy TBox3D.Empty wtw. gdy firstIndex nie istnieje }
-  FirstIndexNum: integer;
+  FirstIndexNum: Integer;
 
-  IndexNum, Index: integer;
+  IndexNum, Index: Integer;
   ThisVertex: TVector3;
 begin
   {seek for firstIndex}
@@ -2523,16 +2523,16 @@ type
   TVertTransform_Calculator = class
     PTransform: PMatrix4;
     GetNotTransformed: TGetVertexFromIndexFunc;
-    function GetTransformed(index: integer): TVector3;
+    function GetTransformed(index: Integer): TVector3;
   end;
-  function TVertTransform_Calculator.GetTransformed(index: integer): TVector3;
+  function TVertTransform_Calculator.GetTransformed(index: Integer): TVector3;
   begin
     result := PTransform^.MultPoint(GetNotTransformed(index));
   end;
 
 function CalculateBoundingBoxFromIndices(
   const GetVertIndex: TGetIndexFromIndexNumFunc;
-  const VertsIndicesCount: integer;
+  const VertsIndicesCount: Integer;
   const GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4): TBox3D;
 var

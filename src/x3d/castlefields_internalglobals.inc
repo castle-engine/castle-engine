@@ -33,16 +33,16 @@ end;
 
 procedure ParseVector(var Vector: array of Single; Lexer: TX3DLexer); overload;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
+  for I := 0 to High(Vector) do Vector[I] := ParseFloat(Lexer);
 end;
 
 procedure ParseVector(var Vector: array of Double; Lexer: TX3DLexer); overload;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
+  for I := 0 to High(Vector) do Vector[I] := ParseFloat(Lexer);
 end;
 
 function ParseLongWord(Lexer: TX3DLexer): LongWord;

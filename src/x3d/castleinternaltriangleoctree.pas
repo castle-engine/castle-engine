@@ -40,8 +40,8 @@ type
 
   TTriangleOctreeNode = class(TBaseTrianglesOctreeNode)
   protected
-    function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
-    procedure PutItemIntoSubNodes(ItemIndex: integer); override;
+    function ItemBoundingBox(const ItemIndex: Integer): TBox3D; override;
+    procedure PutItemIntoSubNodes(ItemIndex: Integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
       const Radius: Single;
@@ -81,7 +81,7 @@ type
       const IgnoreMarginAtStart: Boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
   strict private
-    function GetItems(ItemIndex: integer): PTriangle;
+    function GetItems(ItemIndex: Integer): PTriangle;
   public
     function ParentTree: TTriangleOctree;
 
@@ -89,7 +89,7 @@ type
       This is a more comfortable way to access ItemsIndices array.
       Given ItemIndex indexes our ItemsIndices, and we return
       @code(ParentTree.Triangles[ItemsIndices[ItemIndex]]). }
-    property Items[ItemIndex: integer]: PTriangle read GetItems;
+    property Items[ItemIndex: Integer]: PTriangle read GetItems;
 
     function SphereCollision(const pos: TVector3;
       const Radius: Single;
@@ -214,7 +214,7 @@ uses CastleShapes;
 
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
-function TTriangleOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
+function TTriangleOctreeNode.ItemBoundingBox(const ItemIndex: Integer): TBox3D;
 var
   Triangle: PTriangle3;
 begin
@@ -222,7 +222,7 @@ begin
   Result := TriangleBoundingBox(Triangle^);
 end;
 
-procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: Integer);
 var
   AddedSomewhere: Boolean;
   Triangle: PTriangle3;
@@ -305,7 +305,7 @@ begin
  Result := TTriangleOctree(InternalParentTree);
 end;
 
-function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
+function TTriangleOctreeNode.GetItems(ItemIndex: Integer): PTriangle;
 begin
  result := ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]);
 end;
@@ -325,12 +325,12 @@ function TTriangleOctreeNode.CommonSphereLeaf(const pos: TVector3;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to ItemsIndices.Count - 1 do
+  for I := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(TriangleCollisionTestsCounter);
-    Result := Items[i];
+    Result := Items[I];
     if IsTriangleSphereCollision(Result^.Local.Triangle,
       Result^.Local.Plane, pos, Radius) and
       (TriangleToIgnore <> Result) and
@@ -363,12 +363,12 @@ function TTriangleOctreeNode.CommonSphere2DLeaf(const pos: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to ItemsIndices.Count - 1 do
+  for I := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(TriangleCollisionTestsCounter);
-    Result := Items[i];
+    Result := Items[I];
     if IsTriangleSphereCollision2D(Result^.Local.Triangle, pos, Radius) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
@@ -398,12 +398,12 @@ function TTriangleOctreeNode.CommonPoint2DLeaf(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to ItemsIndices.Count - 1 do
+  for I := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(TriangleCollisionTestsCounter);
-    Result := Items[i];
+    Result := Items[I];
     if IsPointWithinTriangle2D(Point, Result^.Local.Triangle) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
@@ -432,12 +432,12 @@ function TTriangleOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to ItemsIndices.Count - 1 do
+  for I := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(TriangleCollisionTestsCounter);
-    Result := Items[i];
+    Result := Items[I];
     if ABox.IsTriangleCollision(Result^.Local.Triangle) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or

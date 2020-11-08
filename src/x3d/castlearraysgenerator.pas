@@ -130,7 +130,7 @@ type
 
     { Get vertex coordinate. Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
-    function GetVertex(IndexNum: integer): TVector3;
+    function GetVertex(IndexNum: Integer): TVector3;
 
     { Count of indexes. You can pass index between 0 and CoordCount - 1
       to various methods taking an index, like GenerateVertex. }
@@ -415,9 +415,9 @@ type
       Overloaded version with only TVector2 just ignores the 3rd and
       4th texture coordinate, working only when texture coord is
       normal 2D coord. }
-    function GetTextureCoord(IndexNum: integer;
+    function GetTextureCoord(IndexNum: Integer;
       const TextureUnit: Cardinal; out Tex: TVector4): Boolean;
-    function GetTextureCoord(IndexNum: integer;
+    function GetTextureCoord(IndexNum: Integer;
       const TextureUnit: Cardinal; out Tex: TVector2): Boolean;
 
     procedure PrepareAttributes(var AllowIndexed: Boolean); override;
@@ -479,7 +479,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: Boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: integer); override;
+      BeginIndex, EndIndex: Integer); override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: Boolean); override;
   end;
@@ -537,7 +537,7 @@ type
     ColorNode: TAbstractColorNode;
 
     procedure PrepareAttributes(var AllowIndexed: Boolean); override;
-    procedure GenerateVertex(IndexNum: integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
@@ -852,7 +852,7 @@ begin
   { nothing to do in this class }
 end;
 
-procedure TArraysGenerator.GenerateVertex(IndexNum: integer);
+procedure TArraysGenerator.GenerateVertex(IndexNum: Integer);
 begin
   if CoordIndex <> nil then
   begin
@@ -863,7 +863,7 @@ begin
     ArrayIndexNum := IndexNum;
 end;
 
-function TArraysGenerator.GetVertex(IndexNum: integer): TVector3;
+function TArraysGenerator.GetVertex(IndexNum: Integer): TVector3;
 begin
   { This assertion should never fail, it's the responsibility
     of the programmer. }
@@ -947,7 +947,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     { Setup and enable glTexGen to make automatic 2D texture coords
       based on shape bounding box. On texture unit 0. }
     procedure SetupCoordGen(out Gen: TVector4;
-      const Coord: integer; const GenStart, GenEnd: Single);
+      const Coord: Integer; const GenStart, GenEnd: Single);
 
     { We want to map float from range
         LocalBBox[0, Coord]...LocalBBox[0, Coord] + LocalBBoxSize[Coord]
@@ -983,7 +983,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    SCoord, TCoord: integer;
+    SCoord, TCoord: Integer;
   begin
     LocalBBox := Shape.LocalBoundingBox;
 
@@ -1237,7 +1237,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     We also set TexImplementation := tcAllGenerated. }
   procedure Bounds2DTextureGen;
   var
-    I: integer;
+    I: Integer;
     TexGenVectors: TTextureGenerationVectors;
   begin
     TexGenVectors := Bounds2DTextureGenVectors;
@@ -1405,7 +1405,7 @@ begin
 end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
-  IndexNum: integer; const TextureUnit: Cardinal;
+  IndexNum: Integer; const TextureUnit: Cardinal;
   out Tex: TVector4): Boolean;
 
   function GenerateTexCoord(const TexCoord: TGeometryTexCoord): TVector4;
@@ -1496,7 +1496,7 @@ begin
 end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
-  IndexNum: integer; const TextureUnit: Cardinal;
+  IndexNum: Integer; const TextureUnit: Cardinal;
   out Tex: TVector2): Boolean;
 var
   Tex4f: TVector4;
@@ -1506,7 +1506,7 @@ begin
   Tex[1] := Tex4f[1];
 end;
 
-procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: integer);
+procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: Integer);
 
   procedure DoTexCoord(Index: Integer);
   var
@@ -1684,7 +1684,7 @@ begin
   end;
 end;
 
-procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
+procedure TAbstractColorGenerator.GenerateVertex(IndexNum: Integer);
 var
   VertexColor: TCastleColorRGB;
   VertexIndex: Cardinal;

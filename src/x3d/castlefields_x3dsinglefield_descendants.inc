@@ -29,21 +29,21 @@
       Actually, defined field values have no more than 3 fields, and
       VRML > 1.0 dropped SFBitMask entirely. So 32 is always enough. }
     fFlags: set of 0..31;
-    function GetFlags(i: integer): Boolean;
-    procedure SetFlags(i: integer; value: Boolean);
-    function GetFlagNames(i: integer): string;
+    function GetFlags(I: Integer): Boolean;
+    procedure SetFlags(I: Integer; value: Boolean);
+    function GetFlagNames(I: Integer): string;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
-    property Flags[i: integer]:Boolean read GetFlags write SetFlags;
-    function FlagsCount: integer;
+    property Flags[I: Integer]:Boolean read GetFlags write SetFlags;
+    function FlagsCount: Integer;
 
     { Names of the flags that can be "on" or "off".
       Note that this cannot be initialized by CreateUndefined,
       so you always must initialize this field using the @link(Create)
       overload that takes AFlagNames parameter. }
-    property FlagNames[i: integer]:string read GetFlagNames;
+    property FlagNames[I: Integer]:string read GetFlagNames;
 
     { Special strings that will be understood by parser as ALL or NONE
       bit values. AllString selects all flags, NoneString selects none.
@@ -117,27 +117,27 @@
   TSFEnum = class(TX3DSingleField)
   strict private
     FEnumNames: TStringList;
-    function GetEnumNames(i: integer): string;
+    function GetEnumNames(i: Integer): string;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value between 0 .. EnumCount - 1. By default 0. }
-    Value: integer;
+    Value: Integer;
 
-    DefaultValue: integer;
+    DefaultValue: Integer;
     DefaultValueExists: Boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: Boolean; const AName: string;
-      const AEnumNames: array of string; const AValue: integer);
+      const AEnumNames: array of string; const AValue: Integer);
     destructor Destroy; override;
 
     { Names of the enumerated values.
       Note that this cannot be initialized by CreateUndefined,
       so you always must initialize this field using the @link(Create)
       overload that takes AEnumNames parameter. }
-    property EnumNames[i: integer]:string read GetEnumNames;
-    function EnumNamesCount: integer;
+    property EnumNames[i: Integer]:string read GetEnumNames;
+    function EnumNamesCount: Integer;
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: Boolean; override;
@@ -1351,7 +1351,7 @@ end;
 
 procedure TSFGenericMatrix.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  Column, Row: integer;
+  Column, Row: Integer;
 begin
   for Column := 0 to MatrixSize - 1 do
   begin
@@ -1372,7 +1372,7 @@ end;
 procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TItemColumn;
-  Column: integer;
+  Column: Integer;
 begin
   V.Data := FValue.Data[0];
   Writer.Writeln(V.ToRawString);
@@ -1804,7 +1804,7 @@ end;
 { TSFStringEnum -------------------------------------------------------------- }
 
 constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: Boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: Boolean; const AName: string; const AEnumNames: array of string; const AValue: Integer);
 begin
   FEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, FEnumNames);
@@ -1847,7 +1847,7 @@ end;
 procedure TSFStringEnum.SetValue(const NewValue: string);
 begin
   inherited SetValue(NewValue);
-  { calculate new FEnumValue, IOW convert string NewValue to integer }
+  { calculate new FEnumValue, IOW convert string NewValue to Integer }
   FEnumValue := StringToEnumValue(NewValue);
 end;
 
@@ -2062,13 +2062,13 @@ constructor TSFBitMask.Create(const AParentNode: TX3DFileItem;
   const AExposed: Boolean; const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of Boolean);
 var
-  i: integer;
+  I: Integer;
 begin
   inherited Create(AParentNode, AExposed, AName);
 
   fFlagNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AFlagNames, fFlagNames);
-  for i := 0 to FlagsCount-1 do Flags[i] := AFlags[i];
+  for I := 0 to FlagsCount-1 do Flags[I] := AFlags[I];
   fNoneString := ANoneString;
   fAllString := AAllString;
 
@@ -2081,36 +2081,36 @@ begin
   inherited;
 end;
 
-function TSFBitMask.GetFlags(i: integer): Boolean;
+function TSFBitMask.GetFlags(I: Integer): Boolean;
 begin
-  result := i in fFlags
+  Result := I in fFlags
 end;
 
-procedure TSFBitMask.SetFlags(i: integer; value: Boolean);
+procedure TSFBitMask.SetFlags(I: Integer; value: Boolean);
 begin
-  if value then Include(fFlags, i) else Exclude(fFlags, i)
+  if value then Include(fFlags, I) else Exclude(fFlags, I)
 end;
 
-function TSFBitMask.FlagsCount: integer;
+function TSFBitMask.FlagsCount: Integer;
 begin
   result := fFlagNames.Count
 end;
 
-function TSFBitMask.GetFlagNames(i: integer): string;
+function TSFBitMask.GetFlagNames(I: Integer): string;
 begin
-  result := fFlagNames[i]
+  result := fFlagNames[I]
 end;
 
 procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure InterpretTokenAsFlagName;
   var
-    i: integer;
+    I: Integer;
   begin
     Lexer.CheckTokenIs(vtName, 'bit mask constant');
-    i := fFlagNames.IndexOf(Lexer.TokenName);
-    if i >= 0 then
-      Flags[i] := true else
+    I := fFlagNames.IndexOf(Lexer.TokenName);
+    if I >= 0 then
+      Flags[I] := true else
     if Lexer.TokenName = fAllString then
       fFlags := [0..FlagsCount-1] else
     if Lexer.TokenName = fNoneString then
@@ -2141,16 +2141,16 @@ end;
 
 function TSFBitMask.AreAllFlags(value: Boolean): Boolean;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to FlagsCount-1 do
-    if Flags[i] <> value then exit(false);
+  for I := 0 to FlagsCount-1 do
+    if Flags[I] <> value then Exit(false);
   exit(true);
 end;
 
 procedure TSFBitMask.SaveToStreamValue(Writer: TX3DWriter);
 var
-  i: integer;
+  I: Integer;
   PrecedeWithBar: Boolean;
 begin
   { This is an VRML 1.0 (and Inventor) type. The existing specs only say
@@ -2165,11 +2165,11 @@ begin
     begin
       PrecedeWithBar := false;
       Writer.Write('(');
-      for i := 0 to FlagsCount-1 do
-        if Flags[i] then
+      for I := 0 to FlagsCount-1 do
+        if Flags[I] then
         begin
           if PrecedeWithBar then Writer.Write('|') else PrecedeWithBar := true;
-          Writer.Write(FlagNames[i]);
+          Writer.Write(FlagNames[I]);
         end;
       Writer.Write(')');
     end;
@@ -2217,7 +2217,7 @@ end;
 { TSFEnum ----------------------------------------------------------------- }
 
 constructor TSFEnum.Create(const AParentNode: TX3DFileItem;
-  const AExposed: Boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
+  const AExposed: Boolean; const AName: string; const AEnumNames: array of string; const AValue: Integer);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -2233,26 +2233,26 @@ begin
   inherited;
 end;
 
-function TSFEnum.GetEnumNames(i: integer): string;
+function TSFEnum.GetEnumNames(I: Integer): string;
 begin
-  result := FEnumNames[i]
+  Result := FEnumNames[I]
 end;
 
 function TSFEnum.EnumNamesCount: integer;
 begin
-  result := FEnumNames.Count
+  Result := FEnumNames.Count
 end;
 
 procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  val: integer;
+  Val: Integer;
 begin
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
-  val := FEnumNames.IndexOf(Lexer.TokenName);
-  if val = -1 then
+  Val := FEnumNames.IndexOf(Lexer.TokenName);
+  if Val = -1 then
    raise EX3DParserError.Create(Lexer,
-     'Expected enumerated type constant, got '+Lexer.DescribeToken);
-  Value := val;
+     'Expected enumerated type constant, got ' + Lexer.DescribeToken);
+  Value := Val;
   Lexer.NextToken;
 end;
 

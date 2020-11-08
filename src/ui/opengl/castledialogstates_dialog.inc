@@ -44,7 +44,7 @@
     MaxLineWidth: Single;
     { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
-    AllScrolledLinesCount: integer;
+    AllScrolledLinesCount: Integer;
 
     { Things below set in MessageCore, readonly afterwards. }
     { Main text to display. Read-only contents. }

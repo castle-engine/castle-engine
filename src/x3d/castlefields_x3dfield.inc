@@ -591,7 +591,7 @@
     property ByName[const AName: string]: TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
-    function IndexOfName(const AName: string): integer;
+    function IndexOfName(const AName: string): Integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
       exposed fields (i.e. set_xxx or xxx_changed). If yes, then
@@ -1183,7 +1183,7 @@ end;
 
 { TX3DFieldList ------------------------------------------------------------- }
 
-function TX3DFieldList.IndexOfName(const AName: string): integer;
+function TX3DFieldList.IndexOfName(const AName: string): Integer;
 begin
   for Result := 0 to Count-1 do
     if Items[Result].IsName(AName) then
@@ -1193,7 +1193,7 @@ end;
 
 function TX3DFieldList.GetByName(const AName: string): TX3DField;
 var
-  I: integer;
+  I: Integer;
 begin
   I := IndexOfName(AName);
   if I <> -1 then

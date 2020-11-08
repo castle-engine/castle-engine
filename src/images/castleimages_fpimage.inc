@@ -36,12 +36,12 @@ begin
   //Result := CreateFPCompactImg(GetFPCompactImgDesc(false, 8, true), Width, Height);
 end;
 
-function TInternalCastleFpImage.GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
+function TInternalCastleFpImage.GetColors8Bit(const x, y: Integer): TFPCompactImgRGBA8BitValue;
 begin
   Result := FData[X + Y * Width];
 end;
 
-procedure TInternalCastleFpImage.SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+procedure TInternalCastleFpImage.SetColors8Bit(const x, y: Integer; const Value: TFPCompactImgRGBA8BitValue);
 begin
   FData[X + Y * Width] := Value;
 end;

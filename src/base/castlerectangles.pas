@@ -52,7 +52,7 @@ type
     vpTop
   );
 
-  { 2D rectangle with @bold(integer) coordinates.
+  { 2D rectangle with @bold(Integer) coordinates.
     Useful for various 2D GUI operations.
 
     The area covered by the rectangle starts in (Left,Bottom)

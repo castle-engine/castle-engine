@@ -59,10 +59,10 @@ type
 { }
 function XSetStandardProperties(dpy: PDisplay; win: TWindow; window_name: PChar;
   icon_name: PChar; icon_pixmap: TPixmap; argv: PPChar; argc: Integer;
-  hints: PXSizeHints): integer; cdecl; external XLibDLL;
+  hints: PXSizeHints): Integer; cdecl; external XLibDLL;
 function XSetStandardProperties_Pascal(dpy: PDisplay; win: TWindow;
   window_name: PChar; icon_name: PChar; icon_pixmap: TPixmap; hints: PXSizeHints)
-  :integer;
+  :Integer;
 
 procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
   WindowName: PXTextProperty; IconName: PXTextProperty;
@@ -73,13 +73,13 @@ procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
 
 { }
 function XParseGeometry(parsestring: PChar; x_return, y_return: PInteger;
-  width_return, height_return: PLongWord): integer; cdecl; external XlibDLL;
+  width_return, height_return: PLongWord): Integer; cdecl; external XlibDLL;
 
 { ---------------------------------------------------------------------------- }
 { @section(Xmu/StdCmap.h (XmuDLL)) }
 
 { }
-function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
+function XmuLookupStandardColormap(dpy: PDisplay; screen: Integer;
   AVisualid: TVisualID; depth: LongWord; AProperty: TAtom; replace, retain: XBool)
   :TStatus; cdecl; external XmuDLL;
 
@@ -93,27 +93,27 @@ procedure CreateArgCV(out argc_ret: LongInt; out argv_ret: PPChar);
 { Na podstawie ParamCount i ParamStr konstruujemy argc i argv
   aby udawaly parametry main () z ANSI C.
   Zawsze zwalniaj potem z pamieci argv przez DestroyArgV. }
-var i: Integer;
+var I: Integer;
     argv: PPCharArray absolute argv_ret;
 begin
  argc_ret := ParamCount+1;
  GetMem(Pointer(argv),(argc_ret+1)*SizeOf(PChar));
- for i := 0 to ParamCount do
-  argv^[i] := StrNew(PChar(ParamStr(i))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
+ for I := 0 to ParamCount do
+  argv^[I] := StrNew(PChar(ParamStr(I))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
  argv^[argc_ret] := nil; { ostatni element tablicy argv[] powinien byc ustawiony na nil }
 end;
 
 procedure DestroyArgV(var argv_ret: PPChar);
-var i: integer;
+var I: Integer;
     argv: PPCharArray absolute argv_ret;
 begin
- for i := 0 to ParamCount do StrDispose(argv^[i]);
+ for I := 0 to ParamCount do StrDispose(argv^[I]);
  FreeMemNiling(Pointer(argv));
 end;
 
 function XSetStandardProperties_Pascal(dpy: PDisplay; win: TWindow;
   window_name: PChar; icon_name: PChar;icon_pixmap: TPixmap;
-  hints: PXSizeHints): integer;
+  hints: PXSizeHints): Integer;
 { simplified version of XSetStandardProperties }
 var argc: LongInt;
     argv: PPChar;
@@ -139,7 +139,7 @@ end;
 { some mine things ------------------------------------------------------------ }
 
 function XlibErrorHandler_RaiseEXlibError(display: PDisplay; error: PXErrorEvent)
-  :integer; cdecl;
+  :Integer; cdecl;
 { rzuca wyjatek EXlibError z odpowiednio skonstruowanym Text'em.
   Ta funkcja jest dobra aby ja zarejestrowac przez XSetErrorHandler. }
 var error_name_buf, major_request_name_buf :array[0..1023] of Char;

@@ -914,7 +914,7 @@ end;
   using ExpandFileName. }
 
 function ParentPath(DirName: string; DoExpandDirName: Boolean): string;
-var p: integer;
+var P: Integer;
 begin
 {$ifdef MSWINDOWS}
  { if it's only drive name - return(dirname) }
@@ -929,8 +929,8 @@ begin
  if DoExpandDirName then
   DirName := ExpandFileName(DirName);
  DirName := ExclPathDelim(DirName);
- p := LastDelimiter(PathDelim, DirName);
- if p>0 then Result := Copy(DirName,1,p) else Result := RootDir;
+ P := LastDelimiter(PathDelim, DirName);
+ if P > 0 then Result := Copy(DirName, 1 , P) else Result := RootDir;
 end;
 
 function CombinePaths(BasePath, RelPath: string): string;

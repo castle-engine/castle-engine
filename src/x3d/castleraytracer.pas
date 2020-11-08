@@ -633,7 +633,7 @@ var
     end;
 
   var
-    i: integer;
+    I: Integer;
     Lights: TLightInstancesList;
     MaterialInfo: TMaterialInfo;
     DiffuseTextureColor: TCastleColorRGB;
@@ -676,9 +676,9 @@ var
       begin
         Lights := State.Lights;
         if Lights <> nil then
-          for i := 0 to Lights.Count - 1 do
-            if LightNotBlocked(Lights.List^[i]) then
-              Result := Result + Lights.List^[i].Contribution(Intersection,
+          for I := 0 to Lights.Count - 1 do
+            if LightNotBlocked(Lights.List^[I]) then
+              Result := Result + Lights.List^[I].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add BaseLights contribution, just like other lights.
@@ -1068,7 +1068,7 @@ const
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
         SampleLightPoint: TVector3;
         DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3;
-        i: integer;
+        I: Integer;
       begin
         Result := TVector3.Zero;
 
@@ -1078,7 +1078,7 @@ const
           DirectIllumSamplesCount). }
         if (LightItems.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
 
-        for i := 0 to DirectIllumSamplesCount - 1 do
+        for I := 0 to DirectIllumSamplesCount - 1 do
         begin
           { calculate LightSourceIndiceIndex, LightSourceIndex, LightSource }
           LightSourceIndiceIndex := Random(LightItems.Count);

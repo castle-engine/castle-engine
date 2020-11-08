@@ -324,7 +324,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: Bo
   var
     LocalPath: string;
     FileRec: TSearchRec;
-    SearchError: integer;
+    SearchError: Integer;
   begin
     if Path <> '' then
       LocalPath := URIToFilenameSafe(Path)

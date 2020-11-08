@@ -344,7 +344,7 @@ end;
 
 function TX3DEventList.GetByName(const AName: string): TX3DEvent;
 var
-  I: integer;
+  I: Integer;
 begin
   I := IndexOfName(AName);
   if I <> -1 then

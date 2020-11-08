@@ -204,9 +204,9 @@ procedure StringReplaceAllVar(var S: string;
   This is a bit more powerful than simply specyfing Newline parameter
   as @code(NL + Indent), because this function also adds Indent after existing
   newlines in the input string. }
-function BreakLine(const s: string; const MaxCol: integer;
+function BreakLine(const s: string; const MaxCol: Integer;
   const AllowedBreakChars: TSetOfChars = WhiteSpaces): string; overload;
-function BreakLine(const s: string; const MaxCol: integer;
+function BreakLine(const s: string; const MaxCol: Integer;
   const AllowedBreakChars: TSetOfChars;
   const Newline: string; const Indent: string): string; overload;
 
@@ -240,12 +240,12 @@ function SReplaceChars(const s: string; FromChar, ToChar: Char): string; overloa
   of resulting string is at least Len.
 
   For example, @code(SPad('29', 4, '0')) gives '0029' }
-function SPad(const s: string; len: integer; c: Char = ' '): string; overload;
+function SPad(const s: string; len: Integer; c: Char = ' '): string; overload;
 
 { Pad (fill from the left)  with zeros string S, until length
   of resulting string is at least Len. It's actually just a shortcut for SPad
   with padding character set to '0'. }
-function SZeroPad(const s: string; len: integer): string;
+function SZeroPad(const s: string; len: Integer): string;
 
 { Convert uppercase letters to lowercase. Analogous to UpCase.
   Doesn't change other characters. Just like UpCase, this doesn't
@@ -253,7 +253,7 @@ function SZeroPad(const s: string; len: integer): string;
   A-Z -> a-z letters. }
 function LoCase(c: Char): Char;
 
-function CharPos(c: Char; const s: string; Offset: Integer = 1): integer;
+function CharPos(c: Char; const s: string; Offset: Integer = 1): Integer;
   deprecated 'use SysUtils.Pos or StrUtils.PosEx instead';
 
 { Find first occurrence of any character in Chars in string S.
@@ -268,10 +268,10 @@ function CharPos(c: Char; const s: string; Offset: Integer = 1): integer;
   They all return 0 if not found.
 
   @groupBegin }
-function CharsPos(const chars: TSetOfChars; const s: string): integer;
+function CharsPos(const chars: TSetOfChars; const s: string): Integer;
 function CharsPosEx(const chars: TSetOfChars; const s: string;
-  Offset: Integer): integer;
-function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
+  Offset: Integer): Integer;
+function BackCharsPos(const chars: TSetOfChars; const s: string): Integer;
 { @groupEnd }
 
 { Find @bold(last) occurrence of SubString within S.
@@ -287,7 +287,7 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
 { Returns suffix of S starting from position P.
   Returns '' if P > length(S).
   Yes, this is simply equivalent to Copy(S, P, MaxInt). }
-function SEnding(const s: string; P: integer): string;
+function SEnding(const s: string; P: Integer): string;
 
 function IsPrefix(const Prefix, S: string;
   IgnoreCase: Boolean = true): Boolean; overload;
@@ -303,18 +303,18 @@ function PrefixRemove(const Prefix, S: string; IgnoreCase: Boolean): string;
 function SuffixRemove(const Suffix, S: string; IgnoreCase: Boolean): string;
 
 { Appends to a string S DataSize bytes from Data. }
-procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
+procedure SAppendData(var s: string; const Data; DataSize: Integer); deprecated 'this function is not very useful';
 
 { A pointer to S[CharNum], that is just @@S[CharNum],
   avoiding range checking. }
-function SChar(const s: string; CharNum: integer): PChar; deprecated 'this function is not very useful';
+function SChar(const s: string; CharNum: Integer): PChar; deprecated 'this function is not very useful';
 
 { Check whether S[Index] = C, also checking is Index within S length.
   Return false if S is too short, or the chatacter differs.
 
   @groupBegin }
-function SCharIs(const s: string; index: integer; c: Char): Boolean; overload;
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): Boolean; overload;
+function SCharIs(const s: string; index: Integer; c: Char): Boolean; overload;
+function SCharIs(const s: string; index: Integer; const chars: TSetOfChars): Boolean; overload;
 { @groupEnd }
 
 { Replace typically unreadable characters in string S with #number notation.
@@ -327,7 +327,7 @@ function SReadableForm(const C: Char): string; overload;
   This is similar to standard Copy procedure,
   but last parameter is EndPosition instead of Count, which is more comfortable
   sometimes. }
-function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
+function CopyPos(const s: string; StartPosition, EndPosition: Integer): string;
 
 { Delete from S range of characters [StartPosition..EndPosition].
   Analogous to standard Delete but with EndPosition parameter (while
@@ -374,7 +374,7 @@ function NextToken(const S: string; var SeekPos: Integer;
   in @italic(all) tokens inside some string, but it's also more comfortable
   when you're interested in only @italic(one) token inside some string.
   When SeekPos = 1, this is the first token. }
-function NextTokenOnce(const s: string; SeekPos: integer = 1;
+function NextTokenOnce(const s: string; SeekPos: Integer = 1;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
@@ -473,14 +473,14 @@ function GlueStrings(const Strings: TStrings; const Delimiter: string): string; 
         found occurrence.)
     )
   ) }
-function FindPos(const SubText, Text: string; StartPosition, Count: integer;
+function FindPos(const SubText, Text: string; StartPosition, Count: Integer;
   const Options: TSearchOptions;
-  const WordBorders: TSetOfChars = DefaultWordBorders): integer;
+  const WordBorders: TSetOfChars = DefaultWordBorders): Integer;
   deprecated 'use various StrUtils routines to search in string instead of this (slow, not much useful) routine';
 
 { Return rightmost RPart characters from S.
   If RPart > Length(S) then returns S. }
-function SRight(const s: string; const rpart: integer): string;
+function SRight(const s: string; const rpart: Integer): string;
 
 { If S = '' then returns NextPart, else returns S + PartSeparator + NextPart. }
 function SAppendPart(const s, PartSeparator, NextPart: string): string;
@@ -584,7 +584,7 @@ procedure DeFormat(Data: string; const Format: string;
 function TryDeFormat(Data: string; const Format: string;
   const args: array of Pointer;
   const IgnoreCase: Boolean = true;
-  const RelaxedWhitespaceChecking: Boolean = true): integer; overload;
+  const RelaxedWhitespaceChecking: Boolean = true): Integer; overload;
 
 {$ifdef FPC}
 { Extract file extensions from a file filter usually specified
@@ -825,15 +825,15 @@ function DigitAsChar(b: byte): Char;
   Use only for characters in '0'...'9' range. }
 function DigitAsByte(c: Char): byte;
 
-{ Convert integer to string, padding string with zeros if needed. }
-function IntToStrZPad(n: integer; minLength: integer): string;
+{ Convert Integer to string, padding string with zeros if needed. }
+function IntToStrZPad(n: Integer; minLength: Integer): string;
 
-{ Convert integer to string, inserting additional Separator to visually delimit
+{ Convert Integer to string, inserting additional Separator to visually delimit
   thousands, milions etc. }
 function IntToStrThousands(const Value: Int64; const Separator: Char): string; overload;
 function IntToStrThousands(const Value: Int64; const Separator: string): string; overload;
 
-{ Convert integer to string, in base-Base (like base-16) numeral system.
+{ Convert Integer to string, in base-Base (like base-16) numeral system.
   For digits above '9', we will use upper letters 'A', 'B'...  etc.
   That's also why Base cannot be larger than 'Z'-'A' + 1 + 10
   (we would not have enough digits then).
@@ -852,7 +852,7 @@ function IntToStrBase(const n: Int64; Base: Byte; minLength: Cardinal): string; 
 function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string; overload;
 { @groupEnd }
 
-{ Convert integer to binary (base-2 numeral system).
+{ Convert Integer to binary (base-2 numeral system).
   MinLength means to left-pad result with zeros if necessary.
 
   This is similar to the standard StrUtils.IntToBin function,
@@ -864,7 +864,7 @@ function IntToStr2(n: Int64;
   const OneDigit: Char = '1';
   const MinusSign: Char = '-'): string; overload;
 
-{ Convert integer to hexadecimal (base-16 numeric system).
+{ Convert Integer to hexadecimal (base-16 numeric system).
 
   This is similar to the standard SysUtils.IntToHex function,
   but this works in an obvious way for negative numbers
@@ -884,7 +884,7 @@ function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; over
   to "get" 0x notation. }
 function PointerToStr(Ptr: Pointer): string;
 
-{ Convert string representing binary number to an integer.
+{ Convert string representing binary number to an Integer.
   String must contain only '0', '1' (digits) and start with an optional sign
   (+ or -).
 
@@ -892,9 +892,9 @@ function PointerToStr(Ptr: Pointer): string;
   but this reliably raises EConvertError in case of trouble.
 
   @raises EConvertError In case of invalid string. }
-function Str2ToInt(const s: string): integer;
+function Str2ToInt(const s: string): Integer;
 
-{ Convert string with hexadecimal number to an integer.
+{ Convert string with hexadecimal number to an Integer.
   String must contain only digits (0-9, a-z, A-Z), and with an optional
   sign (+ or -).
 
@@ -1205,11 +1205,11 @@ end;
 { routines ------------------------------------------------------------------- }
 
 function RandomString: string;
-var i: integer;
+var I: Integer;
 begin
   result := '';
-  for i := 1 to random(10) do result := result+Char(byte('A')+Random(26));
-  for i := 1 to 3 do result := result+Char(byte('0')+Random(10));
+  for I := 1 to random(10) do result := result+Char(byte('A')+Random(26));
+  for I := 1 to 3 do result := result+Char(byte('0')+Random(10));
 end;
 
 procedure StringReplaceAllVar(var S: string;
@@ -1219,7 +1219,7 @@ procedure StringReplaceAllVar(var S: string;
  { NAIWNA IMPLEMENTACJA : zawsze szuka w nowym s od subs_orig od poczatku
    (w rezultacie poczatek stringa przeszukajac wiele razy niepotrzebnie).
    No i moze sie zapetlic gdy subs_repl zawiera w sobie subs_orig. }
-var p: integer;
+var p: Integer;
 begin
  {assert( Pos(subs_orig, subs_repl) = 0 , 'blad w ReplaceSubstr !');}
  p := Pos(subs_orig, s); (tutaj powinna byc sterowana IgnoreCase) }
@@ -1236,18 +1236,18 @@ begin
     s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
 end;
 
-function BreakLine(const S: string; const MaxCol: integer;
+function BreakLine(const S: string; const MaxCol: Integer;
   const AllowedBreakChars: TSetOfChars): string;
 begin
   Result := BreakLine(S, MaxCol, AllowedBreakChars, NL, '');
 end;
 
-function BreakLine(const S: string; const MaxCol: integer;
+function BreakLine(const S: string; const MaxCol: Integer;
   const AllowedBreakChars: TSetOfChars;
   const Newline: string; const Indent: string): string;
 var
-  done: integer;
-  nowcol, i, brk: integer;
+  done: Integer;
+  nowcol, i, brk: Integer;
   BrokenSuccess: Boolean;
 begin
   // WrapText is not perfect, in looks for AllowedBreakChars after MaxCol.
@@ -1304,7 +1304,7 @@ end;
 
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
 var
-  i, j: integer;
+  i, j: Integer;
 begin
   SetLength(result, length(s));
   j := 1;
@@ -1316,38 +1316,38 @@ end;
 
 function SReplaceChars(const s, FromChars, ToChars: string): string;
 var
-  i, p: integer;
+  I, P: Integer;
 begin
   Assert(Length(FromChars) = Length(ToChars));
   result := s;
-  for i := 1 to Length(result) do
+  for I := 1 to Length(result) do
   begin
-    p := Pos(result[i], FromChars);
-    if p > 0 then result[i] := ToChars[p];
+    P := Pos(result[I], FromChars);
+    if P > 0 then result[I] := ToChars[p];
   end;
 end;
 
 function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: Char): string;
 var
-  i: integer;
+  I: Integer;
 begin
   result := s;
-  for i := 1 to Length(result) do
-    if result[i] in FromChars then result[i] := ToChar;
+  for I := 1 to Length(result) do
+    if result[I] in FromChars then result[I] := ToChar;
 end;
 
 function SReplaceChars(const s: string; FromChar, ToChar: Char): string;
 var
-  i: Integer;
+  I: Integer;
 begin
   Result := S;
-  for i := 1 to Length(Result) do
-    if Result[i] = FromChar then Result[i] := ToChar;
+  for I := 1 to Length(Result) do
+    if Result[I] = FromChar then Result[I] := ToChar;
 end;
 
-function SPad(const s: string; len: integer; c: Char): string;
+function SPad(const s: string; len: Integer; c: Char): string;
 var
-  lnow: integer;
+  lnow: Integer;
 begin
   lnow := length(s);
   if lnow < len then
@@ -1355,7 +1355,7 @@ begin
     Result := s;
 end;
 
-function SZeroPad(const s: string; len: integer): string;
+function SZeroPad(const s: string; len: Integer): string;
 begin result := SPad(s, len, '0') end;
 
 function LoCase(c: Char): Char;
@@ -1365,16 +1365,16 @@ begin
     result := c;
 end;
 
-function CharPos(c: Char; const s: string; Offset: Integer): integer;
+function CharPos(c: Char; const s: string; Offset: Integer): Integer;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := Offset to length(s) do
-    if s[i] = c then begin result := i; exit end;
+  for I := Offset to length(s) do
+    if s[I] = c then begin result := I; exit end;
   result := 0;
 end;
 
-function CharsPos(const chars: TSetOfChars; const s: string): integer;
+function CharsPos(const chars: TSetOfChars; const s: string): Integer;
 begin
   for result := 1 to Length(s) do
     if s[result] in chars then exit;
@@ -1382,21 +1382,21 @@ begin
 end;
 
 function CharsPosEx(const Chars: TSetOfChars; const S: string;
-  Offset: Integer): integer;
+  Offset: Integer): Integer;
 begin
   for Result := Offset to Length(S) do
     if S[Result] in Chars then Exit;
   Result := 0;
 end;
 
-function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
+function BackCharsPos(const chars: TSetOfChars; const s: string): Integer;
 begin
   for result := Length(s) downto 1 do
     if s[result] in chars then exit;
   result := 0;
 end;
 
-function BackPos(const SubString, S: string): integer;
+function BackPos(const SubString, S: string): Integer;
 begin
   for Result := Length(S) - Length(SubString) + 1 downto 1 do
     if SubString = Copy(S, Result, Length(SubString)) then Exit;
@@ -1417,7 +1417,7 @@ begin
   result := 0;
 end;
 
-function SEnding(const S: string; P: integer): string;
+function SEnding(const S: string; P: Integer): string;
 begin
   result := Copy(S, P, MaxInt)
 end;
@@ -1454,9 +1454,9 @@ begin
   end;
 end;
 
-procedure SAppendData(var s: string; const Data; DataSize: integer);
+procedure SAppendData(var s: string; const Data; DataSize: Integer);
 var
-  OldLen: integer;
+  OldLen: Integer;
 begin
   OldLen := Length(s);
   SetLength(s, OldLen+DataSize);
@@ -1467,18 +1467,18 @@ begin
 end;
 
 {$Include NoRQCheckBegin.inc}
-function SChar(const s: string; CharNum: integer): PChar;
+function SChar(const s: string; CharNum: Integer): PChar;
 begin
   Result := @s[CharNum]
 end;
 {$Include NoRQCheckEnd.inc}
 
-function SCharIs(const s: string; index: integer; c: Char): Boolean;
+function SCharIs(const s: string; index: Integer; c: Char): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] = c)
 end;
 
-function SCharIs(const s: string; index: integer; const chars: TSetOfChars): Boolean;
+function SCharIs(const s: string; index: Integer; const chars: TSetOfChars): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] in chars)
 end;
@@ -1499,7 +1499,7 @@ begin
     Result := C;
 end;
 
-function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
+function CopyPos(const s: string; StartPosition, EndPosition: Integer): string;
 begin
   result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
 end;
@@ -1530,7 +1530,7 @@ begin
   Inc(SeekPos);
 end;
 
-function NextTokenOnce(const s: string; SeekPos: integer;
+function NextTokenOnce(const s: string; SeekPos: Integer;
   const TokenDelims: TSetOfChars): string;
 begin
   result := Nexttoken(S, SeekPos, TokenDelims);
@@ -1635,21 +1635,21 @@ begin
     Result := Result + Delimiter + Strings[I];
 end;
 
-function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
+function FindPos(const SubText, Text: string; StartPosition, Count: Integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): Integer;
 var S, SubS: string;
 
-  function MatchingPos(i: integer): Boolean;
+  function MatchingPos(I: Integer): Boolean;
   { sprawdz czy i jest dobra Position wystapienia SubS w S.
     Uwzglednij przy tym czy soWholeWord in Options, zachowuj sie zawsze
     jakby bylo soMatchCase in Options. }
-  var realI: integer;
+  var realI: Integer;
   begin
    result := false;
-   if Copy(S, i, Length(SubS)) = SubS then
+   if Copy(S, I, Length(SubS)) = SubS then
    begin
     if soWholeWord in Options then
     begin
-     realI := i+StartPosition-1;
+     realI := I + StartPosition - 1;
      if ( (realI = 1) or (Text[realI-1] in wordBorders) ) and
         ( (realI+length(subS)-1 = length(Text)) or (Text[realI+length(subS)] in WordBorders) )
      then result := true
@@ -1657,7 +1657,7 @@ var S, SubS: string;
    end;
   end;
 
-var i: integer;
+var I: Integer;
 begin
  S := copy(Text, StartPosition, Count);
  SubS := SubText;
@@ -1669,17 +1669,17 @@ begin
  result := 0;
  if soBackwards in Options then
  begin
-  for i := Count-Length(SubS)+1 downto 1 do
-   if MatchingPos(i) then begin result := i; break end;
+  for I := Count-Length(SubS)+1 downto 1 do
+   if MatchingPos(I) then begin result := I; break end;
  end else
  begin
-  for i := 1 to Count-Length(SubS)+1 do
-   if MatchingPos(i) then begin result := i; break end;
+  for I := 1 to Count-Length(SubS)+1 do
+   if MatchingPos(I) then begin result := I; break end;
  end;
  if result > 0 then result := result+StartPosition-1;
 end;
 
-function SRight(const s: string; const rpart: integer): string;
+function SRight(const s: string; const rpart: Integer): string;
 begin
  if Length(s) < rpart then
   result := s else
@@ -1708,11 +1708,11 @@ end;
 function TryDeFormat(Data: string; const Format: string;
   const args: array of Pointer;
   const IgnoreCase: Boolean;
-  const RelaxedWhitespaceChecking: Boolean): integer;
-var datapos, formpos: integer;
+  const RelaxedWhitespaceChecking: Boolean): Integer;
+var datapos, formpos: Integer;
 
   function ReadExtendedData: Extended;
-  var dataposstart: integer;
+  var dataposstart: Integer;
   begin
    {pierwszy znak liczby moze byc + lub -. Potem musza byc same cyfry.}
    if not (data[datapos] in ['0'..'9', '+', '-']) then
@@ -1728,7 +1728,7 @@ var datapos, formpos: integer;
   end;
 
   function ReadInt64Data: Int64;
-  var dataposstart: integer;
+  var dataposstart: Integer;
   begin
    {pierwszy znak integera moze byc + lub -. Potem musza byc same cyfry.}
    if not (data[datapos] in ['0'..'9', '+', '-']) then
@@ -1743,7 +1743,7 @@ var datapos, formpos: integer;
   end;
 
   function ReadStringData: string;
-  var dataposstart: integer;
+  var dataposstart: Integer;
   begin
    dataposstart := datapos;
    while (datapos <= Length(data)) and
@@ -1753,7 +1753,7 @@ var datapos, formpos: integer;
 
   function ReadTypeSpecifier: string;
   {odczytaj type specifier z kropka z format. Przesun formpos}
-  var formposstart: integer;
+  var formposstart: Integer;
   begin
    formposstart := formpos;
    repeat
@@ -1894,7 +1894,7 @@ end;
 {$ifdef FPC}
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
 var
-  p, SeekPos: integer;
+  p, SeekPos: Integer;
   ExtsStr, filemask: string;
 begin
   Extensions.Clear;
@@ -1917,7 +1917,7 @@ function GetFileFilterName(const FileFilter: string): string;
 var
   Left, Right: string;
   LeftUpperCase, RightUpperCase: string;
-  p, len: integer;
+  p, len: Integer;
 begin
   p := Pos('|', FileFilter);
   if p = 0 then result := Trim(FileFilter) else
@@ -1976,7 +1976,7 @@ end;
 
 function GetFileFilterExtsStr(const FileFilter: string): string;
 var
-  p: integer;
+  p: Integer;
 begin
   p := Pos('|', FileFilter);
   if p > 0 then
@@ -2023,7 +2023,7 @@ end;
 
 function STruncateHash(const s: string): string;
 var
-  p: integer;
+  p: Integer;
 begin
   p := Pos('#', s);
   result := s;
@@ -2305,7 +2305,7 @@ begin Result := Char(b+byte('0')) end;
 function DigitAsByte(c: Char): byte;
 begin Result := byte(c)-byte('0') end;
 
-function IntToStrZPad(n: integer; minLength: integer): string;
+function IntToStrZPad(n: Integer; minLength: Integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
 
 function IntToStrThousands(const Value: Int64; const Separator: Char): string;
@@ -2407,9 +2407,9 @@ begin result := IntToStrBase(n, 16, minLength) end;
 function IntToStr16(const n: QWord; const minLength: Cardinal): string;
 begin result := IntToStrBase(n, 16, minLength) end;
 
-function Str2ToInt(const s: string): integer;
+function Str2ToInt(const s: string): Integer;
 
-  function BinInt(c: Char): integer;
+  function BinInt(c: Char): Integer;
   begin
    case c of
     '0': result := 0;
@@ -2418,7 +2418,7 @@ function Str2ToInt(const s: string): integer;
    end;
   end;
 
-var NextChar: integer;
+var NextChar: Integer;
 begin
  if s = '' then
   raise EConvertError.Create('Invalid Str2ToInt argument: empty string');
@@ -2441,16 +2441,16 @@ begin
 end;
 
 function StrHexToInt(const s: string): Int64;
-var ScanStart: integer;
+var ScanStart: Integer;
 
   procedure Scan;
   var digit: Int64;
-      i: integer;
+      I: Integer;
   begin
    if ScanStart > Length(s) then
     raise EConvertError.Create('StrHexToInt found unexpected end of string: no digits');
    result := 0;
-   for i := ScanStart to Length(s) do
+   for I := ScanStart to Length(s) do
    begin
     case S[I] of
      '0'..'9':digit := Ord(S[I])-Ord('0');

@@ -533,7 +533,7 @@ end;
 procedure TTriangleFanSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
-  procedure FaceNormal(const v1, v2, v3: integer);
+  procedure FaceNormal(const v1, v2, v3: Integer);
   begin
     if NorImplementation = niNone then
     begin
@@ -761,7 +761,7 @@ end;
 procedure TTriangleStripSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
-  procedure FaceNormal(const v1, v2, v3: integer);
+  procedure FaceNormal(const v1, v2, v3: Integer);
   begin
     if NorImplementation = niNone then
     begin

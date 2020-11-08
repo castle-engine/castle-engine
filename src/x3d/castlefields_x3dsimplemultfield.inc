@@ -73,13 +73,13 @@
 
     { RawItemToString(i) must change FItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; virtual; abstract;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; virtual; abstract;
 
     { This says when we should do newline when writing this field into a stream.
       It's has purely aesthetical meaning, nothing more.
       In this class SaveToStreamDoNewLineAfterRawItem always returns @true
       (although SaveToStreamValue may sometimes ignore it, if it knows better). }
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; virtual;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; virtual;
 
     procedure Clear;
     function GetCapacity: SizeInt;
@@ -216,7 +216,7 @@ end;
 
 procedure TX3DSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
 var
-  i: integer;
+  I: Integer;
   WriteIndentNextTime: Boolean;
   IndentMultiValueFields: Boolean;
 begin
@@ -239,14 +239,14 @@ begin
             IndentMultiValueFields := Count <= 10;
 
             WriteIndentNextTime := IndentMultiValueFields;
-            for i := 0 to Count-1 do
+            for I := 0 to Count-1 do
             begin
               if WriteIndentNextTime then Writer.WriteIndent('');
-              Writer.Write(RawItemToString(i, Writer.Encoding) +',');
+              Writer.Write(RawItemToString(I, Writer.Encoding) +',');
               { After the last item we always write newline,
                 no matter what's SaveToStreamDoNewLineAfterRawItem }
-              if (i = Count - 1) or
-                 SaveToStreamDoNewLineAfterRawItem(i) then
+              if (I = Count - 1) or
+                 SaveToStreamDoNewLineAfterRawItem(I) then
                 begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
                 begin Writer.Write(' '); WriteIndentNextTime := false; end;
             end;
@@ -268,7 +268,7 @@ begin
   end;
 end;
 
-function TX3DSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
+function TX3DSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean;
 begin
   Result := true;
 end;

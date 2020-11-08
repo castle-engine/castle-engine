@@ -38,8 +38,8 @@
     FSaveToStreamLineUptoNegative: Boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
   public
     { When saving to VRML/X3D classic encoding,
       make newline after each negative value on the list.
@@ -85,7 +85,7 @@
     TMatrix3List,
     TMFMatrix3fEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -98,7 +98,7 @@
     TMatrix3DoubleList,
     TMFMatrix3dEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -111,7 +111,7 @@
     TMatrix4List,
     TMFMatrix4fEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -124,7 +124,7 @@
     TMatrix4DoubleList,
     TMFMatrix4dEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -137,7 +137,7 @@
     TVector2List,
     TMFVec2fEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -150,7 +150,7 @@
     TVector3List,
     TMFVec3fEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -169,7 +169,7 @@
     TVector4List,
     TMFVec4fEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -188,7 +188,7 @@
     TVector2DoubleList,
     TMFVec2dEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -201,7 +201,7 @@
     TVector3DoubleList,
     TMFVec3dEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -214,7 +214,7 @@
     TVector4DoubleList,
     TMFVec4dEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -242,8 +242,8 @@
   strict private
     FAngle: Boolean;
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
     function CreateItemBeforeParse: TSFFloat; override;
   public
     { Value represents an angle. When reading from X3D 3.3 file, we will
@@ -262,8 +262,8 @@
     TDoubleList,
     TMFDoubleEvent>)
   strict protected
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
@@ -296,7 +296,7 @@
 
 { TMFBool ------------------------------------------------------------------ }
 
-function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFBool.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
@@ -308,12 +308,12 @@ end;
 
 { TMFLong -------------------------------------------------------------------- }
 
-function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
+function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean;
 begin
   Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
 end;
 
-function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFLong.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := IntToStr(Items[ItemNum])
 end;
@@ -618,12 +618,12 @@ end;
 
 { TMFFloat ------------------------------------------------------------------- }
 
-function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
+function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean;
 begin
   Result := false;
 end;
 
-function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFFloat.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Format('%g', [Items[ItemNum]]);
 end;
@@ -654,12 +654,12 @@ end;
 
 { TMFDouble -------------------------------------------------------------------- }
 
-function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): Boolean;
+function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean;
 begin
   Result := false;
 end;
 
-function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFDouble.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := Format('%g', [Items[ItemNum]]);
 end;
@@ -693,7 +693,7 @@ end;
 
 { TMFString ------------------------------------------------------------------ }
 
-function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+function TMFString.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items[ItemNum]);

@@ -51,7 +51,7 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { @section(TStrings utilities) }
 
 { Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: string='dummy'); overload;
 
 { Add all strings from string array to TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
@@ -149,11 +149,11 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars):
   Everything else works like with StreamReadUpto_NotEOS.
   @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: Boolean; out endingChar: integer): AnsiString; overload;
+  backEndingChar: Boolean; out endingChar: Integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: Boolean): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString; overload;
+  out endingChar: Integer): AnsiString; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): AnsiString; overload;
 { @groupEnd }
 
@@ -740,18 +740,18 @@ uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
 
 { TStrings helpers ------------------------------------------------------- }
 
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string);
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: string);
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 1 to Count do Strs.Add(itemVal);
+  for I := 1 to Count do Strs.Add(itemVal);
 end;
 
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to High(StrArr) do strlist.Append(StrArr[i]);
+  for I := 0 to High(StrArr) do strlist.Append(StrArr[I]);
 end;
 
 constructor TStringListCaseSens.Create;
@@ -853,7 +853,7 @@ end;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: Boolean; out endingChar: AnsiChar): AnsiString; overload;
 var
-  readLen: integer; { ile znakow odczytales }
+  readLen: Integer; { ile znakow odczytales }
   ch: AnsiChar;
 begin
   readLen := 0;
@@ -898,8 +898,8 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: Boolean; out endingChar: integer): AnsiString; overload;
-var readLen: integer; { ile znakow odczytales }
+  backEndingChar: Boolean; out endingChar: Integer): AnsiString; overload;
+var readLen: Integer; { ile znakow odczytales }
     ch: AnsiChar;
 begin
   readLen := 0;
@@ -932,13 +932,13 @@ end;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: Boolean): AnsiString; overload;
 var
-  dummy: integer;
+  dummy: Integer;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, backEndingChar, dummy);
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  out endingChar: integer): AnsiString;
+  out endingChar: Integer): AnsiString;
 begin
   result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;

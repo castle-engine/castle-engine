@@ -95,8 +95,8 @@ type
       const IgnoreMarginAtStart: Boolean;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
   protected
-    function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
-    procedure PutItemIntoSubNodes(ItemIndex: integer); override;
+    function ItemBoundingBox(const ItemIndex: Integer): TBox3D; override;
+    procedure PutItemIntoSubNodes(ItemIndex: Integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
       const Radius: Single;
@@ -240,7 +240,7 @@ implementation
 
 { TShapeOctreeNode ---------------------------------------- }
 
-function TShapeOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
+function TShapeOctreeNode.ItemBoundingBox(const ItemIndex: Integer): TBox3D;
 begin
   Result := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
@@ -255,7 +255,7 @@ begin
   Result.ExpandMe(SingleEpsilon);
 end;
 
-procedure TShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+procedure TShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: Integer);
 var
   BoxLo, BoxHi: TOctreeSubnodeIndex;
   SubnodesBox: TBox3D;

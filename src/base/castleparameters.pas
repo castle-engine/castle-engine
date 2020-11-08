@@ -225,9 +225,9 @@ type
     { Does the number of parameters (High) satisfy given condition.
       @raises EInvalidParams When High is wrong.
       @groupBegin }
-    procedure CheckHigh(ParamValue: integer);
-    procedure CheckHighAtLeast(ParamValue: integer);
-    procedure CheckHighAtMost(ParamValue: integer);
+    procedure CheckHigh(ParamValue: Integer);
+    procedure CheckHighAtLeast(ParamValue: Integer);
+    procedure CheckHighAtMost(ParamValue: Integer);
     { @groupEnd }
 
     { Is one of given strings present on the parameters list.
@@ -364,7 +364,7 @@ begin
   Result := Count - 1;
 end;
 
-procedure TParameters.CheckHigh(ParamValue: integer);
+procedure TParameters.CheckHigh(ParamValue: Integer);
 begin
   if ParamValue <> High then
   begin
@@ -376,14 +376,14 @@ begin
   end;
 end;
 
-procedure TParameters.CheckHighAtLeast(ParamValue: integer);
+procedure TParameters.CheckHighAtLeast(ParamValue: Integer);
 begin
  if ParamValue > High then
   raise EInvalidParams.Create('Expected ' +
     ParametersCountString(ParamValue-High, ' more'));
 end;
 
-procedure TParameters.CheckHighAtMost(ParamValue: integer);
+procedure TParameters.CheckHighAtMost(ParamValue: Integer);
 begin
   if ParamValue < High then
     raise EInvalidParams.Create('Expected ' +

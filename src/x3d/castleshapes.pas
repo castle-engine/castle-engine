@@ -2058,13 +2058,13 @@ function TShape.CreateTriangleOctree(
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
-    procedure LocalTriangulateRect(const constCoord: integer;
+    procedure LocalTriangulateRect(const constCoord: Integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
       Position, Normal: TTriangle3;
-      i, c1, c2: integer;
+      I, c1, c2: Integer;
 
-      procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
+      procedure TriAssign(TriIndex: Integer; c1value, c2value: Single);
       begin
         Position.Data[TriIndex].Data[c1] := c1value;
         Position.Data[TriIndex].Data[c2] := c2value;

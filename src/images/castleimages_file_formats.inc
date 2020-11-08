@@ -566,7 +566,7 @@ end;
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: string): string;
 var
   iff: TImageFormat;
-  i: integer;
+  I: Integer;
 begin
   result := '';
 
@@ -581,8 +581,8 @@ begin
       if result <> '' then result := result + nl;
 
       result := result +LinePrefix +ImageFormatInfos[iff].exts[1];
-      for i := 2 to ImageFormatInfos[iff].extsCount do
-        result := result + ', ' +ImageFormatInfos[iff].exts[i];
+      for I := 2 to ImageFormatInfos[iff].extsCount do
+        result := result + ', ' +ImageFormatInfos[iff].exts[I];
       result := result + ' - '+ImageFormatInfos[iff].formatName;
     end;
 end;
@@ -590,7 +590,7 @@ end;
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): string;
 var
   iff: TImageFormat;
-  i: integer;
+  I: Integer;
 begin
   result := '';
 
@@ -598,10 +598,10 @@ begin
     if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
        ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
     begin
-      for i := 1 to ImageFormatInfos[iff].extsCount do
+      for I := 1 to ImageFormatInfos[iff].extsCount do
       begin
         if result <> '' then result := result + ', ';
-        result := result + ImageFormatInfos[iff].exts[i];
+        result := result + ImageFormatInfos[iff].exts[I];
       end;
     end;
 end;

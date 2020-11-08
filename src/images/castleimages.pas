@@ -117,8 +117,8 @@ type
     @exclude }
   TInternalCastleFpImage = class(TFPCompactImgRGBA8Bit)
   strict private
-    function GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
-    procedure SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+    function GetColors8Bit(const x, y: Integer): TFPCompactImgRGBA8BitValue;
+    procedure SetColors8Bit(const x, y: Integer; const Value: TFPCompactImgRGBA8BitValue);
   public
     property Colors8Bit[X, Y: Integer]: TFPCompactImgRGBA8BitValue
       read GetColors8Bit write SetColors8Bit;
@@ -892,7 +892,7 @@ type
       const aWidth: single; const aColor: TCastleColor); virtual;
     procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
-    procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
+    procedure FloodFill(const x, y: Integer; const aColor: TCastleColor;
       const aThreshold: single = 0);
     { @groupEnd }
   end;
@@ -3078,8 +3078,8 @@ constructor TRGBImage.CreateCombined(const MapImage: TRGBImage;
   var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
 var
   Map, White, Black, Res: PVector3Byte;
-  s: single;
-  i: integer;
+  S: Single;
+  I: Integer;
 begin
   Create(MapImage.Width, MapImage.Height);
 
@@ -3091,12 +3091,12 @@ begin
   Black := ReplaceBlackImage.Pixels;
   Res := Pixels;
 
-  for i := 1 to Width * Height * Depth do
+  for I := 1 to Width * Height * Depth do
   begin
-    s := (Map^.Data[0] + Map^.Data[1] + Map^.Data[2]) / 255 / 3;
-    Res^.Data[0] := Round(s * White^.Data[0] + (1-s) * Black^.Data[0]);
-    Res^.Data[1] := Round(s * White^.Data[1] + (1-s) * Black^.Data[1]);
-    Res^.Data[2] := Round(s * White^.Data[2] + (1-s) * Black^.Data[2]);
+    S := (Map^.Data[0] + Map^.Data[1] + Map^.Data[2]) / 255 / 3;
+    Res^.Data[0] := Round(S * White^.Data[0] + (1 - S) * Black^.Data[0]);
+    Res^.Data[1] := Round(S * White^.Data[1] + (1 - S) * Black^.Data[1]);
+    Res^.Data[2] := Round(S * White^.Data[2] + (1 - S) * Black^.Data[2]);
     Inc(Map);
     Inc(White);
     Inc(Black);

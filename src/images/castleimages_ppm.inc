@@ -65,7 +65,7 @@ function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var magic: array[0..1] of Char;
     IsBinary: Boolean;
-    MaxColVal: integer;
+    MaxColVal: Integer;
     x, y: Cardinal;
     line: PVector3ByteArray;
     ppmline: PByteArray;

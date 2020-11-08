@@ -1310,7 +1310,7 @@ type
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
     function StopRotating: Boolean;
 
-    procedure Move(coord: integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
+    procedure Move(coord: Integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
 
     { User inputs ------------------------------------------------------------ }
 
@@ -3218,7 +3218,7 @@ var
   end;
 
 var
-  i: integer;
+  I: Integer;
   MoveChange: Single;
   ModsDown: TModifierKeys;
   RotChange: Single;
@@ -3345,7 +3345,7 @@ begin
     FRotationsAnim := TVector3.Zero;
 end;
 
-procedure TCastleExamineNavigation.Move(coord: integer; const MoveDistance: Single);
+procedure TCastleExamineNavigation.Move(coord: Integer; const MoveDistance: Single);
 var
   V: TVector3;
 begin

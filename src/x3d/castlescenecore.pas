@@ -1163,8 +1163,8 @@ type
     { Helper functions for accessing viewpoints defined in the scene.
       @groupBegin }
     function ViewpointsCount: Cardinal;
-    function GetViewpointName(Idx: integer): string;
-    procedure MoveToViewpoint(Idx: integer; Animated: Boolean = true);
+    function GetViewpointName(Idx: Integer): string;
+    procedure MoveToViewpoint(Idx: Integer; Animated: Boolean = true);
     procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
       const AName: string);
     { @groupEnd }
@@ -4837,7 +4837,7 @@ var
 
   procedure HandleChangeLightInstanceProperty;
   var
-    J: integer;
+    J: Integer;
     ShapeList: TShapeList;
     Shape: TShape;
     LightInstance: PLightInstance;
@@ -7838,14 +7838,14 @@ begin
   Result := FViewpointsArray.Count;
 end;
 
-function TCastleSceneCore.GetViewpointName(Idx: integer): string;
+function TCastleSceneCore.GetViewpointName(Idx: Integer): string;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
     Result := FViewpointsArray[Idx].SmartDescription else
     Result := '';
 end;
 
-procedure TCastleSceneCore.MoveToViewpoint(Idx: integer; Animated: Boolean);
+procedure TCastleSceneCore.MoveToViewpoint(Idx: Integer; Animated: Boolean);
 var
   OldForceTeleport: Boolean;
 begin

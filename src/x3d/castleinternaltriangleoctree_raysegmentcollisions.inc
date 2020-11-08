@@ -51,7 +51,7 @@ var
   end;
 
 var
-  Iterate_ItemNumber: integer;
+  Iterate_ItemNumber: Integer;
   Iterate_Item: PTriangle;
   Iterate_Intersection: TVector3;
   Iterate_IntersectionDistance: Single;

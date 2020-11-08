@@ -43,7 +43,7 @@ type
     Saves/restores the state of TCastleWindowBase. }
   TGLMode = class
   strict private
-    OldWidth, OldHeight: integer;
+    OldWidth, OldHeight: Integer;
     FFakeMouseDown: Boolean;
   strict protected
     type

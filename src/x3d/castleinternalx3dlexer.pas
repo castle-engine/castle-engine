@@ -840,7 +840,7 @@ function TX3DLexer.NextToken: TX3DToken;
     {AlreadyRead zawieraja dotychczas przeczytana liczbe calkowita ze znakiem.
      Wiemy ze potem odczytano kropke - czytamy dalej. }
     var s: string;
-        AfterS: integer;
+        AfterS: Integer;
     begin
      s := AlreadyRead +'.' +Stream.ReadUpto(NoDigits);
      AfterS := Stream.PeekChar;
@@ -856,7 +856,7 @@ function TX3DLexer.NextToken: TX3DToken;
     end;
 
   var Dig1, HexDig: string;
-      AfterDig1: integer;
+      AfterDig1: Integer;
   begin
    try
     if FirstChar = '.' then
@@ -934,7 +934,7 @@ function TX3DLexer.NextToken: TX3DToken;
   end;
 
 var
-  FirstBlack: integer;
+  FirstBlack: Integer;
   FirstBlackChr: Char;
 begin
   StreamReadUptoFirstBlack(FirstBlack);
@@ -988,7 +988,7 @@ begin
 end;
 
 procedure TX3DLexer.NextTokenForceVTName;
-var FirstBlack: integer;
+var FirstBlack: Integer;
 begin
  StreamReadUptoFirstBlack(FirstBlack);
 
@@ -1010,7 +1010,7 @@ begin
 end;
 
 procedure TX3DLexer.NextTokenForceVTString;
-var FirstBlack: integer;
+var FirstBlack: Integer;
 begin
  StreamReadUptoFirstBlack(FirstBlack);
 

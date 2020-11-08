@@ -110,7 +110,7 @@ end;
 
 {$IFDEF USE_DEV_URANDOM}
 function DEV_URANDOM: LongInt;
-var DevRnd: file of integer;
+var DevRnd: File of Integer;
 begin
   { algorithm according to http://wiki.freepascal.org/Dev_random
    /dev/urandom is a native *nix very high-quality random number generator.

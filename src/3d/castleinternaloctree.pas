@@ -25,8 +25,8 @@
 
     TMyOctreeNode = class(TOctreeNode)
     protected
-      function ItemBoundingBox(const ItemIndex: integer): TBox3D; override;
-      procedure PutItemIntoSubNodes(ItemIndex: integer); override;
+      function ItemBoundingBox(const ItemIndex: Integer): TBox3D; override;
+      procedure PutItemIntoSubNodes(ItemIndex: Integer); override;
     public
       function ParentTree: TMyOctree;
    end;
@@ -40,12 +40,12 @@
 
   { implementation }
 
-  function TMyOctreeNode.ItemBoundingBox(const ItemIndex: integer): TBox3D;
+  function TMyOctreeNode.ItemBoundingBox(const ItemIndex: Integer): TBox3D;
   begin
     Result := ...;
   end;
 
-  procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+  procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: Integer);
   begin
     { See comments at @link(TOctreeNode.PutItemIntoSubNodes)
       to know how you should implement this. }
@@ -137,7 +137,7 @@ type
     procedure StatisticsRemove;
     procedure StatisticsAdd;
   protected
-    function ItemBoundingBox(const ItemIndex: integer): TBox3D; virtual; abstract;
+    function ItemBoundingBox(const ItemIndex: Integer): TBox3D; virtual; abstract;
 
     { Insert given index into appropriate subnodes.
       This should call SubNode.AddItem(ItemIndex) for chosen TreeSubNodes
@@ -155,7 +155,7 @@ type
       or ItemIndices <> nil (yes, this means that this function
       may be internally called when the state of this object
       is partially invalid). }
-    procedure PutItemIntoSubNodes(ItemIndex: integer); virtual; abstract;
+    procedure PutItemIntoSubNodes(ItemIndex: Integer); virtual; abstract;
 
     property InternalParentTree: TOctree read FParentTree;
 
@@ -189,7 +189,7 @@ type
       Same thing as ItemsIndices.Count, but has somewhat nicer name
       if you have Items[] property defined in a subclass.
       Use this only when you know that @link(ItemsIndices) <> nil. }
-    function ItemsCount: integer;
+    function ItemsCount: Integer;
 
     { Insert an item into this octree node.
 
@@ -202,7 +202,7 @@ type
         @item(And when you insert an item into non-leaf node,
           it correctly puts it into children subnodes too.)
       ) }
-    procedure AddItem(ItemIndex: integer);
+    procedure AddItem(ItemIndex: Integer);
 
     { Is this a leaf node.
 
@@ -253,13 +253,13 @@ type
     property BoundingSphereCenter: TVector3 read FBoundingSphereCenter;
     property BoundingSphereRadiusSqr: Single read FBoundingSphereRadiusSqr;
 
-    property Depth: integer read fDepth;
+    property Depth: Integer read fDepth;
 
     { Simple constructor. Calculates MiddlePoint as a middle of the ABox,
       or as (0, 0, 0) if ABox is empty. }
     constructor Create(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
-      ADepth: integer; AsLeaf: Boolean);
+      ADepth: Integer; AsLeaf: Boolean);
 
     { Virtual constructor, not to be called directly, only to be overridden.
       (But a constructor should be public, not protected.)
@@ -274,7 +274,7 @@ type
       @exclude }
     constructor CreateBase(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
-      ADepth: integer; AsLeaf: Boolean;
+      ADepth: Integer; AsLeaf: Boolean;
       const AMiddlePoint: TVector3); virtual;
 
     destructor Destroy; override;
@@ -308,7 +308,7 @@ type
     VRML/X3D extension
     [https://castle-engine.io/x3d_extensions.php#section_ext_octree_properties]. }
   TOctreeLimits = record
-    MaxDepth: integer;
+    MaxDepth: Integer;
     LeafCapacity: Integer;
   end;
   POctreeLimits = ^TOctreeLimits;
@@ -322,7 +322,7 @@ type
     FTreeRoot: TOctreeNode;
     FOctreeNodeFinalClass: TOctreeNodeClass;
     FItemsInNonLeafNodes: Boolean;
-    FMaxDepth: integer;
+    FMaxDepth: Integer;
     FLeafCapacity: Integer;
 
     { current octree total statistics }
@@ -342,7 +342,7 @@ type
 
       Currently, you should not change MaxDepth and LeafCapacity after creating
       the octree, as they will not rebuild the octree to obey the given limits. }
-    property MaxDepth: integer read FMaxDepth write FMaxDepth;
+    property MaxDepth: Integer read FMaxDepth write FMaxDepth;
 
     { Maximum number of items inside a leaf, unless this leaf is already
       at maximum depth (MaxDepth). When you add an item to a leaf,
@@ -472,7 +472,7 @@ var
   b: TOctreeSubnodeIndex;
   b_0, b_1, b_2: Boolean;
   SubBox: TBox3D;
-  i: integer;
+  I: Integer;
 begin
   { we can't do "for b[0] := Low(Boolean) ... " in FPC 1.9.5,
     so we're using variables b_0, b_1, b_2. }
@@ -486,10 +486,10 @@ begin
 
         { calculate SubBox }
         SubBox := Box;
-        for i := 0 to 2 do
-          if b[i] then
-            SubBox.Data[0].Data[i] := MiddlePoint[i] else
-            SubBox.Data[1].Data[i] := MiddlePoint[i];
+        for I := 0 to 2 do
+          if b[I] then
+            SubBox.Data[0].Data[I] := MiddlePoint[I] else
+            SubBox.Data[1].Data[I] := MiddlePoint[I];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(
@@ -514,7 +514,7 @@ end;
 
 procedure TOctreeNode.SetLeaf(value: Boolean);
 var
-  I: integer;
+  I: Integer;
 begin
   if value <> FIsLeaf then
   begin
@@ -542,12 +542,12 @@ begin
   end;
 end;
 
-function TOctreeNode.ItemsCount: integer;
+function TOctreeNode.ItemsCount: Integer;
 begin
  Result := ItemsIndices.Count;
 end;
 
-procedure TOctreeNode.AddItem(ItemIndex: integer);
+procedure TOctreeNode.AddItem(ItemIndex: Integer);
 
   { If we would split leaf into non-leaf, can we redistribute the existing
     items into subleafs sensibly? (If all items would go into all leafs,
@@ -605,7 +605,7 @@ end;
 
 constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   AParentNode: TOctreeNode;
-  ADepth: integer; AsLeaf: Boolean);
+  ADepth: Integer; AsLeaf: Boolean);
 var
   AMiddlePoint: TVector3;
 begin
@@ -622,7 +622,7 @@ end;
 
 constructor TOctreeNode.CreateBase(const ABox: TBox3D;
   AParentTree: TOctree; AParentNode: TOctreeNode;
-  ADepth: integer; AsLeaf: Boolean; const AMiddlePoint: TVector3);
+  ADepth: Integer; AsLeaf: Boolean; const AMiddlePoint: TVector3);
 begin
   inherited Create;
 
