@@ -114,7 +114,7 @@ procedure GLCaptureCubeMapTexture(
 implementation
 
 uses SysUtils, CastleSphericalHarmonics, CastleRectangles, CastleRenderContext,
-  CastleProjection, CastleScene, CastleRenderingCamera;
+  CastleProjection, CastleScene;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -134,18 +134,17 @@ procedure SHVectorGLCapture(
 
     RenderContext.Viewport := Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
-    CastleRenderingCamera.RenderingCamera.Target := rtCubeMapEnvironment;
-    CastleRenderingCamera.RenderingCamera.FromMatrix(
-      LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-      LookDirMatrix(TVector3.Zero, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-      PerspectiveProjectionMatrixDeg(90, 1, 0.01, 100)
-    );
-
     RenderParams := TBasicRenderParams.Create;
     try
       { TBasicRenderParams will automatically link to CastleRenderingCamera.RenderingCamera,
         to CastleRenderingCamera.RenderingCamera.Frustum,
         and will have good defaults (inclusive) for InShadow and ShadowVolumesReceivers. }
+      RenderParams.RenderingCamera.Target := rtCubeMapEnvironment;
+      RenderParams.RenderingCamera.FromMatrix(
+        LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        LookDirMatrix(TVector3.Zero, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+        PerspectiveProjectionMatrixDeg(90, 1, 0.01, 100)
+      );
       RenderParams.Transparent := false; Render(RenderParams);
       RenderParams.Transparent := true ; Render(RenderParams);
     finally FreeAndNil(RenderParams) end;
