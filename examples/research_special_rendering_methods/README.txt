@@ -16,7 +16,11 @@ with our engine core:
   https://castle-engine.io/x3d_extensions_shadow_maps.php
 - Shadow volumes:
   https://castle-engine.io/x3d_extensions.php#section_ext_shadows
+- Mirrors on flat objects:
+  https://castle-engine.io/x3d_extensions_mirror_plane.php
 - Cube map reflections:
   https://castle-engine.io/x3d_implementation_cubemaptexturing.php
 - Reflections using a RenderedTexture:
   https://castle-engine.io/x3d_implementation_texturing_extensions.php#section_ext_rendered_texture
+- Screen-space reflections:
+  https://castle-engine.io/wp/2020/11/07/screen-space-reflections-effect-enhancements-to-glsl-api-for-effects/
