@@ -160,13 +160,13 @@ end;
 { TestCompareMemBug ---------------------------------------------------------- }
 
 procedure TTestOldFPCBugs.TestCompareMemBug;
-var b1,b2:array[0..1000]of byte;
+var B1,B2: array[0..1000] of Byte;
 begin
  { if CompareMem(p1, p2, 0) would work good then values for p1 and p2
    should be ignored. But, since there is a bug, they will not be ignored
    so we have to provide valid pointers for p1 and p2 or we will get
    AccessViolation. }
- AssertTrue(CompareMem(@b1, @b2, 0));
+ AssertTrue(CompareMem(@B1, @B2, 0));
 end;
 
 procedure TTestOldFPCBugs.TestFormatIncompatibility;

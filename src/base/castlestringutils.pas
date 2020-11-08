@@ -819,11 +819,11 @@ function HasNameCounter(const NamePattern: string;
 
 { Convert digit (like number 0) to character (like '0').
   Use only for arguments within 0..9 range. }
-function DigitAsChar(b: byte): Char;
+function DigitAsChar(b: Byte): Char;
 
 { Convert digit character (like '0') to a number (like 0).
   Use only for characters in '0'...'9' range. }
-function DigitAsByte(c: Char): byte;
+function DigitAsByte(c: Char): Byte;
 
 { Convert Integer to string, padding string with zeros if needed. }
 function IntToStrZPad(n: Integer; minLength: Integer): string;
@@ -934,7 +934,7 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   Still: @italic(this function should be used only for debug purposes.
   Don't depend on it working 100% correctly always --- it can't, because we
   can't depend on how compiler stores sets.) }
-function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
+function SetToStr(const SetVariable; NumStart, NumEnd: Byte): string;
 
 function CharSetToStr(const SetVariable: TSetOfChars): string;
 
@@ -1208,8 +1208,8 @@ function RandomString: string;
 var I: Integer;
 begin
   result := '';
-  for I := 1 to random(10) do result := result+Char(byte('A')+Random(26));
-  for I := 1 to 3 do result := result+Char(byte('0')+Random(10));
+  for I := 1 to random(10) do result := result+Char(Byte('A')+Random(26));
+  for I := 1 to 3 do result := result+Char(Byte('0')+Random(10));
 end;
 
 procedure StringReplaceAllVar(var S: string;
@@ -2299,11 +2299,11 @@ end;
 
 { conversions ------------------------------------------------------------ }
 
-function DigitAsChar(b: byte): Char;
-begin Result := Char(b+byte('0')) end;
+function DigitAsChar(b: Byte): Char;
+begin Result := Char(b+Byte('0')) end;
 
-function DigitAsByte(c: Char): byte;
-begin Result := byte(c)-byte('0') end;
+function DigitAsByte(c: Char): Byte;
+begin Result := Byte(c)-Byte('0') end;
 
 function IntToStrZPad(n: Integer; minLength: Integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
@@ -2483,17 +2483,17 @@ begin
     {$ifdef CPU64} 16 {$endif} );
 end;
 
-function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
+function SetToStr(const SetVariable; NumStart, NumEnd: Byte): string;
 var
-  BSet: set of byte absolute SetVariable;
-  i: byte;
+  BSet: set of Byte absolute SetVariable;
+  I: Byte;
 begin
   Result := '[';
-  for i := 0 to NumEnd-NumStart do
-    if i in BSet then
+  for I := 0 to NumEnd-NumStart do
+    if I in BSet then
       if Result = '[' then
-        Result := '[' + IntToStr(i + NumStart) else
-        Result := Result + ',' + IntToStr(i + NumStart);
+        Result := '[' + IntToStr(I + NumStart) else
+        Result := Result + ',' + IntToStr(I + NumStart);
   Result := Result + ']';
 end;
 

@@ -30,16 +30,16 @@ implementation
 {$R *.lfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
-var v: LongWord;
+var V: LongWord;
     s: string;
 begin
-  v := StringToHash(Edit1.Text);
-  Label1.Caption := 'Random (0..1) = ' + FloatToStrDot(v/MaxInt/2);
+  V := StringToHash(Edit1.Text);
+  Label1.Caption := 'Random (0..1) = ' + FloatToStrDot(V/MaxInt/2);
 
   s := '';
   while Length(s)<32 do begin
-    s := IntToStr(v mod 2)+s;
-    v := v shr 1
+    s := IntToStr(V mod 2)+s;
+    V := V shr 1
   end;
 
   Memo1.Lines.Add(s);
@@ -48,13 +48,13 @@ end;
 procedure TForm1.Button2Click(Sender: TObject);
 var ix,iy: Integer;
     s: string;
-    c: byte;
+    C: Byte;
 begin
   for ix := 0 to Image1.Width do
     for iy := 0 to Image1.Height do with Image1.Canvas do begin
       s := IntToStr(ix)+'x'+IntToStr(iy); //generate a string different for each pixel and highly inhomogeneous
-      c := Round(255*(StringToHash(s)/MaxInt/2));
-      Brush.Color := c+256*c+65536*c;
+      C := Round(255*(StringToHash(s)/MaxInt/2));
+      Brush.Color := C+256*C+65536*C;
       FillRect(ix,iy,ix+1,iy+1);
     end;
 

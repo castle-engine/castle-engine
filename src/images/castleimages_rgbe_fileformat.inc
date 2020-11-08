@@ -55,7 +55,7 @@ var LoadResult: TCastleImage absolute result;
       az do Pixel^.Data[(LoadResult.Width-1)*4]. }
     var i: Integer;
         x: Cardinal;
-        ByteMarker, ByteRepeat: byte;
+        ByteMarker, ByteRepeat: Byte;
     begin
      x := 0; { ile kolumn juz zapisalem do Pixel }
      while x < LoadResult.Width do

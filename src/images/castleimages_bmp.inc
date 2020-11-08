@@ -36,12 +36,12 @@ type
     biClrImportant: LongWord;
   end;
 
-  TRGBQuad = packed record blue, green, red, reserved : byte end;
+  TRGBQuad = packed record blue, green, red, reserved : Byte end;
   //PRGBQuad = ^TRGBQuad;
   TRGBQuadArray = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
   PRGBQuadArray = ^TRGBQuadArray;
 
-  TRGB_BMP24 = packed record b, g, r: byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
+  TRGB_BMP24 = packed record b, g, r: Byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
   PRGB_BMP24 = ^TRGB_BMP24;
   TRGB_BMP24Array = array[0..MaxInt div SizeOf(TRGB_BMP24)-1] of TRGB_BMP24;
   PRGB_BMP24Array = ^TRGB_BMP24Array;
@@ -72,7 +72,7 @@ var fhead: TBitmapFileHeader;
   procedure WriteRow(Row: Pointer; bmprow: PByteArray);
   { przepisz wiersz bitmapy bmprow na wiersz strukturek TVector3Byte. }
 
-    function FiveBitsToByte(fivebits: Word): byte;
+    function FiveBitsToByte(fivebits: Word): Byte;
     begin
      {liczbe z zkaresu 0..31 (1111 binarnie) (ale podana jako typ Word -
       ponizej bezdiemy chcieli ja mnozyc przez 255 !) mapuje na zakres 0..255}

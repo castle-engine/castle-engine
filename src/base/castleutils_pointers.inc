@@ -23,7 +23,7 @@
   without any range / overflow checks. }
 function PointerAdd(p: Pointer; add: Integer): Pointer;
 
-function GetClearMem(Size: Integer; ClearValue: byte = 0): Pointer; overload;
+function GetClearMem(Size: Integer; ClearValue: Byte = 0): Pointer; overload;
 
 { Safer version of FreeMem, checks is parameter @nil, and sets it to @nil
   afterwards. }
@@ -78,7 +78,7 @@ begin
 end;
 {$include norqcheckend.inc}
 
-function GetClearMem(Size: Integer; clearValue: byte{=0}): Pointer;
+function GetClearMem(Size: Integer; clearValue: Byte{=0}): Pointer;
 begin result := GetMem(Size); FillChar(result^,Size, clearvalue) end;
 
 procedure FreeMemNiling(var p: Pointer);

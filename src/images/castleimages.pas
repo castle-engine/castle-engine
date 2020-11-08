@@ -3142,9 +3142,9 @@ begin
   prgb := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    prgb^.Data[0] := High(byte) - prgb^.Data[0];
-    prgb^.Data[1] := High(byte) - prgb^.Data[1];
-    prgb^.Data[2] := High(byte) - prgb^.Data[2];
+    prgb^.Data[0] := High(Byte) - prgb^.Data[0];
+    prgb^.Data[1] := High(Byte) - prgb^.Data[1];
+    prgb^.Data[2] := High(Byte) - prgb^.Data[2];
     Inc(prgb);
   end;
 end;
@@ -3423,9 +3423,9 @@ begin
   palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    palpha^.Data[0] := High(byte) - palpha^.Data[0];
-    palpha^.Data[1] := High(byte) - palpha^.Data[1];
-    palpha^.Data[2] := High(byte) - palpha^.Data[2];
+    palpha^.Data[0] := High(Byte) - palpha^.Data[0];
+    palpha^.Data[1] := High(Byte) - palpha^.Data[1];
+    palpha^.Data[2] := High(Byte) - palpha^.Data[2];
     Inc(palpha);
   end;
 end;
@@ -4388,9 +4388,9 @@ begin
 
   Multiplier := Mantissa * 256 / MaxVal;
 
-  { MaxVal * Multiplier daje Mantissa * High(byte) a wiec cos w zakresie
+  { MaxVal * Multiplier daje Mantissa * High(Byte) a wiec cos w zakresie
     0 .. High(Byte) bo Mantissa <= 1 (de facto, Mantissa >= 0.5 wiec
-    mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
+    mozna podac dokladniejsze ograniczenie na Mantissa * High(Byte)).
     Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
     w zakresie bajta. }
   Result.Data[0] := Clamped(Round(v.Data[0] * Multiplier), 0, High(Byte));

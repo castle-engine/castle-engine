@@ -369,7 +369,7 @@ begin
   if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
      (BitDepth = 8) then
   begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+    png_set_filler(png_ptr, High(Byte), PNG_FILLER_AFTER);
     ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
   end;
 
@@ -443,7 +443,7 @@ begin
   if (ColorType and PNG_COLOR_MASK_ALPHA = 0) and
      (BitDepth = 8) then
   begin
-    png_set_filler(png_ptr, High(byte), PNG_FILLER_AFTER);
+    png_set_filler(png_ptr, High(Byte), PNG_FILLER_AFTER);
     ColorType := ColorType or PNG_COLOR_MASK_ALPHA;
   end;
 

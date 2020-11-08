@@ -127,8 +127,8 @@ const
 function IsFontTrueType( Font: HFONT ): Boolean;
 
 type
-  TEnumFontCharsetsProc_ByObject = procedure( FontCharset: byte ) of object;
-  TEnumFontCharsetsProc = procedure( FontCharset: byte );
+  TEnumFontCharsetsProc_ByObject = procedure( FontCharset: Byte) of object;
+  TEnumFontCharsetsProc = procedure( FontCharset: Byte );
 
 { Enumerate charsets handled by given font. Warning: enumerated values
   may be repeated.
@@ -271,14 +271,14 @@ end;
 type
   TEnumCharsetsDisp = class
     NonObjectEnumProc : TEnumFontCharsetsProc;
-    procedure ObjectEnumProc( FontCharset: byte );
+    procedure ObjectEnumProc( FontCharset: Byte);
   end;
-  procedure TEnumCharsetsDisp.ObjectEnumProc(FontCharset: byte);
+  procedure TEnumCharsetsDisp.ObjectEnumProc(FontCharset: Byte);
   begin { ObjectEnumProc przekazuje po prostu swoj argument do NonObjectenumProc }
    NonObjectEnumProc( FontCharset );
   end;
 
-procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
+procedure EnumFontCharsets(const FontName: string; EnumProc: TEnumFontCharsetsProc);
 var
   EnumObj: TEnumCharsetsDisp;
 begin

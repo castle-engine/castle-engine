@@ -21,7 +21,7 @@ function LoadIPL(Stream: TStream;
 (*
   { Take a number from 0..31 (1111 in binary) and map it to 0..255 range.
     Parameter FiveBits is a Word, to safely multiply it in implementation. }
-  function FiveBitsToByte(fivebits: Word): byte;
+  function FiveBitsToByte(fivebits: Word): Byte;
   begin
     Result := fivebits*255 div 31;
   end;
@@ -35,7 +35,7 @@ const
   TypeFlagUShort = 6;
 var
   IPLVersion: string;
-  IPLFormat: byte;
+  IPLFormat: Byte;
   IPLTypeFlag: Word;
   IPLWidth, IPLHeight: LongWord;
   i, j: Integer;

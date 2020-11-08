@@ -745,13 +745,13 @@ const
   XK_a_upper = {$ifdef DCC} XK_a {$endif} {$ifdef FPC} XKc_a {$endif};
   XK_z_upper = {$ifdef DCC} XK_z {$endif} {$ifdef FPC} XKc_z {$endif};
 var
-  b: byte;
+  B: Byte;
 begin
   { See ~/sources/fpc/trunk/packages/x11/src/keysym.pp }
 
   { initialize KeySym*ToKey }
-  for b := Low(b) to High(b) do KeySym0ToKey[b] := keyNone;
-  for b := Low(b) to High(b) do KeySymFFToKey[b] := keyNone;
+  for B := Low(B) to High(B) do KeySym0ToKey[B] := keyNone;
+  for B := Low(B) to High(B) do KeySymFFToKey[B] := keyNone;
 
   KeySymFFToKey[XK_Page_Up and $FF] := keyPageUp;
   KeySymFFToKey[XK_Page_Down and $FF] := keyPageDown;
@@ -800,11 +800,11 @@ begin
   KeySymFFToKey[XK_KP_Multiply and $FF] := keyNumpadMultiply;
   KeySymFFToKey[XK_KP_Divide and $FF] := keyNumpadDivide;
 
-  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := TKey(Ord(keyF1) + b);
+  for B := 0 to 11 do KeySymFFToKey[(XK_F1+B) and $FF] := TKey(Ord(keyF1) + B);
 
-  for b := XK_0 to XK_9 do KeySym0ToKey[b] := TKey(b);
-  for b := XK_a_lower to XK_z_lower do KeySym0ToKey[b] := TKey(Ord(UpCase(Chr(b))));
-  for b := XK_a_upper to XK_z_upper do KeySym0ToKey[b] := TKey(b);
+  for B := XK_0 to XK_9 do KeySym0ToKey[B] := TKey(B);
+  for B := XK_a_lower to XK_z_lower do KeySym0ToKey[B] := TKey(Ord(UpCase(Chr(B))));
+  for B := XK_a_upper to XK_z_upper do KeySym0ToKey[B] := TKey(B);
   KeySym0ToKey[XK_Space] := keySpace;
   KeySym0ToKey[XK_comma] := keyComma;
   KeySym0ToKey[XK_period] := keyPeriod;

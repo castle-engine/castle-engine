@@ -346,7 +346,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
         1:(LoWord, HiWord: Word);
         2:(LoSmallint, HiSmallint: Smallint);
-        3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
+        3:(LowestByte, LowerByte, HigherByte, HighestByte: Byte);
     end;
 
   function InterceptedSystemKey(key: Integer): Boolean;
@@ -1798,7 +1798,7 @@ type
        dmSize : WORD;
        dmDriverExtra : WORD;
        dmFields : DWORD;
-       case byte of
+       case Byte of
          1: (dmOrientation : SmallInt;
              dmPaperSize : SmallInt;
              dmPaperLength : SmallInt;
