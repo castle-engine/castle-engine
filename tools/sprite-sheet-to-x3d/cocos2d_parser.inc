@@ -1,5 +1,5 @@
 procedure Cocos2DParser;
-  procedure ReadQuad(const ASrc: string; out V1, V2, V3, V4: integer);
+  procedure ReadQuad(const ASrc: string; out V1, V2, V3, V4: Integer);
   var
     R: TRegExpr;
   begin
@@ -18,7 +18,7 @@ procedure Cocos2DParser;
     end;
   end;
 
-  procedure ReadDual(const ASrc: string; out V1, V2: integer);
+  procedure ReadDual(const ASrc: string; out V1, V2: Integer);
   var
     R: TRegExpr;
   begin
@@ -60,7 +60,7 @@ var
   Frame: TFrame;
   HasAnchor,
   HasOriginFrame: boolean;
-  X, Y, W, H, OW, OH, FX, FY, FW, FH: integer;
+  X, Y, W, H, OW, OH, FX, FY, FW, FH: Integer;
   AX, AY: single;
 begin
   Doc := URLReadXML(SSFullPath);

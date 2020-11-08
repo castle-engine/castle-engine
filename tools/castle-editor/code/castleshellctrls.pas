@@ -662,7 +662,7 @@ begin
 
 end;
 
-function STVCompareFiles(f1, f2: Pointer): integer;
+function STVCompareFiles(f1, f2: Pointer): Integer;
 begin
   Result:=CompareFilenames(AnsiString(f1),AnsiString(f2));
 end;
@@ -1080,7 +1080,7 @@ procedure TCustomCastleShellTreeView.SetPath(AValue: string);
 var
   sl: TStringList;
   Node: TTreeNode;
-  i: integer;
+  I: Integer;
   FQRootPath, RelPath: String;
   RootIsAbsolute: Boolean;
   IsRelPath: Boolean;
@@ -1132,7 +1132,7 @@ var
 
   function ContainsHiddenDir(Fn: String): Boolean;
   var
-    i: Integer;
+    I: Integer;
     Attr: LongInt;
     Dirs: TStringList;
     RelPath: String;
@@ -1155,12 +1155,12 @@ var
           Dirs.Delimiter := PathDelim;
           Dirs.DelimitedText := Fn;
           Fn := '';
-          for i := 0 to Dirs.Count - 1 do
+          for I := 0 to Dirs.Count - 1 do
           begin
-            if (i = 0) then
-              Fn := Dirs.Strings[i]
+            if (I = 0) then
+              Fn := Dirs.Strings[I]
             else
-              Fn := Fn + PathDelim + Dirs.Strings[i];
+              Fn := Fn + PathDelim + Dirs.Strings[I];
             if (Fn = '') then Continue;
             RelPath := CreateRelativePath(Fn, FQRootPath, False, True);
             //don't check if Fn now is "higher up the tree" than the current root
@@ -1292,7 +1292,7 @@ begin
   end;
 
   {$ifdef debug_shellctrls}
-  for i := 0 to sl.Count - 1 do debugln(['sl[',i,']="',sl[i],'"']);
+  for I := 0 to sl.Count - 1 do debugln(['sl[',I,']="',sl[I],'"']);
   {$endif}
 
 
@@ -1318,24 +1318,24 @@ begin
       //if RootIsAbsolute then sl.Delete(0);
     end;
 
-    for i := 0 to sl.Count-1 do
+    for I := 0 to sl.Count-1 do
     begin
       {$ifdef debug_shellctrls}
-      DbgOut(['i=',i,' sl[',i,']=',sl[i],' ']);
+      DbgOut(['i=',I,' sl[',I,']=',sl[I],' ']);
       if Node <> nil then DbgOut(['GetAdjustedNodeText = ',GetAdjustedNodeText(Node)])
       else  DbgOut('Node = NIL');
       debugln;
       {$endif}
       while (Node <> Nil) and
             {$IF defined(CaseInsensitiveFilenames) or defined(NotLiteralFilenames)}
-            (Utf8LowerCase(GetAdjustedNodeText(Node)) <> Utf8LowerCase(sl[i]))
+            (Utf8LowerCase(GetAdjustedNodeText(Node)) <> Utf8LowerCase(sl[I]))
             {$ELSE}
-            (GetAdjustedNodeText(Node) <> sl[i])
+            (GetAdjustedNodeText(Node) <> sl[I])
             {$ENDIF}
             do
             begin
               {$ifdef debug_shellctrls}
-              DbgOut(['  i=',i,' "',GetAdjustedNodeText(Node),' <> ',sl[i],' -> GetNextVisibleSibling -> ']);
+              DbgOut(['  i=',I,' "',GetAdjustedNodeText(Node),' <> ',sl[I],' -> GetNextVisibleSibling -> ']);
               {$endif}
               Node := Node.GetNextVisibleSibling;
               {$ifdef debug_shellctrls}

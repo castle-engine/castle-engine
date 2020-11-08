@@ -27,13 +27,13 @@ uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
 type
   TMeta = record
     Name: string;       { Image name }
-    W, H: integer;      { Image size }
+    W, H: Integer;      { Image size }
   end;
 
   TFrame = record
     X1, Y1,             { Texture coords }
     X2, Y2: single;
-    W, H  : integer;    { Frame size }
+    W, H  : Integer;    { Frame size }
     AX, AY: single;     { Anchor }
   end;
 
@@ -134,7 +134,7 @@ end;
 
 procedure Convert;
 var
-  i, j: integer;
+  I, J: Integer;
   List: TFrameList;
   AnimationName: string;
   AnimationPair: TAnimations.TDictionaryPair;
@@ -160,14 +160,14 @@ begin
   for List in Animations.Values do
   begin
     { Convert sprite texture coordinates to X3D format. }
-    for i := 0 to List.Count-1 do
+    for I := 0 to List.Count-1 do
     begin
-      Frame := List[i];
+      Frame := List[I];
       Frame.X1 := 1 / Meta.W * Frame.X1;
       Frame.Y1 := 1 - 1 / Meta.H * Frame.Y1;
       Frame.X2 := 1 / Meta.W * Frame.X2;
       Frame.Y2 := 1 - 1 / Meta.H * Frame.Y2;
-      List[i] := Frame;
+      List[I] := Frame;
     end;
   end;
   Root := TX3DRootNode.Create;
@@ -217,7 +217,7 @@ begin
     SetLength(CoordInterpArray, Animations.Count);
     SetLength(TexCoordInterpArray, Animations.Count);
 
-    j := 0;
+    J := 0;
     for AnimationPair in Animations do
     begin
       AnimationName := AnimationPair.Key;
@@ -231,9 +231,9 @@ begin
           TCoordinateInterpolatorNode.Create(AnimationName + '_Coord');
       TexCoordInterp :=
           TCoordinateInterpolator2DNode.Create(AnimationName + '_TexCoord');
-      TimeSensorArray[j] := TimeSensor;
-      CoordInterpArray[j] := CoordInterp;
-      TexCoordInterpArray[j] := TexCoordInterp;
+      TimeSensorArray[J] := TimeSensor;
+      CoordInterpArray[J] := CoordInterp;
+      TexCoordInterpArray[J] := TexCoordInterp;
       { Generate list of keys. }
       for i := 0 to List.Count-1 do
       begin
@@ -296,16 +296,16 @@ begin
       Root.AddRoute(R2);
       Root.AddRoute(R3);
       Root.AddRoute(R4);
-      Inc(j);
+      Inc(J);
     end;
     { Put everything into the scene. }
     Root.AddChildren(Shape);
-    for j := 0 to Animations.Count-1 do
-      Root.AddChildren(TimeSensorArray[j]);
-    for j := 0 to Animations.Count-1 do
+    for J := 0 to Animations.Count-1 do
+      Root.AddChildren(TimeSensorArray[J]);
+    for J := 0 to Animations.Count-1 do
     begin
-      Root.AddChildren(CoordInterpArray[j]);
-      Root.AddChildren(TexCoordInterpArray[j]);
+      Root.AddChildren(CoordInterpArray[J]);
+      Root.AddChildren(TexCoordInterpArray[J]);
     end;
     Save3D(Root, SSOutput);
   finally

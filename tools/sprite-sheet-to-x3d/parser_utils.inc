@@ -1,8 +1,8 @@
 procedure CalculateAnchor(const OX, OY, OW, OH,
-    X, Y, W, H: integer; out AX, AY: single);
+    X, Y, W, H: Integer; out AX, AY: single);
 var
   OriginAX, OriginAY,
-  TransAX, TransAY: integer;
+  TransAX, TransAY: Integer;
 begin
   { Find anchor position in original frame. }
   OriginAX := OW div 2;

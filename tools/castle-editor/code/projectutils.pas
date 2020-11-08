@@ -140,7 +140,7 @@ end;
 procedure GenerateProgramWithBuildTool(const ProjectDirUrl: String);
 var
   BuildToolExe, BuildToolOutput: String;
-  BuildToolStatus: integer;
+  BuildToolStatus: Integer;
 begin
   BuildToolExe := FindExeCastleTool('castle-engine');
   if BuildToolExe = '' then

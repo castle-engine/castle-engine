@@ -5,7 +5,7 @@ var
   I: TXMLElementIterator;
   AniName, Key: string;
   Frame: TFrame;
-  OW, OH, FX, FY: integer;
+  OW, OH, FX, FY: Integer;
   HasOriginFrame: boolean;
 begin
   Doc := URLReadXML(SSFullPath);

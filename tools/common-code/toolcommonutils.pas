@@ -75,7 +75,7 @@ type
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+  out OutputString: string; out ExitStatus: Integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil);
 
@@ -456,7 +456,7 @@ end;
 
 procedure MyRunCommandIndir(const CurDir: string;
   const ExeName: string;const Options: array of string;
-  out OutputString: string; out ExitStatus: integer;
+  out OutputString: string; out ExitStatus: Integer;
   const LineFiltering: TLineFiltering = nil;
   const LineFilteringData: Pointer = nil);
 var
