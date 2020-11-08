@@ -587,12 +587,12 @@ end;
 
 procedure TMaterial3dsList.CheckAllInitialized;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count-1 do
-    if not Items[i].Initialized then
+  for I := 0 to Count-1 do
+    if not Items[I].Initialized then
       raise EMaterialNotInitialized.Create(
-        'Material "'+Items[i].Name+'" used but does not exist');
+        'Material "' + Items[I].Name + '" used but does not exist');
 end;
 
 procedure TMaterial3dsList.ReadMaterial(Stream: TStream; EndPos: Int64);
@@ -715,22 +715,22 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
 
   procedure ReadVertlist;
   var
-    i: integer;
+    I: Integer;
   begin
     ReadVertsCount;
-    for i := 0 to VertsCount-1 do
-      Stream.ReadLE(Verts^[i].Pos);
+    for I := 0 to VertsCount-1 do
+      Stream.ReadLE(Verts^[I].Pos);
   end;
 
-  procedure ReadMaplist(chunkEnd: Int64);
+  procedure ReadMaplist(ChunkEnd: Int64);
   var
-    i: integer;
+    I: Integer;
   begin
     FHasTexCoords := true;
     ReadVertsCount;
-    for i := 0 to VertsCount-1 do
-      Stream.ReadLE(Verts^[i].TexCoord);
-    Stream.Position := chunkEnd; { skip subchunks }
+    for I := 0 to VertsCount-1 do
+      Stream.ReadLE(Verts^[I].TexCoord);
+    Stream.Position := ChunkEnd; { skip subchunks }
   end;
 
   procedure ReadFacelist(chunkEnd: Int64);
@@ -757,7 +757,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     end;
 
   var
-    i, j: integer;
+    I, J: Integer;
     Flags: Word;
     Word3: packed array[0..2]of Word;
     h: TChunkHeader;
@@ -766,19 +766,19 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     Check3dsFile(FacesCount = 0, 'Duplicate faces specification for 3ds object '+Name);
     Stream.ReadLE(FFacesCount);
     Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
-    for i := 0 to FacesCount-1 do
-    with Faces^[i] do
+    for I := 0 to FacesCount-1 do
+    with Faces^[I] do
     begin
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
-      for j := 0 to 2 do
-        VertsIndices[j] := LEtoN(Word3[j]);
+      for J := 0 to 2 do
+        VertsIndices[J] := LEtoN(Word3[J]);
       Stream.ReadLE(Flags);
       { decode Flags }
-      for j := 0 to 2 do
-        EdgeFlags[j]:=(FACEFLAG_EDGES[j] and Flags) <> 0;
-      for j := 0 to 1 do
-        Wrap[j]:=(FACEFLAG_WRAP[j] and Flags) <> 0;
+      for J := 0 to 2 do
+        EdgeFlags[J]:=(FACEFLAG_EDGES[J] and Flags) <> 0;
+      for J := 0 to 1 do
+        Wrap[J]:=(FACEFLAG_WRAP[J] and Flags) <> 0;
       FaceMaterialIndex := -1;
     end;
 
@@ -1089,15 +1089,15 @@ var
 
   { How many faces have the same material index.
     Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
-  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: integer;
-    StartFace: integer): integer;
+  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: Integer;
+    StartFace: Integer): Integer;
   var
     I: Integer;
   begin
     I := StartFace + 1;
     while (I < FacesCount) and
           (Faces^[I].FaceMaterialIndex = Faces^[StartFace].FaceMaterialIndex) do
-      Inc(i);
+      Inc(I);
     Result := I - StartFace;
   end;
 

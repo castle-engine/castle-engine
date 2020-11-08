@@ -38,7 +38,7 @@ var
 
     @param(TextureSIsY By default, texture S goes along X and texture T
       goes along Y. Pass TextureSIsY = @true to change it.) }
-  procedure MakeRect(const ConstCoord: integer; const ConstCoordValue: Single;
+  procedure MakeRect(const ConstCoord: Integer; const ConstCoordValue: Single;
     const X1, Y1: Single; const TexX1, TexY1: Single;
     const FaceMaterialIndex: Integer;
     const TextureSIsY: Boolean = false);
@@ -57,7 +57,7 @@ var
     end;
 
   var
-    FaceIndex, Index, C1, C2: integer;
+    FaceIndex, Index, C1, C2: Integer;
     X2, Y2, TexX2, TexY2: Single;
     I, J, NewCoords, ThisIndex: Integer;
     N: TVector3;

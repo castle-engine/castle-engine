@@ -87,8 +87,8 @@
       and changes back to @false for appropriate nodes). }
     NeedsInstantiateIsClause: Boolean;
 
-    function GetVRML1Child(i: integer): TX3DNode;
-    function GetVRML1Parent(i: integer): TX3DNode;
+    function GetVRML1Child(I: Integer): TX3DNode;
+    function GetVRML1Parent(I: Integer): TX3DNode;
     procedure SetVRML1Child(I: Integer; Value: TX3DNode);
     function GetParentFieldsItem(Index: Integer): TX3DField;
     function GetParentFieldsNodeItem(Index: Integer): TX3DNode;
@@ -370,8 +370,8 @@
       is already equal to NewChildren, it does nothing.
 
       @groupBegin }
-    property VRML1Children [i: integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
-    function VRML1ChildrenCount: integer;
+    property VRML1Children [I: Integer]: TX3DNode read GetVRML1Child write SetVRML1Child;
+    function VRML1ChildrenCount: Integer;
     { @groupEnd }
 
     { Add a VRML 1.0 child node at given position.
@@ -383,7 +383,7 @@
     { Add a VRML 1.0 child node at the end of VRML1Children list. }
     procedure VRML1ChildAdd(child: TX3DNode); overload;
 
-    procedure VRML1ChildRemove(i: integer);
+    procedure VRML1ChildRemove(I: Integer);
     procedure VRML1ChildrenClear;
 
     { Remove a VRML 1.0 children at index I and return it (do not free it).
@@ -400,8 +400,8 @@
       list.
 
       @groupBegin }
-    property VRML1Parents [i: integer] :TX3DNode read GetVRML1Parent;
-    function VRML1ParentsCount: integer;
+    property VRML1Parents [I: Integer] :TX3DNode read GetVRML1Parent;
+    function VRML1ParentsCount: Integer;
     { @groupEnd }
 
     { All SFNode and MFNode fields where this node is referenced.
@@ -782,7 +782,7 @@
       This traverses both VRML 1.0 children nodes and VRML 2.0 nodes
       inside SFNode and MFNode fields. }
     function NodesCount(NodeClass: TX3DNodeClass;
-      CountOnlyActiveNodes: Boolean): integer;
+      CountOnlyActiveNodes: Boolean): Integer;
 
     { Save node to a stream. Saves everything, including node name,
       node type, and node contents. }
@@ -1312,12 +1312,12 @@ begin
   VRML1ChildAdd(FVRML1Children.Count, child);
 end;
 
-procedure TX3DNode.VRML1ChildRemove(i: integer);
+procedure TX3DNode.VRML1ChildRemove(I: Integer);
 var
   OldChild: TX3DNode;
 begin
-  OldChild := FVRML1Children[i];
-  FVRML1Children.Delete(i);
+  OldChild := FVRML1Children[I];
+  FVRML1Children.Delete(I);
   OldChild.FVRML1Parents.Remove(Self);
   OldChild.FreeIfUnused;
 end;
@@ -1360,38 +1360,38 @@ begin
  while FVRML1Children.Count > 0 do VRML1ChildRemove(0);
 end;
 
-function TX3DNode.GetVRML1Child(i: integer): TX3DNode;
+function TX3DNode.GetVRML1Child(I: Integer): TX3DNode;
 begin
-  result := FVRML1Children[i];
+  result := FVRML1Children[I];
 end;
 
-function TX3DNode.GetVRML1Parent(i: integer): TX3DNode;
+function TX3DNode.GetVRML1Parent(I: Integer): TX3DNode;
 begin
-  result := FVRML1Parents[i];
+  result := FVRML1Parents[I];
 end;
 
-function TX3DNode.VRML1ChildrenCount: integer;
+function TX3DNode.VRML1ChildrenCount: Integer;
 begin
   result := FVRML1Children.Count
 end;
 
-function TX3DNode.VRML1ParentsCount: integer;
+function TX3DNode.VRML1ParentsCount: Integer;
 begin
   result := FVRML1Parents.Count
 end;
 
 procedure TX3DNode.FreeRemovingFromAllParents;
 var
-  i, j: integer;
+  I, J: Integer;
   SF: TSFNode;
   MF: TMFNode;
 begin
   if Self = nil then exit;
 
-  for i := 0 to FVRML1Parents.Count - 1 do
+  for I := 0 to FVRML1Parents.Count - 1 do
   begin
-    j := FVRML1Parents[i].FVRML1Children.IndexOf(Self);
-    FVRML1Parents[i].FVRML1Children.Delete(j);
+    J := FVRML1Parents[I].FVRML1Children.IndexOf(Self);
+    FVRML1Parents[I].FVRML1Children.Delete(J);
     { nie musimy sie tu martwic usuwaniem naszego Parenta z listy
       FVRML1Parents ktora
      wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
@@ -1803,7 +1803,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames
   end;
 
 var
-  I: integer;
+  I: Integer;
   Route: TX3DRoute;
   Proto: TX3DPrototypeBase;
   Event: TX3DEvent;
@@ -2426,7 +2426,7 @@ end;
 
 function TX3DNode.TryFindParentByName(const FindName: string): TX3DNode;
 var
-  I: integer;
+  I: Integer;
 begin
   if X3DName = FindName then
     result := Self else
@@ -2475,7 +2475,7 @@ end;
 
 function TX3DNode.HasParentNode(Node: TX3DNode): Boolean;
 var
-  I: integer;
+  I: Integer;
 begin
   if Self = Node then
     result := true else
@@ -2516,7 +2516,7 @@ end;
 
 type
   TNodesCountHelper = class
-    Counter: integer;
+    Counter: Integer;
     procedure CountNode(node: TX3DNode);
   end;
 
@@ -2524,7 +2524,7 @@ type
   begin Inc(Counter) end;
 
 function TX3DNode.NodesCount(NodeClass: TX3DNodeClass;
-  CountOnlyActiveNodes: Boolean): integer;
+  CountOnlyActiveNodes: Boolean): Integer;
 var
   C: TNodesCountHelper;
 begin
@@ -2547,7 +2547,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     You want to save here exactly what you read in ParseNodeBodyElement. }
   function ContentsToSave: TX3DFileItemList;
   var
-    I: integer;
+    I: Integer;
   begin
     Result := TX3DFileItemList.Create(false);
     try

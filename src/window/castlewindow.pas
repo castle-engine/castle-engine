@@ -985,7 +985,7 @@ type
       calling DoResize; but usually (under WinAPI, Xlib, GTK)
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
-    procedure DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: Boolean);
+    procedure DoResize(AWidth, AHeight: Integer; FirstResizeAfterOpen: Boolean);
 
     { Called by a backend when user wants to close the window
       (e.g. by pressing the special "close" button on the window manager border).
@@ -1150,8 +1150,8 @@ type
       Special WindowDefaultSize value of these properties
       means: at @link(Open), calculate and use some comfortable window size.
       @groupBegin }
-    property Width: integer read FWidth write SetWidth default WindowDefaultSize;
-    property Height: integer read FHeight write SetHeight default WindowDefaultSize;
+    property Width: Integer read FWidth write SetWidth default WindowDefaultSize;
+    property Height: Integer read FHeight write SetHeight default WindowDefaultSize;
     { @groupEnd }
 
     { Rectangle representing the inside of this container.
@@ -1176,8 +1176,8 @@ type
       You cannot change these properties while the window is open now.
 
       @groupBegin }
-    property Left: integer read FLeft write SetLeft default WindowPositionCenter;
-    property Top :integer read FTop write SetTop default WindowPositionCenter;
+    property Left: Integer read FLeft write SetLeft default WindowPositionCenter;
+    property Top : Integer read FTop write SetTop default WindowPositionCenter;
     { @groupEnd }
 
     { Is the window fullscreen.
@@ -2491,7 +2491,7 @@ type
     FOnUpdate: TUpdateFunc;
     FOnTimer: TProcedure;
     FTimerMilisec: Cardinal;
-    FVideoColorBits: integer;
+    FVideoColorBits: Integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
       Update in TCastleWindowBase.MakeCurrent, also TCastleWindowBase.Close. }
@@ -2503,7 +2503,7 @@ type
     LastMaybeDoTimerTime: TTimerResult;
 
     FOpenWindows: TWindowList;
-    function GetOpenWindows(Index: integer): TCastleWindowBase;
+    function GetOpenWindows(Index: Integer): TCastleWindowBase;
     { Run @link(OnInitialize) and
       @link(TCastleApplicationProperties.OnInitializeJavaActivity) callbacks,
       if not run yet.
@@ -2534,7 +2534,7 @@ type
     procedure OpenWindowsRemove(Window: TCastleWindowBase; QuitWhenLastWindowClosed: Boolean);
 
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
-    function FindWindow(Window: TCastleWindowBase): integer;
+    function FindWindow(Window: TCastleWindowBase): Integer;
 
     procedure CreateBackend;
     procedure DestroyBackend;
@@ -2616,7 +2616,7 @@ type
       @groupBegin }
     VideoResize : Boolean;
     VideoResizeWidth,
-    VideoResizeheight : integer;
+    VideoResizeheight : Integer;
     { @groupEnd }
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -2624,7 +2624,7 @@ type
     { Color bits per pixel that will be set by next VideoChange call,
       and that are tried to be used at TCastleWindowBase.Open.
       Zero means that system default is used. }
-    property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
+    property VideoColorBits: Integer read FVideoColorBits write FVideoColorBits default 0;
 
     { Video frequency to set in next VideoChange call.
       Leave as 0 to use system default. }
@@ -2662,14 +2662,14 @@ type
       screen resolution for user. }
     procedure VideoReset;
 
-    function ScreenHeight: integer;
-    function ScreenWidth: integer;
+    function ScreenHeight: Integer;
+    function ScreenWidth: Integer;
     function ScreenStatusBarScaledHeight: Cardinal;
 
     { List of all open windows.
       @groupBegin }
-    function OpenWindowsCount: integer;
-    property OpenWindows[Index: integer]: TCastleWindowBase read GetOpenWindows;
+    function OpenWindowsCount: Integer;
+    property OpenWindows[Index: Integer]: TCastleWindowBase read GetOpenWindows;
     { @groupEnd }
 
     { The application and CastleWindow backend is initialized.
@@ -3414,7 +3414,7 @@ end;
   implementations independent from the backend.
   Backends should always call DoXxx, never call directly EventXxx or OnXxx. }
 
-procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: Boolean);
+procedure TCastleWindowBase.DoResize(AWidth, AHeight: Integer; FirstResizeAfterOpen: Boolean);
 begin
   { Set FRealWidth/Height unconditionally to AWidth/AHeight. }
   FRealWidth := AWidth;
@@ -3889,8 +3889,8 @@ procedure GeometryOptionProc(OptionNum: Integer; HasArgument: Boolean;
 var ProcData: POptionProcData absolute Data;
 
   procedure ApplyGeometryParam(const geom: string);
-  var p: integer;
-      parWidth, parHeight, parXoff, parYoff: integer;
+  var p: Integer;
+      parWidth, parHeight, parXoff, parYoff: Integer;
       xoffPlus, yoffPlus, sizeSpecified, positionSpecified: Boolean;
       { p to znak w stringu geom ktory teraz chcemy czytac.
         parWidth i parHeight sa valid tylko o ile sizeSpecified.
@@ -3899,7 +3899,7 @@ var ProcData: POptionProcData absolute Data;
 
     procedure ParseSize;
     { parsuje width i height }
-    var startp: integer;
+    var startp: Integer;
     begin
      sizeSpecified := true;
 
@@ -3920,7 +3920,7 @@ var ProcData: POptionProcData absolute Data;
 
     procedure ParsePosition;
     { parsuje xoff, yoff i koniec stringa. }
-    var startp: integer;
+    var startp: Integer;
     begin
      positionSpecified := true;
 
@@ -4002,7 +4002,7 @@ procedure ScreenGeometryOptionProc(OptionNum: Integer; HasArgument: Boolean;
 var ProcData: POptionProcData absolute Data;
 
   procedure ApplyFullScreenCustomParam(const option: string);
-  var p: integer;
+  var p: Integer;
   begin
    ProcData^.Window.FullScreen := true;
    try
@@ -4735,23 +4735,23 @@ end;
 
 procedure TWindowList.Invalidate;
 var
-  i: Integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].Invalidate;
+  for I := 0 to Count - 1 do Items[I].Invalidate;
 end;
 
 procedure TWindowList.DoUpdate;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].DoUpdate;
+  for I := 0 to Count - 1 do Items[I].DoUpdate;
 end;
 
 procedure TWindowList.DoTimer;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].DoTimer;
+  for I := 0 to Count - 1 do Items[I].DoTimer;
 end;
 
 { --------------------------------------------------------------------------
@@ -4877,12 +4877,12 @@ begin
     MainWindow := nil;
 end;
 
-function TCastleApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
+function TCastleApplication.GetOpenWindows(Index: Integer): TCastleWindowBase;
 begin
   result := FOpenWindows[Index];
 end;
 
-function TCastleApplication.OpenWindowsCount: integer;
+function TCastleApplication.OpenWindowsCount: Integer;
 begin
   result := FOpenWindows.Count;
 end;
@@ -4901,7 +4901,7 @@ begin
     CloseAllOpenWindows;
 end;
 
-function TCastleApplication.FindWindow(Window: TCastleWindowBase): integer;
+function TCastleApplication.FindWindow(Window: TCastleWindowBase): Integer;
 begin
   for result := 0 to OpenWindowsCount-1 do
     if OpenWindows[result] = Window then exit;
@@ -4976,7 +4976,7 @@ end;
 
 procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: Boolean);
 var
-  I: integer;
+  I: Integer;
   Window: TCastleWindowBase;
 begin
   WasAnyRendering := false;

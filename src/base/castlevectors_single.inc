@@ -19,7 +19,7 @@
 {$ifdef read_interface}
 
 type
-  TGetVertexFromIndexFunc = function (Index: integer): TVector3 of object;
+  TGetVertexFromIndexFunc = function (Index: Integer): TVector3 of object;
 
 { Cosinus of angle between two vectors.
 
@@ -102,15 +102,15 @@ function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3)
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
-function MaxVectorCoord(const V: TVector2): integer; overload;
-function MaxVectorCoord(const V: TVector3): integer; overload;
-function MaxVectorCoord(const V: TVector4): integer; overload;
-function MaxAbsVectorCoord(const V: TVector2): integer; overload;
-function MaxAbsVectorCoord(const V: TVector3): integer; overload;
-function MaxAbsVectorCoord(const V: TVector4): integer; overload;
+function MaxVectorCoord(const V: TVector2): Integer; overload;
+function MaxVectorCoord(const V: TVector3): Integer; overload;
+function MaxVectorCoord(const V: TVector4): Integer; overload;
+function MaxAbsVectorCoord(const V: TVector2): Integer; overload;
+function MaxAbsVectorCoord(const V: TVector3): Integer; overload;
+function MaxAbsVectorCoord(const V: TVector4): Integer; overload;
 { @groupEnd }
 
-function MinVectorCoord(const V: TVector3): integer; overload;
+function MinVectorCoord(const V: TVector3): Integer; overload;
 
 procedure SortAbsVectorCoord(const V: TVector3; out Max, Middle, Min: Integer); overload;
 
@@ -293,7 +293,7 @@ function AnyOrthogonalVector(const V: TVector3): TVector3; overload;
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): Boolean; overload;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): Boolean; overload;
+  const PlaneConstCoord: Integer): Boolean; overload;
 
 { Assuming that Vector1 and Vector2 are parallel,
   check do they point in the same direction.
@@ -334,7 +334,7 @@ function PointToPlaneDistance(const Point: TVector3;
 { @groupEnd }
 
 function PointToSimplePlaneDistance(const point: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single): Single; overload;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single): Single; overload;
 
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2): TVector2; overload;
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3): TVector3; overload;
@@ -370,13 +370,13 @@ function TryPlaneLineIntersection(out t: Single;
   T is always >= 0.
   @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean; overload;
 function TrySimplePlaneRayIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean; overload;
 
 function TryPlaneRayIntersection(out Intersection: TVector3;
@@ -398,15 +398,15 @@ function TryPlaneRayIntersection(out Intersection: TVector3; out T: Single;
   @groupBegin }
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean; overload;
 function TrySimplePlaneSegmentIntersection(
   out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean; overload;
 
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
@@ -1036,13 +1036,13 @@ begin
   Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
 end;
 
-function MaxVectorCoord(const V: TVector2): integer;
+function MaxVectorCoord(const V: TVector2): Integer;
 begin
   Result := 0;
   if V.Data[1] > V.Data[Result] then Result := 1;
 end;
 
-function MaxVectorCoord(const V: TVector3): integer;
+function MaxVectorCoord(const V: TVector3): Integer;
 begin
   Result := 0;
   { order of comparisons is important. We start from 0, then 1 and 2,
@@ -1052,14 +1052,14 @@ begin
   if V.Data[2] > V.Data[Result] then Result := 2;
 end;
 
-function MinVectorCoord(const V: TVector3): integer;
+function MinVectorCoord(const V: TVector3): Integer;
 begin
   Result := 0;
   if V.Data[1] < V.Data[Result] then Result := 1;
   if V.Data[2] < V.Data[Result] then Result := 2;
 end;
 
-function MaxVectorCoord(const V: TVector4): integer;
+function MaxVectorCoord(const V: TVector4): Integer;
 begin
   Result := 0;
   if V.Data[1] > V.Data[Result] then Result := 1;
@@ -1067,13 +1067,13 @@ begin
   if V.Data[3] > V.Data[Result] then Result := 3;
 end;
 
-function MaxAbsVectorCoord(const V: TVector2): integer;
+function MaxAbsVectorCoord(const V: TVector2): Integer;
 begin
   Result := 0;
   if Abs(V.Data[1]) > Abs(V.Data[Result]) then Result := 1;
 end;
 
-function MaxAbsVectorCoord(const V: TVector3): integer;
+function MaxAbsVectorCoord(const V: TVector3): Integer;
 var
   Max, New: Single;
 begin
@@ -1083,7 +1083,7 @@ begin
   New := Abs(V.Data[2]); if New > Max then begin Result := 2; { Max := New; not needed anymore } end;
 end;
 
-function MaxAbsVectorCoord(const V: TVector4): integer;
+function MaxAbsVectorCoord(const V: TVector4): Integer;
 var
   Max, New: Single;
 begin
@@ -1479,7 +1479,7 @@ begin
 end;
 
 function IsLineParallelToSimplePlane(const lineVector: TVector3;
-  const PlaneConstCoord: integer): Boolean;
+  const PlaneConstCoord: Integer): Boolean;
 begin
   Result := IsZero(lineVector.Data[PlaneConstCoord]);
 end;
@@ -1556,7 +1556,7 @@ begin
 end;
 
 function PointToSimplePlaneDistance(const point: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single): Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single): Single;
 begin
   Result := Abs(point.Data[PlaneConstCoord]-PlaneConstValue);
 end;
@@ -1708,7 +1708,7 @@ end;
 { TrySimplePlaneRayIntersection ---------------------------------------------- }
 
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean;
 var
   T: Single;
@@ -1720,7 +1720,7 @@ end;
 
 function TrySimplePlaneRayIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   Result := TrySimplePlaneRayIntersection(T, PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection);
@@ -1729,7 +1729,7 @@ begin
 end;
 
 function TrySimplePlaneRayIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const RayOrigin, RayDirection: TVector3): Boolean;
 begin
   Result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
@@ -1743,7 +1743,7 @@ end;
 { TrySimplePlaneSegmentIntersection ------------------------------------------ }
 
 function TrySimplePlaneSegmentIntersection(out Intersection: TVector3;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean;
 var
   T: Single;
@@ -1755,7 +1755,7 @@ end;
 
 function TrySimplePlaneSegmentIntersection(
   out Intersection: TVector3; out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean;
 begin
   Result := TrySimplePlaneSegmentIntersection(T, PlaneConstCoord, PlaneConstValue, Pos1, Pos2);
@@ -1764,7 +1764,7 @@ begin
 end;
 
 function TrySimplePlaneSegmentIntersection(out T: Single;
-  const PlaneConstCoord: integer; const PlaneConstValue: Single;
+  const PlaneConstCoord: Integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3): Boolean;
 var
   SegmentVector: TVector3;
@@ -1783,7 +1783,7 @@ end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): Boolean;
 var
-  c: integer;
+  c: Integer;
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
@@ -1793,7 +1793,7 @@ end;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): Boolean;
 var
-  c: integer;
+  c: Integer;
 begin
   { project points on the best axis-aligned plane }
   c := MaxAbsVectorCoord(Pos1 - Pos2);
@@ -2191,14 +2191,14 @@ end;
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3): TMatrix4;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to 2 do
+  for I := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
-    Result.Data[3, i] := NewOrigin.Data[i];
+    Result.Data[0, I] := NewX.Data[I];
+    Result.Data[1, I] := NewY.Data[I];
+    Result.Data[2, I] := NewZ.Data[I];
+    Result.Data[3, I] := NewOrigin.Data[I];
   end;
   { bottom row }
   Result.Data[0, 3] := 0;
@@ -2209,13 +2209,13 @@ end;
 
 function TransformToCoordsMatrix(const NewX, NewY, NewZ: TVector3): TMatrix4;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to 2 do
+  for I := 0 to 2 do
   begin
-    Result.Data[0, i] := NewX.Data[i];
-    Result.Data[1, i] := NewY.Data[i];
-    Result.Data[2, i] := NewZ.Data[i];
+    Result.Data[0, I] := NewX.Data[I];
+    Result.Data[1, I] := NewY.Data[I];
+    Result.Data[2, I] := NewZ.Data[I];
   end;
   { right column }
   Result.Data[3, 0] := 0;
@@ -2238,16 +2238,16 @@ end;
 function TransformFromCoordsMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3): TMatrix4;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to 2 do
+  for I := 0 to 2 do
   begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[I, 0] := OldX.Data[I];
+    Result.Data[I, 1] := OldY.Data[I];
+    Result.Data[I, 2] := OldZ.Data[I];
   end;
 
   { Another difference between TrasformToCoords and TransformFromCoords:
@@ -2267,16 +2267,16 @@ end;
 
 function TransformFromCoordsMatrix(const OldX, OldY, OldZ: TVector3): TMatrix4;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to 2 do
+  for I := 0 to 2 do
   begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    Result.Data[i, 0] := OldX.Data[i];
-    Result.Data[i, 1] := OldY.Data[i];
-    Result.Data[i, 2] := OldZ.Data[i];
+    Result.Data[I, 0] := OldX.Data[I];
+    Result.Data[I, 1] := OldY.Data[I];
+    Result.Data[I, 2] := OldZ.Data[I];
   end;
 
   { right column }
@@ -2339,7 +2339,7 @@ end;
 function FastLookDirMatrix(const Direction, Up: TVector3): TMatrix4;
 var
   Side: TVector3;
-  i: integer;
+  I: Integer;
 begin
   Side := TVector3.CrossProduct(Direction, Up);
 
@@ -2347,9 +2347,9 @@ begin
 
   for i := 0 to 2 do
   begin
-    Result.Data[i, 0] := Side.Data[i];
-    Result.Data[i, 1] := Up.Data[i];
-    Result.Data[i, 2] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[I, 0] := Side.Data[I];
+    Result.Data[I, 1] := Up.Data[I];
+    Result.Data[I, 2] := -Direction.Data[I]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
@@ -2367,18 +2367,18 @@ end;
 function InverseFastLookDirMatrix(const Direction, Up: TVector3): TMatrix4;
 var
   Side: TVector3;
-  i: integer;
+  I: integer;
 begin
   Side := TVector3.CrossProduct(Direction, Up);
 
   { Inverse of LookDirMatrix is now to make
     TransformToCoordsMatrix with origin zero. }
 
-  for i := 0 to 2 do
+  for I := 0 to 2 do
   begin
-    Result.Data[0, i] := Side.Data[i];
-    Result.Data[1, i] := Up.Data[i];
-    Result.Data[2, i] := -Direction.Data[i]; { negate Direction, since it goes to -Z }
+    Result.Data[0, I] := Side.Data[I];
+    Result.Data[1, I] := Up.Data[I];
+    Result.Data[2, I] := -Direction.Data[I]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }

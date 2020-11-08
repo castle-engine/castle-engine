@@ -63,10 +63,10 @@ end;
 
 function TCastleApplication.TryVideoChange: Boolean;
 var
-  {vidModeMajorVersion, vidModeMinorVersion: integer;}
-  i, bestmode: integer;
+  {vidModeMajorVersion, vidModeMinorVersion: Integer;}
+  i, bestmode: Integer;
 
-  modesCount: integer;
+  modesCount: Integer;
   modes : PPXF86VidModeModeInfo;
 
   OriginalMode: TXF86VidModeModeLine;
@@ -145,7 +145,7 @@ begin
   end;
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   InitializeXDisplay;
 
@@ -161,7 +161,7 @@ begin
     result := XDisplayWidth(XDisplay, XScreen);
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   InitializeXDisplay;
 

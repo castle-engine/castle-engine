@@ -89,7 +89,7 @@
   TLightInstancesList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
-    function IndexOfNode(Node: TAbstractLightNode): integer;
+    function IndexOfNode(Node: TAbstractLightNode): Integer;
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
     function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
@@ -303,7 +303,7 @@ end;
 
 { TLightInstancesList ----------------------------------------------------- }
 
-function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): integer;
+function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].Node = Node then

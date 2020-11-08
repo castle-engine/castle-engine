@@ -74,7 +74,7 @@ function LoadX3DClassic(const URL: string;
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
-  LevelSqBracket, LevelCurlyBracket: integer);
+  LevelSqBracket, LevelCurlyBracket: Integer);
 begin
   while (LevelSqBracket > 0) or
         (LevelCurlyBracket > 0) do

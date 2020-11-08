@@ -140,7 +140,7 @@ end;
 
 { This is also defined in CastleStringUtils publicly,
   but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
-function SCharIs(const s: string; index: integer; c: Char): Boolean;
+function SCharIs(const s: string; index: Integer; c: Char): Boolean;
 begin
   Result := (index <= Length(s)) and (s[index] = c);
 end;

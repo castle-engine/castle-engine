@@ -213,7 +213,7 @@ function IsFontTrueType( Font: HFONT ): Boolean;
 { See EnumFontFamProc_IsTrueType implementation comments for more information. }
 var
   LogFont: TLogFont;
-  wynik: integer;
+  wynik: Integer;
   dc: HDC;
   savedObj: HGDIOBJ;
 begin

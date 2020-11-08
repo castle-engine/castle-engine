@@ -24,7 +24,7 @@ procedure Sphere_Proxy(CoordIndex: TLongIntList;
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
 
   { For stack number calculate it's radius and height (in y). }
-  procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
+  procedure StackCircle(StackNum: Integer; out StackRadius, Height: Single);
   var
     Alpha, S, C: Float;
   begin
@@ -178,7 +178,7 @@ procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
 
   { For stack number calculate it's radius and height (in y). }
-  procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
+  procedure StackCircle(StackNum: Integer; out StackRadius, Height: Single);
   var
     Alpha, S, C: Float;
   begin

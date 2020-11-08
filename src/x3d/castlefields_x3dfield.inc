@@ -36,7 +36,7 @@
     AffectedFields: TX3DFieldList;
 
     { Ignore the send on fields that do not support lerp
-      (e.g. integer and boolean fields). }
+      (e.g. Integer and Boolean fields). }
     IgnoreIfCannotLerp: Boolean;
 
     constructor Create;

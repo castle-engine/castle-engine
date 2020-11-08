@@ -61,13 +61,13 @@
       Exists: Boolean;
       PlaneIntersectionDistance: Single;
     end;
-    ExistingPlaneIntersectsCount: integer;
+    ExistingPlaneIntersectsCount: Integer;
 
     { posortowane wzgledem SqrDistanceFromRayOrigin (od najmniejszego do najwiekszego)
       PlaneIntersects, tzn. SortedPlaneIntersects[0] to indeks
       najmniejszego PlaneIntersects, itd. az
       do SortedPlaneIntersects[ExistingPlaneIntersectsCount-1] }
-    SortedPlaneIntersects: array[0..2]of integer;
+    SortedPlaneIntersects: array[0..2] of Integer;
 
     { SubnodesToCheck to ulozone w kolejnosci Subnode'y ktore powinnismy
         sprawdzic czy jest w nich przeciecie promienia ze scena. Tzn. najpierw
@@ -77,17 +77,17 @@
         w maksymalnie 4 subnode'y - bo przeciez bedziemy mieli maksymalnie
         3 przeciecia z 3 plaszczyznami dzielacymi ten wezel drzewa, co dzieli
         nam promien na maksymalnie 4 segmenty. }
-    SubnodesToCheck: array[0..3]of TOctreeSubnodeIndex;
-    SubnodesToCheckCount: integer;
+    SubnodesToCheck: array[0..3] of TOctreeSubnodeIndex;
+    SubnodesToCheckCount: Integer;
 
     procedure CalculatePlaneIntersects;
-    var i: integer;
+    var I: Integer;
         PlaneIntersect: TVector3;
     begin
      ExistingPlaneIntersectsCount := 0;
 
-     for i := 0 to 2 do
-      with PlaneIntersects[i] do
+     for I := 0 to 2 do
+      with PlaneIntersects[I] do
       begin
        if SameValue(Box.Data[1].Data[I], Box.Data[0].Data[I]) then
        begin
@@ -100,7 +100,7 @@
            where did we put some flat triangles). So we want to make
            sure Exists is set to @true.
 
-           Starting StartSubnode[i] should be the one closer the RayOrigin.
+           Starting StartSubnode[I] should be the one closer the RayOrigin.
 
            See demo_models/vrml_1/flat_triangles_octree_test.wrl
            for example when this is needed (with new okDynamicCollisions,
@@ -114,10 +114,10 @@
          Exists:=
            {$ifdef SEGMENT_COLLISION}
            TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
-             i, MiddlePoint[i], FirstBoxIntr, Pos2)
+             I, MiddlePoint[I], FirstBoxIntr, Pos2)
            {$else}
            TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
-             i, MiddlePoint[i], FirstBoxIntr, RayDirection)
+             I, MiddlePoint[I], FirstBoxIntr, RayDirection)
            {$endif};
 
          if not Exists then
@@ -131,10 +131,10 @@
            PlaneIntersectionDistance := 0;
          end;
 
-         StartSubnode[i] := RayDirection[i] <= 0;
+         StartSubnode[I] := RayDirection[I] <= 0;
        end else
-       if IsZero(PointToSimplePlaneDistance(FirstBoxIntr, i, MiddlePoint[i])) and
-          not IsZero(RayDirection[i]) then
+       if IsZero(PointToSimplePlaneDistance(FirstBoxIntr, I, MiddlePoint[I])) and
+          not IsZero(RayDirection[I]) then
        begin
          { This means that FirstBoxIntr lies on MiddlePoint[I] plane.
            Although the box is not flat (this case was eliminated above).
@@ -155,7 +155,7 @@
 
            The correct solution in this case is to have StartSubNode
            on the farther side, and do not see intersection with middle plane. }
-         StartSubnode[i] := RayDirection[i] > 0;
+         StartSubnode[I] := RayDirection[I] > 0;
          Exists := false;
        end else
        begin
@@ -169,10 +169,10 @@
          Exists:=
            {$ifdef SEGMENT_COLLISION}
            TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
-             i, MiddlePoint[i], FirstBoxIntr, Pos2)
+             I, MiddlePoint[I], FirstBoxIntr, Pos2)
            {$else}
            TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
-             i, MiddlePoint[i], FirstBoxIntr, RayDirection)
+             I, MiddlePoint[I], FirstBoxIntr, RayDirection)
            {$endif}
              and Box.Contains(PlaneIntersect);
        end;
@@ -182,15 +182,15 @@
     end;
 
     procedure CalculateSortedPlaneIntersects;
-    var SortedPlaneIntersectsCount: integer;
+    var SortedPlaneIntersectsCount: Integer;
 
-      procedure NextIntersect(c: integer);
+      procedure NextIntersect(c: Integer);
       begin
        SortedPlaneIntersects[SortedPlaneIntersectsCount] := c;
        Inc(SortedPlaneIntersectsCount);
       end;
 
-    var c1, c2, cm: integer;
+    var c1, c2, cm: Integer;
     begin
      SortedPlaneIntersectsCount := 0;
 
@@ -224,25 +224,25 @@
     end;
 
     procedure CalculateSubnodesToCheck;
-    var i, IntersectPlane: integer;
+    var I, IntersectPlane: Integer;
     begin
      SubnodesToCheckCount := ExistingPlaneIntersectsCount+1;
      SubnodesToCheck[0] := StartSubnode;
-     for i := 1 to ExistingPlaneIntersectsCount do
+     for I := 1 to ExistingPlaneIntersectsCount do
      begin
-      SubnodesToCheck[i] := SubnodesToCheck[i-1];
+      SubnodesToCheck[i] := SubnodesToCheck[I-1];
       { jezeli wchodzimy do tego Subnode'a z powodu przeciecia z plane dzielacym
         o stalym X (czyli IntersectPlane = 0) to znaczy ze wspolrzedna X promienia
         przechodzi na druga strone tej plaszczyzny (a pozostale wspolrzedne
         zostaja w tych czesciach gdzie byly). Dlatego wystarczy zanegowac
         zmienna b[IntersectPlane] w nowym plane. }
-      IntersectPlane := SortedPlaneIntersects[i-1];
-      SubnodesToCheck[i, IntersectPlane] := not SubnodesToCheck[i, IntersectPlane];
+      IntersectPlane := SortedPlaneIntersects[I-1];
+      SubnodesToCheck[I, IntersectPlane] := not SubnodesToCheck[I, IntersectPlane];
      end;
     end;
 
   var
-    i: integer;
+    I: Integer;
     SubNode: TBaseTrianglesOctreeNode;
   begin
    {$ifdef SEGMENT_COLLISION}
@@ -261,12 +261,12 @@
      w calym DoNotLeaf zawsze dzialamy jakby ReturnClosestIntersection = true
      za wyjatkiem malego szczegoliku ponizej przy "if result <> nil ...". }
    result := nil;
-   for i := 0 to SubnodesToCheckCount - 1 do
+   for I := 0 to SubnodesToCheckCount - 1 do
    begin
     SubNode := TBaseTrianglesOctreeNode(TreeSubNodes[
-      SubnodesToCheck[i, 0],
-      SubnodesToCheck[i, 1],
-      SubnodesToCheck[i, 2]]);
+      SubnodesToCheck[I, 0],
+      SubnodesToCheck[I, 1],
+      SubnodesToCheck[I, 2]]);
     result := SubNode.
       { jest ponizej bardzo wazne zebysmy nie zmienili Pos1 ani RayOrigin wywolujac
         sie rekurencyjnie (np. zeby nie przekazac FirstBoxIntr) bo to

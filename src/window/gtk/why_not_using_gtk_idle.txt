@@ -219,7 +219,7 @@ AutoRedisplayAddToList hack. Reasoning and code below:
     in TCastleWindow.CloseImplDepend (to make sure that destroyed windows
     are not a memebers of AutoRedisplayList).
 
-    Note that AutoRedisplayAddToList is an integer (not a simple Boolean)
+    Note that AutoRedisplayAddToList is an Integer (not a simple Boolean)
     to be safe in case someone calls ProcessAllMessages recursively
     (e.g. call ProcessAllMessages that calls OnMouseDown that calls
     ProcessAllMessages inside). }

@@ -159,7 +159,7 @@ function Triangle3(const p0, p1, p2: TVector3): TTriangle3;
   VerticesStride is the shift between vertex values in the array,
   VerticesStride = 0 behaves like VerticesStride = SizeOf(TVector3). }
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
-  VerticesArray: PVector3; VerticesStride: integer): TVector3;
+  VerticesArray: PVector3; VerticesStride: Integer): TVector3;
 
 type
   { Triangle expressed in particular coordinate system, for TTriangle. }
@@ -420,11 +420,11 @@ var
 
   @groupBegin }
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: Integer;
   Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
@@ -439,10 +439,10 @@ function IndexedConvexPolygonNormal(
 
   @groupBegin }
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
@@ -576,19 +576,19 @@ begin
 end;
 
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
-  VerticesArray: PVector3; VerticesStride: integer): TVector3;
+  VerticesArray: PVector3; VerticesStride: Integer): TVector3;
 var
   Tri: TTriangle3;
-  i: integer;
+  I: Integer;
 begin
   if VerticesStride = 0 then VerticesStride := SizeOf(TVector3);
-  for i := 0 to 2 do
-    Tri.Data[i] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes.Data[i])))^;
+  for I := 0 to 2 do
+    Tri.Data[I] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes.Data[I])))^;
   Result := Tri.Normal;
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PLongintArray; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: Integer;
   Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 begin
@@ -599,7 +599,7 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
@@ -669,7 +669,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
@@ -678,7 +678,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  const Indices: PLongintArray; const IndicesCount: integer;
+  const Indices: PLongintArray; const IndicesCount: Integer;
   const Verts: PVector3Array; const VertsCount: Integer;
   const VertsStride: PtrUInt): Single;
 
@@ -690,7 +690,7 @@ function IndexedConvexPolygonArea(
 
 var
   Tri: TTriangle3;
-  i: integer;
+  I: Integer;
 begin
   { We calculate area as a sum of areas of
     polygon's triangles. Not taking into account invalid Indices
@@ -1449,7 +1449,7 @@ function IsTriangleSphereCollision2D(const Tri: TTriangle2;
 var
   Intersection: TVector2;
   SphereRadiusSqr: Single;
-  I, NextI: integer;
+  I, NextI: Integer;
 begin
   SphereRadiusSqr := Sqr(SphereRadius);
 

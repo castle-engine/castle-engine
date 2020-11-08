@@ -45,7 +45,7 @@ type
     procedure Add(const Characters: TSetOfChars); overload;
   end;
 
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 function UTF8Length(const s: string): PtrInt; overload;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
 
@@ -74,11 +74,11 @@ function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
   end;
   #)
 }
-function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
+function UTF8CharacterToUnicode(p: PChar; out CharLen: Integer): TUnicodeChar;
 //function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
 
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
-function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
+function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): Integer;
 
 { Convert all special Unicode characters in the given UTF-8 string to HTML entities.
   This is a helpful routine to visualize a string with any Unicode characters
@@ -130,7 +130,7 @@ begin
     Add(Ord(C));
 end;
 
-function UTF8CharacterLength(p: PChar): integer;
+function UTF8CharacterLength(p: PChar): Integer;
 begin
   if p<>nil then begin
     if ord(p^)<$C0 { binary 11000000 } then begin
@@ -228,7 +228,7 @@ begin
   end;
 end;
 
-function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): Cardinal;
+function UTF8CharacterToUnicode(p: PChar; out CharLen: Integer): Cardinal;
 { if p=nil then CharLen=0 otherwise CharLen>0
   If there is an encoding error the Result is undefined.
   Use UTF8FixBroken to fix UTF-8 encoding.
@@ -306,7 +306,7 @@ end;
 {
 function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
 var
-  IgnoredCharLen: integer;
+  IgnoredCharLen: Integer;
 begin
   Result := UTF8CharacterToUnicode(PChar(S), IgnoredCharLen);
 end;
@@ -322,7 +322,7 @@ begin
   Result := StrPas(@Buf[0]);
 end;
 
-function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
+function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): Integer;
 begin
   case CodePoint of
     0..$7f:

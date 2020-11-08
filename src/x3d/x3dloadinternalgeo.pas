@@ -191,7 +191,7 @@ var
   verts: TCoordinateNode;
   faces: TIndexedFaceSetNode;
   Shape: TShapeNode;
-  i: integer;
+  I: Integer;
   BaseUrl: string;
 begin
   BaseUrl := AbsoluteURI(URL);
@@ -211,12 +211,12 @@ begin
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
-      for i := 0 to geo.Faces.Count-1 do
+      for I := 0 to geo.Faces.Count-1 do
       begin
-        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i][0];
-        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i][1];
-        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i][2];
-        faces.FdCoordIndex.Items.List^[i * 4 + 3] := -1;
+        faces.FdCoordIndex.Items.List^[I * 4    ] := geo.Faces.List^[i][0];
+        faces.FdCoordIndex.Items.List^[I * 4 + 1] := geo.Faces.List^[i][1];
+        faces.FdCoordIndex.Items.List^[I * 4 + 2] := geo.Faces.List^[i][2];
+        faces.FdCoordIndex.Items.List^[I * 4 + 3] := -1;
       end;
 
       verts := TCoordinateNode.Create('', BaseUrl);

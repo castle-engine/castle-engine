@@ -453,10 +453,10 @@ end;
 { TCardinalList ------------------------------------------------------------ }
 
 function TCardinalList.BigSum: Int64;
-var i: integer;
+var I: Integer;
 begin
- result := 0;
- for i := 0 to Count-1 do result := result + Items[i];
+ Result := 0;
+ for I := 0 to Count-1 do Result := Result + Items[I];
 end;
 
 function TCardinalList.Sum: Cardinal;

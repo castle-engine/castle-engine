@@ -126,9 +126,9 @@ type
   end;
 
 procedure WMSizingHandler(var Msg:TWMSizing;
-  const minWidth, minHeight, maxWidth, maxHeight:integer); overload;
+  const minWidth, minHeight, maxWidth, maxHeight: Integer); overload;
 var
-  w, h:integer;
+  w, h: Integer;
 begin
   assert(minWidth<=maxWidth);
   assert(minHeight<=maxHeight);
@@ -145,7 +145,7 @@ begin
 end;
 
 function WMSizingHandler(const lParm:LPARAM; const wParm:WPARAM;
-  const minWidth, minHeight, maxWidth, maxHeight:integer):LRESULT; overload;
+  const minWidth, minHeight, maxWidth, maxHeight: Integer):LRESULT; overload;
 var
   msg: TWMSizing;
 begin
@@ -349,7 +349,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
         3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
     end;
 
-  function InterceptedSystemKey(key: integer): Boolean;
+  function InterceptedSystemKey(key: Integer): Boolean;
   begin
     Result := { TODO-alt: (key = VK_Alt) or }(key = VK_F10)
   end;
@@ -1912,14 +1912,14 @@ begin
   end;
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeWidth else
     result := GetSystemMetrics(SM_CXSCREEN);
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else

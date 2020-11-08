@@ -262,13 +262,13 @@ begin
   { TODO }
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   { TODO }
   Result := 200;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   { TODO }
   Result := 200;

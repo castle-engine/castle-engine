@@ -28,7 +28,7 @@ procedure GenerateCircle(const QuadricSlices: Cardinal;
 var
   AngleRad: Single;
   AngleSin, AngleCos: Float;
-  I: integer;
+  I: Integer;
 begin
   if Radius <> 0 then
   begin
@@ -67,7 +67,7 @@ procedure GenerateTexCoordCircle(const QuadricSlices: Cardinal;
 var
   AngleRad: Single;
   AngleSin, AngleCos: Float;
-  I: integer;
+  I: Integer;
 begin
   if InvertT then
     Points^ := Vector2(0.5, 1) else

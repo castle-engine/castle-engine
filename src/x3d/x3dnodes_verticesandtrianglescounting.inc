@@ -146,7 +146,7 @@ function IndexedPolygons_TrianglesCount(
   State: TX3DGraphTraverseState; OverTriangulate: Boolean;
   CoordIndex: TMFLong; Coord: TMFVec3f): Cardinal;
 var
-  BeginIndex, EndIndex: integer;
+  BeginIndex, EndIndex: Integer;
 begin
   if Coord = nil then
     Exit(0);

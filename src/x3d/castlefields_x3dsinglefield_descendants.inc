@@ -2238,7 +2238,7 @@ begin
   Result := FEnumNames[I]
 end;
 
-function TSFEnum.EnumNamesCount: integer;
+function TSFEnum.EnumNamesCount: Integer;
 begin
   Result := FEnumNames.Count
 end;

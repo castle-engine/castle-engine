@@ -1164,7 +1164,7 @@ function TPointSetNode_1.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): Boolean;
 
   procedure CalculateRange(CoordsCount: Cardinal;
-    out StartIndex, NumPoints: integer);
+    out StartIndex, NumPoints: Integer);
   begin
     startIndex := FdStartIndex.Value;
     numPoints := FdNumPoints.Value;
@@ -1192,7 +1192,7 @@ function TPointSetNode_1.InternalCoord(State: TX3DGraphTraverseState;
 
 var
   FullCoord: TMFVec3f;
-  StartIndex, NumPoints: integer;
+  StartIndex, NumPoints: Integer;
 begin
   Result := true;
 

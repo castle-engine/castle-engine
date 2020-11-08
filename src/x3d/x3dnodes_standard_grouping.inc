@@ -746,7 +746,7 @@ end;
 
 procedure TX3DRootNode.SaveToStream(Writer: TX3DWriter);
 var
-  I: integer;
+  I: Integer;
   FileItems: TX3DFileItemList;
 begin
   if SaveAsRootNode then

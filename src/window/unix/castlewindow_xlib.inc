@@ -671,11 +671,11 @@ end;
 
 function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to OpenWindowsCount-1 do
-    if OpenWindows[i].WindowXID = seekWindowXID then
-      Exit(OpenWindows[i]);
+  for I := 0 to OpenWindowsCount-1 do
+    if OpenWindows[I].WindowXID = seekWindowXID then
+      Exit(OpenWindows[I]);
   Result := nil;
 end;
 
@@ -863,13 +863,13 @@ begin
 end;
 
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   InitializeXDisplay;
   Result := XDisplayWidth(XDisplay, XScreen);
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   InitializeXDisplay;
   Result := XDisplayHeight(XDisplay, XScreen);

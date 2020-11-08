@@ -117,7 +117,7 @@ end;
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
 
 var pc,pcc,lastpc : PChar;
-    strcount      : integer;
+    strcount      : Integer;
     ResStr,
     CompStr       : string;
     Found         : Boolean;
@@ -180,7 +180,7 @@ begin
   Result := StrToUInt64(S);
 end;
 
-Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
+Function isMatch(level : integer; inputstr,wilds: string; CWild, CinputWord: SizeInt;MaxInputword,maxwilds : SizeInt; Out EOS : Boolean) : Boolean;
 
   function WildisQuestionmark : Boolean;
 begin

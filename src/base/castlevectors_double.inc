@@ -43,7 +43,7 @@ function ThreePlanesIntersectionPointDouble(
   https://bugs.freepascal.org/view.php?id=32188
 }
 
-function MaxAbsVectorCoordDouble(const v: TVector3Double): integer;
+function MaxAbsVectorCoordDouble(const v: TVector3Double): Integer;
 begin
   Result := 0;
   if Abs(v.Data[1]) > Abs(v.Data[Result]) then Result := 1;

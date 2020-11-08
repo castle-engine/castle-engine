@@ -316,7 +316,7 @@
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
       (that's how Extrusion is defined in VRML / X3D). }
-    function CrossSection3D(Index: integer): TVector3;
+    function CrossSection3D(Index: Integer): TVector3;
 
     { Check is spine closed. This happens when "spine" field is non-empty
       and it's first and last points are equal. }
@@ -915,7 +915,7 @@ begin
   Result := 'Extrusion';
 end;
 
-function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
+function TExtrusionNode.CrossSection3D(Index: Integer): TVector3;
 begin
   Result[0] := FdCrossSection.Items.List^[Index][0];
   Result[1] := 0;

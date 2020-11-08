@@ -1015,12 +1015,12 @@ begin
   Forms.Application.Terminate; // break also Forms.Application.Run
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   Result := Screen.Width;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   Result := Screen.Height;
 end;

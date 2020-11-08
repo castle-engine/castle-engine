@@ -1703,7 +1703,7 @@ end;
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 var
   Monitor: GInt;
   Rect: TGdkRectangle;
@@ -1718,7 +1718,7 @@ begin
   Result := Rect.Width;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 var
   Monitor: GInt;
   Rect: TGdkRectangle;

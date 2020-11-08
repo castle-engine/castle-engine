@@ -300,14 +300,14 @@ begin
   Terminate; // set Terminated := true
 end;
 
-function TCastleApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: Integer;
 begin
   if FScreenWidth = 0 then
     WritelnWarning('Window', 'Application.ScreenWidth is queried before window is open, returns zero');
   Result := FScreenWidth;
 end;
 
-function TCastleApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: Integer;
 begin
   if FScreenHeight = 0 then
     WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
@@ -345,7 +345,7 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged;
 var
-  NavValue: integer;
+  NavValue: Integer;
 begin
   // send info to parent app (to update navigation buttons state)
   if Assigned(LibraryCallbackProc) then

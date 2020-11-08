@@ -264,7 +264,7 @@ var
     end;
 
   var
-    SeekPos: integer;
+    SeekPos: Integer;
 
     function NextVertex: string;
     begin
@@ -291,7 +291,7 @@ var
 
   function ReadTexCoordFromOBJLine(const line: string): TVector2;
   var
-    SeekPos: integer;
+    SeekPos: Integer;
   begin
     SeekPos := 1;
     result[0] := StrToFloatDot(NextToken(line, SeekPos));
@@ -557,7 +557,7 @@ var
 var
   Obj: TObject3DOBJ;
   Faces: TIndexedFaceSetNode;
-  I: integer;
+  I: Integer;
   FacesWithTexCoord, FacesWithNormal: Boolean;
   FacesWithMaterial: TWavefrontMaterial;
   Appearances: TX3DNodeList;
