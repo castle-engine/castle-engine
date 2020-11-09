@@ -65,7 +65,7 @@ type
     { Load the first curve defined in given XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
       visually. }
-    class function LoadFromFile(const URL: string): TCurve;
+    class function LoadFromFile(const URL: String): TCurve;
 
     function BoundingBox: TBox3D; virtual; abstract;
   end;
@@ -75,12 +75,12 @@ type
     { Load curves definitions from a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
       visually. }
-    procedure LoadFromFile(const URL: string);
+    procedure LoadFromFile(const URL: String);
 
     { Save curve definitions to a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
       visually. }
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const URL: String);
   end;
 
   { Curve defined by explicitly giving functions for
@@ -320,7 +320,7 @@ begin
   Result[1] := V[1];
 end;
 
-class function TCurve.LoadFromFile(const URL: string): TCurve;
+class function TCurve.LoadFromFile(const URL: String): TCurve;
 var
   List: TCurveList;
 begin
@@ -335,11 +335,11 @@ end;
 
 { TCurveList ---------------------------------------------------- }
 
-procedure TCurveList.LoadFromFile(const URL: string);
+procedure TCurveList.LoadFromFile(const URL: String);
 var
   Document: TXMLDocument;
   I: TXMLElementIterator;
-  CurveTypeStr: string;
+  CurveTypeStr: String;
   Curve: TCurve;
 begin
   Clear;
@@ -368,7 +368,7 @@ begin
   finally FreeAndNil(Document) end;
 end;
 
-procedure TCurveList.SaveToFile(const URL: string);
+procedure TCurveList.SaveToFile(const URL: String);
 var
   Stream: TStream;
   I: Integer;
@@ -586,7 +586,7 @@ end;
 procedure TControlPointsCurve.SaveToStream(const Stream: TStream);
 var
   I: Integer;
-  VectorStr: string;
+  VectorStr: String;
 begin
   inherited SaveToStream(Stream);
 

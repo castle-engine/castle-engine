@@ -477,7 +477,7 @@ type
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -491,7 +491,7 @@ type
   TTextureVideoCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     FlipVertically: Boolean;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
@@ -505,7 +505,7 @@ type
   TTextureCubeMapCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
@@ -516,7 +516,7 @@ type
   TTexture3DCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
@@ -530,7 +530,7 @@ type
   TTextureDepthOrFloatCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
-    FullUrl: string;
+    FullUrl: String;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
@@ -637,7 +637,7 @@ type
       reason.) }
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -650,7 +650,7 @@ type
 
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const FlipVertically: Boolean;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
@@ -665,7 +665,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const PositiveX, NegativeX,
@@ -680,7 +680,7 @@ type
       For interpreating CompareMode, ARB_shadow will be needed
       (but we'll make nice warning if it's not available). }
     function TextureDepth_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const TextureWrap: TTextureWrap2D;
       CompareMode: TShadowMapCompareMode;
       const Width, Height: Cardinal;
@@ -694,7 +694,7 @@ type
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
     function TextureFloat_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -707,7 +707,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      const TextureFullUrl: string;
+      const TextureFullUrl: String;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
@@ -735,7 +735,7 @@ type
       a new one. If we create a new one, we will use Shader to initialize
       program hash and to create and link actual TX3DGLSLProgram instance. }
     function Program_IncReference(ARenderer: TGLRenderer;
-      Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
+      Shader: TShader; const ShapeNiceName: String): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
@@ -1060,7 +1060,7 @@ type
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
 
-  BumpMappingNames: array [TBumpMapping] of string =
+  BumpMappingNames: array [TBumpMapping] of String =
   ( 'None',
     'Basic',
     'Parallax',
@@ -1121,7 +1121,7 @@ destructor TGLRendererContextCache.Destroy;
 { $define ONLY_WARN_ON_CACHE_LEAK}
 
 {$ifdef ONLY_WARN_ON_CACHE_LEAK}
-  procedure Assert(const B: Boolean; const S: string = '');
+  procedure Assert(const B: Boolean; const S: String = '');
   begin
     if not B then
       WritelnWarning('VRML/X3D', 'GLRendererContextCache warning: ' + S);
@@ -1189,7 +1189,7 @@ end;
 
 function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1290,7 +1290,7 @@ end;
 
 function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const FlipVertically: Boolean;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
@@ -1368,7 +1368,7 @@ begin
 end;
 
 function TGLRendererContextCache.TextureCubeMap_IncReference(
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const PositiveX, NegativeX,
@@ -1454,7 +1454,7 @@ begin
 end;
 
 function TGLRendererContextCache.Texture3D_IncReference(
-  const TextureFullUrl: string;
+  const TextureFullUrl: String;
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
@@ -1545,7 +1545,7 @@ var
   TextureCached: TTextureDepthOrFloatCache;
   Filter: TTextureFilter;
   ImageType: TGLenum;
-  ImageFormat: string;
+  ImageFormat: String;
   ImageSize: Int64;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
@@ -1880,7 +1880,7 @@ begin
 end;
 
 function TGLRendererContextCache.Program_IncReference(ARenderer: TGLRenderer;
-  Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
+  Shader: TShader; const ShapeNiceName: String): TShaderProgramCache;
 var
   I: Integer;
 begin
@@ -2240,9 +2240,9 @@ var
     end;
   end;
 
-  function VboTypesToStr(const VboTypes: TVboTypes): string;
+  function VboTypesToStr(const VboTypes: TVboTypes): String;
   const
-    Names: array [TVboType] of string =
+    Names: array [TVboType] of String =
     ( 'Coordinate', 'Attribute', 'Index' );
   var
     I: TVboType;

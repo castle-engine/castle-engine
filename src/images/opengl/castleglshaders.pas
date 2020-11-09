@@ -118,7 +118,7 @@ type
   TGLSLUniform = record
   public
     Owner: TGLSLProgram;
-    Name: string;
+    Name: String;
     Location: TGLint;
 
     { Calling @link(TGLSLUniform.SetValue) of this is ignored. }
@@ -176,7 +176,7 @@ type
       TLocationOffset = 0..3;
     var
     Owner: TGLSLProgram;
-    Name: string;
+    Name: String;
     Location: TGLint;
     LocationOffsetsToDisable: array [TLocationOffset] of Boolean;
 
@@ -291,10 +291,10 @@ type
         the error is.)
 
       @groupBegin }
-    procedure AttachVertexShader(const S: string);
-    procedure AttachGeometryShader(const S: string);
-    procedure AttachFragmentShader(const S: string);
-    procedure AttachShader(const ShaderType: TShaderType; const S: string); overload;
+    procedure AttachVertexShader(const S: String);
+    procedure AttachGeometryShader(const S: String);
+    procedure AttachFragmentShader(const S: String);
+    procedure AttachShader(const ShaderType: TShaderType; const S: String); overload;
     { @groupEnd }
 
     { Attach multiple shader parts for given type.
@@ -359,11 +359,11 @@ type
       pending, and raise exceptions on them.
 
       @raises EOpenGLError If any OpenGL error will be detected. }
-    function DebugInfo: string;
+    function DebugInfo: String;
 
     { This is program info log, given to you from OpenGL after the program
       is linked. }
-    function ProgramInfoLog: string;
+    function ProgramInfoLog: String;
 
     { After the program is linked, you can check this.
 
@@ -421,8 +421,8 @@ type
         property) is uaException.)
 
       @groupBegin }
-    function Uniform(const Name: string): TGLSLUniform; overload;
-    function Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform; overload;
+    function Uniform(const Name: String): TGLSLUniform; overload;
+    function Uniform(const Name: String; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform; overload;
     { @groupEnd }
 
     { Set appropriate uniform variable value.
@@ -469,27 +469,27 @@ type
         may be comfortably catched by an umbrella class EGLSLUniformInvalid.)
 
       @groupBegin }
-    procedure SetUniform(const Name: string; const Value: Boolean        ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TGLint         ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2 ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3 ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4 ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: Boolean        ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TGLint         ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector2Integer; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector3Integer; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector4Integer; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TGLfloat       ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector2 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector3 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector4 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TMatrix2 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TMatrix3 ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TMatrix4 ; const ForceException: Boolean = false); overload;
 
-    procedure SetUniform(const Name: string; const Value: TBooleanList      ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TLongIntList      ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TSingleList       ; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector2List; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector3List; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TVector4List; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: Boolean = false); overload;
-    procedure SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TBooleanList      ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TLongIntList      ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TSingleList       ; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector2List; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector3List; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TVector4List; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TMatrix3List; const ForceException: Boolean = false); overload;
+    procedure SetUniform(const Name: String; const Value: TMatrix4List; const ForceException: Boolean = false); overload;
     { @groupEnd }
 
     { Get the attribute instance. It can be used to make repeated
@@ -502,7 +502,7 @@ type
         go wrong. And on most cases we don't raise any error,
         instead OpenGL sets it's error state and you probably want to
         call CheckGLErrors from time to time to catch them.) }
-    function Attribute(const Name: string): TGLSLAttribute;
+    function Attribute(const Name: String): TGLSLAttribute;
 
     { Get the attribute instance. It can be used to make repeated
       @link(TGLSLAttribute.SetValue) and @link(TGLSLAttribute.EnableArray).
@@ -511,7 +511,7 @@ type
       All the calls to @link(TGLSLAttribute.SetValue)
       or @link(TGLSLAttribute.EnableArray) or @link(TGLSLAttribute.DisableArray)
       methods are silently ignored. }
-    function AttributeOptional(const Name: string): TGLSLAttribute;
+    function AttributeOptional(const Name: String): TGLSLAttribute;
 
     { Load and enable vertex attribute data.
       This calls glVertexAttribPointer and enables it by
@@ -532,7 +532,7 @@ type
 
       @returns(Attribute location (with LocationOffset already applied).
         You can use it with DisableVertexAttribArray.) }
-    function VertexAttribPointer(const Name: string; LocationOffset: TGLSLAttribute.TLocationOffset;
+    function VertexAttribPointer(const Name: String; LocationOffset: TGLSLAttribute.TLocationOffset;
       Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
       Ptr: Pointer): TGLint; deprecated 'use TGLSLAttribute.EnableArray';
 
@@ -562,20 +562,20 @@ type
         call CheckGLErrors from time to time to catch them.)
 
       @groupBegin }
-    procedure SetAttribute(const Name: string; const Value: TGLfloat); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector2); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector3); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix3); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix4); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TGLfloat); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TVector2); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TVector3); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TVector4); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TMatrix3); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TMatrix4); overload; deprecated 'use TGLSLAttribute.SetValue';
     {$ifndef OpenGLES}
-    procedure SetAttribute(const Name: string; const Value: TVector4Integer); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4Byte); overload; deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TGLdouble); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TVector4Integer); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TVector4Byte); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: String; const Value: TGLdouble); overload; deprecated 'use TGLSLAttribute.SetValue';
     // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
-    // procedure SetAttribute(const Name: string; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
-    // procedure SetAttribute(const Name: string; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
-    // procedure SetAttribute(const Name: string; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
+    // procedure SetAttribute(const Name: String; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
+    // procedure SetAttribute(const Name: String; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
+    // procedure SetAttribute(const Name: String; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
     {$endif}
     { @groupEnd }
 
@@ -1343,7 +1343,7 @@ begin
   Result := GLFeatures.Shaders;
 end;
 
-function TGLSLProgram.ProgramInfoLog: string;
+function TGLSLProgram.ProgramInfoLog: String;
 begin
   case FSupport of
     {$ifndef ForceStandardGLSLApi}
@@ -1354,9 +1354,9 @@ begin
   end;
 end;
 
-function TGLSLProgram.DebugInfo: string;
+function TGLSLProgram.DebugInfo: String;
 
-  function GLShaderVariableTypeName(AType: TGLenum): string;
+  function GLShaderVariableTypeName(AType: TGLenum): String;
   begin
     case AType of
       GL_FLOAT: Result := 'FLOAT';
@@ -1424,7 +1424,7 @@ function TGLSLProgram.DebugInfo: string;
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: string;
+    Name: String;
     ErrorCode: TGLenum;
   begin
     case FSupport of
@@ -1493,7 +1493,7 @@ function TGLSLProgram.DebugInfo: string;
     ReturnedLength: TGLsizei;
     Size: TGLint;
     AType: TGLEnum;
-    Name: string;
+    Name: String;
     ErrorCode: TGLenum;
   begin
     case FSupport of
@@ -1554,7 +1554,7 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
-  function ShaderInfoLog(ShaderId: TGLuint): string;
+  function ShaderInfoLog(ShaderId: TGLuint): String;
   begin
     case FSupport of
       {$ifndef ForceStandardGLSLApi}
@@ -1596,7 +1596,7 @@ begin
     BoolToStr(RunningInHardware, true) ;
 end;
 
-procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
+procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: String);
 var
   AType: TGLenum;
 
@@ -1637,7 +1637,7 @@ var
   end;
 
   {$ifndef ForceStandardGLSLApi}
-  function CreateShaderARB(const S: string): TGLuint;
+  function CreateShaderARB(const S: String): TGLuint;
   var
     SrcPtr: PChar;
     SrcLength: Cardinal;
@@ -1659,7 +1659,7 @@ var
   {$endif}
 
   { Based on Dean Ellis BasicShader.dpr }
-  function CreateShader(const S: string): TGLuint;
+  function CreateShader(const S: String): TGLuint;
   var
     SrcPtr: PChar;
     SrcLength: Cardinal;
@@ -1748,7 +1748,7 @@ procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType;
 var
   I: Integer;
   {$ifdef OpenGLES}
-  Concatenated: string;
+  Concatenated: String;
   {$endif}
 begin
   {$ifdef OpenGLES}
@@ -1763,17 +1763,17 @@ begin
   {$endif}
 end;
 
-procedure TGLSLProgram.AttachVertexShader(const S: string);
+procedure TGLSLProgram.AttachVertexShader(const S: String);
 begin
   AttachShader(stVertex, S);
 end;
 
-procedure TGLSLProgram.AttachFragmentShader(const S: string);
+procedure TGLSLProgram.AttachFragmentShader(const S: String);
 begin
   AttachShader(stFragment, S);
 end;
 
-procedure TGLSLProgram.AttachGeometryShader(const S: string);
+procedure TGLSLProgram.AttachGeometryShader(const S: String);
 begin
   AttachShader(stGeometry, S);
 end;
@@ -1894,16 +1894,16 @@ begin
   Result := true;
 end;
 
-function TGLSLProgram.Uniform(const Name: string): TGLSLUniform;
+function TGLSLProgram.Uniform(const Name: String): TGLSLUniform;
 begin
   Result := Uniform(Name, UniformNotFoundAction);
 end;
 
-function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
+function TGLSLProgram.Uniform(const Name: String; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
 
   procedure ReportUniformNotFound;
 
-    function ErrMessage: string;
+    function ErrMessage: String;
     begin
       Result := Format('Uniform variable "%s" not found (or not used) in the shader source code', [Name]);
     end;
@@ -1942,147 +1942,147 @@ begin
     ReportUniformNotFound;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: Boolean; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: Boolean; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TGLint; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector2Integer; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector3Integer; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector4Integer; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TGLfloat; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector2; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector3; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector4; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TMatrix2; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TMatrix3; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TMatrix4; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TBooleanList; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TLongIntList; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TSingleList; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector2List; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector3List; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TVector4List; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TMatrix3List; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: Boolean);
+procedure TGLSLProgram.SetUniform(const Name: String; const Value: TMatrix4List; const ForceException: Boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-function TGLSLProgram.AttributeOptional(const Name: string): TGLSLAttribute;
+function TGLSLProgram.AttributeOptional(const Name: String): TGLSLAttribute;
 begin
   Result.Owner := Self;
   Result.Name := Name;
@@ -2103,79 +2103,79 @@ begin
   end;
 end;
 
-function TGLSLProgram.Attribute(const Name: string): TGLSLAttribute;
+function TGLSLProgram.Attribute(const Name: String): TGLSLAttribute;
 begin
   Result := AttributeOptional(Name);
   if Result.Location = -1 then
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLfloat);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TGLfloat);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector2);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector3);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector4);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TMatrix3);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TMatrix4);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
 {$ifndef OpenGLES}
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Integer);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector4Integer);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Byte);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector4Byte);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLdouble);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TGLdouble);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
 // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
 {
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Double);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector2Double);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Double);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector3Double);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Double);
+procedure TGLSLProgram.SetAttribute(const Name: String; const Value: TVector4Double);
 begin
   Attribute(Name).SetValue(Value);
 end;
 }
 {$endif}
 
-function TGLSLProgram.VertexAttribPointer(const Name: string;
+function TGLSLProgram.VertexAttribPointer(const Name: String;
   LocationOffset: TGLSLAttribute.TLocationOffset;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
   Ptr: Pointer): TGLint;

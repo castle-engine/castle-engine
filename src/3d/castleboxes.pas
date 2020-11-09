@@ -292,11 +292,11 @@ type
     { Move Box, by -Translation. Does nothing if Box is empty. }
     function AntiTranslate(const Translation: TVector3): TBox3D;
 
-    function ToNiceStr: string; deprecated 'use ToString';
-    function ToRawStr: string; deprecated 'use ToRawString';
+    function ToNiceStr: String; deprecated 'use ToString';
+    function ToRawStr: String; deprecated 'use ToRawString';
 
-    function ToString: string;
-    function ToRawString: string;
+    function ToString: String;
+    function ToRawString: String;
 
     procedure ClampVar(var point: TVector3); overload;
 
@@ -1240,7 +1240,7 @@ begin
     Result := Empty;
 end;
 
-function TBox3D.ToString: string;
+function TBox3D.ToString: String;
 begin
   if IsEmpty then
     Result := 'EMPTY'
@@ -1248,7 +1248,7 @@ begin
     Result := '(Min: ' + Data[0].ToString + ') - (Max: ' + Data[1].ToString + ')';
 end;
 
-function TBox3D.ToRawString: string;
+function TBox3D.ToRawString: String;
 begin
   if IsEmpty then
     Result := 'EMPTY'
@@ -1256,17 +1256,17 @@ begin
     Result := '(Min: ' + Data[0].ToRawString + ') - (Max: ' + Data[1].ToRawString + ')';
 end;
 
-function TBox3D.ToNiceStr: string;
+function TBox3D.ToNiceStr: String;
 begin
   Result := ToString;
 end;
 
-function TBox3D.ToRawStr: string;
+function TBox3D.ToRawStr: String;
 begin
   Result := ToRawString;
 end;
 
-procedure TBox3D.ClampVar(var point: TVector3);
+procedure TBox3D.ClampVar(var Point: TVector3);
 var
   I: Integer;
 begin

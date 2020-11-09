@@ -218,7 +218,7 @@ begin
   RegisteredComponents.Add(C);
 end;
 
-function FindComponentClass(const AClassName: string): TComponentClass;
+function FindComponentClass(const AClassName: String): TComponentClass;
 var
   R: TRegisteredComponent;
 begin

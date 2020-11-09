@@ -27,10 +27,10 @@
 
 type
   TUrlData = class
-    class function Read(const Url: string; out MimeType: string): TStream;
+    class function Read(const Url: String; out MimeType: String): TStream;
   end;
 
-class function TUrlData.Read(const Url: string; out MimeType: string): TStream;
+class function TUrlData.Read(const Url: String; out MimeType: String): TStream;
 var
   DataUri: TDataUri;
 begin

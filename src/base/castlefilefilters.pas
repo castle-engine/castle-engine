@@ -25,13 +25,13 @@ uses SysUtils, Classes, Generics.Collections;
 type
   TFileFilter = class
   private
-    FName: string;
+    FName: String;
     FPatterns: TStringList;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property Name: string read FName write FName;
+    property Name: String read FName write FName;
     property Patterns: TStringList read FPatterns;
   end;
 
@@ -45,7 +45,7 @@ type
       @param(Name Is a name displayed for for user.)
       @param(Patterns Each string in Patterns is a pattern
         using * and ? matching characters.) }
-    procedure AddFilter(const Name: string; const Patterns: array of string);
+    procedure AddFilter(const Name: String; const Patterns: array of String);
 
     { Index of default filter, selected by default for user when using
       this filters list. }
@@ -68,7 +68,7 @@ type
       In particular, empty string is unfinished (actually, it contains
       an empty Name, and is unfinished because there is no |, so no matching
       Pattern) so empty string causes no filters to be added. }
-    procedure AddFiltersFromString(const FiltersStr: string);
+    procedure AddFiltersFromString(const FiltersStr: String);
 
     { One of the filtes (excluding "catch all" filters) matches given URL.
       This excludes masks like "*" and "*.*" (the latter should not really
@@ -106,8 +106,8 @@ begin
   FDefaultFilter := 0;
 end;
 
-procedure TFileFilterList.AddFilter(const Name: string;
-  const Patterns: array of string);
+procedure TFileFilterList.AddFilter(const Name: String;
+  const Patterns: array of String);
 var
   Filter: TFileFilter;
   I: Integer;
@@ -119,13 +119,13 @@ begin
     Filter.FPatterns.Append(Patterns[I]);
 end;
 
-procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
+procedure TFileFilterList.AddFiltersFromString(const FiltersStr: String);
 
-  procedure AddFilterFromPair(Name: string; const Patterns: string);
+  procedure AddFilterFromPair(Name: String; const Patterns: String);
   var
     Filter: TFileFilter;
     LastSeparator, NextSeparator: Integer;
-    Part: string;
+    Part: String;
   begin
     if SCharIs(Name, 1, '*') then
     begin
@@ -160,7 +160,7 @@ procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
 var
   LastSeparator, NextSeparator: Integer;
   NamePart: Boolean;
-  Part, Name, Patterns: string;
+  Part, Name, Patterns: String;
 begin
   NamePart := true;
   LastSeparator := 0;

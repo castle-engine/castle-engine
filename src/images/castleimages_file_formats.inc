@@ -279,14 +279,14 @@ type
       usually means to only slightly rephrase typical file format extension.
 
       In practice, I now copy descriptions from English GIMP open dialog. }
-    FormatName: string;
+    FormatName: String;
 
     MimeTypesCount: TImageFormatInfoMimeTypesCount;
 
     { MIME types recognized as this image file format.
       First MIME type is the default for this file format
       (some procedures make use of it). }
-    MimeTypes: array [TImageFormatInfoMimeTypesCount] of string;
+    MimeTypes: array [TImageFormatInfoMimeTypesCount] of String;
 
     ExtsCount: TImageFormatInfoExtsCount;
 
@@ -303,7 +303,7 @@ type
       (when server may report MIME type) and data URIs, most of the code
       should operate using MIME types instead of file extensions.
       So usually you are more interested in MimeTypes than Exts. }
-    Exts: array [TImageFormatInfoExtsCount] of string;
+    Exts: array [TImageFormatInfoExtsCount] of String;
 
     { Load method for this file format.
       @nil if cannot be loaded. }
@@ -470,9 +470,9 @@ begin
 end;
 
 function LoadEncodedImageParams(
-  const AllowedImageClasses: array of TEncodedImageClass): string;
+  const AllowedImageClasses: array of TEncodedImageClass): String;
 
-  function ImageClassesToStr(const AllowedImageClasses: array of TEncodedImageClass): string;
+  function ImageClassesToStr(const AllowedImageClasses: array of TEncodedImageClass): String;
   var
     I: Integer;
   begin
@@ -494,7 +494,7 @@ end;
 
 { Exposing ImageFormatInfos mimo/exts info ----------------------------------- }
 
-function ImageExtToMimeType(Ext: string): string;
+function ImageExtToMimeType(Ext: String): String;
 var
   I: TImageFormat;
   E: TImageFormatInfoExtsCount;
@@ -519,7 +519,7 @@ begin
         ImageFormatInfos[I].MimeTypes[1]);
 end;
 
-function MimeTypeToImageFormat(const MimeType: string;
+function MimeTypeToImageFormat(const MimeType: String;
   const OnlyLoadable, OnlySaveable: Boolean; out ImgFormat: TImageFormat): Boolean;
 var
   I: TImageFormat;
@@ -546,7 +546,7 @@ begin
     Result := TRGBImage;
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: String): TCastleImageClass;
 var
   Format: TImageFormat;
 begin
@@ -555,7 +555,7 @@ begin
   Result := ImageClassBestForSavingToFormatCore(Format);
 end;
 
-function IsImageMimeType(const MimeType: string;
+function IsImageMimeType(const MimeType: String;
   const OnlyLoadable, OnlySaveable: Boolean): Boolean;
 var
   ImgFormat: TImageFormat;
@@ -563,7 +563,7 @@ begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: string): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: String): String;
 var
   iff: TImageFormat;
   I: Integer;
@@ -587,7 +587,7 @@ begin
     end;
 end;
 
-function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): string;
+function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): String;
 var
   iff: TImageFormat;
   I: Integer;
@@ -620,7 +620,7 @@ procedure InitializeImagesFileFilters;
   var
     F: TFileFilter;
     ExtIndex: Integer;
-    Pattern: string;
+    Pattern: String;
   begin
     F := TFileFilter.Create;
     Filters.Add(F);

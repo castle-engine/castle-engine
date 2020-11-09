@@ -27,14 +27,14 @@ type
   { }
   TFileInfo = record
     { Filename, without any directory path. }
-    Name: string;
+    Name: String;
     { Expanded (with absolute path) file name.
       Only when URL is using "file" protocol.
       You should prefer to use URL field instead of this,
       to work with all possible URLs. }
-    AbsoluteName: string;
+    AbsoluteName: String;
     { Absolute URL. }
-    URL: string;
+    URL: String;
     Directory: Boolean;
     Size: Int64; //< This may be 0 in case of non-local file
   end;
@@ -123,15 +123,15 @@ type
     files were processed, in particular to warn if nothing was processed.)
 
   @groupBegin }
-function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles(const Path, Mask: String; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
-function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles(const Path, Mask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal; overload;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
+function FindFiles(const PathAndMask: String; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal; overload;
-function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
+function FindFiles(const PathAndMask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal; overload;
 { @groupEnd }
@@ -149,12 +149,12 @@ function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
 
   Returns if some file was found. Note that even when we return @false,
   we still set NewBase (to original Base). }
-function SearchFileHard(Path: string; const Base: string; out NewBase: string): Boolean;
+function SearchFileHard(Path: String; const Base: String; out NewBase: String): Boolean;
 
 { Find first file matching given Mask inside Path.
   If found, returns @true and sets FileInfo.
   Otherwise, returns @false and leaves FileInfo undefined. }
-function FindFirstFile(const Path, Mask: string;
+function FindFirstFile(const Path, Mask: String;
   const FindDirectories: Boolean; const Options: TFindFilesOptions;
   out FileInfo: TFileInfo): Boolean;
 
@@ -183,14 +183,14 @@ uses URIParser, StrUtils,
 
 { This is equivalent to FindFiles with Recursive = false
   and ReadAllFirst = false. }
-function FindFiles_NonRecursive(const Path, Mask: string;
+function FindFiles_NonRecursive(const Path, Mask: String;
   const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   var StopSearch: Boolean): Cardinal;
 
   procedure UseLocalFileSystem;
   var
-    AbsoluteName, LocalPath: string;
+    AbsoluteName, LocalPath: String;
     FileRec: TSearchRec;
     Attr, SearchError: Integer;
     FileInfo: TFileInfo;
@@ -287,7 +287,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   end;
 
 var
-  P: string;
+  P: String;
 begin
   P := URIProtocol(Path);
 
@@ -310,7 +310,7 @@ end;
 
 { This is equivalent to FindFiles with Recursive = true,
   and ReadAllFirst = false. }
-function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles_Recursive(const Path, Mask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const DirContentsLast: Boolean; var StopSearch: Boolean): Cardinal;
 
@@ -322,7 +322,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: Bo
 
   procedure UseLocalFileSystem;
   var
-    LocalPath: string;
+    LocalPath: String;
     FileRec: TSearchRec;
     SearchError: Integer;
   begin
@@ -375,7 +375,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: Bo
   { Search in subdirectories recursively. }
   procedure WriteSubdirs;
   var
-    P: string;
+    P: String;
   begin
     P := URIProtocol(Path);
 
@@ -419,7 +419,7 @@ begin
 end;
 
 { This is equivalent to FindFiles with ReadAllFirst = false. }
-function FindFiles_NonReadAllFirst(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles_NonReadAllFirst(const Path, Mask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Recursive, DirContentsLast: Boolean): Cardinal;
 var
@@ -438,7 +438,7 @@ begin
   TFileInfoList(Data).Add(FileInfo);
 end;
 
-function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles(const Path, Mask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
 var
@@ -473,7 +473,7 @@ begin
   end;
 end;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
+function FindFiles(const PathAndMask: String; const FindDirectories: Boolean;
   const FileProc: TFoundFileProc; const FileProcData: Pointer;
   const Options: TFindFilesOptions): Cardinal;
 begin
@@ -495,7 +495,7 @@ begin
   PFoundFileMethodWrapper(Data)^.Contents(FileInfo, StopSearch);
 end;
 
-function FindFiles(const Path, Mask: string; const FindDirectories: Boolean;
+function FindFiles(const Path, Mask: String; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 var
   FileMethodWrapper: TFoundFileMethodWrapper;
@@ -506,7 +506,7 @@ begin
     @FileMethodWrapper, Options);
 end;
 
-function FindFiles(const PathAndMask: string; const FindDirectories: Boolean;
+function FindFiles(const PathAndMask: String; const FindDirectories: Boolean;
   const FileMethod: TFoundFileMethod; const Options: TFindFilesOptions): Cardinal;
 begin
   Result := FindFiles(ExtractURIPath(PathAndMask), ExtractURIName(PathAndMask),
@@ -517,9 +517,9 @@ end;
 
 type
   TSearchFileHardHelper = class
-    Base: string;
+    Base: String;
     IsFound: Boolean;
-    Found: string;
+    Found: String;
     procedure Callback(const FileInfo: TFileInfo; var StopSearch: Boolean);
   end;
 
@@ -533,10 +533,10 @@ type
     end;
   end;
 
-function SearchFileHard(Path: string; const Base: string; out NewBase: string): Boolean;
+function SearchFileHard(Path: String; const Base: String; out NewBase: String): Boolean;
 var
   Helper: TSearchFileHardHelper;
-  P: string;
+  P: String;
 begin
   NewBase := Base;
   Result := false;
@@ -581,7 +581,7 @@ type
     StopSearch := true;
   end;
 
-function FindFirstFile(const Path, Mask: string;
+function FindFirstFile(const Path, Mask: String;
   const FindDirectories: Boolean; const Options: TFindFilesOptions;
   out FileInfo: TFileInfo): Boolean;
 var

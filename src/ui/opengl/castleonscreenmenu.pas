@@ -198,9 +198,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Add(const S: string);
-    procedure Add(const S: string; const Accessory: TCastleUserInterface);
-    procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
+    procedure Add(const S: String);
+    procedure Add(const S: String; const Accessory: TCastleUserInterface);
+    procedure Add(const S: String; const ItemOnClick: TNotifyEvent);
     procedure Add(const NewItem: TCastleUserInterface);
 
     { Currently selected child index.
@@ -904,7 +904,7 @@ begin
   MenuItems.InsertFront(NewItem);
 end;
 
-procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TCastleUserInterface);
+procedure TCastleOnScreenMenu.Add(const S: String; const Accessory: TCastleUserInterface);
 var
   Item: TCastleOnScreenMenuItem;
 begin
@@ -920,7 +920,7 @@ begin
   end;
 end;
 
-procedure TCastleOnScreenMenu.Add(const S: string);
+procedure TCastleOnScreenMenu.Add(const S: String);
 var
   ItemLabel: TCastleLabel;
 begin
@@ -931,7 +931,7 @@ begin
   Add(ItemLabel);
 end;
 
-procedure TCastleOnScreenMenu.Add(const S: string; const ItemOnClick: TNotifyEvent);
+procedure TCastleOnScreenMenu.Add(const S: String; const ItemOnClick: TNotifyEvent);
 var
   Item: TCastleOnScreenMenuItem;
 begin

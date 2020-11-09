@@ -43,18 +43,18 @@ type
     this class. We will move the position within this stream ourselves. }
   TTextReader = class(TTextReaderWriter)
   private
-    ReadBuf: string;
+    ReadBuf: String;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }
     function IncreaseReadBuf: Boolean;
   public
     { Download and open a file. }
-    constructor Create(const URL: string); overload;
+    constructor Create(const URL: String); overload;
 
     { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
-    function Readln: string;
+    function Readln: String;
 
     { Read the next string of non-whitespace characters.
       This skips any whitespace (including newlines) we currently see,
@@ -63,7 +63,7 @@ type
 
       Returns empty string if and only if the stream ended.
       Otherwise, returns the read non-whitespace characters. }
-    function Read: string;
+    function Read: String;
 
     { Read the next Integer from stream. Reads next string of non-whitespace
       characters, like @link(Read), and then converts it to Integer.
@@ -104,11 +104,11 @@ type
     a nice exception message in case of unsupprted URL protocol. }
   TTextWriter = class(TTextReaderWriter)
   public
-    constructor Create(const URL: string); overload;
-    procedure Write(const S: string); overload;
-    procedure Write(const S: string; const Args: array of const); overload;
-    procedure Writeln(const S: string = ''); overload;
-    procedure Writeln(const S: string; const Args: array of const); overload;
+    constructor Create(const URL: String); overload;
+    procedure Write(const S: String); overload;
+    procedure Write(const S: String; const Args: array of const); overload;
+    procedure Writeln(const S: String = ''); overload;
+    procedure Writeln(const S: String; const Args: array of const); overload;
   end;
 
 {$endif}
@@ -132,7 +132,7 @@ end;
 
 { TTextReader ---------------------------------------------------------------- }
 
-constructor TTextReader.Create(const URL: string);
+constructor TTextReader.Create(const URL: String);
 begin
   inherited Create(Download(URL), true);
 end;
@@ -149,7 +149,7 @@ begin
   Result := ReadCnt <> 0;
 end;
 
-function TTextReader.Readln: string;
+function TTextReader.Readln: String;
 var
   I, DeleteCount: Integer;
 begin
@@ -191,7 +191,7 @@ begin
   until false;
 end;
 
-function TTextReader.Read: string;
+function TTextReader.Read: String;
 var
   Start, I: Integer;
 begin
@@ -250,27 +250,27 @@ end;
 
 { TTextWriter ---------------------------------------------------------------- }
 
-constructor TTextWriter.Create(const URL: string);
+constructor TTextWriter.Create(const URL: String);
 begin
   inherited Create(URLSaveStream(URL), true);
 end;
 
-procedure TTextWriter.Write(const S: string);
+procedure TTextWriter.Write(const S: String);
 begin
   WriteStr(FStream, S);
 end;
 
-procedure TTextWriter.Writeln(const S: string);
+procedure TTextWriter.Writeln(const S: String);
 begin
   WritelnStr(FStream, S);
 end;
 
-procedure TTextWriter.Write(const S: string; const Args: array of const);
+procedure TTextWriter.Write(const S: String; const Args: array of const);
 begin
   WriteStr(FStream, Format(S, Args));
 end;
 
-procedure TTextWriter.Writeln(const S: string; const Args: array of const);
+procedure TTextWriter.Writeln(const S: String; const Args: array of const);
 begin
   WritelnStr(FStream, Format(S, Args));
 end;

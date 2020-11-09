@@ -73,7 +73,7 @@
 
     { RawItemToString(i) must change FItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; virtual; abstract;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; virtual; abstract;
 
     { This says when we should do newline when writing this field into a stream.
       It's has purely aesthetical meaning, nothing more.
@@ -87,10 +87,10 @@
     property Capacity: SizeInt read GetCapacity write SetCapacity;
   public
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: Boolean; const AName: string;
+      const AExposed: Boolean; const AName: String;
       const InitialContent: array of TItem);
     constructor CreateUndefined(const AParentNode: TX3DFileItem;
-      const AExposed: Boolean; const AName: string); override;
+      const AExposed: Boolean; const AName: String); override;
     destructor Destroy; override;
 
     property Items: TItemList read GetItems write SetItems;
@@ -119,7 +119,7 @@
       and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TItem read GetItemsSafe write SetItemsSafe;
 
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
 
     { Set the field's value in a correct way (by sending X3D event, or at least notifying
       the parent scene). }
@@ -315,7 +315,7 @@ begin
 end;
 
 constructor TX3DSimpleMultField.CreateUndefined(const AParentNode: TX3DFileItem;
-  const AExposed: Boolean; const AName: string);
+  const AExposed: Boolean; const AName: String);
 begin
   inherited;
   FItems := TItemList.Create;
@@ -323,7 +323,7 @@ begin
 end;
 
 constructor TX3DSimpleMultField.Create(
-  const AParentNode: TX3DFileItem; const AExposed: Boolean; const AName: string;
+  const AParentNode: TX3DFileItem; const AExposed: Boolean; const AName: String;
   const InitialContent: array of TItem);
 begin
   inherited Create(AParentNode, AExposed, AName);
@@ -441,7 +441,7 @@ begin
   end;
 end;
 
-class function TX3DSimpleMultField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
+class function TX3DSimpleMultField.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;

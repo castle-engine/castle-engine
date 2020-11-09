@@ -30,14 +30,14 @@ type
     }
   TPhotoService = class(TComponent)
   public
-    class procedure StoreImage(APath: string);
+    class procedure StoreImage(APath: String);
   end;
 
 implementation
 
 uses CastleMessaging;
 
-class procedure TPhotoService.StoreImage(APath: string);
+class procedure TPhotoService.StoreImage(APath: String);
 begin
   Messaging.Send(['photoservice-store-image', APath]);
 end;

@@ -31,25 +31,25 @@
   in a buffered stream with full seeking capability.
 
   @deprecated Instead of this, use @link(Download) with [soForceMemoryStream]. }
-function CreateReadFileStream(const URL: string): TStream; deprecated 'use Download(URL, [soForceMemoryStream])';
+function CreateReadFileStream(const URL: String): TStream; deprecated 'use Download(URL, [soForceMemoryStream])';
 
 { Save the contents of given Stream to an URL. }
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
+procedure StreamSaveToFile(Stream: TStream; const URL: String);
 
 {$endif}
 
 {$ifdef read_implementation}
 
-function CreateReadFileStream(const URL: string): TStream;
+function CreateReadFileStream(const URL: String): TStream;
 begin
   Result := Download(URL, [soForceMemoryStream]);
 end;
 
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
+procedure StreamSaveToFile(Stream: TStream; const URL: String);
 const
   BufSize = 100000;
 var
-  S : TStream;
+  S: TStream;
   Buffer: Pointer;
   ReadCount: Integer;
 begin

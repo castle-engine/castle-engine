@@ -42,7 +42,7 @@ type
     { Open a stream for an asset on given path.
       The path should be a valid Android asset path,
       like @code(images/my_texture.png). }
-    constructor Create(Path: string);
+    constructor Create(Path: String);
     destructor Destroy; override;
 
     { This stream doesn't support seeking.
@@ -65,16 +65,16 @@ var
 
 { Assuming that this is @code(assets:/xxx/yyy) URL, convert it to an asset path
   @code(xxx/yyy). Does percent-decoding along the way. }
-function URIToAssetPath(const URI: string): string;
+function URIToAssetPath(const URI: String): String;
 
-function AssetPathToURI(const AssetPath: string): string;
+function AssetPathToURI(const AssetPath: String): String;
 
 implementation
 
 uses CastleAndroidInternalLog,
   CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
-constructor TReadAssetStream.Create(Path: string);
+constructor TReadAssetStream.Create(Path: String);
 begin
   inherited Create;
   if ExtractFileExt(Path) = '.gz' then
@@ -142,7 +142,7 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function URIToAssetPath(const URI: string): string;
+function URIToAssetPath(const URI: String): String;
 var
   U: TURI;
   FixedURI: String;
@@ -166,7 +166,7 @@ begin
       [URI, U.Protocol]);
 end;
 
-function AssetPathToURI(const AssetPath: string): string;
+function AssetPathToURI(const AssetPath: String): String;
 var
   U: TURI;
 begin

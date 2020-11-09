@@ -48,8 +48,8 @@ type
   TItemResource = class(T3DResource)
   strict private
     FBaseAnimation: T3DResourceAnimation;
-    FCaption: string;
-    FImageURL: string;
+    FCaption: String;
+    FImageURL: String;
     FImage: TEncodedImage;
     FDrawableImage: TDrawableImage;
   private
@@ -64,12 +64,12 @@ type
       of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     destructor Destroy; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { Nice caption to display. }
-    property Caption: string read FCaption;
+    property Caption: String read FCaption;
 
     property BaseAnimation: T3DResourceAnimation read FBaseAnimation;
 
@@ -89,7 +89,7 @@ type
       menu option. }
     function Image: TEncodedImage;
 
-    property ImageURL: string read FImageURL;
+    property ImageURL: String read FImageURL;
 
     { Resource to draw @link(Image). }
     function DrawableImage: TDrawableImage;
@@ -192,7 +192,7 @@ type
       DefaultAttackKnockbackDistance = 0.0;
       DefaultAttackShoot = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -245,7 +245,7 @@ type
       FireMissileName to 'Arrow', to fire arrows as missiles (they will
       fly and can be avoided by fast moving enemies).
       And set AttackAmmo to something like 'Quiver'. }
-    property AttackAmmo: string read FAttackAmmo write FAttackAmmo;
+    property AttackAmmo: String read FAttackAmmo write FAttackAmmo;
 
     { If non-zero, it indicates that weapon has to be reloaded after making so many shots. }
     property AttackAmmoCapacity: Cardinal read FAttackAmmoCapacity write FAttackAmmoCapacity;
@@ -283,7 +283,7 @@ type
 
     { Creature resource name to be created (like 'Arrow') when firing a missile.
       Must be set to something not empty to actually fire a missile. }
-    property FireMissileName: string read FFireMissileName write FFireMissileName;
+    property FireMissileName: String read FFireMissileName write FFireMissileName;
 
     { Sound on missile fired.
       None (stNone) by default. }
@@ -626,7 +626,7 @@ uses SysUtils, Math,
 
 { TItemResource ------------------------------------------------------------ }
 
-constructor TItemResource.Create(const AName: string);
+constructor TItemResource.Create(const AName: String);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
@@ -722,7 +722,7 @@ end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
 
-constructor TItemWeaponResource.Create(const AName: string);
+constructor TItemWeaponResource.Create(const AName: String);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');

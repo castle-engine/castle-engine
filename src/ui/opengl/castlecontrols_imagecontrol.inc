@@ -225,7 +225,7 @@
       deprecated 'use AlphaChannel';
     property Proportional: Boolean read GetProportional write SetProportional stored false default false;
       deprecated 'use ProportionalScaling';
-    property FileName: string read GetURL write SetURL stored false;
+    property FileName: String read GetURL write SetURL stored false;
       deprecated 'use URL';
   published
     { Image contents to display. }
@@ -235,7 +235,7 @@
       Set this to load a new image, you can set to '' to clear the image.
 
       @seealso TCastleImagePersistent.URL }
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
 
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents

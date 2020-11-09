@@ -44,7 +44,7 @@
     procedure RemoveNotificationNow(const Notification: TX3DEventReceive);
   public
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+      const AName: String;
       const AFieldClass: TX3DFieldClass; const AInEvent: Boolean);
     destructor Destroy; override;
 
@@ -158,14 +158,14 @@
 
   TX3DEventList = class(specialize TObjectList<TX3DEvent>)
   strict private
-    function GetByName(const AName: string): TX3DEvent;
+    function GetByName(const AName: String): TX3DEvent;
   public
     { Access event by name.
       Raises EX3DNotFound if the given Name doesn't exist. }
-    property ByName[const AName: string]: TX3DEvent read GetByName;
+    property ByName[const AName: String]: TX3DEvent read GetByName;
 
     { Find event index on the list. -1 if not found. }
-    function IndexOfName(const Name: string): Integer;
+    function IndexOfName(const Name: String): Integer;
   end;
 
 {$endif read_interface}
@@ -186,7 +186,7 @@ end;
 { TX3DEvent ----------------------------------------------------------------- }
 
 constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AFieldClass: TX3DFieldClass;
+  const AName: String; const AFieldClass: TX3DFieldClass;
   const AInEvent: Boolean);
 begin
   inherited Create(AParentNode, AName);
@@ -335,14 +335,14 @@ end;
 
 { TX3DEventList ------------------------------------------------------------ }
 
-function TX3DEventList.IndexOfName(const Name: string): Integer;
+function TX3DEventList.IndexOfName(const Name: String): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;
   Result := -1;
 end;
 
-function TX3DEventList.GetByName(const AName: string): TX3DEvent;
+function TX3DEventList.GetByName(const AName: String): TX3DEvent;
 var
   I: Integer;
 begin

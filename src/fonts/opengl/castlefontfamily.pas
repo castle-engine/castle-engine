@@ -79,11 +79,11 @@ type
 
     procedure PrepareResources; override;
     procedure Print(const X, Y: Single; const Color: TCastleColor;
-      const S: string); override;
-    function TextWidth(const S: string): Single; override;
-    function TextHeight(const S: string): Single; override;
-    function TextHeightBase(const S: string): Single; override;
-    function TextMove(const S: string): TVector2; override;
+      const S: String); override;
+    function TextWidth(const S: String): Single; override;
+    function TextHeight(const S: String): Single; override;
+    function TextHeightBase(const S: String): Single; override;
+    function TextMove(const S: String): TVector2; override;
     function EffectiveSize: Single; override;
 
     { Should we customize the outline of the underlying font. }
@@ -152,7 +152,7 @@ type
 
   { @exclude Internal type for TRichText }
   TTextPropertyString = class(TTextProperty)
-    S: string;
+    S: String;
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Single; const Y0: Single;
       var MaxDisplayChars: Integer); override;
@@ -207,14 +207,14 @@ type
     FOwnsFont: Boolean;
     procedure SetTextWithoutHtml(Text: TStrings);
     procedure SetTextWithHtml(Text: TStrings);
-    procedure AddTextWithHtml(const S: string);
+    procedure AddTextWithHtml(const S: String);
     function BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
     procedure EndProcessing(var State: TTextLine.TPrintState);
   public
     constructor Create(const AFont: TCastleFont;
       const Text: TStrings; const Html: Boolean);
     constructor Create(const AFont: TCastleFont;
-      const S: string; const Html: Boolean);
+      const S: String; const Html: Boolean);
     destructor Destroy; override;
     function Width: Single;
     procedure Wrap(const MaxWidth: Single);
@@ -357,35 +357,35 @@ begin
 end;
 
 procedure TFontFamily.Print(const X, Y: Single; const Color: TCastleColor;
-  const S: string);
+  const S: String);
 begin
   SubFontCustomizeBegin;
   SubFont.Print(X, Y, Color, S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextWidth(const S: string): Single;
+function TFontFamily.TextWidth(const S: String): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextHeight(const S: string): Single;
+function TFontFamily.TextHeight(const S: String): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextHeightBase(const S: string): Single;
+function TFontFamily.TextHeightBase(const S: String): Single;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
   SubFontCustomizeEnd;
 end;
 
-function TFontFamily.TextMove(const S: string): TVector2;
+function TFontFamily.TextMove(const S: String): TVector2;
 begin
   SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
@@ -469,7 +469,7 @@ function TTextPropertyString.Wrap(const Font: TFontFamily; const State: TTextLin
   var
     NewProp: TTextPropertyString;
     ExtractedProp: TTextProperty;
-    BreakOutput1, BreakOutput2: string;
+    BreakOutput1, BreakOutput2: String;
     P: Integer;
   begin
     { We have to break this line now. }
@@ -775,7 +775,7 @@ begin
 end;
 
 constructor TRichText.Create(const AFont: TCastleFont;
-  const S: string; const Html: Boolean);
+  const S: String; const Html: Boolean);
 var
   Text: TStringList;
 begin
@@ -818,15 +818,15 @@ begin
     AddTextWithHtml(Text[I]);
 end;
 
-procedure TRichText.AddTextWithHtml(const S: string);
+procedure TRichText.AddTextWithHtml(const S: String);
 var
   TextLine: TTextLine;
 
   { Test is given substring at position I within larger string S.
     Does it fast (without creating a temporary copy for a subtring from S).
     Case-sensitive. }
-  function SubstringStartsHere(const S: string; const I: Integer;
-    const Substring: string; out NextChar: Integer): Boolean;
+  function SubstringStartsHere(const S: String; const I: Integer;
+    const Substring: String; out NextChar: Integer): Boolean;
   var
     J, SubstringLength, SIndex: Integer;
   begin
@@ -844,7 +844,7 @@ var
     Result := true;
   end;
 
-  function EntityFound(const S: string; const I: Integer;
+  function EntityFound(const S: String; const I: Integer;
     out NextChar: Integer): TTextPropertyString;
   begin
     if SubstringStartsHere(S, I, '&amp;', NextChar) then
@@ -876,7 +876,7 @@ var
   end;
 
   { @raises EConvertError In case of invalid color hexadecimal value. }
-  function ReadFontColor(const S: string; const I: Integer;
+  function ReadFontColor(const S: String; const I: Integer;
     out NextChar: Integer; out Color: TCastleColor): Boolean;
   var
     EndPos: Integer;
@@ -896,12 +896,12 @@ var
       Color[3] := 1.0;
   end;
 
-  function ReadFontSize(const S: string; const I: Integer;
+  function ReadFontSize(const S: String; const I: Integer;
     out NextChar: Integer; out HtmlSize: Integer; out PercentSize: Single): Boolean;
   var
     EndPos: Integer;
     SizeRead: Int64;
-    NumStr: string;
+    NumStr: String;
   begin
     EndPos := PosEx('">', S, I);
     NextChar := EndPos + 2;
@@ -929,7 +929,7 @@ var
     end;
   end;
 
-  function CommandFound(const S: string; const I: Integer;
+  function CommandFound(const S: String; const I: Integer;
     out NextChar: Integer): TTextPropertyCommand;
   begin
     if SubstringStartsHere(S, I, '<b>', NextChar) then
@@ -984,7 +984,7 @@ var
       Result := nil;
   end;
 
-  function CommentFound(const S: string; const I: Integer;
+  function CommentFound(const S: String; const I: Integer;
     out NextChar: Integer): TTextPropertyString;
   var
     EndPos: Integer;
@@ -1001,7 +1001,7 @@ var
     end;
   end;
 
-  function SpecialFound(const S: string; const I: Integer;
+  function SpecialFound(const S: String; const I: Integer;
     out NextChar: Integer): TTextProperty;
   begin
     if S[I] = '&' then
@@ -1034,7 +1034,7 @@ var
 
 var
   I, Done, NextChar, SLength: Integer;
-  SLowerCase: string;
+  SLowerCase: String;
   PropSpecial: TTextProperty;
 begin
   TextLine := TTextLine.Create(FFont);

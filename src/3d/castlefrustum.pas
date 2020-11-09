@@ -225,8 +225,8 @@ type
       See CGE tests (tests/code/testcastlefrustum.pas) for speed testing code. }
     function TransformByInverse(const MInverse: TMatrix4): TFrustum;
 
-    function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
-    function ToString(const Indent: string): string;
+    function ToNiceStr(const Indent: String): String; deprecated 'use ToString';
+    function ToString(const Indent: String): String;
   end;
   PFrustum = ^TFrustum;
 
@@ -631,12 +631,12 @@ begin
   Result.ZFarInfinity := ZFarInfinity;
 end;
 
-function TFrustum.ToNiceStr(const Indent: string): string;
+function TFrustum.ToNiceStr(const Indent: String): String;
 begin
   Result := ToString(Indent);
 end;
 
-function TFrustum.ToString(const Indent: string): string;
+function TFrustum.ToString(const Indent: String): String;
 var
   I: TFrustumPlane;
 begin

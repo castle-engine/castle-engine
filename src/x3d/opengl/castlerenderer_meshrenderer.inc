@@ -557,7 +557,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       WorldSpaceReflectionVector in fixed-function pipeline.
       Note that the shader pipeline counterpart
       of this is entirely inside EnableTexGen. }
-    procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
+    procedure TextureTransformToWorldSpace(const SuccessName, FailName: String);
     begin
       if not GLFeatures.EnableFixedFunction then
         Exit;

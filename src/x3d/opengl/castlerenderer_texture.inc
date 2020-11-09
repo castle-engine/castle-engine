@@ -773,7 +773,7 @@ var
   I: Integer;
   Success: Boolean;
   Env: TTextureEnv;
-  ModeStr, SourceStr, FunctionStr: string;
+  ModeStr, SourceStr, FunctionStr: String;
 begin
   { calculate TextureSlotsUsed }
   InitialTextureSlotsUsed := TextureSlotsUsed;

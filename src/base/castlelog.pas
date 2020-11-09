@@ -82,33 +82,33 @@ procedure InitializeLog(
   const ALogStream: TStream = nil;
   const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
 
-procedure InitializeLog(const ProgramVersion: string;
+procedure InitializeLog(const ProgramVersion: String;
   const ALogStream: TStream = nil;
   const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
   deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
 
 { Log message. }
-procedure WritelnLog(const Category: string; const Message: string); overload;
-procedure WritelnLog(const Message: string); overload;
+procedure WritelnLog(const Category: String; const Message: String); overload;
+procedure WritelnLog(const Message: String); overload;
 
 { Format and log a message.
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
-procedure WritelnLog(const Category: string; const MessageBase: string;
+procedure WritelnLog(const Category: String; const MessageBase: String;
   const Args: array of const); overload;
-procedure WritelnLog(const MessageBase: string;
+procedure WritelnLog(const MessageBase: String;
   const Args: array of const); overload;
 
 { Log message, without appending newline at the end (given Message
   should already contain a final newline). }
-procedure WriteLog(const Category: string; const Message: string); overload;
+procedure WriteLog(const Category: String; const Message: String); overload;
   deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
   The Message may, but doesn't have to, terminate with a newline --
   we will format it OK either way. }
-procedure WritelnLogMultiline(const Category: string; const Message: string);
+procedure WritelnLogMultiline(const Category: String; const Message: String);
 
-procedure WriteLogMultiline(const Category: string; const Message: string); deprecated 'use WritelnLogMultiline';
+procedure WriteLogMultiline(const Category: String; const Message: String); deprecated 'use WritelnLogMultiline';
 
 { Log a warning, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
@@ -124,13 +124,13 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
   or @link(TCastleWindowBase.MessageOK)).
   Or by raising an exception, if you want to be strict about warnings. }
-procedure WritelnWarning(const Category: string; const Message: string); overload;
-procedure WritelnWarning(const Message: string); overload;
+procedure WritelnWarning(const Category: String; const Message: String); overload;
+procedure WritelnWarning(const Message: String); overload;
 
 { A shortcut for @code(WritelnWarning(Category, Format(MessageBase, Args))). }
-procedure WritelnWarning(const Category: string; const MessageBase: string;
+procedure WritelnWarning(const Category: String; const MessageBase: String;
   const Args: array of const); overload;
-procedure WritelnWarning(const MessageBase: string;
+procedure WritelnWarning(const MessageBase: String;
   const Args: array of const); overload;
 
 var
@@ -203,14 +203,14 @@ const
     stop adding things to CollectedLog when it reaches certain length. }
   MaxCollectedLogLength = 80 * 10;
 
-procedure WriteLogCoreCore(const S: string); forward;
+procedure WriteLogCoreCore(const S: String); forward;
 
 function Log: Boolean;
 begin
   Result := FLog;
 end;
 
-procedure InitializeLog(const ProgramVersion: string;
+procedure InitializeLog(const ProgramVersion: String;
   const ALogStream: TStream;
   const ALogTimePrefix: TLogTimePrefix);
 begin
@@ -222,7 +222,7 @@ procedure InitializeLog(
   const ALogStream: TStream;
   const ALogTimePrefix: TLogTimePrefix);
 
-  function InitializeLogFile(const LogFileName: string): Boolean;
+  function InitializeLogFile(const LogFileName: String): Boolean;
   begin
     try
       { without fmShareDenyNone, you cannot open the file while plugin runs }
@@ -245,7 +245,7 @@ procedure InitializeLog(
   {$ifdef CASTLE_USE_GETAPPCONFIGDIR_FOR_LOG}
   { Similar to CastleFilesUtils.ApplicationConfig directory,
     but returns a filename, and doesn't depend on CastleFilesUtils and friends. }
-  function ApplicationConfigPath: string;
+  function ApplicationConfigPath: String;
   begin
     Result := InclPathDelim(GetAppConfigDir(false));
     if not ForceDirectories(Result) then
@@ -355,7 +355,7 @@ end;
 { Add the String to log contents.
   Assumes that log is initialized.
   Sends it to AndroidLog and LogStream and ApplicationProperties._Log. }
-procedure WriteLogCoreCore(const S: string);
+procedure WriteLogCoreCore(const S: String);
 begin
   // Assert(FLog); // do not check it, as InitializeLog uses it before FLog := true
 
@@ -378,7 +378,7 @@ end;
   - If log not initialized yet, adds the String to CollectedLog.
   - If log initialized, sends it to AndroidLog and LogStream and ApplicationProperties._Log
 }
-procedure WriteLogCore(const S: string);
+procedure WriteLogCore(const S: String);
 var
   LogContents: String;
 begin
@@ -400,7 +400,7 @@ begin
   end;
 end;
 
-function LogTimePrefixStr: string;
+function LogTimePrefixStr: String;
 begin
   case LogTimePrefix of
     ltNone: Result := '';
@@ -409,7 +409,7 @@ begin
   end;
 end;
 
-procedure WriteLog(const Category: string; const Message: string);
+procedure WriteLog(const Category: String; const Message: String);
 var
   S: String;
 begin
@@ -420,7 +420,7 @@ begin
   WriteLogCore(S);
 end;
 
-procedure WritelnLog(const Category: string; const Message: string);
+procedure WritelnLog(const Category: String; const Message: String);
 begin
   // do not warn about using deprecated WriteLog here.
   // In the future, WriteLog should be moved to the "implementation" section
@@ -430,29 +430,29 @@ begin
   {$warnings on}
 end;
 
-procedure WritelnLog(const Message: string);
+procedure WritelnLog(const Message: String);
 begin
   WritelnLog('', Message);
 end;
 
-procedure WritelnLog(const Category: string; const MessageBase: string;
+procedure WritelnLog(const Category: String; const MessageBase: String;
   const Args: array of const);
 begin
   WritelnLog(Category, Format(MessageBase, Args));
 end;
 
-procedure WritelnLog(const MessageBase: string;
+procedure WritelnLog(const MessageBase: String;
   const Args: array of const);
 begin
   WritelnLog('', Format(MessageBase, Args));
 end;
 
-procedure WriteLogMultiline(const Category: string; const Message: string);
+procedure WriteLogMultiline(const Category: String; const Message: String);
 begin
   WritelnLogMultiline(Category, Message);
 end;
 
-procedure WritelnLogMultiline(const Category: string; const Message: string);
+procedure WritelnLogMultiline(const Category: String; const Message: String);
 begin
   if LogTimePrefix <> ltNone then
     WriteLogCore(LogTimePrefixStr + NL);
@@ -463,7 +463,7 @@ begin
     '-------------------- ' + Category + ' end' + NL)
 end;
 
-procedure WritelnWarning(const Category: string; const Message: string);
+procedure WritelnWarning(const Category: String; const Message: String);
 var
   WarningCategory: String;
 begin
@@ -475,18 +475,18 @@ begin
   ApplicationProperties._Warning(Category, Message);
 end;
 
-procedure WritelnWarning(const Message: string);
+procedure WritelnWarning(const Message: String);
 begin
   WritelnWarning('', Message);
 end;
 
-procedure WritelnWarning(const Category: string; const MessageBase: string;
+procedure WritelnWarning(const Category: String; const MessageBase: String;
   const Args: array of const);
 begin
   WritelnWarning(Category, Format(MessageBase, Args));
 end;
 
-procedure WritelnWarning(const MessageBase: string;
+procedure WritelnWarning(const MessageBase: String;
   const Args: array of const);
 begin
   WritelnWarning('', MessageBase, Args);

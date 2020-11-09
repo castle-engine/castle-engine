@@ -35,7 +35,7 @@
   Returns token without those surrounding whitespaces.
   Returns '' if we're standing at the end of file.
   Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
-function ReadPPMToken(Stream: TStream): string;
+function ReadPPMToken(Stream: TStream): String;
 var c: Char;
 begin
  try

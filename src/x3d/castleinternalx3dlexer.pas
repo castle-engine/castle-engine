@@ -103,10 +103,10 @@ type
   TX3DVersion = object
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: Boolean = false): string;
+      const ForceConvertingToX3D: Boolean = false): String;
     { File filters if you want to save a file using Save3D. }
     function FileFilters(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: Boolean = false): string;
+      const ForceConvertingToX3D: Boolean = false): String;
   end;
 
   { VRML/X3D (classic encoding) lexer.
@@ -127,10 +127,10 @@ type
     fVersion: TX3DVersion;
     fToken: TX3DToken;
     fTokenKeyword: TX3DKeyword;
-    fTokenName: string;
+    fTokenName: String;
     fTokenFloat: Float;
     fTokenInteger: Int64;
-    fTokenString: string;
+    fTokenString: String;
 
     VRMLWhitespaces, VRMLNoWhitespaces: TSetOfChars;
     VRMLNameChars, VRMLNameFirstChars: TSetOfChars;
@@ -189,7 +189,7 @@ type
     constructor CreateForPartialStream(
       AStream: TPeekCharStream; AOwnsStream: Boolean;
       const AVersion: TX3DVersion); overload;
-    constructor CreateForPartialStream(const S: string;
+    constructor CreateForPartialStream(const S: String;
       const AVersion: TX3DVersion); overload;
     { @groupEnd }
 
@@ -233,7 +233,7 @@ type
       except keyword.
 
       Note that this is supposed to contain UTF-8 encoded string for VRML >= 2.0. }
-    property TokenName: string read fTokenName;
+    property TokenName: String read fTokenName;
 
     { TokenName, decoded using DecodeX3DName. }
     function TokenX3DName: String;
@@ -250,7 +250,7 @@ type
     property TokenInteger: Int64 read fTokenInteger;
 
     { When Token = vtString, TokenString contains string value. }
-    property TokenString: string read fTokenString;
+    property TokenString: String read fTokenString;
 
     { NextToken reads next token from stream, initializing appropriately
       all Token* properties. For comfort, this returs the new value of
@@ -308,14 +308,14 @@ type
     function TokenIsKeyword(const Keywords: TX3DKeywords): Boolean; overload;
 
     { Nice textual description of current token, suitable to show to user. }
-    function DescribeToken: string;
+    function DescribeToken: String;
 
     { Check is token = Tok, if not -> parser error "expected token 'tok'".
       You can provide your own description for Tok or default desciption
       for token will be used. }
     procedure CheckTokenIs(Tok: TX3DToken); overload;
-    procedure CheckTokenIs(Tok: TX3DToken; const TokDescription: string); overload;
-    procedure CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string); overload;
+    procedure CheckTokenIs(Tok: TX3DToken; const TokDescription: String); overload;
+    procedure CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: String); overload;
     procedure CheckTokenIsKeyword(const Keyword: TX3DKeyword);
   end;
 
@@ -327,7 +327,7 @@ type
       Lexer instance must be valid for this call, but not longer.
       That is, you can free the lexer after this constructor finished,
       it doesn't need to be valid for the whole lifetime of this object. }
-    constructor Create(Lexer: TX3DLexer; const s: string);
+    constructor Create(Lexer: TX3DLexer; const S: String);
   end;
 
   { Error when reading VRML/X3D. For now, just equal to EX3DClassicReadError,
@@ -339,7 +339,7 @@ type
   EX3DParserError = class(EX3DClassicReadError);
 
 const
-  X3DKeywordsName: array [TX3DKeyword] of string = (
+  X3DKeywordsName: array [TX3DKeyword] of String = (
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
     'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
     'AS', 'EXPORT', 'IMPORT',
@@ -360,8 +360,8 @@ const
     StringToX3DClassic('foo') = '"foo"'
     StringToX3DClassic('say "yes"') = '"say \"yes\""'
   #) }
-function StringToX3DClassic(const s: string;
-  const SurroundWithQuotes: Boolean = true): string;
+function StringToX3DClassic(const S: String;
+  const SurroundWithQuotes: Boolean = true): String;
 
 { String encoded for X3D XML, surrounded by double quotes.
   You can use this when generating VRML/X3D content by hand.
@@ -369,7 +369,7 @@ function StringToX3DClassic(const s: string;
   Simply put, this just adds double quotes around and replaces
   all special characters (quotes, double quotes and more)
   with appropriate XML entities &xxx;. }
-function StringToX3DXml(const s: string): string;
+function StringToX3DXml(const S: String): String;
 
 { String encoded for X3D XML, surrounded by double quotes, to be used
   as part of MFString.
@@ -382,7 +382,7 @@ function StringToX3DXml(const s: string): string;
   " and &quot; exactly the same. X3D XML encoding spec shows example
   confirming this is correct,
   @code(<Text string='"He said, \&quot;Immel did it!\&quot;"' />). }
-function StringToX3DXmlMulti(const s: string): string;
+function StringToX3DXmlMulti(const S: String): String;
 
 implementation
 
@@ -393,7 +393,7 @@ const
   { utf8 specific constants below }
   X3DLineTerm = [#10, #13];
 
-  X3DTokenNames: array [TX3DToken] of string = (
+  X3DTokenNames: array [TX3DToken] of String = (
     'keyword', 'name',
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of stream');
@@ -402,12 +402,12 @@ var
   { Log all read tokens. Useful for debugging lexer. }
   LogTokens: Boolean = false;
 
-function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): Boolean;
+function ArrayPosX3DKeywords(const S: String; out Index: TX3DKeyword): Boolean;
 var
   I: TX3DKeyword;
 begin
   for I := Low(X3DKeywords) to High(X3DKeywords) do
-    if X3DKeywordsName[I] = s then
+    if X3DKeywordsName[I] = S then
     begin
       Index := I;
       Result := true;
@@ -419,7 +419,7 @@ end;
 { TX3DVersion --------------------------------------------------------------- }
 
 function TX3DVersion.FileExtension(const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: Boolean): string;
+  const ForceConvertingToX3D: Boolean): String;
 begin
   if Encoding = xeXML then
     Result := '.x3d' else
@@ -429,7 +429,7 @@ begin
 end;
 
 function TX3DVersion.FileFilters(const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: Boolean): string;
+  const ForceConvertingToX3D: Boolean): String;
 const
   SaveVRMLClassic_FileFilters =
   'All files|*|' +
@@ -507,9 +507,9 @@ const
 
   X3DHeaderStart = '#X3D ';
 
-  procedure Utf8HeaderReadRest(const Line: string);
+  procedure Utf8HeaderReadRest(const Line: String);
   var
-    Encoding: string;
+    Encoding: String;
   begin
     Encoding := NextTokenOnce(Line);
     if Encoding <> EncodingUtf8 then
@@ -520,7 +520,7 @@ const
   { If Prefix is a prefix of S, then return @true and remove this prefix
     from S. Otherwise return @false (without modifying S).
     Allows also an UTF-8 BOM before a prefix. }
-  function CheckRemoveHeader(Prefix: string; var S: string): Boolean;
+  function CheckRemoveHeader(Prefix: String; var S: String): Boolean;
   const
     Utf8Bom = #$EF + #$BB + #$BF;
   begin
@@ -540,7 +540,7 @@ const
     Note that this is slightly more flexible than VRML / X3D classic
     spec says (they require exactly one space before and after version
     number, we allow any number of whitespaces). }
-  procedure ParseVersion(var S: string; out Major, Minor: Integer);
+  procedure ParseVersion(var S: String; out Major, Minor: Integer);
   const
     SIncorrectSignature = 'Inventor / VRML / X3D Incorrect signature: ';
     Digits = ['0' .. '9'];
@@ -593,7 +593,7 @@ const
   end;
 
 var
-  Line: string;
+  Line: String;
 begin
   CreateCommonBegin(AStream, AOwnsStream);
 
@@ -671,7 +671,7 @@ begin
   CreateCommonEnd;
 end;
 
-constructor TX3DLexer.CreateForPartialStream(const S: string;
+constructor TX3DLexer.CreateForPartialStream(const S: String;
   const AVersion: TX3DVersion);
 var
   StringStream: TStringStream;
@@ -815,9 +815,9 @@ function TX3DLexer.NextToken: TX3DToken;
     NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
     { TODO: octal notation not implemented (I never saw any model using it) }
 
-    procedure ReadAfterE(const AlreadyRead: string);
+    procedure ReadAfterE(const AlreadyRead: String);
     var CharAfterE: Char;
-        RestOfToken: string;
+        RestOfToken: String;
         CharAfterEInt: Integer;
     begin
      fToken := vtFloat;
@@ -836,26 +836,26 @@ function TX3DLexer.NextToken: TX3DToken;
      fTokenFloat := StrToFloatDot(AlreadyRead +'e' +CharAfterE +RestOfToken);
     end;
 
-    procedure ReadAfterDot(const AlreadyRead: string);
+    procedure ReadAfterDot(const AlreadyRead: String);
     {AlreadyRead zawieraja dotychczas przeczytana liczbe calkowita ze znakiem.
      Wiemy ze potem odczytano kropke - czytamy dalej. }
-    var s: string;
+    var S: String;
         AfterS: Integer;
     begin
-     s := AlreadyRead +'.' +Stream.ReadUpto(NoDigits);
+     S := AlreadyRead +'.' +Stream.ReadUpto(NoDigits);
      AfterS := Stream.PeekChar;
      if (AfterS = Ord('e')) or (AfterS = Ord('E')) then
      begin
       Stream.ReadChar;
-      ReadAfterE(s);
+      ReadAfterE(S);
      end else
      begin
       fToken := vtFloat;
-      fTokenFloat := StrToFloatDot(s);
+      fTokenFloat := StrToFloatDot(S);
      end;
     end;
 
-  var Dig1, HexDig: string;
+  var Dig1, HexDig: String;
       AfterDig1: Integer;
   begin
    try
@@ -1038,7 +1038,7 @@ begin
   Result := (Token = vtKeyword) and (TokenKeyword in Keywords);
 end;
 
-function TX3DLexer.DescribeToken: string;
+function TX3DLexer.DescribeToken: String;
 begin
  result := X3DTokenNames[Token];
  case Token of
@@ -1056,14 +1056,14 @@ begin
  CheckTokenIs(Tok, X3DTokenNames[Tok]);
 end;
 
-procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken; const TokDescription: string);
+procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken; const TokDescription: String);
 begin
  if Token <> Tok then
   raise EX3DParserError.Create(Self, 'Expected '+TokDescription
     +', got '+DescribeToken);
 end;
 
-procedure TX3DLexer.CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string);
+procedure TX3DLexer.CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: String);
 begin
  if not (Token in Toks) then
   raise EX3DParserError.Create(Self, 'Expected '+ToksDescription
@@ -1085,7 +1085,7 @@ end;
 
 { Exceptions ----------------------------------------------------------------- }
 
-constructor EX3DClassicReadError.Create(Lexer: TX3DLexer; const s: string);
+constructor EX3DClassicReadError.Create(Lexer: TX3DLexer; const S: String);
 begin
   inherited Create(Format('Error at line %d column %d: ',
     [Lexer.Stream.Line, Lexer.Stream.Column]) + S);
@@ -1093,34 +1093,34 @@ end;
 
 { global funcs  ------------------------------------------------------------------ }
 
-function StringToX3DClassic(const s: string;
-  const SurroundWithQuotes: Boolean): string;
+function StringToX3DClassic(const S: String;
+  const SurroundWithQuotes: Boolean): String;
 const
-  Patterns: array [0..1] of string = ('\', '"');
-  PatValues: array [0..1] of string = ('\\', '\"');
+  Patterns: array [0..1] of String = ('\', '"');
+  PatValues: array [0..1] of String = ('\\', '\"');
 begin
   { use soMatchCase for speed }
   if SurroundWithQuotes then
-    Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"' else
-    Result :=       SReplacePatterns(s, Patterns, PatValues, false);
+    Result := '"' + SReplacePatterns(S, Patterns, PatValues, false) + '"' else
+    Result :=       SReplacePatterns(S, Patterns, PatValues, false);
 end;
 
-function StringToX3DXml(const s: string): string;
+function StringToX3DXml(const S: String): String;
 const
-  Patterns: array [0..6] of string = ('&', '"', '''', '<', '>', #10, #13);
-  PatValues: array [0..6] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
+  Patterns: array [0..6] of String = ('&', '"', '''', '<', '>', #10, #13);
+  PatValues: array [0..6] of String = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
+  Result := '"' + SReplacePatterns(S, Patterns, PatValues, false) + '"';
 end;
 
-function StringToX3DXmlMulti(const s: string): string;
+function StringToX3DXmlMulti(const S: String): String;
 const
-  Patterns: array [0..7] of string = ('&', '"', '''', '<', '>', #10, #13, '\');
-  PatValues: array [0..7] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
+  Patterns: array [0..7] of String = ('&', '"', '''', '<', '>', #10, #13, '\');
+  PatValues: array [0..7] of String = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
+  Result := '"' + SReplacePatterns(S, Patterns, PatValues, false) + '"';
 end;
 
 end.

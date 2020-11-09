@@ -124,7 +124,7 @@ type
       DefaultFallMinHeightToSound = 1.0;
       DefaultFallSoundName = 'creature_fall';
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
 
     { Flying creatures are not affected by gravity and
       (in case of TWalkAttackCreatureResource) their move direction is free.
@@ -407,7 +407,7 @@ type
     FFireMissileMinDelay: Single;
     FFireMissileMaxDistance: Single;
     FFireMissileMaxAngle: Single;
-    FFireMissileName: string;
+    FFireMissileName: String;
     FFireMissileHeight: Single;
     FFireMissileSound: TSoundType;
   protected
@@ -437,7 +437,7 @@ type
       DefaultFireMissileMaxAngle = DefaultAttackMaxAngle;
       DefaultFireMissileHeight = 0.5;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreatureClass: TCreatureClass; override;
 
@@ -617,7 +617,7 @@ type
 
     { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
       Leave empty to not fire any missile. }
-    property FireMissileName: string
+    property FireMissileName: String
       read FFireMissileName write FFireMissileName;
 
     { Height (between Position and Middle, usually: legs and eyes)
@@ -739,7 +739,7 @@ type
       DefaultDirectionFallSpeed = 0.0;
       DefaultRemoveDead = true;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreateCreature(
@@ -828,7 +828,7 @@ type
     const
       DefaultRemoveDead = false;
 
-    constructor Create(const AName: string); override;
+    constructor Create(const AName: String); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
@@ -1073,7 +1073,7 @@ var
 
 { TCreatureResource -------------------------------------------------------------- }
 
-constructor TCreatureResource.Create(const AName: string);
+constructor TCreatureResource.Create(const AName: String);
 begin
   inherited;
   FFlying := DefaultFlying;
@@ -1254,7 +1254,7 @@ end;
 
 { TWalkAttackCreatureResource ------------------------------------------------ }
 
-constructor TWalkAttackCreatureResource.Create(const AName: string);
+constructor TWalkAttackCreatureResource.Create(const AName: String);
 begin
   inherited;
 
@@ -1339,7 +1339,7 @@ end;
 
 { TMissileCreatureResource ---------------------------------------------------- }
 
-constructor TMissileCreatureResource.Create(const AName: string);
+constructor TMissileCreatureResource.Create(const AName: String);
 begin
   inherited;
   FMoveSpeed := DefaultMoveSpeed;
@@ -1427,7 +1427,7 @@ end;
 
 { TStillCreatureResource ---------------------------------------------------- }
 
-constructor TStillCreatureResource.Create(const AName: string);
+constructor TStillCreatureResource.Create(const AName: String);
 begin
   inherited;
   FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
@@ -2643,7 +2643,7 @@ end;
 
 procedure TWalkAttackCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 var
-  StateName: string;
+  StateName: String;
 begin
   inherited;
 

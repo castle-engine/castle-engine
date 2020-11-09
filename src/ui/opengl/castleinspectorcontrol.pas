@@ -38,7 +38,7 @@ type
     CheckboxShowEvenInternal: TCastleCheckbox;
     CheckboxShowSize: TCastleCheckbox;
     function ControlColor(const C: TCastleUserInterface): TCastleColor;
-    function ControlDescription(const C: TCastleUserInterface): string;
+    function ControlDescription(const C: TCastleUserInterface): String;
     procedure TransparencyChange(Sender: TObject);
     procedure UpdateDisplay(Sender: TObject);
     function ControlShow(const C: TCastleUserInterface): Boolean;
@@ -167,7 +167,7 @@ begin
     1);
 end;
 
-function TCastleInspectorControl.ControlDescription(const C: TCastleUserInterface): string;
+function TCastleInspectorControl.ControlDescription(const C: TCastleUserInterface): String;
 begin
   if C.Name <> '' then
     Result := C.Name + ':' + C.ClassName
@@ -249,7 +249,7 @@ var
   procedure AddControlDescription(const C: TCastleUserInterface; const Level: Integer);
   var
     I: Integer;
-    S: string;
+    S: String;
   begin
     if ControlShow(C) then
     begin

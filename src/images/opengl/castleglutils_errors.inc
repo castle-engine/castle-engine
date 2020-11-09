@@ -27,7 +27,7 @@ type
   EOpenGLError = class(Exception)
   public
     ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: String = '');
   end;
 
   { GPU memory is not sufficient.
@@ -50,9 +50,9 @@ var
     even though GPU complains. }
   GLOutOfMemoryError: Boolean = false;
 
-procedure GLOutOfMemory(const AdditionalComment: string = '');
+procedure GLOutOfMemory(const AdditionalComment: String = '');
 
-function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string = ''): string;
+function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: String = ''): String;
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
@@ -68,7 +68,7 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
   suggested to fix the code to not produce OpenGL errors, never ever.
 
   @raises EOpenGLError }
-procedure CheckGLErrors(const AdditionalComment: string = '');
+procedure CheckGLErrors(const AdditionalComment: String = '');
 
 { Raise EOpenGLError for given OpenGL error code.
   This has calling convention suitable for registering this procedure
@@ -82,9 +82,9 @@ procedure GLErrorRaise(ErrorCode: TGLenum);
 
 {$ifdef read_implementation}
 
-function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string): string;
+function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: String): String;
 var
-  S: string;
+  S: String;
 begin
   { Do not use gluErrorString, not available in OpenGL ES.
     Error descriptions below from
@@ -109,13 +109,13 @@ begin
   Result := Result + Format('OpenGL error (%d): %s', [ErrorCode, S]);
 end;
 
-constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
+constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: String);
 begin
   ErrorCode := AErrorCode;
   inherited Create(GLErrorString(ErrorCode, AdditionalComment));
 end;
 
-procedure GLOutOfMemory(const AdditionalComment: string);
+procedure GLOutOfMemory(const AdditionalComment: String);
 const
   ErrorCode = GL_OUT_OF_MEMORY;
 begin
@@ -124,7 +124,7 @@ begin
     WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
 end;
 
-procedure CheckGLErrors(const AdditionalComment: string);
+procedure CheckGLErrors(const AdditionalComment: String);
 var
   ErrorCode: TGLenum;
 begin

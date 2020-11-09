@@ -51,10 +51,10 @@ uses Classes, SysUtils, Contnrs, Generics.Collections,
 { @section(TStrings utilities) }
 
 { Add some strings. }
-procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: string='dummy'); overload;
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: String='dummy'); overload;
 
 { Add all strings from string array to TStrings instance. }
-procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+procedure AddStrArrayToStrings(const StrArr: array of String; strlist: TStrings);
 
 type
   { TStringList that is case sensitive. }
@@ -70,17 +70,17 @@ type
   part is equal to ''. And if S ends with Splitter then the last
   oart is equal to ''. }
 procedure Strings_AddSplittedString(Strings: TStrings;
-  const S, Splitter: string);
+  const S, Splitter: String);
 
 { Something like @link(SCastleEngineProgramHelpSuffix), but appends
   contents as a couple of lines to Strings. }
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: Boolean);
+  Strings: TStrings; const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean);
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 
 { Make sure we don't have more than MaxCount strings on a list.
   Removes the last strings if necessary. }
@@ -180,22 +180,22 @@ function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
   @groupBegin }
-procedure StreamWriteString(Stream: TStream; const s: string);
-function StreamReadString(Stream: TStream): string;
+procedure StreamWriteString(Stream: TStream; const S: String);
+function StreamReadString(Stream: TStream): String;
 { @groupEnd }
 
 { Convert whole Stream to a string.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable. }
-function StreamToString(Stream: TStream): string;
+function StreamToString(Stream: TStream): String;
 
 { Set contents of TMemoryStream to given string.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: Boolean = true); overload;
+  const S: String; const Rewind: Boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: Boolean = true): TMemoryStream; overload;
+  const S: String; const Rewind: Boolean = true): TMemoryStream; overload;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -682,8 +682,8 @@ type
   end;
 
 {$ifdef FPC}
-function DumpStackToString(const BaseFramePointer: Pointer): string;
-function DumpExceptionBackTraceToString: string;
+function DumpStackToString(const BaseFramePointer: Pointer): String;
+function DumpExceptionBackTraceToString: String;
 {$endif}
 
 type
@@ -740,14 +740,14 @@ uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
 
 { TStrings helpers ------------------------------------------------------- }
 
-procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: string);
+procedure StringsAdd(Strs: TStrings; Count: Integer; itemVal: String);
 var
   I: Integer;
 begin
   for I := 1 to Count do Strs.Add(itemVal);
 end;
 
-procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
+procedure AddStrArrayToStrings(const StrArr: array of String; strlist: TStrings);
 var
   I: Integer;
 begin
@@ -761,7 +761,7 @@ begin
 end;
 
 procedure Strings_AddSplittedString(Strings: TStrings;
-  const S, Splitter: string);
+  const S, Splitter: String);
 var
   SplitterPos, Done: Integer;
 begin
@@ -777,14 +777,14 @@ begin
 end;
 
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayApplicationName: string;
-  const Version: string; WrapLines: Boolean);
+  Strings: TStrings; const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean);
 begin
   Strings_AddSplittedString(Strings,
     SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, WrapLines), nl);
 end;
 
-procedure Strings_SetText(SList: TStrings; const S: string);
+procedure Strings_SetText(SList: TStrings; const S: String);
 begin
   if Length(S) = 1 then
     SList.Text := S + LineEnding else
@@ -971,7 +971,7 @@ const
   BufferSize = 10000;
 var
   ReadCount: Integer;
-  Buffer: string;
+  Buffer: String;
 begin
   SetLength(Buffer, BufferSize);
   Result := '';
@@ -982,17 +982,17 @@ begin
   until false;
 end;
 
-procedure StreamWriteString(Stream: TStream; const s: string);
+procedure StreamWriteString(Stream: TStream; const S: String);
 var
   L: Integer;
 begin
-  L := Length(s);
+  L := Length(S);
   Stream.WriteBuffer(L, SizeOf(L));
   { check L > 0 to avoid range check error on S[1] }
   if L > 0 then Stream.WriteBuffer(S[1], L);
 end;
 
-function StreamReadString(Stream: TStream): string;
+function StreamReadString(Stream: TStream): String;
 var
   L: Integer;
 begin
@@ -1002,7 +1002,7 @@ begin
   if L > 0 then Stream.ReadBuffer(Result[1], L);
 end;
 
-function StreamToString(Stream: TStream): string;
+function StreamToString(Stream: TStream): String;
 begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
@@ -1010,7 +1010,7 @@ begin
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: Boolean);
+  const S: String; const Rewind: Boolean);
 begin
   Stream.Size := Length(S);
   if S <> '' then
@@ -1020,7 +1020,7 @@ begin
   end;
 end;
 
-function MemoryStreamLoadFromString(const S: string; const Rewind: Boolean): TMemoryStream;
+function MemoryStreamLoadFromString(const S: String; const Rewind: Boolean): TMemoryStream;
 begin
   Result := TMemoryStream.Create;
   try
@@ -1768,7 +1768,7 @@ end;
 { DumpStack ------------------------------------------------------------------ }
 
 {$ifdef FPC}
-function DumpStackToString(const BaseFramePointer: Pointer): string;
+function DumpStackToString(const BaseFramePointer: Pointer): String;
 var
   TextFile: Text;
   StringStream: TStringStream;
@@ -1784,7 +1784,7 @@ begin
   finally FreeAndNil(StringStream) end;
 end;
 
-function DumpExceptionBackTraceToString: string;
+function DumpExceptionBackTraceToString: String;
 {$ifdef CASTLE_NINTENDO_SWITCH}
 begin
   Result := ''; // DumpExceptionBackTrace fails with Access Violation

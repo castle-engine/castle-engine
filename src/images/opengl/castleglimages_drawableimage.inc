@@ -199,7 +199,7 @@ type
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AURL: String;
       const ASmoothScaling: Boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
@@ -238,7 +238,7 @@ type
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AURL: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -273,7 +273,7 @@ type
         property. But each change has a small cost, so it's more efficient
         to just set the initial value correctly.)
     }
-    constructor Create(const AURL: string;
+    constructor Create(const AURL: String;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: Boolean); overload;
 
@@ -712,13 +712,13 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AURL: String;
   const ASmoothScaling: Boolean);
 begin
   Create(AURL, [], ASmoothScaling);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AURL: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -733,7 +733,7 @@ begin
   Create(NewImage, { ASmoothScaling } true, { AOwnsImage } true);
 end;
 
-constructor TDrawableImage.Create(const AURL: string;
+constructor TDrawableImage.Create(const AURL: String;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: Boolean);
 var
@@ -833,7 +833,7 @@ var
   AlphaTestShader, ClipLineShader: Boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TImageProgram;
-  VS, FS: string;
+  VS, FS: String;
   I: Integer;
 begin
   // Some Intel GPUs may not support VBO

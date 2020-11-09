@@ -436,7 +436,7 @@ type
     mcResizeBottomRight
   );
 const
-  MouseButtonStr: array [TCastleMouseButton] of string = (
+  MouseButtonStr: array [TCastleMouseButton] of String = (
     'left', 'middle', 'right', 'extra1', 'extra2');
 
 type
@@ -547,7 +547,7 @@ type
   end;
 
 function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys = [];
-  const CtrlIsCommand: Boolean = false): string;
+  const CtrlIsCommand: Boolean = false): String;
 
 const
   ModifierKeyToKey: array[TModifierKey]of TKey = (keyCtrl, keyShift, keyAlt);
@@ -562,7 +562,7 @@ function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys; overload;
 function ModifiersDown(const Pressed: TKeysPressed): TModifierKeys; overload;
 { @groupEnd }
 
-function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
+function ModifierKeysToNiceStr(const MK: TModifierKeys): String;
 
 { Nice short description of the character.
   When Modifiers is not empty, these are the additional modifiers
@@ -582,20 +582,20 @@ function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
   or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
 function CharToNiceStr(const C: Char; const Modifiers: TModifierKeys = [];
   const BackSpaceTabEnterString: Boolean = true;
-  const CtrlIsCommand: Boolean = false): string;
+  const CtrlIsCommand: Boolean = false): String;
 
 { Like @link(CharToNiceStr), but accepts UTF-8 characters expressed as String.
   KeyString = '' means "none". }
 function KeyStringToNiceStr(const KeyString: String;
   const Modifiers: TModifierKeys = [];
   const BackSpaceTabEnterString: Boolean = true;
-  const CtrlIsCommand: Boolean = false): string;
+  const CtrlIsCommand: Boolean = false): String;
 
 type
   TMouseWheelDirection = (mwNone, mwUp, mwDown, mwLeft, mwRight);
 
 const
-  MouseWheelDirectionStr: array [TMouseWheelDirection] of string =
+  MouseWheelDirectionStr: array [TMouseWheelDirection] of String =
   ('none', 'up', 'down', 'left', 'right');
 
 { Determine simple mouse wheel direction from a Scroll and Vertical
@@ -605,7 +605,7 @@ function MouseWheelDirection(const Scroll: Single; const Vertical: Boolean): TMo
 
 { Convert string value back to a key name, reversing KeyToStr.
   If string does not contain any recognized key name, return DefaultKey. }
-function StrToKey(const S: string; const DefaultKey: TKey): TKey;
+function StrToKey(const S: String; const DefaultKey: TKey): TKey;
 
 type
   TInputPressReleaseType = (itKey, itMouseButton, itMouseWheel);
@@ -636,7 +636,7 @@ type
       simple char.) For example "up arrow" (Key = keyUp) doesn't have a char code
       (it will have KeyString = '' and KeyCharacter = #0).
 
-      KeyString is a string (encoded using UTF-8, like all strings
+      KeyString is a String (encoded using UTF-8, like all strings
       in Castle Game Engine) and is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
       (all dependent on your system settings, we don't deal with it in our engine,
@@ -651,7 +651,7 @@ type
       the key is (still) pressed down.
       @groupBegin }
     Key: TKey;
-    KeyString: string;
+    KeyString: String;
     { @groupEnd }
 
     { ModifiersDown contains a set of modifier keys (i.e. Ctrl, Shift and Alt)
@@ -731,14 +731,14 @@ type
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): Boolean;
 
     { Textual description of this event. }
-    function ToString: string;
+    function ToString: String;
     { Character corresponding to EventType = itKey.
       Returns #0 if the event was not a keyboard event or it cannot be
       represented as a simple 8-bit character (e.g. it is a Cyrillic or Arabic
       character, or it is a special key like "up arrow"). }
     function KeyCharacter: Char;
     { @deprecated Deprecated name for ToString. }
-    function Description: string; deprecated;
+    function Description: String; deprecated;
   end;
 
   { Motion (movement) of mouse or a finger on a touch device. }
@@ -751,7 +751,7 @@ type
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Position: TVector2; const Key: TKey;
-  const KeyString: string;
+  const KeyString: String;
   const ModifiersDown: TModifierKeys = []): TInputPressRelease;
 function InputMouseButton(const Position: TVector2;
   const MouseButton: TCastleMouseButton; const FingerIndex: TFingerIndex;
@@ -771,11 +771,11 @@ type
       Key names are expected to follow StrToKey and KeyToStr functions in CastleKeysMouse.
 
       @groupBegin }
-    function GetKey(const APath: string;
+    function GetKey(const APath: String;
       const ADefaultValue: TKey): TKey; overload;
-    procedure SetKey(const APath: string;
+    procedure SetKey(const APath: String;
       const AValue: TKey); overload;
-    procedure SetDeleteKey(const APath: string;
+    procedure SetDeleteKey(const APath: String;
       const AValue, ADefaultValue: TKey); overload;
     { @groupEnd }
   end;
@@ -848,7 +848,7 @@ implementation
 uses SysUtils, Math;
 
 const
-  KeyToStrTable: array [TKey] of string = (
+  KeyToStrTable: array [TKey] of String = (
   'None',
   'Print Screen',
   'Caps Lock',
@@ -1044,7 +1044,7 @@ const
   );
 
 function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys;
-  const CtrlIsCommand: Boolean): string;
+  const CtrlIsCommand: Boolean): String;
 begin
   { early exit, key keyNone means "no key", Modifiers are ignored }
   if Key = keyNone then Exit(KeyToStrTable[Key]);
@@ -1067,7 +1067,7 @@ begin
   Result := Result + KeyToStrTable[Key];
 end;
 
-function StrToKey(const S: string; const DefaultKey: TKey): TKey;
+function StrToKey(const S: String; const DefaultKey: TKey): TKey;
 begin
   for Result := Low(Result) to High(Result) do
     if KeyToStrTable[Result] = S then
@@ -1093,7 +1093,7 @@ begin
     Result := [];
 end;
 
-function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
+function ModifierKeysToNiceStr(const MK: TModifierKeys): String;
 var
   K: TModifierKey;
 begin
@@ -1106,7 +1106,7 @@ end;
 function KeyStringToNiceStr(const KeyString: String;
   const Modifiers: TModifierKeys = [];
   const BackSpaceTabEnterString: Boolean = true;
-  const CtrlIsCommand: Boolean = false): string;
+  const CtrlIsCommand: Boolean = false): String;
 begin
   case Length(KeyString) of
     0: Result := 'none';
@@ -1116,7 +1116,7 @@ begin
 end;
 
 function CharToNiceStr(const C: Char; const Modifiers: TModifierKeys;
-  const BackSpaceTabEnterString, CtrlIsCommand: Boolean): string;
+  const BackSpaceTabEnterString, CtrlIsCommand: Boolean): String;
 var
   CharactersImplicatingCtrlModifier: TSetOfChars;
 begin
@@ -1291,7 +1291,7 @@ begin
   Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
 end;
 
-function TInputPressRelease.ToString: string;
+function TInputPressRelease.ToString: String;
 begin
   case EventType of
     itKey:
@@ -1322,13 +1322,13 @@ begin
     Result := #0;
 end;
 
-function TInputPressRelease.Description: string;
+function TInputPressRelease.Description: String;
 begin
   Result := ToString;
 end;
 
 function InputKey(const Position: TVector2; const Key: TKey;
-  const KeyString: string;
+  const KeyString: String;
   const ModifiersDown: TModifierKeys): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1375,19 +1375,19 @@ end;
 
 { TCastleConfigKeysMouseHelper ----------------------------------------------- }
 
-function TCastleConfigKeysMouseHelper.GetKey(const APath: string;
+function TCastleConfigKeysMouseHelper.GetKey(const APath: String;
   const ADefaultValue: TKey): TKey;
 begin
   Result := StrToKey(GetValue(APath, KeyToStr(ADefaultValue)), ADefaultValue);
 end;
 
-procedure TCastleConfigKeysMouseHelper.SetKey(const APath: string;
+procedure TCastleConfigKeysMouseHelper.SetKey(const APath: String;
   const AValue: TKey);
 begin
   SetValue(APath, KeyToStr(AValue));
 end;
 
-procedure TCastleConfigKeysMouseHelper.SetDeleteKey(const APath: string;
+procedure TCastleConfigKeysMouseHelper.SetDeleteKey(const APath: String;
   const AValue, ADefaultValue: TKey);
 begin
   SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));

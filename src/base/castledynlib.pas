@@ -87,7 +87,7 @@ type
   private
     { In this class, we always have a valid FHandle. }
     FHandle: TDynLibHandle;
-    FName: string;
+    FName: String;
     FSymbolErrorBehaviour: TDynLibSymbolErrorBehaviour;
   public
     { Standard constructor, requires a valid TDynLibHandle already.
@@ -95,7 +95,7 @@ type
       directly calling this constructor.
 
       @raises(ECheckFailed if you supply invalid handle.) }
-    constructor Create(const AName: string; AHandle: TDynLibHandle);
+    constructor Create(const AName: String; AHandle: TDynLibHandle);
     destructor Destroy; override;
 
     { Name of the library to link to. In practice, file name of the *.so
@@ -104,7 +104,7 @@ type
       A precise strategy where this library is searched
       is specific to a platform, see the semantics of SysUtils.LoadLibrary
       (DynLibs for FPC) call on given OS. }
-    property Name: string read FName;
+    property Name: String read FName;
 
     { Link to a dynamic library specified by Name. Returns created
       TDynLib instance.
@@ -121,7 +121,7 @@ type
 
       @raises(EDynLibError If library not found and RaiseExceptionOnError
         is @true.) }
-    class function Load(const AName: string; RaiseExceptionOnError: Boolean = true): TDynLib;
+    class function Load(const AName: String; RaiseExceptionOnError: Boolean = true): TDynLib;
 
     { What happens when @link(Symbol) fails. }
     property SymbolErrorBehaviour: TDynLibSymbolErrorBehaviour
@@ -181,7 +181,7 @@ implementation
 
 uses CastleUtils, CastleLog;
 
-constructor TDynLib.Create(const AName: string; AHandle: TDynLibHandle);
+constructor TDynLib.Create(const AName: String; AHandle: TDynLibHandle);
 begin
   inherited Create;
   FName := AName;
@@ -198,7 +198,7 @@ begin
   inherited;
 end;
 
-class function TDynLib.Load(const AName: string; RaiseExceptionOnError: Boolean): TDynLib;
+class function TDynLib.Load(const AName: String; RaiseExceptionOnError: Boolean): TDynLib;
 
   { On Unix, right now this simply uses LoadLibrary that calls dlopen(..., RTLD_LAZY)
     (see in FPC rtl/unix/dynlibs.inc).
@@ -242,7 +242,7 @@ end;
 
 function TDynLib.Symbol(SymbolName: PChar): Pointer;
 
-  function ErrStr: string;
+  function ErrStr: String;
   begin
     Result := 'Symbol "' + SymbolName + '" not found in library "' + Name + '"';
   end;

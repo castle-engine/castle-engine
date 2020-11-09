@@ -27,23 +27,23 @@
     FParentNode: TX3DFileItem;
     FParentInterfaceDeclaration: TX3DFileItem;
 
-    function GetIsClauseNames(const Index: Integer): string;
+    function GetIsClauseNames(const Index: Integer): String;
 
     { Return FIsClauseNames, initializing it if necessary to not be nil. }
     function IsClauseNamesCreate: TCastleStringList;
   private
-    FX3DName: string;
+    FX3DName: String;
 
     { Implementation of AddAlternativeName uses it like this:
       - FAlternativeNames[0] is alternative for any VRML/X3D version
       - FAlternativeNames[1], [2], [3] is alternative for VRML 1.0, VRML 2.0 (97) and X3D
       - any FAlternativeNames[...] that is '' should be ignored
     }
-    FAlternativeNames: array of string;
+    FAlternativeNames: array of String;
   strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
-    constructor Create(const AParentNode: TX3DFileItem; const AX3DName: string);
+    constructor Create(const AParentNode: TX3DFileItem; const AX3DName: String);
     destructor Destroy; override;
 
     { Name of the field or event.
@@ -63,8 +63,8 @@
       (that can have quite free names, see
       http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
       We don't want to confuse these two properties. }
-    property X3DName: string read FX3DName;
-    property Name: string read FX3DName; deprecated 'use X3DName';
+    property X3DName: String read FX3DName;
+    property Name: String read FX3DName; deprecated 'use X3DName';
 
     { X3D node containing this field/event.
       This must always contain an instance
@@ -97,10 +97,10 @@
       Note that IsClauseNamesAssign can also accept @nil as parameter.
 
       @groupBegin }
-    property IsClauseNames[const Index: Integer]: string read GetIsClauseNames;
+    property IsClauseNames[const Index: Integer]: String read GetIsClauseNames;
     function IsClauseNamesCount: Integer;
     procedure IsClauseNamesAssign(const SourceIsClauseNames: TCastleStringList);
-    procedure IsClauseNamesAdd(const S: string);
+    procedure IsClauseNamesAdd(const S: String);
     { @groupEnd }
 
     { Parse only "IS" clause, if it's not present --- don't do nothing.
@@ -129,20 +129,20 @@
       Note that this also works for ExposedEvents with exposed TX3DField:
       if a field has alternative names, then it's exposed events always also
       have appropriate alternative names. }
-    procedure AddAlternativeName(const AlternativeName: string;
+    procedure AddAlternativeName(const AlternativeName: String;
       const X3DMajorVersion: Integer); virtual;
     procedure RemoveAlternativeName(const X3DMajorVersion: Integer);
 
     { Returns if S matches current Name or one of the alternative names.
       Think about it like simple test "Name = S", but actually this
       checks also names added by AddAlternativeName method. }
-    function IsName(const S: string): Boolean;
+    function IsName(const S: String): Boolean;
 
     { Return how this field should be named for given VRML version.
       In almost all cases, this simply returns current Name.
       But it can also return a name added by AddAlternativeName method. }
-    function NameForVersion(Version: TX3DVersion): string; overload;
-    function NameForVersion(Writer: TX3DWriter): string; overload;
+    function NameForVersion(Version: TX3DVersion): String; overload;
+    function NameForVersion(Writer: TX3DWriter): String; overload;
 
     { For fields contained in TX3DInterfaceDeclaration.
 
@@ -155,7 +155,7 @@
 
     { Nice and concise field description for user.
       Describes parent node type, name and field/event's name. }
-    function NiceName: string;
+    function NiceName: String;
 
     { Save IS clauses to stream, only for classic encoding.
       For each IS clause, writeln field/event name followed by "IS" clause. }
@@ -171,7 +171,7 @@
 { TX3DFieldOrEvent ---------------------------------------------------------- }
 
 constructor TX3DFieldOrEvent.Create(const AParentNode: TX3DFileItem;
-  const AX3DName: string);
+  const AX3DName: String);
 begin
   inherited Create;
   FParentNode := AParentNode;
@@ -191,7 +191,7 @@ begin
   Result := FIsClauseNames;
 end;
 
-function TX3DFieldOrEvent.GetIsClauseNames(const Index: Integer): string;
+function TX3DFieldOrEvent.GetIsClauseNames(const Index: Integer): String;
 begin
   if FIsClauseNames = nil then
     raise Exception.CreateFmt('IsClauseNames item index %d does not exist, because IsClauseNames is empty',
@@ -215,7 +215,7 @@ begin
     FreeAndNil(FIsClauseNames);
 end;
 
-procedure TX3DFieldOrEvent.IsClauseNamesAdd(const S: string);
+procedure TX3DFieldOrEvent.IsClauseNamesAdd(const S: String);
 begin
   IsClauseNamesCreate.Add(S);
 end;
@@ -230,7 +230,7 @@ begin
   end;
 end;
 
-procedure TX3DFieldOrEvent.AddAlternativeName(const AlternativeName: string;
+procedure TX3DFieldOrEvent.AddAlternativeName(const AlternativeName: String;
   const X3DMajorVersion: Integer);
 begin
   if X3DMajorVersion >= Length(FAlternativeNames) then
@@ -245,7 +245,7 @@ begin
     FAlternativeNames[X3DMajorVersion] := '';
 end;
 
-function TX3DFieldOrEvent.IsName(const S: string): Boolean;
+function TX3DFieldOrEvent.IsName(const S: String): Boolean;
 var
   I: Integer;
 begin
@@ -265,7 +265,7 @@ begin
   Result := X3DName = S;
 end;
 
-function TX3DFieldOrEvent.NameForVersion(Version: TX3DVersion): string;
+function TX3DFieldOrEvent.NameForVersion(Version: TX3DVersion): String;
 begin
   if Version.Major < Length(FAlternativeNames) then
     Result := FAlternativeNames[Version.Major]
@@ -277,7 +277,7 @@ begin
 end;
 
 function TX3DFieldOrEvent.NameForVersion(
-  Writer: TX3DWriter): string;
+  Writer: TX3DWriter): String;
 begin
   Result := NameForVersion(Writer.Version);
 end;
@@ -290,7 +290,7 @@ begin
   FAlternativeNames := Source.FAlternativeNames;
 end;
 
-function TX3DFieldOrEvent.NiceName: string;
+function TX3DFieldOrEvent.NiceName: String;
 begin
   Result := '';
 
@@ -305,7 +305,7 @@ end;
 
 procedure TX3DFieldOrEvent.SaveToStreamClassicIsClauses(Writer: TX3DWriter);
 var
-  N: string;
+  N: String;
   I: Integer;
 begin
   N := NameForVersion(Writer);

@@ -46,7 +46,7 @@ type
   private
     type
       TNotification = class
-        Text: string;
+        Text: String;
         Time: TTimerResult; {< appear time }
         Width: Single;
         Color: TCastleColor;
@@ -79,8 +79,8 @@ type
       The messages will be automatically broken to fit on the screen width with
       given font.
       @groupBegin }
-    procedure Show(const s: string); overload;
-    procedure Show(s: TStringList); overload;
+    procedure Show(const S: String); overload;
+    procedure Show(S: TStringList); overload;
     { @groupEnd }
 
     { Clear all messages. }
@@ -234,13 +234,13 @@ begin
   VisibleChange([chRectangle]);
 end;
 
-procedure TCastleNotifications.Show(const s: string);
+procedure TCastleNotifications.Show(const S: String);
 var
   Strs: TStringList;
 begin
   Strs := TStringList.Create;
   try
-    Strs.Text := s;
+    Strs.Text := S;
     Show(strs);
   finally Strs.Free end;
 end;

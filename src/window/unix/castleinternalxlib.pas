@@ -143,14 +143,14 @@ function XlibErrorHandler_RaiseEXlibError(display: PDisplay; error: PXErrorEvent
 { rzuca wyjatek EXlibError z odpowiednio skonstruowanym Text'em.
   Ta funkcja jest dobra aby ja zarejestrowac przez XSetErrorHandler. }
 var error_name_buf, major_request_name_buf :array[0..1023] of Char;
-    s: string;
+    S: String;
 begin
  XGetErrorText(display, error^.error_code, @error_name_buf, SizeOf(error_name_buf));
  XGetErrorDatabaseText(display, 'XRequest', PChar(IntToStr(error^.request_code)),
    '(not found in X database)',
    @major_request_name_buf, SizeOf(major_request_name_buf));
 
- s := Format('Xlib error ''%s'' (%d) at request ''%s'' (%d)',
+ S := Format('Xlib error ''%s'' (%d) at request ''%s'' (%d)',
    [PChar(@error_name_buf), error^.error_code,
     PChar(@major_request_name_buf), error^.request_code]);
 

@@ -20,7 +20,7 @@
   { Writer of VRML/X3D to stream. }
   TX3DWriter = class abstract
   strict private
-    Indent: string;
+    Indent: String;
     DoDiscardNextIndent: Boolean;
     FEncoding: TX3DEncoding;
     FStream: TStream;
@@ -39,11 +39,11 @@
 
     { Comfortable routines that simply write given string to a stream.
       @groupBegin }
-    procedure Write(const S: string);
-    procedure Writeln(const S: string); overload;
+    procedure Write(const S: String);
+    procedure Writeln(const S: String); overload;
     procedure Writeln; overload;
-    procedure WriteIndent(const S: string);
-    procedure WritelnIndent(const S: string);
+    procedure WriteIndent(const S: String);
+    procedure WritelnIndent(const S: String);
     { @groupEnd }
 
     { Causes next WriteIndent or WritelnIndent too not write the Indent.
@@ -89,12 +89,12 @@ begin
   SetLength(Indent, Length(Indent) - 1);
 end;
 
-procedure TX3DWriter.Write(const S: string);
+procedure TX3DWriter.Write(const S: String);
 begin
   WriteStr(FStream, S);
 end;
 
-procedure TX3DWriter.Writeln(const S: string);
+procedure TX3DWriter.Writeln(const S: String);
 begin
   WriteStr(FStream, S);
   WriteStr(FStream, NL);
@@ -105,7 +105,7 @@ begin
   WriteStr(FStream, NL);
 end;
 
-procedure TX3DWriter.WriteIndent(const S: string);
+procedure TX3DWriter.WriteIndent(const S: String);
 begin
   if DoDiscardNextIndent then
     DoDiscardNextIndent := false else
@@ -113,7 +113,7 @@ begin
   WriteStr(FStream, S);
 end;
 
-procedure TX3DWriter.WritelnIndent(const S: string);
+procedure TX3DWriter.WritelnIndent(const S: String);
 begin
   WriteIndent(S);
   WriteStr(FStream, NL);

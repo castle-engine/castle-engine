@@ -30,7 +30,7 @@ procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 const
-  X3DChangeToStr: array [TX3DChange] of string = (
+  X3DChangeToStr: array [TX3DChange] of String = (
     'None',
     'Visible Geometry',
     'Visible Non-Geometry',
@@ -72,7 +72,7 @@ const
     'BBox'
   );
 
-function X3DChangesToStr(const Changes: TX3DChanges): string;
+function X3DChangesToStr(const Changes: TX3DChanges): String;
 
 {$endif read_interface}
 
@@ -135,7 +135,7 @@ end;
 
 {$include norqcheckend.inc}
 
-function X3DChangesToStr(const Changes: TX3DChanges): string;
+function X3DChangesToStr(const Changes: TX3DChanges): String;
 var
   C: TX3DChange;
 begin

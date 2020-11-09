@@ -34,7 +34,7 @@ const
   TypeFlagFloat = 3;
   TypeFlagUShort = 6;
 var
-  IPLVersion: string;
+  IPLVersion: String;
   IPLFormat: Byte;
   IPLTypeFlag: Word;
   IPLWidth, IPLHeight: LongWord;

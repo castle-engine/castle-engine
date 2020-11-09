@@ -231,7 +231,7 @@ type
       const OtherPosition: TVerticalPosition;
       const Y: Integer = 0): TRectangle; overload;
 
-    function ToString: string;
+    function ToString: String;
 
     { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
     function Translate(const V: TVector2Integer): TRectangle;
@@ -380,7 +380,7 @@ type
       const OtherPosition: TVerticalPosition;
       const Y: Single = 0): TFloatRectangle; overload;
 
-    function ToString: string;
+    function ToString: String;
 
     { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
     function Translate(const V: TVector2): TFloatRectangle;
@@ -700,7 +700,7 @@ begin
     Result := Y;
 end;
 
-function TRectangle.ToString: string;
+function TRectangle.ToString: String;
 begin
   if IsEmpty then
     Result := 'TRectangle: Empty'
@@ -1260,7 +1260,7 @@ begin
   Result.Height := Height;
 end;
 
-function TFloatRectangle.ToString: string;
+function TFloatRectangle.ToString: String;
 begin
   if IsEmpty then
     Result := 'TFloatRectangle: Empty'

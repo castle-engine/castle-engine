@@ -137,7 +137,7 @@ var LoadResult: TCastleImage absolute result;
   end;
 
 var
-  line: string;
+  line: String;
   { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
   xyzFormat: Boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;

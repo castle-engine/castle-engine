@@ -55,7 +55,7 @@ function OpenDocument(APath: String): Boolean;
     that interprets EXTRA_SUBJECT parameter.)
   @param(Content Multi-line share text content, possibly with URL inside.)
 }
-procedure ShareText(const Title, Subject, Content: string);
+procedure ShareText(const Title, Subject, Content: String);
 
 { Show the application in the application store (Google Play on Android,
   AppStore on iOS). Ignored on other platforms now.
@@ -73,7 +73,7 @@ procedure ShareText(const Title, Subject, Content: string);
       (you can see it e.g. in https://itunesconnect.apple.com/ page of your application).
     )
   ) }
-procedure OpenApplicationStore(const ApplicationId: string);
+procedure OpenApplicationStore(const ApplicationId: String);
 
 { Vibrate the device.
 
@@ -91,7 +91,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
   To include the necessary integration code in your Android project,
   you must declare your Android project type as "integrated".
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
-procedure OnScreenNotification(const Message: string);
+procedure OnScreenNotification(const Message: String);
   deprecated 'This is Android-specific and probably will not be ever supported on other platforms. Better use CGE UI to make cros-platform UI notifications, like TCastleNotifications or just TCastleLabel with animated color/background.';
 
 implementation
@@ -204,7 +204,7 @@ end;
 
 { lcl/include/unixfileutil.inc ----------------------------------------------- }
 
-function FileIsExecutable(const AFilename: string): Boolean;
+function FileIsExecutable(const AFilename: String): Boolean;
 var
   Info : Stat;
 begin
@@ -224,7 +224,7 @@ end;
   everywhere.
   This always takes exactly 1 parameter now --- which is actually Ok
   for usage in this unit. }
-procedure RunCmdFromPath(ProgramFilename, Parameter: string);
+procedure RunCmdFromPath(ProgramFilename, Parameter: String);
 var
   OldProgramFilename: String;
   BrowserProcess: TProcess;
@@ -261,7 +261,7 @@ function OpenURL(AURL: String): Boolean;
 var
   cf: CFStringRef;
   url: CFURLRef;
-  FileName: string;
+  FileName: String;
 begin
   if AURL = '' then
     Exit(False);
@@ -336,7 +336,7 @@ end;
 // Open a document with the default application associated with it in the system
 function OpenDocument(APath: String): Boolean;
 var
-  lApp: string;
+  lApp: String;
 begin
   Result := True;
   if not (FileExists(APath) or DirectoryExists(APath)) then
@@ -357,12 +357,12 @@ end;
   {$endif}  // not Android or iOS
 {$endif} // UNIX
 
-procedure ShareText(const Title, Subject, Content: string);
+procedure ShareText(const Title, Subject, Content: String);
 begin
   Messaging.Send(['share-text', Title, Subject, Content]);
 end;
 
-procedure OpenApplicationStore(const ApplicationId: string);
+procedure OpenApplicationStore(const ApplicationId: String);
 begin
   {$ifdef ANDROID} OpenURL('market://details?id=' + ApplicationId); {$endif}
 
@@ -374,7 +374,7 @@ begin
   Messaging.Send(['vibrate', IntToStr(Miliseconds)]);
 end;
 
-procedure OnScreenNotification(const Message: string);
+procedure OnScreenNotification(const Message: String);
 begin
   Messaging.Send(['on-screen-notification', Message]);
 end;

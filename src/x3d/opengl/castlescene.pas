@@ -402,7 +402,7 @@ type
       TCustomShaders = record
         Shader: TX3DShaderProgramBase;
         ShaderAlphaTest: TX3DShaderProgramBase;
-        procedure Initialize(const VertexCode, FragmentCode: string);
+        procedure Initialize(const VertexCode, FragmentCode: String);
         procedure Free;
       end;
 
@@ -887,9 +887,9 @@ end;
 
 { TCastleScene.TCustomShaders ------------------------------------------------ }
 
-procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: string);
+procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: String);
 
-  procedure DoInitialize(const VertexCode, FragmentCode: string);
+  procedure DoInitialize(const VertexCode, FragmentCode: String);
   begin
     { create programs if needed }
     if Shader = nil then

@@ -27,14 +27,14 @@ type
   { A product that can be bought by in-app purchases (TInAppPurchases). }
   TInAppProduct = class
   private
-    FName: string;
-    FPriceRaw, FTitle, FDescription, FPriceCurrencyCode: string;
+    FName: String;
+    FPriceRaw, FTitle, FDescription, FPriceCurrencyCode: String;
     FPriceAmountMicros: Int64;
     FOwns: Boolean;
     FSuccessfullyConsumed: Boolean;
   public
     { Short product identifier, uniquely identifying it in the store. }
-    property Name: string read FName;
+    property Name: String read FName;
 
     { Price, as a string in local user currency.
       Empty before receiving information about the product from the store.
@@ -44,24 +44,24 @@ type
       Use @link(Price) to display the price as a "safe" string, with most unusual
       characters replaced with ASCII (so it should work reliably with any font),
       and with special value if not received yet. }
-    property PriceRaw: string read FPriceRaw;
+    property PriceRaw: String read FPriceRaw;
 
     { The price, as a string in local user currency,
       with most unusual characters replaced with ASCII
       (so it should work reliably with any font),
       and with special value if not received yet.
       @seealso PriceRaw }
-    function Price(const ValueWhenUnknown: string = 'loading...'): string;
+    function Price(const ValueWhenUnknown: String = 'loading...'): String;
 
     { Title of the product, as defined in the store.
       Empty if not known yet.
       May be translated to current user language. }
-    property Title: string read FTitle;
+    property Title: String read FTitle;
 
     { Description of the product, as defined in the store.
       Empty if not known yet.
       May be translated to current user language. }
-    property Description: string read FDescription;
+    property Description: String read FDescription;
 
     { Price in micro-units, where 1,000,000 micro-units equal one unit of the currency.
       0 if not known yet. }
@@ -69,7 +69,7 @@ type
 
     { ISO 4217 currency code for price.
       Empty if not known yet. }
-    property PriceCurrencyCode: string read FPriceCurrencyCode;
+    property PriceCurrencyCode: String read FPriceCurrencyCode;
 
     { Is the product owned now. Use this for non-consumable items
       (things that user buys, and then "owns" for the rest of his life).
@@ -98,10 +98,10 @@ type
     @link(TInAppPurchases.SetAvailableProducts). }
   TAvailableProduct = record
     { Unique product identifier. }
-    Name: string;
+    Name: String;
 
     { Category. For now used only for analytics. }
-    Category: string;
+    Category: String;
   end;
 
   { Manage in-app purchases in your game.
@@ -142,13 +142,13 @@ type
     var
       FDebugMockupBuying: Boolean;
       List: TProductList;
-      FLastAvailableProducts: string;
+      FLastAvailableProducts: String;
       FOnRefreshedPrices: TNotifyEvent;
       FOnRefreshedPurchases: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList;
       const ReceivedStream: TMemoryStream): Boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
-    procedure LogProducts(const Message: string);
+    procedure LogProducts(const Message: String);
   protected
     { Called when the knowledge about what do we own is complete. }
     procedure KnownCompletely; virtual; deprecated 'use RefreshedPrices or RefreshedPurchases';
@@ -225,7 +225,7 @@ type
       The overloaded version with TAvailableProduct allows to provide additional
       information to the in-app payment system, see @link(TAvailableProduct) docs.
       @groupBegin }
-    procedure SetAvailableProducts(const Names: array of string);
+    procedure SetAvailableProducts(const Names: array of String);
     procedure SetAvailableProducts(const Products: array of TAvailableProduct);
     { @groupEnd }
 
@@ -244,7 +244,7 @@ type
       Creates and adds new product, if not found (useful in case
       you asked for a product before information about it arrived from the net,
       or before you even called SetAvailableProducts with it). }
-    function Product(const ProductName: string): TInAppProduct;
+    function Product(const ProductName: String): TInAppProduct;
 
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: Boolean
@@ -296,7 +296,7 @@ uses SysUtils,
 { Convert many UTF-8 special characters to their ASCII counterparts.
   This is useful for converting arbitrary UTF-8 strings for display,
   when your font may not contain various local UTF-8 special characters. }
-function ConvertSpecialsToAscii(const S: string): string;
+function ConvertSpecialsToAscii(const S: String): String;
 begin
   Result := SReplacePatterns(S,
     { useful list of local chars from
@@ -311,7 +311,7 @@ end;
 
 { TInAppProduct -------------------------------------------------------------- }
 
-function TInAppProduct.Price(const ValueWhenUnknown: string): string;
+function TInAppProduct.Price(const ValueWhenUnknown: String): String;
 begin
   if PriceRaw = '' then
     Result := ValueWhenUnknown else
@@ -389,7 +389,7 @@ begin
   end;
 end;
 
-function TInAppPurchases.Product(const ProductName: string): TInAppProduct;
+function TInAppPurchases.Product(const ProductName: String): TInAppProduct;
 var
   I: Integer;
 begin
@@ -429,7 +429,7 @@ begin
   AProduct.SuccessfullyConsumed := true;
 end;
 
-procedure TInAppPurchases.SetAvailableProducts(const Names: array of string);
+procedure TInAppPurchases.SetAvailableProducts(const Names: array of String);
 var
   Products: array of TAvailableProduct;
   I: Integer;
@@ -457,10 +457,10 @@ begin
   Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
 
-procedure TInAppPurchases.LogProducts(const Message: string);
+procedure TInAppPurchases.LogProducts(const Message: String);
 var
   I: Integer;
-  LogStr: string;
+  LogStr: String;
 begin
   LogStr := Message + NL;
   for I := 0 to List.Count - 1 do

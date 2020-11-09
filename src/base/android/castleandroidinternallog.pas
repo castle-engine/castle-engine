@@ -22,12 +22,12 @@ type
     alSilent
   );
 
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: String);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: String; const Args: array of const);
 
 { Like AndroidLog, but works better for log strings (> 4076 characters),
   otherwise the default AndroidLog seems to cut them off. }
-procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
+procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: String);
 
 implementation
 
@@ -40,9 +40,9 @@ function __android_log_write(prio: CInt; tag, text: PChar): CInt; cdecl;
   external AndroidLogLib;
 
 var
-  LogTag: string;
+  LogTag: String;
 
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: String);
 const
   MaxAndroidTagLength = 23;
 begin
@@ -51,12 +51,12 @@ begin
   __android_log_write(Ord(Priority), PChar(LogTag), PChar(S));
 end;
 
-procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
+procedure AndroidLog(const Priority: TAndroidLogPriority; const S: String; const Args: array of const);
 begin
   AndroidLog(Priority, Format(S, Args));
 end;
 
-procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
+procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: String);
 var
   I: Integer;
 const

@@ -484,7 +484,7 @@ type
     class procedure ReadOptimized_ABGR8(const Stream: TStream;
       const Image: TCastleImage; const RowBytePadding: Integer); static;
   public
-    procedure LoadFromStream(const Stream: TStream; const URL: string); override;
+    procedure LoadFromStream(const Stream: TStream; const URL: String); override;
     procedure SaveToStream(const Stream: TStream); override;
   end;
 
@@ -593,9 +593,9 @@ begin
     end;
 end;
 
-procedure TDDSHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TDDSHandler.LoadFromStream(const Stream: TStream; const URL: String);
 
-  procedure CheckWarn(const Check: Boolean; const Message: string);
+  procedure CheckWarn(const Check: Boolean; const Message: String);
   begin
     if not Check then
       WritelnWarning('DDS image', Message);

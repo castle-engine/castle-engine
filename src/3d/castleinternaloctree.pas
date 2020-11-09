@@ -333,7 +333,7 @@ type
     { Text appended to the @link(Statistics).
       In this class this returns ''.
       Every line, including the last one, must be terminated by a newline. }
-    function StatisticsBonus: string; virtual;
+    function StatisticsBonus: String; virtual;
   public
     { Maximum tree depth.
 
@@ -449,7 +449,7 @@ type
       @italic(Notes for implementing descendants of this class:)
       You can override StatisticsBonus, it's appended to the result of this
       method. }
-    function Statistics: string;
+    function Statistics: String;
 
     property TotalLeafNodes: Int64 read FTotalLeafNodes;
     property TotalNonLeafNodes: Int64 read FTotalNonLeafNodes;
@@ -457,7 +457,7 @@ type
     function TotalItemsInOctree: Int64; virtual; abstract;
   end;
 
-function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string; deprecated;
+function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): String; deprecated;
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): Boolean;
 
 implementation
@@ -930,9 +930,9 @@ begin
    Frustum, EnumerateOctreeItemsFunc);
 end;
 
-function TOctree.Statistics: string;
+function TOctree.Statistics: String;
 
-  procedure WritelnStatLine(const Header: string;
+  procedure WritelnStatLine(const Header: String;
     const LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount: Cardinal);
   begin
     Result := Result + Format(
@@ -1012,14 +1012,14 @@ begin
   end;
 end;
 
-function TOctree.StatisticsBonus: string;
+function TOctree.StatisticsBonus: String;
 begin
   Result := '';
 end;
 
 { some global procs ---------------------------------------------------------- }
 
-function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
+function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): String;
 begin
  result :=
    BoolToStr(SI[0], true) +'-'+

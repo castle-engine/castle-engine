@@ -210,7 +210,7 @@ type
     When glGenLists(Range) returned zero for non-zero Range.
     The exception's Message shows Place, which may describe
     where this is called --- makes it easier to debug.) }
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
+function glGenListsCheck(range: TGLsizei; const Place: String): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 { If List <> 0 then it does glDeleteList on List and sets List to 0.
   In other words this is simply glDeleteList but
@@ -547,7 +547,7 @@ end;
 
 {$ifndef OpenGLES}
 
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+function glGenListsCheck(range: TGLsizei; const Place: String): TGLuint;
 begin
   Result := glGenLists(range);
   if (Result = 0) and (range <> 0) then

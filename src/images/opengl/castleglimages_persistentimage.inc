@@ -39,7 +39,7 @@ type
   }
   TCastleImagePersistent = class(TPersistent)
   strict private
-    FURL: string;
+    FURL: String;
     FCache: Boolean;
     FScaleFromUrl: Single;
     FDrawableImage: TDrawableImage;
@@ -68,7 +68,7 @@ type
     function GetOwnsImage: Boolean;
     procedure SetOwnsImage(const Value: Boolean);
     procedure SetCache(const Value: Boolean);
-    procedure SetURL(const Value: string);
+    procedure SetURL(const Value: String);
     procedure SetImage(const Value: TEncodedImage);
     procedure SetDrawableImage(const Value: TDrawableImage);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -322,7 +322,7 @@ begin
     FDrawableImage := nil;
 end;
 
-procedure TCastleImagePersistent.SetURL(const Value: string);
+procedure TCastleImagePersistent.SetURL(const Value: String);
 
   function GetScaleFromUrl: Single;
   var

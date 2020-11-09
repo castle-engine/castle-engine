@@ -325,7 +325,7 @@ type
 
       @groupBegin }
     procedure LoadFromFile;
-    procedure LoadFromFile(const URL: string);
+    procedure LoadFromFile(const URL: String);
     { @groupEnd }
 
     function Ground: PTriangle;
@@ -681,7 +681,7 @@ end;
 
 function TPlayer.PickItemUpdate(var Item: TInventoryItem): Integer;
 var
-  S: string;
+  S: String;
 begin
   S := Format('You pick "%s"', [Item.Resource.Caption]);
   if Item.Quantity <> 1 then
@@ -706,7 +706,7 @@ end;
 
 function TPlayer.DropItem(const Index: Integer): TItemOnWorld;
 var
-  S: string;
+  S: String;
 begin
   Result := inherited DropItem(Index);
 
@@ -1325,7 +1325,7 @@ begin
   end;
 end;
 
-procedure TPlayer.LoadFromFile(const URL: string);
+procedure TPlayer.LoadFromFile(const URL: String);
 var
   Config: TCastleConfig;
 begin

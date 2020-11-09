@@ -30,7 +30,7 @@ type
     type
       TCachedDrawableImage = class
         References: Cardinal;
-        URL: string;
+        URL: String;
         DrawableImage: TDrawableImage;
       end;
       TCachedDrawableImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedDrawableImage>;
@@ -48,7 +48,7 @@ type
       the image.
       In the long run, we should probably have different cache entries
       for different ASmoothScaling versions. }
-    function LoadDrawableImage(const URL: string;
+    function LoadDrawableImage(const URL: String;
       const ASmoothScaling: Boolean): TDrawableImage;
     procedure FreeDrawableImage(var DrawableImage: TDrawableImage);
   end;
@@ -73,7 +73,7 @@ begin
   inherited;
 end;
 
-function TDrawableImageCache.LoadDrawableImage(const URL: string;
+function TDrawableImageCache.LoadDrawableImage(const URL: String;
   const ASmoothScaling: Boolean): TDrawableImage;
 var
   C: TCachedDrawableImage;

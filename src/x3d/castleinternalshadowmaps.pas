@@ -88,7 +88,7 @@ type
 function TLightList.FindLight(Light: TAbstractPunctualLightNode): PLight;
 var
   I: Integer;
-  LightUniqueName: string;
+  LightUniqueName: String;
 begin
   for I := 0 to Count - 1 do
     if L[I].Light = Light then Exit(Ptr(I));

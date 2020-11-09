@@ -35,8 +35,8 @@
     FCaptionTranslate: Boolean;
     function GetTextToRender: TRichText;
     procedure SetAutoSize(const Value: Boolean);
-    function GetCaption: string;
-    procedure SetCaption(const Value: string);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
     procedure SetAlignment(const Value: THorizontalPosition);
     procedure SetVerticalAlignment(const Value: TVerticalPosition);
     procedure SetMaxDisplayChars(const Value: Integer);
@@ -106,7 +106,7 @@
         Label1.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
-    property Caption: string read GetCaption write SetCaption stored false;
+    property Caption: String read GetCaption write SetCaption stored false;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -371,12 +371,12 @@ begin
   end;
 end;
 
-function TCastleLabel.GetCaption: string;
+function TCastleLabel.GetCaption: String;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TCastleLabel.SetCaption(const Value: string);
+procedure TCastleLabel.SetCaption(const Value: String);
 begin
   Text.Text := Value;
 end;

@@ -49,7 +49,7 @@ type
         (e.g. stream ended prematurely).
       )
     }
-    constructor Create(const AURL: string);
+    constructor Create(const AURL: String);
     destructor Destroy; override;
 
     { URL from which we loaded this sound file. }
@@ -90,7 +90,7 @@ type
         (e.g. strean ended prematurely).
       )
     }
-    constructor Create(const AURL: string);
+    constructor Create(const AURL: String);
     destructor Destroy; override;
 
     { URL from which we loaded this sound file. }
@@ -115,7 +115,7 @@ type
     Returns a stream with uncompressed sound data in format described
     by DataFormat. }
   TSoundReadEvent = function (
-    const Url: string; const Stream: TStream;
+    const Url: String; const Stream: TStream;
     out DataFormat: TSoundDataFormat; out Frequency: LongWord;
     out Duration: TFloatTime): TStream
     of object;
@@ -153,7 +153,7 @@ function RegisteredSoundFormats: TRegisteredSoundFormats; forward;
 
 { TSoundFile ----------------------------------------------------------------- }
 
-constructor TSoundFile.Create(const AURL: string);
+constructor TSoundFile.Create(const AURL: String);
 
   { Call ReadEvent and put complete uncompressed data in DataStream. }
   procedure DecodeStream(const CompressedStream: TStream;
@@ -194,7 +194,7 @@ const
   DurationSuggestStreaming = 10.0;
 var
   CompressedStream: TStream;
-  MimeType: string;
+  MimeType: String;
   TimeStart: TCastleProfilerTime;
   F: TRegisteredSoundFormat;
 begin
@@ -306,9 +306,9 @@ end;
 
 { TStreamedSoundFile --------------------------------------------------------- }
 
-constructor TStreamedSoundFile.Create(const AURL: string);
+constructor TStreamedSoundFile.Create(const AURL: String);
 var
-  MimeType: string;
+  MimeType: String;
   TimeStart: TCastleProfilerTime;
   F: TRegisteredSoundFormat;
 begin
@@ -382,12 +382,12 @@ type
   EWavLoadError = class(ESoundFileError);
 
   TWAVReader = class
-    class function Read(const Url: string; const Stream: TStream;
+    class function Read(const Url: String; const Stream: TStream;
       out DataFormat: TSoundDataFormat; out Frequency: LongWord;
       out Duration: TFloatTime): TStream;
   end;
 
-class function TWAVReader.Read(const Url: string; const Stream: TStream;
+class function TWAVReader.Read(const Url: String; const Stream: TStream;
   out DataFormat: TSoundDataFormat; out Frequency: LongWord;
   out Duration: TFloatTime): TStream;
 
@@ -400,10 +400,10 @@ class function TWAVReader.Read(const Url: string; const Stream: TStream;
 type
   TID = array [0..3] of Char;
 
-  function IdCompare(const id: TID; const s: string): Boolean;
+  function IdCompare(const id: TID; const S: String): Boolean;
   begin
-    Result := (Length(s) = 4) and (id[0] = s[1]) and (id[1] = s[2])
-                              and (id[2] = s[3]) and (id[3] = s[4]);
+    Result := (Length(S) = 4) and (id[0] = S[1]) and (id[1] = S[2])
+                              and (id[2] = S[3]) and (id[3] = S[4]);
   end;
 
 type

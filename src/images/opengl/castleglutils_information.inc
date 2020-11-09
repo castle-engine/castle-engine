@@ -24,28 +24,28 @@
   Note that the last line of returned string does not terminate
   with a newline character (so e.g. you may want to do
   Writeln(GLInformationString) instead of just Write(GLInformationString)). }
-function GLInformationString: string;
+function GLInformationString: String;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function GLInformationString: string;
+function GLInformationString: String;
 const
-  GLSupportNamesFBO: array [TGLSupport] of string =
+  GLSupportNamesFBO: array [TGLSupport] of String =
   ( 'None', 'Extension', 'Standard (or ARB "core extension")' );
 
-  function GetInteger(param: TGLenum): string;
+  function GetInteger(param: TGLenum): String;
   begin
     Result := IntToStr(glGetInteger(param));
   end;
 
-  function GetBoolean(param: TGLenum): string;
+  function GetBoolean(param: TGLenum): String;
   begin
     Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
   end;
 
-  function VersionReport(Version: TGenericGLVersion): string;
+  function VersionReport(Version: TGenericGLVersion): String;
   begin
     Result := Format(
       '  Version parsed: major: %d, minor: %d, release exists: %s, ' +
@@ -58,7 +58,7 @@ const
       ]);
   end;
 
-  function VendorReport(Version: TGLVersion): string;
+  function VendorReport(Version: TGLVersion): String;
   begin
     Result :=
       Format(
@@ -104,21 +104,21 @@ const
         ]);
   end;
 
-  function GetMaxCubeMapTextureSize: string;
+  function GetMaxCubeMapTextureSize: String;
   begin
     if GLFeatures.TextureCubeMap <> gsNone then
       Result := IntToStr(GLFeatures.MaxCubeMapTextureSize) else
       Result := 'Cube maps not available';
   end;
 
-  function GetMaxTexture3DSize: string;
+  function GetMaxTexture3DSize: String;
   begin
     if GLFeatures.Texture3D <> gsNone then
       Result := IntToStr(GLFeatures.MaxTexture3DSize) else
       Result := '3D textures not available';
   end;
 
-  function GetMaxTextureMaxAnisotropy: string;
+  function GetMaxTextureMaxAnisotropy: String;
   begin
     if GLFeatures.EXT_texture_filter_anisotropic then
       Result := FloatToStrDot(GLFeatures.MaxTextureMaxAnisotropyEXT)
@@ -126,21 +126,21 @@ const
       Result := 'EXT_texture_filter_anisotropic not available';
   end;
 
-  function GetQueryCounterBits: string;
+  function GetQueryCounterBits: String;
   begin
     if GLFeatures.ARB_occlusion_query then
       Result := IntToStr(GLFeatures.QueryCounterBits) else
       Result := 'ARB_occlusion_query not available';
   end;
 
-  function GetMaxRenderbufferSize: string;
+  function GetMaxRenderbufferSize: String;
   begin
     if GLFeatures.Framebuffer <> gsNone then
       Result := IntToStr(GLFeatures.MaxRenderbufferSize) else
       Result := 'Framebuffer not available';
   end;
 
-  function TextureCompressionsToString(const Compressions: TTextureCompressions): string;
+  function TextureCompressionsToString(const Compressions: TTextureCompressions): String;
   var
     C: TTextureCompression;
   begin
@@ -154,7 +154,7 @@ const
     Result := '[' + Result + ']';
   end;
 
-  function IntToStrUnknown(const I: Integer): string;
+  function IntToStrUnknown(const I: Integer): String;
   begin
     Result := IntToStr(I);
     if I = 0 then

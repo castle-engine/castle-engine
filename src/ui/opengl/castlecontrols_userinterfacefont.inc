@@ -20,7 +20,7 @@
     Allows to customize font and font size per-control, or use defaults. }
   TCastleUserInterfaceFont = class(TCastleUserInterface)
   strict private
-    FTooltip: string;
+    FTooltip: String;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
     FOwnsCustomFont: Boolean;
@@ -103,7 +103,7 @@
 
       Note that you can override TCastleUserInterface.TooltipExists and
       TCastleUserInterface.TooltipRender to customize the tooltip drawing. }
-    property Tooltip: string read FTooltip write FTooltip;
+    property Tooltip: String read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
       Otherwise the @link(TUIContainer.DefaultFont) will be used,

@@ -730,7 +730,7 @@ end;
 procedure TArraysGenerator.WarningShadingProblems(
   const ColorPerVertex, NormalPerVertex: Boolean);
 const
-  SPerVertex: array [Boolean] of string = ('per-face', 'per-vertex');
+  SPerVertex: array [Boolean] of String = ('per-face', 'per-vertex');
 begin
   WritelnWarning('X3D', Format(
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
@@ -1055,7 +1055,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       Pass any TexCoord node except TMultiTextureCoordinateNode. }
     procedure AddSingleTexCoord(const TextureUnit: Cardinal; TexCoord: TX3DNode);
 
-      function TexCoordGenFromString(const S: string; const IsTexture3D: Boolean): TTextureCoordinateGeneration;
+      function TexCoordGenFromString(const S: String; const IsTexture3D: Boolean): TTextureCoordinateGeneration;
       begin
         if S = 'SPHERE' then
           Result := tgSphereMap else

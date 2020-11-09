@@ -33,7 +33,7 @@
         procedure Render; override;
       end;
     var
-    FInputText: string;
+    FInputText: String;
 
     { Broken Text. }
     Broken_Text: TRichText;
@@ -61,7 +61,7 @@
     function WindowMarginScaled: Single;
     function ButtonHorizontalMarginScaled: Single;
 
-    procedure SetInputText(const Value: string);
+    procedure SetInputText(const Value: String);
 
     { Calculate height in pixels needed to draw Buttons.
       Returns 0 if there are no Buttons. }
@@ -77,7 +77,7 @@
     Answered: Boolean;
 
     { Input text. Displayed only if DrawInputText. }
-    property InputText: string read FInputText write SetInputText;
+    property InputText: String read FInputText write SetInputText;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -115,7 +115,7 @@ type
 
   { Render a Text line, and move Y up to the line above. }
   procedure DrawString(X: Single; var Y: Single; const Color: TCastleColor;
-    Text: string; const TextAlign: THorizontalPosition;
+    Text: String; const TextAlign: THorizontalPosition;
     const Caret: TCaretMode);
   var
     CaretWidth: Single;
@@ -231,7 +231,7 @@ begin
   inherited;
 end;
 
-procedure TStateDialog.TDialog.SetInputText(const value: string);
+procedure TStateDialog.TDialog.SetInputText(const value: String);
 begin
   FInputText := value;
   if Container <> nil then

@@ -79,11 +79,11 @@ const
     because this unit is supposed to work only with bare StdErr. }
   ConsoleWidth = 60;
 
-procedure Write(const s: string);
-begin System.Write(ErrOutput, s); end;
+procedure Write(const S: String);
+begin System.Write(ErrOutput, S); end;
 
-procedure Writeln(const s: string);
-begin System.Writeln(ErrOutput, s); end;
+procedure Writeln(const S: String);
+begin System.Writeln(ErrOutput, S); end;
 
 { TProgressConsoleInterface -------------------------------------------------- }
 

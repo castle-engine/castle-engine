@@ -25,19 +25,19 @@ uses Classes,
 
 type
   { Event for @link(TGameService.OnPlayerBestScoreReceived). }
-  TPlayerBestScoreEvent = procedure (Sender: TObject; const LeaderboardId: string; const Score: Int64) of object;
+  TPlayerBestScoreEvent = procedure (Sender: TObject; const LeaderboardId: String; const Score: Int64) of object;
 
   { User choice at "save game" dialog displayed by @link(TGameService.ShowSaveGames).
     Used as a parameter for @link(TGameService.OnSaveGameChosen) event. }
   TSaveGameChoice = (sgCancel, sgNew, sgExisting);
 
   { Event for @link(TGameService.OnSaveGameChosen). }
-  TSaveGameChosenEvent = procedure (Sender: TObject; const Choice: TSaveGameChoice; const SaveGameName: string) of object;
+  TSaveGameChosenEvent = procedure (Sender: TObject; const Choice: TSaveGameChoice; const SaveGameName: String) of object;
 
   { Event for @link(TGameService.OnSaveGameLoaded).
     @param Success Whether we loaded the savegame successfully.
     @param Content The savegame content, if Success. If not Success, this is the error message. }
-  TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: Boolean; const Content: string) of object;
+  TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: Boolean; const Content: String) of object;
 
   { Status of TGameService sign-in. }
   TGameServiceStatus = (
@@ -119,9 +119,9 @@ type
   protected
     procedure DoSignedInChanged; virtual; deprecated 'use DoStatusChanged';
     procedure DoStatusChanged; virtual;
-    procedure DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64); virtual;
-    procedure DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string); virtual;
-    procedure DoSaveGameLoaded(const Success: Boolean; const Content: string); virtual;
+    procedure DoPlayerBestScoreReceived(const LeaderboardId: String; const Score: Int64); virtual;
+    procedure DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: String); virtual;
+    procedure DoSaveGameLoaded(const Success: Boolean; const Content: String); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -172,14 +172,14 @@ type
       and use their ids with this method. The achievement ids are chosen by you,
       so you can choose something readable like 'boss_defeated'.
     }
-    procedure Achievement(const AchievementId: string);
+    procedure Achievement(const AchievementId: String);
 
     { Report a score in given leaderboard.
       Use Google Developer Console (Android) or iTunes Connect (iOS)
       to create leaderboards for your game, use their ids here.
 
       TODO: Not implemented for Apple Game Center (iOS) yet. }
-    procedure SubmitScore(const LeaderboardId: string; const Score: Int64);
+    procedure SubmitScore(const LeaderboardId: String; const Score: Int64);
 
     { Get the best score, if available, for given leaderboard.
 
@@ -192,7 +192,7 @@ type
       wait for OnStatusChanged before calling this, if you need).
 
       TODO: Not implemented for Apple Game Center (iOS) yet. }
-    procedure RequestPlayerBestScore(const LeaderboardId: string);
+    procedure RequestPlayerBestScore(const LeaderboardId: String);
 
     { Request sign-in or sign-out.
       The operation will be done asynchronously (it will in most cases require
@@ -212,7 +212,7 @@ type
       of the Google Developer Console (Android) or iTunes Connect (iOS).
       Automatically connects (signs-in) player to game services,
       if not connected yet. }
-    procedure ShowLeaderboard(const LeaderboardId: string);
+    procedure ShowLeaderboard(const LeaderboardId: String);
 
     { Show the existing @italic(saved games) stored in the cloud
       for this user. This can be used to offer user a choice in which slot
@@ -259,7 +259,7 @@ type
       @param(MaxNumberOfSaveGamesToShow Maximum number of savegames to show.
         Use -1 to just show all savegames.)
     }
-    procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: Boolean;
+    procedure ShowSaveGames(const Title: String; const AllowAddButton, AllowDelete: Boolean;
       const MaxNumberOfSaveGamesToShow: Integer);
 
     { Save a savegame identified by the given name.
@@ -284,7 +284,7 @@ type
       the savegame to the cloud is not alarming, and does not require any special
       reaction. Please submit a request if you'd like to have a callback
       about it.) }
-    procedure SaveGameSave(const SaveGameName, Contents, Description: string;
+    procedure SaveGameSave(const SaveGameName, Contents, Description: String;
       const PlayedTime: TFloatTime);
 
     { Load a savegame identified by the given name.
@@ -301,7 +301,7 @@ type
       or the symbols "-", ".", "_", or "~").
 
       In response, the callback OnSaveGameLoaded will be @italic(always) called,
-      with the loaded savegame contents (as a string),
+      with the loaded savegame contents (as a String),
       or the error message.
 
       This does not connect player to game service (like Google Play Games),
@@ -313,7 +313,7 @@ type
       to game service yet (this method @italic(does not) connect user
       automatically; wait for OnStatusChanged before calling this method,
       if you need it). }
-    procedure SaveGameLoad(const SaveGameName: string);
+    procedure SaveGameLoad(const SaveGameName: String);
   published
     { Event called when @link(Status) changed, for example because
       @link(RequestSignedIn) was called, or because user signs-in automatically
@@ -380,19 +380,19 @@ begin
   Result := FStatus = gsSignedIn;
 end;
 
-procedure TGameService.DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64);
+procedure TGameService.DoPlayerBestScoreReceived(const LeaderboardId: String; const Score: Int64);
 begin
   if Assigned(OnPlayerBestScoreReceived) then
     OnPlayerBestScoreReceived(Self, LeaderboardId, Score);
 end;
 
-procedure TGameService.DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string);
+procedure TGameService.DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: String);
 begin
   if Assigned(OnSaveGameChosen) then
     OnSaveGameChosen(Self, Choice, SaveGameName);
 end;
 
-procedure TGameService.DoSaveGameLoaded(const Success: Boolean; const Content: string);
+procedure TGameService.DoSaveGameLoaded(const Success: Boolean; const Content: String);
 begin
   if Assigned(OnSaveGameLoaded) then
     OnSaveGameLoaded(Self, Success, Content);
@@ -471,7 +471,7 @@ begin
   ]);
 end;
 
-procedure TGameService.Achievement(const AchievementId: string);
+procedure TGameService.Achievement(const AchievementId: String);
 begin
   { Report invalid AchievementId right now, otherwise Google Play will report
     this error too. It's better to have it error on all platforms. }
@@ -480,12 +480,12 @@ begin
   Messaging.Send(['achievement', AchievementId]);
 end;
 
-procedure TGameService.SubmitScore(const LeaderboardId: string; const Score: Int64);
+procedure TGameService.SubmitScore(const LeaderboardId: String; const Score: Int64);
 begin
   Messaging.Send(['submit-score', LeaderboardId, IntToStr(Score)]);
 end;
 
-procedure TGameService.RequestPlayerBestScore(const LeaderboardId: string);
+procedure TGameService.RequestPlayerBestScore(const LeaderboardId: String);
 begin
   Messaging.Send(['request-player-best-score', LeaderboardId]);
 end;
@@ -500,12 +500,12 @@ begin
   Messaging.Send(['show', 'achievements']);
 end;
 
-procedure TGameService.ShowLeaderboard(const LeaderboardId: string);
+procedure TGameService.ShowLeaderboard(const LeaderboardId: String);
 begin
   Messaging.Send(['show', 'leaderboard', LeaderboardId]);
 end;
 
-procedure TGameService.ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: Boolean;
+procedure TGameService.ShowSaveGames(const Title: String; const AllowAddButton, AllowDelete: Boolean;
   const MaxNumberOfSaveGamesToShow: Integer);
 begin
   Messaging.Send(['show', 'save-games', Title,
@@ -515,12 +515,12 @@ begin
   ]);
 end;
 
-procedure TGameService.SaveGameLoad(const SaveGameName: string);
+procedure TGameService.SaveGameLoad(const SaveGameName: String);
 begin
   Messaging.Send(['save-game-load', SaveGameName]);
 end;
 
-procedure TGameService.SaveGameSave(const SaveGameName, Contents, Description: string;
+procedure TGameService.SaveGameSave(const SaveGameName, Contents, Description: String;
   const PlayedTime: TFloatTime);
 begin
   Messaging.Send(['save-game-save', SaveGameName, Contents, Description, TMessaging.TimeToStr(PlayedTime)]);

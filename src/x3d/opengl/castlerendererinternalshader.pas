@@ -63,7 +63,7 @@ type
     procedure AddEffects(Nodes: TX3DNodeList);
     procedure AddEffects(Nodes: TMFNode);
 
-    function ToString: string;
+    function ToString: String;
     procedure Clear;
 
     class operator = (const A, B: TShaderCodeHash): Boolean;
@@ -126,11 +126,11 @@ type
     Attenuation: TVector3;
     AmbientColor, Color: TVector3;
 
-    procedure SetUniform(const NamePattern: string;
+    procedure SetUniform(const NamePattern: String;
       var CurrentValue: Single; const NewValue: Single);
-    procedure SetUniform(const NamePattern: string;
+    procedure SetUniform(const NamePattern: String;
       var CurrentValue: TVector3; const NewValue: TVector3);
-    procedure SetUniform(const NamePattern: string;
+    procedure SetUniform(const NamePattern: String;
       var CurrentValue: TVector4; const NewValue: TVector4);
   end;
 
@@ -169,7 +169,7 @@ type
 
         So invalid uniform names should be always catched.
         We also catch type mismatches.) }
-    procedure SetUniformFromField(const UniformName: string;
+    procedure SetUniformFromField(const UniformName: String;
       const UniformValue: TX3DField; const EnableDisable: Boolean);
 
     procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
@@ -248,9 +248,9 @@ type
     Shader: TShader;
     { Code calculated (on demand, when method called) using above vars. }
     FCode: TShaderSource;
-    LightUniformName1: string;
+    LightUniformName1: String;
     LightUniformValue1: Single;
-    LightUniformName2: string;
+    LightUniformName2: String;
     LightUniformValue2: Single;
     { Calculated by Prepare. Stored as TLightDefine array,
       since TLightShader.Prepare is executed very often and must be fast.
@@ -280,9 +280,9 @@ type
     HasMatrixTransform: Boolean;
 
     { Name of texture coordinate varying vec4 vector. }
-    class function CoordName(const TexUnit: Cardinal): string;
+    class function CoordName(const TexUnit: Cardinal): String;
     { Name of texture matrix mat4 uniform. }
-    class function MatrixName(const TexUnit: Cardinal): string;
+    class function MatrixName(const TexUnit: Cardinal): String;
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); virtual;
@@ -290,7 +290,7 @@ type
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String); virtual;
   end;
 
   { Setup the necessary shader things to query a texture using texture coordinates. }
@@ -304,15 +304,15 @@ type
     Shader: TShader;
 
     { Uniform to set for this texture. May be empty. }
-    UniformName: string;
+    UniformName: String;
     UniformValue: LongInt;
 
     class var TextureEnvWarningDone: Boolean;
 
     { Mix texture colors into fragment color, based on TTextureEnv specification. }
     class function TextureEnvMix(const AEnv: TTextureEnv;
-      const FragmentColor, CurrentTexture: string;
-      const ATextureUnit: Cardinal): string;
+      const FragmentColor, CurrentTexture: String;
+      const ATextureUnit: Cardinal): String;
   public
     { Update Hash for this texture shader. }
     procedure Prepare(var Hash: TShaderCodeHash); override;
@@ -320,7 +320,7 @@ type
       var TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
         TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String); override;
   end;
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
@@ -329,10 +329,10 @@ type
 
   TDynamicUniform = class abstract
   public
-    Name: string;
+    Name: String;
     { Declaration to put at the top of the shader code.
       Must end with newline. May be empty if you do it directly yourself. }
-    Declaration: string;
+    Declaration: String;
     procedure SetUniform(AProgram: TX3DShaderProgram); virtual; abstract;
   end;
 
@@ -391,7 +391,7 @@ type
     { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
     UniformsNodes: TX3DNodeList;
-    TextureCoordGen, FragmentEnd: string;
+    TextureCoordGen, FragmentEnd: String;
     ClipPlanesCount: Cardinal;
     FShadowSampling: TShadowSampling;
     Source: TShaderSource;
@@ -460,14 +460,14 @@ type
       InsertAtBeginIfNotFound). }
     function PlugDirectly(Code: TCastleStringList;
       const CodeIndex: Cardinal;
-      const PlugName, PlugValue: string;
+      const PlugName, PlugValue: String;
       const InsertAtBeginIfNotFound: Boolean): Boolean;
 
     { Make symbol DefineName to be defined for all GLSL parts of
       Source[ShaderType]. }
-    procedure Define(const DefineName: string; const ShaderType: TShaderType);
+    procedure Define(const DefineName: String; const ShaderType: TShaderType);
 
-    function DeclareShadowFunctions: string;
+    function DeclareShadowFunctions: String;
   public
     { Material parameters for current shape.
       Must be set before EnableLight, and be constant later. }
@@ -539,14 +539,14 @@ type
       has no source code (so it should be done by fixed-function pipeline).
       Adding our own plug would be bad in this case, as we would create shader
       without main(). }
-    procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
+    procedure Plug(const EffectPartType: TShaderType; PlugValue: String;
       CompleteCode: TShaderSource = nil;
       const ForwardDeclareInFinalShader: Boolean = false);
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
     procedure LinkProgram(AProgram: TX3DShaderProgram;
-      const ShapeNiceName: string);
+      const ShapeNiceName: String);
 
     { Add a fallback vertex + fragment shader code and link.
       Use this when normal LinkProgram failed, but you want to have
@@ -682,7 +682,7 @@ const
   in view3dscene-mobile.
 }
 
-function MoveToOpeningParen(const S: string; var P: Integer): Boolean;
+function MoveToOpeningParen(const S: String; var P: Integer): Boolean;
 begin
   Result := true;
   repeat
@@ -704,7 +704,7 @@ begin
   until S[P] = '(';
  end;
 
-function MoveToMatchingParen(const S: string; var P: Integer): Boolean;
+function MoveToMatchingParen(const S: String; var P: Integer): Boolean;
 var
   ParenLevel: Cardinal;
 begin
@@ -742,7 +742,7 @@ end;
 
   Declaration should not (but may) end with newline.
   The result always ends with newline. }
-function DeclareOnce(const Name: string; const Declaration: string): string;
+function DeclareOnce(const Name: String; const Declaration: String): String;
 begin
   {$ifndef OpenGLES}
   Result := Declaration + NL;
@@ -830,7 +830,7 @@ begin
       AddPointer(Nodes[I]);
 end;
 
-function TShaderCodeHash.ToString: string;
+function TShaderCodeHash.ToString: String;
 begin
   Result := IntToStr(Sum) + '/' + IntToStr(XorValue);
 end;
@@ -892,7 +892,7 @@ end;
 
 const
   LightDefines: array [TLightDefine] of record
-    Name: string;
+    Name: String;
     Hash: LongWord;
   end =
   ( (Name: 'LIGHT%d_TYPE_POSITIONAL'  ; Hash: 107; ),
@@ -981,7 +981,7 @@ end;
 function TLightShader.Code: TShaderSource;
 
   { Convert Defines list into a string of GLSL code. }
-  function DefinesStr: string;
+  function DefinesStr: String;
   var
     I: Integer;
   begin
@@ -997,7 +997,7 @@ const
     {$I lighting_model_unlit_add_light.glsl.inc}
   );
 var
-  LightShader: string;
+  LightShader: String;
   LightingStage: TShaderType;
 begin
   if FCode = nil then
@@ -1179,7 +1179,7 @@ end;
 
 { TLightUniforms ------------------------------------------------------- }
 
-procedure TLightUniforms.SetUniform(const NamePattern: string;
+procedure TLightUniforms.SetUniform(const NamePattern: String;
   var CurrentValue: Single; const NewValue: Single);
 begin
   if CurrentValue <> NewValue then
@@ -1189,7 +1189,7 @@ begin
   end;
 end;
 
-procedure TLightUniforms.SetUniform(const NamePattern: string;
+procedure TLightUniforms.SetUniform(const NamePattern: String;
   var CurrentValue: TVector3; const NewValue: TVector3);
 begin
   if not TVector3.PerfectlyEquals(CurrentValue, NewValue) then
@@ -1199,7 +1199,7 @@ begin
   end;
 end;
 
-procedure TLightUniforms.SetUniform(const NamePattern: string;
+procedure TLightUniforms.SetUniform(const NamePattern: String;
   var CurrentValue: TVector4; const NewValue: TVector4);
 begin
   if not TVector4.PerfectlyEquals(CurrentValue, NewValue) then
@@ -1281,7 +1281,7 @@ begin
 end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
-  const UniformName: string; const UniformValue: TX3DField;
+  const UniformName: String; const UniformValue: TX3DField;
   const EnableDisable: Boolean);
 var
   TempF: TSingleList;
@@ -1437,7 +1437,7 @@ end;
 procedure TX3DShaderProgram.EventReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  UniformName: string;
+  UniformName: String;
   Scene: TX3DEventsEngine;
 begin
   if Event.ParentExposedField = nil then
@@ -1503,12 +1503,12 @@ end;
 
 { TTextureCoordinateShader --------------------------------------------------- }
 
-class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): string;
+class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): String;
 begin
   Result := Format('castle_TexCoord%d', [TexUnit]);
 end;
 
-class function TTextureCoordinateShader.MatrixName(const TexUnit: Cardinal): string;
+class function TTextureCoordinateShader.MatrixName(const TexUnit: Cardinal): String;
 begin
   Result := Format('castle_TextureMatrix%d', [TexUnit]);
 end;
@@ -1529,9 +1529,9 @@ procedure TTextureCoordinateShader.Enable(const MainTextureMapping: Integer;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String);
 var
-  TexCoordName, TexMatrixName: string;
+  TexCoordName, TexMatrixName: String;
 begin
   TexCoordName := CoordName(TextureUnit);
   TexMatrixName := MatrixName(TextureUnit);
@@ -1586,10 +1586,10 @@ begin
 end;
 
 class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
-  const FragmentColor, CurrentTexture: string;
-  const ATextureUnit: Cardinal): string;
+  const FragmentColor, CurrentTexture: String;
+  const ATextureUnit: Cardinal): String;
 
-  procedure Warn(const S: string; const Args: array of const);
+  procedure Warn(const S: String; const Args: array of const);
   begin
     if not TextureEnvWarningDone then
     begin
@@ -1600,7 +1600,7 @@ class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
 
 var
   { GLSL code to get Arg2 (what is coming from MultiTexture.source) }
-  Arg2: string;
+  Arg2: String;
 
   { Channels is either
     - '' (set all RGBA of FragmentColor),
@@ -1608,9 +1608,9 @@ var
     - '.a' (set only RGB oif FragmentColor). }
   function CombineCode(const Combine: TCombine;
     const SourceArgument: TTextureEnvArgument;
-    const Channels: string): string;
+    const Channels: String): String;
   var
-    FragmentColorCh, CurrentTextureCh, Arg2Ch: string;
+    FragmentColorCh, CurrentTextureCh, Arg2Ch: String;
   begin
     FragmentColorCh := FragmentColor + Channels;
     CurrentTextureCh := CurrentTexture + Channels;
@@ -1707,15 +1707,15 @@ procedure TTextureShader.Enable(const MainTextureMapping: Integer;
   var TextureApply, TextureColorDeclare,
     TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String);
 const
-  SamplerFromTextureType: array [TTextureType] of string =
+  SamplerFromTextureType: array [TTextureType] of String =
   ('sampler2D', Sampler2DShadow, 'samplerCube', 'sampler3D', '');
 var
-  TextureSampleCall, TexCoordName: string;
+  TextureSampleCall, TexCoordName: String;
   ShadowLightShader: TLightShader;
   Code: TShaderSource;
-  SamplerType: string;
+  SamplerType: String;
 begin
   inherited;
 
@@ -1865,17 +1865,17 @@ end;
 
 { TShader ---------------------------------------------------------------- }
 
-function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
+function InsertIntoString(const Base: String; const P: Integer; const S: String): String;
 begin
   Result := Copy(Base, 1, P - 1) + S + SEnding(Base, P);
 end;
 
 const
-  DefaultVertexShader: array [ { phong shading } Boolean ] of string = (
+  DefaultVertexShader: array [ { phong shading } Boolean ] of String = (
     {$I main_shading_gouraud.vs.inc},
     {$I main_shading_phong.vs.inc}
   );
-  DefaultFragmentShader: array [ { phong shading } Boolean ] of string = (
+  DefaultFragmentShader: array [ { phong shading } Boolean ] of String = (
     {$I main_shading_gouraud.fs.inc},
     {$I main_shading_phong.fs.inc}
   );
@@ -1999,7 +1999,7 @@ begin
   Source[stGeometry][0] := DefaultGeometryShader;
 end;
 
-procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
+procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: String;
   CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: Boolean);
 const
   PlugPrefix = 'PLUG_';
@@ -2007,8 +2007,8 @@ const
   { Find PLUG_xxx function inside PlugValue.
     Returns xxx (the part after PLUG_),
     and DeclaredParameters (or this plug function). Or '' if not found. }
-  function FindPlugName(const PlugValue: string;
-    out DeclaredParameters: string): string;
+  function FindPlugName(const PlugValue: String;
+    out DeclaredParameters: String): String;
   const
     IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   var
@@ -2050,7 +2050,7 @@ const
     until false;
   end;
 
-  function FindPlugOccurrence(const CommentBegin, Code: string;
+  function FindPlugOccurrence(const CommentBegin, Code: String;
     const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): Boolean;
   begin
     Result := false;
@@ -2066,19 +2066,19 @@ const
   end;
 
   procedure InsertIntoCode(Code: TCastleStringList;
-    const CodeIndex, P: Integer; const S: string);
+    const CodeIndex, P: Integer; const S: String);
   begin
     Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, S);
   end;
 
 var
-  PlugName, ProcedureName, PlugForwardDeclaration: string;
+  PlugName, ProcedureName, PlugForwardDeclaration: String;
 
   function LookForPlugDeclaration(CodeForPlugDeclaration: TCastleStringList): Boolean;
   var
     AnyOccurrencesInThisCodeIndex: Boolean;
     PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
-    CommentBegin, Parameters, Declaration: string;
+    CommentBegin, Parameters, Declaration: String;
   begin
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
     Result := false;
@@ -2114,7 +2114,7 @@ var
 
 var
   Code: TCastleStringList;
-  PlugDeclaredParameters: string;
+  PlugDeclaredParameters: String;
   AnyOccurrences: Boolean;
 begin
   if CompleteCode = nil then
@@ -2173,7 +2173,7 @@ end;
 
 function TShader.PlugDirectly(Code: TCastleStringList;
   const CodeIndex: Cardinal;
-  const PlugName, PlugValue: string;
+  const PlugName, PlugValue: String;
   const InsertAtBeginIfNotFound: Boolean): Boolean;
 var
   P: Integer;
@@ -2199,9 +2199,9 @@ begin
     WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
-procedure TShader.Define(const DefineName: string; const ShaderType: TShaderType);
+procedure TShader.Define(const DefineName: String; const ShaderType: TShaderType);
 var
-  Declaration: string;
+  Declaration: String;
   Code: TCastleStringList;
   {$ifndef OpenGLES}
   I: Integer;
@@ -2237,7 +2237,7 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
 
     procedure EnableEffectPart(Part: TEffectPartNode);
     var
-      Contents: string;
+      Contents: String;
     begin
       Contents := Part.Contents;
       if Contents <> '' then
@@ -2278,11 +2278,11 @@ begin
 end;
 
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
-  const ShapeNiceName: string);
+  const ShapeNiceName: String);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
-    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: String;
   TextureUniformsSet: Boolean;
 
 const
@@ -2507,7 +2507,7 @@ const
     This also finalizes applying textures. }
   procedure EnableInternalEffects;
   const
-    ShadowMapsFunctions: array [TShadowSampling] of string =
+    ShadowMapsFunctions: array [TShadowSampling] of String =
     (                               {$I shadow_map_common.fs.inc},
      '#define PCF4'          + NL + {$I shadow_map_common.fs.inc},
      '#define PCF4_BILINEAR' + NL + {$I shadow_map_common.fs.inc},
@@ -2515,7 +2515,7 @@ const
      {$I variance_shadow_map_common.fs.inc});
     ToneMappingFunctions = {$I tone_mapping.fs.inc};
   var
-    UniformsDeclare, TextureApplyPoint: string;
+    UniformsDeclare, TextureApplyPoint: String;
     I: Integer;
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
@@ -2635,14 +2635,14 @@ var
   end;
 
 var
-  BumpMappingUniformName1: string;
+  BumpMappingUniformName1: String;
   BumpMappingUniformValue1: LongInt;
-  BumpMappingUniformName2: string;
+  BumpMappingUniformName2: String;
   BumpMappingUniformValue2: Single;
 
   procedure EnableShaderBumpMapping;
   var
-    VertexShader, FragmentShader: string;
+    VertexShader, FragmentShader: String;
   begin
     if FBumpMapping = bmNone then Exit;
 
@@ -2741,7 +2741,7 @@ var
 
   procedure EnableShaderFog;
   var
-    FogFactor, FogUniforms, CoordinateSource: string;
+    FogFactor, FogUniforms, CoordinateSource: String;
   begin
     if FFogEnabled then
     begin
@@ -2834,11 +2834,11 @@ var
 
   procedure DoLogShaders;
   const
-    ShaderTypeNameX3D: array [TShaderType] of string =
+    ShaderTypeNameX3D: array [TShaderType] of String =
     ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
   var
     ShaderType: TShaderType;
-    LogStr, LogStrPart: string;
+    LogStr, LogStrPart: String;
     I: Integer;
   begin
     LogStr :=
@@ -2880,7 +2880,7 @@ var
 
 var
   ShaderType: TShaderType;
-  GeometryInputSize: string;
+  GeometryInputSize: String;
   I: Integer;
 begin
   EnableLightingModel; // do this early, as later EnableLights may assume it's done
@@ -3075,7 +3075,7 @@ procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComplete;
   const TransformToWorldSpace: Boolean);
 var
-  TexCoordName: string;
+  TexCoordName: String;
 begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
@@ -3170,7 +3170,7 @@ const
   { Note: R changes to p ! }
   VectorComponentNames: array [TTexComponent] of Char = ('s', 't', 'p', 'q');
 var
-  PlaneName, CoordSource, TexCoordName: string;
+  PlaneName, CoordSource, TexCoordName: String;
   Uniform: TDynamicUniformVec4;
 begin
   { Enable for fixed-function pipeline }
@@ -3591,9 +3591,9 @@ begin
   FCodeHash.AddInteger((Ord(AMode) + 1) * 29);
 end;
 
-function TShader.DeclareShadowFunctions: string;
+function TShader.DeclareShadowFunctions: String;
 const
-  ShadowDeclare: array [Boolean { vsm? }] of string =
+  ShadowDeclare: array [Boolean { vsm? }] of String =
   ('float shadow(' + Sampler2DShadow + ' shadowMap, const vec4 shadowMapCoord, const in float size);',
    'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
   ShadowDepthDeclare =
@@ -3634,7 +3634,7 @@ end;
 
 procedure TShader.AddScreenEffectCode(const Depth: Boolean);
 var
-  VS, FS: string;
+  VS, FS: String;
 begin
   VS := ScreenEffectVertex;
   FS := ScreenEffectFragment(Depth);

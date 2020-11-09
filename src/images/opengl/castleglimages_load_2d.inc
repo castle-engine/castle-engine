@@ -145,7 +145,7 @@ function LoadGLTexture(const image: TEncodedImage;
   const CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: Boolean = false): TGLTextureId; overload;
 
-function LoadGLTexture(const URL: string;
+function LoadGLTexture(const URL: String;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage = nil;
@@ -265,7 +265,7 @@ begin
   LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
 end;
 
-function LoadGLTexture(const URL: string;
+function LoadGLTexture(const URL: String;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const CompositeForMipmaps: TCompositeImage; const GUITexture: Boolean): TGLTextureId;
 var

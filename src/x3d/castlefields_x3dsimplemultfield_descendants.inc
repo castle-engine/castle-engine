@@ -24,9 +24,9 @@
     TBooleanList,
     TMFBoolEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFLong = class(specialize TX3DSimpleMultField<
@@ -38,7 +38,7 @@
     FSaveToStreamLineUptoNegative: Boolean;
     WrongVertexIndexWarnings: Integer;
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
   public
     { When saving to VRML/X3D classic encoding,
@@ -48,7 +48,7 @@
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
 
-    class function X3DType: string; override;
+    class function X3DType: String; override;
 
     { Call WritelnWarning reporting that an invalid vertex index
       is caused from this field. This simply calls WritelnWarning
@@ -69,14 +69,14 @@
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
     procedure WritelnWarning_WrongVertexIndex(
-      const GeometryX3DType: string;
+      const GeometryX3DType: String;
       const VertexNum: Integer; const CoordCount: Integer);
   end;
 
   TMFInt32 = class(TMFLong)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFMatrix3f = class(specialize TX3DSimpleMultField<
@@ -85,11 +85,11 @@
     TMatrix3List,
     TMFMatrix3fEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFMatrix3d = class(specialize TX3DSimpleMultField<
@@ -98,11 +98,11 @@
     TMatrix3DoubleList,
     TMFMatrix3dEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFMatrix4f = class(specialize TX3DSimpleMultField<
@@ -111,11 +111,11 @@
     TMatrix4List,
     TMFMatrix4fEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFMatrix4d = class(specialize TX3DSimpleMultField<
@@ -124,11 +124,11 @@
     TMatrix4DoubleList,
     TMFMatrix4dEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFVec2f = class(specialize TX3DSimpleMultField<
@@ -137,11 +137,11 @@
     TVector2List,
     TMFVec2fEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFVec3f = class(specialize TX3DSimpleMultField<
@@ -150,17 +150,17 @@
     TVector3List,
     TMFVec3fEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFColor = class(TMFVec3f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFVec4f = class(specialize TX3DSimpleMultField<
@@ -169,17 +169,17 @@
     TVector4List,
     TMFVec4fEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFColorRGBA = class(TMFVec4f)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFVec2d = class(specialize TX3DSimpleMultField<
@@ -188,11 +188,11 @@
     TVector2DoubleList,
     TMFVec2dEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFVec3d = class(specialize TX3DSimpleMultField<
@@ -201,11 +201,11 @@
     TVector3DoubleList,
     TMFVec3dEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFVec4d = class(specialize TX3DSimpleMultField<
@@ -214,11 +214,11 @@
     TVector4DoubleList,
     TMFVec4dEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFRotation = class(specialize TX3DSimpleMultField<
@@ -227,11 +227,11 @@
     TVector4List,
     TMFRotationEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFFloat = class(specialize TX3DSimpleMultField<
@@ -242,7 +242,7 @@
   strict private
     FAngle: Boolean;
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
     function CreateItemBeforeParse: TSFFloat; override;
   public
@@ -253,7 +253,7 @@
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFDouble = class(specialize TX3DSimpleMultField<
@@ -262,31 +262,31 @@
     TDoubleList,
     TMFDoubleEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: Integer): Boolean; override;
   public
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: Boolean; override;
-    class function X3DType: string; override;
+    class function X3DType: String; override;
   end;
 
   TMFTime = class(TMFDouble)
   public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent; override;
+    class function X3DType: String; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent; override;
   end;
 
   TMFString = class(specialize TX3DSimpleMultField<
-    string,
+    String,
     TSFString,
     TCastleStringList,
     TMFStringEvent>)
   strict protected
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String; override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    class function X3DType: string; override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    class function X3DType: String; override;
+    procedure ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
   end;
 
@@ -296,12 +296,12 @@
 
 { TMFBool ------------------------------------------------------------------ }
 
-function TMFBool.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFBool.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
 
-class function TMFBool.X3DType: string;
+class function TMFBool.X3DType: String;
 begin
   Result := 'MFBool';
 end;
@@ -313,18 +313,18 @@ begin
   Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
 end;
 
-function TMFLong.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFLong.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := IntToStr(Items[ItemNum])
 end;
 
-class function TMFLong.X3DType: string;
+class function TMFLong.X3DType: String;
 begin
   Result := 'MFLong';
 end;
 
 procedure TMFLong.WritelnWarning_WrongVertexIndex(
-  const GeometryX3DType: string;
+  const GeometryX3DType: String;
   const VertexNum: Integer; const CoordCount: Integer);
 const
   MaxWrongVertexIndexWarnings = 10;
@@ -340,24 +340,24 @@ end;
 
 { TMFInt32 ------------------------------------------------------------------- }
 
-class function TMFInt32.X3DType: string;
+class function TMFInt32.X3DType: String;
 begin
   Result := 'MFInt32';
 end;
 
-class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
+class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFInt32Event.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFMatrix3f ------------------------------------------------------------------- }
 
-class function TMFMatrix3f.X3DType: string;
+class function TMFMatrix3f.X3DType: String;
 begin
   Result := 'MFMatrix3f';
 end;
 
-function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -374,12 +374,12 @@ end;
 
 { TMFMatrix3d ------------------------------------------------------------------- }
 
-class function TMFMatrix3d.X3DType: string;
+class function TMFMatrix3d.X3DType: String;
 begin
   Result := 'MFMatrix3d';
 end;
 
-function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -396,12 +396,12 @@ end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
 
-class function TMFMatrix4f.X3DType: string;
+class function TMFMatrix4f.X3DType: String;
 begin
   Result := 'MFMatrix4f';
 end;
 
-function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -418,12 +418,12 @@ end;
 
 { TMFMatrix4d ------------------------------------------------------------------- }
 
-class function TMFMatrix4d.X3DType: string;
+class function TMFMatrix4d.X3DType: String;
 begin
   Result := 'MFMatrix4d';
 end;
 
-function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -440,12 +440,12 @@ end;
 
 { TMFVec2f ------------------------------------------------------------------- }
 
-class function TMFVec2f.X3DType: string;
+class function TMFVec2f.X3DType: String;
 begin
   Result := 'MFVec2f';
 end;
 
-function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -462,12 +462,12 @@ end;
 
 { TMFVec3f ------------------------------------------------------------------- }
 
-class function TMFVec3f.X3DType: string;
+class function TMFVec3f.X3DType: String;
 begin
   Result := 'MFVec3f';
 end;
 
-function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -484,24 +484,24 @@ end;
 
 { TMFColor ------------------------------------------------------------------- }
 
-class function TMFColor.X3DType: string;
+class function TMFColor.X3DType: String;
 begin
   Result := 'MFColor';
 end;
 
-class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
+class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFColorEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFVec4f ------------------------------------------------------------------- }
 
-class function TMFVec4f.X3DType: string;
+class function TMFVec4f.X3DType: String;
 begin
   Result := 'MFVec4f';
 end;
 
-function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -518,24 +518,24 @@ end;
 
 { TMFColorRGBA --------------------------------------------------------------- }
 
-class function TMFColorRGBA.X3DType: string;
+class function TMFColorRGBA.X3DType: String;
 begin
   Result := 'MFColorRGBA';
 end;
 
-class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
+class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFColorRGBAEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFVec2d ------------------------------------------------------------------- }
 
-class function TMFVec2d.X3DType: string;
+class function TMFVec2d.X3DType: String;
 begin
   Result := 'MFVec2d';
 end;
 
-function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -552,12 +552,12 @@ end;
 
 { TMFVec3d ------------------------------------------------------------------- }
 
-class function TMFVec3d.X3DType: string;
+class function TMFVec3d.X3DType: String;
 begin
   Result := 'MFVec3d';
 end;
 
-function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -574,12 +574,12 @@ end;
 
 { TMFVec4d ------------------------------------------------------------------- }
 
-class function TMFVec4d.X3DType: string;
+class function TMFVec4d.X3DType: String;
 begin
   Result := 'MFVec4d';
 end;
 
-function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -596,12 +596,12 @@ end;
 
 { TMFRotation ---------------------------------------------------------------- }
 
-class function TMFRotation.X3DType: string;
+class function TMFRotation.X3DType: String;
 begin
   Result := 'MFRotation';
 end;
 
-function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Items.List^[ItemNum].ToRawString;
 end;
@@ -623,7 +623,7 @@ begin
   Result := false;
 end;
 
-function TMFFloat.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFFloat.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Format('%g', [Items[ItemNum]]);
 end;
@@ -638,7 +638,7 @@ begin
   Result := true;
 end;
 
-class function TMFFloat.X3DType: string;
+class function TMFFloat.X3DType: String;
 begin
   Result := 'MFFloat';
 end;
@@ -659,7 +659,7 @@ begin
   Result := false;
 end;
 
-function TMFDouble.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFDouble.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   Result := Format('%g', [Items[ItemNum]]);
 end;
@@ -674,26 +674,26 @@ begin
   Result := true;
 end;
 
-class function TMFDouble.X3DType: string;
+class function TMFDouble.X3DType: String;
 begin
   Result := 'MFDouble';
 end;
 
 { TMFTime -------------------------------------------------------------------- }
 
-class function TMFTime.X3DType: string;
+class function TMFTime.X3DType: String;
 begin
   Result := 'MFTime';
 end;
 
-class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: Boolean): TX3DEvent;
+class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: String; const AInEvent: Boolean): TX3DEvent;
 begin
   Result := TMFTimeEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TMFString ------------------------------------------------------------------ }
 
-function TMFString.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+function TMFString.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): String;
 begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
@@ -704,12 +704,12 @@ begin
   end;
 end;
 
-class function TMFString.X3DType: string;
+class function TMFString.X3DType: String;
 begin
   Result := 'MFString';
 end;
 
-procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
+procedure TMFString.ParseXMLAttribute(const AttributeValue: String; Reader: TX3DReader);
 var
   Lexer: TX3DLexer;
 begin

@@ -29,7 +29,7 @@
   }
   TCastleEdit = class(TCastleUserInterfaceFont)
   strict private
-    FText: string;
+    FText: String;
     FPaddingHorizontal, FPaddingVertical, FPadding: Single;
     FBackgroundColor, FFocusedColor, FUnfocusedColor: TCastleColor;
     FPlaceholderColor: TCastleColor;
@@ -45,7 +45,7 @@
     FOnChange: TNotifyEvent;
     FPasswordChar: Char;
     FTextTranslate, FPlaceholderTranslate: Boolean;
-    procedure SetText(const Value: string);
+    procedure SetText(const Value: String);
     procedure SetFocusedColor(const Value: TCastleColor);
     procedure SetUnfocusedColor(const Value: TCastleColor);
     procedure SetPlaceholderColor(const Value: TCastleColor);
@@ -110,7 +110,7 @@
       DefaultAutoOnScreenKeyboard = false;
 
     { Currently input text. }
-    property Text: string read FText write SetText;
+    property Text: String read FText write SetText;
 
     { Inside the box rectangle, padding between the borders (or frame, if @link(Frame)) and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -269,7 +269,7 @@ begin
   inherited;
 end;
 
-procedure TCastleEdit.SetText(const Value: string);
+procedure TCastleEdit.SetText(const Value: String);
 begin
   if FText <> Value then
   begin
@@ -419,7 +419,7 @@ var
   US, TextLeft, TextBottom: Single;
   FrameCorners: TVector4;
   CaretVisible: Boolean;
-  S: string;
+  S: String;
   Color: TCastleColor;
   CaretShift: Single;
 begin
@@ -577,7 +577,7 @@ begin
     Messaging.Send(['change-keyboard-state', TMessaging.BoolToStr(Value)])
 end;
 
-procedure TCastleEdit.SetPlaceholder(const Value: string);
+procedure TCastleEdit.SetPlaceholder(const Value: String);
 begin
   if FPlaceholder <> Value then
   begin

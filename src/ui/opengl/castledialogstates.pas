@@ -114,10 +114,10 @@ type
       FPopOnAnswered: Boolean;
       FDialog: TDialog; // non-nil only between Start and Stop
       FOverrrideContainer: TUIContainer;
-    function GetCaption: string;
-    procedure SetCaption(const Value: string);
-    function GetInputText: string;
-    procedure SetInputText(const Value: string);
+    function GetCaption: String;
+    procedure SetCaption(const Value: String);
+    function GetInputText: String;
+    procedure SetInputText(const Value: String);
   protected
     type
       TButtonArray = array of TCastleButton;
@@ -125,7 +125,7 @@ type
     procedure InitializeButtons(var Buttons: TButtonArray); virtual;
     function DrawInputText: Boolean; virtual;
     procedure DoAnswered;
-    property InputText: string read GetInputText write SetInputText;
+    property InputText: String read GetInputText write SetInputText;
   public
     const
       DefaultAlignment = hpLeft;
@@ -159,7 +159,7 @@ type
         StateDialogOK.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }
-    property Caption: string read GetCaption write SetCaption stored false;
+    property Caption: String read GetCaption write SetCaption stored false;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -255,7 +255,7 @@ type
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
   public
-    ButtonCaptions: array of string;
+    ButtonCaptions: array of String;
     ButtonChars: array of Char;
     AllowCancel: Boolean;
     function Press(const Event: TInputPressRelease): Boolean; override;
@@ -274,8 +274,8 @@ type
     FAnswerCancelled: Boolean;
     procedure ButtonOKClick(Sender: TObject);
     procedure ButtonCancelClick(Sender: TObject);
-    function GetAnswer: string;
-    procedure SetAnswer(const Value: string);
+    function GetAnswer: String;
+    procedure SetAnswer(const Value: String);
   protected
     procedure InitializeButtons(var Buttons: TButtonArray); override;
     function DrawInputText: Boolean; override;
@@ -303,7 +303,7 @@ type
     { The user input. May be set before starting the state.
       After the state stopped, if @link(Answered), then this contains user answer.
       You should ignore it if @link(AnswerCancelled). }
-    property Answer: string read GetAnswer write SetAnswer;
+    property Answer: String read GetAnswer write SetAnswer;
   end;
 
   { Ask user a press any key, and return this key.
@@ -367,22 +367,22 @@ begin
   inherited;
 end;
 
-function TStateDialog.GetCaption: string;
+function TStateDialog.GetCaption: String;
 begin
   Result := TrimEndingNewline(Text.Text);
 end;
 
-procedure TStateDialog.SetCaption(const Value: string);
+procedure TStateDialog.SetCaption(const Value: String);
 begin
   Text.Text := Value;
 end;
 
-function TStateDialog.GetInputText: string;
+function TStateDialog.GetInputText: String;
 begin
   Result := FDialog.InputText;
 end;
 
-procedure TStateDialog.SetInputText(const Value: string);
+procedure TStateDialog.SetInputText(const Value: String);
 begin
   FDialog.InputText := Value;
 end;
@@ -697,12 +697,12 @@ begin
   Result := true;
 end;
 
-function TStateDialogInput.GetAnswer: string;
+function TStateDialogInput.GetAnswer: String;
 begin
   Result := InputText;
 end;
 
-procedure TStateDialogInput.SetAnswer(const Value: string);
+procedure TStateDialogInput.SetAnswer(const Value: String);
 begin
   InputText := Value;
 end;

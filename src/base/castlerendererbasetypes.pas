@@ -57,7 +57,7 @@ type
   );
 
 const
-  ShaderTypeName: array [TShaderType] of string =
+  ShaderTypeName: array [TShaderType] of String =
   ( 'Vertex', 'Geometry', 'Fragment' );
 
 var

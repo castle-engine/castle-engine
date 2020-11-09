@@ -79,11 +79,11 @@ type
   { Event called when @link(Download) function wants to download URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
   TUrlReadEvent = function (
-    const Url: string; out MimeType: string): TStream of object;
+    const Url: String; out MimeType: String): TStream of object;
 
   { Event called when @link(URLSaveStream) function wants to save URL with this protocol.
     Use with @link(RegisterUrlProtocol). }
-  TUrlWriteEvent = function(const Url: string): TStream of object;
+  TUrlWriteEvent = function(const Url: String): TStream of object;
 
   EProtocolAlreadyRegistered = class(Exception);
 

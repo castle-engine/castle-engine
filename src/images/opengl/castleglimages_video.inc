@@ -88,9 +88,9 @@ type
   public
     constructor Create(Video: TVideo;
       const SmoothScaling: Boolean = true); overload;
-    constructor Create(const URL: string;
+    constructor Create(const URL: String;
       const SmoothScaling: Boolean = true); overload;
-    constructor Create(const URL: string;
+    constructor Create(const URL: String;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear); overload;
@@ -176,7 +176,7 @@ begin
     FItems[I] := TDrawableImage.Create(Video.Items[I], SmoothScaling, false);
 end;
 
-constructor TGLVideo2D.Create(const URL: string;
+constructor TGLVideo2D.Create(const URL: String;
   const SmoothScaling: Boolean = true);
 var
   Video: TVideo;
@@ -188,7 +188,7 @@ begin
   finally FreeAndNil(Video) end;
 end;
 
-constructor TGLVideo2D.Create(const URL: string;
+constructor TGLVideo2D.Create(const URL: String;
   const ResizeToX: Cardinal;
   const ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);

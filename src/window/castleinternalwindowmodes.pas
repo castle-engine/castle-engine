@@ -56,7 +56,7 @@ type
         OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
         OldResize: TContainerEvent;
         OldMenuClick: TMenuClickFunc;
-        OldCaption: string;
+        OldCaption: String;
         OldUserdata: Pointer;
         OldAutoRedisplay: Boolean;
         OldMainMenu: TMenu;

@@ -49,7 +49,7 @@ type
     FALErrorNum: TALenum;
   public
     property ALErrorNum: TALenum read FALErrorNum;
-    constructor Create(AALErrorNum: TALenum; const AMessage: string);
+    constructor Create(AALErrorNum: TALenum; const AMessage: String);
   end;
 
   { For alcGetError errors (ALC_xxx constants). }
@@ -58,11 +58,11 @@ type
     FALCErrorNum: TALenum;
   public
     property ALCErrorNum: TALenum read FALCErrorNum;
-    constructor Create(AALCErrorNum: TALenum; const AMessage: string);
+    constructor Create(AALCErrorNum: TALenum; const AMessage: String);
   end;
 
 { @raises(EALError if alGetError returned something <> AL_NO_ERROR) }
-procedure CheckAL(const situation: string);
+procedure CheckAL(const Situation: String);
 
 { ---------------------------------------------------------------------------- }
 { @section(Query AL state) }
@@ -190,13 +190,13 @@ uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 { error checking ------------------------------------------------------- }
 
-constructor EALError.Create(AALErrorNum: TALenum; const AMessage: string);
+constructor EALError.Create(AALErrorNum: TALenum; const AMessage: String);
 begin
   FALErrorNum := AALErrorNum;
   inherited Create(AMessage);
 end;
 
-procedure CheckAL(const situation: string);
+procedure CheckAL(const Situation: String);
 var
   Err: TALenum;
 begin

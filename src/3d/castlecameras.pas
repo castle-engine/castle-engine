@@ -3066,8 +3066,8 @@ const
     ((keyArrowLeft, keyArrowRight), (keyArrowDown, keyArrowUp), (keyNone, keyNone));
   DefaultInputs_Rotate: T3BoolKeys =
     ((keyArrowUp, keyArrowDown), (keyArrowLeft, keyArrowRight), (keyNone, keyNone));
-  CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
-  IncreaseToStr: array [Boolean] of string = ('Dec', 'Inc');
+  CoordToStr: array [0..2] of String = ('X', 'Y', 'Z');
+  IncreaseToStr: array [Boolean] of String = ('Dec', 'Inc');
 var
   I: Integer;
   B: Boolean;

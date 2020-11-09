@@ -20,7 +20,7 @@
 
 {$ifdef read_implementation}
 
-procedure CheckFileAccessSafe(const URL: string);
+procedure CheckFileAccessSafe(const URL: String);
 begin
   if not ApplicationProperties._FileAccessSafe then
     WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. ' +
@@ -32,7 +32,7 @@ end;
 
 { Extract MimeType from HTTP Content-Type.
   Returns empty string if Content-Type is empty (undefined). }
-function ContentTypeToMimeType(const ContentType: string): string;
+function ContentTypeToMimeType(const ContentType: String): String;
 var
   P: Integer;
 begin

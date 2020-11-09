@@ -456,7 +456,7 @@ end;
 
 procedure TGLRenderToTexture.GLContextOpen;
 
-  function FramebufferStatusToString(const Status: TGLenum): string;
+  function FramebufferStatusToString(const Status: TGLenum): String;
   {$ifndef OpenGLES}
   const
     GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS = GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT;
@@ -737,7 +737,7 @@ end;
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: Boolean);
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
-  procedure SaveColor(const URL: string);
+  procedure SaveColor(const URL: String);
   var
     Image: TCastleImage;
   begin

@@ -22,9 +22,9 @@
   strict private
     FDisplayValue: Boolean;
     FOnChange: TNotifyEvent;
-    FCaption: string;
+    FCaption: String;
     function IndicatorWidth(const R: TFloatRectangle): Single;
-    procedure SetCaption(const Value: string);
+    procedure SetCaption(const Value: String);
   private
     { Draw a slider at given Position. If Position is outside 0..1, it is clamped
       to 0..1 (this way we do not show slider at some wild position if it's
@@ -39,7 +39,7 @@
     function XCoordToSliderPosition(const XCoord: Single;
       const R: TFloatRectangle): Single;
 
-    procedure DrawSliderText(const R: TFloatRectangle; Text: string);
+    procedure DrawSliderText(const R: TFloatRectangle; Text: String);
   strict protected
     { React to value change. The default implementation simply calls the OnChange
       event, if assigned. This is called when value is changed by user actions
@@ -69,7 +69,7 @@
       read FDisplayValue write FDisplayValue default true;
 
     { Displayed on the slider. Right before value, if @link(DisplayValue). }
-    property Caption: string read FCaption write SetCaption;
+    property Caption: String read FCaption write SetCaption;
 
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
@@ -99,7 +99,7 @@
     procedure Render; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Motion(const Event: TInputMotion): Boolean; override;
-    function ValueToStr(const AValue: Single): string; virtual;
+    function ValueToStr(const AValue: Single): String; virtual;
     { Round to multiple of @link(MultipleOf), if non-zero, and clamp
       to @link(Min) and @link(Max) range. }
     function RoundAndClamp(const AValue: Single): Single;
@@ -151,7 +151,7 @@
     procedure Render; override;
     function Press(const Event: TInputPressRelease): Boolean; override;
     function Motion(const Event: TInputMotion): Boolean; override;
-    function ValueToStr(const AValue: Integer): string; virtual;
+    function ValueToStr(const AValue: Integer): String; virtual;
   published
     property Min: Integer read FMin write SetMin default DefaultMin;
     property Max: Integer read FMax write SetMax default DefaultMax;
@@ -215,7 +215,7 @@ begin
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(
-  const R: TFloatRectangle; Text: string);
+  const R: TFloatRectangle; Text: String);
 begin
   if (Caption <> '') and (Text <> '') then
     Text := Caption + ': ' + Text else
@@ -232,7 +232,7 @@ begin
     OnChange(Self);
 end;
 
-procedure TCastleAbstractSlider.SetCaption(const Value: string);
+procedure TCastleAbstractSlider.SetCaption(const Value: String);
 begin
   if FCaption <> Value then
   begin
@@ -342,7 +342,7 @@ begin
   end;
 end;
 
-function TCastleFloatSlider.ValueToStr(const AValue: Single): string;
+function TCastleFloatSlider.ValueToStr(const AValue: Single): String;
 begin
   Result := Format('%f', [AValue]);
 end;
@@ -497,7 +497,7 @@ begin
   end;
 end;
 
-function TCastleIntegerSlider.ValueToStr(const AValue: Integer): string;
+function TCastleIntegerSlider.ValueToStr(const AValue: Integer): String;
 begin
   Result := IntToStr(AValue);
 end;

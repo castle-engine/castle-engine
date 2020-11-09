@@ -242,7 +242,7 @@ type
 
     { Capture the current control contents to an image.
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const URL: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     { @groupEnd }
@@ -517,7 +517,7 @@ type
       don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
-    procedure Load(const SceneURL: string);
+    procedure Load(const SceneURL: String);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: Boolean);
       deprecated 'create TCastleScene and load using TCastleScene.Load; this method is an inflexible shortcut for this';
@@ -1217,7 +1217,7 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleControlBase.SaveScreen(const URL: string);
+procedure TCastleControlBase.SaveScreen(const URL: String);
 begin
   Container.SaveScreen(URL);
 end;
@@ -1293,7 +1293,7 @@ begin
   Controls.InsertFront(SceneManager);
 end;
 
-procedure TCastleControl.Load(const SceneURL: string);
+procedure TCastleControl.Load(const SceneURL: String);
 begin
   {$warnings off} // using one deprecated from another
   Load(LoadNode(SceneURL), true);
@@ -1386,16 +1386,16 @@ end;
 type
   TLCLClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+function TLCLClipboard.GetAsText: String;
 begin
   Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TLCLClipboard.SetAsText(const Value: String);
 begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;

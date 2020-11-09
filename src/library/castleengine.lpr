@@ -56,14 +56,14 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-function CGE_VerifyWindow(const FromFunc: string): Boolean;
+function CGE_VerifyWindow(const FromFunc: String): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil);
   if not Result then
     WarningWrite(FromFunc + ' : CGE window not initialized (CGE_Open not called)');
 end;
 
-function CGE_VerifyScene(const FromFunc: string): Boolean;
+function CGE_VerifyScene(const FromFunc: String): Boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
   if not Result then
@@ -121,7 +121,7 @@ end;
 
 procedure CGE_GetOpenGLInformation(szBuffer: PChar; nBufSize: cInt32); cdecl;
 var
-  sText: string;
+  sText: String;
 begin
   try
     sText := GLInformationString;
@@ -303,7 +303,7 @@ end;
 
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: PChar; nBufSize: cInt32); cdecl;
 var
-  sName: string;
+  sName: String;
 begin
   try
     if not CGE_VerifyScene('CGE_GetViewpointName') then exit;

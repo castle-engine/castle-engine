@@ -182,15 +182,15 @@ type
       or (if empty) from URL,
       so make sure that you provide at least one of these parameters.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
-    procedure LoadFromStream(Stream: TStream; const URL: string;
-      MimeType: string = '';
+    procedure LoadFromStream(Stream: TStream; const URL: String;
+      MimeType: String = '';
       const Options: TLoadImageOptions = []);
 
     { Load composite (KTX or DDS) image from this URL. }
-    procedure LoadFromFile(URL: string; const Options: TLoadImageOptions = []);
+    procedure LoadFromFile(URL: String; const Options: TLoadImageOptions = []);
 
-    procedure SaveToStream(Stream: TStream; const MimeType: string);
-    procedure SaveToFile(const URL: string);
+    procedure SaveToStream(Stream: TStream; const MimeType: String);
+    procedure SaveToFile(const URL: String);
 
     { Close all loaded image data. Effectively, this releases all data
       loaded by LoadFromStream, reverting the object to the state right
@@ -249,7 +249,7 @@ type
     { Does this URL look like it contains composite (KTX, DDS...) contents.
       Guesses by processing the URL with @link(ProcessImageUrl)
       and then looking at final filename extension. }
-    class function MatchesURL(URL: string): Boolean;
+    class function MatchesURL(URL: String): Boolean;
 
     procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
@@ -257,7 +257,7 @@ type
 const
   AllCubeMapSides = [Low(TCubeMapSide) .. High(TCubeMapSide)];
 
-  CompositeTypeToString: array [TCompositeType] of string =
+  CompositeTypeToString: array [TCompositeType] of String =
   ( 'Texture', 'CubeMap', 'Volume' );
 
 implementation
@@ -316,8 +316,8 @@ begin
     Result := FImages[Index];
 end;
 
-procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
-  MimeType: string;
+procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: String;
+  MimeType: String;
   const Options: TLoadImageOptions = []);
 var
   Handler: TCompositeFormatHandler;
@@ -344,7 +344,7 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.LoadFromFile(URL: string;
+procedure TCompositeImage.LoadFromFile(URL: String;
   const Options: TLoadImageOptions = []);
 var
   S: TStream;
@@ -357,7 +357,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-procedure TCompositeImage.SaveToStream(Stream: TStream; const MimeType: string);
+procedure TCompositeImage.SaveToStream(Stream: TStream; const MimeType: String);
 var
   Handler: TCompositeFormatHandler;
 begin
@@ -377,7 +377,7 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.SaveToFile(const URL: string);
+procedure TCompositeImage.SaveToFile(const URL: String);
 var
   S: TStream;
 begin
@@ -387,7 +387,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-class function TCompositeImage.MatchesURL(URL: string): Boolean;
+class function TCompositeImage.MatchesURL(URL: String): Boolean;
 begin
   URL := ProcessImageUrl(URL);
 

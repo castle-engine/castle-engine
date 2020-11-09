@@ -29,14 +29,14 @@ type
   private
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function GetURL: String;
+    procedure SetURL(AValue: String);
   protected
     function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -50,14 +50,14 @@ type
   private
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    function GetURL: String;
+    procedure SetURL(AValue: String);
   protected
     function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -73,16 +73,16 @@ type
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    InitialFilter: String;
+    function GetURL: String;
+    procedure SetURL(AValue: String);
     function StoreFilterAndFilterIndex: Boolean;
   protected
     function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -100,16 +100,16 @@ type
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    InitialFilter: String;
+    function GetURL: String;
+    procedure SetURL(AValue: String);
     function StoreFilterAndFilterIndex: Boolean;
   protected
     function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -127,16 +127,16 @@ type
     FAdviceDataDirectory: Boolean;
     FUseCastleDataProtocol: Boolean;
     InitialFilterIndex: Integer;
-    InitialFilter: string;
-    function GetURL: string;
-    procedure SetURL(AValue: string);
+    InitialFilter: String;
+    function GetURL: String;
+    procedure SetURL(AValue: String);
     function StoreFilterAndFilterIndex: Boolean;
   protected
     function DoExecute: Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property URL: string read GetURL write SetURL stored false;
+    property URL: String read GetURL write SetURL stored false;
     { Warn (but still allow) if user selects URL outside of data directory. }
     property AdviceDataDirectory: Boolean read FAdviceDataDirectory write FAdviceDataDirectory default false;
     { If the URL is detected inside data directory ( https://castle-engine.io/manual_data_directory.php ),
@@ -212,14 +212,14 @@ end;
 
 { TCastleOpen3DDialog ----------------------------------------------------- }
 
-function TCastleOpen3DDialog.GetURL: string;
+function TCastleOpen3DDialog.GetURL: String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpen3DDialog.SetURL(AValue: string);
+procedure TCastleOpen3DDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -247,14 +247,14 @@ end;
 
 { TCastleSaveImageDialog ------------------------------------------------- }
 
-function TCastleSaveImageDialog.GetURL: string;
+function TCastleSaveImageDialog.GetURL: String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleSaveImageDialog.SetURL(AValue: string);
+procedure TCastleSaveImageDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -282,14 +282,14 @@ end;
 
 { TCastleOpenImageDialog --------------------------------------------------- }
 
-function TCastleOpenImageDialog.GetURL: string;
+function TCastleOpenImageDialog.GetURL: String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpenImageDialog.SetURL(AValue: string);
+procedure TCastleOpenImageDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -317,14 +317,14 @@ end;
 
 { TCastleSaveDialog -------------------------------------------------------- }
 
-function TCastleSaveDialog.GetURL: string;
+function TCastleSaveDialog.GetURL: String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleSaveDialog.SetURL(AValue: string);
+procedure TCastleSaveDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;
@@ -344,14 +344,14 @@ end;
 
 { TCastleOpenDialog ---------------------------------------------------------- }
 
-function TCastleOpenDialog.GetURL: string;
+function TCastleOpenDialog.GetURL: String;
 begin
   Result := FilenameToURISafeUTF8(CleanupFileName(FileName));
   if UseCastleDataProtocol then
     Result := MaybeUseDataProtocol(Result);
 end;
 
-procedure TCastleOpenDialog.SetURL(AValue: string);
+procedure TCastleOpenDialog.SetURL(AValue: String);
 begin
   FileName := URIToFilenameSafeUTF8(AValue);
 end;

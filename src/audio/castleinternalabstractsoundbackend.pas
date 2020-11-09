@@ -29,7 +29,7 @@ type
   TSoundBufferBackend = class
   strict private
     { Set by ContextOpen. }
-    FURL: string;
+    FURL: String;
     FSoundEngine: TSoundEngineBackend;
   protected
     property SoundEngine: TSoundEngineBackend read FSoundEngine;

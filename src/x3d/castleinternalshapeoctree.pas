@@ -220,7 +220,7 @@ type
     FShapesList: TShapeList;
     FOwnsShapesList: Boolean;
   protected
-    function StatisticsBonus: string; override;
+    function StatisticsBonus: String; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
       const ARootBox: TBox3D; AShapesList: TShapeList;
@@ -785,7 +785,7 @@ begin
  Result := TShapeOctreeNode(InternalTreeRoot);
 end;
 
-function TShapeOctree.StatisticsBonus: string;
+function TShapeOctree.StatisticsBonus: String;
 begin
   Result := NL;
   if ShapesList.Count = 0 then

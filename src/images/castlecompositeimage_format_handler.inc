@@ -39,7 +39,7 @@ type
     function Images: TEncodedImageList;
 
     constructor Create(const AComposite: TCompositeImage);
-    procedure LoadFromStream(const Stream: TStream; const URL: string); virtual;
+    procedure LoadFromStream(const Stream: TStream; const URL: String); virtual;
     procedure SaveToStream(const Stream: TStream); virtual;
   end;
 
@@ -84,7 +84,7 @@ begin
   FComposite.Depth := Value;
 end;
 
-procedure TCompositeFormatHandler.LoadFromStream(const Stream: TStream; const URL: string);
+procedure TCompositeFormatHandler.LoadFromStream(const Stream: TStream; const URL: String);
 begin
 end;
 

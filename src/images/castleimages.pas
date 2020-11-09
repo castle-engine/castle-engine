@@ -130,8 +130,8 @@ type
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
-    FURL: string;
-    procedure NotImplemented(const AMethodName: string);
+    FURL: String;
+    procedure NotImplemented(const AMethodName: String);
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
     function ToFpImage: TInternalCastleFpImage; virtual;
   protected
@@ -140,7 +140,7 @@ type
     FRawPixels: Pointer;
   public
     { URL from which this image was loaded, if any. }
-    property URL: string read FURL write FURL;
+    property URL: String read FURL write FURL;
 
     destructor Destroy; override;
 
@@ -525,7 +525,7 @@ type
       from CastleProgress to indicate progress of operation. }
     procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = '');
+      const ProgressTitle: String = '');
 
     { Change Width and Height and appropriately stretch image contents.
 
@@ -564,7 +564,7 @@ type
       from CastleProgress to indicate progress of operation. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear;
-      const ProgressTitle: string = ''): TCastleImage;
+      const ProgressTitle: String = ''): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -858,9 +858,9 @@ type
     procedure Assign(const Source: TCastleImage); virtual;
 
     { Append code to embed this image inside Pascal source code. }
-    procedure SaveToPascalCode(const ImageName: string;
+    procedure SaveToPascalCode(const ImageName: String;
       const ShowProgress: Boolean;
-      var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+      var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: String);
 
     { Set the RGB colors for transparent pixels to the nearest non-transparent
       colors. This fixes problems with black/white borders around the texture
@@ -876,8 +876,8 @@ type
       since it's really really slow).
 
       @groupBegin }
-    procedure AlphaBleed(const ProgressTitle: string = ''); virtual;
-    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; virtual;
+    procedure AlphaBleed(const ProgressTitle: String = ''); virtual;
+    function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; virtual;
     { @groupEnd }
   public
     { Draw simple geometric shapes like circles, rectangles, lines, etc.
@@ -1308,8 +1308,8 @@ type
     procedure PremultiplyAlpha;
     property PremultipliedAlpha: Boolean read FPremultipliedAlpha;
 
-    procedure AlphaBleed(const ProgressTitle: string = ''); override;
-    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+    procedure AlphaBleed(const ProgressTitle: String = ''); override;
+    function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; override;
   public
     procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
@@ -1515,8 +1515,8 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
     // TODO: this should be implemented, just like for TRGBAlphaImage
-    //procedure AlphaBleed(const ProgressTitle: string = ''); override;
-    //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+    //procedure AlphaBleed(const ProgressTitle: String = ''); override;
+    //function MakeAlphaBleed(const ProgressTitle: String = ''): TCastleImage; override;
   public
     procedure FillEllipse(const x, y: Single; const aRadiusX, aRadiusY: Single;
       const aColor: TCastleColor); override;
@@ -1547,7 +1547,7 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
 { File formats managing ----------------------------------------------------- }
 
 { Does this MIME type correspond to image. }
-function IsImageMimeType(const MimeType: string;
+function IsImageMimeType(const MimeType: String;
   const OnlyLoadable, OnlySaveable: Boolean): Boolean;
 
 { List available image file formats.
@@ -1567,12 +1567,12 @@ function IsImageMimeType(const MimeType: string;
   ListImageExtsShort writes all recognized extensions separated by comma (', ').
 
   @groupBegin }
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: string): string;
-function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: Boolean; const LinePrefix: String): String;
+function ListImageExtsShort(OnlyLoadable, OnlySaveable: Boolean): String;
 { @groupEnd }
 
 { Guess MIME type from image extension. Empty string if cannot guess. }
-function ImageExtToMimeType(Ext: string): string; deprecated 'use URIMimeType';
+function ImageExtToMimeType(Ext: String): String; deprecated 'use URIMimeType';
 
 { loading image -------------------------------------------------------------- }
 
@@ -1671,15 +1671,15 @@ type
   @seealso LoadEncodedImage
 
   @groupBegin *)
-function LoadImage(Stream: TStream; const MimeType: string;
+function LoadImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 
-function LoadImage(const URL: string): TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const URL: String): TCastleImage; overload;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riBilinear;
@@ -1695,13 +1695,13 @@ function LoadImage(const URL: string;
   @seealso LoadImage
 
   @groupBegin }
-function LoadEncodedImage(Stream: TStream; const MimeType: string;
+function LoadEncodedImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const URL: String;
   const Options: TLoadImageOptions = []): TEncodedImage; overload;
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage; overload;
@@ -1744,8 +1744,8 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
+procedure SaveImage(const img: TEncodedImage; const MimeType: String; Stream: TStream); overload;
+procedure SaveImage(const Img: TEncodedImage; const URL: String); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
@@ -1758,7 +1758,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: String): TCastleImageClass;
 { @groupEnd }
 
 var
@@ -1778,15 +1778,15 @@ var
   otherwise returns "no alpha channel". }
 procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 
-function StringToAlpha(S: string; var WarningDone: Boolean): TAutoAlphaChannel;
+function StringToAlpha(S: String; var WarningDone: Boolean): TAutoAlphaChannel;
 
 const
-  AlphaToString: array [TAutoAlphaChannel] of string =
+  AlphaToString: array [TAutoAlphaChannel] of String =
   ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
   TTextureCompressionInfo = object
-    Name: string;
+    Name: String;
     RequiresPowerOf2: Boolean;
     AlphaChannel: TAlphaChannel;
 
@@ -1866,20 +1866,20 @@ const
     (Name: 'ASTC_12x12_SRGB8_ALPHA8'     ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true; FileExtension: '.ktx')
   );
 
-{ Convert TTextureCompression enum to string. }
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+{ Convert TTextureCompression enum to String. }
+function TextureCompressionToString(const TextureCompression: TTextureCompression): String;
 
-{ Convert string to TTextureCompression enum. Possible values correspond
+{ Convert String to TTextureCompression enum. Possible values correspond
   to names listed in TextureCompressionInfo array, they are also equal
   to enum Pascal names without leading "tc".
   Compares given strig ignoring the case.
   @raises(Exception If the string value does not name any
     TTextureCompression value.) }
-function StringToTextureCompression(const S: string): TTextureCompression;
+function StringToTextureCompression(const S: String): TTextureCompression;
 
 type
   { Listener type for @link(AddLoadImageListener). }
-  TLoadImageEvent = procedure (var ImageUrl: string) of object;
+  TLoadImageEvent = procedure (var ImageUrl: String) of object;
 
 var
   { Is the value of @link(SupportedTextureCompression) determined
@@ -1917,7 +1917,7 @@ var
     uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
       CastleFilesUtils;
 
-    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
+    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: String);
     begin
       if IsPrefix('castle-data:/animation/dragon/', ImageUrl) then
       begin
@@ -1946,7 +1946,7 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 
 { Process URL through events registered by @link(AddLoadImageListener).
   This is used internally by the engine. }
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const URL: String): String;
 
 {$undef read_interface}
 
@@ -2016,7 +2016,7 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-procedure TEncodedImage.NotImplemented(const AMethodName: string);
+procedure TEncodedImage.NotImplemented(const AMethodName: String);
 begin
   raise EInternalError.Create(AMethodName +
     ' method not implemented for the image class ' + ClassName);
@@ -2132,7 +2132,7 @@ procedure InternalResize(PixelSize: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
   const Interpolation: TResizeInterpolationInternal;
   const MixColors: TMixColorsFunction;
-  const ProgressTitle: string);
+  const ProgressTitle: String);
 var
   DestinY: Integer;
 
@@ -2254,7 +2254,7 @@ end;
 
 procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string);
+  const ProgressTitle: String);
 var
   NewPixels: Pointer;
   NewFpImage: TInternalCastleFpImage;
@@ -2292,7 +2292,7 @@ end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
-  const ProgressTitle: string): TCastleImage;
+  const ProgressTitle: String): TCastleImage;
 var
   NewFpImage: TInternalCastleFpImage;
 begin
@@ -2709,11 +2709,11 @@ begin
     (they only draw from/to Z = 0). }
 end;
 
-procedure TCastleImage.SaveToPascalCode(const ImageName: string;
+procedure TCastleImage.SaveToPascalCode(const ImageName: String;
   const ShowProgress: Boolean;
-  var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+  var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: String);
 var
-  NameWidth, NameHeight, NameDepth, NamePixels: string;
+  NameWidth, NameHeight, NameDepth, NamePixels: String;
   pb: PByte;
   I: Integer;
 begin
@@ -2779,13 +2779,13 @@ begin
     '  FreeAndNil(F' +ImageName+ ');' +nl;
 end;
 
-procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
+procedure TCastleImage.AlphaBleed(const ProgressTitle: String);
 begin
   { default implementation does nothing.
     This is OK for images without alpha channel. }
 end;
 
-function TCastleImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+function TCastleImage.MakeAlphaBleed(const ProgressTitle: String): TCastleImage;
 begin
   { default implementation returns a copy.
     This is OK for images without alpha channel. }
@@ -3640,7 +3640,7 @@ begin
   end;
 end;
 
-procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: string);
+procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: String);
 var
   Copy: TCastleImage;
 begin
@@ -3651,7 +3651,7 @@ begin
   finally FreeAndNil(Copy) end;
 end;
 
-function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: String): TCastleImage;
 
   function FindNearestNonTransparentPixel(X, Y, Z: Integer): PVector4Byte;
 
@@ -4423,10 +4423,10 @@ end;
 type
   { List of TLoadImageEvent methods. }
   TLoadImageEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TLoadImageEvent>)
-    procedure Execute(var URL: string);
+    procedure Execute(var URL: String);
   end;
 
-procedure TLoadImageEventList.Execute(var URL: string);
+procedure TLoadImageEventList.Execute(var URL: String);
 var
   I: Integer;
 begin
@@ -4625,7 +4625,7 @@ begin
   end;
 end;
 
-function LoadEncodedImage(Stream: TStream; const MimeType: string;
+function LoadEncodedImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = [])
   :TEncodedImage;
@@ -4638,14 +4638,14 @@ begin
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
-function LoadEncodedImage(URL: string;
+function LoadEncodedImage(URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const Options: TLoadImageOptions = []): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
   F: TStream;
-  MimeType: string;
+  MimeType: String;
   TimeStart: TCastleProfilerTime;
 begin
   F := nil;
@@ -4680,7 +4680,7 @@ begin
   end;
 end;
 
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(const URL: String;
   const Options: TLoadImageOptions = []): TEncodedImage;
 begin
   Result := LoadEncodedImage(URL, [], Options);
@@ -4699,7 +4699,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(Stream: TStream; const MimeType: string;
+function LoadImage(Stream: TStream; const MimeType: String;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 var
   E: TEncodedImage;
@@ -4710,7 +4710,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 var
   E: TEncodedImage;
@@ -4722,7 +4722,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string): TCastleImage;
+function LoadImage(const URL: String): TCastleImage;
 var
   E: TEncodedImage;
 begin
@@ -4733,7 +4733,7 @@ begin
   Result := TCastleImage(E);
 end;
 
-function LoadImage(const URL: string;
+function LoadImage(const URL: String;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
@@ -4806,7 +4806,7 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream);
+procedure SaveImage(const img: TEncodedImage; const MimeType: String; Stream: TStream);
 var
   Format: TImageFormat;
 begin
@@ -4816,11 +4816,11 @@ begin
   SaveImage(Img, Format, Stream);
 end;
 
-procedure SaveImage(const Img: TEncodedImage; const URL: string);
+procedure SaveImage(const Img: TEncodedImage; const URL: String);
 var
   Stream: TStream;
   Format: TImageFormat;
-  MimeType: string;
+  MimeType: String;
 begin
   { Do not call SaveImage with MimeType: string parameter, instead calculate
     Format here. This way we can make better error messaage. }
@@ -4842,7 +4842,7 @@ begin
   if B > A then A := B;
 end;
 
-function StringToAlpha(S: string; var WarningDone: Boolean): TAutoAlphaChannel;
+function StringToAlpha(S: String; var WarningDone: Boolean): TAutoAlphaChannel;
 begin
   S := UpperCase(S);
   for Result := Low(Result) to High(Result) do
@@ -4877,14 +4877,14 @@ begin
   Result := acAuto;
 end;
 
-function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+function TextureCompressionToString(const TextureCompression: TTextureCompression): String;
 begin
   Result := TextureCompressionInfo[TextureCompression].Name;
 end;
 
-function StringToTextureCompression(const S: string): TTextureCompression;
+function StringToTextureCompression(const S: String): TTextureCompression;
 var
-  SLower: string;
+  SLower: String;
 begin
   SLower := LowerCase(S);
   for Result := Low(Result) to High(Result) do
@@ -4903,7 +4903,7 @@ begin
   LoadImageEvents.Remove(Event);
 end;
 
-function ProcessImageUrl(const URL: string): string;
+function ProcessImageUrl(const URL: String): String;
 begin
   Result := URL;
   LoadImageEvents.Execute(Result);

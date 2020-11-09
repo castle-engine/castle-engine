@@ -143,7 +143,7 @@ type
     WasAlreadyOpenDevice: String;
 
     { Check ALC errors. Requires valid ALDevice. }
-    procedure CheckALC(const Situation: string);
+    procedure CheckALC(const Situation: String);
 
     { Wrapper for alcGetString. }
     function GetContextString(const Enum: TALCenum): String;
@@ -648,7 +648,7 @@ procedure TOpenALSoundEngineBackend.DetectDevices(const Devices: TSoundDeviceLis
   This makes it working sensibly under all OpenAL implementations in use
   today. }
 
-  function SampleImpALCDeviceName(const ShortDeviceName: string): string;
+  function SampleImpALCDeviceName(const ShortDeviceName: String): String;
   begin
     Result := '''(( devices ''(' + ShortDeviceName + ') ))';
   end;
@@ -712,11 +712,11 @@ begin
     ( (AMajor = FALMajorVersion) and (AMinor <= FALMinorVersion) );
 end;
 
-procedure TOpenALSoundEngineBackend.CheckALC(const Situation: string);
+procedure TOpenALSoundEngineBackend.CheckALC(const Situation: String);
 var
   ErrCode: TALenum;
   ErrDescription: PChar;
-  ErrDescriptionStr: string;
+  ErrDescriptionStr: String;
 begin
   ErrCode := alcGetError(ALDevice);
   if ErrCode <> ALC_NO_ERROR then
@@ -756,7 +756,7 @@ end;
 function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
   out Information: String): Boolean;
 
-  procedure ParseVersion(const Version: string; out Major, Minor: Integer);
+  procedure ParseVersion(const Version: String; out Major, Minor: Integer);
   var
     DotP, SpaceP: Integer;
   begin
@@ -781,7 +781,7 @@ function TOpenALSoundEngineBackend.ContextOpen(const ADevice: String;
     end;
   end;
 
-  function ALSuccessInformation: string;
+  function ALSuccessInformation: String;
   begin
     Result := Format(
       'OpenAL version: %s (major: %d, minor: %d)' +NL+

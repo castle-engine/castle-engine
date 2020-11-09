@@ -35,10 +35,10 @@ type
   TLevelInfo = class
   private
     FLogicClass: TLevelLogicClass;
-    FName: string;
-    FSceneURL: string;
-    FTitle: string;
-    FTitleHint: string;
+    FName: String;
+    FSceneURL: String;
+    FTitle: String;
+    FTitleHint: String;
     FNumber: Integer;
     FDemo: Boolean;
     FPlayed: Boolean;
@@ -52,7 +52,7 @@ type
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
-    DocumentBaseURL: string;
+    DocumentBaseURL: String;
     LevelResources: T3DResourceList;
     procedure LoadFromDocument;
   protected
@@ -93,7 +93,7 @@ type
       For all (current and future) uses it should be a valid VRML/X3D
       and ObjectPascal identifier, so use only (English) letters,
       underscores and digits (and don't start with a digit). }
-    property Name: string read FName write FName;
+    property Name: String read FName write FName;
 
     { Main level 3D model. When the level is loaded, this scene will be set
       as TCastleRootTransform.MainScene,
@@ -103,10 +103,10 @@ type
       scripts and such. Although level logic (TLevelLogic descendant determined
       by LevelClass) may also add any number of additional objects
       (TCastleTransform instances) to the world. }
-    property SceneURL: string read FSceneURL write FSceneURL;
+    property SceneURL: String read FSceneURL write FSceneURL;
 
     { @deprecated Deprecated name for SceneURL. }
-    property SceneFileName: string read FSceneURL write FSceneURL; deprecated;
+    property SceneFileName: String read FSceneURL write FSceneURL; deprecated;
 
     { Nice name of the level for user. This should be user-friendly,
       so it can use spaces, non-English letters and such.
@@ -120,14 +120,14 @@ type
       (because various games may have widly different ideas how to make it
       and how to show it). But we give the developer tools to make such
       menus easily, for example you can use TCastleOnScreenMenu for this. }
-    property Title: string read FTitle write FTitle;
+    property Title: String read FTitle write FTitle;
 
     { Additional text that may be displayed near level title.
 
       The engine doesn't use this property at all, it's only loaded from level.xml
       file. It is available for your "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    property TitleHint: string read FTitleHint write FTitleHint;
+    property TitleHint: String read FTitleHint write FTitleHint;
 
     { Level number.
 
@@ -254,7 +254,7 @@ type
     procedure AddFromInfo(const Info: TFileInfo; var StopSearch: Boolean);
   public
     { raises Exception if such Name is not on the list. }
-    function FindName(const AName: string): TLevelInfo;
+    function FindName(const AName: String): TLevelInfo;
 
     { Add all available levels found by scanning for level.xml inside data
       directory.
@@ -273,7 +273,7 @@ type
       to read TLevelInfo.Played values from user preferences file.
 
       @groupBegin }
-    procedure LoadFromFiles(const LevelsPath: string);
+    procedure LoadFromFiles(const LevelsPath: String);
     procedure LoadFromFiles;
     { @groupEnd }
 
@@ -281,7 +281,7 @@ type
       The given XML file must have <level> root element and be written
       according to
       https://castle-engine.io/creating_data_levels.php .  }
-    procedure AddFromFile(const URL: string);
+    procedure AddFromFile(const URL: String);
 
     { Sort by @link(TLevelInfo.Number).
       Done automatically at the end of @link(LoadFromFiles),
@@ -334,7 +334,7 @@ type
     { Unload Items from previous level, keeps only Player on Items.
       Returns previous resources. You have to call Release and free them. }
     function UnloadCore: T3DResourceList;
-    function Placeholder(Shape: TShape; PlaceholderName: string): Boolean;
+    function Placeholder(Shape: TShape; PlaceholderName: String): Boolean;
     procedure SetPlayer(const Value: TPlayer);
     { Assigns Camera and Navigation on level loading and setting/change player }
     procedure InitializeCamera;
@@ -432,7 +432,7 @@ type
       with creatures and items, using placeholders.
 
       @groupBegin }
-    procedure Load(const LevelName: string);
+    procedure Load(const LevelName: String);
     procedure Load(const AInfo: TLevelInfo);
     { @groupEnd }
 
@@ -522,7 +522,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure LoadLevel(const LevelName: string);
+    procedure LoadLevel(const LevelName: String);
     procedure LoadLevel(const AInfo: TLevelInfo);
     function Logic: TLevelLogic;
     function Info: TLevelInfo;
@@ -550,10 +550,10 @@ type
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
-    function LoadLevelScene(const URL: string;
+    function LoadLevelScene(const URL: String;
       const PrepareForCollisions: Boolean;
       const SceneClass: TCastleSceneClass): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
-    function LoadLevelScene(const URL: string;
+    function LoadLevelScene(const URL: String;
       const PrepareForCollisions: Boolean): TCastleScene; deprecated 'create and prepare TCastleScene instance directly';
     { @groupEnd }
 
@@ -561,7 +561,7 @@ type
       Return @true if this is indeed a recognized placeholder name,
       and it was handled and relevant shape should be removed from level
       geometry (to not be rendered). }
-    function Placeholder(const Shape: TShape; const PlaceholderName: string): Boolean; virtual;
+    function Placeholder(const Shape: TShape; const PlaceholderName: String): Boolean; virtual;
 
     { Called after all placeholders have been processed,
       that is after @link(TLevel.Load) placed initial creatures,
@@ -591,7 +591,7 @@ type
         however you want, to handle additional attributes in level.xml.
         You can use standard FPC DOM unit and classes,
         and add a handful of simple comfortable routines in CastleXMLUtils unit,
-        for example you can use this to read a string attribute:
+        for example you can use this to read a String attribute:
 
         @longCode(#
           MyAttribute := DOMElement.AttributeStringDef('my_attribute', 'default value');
@@ -623,16 +623,16 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelLogicClasses = class(specialize TDictionary<string, TLevelLogicClass>)
+  TLevelLogicClasses = class(specialize TDictionary<String, TLevelLogicClass>)
   strict private
-    function GetItems(const AKey: string): TLevelLogicClass;
-    procedure SetItems(const AKey: string; const AValue: TLevelLogicClass);
+    function GetItems(const AKey: String): TLevelLogicClass;
+    procedure SetItems(const AKey: String; const AValue: TLevelLogicClass);
   public
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: TLevelLogicClass read GetItems write SetItems; default;
+    property Items [const AKey: String]: TLevelLogicClass read GetItems write SetItems; default;
   end;
 
 function LevelLogicClasses: TLevelLogicClasses;
@@ -747,7 +747,7 @@ begin
   Result := Viewport.PrepareParams;
 end;
 
-function TLevel.Placeholder(Shape: TShape; PlaceholderName: string): Boolean;
+function TLevel.Placeholder(Shape: TShape; PlaceholderName: String): Boolean;
 const
   { Prefix of all placeholders that we seek on 3D models. }
   PlaceholderPrefix = 'Cas';
@@ -757,9 +757,9 @@ const
   SectorPrefix = PlaceholderPrefix + 'Sector';
   WaypointPrefix = PlaceholderPrefix + 'Waypoint';
 
-  procedure PlaceholderResource(Shape: TShape; PlaceholderName: string);
+  procedure PlaceholderResource(Shape: TShape; PlaceholderName: String);
   var
-    ResourceName: string;
+    ResourceName: String;
     ResourceNumberPresent: Boolean;
     Resource: T3DResource;
     Box: TBox3D;
@@ -828,7 +828,7 @@ const
 
     Count of the Sectors list is enlarged, if necessary,
     to include all sectors indicated in the Scene. }
-  procedure PlaceholderSector(Shape: TShape; const SectorNodeName: string);
+  procedure PlaceholderSector(Shape: TShape; const SectorNodeName: String);
   var
     IgnoredBegin, SectorIndex: Integer;
   begin
@@ -917,7 +917,7 @@ var
 
   procedure TraverseForPlaceholders(Shape: TShape);
   var
-    PlaceholderName: string;
+    PlaceholderName: String;
   begin
     PlaceholderName := Info.PlaceholderName(Shape);
     if (PlaceholderName <> '') and Placeholder(Shape, PlaceholderName) then
@@ -1125,7 +1125,7 @@ begin
   end;
 end;
 
-procedure TLevel.Load(const LevelName: string);
+procedure TLevel.Load(const LevelName: String);
 begin
   Load(Levels.FindName(LevelName));
 end;
@@ -1382,7 +1382,7 @@ begin
   FLevel.Player := Value;
 end;
 
-procedure TGameSceneManager.LoadLevel(const LevelName: string);
+procedure TGameSceneManager.LoadLevel(const LevelName: String);
 begin
   FLevel.Load(LevelName);
 end;
@@ -1441,7 +1441,7 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const URL: string;
+  const URL: String;
   const PrepareForCollisions: Boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
@@ -1466,7 +1466,7 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const URL: string;
+  const URL: String;
   const PrepareForCollisions: Boolean): TCastleScene;
 begin
   {$warnings off} // using deprecated in deprecated
@@ -1481,7 +1481,7 @@ begin
 end;
 
 function TLevelLogic.Placeholder(const Shape: TShape;
-  const PlaceholderName: string): Boolean;
+  const PlaceholderName: String): Boolean;
 begin
   Result := false;
 end;
@@ -1509,7 +1509,7 @@ end;
 
 procedure TLevelInfo.LoadFromDocument;
 
-  procedure MissingRequiredAttribute(const AttrName: string);
+  procedure MissingRequiredAttribute(const AttrName: String);
   begin
     raise Exception.CreateFmt(
       'Missing required attribute "%s" of <level> element', [AttrName]);
@@ -1517,9 +1517,9 @@ procedure TLevelInfo.LoadFromDocument;
 
   { Like DOMGetAttribute, but reads TLevelLogicClass value. }
   function DOMGetLevelLogicClassAttribute(const Element: TDOMElement;
-    const AttrName: string; var Value: TLevelLogicClass): Boolean;
+    const AttrName: String; var Value: TLevelLogicClass): Boolean;
   var
-    ValueStr: string;
+    ValueStr: String;
   begin
     Result := Element.AttributeString(AttrName, ValueStr);
     if not LevelLogicClasses.TryGetValue(ValueStr, Value) then
@@ -1540,10 +1540,10 @@ procedure TLevelInfo.LoadFromDocument;
 const
   DefaultPlaceholderReferenceDirection: TVector3 = (Data: (1, 0, 0));
 var
-  LoadingImageURL: string;
-  SoundName: string;
-  PlaceholdersKey: string;
-  S: string;
+  LoadingImageURL: String;
+  SoundName: String;
+  PlaceholdersKey: String;
+  S: String;
 begin
   Element := Document.DocumentElement;
 
@@ -1612,10 +1612,10 @@ end;
 
 { TLevelInfoList ------------------------------------------------------- }
 
-function TLevelInfoList.FindName(const AName: string): TLevelInfo;
+function TLevelInfoList.FindName(const AName: String): TLevelInfo;
 var
   I: Integer;
-  S: string;
+  S: String;
 begin
   for I := 0 to Count - 1 do
     if Items[I].Name = AName then
@@ -1658,7 +1658,7 @@ begin
   AddFromFile(Info.URL);
 end;
 
-procedure TLevelInfoList.AddFromFile(const URL: string);
+procedure TLevelInfoList.AddFromFile(const URL: String);
 var
   NewLevelInfo: TLevelInfo;
 begin
@@ -1671,7 +1671,7 @@ begin
   NewLevelInfo.LoadFromDocument;
 end;
 
-procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
+procedure TLevelInfoList.LoadFromFiles(const LevelsPath: String);
 begin
   FindFiles(LevelsPath, 'level.xml', false, @AddFromInfo, [ffRecursive]);
 end;
@@ -1691,12 +1691,12 @@ end;
 
 { TLevelLogicClasses --------------------------------------------------------- }
 
-function TLevelLogicClasses.GetItems(const AKey: string): TLevelLogicClass;
+function TLevelLogicClasses.GetItems(const AKey: String): TLevelLogicClass;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TLevelLogicClasses.SetItems(const AKey: string; const AValue: TLevelLogicClass);
+procedure TLevelLogicClasses.SetItems(const AKey: String; const AValue: TLevelLogicClass);
 begin
   AddOrSetValue(AKey, AValue);
 end;

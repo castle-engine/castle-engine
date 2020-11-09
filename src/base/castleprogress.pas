@@ -151,7 +151,7 @@ type
     LastUpdateTime: TTimerResult;
     UserInterfaceDelayed: Boolean;
 
-    FTitle: string;
+    FTitle: String;
     FActive: Boolean;
     procedure SetPosition(const Value: Cardinal);
   public
@@ -189,7 +189,7 @@ type
       to appropriate @link(Step) call. }
     property Position: Cardinal read FPosition write SetPosition;
     property Max: Cardinal read FMax;
-    property Title: string read FTitle;
+    property Title: String read FTitle;
 
     { Are we between Init and Fini calls.
       Init changes Active to true, Fini changes Active to false. }
@@ -223,7 +223,7 @@ type
       to an operation with very few steps (e.g. 1) that may take a long time.
       If a time between Init and the first Update or Fini is really large,
       the progress bar will not be visible. }
-    procedure Init(AMax: Cardinal; const ATitle: string;
+    procedure Init(AMax: Cardinal; const ATitle: String;
       const DelayUserInterface: Boolean = false);
 
     { Increments progress bar @link(Position) by @code(StepSize).
@@ -309,7 +309,7 @@ end;
 
 { TProgress ------------------------------------------------------------------ }
 
-procedure TProgress.Init(AMax: Cardinal; const ATitle: string;
+procedure TProgress.Init(AMax: Cardinal; const ATitle: String;
   const DelayUserInterface: Boolean);
 begin
   Check(not Active, 'TProgress.Init error: progress is already active');

@@ -109,7 +109,7 @@ type
   compiled Linux kernel with /proc support. So under Linux
   this may work, but still you should be always prepared that it
   may raise @link(EExeNameNotAvailable). }
-function ExeName: string; deprecated 'as this function is not portable (may raise exception on non-Windows), it should not be used in a cross-platform game code';
+function ExeName: String; deprecated 'as this function is not portable (may raise exception on non-Windows), it should not be used in a cross-platform game code';
 
 { The name of our program.
 
@@ -124,7 +124,7 @@ function ExeName: string; deprecated 'as this function is not portable (may rais
   usually it should be the basename of the executable (although we do not depend
   on it technically). It is used to derive config and data paths for our program,
   see ApplicationConfig and ApplicationData. }
-function ProgramName: string; deprecated;
+function ProgramName: String; deprecated;
 
 { Returns @true if file exists and is a "regular" file.
 
@@ -149,7 +149,7 @@ function NormalFileExists(const FileName: String): Boolean; deprecated 'use Regu
   PathDelim.
 
   @deprecated Deprecated, use ApplicationConfig instead. }
-function UserConfigPath: string; deprecated;
+function UserConfigPath: String; deprecated;
 
 { Filename to store user configuration.
   Always returns absolute (not relative) path.
@@ -166,13 +166,13 @@ function UserConfigPath: string; deprecated;
 
   @deprecated Deprecated,
   use ApplicationConfig(ApplicationName + Extension) instead. }
-function UserConfigFile(const Extension: string): string; deprecated;
+function UserConfigFile(const Extension: String): String; deprecated;
 
 { Path to access installed data files.
   Returns absolute path, containing trailing PathDelim.
 
   @deprecated Deprecated, use ApplicationData instead. }
-function ProgramDataPath: string; deprecated;
+function ProgramDataPath: String; deprecated;
 
 var
   { URL used as a prefix of all @link(ApplicationConfig) returned URLs.
@@ -180,7 +180,7 @@ var
     done by default by @link(ApplicationConfig).
 
     This must always end with a slash, if it's not empty. }
-  ApplicationConfigOverride: string;
+  ApplicationConfigOverride: String;
 
 { URL where we should read and write configuration files.
   This always returns a @code(file://...) URL,
@@ -202,7 +202,7 @@ var
   On UNIX this follows XDG Base Directory Specification,
   see http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
   (simplifying: looks inside ~/.config/<application-name>/). }
-function ApplicationConfig(const Path: string): string;
+function ApplicationConfig(const Path: String): String;
 
 { URL from which we should read data files.
   This returns an URL, which is comfortable since our engine operates
@@ -326,7 +326,7 @@ function ApplicationConfig(const Path: string): string;
     )
   )
 ) }
-function ApplicationData(const Path: string): string;
+function ApplicationData(const Path: String): String;
 
 var
   { URL used as a prefix of all @link(ApplicationData) returned URLs.
@@ -334,7 +334,7 @@ var
     done by default by @link(ApplicationData).
 
     This must always end with a slash, if it's not empty. }
-  ApplicationDataOverride: string;
+  ApplicationDataOverride: String;
 
 {$ifdef UNIX}
 { User's home directory, with trailing PathDelim.
@@ -344,33 +344,33 @@ var
   This is what bash does (more-or-less, when home directory does
   not exist strange things happen), that's what programs should
   do according to `info libc' and Kambi preferences. }
-function HomePath: string;
+function HomePath: String;
 {$endif}
 
 { Expand tilde (~) in path, just like shell. Expands ~ to
   ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
-function ExpandHomePath(const FileName: string): string;
+function ExpandHomePath(const FileName: String): String;
 
 { Call SysUtils.DeleteFile and check result.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure CheckDeleteFile(const FileName: string; const Warn: Boolean = false);
+procedure CheckDeleteFile(const FileName: String; const Warn: Boolean = false);
 
 { Call RemoveDir and check result.
 
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure CheckRemoveDir(const DirFileName: string; const Warn: Boolean = false);
+procedure CheckRemoveDir(const DirFileName: String; const Warn: Boolean = false);
 
 { Make sure directory exists, eventually creating it, recursively, checking result. }
-procedure CheckForceDirectories(const Dir: string);
+procedure CheckForceDirectories(const Dir: String);
 
-procedure CheckCopyFile(const Source, Dest: string);
+procedure CheckCopyFile(const Source, Dest: String);
 
-procedure CheckRenameFile(const Source, Dest: string);
+procedure CheckRenameFile(const Source, Dest: String);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
   with all the files and subdirectories inside).
@@ -379,7 +379,7 @@ procedure CheckRenameFile(const Source, Dest: string);
   When Warn = @false (default) raises an exception on failure,
   otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises ERemoveFailed If delete failed, and Warn = @false. }
-procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
+procedure RemoveNonEmptyDir(const DirName: String; const Warn: Boolean = false);
 
 { Copies the contents from SourceDir to DestinationDir.
   DestinationDir and necessary subdirectories are created, if needed.
@@ -396,7 +396,7 @@ procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
     CopyDirectory(SourceDir, DestinationDir);
   #)
 }
-procedure CopyDirectory(SourcePath, DestinationPath: string);
+procedure CopyDirectory(SourcePath, DestinationPath: String);
 
 { Substitute %d in given FileName (or URL) pattern with successive numbers,
   until the FileName doesn't exist.
@@ -421,10 +421,10 @@ procedure CopyDirectory(SourcePath, DestinationPath: string);
   where you don't want to perform %d substitution.
   Alternative is to wrap the string in @link(SUnformattable).
 }
-function FileNameAutoInc(const FileNamePattern: string): string; overload;
-function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string; overload;
+function FileNameAutoInc(const FileNamePattern: String): String; overload;
+function FileNameAutoInc(const Prefix, SuffixWithPattern: String): String; overload;
 
-function FnameAutoInc(const FileNamePattern: string): string;
+function FnameAutoInc(const FileNamePattern: String): String;
   deprecated 'use FileNameAutoInc';
 
 { Parent directory name.
@@ -439,8 +439,8 @@ function FnameAutoInc(const FileNamePattern: string): string;
   is absolute path. Then this function is pure string-operation
   (no actual reading of any filesystem info), so it works faster and
   DirName does not need to exist. }
-function ParentPath(DirName: string;
-  DoExpandDirName: Boolean = true): string;
+function ParentPath(DirName: String;
+  DoExpandDirName: Boolean = true): String;
   deprecated 'use URLs and operate on them using CastleURIUtils unit';
 
 { Combines BasePath with RelPath into complete path.
@@ -453,7 +453,7 @@ function ParentPath(DirName: string;
 
   Usually you should instead operate on URLs
   and combine them using @link(CastleURIUtils.CombineURI). }
-function CombinePaths(BasePath, RelPath: string): string;
+function CombinePaths(BasePath, RelPath: String): String;
 
 { Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.
@@ -471,34 +471,34 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   Searches in $PATH (and, if OS does this, in current directory --- this is standard
   on Windows but not on Unix).
   Returns '' (if not found) or absolute FileName. }
-function FindExe(const ExeName: string): string;
+function FindExe(const ExeName: String): String;
 
 { Add an exe file extension, searching for an existing file starting with ExePath.
   On non-Windows, this is just equal to ExePath + ExeExtension,
   which in practice is just equal to ExePath (since ExeExtension is empty on Unix).
   But on Windows, this tries to append other extensions (.com, .bat, .cmd,
   just like @link(FindExe)), depending on what file exists. }
-function AddExeExtension(const ExePath: string): string;
+function AddExeExtension(const ExePath: String): String;
 
 { Get temporary FileName, suitable for ApplicationName, checking that
   it doesn't exist. }
-function GetTempFileNameCheck: string;
+function GetTempFileNameCheck: String;
 
 { Return a prefix (beginning of an absolute FileName)
   to save a series of temporary files. }
-function GetTempFileNamePrefix: string;
+function GetTempFileNamePrefix: String;
 
 {$ifdef DARWIN}
 { Main directory of the current macOS bundle, including final slash.
   Empty string if we're not run from a bundle. }
-function BundlePath: string;
+function BundlePath: String;
 {$endif}
 
 { Read file or URL contents to a string.
   MimeType is returned, calculated just like the @link(Download) function. }
-function FileToString(const URL: string;
-  out MimeType: string): AnsiString; overload;
-function FileToString(const URL: string): AnsiString; overload;
+function FileToString(const URL: String;
+  out MimeType: String): AnsiString; overload;
+function FileToString(const URL: String): AnsiString; overload;
 
 procedure StringToFile(const URL: String; const Contents: AnsiString);
 
@@ -523,9 +523,9 @@ uses {$ifdef MSWINDOWS} ShlObj, {$endif}
 
 var
   { Initialized once in initialization, afterwards constant. }
-  FExeName: string;
+  FExeName: String;
 
-function ExeName: string;
+function ExeName: String;
 begin
   if FExeName = '' then
     raise EExeNameNotAvailable.Create(
@@ -533,17 +533,17 @@ begin
   Result := FExeName;
 end;
 
-function ProgramName: string;
+function ProgramName: String;
 begin
   Result := ApplicationName;
 end;
 
-function NormalFileExists(const FileName: string): Boolean;
+function NormalFileExists(const FileName: String): Boolean;
 begin
   Result := RegularFileExists(FileName);
 end;
 
-function RegularFileExists(const FileName: string): Boolean;
+function RegularFileExists(const FileName: String): Boolean;
 {$ifdef MSWINDOWS}
 var
   S: String;
@@ -561,19 +561,19 @@ begin
 {$endif}
 end;
 
-function UserConfigPath: string;
+function UserConfigPath: String;
 begin
   Result := ApplicationConfig('');
 end;
 
-function UserConfigFile(const Extension: string): string;
+function UserConfigFile(const Extension: String): String;
 begin
   Result := ApplicationConfig(ApplicationName + Extension);
 end;
 
-function ApplicationConfig(const Path: string): string;
+function ApplicationConfig(const Path: String): String;
 var
-  ConfigDir, Dir: string;
+  ConfigDir, Dir: String;
 begin
   if ApplicationConfigOverride <> '' then
     Exit(ApplicationConfigOverride + Path);
@@ -598,22 +598,22 @@ begin
   Result := FilenameToURISafe(ConfigDir + Path);
 end;
 
-function ProgramDataPath: string;
+function ProgramDataPath: String;
 begin
   Result := ApplicationData('');
 end;
 
 var
   ApplicationDataIsCache: Boolean = false;
-  ApplicationDataCache: string;
+  ApplicationDataCache: String;
 
-function ApplicationData(const Path: string): string;
+function ApplicationData(const Path: String): String;
 
   {$ifndef ANDROID}
-  function GetApplicationDataPath: string;
+  function GetApplicationDataPath: String;
   {$ifdef MSWINDOWS}
   var
-    ExePath: string;
+    ExePath: String;
   begin
     {$warnings off}
     // knowingly using deprecated; ExeName should be undeprecated but internal one day
@@ -627,7 +627,7 @@ function ApplicationData(const Path: string): string;
   {$endif MSWINDOWS}
   {$ifdef UNIX}
   var
-    CurPath: string;
+    CurPath: String;
   begin
     {$ifdef DARWIN}
     if BundlePath <> '' then
@@ -711,7 +711,7 @@ end;
 { other file utilities ---------------------------------------------------- }
 
 {$ifdef UNIX}
-function HomePath:  string;
+function HomePath:  String;
 begin
  { home dir jest dla mnie zmienna $HOME a nie tym co moglbym uzyskac z libc
    pytajac o uzytkownika real uid i jego home dir zapisany w /etc/passwd.
@@ -746,7 +746,7 @@ begin
 end;
 {$endif}
 
-function ExpandHomePath(const FileName: string): string;
+function ExpandHomePath(const FileName: String): String;
 {$ifdef UNIX}
 begin
  { Rozwin '~' w nazwe home dir. Rozwin '~/xxx' w homedir+'/xxx'. }
@@ -765,7 +765,7 @@ begin
 {$endif}
 end;
 
-procedure CheckDeleteFile(const FileName: string; const Warn: Boolean);
+procedure CheckDeleteFile(const FileName: String; const Warn: Boolean);
 begin
   if not SysUtils.DeleteFile(FileName) then
   begin
@@ -775,7 +775,7 @@ begin
   end;
 end;
 
-procedure CheckRemoveDir(const DirFileName:  string; const Warn: Boolean = false);
+procedure CheckRemoveDir(const DirFileName:  String; const Warn: Boolean = false);
 begin
   if not RemoveDir(DirFileName) then
   begin
@@ -785,13 +785,13 @@ begin
   end;
 end;
 
-procedure CheckForceDirectories(const Dir: string);
+procedure CheckForceDirectories(const Dir: String);
 begin
   if not ForceDirectories(Dir) then
     raise Exception.CreateFmt('Cannot create directory "%s"', [Dir]);
 end;
 
-procedure CheckCopyFile(const Source, Dest: string);
+procedure CheckCopyFile(const Source, Dest: String);
 var
   SourceFile, DestFile: TFileStream;
 begin
@@ -804,7 +804,7 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-procedure CheckRenameFile(const Source, Dest: string);
+procedure CheckRenameFile(const Source, Dest: String);
 begin
   {$ifdef MSWINDOWS}
   { On Windows, we have to remove Dest explicitly, otherwise RenameFile will fail
@@ -837,7 +837,7 @@ begin
     CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
-procedure RemoveNonEmptyDir(const DirName: string; const Warn: Boolean = false);
+procedure RemoveNonEmptyDir(const DirName: String; const Warn: Boolean = false);
 begin
   FindFiles(DirName, '*', true,
     @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
@@ -886,12 +886,12 @@ end;
 
 { dir handling -------------------------------------------------------- }
 
-function FileNameAutoInc(const FileNamePattern: string): string;
+function FileNameAutoInc(const FileNamePattern: String): String;
 begin
   Result := FileNameAutoInc('', FileNamePattern);
 end;
 
-function FileNameAutoInc(const Prefix, SuffixWithPattern: string): string;
+function FileNameAutoInc(const Prefix, SuffixWithPattern: String): String;
 var
   I: Integer;
 begin
@@ -904,7 +904,7 @@ begin
   until false;
 end;
 
-function FnameAutoInc(const FileNamePattern: string): string;
+function FnameAutoInc(const FileNamePattern: String): String;
 begin
   Result := FileNameAutoInc(FileNamePattern);
 end;
@@ -913,7 +913,7 @@ end;
   CastleFilesUtils instead of casleutils_filenames.inc is
   using ExpandFileName. }
 
-function ParentPath(DirName: string; DoExpandDirName: Boolean): string;
+function ParentPath(DirName: String; DoExpandDirName: Boolean): String;
 var P: Integer;
 begin
 {$ifdef MSWINDOWS}
@@ -933,7 +933,7 @@ begin
  if P > 0 then Result := Copy(DirName, 1 , P) else Result := RootDir;
 end;
 
-function CombinePaths(BasePath, RelPath: string): string;
+function CombinePaths(BasePath, RelPath: String): String;
 begin
   if IsPathAbsolute(RelPath) then
     result := RelPath else
@@ -1021,7 +1021,7 @@ end;
 
 {$endif}
 
-function FindExe(const ExeName: string): string;
+function FindExe(const ExeName: String): String;
 begin
   {$ifdef MSWINDOWS}
   { The default order of extensions is .com, .exe, .bat, .cmd,
@@ -1038,7 +1038,7 @@ begin
   {$endif}
 end;
 
-function AddExeExtension(const ExePath: string): string;
+function AddExeExtension(const ExePath: String): String;
 begin
   {$ifdef MSWINDOWS}
   { The default order of extensions is .com, .exe, .bat, .cmd,
@@ -1120,18 +1120,18 @@ begin
   Result := MyFileName;
 end;
 
-function GetTempFileNameCheck: string;
+function GetTempFileNameCheck: String;
 begin
   Result := GetTempFileNameWindows(ApplicationName);
 end;
 
-function GetTempFileNamePrefix: string;
+function GetTempFileNamePrefix: String;
 begin
   Result := GetTempFileNameWindows(ApplicationName);
 end;
 {$else}
 
-function GetTempFileNameCheck: string;
+function GetTempFileNameCheck: String;
 begin
   Result := GetTempFileName('', ApplicationName);
   { Be paranoid and check whether file does not exist. }
@@ -1140,7 +1140,7 @@ begin
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
 end;
 
-function GetTempFileNamePrefix: string;
+function GetTempFileNamePrefix: String;
 var
   FileInfo: TFileInfo;
 begin
@@ -1164,9 +1164,9 @@ end;
 {$ifdef DARWIN}
 var
   BundlePathCached: Boolean;
-  BundlePathCache: string;
+  BundlePathCache: String;
 
-function BundlePath: string;
+function BundlePath: String;
 { Based on
   http://wiki.freepascal.org/OS_X_Programming_Tips#How_to_obtain_the_path_to_the_Bundle }
 var
@@ -1195,8 +1195,8 @@ begin
 end;
 {$endif DARWIN}
 
-function FileToString(const URL: string;
-  out MimeType: string): AnsiString;
+function FileToString(const URL: String;
+  out MimeType: String): AnsiString;
 var
   F: TStream;
 begin
@@ -1214,9 +1214,9 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function FileToString(const URL: string): AnsiString;
+function FileToString(const URL: String): AnsiString;
 var
-  MimeType: string;
+  MimeType: String;
 begin
   Result := FileToString(URL, MimeType { ignored });
 end;

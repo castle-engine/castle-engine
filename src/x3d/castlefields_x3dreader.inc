@@ -21,19 +21,19 @@
   TX3DReader = class
   strict private
     FVersion: TX3DVersion;
-    FBaseUrl: string;
+    FBaseUrl: String;
   private
     AngleConversionFactor: Float;
   public
     LengthConversionFactor: Float;
 
-    constructor Create(const ABaseUrl: string;
+    constructor Create(const ABaseUrl: String;
       const AVersion: TX3DVersion);
     constructor CreateCopy(Source: TX3DReader);
 
     { Base path for resolving URLs from nodes in this namespace.
       See TX3DNode.BaseUrl. }
-    property BaseUrl: string read FBaseUrl;
+    property BaseUrl: String read FBaseUrl;
 
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
@@ -43,7 +43,7 @@
       If this is length conversion factor, we update our
       LengthConversionFactor property, but it's callers responsibility
       to make use of it. (You want to use here TX3DRootNode.Scale.) }
-    procedure UnitConversion(const Category, Name: string;
+    procedure UnitConversion(const Category, Name: String;
       const ConversionFactor: Float);
   end;
 
@@ -54,7 +54,7 @@
 { TX3DReader ----------------------------------------------------------------- }
 
 constructor TX3DReader.Create(
-  const ABaseUrl: string; const AVersion: TX3DVersion);
+  const ABaseUrl: String; const AVersion: TX3DVersion);
 begin
   inherited Create;
   FBaseUrl := ABaseUrl;
@@ -72,7 +72,7 @@ begin
   LengthConversionFactor := Source.LengthConversionFactor;
 end;
 
-procedure TX3DReader.UnitConversion(const Category, Name: string;
+procedure TX3DReader.UnitConversion(const Category, Name: String;
   const ConversionFactor: Float);
 begin
   if (Version.Major < 3) or

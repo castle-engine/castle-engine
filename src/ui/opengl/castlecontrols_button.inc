@@ -36,7 +36,7 @@
     FCalculatedPreferredWidth, FCalculatedPreferredHeight: Single;
     TextWidth, TextHeight: Single;
     FOnClick: TNotifyEvent;
-    FCaption: string;
+    FCaption: String;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: Boolean;
     FPressed: Boolean;
     FImage,
@@ -71,7 +71,7 @@
     { Make sure FCalculatedSize is true and if necessary
       calculate TextWidth, TextHeight, FCalculatedPreferredWidth/Height. }
     procedure CalculateSizeIfNecessary;
-    procedure SetCaption(const Value: string);
+    procedure SetCaption(const Value: String);
     procedure SetAutoSize(const Value: Boolean);
     procedure SetAutoSizeWidth(const Value: Boolean);
     procedure SetAutoSizeHeight(const Value: Boolean);
@@ -262,7 +262,7 @@
 
     { Caption to display on the button.
       The text may be multiline (use the LineEnding or NL constants to mark newlines). }
-    property Caption: string read FCaption write SetCaption;
+    property Caption: String read FCaption write SetCaption;
 
     { Should the @link(Caption) be localized (translated into other languages).
       Determines if the property is enumerated by @link(TCastleComponent.TranslateProperties),
@@ -639,7 +639,7 @@ begin
     OnClick(Self);
 end;
 
-procedure TCastleButton.SetCaption(const Value: string);
+procedure TCastleButton.SetCaption(const Value: String);
 begin
   if Value <> FCaption then
   begin

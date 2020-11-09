@@ -115,7 +115,7 @@ type
     FMouseButton2Use: Boolean;
     FMouseButton2: TCastleMouseButton;
     FMouseWheel: TMouseWheelDirection;
-    FCaption: string;
+    FCaption: String;
     FGroup: TInputGroup;
     FGroupOrder: Integer;
     { Index of InputsAll. For now this is useful only for sorting,
@@ -158,8 +158,8 @@ type
     { Flexible constructor that allows to set Group and choose global or local
       shortcut. }
     constructor Create(const AOwner: TComponent;
-      const ACaption: string;
-      const AName: string;
+      const ACaption: String;
+      const AName: String;
       const AGroup: TInputGroup); overload;
 
     procedure MakeDefault;
@@ -257,15 +257,15 @@ type
       then user will see it as @code('Press "use" key to do something')
       and will know that (s)he should configure the "use" key.
       @groupBegin }
-    function Description(const NoneString: string): string; overload;
-    function Description: string; overload;
+    function Description(const NoneString: String): String; overload;
+    function Description: String; overload;
     { @groupEnd }
 
     { Modifier keys that are relevant to recognize this shortcut. }
     function Modifiers: TModifierKeys;
 
     { Nice name to show user. With spaces, localized characters etc. }
-    property Caption: string read FCaption;
+    property Caption: String read FCaption;
 
     { Group of the global shortcut, or igLocal indicating a local shortcut.
       Games may use this group to better show the keys configuration for user,
@@ -385,13 +385,13 @@ type
   TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
-    function FindName(const Name: string): TInputShortcut;
+    function FindName(const Name: String): TInputShortcut;
 
     { Seeks for a shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
     function SeekMatchingShortcut(const Event: TInputPressRelease): TInputShortcut;
     procedure RestoreDefaults;
-    function SeekConflict(out ConflictDescription: string): Boolean;
+    function SeekConflict(out ConflictDescription: String): Boolean;
 
     { Load customized input shortcuts from a config file,
       for example from @link(UserConfig).
@@ -431,8 +431,8 @@ uses SysUtils, Generics.Defaults,
 { TInputShortcut ------------------------------------------------------------- }
 
 constructor TInputShortcut.Create(const AOwner: TComponent;
-  const ACaption: string;
-  const AName: string;
+  const ACaption: String;
+  const AName: String;
   const AGroup: TInputGroup);
 begin
   inherited Create(AOwner);
@@ -658,7 +658,7 @@ begin
   end;
 end;
 
-function TInputShortcut.Description(const NoneString: string): string;
+function TInputShortcut.Description(const NoneString: String): String;
 begin
   Result := '';
 
@@ -704,7 +704,7 @@ begin
     Result := NoneString;
 end;
 
-function TInputShortcut.Description: string;
+function TInputShortcut.Description: String;
 begin
   Result := Description(Format('"%s" key', [Caption]));
 end;
@@ -896,7 +896,7 @@ type
   TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: TInputShortcut;
-  ConflictDescription: string;
+  ConflictDescription: String;
   G: TInputGroupNotLocal;
 begin
   { we assume that all inputs are added now, so we do some finalizing operations
@@ -932,7 +932,7 @@ begin
 end;
 
 function TInputShortcutList.SeekConflict(
-  out ConflictDescription: string): Boolean;
+  out ConflictDescription: String): Boolean;
 var
   I, J: Integer;
 begin
@@ -952,7 +952,7 @@ begin
   Result := false;
 end;
 
-function TInputShortcutList.FindName(const Name: string): TInputShortcut;
+function TInputShortcutList.FindName(const Name: String): TInputShortcut;
 var
   I: Integer;
 begin

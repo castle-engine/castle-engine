@@ -1,6 +1,6 @@
 function LoadComposite(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
-  const MimeType: string): TEncodedImage;
+  const MimeType: String): TEncodedImage;
 var
   Composite: TCompositeImage;
 begin
@@ -33,7 +33,7 @@ begin
   Result := LoadComposite(Stream, AllowedImageClasses, 'image/ktx');
 end;
 
-procedure SaveComposite(Img: TEncodedImage; Stream: TStream; const MimeType: string);
+procedure SaveComposite(Img: TEncodedImage; Stream: TStream; const MimeType: String);
 var
   Composite: TCompositeImage;
 begin

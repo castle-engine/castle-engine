@@ -106,7 +106,7 @@ type
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default @true.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor Create(const URL: string;
+    constructor Create(const URL: String;
       const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -134,7 +134,7 @@ type
       @param(ASmoothscaling Enables interpolation, see @link(TDrawableImage.SmoothScaling) for details, default @True.)
       @param(ATimeLoop Should animation be repeated?, default True.)
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
-    constructor CreateFrameSize(const URL: string;
+    constructor CreateFrameSize(const URL: String;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
@@ -559,7 +559,7 @@ begin
   FOwnsImage := true;
 end;
 
-constructor TSprite.CreateFrameSize(const URL: string;
+constructor TSprite.CreateFrameSize(const URL: String;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -572,7 +572,7 @@ begin
     ATimeLoop, APlay);
 end;
 
-constructor TSprite.Create(const URL: string;
+constructor TSprite.Create(const URL: String;
   const AFrames, AColumns, ARows: Cardinal;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);

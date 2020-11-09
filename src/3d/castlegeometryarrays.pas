@@ -89,7 +89,7 @@ type
 
   { GLSL attributes array information, for TGeometryArrays. }
   TGeometryAttrib = class
-    Name: string;
+    Name: String;
     { Internal for our engine (as opposed to specified in 3D model file).
       This is only used to change warnings related to this attribute. }
     Internal: Boolean;
@@ -98,7 +98,7 @@ type
   end;
   TGeometryAttribList = class(specialize TObjectList<TGeometryAttrib>)
   public
-    function Find(const Name: string): TGeometryAttrib;
+    function Find(const Name: String): TGeometryAttrib;
   end;
 
   TGeometryIndex = {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
@@ -157,9 +157,9 @@ type
       const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
     procedure AddGLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Internal: Boolean);
+      const Name: String; const Internal: Boolean);
     function GLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Index: Cardinal): PtrUInt;
+      const Name: String; const Index: Cardinal): PtrUInt;
   public
     constructor Create;
     destructor Destroy; override;
@@ -313,21 +313,21 @@ type
 
     property Attribs: TGeometryAttribList read FAttribs;
 
-    procedure AddGLSLAttributeFloat(const Name: string; const Internal: Boolean);
-    procedure AddGLSLAttributeVector2(const Name: string; const Internal: Boolean);
-    procedure AddGLSLAttributeVector3(const Name: string; const Internal: Boolean);
-    procedure AddGLSLAttributeVector4(const Name: string; const Internal: Boolean);
-    procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: Boolean);
-    procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: Boolean);
+    procedure AddGLSLAttributeFloat(const Name: String; const Internal: Boolean);
+    procedure AddGLSLAttributeVector2(const Name: String; const Internal: Boolean);
+    procedure AddGLSLAttributeVector3(const Name: String; const Internal: Boolean);
+    procedure AddGLSLAttributeVector4(const Name: String; const Internal: Boolean);
+    procedure AddGLSLAttributeMatrix3(const Name: String; const Internal: Boolean);
+    procedure AddGLSLAttributeMatrix4(const Name: String; const Internal: Boolean);
 
     function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
-    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
-    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
-    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
-    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
-    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
-    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
+    function GLSLAttributeFloat(const Name: String; const Index: Cardinal = 0): PSingle;
+    function GLSLAttributeVector2(const Name: String; const Index: Cardinal = 0): PVector2;
+    function GLSLAttributeVector3(const Name: String; const Index: Cardinal = 0): PVector3;
+    function GLSLAttributeVector4(const Name: String; const Index: Cardinal = 0): PVector4;
+    function GLSLAttributeMatrix3(const Name: String; const Index: Cardinal = 0): PMatrix3;
+    function GLSLAttributeMatrix4(const Name: String; const Index: Cardinal = 0): PMatrix4;
 
     { Should we use backface-culling (ignore some faces during rendering).
 
@@ -373,7 +373,7 @@ uses SysUtils, CastleStringUtils;
 
 { TGeometryAttribList ------------------------------------------------------- }
 
-function TGeometryAttribList.Find(const Name: string): TGeometryAttrib;
+function TGeometryAttribList.Find(const Name: String): TGeometryAttrib;
 var
   I: Integer;
 begin
@@ -623,11 +623,11 @@ begin
 end;
 
 const
-  AttribTypeName: array[TGeometryAttribType] of string =
+  AttribTypeName: array[TGeometryAttribType] of String =
   ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
 
 procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Internal: Boolean);
+  const Name: String; const Internal: Boolean);
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
@@ -662,38 +662,38 @@ begin
   end;
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atFloat, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector2, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atVector4, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atMatrix3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: Boolean);
+procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: String; const Internal: Boolean);
 begin
   AddGLSLAttribute(atMatrix4, Name, Internal);
 end;
 
 function TGeometryArrays.GLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Index: Cardinal): PtrUInt;
+  const Name: String; const Index: Cardinal): PtrUInt;
 var
   A: TGeometryAttrib;
 begin
@@ -718,32 +718,32 @@ begin
   Result := PtrUInt(FAttributeArray) + A.Offset + Offset;
 end;
 
-function TGeometryArrays.GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
+function TGeometryArrays.GLSLAttributeFloat(const Name: String; const Index: Cardinal = 0): PSingle;
 begin
   Result := PSingle(GLSLAttribute(atFloat, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
+function TGeometryArrays.GLSLAttributeVector2(const Name: String; const Index: Cardinal = 0): PVector2;
 begin
   Result := PVector2(GLSLAttribute(atVector2, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
+function TGeometryArrays.GLSLAttributeVector3(const Name: String; const Index: Cardinal = 0): PVector3;
 begin
   Result := PVector3(GLSLAttribute(atVector3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
+function TGeometryArrays.GLSLAttributeVector4(const Name: String; const Index: Cardinal = 0): PVector4;
 begin
   Result := PVector4(GLSLAttribute(atVector4, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
+function TGeometryArrays.GLSLAttributeMatrix3(const Name: String; const Index: Cardinal = 0): PMatrix3;
 begin
   Result := PMatrix3(GLSLAttribute(atMatrix3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
+function TGeometryArrays.GLSLAttributeMatrix4(const Name: String; const Index: Cardinal = 0): PMatrix4;
 begin
   Result := PMatrix4(GLSLAttribute(atMatrix4, Name, Index));
 end;

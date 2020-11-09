@@ -54,13 +54,13 @@ function png_is_alpha(png_ptr: png_structp; info_ptr: png_infop): Boolean; forwa
 
 function png_is_grayscale(png_ptr: png_structp; info_ptr: png_infop): Boolean; forward;
 
-function PngColorTypeToStr(const PngColorType: LongInt): string; forward;
-function PngInterlaceTypeToStr(const PngInterlaceType: LongInt): string; forward;
-function PngTextCompressionToStr(const PngTextCompression: LongInt): string; forward;
+function PngColorTypeToStr(const PngColorType: LongInt): String; forward;
+function PngInterlaceTypeToStr(const PngInterlaceType: LongInt): String; forward;
+function PngTextCompressionToStr(const PngTextCompression: LongInt): String; forward;
 
 var
   { Call InitializePNG to set these variables }
-  FCurrentLibpngVersion: string;
+  FCurrentLibpngVersion: String;
   FCurrentLibpngVersionMajor,
   FCurrentLibpngVersionMinor,
   FCurrentLibpngVersionRelease: Integer;
@@ -470,7 +470,7 @@ end;
 
 { *ToStr -------------------------------------------------------------- }
 
-function PngColorTypeToStr(const PngColorType: LongInt): string;
+function PngColorTypeToStr(const PngColorType: LongInt): String;
 begin
   case PngColorType of
     PNG_COLOR_TYPE_GRAY      : Result := 'Gray';
@@ -482,7 +482,7 @@ begin
   end;
 end;
 
-function PngInterlaceTypeToStr(const PngInterlaceType: LongInt): string;
+function PngInterlaceTypeToStr(const PngInterlaceType: LongInt): String;
 begin
   case PngInterlaceType of
     PNG_INTERLACE_NONE : Result := 'None';
@@ -491,7 +491,7 @@ begin
   end;
 end;
 
-function PngTextCompressionToStr(const PngTextCompression: LongInt): string;
+function PngTextCompressionToStr(const PngTextCompression: LongInt): String;
 begin
   case PngTextCompression of
     PNG_TEXT_COMPRESSION_NONE: Result := 'None';

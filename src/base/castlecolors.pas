@@ -137,26 +137,26 @@ function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
   and so the output contains the alpha value at the end (so it's 8 hex digits),
   unless alpha is opaque in which case it's not written (and result is 6
   hex digits). }
-function ColorToHex(const V: TCastleColor): string;
+function ColorToHex(const V: TCastleColor): String;
 
 { Change color into a hexadecimal notation of it (like in HTML).
   This color has no alpha channel,
   so it's always 6 hex digits. }
-function ColorRGBToHex(const V: TCastleColorRGB): string;
+function ColorRGBToHex(const V: TCastleColorRGB): String;
 
 { Convert hexadecimal color notation (like in HTML) into an RGBA color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 6 digits, alpha is assumed to be 1.0 (opaque)).
 
   @raises EConvertError In case of invalid color as string. }
-function HexToColor(const S: string): TCastleColor;
+function HexToColor(const S: String): TCastleColor;
 
 { Convert hexadecimal color notation (like in HTML) into an RGB color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 8 digits, alpha is ignored).
 
   @raises EConvertError In case of invalid color as string. }
-function HexToColorRGB(const S: string): TCastleColorRGB;
+function HexToColorRGB(const S: String): TCastleColorRGB;
 
 { Change color opacity (alpha). }
 function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
@@ -414,7 +414,7 @@ begin
   Result := HsvToRgb(HOut);
 end;
 
-function ColorToHex(const V: TCastleColor): string;
+function ColorToHex(const V: TCastleColor): String;
 var
   A: Byte;
 begin
@@ -426,14 +426,14 @@ begin
     Result := Result + IntToHex(A, 2);
 end;
 
-function ColorRGBToHex(const V: TCastleColorRGB): string;
+function ColorRGBToHex(const V: TCastleColorRGB): String;
 begin
   Result := IntToHex(RoundClamp255(V.Data[0] * 255), 2) +
             IntToHex(RoundClamp255(V.Data[1] * 255), 2) +
             IntToHex(RoundClamp255(V.Data[2] * 255), 2);
 end;
 
-function HexToColor(const S: string): TCastleColor;
+function HexToColor(const S: String): TCastleColor;
 begin
   if Length(S) = 8 then
     Result := Vector4(
@@ -450,7 +450,7 @@ begin
     raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
 end;
 
-function HexToColorRGB(const S: string): TCastleColorRGB;
+function HexToColorRGB(const S: String): TCastleColorRGB;
 begin
   if (Length(S) = 8) or
      (Length(S) = 6) then

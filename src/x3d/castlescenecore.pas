@@ -342,7 +342,7 @@ type
     { Animation name.
       You have to set at least this field, otherwise calling
       @link(TCastleSceneCore.PlayAnimation) with this is useless. }
-    Name: string;
+    Name: String;
 
     { Should we play in a loop, default @false which means to play just once. }
     Loop: Boolean;
@@ -477,7 +477,7 @@ type
 
       TCompiledScriptHandlerInfo = record
         Handler: TCompiledScriptHandler;
-        Name: string;
+        Name: String;
       end;
       PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
       TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
@@ -518,7 +518,7 @@ type
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: Boolean;
     FTimePlayingSpeed: Single;
-    FURL: string;
+    FURL: String;
     FStatic: Boolean;
     FShadowMaps: Boolean;
     FShadowMapsDefaultSize: Cardinal;
@@ -572,7 +572,7 @@ type
     PreviousPartialAffectedFields: TX3DFieldList;
 
     FCurrentAnimation: TTimeSensorNode;
-    FAnimationPrefix: string;
+    FAnimationPrefix: String;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
 
@@ -619,7 +619,7 @@ type
     procedure UpdateLODLevel(const LODTree: TShapeTreeLOD;
       const CameraLocalPosition: TVector3);
 
-    procedure SetURL(const AValue: string);
+    procedure SetURL(const AValue: String);
     procedure SetStatic(const Value: Boolean);
     procedure SetShadowMaps(const Value: Boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
@@ -707,7 +707,7 @@ type
       const OnlyPerspective: Boolean;
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string):
+      const ViewpointDescription: String):
       TAbstractViewpointNode;
   private
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
@@ -765,7 +765,7 @@ type
 
     ChangedAllCurrentViewpointIndex: Cardinal;
     FInitialViewpointIndex: Cardinal;
-    FInitialViewpointName: string;
+    FInitialViewpointName: String;
 
     FPointingDeviceOverItem: PTriangle;
     FPointingDeviceOverPoint: TVector3;
@@ -831,10 +831,10 @@ type
 
       @groupBegin }
     function CreateTriangleOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
+      const ProgressTitle: String;
       const Collidable: Boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
-      const ProgressTitle: string;
+      const ProgressTitle: String;
       const Collidable: Boolean): TShapeOctree;
     { @groupEnd }
   private
@@ -845,10 +845,10 @@ type
       const Face: TFaceIndex);
   private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
+    FTriangleOctreeProgressTitle: String;
 
     FShapeOctreeLimits: TOctreeLimits;
-    FShapeOctreeProgressTitle: string;
+    FShapeOctreeProgressTitle: String;
 
     FOctreeRendering: TShapeOctree;
     FOctreeDynamicCollisions: TShapeOctree;
@@ -971,7 +971,7 @@ type
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
 
-    procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
+    procedure ExecuteCompiledScript(const HandlerName: String; ReceivedValue: TX3DField); override;
 
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
@@ -1108,9 +1108,9 @@ type
       If you all you care about is loading normal files, then just pass
       a normal filename (absolute or relative to the current directory)
       as the URL parameter. }
-    procedure Load(const AURL: string; const AOptions: TSceneLoadOptions = []);
-    procedure Load(const AURL: string; const AllowStdIn: Boolean;
-      const AResetTime: Boolean = true); deprecated 'use Load with (AURL: string, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
+    procedure Load(const AURL: String; const AOptions: TSceneLoadOptions = []);
+    procedure Load(const AURL: String; const AllowStdIn: Boolean;
+      const AResetTime: Boolean = true); deprecated 'use Load with (AURL: String, AOptions: TSceneLoadOptions) parameters. AllowStdIn is not implemented anymore.';
 
     { Save the current 3D model (X3D nodes graph) to the given file (URL).
 
@@ -1126,7 +1126,7 @@ type
       compressed with gzip.
 
       The @link(URL) property is also changed. }
-    procedure Save(const AURL: string);
+    procedure Save(const AURL: String);
 
     destructor Destroy; override;
 
@@ -1163,10 +1163,10 @@ type
     { Helper functions for accessing viewpoints defined in the scene.
       @groupBegin }
     function ViewpointsCount: Cardinal;
-    function GetViewpointName(Idx: Integer): string;
+    function GetViewpointName(Idx: Integer): String;
     procedure MoveToViewpoint(Idx: Integer; Animated: Boolean = true);
     procedure AddViewpointFromCamera(const Navigation: TCastleNavigation;
-      const AName: string);
+      const AName: String);
     { @groupEnd }
 
     { Methods to notify this class about changes to the underlying RootNode
@@ -1345,13 +1345,13 @@ type
     function Info(
       ATriangleVerticesCounts,
       ABoundingBox: Boolean;
-      AManifoldAndBorderEdges: Boolean): string; deprecated 'do not use this, better to construct a summary string yourself';
+      AManifoldAndBorderEdges: Boolean): String; deprecated 'do not use this, better to construct a summary string yourself';
 
-    function InfoTriangleVerticesCounts: string;
+    function InfoTriangleVerticesCounts: String;
       deprecated 'better to construct a string yourself, use TrianglesCount, VerticesCount';
-    function InfoBoundingBox: string;
+    function InfoBoundingBox: String;
       deprecated 'better to construct a string yourself, use BoundingBox.ToString';
-    function InfoManifoldAndBorderEdges: string;
+    function InfoManifoldAndBorderEdges: String;
       deprecated 'better to construct a string yourself, use EdgesCount';
 
     { Edges count in the scene, for information purposes. }
@@ -1463,7 +1463,7 @@ type
       (through TProgress.Title). Uses only when not empty,
       and only if progress was not active already
       (so we avoid starting "progress bar within a progress bar"). }
-    property TriangleOctreeProgressTitle: string
+    property TriangleOctreeProgressTitle: String
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
@@ -1471,7 +1471,7 @@ type
       (through TProgress.Title). Uses only when not empty,
       and only if progress was not active already
       (so we avoid starting "progress bar within a progress bar"). }
-    property ShapeOctreeProgressTitle: string
+    property ShapeOctreeProgressTitle: String
       read  FShapeOctreeProgressTitle
       write FShapeOctreeProgressTitle;
 
@@ -1503,12 +1503,12 @@ type
     function GetViewpoint(
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string = ''):
+      const ViewpointDescription: String = ''):
       TAbstractViewpointNode;
 
     function GetPerspectiveViewpoint(
       out CamPos, CamDir, CamUp, GravityUp: TVector3;
-      const ViewpointDescription: string = ''):
+      const ViewpointDescription: String = ''):
       TAbstractViewpointNode;
     { @groupEnd }
 
@@ -1741,7 +1741,7 @@ type
     { Register compiled script handler, for VRML/X3D Script node with
       "compiled:" protocol.
       See [https://castle-engine.io/x3d_extensions.php#section_ext_script_compiled]. }
-    procedure RegisterCompiledScript(const HandlerName: string;
+    procedure RegisterCompiledScript(const HandlerName: String;
       Handler: TCompiledScriptHandler);
 
     { TNavigationType value determined by current NavigationInfo node. }
@@ -1926,7 +1926,7 @@ type
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
       (or it has empty title) then result is based on loaded URL. }
-    function Caption: string;
+    function Caption: String;
 
     { Global lights of this scene. Read-only. May be useful to render
       other 3D objects with lights defined inside this scene. }
@@ -1942,9 +1942,9 @@ type
       @raises(EX3DNotFound If given node (or field/event inside this node)
         could not be found.)
       @groupBegin }
-    function Node(const NodeName: string): TX3DNode;
-    function Field(const NodeName, FieldName: string): TX3DField;
-    function Event(const NodeName, EventName: string): TX3DEvent;
+    function Node(const NodeName: String): TX3DNode;
+    function Field(const NodeName, FieldName: String): TX3DField;
+    function Event(const NodeName, EventName: String): TX3DEvent;
     { @groupEnd }
 
     { List the names of available animations in this file.
@@ -1964,12 +1964,12 @@ type
     { Does named animation with given name exist.
       @seealso AnimationsList
       @seealso PlayAnimation }
-    function HasAnimation(const AnimationName: string): Boolean;
+    function HasAnimation(const AnimationName: String): Boolean;
 
     { TimeSensor of this animation. @nil if this name not found.
       See e.g. examples/3d_rendering_processing/listen_on_x3d_events.lpr
       for an example of using this. }
-    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+    function AnimationTimeSensor(const AnimationName: String): TTimeSensorNode;
 
     { TimeSensor of this animation, by animation index (index
       on AnimationsList). @nil if this index not found. }
@@ -1984,11 +1984,11 @@ type
       it ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
       properties, it ignores the current animation set by @link(PlayAnimation),
       and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
-    function ForceAnimationPose(const AnimationName: string;
+    function ForceAnimationPose(const AnimationName: String;
       const TimeInAnimation: TFloatTime;
       const Loop: Boolean;
       const Forward: Boolean = true): Boolean; overload;
-    function ForceAnimationPose(const AnimationName: string;
+    function ForceAnimationPose(const AnimationName: String;
       const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping;
       const Forward: Boolean = true): Boolean; overload;
@@ -2078,12 +2078,12 @@ type
       )
     }
     function PlayAnimation(const Parameters: TPlayAnimationParameters): Boolean; overload;
-    function PlayAnimation(const AnimationName: string;
+    function PlayAnimation(const AnimationName: String;
       const Loop: Boolean; const Forward: Boolean = true): Boolean; overload;
-    function PlayAnimation(const AnimationName: string;
+    function PlayAnimation(const AnimationName: String;
       const Looping: TPlayAnimationLooping;
       const Forward: Boolean = true): Boolean; overload;
-      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: string, Loop: Boolean)';
+      deprecated 'use another overloaded version of PlayAnimation, like simple PlayAnimation(AnimationName: String, Loop: Boolean)';
 
     { Force the model to look like the initial animation frame @italic(now).
 
@@ -2107,7 +2107,7 @@ type
       (named animations are detected by @link(AnimationsList) method).
       For a looping animation, this is the duration of a single cycle.
       0 if not found. }
-    function AnimationDuration(const AnimationName: string): TFloatTime;
+    function AnimationDuration(const AnimationName: String): TFloatTime;
 
     { The prefix of an X3D TimeSensor node name to treat it as a "named animation".
       Named animation are used by methods @link(AnimationsList), @link(PlayAnimation),
@@ -2120,7 +2120,7 @@ type
       nodes with names starting with this prefix will be available
       on @link(AnimationsList), and this prefix will be stripped from
       the names you use with methods like @link(PlayAnimation). }
-    property AnimationPrefix: string
+    property AnimationPrefix: String
       read FAnimationPrefix write FAnimationPrefix;
       deprecated 'this property did not prove to be of much use; report if you need it, otherwise it may be removed one day';
 
@@ -2191,7 +2191,7 @@ type
     function Clone(const AOwner: TComponent): TCastleSceneCore;
 
     { @deprecated Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
+    property FileName: String read FURL write SetURL; deprecated;
 
     procedure InternalIncShapesHash;
     property InternalShapesHash: TShapesHash read FShapesHash;
@@ -2351,7 +2351,7 @@ type
 
       Pass URL = '' to load an empty scene, this sets @link(RootNode) to @nil.
     }
-    property URL: string read FURL write SetURL;
+    property URL: String read FURL write SetURL;
 
     { At loading, process the scene to support shadow maps.
       This happens at the @link(Load) method call,
@@ -2407,7 +2407,7 @@ type
           means to use the first viewpoint named 'blah'.
           That is, we are only counting nodes named 'blah' for this.)
       ) }
-    property InitialViewpointName: string
+    property InitialViewpointName: String
       read FInitialViewpointName write FInitialViewpointName;
 
     { When @true, we animate (more precisely: process time pass in @link(Update))
@@ -3300,7 +3300,7 @@ begin
   UpdateAutoAnimation(false);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; const AllowStdIn: Boolean;
+procedure TCastleSceneCore.Load(const AURL: String; const AllowStdIn: Boolean;
   const AResetTime: Boolean);
 var
   Options: TSceneLoadOptions;
@@ -3311,7 +3311,7 @@ begin
   Load(AURL, Options);
 end;
 
-procedure TCastleSceneCore.Load(const AURL: string; const AOptions: TSceneLoadOptions);
+procedure TCastleSceneCore.Load(const AURL: String; const AOptions: TSceneLoadOptions);
 var
   TimeStart: TCastleProfilerTime;
   NewRoot: TX3DRootNode;
@@ -3435,14 +3435,14 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.Save(const AURL: string);
+procedure TCastleSceneCore.Save(const AURL: String);
 begin
   if RootNode <> nil then
     Save3D(RootNode, AURL, ApplicationName);
   FURL := AURL;
 end;
 
-procedure TCastleSceneCore.SetURL(const AValue: string);
+procedure TCastleSceneCore.SetURL(const AValue: String);
 begin
   if AValue <> FURL then
     Load(AValue);
@@ -4725,9 +4725,9 @@ var
   ANode: TX3DNode;
   Change: TX3DChange;
 
-  procedure DoLogChanges(const Additional: string = '');
+  procedure DoLogChanges(const Additional: String = '');
   var
-    S: string;
+    S: String;
   begin
     S := 'InternalChangedField: ' + X3DChangeToStr[Change] +
       Format(', node: %s (%s %s) at %s',
@@ -5443,7 +5443,7 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function TCastleSceneCore.InfoTriangleVerticesCounts: string;
+function TCastleSceneCore.InfoTriangleVerticesCounts: String;
 begin
   if (VerticesCount(false) = VerticesCount(true)) and
      (TrianglesCount(false) = TrianglesCount(true)) then
@@ -5458,7 +5458,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InfoBoundingBox: string;
+function TCastleSceneCore.InfoBoundingBox: String;
 var
   BBox: TBox3D;
 begin
@@ -5486,7 +5486,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+function TCastleSceneCore.InfoManifoldAndBorderEdges: String;
 var
   ManifoldEdges, BorderEdges: Cardinal;
 begin
@@ -5498,7 +5498,7 @@ end;
 function TCastleSceneCore.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
-  AManifoldAndBorderEdges: Boolean): string;
+  AManifoldAndBorderEdges: Boolean): String;
 begin
   Result := '';
 
@@ -5734,7 +5734,7 @@ end;
 
 function TCastleSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
+  const ProgressTitle: String;
   const Collidable: Boolean): TTriangleOctree;
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
@@ -5781,7 +5781,7 @@ end;
 
 function TCastleSceneCore.CreateShapeOctree(
   const Limits: TOctreeLimits;
-  const ProgressTitle: string;
+  const ProgressTitle: String;
   const Collidable: Boolean): TShapeOctree;
 var
   I: Integer;
@@ -5834,7 +5834,7 @@ end;
 type
   TFirstViewpointSeeker = class
     OnlyPerspective: Boolean;
-    ViewpointDescription: string;
+    ViewpointDescription: String;
     function Seek(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: Boolean): Pointer;
@@ -5859,7 +5859,7 @@ function TCastleSceneCore.GetViewpointCore(
   const OnlyPerspective: Boolean;
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 var
   Seeker: TFirstViewpointSeeker;
 begin
@@ -5894,7 +5894,7 @@ end;
 function TCastleSceneCore.GetViewpoint(
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 begin
   Result := GetViewpointCore(false, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
@@ -5902,7 +5902,7 @@ end;
 
 function TCastleSceneCore.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3;
-  const ViewpointDescription: string): TAbstractViewpointNode;
+  const ViewpointDescription: String): TAbstractViewpointNode;
 var
   ProjectionType: TProjectionType;
 begin
@@ -7259,7 +7259,7 @@ end;
 
 { compiled scripts ----------------------------------------------------------- }
 
-procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: String;
   Handler: TCompiledScriptHandler);
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
@@ -7269,7 +7269,7 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
-procedure TCastleSceneCore.ExecuteCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.ExecuteCompiledScript(const HandlerName: String;
   ReceivedValue: TX3DField);
 var
   I: Integer;
@@ -7286,7 +7286,7 @@ end;
 
 function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
 
-  function StringToNavigationType(const S: string;
+  function StringToNavigationType(const S: String;
     out NavigationType: TNavigationType): Boolean;
   begin
     Result := false;
@@ -7537,7 +7537,7 @@ var
   TransitionAnimate: Boolean;
   TransitionTime: TFloatTime;
   NavigationNode: TNavigationInfoNode;
-  TransitionType: string;
+  TransitionType: String;
   I: Integer;
 begin
   NavigationNode := NavigationInfoStack.Top;
@@ -7791,7 +7791,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Caption: string;
+function TCastleSceneCore.Caption: String;
 var
   WorldInfoNode: TWorldInfoNode;
 begin
@@ -7802,7 +7802,7 @@ begin
     Result := URICaption(URL);
 end;
 
-function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
+function TCastleSceneCore.Node(const NodeName: String): TX3DNode;
 begin
   if RootNode = nil then
     raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName])
@@ -7810,14 +7810,14 @@ begin
     Result := RootNode.FindNode(NodeName);
 end;
 
-function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
+function TCastleSceneCore.Field(const NodeName, FieldName: String): TX3DField;
 begin
   Result := Node(NodeName).Field(FieldName);
   if Result = nil then
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
 end;
 
-function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
+function TCastleSceneCore.Event(const NodeName, EventName: String): TX3DEvent;
 begin
   Result := Node(NodeName).AnyEvent(EventName);
   if Result = nil then
@@ -7838,7 +7838,7 @@ begin
   Result := FViewpointsArray.Count;
 end;
 
-function TCastleSceneCore.GetViewpointName(Idx: Integer): string;
+function TCastleSceneCore.GetViewpointName(Idx: Integer): String;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
     Result := FViewpointsArray[Idx].SmartDescription else
@@ -7867,7 +7867,7 @@ begin
 end;
 
 procedure TCastleSceneCore.AddViewpointFromCamera(
-  const Navigation: TCastleNavigation; const AName: string);
+  const Navigation: TCastleNavigation; const AName: String);
 var
   APosition: TVector3;
   ADirection: TVector3;
@@ -7876,7 +7876,7 @@ var
   Version: TX3DCameraVersion;
   NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
-  NavigationType: string;
+  NavigationType: String;
   Walk: TCastleWalkNavigation;
   Examine: TCastleExamineNavigation;
   WalkSpeed, VisibilityLimit: Single;
@@ -7961,9 +7961,9 @@ end;
 type
   TAnimationsEnumerator = class
     //Parent: TCastleSceneCore;
-    AnimationPrefix: string;
+    AnimationPrefix: String;
     List: TStringList;
-    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: string;
+    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: String;
       const Overwrite: Boolean);
     procedure Enumerate(Node: TX3DNode);
   end;
@@ -7974,9 +7974,9 @@ begin
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
-  const NodeName: string; const Overwrite: Boolean);
+  const NodeName: String; const Overwrite: Boolean);
 var
-  AnimationName: string;
+  AnimationName: String;
   ExistingIndex: Integer;
 begin
   if IsPrefix(AnimationPrefix, NodeName, false) then
@@ -8044,12 +8044,12 @@ begin
   end;
 end;
 
-function TCastleSceneCore.HasAnimation(const AnimationName: string): Boolean;
+function TCastleSceneCore.HasAnimation(const AnimationName: String): Boolean;
 begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
 end;
 
-function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+function TCastleSceneCore.AnimationTimeSensor(const AnimationName: String): TTimeSensorNode;
 begin
   Result := AnimationTimeSensor(FAnimationsList.IndexOf(AnimationName));
 end;
@@ -8061,7 +8061,7 @@ begin
     Result := nil;
 end;
 
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
   const Looping: TPlayAnimationLooping;
   const Forward: Boolean): Boolean;
@@ -8083,7 +8083,7 @@ begin
   Result := ForceAnimationPose(AnimationName, TimeInAnimation, Loop, Forward);
 end;
 
-function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: String;
   const TimeInAnimation: TFloatTime;
   const Loop: Boolean;
   const Forward: Boolean): Boolean;
@@ -8122,7 +8122,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.PlayAnimation(const AnimationName: string;
+function TCastleSceneCore.PlayAnimation(const AnimationName: String;
   const Looping: TPlayAnimationLooping;
   const Forward: Boolean): Boolean;
 var
@@ -8143,7 +8143,7 @@ begin
   Result := PlayAnimation(AnimationName, Loop, Forward);
 end;
 
-function TCastleSceneCore.PlayAnimation(const AnimationName: string;
+function TCastleSceneCore.PlayAnimation(const AnimationName: String;
   const Loop: Boolean; const Forward: Boolean): Boolean;
 var
   Params: TPlayAnimationParameters;
@@ -8231,7 +8231,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.AnimationDuration(const AnimationName: string): TFloatTime;
+function TCastleSceneCore.AnimationDuration(const AnimationName: String): TFloatTime;
 var
   Index: Integer;
   TimeNode: TTimeSensorNode;

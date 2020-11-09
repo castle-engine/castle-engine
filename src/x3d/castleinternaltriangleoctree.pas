@@ -168,7 +168,7 @@ type
     X3D Shape and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
-    function StatisticsBonus: string; override;
+    function StatisticsBonus: String; override;
   public
     { All our triangles.
 
@@ -572,7 +572,7 @@ begin
  Result := TTriangleOctreeNode(InternalTreeRoot);
 end;
 
-function TTriangleOctree.StatisticsBonus: string;
+function TTriangleOctree.StatisticsBonus: String;
 begin
   Result := NL;
   if Triangles.Count = 0 then

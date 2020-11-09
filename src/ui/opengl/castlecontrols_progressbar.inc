@@ -71,7 +71,7 @@ const
 
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
-procedure MakeTextFit(var Text: string; const Font: TCastleFont;
+procedure MakeTextFit(var Text: String; const Font: TCastleFont;
   const MaxWidth: Integer);
 var
   DotsWidth: Single;
@@ -120,7 +120,7 @@ var
   procedure TrimSimple;
   var
     NewTextDotsWidth, PotentialNewTextDotsWidth: Single;
-    NewText, PotentialNewText: string;
+    NewText, PotentialNewText: String;
     C: Char;
   begin
     NewText := '';
@@ -176,7 +176,7 @@ const
   MinPaddingVertical = 4;
 var
   MaxTextWidth: Integer;
-  Caption: string;
+  Caption: String;
   BarRect, FillRect: TFloatRectangle;
   HeightForText: Single;
 begin
