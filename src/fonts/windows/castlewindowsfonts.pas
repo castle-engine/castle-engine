@@ -55,7 +55,7 @@ type
     FQuality: DWord;
     FPitch: DWord;
     FFamily: DWord;
-    FFaceName: string;
+    FFaceName: String;
   public
     property Height: Integer read FHeight write FHeight;
 
@@ -87,7 +87,7 @@ type
     { @groupEnd }
 
     { Font face name. Default is ''. }
-    property FaceName: string read FFaceName write FFaceName;
+    property FaceName: String read FFaceName write FFaceName;
 
     { Create a font with given properties. Calls WinAPI CreateFont.
       Rememeber to free result somewhere by DeleteObject.
@@ -112,7 +112,7 @@ type
   end;
 
 const
-  CharSetsNames: array [TWinCharSet] of string=(
+  CharSetsNames: array [TWinCharSet] of String=(
     'ANSI_CHARSET',  'DEFAULT_CHARSET',  'SYMBOL_CHARSET',  'SHIFTJIS_CHARSET',
     'HANGEUL_CHARSET',  'GB2312_CHARSET',  'CHINESEBIG5_CHARSET',  'OEM_CHARSET',
     'HEBREW_CHARSET',  'ARABIC_CHARSET',  'GREEK_CHARSET',
@@ -133,11 +133,11 @@ type
 { Enumerate charsets handled by given font. Warning: enumerated values
   may be repeated.
   @groupBegin }
-procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
-procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
+procedure EnumFontCharsetsObj(const FontName: String; EnumProc : TEnumFontCharsetsProc_ByObject);
+procedure EnumFontCharsets(const FontName: String; EnumProc : TEnumFontCharsetsProc);
 { @groupEnd }
 
-function WinCharSetFromName(const Name: string): TWinCharSet;
+function WinCharSetFromName(const Name: String): TWinCharSet;
 
 implementation
 
@@ -250,7 +250,7 @@ begin
   result := 1;
 end;
 
-procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
+procedure EnumFontCharsetsObj(const FontName: String; EnumProc : TEnumFontCharsetsProc_ByObject);
 var
   InternalInfo: TEnumCharsetsInternalInfo_ByObject;
   DC: HDC;
@@ -278,7 +278,7 @@ type
    NonObjectEnumProc( FontCharset );
   end;
 
-procedure EnumFontCharsets(const FontName: string; EnumProc: TEnumFontCharsetsProc);
+procedure EnumFontCharsets(const FontName: String; EnumProc: TEnumFontCharsetsProc);
 var
   EnumObj: TEnumCharsetsDisp;
 begin
@@ -289,7 +289,7 @@ begin
   finally EnumObj.Free end;
 end;
 
-function WinCharSetFromName(const Name: string): TWinCharSet;
+function WinCharSetFromName(const Name: String): TWinCharSet;
 begin
   for Result := Low(Result) to High(Result) do
     if Name = CharSetsNames[Result] then

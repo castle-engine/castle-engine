@@ -204,7 +204,7 @@ end;
 
 procedure TCastleApplication.ContextApplicationCheck;
 var
-  GlxExtensions: string;
+  GlxExtensions: String;
 begin
   if not GLX_version_1_0(XDisplay) then
     raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else

@@ -181,7 +181,7 @@
       We return the newly created TMenuItemRadioGroup.
       If Items is empty, this does nothing and returns @nil.
     }
-    function AppendRadioGroup(const Items: array of string;
+    function AppendRadioGroup(const Items: array of String;
       BaseIntData: Cardinal; SelectedIndex: Integer;
       AAutoCheckedToggle: Boolean; QuoteCaption: Boolean = true): TMenuItemRadioGroup;
   end;
@@ -297,14 +297,14 @@
       (@link(KeyString), @link(Key), @link(Modifiers)) and then returns true.
       If KeyString = '' and Key = keyNone then returns false and
       S is undefined. }
-    function KeyToString(out S: string): Boolean;
+    function KeyToString(out S: String): Boolean;
 
     function KeyMatches(const AKey: TKey; const AKeyString: String;
       const AModifiers: TModifierKeys): Boolean;
 
     { Caption with optional key description (returned by KeyString)
       appended. }
-    function CaptionWithKey: string;
+    function CaptionWithKey: String;
 
     constructor Create(const ACaption: String; AIntData: Integer);
     constructor Create(const ACaption: String; AIntData: Integer; AKeyString: String);
@@ -471,7 +471,7 @@ function MenuItemFromSmallId(SearchSmallId: Integer): TMenuItem;
 
   In other words: with mnemonics (as defined by
   @link(TMenuEntryWithCaption.Caption) removed. }
-function SRemoveMnemonics(const S: string): string;
+function SRemoveMnemonics(const S: String): String;
 
 { Returns S with each underscore '_' replaced by two underscores, '__'.
 
@@ -480,7 +480,7 @@ function SRemoveMnemonics(const S: string): string;
   then this menu entry caption will display exactly S,
   without any mnemonics. Single '_' in S will be displayed exactly
   as single '_'. }
-function SQuoteMenuEntryCaption(const S: string): string;
+function SQuoteMenuEntryCaption(const S: String): String;
 
 {$endif read_interface_2}
 
@@ -690,13 +690,13 @@ begin
   MenuUpdateEnd;
 end;
 
-function TMenu.AppendRadioGroup(const Items: array of string;
+function TMenu.AppendRadioGroup(const Items: array of String;
   BaseIntData: Cardinal; SelectedIndex: Integer;
   AAutoCheckedToggle: Boolean; QuoteCaption: Boolean): TMenuItemRadioGroup;
 var
   Radio: TMenuItemRadio;
   I: Integer;
-  S: string;
+  S: String;
 begin
   Result := nil;
   for I := 0 to High(Items) do
@@ -745,7 +745,7 @@ begin
  Result := false;
 end;
 
-function TMenuItem.KeyToString(out S: string): Boolean;
+function TMenuItem.KeyToString(out S: String): Boolean;
 begin
   Result := CastleWindow.KeyToString(KeyString, Key, Modifiers, S);
 end;
@@ -772,8 +772,8 @@ begin
       ( (AKeyString <> '') and (KeyString = AKeyString) );
 end;
 
-function TMenuItem.CaptionWithKey: string;
-var KeyStr: string;
+function TMenuItem.CaptionWithKey: String;
+var KeyStr: String;
 begin
  Result := Caption;
  if KeyToString(KeyStr) then
@@ -1130,7 +1130,7 @@ end;
 
 { Some useful things ---------------------------------------- }
 
-function SRemoveMnemonics(const S: string): string;
+function SRemoveMnemonics(const S: String): String;
 var SPos, ResultPos: Integer;
 begin
  { I'm utlizing here the fact that Result for sure will be
@@ -1163,7 +1163,7 @@ begin
  SetLength(Result, ResultPos - 1);
 end;
 
-function SQuoteMenuEntryCaption(const S: string): string;
+function SQuoteMenuEntryCaption(const S: String): String;
 begin
  Result := StringReplace(S, '_', '__', [rfReplaceAll]);
 end;

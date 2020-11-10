@@ -3,7 +3,7 @@ CastleMessages,
 {$endif}
 
 {$ifdef read_implementation}
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   Result := MessageInputQuery(Self, Title, FileName);
@@ -22,12 +22,12 @@ begin
   Color := NewColor;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): Boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);

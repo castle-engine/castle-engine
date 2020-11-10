@@ -119,7 +119,7 @@ type
     property WasSleeping: Boolean read FWasSleeping;
 
     { Display current FPS (RealFps, OnlyRenderFps, taking into account WasSleeping). }
-    function ToString: string; override;
+    function ToString: String; override;
 
     { How much time passed since the last "update".
       You should use this inside "update" events and methods
@@ -231,7 +231,7 @@ begin
   FSleeping := true;
 end;
 
-function TFramesPerSecond.ToString: string;
+function TFramesPerSecond.ToString: String;
 begin
   if (RealFps = 0) and (OnlyRenderFps = 0) then
     Exit('no frames rendered');

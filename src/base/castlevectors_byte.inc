@@ -37,7 +37,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
     property X: Byte index 0 read GetItemsInt write SetItemsInt;
     property Y: Byte index 1 read GetItemsInt write SetItemsInt;
@@ -66,7 +66,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
     property X: Byte index 0 read GetItemsInt write SetItemsInt;
     property Y: Byte index 1 read GetItemsInt write SetItemsInt;
@@ -96,7 +96,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
     property X: Byte index 0 read GetItemsInt write SetItemsInt;
     property Y: Byte index 1 read GetItemsInt write SetItemsInt;
@@ -167,7 +167,7 @@ begin
   Result.Data[1] := - V.Data[1];
 end;
 
-function TVector2Byte.ToString: string;
+function TVector2Byte.ToString: String;
 begin
   Result := Format('%d %d', [Data[0], Data[1]]);
 end;
@@ -231,7 +231,7 @@ begin
   Result.Data[2] := - V.Data[2];
 end;
 
-function TVector3Byte.ToString: string;
+function TVector3Byte.ToString: String;
 begin
   Result := Format('%d %d %d', [Data[0], Data[1], Data[2]]);
 end;
@@ -299,7 +299,7 @@ begin
   Result.Data[3] := - V.Data[3];
 end;
 
-function TVector4Byte.ToString: string;
+function TVector4Byte.ToString: String;
 begin
   Result := Format('%d %d %d %d', [Data[0], Data[1], Data[2], Data[3]]);
 end;

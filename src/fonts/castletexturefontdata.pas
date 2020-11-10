@@ -106,7 +106,7 @@ type
       so remember to free it after calling this constructor.
 
       @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
-    constructor Create(const URL: string;
+    constructor Create(const URL: String;
       const ASize: Integer; const AnAntiAliased: Boolean;
       ACharacters: TUnicodeCharList = nil);
 
@@ -151,13 +151,13 @@ type
       The resulting list instance is owned by caller, so take care to free it. }
     function LoadedGlyphs: TUnicodeCharList;
 
-    function TextWidth(const S: string): Integer;
-    function TextHeight(const S: string): Integer;
+    function TextWidth(const S: String): Integer;
+    function TextHeight(const S: String): Integer;
     { The height (above the baseline) of the text.
       This doesn't take into account height of the text below the baseline
       (for example letter "y" has the tail below the baseline in most fonts). }
-    function TextHeightBase(const S: string): Integer;
-    function TextMove(const S: string): TVector2Integer;
+    function TextHeightBase(const S: String): Integer;
+    function TextMove(const S: String): TVector2Integer;
 
     { Height of a row of text in this font.
       This may be calculated as simply @code(TextHeight('Wy')) for most
@@ -211,7 +211,7 @@ end;
 
 { TTextureFontData ----------------------------------------------------------------- }
 
-constructor TTextureFontData.Create(const URL: string;
+constructor TTextureFontData.Create(const URL: String;
   const ASize: Integer; const AnAntiAliased: Boolean;
   ACharacters: TUnicodeCharList);
 var
@@ -330,7 +330,7 @@ const
   GlyphPadding = 2;
 
 var
-  FileName: string;
+  FileName: String;
   GlyphInfo: TGlyph;
   GlyphsCount, ImageSize: Cardinal;
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
@@ -570,7 +570,7 @@ begin
     Result.Add(C);
 end;
 
-function TTextureFontData.TextWidth(const S: string): Integer;
+function TTextureFontData.TextWidth(const S: String): Integer;
 var
   C: TUnicodeChar;
   TextPtr: PChar;
@@ -593,7 +593,7 @@ begin
   end;
 end;
 
-function TTextureFontData.TextHeight(const S: string): Integer;
+function TTextureFontData.TextHeight(const S: String): Integer;
 var
   C: TUnicodeChar;
   TextPtr: PChar;
@@ -623,7 +623,7 @@ begin
   Result := MaxY - MinY;
 end;
 
-function TTextureFontData.TextMove(const S: string): TVector2Integer;
+function TTextureFontData.TextMove(const S: String): TVector2Integer;
 var
   C: TUnicodeChar;
   TextPtr: PChar;
@@ -649,7 +649,7 @@ begin
   end;
 end;
 
-function TTextureFontData.TextHeightBase(const S: string): Integer;
+function TTextureFontData.TextHeightBase(const S: String): Integer;
 var
   C: TUnicodeChar;
   TextPtr: PChar;

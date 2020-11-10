@@ -35,7 +35,7 @@ type
       may fail with Access Violation.
       For this reason, this method was removed, as it was a trap.
       Using LogSummary for Stop instead of both easier, and safe. }
-    //function Summary(const Indent: String = ''): string;
+    //function Summary(const Indent: String = ''): String;
   public
     { Elapsed time in seconds since calling @link(TCastleProfiler.Start)
       that returned this. Useful if you use @link(TCastleProfiler),
@@ -138,7 +138,7 @@ type
     property Enabled: Boolean read FEnabled write FEnabled;
 
     { Summary of the gathered speed measurements. }
-    function Summary: string;
+    function Summary: String;
 
     { Clear currently gathered times.
 
@@ -220,7 +220,7 @@ begin
 end;
 
 {
-function TCastleProfilerTime.Summary(const Indent: String): string;
+function TCastleProfilerTime.Summary(const Indent: String): String;
 var
   T: TCastleProfiler.TTime;
 begin
@@ -298,7 +298,7 @@ begin
   inherited;
 end;
 
-function TCastleProfiler.Summary: string;
+function TCastleProfiler.Summary: String;
 begin
   Result := SProfileSummary + Times.Summary('');
 end;

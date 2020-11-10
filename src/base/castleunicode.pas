@@ -38,19 +38,19 @@ type
       Useful to fill TUnicodeCharList
       when you have a sample text of international letters.
       Doesn't add duplicates. }
-    procedure Add(const SampleText: string); overload;
+    procedure Add(const SampleText: String); overload;
 
     { Add all characters from given set. Try e.g. SimpleAsciiCharacters.
       Doesn't add duplicates. }
     procedure Add(const Characters: TSetOfChars); overload;
   end;
 
-function UTF8CharacterLength(p: PChar): Integer;
-function UTF8Length(const s: string): PtrInt; overload;
-function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt; overload;
+function UTF8CharacterLength(P: PChar): Integer;
+function UTF8Length(const S: String): PtrInt; overload;
+function UTF8Length(P: PChar; ByteCount: PtrInt): PtrInt; overload;
 
 function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
-function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+function UTF8Copy(const S: String; StartCharIndex, CharCount: PtrInt): String;
 
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
@@ -75,9 +75,9 @@ function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
   #)
 }
 function UTF8CharacterToUnicode(p: PChar; out CharLen: Integer): TUnicodeChar;
-//function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
+//function UTF8CharacterToUnicode(const S: String): TUnicodeChar;
 
-function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
+function UnicodeToUTF8(CodePoint: TUnicodeChar): String;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): Integer;
 
 { Convert all special Unicode characters in the given UTF-8 string to HTML entities.
@@ -106,7 +106,7 @@ begin
     inherited Add(C);
 end;
 
-procedure TUnicodeCharList.Add(const SampleText: string);
+procedure TUnicodeCharList.Add(const SampleText: String);
 var
   C: TUnicodeChar;
   TextPtr: PChar;
@@ -170,9 +170,9 @@ begin
     Result:=0;
 end;
 
-function UTF8Length(const s: string): PtrInt;
+function UTF8Length(const S: String): PtrInt;
 begin
-  Result:=UTF8Length(PChar(s),length(s));
+  Result:=UTF8Length(PChar(S),length(S));
 end;
 
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt;
@@ -208,23 +208,23 @@ begin
   end;
 end;
 
-function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+function UTF8Copy(const S: String; StartCharIndex, CharCount: PtrInt): String;
 // returns substring
 var
   StartBytePos: PChar;
   EndBytePos: PChar;
   MaxBytes: PtrInt;
 begin
-  StartBytePos:=UTF8CharStart(PChar(s),length(s),StartCharIndex-1);
+  StartBytePos:=UTF8CharStart(PChar(S),length(S),StartCharIndex-1);
   if StartBytePos=nil then
     Result:=''
   else begin
-    MaxBytes:=PtrInt(PChar(s)+length(s)-StartBytePos);
+    MaxBytes:=PtrInt(PChar(S)+length(S)-StartBytePos);
     EndBytePos:=UTF8CharStart(StartBytePos,MaxBytes,CharCount);
     if EndBytePos=nil then
-      Result:=copy(s,StartBytePos-PChar(s)+1,MaxBytes)
+      Result:=copy(S,StartBytePos-PChar(S)+1,MaxBytes)
     else
-      Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
+      Result:=copy(S,StartBytePos-PChar(S)+1,EndBytePos-StartBytePos);
   end;
 end;
 
@@ -304,7 +304,7 @@ begin
 end;
 
 {
-function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
+function UTF8CharacterToUnicode(const S: String): TUnicodeChar;
 var
   IgnoredCharLen: Integer;
 begin
@@ -312,7 +312,7 @@ begin
 end;
 }
 
-function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
+function UnicodeToUTF8(CodePoint: TUnicodeChar): String;
 var
   Buf: array[0..6] of Char;
   Len: Integer;

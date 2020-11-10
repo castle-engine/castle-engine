@@ -374,7 +374,7 @@ end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
 
-  function GetInternalDataPath: string;
+  function GetInternalDataPath: String;
   var
     Env: PJNIEnv;
 
@@ -538,7 +538,7 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
@@ -792,7 +792,7 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Android';
 end;

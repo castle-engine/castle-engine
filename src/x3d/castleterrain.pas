@@ -107,7 +107,7 @@ type
   strict private
     { FImage = nil and FImageURL = '' when not loaded. }
     FImage: TGrayscaleImage;
-    FImageURL: string;
+    FImageURL: String;
     FImageHeightScale: Single;
     FImageRepeat: Boolean;
     FImageX1, FImageX2, FImageY1, FImageY2: Single;
@@ -117,9 +117,9 @@ type
 
     function Height(const X, Y: Single): Single; override;
 
-    procedure LoadImage(const AImageURL: string);
+    procedure LoadImage(const AImageURL: String);
     procedure ClearImage;
-    property ImageURL: string read FImageURL;
+    property ImageURL: String read FImageURL;
 
     property ImageHeightScale: Single
       read FImageHeightScale write FImageHeightScale default 1.0;
@@ -145,7 +145,7 @@ type
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
-    constructor Create(const FunctionExpression: string);
+    constructor Create(const FunctionExpression: String);
     destructor Destroy; override;
     function Height(const X, Y: Single): Single; override;
   end;
@@ -346,7 +346,7 @@ type
   strict private
     FData: array [0..1200, 0..1200] of SmallInt;
   public
-    constructor CreateFromFile(const URL: string);
+    constructor CreateFromFile(const URL: String);
 
     function GridHeight(const X, Y: Cardinal): Single; override;
     function GridSizeX: Cardinal; override;
@@ -607,7 +607,7 @@ begin
   inherited;
 end;
 
-procedure TTerrainImage.LoadImage(const AImageURL: string);
+procedure TTerrainImage.LoadImage(const AImageURL: String);
 var
   NewImage: TGrayscaleImage;
 begin
@@ -652,7 +652,7 @@ end;
 
 { TTerrainCasScript -------------------------------------------------------- }
 
-constructor TTerrainCasScript.Create(const FunctionExpression: string);
+constructor TTerrainCasScript.Create(const FunctionExpression: String);
 begin
   inherited Create;
 
@@ -819,7 +819,7 @@ end;
 
 { TTerrainSRTM ------------------------------------------------------------- }
 
-constructor TTerrainSRTM.CreateFromFile(const URL: string);
+constructor TTerrainSRTM.CreateFromFile(const URL: String);
 var
   Stream: TStream;
   P: PSmallInt;

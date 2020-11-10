@@ -90,7 +90,7 @@ private
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
-  procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+  procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
 
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
@@ -246,7 +246,7 @@ end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 
-  function MenuCaptionCastleToLCL(const S: string): string;
+  function MenuCaptionCastleToLCL(const S: String): String;
   begin
     { We use _ for the same purpose as LCL uses &, to mark mnemonics.
       But we cannot just replace _ with &:
@@ -594,7 +594,7 @@ begin
   FreeAndNil(FKeyPressHandler);
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then Form.Caption := GetWholeCaption;
@@ -777,11 +777,11 @@ end;
 
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 var
   Dialog: TFileDialog;
-  ExpandedFileName: string;
+  ExpandedFileName: String;
 begin
   if OpenDialog then
     Dialog := TOpenDialog.Create(nil) else
@@ -822,7 +822,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 const
   MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType =
   (Dialogs.mtInformation, Dialogs.mtWarning, Dialogs.mtConfirmation, Dialogs.mtError, Dialogs.mtCustom);
@@ -831,14 +831,14 @@ begin
   MessageDlg(S, MessageTypeCastleToLCL[MessageType], [mbOK], 0);
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): Boolean;
 begin
   ReleaseAllKeysAndMouse; // do it manually
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
 end;
 
-procedure TCastleWindowBase.FormDropFiles(Sender: TObject; const FileNames: array of string);
+procedure TCastleWindowBase.FormDropFiles(Sender: TObject; const FileNames: array of String);
 begin
   DoDropFiles(FileNames);
 end;
@@ -848,16 +848,16 @@ end;
 type
   TLCLClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TLCLClipboard.GetAsText: string;
+function TLCLClipboard.GetAsText: String;
 begin
   Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
 end;
 
-procedure TLCLClipboard.SetAsText(const Value: string);
+procedure TLCLClipboard.SetAsText(const Value: String);
 begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;
@@ -1030,7 +1030,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'LCL';
 end;

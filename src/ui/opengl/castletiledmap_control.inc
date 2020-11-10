@@ -33,7 +33,7 @@ type
     procedure FreeTilesetsImages;
     { Free everything created by SetURL. }
     procedure Close;
-    procedure SetURL(const Value: string);
+    procedure SetURL(const Value: String);
     procedure SetOrigin(const Value: TVector2);
     procedure SetScale(const Value: Single);
     procedure SetSmoothScaling(const Value: Boolean);
@@ -45,7 +45,7 @@ type
     function PropertySection(const PropertyName: String): TPropertySection; override;
 
     { Load given TMX file to memory and creates structures. }
-    procedure LoadFromFile(const AURL: string); deprecated 'set URL instead of calling LoadFromFile';
+    procedure LoadFromFile(const AURL: String); deprecated 'set URL instead of calling LoadFromFile';
 
     { Origin determines the map position at control's left-bottom corner.
       Increasing Origin.X moves visually the map to the left,
@@ -286,12 +286,12 @@ begin
   FreeAndNil(FMap);
 end;
 
-procedure TCastleTiledMapControl.LoadFromFile(const AURL: string);
+procedure TCastleTiledMapControl.LoadFromFile(const AURL: String);
 begin
   URL := AURL;
 end;
 
-procedure TCastleTiledMapControl.SetURL(const Value: string);
+procedure TCastleTiledMapControl.SetURL(const Value: String);
 begin
   if FURL <> Value then
   begin

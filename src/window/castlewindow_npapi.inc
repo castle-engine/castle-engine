@@ -82,7 +82,7 @@ var
   { String values returned by NP_ functions.
     For safety (in case C code copies only pointers)
     they are read-only after initialization. }
-  PluginName, PluginDescription, PluginMimeDescription, PluginVersion: string;
+  PluginName, PluginDescription, PluginMimeDescription, PluginVersion: String;
   StaticResultsInitialized: Boolean = false;
 
 procedure InitializeStaticResults;

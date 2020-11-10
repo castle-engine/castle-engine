@@ -158,7 +158,7 @@ type
       If one of them is non-zero, the appropriate video size (width and/or
       height) will be resized. Resizing quality is controlled by
       Interpolation parameter. }
-    procedure LoadFromFile(const URL: string;
+    procedure LoadFromFile(const URL: String;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear;
@@ -168,7 +168,7 @@ type
 
       Handled formats: just like LoadFromFile. Also, just like LoadFromFile,
       we need ffmpeg on $PATH to save to any single-file movie format. }
-    procedure SaveToFile(const URL: string);
+    procedure SaveToFile(const URL: String);
 
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
       const Interpolation: TResizeInterpolation = riBilinear);
@@ -232,7 +232,7 @@ type
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
-    procedure MixWithSelfBackwards(const ProgressTitle: string);
+    procedure MixWithSelfBackwards(const ProgressTitle: String);
 
     { Edit the video beginning to fade with the video ending,
       thus forcing the video to play seamless in a loop.
@@ -250,7 +250,7 @@ type
 
       @raises(EInvalidFadeFrames When FadeFrames is wrong.) }
     procedure FadeWithSelf(FadeFrames: Cardinal;
-      const ProgressTitle: string);
+      const ProgressTitle: String);
 
     { Similar to IndexFromTime, this is a class method that calculates
       frame index using the same algorithm. (Actually, IndexFromTime
@@ -323,7 +323,7 @@ type
     type
       TCachedVideo = class
         References: Cardinal;
-        URL: string;
+        URL: String;
         LoadOptions: TLoadImageOptions;
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
@@ -341,7 +341,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const URL: string;
+    function Video_IncReference(const URL: String;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TVideo;
     procedure Video_DecReference(var Video: TVideo);
@@ -359,7 +359,7 @@ type
   FfmpegOutput = @true means that you want to encode this video
   (use this as output of ffmpeg). FfmpegOutput = @false means you
   want to decode the video, that is use this as an input to ffmpeg. }
-function FfmpegVideoMimeType(const MimeType: string;
+function FfmpegVideoMimeType(const MimeType: String;
   const FfmpegOutput: Boolean): Boolean;
 
 { Returns full path to ffmpeg-compatible executable.
@@ -369,12 +369,12 @@ function FfmpegVideoMimeType(const MimeType: string;
     @item If ExceptionOnError then we raise an exception.
     @item If not ExceptionOnError then we simply return ''.
   ) }
-function FfmpegExecutable(const ExceptionOnError: Boolean): string;
+function FfmpegExecutable(const ExceptionOnError: Boolean): String;
 
 { Execute ffmpeg. 1st parameter must not be ''.
   It should usually be calculated by FfmpegExecutable. }
-procedure FfmpegExecute(const Executable: string;
-  const Parameters: array of string);
+procedure FfmpegExecute(const Executable: String;
+  const Parameters: array of String);
 
 var
   { When @true, then we will load animated GIFs using ffmpeg.
@@ -520,13 +520,13 @@ begin
     FItems[I].Resize(ResizeToX, ResizeToY, Interpolation);
 end;
 
-procedure TVideo.LoadFromFile(const URL: string;
+procedure TVideo.LoadFromFile(const URL: String;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
   const Interpolation: TResizeInterpolation = riBilinear;
   const LoadOptions: TLoadImageOptions = []);
 
-  function LoadSingleImage(const URL: string): TCastleImage;
+  function LoadSingleImage(const URL: String): TCastleImage;
   begin
     Result := LoadImage(URL, TextureImageClasses,
       ResizeToX, ResizeToY, Interpolation, LoadOptions);
@@ -535,13 +535,13 @@ procedure TVideo.LoadFromFile(const URL: string;
   { Load from an image sequence (possibly just a single image).
     When RemoveLoadedTempImages, we will remove the loaded image files,
     in this case the URL @italic(must) be a filename. }
-  procedure LoadFromImages(const URL: string;
+  procedure LoadFromImages(const URL: String;
     RemoveLoadedTempImages: Boolean);
 
     { Load movie frame number Index. Returns if success. }
     function LoadFrame(const Index: Cardinal): Boolean;
     var
-      URLComplete: string;
+      URLComplete: String;
       NewItem: TCastleImage;
     begin
       URLComplete := FormatNameCounter(URL, Index, false);
@@ -597,12 +597,12 @@ procedure TVideo.LoadFromFile(const URL: string;
   end;
 
   { Load a single video file from an URL. }
-  procedure LoadFromFfmpeg(const URL: string);
+  procedure LoadFromFfmpeg(const URL: String);
   var
-    MovieFileName: string;
+    MovieFileName: String;
     MovieFileNameTemporary: Boolean;
-    TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
-    Executable: string;
+    TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: String;
+    Executable: String;
     S: TStream;
   begin
     Executable := FfmpegExecutable(true);
@@ -656,12 +656,12 @@ begin
   FLoaded := true;
 end;
 
-procedure TVideo.SaveToFile(const URL: string);
+procedure TVideo.SaveToFile(const URL: String);
 
-  procedure SaveToImages(const URL: string);
+  procedure SaveToImages(const URL: String);
   var
     Index, ReplacementsDone: Cardinal;
-    S: string;
+    S: String;
   begin
     FormatNameCounter(URL, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
@@ -684,10 +684,10 @@ procedure TVideo.SaveToFile(const URL: string);
     end;
   end;
 
-  procedure RemoveTemporaryImages(const FileName: string);
+  procedure RemoveTemporaryImages(const FileName: String);
   var
     Index, ReplacementsDone: Cardinal;
-    S: string;
+    S: String;
   begin
     WritelnLog('Removing temporary image files "' + FileName + '" ...');
     FormatNameCounter(FileName, 0, true, ReplacementsDone);
@@ -707,10 +707,10 @@ procedure TVideo.SaveToFile(const URL: string);
     WritelnLog('Done removing temporary image files.');
   end;
 
-  procedure SaveToFfmpeg(const FileName: string);
+  procedure SaveToFfmpeg(const FileName: String);
   var
-    TemporaryImagesPrefix, TemporaryImagesPattern: string;
-    Executable: string;
+    TemporaryImagesPrefix, TemporaryImagesPattern: String;
+    Executable: String;
   begin
     Executable := FindExe('ffmpeg');
 
@@ -762,7 +762,7 @@ begin
   Result := Items[0].Height;
 end;
 
-procedure TVideo.MixWithSelfBackwards(const ProgressTitle: string);
+procedure TVideo.MixWithSelfBackwards(const ProgressTitle: String);
 var
   I, NewCount: Integer;
 begin
@@ -794,7 +794,7 @@ begin
 end;
 
 procedure TVideo.FadeWithSelf(FadeFrames: Cardinal;
-  const ProgressTitle: string);
+  const ProgressTitle: String);
 var
   I, NewCount: Integer;
 begin
@@ -868,14 +868,14 @@ begin
   inherited;
 end;
 
-function TVideosCache.Video_IncReference(const URL: string;
+function TVideosCache.Video_IncReference(const URL: String;
   out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TVideo;
 var
   I: Integer;
   C: TCachedVideo;
   Start: TProcessTimerResult;
-  S: string;
+  S: String;
 begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
@@ -975,7 +975,7 @@ end;
 
 { non-object routines -------------------------------------------------------- }
 
-function FfmpegVideoMimeType(const MimeType: string;
+function FfmpegVideoMimeType(const MimeType: String;
   const FfmpegOutput: Boolean): Boolean;
 begin
   { For now we ignore FfmpegOutput, all formats below are good
@@ -994,7 +994,7 @@ begin
     (MimeType = 'video/mp4');
 end;
 
-function FfmpegExecutable(const ExceptionOnError: Boolean): string;
+function FfmpegExecutable(const ExceptionOnError: Boolean): String;
 const
   SFfmpegNotFound = 'You must have "ffmpeg" from [http://www.ffmpeg.org/] ' +
     '(or "avconv" from [http://www.libav.org/]) ' +
@@ -1007,10 +1007,10 @@ begin
     raise Exception.Create(SFfmpegNotFound);
 end;
 
-procedure FfmpegExecute(const Executable: string;
-  const Parameters: array of string);
+procedure FfmpegExecute(const Executable: String;
+  const Parameters: array of String);
 var
-  S, Parameter: string;
+  S, Parameter: String;
 begin
   WritelnLog('FFMpeg found, executing...');
   { Only for the sake of logging we glue Parameters together.

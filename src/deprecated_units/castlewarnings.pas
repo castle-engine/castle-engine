@@ -45,13 +45,13 @@ type
   WarningWrite will make a message box,
   in all other cases the warning just goes to ErrOutput.
   The warning is also logged using CastleLog. }
-procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
+procedure OnWarningWrite(const AType: TWarningType; const Category, S: String);
 
 { Assign this to OnWarning to only log warnings using CastleLog. }
-procedure OnWarningLog(const AType: TWarningType; const Category, S: string);
+procedure OnWarningLog(const AType: TWarningType; const Category, S: String);
 
 type
-  TWarningProc = procedure (const AType: TWarningType; const Category, S: string);
+  TWarningProc = procedure (const AType: TWarningType; const Category, S: String);
 
 var
   { Reporting warnings. Used by other units to report
@@ -73,13 +73,13 @@ implementation
 
 uses CastleUtils, SysUtils, CastleLog;
 
-procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
+procedure OnWarningWrite(const AType: TWarningType; const Category, S: String);
 begin
   WritelnWarning(Category, S);
   WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + S);
 end;
 
-procedure OnWarningLog(const AType: TWarningType; const Category, S: string);
+procedure OnWarningLog(const AType: TWarningType; const Category, S: String);
 begin
   WritelnWarning(Category, S);
 end;

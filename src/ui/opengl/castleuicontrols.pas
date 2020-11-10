@@ -607,7 +607,7 @@ type
       OpenGL drawing (you have to capture the back buffer, before swap).
 
       @groupBegin }
-    procedure SaveScreen(const URL: string); overload;
+    procedure SaveScreen(const URL: String); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual;
     function SaveScreen(const SaveRect: TFloatRectangle): TRGBImage; overload;
@@ -3752,7 +3752,7 @@ begin
   Result := SaveScreen_NoFlush(SaveRect, cbBack);
 end;
 
-procedure TUIContainer.SaveScreen(const URL: string);
+procedure TUIContainer.SaveScreen(const URL: String);
 var
   Image: TRGBImage;
 begin

@@ -35,9 +35,9 @@ type
     We will add to your error message (passed to the constructor) some
     instructive message, like @code('Please submit this to the developers: '). }
   EInternalError = class(Exception)
-    constructor Create(const S: string); overload;
+    constructor Create(const S: String); overload;
     constructor Create(const ErrorNumber: Int64); overload;
-    constructor CreateFmt(const s: string; const Args: array of const);
+    constructor CreateFmt(const S: String; const Args: array of const);
   end;
 
   ECheckFailed = class(Exception);
@@ -48,7 +48,7 @@ type
 
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
-procedure Check(TrueValue: Boolean; const ErrMessage: string = 'Check failed');
+procedure Check(TrueValue: Boolean; const ErrMessage: String = 'Check failed');
 
 { Arrays searching ----------------------------------------------------------- }
 
@@ -64,14 +64,14 @@ procedure Check(TrueValue: Boolean; const ErrMessage: string = 'Check failed');
       else SomethingElse;
     end;
   #) }
-function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
-function ArrayPosText(const A: string; const Arr: array of string;
+function ArrayPosStr(const A: String; const Arr: array of String): Integer; overload;
+function ArrayPosText(const A: String; const Arr: array of String;
   IgnoreCase: Boolean = true): Integer; overload;
 
 { Iff functions ------------------------------------------------------------- }
 
 { }
-function Iff(boolval: Boolean; trueval, falseval: string)  : string;   overload;
+function Iff(boolval: Boolean; trueval, falseval: String)  : String;   overload;
 function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; overload;
@@ -90,14 +90,14 @@ const
   always the same value) but I can't declare it as a Pascal constant
   because it must use "Format" function that is not allowed in constant
   expressions. }
-function SFPCVersion: string;
+function SFPCVersion: String;
 {$endif}
 
 { Short name and version of Pascal compiler used
   to compile this unit. It is a constant, actually, but I cannot
   declare it as a constant because it must call SFPCVersion that
   is not declared as a constant. }
-function SCompilerDescription: string;
+function SCompilerDescription: String;
 
 { Print some common info for programs released on
   [https://castle-engine.io/].
@@ -114,12 +114,12 @@ function SCompilerDescription: string;
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
-function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: Boolean): string;
+function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean): String;
 
 { If not TrueValue then RaiseLastOSError. }
 procedure OSCheck(TrueValue: Boolean); overload;
-procedure OSCheck(TrueValue: Boolean; const Place: string); overload;
+procedure OSCheck(TrueValue: Boolean; const Place: String); overload;
 
 type
   { Descend from this to hide a parameterless constructor.
@@ -195,7 +195,7 @@ var
 
 {$ifdef read_implementation}
 
-constructor EInternalError.Create(const S: string);
+constructor EInternalError.Create(const S: String);
 begin
   inherited Create('Internal error occured. Please submit a bugreport providing this information to the developers: ' + S);
 //   inherited Create('Internal error: something that should not ever happen... happened. ' +
@@ -212,19 +212,19 @@ begin
   Create(IntToStr(ErrorNumber));
 end;
 
-constructor EInternalError.CreateFmt(const s: string; const Args: array of const);
+constructor EInternalError.CreateFmt(const S: String; const Args: array of const);
 begin
   Create(Format(S, Args));
 end;
 
-procedure Check(TrueValue: Boolean; const errMessage: string);
+procedure Check(TrueValue: Boolean; const errMessage: String);
 begin
  if not TrueValue then raise ECheckFailed.Create(errMessage);
 end;
 
 { arrays searching ---------------------------------------- }
 
-function ArrayPosStr(const A: string; const Arr: array of string): Integer;
+function ArrayPosStr(const A: String; const Arr: array of String): Integer;
 begin
   for Result := 0 to High(Arr) do
     if Arr[Result] = A then
@@ -232,10 +232,10 @@ begin
   Result := -1;
 end;
 
-function ArrayPosText(const A: string; const Arr: array of string;
+function ArrayPosText(const A: String; const Arr: array of String;
   IgnoreCase: Boolean): Integer;
 var
-  AA: string;
+  AA: String;
 begin
   if IgnoreCase then
   begin
@@ -250,7 +250,7 @@ end;
 
 { Iff functions ------------------------------------------------------------- }
 
-function Iff(boolval: Boolean; trueval, falseval: string)  : string;   begin if boolval then result := trueval else result := falseval end;
+function Iff(boolval: Boolean; trueval, falseval: String)  : String;   begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: Boolean; trueval, falseval: Integer) : Integer;  begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: Boolean; trueval, falseval: Float)   : Float;    begin if boolval then result := trueval else result := falseval end;
 function Iff(boolval: Boolean; trueval, falseval: Cardinal): Cardinal; begin if boolval then result := trueval else result := falseval end;
@@ -259,13 +259,13 @@ function Iff(boolval: Boolean; trueval, falseval: Char)    : Char;     begin if 
 { Helpful consts ------------------------------------------------------------ }
 
 {$ifdef FPC}
-function SFPCVersion: string;
+function SFPCVersion: String;
 begin
   Result := {$I %FPCVERSION%} + ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
 end;
 {$endif FPC}
 
-function SCompilerDescription: string;
+function SCompilerDescription: String;
 begin
   Result :=
     {$ifdef FPC}
@@ -287,8 +287,8 @@ begin
   Result := Result + ', platform: ' + PlatformToStr(Platform);
 end;
 
-function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
-  const Version: string; WrapLines: Boolean): string;
+function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: String;
+  const Version: String; WrapLines: Boolean): String;
 begin
   if Version <> '' then
     Result := DisplayApplicationName + ' version ' + Version + '.' + NL
@@ -304,7 +304,7 @@ begin
   if not TrueValue then RaiseLastOSError;
 end;
 
-procedure OSCheck(TrueValue: Boolean; const Place: string);
+procedure OSCheck(TrueValue: Boolean; const Place: String);
 begin
   if not TrueValue then
   try

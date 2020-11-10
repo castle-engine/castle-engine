@@ -37,7 +37,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
@@ -66,7 +66,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
@@ -96,7 +96,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal; inline;
 
-    function ToString: string;
+    function ToString: String;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
     property X: Cardinal index 0 read GetItemsInt write SetItemsInt;
     property Y: Cardinal index 1 read GetItemsInt write SetItemsInt;
@@ -148,7 +148,7 @@ begin
   Result.Data[1] := - V.Data[1];
 end;
 
-function TVector2Cardinal.ToString: string;
+function TVector2Cardinal.ToString: String;
 begin
   Result := Format('%d %d', [Data[0], Data[1]]);
 end;
@@ -212,7 +212,7 @@ begin
   Result.Data[2] := - V.Data[2];
 end;
 
-function TVector3Cardinal.ToString: string;
+function TVector3Cardinal.ToString: String;
 begin
   Result := Format('%d %d %d', [Data[0], Data[1], Data[2]]);
 end;
@@ -280,7 +280,7 @@ begin
   Result.Data[3] := - V.Data[3];
 end;
 
-function TVector4Cardinal.ToString: string;
+function TVector4Cardinal.ToString: String;
 begin
   Result := Format('%d %d %d %d', [Data[0], Data[1], Data[2], Data[3]]);
 end;

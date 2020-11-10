@@ -118,8 +118,8 @@ function Vector4Single(const V: TVector4Double): TVector4; overload; deprecated 
 
 function FloatsEqual(const A, B: Single): Boolean; overload; deprecated 'use Math.SameValue';
 function FloatsEqual(const A, B: Single; const Epsilon: Single): Boolean; overload; deprecated 'use Math.SameValue';
-function FloatToNiceStr(const A: Single): string; overload; deprecated 'use Format(''%f'', [Value])';
-function FloatToRawStr(const A: Single): string; overload; deprecated 'use Format(''%g'', [Value])';
+function FloatToNiceStr(const A: Single): String; overload; deprecated 'use Format(''%f'', [Value])';
+function FloatToRawStr(const A: Single): String; overload; deprecated 'use Format(''%g'', [Value])';
 function Zero(const A: Single): Boolean; overload; deprecated 'use Math.IsZero';
 
 { Various compatibility functions (on vectors and matrices) }
@@ -150,21 +150,21 @@ function VectorLen(const V: TVector2): Single; overload; deprecated 'use V.Lengt
 function VectorLen(const V: TVector3): Single; overload; deprecated 'use V.Length';
 function VectorLen(const V: TVector4): Single; overload; deprecated 'use V.Length';
 function VectorAverage(const V: TVector3): Single; overload; deprecated 'use V.Average';
-function VectorToRawStr(const V: TVector2): string; overload; deprecated 'use V.ToRawString';
-function VectorToRawStr(const V: TVector3): string; overload; deprecated 'use V.ToRawString';
-function VectorToRawStr(const V: TVector4): string; overload; deprecated 'use V.ToRawString';
-function VectorToNiceStr(const V: TVector2): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector3): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector4): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector2Integer): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector3Integer): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector4Integer): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector2Cardinal): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector3Cardinal): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector4Cardinal): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector2Byte): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector3Byte): string; overload; deprecated 'use V.ToString';
-function VectorToNiceStr(const V: TVector4Byte): string; overload; deprecated 'use V.ToString';
+function VectorToRawStr(const V: TVector2): String; overload; deprecated 'use V.ToRawString';
+function VectorToRawStr(const V: TVector3): String; overload; deprecated 'use V.ToRawString';
+function VectorToRawStr(const V: TVector4): String; overload; deprecated 'use V.ToRawString';
+function VectorToNiceStr(const V: TVector2): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector3): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector4): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector2Integer): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector3Integer): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector4Integer): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector2Cardinal): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector3Cardinal): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector4Cardinal): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector2Byte): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector3Byte): String; overload; deprecated 'use V.ToString';
+function VectorToNiceStr(const V: TVector4Byte): String; overload; deprecated 'use V.ToString';
 function ZeroVector(const V: TVector2): Boolean; overload; deprecated 'use V.IsZero';
 function ZeroVector(const V: TVector3): Boolean; overload; deprecated 'use V.IsZero';
 function ZeroVector(const V: TVector4): Boolean; overload; deprecated 'use V.IsZero';
@@ -183,9 +183,9 @@ function PerfectlyZeroVector(const V: TVector4): Boolean; overload; deprecated '
 function VectorAdjustToLength(const V: TVector2; const NewLength: Single): TVector2; overload; deprecated 'use V.AdjustToLength';
 function VectorAdjustToLength(const V: TVector3; const NewLength: Single): TVector3; overload; deprecated 'use V.AdjustToLength';
 function VectorAdjustToLength(const V: TVector4; const NewLength: Single): TVector4; overload; deprecated 'use V.AdjustToLength';
-function Vector2SingleFromStr(const S: string): TVector2; overload; deprecated 'use Vector2FromStr';
-function Vector3SingleFromStr(const s: string): TVector3; overload; deprecated 'use Vector3FromStr';
-function Vector4SingleFromStr(const S: string): TVector4; overload; deprecated 'use Vector4FromStr';
+function Vector2SingleFromStr(const S: String): TVector2; overload; deprecated 'use Vector2FromStr';
+function Vector3SingleFromStr(const s: String): TVector3; overload; deprecated 'use Vector3FromStr';
+function Vector4SingleFromStr(const S: String): TVector4; overload; deprecated 'use Vector4FromStr';
 function VectorDotProduct(const V1, V2: TVector2): Single; overload; deprecated 'use TVector2.DotProduct(V1, V2)';
 function VectorDotProduct(const V1, V2: TVector3): Single; overload; deprecated 'use TVector3.DotProduct(V1, V2)';
 function VectorDotProduct(const V1, V2: TVector4): Single; overload; deprecated 'use TVector4.DotProduct(V1, V2)';
@@ -210,12 +210,12 @@ function VectorsPerfectlyEqual(const V1, V2: TVector4Cardinal): Boolean; overloa
 function TryMatrixInverse(const M: TMatrix2; out MInverse: TMatrix2): Boolean; overload; overload; deprecated 'use TMatrix2.TryInverse';
 function TryMatrixInverse(const M: TMatrix3; out MInverse: TMatrix3): Boolean; overload; overload; deprecated 'use TMatrix3.TryInverse';
 function TryMatrixInverse(const M: TMatrix4; out MInverse: TMatrix4): Boolean; overload; overload; deprecated 'use TMatrix4.TryInverse';
-function MatrixToRawStr(const M: TMatrix2; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix2.ToRawString';
-function MatrixToRawStr(const M: TMatrix3; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix3.ToRawString';
-function MatrixToRawStr(const M: TMatrix4; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix4.ToRawString';
-function MatrixToNiceStr(const M: TMatrix2; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix2.ToString';
-function MatrixToNiceStr(const M: TMatrix3; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix3.ToString';
-function MatrixToNiceStr(const M: TMatrix4; const LineIndent: string): string; overload; overload; deprecated 'use TMatrix4.ToString';
+function MatrixToRawStr(const M: TMatrix2; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix2.ToRawString';
+function MatrixToRawStr(const M: TMatrix3; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix3.ToRawString';
+function MatrixToRawStr(const M: TMatrix4; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix4.ToRawString';
+function MatrixToNiceStr(const M: TMatrix2; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix2.ToString';
+function MatrixToNiceStr(const M: TMatrix3; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix3.ToString';
+function MatrixToNiceStr(const M: TMatrix4; const LineIndent: String): String; overload; overload; deprecated 'use TMatrix4.ToString';
 function MatricesPerfectlyEqual(const V1, V2: TMatrix2): Boolean; overload; deprecated 'use TMatrix2.PerfectlyEquals(V1, V2)';
 function MatricesPerfectlyEqual(const V1, V2: TMatrix3): Boolean; overload; deprecated 'use TMatrix3.PerfectlyEquals(V1, V2)';
 function MatricesPerfectlyEqual(const V1, V2: TMatrix4): Boolean; overload; deprecated 'use TMatrix4.PerfectlyEquals(V1, V2)';
@@ -306,12 +306,12 @@ begin
   Result := SameValue(A, B, Epsilon);
 end;
 
-function FloatToNiceStr(const A: Single): string;
+function FloatToNiceStr(const A: Single): String;
 begin
   Result := Format('%f', [A]);
 end;
 
-function FloatToRawStr(const A: Single): string;
+function FloatToRawStr(const A: Single): String;
 begin
   Result := Format('%g', [A]);
 end;
@@ -453,77 +453,77 @@ begin
   Result := V.Average;
 end;
 
-function VectorToRawStr(const V: TVector2): string;
+function VectorToRawStr(const V: TVector2): String;
 begin
   Result := V.ToRawString;
 end;
 
-function VectorToRawStr(const V: TVector3): string;
+function VectorToRawStr(const V: TVector3): String;
 begin
   Result := V.ToRawString;
 end;
 
-function VectorToRawStr(const V: TVector4): string;
+function VectorToRawStr(const V: TVector4): String;
 begin
   Result := V.ToRawString;
 end;
 
-function VectorToNiceStr(const V: TVector2): string;
+function VectorToNiceStr(const V: TVector2): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector3): string;
+function VectorToNiceStr(const V: TVector3): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector4): string;
+function VectorToNiceStr(const V: TVector4): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector2Integer): string;
+function VectorToNiceStr(const V: TVector2Integer): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector3Integer): string;
+function VectorToNiceStr(const V: TVector3Integer): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector4Integer): string;
+function VectorToNiceStr(const V: TVector4Integer): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector2Cardinal): string;
+function VectorToNiceStr(const V: TVector2Cardinal): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector3Cardinal): string;
+function VectorToNiceStr(const V: TVector3Cardinal): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector4Cardinal): string;
+function VectorToNiceStr(const V: TVector4Cardinal): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector2Byte): string;
+function VectorToNiceStr(const V: TVector2Byte): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector3Byte): string;
+function VectorToNiceStr(const V: TVector3Byte): String;
 begin
   Result := V.ToString;
 end;
 
-function VectorToNiceStr(const V: TVector4Byte): string;
+function VectorToNiceStr(const V: TVector4Byte): String;
 begin
   Result := V.ToString;
 end;
@@ -618,17 +618,17 @@ begin
   Result := V.AdjustToLength(NewLength);
 end;
 
-function Vector2SingleFromStr(const S: string): TVector2;
+function Vector2SingleFromStr(const S: String): TVector2;
 begin
   Result := Vector2FromStr(S);
 end;
 
-function Vector3SingleFromStr(const s: string): TVector3;
+function Vector3SingleFromStr(const s: String): TVector3;
 begin
   Result := Vector3FromStr(S);
 end;
 
-function Vector4SingleFromStr(const S: string): TVector4;
+function Vector4SingleFromStr(const S: String): TVector4;
 begin
   Result := Vector4FromStr(S);
 end;
@@ -753,32 +753,32 @@ begin
   Result := M.TryInverse(MInverse);
 end;
 
-function MatrixToRawStr(const M: TMatrix2; const LineIndent: string): string;
+function MatrixToRawStr(const M: TMatrix2; const LineIndent: String): String;
 begin
   Result := M.ToRawString(LineIndent);
 end;
 
-function MatrixToRawStr(const M: TMatrix3; const LineIndent: string): string;
+function MatrixToRawStr(const M: TMatrix3; const LineIndent: String): String;
 begin
   Result := M.ToRawString(LineIndent);
 end;
 
-function MatrixToRawStr(const M: TMatrix4; const LineIndent: string): string;
+function MatrixToRawStr(const M: TMatrix4; const LineIndent: String): String;
 begin
   Result := M.ToRawString(LineIndent);
 end;
 
-function MatrixToNiceStr(const M: TMatrix2; const LineIndent: string): string;
+function MatrixToNiceStr(const M: TMatrix2; const LineIndent: String): String;
 begin
   Result := M.ToString(LineIndent);
 end;
 
-function MatrixToNiceStr(const M: TMatrix3; const LineIndent: string): string;
+function MatrixToNiceStr(const M: TMatrix3; const LineIndent: String): String;
 begin
   Result := M.ToString(LineIndent);
 end;
 
-function MatrixToNiceStr(const M: TMatrix4; const LineIndent: string): string;
+function MatrixToNiceStr(const M: TMatrix4; const LineIndent: String): String;
 begin
   Result := M.ToString(LineIndent);
 end;

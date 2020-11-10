@@ -840,10 +840,10 @@ type
     { Prepare resources, to make various methods (like @link(Render)) execute fast.
       Call it only when rendering context is initialized (ApplicationProperties.IsGLContextOpen).
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
-    procedure PrepareResources(const DisplayProgressTitle: string = '';
+    procedure PrepareResources(const DisplayProgressTitle: String = '';
       const Options: TPrepareResourcesOptions = DefaultPrepareOptions);
     procedure PrepareResources(const Item: TCastleTransform;
-      const DisplayProgressTitle: string = '';
+      const DisplayProgressTitle: String = '';
       Options: TPrepareResourcesOptions = DefaultPrepareOptions); virtual;
 
     { Current object (TCastleTransform hierarchy) under the mouse cursor.
@@ -3020,7 +3020,7 @@ begin
 end;
 
 procedure TCastleViewport.PrepareResources(const Item: TCastleTransform;
-  const DisplayProgressTitle: string;
+  const DisplayProgressTitle: String;
   Options: TPrepareResourcesOptions);
 var
   MainLightPosition: TVector4; // value of this is ignored
@@ -3067,7 +3067,7 @@ begin
     Item.PrepareResources(Options, false, PrepareParams);
 end;
 
-procedure TCastleViewport.PrepareResources(const DisplayProgressTitle: string;
+procedure TCastleViewport.PrepareResources(const DisplayProgressTitle: String;
   const Options: TPrepareResourcesOptions);
 begin
   PrepareResources(Items, DisplayProgressTitle, Options);

@@ -68,12 +68,12 @@
       to read string with dot to a float.
     )
 
-    @item(Makes AnsiString (which is usually just called "string")
+    @item(Makes AnsiString (which is usually just called "String")
       have UTF-8 encoding.
 
       This is consistent with Lazarus, that already does the same:
       http://wiki.lazarus.freepascal.org/Unicode_Support_in_Lazarus .
-      This way you can just use "string" (not UTF8String or UnicodeString)
+      This way you can just use "String" (not UTF8String or UnicodeString)
       throughout your code, and everything will just work.
 
       This way your applications will behave the same, whether they use LCL

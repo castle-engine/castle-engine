@@ -86,7 +86,7 @@
 function MakeWinapiMenuCore(Menu: TMenu;
   MenuBar: Boolean; ParentAllowsEnabled: Boolean): HMenu;
 
-  function SMnemonicsToWin(const S: string): string;
+  function SMnemonicsToWin(const S: String): String;
   var
     SPos, ResultPos: Integer;
   begin
@@ -144,7 +144,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
   procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: Boolean);
   var
     Flags: UInt;
-    KeyStr, S: string;
+    KeyStr, S: String;
   begin
     Flags := MF_STRING or EnabledFlag(MenuItem.Enabled and ParentAllowsEnabled);
 

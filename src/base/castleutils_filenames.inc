@@ -32,7 +32,7 @@ const
   @italic(It is not adviced to use this function,
   better to operate on URLs and MIME types instead of filenames
   and extensions, see CastleURIUtils.) }
-function DeleteFileExt(const FileName: string): string;
+function DeleteFileExt(const FileName: String): String;
 
 { Extracts @italic(two) last extensions from the filename, if it has two extensions.
   If the filename has only one extension, returns that one extension,
@@ -46,7 +46,7 @@ function DeleteFileExt(const FileName: string): string;
   @italic(It is not adviced to use this function,
   better to operate on URLs and MIME types instead of filenames
   and extensions, see CastleURIUtils.) }
-function ExtractFileDoubleExt(const FileName: string): string;
+function ExtractFileDoubleExt(const FileName: String): String;
 
 { Extracts from FileName the name of file, without directory,
   without last extension and without any Windows drive letter.
@@ -54,21 +54,21 @@ function ExtractFileDoubleExt(const FileName: string): string;
   @deprecated Deprecated, since we use URLs everywhere and also
   because this has very low usage. Use DeleteURIExt(ExtractURIName(URL))
   if you really need to. }
-function ExtractOnlyFilename(const FileName: string): string; deprecated;
+function ExtractOnlyFilename(const FileName: String): String; deprecated;
 
 { Returns FileName with directory (path) part replaced
   with given NewPath. NewPath @bold(must) contain trailing PathDelim.
 
   @deprecated Deprecated, since we use URLs everywhere and also
   because this has very low usage. }
-function ChangeFilePath(const FileName, NewPath: string): string; deprecated;
+function ChangeFilePath(const FileName, NewPath: String): String; deprecated;
 
 { Include / exclude the last path delimiter, if necessary.
   They are just comfortable shorter names for
   IncludeTrailingPathDelimiter and ExcludeTrailingPathDelimiter.
   @groupBegin }
-function InclPathDelim(const s: string): string;
-function ExclPathDelim(const s: string): string;
+function InclPathDelim(const S: String): String;
+function ExclPathDelim(const S: String): String;
 { @groupEnd }
 
 { Check is the given Path absolute.
@@ -84,85 +84,85 @@ function ExclPathDelim(const s: string): string;
   "not all information is contained in Path".
 
   @seealso IsPathAbsoluteOnDrive }
-function IsPathAbsolute(const Path: string): Boolean;
+function IsPathAbsolute(const Path: String): Boolean;
 
 { Just like IsPathAbsolute, but on Windows accepts also paths that specify
   full directory tree without drive letter.
 
   @seealso IsPathAbsolute }
-function IsPathAbsoluteOnDrive(const Path: string): Boolean;
+function IsPathAbsoluteOnDrive(const Path: String): Boolean;
 
 { Checks is the directory name special, like "." or "..".
 
   The precise definition of "special" is that you cannot ever create
   or even have any filenames / directories named like this. }
-function SpecialDirName(const DirectoryName: string): Boolean;
+function SpecialDirName(const DirectoryName: String): Boolean;
 
 { Add Suffix to the filename, right before extension.
   Returns @code(DeleteFileExt(FileName) + Suffix + ExtractFileExt(FileName)). }
-function AppendToFilename(const FileName, Suffix: string): string;
+function AppendToFilename(const FileName, Suffix: String): String;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function DeleteFileExt(const FileName: string): string;
+function DeleteFileExt(const FileName: String): String;
 begin
   Result := ChangeFileExt(FileName, '');
 end;
 
-function ExtractFileDoubleExt(const FileName: string): string;
+function ExtractFileDoubleExt(const FileName: String): String;
 begin
   Result := ExtractFileExt(FileName);
   if Result <> '' then
     Result := ExtractFileExt(ChangeFileExt(FileName, '')) + Result;
 end;
 
-function ExtractOnlyFileName(const FileName: string): string;
+function ExtractOnlyFileName(const FileName: String): String;
 begin
  result := DeleteFileExt(ExtractFileName(FileName));
 end;
 
-function ChangeFilePath(const FileName, NewPath: string): string;
+function ChangeFilePath(const FileName, NewPath: String): String;
 begin
  result := NewPath + ExtractFileName(FileName);
 end;
 
-function InclPathDelim(const s: string): string;
+function InclPathDelim(const S: String): String;
 begin
   Result := IncludeTrailingPathDelimiter(S);
 end;
 
-function ExclPathDelim(const s: string): string;
+function ExclPathDelim(const S: String): String;
 begin
   Result := ExcludeTrailingPathDelimiter(S);
 end;
 
 { This is also defined in CastleStringUtils publicly,
   but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
-function SCharIs(const s: string; index: Integer; c: Char): Boolean;
+function SCharIs(const S: String; Index: Integer; C: Char): Boolean;
 begin
-  Result := (index <= Length(s)) and (s[index] = c);
+  Result := (Index <= Length(S)) and (S[index] = C);
 end;
 
-function IsPathAbsolute(const Path: string): Boolean;
+function IsPathAbsolute(const Path: String): Boolean;
 begin
   Result := {$ifdef UNIX} SCharIs(Path, 1, PathDelim) {$endif}
             {$ifdef MSWINDOWS} SCharIs(Path, 2, DriveDelim) {$endif};
 end;
 
-function IsPathAbsoluteOnDrive(const Path: string): Boolean;
+function IsPathAbsoluteOnDrive(const Path: String): Boolean;
 begin
   Result := IsPathAbsolute(Path)
     {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
 end;
 
-function SpecialDirName(const DirectoryName: string): Boolean;
+function SpecialDirName(const DirectoryName: String): Boolean;
 begin
   Result := (DirectoryName = '.') or (DirectoryName = '..');
 end;
 
-function AppendToFilename(const FileName, Suffix: string): string;
+function AppendToFilename(const FileName, Suffix: String): String;
 begin
   { Could be optimized, as DeleteFileExt and ExtractFileExt
     do almost the same work twice. }

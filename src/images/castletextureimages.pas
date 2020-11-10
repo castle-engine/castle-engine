@@ -74,10 +74,10 @@ const
   it just doesn't return Composite object instance).
 
   @groupBegin }
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const URL: String;
   out Composite: TCompositeImage;
   const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const URL: String;
   const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
 { @groupEnd }
 
@@ -129,7 +129,7 @@ type
       { Internal for TTexturesVideosCache. @exclude }
       TCachedTexture = class
         References: Cardinal;
-        URL: string;
+        URL: String;
         LoadOptions: TLoadImageOptions;
         Image: TEncodedImage;
         Composite: TCompositeImage;
@@ -142,14 +142,14 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const URL: String;
       out Composite: TCompositeImage;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const URL: String;
       out AlphaChannel: TAlphaChannel;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
-    function TextureImage_IncReference(const URL: string;
+    function TextureImage_IncReference(const URL: String;
       const LoadOptions: TLoadImageOptions = []): TEncodedImage; overload;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage); overload;
@@ -214,7 +214,7 @@ implementation
 
 uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;
 
-function LoadTextureImage(const URL: string; out Composite: TCompositeImage;
+function LoadTextureImage(const URL: String; out Composite: TCompositeImage;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 begin
   if not TCompositeImage.MatchesURL(URL) then
@@ -235,7 +235,7 @@ begin
   end;
 end;
 
-function LoadTextureImage(const URL: string;
+function LoadTextureImage(const URL: String;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   Composite: TCompositeImage;
@@ -264,11 +264,11 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const URL: string;
+  const URL: String;
   out Composite: TCompositeImage; out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 
-  function AlphaChannelLog(const AC: TAlphaChannel): string;
+  function AlphaChannelLog(const AC: TAlphaChannel): String;
   begin
     if AC <> acNone then
       Result := '. Detected as simple yes/no ("test") alpha channel: ' + BoolToStr(AC = acTest, true) else
@@ -374,7 +374,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const URL: string; out AlphaChannel: TAlphaChannel;
+  const URL: String; out AlphaChannel: TAlphaChannel;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   Dummy: TCompositeImage;
@@ -382,7 +382,7 @@ begin
   Result := TextureImage_IncReference(URL, Dummy, AlphaChannel, LoadOptions);
 end;
 
-function TTexturesVideosCache.TextureImage_IncReference(const URL: string;
+function TTexturesVideosCache.TextureImage_IncReference(const URL: String;
   const LoadOptions: TLoadImageOptions): TEncodedImage;
 var
   DummyAlphaChannel: TAlphaChannel;

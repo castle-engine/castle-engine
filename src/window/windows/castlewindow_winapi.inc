@@ -400,7 +400,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   var
     Key: TKey;
     CharMsg: TMsg;
-    KeyString: string;
+    KeyString: String;
   begin
     { WM_CHAR is placed in our message queue by TranslateMessage.
       Always in WM_KEYDOWN we do this PeekMessageW(..., WM_CHAR, WM_CHAR, PM_REMOVE).
@@ -1293,7 +1293,7 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
@@ -1303,7 +1303,7 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 
   { Make path absolute. Same as ExpandFileName, but knows that
@@ -1316,7 +1316,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 
     Note: '' is treated as current dir (as it always should be, because
     ExtractFilePath('file') = '' and 'file' is in current dir). }
-  function ExpandFilePath(const FilePath: string): string;
+  function ExpandFilePath(const FilePath: String): String;
   begin
    if FilePath = '' then
     Result := InclPathDelim(GetCurrentDir) else
@@ -1336,7 +1336,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
     Note that Windows encoding of OpenFileName has limitations here, since all filters
     are passed in a string: pattern cannot contain ';', and WinAPI reference
     says that it also cannot contain a space. }
-  function MakeStrFilter(FileFilters: TFileFilterList): string;
+  function MakeStrFilter(FileFilters: TFileFilterList): String;
   var
     I, J: Integer;
     Filter: TFileFilter;
@@ -1360,7 +1360,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
     Result += #0;
   end;
 
-  function SearchFirstPatternWithExtension(const Ext: string): Integer;
+  function SearchFirstPatternWithExtension(const Ext: String): Integer;
   var
     I: Integer;
   begin
@@ -1389,9 +1389,9 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
 var
   Struct: TOpenFileName;
   FileNameBuffer: array [0..6000] of Char;
-  FilePath: string;
+  FilePath: String;
   Mode: TGLModeFrozenScreen;
-  CurrentFileNameExt: string;
+  CurrentFileNameExt: String;
   CurrentFormatIndex: Integer;
 begin
   FillChar(Struct, SizeOf(Struct), 0);
@@ -1581,7 +1581,7 @@ const
     MB_ICONERROR,
     0 );
 
-  MessageTypeToCaption: array [TWindowMessageType] of string =
+  MessageTypeToCaption: array [TWindowMessageType] of String =
   ( 'Information',
     'Warning',
     'Question',
@@ -1589,7 +1589,7 @@ const
     'Information');
 *)
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   CastleMessages.MessageOK(Self, S);
 
@@ -1608,7 +1608,7 @@ begin
   *)
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): Boolean;
 begin
   Result := CastleMessages.MessageYesNo(Self, S);
@@ -1641,11 +1641,11 @@ end;
 type
   TWinApiClipboard = class(TCastleClipboard)
   protected
-    function GetAsText: string; override;
-    procedure SetAsText(const Value: string); override;
+    function GetAsText: String; override;
+    procedure SetAsText(const Value: String); override;
   end;
 
-function TWinApiClipboard.GetAsText: string;
+function TWinApiClipboard.GetAsText: String;
 var
   DataHandle: Windows.HGLOBAL;
   Data: Pointer;
@@ -1674,7 +1674,7 @@ begin
   end;
 end;
 
-procedure TWinApiClipboard.SetAsText(const Value: string);
+procedure TWinApiClipboard.SetAsText(const Value: String);
 var
   DataHandle : Windows.HGLOBAL;
   Data: Pointer;
@@ -1931,7 +1931,7 @@ begin
   Result := 0;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'WinAPI';
 end;

@@ -30,7 +30,7 @@ type
     Data: packed array [0..2] of TVector2;
 
     { Multiline triangle description. }
-    function ToString: string;
+    function ToString: String;
   end;
 
   PTriangle2 = ^TTriangle2;
@@ -60,7 +60,7 @@ type
     property Items [const Index: TIndex]: TVector3 read GetItems write SetItems; default;
 
     { Multiline triangle description. }
-    function ToString: string;
+    function ToString: String;
 
     { Check does the triangle define a correct plane in 3D space.
       That is, check does the triangle not degenerate to a point or line segment
@@ -140,7 +140,7 @@ type
     Data: packed array [0..2] of TVector4;
 
     { Multiline triangle description. }
-    function ToString: string;
+    function ToString: String;
   end;
 
   PTriangle4 = ^TTriangle4;
@@ -562,7 +562,7 @@ function TriangleTransform(const T: TTriangle3; const M: TMatrix4): TTriangle3; 
 function TriangleNormPlane(const T: TTriangle3): TVector4; deprecated 'use Triangle.NormalizedPlane';
 function TriangleArea(const T: TTriangle3): Single; deprecated 'use Triangle.Area';
 function Barycentric(const T: TTriangle3; const Point: TVector3): TVector3; deprecated 'use Triangle.Barycentric';
-function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToString';
+function TriangleToNiceStr(const T: TTriangle3): String; deprecated 'use T.ToString';
 
 implementation
 
@@ -963,7 +963,7 @@ end;
 
 { TTriangle2 ----------------------------------------------------------------- }
 
-function TTriangle2.ToString: string;
+function TTriangle2.ToString: String;
 begin
   Result :=
     Data[0].ToString + NL +
@@ -1093,7 +1093,7 @@ begin
     Data[2] - Data[0]).LengthSqr / 4;
 end;
 
-function TTriangle3.ToString: string;
+function TTriangle3.ToString: String;
 begin
   Result :=
     Data[0].ToString + NL +
@@ -1173,7 +1173,7 @@ end;
 
 { TTriangle4 ----------------------------------------------------------------- }
 
-function TTriangle4.ToString: string;
+function TTriangle4.ToString: String;
 begin
   Result :=
     Data[0].ToString + NL +
@@ -1592,7 +1592,7 @@ begin
   Result := T.Barycentric(Point);
 end;
 
-function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToString';
+function TriangleToNiceStr(const T: TTriangle3): String; deprecated 'use T.ToString';
 begin
   Result := T.ToString;
 end;

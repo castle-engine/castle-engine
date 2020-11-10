@@ -94,7 +94,7 @@ const
   MinDateTime: TDateTime = MinDouble;
 
 { Convert DateTime to string in the form "date at time". }
-function DateTimeToAtStr(const DateTime: TDateTime): string;
+function DateTimeToAtStr(const DateTime: TDateTime): String;
 
 {$endif read_interface}
 
@@ -140,7 +140,7 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1-t2 end;
 {$I norqcheckend.inc}
 
-function DateTimeToAtStr(const DateTime: TDateTime): string;
+function DateTimeToAtStr(const DateTime: TDateTime): String;
 begin
   Result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
 end;

@@ -65,7 +65,7 @@ end;
 
 { EGL error codes and descriptions from
   http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }
-function EGLError: string;
+function EGLError: String;
 var
   ErrorCode: EGLint;
 begin

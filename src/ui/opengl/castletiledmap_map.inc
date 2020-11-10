@@ -27,12 +27,12 @@ type
         procedure Load(const Element: TDOMElement; const BaseUrl: String);
       public
         { The name of the property. }
-        Name: string;
+        Name: String;
         { The value of the property. }
-        Value: string;
+        Value: String;
         { The type of the property. Can be string (default), int, float, bool, color
           or file (since 0.16, with color and file added in 0.17). }
-        AType: string;
+        AType: String;
       end;
 
       { List of properties. }
@@ -66,10 +66,10 @@ type
       public
         { Used for embedded images, in combination with a data child element.
           Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
-        Format: string;
+        Format: String;
         { The reference to the tileset image file (Tiled supports most common
           image formats). }
-        URL: string;
+        URL: String;
         { Defines a specific color that is treated as transparent. }
         Trans: TCastleColorRGB;
         { The image width in pixels (optional, used for tile index correction when
@@ -97,9 +97,9 @@ type
           Can not be changed in Tiled Qt. (since Tiled 0.11) }
         Id: Integer;
         { The name of the object. An arbitrary string. }
-        Name: string;
+        Name: String;
         { The type of the object. An arbitrary string. }
-        Type_: string;
+        Type_: String;
         { The x coordinate of the object in pixels. }
         X: Single;
         { The y coordinate of the object in pixels. }
@@ -130,7 +130,7 @@ type
         procedure Load(const Element: TDOMElement; const BaseUrl: String); virtual;
       public
         { The name of the layer. }
-        Name: string;
+        Name: String;
         { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
         Opacity: Single;
         { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
@@ -222,7 +222,7 @@ type
 
       TTerrain = class
         { The name of the terrain type. }
-        Name: string;
+        Name: String;
         { The local tile-id of the tile that represents the terrain visually. }
         Tile: Cardinal;
         Properties: TPropertyList;
@@ -245,9 +245,9 @@ type
           <tileset> element described here. (There is the firstgid attribute missing
           and this source attribute is also not there. These two attributes
           are kept in the TMX map, since they are map specific.) }
-        URL: string;
+        URL: String;
         { The name of this tileset. }
-        Name: string;
+        Name: String;
         { The (maximum) width of the tiles in this tileset. }
         TileWidth: Cardinal;
         { The (maximum) height of the tiles in this tileset. }
@@ -292,7 +292,7 @@ type
   strict private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
-    FVersion: string;
+    FVersion: String;
     FOrientation: TMapOrientation;
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -303,11 +303,11 @@ type
     FStaggerIndex: TStaggerIndex;
     FBackgroundColor: TCastleColor;
     FRenderOrder: TMapRenderOrder;
-    BaseUrl: string;
+    BaseUrl: String;
     FTilesets: TTilesetList;
     FProperties: TPropertyList;
     FLayers: TLayerList;
-    procedure LoadTMXFile(const AURL: string);
+    procedure LoadTMXFile(const AURL: String);
   public
     property Layers: TLayerList read FLayers;
     { Map orientation. }
@@ -340,7 +340,7 @@ type
     property RenderOrder: TMapRenderOrder read FRenderOrder;
     { Constructor.
       @param(AURL URL to Tiled (TMX) file.) }
-    constructor Create(const AURL: string);
+    constructor Create(const AURL: String);
     destructor Destroy; override;
 
     { Is the given tile number valid.
@@ -435,12 +435,12 @@ const
   CSVDataSeparator = Char(',');
 var
   I: TXMLElementIterator;
-  TmpStr, RawData: string;
+  TmpStr, RawData: String;
   Decompressor: TStream;
   Decoder: TBase64DecodingStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
   DataCount, DataLength: LongInt;
-  CSVItem: string;
+  CSVItem: String;
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;
   UsePlainXML: Boolean;
@@ -562,7 +562,7 @@ const
   DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr: String;
 begin
   if Element.AttributeString('format', TmpStr) then
     Format := TmpStr;
@@ -612,7 +612,7 @@ end;
 
 procedure TTiledMap.TFrame.Load(const Element: TDOMElement; const BaseUrl: String);
 var
-  TmpStr: string;
+  TmpStr: String;
 begin
   if Element.AttributeString('tileid', TmpStr) then
     TileId := StrToInt(TmpStr);
@@ -665,7 +665,7 @@ end;
 procedure TTiledMap.TTile.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr: String;
   SPosition: Integer;
 begin
   if Element.AttributeString('id', TmpStr) then
@@ -718,7 +718,7 @@ end;
 procedure TTiledMap.TTiledObject.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr: String;
 
   function ReadVector(const S: String): TVector2;
   var
@@ -735,7 +735,7 @@ var
       raise Exception.CreateFmt('Unexpected vector format in Tiled map: %s', [S]);
   end;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
+  procedure ReadPoints(const PointsString: String; var PointsList: TVector2List);
   var
     SeekPos: Integer;
     Token: String;
@@ -817,7 +817,7 @@ end;
 procedure TTiledMap.TLayer.Load(const Element: TDOMElement; const BaseUrl: String);
 var
   I: TXMLElementIterator;
-  TmpStr: string;
+  TmpStr: String;
 begin
   Opacity := 1;
   Visible := True;
@@ -860,7 +860,7 @@ procedure TTiledMap.TObjectGroupLayer.Load(const Element: TDOMElement; const Bas
 var
   I: TXMLElementIterator;
   NewObject: TTiledObject;
-  TmpStr: string;
+  TmpStr: String;
 begin
   inherited;
 
@@ -958,7 +958,7 @@ procedure TTiledMap.TTileset.Load(const Element: TDOMElement; const BaseUrl: Str
 var
   I: TXMLElementIterator;
   NewTile: TTile;
-  TmpStr: string;
+  TmpStr: String;
 begin
   TileOffset := TVector2Integer.Zero;
   Spacing := 0;
@@ -1024,10 +1024,10 @@ end;
 
 { TTiledMap ------------------------------------------------------------------ }
 
-procedure TTiledMap.LoadTMXFile(const AURL: string);
+procedure TTiledMap.LoadTMXFile(const AURL: String);
 var
   Doc: TXMLDocument;
-  TmpStr: string;
+  TmpStr: String;
   I: TXMLElementIterator;
   NewLayer: TLayer;
   NewTileset: TTileset;
@@ -1116,7 +1116,7 @@ begin
   end;
 end;
 
-constructor TTiledMap.Create(const AURL: string);
+constructor TTiledMap.Create(const AURL: String);
 begin
   FTilesets := TTilesetList.Create;
   FProperties := TPropertyList.Create;

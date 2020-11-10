@@ -66,21 +66,21 @@ uses SysUtils, CastleClassUtils, CastleURIUtils;
 type
   TMenuRecentItem = class(TMenuItem)
   private
-    FURL: string;
+    FURL: String;
   public
     { Constructor. Number is 1-based number of this recent file entry. }
-    constructor Create(const Number: Integer; const AURL: string;
+    constructor Create(const Number: Integer; const AURL: String;
       AIntData: Integer);
   public
     OnOpenRecent: TOnOpenRecent;
-    property URL: string read FURL;
+    property URL: String read FURL;
     function DoClick: Boolean; override;
   end;
 
 constructor TMenuRecentItem.Create(
-  const Number: Integer; const AURL: string; AIntData: Integer);
+  const Number: Integer; const AURL: String; AIntData: Integer);
 var
-  S: string;
+  S: String;
 begin
   FURL := AURL;
 

@@ -68,16 +68,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2; inline;
 
     procedure Init(const X, Y: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -168,16 +168,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3; inline;
 
     procedure Init(const X, Y, Z: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -300,16 +300,16 @@ type
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4; inline;
 
     procedure Init(const X, Y, Z, W: TGenericScalar); inline;
-    function ToString: string;
+    function ToString: String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString: string;
+    function ToRawString: String;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
@@ -401,16 +401,16 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector2 read GetRows write SetRows;
@@ -488,16 +488,16 @@ type
       makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector3 read GetRows write SetRows;
@@ -570,16 +570,16 @@ type
       (without spending *any* time on calculating transposition). }
     function TransposeMultiply(const V: TGenericVector4): TGenericVector4; inline;
 
-    function ToString(const LineIndent: string = ''): string;
+    function ToString(const LineIndent: String = ''): String;
 
-    { Convert to string using the most precise (not always easily readable
+    { Convert to String using the most precise (not always easily readable
       by humans) float format. This may use the exponential
       (scientific) notation to represent the floating-point value,
       if needed.
 
       This is suitable for storing the value in a file,
       with a best precision possible. }
-    function ToRawString(const LineIndent: string = ''): string;
+    function ToRawString(const LineIndent: String = ''): String;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
     property Rows [const ARow: TIndex]: TGenericVector4 read GetRows write SetRows;
@@ -703,12 +703,12 @@ begin
   Data[1] := Y;
 end;
 
-function TGenericVector2.ToString: string;
+function TGenericVector2.ToString: String;
 begin
   Result := FormatDot('%f %f', [Data[0], Data[1]]);
 end;
 
-function TGenericVector2.ToRawString: string;
+function TGenericVector2.ToRawString: String;
 begin
   Result := FormatDot('%g %g', [Data[0], Data[1]]);
 end;
@@ -912,12 +912,12 @@ begin
   Data[2] := Z;
 end;
 
-function TGenericVector3.ToString: string;
+function TGenericVector3.ToString: String;
 begin
   Result := FormatDot('%f %f %f', [Data[0], Data[1], Data[2]]);
 end;
 
-function TGenericVector3.ToRawString: string;
+function TGenericVector3.ToRawString: String;
 begin
   Result := FormatDot('%g %g %g', [Data[0], Data[1], Data[2]]);
 end;
@@ -1170,12 +1170,12 @@ begin
   Data[3] := Z;
 end;
 
-function TGenericVector4.ToString: string;
+function TGenericVector4.ToString: String;
 begin
   Result := FormatDot('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
 end;
 
-function TGenericVector4.ToRawString: string;
+function TGenericVector4.ToRawString: String;
 begin
   Result := FormatDot('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
 end;
@@ -1409,7 +1409,7 @@ begin
   Result.Data[1, 1] := M1.Data[0, 1] * M2.Data[1, 0] + M1.Data[1, 1] * M2.Data[1, 1];
 end;
 
-function TGenericMatrix2.ToString(const LineIndent: string): string;
+function TGenericMatrix2.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f' + NL +
                       '%s%f %f',
@@ -1417,7 +1417,7 @@ begin
     LineIndent, Data[0, 1], Data[1, 1] ]);
 end;
 
-function TGenericMatrix2.ToRawString(const LineIndent: string): string;
+function TGenericMatrix2.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g' + NL +
                       '%s%g %g',
@@ -1669,7 +1669,7 @@ begin
   Result.Data[2, 2] := M1.Data[0, 2] * M2.Data[2, 0] + M1.Data[1, 2] * M2.Data[2, 1] + M1.Data[2, 2] * M2.Data[2, 2];
 end;
 
-function TGenericMatrix3.ToString(const LineIndent: string): string;
+function TGenericMatrix3.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f %f' + NL +
                       '%s%f %f %f' + NL +
@@ -1679,7 +1679,7 @@ begin
     LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
 end;
 
-function TGenericMatrix3.ToRawString(const LineIndent: string): string;
+function TGenericMatrix3.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g %g' + NL +
                       '%s%g %g %g' + NL +
@@ -2040,7 +2040,7 @@ begin
   Result.Data[3, 3] := M1.Data[0, 3] * M2.Data[3, 0] + M1.Data[1, 3] * M2.Data[3, 1] + M1.Data[2, 3] * M2.Data[3, 2] + M1.Data[3, 3] * M2.Data[3, 3];
 end;
 
-function TGenericMatrix4.ToString(const LineIndent: string): string;
+function TGenericMatrix4.ToString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%f %f %f %f' + NL +
                       '%s%f %f %f %f' + NL +
@@ -2052,7 +2052,7 @@ begin
     LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
 end;
 
-function TGenericMatrix4.ToRawString(const LineIndent: string): string;
+function TGenericMatrix4.ToRawString(const LineIndent: String): String;
 begin
   Result := FormatDot('%s%g %g %g %g' + NL +
                       '%s%g %g %g %g' + NL +

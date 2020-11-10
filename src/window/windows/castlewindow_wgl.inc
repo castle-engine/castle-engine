@@ -188,7 +188,7 @@ procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
     end;
 
   var
-    WglExtensions: string;
+    WglExtensions: String;
 
     { GLExt unit doesn't provide this (although it provides related
       constants, like WGL_SAMPLE_BUFFERS_ARB). I like to check for this

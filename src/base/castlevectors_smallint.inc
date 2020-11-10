@@ -36,7 +36,7 @@ type
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2SmallInt): TVector2SmallInt; inline;
 
-    function ToString: string;
+    function ToString: String;
 
     property Items [const Index: TIndex]: SmallInt read GetItems write SetItems; default;
     property X: SmallInt index 0 read GetItemsInt write SetItemsInt;
@@ -73,7 +73,7 @@ begin
   Result.Data[1] := - V.Data[1];
 end;
 
-function TVector2SmallInt.ToString: string;
+function TVector2SmallInt.ToString: String;
 begin
   Result := Format('%d %d', [Data[0], Data[1]]);
 end;

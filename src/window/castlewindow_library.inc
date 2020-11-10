@@ -42,7 +42,7 @@ public
 private
   FScreenWidth, FScreenHeight: Integer;
   FScreenStatusBarHeight: Cardinal;
-  procedure WarningToCallback(const Category, S: string);
+  procedure WarningToCallback(const Category, S: String);
 {$endif read_application_interface}
 
 {$ifdef read_global_interface}
@@ -161,7 +161,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: String);
 begin
   FCaption[Part] := Value;
   if not Closed then
@@ -247,7 +247,7 @@ end;
 
 { Methods below should make native-looking dialog boxes. }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: String;
   OpenDialog: Boolean; FileFilters: TFileFilterList): Boolean;
 begin
   { TODO } Result := false;
@@ -258,12 +258,12 @@ begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: String; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindowBase.MessageYesNo(const S: String;
   const MessageType: TWindowMessageType): Boolean;
 begin
   { TODO } Result := true;
@@ -319,14 +319,14 @@ begin
   Result := FScreenStatusBarHeight;
 end;
 
-function TCastleApplication.BackendName: string;
+function TCastleApplication.BackendName: String;
 begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
-procedure TCastleApplication.WarningToCallback(const Category, S: string);
+procedure TCastleApplication.WarningToCallback(const Category, S: String);
 var
-  sMsg: string;
+  sMsg: String;
   szBuffer: PChar;
   nBufSize: Cardinal;
 begin
