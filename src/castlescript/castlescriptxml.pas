@@ -33,21 +33,21 @@ type
     { Read a float expression composed in CastleScript,
       like @code("123.0") or @code("3.0 * 2.0") or @code("sin(2.0)").
       @groupBegin }
-    function GetFloatExpression(const APath: string;
+    function GetFloatExpression(const APath: String;
       const ADefaultValue: Float): Float;
-    function GetFloatExpression(const APath: string;
-      const ADefaultValue: string): Float;
-    function GetFloatExpression(const APath: string): Float;
+    function GetFloatExpression(const APath: String;
+      const ADefaultValue: String): Float;
+    function GetFloatExpression(const APath: String): Float;
     { @groupEnd }
 
     { Read an integer expression composed in CastleScript,
       like @code("123") or @code("3 * 2 + 5").
       @groupBegin }
-    function GetIntExpression(const APath: string;
+    function GetIntExpression(const APath: String;
       const ADefaultValue: Int64): Int64;
-    function GetIntExpression(const APath: string;
-      const ADefaultValue: string): Int64;
-    function GetIntExpression(const APath: string): Int64;
+    function GetIntExpression(const APath: String;
+      const ADefaultValue: String): Int64;
+    function GetIntExpression(const APath: String): Int64;
     { @groupEnd }
   end;
 
@@ -66,7 +66,7 @@ type
       mathematical exressions in XML attributes.
 
       If there is no such attribute returns @false and does not modify Value. }
-    function AttributeFloatExpression(const AttrName: string; var Value: Float): Boolean;
+    function AttributeFloatExpression(const AttrName: String; var Value: Float): Boolean;
 
     { Retrieves from Element given attribute as a Float expression,
       raises EDOMAttributeMissing if missing.
@@ -78,7 +78,7 @@ type
       mathematical exressions in XML attributes.
 
       @raises EDOMAttributeMissing }
-    function AttributeFloatExpression(const AttrName: string): Float;
+    function AttributeFloatExpression(const AttrName: String): Float;
 
     { Retrieves from Element given attribute as a Float expression, or a default value.
 
@@ -87,7 +87,7 @@ type
       for example something crazy like @code(2.0 * sin(5.0) + Pi).
       You can use this method instead of @link(AttributeFloatDef) to easily allow
       mathematical exressions in XML attributes. }
-    function AttributeFloatExpressionDef(const AttrName: string; const DefaultValue: Float): Float;
+    function AttributeFloatExpressionDef(const AttrName: String; const DefaultValue: Float): Float;
   end;
 
 implementation
@@ -97,16 +97,16 @@ uses SysUtils,
 
 { TCastleConfigScriptHelper -------------------------------------------------- }
 
-function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
+function TCastleConfigScriptHelper.GetFloatExpression(const APath: String;
   const ADefaultValue: Float): Float;
 begin
   Result := GetFloatExpression(APath, FloatToStrDot(ADefaultValue));
 end;
 
-function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
-  const ADefaultValue: string): Float;
+function TCastleConfigScriptHelper.GetFloatExpression(const APath: String;
+  const ADefaultValue: String): Float;
 var
-  ResultString: string;
+  ResultString: String;
   E: TCasScriptExpression;
 begin
   ResultString := GetValue(APath, ADefaultValue);
@@ -116,7 +116,7 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-function TCastleConfigScriptHelper.GetFloatExpression(const APath: string): Float;
+function TCastleConfigScriptHelper.GetFloatExpression(const APath: String): Float;
 var
   E: TCasScriptExpression;
 begin
@@ -126,16 +126,16 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-function TCastleConfigScriptHelper.GetIntExpression(const APath: string;
+function TCastleConfigScriptHelper.GetIntExpression(const APath: String;
   const ADefaultValue: Int64): Int64;
 begin
   Result := GetIntExpression(APath, IntToStr(ADefaultValue));
 end;
 
-function TCastleConfigScriptHelper.GetIntExpression(const APath: string;
-  const ADefaultValue: string): Int64;
+function TCastleConfigScriptHelper.GetIntExpression(const APath: String;
+  const ADefaultValue: String): Int64;
 var
-  ResultString: string;
+  ResultString: String;
   E: TCasScriptExpression;
 begin
   ResultString := GetValue(APath, ADefaultValue);
@@ -145,7 +145,7 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-function TCastleConfigScriptHelper.GetIntExpression(const APath: string): Int64;
+function TCastleConfigScriptHelper.GetIntExpression(const APath: String): Int64;
 var
   E: TCasScriptExpression;
 begin
@@ -158,9 +158,9 @@ end;
 { TDOMElementScriptHelper ---------------------------------------------------- }
 
 function TDOMElementScriptHelper.AttributeFloatExpression(
-  const AttrName: string; var Value: Float): Boolean;
+  const AttrName: String; var Value: Float): Boolean;
 var
-  ValueStr: string;
+  ValueStr: String;
   E: TCasScriptExpression;
 begin
   Result := AttributeString(AttrName, ValueStr);
@@ -173,13 +173,13 @@ begin
   end;
 end;
 
-function TDOMElementScriptHelper.AttributeFloatExpression(const AttrName: string): Float;
+function TDOMElementScriptHelper.AttributeFloatExpression(const AttrName: String): Float;
 begin
   if not AttributeFloatExpression(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementScriptHelper.AttributeFloatExpressionDef(const AttrName: string; const DefaultValue: Float): Float;
+function TDOMElementScriptHelper.AttributeFloatExpressionDef(const AttrName: String; const DefaultValue: Float): Float;
 begin
   if not AttributeFloatExpression(AttrName, Result) then
     Result := DefaultValue;

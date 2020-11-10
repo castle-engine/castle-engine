@@ -51,7 +51,7 @@ type
     ssVarianceShadowMaps);
 
 const
-  ShadowSamplingNames: array [TShadowSampling] of string =
+  ShadowSamplingNames: array [TShadowSampling] of String =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16', 'Variance Shadow Maps (Experimental)' );
 
   DefaultShadowSampling = ssPCF16;
@@ -237,13 +237,13 @@ type
 
     { Look for shape with Geometry.X3DName = GeometryNodeName.
       Returns @nil if not found. }
-    function FindGeometryNodeName(const GeometryNodeName: string;
+    function FindGeometryNodeName(const GeometryNodeName: String;
       OnlyActive: Boolean = false): TShape;
 
     { Look for shape with Geometry that has a parent named ParentNodeName.
       Parent is searched by Geometry.TryFindParentNodeByName.
       Returns @nil if not found. }
-    function FindShapeWithParentNamed(const ParentNodeName: string;
+    function FindShapeWithParentNamed(const ParentNodeName: String;
       OnlyActive: Boolean = false): TShape;
 
     { Enumerate all single texture nodes (possibly) used by the shapes.
@@ -257,7 +257,7 @@ type
       and stops further processing. }
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
 
-    function DebugInfo(const Indent: string = ''): string; virtual; abstract;
+    function DebugInfo(const Indent: String = ''): String; virtual; abstract;
 
     { Using the TX3DNode.InternalSceneShape field,
       you can associate X3D node with a number of TShapeTree instances.
@@ -343,7 +343,7 @@ type
 
     FGeometryParentNodeName,
     FGeometryGrandParentNodeName,
-    FGeometryGrandGrandParentNodeName: string;
+    FGeometryGrandGrandParentNodeName: String;
 
     FLocalGeometryChangedCount: Cardinal;
     FDynamicGeometry: Boolean;
@@ -392,10 +392,10 @@ type
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
-      const ProgressTitle: string): TTriangleOctree;
+      const ProgressTitle: String): TTriangleOctree;
   strict private
     FTriangleOctreeLimits: TOctreeLimits;
-    FTriangleOctreeProgressTitle: string;
+    FTriangleOctreeProgressTitle: String;
 
     FOctreeTriangles: TTriangleOctree;
 
@@ -585,7 +585,7 @@ type
       octree creation (through TProgress.Title). Will be shown only
       if progress is not active already
       (so we avoid starting "progress bar within progress bar"). }
-    property InternalTriangleOctreeProgressTitle: string
+    property InternalTriangleOctreeProgressTitle: String
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
@@ -697,8 +697,8 @@ type
     procedure LocalTriangulate(OverTriangulate: Boolean; TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
-    function DebugInfo(const Indent: string = ''): string; override;
-    function NiceName: string;
+    function DebugInfo(const Indent: String = ''): String; override;
+    function NiceName: String;
 
     { Local geometry changes very often (like every frame).
       This is automatically detected and set to @true.
@@ -715,9 +715,9 @@ type
       as Node.NodeName, because the parent of geometry node is always
       a TShapeNode.
       @groupBegin }
-    property GeometryParentNodeName: string read FGeometryParentNodeName;
-    property GeometryGrandParentNodeName: string read FGeometryGrandParentNodeName;
-    property GeometryGrandGrandParentNodeName: string read FGeometryGrandGrandParentNodeName;
+    property GeometryParentNodeName: String read FGeometryParentNodeName;
+    property GeometryGrandParentNodeName: String read FGeometryGrandParentNodeName;
+    property GeometryGrandGrandParentNodeName: String read FGeometryGrandGrandParentNodeName;
     { @groupEnd }
 
     { Material property associated with this shape's material/texture. }
@@ -787,7 +787,7 @@ type
 
     {$endif}
 
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   { Node of the TShapeTree representing an alternative,
@@ -921,7 +921,7 @@ type
     property Node: TProximitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   TVisibilitySensorInstance = class(TShapeTree)
@@ -945,7 +945,7 @@ type
     property Node: TVisibilitySensorNode read FNode write FNode;
 
     function EnumerateTextures(const Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
-    function DebugInfo(const Indent: string = ''): string; override;
+    function DebugInfo(const Indent: String = ''): String; override;
   end;
 
   { Iterates over all TShape items that would be enumerated by
@@ -1046,17 +1046,17 @@ type
     Except when it's not possible (like for old Blender VRML 1.0 exporter,
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
-  TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = class(specialize TDictionary<string, TPlaceholderName>)
+  TPlaceholderName = function (const Shape: TShape): String;
+  TPlaceholderNames = class(specialize TDictionary<String, TPlaceholderName>)
   strict private
-    function GetItems(const AKey: string): TPlaceholderName;
-    procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
+    function GetItems(const AKey: String): TPlaceholderName;
+    procedure SetItems(const AKey: String; const AValue: TPlaceholderName);
   public
     { Access dictionary items.
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: TPlaceholderName read GetItems write SetItems; default;
+    property Items [const AKey: String]: TPlaceholderName read GetItems write SetItems; default;
   end;
 
 var
@@ -1197,7 +1197,7 @@ begin
 end;
 
 function TShapeTree.FindGeometryNodeName(
-  const GeometryNodeName: string; OnlyActive: Boolean): TShape;
+  const GeometryNodeName: String; OnlyActive: Boolean): TShape;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -1212,7 +1212,7 @@ begin
 end;
 
 function TShapeTree.FindShapeWithParentNamed(
-  const ParentNodeName: string; OnlyActive: Boolean): TShape;
+  const ParentNodeName: String; OnlyActive: Boolean): TShape;
 var
   ShapeList: TShapeList;
   Shape: TShape;
@@ -2054,7 +2054,7 @@ end;
 
 function TShape.CreateTriangleOctree(
   const ALimits: TOctreeLimits;
-  const ProgressTitle: string): TTriangleOctree;
+  const ProgressTitle: String): TTriangleOctree;
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
@@ -3029,12 +3029,12 @@ begin
   finally FreeAndNil(TR) end;
 end;
 
-function TShape.DebugInfo(const Indent: string): string;
+function TShape.DebugInfo(const Indent: String): String;
 begin
   Result := Indent + NiceName + NL;
 end;
 
-function TShape.NiceName: string;
+function TShape.NiceName: String;
 begin
   Result := OriginalGeometry.NiceName;
   if (Node <> nil) and (Node.X3DName <> '') then
@@ -3066,7 +3066,7 @@ end;
 
 function TShape.InternalMaterialProperty: TMaterialProperty;
 var
-  TextureUrl: string;
+  TextureUrl: String;
 begin
   if IsCachedMaterialProperty then
     Exit(CachedMaterialProperty);
@@ -3169,7 +3169,7 @@ begin
 end;
 {$endif}
 
-function TShapeTreeGroup.DebugInfo(const Indent: string): string;
+function TShapeTreeGroup.DebugInfo(const Indent: String): String;
 var
   I: Integer;
 begin
@@ -3383,7 +3383,7 @@ begin
   Result := nil;
 end;
 
-function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TProximitySensorInstance.DebugInfo(const Indent: String = ''): String;
 begin
   Result := Indent + 'ProximitySensor (' + Node.X3DName + ')' + NL;
 end;
@@ -3414,7 +3414,7 @@ begin
   Result := nil;
 end;
 
-function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
+function TVisibilitySensorInstance.DebugInfo(const Indent: String = ''): String;
 begin
   Result := Indent + 'VisibilitySensor (' + Node.X3DName + ')' + NL;
 end;
@@ -3679,17 +3679,17 @@ end;
 
 { TPlaceholderNames ------------------------------------------------------- }
 
-function TPlaceholderNames.GetItems(const AKey: string): TPlaceholderName;
+function TPlaceholderNames.GetItems(const AKey: String): TPlaceholderName;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TPlaceholderNames.SetItems(const AKey: string; const AValue: TPlaceholderName);
+procedure TPlaceholderNames.SetItems(const AKey: String; const AValue: TPlaceholderName);
 begin
   AddOrSetValue(AKey, AValue);
 end;
 
-function X3DShapePlaceholder(const Shape: TShape): string;
+function X3DShapePlaceholder(const Shape: TShape): String;
 begin
   { Shape.Node may be nil for old VRML 1.0 or Inventor. }
   if Shape.Node <> nil then
@@ -3697,7 +3697,7 @@ begin
     Result := '';
 end;
 
-function BlenderPlaceholder(const Shape: TShape): string;
+function BlenderPlaceholder(const Shape: TShape): String;
 begin
   if Shape.OriginalGeometry is TAbstractGeometryNode_1 then
   begin

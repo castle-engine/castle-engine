@@ -183,99 +183,99 @@ type
 
   TCasScriptVector = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorD = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorGet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorSet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptVectorGetCount = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorLength = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorSqrLength = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorDot = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptVectorCross = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptGrayscale = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptOrientationFromDirectionUp = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptRotate = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptOrientationToDirection = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptOrientationToUp = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptSlerp = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptMatrixFun = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptMatrixGet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptMatrixSet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptMatrixGetCount = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
 implementation
@@ -973,22 +973,22 @@ end;
 
 { TCasScriptFunction descendants --------------------------------------------- }
 
-class function TCasScriptVector.ShortName: string;
+class function TCasScriptVector.ShortName: String;
 begin
   Result := 'vector';
 end;
 
-class function TCasScriptVectorD.ShortName: string;
+class function TCasScriptVectorD.ShortName: String;
 begin
   Result := 'vector_d';
 end;
 
-class function TCasScriptVectorGet.ShortName: string;
+class function TCasScriptVectorGet.ShortName: String;
 begin
   Result := 'vector_get';
 end;
 
-class function TCasScriptVectorSet.ShortName: string;
+class function TCasScriptVectorSet.ShortName: String;
 begin
   Result := 'vector_set';
 end;
@@ -998,74 +998,74 @@ begin
   Result := Index = 0;
 end;
 
-class function TCasScriptVectorGetCount.ShortName: string;
+class function TCasScriptVectorGetCount.ShortName: String;
 begin
   Result := 'vector_get_count';
 end;
 
-class function TCasScriptVectorLength.ShortName: string;
+class function TCasScriptVectorLength.ShortName: String;
 begin
   Result := 'vector_length';
 end;
 
-class function TCasScriptVectorSqrLength.ShortName: string;
+class function TCasScriptVectorSqrLength.ShortName: String;
 begin
   Result := 'vector_sqr_length';
 end;
 
-class function TCasScriptVectorDot.ShortName: string;
+class function TCasScriptVectorDot.ShortName: String;
 begin
   Result := 'vector_dot';
 end;
 
-class function TCasScriptVectorCross.ShortName: string;
+class function TCasScriptVectorCross.ShortName: String;
 begin
   Result := 'vector_cross';
 end;
 
-class function TCasScriptGrayscale.ShortName: string;
+class function TCasScriptGrayscale.ShortName: String;
 begin
   Result := 'grayscale';
 end;
 
-class function TCasScriptOrientationFromDirectionUp.ShortName: string;
+class function TCasScriptOrientationFromDirectionUp.ShortName: String;
 begin
   Result := 'orientation_from_direction_up';
 end;
 
-class function TCasScriptRotate.ShortName: string;
+class function TCasScriptRotate.ShortName: String;
 begin
   Result := 'rotate';
 end;
 
-class function TCasScriptOrientationToDirection.ShortName: string;
+class function TCasScriptOrientationToDirection.ShortName: String;
 begin
   Result := 'orientation_to_direction';
 end;
 
-class function TCasScriptOrientationToUp.ShortName: string;
+class function TCasScriptOrientationToUp.ShortName: String;
 begin
   Result := 'orientation_to_up';
 end;
 
-class function TCasScriptSlerp.ShortName: string;
+class function TCasScriptSlerp.ShortName: String;
 begin
   Result := 'slerp';
 end;
 
 { matrix functions ----------------------------------------------------------- }
 
-class function TCasScriptMatrixFun.ShortName: string;
+class function TCasScriptMatrixFun.ShortName: String;
 begin
   Result := 'matrix';
 end;
 
-class function TCasScriptMatrixGet.ShortName: string;
+class function TCasScriptMatrixGet.ShortName: String;
 begin
   Result := 'matrix_get';
 end;
 
-class function TCasScriptMatrixSet.ShortName: string;
+class function TCasScriptMatrixSet.ShortName: String;
 begin
   Result := 'matrix_set';
 end;
@@ -1075,7 +1075,7 @@ begin
   Result := Index = 0;
 end;
 
-class function TCasScriptMatrixGetCount.ShortName: string;
+class function TCasScriptMatrixGetCount.ShortName: String;
 begin
   Result := 'matrix_get_count';
 end;

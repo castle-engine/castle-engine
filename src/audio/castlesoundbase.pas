@@ -33,17 +33,17 @@ type
 
   TSoundDevice = class
   private
-    FName, FCaption: string;
+    FName, FCaption: String;
   public
     { Short device name, used for @link(TSoundEngine.Device). }
-    property Name: string read FName;
+    property Name: String read FName;
     { Nice device name to show user. }
-    property Caption: string read FCaption;
-    property NiceName: string read FCaption; deprecated 'use Caption';
+    property Caption: String read FCaption;
+    property NiceName: String read FCaption; deprecated 'use Caption';
   end;
 
   TSoundDeviceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundDevice>)
-    procedure Add(const AName, ACaption: string); reintroduce;
+    procedure Add(const AName, ACaption: String); reintroduce;
   end;
 
   { Sound sample format.
@@ -70,13 +70,13 @@ type
     slStreaming
   );
 
-function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
+function DataFormatToStr(const DataFormat: TSoundDataFormat): String;
 
 implementation
 
 { TSoundDeviceList ----------------------------------------------------------- }
 
-procedure TSoundDeviceList.Add(const AName, ACaption: string);
+procedure TSoundDeviceList.Add(const AName, ACaption: String);
 var
   D: TSoundDevice;
 begin
@@ -88,7 +88,7 @@ end;
 
 { global functions ----------------------------------------------------------- }
 
-function DataFormatToStr(const DataFormat: TSoundDataFormat): string;
+function DataFormatToStr(const DataFormat: TSoundDataFormat): String;
 const
   DataFormatStr: array [TSoundDataFormat] of String = (
     'mono 8',

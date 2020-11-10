@@ -114,7 +114,7 @@ type
     function PixelsDone: Cardinal; virtual; abstract;
 
     { Nice curve name, like 'swapscan', 'hilbert' or 'peano'. }
-    class function SFCName: string; virtual; abstract;
+    class function SFCName: String; virtual; abstract;
   end;
 
   TSpaceFillingCurveClass = class of TSpaceFillingCurve;
@@ -149,7 +149,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
   { Space-filling Hilbert curve.
@@ -160,7 +160,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
   { Space-filling Peano curve.
@@ -171,7 +171,7 @@ type
   protected
     procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
-    class function SFCName: string; override;
+    class function SFCName: String; override;
   end;
 
 const
@@ -185,11 +185,11 @@ type
 { For curve name (matching some TSpaceFillingCurve.SFCName),
   return appropriate class. Not case-sensitive.
   @raises EInvalidSFCurveClassName For unknown curve names. }
-function StrToSFCurveClass(const s: string): TSpaceFillingCurveClass;
+function StrToSFCurveClass(const S: String): TSpaceFillingCurveClass;
 
 { All non-abstract space-filling curve names.
   Separated by commas, in apostrophes. }
-function AllSFCurveClassesNames: string;
+function AllSFCurveClassesNames: String;
 
 implementation
 
@@ -358,7 +358,7 @@ begin
   end;
 end;
 
-class function TSwapScanCurve.SFCName: string;
+class function TSwapScanCurve.SFCName: String;
 begin
  result := 'swapscan';
 end;
@@ -423,7 +423,7 @@ begin
    {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
-class function THilbertCurve.SFCName: string;
+class function THilbertCurve.SFCName: String;
 begin
  result := 'hilbert';
 end;
@@ -446,29 +446,29 @@ begin
    {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
-class function TPeanoCurve.SFCName: string;
+class function TPeanoCurve.SFCName: String;
 begin
  result := 'peano';
 end;
 
 { operacje na SFCName -------------------------------------------------------- }
 
-function StrToSFCurveClass(const s: string): TSpaceFillingCurveClass;
-var i: Integer;
+function StrToSFCurveClass(const S: String): TSpaceFillingCurveClass;
+var I: Integer;
 begin
- for i := 0 to High(AvailableSFCurveClasses) do
-  if AnsiSameText(s, AvailableSFCurveClasses[i].SFCName) then
-   Exit(AvailableSFCurveClasses[i]);
+ for I := 0 to High(AvailableSFCurveClasses) do
+  if AnsiSameText(S, AvailableSFCurveClasses[I].SFCName) then
+   Exit(AvailableSFCurveClasses[I]);
  raise EInvalidSFCurveClassName.Create('Invalid space filling curve name : "'+
-   s+'", allowed names are '+AllSFCurveClassesNames+'.');
+   S+'", allowed names are '+AllSFCurveClassesNames+'.');
 end;
 
-function AllSFCurveClassesNames: string;
-var i: Integer;
+function AllSFCurveClassesNames: String;
+var I: Integer;
 begin
  result := '"'+AvailableSFCurveClasses[0].SFCName+'"';
- for i := 1 to High(AvailableSFCurveClasses) do
-  result += ', "'+AvailableSFCurveClasses[i].SFCName+'"';
+ for I := 1 to High(AvailableSFCurveClasses) do
+  result += ', "'+AvailableSFCurveClasses[I].SFCName+'"';
 end;
 
 end.

@@ -66,7 +66,7 @@ type
     is the only sensible thing to do.)
 
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
-function ParseFloatExpression(const S: string;
+function ParseFloatExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse a CastleScript expression that should be calculated to a float value.
@@ -75,7 +75,7 @@ function ParseFloatExpression(const S: string;
 
   See @link(ParseFloatExpression) for more details, this procedure is equivalent
   but it operates on floats. }
-function ParseIntExpression(const S: string;
+function ParseIntExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse a CastleScript expression that should be calculated to a string value.
@@ -84,7 +84,7 @@ function ParseIntExpression(const S: string;
 
   See @link(ParseFloatExpression) for more details, this procedure is equivalent
   but it operates on strings. }
-function ParseStringExpression(const S: string;
+function ParseStringExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse a CastleScript expression that should be calculated to a boolean value.
@@ -93,7 +93,7 @@ function ParseStringExpression(const S: string;
 
   See @link(ParseFloatExpression) for more details, this procedure is equivalent
   but it operates on booleans. }
-function ParseBoolExpression(const S: string;
+function ParseBoolExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Creates and returns instance of TCasScriptExpression,
@@ -102,7 +102,7 @@ function ParseBoolExpression(const S: string;
     to allow in this expression.
     See ParseFloatExpression for description.)
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
-function ParseExpression(const S: string;
+function ParseExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
@@ -111,7 +111,7 @@ function ParseExpression(const S: string;
   according to CastleScript syntax, parses it and calculates.
 
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
-function ParseConstantFloatExpression(const S: string): Float;
+function ParseConstantFloatExpression(const S: String): Float;
 
 { Parse CastleScript program.
 
@@ -121,9 +121,9 @@ function ParseConstantFloatExpression(const S: string): Float;
   @raises(ECasScriptSyntaxError in case of error when parsing expression.)
 
   @groupBegin }
-function ParseProgram(const S: string;
+function ParseProgram(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptProgram; overload;
-function ParseProgram(const S: string;
+function ParseProgram(const S: String;
   const Variables: TCasScriptValueList): TCasScriptProgram; overload;
 { @groupEnd }
 
@@ -479,7 +479,7 @@ end;
 
 { ParseXxxExpression ------------------------------------------------------- }
 
-function ParseSimpleExpression(const S: string;
+function ParseSimpleExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 var
   Lexer: TCasScriptLexer;
@@ -517,7 +517,7 @@ begin
   finally Lexer.Free end;
 end;
 
-function ParseFloatExpression(const S: string;
+function ParseFloatExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 begin
   Result := ParseSimpleExpression(S, Variables);
@@ -525,7 +525,7 @@ begin
   Result := TCasScriptFloatFun.Create([Result]);
 end;
 
-function ParseIntExpression(const S: string;
+function ParseIntExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 begin
   Result := ParseSimpleExpression(S, Variables);
@@ -533,15 +533,15 @@ begin
   Result := TCasScriptInt.Create([Result]);
 end;
 
-function ParseStringExpression(const S: string;
+function ParseStringExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 begin
   Result := ParseSimpleExpression(S, Variables);
-  { At the end, wrap Result in string() cast. }
+  { At the end, wrap Result in String() cast. }
   Result := TCasScriptStringFun.Create([Result]);
 end;
 
-function ParseBoolExpression(const S: string;
+function ParseBoolExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 begin
   Result := ParseSimpleExpression(S, Variables);
@@ -549,7 +549,7 @@ begin
   Result := TCasScriptBool.Create([Result]);
 end;
 
-function ParseExpression(const S: string;
+function ParseExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 var
   Lexer: TCasScriptLexer;
@@ -579,7 +579,7 @@ end;
 
 { ParseConstantFloatExpression ----------------------------------------------- }
 
-function ParseConstantFloatExpression(const S: string): Float;
+function ParseConstantFloatExpression(const S: String): Float;
 var
   Expr: TCasScriptExpression;
 begin
@@ -600,13 +600,13 @@ end;
 
 { ParseProgram --------------------------------------------------------------- }
 
-function ParseProgram(const S: string;
+function ParseProgram(const S: String;
   const Variables: TCasScriptValueList): TCasScriptProgram;
 begin
   Result := ParseProgram(S, Variables.ToArray);
 end;
 
-function ParseProgram(const S: string;
+function ParseProgram(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptProgram;
 var
   Lexer: TCasScriptLexer;

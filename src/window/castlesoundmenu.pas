@@ -45,7 +45,7 @@ type
     Range is always [0 .. 1] and when the slider is exactly
     on 0.0 position it shows "Off". }
   TMenuVolumeSlider = class(TCastleFloatSlider)
-    function ValueToStr(const AValue: Single): string; override;
+    function ValueToStr(const AValue: Single): String; override;
   end;
 
   { On-screen menu item that allows to control sound volume.
@@ -114,7 +114,7 @@ end;
 
 { TMenuVolumeSlider ---------------------------------------------------- }
 
-function TMenuVolumeSlider.ValueToStr(const AValue: Single): string;
+function TMenuVolumeSlider.ValueToStr(const AValue: Single): String;
 begin
   if AValue = 0.0 then
     Result := 'Off' else

@@ -82,17 +82,17 @@ type
   { @deprecated Deprecated name for ECasScriptAssignError. }
   EKamAssignValueError = ECasScriptAssignError deprecated;
 
-  TCasScriptMessage = procedure (const S: string) of object;
+  TCasScriptMessage = procedure (const S: String) of object;
 
   { Various information that may be useful for implementing some
     function handlers, but that should be supplied from outside of
     CastleScript. }
   TCasScriptEnvironment = class
   private
-    FBaseUrl: string;
+    FBaseUrl: String;
   public
     { Base URL to resolve relative URLs. Similar to TX3DNode.BaseUrl. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
   end;
 
   TCasScriptExpression = class
@@ -180,9 +180,9 @@ type
     function AsInt(const ADefaultValue: Int64 = 0): Int64;
 
     { Execute expression, return the result as a simple string value.
-      It assumes that the expression is written to always return string.
+      It assumes that the expression is written to always return String.
       To easily create such expression, use @link(ParseStringExpression). }
-    function AsString(const ADefaultValue: string = ''): string;
+    function AsString(const ADefaultValue: String = ''): String;
 
     { Execute expression, return the result as a simple boolean value.
       It assumes that the expression is written to always return Boolean.
@@ -211,7 +211,7 @@ type
   TCasScriptValue = class(TCasScriptExpression)
   private
     FOwnedByParentExpression: Boolean;
-    FName: string;
+    FName: String;
     FValueAssigned: Boolean;
     FWriteable: Boolean;
   protected
@@ -236,7 +236,7 @@ type
 
     { Name of this value, or '' if not named.
       Named value can be recognized in expressions by CastleScriptParser. }
-    property Name: string read FName write FName;
+    property Name: String read FName write FName;
 
     { Assign value from Source to Self.
       @raises(ECasScriptAssignError if assignment is not possible
@@ -265,7 +265,7 @@ type
   public
     procedure AddArray(const A: array of TCasScriptValue); deprecated 'use AddRange';
     { Find an item by Name. @nil if not found. }
-    function FindName(const VariableName: string): TCasScriptValue;
+    function FindName(const VariableName: String): TCasScriptValue;
   end;
 
   { This is a very special CastleScript value, used to represent user-defined
@@ -470,16 +470,16 @@ type
     class procedure HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
     class procedure HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   private
-    FValue: string;
-    procedure SetValue(const AValue: string);
+    FValue: String;
+    procedure SetValue(const AValue: String);
   public
     { Comfortable constructor to set initial Value.
       Note that the inherited constructor (without AValue parameter)
       is also fine to use, it will set value to ''. }
-    constructor Create(const AWriteable: Boolean; const AValue: string); overload;
+    constructor Create(const AWriteable: Boolean; const AValue: String); overload;
     constructor Create(const AWriteable: Boolean); overload; override;
 
-    property Value: string read FValue write SetValue;
+    property Value: String read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -543,7 +543,7 @@ type
 
       Default implementation in this class simply returns ShortName.
       This should be suitable for most "norma" functions. }
-    class function Name: string; virtual;
+    class function Name: String; virtual;
 
     { Short function name, for the parser.
       This is the name of the function for use in expressions
@@ -554,7 +554,7 @@ type
       just like normal functions (a descendant of TCasScriptFunction),
       but with a special support from parser (e.g. to turn "x + b" into
       a call to the TCasScriptAdd function). }
-    class function ShortName: string; virtual; abstract;
+    class function ShortName: String; virtual; abstract;
 
     { Function name when used as an infix operator.
 
@@ -590,7 +590,7 @@ type
           Function may have both ShortName <> '' and InfixOperatorName <> ''.
           E.g. TCasScriptPower can be used as "Power(3, 1.5)" or "3 ^ 1.5".)
       ) }
-    class function InfixOperatorName: string; virtual;
+    class function InfixOperatorName: String; virtual;
 
     { Specify which arguments are calculated before function handler
       is called.
@@ -663,9 +663,9 @@ type
   private
     class procedure HandleSequence(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function Name: string; override;
-    class function ShortName: string; override;
-    class function InfixOperatorName: string; override;
+    class function Name: String; override;
+    class function ShortName: String; override;
+    class function InfixOperatorName: String; override;
   end;
 
   { CastleScript assignment operator. This is a special function,
@@ -674,9 +674,9 @@ type
   private
     class procedure HandleAssignment(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function Name: string; override;
-    class function ShortName: string; override;
-    class function InfixOperatorName: string; override;
+    class function Name: String; override;
+    class function ShortName: String; override;
+    class function InfixOperatorName: String; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
@@ -684,7 +684,7 @@ type
   private
     class procedure HandleIf(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
 
@@ -692,7 +692,7 @@ type
   private
     class procedure HandleWhen(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
 
@@ -700,7 +700,7 @@ type
   private
     class procedure HandleWhile(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
 
@@ -708,7 +708,7 @@ type
   private
     class procedure HandleFor(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function GreedyArgumentsCalculation: Integer; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
@@ -717,7 +717,7 @@ type
   private
     class procedure HandleCoalesce(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function GreedyArgumentsCalculation: Integer; override;
   end;
 
@@ -835,7 +835,7 @@ type
 
     { Search for function class with matching ShortName.
       Returns @nil if not found. }
-    function SearchFunctionShortName(const AShortName: string): TCasScriptFunctionClass;
+    function SearchFunctionShortName(const AShortName: String): TCasScriptFunctionClass;
   end;
 
   ECasScriptFunctionArgumentsError = class(ECasScriptError);
@@ -848,14 +848,14 @@ type
     functions defined by user. }
   TCasScriptUserFunction = class
   private
-    FName: string;
+    FName: String;
     FParameters: TCasScriptValueList;
     FBody: TCasScriptExpression;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property Name: string read FName write FName;
+    property Name: String read FName write FName;
 
     { List of function parameters.
 
@@ -875,7 +875,7 @@ type
   end;
 
   TCasScriptUserFunctionList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCasScriptUserFunction>)
-    function IndexOfName(const FunctionName: string): Integer;
+    function IndexOfName(const FunctionName: String): Integer;
   end;
 
   ECasScriptMissingFunction = class(ECasScriptError);
@@ -909,7 +909,7 @@ type
         @item(Finally executes function body.)
       )
     }
-    procedure ExecuteFunction(const FunctionName: string;
+    procedure ExecuteFunction(const FunctionName: String;
       const Parameters: array of TCasScriptValue;
       const IgnoreMissingFunction: Boolean = false);
 
@@ -1041,7 +1041,7 @@ begin
   end;
 end;
 
-function TCasScriptExpression.AsString(const ADefaultValue: string): string;
+function TCasScriptExpression.AsString(const ADefaultValue: String): String;
 var
   Res: TCasScriptValue;
 begin
@@ -1132,7 +1132,7 @@ begin
   AddRange(A);
 end;
 
-function TCasScriptValueList.FindName(const VariableName: string): TCasScriptValue;
+function TCasScriptValueList.FindName(const VariableName: String): TCasScriptValue;
 var
   I: Integer;
 begin
@@ -1888,7 +1888,7 @@ end;
 
 class procedure TCasScriptBoolean.ConvertFromString(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  S: string;
+  S: String;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   S := LowerCase(TCasScriptString(Arguments[0]).Value);
@@ -1915,7 +1915,7 @@ end;
 
 { TCasScriptString ---------------------------------------------------------- }
 
-constructor TCasScriptString.Create(const AWriteable: Boolean; const AValue: string);
+constructor TCasScriptString.Create(const AWriteable: Boolean; const AValue: String);
 begin
   Create(AWriteable);
   Value := AValue;
@@ -2002,7 +2002,7 @@ end;
 
 class procedure TCasScriptString.ConvertFromBool(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  BoolTo01: array [Boolean] of string = ('false', 'true');
+  BoolTo01: array [Boolean] of String = ('false', 'true');
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   TCasScriptString(AResult).Value := BoolTo01[TCasScriptBoolean(Arguments[0]).Value];
@@ -2021,7 +2021,7 @@ end;
 
 class procedure TCasScriptString.HandleWriteln(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  S: string;
+  S: String;
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression else
@@ -2115,12 +2115,12 @@ begin
   inherited;
 end;
 
-class function TCasScriptFunction.Name: string;
+class function TCasScriptFunction.Name: String;
 begin
   Result := ShortName;
 end;
 
-class function TCasScriptFunction.InfixOperatorName: string;
+class function TCasScriptFunction.InfixOperatorName: String;
 begin
   Result := '';
 end;
@@ -2137,7 +2137,7 @@ end;
 
 function TCasScriptFunction.CoreExecute: TCasScriptValue;
 
-  function ArgumentClassesToStr(const A: TCasScriptValueClassArray): string;
+  function ArgumentClassesToStr(const A: TCasScriptValueClassArray): String;
   var
     I: Integer;
   begin
@@ -2226,17 +2226,17 @@ end;
 
 { TCasScriptSequence --------------------------------------------------------- }
 
-class function TCasScriptSequence.Name: string;
+class function TCasScriptSequence.Name: String;
 begin
   Result := 'sequence (;)';
 end;
 
-class function TCasScriptSequence.ShortName: string;
+class function TCasScriptSequence.ShortName: String;
 begin
   Result := '';
 end;
 
-class function TCasScriptSequence.InfixOperatorName: string;
+class function TCasScriptSequence.InfixOperatorName: String;
 begin
   Result := ';';
 end;
@@ -2254,17 +2254,17 @@ end;
 
 { TCasScriptAssignment --------------------------------------------------------- }
 
-class function TCasScriptAssignment.Name: string;
+class function TCasScriptAssignment.Name: String;
 begin
   Result := 'assignment (:=)';
 end;
 
-class function TCasScriptAssignment.ShortName: string;
+class function TCasScriptAssignment.ShortName: String;
 begin
   Result := '';
 end;
 
-class function TCasScriptAssignment.InfixOperatorName: string;
+class function TCasScriptAssignment.InfixOperatorName: String;
 begin
   Result := ':=';
 end;
@@ -2289,7 +2289,7 @@ end;
 
 { TCasScriptIf --------------------------------------------------------- }
 
-class function TCasScriptIf.ShortName: string;
+class function TCasScriptIf.ShortName: String;
 begin
   Result := 'if';
 end;
@@ -2314,7 +2314,7 @@ end;
 
 { TCasScriptWhen --------------------------------------------------------- }
 
-class function TCasScriptWhen.ShortName: string;
+class function TCasScriptWhen.ShortName: String;
 begin
   Result := 'when';
 end;
@@ -2343,7 +2343,7 @@ end;
 
 { TCasScriptWhile --------------------------------------------------------- }
 
-class function TCasScriptWhile.ShortName: string;
+class function TCasScriptWhile.ShortName: String;
 begin
   Result := 'while';
 end;
@@ -2385,7 +2385,7 @@ end;
 
 { TCasScriptFor --------------------------------------------------------- }
 
-class function TCasScriptFor.ShortName: string;
+class function TCasScriptFor.ShortName: String;
 begin
   Result := 'for';
 end;
@@ -2444,7 +2444,7 @@ end;
 
 { TCasScriptCoalesce --------------------------------------------------------- }
 
-class function TCasScriptCoalesce.ShortName: string;
+class function TCasScriptCoalesce.ShortName: String;
 begin
   Result := 'coalesce';
 end;
@@ -2670,7 +2670,7 @@ begin
 end;
 
 function TCasScriptFunctionHandlers.SearchFunctionShortName(
-  const AShortName: string): TCasScriptFunctionClass;
+  const AShortName: String): TCasScriptFunctionClass;
 var
   I: Integer;
   HandlersByArgument: Contnrs.TObjectList;
@@ -2704,7 +2704,7 @@ end;
 
 { TCasScriptUserFunctionList ------------------------------------------ }
 
-function TCasScriptUserFunctionList.IndexOfName(const FunctionName: string): Integer;
+function TCasScriptUserFunctionList.IndexOfName(const FunctionName: String): Integer;
 begin
   for Result := 0 to Count - 1 do
     if SameText(FunctionName, Items[Result].Name) then
@@ -2728,7 +2728,7 @@ begin
   inherited;
 end;
 
-procedure TCasScriptProgram.ExecuteFunction(const FunctionName: string;
+procedure TCasScriptProgram.ExecuteFunction(const FunctionName: String;
   const Parameters: array of TCasScriptValue;
   const IgnoreMissingFunction: Boolean);
 var

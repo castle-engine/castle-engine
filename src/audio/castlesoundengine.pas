@@ -51,7 +51,7 @@ type
     @bold(Do not create or free TSoundBuffer instances yourself.) }
   TSoundBuffer = class
   private
-    FURL: string;
+    FURL: String;
     FSoundLoading: TSoundLoading;
     References: Cardinal;
     Backend: TSoundBufferBackend;
@@ -69,7 +69,7 @@ type
     { Absolute sound file URL.
       Never empty (do not create TSoundBuffer instances for invalid / empty URL,
       like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
-    property URL: string read FURL;
+    property URL: String read FURL;
 
     { Data format (bits per sample, stereo or mono) of the loaded sound file.
       Typical applications don't need this value, this is just an information
@@ -429,8 +429,8 @@ type
     type
       TSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffer>;
     var
-      FInformation: string;
-      FDevice: string;
+      FInformation: String;
+      FDevice: String;
       FVolume: Single;
       FEnabled: Boolean;
       FIsContextOpen: Boolean;
@@ -448,7 +448,7 @@ type
 
     procedure SetVolume(const Value: Single);
     procedure SetDistanceModel(const Value: TSoundDistanceModel);
-    procedure SetDevice(const Value: string);
+    procedure SetDevice(const Value: String);
     procedure SetEnabled(const Value: Boolean);
     procedure SetPaused(const Value: Boolean);
     procedure ReinitializeJavaActivity(Sender: TObject);
@@ -534,10 +534,10 @@ type
     property IsContextOpen: Boolean read FIsContextOpen;
     property ALInitialized: Boolean read FIsContextOpen; deprecated 'use IsContextOpen';
 
-    property SoundInitializationReport: string read FInformation;
+    property SoundInitializationReport: String read FInformation;
       deprecated 'use Information';
 
-    property Information: string read FInformation;
+    property Information: String read FInformation;
 
     { Load a sound file contents such that they can be immediately played.
 
@@ -575,9 +575,9 @@ type
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+    function LoadBuffer(const URL: String; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: String; const ExceptionOnError: Boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: String; out Duration: TFloatTime): TSoundBuffer;
       overload;
       deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
     { @groupEnd }
@@ -649,7 +649,7 @@ type
 
       Note that it also lists the available sound output @link(Devices),
       as they are valid arguments for the @--audio-device option. }
-    function ParseParametersHelp: string;
+    function ParseParametersHelp: String;
 
     { Set the sound listener position and orientation. }
     procedure UpdateListener(const Position, Direction, Up: TVector3);
@@ -663,8 +663,8 @@ type
       to be encoded in Lisp-like language inside the @link(Device) string. }
     function Devices: TSoundDeviceList;
 
-    function DeviceNiceName: string; deprecated 'use DeviceCaption';
-    function DeviceCaption: string;
+    function DeviceNiceName: String; deprecated 'use DeviceCaption';
+    function DeviceCaption: String;
 
     { Events fired after sound context is being open or closed.
       More precisely, when IsContextOpen changes (and so, possibly, IsContextOpenSuccess
@@ -694,7 +694,7 @@ type
       Then we'll close the old device (ContextClose),
       change @link(Device) value, and initialize context again (ContextOpen).
       Note that you will need to reload your buffers and sources again. }
-    property Device: string read FDevice write SetDevice;
+    property Device: String read FDevice write SetDevice;
 
     { Enable sound.
 
@@ -865,7 +865,7 @@ type
           this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
           will do nothing. This is useful if you want to use a sound name
           in code, but you do not have the actual sound file for this yet. }
-        URL: string;
+        URL: String;
 
         { Gain (how loud the sound is).
           See https://castle-engine.io/manual_sound.php .
@@ -893,11 +893,11 @@ type
       TSoundGroup = class(TSoundInfoList)
       public
         { Group name (including parent group names). }
-        Name: string;
+        Name: String;
         { Group URL.
           Absolute (including parent group URL parts).
           Always ends with slash. }
-        URL: string;
+        URL: String;
         { A parent group (one among FSoundGroups, or @nil if not in any group). }
         ParentGroup: TSoundGroup;
       end;
@@ -922,11 +922,11 @@ type
         stNone is a special sound as it actually means "no sound" in many cases. }
       FSounds: TSoundInfoList;
       FSoundGroups: TSoundGroupList;
-      FRepositoryURL: string;
+      FRepositoryURL: String;
       FLoopingChannels: TLoopingChannelList;
     {$endif PASDOC}
 
-    procedure SetRepositoryURL(const Value: string);
+    procedure SetRepositoryURL(const Value: String);
     { Reinitialize looping channels sounds.
       Should be called as soon as Sounds changes and we may have OpenAL context. }
     procedure RestartLoopingChannels;
@@ -980,10 +980,10 @@ type
       for information about the castle-data:/ protocol. In short, on desktop,
       this just indicates the "data" subdirectory of your project.
     }
-    property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
+    property RepositoryURL: String read FRepositoryURL write SetRepositoryURL;
 
     { Deprecated name for RepositoryURL. @deprecated }
-    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated;
+    property SoundsFileName: String read FRepositoryURL write SetRepositoryURL; deprecated;
 
     { Reload the RepositoryURL and all referenced buffers.
       Useful as a tool for game designers, to reload the sounds XML file
@@ -1010,7 +1010,7 @@ type
         So the Required parameter only determines whether we make a warning,
         or not.)
     }
-    function SoundFromName(const SoundName: string; const Required: Boolean = true): TSoundType;
+    function SoundFromName(const SoundName: String; const Required: Boolean = true): TSoundType;
 
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -1031,7 +1031,7 @@ type
       const Looping: Boolean = false): TSound; overload;
 
     { Sound importance names and values.
-      Each item is a name (as a string) and a value (that is stored in Objects
+      Each item is a name (as a String) and a value (that is stored in Objects
       property of the item as a pointer; add new importances by
       AddSoundImportanceName for comfort).
 
@@ -1051,7 +1051,7 @@ type
       ) }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
 
-    procedure AddSoundImportanceName(const Name: string; Importance: Integer);
+    procedure AddSoundImportanceName(const Name: String; Importance: Integer);
 
     { Comfortable way to play and control the music.
       Simply assign @link(TLoopingChannel.Sound MusicPlayer.Sound)
@@ -1904,7 +1904,7 @@ procedure TSoundEngine.ContextOpenCore;
   end;
 
 var
-  BackendOpenInformation: string;
+  BackendOpenInformation: String;
 begin
   Assert(not IsContextOpenSuccess, 'Sound context is already active');
 
@@ -2112,16 +2112,16 @@ begin
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: String; out Duration: TFloatTime): TSoundBuffer;
 begin
   Result := LoadBuffer(URL);
   Duration := Result.Duration;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: String; const SoundLoading: TSoundLoading; const ExceptionOnError: Boolean): TSoundBuffer;
 var
   I: Integer;
-  FullURL: string;
+  FullURL: String;
 begin
   ContextOpen;
 
@@ -2149,7 +2149,7 @@ begin
     Result.ContextOpen(ExceptionOnError);
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: Boolean): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: String; const ExceptionOnError: Boolean): TSoundBuffer;
 begin
   Result := LoadBuffer(URL, slComplete, ExceptionOnError);
 end;
@@ -2198,7 +2198,7 @@ begin
   end;
 end;
 
-procedure TSoundEngine.SetDevice(const Value: string);
+procedure TSoundEngine.SetDevice(const Value: String);
 begin
   if Value <> FDevice then
   begin
@@ -2229,7 +2229,7 @@ begin
 end;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Engine: TSoundEngine;
 begin
@@ -2257,9 +2257,9 @@ begin
   Parameters.Parse(SoundOptions, @OptionProc, Self, true);
 end;
 
-function TSoundEngine.ParseParametersHelp: string;
+function TSoundEngine.ParseParametersHelp: String;
 
-  function DevicesHelp: string;
+  function DevicesHelp: String;
   var
     I: Integer;
   begin
@@ -2290,12 +2290,12 @@ begin
     Backend.SetListener(Position, Direction, Up);
 end;
 
-function TSoundEngine.DeviceNiceName: string;
+function TSoundEngine.DeviceNiceName: String;
 begin
   Result := DeviceCaption;
 end;
 
-function TSoundEngine.DeviceCaption: string;
+function TSoundEngine.DeviceCaption: String;
 var
   I: Integer;
 begin
@@ -2710,7 +2710,7 @@ begin
     Position);
 end;
 
-procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
+procedure TRepoSoundEngine.SetRepositoryURL(const Value: String);
 
   { Check that SoundInfo.Name is unique. }
   procedure CheckUniqueSoundInfo(var SoundInfo: TSoundInfo);
@@ -2824,7 +2824,7 @@ var
   SoundConfig: TXMLDocument;
   Stream: TStream;
   I: TXMLElementIterator;
-  BaseUrl: string;
+  BaseUrl: String;
   TimeStart: TCastleProfilerTime;
 begin
   if FRepositoryURL = Value then Exit;
@@ -2895,7 +2895,7 @@ end;
 
 procedure TRepoSoundEngine.ReloadSounds;
 var
-  OldRepositoryURL: string;
+  OldRepositoryURL: String;
 begin
   if RepositoryURL <> '' then
   begin
@@ -2905,7 +2905,7 @@ begin
   end;
 end;
 
-function TRepoSoundEngine.SoundFromName(const SoundName: string;
+function TRepoSoundEngine.SoundFromName(const SoundName: String;
   const Required: Boolean): TSoundType;
 var
   SoundIndex: Integer;
@@ -2922,7 +2922,7 @@ begin
   Result.Index := 0;
 end;
 
-procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
+procedure TRepoSoundEngine.AddSoundImportanceName(const Name: String;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));

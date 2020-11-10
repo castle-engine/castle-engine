@@ -54,17 +54,17 @@ type
     FTokenInteger: Int64;
     FTokenFloat: Float;
     FTokenBoolean: Boolean;
-    FTokenString: string;
+    FTokenString: String;
     FTokenFunctionClass: TCasScriptFunctionClass;
 
     FTextPos: Integer;
-    FText: string;
+    FText: String;
   public
     property Token: TToken read FToken;
 
     property TokenInteger: Int64 read FTokenInteger;
     property TokenFloat: Float read FTokenFloat;
-    property TokenString: string read FTokenString;
+    property TokenString: String read FTokenString;
     property TokenBoolean: Boolean read FTokenBoolean;
     property TokenFunctionClass: TCasScriptFunctionClass read FTokenFunctionClass;
 
@@ -72,7 +72,7 @@ type
     property TextPos: Integer read FTextPos;
 
     { Text that this lexer reads. }
-    property Text: string read FText;
+    property Text: String read FText;
 
     { NextToken moves to next token (updating fields @link(Token),
       and eventually TokenFloat, TokenString and TokenFunctionClass)
@@ -84,10 +84,10 @@ type
       @raises ECasScriptLexerError }
     function NextToken: TToken;
 
-    constructor Create(const AText: string);
+    constructor Create(const AText: String);
 
     { Current token textual description. Useful mainly for debugging lexer. }
-    function TokenDescription: string;
+    function TokenDescription: String;
 
     { Check is current token Tok, eventually rise parser error.
       This is an utility for parser.
@@ -101,16 +101,16 @@ type
   ECasScriptSyntaxError = class(ECasScriptError)
   private
     FLexerTextPos: Integer;
-    FLexerText: string;
+    FLexerText: String;
   public
     { Those things are copied from Lexer at exception creation.
       We do not copy reference to Lexer since this would be too dangerous
       in usual situation (you would have to be always sure that you will
       not access it before you Freed it; too troublesome, usually) }
     property LexerTextPos: Integer read FLexerTextPos;
-    property LexerText: string read FLexerText;
-    constructor Create(Lexer: TCasScriptLexer; const s: string);
-    constructor CreateFmt(Lexer: TCasScriptLexer; const s: string;
+    property LexerText: String read FLexerText;
+    constructor Create(Lexer: TCasScriptLexer; const S: String);
+    constructor CreateFmt(Lexer: TCasScriptLexer; const S: String;
       const args: array of const);
   end;
 
@@ -132,7 +132,7 @@ begin
  end;
 end;
 
-constructor TCasScriptLexer.Create(const atext: string);
+constructor TCasScriptLexer.Create(const atext: String);
 begin
  inherited Create;
  ftext := atext;
@@ -166,7 +166,7 @@ const
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
       wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
-    toks_strs: array [0..18] of string=
+    toks_strs: array [0..18] of String=
      ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',',
       '(', ')', '^', '[', ']', '%', ';', ':=');
     toks_tokens: array[0..High(toks_strs)]of TToken =
@@ -263,7 +263,7 @@ const
    end;
   end;
 
-  function ReadIdentifier: string;
+  function ReadIdentifier: String;
   { czytaj identyfikator - to znaczy, czytaj nazwe zmiennej co do ktorej nie
     jestesmy pewni czy nie jest przypadkiem nazwa funkcji. Uwaga - powinien
     zbadac kazdy znak, poczynajac od text[fTextPos], czy rzeczywiscie
@@ -284,11 +284,11 @@ const
   end;
 
 const
-  FloatConsts: array [0..1] of string = ('pi', 'enat');
+  FloatConsts: array [0..1] of String = ('pi', 'enat');
   FloatConstsValues: array [0..High(FloatConsts)] of Float = (pi, enatural);
-  BooleanConsts: array [0..1] of string = ('false', 'true');
+  BooleanConsts: array [0..1] of String = ('false', 'true');
   BooleanConstsValues: array [0..High(BooleanConsts)] of Boolean = (false, true);
-  IntConsts: array [0..19] of string = (
+  IntConsts: array [0..19] of String = (
     'ACTION_KEY_F1',
     'ACTION_KEY_F2',
     'ACTION_KEY_F3',
@@ -389,7 +389,7 @@ begin
 end;
 
 const
-  TokenShortDescription: array [TToken] of string =
+  TokenShortDescription: array [TToken] of String =
   ( 'end of stream',
     'integer',
     'float',
@@ -405,7 +405,7 @@ const
     '[', ']',
     ',', ';', ':=');
 
-function TCasScriptLexer.TokenDescription: string;
+function TCasScriptLexer.TokenDescription: String;
 begin
   Result := TokenShortDescription[Token];
   case Token of
@@ -429,17 +429,17 @@ end;
 
 { ECasScriptSyntaxError --------------------------------------- }
 
-constructor ECasScriptSyntaxError.Create(Lexer: TCasScriptLexer; const s: string);
+constructor ECasScriptSyntaxError.Create(Lexer: TCasScriptLexer; const S: String);
 begin
- inherited Create(s);
+ inherited Create(S);
  FLexerTextPos := Lexer.TextPos;
  FLexerText := Lexer.Text;
 end;
 
-constructor ECasScriptSyntaxError.CreateFmt(Lexer: TCasScriptLexer; const s: string;
+constructor ECasScriptSyntaxError.CreateFmt(Lexer: TCasScriptLexer; const S: String;
   const args: array of const);
 begin
- Create(Lexer, Format(s, args))
+ Create(Lexer, Format(S, args))
 end;
 
 end.

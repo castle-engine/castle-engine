@@ -163,49 +163,49 @@ type
 
   TCasScriptArrayFun = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptArrayD = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptArrayGetCount = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptArraySetCount = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptArrayGet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptArraySet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
     class function ArgumentMustBeAssignable(const Index: Integer): Boolean; override;
   end;
 
   TCasScriptCatmullRomSpline = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptHermiteSpline = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptHermiteTenseSpline = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
 implementation
@@ -466,22 +466,22 @@ end;
 
 { CastleScript functions ------------------------------------------------------ }
 
-class function TCasScriptArrayFun.ShortName: string;
+class function TCasScriptArrayFun.ShortName: String;
 begin
   Result := 'array';
 end;
 
-class function TCasScriptArrayD.ShortName: string;
+class function TCasScriptArrayD.ShortName: String;
 begin
   Result := 'array_d';
 end;
 
-class function TCasScriptArrayGetCount.ShortName: string;
+class function TCasScriptArrayGetCount.ShortName: String;
 begin
   Result := 'array_get_count';
 end;
 
-class function TCasScriptArraySetCount.ShortName: string;
+class function TCasScriptArraySetCount.ShortName: String;
 begin
   Result := 'array_set_count';
 end;
@@ -491,12 +491,12 @@ begin
   Result := Index = 0;
 end;
 
-class function TCasScriptArrayGet.ShortName: string;
+class function TCasScriptArrayGet.ShortName: String;
 begin
   Result := 'array_get';
 end;
 
-class function TCasScriptArraySet.ShortName: string;
+class function TCasScriptArraySet.ShortName: String;
 begin
   Result := 'array_set';
 end;
@@ -506,17 +506,17 @@ begin
   Result := Index = 0;
 end;
 
-class function TCasScriptCatmullRomSpline.ShortName: string;
+class function TCasScriptCatmullRomSpline.ShortName: String;
 begin
   Result := 'catmull_rom_spline';
 end;
 
-class function TCasScriptHermiteSpline.ShortName: string;
+class function TCasScriptHermiteSpline.ShortName: String;
 begin
   Result := 'hermite_spline';
 end;
 
-class function TCasScriptHermiteTenseSpline.ShortName: string;
+class function TCasScriptHermiteTenseSpline.ShortName: String;
 begin
   Result := 'hermite_tense_spline';
 end;
@@ -540,7 +540,7 @@ end;
 class procedure TCasScriptCharacterArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   NewCount: Int64;
-  NewValue: string;
+  NewValue: String;
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;
@@ -564,7 +564,7 @@ end;
 class procedure TCasScriptCharacterArray.HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
-  Arr: string;
+  Arr: String;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
 
@@ -581,7 +581,7 @@ end;
 class procedure TCasScriptCharacterArray.HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
   Index: Integer;
-  Arr: string;
+  Arr: String;
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;

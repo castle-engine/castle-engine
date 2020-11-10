@@ -31,10 +31,10 @@ const
   stGeometry = CastleRendererBaseTypes.stGeometry;
   stFragment = CastleRendererBaseTypes.stFragment;
 
-  ShaderTypeName: array [TShaderType] of string =
+  ShaderTypeName: array [TShaderType] of String =
   ( 'Vertex', 'Geometry', 'Fragment' );
 
-  ShaderTypeNameX3D: array [TShaderType] of string =
+  ShaderTypeNameX3D: array [TShaderType] of String =
   ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' )
   deprecated 'do not use this constant, it should be internal in X3D units';
 

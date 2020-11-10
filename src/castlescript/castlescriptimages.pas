@@ -56,63 +56,63 @@ type
 
   TCasScriptImageFun = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageLoad = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageWidth = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageHeight = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageComponents = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGet = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGetColor = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageGetAlpha = class(TCasScriptFunction)
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSet = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSetColor = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
   TCasScriptImageSetAlpha = class(TCasScriptFunction)
   protected
     procedure CheckArguments; override;
   public
-    class function ShortName: string; override;
+    class function ShortName: String; override;
   end;
 
 implementation
@@ -196,7 +196,7 @@ end;
 
 class procedure TCasScriptImage.HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: Boolean);
 var
-  FullUrl: string;
+  FullUrl: String;
   NewImage: TCastleImage;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptImage);
@@ -537,47 +537,47 @@ end;
 
 { Functions ------------------------------------------------------------------ }
 
-class function TCasScriptImageFun.ShortName: string;
+class function TCasScriptImageFun.ShortName: String;
 begin
   Result := 'image';
 end;
 
-class function TCasScriptImageLoad.ShortName: string;
+class function TCasScriptImageLoad.ShortName: String;
 begin
   Result := 'image_load';
 end;
 
-class function TCasScriptImageGet.ShortName: string;
+class function TCasScriptImageGet.ShortName: String;
 begin
   Result := 'image_get';
 end;
 
-class function TCasScriptImageWidth.ShortName: string;
+class function TCasScriptImageWidth.ShortName: String;
 begin
   Result := 'image_width';
 end;
 
-class function TCasScriptImageHeight.ShortName: string;
+class function TCasScriptImageHeight.ShortName: String;
 begin
   Result := 'image_height';
 end;
 
-class function TCasScriptImageComponents.ShortName: string;
+class function TCasScriptImageComponents.ShortName: String;
 begin
   Result := 'image_components';
 end;
 
-class function TCasScriptImageGetColor.ShortName: string;
+class function TCasScriptImageGetColor.ShortName: String;
 begin
   Result := 'image_get_color';
 end;
 
-class function TCasScriptImageGetAlpha.ShortName: string;
+class function TCasScriptImageGetAlpha.ShortName: String;
 begin
   Result := 'image_get_alpha';
 end;
 
-class function TCasScriptImageSet.ShortName: string;
+class function TCasScriptImageSet.ShortName: String;
 begin
   Result := 'image_set';
 end;
@@ -590,7 +590,7 @@ begin
     raise ECasScriptFunctionArgumentsError.Create('First argument of "image_set" function is not a writeable operand');
 end;
 
-class function TCasScriptImageSetColor.ShortName: string;
+class function TCasScriptImageSetColor.ShortName: String;
 begin
   Result := 'image_set_color';
 end;
@@ -603,7 +603,7 @@ begin
     raise ECasScriptFunctionArgumentsError.Create('First argument of "image_set_color" function is not a writeable operand');
 end;
 
-class function TCasScriptImageSetAlpha.ShortName: string;
+class function TCasScriptImageSetAlpha.ShortName: String;
 begin
   Result := 'image_set_alpha';
 end;

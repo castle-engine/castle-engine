@@ -28,7 +28,7 @@ uses SysUtils, Classes,
 { Standard GLSL vertex shader for screen effect.
   @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
   and then this function is not necessary). }
-function ScreenEffectVertex: string;
+function ScreenEffectVertex: String;
 
 (*Library of GLSL fragment shader functions useful for screen effects.
   This looks at current OpenGL context multi-sampling capabilities
@@ -57,7 +57,7 @@ function ScreenEffectVertex: string;
   #)
 
 *)
-function ScreenEffectFragment(const Depth: Boolean): string;
+function ScreenEffectFragment(const Depth: Boolean): String;
 
 type
   { GLSL shader program specialized for rendering screen effects.
@@ -72,7 +72,7 @@ type
     and the @link(NeedsDepth) value, to link the correct shader code. }
   TGLSLScreenEffect = class(TGLSLProgram)
   private
-    FScreenEffectShader: string;
+    FScreenEffectShader: String;
     FNeedsDepth: Boolean;
   public
     constructor Create;
@@ -85,7 +85,7 @@ type
 
     { Attach GLSL code for the screen effect (executed as part of fragment shader).
       See https://castle-engine.io/x3d_extensions_screen_effects.php . }
-    property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
+    property ScreenEffectShader: String read FScreenEffectShader write FScreenEffectShader;
 
     procedure Link; override;
   end;
@@ -267,12 +267,12 @@ implementation
 
 uses CastleUtils, CastleGLUtils, CastleLog, CastleRenderContext;
 
-function ScreenEffectVertex: string;
+function ScreenEffectVertex: String;
 begin
   Result := {$I screen_effect.vs.inc};
 end;
 
-function ScreenEffectFragment(const Depth: Boolean): string;
+function ScreenEffectFragment(const Depth: Boolean): String;
 begin
   Result := '';
   if Depth then

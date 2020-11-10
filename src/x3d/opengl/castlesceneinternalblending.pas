@@ -79,11 +79,11 @@ uses SysUtils,
     NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
   so can only change from false to true.
 }
-function BlendingFactorNameToStr(S: string;
+function BlendingFactorNameToStr(S: String;
   out Factor: TBlendingSourceFactor;
   var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
-  FactorNames: array [TBlendingSourceFactor] of string =
+  FactorNames: array [TBlendingSourceFactor] of String =
   (
     'src_alpha',
     'one_minus_src_alpha',
@@ -148,11 +148,11 @@ begin
   WritelnWarning('VRML/X3D', Format('Unknown blending source factor name "%s"', [S]));
 end;
 
-function BlendingFactorNameToStr(S: string;
+function BlendingFactorNameToStr(S: String;
   out Factor: TBlendingDestinationFactor;
   var NeedsConstColor, NeedsConstAlpha: Boolean): Boolean;
 const
-  FactorNames: array [TBlendingDestinationFactor] of string =
+  FactorNames: array [TBlendingDestinationFactor] of String =
   (
     'src_alpha',
     'one_minus_src_alpha',
