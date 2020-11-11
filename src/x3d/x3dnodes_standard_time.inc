@@ -314,7 +314,7 @@
   public
     procedure CreateNode; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCycleInterval: TSFTimeIgnoreWhenActive;
     public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
@@ -432,7 +432,7 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
   procedure LogIgnored;
   var
-    SceneName: string;
+    SceneName: String;
   begin
     if TX3DNode(ParentNode).Scene <> nil then
       SceneName := TX3DNode(ParentNode).Scene.Name else
@@ -479,7 +479,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
 
   procedure LogIgnored;
   var
-    SceneName: string;
+    SceneName: String;
   begin
     if TX3DNode(ParentNode).Scene <> nil then
       SceneName := TX3DNode(ParentNode).Scene.Name else
@@ -1004,7 +1004,7 @@ begin
   FdCycleInterval.Send(Value);
 end;
 
-class function TTimeSensorNode.ClassX3DType: string;
+class function TTimeSensorNode.ClassX3DType: String;
 begin
   Result := 'TimeSensor';
 end;

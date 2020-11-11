@@ -22,7 +22,7 @@
   TKambiHeadLightNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
@@ -53,7 +53,7 @@
   TText3DNode = class(TTextNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Fields added compared to normal Text node: }
 
@@ -75,7 +75,7 @@
   TBlendModeNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSrcFactor: TSFString;
     public property FdSrcFactor: TSFString read FFdSrcFactor;
@@ -98,7 +98,7 @@
   TKambiAppearanceNode = class(TAppearanceNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
@@ -114,7 +114,7 @@
     procedure AfterLoadInlined; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdReplaceNames: TMFString;
     public property FdReplaceNames: TMFString read FFdReplaceNames;
@@ -136,7 +136,7 @@
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTimeOriginAtLoad: TSFBool;
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
@@ -173,7 +173,7 @@
   TKambiOctreePropertiesNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdMaxDepth: TSFInt32;
     public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
@@ -207,7 +207,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -248,7 +248,7 @@
   public
     procedure CreateNode; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdProjector: TSFNode;
     public property FdProjector: TSFNode read FFdProjector;
@@ -268,7 +268,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
@@ -312,7 +312,7 @@
     See [https://castle-engine.io/x3d_extensions.php#section_ext_tex_coord]. }
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
@@ -329,7 +329,7 @@
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLanguage: TSFStringEnum;
     public property FdLanguage: TSFStringEnum read FFdLanguage;
@@ -349,16 +349,16 @@
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
   strict private
     ContentsCached: Boolean;
-    ContentsCache: string;
+    ContentsCache: String;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetShaderType: TShaderType;
     procedure SetShaderType(const Value: TShaderType);
-    function GetContents: string;
-    procedure SetContents(const Value: string);
+    function GetContents: String;
+    procedure SetContents(const Value: String);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
@@ -379,7 +379,7 @@
       (loading errors are reported to WritelnWarning).
 
       Setting this overrides the URL field, to specify only the given shader code. }
-    property Contents: string read GetContents write SetContents;
+    property Contents: String read GetContents write SetContents;
 
     {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
@@ -389,7 +389,7 @@
   TShaderTextureNode = class(TAbstractSingleTextureNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDefaultTexCoord: TSFString;
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
@@ -412,7 +412,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
@@ -433,7 +433,7 @@
 
 { TKambiHeadLightNode -------------------------------------------------------- }
 
-class function TKambiHeadLightNode.ClassX3DType: string;
+class function TKambiHeadLightNode.ClassX3DType: String;
 begin
   Result := 'KambiHeadLight';
 end;
@@ -472,7 +472,7 @@ begin
   AddField(FFdSpotDropOffRate);
 end;
 
-class function TText3DNode.ClassX3DType: string;
+class function TText3DNode.ClassX3DType: String;
 begin
   Result := 'Text3D';
 end;
@@ -488,7 +488,7 @@ end;
 
 { TBlendModeNode ------------------------------------------------------------- }
 
-class function TBlendModeNode.ClassX3DType: string;
+class function TBlendModeNode.ClassX3DType: String;
 begin
   Result := 'BlendMode';
 end;
@@ -516,7 +516,7 @@ begin
   DefaultContainerField := 'blendMode';
 end;
 
-class function TKambiAppearanceNode.ClassX3DType: string;
+class function TKambiAppearanceNode.ClassX3DType: String;
 begin
   Result := 'KambiAppearance';
 end;
@@ -537,7 +537,7 @@ begin
   AddField(FFdReplaceNodes);
 end;
 
-class function TKambiInlineNode.ClassX3DType: string;
+class function TKambiInlineNode.ClassX3DType: String;
 begin
   Result := 'KambiInline';
 end;
@@ -616,7 +616,7 @@ begin
   AddField(FFdHeadlightNode);
 end;
 
-class function TKambiNavigationInfoNode.ClassX3DType: string;
+class function TKambiNavigationInfoNode.ClassX3DType: String;
 begin
   Result := 'KambiNavigationInfo';
 end;
@@ -653,7 +653,7 @@ begin
   AddField(FFdLeafCapacity);
 end;
 
-class function TKambiOctreePropertiesNode.ClassX3DType: string;
+class function TKambiOctreePropertiesNode.ClassX3DType: String;
 begin
   Result := 'KambiOctreeProperties';
 end;
@@ -673,7 +673,7 @@ end;
 
 procedure TGeneratedShadowMapNode.CreateNode;
 const
-  CompareModeNames: array [TShadowMapCompareMode] of string =
+  CompareModeNames: array [TShadowMapCompareMode] of String =
   ('COMPARE_R_LEQUAL', 'COMPARE_R_GEQUAL', 'NONE');
 begin
   inherited;
@@ -719,7 +719,7 @@ begin
   inherited;
 end;
 
-class function TGeneratedShadowMapNode.ClassX3DType: string;
+class function TGeneratedShadowMapNode.ClassX3DType: String;
 begin
   Result := 'GeneratedShadowMap';
 end;
@@ -764,7 +764,7 @@ begin
   AddField(FFdProjector);
 end;
 
-class function TProjectedTextureCoordinateNode.ClassX3DType: string;
+class function TProjectedTextureCoordinateNode.ClassX3DType: String;
 begin
   Result := 'ProjectedTextureCoordinate';
 end;
@@ -794,7 +794,7 @@ begin
   inherited;
 end;
 
-class function TScreenEffectNode.ClassX3DType: string;
+class function TScreenEffectNode.ClassX3DType: String;
 begin
   Result := 'ScreenEffect';
 end;
@@ -808,7 +808,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-class function TMultiGeneratedTextureCoordinateNode.ClassX3DType: string;
+class function TMultiGeneratedTextureCoordinateNode.ClassX3DType: String;
 begin
   Result := 'MultiGeneratedTextureCoordinate';
 end;
@@ -842,7 +842,7 @@ begin
   State.Effects.Add(Self);
 end;
 
-class function TEffectNode.ClassX3DType: string;
+class function TEffectNode.ClassX3DType: String;
 begin
   Result := 'Effect';
 end;
@@ -873,12 +873,12 @@ begin
   DefaultContainerField := 'parts';
 end;
 
-class function TEffectPartNode.ClassX3DType: string;
+class function TEffectPartNode.ClassX3DType: String;
 begin
   Result := 'EffectPart';
 end;
 
-function TEffectPartNode.GetContents: string;
+function TEffectPartNode.GetContents: String;
 begin
   if not ContentsCached then
   begin
@@ -888,7 +888,7 @@ begin
   Result := ContentsCache;
 end;
 
-procedure TEffectPartNode.SetContents(const Value: string);
+procedure TEffectPartNode.SetContents(const Value: String);
 begin
   SetUrl(['data:text/plain,' + Value]);
 
@@ -923,7 +923,7 @@ begin
   AddField(FFdDefaultTexCoord);
 end;
 
-class function TShaderTextureNode.ClassX3DType: string;
+class function TShaderTextureNode.ClassX3DType: String;
 begin
   Result := 'ShaderTexture';
 end;
@@ -949,7 +949,7 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-class function TOrientationInterpolator2DNode.ClassX3DType: string;
+class function TOrientationInterpolator2DNode.ClassX3DType: String;
 begin
   Result := 'OrientationInterpolator2D';
 end;

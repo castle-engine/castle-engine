@@ -58,7 +58,7 @@
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
     { Set X3D field "appliedParameters". } { }
-    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: array of String);
     { Set X3D field "appliedParameters". } { }
     procedure SetAppliedParameters(const Value: TCastleStringList);
     { X3D field "body1". } { }
@@ -98,7 +98,7 @@
 
 { TContactNode ----------------------------------------------- }
 
-procedure TContactNode.SetAppliedParameters(const Value: array of string);
+procedure TContactNode.SetAppliedParameters(const Value: array of String);
 begin
   FdAppliedParameters.Send(Value);
 end;

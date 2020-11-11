@@ -66,7 +66,7 @@
   TComposedShaderNode = class(TAbstractShaderNode, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
@@ -78,7 +78,7 @@
   TFloatVertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdValue: TMFFloat;
     public property FdValue: TMFFloat read FFdValue;
@@ -93,7 +93,7 @@
   TMatrix3VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdValue: TMFMatrix3f;
     public property FdValue: TMFMatrix3f read FFdValue;
@@ -105,7 +105,7 @@
   TMatrix4VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdValue: TMFMatrix4f;
     public property FdValue: TMFMatrix4f read FFdValue;
@@ -118,7 +118,7 @@
   TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -133,7 +133,7 @@
   TProgramShaderNode = class(TAbstractShaderNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPrograms: TMFNode;
     public property FdPrograms: TMFNode read FFdPrograms;
@@ -146,14 +146,14 @@
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
   strict private
     ContentsCached: Boolean;
-    ContentsCache: string;
+    ContentsCache: String;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    function GetContents: string;
-    procedure SetContents(const Value: string);
+    function GetContents: String;
+    procedure SetContents(const Value: String);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -171,7 +171,7 @@
       (loading errors are reported to WritelnWarning).
 
       Setting this overrides the URL field, to specify only the given shader code. }
-    property Contents: string read GetContents write SetContents;
+    property Contents: String read GetContents write SetContents;
 
     {$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
   end;
@@ -182,7 +182,7 @@
   TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -196,10 +196,10 @@
 
 {$ifdef read_implementation}
 const
-  ShaderLanguageNames: array [TShaderLanguage] of string =
+  ShaderLanguageNames: array [TShaderLanguage] of String =
   ('', 'CG', 'GLSL', 'HLSL');
 
-  ShaderTypeNameX3D: array [TShaderType] of string =
+  ShaderTypeNameX3D: array [TShaderType] of String =
   ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
 
 procedure TAbstractShaderNode.CreateNode;
@@ -255,7 +255,7 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
-class function TComposedShaderNode.ClassX3DType: string;
+class function TComposedShaderNode.ClassX3DType: String;
 begin
   Result := 'ComposedShader';
 end;
@@ -273,7 +273,7 @@ begin
   { X3D specification comment: [1..4] }
 end;
 
-class function TFloatVertexAttributeNode.ClassX3DType: string;
+class function TFloatVertexAttributeNode.ClassX3DType: String;
 begin
   Result := 'FloatVertexAttribute';
 end;
@@ -287,7 +287,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TMatrix3VertexAttributeNode.ClassX3DType: string;
+class function TMatrix3VertexAttributeNode.ClassX3DType: String;
 begin
   Result := 'Matrix3VertexAttribute';
 end;
@@ -301,7 +301,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TMatrix4VertexAttributeNode.ClassX3DType: string;
+class function TMatrix4VertexAttributeNode.ClassX3DType: String;
 begin
   Result := 'Matrix4VertexAttribute';
 end;
@@ -318,7 +318,7 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TPackagedShaderNode.ClassX3DType: string;
+class function TPackagedShaderNode.ClassX3DType: String;
 begin
   Result := 'PackagedShader';
 end;
@@ -331,7 +331,7 @@ begin
   AddField(FFdPrograms);
 end;
 
-class function TProgramShaderNode.ClassX3DType: string;
+class function TProgramShaderNode.ClassX3DType: String;
 begin
   Result := 'ProgramShader';
 end;
@@ -355,14 +355,14 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TShaderPartNode.ClassX3DType: string;
+class function TShaderPartNode.ClassX3DType: String;
 begin
   Result := 'ShaderPart';
 end;
 
-function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): string;
+function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): String;
 
-  function IsDirectShaderSource(const S: string): Boolean;
+  function IsDirectShaderSource(const S: String): Boolean;
   { URL is recognized as direct shader source if it
     doesn't start with any protocol *and*
     has some newlines (needed to recognize relative URLs without
@@ -373,7 +373,7 @@ function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): strin
 
 var
   I: Integer;
-  FullUrl, MimeType: string;
+  FullUrl, MimeType: String;
 begin
   Result := '';
 
@@ -402,7 +402,7 @@ begin
   end;
 end;
 
-function TShaderPartNode.GetContents: string;
+function TShaderPartNode.GetContents: String;
 begin
   if not ContentsCached then
   begin
@@ -412,7 +412,7 @@ begin
   Result := ContentsCache;
 end;
 
-procedure TShaderPartNode.SetContents(const Value: string);
+procedure TShaderPartNode.SetContents(const Value: String);
 begin
   SetUrl(['data:text/plain,' + Value]);
 
@@ -446,7 +446,7 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TShaderProgramNode.ClassX3DType: string;
+class function TShaderProgramNode.ClassX3DType: String;
 begin
   Result := 'ShaderProgram';
 end;

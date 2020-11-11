@@ -46,11 +46,11 @@
     { X3D field "transitionTime". } { }
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
     { Set X3D field "transitionType". } { }
-    procedure SetTransitionType(const Value: array of string);
+    procedure SetTransitionType(const Value: array of String);
     { Set X3D field "transitionType". } { }
     procedure SetTransitionType(const Value: TCastleStringList);
     { Set X3D field "type". } { }
-    procedure SetType(const Value: array of string);
+    procedure SetType(const Value: array of String);
     { Set X3D field "type". } { }
     procedure SetType(const Value: TCastleStringList);
     { X3D field "visibilityLimit". } { }
@@ -102,7 +102,7 @@ begin
   FdTransitionTime.Send(Value);
 end;
 
-procedure TNavigationInfoNode.SetTransitionType(const Value: array of string);
+procedure TNavigationInfoNode.SetTransitionType(const Value: array of String);
 begin
   FdTransitionType.Send(Value);
 end;
@@ -112,7 +112,7 @@ begin
   FdTransitionType.Send(Value);
 end;
 
-procedure TNavigationInfoNode.SetType(const Value: array of string);
+procedure TNavigationInfoNode.SetType(const Value: array of String);
 begin
   FdType.Send(Value);
 end;

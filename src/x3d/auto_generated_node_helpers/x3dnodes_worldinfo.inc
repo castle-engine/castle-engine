@@ -30,7 +30,7 @@
     procedure SetTitle(const Value: String);
   public
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: array of String);
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList);
     { X3D field "title". } { }
@@ -42,7 +42,7 @@
 
 { TWorldInfoNode ----------------------------------------------- }
 
-procedure TWorldInfoNode.SetInfo(const Value: array of string);
+procedure TWorldInfoNode.SetInfo(const Value: array of String);
 begin
   FdInfo.Send(Value);
 end;

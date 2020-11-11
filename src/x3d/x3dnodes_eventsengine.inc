@@ -33,7 +33,7 @@
     TCastleSceneCore is the only implementation of this interface in practice. }
   TX3DEventsEngine = class(TCastleTransform)
   protected
-    procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
+    procedure ExecuteCompiledScript(const HandlerName: String;  ReceivedValue: TX3DField); virtual; abstract;
   public
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;

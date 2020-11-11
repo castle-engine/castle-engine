@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   { IndexedTriangleMesh (from Inventor 1.0). }
   TIndexedTriangleMeshNode_1 = class(TIndexedFacesOrTrianglesNode_1)
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -33,7 +33,7 @@
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
   TRotationXYZNode = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxis: TSFEnum;
     public property FdAxis: TSFEnum read FFdAxis;
@@ -47,7 +47,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TIndexedTriangleMeshNode_1.ClassX3DType: string;
+class function TIndexedTriangleMeshNode_1.ClassX3DType: String;
 begin
   result := 'IndexedTriangleMesh';
 end;
@@ -72,7 +72,7 @@ begin
   AddField(FFdAngle);
 end;
 
-class function TRotationXYZNode.ClassX3DType: string;
+class function TRotationXYZNode.ClassX3DType: String;
 begin
   Result := 'RotationXYZ';
 end;

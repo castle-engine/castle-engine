@@ -115,10 +115,10 @@
   public
     { This constructor will raise exception for TX3DPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
-    constructor Create(const AName, ABaseUrl: string); override;
-    constructor CreatePrototypeNode(const AName, ABaseUrl: string;
+    constructor Create(const AName, ABaseUrl: String); override;
+    constructor CreatePrototypeNode(const AName, ABaseUrl: String;
       APrototype: TX3DPrototypeBase);
-    function X3DType: string; override;
+    function X3DType: String; override;
 
     property Prototype: TX3DPrototypeBase read FPrototype;
 
@@ -176,10 +176,10 @@
 
   TX3DPrototypeBase = class(TX3DFileItem)
   private
-    FX3DName: string;
+    FX3DName: String;
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
 
-    FBaseUrl: string;
+    FBaseUrl: String;
 
     { Parses InterfaceDeclarations. Also inits BaseUrl from
       Names.BaseUrl, by the way. }
@@ -203,8 +203,8 @@
   public
     constructor Create;
     destructor Destroy; override;
-    property X3DName: string read FX3DName write FX3DName;
-    property Name: string read FX3DName write FX3DName; deprecated 'use X3DName';
+    property X3DName: String read FX3DName write FX3DName;
+    property Name: String read FX3DName write FX3DName; deprecated 'use X3DName';
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -218,7 +218,7 @@
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
       See TX3DNode.BaseUrl for more comments. }
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
   end;
 
   TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
@@ -278,14 +278,14 @@
 
 { TX3DPrototypeNode --------------------------------------------------------- }
 
-constructor TX3DPrototypeNode.Create(const AName, ABaseUrl: string);
+constructor TX3DPrototypeNode.Create(const AName, ABaseUrl: String);
 begin
   raise EInternalError.Create('TX3DPrototypeNode node must be created' +
     ' using CreatePrototypeNode, never default constructor');
 end;
 
 constructor TX3DPrototypeNode.CreatePrototypeNode(
-  const AName, ABaseUrl: string;
+  const AName, ABaseUrl: String;
   APrototype: TX3DPrototypeBase);
 var
   I: TX3DInterfaceDeclaration;
@@ -325,7 +325,7 @@ begin
     Prototype);
 end;
 
-function TX3DPrototypeNode.X3DType: string;
+function TX3DPrototypeNode.X3DType: String;
 begin
   Result := Prototype.X3DName;
 end;
@@ -339,7 +339,7 @@ var
   Route: TX3DRoute;
   I: Integer;
 const
-  InEventName: array [Boolean] of string = ( 'output', 'input' );
+  InEventName: array [Boolean] of String = ( 'output', 'input' );
 begin
   { When Source.IsClauseNamesCount <> 0, then we're expanded
     within the definition of another prototype.
@@ -447,7 +447,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
     OurEvent: TX3DEvent;
     OurFieldIndex: Integer;
     I: Integer;
-    IsClauseName: string;
+    IsClauseName: String;
     NewIsClauseNames: TCastleStringList;
   begin
     if InstanceField.IsClauseNamesCount <> 0 then
@@ -546,7 +546,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
     OurEvent: TX3DEvent;
     OurEventIndex: Integer;
     I: Integer;
-    IsClauseName: string;
+    IsClauseName: String;
     NewIsClauseNames: TCastleStringList;
   begin
     if InstanceEvent.IsClauseNamesCount <> 0 then
@@ -696,14 +696,14 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
        For example,
 
          PROTO SimpleText [
-           inputOutput MFString string ""
-         ] { Shape { geometry Text { string IS string } } }
+           inputOutput MFString String ""
+         ] { Shape { geometry Text { String IS String } } }
 
          PROTO PressedText [
-           inputOutput MFString string ""
-         ] { SimpleText { string IS string } }
+           inputOutput MFString String ""
+         ] { SimpleText { String IS String } }
 
-         PressedText { string "zero" }
+         PressedText { String "zero" }
 
        (this is a simplified part of ../../../demo_models/x3d/key_sensor.x3dv
        file). In such case, when PressedText, you may get Shape that already
@@ -899,7 +899,7 @@ end;
 procedure TX3DPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
   OldReader: TX3DReaderNames;
-  NewName: string;
+  NewName: String;
   E: TDOMElement;
 begin
   BaseUrl := Reader.BaseUrl;
@@ -1042,7 +1042,7 @@ end;
 
 procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
-  NewName, URLListValue: string;
+  NewName, URLListValue: String;
 begin
   BaseUrl := Reader.BaseUrl;
 
@@ -1131,12 +1131,12 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     end;
   end;
 
-  function LoadFromExternalVRML(const RelativeURL: string): Boolean;
+  function LoadFromExternalVRML(const RelativeURL: String): Boolean;
   var
-    URL: string;
+    URL: String;
     PrototypeNames: TX3DPrototypeNames;
 
-    procedure ProtoWarning(const S: string);
+    procedure ProtoWarning(const S: String);
     begin
       WritelnWarning('VRML/X3D', Format('Cannot load external prototype from URL "%s": ',
         [URL]) + S);
@@ -1145,7 +1145,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     { Find PROTO (but not EXTERNPROTO) with matching Name.
       Name is ignored if ''.
       @nil if not found. }
-    function TryFindProtoNonExternal(const Name: string): TX3DPrototype;
+    function TryFindProtoNonExternal(const Name: String): TX3DPrototype;
     var
       I: Integer;
     begin
@@ -1161,7 +1161,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     end;
 
   var
-    Anchor: string;
+    Anchor: String;
   begin
     Result := false;
 
@@ -1193,7 +1193,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
     LoadInterfaceDeclarationsValues;
   end;
 
-  function LoadFromURN(const URN: string): Boolean;
+  function LoadFromURN(const URN: String): Boolean;
   begin
     FReferencedClass := NodesManager.URNToClass(URN, Version);
     Result := ReferencedClass <> nil;
@@ -1203,7 +1203,7 @@ procedure TX3DExternalPrototype.LoadReferenced(const Version: TX3DVersion);
 
 var
   I: Integer;
-  S: string;
+  S: String;
   ProtoLoaded: Boolean;
 begin
   UnloadReferenced;

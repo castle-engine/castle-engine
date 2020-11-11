@@ -19,7 +19,7 @@
   TArc2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
@@ -45,7 +45,7 @@
   TArcClose2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClosureType: TSFString;
     public property FdClosureType: TSFString read FFdClosureType;
@@ -76,7 +76,7 @@
   TCircle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
@@ -97,7 +97,7 @@
   TDisk2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdInnerRadius: TSFFloat;
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
@@ -123,7 +123,7 @@
   TPolyline2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLineSegments: TMFVec2f;
     { Polyline segments.
@@ -145,7 +145,7 @@
   TPolypoint2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
@@ -164,7 +164,7 @@
   TRectangle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -184,7 +184,7 @@
   TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdVertices: TMFVec2f;
     public property FdVertices: TMFVec2f read FFdVertices;
@@ -227,7 +227,7 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TArc2DNode.ClassX3DType: string;
+class function TArc2DNode.ClassX3DType: String;
 begin
   Result := 'Arc2D';
 end;
@@ -284,7 +284,7 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TArcClose2DNode.ClassX3DType: string;
+class function TArcClose2DNode.ClassX3DType: String;
 begin
   Result := 'ArcClose2D';
 end;
@@ -324,7 +324,7 @@ begin
   AddField(FFdSlices);
 end;
 
-class function TCircle2DNode.ClassX3DType: string;
+class function TCircle2DNode.ClassX3DType: String;
 begin
   Result := 'Circle2D';
 end;
@@ -395,7 +395,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TDisk2DNode.ClassX3DType: string;
+class function TDisk2DNode.ClassX3DType: String;
 begin
   Result := 'Disk2D';
 end;
@@ -433,7 +433,7 @@ begin
   FFdLineSegments.AddAlternativeName('point', 2);
 end;
 
-class function TPolyline2DNode.ClassX3DType: string;
+class function TPolyline2DNode.ClassX3DType: String;
 begin
   Result := 'Polyline2D';
 end;
@@ -469,7 +469,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TPolypoint2DNode.ClassX3DType: string;
+class function TPolypoint2DNode.ClassX3DType: String;
 begin
   Result := 'Polypoint2D';
 end;
@@ -509,7 +509,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TRectangle2DNode.ClassX3DType: string;
+class function TRectangle2DNode.ClassX3DType: String;
 begin
   Result := 'Rectangle2D';
 end;
@@ -574,7 +574,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TTriangleSet2DNode.ClassX3DType: string;
+class function TTriangleSet2DNode.ClassX3DType: String;
 begin
   Result := 'TriangleSet2D';
 end;

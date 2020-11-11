@@ -45,7 +45,7 @@
     AltKey, ControlKey, ShiftKey: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventActionKeyPress: TSFInt32Event;
@@ -85,11 +85,11 @@
     useful for example to simulate "input fields" in 3D. }
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
   strict private
-    EnteredText: string;
+    EnteredText: String;
     Active: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDeletionAllowed: TSFBool;
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
@@ -174,7 +174,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TKeySensorNode.ClassX3DType: string;
+class function TKeySensorNode.ClassX3DType: String;
 begin
   Result := 'KeySensor';
 end;
@@ -278,7 +278,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TStringSensorNode.ClassX3DType: string;
+class function TStringSensorNode.ClassX3DType: String;
 begin
   Result := 'StringSensor';
 end;

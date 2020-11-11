@@ -40,7 +40,7 @@
   TLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventAddChildren: TMFNodeEvent;
@@ -59,7 +59,7 @@
   TLayerSetNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdActiveLayer: TSFInt32;
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
@@ -76,7 +76,7 @@
   TViewportNode = class(TAbstractX3DGroupingNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdClipBoundary: TMFFloat;
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
@@ -119,7 +119,7 @@ begin
   AddField(FFdChildren);
 end;
 
-class function TLayerNode.ClassX3DType: string;
+class function TLayerNode.ClassX3DType: String;
 begin
   Result := 'Layer';
 end;
@@ -142,7 +142,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayerSetNode.ClassX3DType: string;
+class function TLayerSetNode.ClassX3DType: String;
 begin
   Result := 'LayerSet';
 end;
@@ -156,7 +156,7 @@ begin
   { X3D specification comment: 1 0 1  [0,1] }
 end;
 
-class function TViewportNode.ClassX3DType: string;
+class function TViewportNode.ClassX3DType: String;
 begin
   Result := 'Viewport';
 end;

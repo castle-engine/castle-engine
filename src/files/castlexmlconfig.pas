@@ -63,16 +63,16 @@ type
       is broken for some reason (e.g. file corruption),
       but you want to override it and just get into a state
       where config is considered loaded.  }
-    procedure LoadEmpty(const PretendURL: string);
+    procedure LoadEmpty(const PretendURL: String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Integer values reading/writing to config file.
-      @raises(EMissingAttribute Raised by GetInteger(string) (overloaded
+      @raises(EMissingAttribute Raised by GetInteger(String) (overloaded
       version without the ADefaultValue parameter) if the attribute is missing.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
-    function GetInteger(const APath: string;
+    function GetInteger(const APath: String;
       const ADefaultValue: Integer): Integer; overload;
     function GetInteger(const APath: String): Integer; overload;
 
@@ -84,9 +84,9 @@ type
     { Get a @italic(required, non-empty) string value.
       Value must exist and cannot be empty in XML file.
       @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
-    function GetStringNonEmpty(const APath: string): string;
+    function GetStringNonEmpty(const APath: String): String;
 
-    function GetNonEmptyValue(const APath: string): string; deprecated 'use GetStringNonEmpty';
+    function GetNonEmptyValue(const APath: String): String; deprecated 'use GetStringNonEmpty';
 
     { Internal notes about GetFloat / SetFloat:
       At the beginning I made the float methods
@@ -115,28 +115,28 @@ type
       Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TCastleConfigScriptHelper.GetFloatExpression).
 
-      @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
+      @raises(EMissingAttribute Raised by GetFloat(String) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.)
 
       @groupBegin }
-    function GetFloat(const APath: string;
+    function GetFloat(const APath: String;
       const ADefaultValue: Float): Float; overload;
-    function GetFloat(const APath: string): Float; overload;
-    procedure SetFloat(const APath: string;
+    function GetFloat(const APath: String): Float; overload;
+    procedure SetFloat(const APath: String;
       const AValue: Float);
-    procedure SetDeleteFloat(const APath: string;
+    procedure SetDeleteFloat(const APath: String;
       const AValue, ADefaultValue: Float);
     { @groupEnd }
 
     { Int64 values reading/writing to config file.
-      @raises(EMissingAttribute Raised by GetInt64(string) (overloaded
+      @raises(EMissingAttribute Raised by GetInt64(String) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.) }
-    function GetInt64(const APath: string;
+    function GetInt64(const APath: String;
       const ADefaultValue: Int64): Int64; overload;
-    function GetInt64(const APath: string): Int64; overload;
-    procedure SetInt64(const APath: string;
+    function GetInt64(const APath: String): Int64; overload;
+    procedure SetInt64(const APath: String;
       const AValue: Int64);
-    procedure SetDeleteInt64(const APath: string;
+    procedure SetDeleteInt64(const APath: String;
       const AValue, ADefaultValue: Int64);
     { @groupEnd }
 
@@ -151,57 +151,57 @@ type
       @longCode(# GetVector('example/path/to/myVector', Vector4(0, 0, 0, 0)); #)
 
       @groupBegin }
-    function GetVector2(const APath: string;
+    function GetVector2(const APath: String;
       const ADefaultValue: TVector2): TVector2; overload;
-    function GetVector2(const APath: string): TVector2; overload;
-    procedure SetVector2(const APath: string;
+    function GetVector2(const APath: String): TVector2; overload;
+    procedure SetVector2(const APath: String;
       const AValue: TVector2); overload;
-    procedure SetDeleteVector2(const APath: string;
+    procedure SetDeleteVector2(const APath: String;
       const AValue, ADefaultValue: TVector2); overload;
 
-    function GetVector3(const APath: string;
+    function GetVector3(const APath: String;
       const ADefaultValue: TVector3): TVector3; overload;
-    function GetVector3(const APath: string): TVector3; overload;
-    procedure SetVector3(const APath: string;
+    function GetVector3(const APath: String): TVector3; overload;
+    procedure SetVector3(const APath: String;
       const AValue: TVector3); overload;
-    procedure SetDeleteVector3(const APath: string;
+    procedure SetDeleteVector3(const APath: String;
       const AValue, ADefaultValue: TVector3); overload;
 
-    function GetVector4(const APath: string;
+    function GetVector4(const APath: String;
       const ADefaultValue: TVector4): TVector4; overload;
-    function GetVector4(const APath: string): TVector4; overload;
-    procedure SetVector4(const APath: string;
+    function GetVector4(const APath: String): TVector4; overload;
+    procedure SetVector4(const APath: String;
       const AValue: TVector4); overload;
-    procedure SetDeleteVector4(const APath: string;
+    procedure SetDeleteVector4(const APath: String;
       const AValue, ADefaultValue: TVector4); overload;
 
-    function GetValue(const APath: string;
+    function GetValue(const APath: String;
       const ADefaultValue: TVector2): TVector2;
       overload; deprecated 'use GetVector2';
-    procedure SetValue(const APath: string;
+    procedure SetValue(const APath: String;
       const AValue: TVector2);
       overload; deprecated 'use SetVector2';
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteValue(const APath: String;
       const AValue, ADefaultValue: TVector2);
       overload; deprecated 'use SetDeleteVector2';
 
-    function GetValue(const APath: string;
+    function GetValue(const APath: String;
       const ADefaultValue: TVector3): TVector3;
       overload; deprecated 'use GetVector3';
-    procedure SetValue(const APath: string;
+    procedure SetValue(const APath: String;
       const AValue: TVector3);
       overload; deprecated 'use SetVector3';
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteValue(const APath: String;
       const AValue, ADefaultValue: TVector3);
       overload; deprecated 'use SetDeleteVector3';
 
-    function GetValue(const APath: string;
+    function GetValue(const APath: String;
       const ADefaultValue: TVector4): TVector4;
       overload; deprecated 'use GetVector4';
-    procedure SetValue(const APath: string;
+    procedure SetValue(const APath: String;
       const AValue: TVector4);
       overload; deprecated 'use SetVector4';
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteValue(const APath: String;
       const AValue, ADefaultValue: TVector4);
       overload; deprecated 'use SetDeleteVector4';
     { @groupEnd }
@@ -241,20 +241,20 @@ type
       #)
 
       @groupBegin }
-    function GetColorRGB(const APath: string;
+    function GetColorRGB(const APath: String;
       const ADefaultColor: TCastleColorRGB): TCastleColorRGB; overload;
-    function GetColorRGB(const APath: string): TCastleColorRGB; overload;
-    procedure SetColorRGB(const APath: string;
+    function GetColorRGB(const APath: String): TCastleColorRGB; overload;
+    procedure SetColorRGB(const APath: String;
       const AColor: TCastleColorRGB); overload;
-    procedure SetDeleteColorRGB(const APath: string;
+    procedure SetDeleteColorRGB(const APath: String;
       const AColor, ADefaultColor: TCastleColorRGB); overload;
 
-    function GetColor(const APath: string;
+    function GetColor(const APath: String;
       const ADefaultColor: TCastleColor): TCastleColor; overload;
-    function GetColor(const APath: string): TCastleColor; overload;
-    procedure SetColor(const APath: string;
+    function GetColor(const APath: String): TCastleColor; overload;
+    procedure SetColor(const APath: String;
       const AColor: TCastleColor); overload;
-    procedure SetDeleteColor(const APath: string;
+    procedure SetDeleteColor(const APath: String;
       const AColor, ADefaultColor: TCastleColor); overload;
     { @groupEnd }
 
@@ -290,12 +290,12 @@ type
       Note that if you modify the DOM contents this way,
       you must manually call MarkModified afterwards, to make sure
       it will get saved later. }
-    function PathElement(const APath: string;
+    function PathElement(const APath: String;
       const RaiseExceptionWhenMissing: Boolean = false): TDOMElement;
 
     { Similar to PathElement,
       but creates the necessary elements along the way as needed. }
-    function MakePathElement(const APath: string): TDOMElement;
+    function MakePathElement(const APath: String): TDOMElement;
 
     { For a given path, return corresponding children elements of a given
       DOM element of XML tree. For example, you have an XML like this:
@@ -320,7 +320,7 @@ type
       Raises exception if element indicated by APath does not exist.
       (But it is OK if it is empty.)
       Never returns @nil. }
-    function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
+    function PathChildren(const APath: String; const ChildName: String): TDOMNodeList;
       deprecated 'use PathChildrenIterator';
 
     { For a given path, return iterator for elements of a given name.
@@ -358,8 +358,8 @@ type
       Raises exception if element indicated by APath does not exist.
       (But it is OK if it is empty.)
       Never returns @nil. }
-    function PathChildrenIterator(const APath: string;
-      const ChildName: string): TXMLElementIterator;
+    function PathChildrenIterator(const APath: String;
+      const ChildName: String): TXMLElementIterator;
 
     { Read an URL from an XML attribute.
       The attribute in an XML file may be an absolute or relative URL,
@@ -372,18 +372,18 @@ type
       error will be raised.
 
       @raises(EMissingAttribute If EmptyIfNoAttribute = @false and no such attribute.) }
-    function GetURL(const APath: string;
-      const EmptyIfNoAttribute: Boolean = false): string;
+    function GetURL(const APath: String;
+      const EmptyIfNoAttribute: Boolean = false): String;
 
     { Read string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
-    function GetMultilineText(const APath: string; const DefaultValue: string): string; overload;
+    function GetMultilineText(const APath: String; const DefaultValue: String): String; overload;
 
     { Read @italic(required, non-empty) string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
-    function GetMultilineText(const APath: string): string; overload;
+    function GetMultilineText(const APath: String): String; overload;
 
     procedure NotModified;
     procedure MarkModified;
@@ -447,9 +447,9 @@ type
 
       @groupBegin }
     procedure Load; overload;
-    procedure Load(const AURL: string); overload;
-    procedure Load(const Stream: TStream; const PretendURL: string); overload;
-    procedure LoadFromString(const Data: string; const PretendURL: string);
+    procedure Load(const AURL: String); overload;
+    procedure Load(const Stream: TStream; const PretendURL: String); overload;
+    procedure LoadFromString(const Data: String; const PretendURL: String);
     { @groupEnd }
 
     { Save the user persistent configuration.
@@ -468,7 +468,7 @@ type
       @groupBegin }
     procedure Save; overload;
     procedure Save(const Stream: TStream); overload;
-    function SaveToString: string;
+    function SaveToString: String;
     { @groupEnd }
   end;
 
@@ -512,10 +512,10 @@ begin
   inherited;
 end;
 
-function TCastleConfig.GetInteger(const APath: string;
+function TCastleConfig.GetInteger(const APath: String;
   const ADefaultValue: Integer): Integer;
 var
-  ResultString: string;
+  ResultString: String;
 begin
   ResultString := GetValue(APath, IntToStr(ADefaultValue));
   Result := StrToIntDef(ResultString, ADefaultValue);
@@ -539,41 +539,41 @@ begin
       [S, APath]);
 end;
 
-function TCastleConfig.GetStringNonEmpty(const APath: string): string;
+function TCastleConfig.GetStringNonEmpty(const APath: String): String;
 begin
   Result := GetValue(APath, '');
   if Result = '' then
     raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
 end;
 
-function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+function TCastleConfig.GetNonEmptyValue(const APath: String): String;
 begin
   Result := GetStringNonEmpty(APath);
 end;
 
 { get/set floats ------------------------------------------------------------ }
 
-function TCastleConfig.GetFloat(const APath: string;
+function TCastleConfig.GetFloat(const APath: String;
   const ADefaultValue: Float): Float;
 var
-  ResultString: string;
+  ResultString: String;
 begin
   ResultString := GetValue(APath, FloatToStrDot(ADefaultValue));
   Result := StrToFloatDefDot(ResultString, ADefaultValue);
 end;
 
-function TCastleConfig.GetFloat(const APath: string): Float;
+function TCastleConfig.GetFloat(const APath: String): Float;
 begin
   Result := StrToFloatDot(GetStringNonEmpty(APath));
 end;
 
-procedure TCastleConfig.SetFloat(const APath: string;
+procedure TCastleConfig.SetFloat(const APath: String;
   const AValue: Float);
 begin
   SetValue(APath, FloatToStrDot(AValue));
 end;
 
-procedure TCastleConfig.SetDeleteFloat(const APath: string;
+procedure TCastleConfig.SetDeleteFloat(const APath: String;
   const AValue, ADefaultValue: Float);
 begin
   SetDeleteValue(APath, FloatToStrDot(AValue), FloatToStrDot(ADefaultValue));
@@ -581,27 +581,27 @@ end;
 
 { get/set Int64s ------------------------------------------------------------ }
 
-function TCastleConfig.GetInt64(const APath: string;
+function TCastleConfig.GetInt64(const APath: String;
   const ADefaultValue: Int64): Int64;
 var
-  ResultString: string;
+  ResultString: String;
 begin
   ResultString := GetValue(APath, IntToStr(ADefaultValue));
   Result := StrToInt64Def(ResultString, ADefaultValue);
 end;
 
-function TCastleConfig.GetInt64(const APath: string): Int64;
+function TCastleConfig.GetInt64(const APath: String): Int64;
 begin
   Result := StrToInt64(GetStringNonEmpty(APath));
 end;
 
-procedure TCastleConfig.SetInt64(const APath: string;
+procedure TCastleConfig.SetInt64(const APath: String;
   const AValue: Int64);
 begin
   SetValue(APath, IntToStr(AValue));
 end;
 
-procedure TCastleConfig.SetDeleteInt64(const APath: string;
+procedure TCastleConfig.SetDeleteInt64(const APath: String;
   const AValue, ADefaultValue: Int64);
 begin
   SetDeleteValue(APath, IntToStr(AValue), IntToStr(ADefaultValue));
@@ -610,10 +610,10 @@ end;
 { get/set vectors ------------------------------------------------------------ }
 
 const
-  VectorComponentPaths: array [0..3] of string =
+  VectorComponentPaths: array [0..3] of String =
   ('/x', '/y', '/z', '/w');
 
-function TCastleConfig.GetVector2(const APath: string;
+function TCastleConfig.GetVector2(const APath: String;
   const ADefaultValue: TVector2): TVector2;
 var
   I: Integer;
@@ -622,7 +622,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector2(const APath: string): TVector2;
+function TCastleConfig.GetVector2(const APath: String): TVector2;
 var
   I: Integer;
 begin
@@ -630,7 +630,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetVector2(const APath: string;
+procedure TCastleConfig.SetVector2(const APath: String;
   const AValue: TVector2);
 var
   I: Integer;
@@ -639,7 +639,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector2(const APath: string;
+procedure TCastleConfig.SetDeleteVector2(const APath: String;
   const AValue, ADefaultValue: TVector2);
 var
   I: Integer;
@@ -648,7 +648,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector3(const APath: string;
+function TCastleConfig.GetVector3(const APath: String;
   const ADefaultValue: TVector3): TVector3;
 var
   I: Integer;
@@ -657,7 +657,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector3(const APath: string): TVector3;
+function TCastleConfig.GetVector3(const APath: String): TVector3;
 var
   I: Integer;
 begin
@@ -665,7 +665,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetVector3(const APath: string;
+procedure TCastleConfig.SetVector3(const APath: String;
   const AValue: TVector3);
 var
   I: Integer;
@@ -674,7 +674,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector3(const APath: string;
+procedure TCastleConfig.SetDeleteVector3(const APath: String;
   const AValue, ADefaultValue: TVector3);
 var
   I: Integer;
@@ -683,7 +683,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector4(const APath: string;
+function TCastleConfig.GetVector4(const APath: String;
   const ADefaultValue: TVector4): TVector4;
 var
   I: Integer;
@@ -692,7 +692,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector4(const APath: string): TVector4;
+function TCastleConfig.GetVector4(const APath: String): TVector4;
 var
   I: Integer;
 begin
@@ -700,7 +700,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetVector4(const APath: string;
+procedure TCastleConfig.SetVector4(const APath: String;
   const AValue: TVector4);
 var
   I: Integer;
@@ -709,7 +709,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector4(const APath: string;
+procedure TCastleConfig.SetDeleteVector4(const APath: String;
   const AValue, ADefaultValue: TVector4);
 var
   I: Integer;
@@ -720,7 +720,7 @@ end;
 
 { deprecated get/set on vectors ---------------------------------------------- }
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetValue(const APath: String;
   const ADefaultValue: TVector2): TVector2;
 var
   I: Integer;
@@ -729,7 +729,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetValue(const APath: String;
   const AValue: TVector2);
 var
   I: Integer;
@@ -738,7 +738,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteValue(const APath: String;
   const AValue, ADefaultValue: TVector2);
 var
   I: Integer;
@@ -747,7 +747,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetValue(const APath: String;
   const ADefaultValue: TVector3): TVector3;
 var
   I: Integer;
@@ -756,7 +756,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetValue(const APath: String;
   const AValue: TVector3);
 var
   I: Integer;
@@ -765,7 +765,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteValue(const APath: String;
   const AValue, ADefaultValue: TVector3);
 var
   I: Integer;
@@ -774,7 +774,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetValue(const APath: String;
   const ADefaultValue: TVector4): TVector4;
 var
   I: Integer;
@@ -783,7 +783,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetValue(const APath: String;
   const AValue: TVector4);
 var
   I: Integer;
@@ -792,7 +792,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteValue(const APath: String;
   const AValue, ADefaultValue: TVector4);
 var
   I: Integer;
@@ -804,15 +804,15 @@ end;
 { get/set colors ------------------------------------------------------------- }
 
 const
-  ColorComponentPaths: array [0..3] of string =
+  ColorComponentPaths: array [0..3] of String =
   ('/red', '/green', '/blue', '/alpha');
   HexPath = '/hex';
 
-function TCastleConfig.GetColorRGB(const APath: string;
+function TCastleConfig.GetColorRGB(const APath: String;
   const ADefaultColor: TCastleColorRGB): TCastleColorRGB;
 var
   I: Integer;
-  Hex: string;
+  Hex: String;
 begin
   Hex := GetValue(APath + HexPath, '');
   if Hex <> '' then
@@ -828,10 +828,10 @@ begin
   end;
 end;
 
-function TCastleConfig.GetColorRGB(const APath: string): TCastleColorRGB;
+function TCastleConfig.GetColorRGB(const APath: String): TCastleColorRGB;
 var
   I: Integer;
-  Hex: string;
+  Hex: String;
 begin
   Hex := GetValue(APath + HexPath, '');
   if Hex <> '' then
@@ -847,7 +847,7 @@ begin
   end;
 end;
 
-procedure TCastleConfig.SetColorRGB(const APath: string;
+procedure TCastleConfig.SetColorRGB(const APath: String;
   const AColor: TCastleColorRGB);
 var
   I: Integer;
@@ -857,7 +857,7 @@ begin
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetDeleteColorRGB(const APath: string;
+procedure TCastleConfig.SetDeleteColorRGB(const APath: String;
   const AColor, ADefaultColor: TCastleColorRGB);
 var
   I: Integer;
@@ -867,11 +867,11 @@ begin
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
-function TCastleConfig.GetColor(const APath: string;
+function TCastleConfig.GetColor(const APath: String;
   const ADefaultColor: TCastleColor): TCastleColor;
 var
   I: Integer;
-  Hex: string;
+  Hex: String;
 begin
   Hex := GetValue(APath + HexPath, '');
   if Hex <> '' then
@@ -887,10 +887,10 @@ begin
   end;
 end;
 
-function TCastleConfig.GetColor(const APath: string): TCastleColor;
+function TCastleConfig.GetColor(const APath: String): TCastleColor;
 var
   I: Integer;
-  Hex: string;
+  Hex: String;
 begin
   Hex := GetValue(APath + HexPath, '');
   if Hex <> '' then
@@ -906,7 +906,7 @@ begin
   end;
 end;
 
-procedure TCastleConfig.SetColor(const APath: string;
+procedure TCastleConfig.SetColor(const APath: String;
   const AColor: TCastleColor);
 var
   I: Integer;
@@ -916,7 +916,7 @@ begin
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetDeleteColor(const APath: string;
+procedure TCastleConfig.SetDeleteColor(const APath: String;
   const AColor, ADefaultColor: TCastleColor);
 var
   I: Integer;
@@ -928,11 +928,11 @@ end;
 
 { others --------------------------------------------------------------------- }
 
-function TCastleConfig.PathElement(const APath: string;
+function TCastleConfig.PathElement(const APath: String;
   const RaiseExceptionWhenMissing: Boolean): TDOMElement;
 var
   SeekPos: Integer;
-  PathComponent: string;
+  PathComponent: String;
 begin
   Result := Document.DocumentElement;
   SeekPos := 1;
@@ -947,10 +947,10 @@ begin
     raise Exception.CreateFmt('Missing element "%s" in file "%s"', [APath, URL]);
 end;
 
-function TCastleConfig.MakePathElement(const APath: string): TDOMElement;
+function TCastleConfig.MakePathElement(const APath: String): TDOMElement;
 var
   SeekPos: Integer;
-  PathComponent: string;
+  PathComponent: String;
   NewResult: TDOMElement;
 begin
   Result := Document.DocumentElement;
@@ -971,20 +971,20 @@ begin
   end;
 end;
 
-function TCastleConfig.PathChildren(const APath: string;
-  const ChildName: string): TDOMNodeList;
+function TCastleConfig.PathChildren(const APath: String;
+  const ChildName: String): TDOMNodeList;
 begin
   Result := PathElement(APath, true).GetElementsByTagName(UTF8Decode(ChildName));
 end;
 
-function TCastleConfig.PathChildrenIterator(const APath: string;
-  const ChildName: string): TXMLElementIterator;
+function TCastleConfig.PathChildrenIterator(const APath: String;
+  const ChildName: String): TXMLElementIterator;
 begin
   Result := PathElement(APath, true).ChildrenIterator(ChildName);
 end;
 
-function TCastleConfig.GetURL(const APath: string;
-  const EmptyIfNoAttribute: Boolean): string;
+function TCastleConfig.GetURL(const APath: String;
+  const EmptyIfNoAttribute: Boolean): String;
 begin
   Result := GetValue(APath, '');
   if Result = '' then
@@ -995,8 +995,8 @@ begin
     Result := CombineURI(URL, Result);
 end;
 
-function TCastleConfig.GetMultilineText(const APath: string;
-  const DefaultValue: string): string;
+function TCastleConfig.GetMultilineText(const APath: String;
+  const DefaultValue: String): String;
 var
   E: TDOMElement;
 begin
@@ -1013,7 +1013,7 @@ begin
   {$warnings on}
 end;
 
-function TCastleConfig.GetMultilineText(const APath: string): string;
+function TCastleConfig.GetMultilineText(const APath: String): String;
 begin
   Result := GetMultilineText(APath, '');
   if Result = '' then
@@ -1064,7 +1064,7 @@ begin
   Load(ApplicationConfig(ApplicationName + '.conf'));
 end;
 
-procedure TCastleConfig.Load(const AURL: string);
+procedure TCastleConfig.Load(const AURL: String);
 begin
   try
     URL := AURL; // use ancestor method to load
@@ -1085,7 +1085,7 @@ begin
   WritelnLog('Config', 'Loaded configuration from "%s"', [AURL]);
 end;
 
-procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
+procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: String);
 begin
   try
     LoadFromStream(Stream, PretendURL); // use ancestor method to load
@@ -1103,7 +1103,7 @@ begin
   WritelnLog('Config', 'Loaded configuration from stream, pretending the URL is "%s"', [PretendURL]);
 end;
 
-procedure TCastleConfig.LoadFromString(const Data: string; const PretendURL: string);
+procedure TCastleConfig.LoadFromString(const Data: String; const PretendURL: String);
 var
   InputStream: TStringStream;
 begin
@@ -1113,7 +1113,7 @@ begin
   finally FreeAndNil(InputStream) end;
 end;
 
-procedure TCastleConfig.LoadEmpty(const PretendURL: string);
+procedure TCastleConfig.LoadEmpty(const PretendURL: String);
 const
   EmptyConfig = '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
     '<CONFIG>' + LineEnding +
@@ -1137,7 +1137,7 @@ begin
   WritelnLog('Config', 'Saving configuration to stream');
 end;
 
-function TCastleConfig.SaveToString: string;
+function TCastleConfig.SaveToString: String;
 var
   ResultStream: TStringStream;
 begin

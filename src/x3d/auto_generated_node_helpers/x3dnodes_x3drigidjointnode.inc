@@ -36,7 +36,7 @@
     { X3D field "body2". } { }
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
     { Set X3D field "forceOutput". } { }
-    procedure SetForceOutput(const Value: array of string);
+    procedure SetForceOutput(const Value: array of String);
     { Set X3D field "forceOutput". } { }
     procedure SetForceOutput(const Value: TCastleStringList);
 
@@ -72,7 +72,7 @@ begin
   FdBody2.Send(Value);
 end;
 
-procedure TAbstractRigidJointNode.SetForceOutput(const Value: array of string);
+procedure TAbstractRigidJointNode.SetForceOutput(const Value: array of String);
 begin
   FdForceOutput.Send(Value);
 end;

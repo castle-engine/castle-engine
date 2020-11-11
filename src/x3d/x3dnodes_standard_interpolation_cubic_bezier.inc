@@ -70,7 +70,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
@@ -94,7 +94,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
@@ -293,7 +293,7 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: string;
+class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'CubicBezier2DOrientationInterpolator';
 end;
@@ -356,7 +356,7 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-class function TCubicBezierPositionInterpolatorNode.ClassX3DType: string;
+class function TCubicBezierPositionInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'CubicBezierPositionInterpolator';
 end;

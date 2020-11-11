@@ -146,7 +146,7 @@
     RotationAngle: Single;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -198,7 +198,7 @@
     Translation: TVector3;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
@@ -243,7 +243,7 @@
     Rotation: TVector4;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdOffset: TSFRotation;
     public property FdOffset: TSFRotation read FFdOffset;
@@ -265,7 +265,7 @@
   TTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventHitNormal_changed: TSFVec3fEvent;
@@ -405,7 +405,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCylinderSensorNode.ClassX3DType: string;
+class function TCylinderSensorNode.ClassX3DType: String;
 begin
   Result := 'CylinderSensor';
 end;
@@ -532,7 +532,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPlaneSensorNode.ClassX3DType: string;
+class function TPlaneSensorNode.ClassX3DType: String;
 begin
   Result := 'PlaneSensor';
 end;
@@ -679,7 +679,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSphereSensorNode.ClassX3DType: string;
+class function TSphereSensorNode.ClassX3DType: String;
 begin
   Result := 'SphereSensor';
 end;
@@ -768,7 +768,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTouchSensorNode.ClassX3DType: string;
+class function TTouchSensorNode.ClassX3DType: String;
 begin
   Result := 'TouchSensor';
 end;

@@ -38,7 +38,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
@@ -132,7 +132,7 @@
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLoad: TSFBool;
     public property FdLoad: TSFBool read FFdLoad;
@@ -205,7 +205,7 @@
     procedure AfterLoadInlined; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventChildren: TMFNodeEvent;
@@ -216,7 +216,7 @@
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTimeOut: TSFTime;
     public property FdTimeOut: TSFTime read FFdTimeOut;
@@ -266,7 +266,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TAnchorNode.ClassX3DType: string;
+class function TAnchorNode.ClassX3DType: String;
 begin
   Result := 'Anchor';
 end;
@@ -288,7 +288,7 @@ function TAnchorNode.LoadAnchor(
   out NewViewpoint: TAbstractViewpointNode;
   CurrentRootNode: TX3DRootNode): Boolean;
 
-  procedure ViewpointNameInvalid(const NewViewpointName: string);
+  procedure ViewpointNameInvalid(const NewViewpointName: String);
   begin
     WritelnWarning('X3D', Format('Viewpoint "%s" specified by Anchor not found',
       [NewViewpointName]));
@@ -296,7 +296,7 @@ function TAnchorNode.LoadAnchor(
 
 var
   I: Integer;
-  Url, UrlWithoutViewpoint, NewViewpointName: string;
+  Url, UrlWithoutViewpoint, NewViewpointName: String;
 begin
   for I := 0 to FdUrl.Count - 1 do
   begin
@@ -420,7 +420,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineNode.ClassX3DType: string;
+class function TInlineNode.ClassX3DType: String;
 begin
   Result := 'Inline';
 end;
@@ -463,7 +463,7 @@ procedure TInlineNode.LoadInlined(CanReload: Boolean;
   Exported: TX3DNodeNames);
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   if Exported <> nil then Exported.Clear;
 
@@ -646,7 +646,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineLoadControlNode.ClassX3DType: string;
+class function TInlineLoadControlNode.ClassX3DType: String;
 begin
   Result := 'InlineLoadControl';
 end;
@@ -694,7 +694,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLoadSensorNode.ClassX3DType: string;
+class function TLoadSensorNode.ClassX3DType: String;
 begin
   Result := 'LoadSensor';
 end;

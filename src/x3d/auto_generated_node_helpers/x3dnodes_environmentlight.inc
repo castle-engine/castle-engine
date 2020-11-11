@@ -32,7 +32,7 @@
     procedure SetSpecularTexture(const Value: TAbstractEnvironmentTextureNode);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDiffuseTexture: TSFNode;
     { X3D field "diffuseTexture". } { }

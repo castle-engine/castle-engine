@@ -27,27 +27,27 @@
 
   public
     { Set X3D field "backUrl". } { }
-    procedure SetBackUrl(const Value: array of string);
+    procedure SetBackUrl(const Value: array of String);
     { Set X3D field "backUrl". } { }
     procedure SetBackUrl(const Value: TCastleStringList);
     { Set X3D field "bottomUrl". } { }
-    procedure SetBottomUrl(const Value: array of string);
+    procedure SetBottomUrl(const Value: array of String);
     { Set X3D field "bottomUrl". } { }
     procedure SetBottomUrl(const Value: TCastleStringList);
     { Set X3D field "frontUrl". } { }
-    procedure SetFrontUrl(const Value: array of string);
+    procedure SetFrontUrl(const Value: array of String);
     { Set X3D field "frontUrl". } { }
     procedure SetFrontUrl(const Value: TCastleStringList);
     { Set X3D field "leftUrl". } { }
-    procedure SetLeftUrl(const Value: array of string);
+    procedure SetLeftUrl(const Value: array of String);
     { Set X3D field "leftUrl". } { }
     procedure SetLeftUrl(const Value: TCastleStringList);
     { Set X3D field "rightUrl". } { }
-    procedure SetRightUrl(const Value: array of string);
+    procedure SetRightUrl(const Value: array of String);
     { Set X3D field "rightUrl". } { }
     procedure SetRightUrl(const Value: TCastleStringList);
     { Set X3D field "topUrl". } { }
-    procedure SetTopUrl(const Value: array of string);
+    procedure SetTopUrl(const Value: array of String);
     { Set X3D field "topUrl". } { }
     procedure SetTopUrl(const Value: TCastleStringList);
 
@@ -57,7 +57,7 @@
 
 { TBackgroundNode ----------------------------------------------- }
 
-procedure TBackgroundNode.SetBackUrl(const Value: array of string);
+procedure TBackgroundNode.SetBackUrl(const Value: array of String);
 begin
   FdBackUrl.Send(Value);
 end;
@@ -67,7 +67,7 @@ begin
   FdBackUrl.Send(Value);
 end;
 
-procedure TBackgroundNode.SetBottomUrl(const Value: array of string);
+procedure TBackgroundNode.SetBottomUrl(const Value: array of String);
 begin
   FdBottomUrl.Send(Value);
 end;
@@ -77,7 +77,7 @@ begin
   FdBottomUrl.Send(Value);
 end;
 
-procedure TBackgroundNode.SetFrontUrl(const Value: array of string);
+procedure TBackgroundNode.SetFrontUrl(const Value: array of String);
 begin
   FdFrontUrl.Send(Value);
 end;
@@ -87,7 +87,7 @@ begin
   FdFrontUrl.Send(Value);
 end;
 
-procedure TBackgroundNode.SetLeftUrl(const Value: array of string);
+procedure TBackgroundNode.SetLeftUrl(const Value: array of String);
 begin
   FdLeftUrl.Send(Value);
 end;
@@ -97,7 +97,7 @@ begin
   FdLeftUrl.Send(Value);
 end;
 
-procedure TBackgroundNode.SetRightUrl(const Value: array of string);
+procedure TBackgroundNode.SetRightUrl(const Value: array of String);
 begin
   FdRightUrl.Send(Value);
 end;
@@ -107,7 +107,7 @@ begin
   FdRightUrl.Send(Value);
 end;
 
-procedure TBackgroundNode.SetTopUrl(const Value: array of string);
+procedure TBackgroundNode.SetTopUrl(const Value: array of String);
 begin
   FdTopUrl.Send(Value);
 end;

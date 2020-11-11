@@ -40,13 +40,13 @@
     { X3D field "headlight". } { }
     property Headlight: Boolean read GetHeadlight write SetHeadlight;
     { Set X3D field "navType". } { }
-    procedure SetNavType(const Value: array of string);
+    procedure SetNavType(const Value: array of String);
     { Set X3D field "navType". } { }
     procedure SetNavType(const Value: TCastleStringList);
     { X3D field "geoOrigin". } { }
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of String);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
     { X3D field "speedFactor". } { }
@@ -78,7 +78,7 @@ begin
   FdHeadlight.Send(Value);
 end;
 
-procedure TGeoViewpointNode.SetNavType(const Value: array of string);
+procedure TGeoViewpointNode.SetNavType(const Value: array of String);
 begin
   FdNavType.Send(Value);
 end;
@@ -101,7 +101,7 @@ begin
   FdGeoOrigin.Send(Value);
 end;
 
-procedure TGeoViewpointNode.SetGeoSystem(const Value: array of string);
+procedure TGeoViewpointNode.SetGeoSystem(const Value: array of String);
 begin
   FdGeoSystem.Send(Value);
 end;

@@ -17,7 +17,7 @@
 
   TX3DImport = class(TX3DFileItem)
   public
-    InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
+    InlineNodeName, ImportedNodeName, ImportedNodeAlias: String;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
@@ -31,7 +31,7 @@
 
   TX3DExport = class(TX3DFileItem)
   public
-    ExportedNodeName, ExportedNodeAlias: string;
+    ExportedNodeName, ExportedNodeAlias: String;
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 

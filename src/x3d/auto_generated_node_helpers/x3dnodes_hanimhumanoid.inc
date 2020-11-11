@@ -48,7 +48,7 @@
     { X3D field "center". } { }
     property Center: TVector3 read GetCenter write SetCenter;
     { Set X3D field "info". } { }
-    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: array of String);
     { Set X3D field "info". } { }
     procedure SetInfo(const Value: TCastleStringList);
     { Set X3D field "joints". } { }
@@ -94,7 +94,7 @@ begin
   FdCenter.Send(Value);
 end;
 
-procedure THAnimHumanoidNode.SetInfo(const Value: array of string);
+procedure THAnimHumanoidNode.SetInfo(const Value: array of String);
 begin
   FdInfo.Send(Value);
 end;

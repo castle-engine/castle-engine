@@ -27,7 +27,7 @@
 
   public
     { Set X3D field "replaceNames". } { }
-    procedure SetReplaceNames(const Value: array of string);
+    procedure SetReplaceNames(const Value: array of String);
     { Set X3D field "replaceNames". } { }
     procedure SetReplaceNames(const Value: TCastleStringList);
     { Set X3D field "replaceNodes". } { }
@@ -39,7 +39,7 @@
 
 { TKambiInlineNode ----------------------------------------------- }
 
-procedure TKambiInlineNode.SetReplaceNames(const Value: array of string);
+procedure TKambiInlineNode.SetReplaceNames(const Value: array of String);
 begin
   FdReplaceNames.Send(Value);
 end;

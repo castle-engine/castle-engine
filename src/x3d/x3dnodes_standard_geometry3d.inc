@@ -18,7 +18,7 @@
   TBoxNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
@@ -57,7 +57,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
@@ -109,7 +109,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
@@ -166,7 +166,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_height: TMFFloatEvent;
@@ -259,7 +259,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_crossSection: TMFVec2fEvent;
@@ -356,7 +356,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
@@ -415,7 +415,7 @@
   TSphereNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
@@ -482,7 +482,7 @@ begin
   AddField(FFdDivisions);
 end;
 
-class function TBoxNode.ClassX3DType: string;
+class function TBoxNode.ClassX3DType: String;
 begin
   Result := 'Box';
 end;
@@ -552,7 +552,7 @@ begin
   AddField(FFdStacks);
 end;
 
-class function TConeNode.ClassX3DType: string;
+class function TConeNode.ClassX3DType: String;
 begin
   Result := 'Cone';
 end;
@@ -649,7 +649,7 @@ begin
   AddField(FFdStacks);
 end;
 
-class function TCylinderNode.ClassX3DType: string;
+class function TCylinderNode.ClassX3DType: String;
 begin
   Result := 'Cylinder';
 end;
@@ -779,7 +779,7 @@ begin
   { X3D specification comment: (0,Inf) }
 end;
 
-class function TElevationGridNode.ClassX3DType: string;
+class function TElevationGridNode.ClassX3DType: String;
 begin
   Result := 'ElevationGrid';
 end;
@@ -910,7 +910,7 @@ begin
   AddField(FFdTexCoord);
 end;
 
-class function TExtrusionNode.ClassX3DType: string;
+class function TExtrusionNode.ClassX3DType: String;
 begin
   Result := 'Extrusion';
 end;
@@ -1330,7 +1330,7 @@ begin
   { X3D specification comment: [-1,Inf) }
 end;
 
-class function TIndexedFaceSetNode.ClassX3DType: string;
+class function TIndexedFaceSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedFaceSet';
 end;
@@ -1404,7 +1404,7 @@ begin
   AddField(FFdStacks);
 end;
 
-class function TSphereNode.ClassX3DType: string;
+class function TSphereNode.ClassX3DType: String;
 begin
   Result := 'Sphere';
 end;

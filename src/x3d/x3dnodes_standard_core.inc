@@ -189,7 +189,7 @@
   TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -208,7 +208,7 @@
   TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -227,7 +227,7 @@
   TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -245,7 +245,7 @@
   TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -264,7 +264,7 @@
   TMetadataSetNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -278,11 +278,11 @@
     {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
-  { A metadata (extra, custom information at a node) with a string type. }
+  { A metadata (extra, custom information at a node) with a String type. }
   TMetadataStringNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -302,7 +302,7 @@
   TWorldInfoNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdInfo: TMFString;
     public property FdInfo: TMFString read FFdInfo;
@@ -405,7 +405,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataBooleanNode.ClassX3DType: string;
+class function TMetadataBooleanNode.ClassX3DType: String;
 begin
   Result := 'MetadataBoolean';
 end;
@@ -426,7 +426,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataDoubleNode.ClassX3DType: string;
+class function TMetadataDoubleNode.ClassX3DType: String;
 begin
   Result := 'MetadataDouble';
 end;
@@ -447,7 +447,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataFloatNode.ClassX3DType: string;
+class function TMetadataFloatNode.ClassX3DType: String;
 begin
   Result := 'MetadataFloat';
 end;
@@ -468,7 +468,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataIntegerNode.ClassX3DType: string;
+class function TMetadataIntegerNode.ClassX3DType: String;
 begin
   Result := 'MetadataInteger';
 end;
@@ -489,7 +489,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataSetNode.ClassX3DType: string;
+class function TMetadataSetNode.ClassX3DType: String;
 begin
   Result := 'MetadataSet';
 end;
@@ -510,7 +510,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataStringNode.ClassX3DType: string;
+class function TMetadataStringNode.ClassX3DType: String;
 begin
   Result := 'MetadataString';
 end;
@@ -526,7 +526,7 @@ begin
   AddField(FFdTitle);
 end;
 
-class function TWorldInfoNode.ClassX3DType: string;
+class function TWorldInfoNode.ClassX3DType: String;
 begin
   Result := 'WorldInfo';
 end;

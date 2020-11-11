@@ -29,7 +29,7 @@ interface
 uses XMLDoc, XMLIntf, Contnrs, Classes;
 
 type
-  DOMString = string;
+  DOMString = String;
 
   TDOMNodeList = class;
   TXMLDocument = class;

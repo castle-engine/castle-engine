@@ -20,7 +20,7 @@
   TDISEntityManagerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
@@ -51,7 +51,7 @@
   TDISEntityTypeMappingNode = class(TAbstractInfoNode, IAbstractUrlObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -83,7 +83,7 @@
   TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_articulationParameterValue0: TSFFloatEvent;
@@ -367,7 +367,7 @@
   TReceiverPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
@@ -458,7 +458,7 @@
   TSignalPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
@@ -549,7 +549,7 @@
   TTransmitterPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
@@ -719,7 +719,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDISEntityManagerNode.ClassX3DType: string;
+class function TDISEntityManagerNode.ClassX3DType: String;
 begin
   Result := 'DISEntityManager';
 end;
@@ -763,7 +763,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDISEntityTypeMappingNode.ClassX3DType: string;
+class function TDISEntityTypeMappingNode.ClassX3DType: String;
 begin
   Result := 'DISEntityTypeMapping';
 end;
@@ -1071,7 +1071,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TEspduTransformNode.ClassX3DType: string;
+class function TEspduTransformNode.ClassX3DType: String;
 begin
   Result := 'EspduTransform';
 end;
@@ -1178,7 +1178,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TReceiverPduNode.ClassX3DType: string;
+class function TReceiverPduNode.ClassX3DType: String;
 begin
   Result := 'ReceiverPdu';
 end;
@@ -1285,7 +1285,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSignalPduNode.ClassX3DType: string;
+class function TSignalPduNode.ClassX3DType: String;
 begin
   Result := 'SignalPdu';
 end;
@@ -1455,7 +1455,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransmitterPduNode.ClassX3DType: string;
+class function TTransmitterPduNode.ClassX3DType: String;
 begin
   Result := 'TransmitterPdu';
 end;

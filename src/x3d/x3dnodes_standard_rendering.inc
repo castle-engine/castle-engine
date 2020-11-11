@@ -62,7 +62,7 @@
       be set to something <> nil, and the rest of returned variables
       are mainly to generate proper warnings by MakeCoordRanges. }
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
+      out SRanges, SRangeName: String;
       out RangeMinimumCount: Cardinal): Boolean; virtual;
   public
     { Used only for reading glTF now, in the future will be used for skin animation on GPU. @exclude }
@@ -583,7 +583,7 @@
     procedure GroupBeforeTraverse(const State: TX3DGraphTraverseState; var WasPointingDeviceSensor: Boolean); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -598,7 +598,7 @@
   TColorNode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdColor: TMFColor;
     public property FdColor: TMFColor read FFdColor;
@@ -610,7 +610,7 @@
   TColorRGBANode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdColor: TMFColorRGBA;
     public property FdColor: TMFColorRGBA read FFdColor;
@@ -623,7 +623,7 @@
   TCoordinateNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -642,7 +642,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_colorIndex: TMFInt32Event;
@@ -703,7 +703,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -732,7 +732,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -761,7 +761,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function FieldSetByEvent(const Event: TX3DEvent): TX3DField; override;
 
     { Event in } { }
@@ -788,11 +788,11 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
+      out SRanges, SRangeName: String;
       out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
@@ -833,7 +833,7 @@
   TNormalNode = class(TAbstractNormalNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdVector: TMFVec3f;
     public property FdVector: TMFVec3f read FFdVector;
@@ -847,7 +847,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdAttrib: TMFNode;
@@ -889,11 +889,11 @@
   TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   protected
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
+      out SRanges, SRangeName: String;
       out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
@@ -914,7 +914,7 @@
   TTriangleSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -932,11 +932,11 @@
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   protected
     function InternalCoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
+      out SRanges, SRangeName: String;
       out RangeMinimumCount: Cardinal): Boolean; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
@@ -955,7 +955,7 @@
 {$ifdef read_implementation}
 
 const
-  ColorModeNames: array [TColorMode] of string =
+  ColorModeNames: array [TColorMode] of String =
   ('REPLACE', 'MODULATE');
 
 { TAbstractGeometryNode ---------------------------------------------------------- }
@@ -1035,7 +1035,7 @@ end;
 
 function TAbstractGeometryNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
-  out SRanges, SRangeName: string;
+  out SRanges, SRangeName: String;
   out RangeMinimumCount: Cardinal): Boolean;
 begin
   Result := false;
@@ -1048,7 +1048,7 @@ var
   BeginIndex, EndIndex: Integer;
   RangeNumber: Cardinal;
   RangeCount: TLongIntList;
-  SRanges, SRangeName: string;
+  SRanges, SRangeName: String;
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
 begin
@@ -1521,7 +1521,7 @@ begin
   CP^.Transform := State.Transformation.Transform;
 end;
 
-class function TClipPlaneNode.ClassX3DType: string;
+class function TClipPlaneNode.ClassX3DType: String;
 begin
   Result := 'ClipPlane';
 end;
@@ -1536,7 +1536,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TColorNode.ClassX3DType: string;
+class function TColorNode.ClassX3DType: String;
 begin
   Result := 'Color';
 end;
@@ -1551,7 +1551,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TColorRGBANode.ClassX3DType: string;
+class function TColorRGBANode.ClassX3DType: String;
 begin
   Result := 'ColorRGBA';
 end;
@@ -1566,7 +1566,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TCoordinateNode.ClassX3DType: string;
+class function TCoordinateNode.ClassX3DType: String;
 begin
   Result := 'Coordinate';
 end;
@@ -1625,7 +1625,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TIndexedLineSetNode.ClassX3DType: string;
+class function TIndexedLineSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedLineSet';
 end;
@@ -1710,7 +1710,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TIndexedTriangleFanSetNode.ClassX3DType: string;
+class function TIndexedTriangleFanSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedTriangleFanSet';
 end;
@@ -1747,7 +1747,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TIndexedTriangleSetNode.ClassX3DType: string;
+class function TIndexedTriangleSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedTriangleSet';
 end;
@@ -1784,7 +1784,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TIndexedTriangleStripSetNode.ClassX3DType: string;
+class function TIndexedTriangleStripSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedTriangleStripSet';
 end;
@@ -1837,7 +1837,7 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-class function TLineSetNode.ClassX3DType: string;
+class function TLineSetNode.ClassX3DType: String;
 begin
   Result := 'LineSet';
 end;
@@ -1880,7 +1880,7 @@ end;
 
 function TLineSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
-  out SRanges, SRangeName: string;
+  out SRanges, SRangeName: String;
   out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdVertexCount.Items;
@@ -1927,7 +1927,7 @@ begin
   DefaultContainerField := 'normal';
 end;
 
-class function TNormalNode.ClassX3DType: string;
+class function TNormalNode.ClassX3DType: String;
 begin
   Result := 'Normal';
 end;
@@ -1957,7 +1957,7 @@ begin
   {$endif}
 end;
 
-class function TPointSetNode.ClassX3DType: string;
+class function TPointSetNode.ClassX3DType: String;
 begin
   Result := 'PointSet';
 end;
@@ -2037,14 +2037,14 @@ begin
   { X3D specification comment: [3,Inf) }
 end;
 
-class function TTriangleFanSetNode.ClassX3DType: string;
+class function TTriangleFanSetNode.ClassX3DType: String;
 begin
   Result := 'TriangleFanSet';
 end;
 
 function TTriangleFanSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
-  out SRanges, SRangeName: string;
+  out SRanges, SRangeName: String;
   out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdFanCount.Items;
@@ -2059,7 +2059,7 @@ begin
   inherited;
 end;
 
-class function TTriangleSetNode.ClassX3DType: string;
+class function TTriangleSetNode.ClassX3DType: String;
 begin
   Result := 'TriangleSet';
 end;
@@ -2074,14 +2074,14 @@ begin
   { X3D specification comment: [3,Inf) }
 end;
 
-class function TTriangleStripSetNode.ClassX3DType: string;
+class function TTriangleStripSetNode.ClassX3DType: String;
 begin
   Result := 'TriangleStripSet';
 end;
 
 function TTriangleStripSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
-  out SRanges, SRangeName: string;
+  out SRanges, SRangeName: String;
   out RangeMinimumCount: Cardinal): Boolean;
 begin
   RangeCount := FdStripCount.Items;

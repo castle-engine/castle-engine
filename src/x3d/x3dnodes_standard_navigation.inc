@@ -25,7 +25,7 @@
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Position of the viewpoint. }
@@ -58,7 +58,7 @@
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
-    function SmartDescription: string; virtual;
+    function SmartDescription: String; virtual;
 
     { Matrices for projecting texture from this viewpoint,
       for ProjectedTextureCoordinate.
@@ -92,7 +92,7 @@
     procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     procedure CameraChanged(const ACameraVectors: TCameraVectors);
@@ -113,7 +113,7 @@
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -183,7 +183,7 @@
     procedure SetForceTransitions(const Value: Boolean);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -235,7 +235,7 @@
     procedure SetBlendingSort(const Value: TOptionalBlendingSort);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAvatarSize: TMFFloat;
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
@@ -280,7 +280,7 @@
     function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFieldOfView: TMFFloat;
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
@@ -333,7 +333,7 @@
     function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
@@ -370,7 +370,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -392,7 +392,7 @@
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
-    function SmartDescription: string;
+    function SmartDescription: String;
 
     {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
   end;
@@ -402,7 +402,7 @@
 
 { TAbstractViewpointNode -------------------------------------------------- }
 
-constructor TAbstractViewpointNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractViewpointNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
@@ -471,7 +471,7 @@ begin
   Result := ntcViewpoint;
 end;
 
-function TAbstractViewpointNode.SmartDescription: string;
+function TAbstractViewpointNode.SmartDescription: String;
 begin
   Result := FdDescription.Value;
   { if node doesn't have a "description" field, or it's left empty, use node name }
@@ -523,7 +523,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TBillboardNode.ClassX3DType: string;
+class function TBillboardNode.ClassX3DType: String;
 begin
   Result := 'Billboard';
 end;
@@ -649,7 +649,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCollisionNode.ClassX3DType: string;
+class function TCollisionNode.ClassX3DType: String;
 begin
   Result := 'Collision';
 end;
@@ -762,7 +762,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TAbstractLODNode.ClassX3DType: string;
+class function TAbstractLODNode.ClassX3DType: String;
 begin
   Result := 'LOD';
 end;
@@ -829,7 +829,7 @@ end;
 
 procedure TNavigationInfoNode.CreateNode;
 const
-  BlendingSortNames: array [TOptionalBlendingSort] of string =
+  BlendingSortNames: array [TOptionalBlendingSort] of String =
   ('DEFAULT', 'NONE', '2D', '3D');
 begin
   inherited;
@@ -879,7 +879,7 @@ begin
   Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
-class function TNavigationInfoNode.ClassX3DType: string;
+class function TNavigationInfoNode.ClassX3DType: String;
 begin
   Result := 'NavigationInfo';
 end;
@@ -920,7 +920,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TOrthoViewpointNode.ClassX3DType: string;
+class function TOrthoViewpointNode.ClassX3DType: String;
 begin
   Result := 'OrthoViewpoint';
 end;
@@ -1070,7 +1070,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TViewpointNode.ClassX3DType: string;
+class function TViewpointNode.ClassX3DType: String;
 begin
   Result := 'Viewpoint';
 end;
@@ -1193,7 +1193,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TViewpointGroupNode.ClassX3DType: string;
+class function TViewpointGroupNode.ClassX3DType: String;
 begin
   Result := 'ViewpointGroup';
 end;
@@ -1207,7 +1207,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TViewpointGroupNode.SmartDescription: string;
+function TViewpointGroupNode.SmartDescription: String;
 begin
   Result := FdDescription.Value;
   if Result = '' then

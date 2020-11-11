@@ -25,7 +25,7 @@
   TCoordinateDeformerNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventaddChildren: TMFNodeEvent;
@@ -92,7 +92,7 @@
   TNurbsCurveNode_2 = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -128,7 +128,7 @@
   TNurbsGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
@@ -141,7 +141,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventset_fraction: TSFFloatEvent;
@@ -173,7 +173,7 @@
   TNurbsSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -232,7 +232,7 @@
   TNurbsTextureSurfaceNode = class(TX3DNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdcontrolPoint: TMFVec2f;
     public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
@@ -265,7 +265,7 @@
   TTrimmedSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventaddTrimmingContour: TMFNodeEvent;
@@ -296,7 +296,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean; override;
 
     { Event in } { }
@@ -384,7 +384,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCoordinateDeformerNode.ClassX3DType: string;
+class function TCoordinateDeformerNode.ClassX3DType: String;
 begin
   Result := 'CoordinateDeformer';
 end;
@@ -414,7 +414,7 @@ begin
   AddField(FFdorder);
 end;
 
-class function TNurbsCurveNode_2.ClassX3DType: string;
+class function TNurbsCurveNode_2.ClassX3DType: String;
 begin
   Result := 'NurbsCurve';
 end;
@@ -478,7 +478,7 @@ begin
   AddField(FFdtessellationScale);
 end;
 
-class function TNurbsGroupNode.ClassX3DType: string;
+class function TNurbsGroupNode.ClassX3DType: String;
 begin
   Result := 'NurbsGroup';
 end;
@@ -513,7 +513,7 @@ begin
   EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;
+class function TNurbsPositionInterpolatorNode_2.ClassX3DType: String;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
@@ -616,7 +616,7 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsSurfaceNode.ClassX3DType: string;
+class function TNurbsSurfaceNode.ClassX3DType: String;
 begin
   Result := 'NurbsSurface';
 end;
@@ -735,7 +735,7 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsTextureSurfaceNode.ClassX3DType: string;
+class function TNurbsTextureSurfaceNode.ClassX3DType: String;
 begin
   Result := 'NurbsTextureSurface';
 end;
@@ -761,7 +761,7 @@ begin
   {$warnings on}
 end;
 
-class function TTrimmedSurfaceNode.ClassX3DType: string;
+class function TTrimmedSurfaceNode.ClassX3DType: String;
 begin
   Result := 'TrimmedSurface';
 end;
@@ -808,7 +808,7 @@ begin
   DefaultContainerField := 'trimmingContour';
 end;
 
-class function TContour2DNode_2.ClassX3DType: string;
+class function TContour2DNode_2.ClassX3DType: String;
 begin
   Result := 'Contour2D';
 end;

@@ -30,7 +30,7 @@
     procedure SetShaderType(const Value: TShaderType);
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "type". } { }
@@ -42,7 +42,7 @@
 
 { TShaderPartNode ----------------------------------------------- }
 
-procedure TShaderPartNode.SetUrl(const Value: array of string);
+procedure TShaderPartNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

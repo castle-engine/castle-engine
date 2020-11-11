@@ -41,7 +41,7 @@
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event out } { }
@@ -65,7 +65,7 @@
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTargetObject: TSFNode;
     public property FdTargetObject: TSFNode read FFdTargetObject;
@@ -87,7 +87,7 @@
     FIsActive: Boolean;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
 
@@ -139,7 +139,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TProximitySensorNode.ClassX3DType: string;
+class function TProximitySensorNode.ClassX3DType: String;
 begin
   Result := 'ProximitySensor';
 end;
@@ -165,7 +165,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransformSensorNode.ClassX3DType: string;
+class function TTransformSensorNode.ClassX3DType: String;
 begin
   Result := 'TransformSensor';
 end;
@@ -176,7 +176,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TVisibilitySensorNode.ClassX3DType: string;
+class function TVisibilitySensorNode.ClassX3DType: String;
 begin
   Result := 'VisibilitySensor';
 end;

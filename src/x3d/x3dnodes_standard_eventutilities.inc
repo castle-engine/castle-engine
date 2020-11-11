@@ -95,7 +95,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -123,7 +123,7 @@
       const Time: TX3DTime; const PartialSend: TPartialSend); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFBool;
     public property FdKeyValue: TMFBool read FFdKeyValue;
@@ -142,7 +142,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -161,7 +161,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_triggerTime: TSFTimeEvent;
@@ -183,7 +183,7 @@
       const Time: TX3DTime; const PartialSend: TPartialSend); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFInt32;
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
@@ -202,7 +202,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -225,7 +225,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_boolean: TSFBoolEvent;
@@ -244,7 +244,7 @@
     procedure EventTriggerReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_valuetrigger.inc}
   end;
 
@@ -414,7 +414,7 @@ begin
   EventInputNegate.Send(not B, Time, Value.InternalPartialSend);
 end;
 
-class function TBooleanFilterNode.ClassX3DType: string;
+class function TBooleanFilterNode.ClassX3DType: String;
 begin
   Result := 'BooleanFilter';
 end;
@@ -432,7 +432,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TBooleanSequencerNode.ClassX3DType: string;
+class function TBooleanSequencerNode.ClassX3DType: String;
 begin
   Result := 'BooleanSequencer';
 end;
@@ -470,7 +470,7 @@ begin
     FdToggle.Send(not FdToggle.Value, Value.InternalPartialSend);
 end;
 
-class function TBooleanToggleNode.ClassX3DType: string;
+class function TBooleanToggleNode.ClassX3DType: String;
 begin
   Result := 'BooleanToggle';
 end;
@@ -495,7 +495,7 @@ begin
   EventTriggerTrue.Send(true, Time, Value.InternalPartialSend);
 end;
 
-class function TBooleanTriggerNode.ClassX3DType: string;
+class function TBooleanTriggerNode.ClassX3DType: String;
 begin
   Result := 'BooleanTrigger';
 end;
@@ -514,7 +514,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TIntegerSequencerNode.ClassX3DType: string;
+class function TIntegerSequencerNode.ClassX3DType: String;
 begin
   Result := 'IntegerSequencer';
 end;
@@ -558,7 +558,7 @@ begin
   EventtriggerValue.Send(FdintegerKey.Value, Time, Value.InternalPartialSend);
 end;
 
-class function TIntegerTriggerNode.ClassX3DType: string;
+class function TIntegerTriggerNode.ClassX3DType: String;
 begin
   Result := 'IntegerTrigger';
 end;
@@ -577,7 +577,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTimeTriggerNode.ClassX3DType: string;
+class function TTimeTriggerNode.ClassX3DType: String;
 begin
   Result := 'TimeTrigger';
 end;
@@ -590,7 +590,7 @@ end;
 
 { TValueTriggerNode ---------------------------------------------------------- }
 
-constructor TValueTriggerNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TValueTriggerNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FEventTrigger.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventTriggerReceive);

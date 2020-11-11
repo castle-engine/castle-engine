@@ -230,7 +230,7 @@
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -328,7 +328,7 @@
     procedure SetProjectionLocationLocal(const Value: TVector3); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
@@ -369,7 +369,7 @@
     procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBeamWidth: TSFFloat;
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
@@ -756,7 +756,7 @@ begin
   AddField(FFdProjectionLocation);
 end;
 
-class function TAbstractDirectionalLightNode.ClassX3DType: string;
+class function TAbstractDirectionalLightNode.ClassX3DType: String;
 begin
   Result := 'DirectionalLight';
 end;
@@ -1000,7 +1000,7 @@ begin
   { no new fields - this is just TAbstractPositionalLightNode }
 end;
 
-class function TAbstractPointLightNode.ClassX3DType: string;
+class function TAbstractPointLightNode.ClassX3DType: String;
 begin
   Result := 'PointLight';
 end;
@@ -1080,7 +1080,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSpotLightNode.ClassX3DType: string;
+class function TSpotLightNode.ClassX3DType: String;
 begin
   Result := 'SpotLight';
 end;

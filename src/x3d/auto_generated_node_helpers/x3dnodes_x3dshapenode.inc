@@ -44,7 +44,7 @@
     procedure SetCollision(const Value: TShapeCollision);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAppearance: TSFNode;
     { X3D field "appearance". } { }

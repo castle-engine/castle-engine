@@ -42,7 +42,7 @@
     procedure SetSubcategory(const Value: Integer);
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D field "category". } { }
@@ -66,7 +66,7 @@
 
 { TDISEntityTypeMappingNode ----------------------------------------------- }
 
-procedure TDISEntityTypeMappingNode.SetUrl(const Value: array of string);
+procedure TDISEntityTypeMappingNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

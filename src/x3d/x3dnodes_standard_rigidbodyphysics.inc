@@ -74,7 +74,7 @@
   TBallJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -93,7 +93,7 @@
   TCollidableOffsetNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCollidable: TSFNode;
     public property FdCollidable: TSFNode read FFdCollidable;
@@ -104,7 +104,7 @@
   TCollidableShapeNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
@@ -115,7 +115,7 @@
   TCollisionCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
@@ -153,7 +153,7 @@
   TCollisionSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCollider: TSFNode;
     public property FdCollider: TSFNode read FFdCollider;
@@ -172,7 +172,7 @@
   TCollisionSpaceNode = class(TAbstractNBodyCollisionSpaceNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCollidables: TMFNode;
     public property FdCollidables: TMFNode read FFdCollidables;
@@ -186,7 +186,7 @@
   TContactNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
@@ -242,7 +242,7 @@
   TDoubleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -324,7 +324,7 @@
   TMotorJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxis1Angle: TSFFloat;
     public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
@@ -407,7 +407,7 @@
   TRigidBodyNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAngularDampingFactor: TSFFloat;
     public property FdAngularDampingFactor: TSFFloat read FFdAngularDampingFactor;
@@ -484,7 +484,7 @@
   TRigidBodyCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_contacts: TMFNodeEvent;
@@ -541,7 +541,7 @@
   TSingleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -583,7 +583,7 @@
   TSliderJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
@@ -617,7 +617,7 @@
   TUniversalJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
@@ -733,7 +733,7 @@ begin
   AddEvent(FEventBody2AnchorPoint);
 end;
 
-class function TBallJointNode.ClassX3DType: string;
+class function TBallJointNode.ClassX3DType: String;
 begin
   Result := 'BallJoint';
 end;
@@ -746,7 +746,7 @@ begin
   AddField(FFdCollidable);
 end;
 
-class function TCollidableOffsetNode.ClassX3DType: string;
+class function TCollidableOffsetNode.ClassX3DType: String;
 begin
   Result := 'CollidableOffset';
 end;
@@ -759,7 +759,7 @@ begin
   AddField(FFdShape);
 end;
 
-class function TCollidableShapeNode.ClassX3DType: string;
+class function TCollidableShapeNode.ClassX3DType: String;
 begin
   Result := 'CollidableShape';
 end;
@@ -807,7 +807,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TCollisionCollectionNode.ClassX3DType: string;
+class function TCollisionCollectionNode.ClassX3DType: String;
 begin
   Result := 'CollisionCollection';
 end;
@@ -826,7 +826,7 @@ begin
   AddEvent(FEventContacts);
 end;
 
-class function TCollisionSensorNode.ClassX3DType: string;
+class function TCollisionSensorNode.ClassX3DType: String;
 begin
   Result := 'CollisionSensor';
 end;
@@ -844,7 +844,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCollisionSpaceNode.ClassX3DType: string;
+class function TCollisionSpaceNode.ClassX3DType: String;
 begin
   Result := 'CollisionSpace';
 end;
@@ -916,7 +916,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TContactNode.ClassX3DType: string;
+class function TContactNode.ClassX3DType: String;
 begin
   Result := 'Contact';
 end;
@@ -1003,7 +1003,7 @@ begin
   AddEvent(FEventHinge2AngleRate);
 end;
 
-class function TDoubleAxisHingeJointNode.ClassX3DType: string;
+class function TDoubleAxisHingeJointNode.ClassX3DType: String;
 begin
   Result := 'DoubleAxisHingeJoint';
 end;
@@ -1095,7 +1095,7 @@ begin
   AddField(FFdAutoCalc);
 end;
 
-class function TMotorJointNode.ClassX3DType: string;
+class function TMotorJointNode.ClassX3DType: String;
 begin
   Result := 'MotorJoint';
 end;
@@ -1188,7 +1188,7 @@ begin
   DefaultContainerField := 'bodies';
 end;
 
-class function TRigidBodyNode.ClassX3DType: string;
+class function TRigidBodyNode.ClassX3DType: String;
 begin
   Result := 'RigidBody';
 end;
@@ -1254,7 +1254,7 @@ begin
   AddField(FFdCollider);
 end;
 
-class function TRigidBodyCollectionNode.ClassX3DType: string;
+class function TRigidBodyCollectionNode.ClassX3DType: String;
 begin
   Result := 'RigidBodyCollection';
 end;
@@ -1296,7 +1296,7 @@ begin
   AddEvent(FEventBody2AnchorPoint);
 end;
 
-class function TSingleAxisHingeJointNode.ClassX3DType: string;
+class function TSingleAxisHingeJointNode.ClassX3DType: String;
 begin
   Result := 'SingleAxisHingeJoint';
 end;
@@ -1335,7 +1335,7 @@ begin
   AddEvent(FEventSeparationRate);
 end;
 
-class function TSliderJointNode.ClassX3DType: string;
+class function TSliderJointNode.ClassX3DType: String;
 begin
   Result := 'SliderJoint';
 end;
@@ -1382,7 +1382,7 @@ begin
   AddEvent(FEventBody2Axis);
 end;
 
-class function TUniversalJointNode.ClassX3DType: string;
+class function TUniversalJointNode.ClassX3DType: String;
 begin
   Result := 'UniversalJoint';
 end;

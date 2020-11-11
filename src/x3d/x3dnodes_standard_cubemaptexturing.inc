@@ -30,7 +30,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdBack: TSFNode;
     public property FdBack: TSFNode read FFdBack;
@@ -80,7 +80,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUpdate: TSFTextureUpdate;
     public property FdUpdate: TSFTextureUpdate read FFdUpdate;
@@ -117,7 +117,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -187,7 +187,7 @@ begin
   AddField(FFdTextureProperties);
 end;
 
-class function TComposedCubeMapTextureNode.ClassX3DType: string;
+class function TComposedCubeMapTextureNode.ClassX3DType: String;
 begin
   Result := 'ComposedCubeMapTexture';
 end;
@@ -265,7 +265,7 @@ begin
   inherited;
 end;
 
-class function TGeneratedCubeMapTextureNode.ClassX3DType: string;
+class function TGeneratedCubeMapTextureNode.ClassX3DType: String;
 begin
   Result := 'GeneratedCubeMapTexture';
 end;
@@ -297,7 +297,7 @@ begin
   AddField(FFdTextureProperties);
 end;
 
-class function TImageCubeMapTextureNode.ClassX3DType: string;
+class function TImageCubeMapTextureNode.ClassX3DType: String;
 begin
   Result := 'ImageCubeMapTexture';
 end;
@@ -305,7 +305,7 @@ end;
 function TImageCubeMapTextureNode.LoadImage: TCompositeImage;
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   Result := TCompositeImage.Create;
   try

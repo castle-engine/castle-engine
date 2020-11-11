@@ -35,7 +35,7 @@
       const DestEnding: Boolean;
       RemoveFromDestructionNotification: Boolean = true);
 
-    procedure SetEnding(const NodeName, FieldOrEventName: string;
+    procedure SetEnding(const NodeName, FieldOrEventName: String;
       Reader: TX3DReaderNames;
       var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: Boolean);
@@ -99,11 +99,11 @@
 
       @groupBegin }
     procedure SetSource(
-      const SourceNodeName, SourceFieldOrEventName: string;
+      const SourceNodeName, SourceFieldOrEventName: String;
       Reader: TX3DReaderNames);
 
     procedure SetDestination(
-      const DestinationNodeName, DestinationFieldOrEventName: string;
+      const DestinationNodeName, DestinationFieldOrEventName: String;
       Reader: TX3DReaderNames);
     { @groupEnd }
 
@@ -207,8 +207,8 @@ end;
 
 procedure TX3DRoute.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
-  SourceNodeName, SourceEventName: string;
-  DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName: String;
+  DestinationNodeName, DestinationEventName: String;
 begin
   { We don't use NextTokenForceVTName here, as then the dot "."
     is treated like part the VRML name. So this assumes that VRML node names
@@ -247,7 +247,7 @@ end;
 
 procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
-  function RequiredX3DName(const AttrName: string): string;
+  function RequiredX3DName(const AttrName: String): String;
   begin
     if not XMLAttributeX3DName(Element, AttrName, Result) then
     begin
@@ -257,8 +257,8 @@ procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
   end;
 
 var
-  SourceNodeName, SourceEventName: string;
-  DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName: String;
+  DestinationNodeName, DestinationEventName: String;
 begin
   SourceNodeName := RequiredX3DName('fromNode');
   SourceEventName := RequiredX3DName('fromField');
@@ -317,7 +317,7 @@ type
   ERouteSetEndingError = class(EX3DError);
 
 const
-  DestEndingNames: array [Boolean] of string =
+  DestEndingNames: array [Boolean] of String =
   ('source', 'destination');
 
 procedure TX3DRoute.SetEndingInternal(
@@ -363,7 +363,7 @@ begin
     Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 end;
 
-procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
+procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: String;
   Reader: TX3DReaderNames;
   var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: Boolean);
@@ -411,7 +411,7 @@ begin
 end;
 
 procedure TX3DRoute.SetSource(
-  const SourceNodeName, SourceFieldOrEventName: string;
+  const SourceNodeName, SourceFieldOrEventName: String;
   Reader: TX3DReaderNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
@@ -419,7 +419,7 @@ begin
 end;
 
 procedure TX3DRoute.SetDestination(
-  const DestinationNodeName, DestinationFieldOrEventName: string;
+  const DestinationNodeName, DestinationFieldOrEventName: String;
   Reader: TX3DReaderNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
@@ -479,8 +479,8 @@ type
 
 procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
 
-  procedure Ending(Node: TX3DNode; Event: TX3DEvent; const S: string;
-    out NodeName, EventName: string);
+  procedure Ending(Node: TX3DNode; Event: TX3DEvent; const S: String;
+    out NodeName, EventName: String);
   var
     BoundNode: TX3DNode;
     IgnoreNodeFinished: Boolean;
@@ -518,7 +518,7 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
   end;
 
 var
-  SourceNodeName, SourceEventName, DestinationNodeName, DestinationEventName: string;
+  SourceNodeName, SourceEventName, DestinationNodeName, DestinationEventName: String;
 begin
   if Internal then Exit;
 

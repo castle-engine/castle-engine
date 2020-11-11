@@ -34,7 +34,7 @@
     { X3D field "geoCoords". } { }
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
     { Set X3D field "geoSystem". } { }
-    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: array of String);
     { Set X3D field "geoSystem". } { }
     procedure SetGeoSystem(const Value: TCastleStringList);
     { X3D field "rotateYUp". } { }
@@ -56,7 +56,7 @@ begin
   FdGeoCoords.Send(Value);
 end;
 
-procedure TGeoOriginNode.SetGeoSystem(const Value: array of string);
+procedure TGeoOriginNode.SetGeoSystem(const Value: array of String);
 begin
   FdGeoSystem.Send(Value);
 end;

@@ -36,7 +36,7 @@
     { X3D field "reference". } { }
     property Reference: String read GetReference write SetReference;
     { Set X3D field "value". } { }
-    procedure SetValue(const Value: array of string);
+    procedure SetValue(const Value: array of String);
     { Set X3D field "value". } { }
     procedure SetValue(const Value: TCastleStringList);
 
@@ -66,7 +66,7 @@ begin
   FdReference.Send(Value);
 end;
 
-procedure TMetadataStringNode.SetValue(const Value: array of string);
+procedure TMetadataStringNode.SetValue(const Value: array of String);
 begin
   FdValue.Send(Value);
 end;

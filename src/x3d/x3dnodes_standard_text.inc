@@ -35,7 +35,7 @@
       JustifyWarningNotSupportedDone: Boolean;
     function GetBlending: Boolean;
     procedure SetBlending(const Value: Boolean);
-    function StringToJustify(const S: string;
+    function StringToJustify(const S: String;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
     function GetFamily: TX3DFontFamily;
     procedure SetFamily(const Value: TX3DFontFamily);
@@ -59,7 +59,7 @@
       DefaultBlending = true;
 
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
@@ -144,7 +144,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
@@ -266,7 +266,7 @@ begin
   AddField(FFdBlending);
 end;
 
-class function TFontStyleNode.ClassX3DType: string;
+class function TFontStyleNode.ClassX3DType: String;
 begin
   Result := 'FontStyle';
 end;
@@ -298,7 +298,7 @@ end;
 
 procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
 const
-  FontFamilyNames: array [TX3DFontFamily] of string =
+  FontFamilyNames: array [TX3DFontFamily] of String =
   ('SERIF', 'SANS', 'TYPEWRITER');
 begin
   FdFamily.Send(FontFamilyNames[Value]);
@@ -309,13 +309,13 @@ const
   StyleBoldItalic = 'BOLDITALIC';
   StyleItalic = 'ITALIC';
   StylePlain = 'PLAIN';
-  StyleString: array[Boolean { bold ? }, Boolean { italic ? }] of string =
+  StyleString: array[Boolean { bold ? }, Boolean { italic ? }] of String =
   ( (StylePlain, StyleItalic),
     (StyleBold, StyleBoldItalic) );
 
 function TFontStyleNode.GetBold: Boolean;
 var
-  S: string;
+  S: String;
 begin
   S := FdStyle.Value;
   Result :=
@@ -343,7 +343,7 @@ end;
 
 function TFontStyleNode.GetItalic: Boolean;
 var
-  S: string;
+  S: String;
 begin
   S := FdStyle.Value;
   Result :=
@@ -369,12 +369,12 @@ begin
   FdStyle.Send(StyleString[Bold, Value]);
 end;
 
-function TFontStyleNode.StringToJustify(const S: string;
+function TFontStyleNode.StringToJustify(const S: String;
   const DefaultValue: TX3DFontJustify): TX3DFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 var
-  J: string;
+  J: String;
 begin
   { Some X3D models use lowercase names, like [http://instant-reality.com/]
     test models. }
@@ -432,7 +432,7 @@ begin
 end;
 
 const
-  JustifyToString: array[TX3DFontJustify] of string =
+  JustifyToString: array[TX3DFontJustify] of String =
   ('FIRST', 'BEGIN', 'MIDDLE', 'END');
 
 function TFontStyleNode.GetJustify: TX3DFontJustify;
@@ -528,7 +528,7 @@ begin
     X3DCache.FreeFontTexture(FFontTextureNode);
 end;
 
-class function TTextNode.ClassX3DType: string;
+class function TTextNode.ClassX3DType: String;
 begin
   Result := 'Text';
 end;
@@ -697,7 +697,7 @@ var
   { Print the string, by adding rectangles to current QuadSet.
     This is somewhat analogous to printing straight in 2D done
     by TCastleFont.Print and TDrawableImage.Draw. }
-  procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
+  procedure Print(X, Y: Single; const S: String; const XScale, YScale: Single);
 
     function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;
     begin

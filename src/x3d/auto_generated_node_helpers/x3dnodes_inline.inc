@@ -34,7 +34,7 @@
     { X3D field "load". } { }
     property Load: Boolean read GetLoad write SetLoad;
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
     { X3D fields "bboxCenter" and "bboxSize" are get/set as TBox3D. } { }
@@ -56,7 +56,7 @@ begin
   FdLoad.Send(Value);
 end;
 
-procedure TInlineNode.SetUrl(const Value: array of string);
+procedure TInlineNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;

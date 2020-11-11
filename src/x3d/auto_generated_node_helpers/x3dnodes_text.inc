@@ -40,7 +40,7 @@
     { X3D field "maxDisplayChars". } { }
     property MaxDisplayChars: Integer read GetMaxDisplayChars write SetMaxDisplayChars;
     { Set X3D field "string". } { }
-    procedure SetString(const Value: array of string);
+    procedure SetString(const Value: array of String);
     { Set X3D field "string". } { }
     procedure SetString(const Value: TCastleStringList);
 
@@ -80,7 +80,7 @@ begin
   FdMaxDisplayChars.Send(Value);
 end;
 
-procedure TTextNode.SetString(const Value: array of string);
+procedure TTextNode.SetString(const Value: array of String);
 begin
   FdString.Send(Value);
 end;

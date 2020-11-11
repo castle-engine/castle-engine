@@ -39,7 +39,7 @@
   TGeoCoordinateNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPoint: TMFVec3d;
     public property FdPoint: TMFVec3d read FFdPoint;
@@ -60,7 +60,7 @@
   TGeoElevationGridNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_height: TMFDoubleEvent;
@@ -130,7 +130,7 @@
   TGeoLocationNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
@@ -147,7 +147,7 @@
   TGeoLODNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventChildren: TMFNodeEvent;
@@ -199,7 +199,7 @@
   TGeoMetadataNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdData: TMFNode;
     public property FdData: TMFNode read FFdData;
@@ -216,7 +216,7 @@
   TGeoOriginNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
@@ -233,7 +233,7 @@
   TGeoPositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdKeyValue: TMFVec3d;
     public property FdKeyValue: TMFVec3d read FFdKeyValue;
@@ -258,7 +258,7 @@
   TGeoProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
@@ -291,7 +291,7 @@
   TGeoTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventHitNormal_changed: TSFVec3fEvent;
@@ -321,7 +321,7 @@
   TGeoTransformNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
@@ -355,7 +355,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event in } { }
     strict private FEventSet_orientation: TSFRotationEvent;
@@ -408,7 +408,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoCoordinateNode.ClassX3DType: string;
+class function TGeoCoordinateNode.ClassX3DType: String;
 begin
   Result := 'GeoCoordinate';
 end;
@@ -504,7 +504,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TGeoElevationGridNode.ClassX3DType: string;
+class function TGeoElevationGridNode.ClassX3DType: String;
 begin
   Result := 'GeoElevationGrid';
 end;
@@ -546,7 +546,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoLocationNode.ClassX3DType: string;
+class function TGeoLocationNode.ClassX3DType: String;
 begin
   Result := 'GeoLocation';
 end;
@@ -608,7 +608,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
-class function TGeoLODNode.ClassX3DType: string;
+class function TGeoLODNode.ClassX3DType: String;
 begin
   Result := 'GeoLOD';
 end;
@@ -628,7 +628,7 @@ begin
   { X3D specification comment: [URI] }
 end;
 
-class function TGeoMetadataNode.ClassX3DType: string;
+class function TGeoMetadataNode.ClassX3DType: String;
 begin
   Result := 'GeoMetadata';
 end;
@@ -651,7 +651,7 @@ begin
   DefaultContainerField := 'geoOrigin';
 end;
 
-class function TGeoOriginNode.ClassX3DType: string;
+class function TGeoOriginNode.ClassX3DType: String;
 begin
   Result := 'GeoOrigin';
 end;
@@ -677,7 +677,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoPositionInterpolatorNode.ClassX3DType: string;
+class function TGeoPositionInterpolatorNode.ClassX3DType: String;
 begin
   Result := 'GeoPositionInterpolator';
 end;
@@ -710,7 +710,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoProximitySensorNode.ClassX3DType: string;
+class function TGeoProximitySensorNode.ClassX3DType: String;
 begin
   Result := 'GeoProximitySensor';
 end;
@@ -739,7 +739,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoTouchSensorNode.ClassX3DType: string;
+class function TGeoTouchSensorNode.ClassX3DType: String;
 begin
   Result := 'GeoTouchSensor';
 end;
@@ -776,7 +776,7 @@ begin
   { X3D specification comment: [see 25.2.3] }
 end;
 
-class function TGeoTransformNode.ClassX3DType: string;
+class function TGeoTransformNode.ClassX3DType: String;
 begin
   Result := 'GeoTransform';
 end;
@@ -825,7 +825,7 @@ begin
   inherited;
 end;
 
-class function TGeoViewpointNode.ClassX3DType: string;
+class function TGeoViewpointNode.ClassX3DType: String;
 begin
   Result := 'GeoViewpoint';
 end;

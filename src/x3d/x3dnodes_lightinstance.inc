@@ -91,7 +91,7 @@
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): Integer;
     { Find light with given node name. Return @nil if not found. }
-    function FindName(NodeName: string): PLightInstance;
+    function FindName(NodeName: String): PLightInstance;
     function Equals(SecondValue: TObject): Boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { Append List to our contents, setting every light's WorldCoordinates = @true. }
@@ -311,7 +311,7 @@ begin
   Result := -1;
 end;
 
-function TLightInstancesList.FindName(NodeName: string): PLightInstance;
+function TLightInstancesList.FindName(NodeName: String): PLightInstance;
 var
   I: Integer;
 begin

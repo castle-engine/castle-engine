@@ -18,7 +18,7 @@
   { }
   TX3DNodeNameRec = object
     Node: TX3DNode;
-    Name: string;
+    Name: String;
     Finished: Boolean;
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
   end;
@@ -30,7 +30,7 @@
     FAutoRemove: Boolean;
     procedure DestructionNotification(const Node: TX3DNode);
     function IndexOfNode(Node: TX3DNode): Integer;
-    function IndexOfName(const Name: string): Integer;
+    function IndexOfName(const Name: String): Integer;
   public
     constructor Create(const AAutoRemove: Boolean);
     destructor Destroy; override;
@@ -55,10 +55,10 @@
       ROUTEs from inside the node, so calling with NodeFinished = false
       is still useful for parsing. }
     procedure Bind(Node: TX3DNode; const NodeFinished: Boolean); overload;
-    procedure Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: string); overload;
+    procedure Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: String); overload;
 
     { Find node bound to given name. @nil if none. }
-    function Bound(const Name: string; out NodeFinished: Boolean): TX3DNode; overload;
+    function Bound(const Name: String; out NodeFinished: Boolean): TX3DNode; overload;
 
     { Check is Node bound in the current namespace.
       @false means that node is not within this namespace,
@@ -78,7 +78,7 @@
     procedure Bind(Proto: TX3DPrototypeBase);
 
     { Find proto bound to given name. @nil if none. }
-    function Bound(const Name: string): TX3DPrototypeBase;
+    function Bound(const Name: String): TX3DPrototypeBase;
   end;
 
   TX3DImportableNames = class(TStringListCaseSens)
@@ -88,7 +88,7 @@
     { Bind Exported names to given Inline node name.
       Exported instance becomes owner by this TX3DImportableNames instance.
       InlineName must be <> '' here. }
-    procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
+    procedure Bind(const InlineName: String; Exported: TX3DNodeNames);
   end;
 
 {$endif read_interface}
@@ -134,7 +134,7 @@ begin
   Result := -1;
 end;
 
-function TX3DNodeNames.IndexOfName(const Name: string): Integer;
+function TX3DNodeNames.IndexOfName(const Name: String): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].Name = Name then
@@ -151,7 +151,7 @@ begin
     Delete(I);
 end;
 
-procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: string);
+procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: Boolean; const BindToName: String);
 var
   I: Integer;
   P: PX3DNodeNameRec;
@@ -173,7 +173,7 @@ begin
   Bind(Node, NodeFinished, Node.X3DName);
 end;
 
-function TX3DNodeNames.Bound(const Name: string; out NodeFinished: Boolean): TX3DNode;
+function TX3DNodeNames.Bound(const Name: String; out NodeFinished: Boolean): TX3DNode;
 var
   I: Integer;
 begin
@@ -213,7 +213,7 @@ begin
     AddObject(Proto.X3DName, Proto);
 end;
 
-function TX3DPrototypeNames.Bound(const Name: string): TX3DPrototypeBase;
+function TX3DPrototypeNames.Bound(const Name: String): TX3DPrototypeBase;
 var
   I: Integer;
 begin
@@ -234,7 +234,7 @@ begin
   inherited;
 end;
 
-procedure TX3DImportableNames.Bind(const InlineName: string; Exported: TX3DNodeNames);
+procedure TX3DImportableNames.Bind(const InlineName: String; Exported: TX3DNodeNames);
 var
   I: Integer;
 begin

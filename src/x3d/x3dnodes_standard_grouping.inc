@@ -157,7 +157,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
@@ -167,10 +167,10 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, LongInt>)
+  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, LongInt>)
   strict private
-    function GetItems(const AKey: string): LongInt;
-    procedure SetItems(const AKey: string; const AValue: LongInt);
+    function GetItems(const AKey: String): LongInt;
+    procedure SetItems(const AKey: String; const AValue: LongInt);
   public
     { Assign contents (all keys, values) of another TStringLongIntMap instance. }
     procedure Assign(const Source: TStringLongIntMap);
@@ -179,7 +179,7 @@
       Setting this is allowed regardless if the key previously existed or not,
       in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
       that only allows setting when the key already exists. }
-    property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+    property Items [const AKey: String]: LongInt read GetItems write SetItems; default;
   end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
@@ -202,7 +202,7 @@
   strict private
     FHasForceVersion: Boolean;
     FSaveAsRootNode: Boolean;
-    FProfile: string;
+    FProfile: String;
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
     FScale: Single;
@@ -256,7 +256,7 @@
       (However, we use this class also for VRML 1.0 and 2.0 root nodes,
       where profile is empty.)
       Relevant only if this node is the root of X3D file. }
-    property Profile: string read FProfile write FProfile;
+    property Profile: String read FProfile write FProfile;
 
     { Components and levels required for this X3D file.
       Relevant if this node is the root of X3D file. }
@@ -273,7 +273,7 @@
       and sets X3D profile (default: Interchange). }
     procedure ForceSaveAsX3D(const AMajor: Integer = 3;
       const AMinor: Integer = 2;
-      const AProfile: string = 'Interchange');
+      const AProfile: String = 'Interchange');
 
     { Global prototype namespace at the end of parsing the file.
       Useful for things like EXTERNPROTO implementation. }
@@ -304,7 +304,7 @@
       reliably) and also makes it immediately working (adding it to the proper namespace).
 
       @groupBegin }
-    procedure ExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
+    procedure ExportNode(const Node: TX3DNode; const ExportedAlias: String); overload;
     procedure ExportNode(const Node: TX3DNode); overload;
     { @groupEnd }
   end;
@@ -319,7 +319,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
@@ -349,7 +349,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
@@ -384,7 +384,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -683,7 +683,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TGroupNode.ClassX3DType: string;
+class function TGroupNode.ClassX3DType: String;
 begin
   Result := 'Group';
 end;
@@ -713,12 +713,12 @@ begin
     Items[Pair.Key] := Pair.Value;
 end;
 
-function TStringLongIntMap.GetItems(const AKey: string): LongInt;
+function TStringLongIntMap.GetItems(const AKey: String): LongInt;
 begin
   Result := inherited Items[AKey];
 end;
 
-procedure TStringLongIntMap.SetItems(const AKey: string; const AValue: LongInt);
+procedure TStringLongIntMap.SetItems(const AKey: String; const AValue: LongInt);
 begin
   AddOrSetValue(AKey, AValue);
 end;
@@ -811,7 +811,7 @@ end;
 
 procedure TX3DRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
   const AMinor: Integer = 2;
-  const AProfile: string = 'Interchange');
+  const AProfile: String = 'Interchange');
 begin
   if (not HasForceVersion) or
      (ForceVersion.Major < 3) then
@@ -860,7 +860,7 @@ begin
   end;
 end;
 
-procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: string);
+procedure TX3DRootNode.ExportNode(const Node: TX3DNode; const ExportedAlias: String);
 var
   ExportItem: TX3DExport;
 begin
@@ -903,7 +903,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TStaticGroupNode.ClassX3DType: string;
+class function TStaticGroupNode.ClassX3DType: String;
 begin
   Result := 'StaticGroup';
 end;
@@ -928,7 +928,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSwitchNode.ClassX3DType: string;
+class function TSwitchNode.ClassX3DType: String;
 begin
   Result := 'Switch';
 end;
@@ -985,7 +985,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransformNode.ClassX3DType: string;
+class function TTransformNode.ClassX3DType: String;
 begin
   Result := 'Transform';
 end;

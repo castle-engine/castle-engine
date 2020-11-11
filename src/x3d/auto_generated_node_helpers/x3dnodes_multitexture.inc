@@ -36,15 +36,15 @@
     { X3D field "color". } { }
     property Color: TCastleColorRGB read GetColor write SetColor;
     { Set X3D field "function". } { }
-    procedure SetFunction(const Value: array of string);
+    procedure SetFunction(const Value: array of String);
     { Set X3D field "function". } { }
     procedure SetFunction(const Value: TCastleStringList);
     { Set X3D field "mode". } { }
-    procedure SetMode(const Value: array of string);
+    procedure SetMode(const Value: array of String);
     { Set X3D field "mode". } { }
     procedure SetMode(const Value: TCastleStringList);
     { Set X3D field "source". } { }
-    procedure SetSource(const Value: array of string);
+    procedure SetSource(const Value: array of String);
     { Set X3D field "source". } { }
     procedure SetSource(const Value: TCastleStringList);
     { Set X3D field "texture". } { }
@@ -76,7 +76,7 @@ begin
   FdColor.Send(Value);
 end;
 
-procedure TMultiTextureNode.SetFunction(const Value: array of string);
+procedure TMultiTextureNode.SetFunction(const Value: array of String);
 begin
   FdFunction.Send(Value);
 end;
@@ -86,7 +86,7 @@ begin
   FdFunction.Send(Value);
 end;
 
-procedure TMultiTextureNode.SetMode(const Value: array of string);
+procedure TMultiTextureNode.SetMode(const Value: array of String);
 begin
   FdMode.Send(Value);
 end;
@@ -96,7 +96,7 @@ begin
   FdMode.Send(Value);
 end;
 
-procedure TMultiTextureNode.SetSource(const Value: array of string);
+procedure TMultiTextureNode.SetSource(const Value: array of String);
 begin
   FdSource.Send(Value);
 end;

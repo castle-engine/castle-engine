@@ -30,7 +30,7 @@
     procedure SetMapping(const Value: String);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdMapping: TSFString;
     { X3D field "mapping". } { }

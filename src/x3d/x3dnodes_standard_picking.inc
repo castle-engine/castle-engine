@@ -50,7 +50,7 @@
   TLinePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventPickedNormal: TMFVec3fEvent;
@@ -70,7 +70,7 @@
   TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractPickableObject)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdObjectType: TMFString;
     public property FdObjectType: TMFString read FFdObjectType;
@@ -84,7 +84,7 @@
   TPointPickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     { Event out } { }
     strict private FEventPickedPoint: TMFVec3fEvent;
@@ -96,7 +96,7 @@
   TPrimitivePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
   end;
@@ -104,7 +104,7 @@
   TVolumePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
   end;
@@ -161,7 +161,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLinePickSensorNode.ClassX3DType: string;
+class function TLinePickSensorNode.ClassX3DType: String;
 begin
   Result := 'LinePickSensor';
 end;
@@ -180,7 +180,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPickableGroupNode.ClassX3DType: string;
+class function TPickableGroupNode.ClassX3DType: String;
 begin
   Result := 'PickableGroup';
 end;
@@ -195,7 +195,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPointPickSensorNode.ClassX3DType: string;
+class function TPointPickSensorNode.ClassX3DType: String;
 begin
   Result := 'PointPickSensor';
 end;
@@ -207,7 +207,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPrimitivePickSensorNode.ClassX3DType: string;
+class function TPrimitivePickSensorNode.ClassX3DType: String;
 begin
   Result := 'PrimitivePickSensor';
 end;
@@ -219,7 +219,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TVolumePickSensorNode.ClassX3DType: string;
+class function TVolumePickSensorNode.ClassX3DType: String;
 begin
   Result := 'VolumePickSensor';
 end;

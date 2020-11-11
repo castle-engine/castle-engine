@@ -27,7 +27,7 @@
 
   public
     { Set X3D field "align". } { }
-    procedure SetAlign(const Value: array of string);
+    procedure SetAlign(const Value: array of String);
     { Set X3D field "align". } { }
     procedure SetAlign(const Value: TCastleStringList);
     { Set X3D field "offset". } { }
@@ -35,11 +35,11 @@
     { Set X3D field "offset". } { }
     procedure SetOffset(const Value: TSingleList);
     { Set X3D field "offsetUnits". } { }
-    procedure SetOffsetUnits(const Value: array of string);
+    procedure SetOffsetUnits(const Value: array of String);
     { Set X3D field "offsetUnits". } { }
     procedure SetOffsetUnits(const Value: TCastleStringList);
     { Set X3D field "scaleMode". } { }
-    procedure SetScaleMode(const Value: array of string);
+    procedure SetScaleMode(const Value: array of String);
     { Set X3D field "scaleMode". } { }
     procedure SetScaleMode(const Value: TCastleStringList);
     { Set X3D field "size". } { }
@@ -47,7 +47,7 @@
     { Set X3D field "size". } { }
     procedure SetSize(const Value: TSingleList);
     { Set X3D field "sizeUnits". } { }
-    procedure SetSizeUnits(const Value: array of string);
+    procedure SetSizeUnits(const Value: array of String);
     { Set X3D field "sizeUnits". } { }
     procedure SetSizeUnits(const Value: TCastleStringList);
 
@@ -57,7 +57,7 @@
 
 { TLayoutNode ----------------------------------------------- }
 
-procedure TLayoutNode.SetAlign(const Value: array of string);
+procedure TLayoutNode.SetAlign(const Value: array of String);
 begin
   FdAlign.Send(Value);
 end;
@@ -77,7 +77,7 @@ begin
   FdOffset.Send(Value);
 end;
 
-procedure TLayoutNode.SetOffsetUnits(const Value: array of string);
+procedure TLayoutNode.SetOffsetUnits(const Value: array of String);
 begin
   FdOffsetUnits.Send(Value);
 end;
@@ -87,7 +87,7 @@ begin
   FdOffsetUnits.Send(Value);
 end;
 
-procedure TLayoutNode.SetScaleMode(const Value: array of string);
+procedure TLayoutNode.SetScaleMode(const Value: array of String);
 begin
   FdScaleMode.Send(Value);
 end;
@@ -107,7 +107,7 @@ begin
   FdSize.Send(Value);
 end;
 
-procedure TLayoutNode.SetSizeUnits(const Value: array of string);
+procedure TLayoutNode.SetSizeUnits(const Value: array of String);
 begin
   FdSizeUnits.Send(Value);
 end;

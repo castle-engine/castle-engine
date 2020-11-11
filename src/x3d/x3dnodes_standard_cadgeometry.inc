@@ -38,7 +38,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -52,7 +52,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
@@ -72,7 +72,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
@@ -90,7 +90,7 @@
     procedure ApplyTransform(var Transformation: TTransformation); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     strict private FFdCenter: TSFVec3f;
@@ -118,7 +118,7 @@
   TIndexedQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     { Event in } { }
@@ -145,7 +145,7 @@
   TQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
@@ -180,7 +180,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADAssemblyNode.ClassX3DType: string;
+class function TCADAssemblyNode.ClassX3DType: String;
 begin
   Result := 'CADAssembly';
 end;
@@ -209,7 +209,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADFaceNode.ClassX3DType: string;
+class function TCADFaceNode.ClassX3DType: String;
 begin
   Result := 'CADFace';
 end;
@@ -233,7 +233,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADLayerNode.ClassX3DType: string;
+class function TCADLayerNode.ClassX3DType: String;
 begin
   Result := 'CADLayer';
 end;
@@ -288,7 +288,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADPartNode.ClassX3DType: string;
+class function TCADPartNode.ClassX3DType: String;
 begin
   Result := 'CADPart';
 end;
@@ -330,7 +330,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TIndexedQuadSetNode.ClassX3DType: string;
+class function TIndexedQuadSetNode.ClassX3DType: String;
 begin
   Result := 'IndexedQuadSet';
 end;
@@ -345,7 +345,7 @@ begin
   inherited;
 end;
 
-class function TQuadSetNode.ClassX3DType: string;
+class function TQuadSetNode.ClassX3DType: String;
 begin
   Result := 'QuadSet';
 end;

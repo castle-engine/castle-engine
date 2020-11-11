@@ -44,7 +44,7 @@
     procedure SetGravityTransform(const Value: Boolean);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCenterOfRotation: TSFVec3f;
     { X3D field "centerOfRotation". } { }

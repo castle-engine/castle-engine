@@ -30,7 +30,7 @@
     procedure SetTransparency(const Value: Single);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTransparency: TSFFloat;
     { X3D field "transparency". } { }

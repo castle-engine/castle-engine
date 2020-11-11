@@ -67,7 +67,7 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
@@ -138,7 +138,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$ifndef CASTLE_SLIM_NODES}
     strict private FFdFillProperties: TSFNode;
@@ -263,7 +263,7 @@
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdFilled: TSFBool;
     public property FdFilled: TSFBool read FFdFilled;
@@ -295,7 +295,7 @@
     procedure SetLineType(const Value: TLineType);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdApplied: TSFBool;
     public property FdApplied: TSFBool read FFdApplied;
@@ -358,7 +358,7 @@
     var
       FMaterialInfo: TMyMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
@@ -415,7 +415,7 @@
     var
       FMaterialInfo: TMyPhysicalMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -426,7 +426,7 @@
   TShapeNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
@@ -459,7 +459,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     function MaterialInfo: TMaterialInfo; override;
 
     strict private FFdAmbientIntensity: TSFFloat;
@@ -518,7 +518,7 @@
     var
       FMaterialInfo: TMyUnlitMaterialInfo;
   public
-    constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+    constructor Create(const AX3DName: String = ''; const ABaseUrl: String = ''); override;
     destructor Destroy; override;
     function MaterialInfo: TMaterialInfo; override;
 
@@ -578,7 +578,7 @@ const
     'BOX'
   );
 
-constructor TAbstractShapeNode.Create(const AX3DName: string = ''; const ABaseUrl: string = '');
+constructor TAbstractShapeNode.Create(const AX3DName: String = ''; const ABaseUrl: String = '');
 begin
   inherited;
   FdBboxCenter.ChangeAlways := chBBox;
@@ -818,7 +818,7 @@ begin
   DefaultContainerField := 'appearance';
 end;
 
-class function TAppearanceNode.ClassX3DType: string;
+class function TAppearanceNode.ClassX3DType: String;
 begin
   Result := 'Appearance';
 end;
@@ -1025,7 +1025,7 @@ function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
   var
-    TextureUrl: string;
+    TextureUrl: String;
   begin
     Result := nil;
     if Url.Count <> 0 then
@@ -1093,7 +1093,7 @@ begin
   DefaultContainerField := 'fillProperties';
 end;
 
-class function TFillPropertiesNode.ClassX3DType: string;
+class function TFillPropertiesNode.ClassX3DType: String;
 begin
   Result := 'FillProperties';
 end;
@@ -1116,7 +1116,7 @@ begin
   DefaultContainerField := 'lineProperties';
 end;
 
-class function TLinePropertiesNode.ClassX3DType: string;
+class function TLinePropertiesNode.ClassX3DType: String;
 begin
   Result := 'LineProperties';
 end;
@@ -1149,7 +1149,7 @@ end;
 
 { TMaterialNode -------------------------------------------------------------- }
 
-constructor TMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   { Changing Transparency must also update shape's Blending. }
@@ -1348,7 +1348,7 @@ end;
 
 { TPhysicalMaterialNode ------------------------------------------------------ }
 
-constructor TPhysicalMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TPhysicalMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   { Changing Transparency must also update shape's Blending. }
@@ -1375,7 +1375,7 @@ begin
   inherited;
 end;
 
-class function TShapeNode.ClassX3DType: string;
+class function TShapeNode.ClassX3DType: String;
 begin
   Result := 'Shape';
 end;
@@ -1519,7 +1519,7 @@ begin
   inherited;
 end;
 
-class function TTwoSidedMaterialNode.ClassX3DType: string;
+class function TTwoSidedMaterialNode.ClassX3DType: String;
 begin
   Result := 'TwoSidedMaterial';
 end;
@@ -1551,7 +1551,7 @@ end;
 
 { TUnlitMaterialNode ------------------------------------------------------ }
 
-constructor TUnlitMaterialNode.Create(const AX3DName: string; const ABaseUrl: string);
+constructor TUnlitMaterialNode.Create(const AX3DName: String; const ABaseUrl: String);
 begin
   inherited;
   // default is different

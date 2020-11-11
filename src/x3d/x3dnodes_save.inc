@@ -79,25 +79,25 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
 
   @groupBegin }
 procedure Save3D(Node: TX3DNode;
-  const Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: String;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const URL, Generator, Source: String;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: String;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const URL, Generator, Source: String;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const URL: string;
-  const Generator: string = '';
-  const Source: string = ''); overload;
+  const URL: String;
+  const Generator: String = '';
+  const Source: String = ''); overload;
 { @groupEnd }
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
@@ -378,7 +378,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: String;
   Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean);
@@ -457,7 +457,7 @@ var
     VRML20Header = '#VRML V2.0 utf8';
     X3DHeader = '#X3D V%d.%d utf8';
   var
-    VRMLHeader, PrecedingComment: string;
+    VRMLHeader, PrecedingComment: String;
   begin
     if Version.Major <= 1 then
       VRMLHeader := VRML10Header else
@@ -510,7 +510,7 @@ var
 
   procedure Xml;
 
-    function Profile: string;
+    function Profile: String;
     begin
       if (Node is TX3DRootNode) and
          (TX3DRootNode(Node).Profile <> '') then
@@ -599,7 +599,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string; const Version: TX3DVersion;
+  const URL, Generator, Source: String; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean);
 var
@@ -621,7 +621,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: String;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean);
 begin
@@ -630,7 +630,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL, Generator, Source: string;
+  const URL, Generator, Source: String;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: Boolean);
 begin
@@ -639,11 +639,11 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const URL: string;
-  const Generator: string = '';
-  const Source: string = '');
+  const URL: String;
+  const Generator: String = '';
+  const Source: String = '');
 var
-  Mime: string;
+  Mime: String;
   Encoding: TX3DEncoding;
 begin
   { guess Encoding from URL }

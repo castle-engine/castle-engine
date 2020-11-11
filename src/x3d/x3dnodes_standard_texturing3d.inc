@@ -79,7 +79,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
@@ -98,7 +98,7 @@
     procedure LoadTextureData; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -114,7 +114,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdImage: TMFInt32;
     public property FdImage: TMFInt32 read FFdImage;
@@ -128,7 +128,7 @@
   TTextureCoordinate3DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
@@ -140,7 +140,7 @@
   TTextureCoordinate4DNode = class(TAbstractSingleTextureCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
@@ -153,7 +153,7 @@
   TTextureTransformMatrix3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
@@ -168,7 +168,7 @@
   TTextureTransform3DNode = class(TAbstractSingleTextureTransformNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -249,7 +249,7 @@ begin
   AddField(FFdTexture);
 end;
 
-class function TComposedTexture3DNode.ClassX3DType: string;
+class function TComposedTexture3DNode.ClassX3DType: String;
 begin
   Result := 'ComposedTexture3D';
 end;
@@ -357,7 +357,7 @@ begin
   { X3D specification comment: [URI] }
 end;
 
-class function TImageTexture3DNode.ClassX3DType: string;
+class function TImageTexture3DNode.ClassX3DType: String;
 begin
   Result := 'ImageTexture3D';
 end;
@@ -365,7 +365,7 @@ end;
 procedure TImageTexture3DNode.LoadTextureData;
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl: String;
 begin
   for I := 0 to FdUrl.Items.Count - 1 do
   begin
@@ -417,7 +417,7 @@ begin
   AddField(FFdImage);
 end;
 
-class function TPixelTexture3DNode.ClassX3DType: string;
+class function TPixelTexture3DNode.ClassX3DType: String;
 begin
   Result := 'PixelTexture3D';
 end;
@@ -512,7 +512,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureCoordinate3DNode.ClassX3DType: string;
+class function TTextureCoordinate3DNode.ClassX3DType: String;
 begin
   Result := 'TextureCoordinate3D';
 end;
@@ -527,7 +527,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureCoordinate4DNode.ClassX3DType: string;
+class function TTextureCoordinate4DNode.ClassX3DType: String;
 begin
   Result := 'TextureCoordinate4D';
 end;
@@ -542,7 +542,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureTransformMatrix3DNode.ClassX3DType: string;
+class function TTextureTransformMatrix3DNode.ClassX3DType: String;
 begin
   Result := 'TextureTransformMatrix3D';
 end;
@@ -577,7 +577,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureTransform3DNode.ClassX3DType: string;
+class function TTextureTransform3DNode.ClassX3DType: String;
 begin
   Result := 'TextureTransform3D';
 end;

@@ -32,7 +32,7 @@
     procedure SetDepth(const Value: Single);
   public
     { Set X3D field "string". } { }
-    procedure SetString(const Value: array of string);
+    procedure SetString(const Value: array of String);
     { Set X3D field "string". } { }
     procedure SetString(const Value: TCastleStringList);
     { Set X3D field "length". } { }
@@ -50,7 +50,7 @@
 
 { TText3DNode ----------------------------------------------- }
 
-procedure TText3DNode.SetString(const Value: array of string);
+procedure TText3DNode.SetString(const Value: array of String);
 begin
   FdString.Send(Value);
 end;

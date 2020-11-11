@@ -29,7 +29,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
     class function ForVRMLVersion(const Version: TX3DVersion): Boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -49,7 +49,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
@@ -83,7 +83,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdLevel: TSFInt32;
     public property FdLevel: TSFInt32 read FFdLevel;
@@ -106,7 +106,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -129,7 +129,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -217,7 +217,7 @@
   TPlaneNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
@@ -245,7 +245,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdStatus: TSFBool;
     public property FdStatus: TSFBool read FFdStatus;
@@ -311,7 +311,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdAlphaFactor: TSFFloat;
     public property FdAlphaFactor: TSFFloat read FFdAlphaFactor;
@@ -546,7 +546,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
 
     strict private FFdColor: TSFColorRGBA;
     { @seealso Color }
@@ -586,7 +586,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TMatrixTransformNode.ClassX3DType: string;
+class function TMatrixTransformNode.ClassX3DType: String;
 begin
   Result := 'MatrixTransform';
 end;
@@ -660,7 +660,7 @@ begin
   AddField(FFdTexCoord);
 end;
 
-class function TTeapotNode.ClassX3DType: string;
+class function TTeapotNode.ClassX3DType: String;
 begin
   Result := 'Teapot';
 end;
@@ -782,7 +782,7 @@ procedure TLoggerNode.EventWriteReceive(
 
   procedure WritelnLogMessage;
   var
-    S: string;
+    S: String;
   begin
     if FdLevel.Value >= 2 then
     begin
@@ -819,7 +819,7 @@ begin
   end;
 end;
 
-class function TLoggerNode.ClassX3DType: string;
+class function TLoggerNode.ClassX3DType: String;
 begin
   Result := 'Logger';
 end;
@@ -849,7 +849,7 @@ begin
     EventOut.Send(Value, Time);
 end;
 
-class function TConverterNode.ClassX3DType: string;
+class function TConverterNode.ClassX3DType: String;
 begin
   Result := 'Converter';
 end;
@@ -958,7 +958,7 @@ begin
   inherited;
 end;
 
-class function TRenderedTextureNode.ClassX3DType: string;
+class function TRenderedTextureNode.ClassX3DType: String;
 begin
   Result := 'RenderedTexture';
 end;
@@ -977,7 +977,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TPlaneNode.ClassX3DType: string;
+class function TPlaneNode.ClassX3DType: String;
 begin
   Result := 'Plane';
 end;
@@ -1054,7 +1054,7 @@ begin
   AddField(FFdEnabled);
 end;
 
-class function TTogglerNode.ClassX3DType: string;
+class function TTogglerNode.ClassX3DType: String;
 begin
   Result := 'Toggler';
 end;
@@ -1467,7 +1467,7 @@ begin
   inherited;
 end;
 
-class function TCommonSurfaceShaderNode.ClassX3DType: string;
+class function TCommonSurfaceShaderNode.ClassX3DType: String;
 begin
   Result := 'CommonSurfaceShader';
 end;
@@ -1510,7 +1510,7 @@ begin
   AddField(FFdTexCoords);
 end;
 
-class function TImageBackgroundNode.ClassX3DType: string;
+class function TImageBackgroundNode.ClassX3DType: String;
 begin
   Result := 'ImageBackground';
 end;

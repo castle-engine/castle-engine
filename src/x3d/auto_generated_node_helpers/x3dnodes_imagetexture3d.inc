@@ -27,7 +27,7 @@
 
   public
     { Set X3D field "url". } { }
-    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: array of String);
     { Set X3D field "url". } { }
     procedure SetUrl(const Value: TCastleStringList);
 
@@ -37,7 +37,7 @@
 
 { TImageTexture3DNode ----------------------------------------------- }
 
-procedure TImageTexture3DNode.SetUrl(const Value: array of string);
+procedure TImageTexture3DNode.SetUrl(const Value: array of String);
 begin
   FdUrl.Send(Value);
 end;
