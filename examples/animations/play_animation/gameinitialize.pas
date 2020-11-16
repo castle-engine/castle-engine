@@ -281,7 +281,7 @@ begin
   if CheckboxMagFilterNearest.Checked then
     Scene.Attributes.MagnificationFilter := magNearest
   else
-    Scene.Attributes.MagnificationFilter := magLinear;
+    Scene.Attributes.MagnificationFilter := magDefault;
 end;
 
 class procedure TEventsHandler.TextureMinOptionsChanged(Sender: TObject);
@@ -295,12 +295,12 @@ begin
     - minFastest - Alias for minNearest,
     - minNicest - minLinearMipmapLinear,
 
-    But to keep example UI simple we change only minNearest and minLinear.
-  }
+    But to keep example UI simple we change only minNearest and minDefault. }
+
   if CheckboxMinFilterNearest.Checked then
     Scene.Attributes.MinificationFilter := minNearest
   else
-    Scene.Attributes.MinificationFilter := minLinear;
+    Scene.Attributes.MinificationFilter := minDefault;
 end;
 
 class procedure TEventsHandler.StarlingOptionsChanged(Sender: TObject);
