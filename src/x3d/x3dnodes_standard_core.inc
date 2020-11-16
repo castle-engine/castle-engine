@@ -340,13 +340,18 @@ function TAbstractNode.FindMetadata(const Key: String): TAbstractMetadataNode;
   end;
 
 begin
+  {$ifdef CASTLE_SLIM_NODES}
+  Result := nil;
+  {$else}
   Result := FindInSetOrSingle(FdMetadata.Value);
+  {$endif}
 end;
 
 procedure TAbstractNode.InsertMetadata(const M: TAbstractMetadataNode);
 var
   MSet: TMetadataSetNode;
 begin
+  {$ifndef CASTLE_SLIM_NODES}
   if FdMetadata.Value is TMetadataSetNode then
   begin
     MSet := TMetadataSetNode(FdMetadata.Value);
@@ -360,6 +365,7 @@ begin
     FdMetadata.Value := MSet;
   end;
   MSet.FdValue.Add(M);
+  {$endif}
 end;
 
 function TAbstractNode.GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
