@@ -334,13 +334,15 @@ begin
     Result := LoadGLTF(URL)
   else
 
-  if (MimeType = 'image/starling-texture-atlas') or
-     (URIMimeType(URIDeleteAnchor(URL, true)) = 'image/starling-texture-atlas') then
+  if (MimeType = 'application/x-starling-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-starling-sprite-sheet') then
     Result := LoadStarlingTextureAtlas(URL)
   else
 
   if (MimeType = 'application/x-plist') or
-     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-plist') then
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-plist') or
+     (MimeType = 'application/x-cocos2d-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-cocos2d-sprite-sheet') then
     Result := LoadCocos2d(URL)
   else
 
@@ -377,7 +379,7 @@ begin
   ImageExtensions := ReadImageExtensions;
 
   Result :=   'All Files|*|' +
-  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.plist;' + ImageExtensions + '|' +
+  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
@@ -394,8 +396,8 @@ begin
   'Videoscape (*.geo)|*.geo|' +
   'Spine animation (*.json)|*.json|' +
   'Standard Triangle Language (*.stl)|*.stl|' +
-  'Starling XML (*.starling-xml)|*.starling-xml|' +
-  'Cocos2d Spritesheet (*.plist)|*.plist|' +
+  'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
+  'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
   { Uncomment to see version with extensions - but filter combo is very long then }
   //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
   'Images |' + ImageExtensions;

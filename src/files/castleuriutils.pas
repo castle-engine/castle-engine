@@ -869,7 +869,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       Created as image type based on
       https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
     }
-    if Ext = '.starling-xml' then Result := 'image/starling-texture-atlas' else
+    if Ext = '.starling-xml' then Result := 'application/x-starling-sprite-sheet' else
+    if Ext = '.cocos2d-plist' then Result := 'application/x-cocos2d-sprite-sheet' else
     if Ext = '.plist' then Result := 'application/x-plist' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
