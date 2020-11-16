@@ -63,9 +63,9 @@ castle-game-engine-*.fpm
 /examples/2d_standard_ui/timer_test/timer_test
 /examples/2d_standard_ui/zombie_fighter/zombie_fighter
 /examples/2d_standard_ui/zombie_fighter_alternative_short_lived_states/zombie_fighter
-/examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
 /examples/3d_rendering_processing/animate_3d_model_by_code
 /examples/3d_rendering_processing/animate_3d_model_by_code_2
+/examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
 /examples/3d_rendering_processing/build_3d_object_by_code
 /examples/3d_rendering_processing/build_3d_tunnel
 /examples/3d_rendering_processing/call_pascal_code_from_3d_model_script
@@ -86,10 +86,6 @@ castle-game-engine-*.fpm
 /examples/3d_rendering_processing/switch_projection
 /examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators
 /examples/3d_rendering_processing/tools/gen_light_map
-/examples/short_api_samples/save_screen_rgba/save_screen_rgba
-/examples/short_api_samples/transform_save_load/aaa.castle-transform
-/examples/short_api_samples/transform_save_load/transform_save_load
-/examples/short_api_samples/xml_utils/bookmarks_xml_demo
 /examples/3d_rendering_processing/transform_scenes_demos
 /examples/3d_rendering_processing/triangulate_demo
 /examples/3d_rendering_processing/triangulate_demo.res
@@ -193,6 +189,11 @@ castle-game-engine-*.fpm
 /examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field
 /examples/research_special_rendering_methods/shadow_fields/shadow_fields
 /examples/screen_effects_demo/screen_effects_demo
+/examples/short_api_samples/metadata/metadata_use
+/examples/short_api_samples/save_screen_rgba/save_screen_rgba
+/examples/short_api_samples/transform_save_load/aaa.castle-transform
+/examples/short_api_samples/transform_save_load/transform_save_load
+/examples/short_api_samples/xml_utils/bookmarks_xml_demo
 /examples/simple_command_line_utilities/dircleaner
 /examples/simple_command_line_utilities/dircleaner.res
 /examples/simple_command_line_utilities/stringoper

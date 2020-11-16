@@ -26,20 +26,105 @@
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
-  { Base X3D node that can have some metadata.
-
-    Almost all X3D nodes inherit from this, with the only exception being
-    the X3DMetadataObject (expressed only as an interface in Pascal,
-    @link(IAbstractMetadataNode)).
-    This means that you cannot have metadata inside a metadata. }
+  { Base X3D node that can have some metadata. }
   TAbstractNode = class(TX3DNode, IAbstractNode)
+  strict private
+    procedure InsertMetadata(const M: TAbstractMetadataNode);
+    function GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
+    procedure SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
+    function GetMetadataString(const Key: String; const Index: Cardinal): String;
+    procedure SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
+    function GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
+    procedure SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
+    function GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
+    procedure SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
+
+    { Find a "metadata" information within this node with given key.
+      Returns @nil if not found.
+
+      This seeks for a TAbstractMetadataNode instance within the X3D "metadata"
+      field  of this node. Looks for TAbstractMetadataNode with
+      @link(TAbstractMetadataNode.NameField) matching the parameter @code(Key).
+      Note that X3D spec allows multiple metadata nodes to share the same key,
+      this method only finds the first one.
+
+      It ignores TMetadataSet when searching, as TMetadataSet doesn't contain
+      any simple data, it serves only as container for other metadata nodes.
+    }
+    function FindMetadata(const Key: String): TAbstractMetadataNode;
+
+    { Get/set metadata, identified by a given Key, as a Boolean.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataBooleanNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataBooleanNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataBooleanNode.FdValue) array is too short,
+      this returns false.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataBooleanNode.FdValue) array length if necessary. }
+    property MetadataBoolean[const Key: String; const Index: Cardinal]: Boolean read GetMetadataBoolean write SetMetadataBoolean;
+
+    { Get/set metadata, identified by a given Key, as a String.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataStringNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataStringNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataStringNode.FdValue) array is too short,
+      this returns ''.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataStringNode.FdValue) array length if necessary. }
+    property MetadataString[const Key: String; const Index: Cardinal]: String read GetMetadataString write SetMetadataString;
+
+    { Get/set metadata, identified by a given Key, as a Integer.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataIntegerNode node inside the "metadata" of this node
+      using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataIntegerNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataIntegerNode.FdValue) array is too short,
+      this returns 0.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataIntegerNode.FdValue) array length if necessary. }
+    property MetadataInteger[const Key: String; const Index: Cardinal]: Integer read GetMetadataInteger write SetMetadataInteger;
+
+    { Get/set metadata, identified by a given Key, as a Double.
+      "Metadata" is any value you want to save with this node, it has no effect on the rendering/behaviour.
+      This property hides various complexities of the X3D metadata nodes.
+
+      This property looks for a TMetadataDoubleNode or TMetadataFloatNode
+      node inside the "metadata" of this node  using @link(FindMetadata).
+      If found, it allows to operate @link(TMetadataDoubleNode.FdValue) array
+      or @link(TMetadataFloatNode.FdValue) array.
+      It gets/sets the appropriate items of this array.
+
+      If such metadata node is not found,
+      or it's @link(TMetadataDoubleNode.FdValue) array is too short,
+      this returns 0.0.
+      When setting, it adds such metadata node if necessary,
+      and increases the @link(TMetadataDoubleNode.FdValue) array length if necessary. }
+    property MetadataDouble[const Key: String; const Index: Cardinal]: Double read GetMetadataDouble write SetMetadataDouble;
+
     {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
 
   { Basis for all metadata nodes. }
-  TAbstractMetadataNode = class(TX3DNode)
+  TAbstractMetadataNode = class(TAbstractNode)
   public
     constructor Create(const AX3DName: string = ''; const ABaseUrl: string = ''); override;
     {$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
@@ -217,6 +302,245 @@ begin
   {$ifndef CASTLE_SLIM_NODES}
   FdMetadata.ChangeAlways := chNone;
   {$endif}
+end;
+
+function TAbstractNode.FindMetadata(const Key: String): TAbstractMetadataNode;
+
+  function FindInSet(const MetadataSet: TMetadataSetNode): TAbstractMetadataNode; forward;
+
+  { Search a Metadata node,
+    which may be nil,
+    may be TMetadataSetNode,
+    may be other TAbstractMetadataNode. }
+  function FindInSetOrSingle(const PossibleMetadata: TX3DNode): TAbstractMetadataNode;
+  begin;
+    Result := nil;
+    if PossibleMetadata <> nil then
+    begin
+      if PossibleMetadata is TMetadataSetNode then
+        Result := FindInSet(TMetadataSetNode(PossibleMetadata))
+      else
+      if (PossibleMetadata is TAbstractMetadataNode) and
+         (TAbstractMetadataNode(PossibleMetadata).NameField = Key) then
+        Result := TAbstractMetadataNode(PossibleMetadata);
+    end;
+  end;
+
+  { Search a TMetadataSetNode instance (never nil). }
+  function FindInSet(const MetadataSet: TMetadataSetNode): TAbstractMetadataNode;
+  var
+    I: Integer;
+  begin
+    Result := nil;
+    for I := 0 to MetadataSet.FdValue.Count - 1 do
+    begin
+      Result := FindInSetOrSingle(MetadataSet.FdValue[I]);
+      if Result <> nil then Exit;
+    end;
+  end;
+
+begin
+  Result := FindInSetOrSingle(FdMetadata.Value);
+end;
+
+procedure TAbstractNode.InsertMetadata(const M: TAbstractMetadataNode);
+var
+  MSet: TMetadataSetNode;
+begin
+  if FdMetadata.Value is TMetadataSetNode then
+  begin
+    MSet := TMetadataSetNode(FdMetadata.Value);
+  end else
+  begin
+    MSet := TMetadataSetNode.Create;
+    MSet.NameField := 'ContainerForAllMetadataValues'; // set NameField because it is required by X3D
+    // preserve previous "metadata" value, by adding it to set
+    if FdMetadata.Value <> nil then
+      MSet.FdValue.Add(FdMetadata.Value);
+    FdMetadata.Value := MSet;
+  end;
+  MSet.FdValue.Add(M);
+end;
+
+function TAbstractNode.GetMetadataBoolean(const Key: String; const Index: Cardinal): Boolean;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataBooleanNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit(false);
+  if not (M is TMetadataBooleanNode) then Exit(false);
+
+  MB := TMetadataBooleanNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := false;
+end;
+
+procedure TAbstractNode.SetMetadataBoolean(const Key: String; const Index: Cardinal; const Value: Boolean);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataBooleanNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataBooleanNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataBooleanNode) then
+      raise Exception.CreateFmt('Cannot add Boolean metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataBooleanNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataString(const Key: String; const Index: Cardinal): String;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataStringNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit('');
+  if not (M is TMetadataStringNode) then Exit('');
+
+  MB := TMetadataStringNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := '';
+end;
+
+procedure TAbstractNode.SetMetadataString(const Key: String; const Index: Cardinal; const Value: String);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataStringNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataStringNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataStringNode) then
+      raise Exception.CreateFmt('Cannot add String metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataStringNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataInteger(const Key: String; const Index: Cardinal): Integer;
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataIntegerNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then Exit(0);
+  if not (M is TMetadataIntegerNode) then Exit(0);
+
+  MB := TMetadataIntegerNode(M);
+  if Index < MB.FdValue.Count then
+    Result := MB.FdValue.Items[Index]
+  else
+    Result := 0;
+end;
+
+procedure TAbstractNode.SetMetadataInteger(const Key: String; const Index: Cardinal; const Value: Integer);
+var
+  M: TAbstractMetadataNode;
+  MB: TMetadataIntegerNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    MB := TMetadataIntegerNode.Create;
+    MB.NameField := Key;
+    InsertMetadata(MB);
+  end else
+  begin
+    if not (M is TMetadataIntegerNode) then
+      raise Exception.CreateFmt('Cannot add Integer metadata with key "%s", there is already metadata of type %s', [
+        Key,
+        M.X3DType
+      ]);
+    MB := TMetadataIntegerNode(M);
+  end;
+
+  MB.FdValue.Count := Max(MB.FdValue.Count, Index + 1);
+  MB.FdValue.Items[Index] := Value;
+end;
+
+function TAbstractNode.GetMetadataDouble(const Key: String; const Index: Cardinal): Double;
+var
+  M: TAbstractMetadataNode;
+  MF: TMetadataFloatNode;
+  MD: TMetadataDoubleNode;
+begin
+  Result := 0.0;
+
+  M := FindMetadata(Key);
+  if M = nil then Exit;
+
+  if M is TMetadataDoubleNode then
+  begin
+    MD := TMetadataDoubleNode(M);
+    if Index < MD.FdValue.Count then
+      Result := MD.FdValue.Items[Index];
+  end else
+  if M is TMetadataFloatNode then
+  begin
+    MF := TMetadataFloatNode(M);
+    if Index < MF.FdValue.Count then
+      Result := MF.FdValue.Items[Index]
+  end;
+end;
+
+procedure TAbstractNode.SetMetadataDouble(const Key: String; const Index: Cardinal; const Value: Double);
+var
+  M: TAbstractMetadataNode;
+  MF: TMetadataFloatNode;
+  MD: TMetadataDoubleNode;
+begin
+  M := FindMetadata(Key);
+  if M = nil then
+  begin
+    M := TMetadataDoubleNode.Create;
+    M.NameField := Key;
+    InsertMetadata(M);
+  end;
+
+  if M is TMetadataFloatNode then
+  begin
+    MF := TMetadataFloatNode(M);
+    MF.FdValue.Count := Max(MF.FdValue.Count, Index + 1);
+    MF.FdValue.Items[Index] := Value;
+    WritelnWarning('Storing double-precision metadata in single-precision MetadataFloat, some precision may be lost');
+  end else
+  if M is TMetadataDoubleNode then
+  begin
+    MD := TMetadataDoubleNode(M);
+    MD.FdValue.Count := Max(MD.FdValue.Count, Index + 1);
+    MD.FdValue.Items[Index] := Value;
+  end else
+    raise Exception.CreateFmt('Cannot add Double metadata with key "%s", there is already metadata of type %s', [
+      Key,
+      M.X3DType
+    ]);
 end;
 
 { TAbstractBindableNode ------------------------------------------------------ }
