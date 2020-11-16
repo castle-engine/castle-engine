@@ -29,13 +29,22 @@
 
 interface
 
-uses Classes, SysUtils, DOM,
-  X3DNodes,
-  CastleTextureImages, CastleVectors;
+uses Classes, SysUtils,
+  X3DNodes;
 
 type
   { Starling XML file is not correct }
   EInvalidCocos2dPlist = class(Exception);
+
+function LoadCocos2d(const URL: String): TX3DRootNode;
+
+implementation
+
+uses StrUtils, DOM,
+  CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
+  CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
+
+type
 
   TCocos2dLoader = class
   strict private
@@ -139,15 +148,6 @@ type
   end;
 
 function LoadCocos2d(const URL: String): TX3DRootNode;
-
-implementation
-
-uses StrUtils,
-  CastleImages, CastleLog, CastleStringUtils, CastleURIUtils, CastleUtils,
-  CastleXMLUtils;
-
-
-function LoadCocos2d(const URL: String): TX3DRootNode;
 var
   Cocos2dLoader: TCocos2dLoader;
 begin
@@ -159,7 +159,7 @@ begin
   end;
 end;
 
-{ TCocos2dLoader.TCocosFrame }
+{ TCocos2dLoader.TCocosFrame ------------------------------------------------ }
 
 procedure TCocos2dLoader.TCocosFrame.PrepareTexCordsForX3D(const ImageWidth,
   ImageHeight: Integer);
@@ -262,9 +262,7 @@ begin
             { full size of the sprite, the same as spriteSourceSize in format 3 }
             if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
               WasFrameSize := true;
-          end
-        else
-          continue;
+          end;
       end;
     end;
   finally
@@ -367,9 +365,7 @@ begin
             { full size of the sprite, the same as sourceSize in format 2 }
             if ReadDual(ValueNode.TextData, FullFrameWidth, FullFrameHeight) then
               WasFrameFullSize := true;
-          end
-        else
-          continue;
+          end;
       end;
     end;
   finally
@@ -411,6 +407,7 @@ end;
 
 constructor TCocos2dLoader.TCocosFrame.Create(const DisplayURL: String);
 begin
+  inherited Create;
   FDisplayURL := DisplayURL;
   { By default, use format 3 }
   FParseFrameDictionary := @ParseFrameDictionaryFormat3;
@@ -448,15 +445,15 @@ var
   CloseBracePos: Integer;
   CommaPos: Integer;
 begin
-  OpenBracePos := pos('{', ASrc);
+  OpenBracePos := Pos('{', ASrc);
   if OpenBracePos = 0 then
     Exit(false);
 
-  CloseBracePos := posEx('}', ASrc, OpenBracePos);
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
   if CloseBracePos = 0 then
     Exit(false);
 
-  CommaPos := posEx(',', ASrc, OpenBracePos);
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
   if CommaPos = 0 then
     Exit(false);
 
@@ -472,15 +469,15 @@ var
   CloseBracePos: Integer;
   CommaPos: Integer;
 begin
-  OpenBracePos := pos('{', ASrc);
+  OpenBracePos := Pos('{', ASrc);
   if OpenBracePos = 0 then
     Exit(false);
 
-  CloseBracePos := posEx('}', ASrc, OpenBracePos);
+  CloseBracePos := PosEx('}', ASrc, OpenBracePos);
   if CloseBracePos = 0 then
     Exit(false);
 
-  CommaPos := posEx(',', ASrc, OpenBracePos);
+  CommaPos := PosEx(',', ASrc, OpenBracePos);
   if CommaPos = 0 then
     Exit(false);
 
@@ -496,11 +493,11 @@ var
   OpenBracePos: Integer;
   CloseBracePos: Integer;
 begin
-  OpenBracePos := pos('{', ASrc);
+  OpenBracePos := Pos('{', ASrc);
   if OpenBracePos = 0 then
     Exit(false);
 
-  CloseBracePos := pos('}', ASrc);
+  CloseBracePos := Pos('}', ASrc);
   if CloseBracePos = 0 then
     Exit(false);
 
@@ -521,7 +518,7 @@ begin
   Result := true;
 end;
 
-{ TCocos2dLoader }
+{ TCocos2dLoader ------------------------------------------------------------ }
 
 procedure TCocos2dLoader.ReadImportSettings;
 var
@@ -732,12 +729,9 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
-  Material: TUnlitMaterialNode;
 begin
-  Shape:= TShapeNode.Create;
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Vector3(1, 1, 1);
-  Shape.Material := Material;
+  Shape := TShapeNode.Create;
+  Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
   Tex.FdUrl.Send(FImagePath);
@@ -863,6 +857,7 @@ end;
 
 constructor TCocos2dLoader.Create(const URL: String);
 begin
+  inherited Create;
   FURL := URL;
   FDisplayURL := URIDisplay(FURL);
 
