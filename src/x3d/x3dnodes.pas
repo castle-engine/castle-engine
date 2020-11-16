@@ -648,6 +648,7 @@ uses
 {$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dmetadatanode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
