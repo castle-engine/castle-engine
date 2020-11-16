@@ -169,7 +169,8 @@ class procedure TEventsHandler.Open(const Url: String);
   end;
 
 begin
-  { Scale reset - needed because we set viewport after model loading }
+  { Scale reset - to make the following Viewport.AssignDefaultCamera adjust
+    camera to the scene unscaled size }
   Scene.Scale := Vector3(1.0, 1.0, 1.0);
   Scene.Load(Url);
   Viewport.AssignDefaultCamera;
@@ -211,30 +212,11 @@ end;
 
 class procedure TEventsHandler.ButtonOpen2DStarlingClick(Sender: TObject);
 begin
-  { When using Starling files you can specyfy some options like:
-    - fps - frames per second for animations
-    - anim-naming - frame names in starling file can be named freely, but
-        in the case of our loader, we have to define what is the next frame
-        of the animation and what should be recognized as a separate animation.
-        Values:
-        - strict-underscore - default behavior treats as animation frames only
-            those subtextures whose names ends with an underscore followed
-            by a number. In this case, "walk_01", "walk_02" will be recognized
-            as next frames of the same animation "walk", but "item1", "item2"
-            will be treated as separate entities.
-        - trailing-number - in many cases, the consecutive frames of one
-            animation are named without underscore, eg "walk1", "walk2".
-            To load such subtextures as one animation use this option.
+  { When using Starling files you can specify some options, as URL anchors.
+    See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets .
 
-    Options are passed using an anchor separated by a comma, with
-    a colon between the value and the option name.
-
-    E.g. To set fps to 10 you can do:
-    <url here>#fps:10,anim-naming:strict-underscore
-
-    BTW. Sample starling file based on one of many great assets by Kenney
+    The sample Starling file below is based on one of many great assets by Kenney,
     check https://kenney.nl/ for more. }
-
   Open('castle-data:/starling/character_zombie_atlas.starling-xml' + CurrentUIStarlingSettingsToAnchor);
 
 end;
@@ -247,7 +229,8 @@ end;
 class procedure TEventsHandler.ButtonOpen2DImageClick(Sender: TObject);
 begin
   { You can open normal images in TCastleScene, optionaly you can set rect
-    from image in anchor (left, bottom, width, height). }
+    from image in anchor (left, bottom, width, height).
+    See https://github.com/castle-engine/castle-engine/wiki/Images . }
 
   { Full image }
   //Open('castle-data:/starling/character_zombie_atlas.png');
