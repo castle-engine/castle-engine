@@ -681,7 +681,7 @@ type
       This is automatically used by @link(TCastleWalkNavigation.MouseLook).
       You can use it yourself for custom effects "like mouse look". The template to use this
       is below.
-      See the CGE examples examples/2d_standard_ui/dragging_test/ for a working code
+      See the CGE examples examples/user_interface/dragging_test/ for a working code
       demonstrating this.
 
       @longCode(#

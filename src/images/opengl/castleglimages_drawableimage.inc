@@ -1306,7 +1306,7 @@ end;
     it seems like it doesn't receive DrawWidth correctly,
     and even when we workaround it, it calculates partial rectangles
     (for DrawAdd) incorrectly.
-    Testcase: e.g. examples/2d_standard_ui/show_various_ui_controls/ on Android/Aarch64.
+    Testcase: e.g. examples/user_interface/show_various_ui_controls/ on Android/Aarch64.
 
     TODO: Reproduce this in a simple testcase, submit to FPC devs. }
   {$optimization OFF}
