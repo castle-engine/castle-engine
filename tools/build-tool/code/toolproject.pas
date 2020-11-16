@@ -368,7 +368,7 @@ constructor TCastleProject.Create(const APath: string);
     DefautVersionCode = 1;
     { iOS requires version display to be <> '' }
     DefautVersionDisplayValue = '0.1';
-    DefaultAndroidCompileSdkVersion = 28;
+    DefaultAndroidCompileSdkVersion = 29;
     DefaultAndroidTargetSdkVersion = DefaultAndroidCompileSdkVersion;
     { See https://github.com/castle-engine/castle-engine/wiki/Android-FAQ#what-android-devices-are-supported
       for reasons behind this minimal version. }
