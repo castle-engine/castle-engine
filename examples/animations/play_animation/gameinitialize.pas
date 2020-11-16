@@ -308,9 +308,10 @@ var
   AnimationName: String;
   Params: TPlayAnimationParameters;
 begin
-  { This function is only to show loading options. In real application you can
-    also change options by finding and changing X3DNodes or other CastleScene Values
-    like Scene.CurrentAnimation.CycleInterval for changing animation speed. }
+  { This function is only to show that Starling loading options work.
+    In real application you would just load the scene with proper "fps" at the start,
+    and later change the speed at runtime by adjusting TCastleScene.TimePlayingSpeed,
+    without reloading the model. }
 
   { Check last loaded model was Starling }
   if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'image/starling-texture-atlas' then
