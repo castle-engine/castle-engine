@@ -190,7 +190,8 @@ begin
   if AnimationName = '' then
   begin
     WritelnWarning('Cocos2d',
-    'Incorrect animation name (%s), setting the name to "unknown"', [FrameFileName]);
+      'Incorrect animation name (%s), setting the name to "unknown"',
+      [FrameFileName]);
     AnimationName := 'unknown';
   end;
 end;
@@ -425,8 +426,8 @@ begin
       { If format is unsupported try use latest supported version and add warning. }
       FParseFrameDictionary := @ParseFrameDictionaryFormat3;
       WritelnWarning('Cocos2d',
-      'Unsupported format version %d in "%s", trying to load with the latest importer (format = 3).',
-      [Format, FDisplayURL]);
+        'Unsupported format version %d in "%s", trying to load with the latest importer (format = 3).',
+        [Format, FDisplayURL]);
   end;
 end;
 
@@ -537,7 +538,8 @@ begin
       begin
         FFramesPerSecond := StrToFloatDot(Setting.Value);
       end else
-        WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
+        WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.',
+          [Setting.Key, FDisplayURL]);
     end;
   finally
     FreeAndNil(SettingsMap);
@@ -820,26 +822,12 @@ end;
 procedure TCocos2dLoader.AddRoutes(const TimeSensor: TTimeSensorNode;
   const CoordInterp: TCoordinateInterpolatorNode;
   const TexCoordInterp: TCoordinateInterpolator2DNode);
-var
-  R1, R2, R3, R4: TX3DRoute;
 begin
   { Create routes. }
-  R1 := TX3DRoute.Create;
-  R2 := TX3DRoute.Create;
-  R3 := TX3DRoute.Create;
-  R4 := TX3DRoute.Create;
-  R1.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R1.SetDestinationDirectly(CoordInterp.EventSet_fraction);
-  R2.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R2.SetDestinationDirectly(TexCoordInterp.EventSet_fraction);
-  R3.SetSourceDirectly(CoordInterp.EventValue_changed);
-  R3.SetDestinationDirectly(FShapeCoord.FdPoint);
-  R4.SetSourceDirectly(TexCoordInterp.EventValue_changed);
-  R4.SetDestinationDirectly(FShapeTexCoord.FdPoint);
-  FRoot.AddRoute(R1);
-  FRoot.AddRoute(R2);
-  FRoot.AddRoute(R3);
-  FRoot.AddRoute(R4);
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
+  FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
+  FRoot.AddRoute(TexCoordInterp.EventValue_changed, FShapeTexCoord.FdPoint);
 end;
 
 function TCocos2dLoader.CheckAnimationNameAvailable(
@@ -847,7 +835,8 @@ function TCocos2dLoader.CheckAnimationNameAvailable(
 begin
   if FAnimationList.IndexOf(AnimationName) > -1 then
   begin
-    WritelnWarning('Starling', 'Mixed animations tags (animation: %s) in "%s".', [AnimationName, FDisplayURL]);
+    WritelnWarning('Starling', 'Mixed animations tags (animation: %s) in "%s".',
+      [AnimationName, FDisplayURL]);
     Exit(false);
   end;
 

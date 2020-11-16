@@ -111,7 +111,8 @@ begin
       if LowerCase(Setting.Key) = 'height' then
         FHeight := StrToInt(Setting.Value)
       else
-        WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
+        WritelnWarning('ImageAsX3DModel', 'Unknown setting (%s) in "%s" anchor.',
+          [Setting.Key, FDisplayURL]);
     end;
   finally
     FreeAndNil(SettingsMap);
