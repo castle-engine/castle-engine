@@ -21,7 +21,6 @@ begin
     use these properties to get/set metadata, then it remains simple. }
 
   Transform.MetadataBoolean['my_boolean_value', 0] := true;
-  Save3D(Root, 'my.x3d');
   Assert(Transform.MetadataBoolean['my_boolean_value', 0]);
 
   Transform.MetadataString['my_string_value', 0] := 'apple';
