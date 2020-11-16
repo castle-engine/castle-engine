@@ -84,11 +84,12 @@ type
     procedure TestAttenuation;
     procedure TestAddChildren;
     procedure TestAddChildrenAllowDuplicates;
+    procedure TestMetadata;
   end;
 
 implementation
 
-uses Generics.Collections,
+uses Generics.Collections, Math,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
   X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime,
   CastleApplicationProperties, CastleTextureImages;
@@ -1949,6 +1950,56 @@ begin
       AssertEquals(9, G.FdChildren.Count);
     finally FreeAndNil(FieldToSend) end;
   finally FreeAndNil(G) end;
+end;
+
+procedure TTestX3DNodes.TestMetadata;
+var
+  Transform: TTransformNode;
+  MetadataString: TMetadataStringNode;
+begin
+  Transform := TTransformNode.Create;
+
+  { Advised way: use properties
+    MetadataBoolean / MetadataString  / MetadataInteger / MetadataDouble.
+    Think of each metadata, as a mapping from a unique key (string) ->
+    to an array of booleans / strings / integers / doubles.
+
+    Underneath, more complicated scenarios are possible, but if you only
+    use these properties to get/set metadata, then it remains simple. }
+
+  Transform.MetadataBoolean['my_boolean_value', 0] := true;
+  Assert(Transform.MetadataBoolean['my_boolean_value', 0]);
+
+  Transform.MetadataString['my_string_value', 0] := 'apple';
+  Transform.MetadataString['my_string_value', 2] := 'banana';
+  Assert((Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count = 3);
+  Assert(Transform.MetadataString['my_string_value', 0] = 'apple');
+  Assert(Transform.MetadataString['my_string_value', 1] = '');
+  Assert(Transform.MetadataString['my_string_value', 2] = 'banana');
+
+  Transform.MetadataInteger['my_integer_value', 2] := 123;
+  Assert(Transform.MetadataInteger['my_integer_value', 0] = 0);
+  Assert(Transform.MetadataInteger['my_integer_value', 1] = 0);
+  Assert(Transform.MetadataInteger['my_integer_value', 2] = 123);
+
+  Transform.MetadataDouble['my_double_value', 0] := 123.456;
+  Assert(SameValue(Transform.MetadataDouble['my_double_value', 0], 123.456));
+
+  { More manual way (not advised) }
+  MetadataString := TMetadataStringNode.Create;
+  MetadataString.NameField := 'fruit-type';
+  MetadataString.SetValue(['banana']);
+  (Transform.Metadata as TMetadataSetNode).FdValue.Add(MetadataString);
+
+  Assert(Transform.Metadata is TMetadataSetNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Count = 5);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[0] is TMetadataBooleanNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[1] is TMetadataStringNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[2] is TMetadataIntegerNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[3] is TMetadataDoubleNode);
+  Assert((Transform.Metadata as TMetadataSetNode).FdValue.Items[4] = MetadataString);
+
+  FreeAndNil(Transform);
 end;
 
 initialization
