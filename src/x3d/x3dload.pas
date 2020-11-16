@@ -336,7 +336,7 @@ begin
 
   if (MimeType = 'application/x-starling-sprite-sheet') or
      (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-starling-sprite-sheet') then
-    Result := LoadStarlingTextureAtlas(URL)
+    Result := LoadStarlingSpriteSheet(URL)
   else
 
   if (MimeType = 'application/x-plist') or

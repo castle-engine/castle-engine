@@ -16,8 +16,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Starling 2D animations loader.
+{ Starling sprite sheet loader.
 
+  See: https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets
   Starling Texture Atlas Spec: https://doc.starling-framework.org/current/starling/textures/TextureAtlas.html
 }
 unit X3DLoadInternalStarling;
@@ -26,30 +27,36 @@ unit X3DLoadInternalStarling;
 
 interface
 
-uses Classes, SysUtils, DOM,
-  X3DNodes,
-  CastleTextureImages, CastleVectors;
+uses Classes, SysUtils,
+  X3DNodes;
 
 type
   { Starling XML file is not correct }
   EInvalidStarlingXml = class(Exception);
 
+function LoadStarlingSpriteSheet(const URL: String): TX3DRootNode;
+
+implementation
+
+uses StrUtils, DOM,
+  CastleImages, CastleLog, CastleStringUtils, CastleTextureImages,
+  CastleURIUtils, CastleUtils, CastleVectors, CastleXMLUtils;
+
+type
   { Frame names in starling file can be named freely, but in the case of our loader,
     we have to define what is the next frame of the animation and what should
-    be recognized as a separate animation. }
+    be recognized as a separate animation.
+    See https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets }
   TStarlingAnimationNaming = (
     { Default behavior treats as animation frames only those subtextures whose
-      names ends with an underscore followed by a number.
-      In this case, "walk_01", "walk_02" will be recognized as next frames of the
-      same animation, but "item1", "item2" will be treated as separate entities. }
+      names ends with an underscore followed by a number. }
     anStrictUnderscore,
     { In many cases, the consecutive frames of one animation are named
-      without underscore, eg "walk1", "walk2". To load such subtextures as one animation
-      use the anTralingNumber option. }
+      without underscore. }
     anTralingNumber
   );
 
-  TStarlingTextureAtlasLoader = class
+  TStarlingSpriteSheetLoader = class
   strict private
     type
       { Class that represents SubTexture from Starling xml file }
@@ -126,19 +133,11 @@ type
     function Load: TX3DRootNode;
   end;
 
-function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
-
-implementation
-
-uses StrUtils,
-  CastleImages, CastleLog, CastleStringUtils, CastleURIUtils, CastleUtils,
-  CastleXMLUtils;
-
-function LoadStarlingTextureAtlas(const URL: String): TX3DRootNode;
+function LoadStarlingSpriteSheet(const URL: String): TX3DRootNode;
 var
-  StarlingLoader: TStarlingTextureAtlasLoader;
+  StarlingLoader: TStarlingSpriteSheetLoader;
 begin
-  StarlingLoader := TStarlingTextureAtlasLoader.Create(URL);
+  StarlingLoader := TStarlingSpriteSheetLoader.Create(URL);
   try
     Result := StarlingLoader.Load;
   finally
@@ -146,9 +145,9 @@ begin
   end;
 end;
 
-{ TStarlingTextureAtlasLoader }
+{ TStarlingTextureAtlasLoader ------------------------------------------------}
 
-procedure TStarlingTextureAtlasLoader.ReadImportSettings;
+procedure TStarlingSpriteSheetLoader.ReadImportSettings;
 var
   SettingsMap: TStringStringMap;
   Setting: TStringStringMap.TDictionaryPair;
@@ -172,22 +171,24 @@ begin
         else if Setting.Value = 'trailing-number' then
           FSubTexture.FAnimationNaming := anTralingNumber
         else
-          WritelnWarning('Starling', 'Unknown anim-naming value (%s) in "%s" anchor.', [Setting.Value, FDisplayURL]);
+          WritelnWarning('Starling', 'Unknown anim-naming value (%s) in "%s" anchor.',
+            [Setting.Value, FDisplayURL]);
       end else
-        WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.', [Setting.Key, FDisplayURL]);
+        WritelnWarning('Starling', 'Unknown setting (%s) in "%s" anchor.',
+          [Setting.Key, FDisplayURL]);
     end;
   finally
     FreeAndNil(SettingsMap);
   end;
 end;
 
-procedure TStarlingTextureAtlasLoader.PrepareX3DRoot;
+procedure TStarlingSpriteSheetLoader.PrepareX3DRoot;
 begin
   FRoot.Meta['generator'] := 'Castle Game Engine, https://castle-engine.io';
   FRoot.Meta['source'] := ExtractURIName(FURL);
 end;
 
-procedure TStarlingTextureAtlasLoader.ReadImageProperties(const URL: String;
+procedure TStarlingSpriteSheetLoader.ReadImageProperties(const URL: String;
   const AtlasNode: TDOMElement);
 var
   Image: TCastleImage;
@@ -211,7 +212,7 @@ begin
   end;
 end;
 
-procedure TStarlingTextureAtlasLoader.CalculateFrameCoords(
+procedure TStarlingSpriteSheetLoader.CalculateFrameCoords(
   const SubTexture: TStarlingSubTexture);
 begin
   FCoordArray[0] := Vector3(-SubTexture.Width * (SubTexture.AnchorX),
@@ -240,18 +241,15 @@ begin
   FTexCoordArray[5] := Vector2(SubTexture.X1, SubTexture.Y2);
 end;
 
-procedure TStarlingTextureAtlasLoader.PrepareShape(
+procedure TStarlingSpriteSheetLoader.PrepareShape(
   const CoordArray: array of TVector3; const TexCoordArray: array of TVector2);
 var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
-  Material: TUnlitMaterialNode;
 begin
-  Shape:= TShapeNode.Create;
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Vector3(1, 1, 1);
-  Shape.Material := Material;
+  Shape := TShapeNode.Create;
+  Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
   Tex.FdUrl.Send(FImagePath);
@@ -287,7 +285,7 @@ begin
   FRoot.AddChildren(Shape);
 end;
 
-procedure TStarlingTextureAtlasLoader.AddFrameCoords(
+procedure TStarlingSpriteSheetLoader.AddFrameCoords(
     const CoordInterp: TCoordinateInterpolatorNode;
     const TexCoordInterp: TCoordinateInterpolator2DNode);
 begin
@@ -298,7 +296,7 @@ begin
   TexCoordInterp.FdKeyValue.Items.AddRange(FTexCoordArray);
 end;
 
-procedure TStarlingTextureAtlasLoader.AddAnimation(const FrameCount: Integer;
+procedure TStarlingSpriteSheetLoader.AddAnimation(const FrameCount: Integer;
   const TimeSensor: TTimeSensorNode;
   const CoordInterp: TCoordinateInterpolatorNode;
   const TexCoordInterp: TCoordinateInterpolator2DNode);
@@ -337,38 +335,25 @@ begin
   AddRoutes(TimeSensor, CoordInterp, TexCoordInterp);
 end;
 
-procedure TStarlingTextureAtlasLoader.AddRoutes(
+procedure TStarlingSpriteSheetLoader.AddRoutes(
   const TimeSensor: TTimeSensorNode;
   const CoordInterp: TCoordinateInterpolatorNode;
   const TexCoordInterp: TCoordinateInterpolator2DNode);
-var
-  R1, R2, R3, R4: TX3DRoute;
 begin
   { Create routes. }
-  R1 := TX3DRoute.Create;
-  R2 := TX3DRoute.Create;
-  R3 := TX3DRoute.Create;
-  R4 := TX3DRoute.Create;
-  R1.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R1.SetDestinationDirectly(CoordInterp.EventSet_fraction);
-  R2.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  R2.SetDestinationDirectly(TexCoordInterp.EventSet_fraction);
-  R3.SetSourceDirectly(CoordInterp.EventValue_changed);
-  R3.SetDestinationDirectly(FShapeCoord.FdPoint);
-  R4.SetSourceDirectly(TexCoordInterp.EventValue_changed);
-  R4.SetDestinationDirectly(FShapeTexCoord.FdPoint);
-  FRoot.AddRoute(R1);
-  FRoot.AddRoute(R2);
-  FRoot.AddRoute(R3);
-  FRoot.AddRoute(R4);
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, CoordInterp.EventSet_fraction);
+  FRoot.AddRoute(TimeSensor.EventFraction_changed, TexCoordInterp.EventSet_fraction);
+  FRoot.AddRoute(CoordInterp.EventValue_changed, FShapeCoord.FdPoint);
+  FRoot.AddRoute(TexCoordInterp.EventValue_changed, FShapeTexCoord.FdPoint);
 end;
 
-function TStarlingTextureAtlasLoader.CheckAnimationNameAvailable(
+function TStarlingSpriteSheetLoader.CheckAnimationNameAvailable(
     const AnimationName: String): Boolean;
 begin
   if FAnimationList.IndexOf(AnimationName) > -1 then
   begin
-    WritelnWarning('Starling', 'Mixed animations tags (animation: %s) in "%s".', [AnimationName, FDisplayURL]);
+    WritelnWarning('Starling', 'Mixed animations tags (animation: %s) in "%s".',
+      [AnimationName, FDisplayURL]);
     Exit(false);
   end;
 
@@ -377,8 +362,9 @@ begin
 end;
 
 
-constructor TStarlingTextureAtlasLoader.Create(const URL: String);
+constructor TStarlingSpriteSheetLoader.Create(const URL: String);
 begin
+  inherited Create;
   FURL := URL;
   FDisplayURL := URIDisplay(FURL);
 
@@ -388,7 +374,14 @@ begin
   FAnimationList := TStringList.Create;
 end;
 
-function TStarlingTextureAtlasLoader.Load: TX3DRootNode;
+destructor TStarlingSpriteSheetLoader.Destroy;
+begin
+  FreeAndNil(FSubTexture);
+  FreeAndNil(FAnimationList);
+  inherited Destroy;
+end;
+
+function TStarlingSpriteSheetLoader.Load: TX3DRootNode;
 var
   Doc: TXMLDocument;
   Node: TDOMNode;
@@ -409,11 +402,11 @@ begin
     try
       FRoot := TX3DRootNode.Create;
       Doc := URLReadXML(FURL);
-      Node := Doc.FindNode('TextureAtlas');
-      if (Node = nil) or (Node.NodeType <> ELEMENT_NODE) then
-        raise EInvalidStarlingXml.CreateFmt('Invalid Starling XML file "%s" - TextureAtlas node not found.', [FDisplayURL]);
-      AtlasNode := Node as TDOMElement;
 
+      Check(Doc.DocumentElement.TagName8 = 'TextureAtlas',
+        'Root of Starling sprite sheet file must be <TextureAtlas>');
+
+      AtlasNode := Doc.DocumentElement;
       ReadImageProperties(FURL, AtlasNode);
 
       CurrentAnimFrameCount := 0;
@@ -482,16 +475,9 @@ begin
   end;
 end;
 
-destructor TStarlingTextureAtlasLoader.Destroy;
-begin
-  FreeAndNil(FSubTexture);
-  FreeAndNil(FAnimationList);
-  inherited Destroy;
-end;
-
 { TStarlingSubTexture }
 
-procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.PrepareTexCordsForX3D(
+procedure TStarlingSpriteSheetLoader.TStarlingSubTexture.PrepareTexCordsForX3D(
   const ImageWidth, ImageHeight: Integer);
 begin
   { The input data (X1, Y1) are the coordinates in the texture.
@@ -504,7 +490,7 @@ begin
   Y1 := 1 - 1 / ImageHeight * Y1;
 end;
 
-procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ParseAnimationName(
+procedure TStarlingSpriteSheetLoader.TStarlingSubTexture.ParseAnimationName(
   const SubTextureName: String);
 var
   UnderscorePos: SizeInt;
@@ -545,12 +531,12 @@ begin
   if AnimationName = '' then
   begin
     WritelnWarning('Starling', 'Incorrect animation name (%s), I set to "unknown"',
-    [SubTextureName]);
+      [SubTextureName]);
     AnimationName := 'unknown';
   end;
 end;
 
-procedure TStarlingTextureAtlasLoader.TStarlingSubTexture.ReadFormXMLNode(
+procedure TStarlingSpriteSheetLoader.TStarlingSubTexture.ReadFormXMLNode(
     const SubTextureNode: TDOMElement; const ImageWidth, ImageHeight: Integer);
 var
   FrameXTrimOffset: Integer;
@@ -601,8 +587,9 @@ begin
   PrepareTexCordsForX3D(ImageWidth, ImageHeight);
 end;
 
-constructor TStarlingTextureAtlasLoader.TStarlingSubTexture.Create;
+constructor TStarlingSpriteSheetLoader.TStarlingSubTexture.Create;
 begin
+  inherited Create;
   FAnimationNaming := anStrictUnderscore;
 end;
 
