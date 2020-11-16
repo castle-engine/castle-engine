@@ -135,13 +135,13 @@ class procedure TEventsHandler.Open(const Url: String);
     SliderScale.OnChange := @TEventsHandler(nil).ScaleChanged;
 
     CheckboxMagFilterNearest := TCastleCheckbox.Create(LoadOptionsPanel);
-    CheckboxMagFilterNearest.Checked := Scene.Attributes.MagnificationFilter = magNearest;
+    CheckboxMagFilterNearest.Checked := Scene.RenderOptions.MagnificationFilter = magNearest;
     CheckboxMagFilterNearest.Caption := 'Nearest magnification filter';
     ScrollGroup.InsertFront(CheckboxMagFilterNearest);
     CheckboxMagFilterNearest.OnChange := @TEventsHandler(nil).TextureMagOptionsChanged;
 
     CheckboxMinFilterNearest := TCastleCheckbox.Create(LoadOptionsPanel);
-    CheckboxMinFilterNearest.Checked := Scene.Attributes.MinificationFilter = minNearest;
+    CheckboxMinFilterNearest.Checked := Scene.RenderOptions.MinificationFilter = minNearest;
     CheckboxMinFilterNearest.Caption := 'Nearest minification filter';
     ScrollGroup.InsertFront(CheckboxMinFilterNearest);
     CheckboxMinFilterNearest.OnChange := @TEventsHandler(nil).TextureMinOptionsChanged;
@@ -279,9 +279,9 @@ end;
 class procedure TEventsHandler.TextureMagOptionsChanged(Sender: TObject);
 begin
   if CheckboxMagFilterNearest.Checked then
-    Scene.Attributes.MagnificationFilter := magNearest
+    Scene.RenderOptions.MagnificationFilter := magNearest
   else
-    Scene.Attributes.MagnificationFilter := magDefault;
+    Scene.RenderOptions.MagnificationFilter := magDefault;
 end;
 
 class procedure TEventsHandler.TextureMinOptionsChanged(Sender: TObject);
@@ -298,9 +298,9 @@ begin
     But to keep example UI simple we change only minNearest and minDefault. }
 
   if CheckboxMinFilterNearest.Checked then
-    Scene.Attributes.MinificationFilter := minNearest
+    Scene.RenderOptions.MinificationFilter := minNearest
   else
-    Scene.Attributes.MinificationFilter := minDefault;
+    Scene.RenderOptions.MinificationFilter := minDefault;
 end;
 
 class procedure TEventsHandler.StarlingOptionsChanged(Sender: TObject);
