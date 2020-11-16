@@ -314,7 +314,7 @@ begin
     without reloading the model. }
 
   { Check last loaded model was Starling }
-  if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'image/starling-texture-atlas' then
+  if URIMimeType(URIDeleteAnchor(Scene.URL)) <> 'application/x-starling-sprite-sheet' then
     Exit;
 
   try
