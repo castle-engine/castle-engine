@@ -1,4 +1,9 @@
-{ Getting and setting metadata of X3D nodes. }
+{ Getting and setting metadata of X3D nodes.
+
+  Note: for more details, see the MetadataXxx API docs,
+  and testcase in tests/code/testx3dnodes.pas . }
+
+{$apptype CONSOLE}
 
 uses SysUtils, Math,
   X3DNodes;
@@ -6,6 +11,7 @@ var
   Root: TX3DRootNode;
   Transform: TTransformNode;
   MetadataString: TMetadataStringNode;
+  I, StringCount: Integer;
 begin
   Root := TX3DRootNode.Create;
 
@@ -21,22 +27,20 @@ begin
     use these properties to get/set metadata, then it remains simple. }
 
   Transform.MetadataBoolean['my_boolean_value', 0] := true;
-  Assert(Transform.MetadataBoolean['my_boolean_value', 0]);
+  Writeln('Got back Boolean: ', Transform.MetadataBoolean['my_boolean_value', 0]);
 
   Transform.MetadataString['my_string_value', 0] := 'apple';
   Transform.MetadataString['my_string_value', 2] := 'banana';
-  Assert((Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count = 3);
-  Assert(Transform.MetadataString['my_string_value', 0] = 'apple');
-  Assert(Transform.MetadataString['my_string_value', 1] = '');
-  Assert(Transform.MetadataString['my_string_value', 2] = 'banana');
+  StringCount := (Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count;
+  Writeln('Got back String array Count ', StringCount);
+  for I := 0 to StringCount - 1 do
+    Writeln('Got back String array[', I, ']: ', Transform.MetadataString['my_string_value', I]);
 
   Transform.MetadataInteger['my_integer_value', 2] := 123;
-  Assert(Transform.MetadataInteger['my_integer_value', 0] = 0);
-  Assert(Transform.MetadataInteger['my_integer_value', 1] = 0);
-  Assert(Transform.MetadataInteger['my_integer_value', 2] = 123);
+  Writeln('Got back Integer: ', Transform.MetadataInteger['my_integer_value', 2]);
 
   Transform.MetadataDouble['my_double_value', 0] := 123.456;
-  Assert(SameValue(Transform.MetadataDouble['my_double_value', 0], 123.456));
+  Writeln('Got back Double: ', Transform.MetadataDouble['my_double_value', 0]:1:6);
 
   { More manual way (not advised) }
   MetadataString := TMetadataStringNode.Create;

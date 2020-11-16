@@ -1967,23 +1967,33 @@ begin
     Underneath, more complicated scenarios are possible, but if you only
     use these properties to get/set metadata, then it remains simple. }
 
+  Assert(not Transform.MetadataBoolean['my_boolean_value', 0]); // not yet set, means it is false
   Transform.MetadataBoolean['my_boolean_value', 0] := true;
   Assert(Transform.MetadataBoolean['my_boolean_value', 0]);
 
+  Assert(Transform.MetadataString['my_string_value', 0] = ''); // not yet set, means it is ''
+  Assert(Transform.MetadataString['my_boolean_value', 0] = ''); // invalid type, means it is ''
   Transform.MetadataString['my_string_value', 0] := 'apple';
   Transform.MetadataString['my_string_value', 2] := 'banana';
   Assert((Transform.FindMetadata('my_string_value') as TMetadataStringNode).FdValue.Count = 3);
   Assert(Transform.MetadataString['my_string_value', 0] = 'apple');
-  Assert(Transform.MetadataString['my_string_value', 1] = '');
+  Assert(Transform.MetadataString['my_string_value', 1] = ''); // middle value is empty
   Assert(Transform.MetadataString['my_string_value', 2] = 'banana');
+  Assert(Transform.MetadataString['my_string_value', 3] = ''); // not yet set, means it is ''
 
+  Assert(Transform.MetadataInteger['my_integer_value', 0] = 0); // not yet set, means it is ''
+  Assert(Transform.MetadataInteger['my_boolean_value', 0] = 0); // invalid type, means it is ''
   Transform.MetadataInteger['my_integer_value', 2] := 123;
   Assert(Transform.MetadataInteger['my_integer_value', 0] = 0);
   Assert(Transform.MetadataInteger['my_integer_value', 1] = 0);
   Assert(Transform.MetadataInteger['my_integer_value', 2] = 123);
+  Assert(Transform.MetadataInteger['my_integer_value', 1233] = 0);
 
+  Assert(Transform.MetadataDouble['my_double_value', 0] = 0.0); // not yet set, means it is 0.0
+  Assert(Transform.MetadataDouble['my_boolean_value', 0] = 0); // invalid type, means it is 0.0
   Transform.MetadataDouble['my_double_value', 0] := 123.456;
   Assert(SameValue(Transform.MetadataDouble['my_double_value', 0], 123.456));
+  Assert(Transform.MetadataDouble['my_double_value', 1233] = 0.0);
 
   { More manual way (not advised) }
   MetadataString := TMetadataStringNode.Create;
