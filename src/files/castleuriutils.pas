@@ -35,17 +35,19 @@ uses Classes,
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean = false);
 
-{ Extracts #anchor from URI. On input, URI contains full URI.
-  On output, Anchor is removed from URI and saved in TStringStringMap
-  If no #anchor existed, SettingsFromAnchor will be empty.
+{ Extract #anchor from an URI, and split it into a key-value map.
 
-  When RecognizeEvenEscapedHash, we also recognize as a delimiter
-  escaped hash, %23. This is a hack and should not be used (prevents
-  from using actual filename with hash, thus making the escaping process
-  useless). Unless there's no other sensible way --- e.g. specify
-  Spine skin name when opening Spine json file... }
-procedure URIExtractAnchor(var URI: string; const SettingsFromAnchor: TStringStringMap;
-  const RecognizeEvenEscapedHash: boolean = false);
+  This supports special CGE syntax within URL anchor to specify loading parameters for
+  @url(https://github.com/castle-engine/castle-engine/wiki/Spine Spine),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Sprite-sheets sprite sheets),
+  @url(https://github.com/castle-engine/castle-engine/wiki/Images images).
+
+  On input, URI contains full URI.
+  On output, Anchor is removed from URI and they key-value pairs are saved in TStringStringMap.
+  The SettingsFromAnchor is always cleared at the beginning.
+  If no anchor existed, SettingsFromAnchor will be empty when this ends. }
+procedure URIExtractSettingsFromAnchor(var URI: string;
+  const SettingsFromAnchor: TStringStringMap);
 
 { Return URI with anchor (if was any) stripped. }
 function URIDeleteAnchor(const URI: string;
@@ -401,11 +403,11 @@ begin
   end;
 end;
 
-procedure URIExtractAnchor(var URI: string;
-  const SettingsFromAnchor: TStringStringMap;
-  const RecognizeEvenEscapedHash: boolean);
+procedure URIExtractSettingsFromAnchor(var URI: string;
+  const SettingsFromAnchor: TStringStringMap);
 var
   URLForDisplay: String;
+
   procedure ProcessAnchorPart(const Part: String);
   var
     Semicolon: Integer;
@@ -424,13 +426,14 @@ var
       SettingsFromAnchor.Add(PartName, PartValue);
     end;
   end;
+
 var
   Anchor, AnchorPart: String;
   SeekPos: Integer;
 begin
   URLForDisplay := URIDisplay(URI);
 
-  URIExtractAnchor(URI, Anchor, RecognizeEvenEscapedHash);
+  URIExtractAnchor(URI, Anchor);
   SettingsFromAnchor.Clear;
 
   if Anchor = '' then

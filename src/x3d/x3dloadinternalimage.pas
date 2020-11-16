@@ -99,7 +99,7 @@ begin
 
   SettingsMap := TStringStringMap.Create;
   try
-    URIExtractAnchor(FURL, SettingsMap);
+    URIExtractSettingsFromAnchor(FURL, SettingsMap);
     for Setting in SettingsMap do
     begin
       if LowerCase(Setting.Key) = 'left' then
