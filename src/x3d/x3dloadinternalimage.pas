@@ -16,18 +16,22 @@
 { Simple loader of image files to TCastleScene. }
 unit X3DLoadInternalImage;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 interface
 
 uses
   Classes, SysUtils,
-  X3DNodes,
+  X3DNodes;
+
+function LoadImageAsNode(const URL: String): TX3DRootNode;
+
+implementation
+
+uses CastleImages, CastleLog, CastleURIUtils, CastleStringUtils,
   CastleTextureImages, CastleVectors;
 
 type
-
-  { TImageAsX3DModelLoader }
 
   TImageAsX3DModelLoader = class
   strict private
@@ -66,14 +70,7 @@ type
     function Load: TX3DRootNode;
   end;
 
-
-function LoadImageAsX3DModel(const URL: String): TX3DRootNode;
-
-implementation
-
-uses CastleImages, CastleLog, CastleURIUtils, CastleStringUtils;
-
-function LoadImageAsX3DModel(const URL: String): TX3DRootNode;
+function LoadImageAsNode(const URL: String): TX3DRootNode;
 var
   ImageLoader: TImageAsX3DModelLoader;
 begin
@@ -85,7 +82,7 @@ begin
   end;
 end;
 
-{ TImageAsX3DModelLoader }
+{ TImageAsX3DModelLoader ---------------------------------------------------- }
 
 procedure TImageAsX3DModelLoader.ReadImportSettings;
 var
@@ -139,6 +136,8 @@ var
   Image: TCastleImage;
 begin
   FImagePath := URL;
+  { Do not load image when user specifies the image size in the anchor
+    settings. }
   if (FImageWidth > 0) and (FImageHeight > 0) then
     Exit;
 
@@ -197,12 +196,9 @@ var
   Shape: TShapeNode;
   Tri: TTriangleSetNode;
   Tex: TImageTextureNode;
-  Material: TUnlitMaterialNode;
 begin
-  Shape:= TShapeNode.Create;
-  Material := TUnlitMaterialNode.Create;
-  Material.EmissiveColor := Vector3(1, 1, 1);
-  Shape.Material := Material;
+  Shape := TShapeNode.Create;
+  Shape.Material := TUnlitMaterialNode.Create;
 
   Tex := TImageTextureNode.Create;
   Tex.FdUrl.Send(FImagePath);
@@ -240,6 +236,7 @@ end;
 
 constructor TImageAsX3DModelLoader.Create(const URL: String);
 begin
+  inherited Create;
   FImageWidth := 0;
   FImageHeight := 0;
 

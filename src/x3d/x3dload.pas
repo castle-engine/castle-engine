@@ -348,7 +348,7 @@ begin
 
   { Support for simple graphics images like PNG }
   if URIMimeExtensions.ContainsKey(ExtractFileExt(URIDeleteAnchor(URL, true))) then
-    Result := LoadImageAsX3DModel(URL)
+    Result := LoadImageAsNode(URL)
   else
 
   if NilOnUnrecognizedFormat then
