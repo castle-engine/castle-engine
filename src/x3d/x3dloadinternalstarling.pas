@@ -520,10 +520,8 @@ begin
       begin
         RemoveTrailingChars(AnimationName, ['0'..'9']);
 
-        { Remove trailing underscore if there is more than one char }
-        AnimationNameLength := Length(AnimationName);
-        if (AnimationNameLength > 1) and (AnimationName[AnimationNameLength] = '_') then
-          delete(AnimationName, AnimationNameLength, 1);
+        if AnimationName <> '_' then // do not remove underscore if it's the only character in name
+          AnimationName := SuffixRemove('_', AnimationName, false);
       end;
   end;
 
