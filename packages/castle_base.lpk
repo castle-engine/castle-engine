@@ -66,19 +66,12 @@ end;"/>
     </CompilerOptions>
     <Description Value="Castle Game Engine is an open-source 3D and 2D game engine. We support many game model formats (glTF, X3D, Spine...), we are cross-platform (desktop, mobile, console), we have an optimized renderer with many cool graphic effects (physically-based rendering, shadows, mirrors, bump mapping, gamma correction...). See https://castle-engine.io/features.php for a complete list of features.
 
-
-
 This package, castle_base.lpk, contains the core engine units. It is not dependent on CastleWindow or Lazarus LCL.
-
-
 
 You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU LGPL with static linking exception >= 2.
-
 This is the same license as used by Lazarus LCL and FPC RTL.
-
 See https://castle-engine.io/license.php for details.
-
 "/>
     <Version Major="6" Minor="5"/>
     <Files Count="716">
