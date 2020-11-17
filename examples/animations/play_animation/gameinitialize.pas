@@ -248,7 +248,7 @@ begin
   if Window.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
   begin
     { In case of Starling add current settings }
-    if URIMimeType(Url) = 'image/starling-texture-atlas' then
+    if URIMimeType(Url) = 'application/x-starling-sprite-sheet' then
       Open(Url + CurrentUIStarlingSettingsToAnchor)
     else
       Open(Url);
