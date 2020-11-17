@@ -370,148 +370,148 @@
           "$Children" : [
           ],
           "$ClassName" : "TCastleButton"
-        },
-        {
-          "AutoSize" : false,
-          "Caption" : "Custom Background Image (Larger)",
-          "CustomBackground" : true,
-          "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundNormal" : {
-            "ProtectedSides" : {
-              "AllSides" : 3.8000000000000000E+001,
-              "$ClassName" : "TBorder"
-            },
-            "URL" : "castle-data:/box.png",
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomTextColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "CustomTextColorUse" : true,
-          "Height" : 2.5000000000000000E+002,
-          "HorizontalAnchorDelta" : 9.4000000000000000E+002,
-          "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "Name" : "ButtonCustomBackgroundLarge",
-          "TintDisabledPersistent" : {
-            "Blue" : 5.0196081399917603E-001,
-            "Green" : 5.0196081399917603E-001,
-            "Red" : 5.0196081399917603E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintNormalPersistent" : {
-            "Blue" : 9.3333333730697632E-001,
-            "Green" : 9.3333333730697632E-001,
-            "Red" : 9.3333333730697632E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintPressedPersistent" : {
-            "Blue" : 9.0196079015731812E-001,
-            "Green" : 9.0196079015731812E-001,
-            "Red" : 9.0196079015731812E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "VerticalAnchorDelta" : 2.5486450195312500E+000,
-          "Width" : 4.5000000000000000E+002,
-          "$Children" : [
-            {
-              "ColorPersistent" : {
-                "Blue" : 8.1568628549575806E-001,
-                "Green" : 8.1568628549575806E-001,
-                "Red" : 8.1568628549575806E-001,
-                "$ClassName" : "TCastleColorPersistent"
-              },
-              "HorizontalAnchorDelta" : 1.0000000000000000E+001,
-              "HorizontalAnchorParent" : "hpMiddle",
-              "HorizontalAnchorSelf" : "hpMiddle",
-              "Name" : "LabelInsideButtonCustomBackgroundLarge",
-              "Text" : [
-                "Button is larger, ",
-                "but the background image is scaled ",
-                "with ProtectedSides (3x3 rendering),",
-                "so the button borders still look OK."
-              ],
-              "VerticalAnchorDelta" : -6.0000000000000000E+001,
-              "VerticalAnchorParent" : "vpMiddle",
-              "VerticalAnchorSelf" : "vpMiddle",
-              "$Children" : [
-              ],
-              "$ClassName" : "TCastleLabel"
-            }
-          ],
-          "$ClassName" : "TCastleButton"
-        },
-        {
-          "AutoSize" : false,
-          "Caption" : "Custom Background Image",
-          "CustomBackground" : true,
-          "CustomBackgroundDisabled" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundFocused" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundNormal" : {
-            "ProtectedSides" : {
-              "AllSides" : 3.8000000000000000E+001,
-              "$ClassName" : "TBorder"
-            },
-            "URL" : "castle-data:/box.png",
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomBackgroundPressed" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "CustomTextColorPersistent" : {
-            "Blue" : 1.0000000000000000E+000,
-            "Green" : 1.0000000000000000E+000,
-            "Red" : 1.0000000000000000E+000,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "CustomTextColorUse" : true,
-          "HorizontalAnchorDelta" : 6.1000000000000000E+002,
-          "Image" : {
-            "$ClassName" : "TCastleImagePersistent"
-          },
-          "Name" : "ButtonCustomBackground",
-          "TintDisabledPersistent" : {
-            "Blue" : 5.0196081399917603E-001,
-            "Green" : 5.0196081399917603E-001,
-            "Red" : 5.0196081399917603E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintNormalPersistent" : {
-            "Blue" : 9.3333333730697632E-001,
-            "Green" : 9.3333333730697632E-001,
-            "Red" : 9.3333333730697632E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "TintPressedPersistent" : {
-            "Blue" : 9.0196079015731812E-001,
-            "Green" : 9.0196079015731812E-001,
-            "Red" : 9.0196079015731812E-001,
-            "$ClassName" : "TCastleColorPersistent"
-          },
-          "VerticalAnchorDelta" : 2.5487670898437500E+000,
-          "Width" : 3.2000000000000000E+002,
-          "$Children" : [
-          ],
-          "$ClassName" : "TCastleButton"
         }
       ],
       "$ClassName" : "TCastleUserInterface"
+    },
+    {
+      "AutoSize" : false,
+      "Caption" : "Custom Background Image",
+      "CustomBackground" : true,
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "ProtectedSides" : {
+          "AllSides" : 3.8000000000000000E+001,
+          "$ClassName" : "TBorder"
+        },
+        "URL" : "castle-data:/box.png",
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomTextColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorUse" : true,
+      "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonCustomBackground",
+      "TintDisabledPersistent" : {
+        "Blue" : 5.0196081399917603E-001,
+        "Green" : 5.0196081399917603E-001,
+        "Red" : 5.0196081399917603E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintNormalPersistent" : {
+        "Blue" : 9.3333333730697632E-001,
+        "Green" : 9.3333333730697632E-001,
+        "Red" : 9.3333333730697632E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintPressedPersistent" : {
+        "Blue" : 9.0196079015731812E-001,
+        "Green" : 9.0196079015731812E-001,
+        "Red" : 9.0196079015731812E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "VerticalAnchorDelta" : 2.7355993652343750E+002,
+      "Width" : 3.2000000000000000E+002,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    },
+    {
+      "AutoSize" : false,
+      "Caption" : "Custom Background Image (Larger)",
+      "CustomBackground" : true,
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "ProtectedSides" : {
+          "AllSides" : 3.8000000000000000E+001,
+          "$ClassName" : "TBorder"
+        },
+        "URL" : "castle-data:/box.png",
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomTextColorPersistent" : {
+        "Blue" : 1.0000000000000000E+000,
+        "Green" : 1.0000000000000000E+000,
+        "Red" : 1.0000000000000000E+000,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "CustomTextColorUse" : true,
+      "Height" : 3.6000000000000000E+002,
+      "HorizontalAnchorDelta" : 3.3000000000000000E+002,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonCustomBackgroundLarge",
+      "TintDisabledPersistent" : {
+        "Blue" : 5.0196081399917603E-001,
+        "Green" : 5.0196081399917603E-001,
+        "Red" : 5.0196081399917603E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintNormalPersistent" : {
+        "Blue" : 9.3333333730697632E-001,
+        "Green" : 9.3333333730697632E-001,
+        "Red" : 9.3333333730697632E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "TintPressedPersistent" : {
+        "Blue" : 9.0196079015731812E-001,
+        "Green" : 9.0196079015731812E-001,
+        "Red" : 9.0196079015731812E-001,
+        "$ClassName" : "TCastleColorPersistent"
+      },
+      "VerticalAnchorDelta" : 1.3559814453125000E+001,
+      "Width" : 5.0000000000000000E+002,
+      "$Children" : [
+        {
+          "ColorPersistent" : {
+            "Blue" : 8.1568628549575806E-001,
+            "Green" : 8.1568628549575806E-001,
+            "Red" : 8.1568628549575806E-001,
+            "$ClassName" : "TCastleColorPersistent"
+          },
+          "HorizontalAnchorDelta" : 1.0000000000000000E+001,
+          "HorizontalAnchorParent" : "hpMiddle",
+          "HorizontalAnchorSelf" : "hpMiddle",
+          "Name" : "LabelInsideButtonCustomBackgroundLarge",
+          "Text" : [
+            "Button is larger, ",
+            "but the background image is scaled ",
+            "with ProtectedSides (3x3 rendering),",
+            "so the button borders still look OK."
+          ],
+          "VerticalAnchorDelta" : -9.0000000000000000E+001,
+          "VerticalAnchorParent" : "vpMiddle",
+          "VerticalAnchorSelf" : "vpMiddle",
+          "$Children" : [
+          ],
+          "$ClassName" : "TCastleLabel"
+        }
+      ],
+      "$ClassName" : "TCastleButton"
     }
   ],
   "$ClassName" : "TCastleUserInterface"

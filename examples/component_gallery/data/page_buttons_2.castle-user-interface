@@ -1,0 +1,79 @@
+{
+  "FullSize" : true,
+  "Name" : "Group1",
+  "$Children" : [
+    {
+      "Caption" : "ButtonWithChildren",
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "HorizontalAnchorDelta" : 1.2000000000000000E+002,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonWithChildren",
+      "VerticalAnchorDelta" : 7.5000000000000000E+002,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    },
+    {
+      "Caption" : "ButtonWithViewport",
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "HorizontalAnchorDelta" : 2.3000000000000000E+002,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonWithViewport",
+      "VerticalAnchorDelta" : 6.7000000000000000E+002,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    },
+    {
+      "Caption" : "ButtonToggle",
+      "CustomBackgroundDisabled" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundFocused" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundNormal" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "CustomBackgroundPressed" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "HorizontalAnchorDelta" : 2.5000000000000000E+002,
+      "Image" : {
+        "$ClassName" : "TCastleImagePersistent"
+      },
+      "Name" : "ButtonToggle",
+      "VerticalAnchorDelta" : 5.8000000000000000E+002,
+      "$Children" : [
+      ],
+      "$ClassName" : "TCastleButton"
+    }
+  ],
+  "$ClassName" : "TCastleUserInterface"
+}
