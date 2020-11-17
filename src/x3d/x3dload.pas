@@ -359,24 +359,10 @@ begin
 end;
 
 function LoadScene_FileFilters: String;
-
-  function ReadImageExtensions: String;
-  var
-    FileType: TStringStringMap.TDictionaryPair;
-  begin
-    for FileType in URIMimeExtensions do
-    begin
-      if Result = '' then
-        Result := '*' + FileType.Key
-      else
-        Result := Result + ';*' + FileType.Key;
-    end;
-  end;
-
 var
   ImageExtensions: String;
 begin
-  ImageExtensions := ReadImageExtensions;
+  ImageExtensions := LoadImage_FileFilters.AllExtensions;
 
   Result :=   'All Files|*|' +
     '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
