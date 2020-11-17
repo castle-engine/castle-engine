@@ -1902,7 +1902,10 @@ begin
   StartTimer := Timer;
 
   SelectedC := GetSelectedComponent;
-  if (SelectedC <> nil) then
+  { In case of modifying subcomponent, like TCastleViewport.Items,
+    the currently selected component is not owned by whole design owner,
+    so it could not be later found by name in PerformUndoRedo. }
+  if (SelectedC <> nil) and (SelectedC.Owner = DesignOwner) then
     SelectedName := SelectedC.Name
   else
     SelectedName := '';

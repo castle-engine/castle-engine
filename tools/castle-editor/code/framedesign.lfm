@@ -365,8 +365,8 @@ object DesignFrame: TDesignFrame
       MultiSelect = True
       ParentFont = False
       ParentShowHint = False
-      RightClickSelect = True
       PopupMenu = MenuTreeView
+      RightClickSelect = True
       RowSelect = True
       ScrollBars = ssAutoBoth
       ShowHint = True
@@ -1553,9 +1553,9 @@ object DesignFrame: TDesignFrame
     end
   end
   object MenuTreeView: TPopupMenu
+    OnPopup = MenuTreeViewPopup
     Left = 653
     Top = 139
-    OnPopup = MenuTreeViewPopup
     object MenuItemRename: TMenuItem
       Caption = 'Rename'
       OnClick = MenuItemRenameClick
