@@ -137,10 +137,6 @@ var
   Image: TCastleImage;
 begin
   FImagePath := URL;
-  { Do not load image when user specifies the image size in the anchor
-    settings. }
-  if (FImageWidth > 0) and (FImageHeight > 0) then
-    Exit;
 
   Image := LoadImage(URL);
   try
