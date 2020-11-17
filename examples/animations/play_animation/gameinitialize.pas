@@ -388,7 +388,7 @@ begin
   SliderFPSLoadOpt := TCastleFloatSlider.Create(LoadOptionsPanel);
   SliderFPSLoadOpt.Min := 1;
   SliderFPSLoadOpt.Max := 60;
-  SliderFPSLoadOpt.Value := 4;
+  SliderFPSLoadOpt.Value := 8;
   LabelAndSlider.InsertFront(SliderFPSLoadOpt);
   SliderFPSLoadOpt.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
 
