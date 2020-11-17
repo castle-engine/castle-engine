@@ -176,7 +176,7 @@ var
 
 implementation
 
-uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
+uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
@@ -347,7 +347,7 @@ begin
   else
 
   { Support for simple graphics images like PNG }
-  if URIMimeExtensions.ContainsKey(ExtractFileExt(URIDeleteAnchor(URL, true))) then
+  if IsImageMimeType(URIMimeType(URIDeleteAnchor(URL, true)), true, false) then
     Result := LoadImageAsNode(URL)
   else
 
