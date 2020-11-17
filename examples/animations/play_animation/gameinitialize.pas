@@ -34,7 +34,7 @@ var
 
   { user interface }
   ButtonOpen3D, ButtonOpen2DSpine, ButtonOpen2DStarling, ButtonOpen2DCocos2d, ButtonOpen2DImage, ButtonOpenDialog: TCastleButton;
-  AnimationsPanel, LoadOptionsPanel: TCastleRectangleControl;
+  AnimationsPanel, LoadOptionsPanel, LoadSamplesPanel: TCastleRectangleControl;
   CheckboxForward, CheckboxLoop, CheckboxMagFilterNearest, CheckboxMinFilterNearest: TCastleCheckbox;
   SliderTransition, SliderScale, SliderFPSLoadOpt: TCastleFloatSlider;
   CheckboxAnimationNamingLoadOpt: TCastleCheckbox;
@@ -218,7 +218,6 @@ begin
     The sample Starling file below is based on one of many great assets by Kenney,
     check https://kenney.nl/ for more. }
   Open('castle-data:/starling/character_zombie_atlas.starling-xml' + CurrentUIStarlingSettingsToAnchor);
-
 end;
 
 class procedure TEventsHandler.ButtonOpen2DCocos2dClick(Sender: TObject);
@@ -372,7 +371,7 @@ begin
   ScrollView.ScrollArea.InsertFront(ScrollGroup);
 
   Lab := TCastleLabel.Create(LoadOptionsPanel);
-  Lab.Caption := 'Starling load options:';
+  Lab.Caption := 'Starling Sprite Sheet load options:';
   Lab.Color := Black;
   ScrollGroup.InsertFront(Lab);
 
@@ -407,11 +406,67 @@ begin
   Window.Controls.InsertFront(LoadOptionsPanel);
 end;
 
+procedure CreateLoadSamplesUI;
+var
+  VerticalGroup: TCastleVerticalGroup;
+  Lab: TCastleLabel;
+  Y: Single;
+begin
+  Y := -LoadOptionsPanel.Height - Margin * 2;
+
+  LoadSamplesPanel := TCastleRectangleControl.Create(Application);
+  LoadSamplesPanel.Color := Vector4(1, 1, 1, 0.5);
+  LoadSamplesPanel.Anchor(hpLeft, Margin);
+  LoadSamplesPanel.Anchor(vpTop, Y);
+
+  VerticalGroup := TCastleVerticalGroup.Create(LoadSamplesPanel);
+  VerticalGroup.Padding := Margin;
+  VerticalGroup.Spacing := Margin;
+  LoadSamplesPanel.InsertFront(VerticalGroup);
+
+  Lab := TCastleLabel.Create(LoadSamplesPanel);
+  Lab.Color := Black;
+  Lab.Caption := 'Load sample...';
+  VerticalGroup.InsertFront(Lab);
+
+  ButtonOpen3D := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpen3D.Caption := 'glTF Skinned Animation (3D)';
+  ButtonOpen3D.OnClick := @TEventsHandler(nil).ButtonOpen3DClick;
+  VerticalGroup.InsertFront(ButtonOpen3D);
+
+  ButtonOpen2DSpine := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpen2DSpine.Caption := 'Spine Skeletal Animation (2D)';
+  ButtonOpen2DSpine.OnClick := @TEventsHandler(nil).ButtonOpen2DSpineClick;
+  VerticalGroup.InsertFront(ButtonOpen2DSpine);
+
+  ButtonOpen2DStarling := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpen2DStarling.Caption := 'Starling Sprite Sheet (2D)';
+  ButtonOpen2DStarling.OnClick := @TEventsHandler(nil).ButtonOpen2DStarlingClick;
+  VerticalGroup.InsertFront(ButtonOpen2DStarling);
+
+  ButtonOpen2DCocos2d := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpen2DCocos2d.Caption := 'Cocos2d Sprite Sheet (2D)';
+  ButtonOpen2DCocos2d.OnClick := @TEventsHandler(nil).ButtonOpen2DCocos2dClick;
+  VerticalGroup.InsertFront(ButtonOpen2DCocos2d);
+
+  ButtonOpen2DImage := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpen2DImage.Caption := 'Image 2D';
+  ButtonOpen2DImage.OnClick := @TEventsHandler(nil).ButtonOpen2DImageClick;
+  VerticalGroup.InsertFront(ButtonOpen2DImage);
+
+  ButtonOpenDialog := TCastleButton.Create(LoadSamplesPanel);
+  ButtonOpenDialog.Caption := 'Open any model on disk';
+  ButtonOpenDialog.OnClick := @TEventsHandler(nil).ButtonOpenDialogClick;
+  VerticalGroup.InsertFront(ButtonOpenDialog);
+
+  LoadSamplesPanel.Width := VerticalGroup.EffectiveWidth;
+  LoadSamplesPanel.Height := VerticalGroup.EffectiveHeight;
+  Window.Controls.InsertFront(LoadSamplesPanel);
+end;
+
 { routines ------------------------------------------------------------------- }
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
-var
-  Y: Single;
 begin
   { This is an optimization useful when you animate a hierarchy of Transform
     nodes (which often happens in case of Spine animation).
@@ -440,55 +495,7 @@ begin
   Viewport.Items.MainScene := Scene;
 
   CreateLoadOptionsUI;
-
-  Y := -LoadOptionsPanel.Height - Margin * 2;
-
-  ButtonOpen3D := TCastleButton.Create(Application);
-  ButtonOpen3D.Caption := 'Load sample 3D model';
-  ButtonOpen3D.OnClick := @TEventsHandler(nil).ButtonOpen3DClick;
-  ButtonOpen3D.Anchor(hpLeft, Margin);
-  ButtonOpen3D.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen3D);
-  Y := Y - (ButtonOpen3D.EffectiveHeight + Margin);
-
-  ButtonOpen2DSpine := TCastleButton.Create(Application);
-  ButtonOpen2DSpine.Caption := 'Load sample 2D Spine';
-  ButtonOpen2DSpine.OnClick := @TEventsHandler(nil).ButtonOpen2DSpineClick;
-  ButtonOpen2DSpine.Anchor(hpLeft, Margin);
-  ButtonOpen2DSpine.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen2DSpine);
-  Y := Y - (ButtonOpen2DSpine.EffectiveHeight + Margin);
-
-  ButtonOpen2DStarling := TCastleButton.Create(Application);
-  ButtonOpen2DStarling.Caption := 'Load sample 2D Starling';
-  ButtonOpen2DStarling.OnClick := @TEventsHandler(nil).ButtonOpen2DStarlingClick;
-  ButtonOpen2DStarling.Anchor(hpLeft, Margin);
-  ButtonOpen2DStarling.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen2DStarling);
-  Y := Y - (ButtonOpen2DStarling.EffectiveHeight + Margin);
-
-  ButtonOpen2DCocos2d := TCastleButton.Create(Application);
-  ButtonOpen2DCocos2d.Caption := 'Load sample 2D Cocos2d';
-  ButtonOpen2DCocos2d.OnClick := @TEventsHandler(nil).ButtonOpen2DCocos2dClick;
-  ButtonOpen2DCocos2d.Anchor(hpLeft, Margin);
-  ButtonOpen2DCocos2d.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen2DCocos2d);
-  Y := Y - (ButtonOpen2DCocos2d.EffectiveHeight + Margin);
-
-  ButtonOpen2DImage := TCastleButton.Create(Application);
-  ButtonOpen2DImage.Caption := 'Load sample 2D Image';
-  ButtonOpen2DImage.OnClick := @TEventsHandler(nil).ButtonOpen2DImageClick;
-  ButtonOpen2DImage.Anchor(hpLeft, Margin);
-  ButtonOpen2DImage.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpen2DImage);
-  Y := Y - (ButtonOpen2DImage.EffectiveHeight + Margin);
-
-  ButtonOpenDialog := TCastleButton.Create(Application);
-  ButtonOpenDialog.Caption := 'Open any model on disk';
-  ButtonOpenDialog.OnClick := @TEventsHandler(nil).ButtonOpenDialogClick;
-  ButtonOpenDialog.Anchor(hpLeft, Margin);
-  ButtonOpenDialog.Anchor(vpTop, Y);
-  Window.Controls.InsertFront(ButtonOpenDialog);
+  CreateLoadSamplesUI;
 
   // pretend ButtonOpen2DSpine was clicked
   TEventsHandler.ButtonOpen2DSpineClick(nil);
