@@ -384,7 +384,6 @@ end;
 function TStarlingSpriteSheetLoader.Load: TX3DRootNode;
 var
   Doc: TXMLDocument;
-  Node: TDOMNode;
   AtlasNode: TDOMElement;
   I: TXMLElementIterator;
   LastAnimationName: String;
