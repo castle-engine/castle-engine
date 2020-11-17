@@ -153,7 +153,7 @@ var
   Setting: TStringStringMap.TDictionaryPair;
 begin
   // default values
-  FFramesPerSecond := 4.0;
+  FFramesPerSecond := 8.0;
 
   SettingsMap := TStringStringMap.Create;
   try
