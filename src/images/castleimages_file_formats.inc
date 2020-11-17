@@ -563,45 +563,48 @@ begin
   Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
-function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
+function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean;
+  const LinePrefix: string): string;
 var
-  iff: TImageFormat;
-  i: integer;
+  Format: TImageFormat;
+  I: integer;
 begin
   result := '';
 
-  for iff := Low(iff) to High(iff) do
-    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+  for Format := Low(Format) to High(Format) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[Format].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[Format].Save)) then
     begin
-      { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
-        sprawy z formatem iff) bo tam nie byloby zbyt wygodnie rozpoznawac
-        czy jestesmy ostatnia linia czy nie (na skutek OnlySaveable/OnlyLoadable
-        nie mozna tego rozpoznac prostym sprawdzeniem iff < High(iff) }
-      if result <> '' then result := result + nl;
+      { Note that we do not want to add new line at the end because there
+        it would not be very convenient to recognize whether we are at the last
+        line or not (due to OnlySaveable / OnlyLoadable it cannot be recognized
+        by simply checking Format <High (Format)). }
+      if Result <> '' then
+        Result := Result + NL;
 
-      result := result +LinePrefix +ImageFormatInfos[iff].exts[1];
-      for i := 2 to ImageFormatInfos[iff].extsCount do
-        result := result + ', ' +ImageFormatInfos[iff].exts[i];
-      result := result + ' - '+ImageFormatInfos[iff].formatName;
+      Result := Result + LinePrefix + ImageFormatInfos[Format].Exts[1];
+      for I := 2 to ImageFormatInfos[Format].ExtsCount do
+        Result := Result + ', ' + ImageFormatInfos[Format].Exts[I];
+      Result := Result + ' - ' + ImageFormatInfos[Format].FormatName;
     end;
 end;
 
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 var
-  iff: TImageFormat;
-  i: integer;
+  Format: TImageFormat;
+  I: integer;
 begin
-  result := '';
+  Result := '';
 
-  for iff := Low(iff) to High(iff) do
-    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+  for Format := Low(Format) to High(Format) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[Format].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[Format].Save)) then
     begin
-      for i := 1 to ImageFormatInfos[iff].extsCount do
+      for I := 1 to ImageFormatInfos[Format].ExtsCount do
       begin
-        if result <> '' then result := result + ', ';
-        result := result + ImageFormatInfos[iff].exts[i];
+        if Result <> '' then
+          Result := Result + ', ';
+        Result := Result + ImageFormatInfos[Format].Exts[I];
       end;
     end;
 end;

@@ -379,28 +379,28 @@ begin
   ImageExtensions := ReadImageExtensions;
 
   Result :=   'All Files|*|' +
-  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
-  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
-  { TODO:
-    and X3D binary (*.x3db;*.x3db.gz)
-  }
-  'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-  'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
-  'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
-  'Collada (*.dae)|*.dae|' +
-  'Inventor (*.iv)|*.iv|' +
-  '3D Studio (*.3ds)|*.3ds|' +
-  'Quake 3 engine models (*.md3)|*.md3|' +
-  'Wavefront (*.obj)|*.obj|' +
-  'Videoscape (*.geo)|*.geo|' +
-  'Spine animation (*.json)|*.json|' +
-  'Standard Triangle Language (*.stl)|*.stl|' +
-  'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
-  'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
-  { Uncomment to see version with extensions - but filter combo is very long then }
-  //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
-  'Images |' + ImageExtensions;
+    '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
+    'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
+    { TODO:
+      and X3D binary (*.x3db;*.x3db.gz)
+    }
+    'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
+    'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
+    'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
+    'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
+    'Collada (*.dae)|*.dae|' +
+    'Inventor (*.iv)|*.iv|' +
+    '3D Studio (*.3ds)|*.3ds|' +
+    'Quake 3 engine models (*.md3)|*.md3|' +
+    'Wavefront (*.obj)|*.obj|' +
+    'Videoscape (*.geo)|*.geo|' +
+    'Spine animation (*.json)|*.json|' +
+    'Standard Triangle Language (*.stl)|*.stl|' +
+    'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
+    'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
+    { Uncomment to see version with extensions - but filter combo is very long then }
+    //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
+    'Images |' + ImageExtensions;
 end;
 
 function Load3D_FileFilters: String;
