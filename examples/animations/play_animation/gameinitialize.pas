@@ -387,7 +387,7 @@ begin
   SliderFPSLoadOpt := TCastleFloatSlider.Create(LoadOptionsPanel);
   SliderFPSLoadOpt.Min := 1;
   SliderFPSLoadOpt.Max := 60;
-  SliderFPSLoadOpt.Value := 8;
+  SliderFPSLoadOpt.Value := DefaultSpriteSheetFramesPerSecond;
   LabelAndSlider.InsertFront(SliderFPSLoadOpt);
   SliderFPSLoadOpt.OnChange := @TEventsHandler(nil).StarlingOptionsChanged;
 
