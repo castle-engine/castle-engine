@@ -55,14 +55,6 @@ castle-game-engine-*.fpm
 /examples/2d_dragon_spine_game/castle_spine.log
 /examples/2d_dragon_spine_game/code/lib/
 /examples/2d_dragon_spine_game/code/libcastle_spine_android.so
-/examples/user_interface/dragging_test/dragging_test
-/examples/user_interface/edit_test/edit_test
-/examples/user_interface/quick_2d_game/quick_2d_game
-/examples/user_interface/show_various_ui_controls/libshow_various_ui_controls_android.so
-/examples/user_interface/show_various_ui_controls/show_various_ui_controls
-/examples/user_interface/timer_test/timer_test
-/examples/user_interface/zombie_fighter/zombie_fighter
-/examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
 /examples/3d_rendering_processing/animate_3d_model_by_code
 /examples/3d_rendering_processing/animate_3d_model_by_code_2
 /examples/3d_rendering_processing/anisotropic_filtering/anisotropic_filtering
@@ -109,6 +101,7 @@ castle-game-engine-*.fpm
 /examples/audio/test_sound_source_allocator/*.obj
 /examples/castlescript/castle_calculator
 /examples/castlescript/image_make_by_script
+/examples/component_gallery/cge-component-gallery
 /examples/curves/simplest_curve_read
 /examples/delphi/base_tests/base_tests.res
 /examples/fixed_camera_game/rift
@@ -206,6 +199,14 @@ castle-game-engine-*.fpm
 /examples/tiled/map_viewer/tiled_demo_standalone
 /examples/tiled/map_viewer/tiled_demo_standalone.lps
 /examples/tiled/strategy_game_demo/strategy_game_demo
+/examples/user_interface/dragging_test/dragging_test
+/examples/user_interface/edit_test/edit_test
+/examples/user_interface/quick_2d_game/quick_2d_game
+/examples/user_interface/show_various_ui_controls/libshow_various_ui_controls_android.so
+/examples/user_interface/show_various_ui_controls/show_various_ui_controls
+/examples/user_interface/timer_test/timer_test
+/examples/user_interface/zombie_fighter/zombie_fighter
+/examples/user_interface/zombie_fighter_alternative_short_lived_states/zombie_fighter
 /examples/visualize_triangulation/visualize_triangulation
 /examples/window/multi_window
 /examples/window/window_events
