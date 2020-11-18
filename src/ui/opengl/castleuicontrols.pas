@@ -2030,11 +2030,15 @@ type
     property AutoSizeToChildren: Boolean
       read FAutoSizeToChildren write SetAutoSizeToChildren default false;
 
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingHorizontal, there's nothing that makes it specific
+      to "right" or "left" side now. }
     property AutoSizeToChildrenPaddingRight: Single
       read FAutoSizeToChildrenPaddingRight
       write SetAutoSizeToChildrenPaddingRight default 0;
-    { Padding added when @link(AutoSizeToChildren) is used. }
+    { Padding added when @link(AutoSizeToChildren) is used.
+      TODO: Should be AutoSizeToChildrenPaddingVertical, there's nothing that makes it specific
+      to "top" or "bottom" side now. }
     property AutoSizeToChildrenPaddingTop: Single
       read FAutoSizeToChildrenPaddingTop
       write SetAutoSizeToChildrenPaddingTop default 0;
