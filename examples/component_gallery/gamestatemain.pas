@@ -15,12 +15,28 @@ type
   { Main state, where most of the application logic takes place. }
   TStateMain = class(TUIState)
   private
-    { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
-    LabelFps: TCastleLabel;
+    const
+      PagesCount = 3;
+
+      { Suffixes of component names in the design,
+        to find ButtonXxx and PageXxx matching controls. }
+      PageNames: array [1..PagesCount] of String = (
+        'Intro',
+        'Buttons',
+        'Buttons2'
+      );
+
+    var
+      { Components designed using CGE editor, loaded from state_main.castle-user-interface. }
+      LabelFps: TCastleLabel;
+      PageButtons: array [1..PagesCount] of TCastleButton;
+      Pages: array [1..PagesCount] of TCastleUserInterface;
+
+    procedure ClickPageButton(Sender: TObject);
+    procedure ClickToggle(Sender: TObject);
   public
     procedure Start; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: Boolean); override;
-    function Press(const Event: TInputPressRelease): Boolean; override;
   end;
 
 var
@@ -28,13 +44,17 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleColors;
 
 { TStateMain ----------------------------------------------------------------- }
 
 procedure TStateMain.Start;
 var
   UiOwner: TComponent;
+  I: Integer;
+  PageButtons2: TCastleDesign;
+  ButtonToggle: TCastleButton;
 begin
   inherited;
 
@@ -43,6 +63,19 @@ begin
 
   { Find components, by name, that we need to access from code }
   LabelFps := UiOwner.FindRequiredComponent('LabelFps') as TCastleLabel;
+  for I := 1 to PagesCount do
+  begin
+    PageButtons[I] := UiOwner.FindRequiredComponent('Button' + PageNames[I]) as TCastleButton;
+    PageButtons[I].Tag := I; // use button's tag to store page index
+    PageButtons[I].OnClick := @ClickPageButton;
+    Pages[I] := UiOwner.FindRequiredComponent('Page' + PageNames[I]) as TCastleUserInterface;
+  end;
+
+  { Find components inside TCastleDesigns, this needs 2 steps }
+  PageButtons2 := UiOwner.FindRequiredComponent('PageButtons2') as TCastleDesign;
+  ButtonToggle := PageButtons2.FindRequiredComponent('ButtonToggle') as TCastleButton;
+
+  ButtonToggle.OnClick := @ClickToggle;
 end;
 
 procedure TStateMain.Update(const SecondsPassed: Single; var HandleInput: Boolean);
@@ -52,29 +85,30 @@ begin
   LabelFps.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
-function TStateMain.Press(const Event: TInputPressRelease): Boolean;
+procedure TStateMain.ClickPageButton(Sender: TObject);
+var
+  I, CurrentPage: Integer;
+  PageButton: TCastleButton;
 begin
-  Result := inherited;
-  if Result then Exit; // allow the ancestor to handle keys
-
-  { This virtual method is executed when user presses
-    a key, a mouse button, or touches a touch-screen.
-
-    Note that each UI control has also events like OnPress and OnClick.
-    These events can be used to handle the "press", if it should do something
-    specific when used in that UI control.
-    The TStateMain.Press method should be used to handle keys
-    not handled in children controls.
-  }
-
-  // Use this to handle keys:
-  {
-  if Event.IsKey(keyXxx) then
+  PageButton := Sender as TCastleButton;
+  CurrentPage := PageButton.Tag;
+  for I := 1 to PagesCount do
   begin
-    // DoSomething;
-    Exit(true); // key was handled
+    PageButtons[I].Pressed := I = CurrentPage;
+    if I = CurrentPage then
+      PageButtons[I].CustomTextColor := White
+    else
+      PageButtons[I].CustomTextColor := Black;
+    Pages[I].Exists := I = CurrentPage;
   end;
-  }
+end;
+
+procedure TStateMain.ClickToggle(Sender: TObject);
+var
+  Button: TCastleButton;
+begin
+  Button := Sender as TCastleButton;
+  Button.Pressed := not Button.Pressed;
 end;
 
 end.
