@@ -1588,8 +1588,7 @@ type
   TLoadImageOption = (liFlipVertically);
   TLoadImageOptions = set of TLoadImageOption;
 
-{ TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
-  zawartosci. }
+{ TODO: add LoadImageGuess which guesses the format based on content. }
 
 (*The ultimate procedure to load an image from a file or URL.
 

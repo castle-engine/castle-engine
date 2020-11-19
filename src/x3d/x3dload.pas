@@ -120,37 +120,20 @@ function Load3D(const URL: string;
   const NilOnUnrecognizedFormat: boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
 const
-  { File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
-    Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
-  LoadScene_FileFilters =
-  'All Files|*|' +
-  '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf|' +
-  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
-  { TODO:
-    and X3D binary (*.x3db;*.x3db.gz)
-  }
-  'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-  'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
-  'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
-  'Collada (*.dae)|*.dae|' +
-  'Inventor (*.iv)|*.iv|' +
-  '3D Studio (*.3ds)|*.3ds|' +
-  'Quake 3 engine models (*.md3)|*.md3|' +
-  'Wavefront (*.obj)|*.obj|' +
-  'Videoscape (*.geo)|*.geo|' +
-  'Spine animation (*.json)|*.json|' +
-  'Standard Triangle Language (*.stl)|*.stl';
-
-  Load3D_FileFilters = LoadScene_FileFilters
-    deprecated 'use LoadScene_FileFilters';
-
   SaveX3D_FileFilters =
   'All files|*|' +
   '*X3D XML (*.x3d)|*.x3d|' +
   'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz|' +
   'X3D classic (*.x3dv)|*.x3dv|' +
   'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
+
+{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+function LoadScene_FileFilters: String;
+
+{ File filters for files loaded by @link(TCastleSceneCore.Load) and @link(LoadNode).
+  Suitable for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+function Load3D_FileFilters: String; deprecated 'use LoadScene_FileFilters';
 
 { Load various model formats as animation expressed by VRML/X3D sequence.
 
@@ -177,10 +160,9 @@ procedure Load3DSequence(
   out Epsilon: Single;
   out TimeLoop, TimeBackwards: boolean); deprecated 'use LoadNode instead of Load3DSequence';
 
-const
-  { File filters for files loaded by Load3DSequence, suitable
-    for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
-  Load3DSequence_FileFilters = LoadScene_FileFilters deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
+{ File filters for files loaded by Load3DSequence, suitable
+  for TFileFilterList.AddFiltersFromString and TCastleWindowBase.FileDialog. }
+function Load3DSequence_FileFilters: String; deprecated 'use LoadScene_FileFilters, and use LoadNode instead of Load3DSequence';
 
 const
   DefaultBakedAnimationSmoothness = 1;
@@ -194,10 +176,11 @@ var
 
 implementation
 
-uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
+uses CastleClassUtils, CastleImages, CastleURIUtils, CastleStringUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
-  X3DLoadInternalMD3, X3DLoadInternalGLTF,
+  X3DLoadInternalMD3, X3DLoadInternalGLTF, X3DLoadInternalStarling,
+  X3DLoadInternalImage, X3DLoadInternalCocos2d,
   CastleInternalNodeInterpolator;
 
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
@@ -351,11 +334,64 @@ begin
     Result := LoadGLTF(URL)
   else
 
+  if (MimeType = 'application/x-starling-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-starling-sprite-sheet') then
+    Result := LoadStarlingSpriteSheet(URL)
+  else
+
+  if (MimeType = 'application/x-plist') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-plist') or
+     (MimeType = 'application/x-cocos2d-sprite-sheet') or
+     (URIMimeType(URIDeleteAnchor(URL, true)) = 'application/x-cocos2d-sprite-sheet') then
+    Result := LoadCocos2d(URL)
+  else
+
+  { Support for simple graphics images like PNG }
+  if IsImageMimeType(URIMimeType(URIDeleteAnchor(URL, true)), true, false) then
+    Result := LoadImageAsNode(URL)
+  else
+
   if NilOnUnrecognizedFormat then
     Result := nil
   else
     raise Exception.CreateFmt('Unrecognized file type "%s" for scene "%s"',
       [MimeType, URIDisplay(URL)]);
+end;
+
+function LoadScene_FileFilters: String;
+var
+  ImageExtensions: String;
+begin
+  ImageExtensions := LoadImage_FileFilters.AllExtensions;
+
+  Result :=   'All Files|*|' +
+    '*All Scenes|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl;*.glb;*.gltf;*.starling-xml;*.cocos2d-plist;*.plist;' + ImageExtensions + '|' +
+    'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
+    { TODO:
+      and X3D binary (*.x3db;*.x3db.gz)
+    }
+    'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
+    'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
+    'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
+    'glTF (*.glb, *.gltf)|*.glb;*.gltf|' +
+    'Collada (*.dae)|*.dae|' +
+    'Inventor (*.iv)|*.iv|' +
+    '3D Studio (*.3ds)|*.3ds|' +
+    'Quake 3 engine models (*.md3)|*.md3|' +
+    'Wavefront (*.obj)|*.obj|' +
+    'Videoscape (*.geo)|*.geo|' +
+    'Spine animation (*.json)|*.json|' +
+    'Standard Triangle Language (*.stl)|*.stl|' +
+    'Starling Sprite Sheet (*.starling-xml)|*.starling-xml|' +
+    'Cocos2d Sprite Sheet (*.cocos2d-plist, *.plist)|*.cocos2d-plist;*.plist|' +
+    { Uncomment to see version with extensions - but filter combo is very long then }
+    //'Images (' + StringReplace(ImageExtensions, ';', ', ', [rfReplaceAll]) + ')|' + ImageExtensions;
+    'Images |' + ImageExtensions;
+end;
+
+function Load3D_FileFilters: String;
+begin
+  Result := LoadScene_FileFilters;
 end;
 
 function Load3D(const URL: string;
@@ -418,6 +454,11 @@ begin
     LoadNodeAnimation(LoadMD3Sequence(URL))
   else
     LoadSingle(LoadNode(URL));
+end;
+
+function Load3DSequence_FileFilters: String;
+begin
+  Result := LoadScene_FileFilters;
 end;
 
 end.
