@@ -822,7 +822,7 @@ procedure TRichText.AddTextWithHtml(const S: String);
 var
   TextLine: TTextLine;
 
-  { Test is given substring at position I within larger string S.
+  { Test is given substring at position I within larger String S.
     Does it fast (without creating a temporary copy for a subtring from S).
     Case-sensitive. }
   function SubstringStartsHere(const S: String; const I: Integer;

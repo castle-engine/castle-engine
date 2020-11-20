@@ -143,8 +143,8 @@ type
     { Caption displayed in the dialog. }
     property Text: TStrings read FText;
 
-    { Caption displayed in the dialog, as a simple string.
-      This is just a shortcut to get/set @link(Text) as a single string.
+    { Caption displayed in the dialog, as a simple String.
+      This is just a shortcut to get/set @link(Text) as a single String.
 
       Use LineEnding or NL constant when setting this to indicate a newline.
       The two examples below are equivalent:

@@ -174,7 +174,7 @@ type
     { How low the text may go below the baseline. }
     function Descend: Single;
 
-    { Break lines (possibly break one long string into more strings)
+    { Break lines (possibly break one long String into more strings)
       to fit the text with given MaxLineWidth.
 
       This takes into account current font information (works also
@@ -191,7 +191,7 @@ type
       In such case, there's really no solution, and we'll just let such
       character stay.
 
-      If you use the overloaded version where Unbroken is just a string,
+      If you use the overloaded version where Unbroken is just a String,
       then note that already existing newlines (NL) inside Unbroken
       will be correctly preserved.
 

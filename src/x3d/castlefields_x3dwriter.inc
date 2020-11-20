@@ -37,7 +37,7 @@
     procedure IncIndent;
     procedure DecIndent;
 
-    { Comfortable routines that simply write given string to a stream.
+    { Comfortable routines that simply write given String to a stream.
       @groupBegin }
     procedure Write(const S: String);
     procedure Writeln(const S: String); overload;
@@ -58,7 +58,7 @@
 { TX3DWriter ----------------------------------------------------------------- }
 
 const
-  { IndentIncrement is string or char. It's used by SaveToStream }
+  { IndentIncrement is String or Char. It's used by SaveToStream }
   IndentIncrement = CharTab;
 
 constructor TX3DWriter.Create(AStream: TStream; const AVersion: TX3DVersion;

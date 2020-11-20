@@ -93,7 +93,7 @@ function UserInterfaceLoad(const Url: String; const Owner: TComponent): TCastleU
 procedure ComponentSave(const C: TComponent; const Url: String);
 function ComponentLoad(const Url: String; const Owner: TComponent): TComponent;
 
-{ Save / load TComponent (or descendant) to a string.
+{ Save / load TComponent (or descendant) to a String.
   The string contents have the same format
   as a .castle-user-interface or .castle-transform file. }
 function ComponentToString(const C: TComponent): String;

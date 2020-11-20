@@ -494,7 +494,7 @@ function GetTempFileNamePrefix: String;
 function BundlePath: String;
 {$endif}
 
-{ Read file or URL contents to a string.
+{ Read file or URL contents to a String.
   MimeType is returned, calculated just like the @link(Download) function. }
 function FileToString(const URL: String;
   out MimeType: String): AnsiString; overload;

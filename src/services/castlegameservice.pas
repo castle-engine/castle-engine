@@ -266,7 +266,7 @@ type
       See the SaveGameLoad documentation about the conflict resolution
       and valid savegame names.
 
-      The Contents should be a valid UTF-8 string. For implementation
+      The Contents should be a valid UTF-8 String. For implementation
       reasons, you should not save arbitrary binary data this way, for now
       (or it could result in exceptions about being unable to encode/decode UTF-8
       sequences).

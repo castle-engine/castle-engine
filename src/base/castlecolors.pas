@@ -148,14 +148,14 @@ function ColorRGBToHex(const V: TCastleColorRGB): String;
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 6 digits, alpha is assumed to be 1.0 (opaque)).
 
-  @raises EConvertError In case of invalid color as string. }
+  @raises EConvertError In case of invalid color as String. }
 function HexToColor(const S: String): TCastleColor;
 
 { Convert hexadecimal color notation (like in HTML) into an RGB color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 8 digits, alpha is ignored).
 
-  @raises EConvertError In case of invalid color as string. }
+  @raises EConvertError In case of invalid color as String. }
 function HexToColorRGB(const S: String): TCastleColorRGB;
 
 { Change color opacity (alpha). }

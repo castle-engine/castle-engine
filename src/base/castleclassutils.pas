@@ -96,7 +96,7 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents, as 8-bit string (AnsiString), to stream.
+{ Write string contents, as 8-bit String (AnsiString), to stream.
   This isn't a procedure to encode a string within a binary stream,
   this only writes string contents (Length(S) bytes) into the stream.
   Versions with "ln" append newline.
@@ -172,24 +172,24 @@ procedure ReadGrowingStream(const GrowingStream, DestStream: TStream;
   const ResetDestStreamPosition: Boolean;
   const BufferSize: Cardinal = 10 * 1000);
 
-{ Read a growing stream, and returns it's contents as a string.
+{ Read a growing stream, and returns it's contents as a String.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end. }
 function ReadGrowingStreamToString(const GrowingStream: TStream): String;
 
-{ Encode / decode a string in a binary stream. Records string length (4 bytes),
+{ Encode / decode a String in a binary stream. Records string length (4 bytes),
   then the string contents (Length(S) bytes).
   @groupBegin }
 procedure StreamWriteString(Stream: TStream; const S: String);
 function StreamReadString(Stream: TStream): String;
 { @groupEnd }
 
-{ Convert whole Stream to a string.
+{ Convert whole Stream to a String.
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable. }
 function StreamToString(Stream: TStream): String;
 
-{ Set contents of TMemoryStream to given string.
+{ Set contents of TMemoryStream to given String.
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;

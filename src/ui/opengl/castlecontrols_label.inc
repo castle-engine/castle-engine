@@ -86,12 +86,12 @@
       @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: Boolean read FAutoSize write SetAutoSize default true;
 
-    { Caption displayed on the label, each line as a string.
+    { Caption displayed on the label, each line as a String.
       Setting this property merely copies the contents using TStrings.Assign. }
     property Text: TStrings read FText write SetText;
 
     { Caption displayed on the label.
-      This is just a shortcut to get/set @link(Text) as a single string.
+      This is just a shortcut to get/set @link(Text) as a single String.
 
       Use LineEnding or NL constant when setting this to indicate a newline.
       The two examples below are equivalent:

@@ -52,7 +52,7 @@ type
     { Download and open a file. }
     constructor Create(const URL: String); overload;
 
-    { Read next line from Stream. Returned string does not contain
+    { Read next line from Stream. Returned String does not contain
       any end-of-line characters. }
     function Readln: String;
 
