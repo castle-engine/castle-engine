@@ -56,7 +56,7 @@ procedure TTestCastleCompositeImage.TestLoadSave;
       AssertImagesEqual(Composite.Images[I], Composite2.Images[I]);
   end;
 
-  procedure TestImage(const FileName: string; const Is3d: Boolean);
+  procedure TestImage(const FileName: String; const Is3d: Boolean);
   var
     Composite, Composite2: TCompositeImage;
     StreamNoFlatten, StreamFlatten: TMemoryStream;
@@ -154,7 +154,7 @@ end;
 
 procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
 
-  procedure TestImage(const FileName: string; const Is3d: Boolean);
+  procedure TestImage(const FileName: String; const Is3d: Boolean);
   var
     Composite: TCompositeImage;
     Stream1, Stream2: TMemoryStream;

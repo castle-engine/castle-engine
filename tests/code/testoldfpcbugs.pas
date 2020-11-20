@@ -57,36 +57,39 @@ uses SysUtils;
 
 type
   TObj=class
-    a: Integer;
+    A: Integer;
     constructor Create;
     destructor Destroy; override;
   end;
 
 constructor TObj.Create;
 begin
- a:=42;
+ A := 42;
  inherited;
 end;
 
 destructor TObj.Destroy;
-var s:string;
+var
+  S: String;
 begin
  inherited;
 
  {do some memory allocs/frees}
- s:='blablabla';
- if s<>'' then s:='popoty ' + s ;
+ S := 'blablabla';
+ if S <> '' then
+   S := 'popoty ' + s ;
 
- {check value of a}
- if a <> 42 then
-   raise Exception.Create('a <> 42');
+ {check value of A}
+ if A <> 42 then
+   raise Exception.Create('A <> 42');
 end;
 
 procedure TTestOldFPCBugs.TestInherited;
-var obj:TObj;
+var
+  Obj:TObj;
 begin
- obj:=TObj.Create;
- FreeAndNil(obj);
+ Obj := TObj.Create;
+ FreeAndNil(Obj);
 end;
 
 { TestAbsProc ---------------------------------------------------------------- }
@@ -94,11 +97,13 @@ end;
 { fails in 1.0.6 (corrected in 1.0.7/10) }
 
 { TestAbsProc needs not to be called, it will fail at compilation. }
-procedure TestAbsProc(mm:TProcedure);
-var m2:array[0..1]of Pointer absolute mm;
+procedure TestAbsProc(MM: TProcedure);
+var
+  M2: array [0..1] of Pointer absolute MM;
 begin
  { do something on "m2" variable }
- if m2[0]=nil then Exit;
+ if M2 [0] = nil then
+   Exit;
 end;
 
 { MethodPass ----------------------------------------------------------------- }
@@ -106,7 +111,7 @@ end;
 { fails in 1.0.10; reported to fpc-devel lists }
 
 type
-  TProcOfObj=procedure of object;
+  TProcOfObj = procedure of object;
   PMethod = ^TMethod;
 
 { we could write the procedure below as
@@ -118,14 +123,14 @@ type
   but it would require TEST_ABSOLUTE_PROCEDURE to pass (and we want to
   test these two things _separately_.)
 }
-procedure Proc(mm:TProcOfObj);
+procedure Proc(MM: TProcOfObj);
 begin
-  if PMethod(@mm)^.Code = nil then
-   raise Exception.Create('PMethod(@mm)^.Code = nil');
+  if PMethod(@MM)^.Code = nil then
+   raise Exception.Create('PMethod(@MM)^.Code = nil');
 end;
 
 type
-  TObjMM=class
+  TObjMM = class
     procedure MyMethod;
     procedure CallProcWithMyMethod;
   end;
@@ -134,12 +139,13 @@ procedure TObjMM.MyMethod; begin end;
 procedure TObjMM.CallProcWithMyMethod; begin Proc(@MyMethod) end;
 
 procedure TTestOldFPCBugs.TestMethodPass;
-var o:TObjMM;
+var
+  O: TObjMM;
 begin
- o:=TObjMM.Create;
+ O := TObjMM.Create;
  try
-  o.CallProcWithMyMethod;
- finally o.Free end;
+  O.CallProcWithMyMethod;
+ finally O.Free end;
 end;
 
 { TestCallFuncOfObject ------------------------------------------------------- }
@@ -150,17 +156,19 @@ end;
 procedure TestCallFuncOfObject;
 { this is a compile-time bug; do not call this procedure }
 type
-  TFuncByObject = function(i:Integer):Boolean of object;
-var F:TFuncByObject;
+  TFuncByObject = function(I: Integer): Boolean of object;
+var
+  F: TFuncByObject;
 begin
- F(1);
+  F(1);
 end;
 {$warnings on}
 
 { TestCompareMemBug ---------------------------------------------------------- }
 
 procedure TTestOldFPCBugs.TestCompareMemBug;
-var B1,B2: array[0..1000] of Byte;
+var
+  B1,B2: array[0..1000] of Byte;
 begin
  { if CompareMem(p1, p2, 0) would work good then values for p1 and p2
    should be ignored. But, since there is a bug, they will not be ignored
@@ -179,7 +187,8 @@ end;
 { fails in some 1.0.7 versions and in 1.0.10
   Reported to fpc-devel lists. }
 
-const D = SizeOf(TObject);
+const
+  D = SizeOf(TObject);
 procedure TTestOldFPCBugs.TestSizeOfObject;
 begin
   AssertTrue(D = SizeOf(Pointer));
@@ -191,11 +200,12 @@ end;
   To dziala tylko pod 1.1, 1.0.x musza byc odpowiednio zmodyfikowane
   aby to dzialalo. (wiele mojego kodu wymaga zeby to dzialalo,
   juz CastleUtils.) }
-function TestProc(arg: Integer): Boolean; overload; begin Result := true  end;
+function TestProc(Arg: Integer): Boolean; overload; begin Result := true  end;
 function TestProc              : Boolean; overload; begin Result := false end;
 
 procedure TTestOldFPCBugs.TestOthers;
-var b1,b2: array[0..1000] of byte;
+var
+  B1,B2: array[0..1000] of Byte;
 begin
  AssertTrue(not TestProc);
  AssertTrue(TestProc(2));
@@ -211,7 +221,7 @@ begin
  AssertTrue([0] >= []);
 
  { test is CompareMem(..., ..., 0) bug fixed }
- AssertTrue(CompareMem(@b1, @b2, 0));
+ AssertTrue(CompareMem(@B1, @B2, 0));
  { test is "Format incompatible with Delphi" bug fixed }
  AssertTrue(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
 end;

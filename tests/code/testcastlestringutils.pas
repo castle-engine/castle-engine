@@ -49,7 +49,7 @@ uses CastleUtils, CastleStringUtils;
 procedure TTestCastleStringUtils.TestIntToStrBase;
 var i: Integer;
     l: Integer;
-    s1, s2: string;
+    s1, s2: String;
 begin
  for i := 1 to 100 do
  begin
@@ -65,7 +65,7 @@ end;
 
 procedure TTestCastleStringUtils.TestDeFormat;
 var
-  s, S2: string;
+  s, S2: String;
   I: Integer;
   F: Float;
 begin
@@ -237,7 +237,7 @@ procedure TTestCastleStringUtils.TestCastleStringList;
 
 var sarr, sarr2: TCastleStringList;
     I, J: Integer;
-const twoStrings: array[0..1]of string = ('raz','dwa');
+const twoStrings: array [0..1] of String = ('raz','dwa');
 begin
  for I := 1 to 100 do
  begin
@@ -401,7 +401,7 @@ end;
 
 procedure TTestCastleStringUtils.TestSplitString;
 
-  procedure AssertStringListEquals(const A: array of string; const List: TCastleStringList);
+  procedure AssertStringListEquals(const A: array of String; const List: TCastleStringList);
   var
     I: Integer;
   begin
@@ -410,8 +410,8 @@ procedure TTestCastleStringUtils.TestSplitString;
       AssertEquals(A[I], List[I]);
   end;
 
-  procedure TestSplitAndGlue(const CorrectParts: array of string;
-    const S: string; const Delimiter: Char);
+  procedure TestSplitAndGlue(const CorrectParts: array of String;
+    const S: String; const Delimiter: Char);
   var
     List: TCastleStringList;
   begin

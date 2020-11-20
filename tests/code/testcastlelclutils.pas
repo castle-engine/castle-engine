@@ -31,7 +31,7 @@ uses SysUtils, Classes, CastleLCLUtils;
 
 procedure TTestCastleLCLUtils.TestCastleLCLUtils;
 var
-  LCLFilter: string;
+  LCLFilter: String;
   LCLFilterIndex: Integer;
 begin
   FileFiltersToDialog('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',

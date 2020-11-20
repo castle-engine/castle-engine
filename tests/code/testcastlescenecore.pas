@@ -10,10 +10,10 @@ uses
 type
   TTestSceneCore = class(TTestCase)
   strict private
-    SearchingForDescription: string;
+    SearchingForDescription: String;
     function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
-    procedure NodeMultipleTimesWarning(const Category, S: string);
-    procedure OnWarningRaiseException(const Category, S: string);
+    procedure NodeMultipleTimesWarning(const Category, S: String);
+    procedure OnWarningRaiseException(const Category, S: String);
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -51,7 +51,7 @@ end;
 {$ifdef ITERATOR_SPEED_TEST}
 procedure TTestSceneCore.TestIteratorSpeed;
 
-  procedure CheckIteratorSpeed(const FileName: string;
+  procedure CheckIteratorSpeed(const FileName: String;
     const TestCount: Integer = 1000);
   var
     Scene: TCastleSceneCore;
@@ -109,7 +109,7 @@ end;
 
 procedure TTestSceneCore.TestIterator;
 
-  procedure CheckIterator(const FileName: string);
+  procedure CheckIterator(const FileName: String);
   var
     Scene: TCastleSceneCore;
     List: TShapeList;
@@ -228,7 +228,7 @@ procedure TTestSceneCore.TestViewpointBillboardTricky;
 var
   Scene: TCastleScene;
 
-  function FindViewpointByDescription(const Description: string): TAbstractViewpointNode;
+  function FindViewpointByDescription(const Description: String): TAbstractViewpointNode;
   begin
     SearchingForDescription := Description;
     AssertTrue(Scene.RootNode <> nil);
@@ -283,7 +283,7 @@ end;
 type
   ENodeMultipleTimes = class(Exception);
 
-procedure TTestSceneCore.NodeMultipleTimesWarning(const Category, S: string);
+procedure TTestSceneCore.NodeMultipleTimesWarning(const Category, S: String);
 begin
   if Pos('is already part of another TCastleScene instance', S) <> 0 then
     raise ENodeMultipleTimes.Create('We want this warning, good: ' + S)
@@ -387,7 +387,7 @@ begin
   end;
 end;
 
-procedure TTestSceneCore.OnWarningRaiseException(const Category, S: string);
+procedure TTestSceneCore.OnWarningRaiseException(const Category, S: String);
 begin
   raise Exception.CreateFmt('TTestSceneCore made a warning, and any warning here is an error: %s: %s', [Category, S]);
 end;

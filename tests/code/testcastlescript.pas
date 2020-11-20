@@ -45,11 +45,11 @@ uses CastleVectors, CastleScript, CastleScriptLexer, CastleScriptParser,
 
 procedure TTestCastleScript.Test1;
 
-  procedure WritelnLexer(const s: string);
+  procedure WritelnLexer(const S: String);
   var
     Lexer: TCasScriptLexer;
   begin
-    Lexer := TCasScriptLexer.Create(s);
+    Lexer := TCasScriptLexer.Create(S);
     repeat
       Writeln(Lexer.TokenDescription);
       Lexer.NextToken;
@@ -412,7 +412,7 @@ procedure TTestCastleScript.TestArrays;
 var
   Prog: TCasScriptProgram;
 
-  procedure ExecuteExpectError(const FuncName: string);
+  procedure ExecuteExpectError(const FuncName: String);
   begin
     try
       Prog.ExecuteFunction(FuncName, []);
@@ -494,7 +494,7 @@ end;
 procedure TTestCastleScript.TestInvalidOps;
 
   { Executing (but not parsing) of Expr should raise ECasScriptError }
-  procedure ExpectMathErrors(const Expr: string);
+  procedure ExpectMathErrors(const Expr: String);
   var
     Ex: TCasScriptExpression;
   begin
@@ -511,7 +511,7 @@ procedure TTestCastleScript.TestInvalidOps;
 
   { Executing (but not parsing) of Expr should raise ECasScriptError,
     but not ECasScriptAnyMathError. }
-  procedure ExpectNonMathErrors(const Expr: string);
+  procedure ExpectNonMathErrors(const Expr: String);
   var
     Ex: TCasScriptExpression;
   begin
@@ -545,7 +545,7 @@ procedure TTestCastleScript.TestTryExecuteMath;
 
   { Executing (but not parsing) of Expr should raise ECasScriptError.
     TryExecute will return @nil then. }
-  procedure ExpectMathErrors(const Expr: string);
+  procedure ExpectMathErrors(const Expr: String);
   var
     Ex: TCasScriptExpression;
   begin
@@ -557,7 +557,7 @@ procedure TTestCastleScript.TestTryExecuteMath;
 
   { Executing (but not parsing) of Expr should raise ECasScriptError,
     but not ECasScriptAnyMathError. TryExecute let's this error through then. }
-  procedure ExpectNonMathErrors(const Expr: string);
+  procedure ExpectNonMathErrors(const Expr: String);
   var
     Ex: TCasScriptExpression;
   begin

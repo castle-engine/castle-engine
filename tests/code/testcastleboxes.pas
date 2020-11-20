@@ -472,7 +472,7 @@ var
   Triangle: TTriangle3;
   Box: TBox3D;
 
-  procedure DoTest(const TestName: string; CorrectResult: Boolean);
+  procedure DoTest(const TestName: String; CorrectResult: Boolean);
   begin
     try
       { These writelns were used to experimentally check that 1e-4 is still too small,

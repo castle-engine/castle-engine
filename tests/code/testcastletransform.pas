@@ -1123,7 +1123,7 @@ var
     );
   end;
 
-  procedure AssertBox2(const TestName: string; const T: TCastleTransform; const B: TBox3D);
+  procedure AssertBox2(const TestName: String; const T: TCastleTransform; const B: TBox3D);
   var
     P: TVector3;
   begin
@@ -1182,7 +1182,7 @@ var
 var
   Scene: TCastleSceneCore;
 
-  procedure AssertBox(const TestName: string; const T: TCastleTransform; const B: TBox3D);
+  procedure AssertBox(const TestName: String; const T: TCastleTransform; const B: TBox3D);
   begin
     Scene.Spatial := [];
     AssertBox2(TestName + '_Scene as bbox', T, B);

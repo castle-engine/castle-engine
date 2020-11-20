@@ -61,7 +61,7 @@ end;
 procedure TTestURIUtils.TestAbsoluteURI;
 {$ifdef MSWINDOWS}
 var
-  Drive: string;
+  Drive: String;
 {$endif}
 begin
   {$ifdef MSWINDOWS}
@@ -92,7 +92,7 @@ end;
 
 procedure TTestURIUtils.TestURIToFilenameSafe;
 var
-  Temp: string;
+  Temp: String;
 begin
   { URIToFilename fails for Windows absolute filenames,
     but our URIToFilenameSafe works. }

@@ -40,10 +40,10 @@ type
   end;
 
   TFoo = class
-    constructor Create(AI: Integer; AnS: string);
+    constructor Create(AI: Integer; AnS: String);
   public
     I: Integer;
-    S: string;
+    S: String;
   end;
 
   TFooList = class(specialize TObjectList<TFoo>)
@@ -57,7 +57,7 @@ uses Generics.Defaults;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
-constructor TFoo.Create(AI: Integer; AnS: string);
+constructor TFoo.Create(AI: Integer; AnS: String);
 begin
   I := AI;
   S := AnS;

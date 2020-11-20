@@ -27,7 +27,7 @@ uses
 type
   TTestX3DNodes = class(TCastleTestCase)
   private
-    procedure WeakLinkUnusedWarning(const Category, S: string);
+    procedure WeakLinkUnusedWarning(const Category, S: String);
   published
     procedure TestNodesManager;
 
@@ -97,20 +97,20 @@ uses Generics.Collections,
 
 type
   TSpecialNode = class(TX3DNode)
-    function X3DType: string; override;
+    function X3DType: String; override;
   end;
 
-function TSpecialNode.X3DType: string;
+function TSpecialNode.X3DType: String;
 begin
  result := 'OohImSoSpecial';
 end;
 
 type
   TSomethingNode = class(TX3DNode)
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
-class function TSomethingNode.ClassX3DType: string;
+class function TSomethingNode.ClassX3DType: String;
 begin
  result := 'WellImNothingSpecial';
 end;
@@ -145,15 +145,15 @@ type
   TX3DTokenInfo = class
     Token: TX3DToken;
     Float: Float; //< for both vtFloat and vtInteger
-    Name: string; //< for vtName
-    AString: string; //< for vtString
+    Name: String; //< for vtName
+    AString: String; //< for vtString
     Keyword: TX3DKeyword; //< for vtKeyword
     Integer: Int64; //< for vtInteger
   end;
 
   TX3DTokenInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
-    procedure ReadFromFile(const FileName: string);
+    procedure ReadFromFile(const FileName: String);
   end;
 
 procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
@@ -161,9 +161,9 @@ procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
 
-    function DescribeTokenInfo(const T: TX3DTokenInfo): string;
+    function DescribeTokenInfo(const T: TX3DTokenInfo): String;
     const
-      VRMLTokenNames: array[TX3DToken]of string = (
+      VRMLTokenNames: array[TX3DToken] of String = (
         'keyword', 'name',
         '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
         'float', 'integer', 'string', 'end of stream');
@@ -212,7 +212,7 @@ end;
   methods because of unfortunately
   1. invalid X3D files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
-procedure TX3DTokenInfoList.ReadFromFile(const FileName: string);
+procedure TX3DTokenInfoList.ReadFromFile(const FileName: String);
 var
   Lexer: TX3DLexer;
 
@@ -227,7 +227,7 @@ var
     Result.AString := Lexer.TokenString;
   end;
 
-  function LexerFromFile(const URL: string): TX3DLexer;
+  function LexerFromFile(const URL: String): TX3DLexer;
   var
     Stream: TStream;
   begin
@@ -250,11 +250,11 @@ end;
 
 procedure TTestX3DNodes.TestParseSaveToFile;
 
-  procedure TestReadWrite(const FileName: string);
+  procedure TestReadWrite(const FileName: String);
   var
     First, Second: TX3DTokenInfoList;
     Node: TX3DNode;
-    NewFile: string;
+    NewFile: String;
   begin
     First := nil;
     Second := nil;
@@ -330,7 +330,7 @@ procedure TTestX3DNodes.TestUniqueFields;
 var
   I, J, K: Integer;
   N: TX3DNode;
-  CurrentName: string;
+  CurrentName: String;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
@@ -1773,7 +1773,7 @@ end;
 type
   EWeakLinkUnused = class(Exception);
 
-procedure TTestX3DNodes.WeakLinkUnusedWarning(const Category, S: string);
+procedure TTestX3DNodes.WeakLinkUnusedWarning(const Category, S: String);
 begin
   if Pos('GeneratedShadowMap.light', S) <> 0 then
     raise EWeakLinkUnused.Create('We want this warning, good: ' + S)

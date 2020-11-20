@@ -32,7 +32,7 @@ type
     RecreateSceneEachTime: Boolean;
 
     { FileName empty means to load empty scene. }
-    procedure TestScene(const FileName: string);
+    procedure TestScene(const FileName: String);
     procedure TestSceneFromEnum(const FileInfo: TFileInfo; var StopSearch: Boolean);
     { If RecreateSceneEachTime, Scene will be destroyed and then created
       again before each load.
@@ -53,7 +53,7 @@ implementation
 
 uses SysUtils, CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog;
 
-procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
+procedure TTestOpeningAndRendering3D.TestScene(const FileName: String);
 begin
   if RecreateSceneEachTime then
   begin
@@ -100,7 +100,7 @@ end;
 
 procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo; var StopSearch: Boolean);
 var
-  ParentDirName: string;
+  ParentDirName: String;
 begin
   { do not check files in "errors" subdir, these are known to cause trouble }
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
@@ -122,9 +122,9 @@ end;
 
 procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachTime: Boolean);
 
-  procedure TestScenesInDir(const Path: string);
+  procedure TestScenesInDir(const Path: String);
 
-    procedure DoMask(const Mask: string);
+    procedure DoMask(const Mask: String);
     begin
       FindFiles(Path, Mask, false, @TestSceneFromEnum, [ffRecursive]);
     end;

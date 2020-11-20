@@ -48,7 +48,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
       Curve: TSpaceFillingCurve;
       pixCoords: TVector2Cardinal;
       pix: PVector3Byte;
-      OutFileName: string;
+      OutFileName: String;
   begin
    Curve := nil;
    Img := TRGBImage.Create(Width, Height);

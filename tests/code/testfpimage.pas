@@ -32,7 +32,7 @@ uses Classes, FPImage, FPReadJPEG, SysUtils, CastleVectors, CastleImages;
 
 procedure TTestFPImage.TestJPEG;
 
-  procedure DoIt(const S: string; const GoodWidth, GoodHeight: Cardinal);
+  procedure DoIt(const S: String; const GoodWidth, GoodHeight: Cardinal);
   var
     Stream: TMemoryStream;
     Reader: TFPCustomImageReader;

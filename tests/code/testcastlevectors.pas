@@ -102,10 +102,10 @@ begin
  AssertSameValue(1/3, T, 0.0000001);
 end;
 
-procedure WritelnSpeedTest(const s: string);
+procedure WritelnSpeedTest(const S: String);
 begin
  {$ifdef VECTOR_MATH_SPEED_TESTS}
- Writeln(s);
+ Writeln(S);
  {$endif}
 end;
 
@@ -346,23 +346,25 @@ end;
 procedure TTestCastleVectors.TestVectorStr;
 
   procedure OneTestVectorFromStr;
-  var v, v2: TVector3;
-      s: string;
+  var
+    V, V2: TVector3;
+    S: String;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   v2 := Vector3FromStr(s);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+   V := RandomVector;
+   S := V.ToRawString;
+   V2 := Vector3FromStr(S);
+   AssertVectorEquals(V2, V, 0.001); // larger epsilon for ppc64
   end;
 
   procedure OneTestByDeformat;
-  var v, v2: TVector3;
-      s: string;
+  var
+    V, V2: TVector3;
+    S: String;
   begin
-   v := RandomVector;
-   s := v.ToRawString;
-   DeFormat(s, '%.single. %.single. %.single.', [@v2.Data[0], @v2.Data[1], @v2.Data[2]]);
-   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
+   V := RandomVector;
+   S := V.ToRawString;
+   DeFormat(S, '%.single. %.single. %.single.', [@V2.Data[0], @V2.Data[1], @V2.Data[2]]);
+   AssertVectorEquals(V2, V, 0.001); // larger epsilon for ppc64
   end;
 
 const
@@ -516,9 +518,9 @@ end;
 
 function RandomVector: TVector3;
 begin
-  result[0] := Random*1000;
-  result[1] := Random*1000;
-  result[2] := Random*1000;
+  result[0] := Random * 1000;
+  result[1] := Random * 1000;
+  result[2] := Random * 1000;
 end;
 
 function RandomMatrix: TMatrix4;

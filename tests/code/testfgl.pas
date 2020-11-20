@@ -32,7 +32,7 @@ uses CastleUtils, CastleClassUtils;
 
 type
   TItem = class
-    Str: string;
+    Str: String;
   end;
 
   TItemList = class(specialize TFPGObjectList<TItem>)

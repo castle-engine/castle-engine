@@ -36,12 +36,14 @@ implementation
 
 uses CastleUtils, CastleVectors;
 
-function IsSmallerString(const a, b: string): Integer;
+function IsSmallerString(const A, B: String): Integer;
 begin
   if A < B then
-    Result := -1 else
+    Result := -1
+  else
   if A > B then
-    Result :=  1 else
+    Result :=  1
+  else
     Result :=  0;
 end;
 
@@ -68,7 +70,7 @@ end;
 (*
 procedure TTestBasicLists.TestGenericStringList;
 
-  function Equal(const S1: TGenericStringList; const S2: array of string): Boolean;
+  function Equal(const S1: TGenericStringList; const S2: array of String): Boolean;
   var
     I: Integer;
   begin
@@ -97,7 +99,7 @@ var
   sarr, sarr2: TGenericStringList;
   I, J: Integer;
 const
-  twoStrings: array[0..1]of string = ('raz','dwa');
+  twoStrings: array [0..1] of String = ('raz','dwa');
 begin
  for I := 1 to 100 do
  begin

@@ -43,7 +43,7 @@ uses SysUtils,
 procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data/images/';
 
-  procedure DoTest(const fname: string;
+  procedure DoTest(const fname: String;
     const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
   var Img: TCastleImage;
@@ -55,7 +55,7 @@ const ImagesPath = 'data/images/';
   end;
 
 { Unused:
-  procedure DoFailTest(const fname: string;
+  procedure DoFailTest(const fname: String;
     const AllowedImageClasses: array of TEncodedImageClass);
   var Img: TCastleImage;
   begin
@@ -68,7 +68,7 @@ const ImagesPath = 'data/images/';
   end;
 }
 
-  procedure TestsImageInRGBFormat(const fname: string);
+  procedure TestsImageInRGBFormat(const fname: String);
   begin
    { zaladuj obrazek w formacie rgb. Dopoki TRGBImage jest w AllowedImageClasses
      wszystko powinno zawsze isc OK i wynik powinien miec typ TRGBImage. }
@@ -266,10 +266,10 @@ end;
 
 procedure TTestImages.TestLoadSavePreserveAlpha;
 
-  procedure TestImage(const URL: string);
+  procedure TestImage(const URL: String);
   var
     Img, Img2: TRGBAlphaImage;
-    TempImageFileName: string;
+    TempImageFileName: String;
   begin
     try
       TempImageFileName := GetTempFileNamePrefix + 'load_save_test.png';

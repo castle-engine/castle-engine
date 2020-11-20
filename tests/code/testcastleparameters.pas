@@ -26,7 +26,7 @@ type
   TParsedOption = record
     OptionNum: Integer;
     HasArgument: Boolean;
-    Argument: string;
+    Argument: String;
     SeparateArgs: TSeparateArgs;
   end;
   PParsedOption = ^TParsedOption;
@@ -34,7 +34,7 @@ type
 
   TTestParsingParameters = class(TTestCase)
   private
-    procedure AssertParsEqual(const ParsValues: array of string);
+    procedure AssertParsEqual(const ParsValues: array of String);
     procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
       const ParsedPars2: array of TParsedOption);
   published
@@ -47,7 +47,7 @@ implementation
 uses CastleStringUtils;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: Boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   ParsedArray: TParsedOptionList absolute Data;
   LastItem: PParsedOption;
@@ -84,7 +84,7 @@ begin
  result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
 
-procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of string);
+procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of String);
 var i: Integer;
 begin
  AssertTrue(Parameters.High = High(ParsValues));
@@ -108,8 +108,8 @@ end;
 
 procedure TTestParsingParameters.TestParsingParameters;
 
-  function DynParsedOptionArrayToStr(const name: string;
-    v: TParsedOptionList): string;
+  function DynParsedOptionArrayToStr(const name: String;
+    v: TParsedOptionList): String;
   var i: Integer;
   begin
    result := name + nl;
@@ -121,7 +121,7 @@ procedure TTestParsingParameters.TestParsingParameters;
         v.L[i].Argument]) + nl;
   end;
 
-  function ParsToStr: string;
+  function ParsToStr: String;
   var i: Integer;
   begin
    result := 'Params now = ' + nl;
@@ -129,9 +129,9 @@ procedure TTestParsingParameters.TestParsingParameters;
     result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
   end;
 
-  procedure CheckPars(TestName: string; const StartPars: array of string;
+  procedure CheckPars(TestName: String; const StartPars: array of String;
     const Options: array of TOption;
-    const GoodAnswer: array of TParsedOption; const GoodRest: array of string;
+    const GoodAnswer: array of TParsedOption; const GoodRest: array of String;
     ParseOnlyKnownLongOptions: Boolean);
   var Answer: TParsedOptionList;
   begin
@@ -158,8 +158,8 @@ procedure TTestParsingParameters.TestParsingParameters;
    finally Answer.Free end;
   end;
 
-  procedure CheckParsFail(TestName: string; const StartPars: array of string;
-    const Options: array of TOption; EClass: ExceptClass; const EMessage: string);
+  procedure CheckParsFail(TestName: String; const StartPars: array of String;
+    const Options: array of TOption; EClass: ExceptClass; const EMessage: String);
   var Answer: TParsedOptionList;
   begin
    Parameters.AssignArray(StartPars);
@@ -199,78 +199,78 @@ const
 
   { Pars1_2 ------------------------------------------------------------ }
 
-  Pars1_2Question: array[0..4]of string =
+  Pars1_2Question: array [0..4] of String =
   ('--zero-niewazne', 'ala', '--mama', 'teresa', '--kot-kocur=cygan');
 
-  Pars1: array[0..3]of TOption = (
+  Pars1: array [0..3] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:#0; Long:'kot'; Argument: oaOptional),
     (Short:#0; Long:'kot-kocur'; Argument: oaOptional),
     (Short:'a'; Long:'ala'; Argument: oaNone)
   );
-  Pars1Answer: array[0..1]of TParsedOption = (
+  Pars1Answer: array [0..1] of TParsedOption = (
     (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:2; HasArgument: true; Argument:'cygan'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars1Rest: array[0..2]of string = ('--zero-niewazne', 'ala', 'teresa');
+  Pars1Rest: array [0..2] of String = ('--zero-niewazne', 'ala', 'teresa');
 
-  Pars2: array[0..2]of TOption = (
+  Pars2: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaRequired),
     (Short:#0; Long:'kot-kocur'; Argument: oaOptional),
     (Short:'a'; Long:'ala'; Argument: oaNone)
   );
-  Pars2Answer: array[0..1]of TParsedOption = (
+  Pars2Answer: array [0..1] of TParsedOption = (
     (OptionNum:0; HasArgument: true; Argument:'teresa'; SeparateArgs: EmptySeparateArgs),
     (OptionNum:1; HasArgument: true; Argument:'cygan'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars2Rest: array[0..1]of string = ('--zero-niewazne', 'ala');
+  Pars2Rest: array [0..1] of String = ('--zero-niewazne', 'ala');
 
   { Pars3 ------------------------------------------------------------ }
 
-  Pars3Question: array[0..8]of string =
+  Pars3Question: array [0..8] of String =
   ('-l=no', 'ala', '-l', '-l=foo nie=l', '--mama', '--', 'teresa', '--kot=cygan', '--');
 
-  Pars3: array[0..3]of TOption = (
+  Pars3: array [0..3] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:#0; Long:'kot'; Argument: oaOptional),
     (Short:'a'; Long:'ala'; Argument: oaNone),
     (Short:'l'; Long:'lollobrygida'; Argument: oaOptional)
   );
-  Pars3Answer: array[0..2]of TParsedOption = (
+  Pars3Answer: array [0..2] of TParsedOption = (
     (OptionNum:3; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:3; HasArgument: true; Argument:'foo nie=l'; SeparateArgs: EmptySeparateArgs),
     (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
   );
-  Pars3Rest: array[0..4]of string = ('-l=no', 'ala', 'teresa', '--kot=cygan', '--');
+  Pars3Rest: array [0..4] of String = ('-l=no', 'ala', 'teresa', '--kot=cygan', '--');
 
   { Pars4_5 ------------------------------------------------------------ }
 
-  Pars4_5Question: array[0..2]of string = ('-nic', '--ala spacja', '--kot');
-  Pars45Rest: array[0..0]of string = ('-nic');
+  Pars4_5Question: array [0..2] of String = ('-nic', '--ala spacja', '--kot');
+  Pars45Rest: array [0..0] of String = ('-nic');
 
-  Pars4: array[0..2]of TOption = (
+  Pars4: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:#0; Long:'kot'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaNone)
   );
-  Pars4Answer: array[0..1]of TParsedOption = (
+  Pars4Answer: array [0..1] of TParsedOption = (
     (OptionNum:2; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
   );
 
-  Pars5: array[0..2]of TOption = (
+  Pars5: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:#0; Long:'kot'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaRequired)
   );
-  Pars5Answer: array[0..0]of TParsedOption = (
+  Pars5Answer: array [0..0] of TParsedOption = (
     (OptionNum:2; HasArgument: true; Argument:'--kot'; SeparateArgs: EmptySeparateArgs)
   );
 
   { Pars6 ------------------------------------------------------------ }
 
-  Pars6Question: array[0..3]of string = ('--zero-niewazne', '--ala spacja', '-m', '--kot');
-  Pars6: array[0..1]of TOption = (
+  Pars6Question: array [0..3] of String = ('--zero-niewazne', '--ala spacja', '-m', '--kot');
+  Pars6: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaNone)
   );
@@ -278,92 +278,92 @@ const
   { '--kot' powinien zostac zignorowany jesli uruchomimy z ParseOnlyLongKnownOptions.
     Podobnie '-m' (bo mimo ze -m jest znane to jest short option).
     Jednak '--ala spacja' powinno zostac sparsowane i usuniete. }
-  Pars6_OnlyKnown_Answer: array[0..0]of TParsedOption = (
+  Pars6_OnlyKnown_Answer: array [0..0] of TParsedOption = (
     (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs)
   );
-  Pars6_OnlyKnown_Rest: array[0..2]of string =
+  Pars6_OnlyKnown_Rest: array [0..2] of String =
   ('--zero-niewazne', '-m', '--kot');
 
   { Pars7 ------------------------------------------------------------ }
 
-  Pars7Question: array[0..2]of string = ('zero', '-a', '-k');
-  Pars7: array[0..1]of TOption = (
+  Pars7Question: array [0..2] of String = ('zero', '-a', '-k');
+  Pars7: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaNone)
   );
 
   { Pars8 ------------------------------------------------------------ }
 
-  Pars8Question: array[0..2]of string = ('hehe', '--=ala spacja', '--kot');
-  Pars8: array[0..1]of TOption = (
+  Pars8Question: array [0..2] of String = ('hehe', '--=ala spacja', '--kot');
+  Pars8: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'a'; Long:'ala spacja'; Argument: oaRequired)
   );
 
   { Pars9 ------------------------------------------------------------ }
 
-  Pars9Question: array[0..2]of string = ('foo', 'blah', '--kot');
-  Pars9: array[0..1]of TOption = (
+  Pars9Question: array [0..2] of String = ('foo', 'blah', '--kot');
+  Pars9: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaRequired)
   );
 
   { Pars10 ------------------------------------------------------------ }
 
-  Pars10Question: array[0..0]of string = ('--kot=blah');
-  Pars10: array[0..1]of TOption = (
+  Pars10Question: array [0..0] of String = ('--kot=blah');
+  Pars10: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone)
   );
   {$define Pars10Answer:=[]}
-  Pars10Rest: array[0..0]of string = ('--kot=blah');
+  Pars10Rest: array [0..0] of String = ('--kot=blah');
 
   { Pars11 ------------------------------------------------------------ }
 
-  Pars11Question: array[0..1]of string = ('ble', '--kot=blah');
-  Pars11: array[0..1]of TOption = (
+  Pars11Question: array [0..1] of String = ('ble', '--kot=blah');
+  Pars11: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone)
   );
 
   { Pars12 ------------------------------------------------------------ }
 
-  Pars12Question: array[0..1]of string = ('ble', '-=blah');
-  Pars12: array[0..1]of TOption = (
+  Pars12Question: array [0..1] of String = ('ble', '-=blah');
+  Pars12: array [0..1] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone)
   );
 
   { Pars13 ------------------------------------------------------------ }
 
-  Pars13Question: array[0..4]of string = ('--ble', '--ble', '1 ', '2', '3');
-  Pars13: array[0..2]of TOption = (
+  Pars13Question: array [0..4] of String = ('--ble', '--ble', '1 ', '2', '3');
+  Pars13: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone),
     (Short:'b'; Long:'ble'; Argument: oaRequired2Separate)
   );
-  Pars13Answer: array[0..0]of TParsedOption = (
+  Pars13Answer: array [0..0] of TParsedOption = (
     (OptionNum:2; HasArgument: false; Argument:''; SeparateArgs:('1 ','2','', '','','', '','',''))
   );
-  Pars13Rest: array[0..1]of string = ('--ble', '3');
+  Pars13Rest: array [0..1] of String = ('--ble', '3');
 
   { Pars14 ------------------------------------------------------------ }
 
-  Pars14Question: array[0..4]of string = ('--ble', '--ble', '1 ', '2', '3');
-  Pars14: array[0..2]of TOption = (
+  Pars14Question: array [0..4] of String = ('--ble', '--ble', '1 ', '2', '3');
+  Pars14: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone),
     (Short:'b'; Long:'ble'; Argument: oaRequired3Separate)
   );
-  Pars14Answer: array[0..0]of TParsedOption = (
+  Pars14Answer: array [0..0] of TParsedOption = (
     (OptionNum:2; HasArgument: false; Argument:''; SeparateArgs:('1 ', '2', '3', '','','', '','',''))
   );
-  Pars14Rest: array[0..0]of string = ('--ble');
+  Pars14Rest: array [0..0] of String = ('--ble');
 
   { Pars15 ------------------------------------------------------------ }
 
-  Pars15Question: array[0..4]of string = ('--ble', '--ble', '1 ', '2', '3');
-  Pars15: array[0..2]of TOption = (
+  Pars15Question: array [0..4] of String = ('--ble', '--ble', '1 ', '2', '3');
+  Pars15: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'kot'; Argument: oaNone),
     (Short:'b'; Long:'ble'; Argument: oaRequired4Separate)
@@ -373,32 +373,32 @@ const
 
   { '-' is not errorneous "empty short option", it is treated as usual
     non-option parameter. '' is harmless too. }
-  Pars16Question: array[0..2]of string = ('ble', '-', '');
-  Pars16: array[0..0]of TOption = (
+  Pars16Question: array [0..2] of String = ('ble', '-', '');
+  Pars16: array [0..0] of TOption = (
     (Short:'b'; Long:'ble'; Argument: oaRequired3Separate)
   );
   {$define Pars16Answer:=[]}
-  Pars16Rest: array[0..2]of string = ('ble', '-', '');
+  Pars16Rest: array [0..2] of String = ('ble', '-', '');
 
   { Pars17 ------------------------------------------------------------ }
 
   { #0 is not allowed as short option (Short = #0 means "no short form for this
     option exists") }
-  Pars17Question: array[0..1]of string = ('--ble', '-'#0);
-  Pars17: array[0..0]of TOption = (
+  Pars17Question: array [0..1] of String = ('--ble', '-'#0);
+  Pars17: array [0..0] of TOption = (
     (Short:#0; Long:'mama'; Argument: oaOptional)
   );
 
   { Pars18 ------------------------------------------------------------- }
 
   { combining short options works. Arguments for last option are allowed. }
-  Pars18Question: array[0..4]of string = ('-zero', '-abc', '--rere', 'blabla', '-abc=foo');
-  Pars18: array[0..2]of TOption = (
+  Pars18Question: array [0..4] of String = ('-zero', '-abc', '--rere', 'blabla', '-abc=foo');
+  Pars18: array [0..2] of TOption = (
     (Short:'a'; Long:'ania'; Argument: oaOptional),
     (Short:'b'; Long:'basia'; Argument: oaOptional),
     (Short:'c'; Long:'cycek'; Argument: oaRequired)
   );
-  Pars18Answer: array[0..5]of TParsedOption = (
+  Pars18Answer: array [0..5] of TParsedOption = (
     (OptionNum:0; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:2; HasArgument: true; Argument:'--rere'; SeparateArgs: EmptySeparateArgs),
@@ -406,13 +406,13 @@ const
     (OptionNum:1; HasArgument: false; Argument:''; SeparateArgs: EmptySeparateArgs),
     (OptionNum:2; HasArgument: true; Argument:'foo'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars18Rest: array[0..1]of string = ('-zero', 'blabla');
+  Pars18Rest: array [0..1] of String = ('-zero', 'blabla');
 
   { Pars19 -------------------------------------------------------------- }
 
   { specyfying argument for paReuired?Separate is not allowed }
-  Pars19Question: array[0..3]of string = ('', '--baba=kobita', '1', '2');
-  Pars19: array[0..0]of TOption = (
+  Pars19Question: array [0..3] of String = ('', '--baba=kobita', '1', '2');
+  Pars19: array [0..0] of TOption = (
     (Short:'a'; Long:'baba'; Argument: oaRequired2Separate)
   );
 
@@ -421,32 +421,32 @@ const
   { OnlyKnown nie rusza krotkich opcji, rusza tylko znane dlugie,
     nieznane dlugie zostawia, honoruje tez -- i za nim nie rusza
     nawet znanych dlugich, ale samego -- nie usuwa. }
-  Pars20Question: array[0..7]of string = ('--bar', '-k', '--ble=xyz', '--1', '2', '--foo', '--', '--1');
-  Pars20: array[0..2]of TOption = (
+  Pars20Question: array [0..7] of String = ('--bar', '-k', '--ble=xyz', '--1', '2', '--foo', '--', '--1');
+  Pars20: array [0..2] of TOption = (
     (Short:'m'; Long:'mama'; Argument: oaOptional),
     (Short:'k'; Long:'1'; Argument: oaRequired),
     (Short:'b'; Long:'ble'; Argument: oaRequired)
   );
-  Pars20_OnlyKnown_Answer: array[0..1]of TParsedOption = (
+  Pars20_OnlyKnown_Answer: array [0..1] of TParsedOption = (
     (OptionNum:2; HasArgument: true; Argument:'xyz'; SeparateArgs: EmptySeparateArgs),
     (OptionNum:1; HasArgument: true; Argument:'2'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars20_OnlyKnown_Rest: array[0..4]of string = ('--bar', '-k', '--foo', '--', '--1');
+  Pars20_OnlyKnown_Rest: array [0..4] of String = ('--bar', '-k', '--foo', '--', '--1');
 
   { Pars21 ----------------------------------------------------------------- }
 
-  Pars21Question: array[0..2]of string =
+  Pars21Question: array [0..2] of String =
   ('glplotter.exe', '--grid-custom', '12');
-  Pars21: array[0..3] of TOption = (
+  Pars21: array [0..3] of TOption = (
     (Short:'h'; Long:'help'; Argument: oaNone),
     (Short:#0; Long:'grid-custom'; Argument: oaRequired),
     (Short:#0; Long:'light'; Argument: oaNone),
     (Short:#0; Long:'dark'; Argument: oaNone)
   );
-  Pars21Answer: array[0..0]of TParsedOption = (
+  Pars21Answer: array [0..0] of TParsedOption = (
     (OptionNum:1; HasArgument: true; Argument:'12'; SeparateArgs: EmptySeparateArgs)
   );
-  Pars21Rest: array[0..0]of string = ('glplotter.exe');
+  Pars21Rest: array [0..0] of String = ('glplotter.exe');
 
 begin
  CheckPars('1', Pars1_2Question, Pars1, Pars1Answer, Pars1Rest, false);
