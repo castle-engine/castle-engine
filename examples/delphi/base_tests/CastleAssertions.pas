@@ -52,7 +52,7 @@ procedure AssertSameValue(const Expected, Actual: Double; const Epsilon: Double)
 
 procedure AssertBoxesEqual(const Expected, Actual: TBox3D); overload;
 procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double); overload;
-procedure AssertFilenamesEqual(const Expected, Actual: string); overload;
+procedure AssertFilenamesEqual(const Expected, Actual: String); overload;
 //procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage); overload;
 procedure AssertRectsEqual(const Expected, Actual: TRectangle); overload;
 procedure AssertRectsEqual(const Expected, Actual: TFloatRectangle); overload;
@@ -256,7 +256,7 @@ begin
         [Expected.ToRawString, Actual.ToRawString]));
 end;
 
-procedure AssertFilenamesEqual(const Expected, Actual: string);
+procedure AssertFilenamesEqual(const Expected, Actual: String);
 begin
   if not SameFileName(Expected, Actual) then
     Fail(Format('Expected filename "%s", got "%s"', [Expected, Actual]));

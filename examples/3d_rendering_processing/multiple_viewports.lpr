@@ -40,7 +40,7 @@ type
   { Derive our own TCastleViewport descendants, just to demo that we can. }
   TMyViewport = class(TCastleViewport)
   public
-    Caption: string;
+    Caption: String;
   end;
 
 { TWireViewport -------------------------------------------------------------- }
@@ -188,7 +188,7 @@ begin
 end;
 
 var
-  URL: string = 'castle-data:/teapot.x3dv';
+  URL: String = 'castle-data:/teapot.x3dv';
   // 'castle-data:/bridge_final.x3dv';
   // '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
@@ -200,7 +200,7 @@ type
 
 procedure TDummy.OpenButtonClick(Sender: TObject);
 var
-  NewURL: string;
+  NewURL: String;
 begin
   NewURL := URL;
   if Window.FileDialog('Open Scene', NewURL, true, LoadScene_FileFilters) then

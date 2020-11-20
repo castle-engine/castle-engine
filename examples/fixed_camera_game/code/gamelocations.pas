@@ -36,13 +36,13 @@ type
         procedure LocalRender(const Params: TRenderParams); override;
       end;
   private
-    FName: string;
-    FImageURL: string;
-    FShadowedImageURL: string;
-    FSceneURL: string;
+    FName: String;
+    FImageURL: String;
+    FShadowedImageURL: String;
+    FSceneURL: String;
     FScene: TLocationScene;
     FImage, FShadowedImage: TDrawableImage;
-    FSceneCameraDescription: string;
+    FSceneCameraDescription: String;
     FPlayerPosition: TVector3;
     FPlayerDirection: TVector3;
     FPlayerUp: TVector3;
@@ -55,13 +55,13 @@ type
 
     { Location short name, must be simple (needs to be valid XML element
       name and X3D node name, for easy data reading). }
-    property Name: string read FName;
+    property Name: String read FName;
 
-    property ImageURL: string read FImageURL;
-    property ShadowedImageURL: string read FShadowedImageURL;
-    property SceneURL: string read FSceneURL;
+    property ImageURL: String read FImageURL;
+    property ShadowedImageURL: String read FShadowedImageURL;
+    property SceneURL: String read FSceneURL;
 
-    property SceneCameraDescription: string read FSceneCameraDescription;
+    property SceneCameraDescription: String read FSceneCameraDescription;
 
     property PlayerPosition: TVector3 read FPlayerPosition;
     property PlayerDirection: TVector3 read FPlayerDirection;
@@ -199,7 +199,7 @@ end;
 
 constructor TLocationList.Create;
 
-  procedure MissingLocationAttribute(const AttrName: string);
+  procedure MissingLocationAttribute(const AttrName: String);
   begin
     raise Exception.CreateFmt('Location doesn''t have a required attribute "%s"',
       [AttrName]);
@@ -209,7 +209,7 @@ var
   I: TXMLElementIterator;
   LocationsElement: TDOMElement;
   Location: TLocation;
-  StartLocationName: string;
+  StartLocationName: String;
 begin
   inherited Create(true);
 

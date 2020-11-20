@@ -216,13 +216,13 @@ end;
 { parsing parameters --------------------------------------------------------- }
 
 const
-  Options: array[0..1]of TOption =
+  Options: array [0..1] of TOption =
   ((Short:'h'; Long: 'help'; Argument: oaNone),
    (Short:'v'; Long: 'version'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
     0:begin

@@ -32,10 +32,10 @@ uses SysUtils, CastleUtils, CastleParameters, CastleFindFiles,
 { Action ------------------------------------------------------------ }
 
 type TAction=(aNothing, aPrint, aClean);
-const ActionParStr: array[TAction]of string = ('nothing', 'print', 'clean');
+const ActionParStr: array [TAction] of String = ('nothing', 'print', 'clean');
 var Action: TAction;
 
-  function ActionParStrToAction(const S: string): TAction;
+  function ActionParStrToAction(const S: String): TAction;
   begin
     for Result := Low(Result) to High(Result) do
       if ActionParStr[Result] = S then Exit;
@@ -45,7 +45,7 @@ var Action: TAction;
 { global vars ------------------------------------------------------- }
 
 var
-  StartPath: string = '.' +PathDelim;
+  StartPath: String = '.' +PathDelim;
   CleanDirsRecursively: Boolean = true;
 
   { note: we're keeping separate DirsToClean and DefaultDirsToClean
@@ -87,9 +87,9 @@ begin
     Result := [];
 end;
 
-procedure CleanFiles(const Pattern: string);
+procedure CleanFiles(const Pattern: String);
 
-  function SizeToStr(const Size: Int64): string;
+  function SizeToStr(const Size: Int64): String;
   begin
     { powers of 1000, not 1024.
       https://en.wikipedia.org/wiki/Gigabyte
@@ -138,7 +138,7 @@ begin
   end;
 end;
 
-procedure CleanDirs(const Pattern: string);
+procedure CleanDirs(const Pattern: String);
 begin
   DirsCount := 0;
 
@@ -197,7 +197,7 @@ const
   );
 
   procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
   var
     i: Integer;
   begin

@@ -22,7 +22,7 @@ uses SysUtils, CastleUtils, CastleImages, CastleParameters,
 
 var
   { required params }
-  InputImageName, OutputImageName: string;
+  InputImageName, OutputImageName: String;
 
   { optional params }
   ResizeX: Cardinal = 0;
@@ -47,7 +47,7 @@ const
   );
 
   procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of
       0: begin

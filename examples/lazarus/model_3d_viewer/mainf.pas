@@ -84,7 +84,7 @@ type
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    SceneURL: string;
+    SceneURL: String;
     CameraChanged: Boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     CrosshairCtl: TCastleCrosshair;
@@ -92,11 +92,11 @@ type
     RecentFiles: TCastleRecentFiles;
     Viewport: TCastleViewport;
 
-    procedure OpenScene(const URL: string);
+    procedure OpenScene(const URL: String);
     procedure UpdateCaption;
     procedure UpdateCrosshairImage;
     procedure OnPointingDeviceSensorsChange(Sender: TObject);
-    procedure RecentFilesOpenRecent(const URL: string);
+    procedure RecentFilesOpenRecent(const URL: String);
   public
     { public declarations }
   end;
@@ -114,7 +114,7 @@ uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
 
 {$R *.lfm}
 
-procedure TMain.OpenScene(const URL: string);
+procedure TMain.OpenScene(const URL: String);
 
   procedure LoadScene(const URL: String);
   var
@@ -189,7 +189,7 @@ end;
 
 procedure TMain.UpdateCaption;
 var
-  S: string;
+  S: String;
 begin
   if SceneURL <> '' then
     S := URICaption(SceneURL) else
@@ -356,7 +356,7 @@ begin
   UserConfig.Save;
 end;
 
-procedure TMain.RecentFilesOpenRecent(const URL: string);
+procedure TMain.RecentFilesOpenRecent(const URL: String);
 begin
   OpenScene(URL);
 end;

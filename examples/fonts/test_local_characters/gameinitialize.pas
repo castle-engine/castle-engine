@@ -39,7 +39,7 @@ type
   TFontContainer = class
   strict private
     procedure LoadFinish;
-    procedure Load(const URL: string);
+    procedure Load(const URL: String);
     procedure Load(const FontData: TTextureFontData);
   public
     MyFontData: TTextureFontData;
@@ -74,7 +74,7 @@ begin
   Font := MyFontData;
 end;
 
-procedure TFontContainer.Load(const URL: string);
+procedure TFontContainer.Load(const URL: String);
 var
   AllCharacters: TUnicodeCharList;
 begin

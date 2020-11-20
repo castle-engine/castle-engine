@@ -217,7 +217,7 @@ function CreateMainMenu: TMenu;
 
   procedure AddOperations(const Base: Integer; M: TMenu);
   const
-    OperationNames: array [TOperation] of string =
+    OperationNames: array [TOperation] of String =
     ('No operation',
      'Only real',
      'Only imaginary',

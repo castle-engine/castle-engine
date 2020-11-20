@@ -66,7 +66,7 @@ type
   TSoundData = class(TComponent)
   public
     Buffer: TSoundBuffer;
-    FileName: string;
+    FileName: String;
     StartedTime: TTime;
   end;
 
@@ -152,7 +152,7 @@ end;
 procedure TMain.TimerToDisplaySoundsTimer(Sender: TObject);
 var
   I: Integer;
-  S: string;
+  S: String;
 begin
   ListAllocatedSources.Clear;
   // SoundEngine.AllocatedSources will be nil if sound backend initialization failed

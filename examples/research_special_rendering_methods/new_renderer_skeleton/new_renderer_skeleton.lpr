@@ -126,7 +126,7 @@ procedure TCastleSceneVulkan.LocalRender(const Params: TRenderParams);
       Result := CameraMatrix^ * Params.Transform^;
   end;
 
-  function PrimitiveToStr(const Primitive: TGeometryPrimitive): string;
+  function PrimitiveToStr(const Primitive: TGeometryPrimitive): String;
   begin
     Result := GetEnumName(TypeInfo(TGeometryPrimitive), Ord(Primitive));
   end;

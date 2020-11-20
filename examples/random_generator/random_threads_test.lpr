@@ -13,7 +13,7 @@ type
 
 
 procedure TRandomThread.execute;
-var ThreadName, SeedName, TickName: string;
+var ThreadName, SeedName, TickName: String;
 begin
  Rnd := TCastleRandom.Create;
  TickName := inttostr(GetTickCount64);

@@ -25,7 +25,7 @@ uses SysUtils, CastleUtils, CastleImages, CastleParameters;
 var
   I: Integer;
   Img: TEncodedImage;
-  AlphaChannel: string;
+  AlphaChannel: String;
 begin
   if Parameters.High = 0 then
     raise EInvalidParams.Create('No parameters supplied, nothing to do');

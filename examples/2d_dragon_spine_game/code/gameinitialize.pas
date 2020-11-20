@@ -85,7 +85,7 @@ procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
     and run it's animation. }
-  procedure AddItem(const X, Y, Z, Scale: Single; const URL: string;
+  procedure AddItem(const X, Y, Z, Scale: Single; const URL: String;
     const RunAnimation: Boolean = true);
   var
     Scene: TCastleScene;

@@ -26,9 +26,9 @@ type
     DrawableImage: TDrawableImage;
     { Relative URL vs tiles directory.
       This is read and written from/to a map file. }
-    RelativeURL: string;
+    RelativeURL: String;
     { This is an absolute URL constructed from RelativeURL. }
-    function FullURL: string;
+    function FullURL: String;
   public
     CharCode: char;
     procedure LoadFromFile; virtual; abstract;
@@ -74,9 +74,9 @@ type
     Width, Height: Cardinal;
     PlayerStartX, PlayerStartY: Cardinal;
     constructor Create(AWidth, AHeight: Cardinal);
-    constructor CreateFromFile(const AURL: string);
+    constructor CreateFromFile(const AURL: String);
     destructor Destroy; override;
-    procedure SaveToFile(const AURL: string);
+    procedure SaveToFile(const AURL: String);
   end;
 
 implementation
@@ -94,7 +94,7 @@ begin
   inherited;
 end;
 
-function TTile.FullURL: string;
+function TTile.FullURL: String;
 begin
   Result := 'castle-data:/tiles/' + RelativeURL;
 end;
@@ -154,12 +154,12 @@ begin
   CreateItems;
 end;
 
-constructor TMap.CreateFromFile(const AURL: string);
+constructor TMap.CreateFromFile(const AURL: String);
 
   procedure ReadlnTileLine(const F: TTextReader;
-    var C: char; var RelativeURL: string);
+    var C: char; var RelativeURL: String);
   var
-    CStr: string;
+    CStr: String;
   begin
     CStr := F.Read;
     if Length(CStr) <> 1 then
@@ -177,7 +177,7 @@ var
   F: TTextReader;
   BaseTilesCount, BonusTilesCount: Cardinal;
   C: char;
-  S: string;
+  S: String;
   I: Integer;
   X, Y: Cardinal;
 begin
@@ -280,10 +280,10 @@ begin
   inherited;
 end;
 
-procedure TMap.SaveToFile(const AURL: string);
+procedure TMap.SaveToFile(const AURL: String);
 var
   F: TStream;
-  S: string;
+  S: String;
   I: Integer;
   X, Y: Cardinal;
 begin

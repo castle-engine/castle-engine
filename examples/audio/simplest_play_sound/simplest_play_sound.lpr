@@ -22,7 +22,7 @@ uses SysUtils, CastleUtils,
 
 var
   Buffer: TSoundBuffer;
-  URL: string;
+  URL: String;
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 

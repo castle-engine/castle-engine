@@ -32,7 +32,7 @@ uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, Castle
 type
   TText = class(TCastleUserInterface)
   public
-    Text: string;
+    Text: String;
     LightColor, DarkColor: TCastleColor;
     ParentWindow: TCastleWindowBase;
     procedure Render; override;
@@ -49,7 +49,7 @@ end;
 
 function TText.Press(const Event: TInputPressRelease): Boolean;
 var
-  URL: string;
+  URL: String;
 begin
   Result := inherited;
   if Result then Exit;

@@ -40,14 +40,14 @@ type
   public
     SourceZipFileName: String;
     TempDirectory: String;
-    function ReadUrl(const Url: string; out MimeType: string): TStream;
+    function ReadUrl(const Url: String; out MimeType: String): TStream;
     destructor Destroy; override;
   end;
 
 var
   PackedDataReader: TPackedDataReader;
 
-function TPackedDataReader.ReadUrl(const Url: string; out MimeType: string): TStream;
+function TPackedDataReader.ReadUrl(const Url: String; out MimeType: String): TStream;
 var
   FileInZip: String;
   Unzip: TUnZipper;

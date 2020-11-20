@@ -716,7 +716,7 @@ procedure Open(Container: TUIContainer);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
-  ShaderString: string;
+  ShaderString: String;
 begin
   { TODO: this demo uses specialized rendering
     that currently assumes some fixed-function things set up. }
@@ -882,7 +882,7 @@ begin
 end;
 
 var
-  ModelURL: string =
+  ModelURL: String =
     //'castle-data:/chinchilla_awakens.x3dv';
     'castle-data:/peach.wrl.gz';
 begin

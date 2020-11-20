@@ -77,7 +77,7 @@ constructor TStateIntro.Create(AOwner: TComponent);
   procedure InitializeIntroParts;
   var
     Element: TDOMElement;
-    ImageName: string;
+    ImageName: String;
     I: TXMLElementIterator;
     Part: TIntroPart;
   begin

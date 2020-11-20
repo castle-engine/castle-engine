@@ -79,7 +79,7 @@ uses CastleFilesUtils, CastleUtils,
 
 constructor TPlayer.Create;
 const
-  MoveShortcutNames: array [TDirection] of string = (
+  MoveShortcutNames: array [TDirection] of String = (
     'N',
     'E',
     'S',

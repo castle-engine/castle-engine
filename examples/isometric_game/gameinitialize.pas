@@ -135,7 +135,7 @@ var
   NewViewMoveX, NewViewMoveY: Integer;
 
   { Get character from user. Returns #0 if cancelled. }
-  function MessageChar(const S: string): char;
+  function MessageChar(const S: String): char;
   var
     Event: TInputPressRelease;
   begin
@@ -186,7 +186,7 @@ var
 
   procedure ShowFieldInfo;
 
-    function TileDescr(Tile: TTile): string;
+    function TileDescr(Tile: TTile): String;
     begin
       if Tile = nil then
         Result := '<none>' else
@@ -205,7 +205,7 @@ var
   end;
 
 var
-  URL: string;
+  URL: String;
 begin
   if Event.EventType = itKey then
   begin

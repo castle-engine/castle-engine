@@ -35,7 +35,7 @@ var
 
   Video: TVideo;
   GLVideo: TGLVideo2D;
-  VideoURL: string;
+  VideoURL: String;
 
   Time: TFloatTime;
   TimePlaying: Boolean = true;
@@ -57,7 +57,7 @@ const
 
   procedure DrawStatus;
   var
-    S: string;
+    S: String;
     Strs: TStringList;
   begin
     Strs := TStringList.Create;
@@ -105,7 +105,7 @@ begin
     Time += Window.Fps.SecondsPassed;
 end;
 
-procedure LoadVideo(const NewVideoURL: string);
+procedure LoadVideo(const NewVideoURL: String);
 begin
   try
     Video.LoadFromFile(NewVideoURL);
@@ -121,7 +121,7 @@ begin
   end;
 end;
 
-procedure SaveVideo(const NewVideoURL: string);
+procedure SaveVideo(const NewVideoURL: String);
 begin
   try
     Video.SaveToFile(NewVideoURL);
@@ -145,7 +145,7 @@ end;
 
 procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 var
-  S: string;
+  S: String;
   I: Integer;
   FadeFrames: Cardinal;
 begin

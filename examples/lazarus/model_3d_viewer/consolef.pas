@@ -20,7 +20,7 @@ type
   private
   public
     WasWarnings: Boolean;
-    procedure WarningToConsole(const Category, S: string);
+    procedure WarningToConsole(const Category, S: String);
   end;
 
 var
@@ -34,7 +34,7 @@ uses MainF;
 
 { TConsole }
 
-procedure TConsole.WarningToConsole(const Category, S: string);
+procedure TConsole.WarningToConsole(const Category, S: String);
 begin
   Memo1.Lines.Append(Category + ': ' + S);
   WasWarnings := true;

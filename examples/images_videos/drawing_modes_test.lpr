@@ -142,13 +142,13 @@ end;
 procedure AddButtons;
 var
   DrawMode: TDrawMode;
-  DrawModeName: string;
+  DrawModeName: String;
   B: TCastleButton;
 begin
   for DrawMode := Low(DrawMode) to High(DrawMode) do
   begin
     B := TCastleButton.Create(Application);
-    { convert enum to string using GetEnumName }
+    { convert Enum to String using GetEnumName }
     DrawModeName := SEnding(GetEnumName(TypeInfo(TDrawMode), Ord(DrawMode)), 3);
     B.Caption := DrawModeName;
     B.AutoSizeWidth := false;

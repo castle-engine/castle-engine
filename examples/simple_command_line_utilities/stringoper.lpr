@@ -99,7 +99,7 @@ type
   TCommand = record
     { must be in lowercase (according even to current locale, i.e. to "Ansi"
       string functions) ! }
-    Param: string;
+    Param: String;
     { -1 if no paramater is required }
     ParCountRequired: Integer;
     CommandResult: TCommandResult;
@@ -130,8 +130,8 @@ const
 { zwraca liczbe z przedzialu 0..CommandsCount-1 jesli Param zgadza sie
   (case-insensitive) z Commands[result].Param. Jesli nie zgadza sie z zadnym,
   to zwraca -1. }
-function ParamToCommand(const Param: string): Integer;
-var ParamLower: string;
+function ParamToCommand(const Param: String): Integer;
+var ParamLower: String;
 begin
  ParamLower := AnsiLowerCase(Param);
  for result := 0 to CommandsCount-1 do
@@ -142,7 +142,7 @@ end;
 { main -------------------------------------------------------------------- }
 
 var CommandNum: Integer;
-    ResultStr: string;
+    ResultStr: String;
     ResultBool: Boolean;
 begin
  //BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';

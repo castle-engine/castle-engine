@@ -195,7 +195,7 @@ end;
 
 procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
-  URL: string;
+  URL: String;
 begin
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot

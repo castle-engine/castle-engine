@@ -59,7 +59,7 @@ type
 
   TPlane = class(TCastleScene)
   public
-    LastCollisionEnter: string;
+    LastCollisionEnter: String;
     procedure CollisionEnter(const CollisionDetails: TPhysicsCollisionDetails);
     constructor Create(AOwner: TComponent); override;
   end;

@@ -51,7 +51,7 @@ type
   private
     SoundBuffer: TSoundBuffer;
     Sound: TSound;
-    SoundURL: string;
+    SoundURL: String;
     SoundDuration: TFloatTime;
     procedure SoundRelease(Sender: TSound);
   public

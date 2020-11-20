@@ -29,7 +29,7 @@ var
   Viewport: TCastleViewport;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
-  URL: string = 'data/bridge_final.x3dv';
+  URL: String = 'data/bridge_final.x3dv';
 
 type
   { Dummy class, just to keep OpenButtonClick method. }

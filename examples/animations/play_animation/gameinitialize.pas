@@ -43,19 +43,19 @@ const
 
 type
   TEventsHandler = class
-    class procedure Open(const Url: string);
+    class procedure Open(const Url: String);
     class procedure ButtonOpen3DClick(Sender: TObject);
     class procedure ButtonOpen2DClick(Sender: TObject);
     class procedure ButtonOpenDialogClick(Sender: TObject);
     class procedure ButtonPlayAnimationClick(Sender: TObject);
   end;
 
-class procedure TEventsHandler.Open(const Url: string);
+class procedure TEventsHandler.Open(const Url: String);
 
   procedure RecreateAnimationsPanel;
   var
     Lab: TCastleLabel;
-    AnimationName: string;
+    AnimationName: String;
     Button: TCastleButton;
     ScrollView: TCastleScrollView;
     ScrollGroup: TCastleVerticalGroup;
@@ -152,7 +152,7 @@ end;
 
 class procedure TEventsHandler.ButtonOpenDialogClick(Sender: TObject);
 var
-  Url: string;
+  Url: String;
 begin
   Url := Scene.Url;
   if Window.FileDialog('Open model', Url, true, LoadScene_FileFilters) then
@@ -161,7 +161,7 @@ end;
 
 class procedure TEventsHandler.ButtonPlayAnimationClick(Sender: TObject);
 var
-  AnimationName: string;
+  AnimationName: String;
   Params: TPlayAnimationParameters;
 begin
   AnimationName := (Sender as TCastleButton).Caption;

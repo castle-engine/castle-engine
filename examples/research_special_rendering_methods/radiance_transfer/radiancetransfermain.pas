@@ -258,7 +258,7 @@ end;
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  URL: string = 'castle-data:/chinchilla_with_prt.wrl.gz';
+  URL: String = 'castle-data:/chinchilla_with_prt.wrl.gz';
   Background: TCastleRectangleControl;
 begin
   Parameters.CheckHighAtMost(1);

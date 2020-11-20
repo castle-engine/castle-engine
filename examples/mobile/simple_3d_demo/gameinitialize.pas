@@ -168,7 +168,7 @@ end;
 class procedure TEventsHandler.ToggleTextureUpdatesCallback(Node: TX3DNode);
 var
   CubeMap: TGeneratedCubeMapTextureNode;
-  LogStr: string;
+  LogStr: String;
 begin
   CubeMap := Node as TGeneratedCubeMapTextureNode;
   if CubeMap.Update = upNone then

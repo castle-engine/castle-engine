@@ -187,7 +187,7 @@ const
   );
 
   procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+    const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
   begin
     case OptionNum of
       0: SHBasisCount := StrToInt(Argument);
@@ -199,7 +199,7 @@ var
   Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
   RadianceTransfer: TVector3List;
-  S: string;
+  S: String;
   TimeStart: TProcessTimerResult;
   Seconds: TFloatTime;
   ShapeList: TShapeList;

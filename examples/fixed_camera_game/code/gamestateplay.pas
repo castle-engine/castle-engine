@@ -127,7 +127,7 @@ end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): Boolean;
 var
-  URL: string;
+  URL: String;
 begin
   Result := inherited;
 

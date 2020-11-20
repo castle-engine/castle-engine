@@ -56,7 +56,7 @@ procedure Render(Container: TUIContainer);
 var
   C: Char;
   Key: TKey;
-  S: string;
+  S: String;
 const
   Margin = 20;
 begin

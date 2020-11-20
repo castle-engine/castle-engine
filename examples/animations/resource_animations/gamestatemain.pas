@@ -53,7 +53,7 @@ type
     ResourceButtons: TResourceButtonList; //< all current TResourceButton instances
     { Remember this to make repeated usage of FileDialog in ClickButtonLoadResourceXml
       more comfortable, it will start with the last chosen directory. }
-    LastLoadedResourceXml: string;
+    LastLoadedResourceXml: String;
 
     procedure ClickButtonLoadResourceXml(Sender: TObject);
     procedure ChangedCheckboxShowDebug(Sender: TObject);

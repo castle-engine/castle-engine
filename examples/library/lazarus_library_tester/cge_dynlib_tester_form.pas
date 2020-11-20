@@ -199,7 +199,7 @@ end;
 
 procedure TForm1.BtnScreenshotClick(Sender: TObject);
 var
-  sFile: string;
+  sFile: String;
   csFile: array[0..260] of char;
 begin
   sFile := ExtractFilePath(Application.ExeName) + 'cge_test_screenshot.png';
