@@ -148,7 +148,7 @@ type
     { Read string. Initial " has been already read. Reads everything
       up to (and including) " terminating the string.
       Sets fToken and fTokenString to appropriate values
-      (i.e. fToken always to vtString, fTokenString to string contents). }
+      (i.e. fToken always to vtString, fTokenString to String contents). }
     procedure ReadString;
 
     { Helpers for implementing constructors. They do everything, besides
@@ -182,7 +182,7 @@ type
       parameters here. Also it doesn't try to detect gzip header.
       It simply behaves like we're in the middle of VRML tokens stream.
 
-      Overloaded version with a first parameter as string simply reads
+      Overloaded version with a first parameter as String simply reads
       tokens from this string (wrapping it in TStringStream and TPeekCharStream).
 
       @groupBegin }
@@ -249,7 +249,7 @@ type
     { When Token = vtInteger, TokenInteger contains appropriate value. }
     property TokenInteger: Int64 read fTokenInteger;
 
-    { When Token = vtString, TokenString contains string value. }
+    { When Token = vtString, TokenString contains String value. }
     property TokenString: String read fTokenString;
 
     { NextToken reads next token from stream, initializing appropriately
@@ -294,7 +294,7 @@ type
       Usual NextToken will not be able to return vtString if it approaches
       a string not enclosed in double quotes. But THIS function
       will be able to handle it. So always use this function when
-      you expect a string, this ensures
+      you expect a String, this ensures
       that we will correctly parse any valid VRML 1.0 file.
 
       (unfortunately I'm not doing this now when parsing MFString,

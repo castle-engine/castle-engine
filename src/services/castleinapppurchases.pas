@@ -36,7 +36,7 @@ type
     { Short product identifier, uniquely identifying it in the store. }
     property Name: String read FName;
 
-    { Price, as a string in local user currency.
+    { Price, as a String in local user currency.
       Empty before receiving information about the product from the store.
       This may contain various UTF-8 local characters used to describe currency,
       which do not have to be supported in all fonts.
@@ -46,7 +46,7 @@ type
       and with special value if not received yet. }
     property PriceRaw: String read FPriceRaw;
 
-    { The price, as a string in local user currency,
+    { The price, as a String in local user currency,
       with most unusual characters replaced with ASCII
       (so it should work reliably with any font),
       and with special value if not received yet.

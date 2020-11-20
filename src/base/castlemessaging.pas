@@ -102,7 +102,7 @@ type
       some achievement), so in general don't leave it "on" in production. }
     property Log: Boolean read FLog write FLog default false;
 
-    { Convert Boolean to 'true' or 'false' string, which will be understood correctly
+    { Convert Boolean to 'true' or 'false' String, which will be understood correctly
       by the service receiving the messages. }
     class function BoolToStr(const Value: Boolean): String;
 

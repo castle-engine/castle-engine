@@ -34,11 +34,11 @@
       text with long lines.
       We will try to break text only at whitespace.
 
-      If you pass a text as a single string parameter, then our "line breaking"
+      If you pass a text as a single String parameter, then our "line breaking"
       works  correctly even for text that already contains newline characters
       (they are correctly recognized as forcing line break).
 
-      If you pass a text as an "array of string" or TStringList, it's expected
+      If you pass a text as an "array of String" or TStringList, it's expected
       that strings inside don't contain newline characters anymore. It's undefined
       what will happen (i.e. whether they will be correctly broken) otherwise.
       Of course, TStringList contents used to pass text to MessageXxx will never
@@ -117,7 +117,7 @@ procedure MessageOK(Window: TCastleWindowBase;  TextList: TStringList;
   const Html: Boolean = false); overload;
 { @groupEnd }
 
-{ Ask user to input a string.
+{ Ask user to input a String.
   User must give an answer (there is no "Cancel" button),
   use MessageInputQuery if you want a version with "Cancel" button.
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
@@ -139,7 +139,7 @@ function MessageInput(Window: TCastleWindowBase; TextList: TStringList;
   const Html: Boolean = false): String; overload;
 { @groupEnd }
 
-{ Ask user to input a string, or cancel.
+{ Ask user to input a String, or cancel.
   Returns @true and sets Answer if user accepted some text.
   Note that initial Answer value is the answer proposed to the user.
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
@@ -254,7 +254,7 @@ function MessageYesNo(Window: TCastleWindowBase;  TextList: TStringList;
 
 { Ask user to input an unsigned integer.
 
-  Note that AnswerDefault below may be given as Cardinal or as a string.
+  Note that AnswerDefault below may be given as Cardinal or as a String.
   The latter is useful if you want the default answer to be '', i.e. empty string
   --- no default answer.
 

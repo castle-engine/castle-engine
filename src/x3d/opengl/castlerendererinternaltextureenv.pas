@@ -445,7 +445,7 @@ begin
   end;
 end;
 
-{ Convert MultiTexture.function string to TTextureFunction. }
+{ Convert MultiTexture.function String to TTextureFunction. }
 function FunctionFromString(const S: String): TTextureFunction;
 var
   LS: String;

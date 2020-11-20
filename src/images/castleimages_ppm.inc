@@ -21,7 +21,7 @@
   Investigate, check if it's still there with FPC trunk, and eventually report.
 
   The segfault occurs in weird places, and seems to have something to do
-  with how ReadPPMToken(Stream) returns a string.
+  with how ReadPPMToken(Stream) returns a String.
 
   Occurs with both debug and release build.
   To reproduce, just try to open

@@ -755,7 +755,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: Boolean);
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  procedure SaveDepth(const URL: string);
+  procedure SaveDepth(const URL: String);
   var
     Image: TGrayscaleImage;
   begin

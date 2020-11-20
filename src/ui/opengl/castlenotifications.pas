@@ -75,7 +75,7 @@ type
     destructor Destroy; override;
 
     { Show new message. An overloaded version that takes a single string will
-      detect newlines in the string automatically so a message may be multi-line.
+      detect newlines in the String automatically so a message may be multi-line.
       The messages will be automatically broken to fit on the screen width with
       given font.
       @groupBegin }
@@ -115,7 +115,7 @@ type
     property Fade: Single read FFade write FFade default DefaultFade;
 
     { Turn this on to have all the messages you pass to @link(Show) be collected
-      inside @link(History) string list. @link(History) is expanded by @link(Show),
+      inside @link(History) String list. @link(History) is expanded by @link(Show),
       it is cleared by @link(Clear), just like the notifications on screen.
       However, unlike the visible messages, it has unlimited size
       (messages there are not removed when MaxMessages or @link(Timeout)

@@ -78,7 +78,7 @@ function ParseFloatExpression(const S: String;
 function ParseIntExpression(const S: String;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
-{ Parse a CastleScript expression that should be calculated to a string value.
+{ Parse a CastleScript expression that should be calculated to a String value.
   The easiest way to evaluate such expression
   is to call @link(TCasScriptExpression.AsString) method.
 
@@ -107,7 +107,7 @@ function ParseExpression(const S: String;
 
 { Parse constant float expression.
   This can be used as a drop-in replacement for StrToFloatDot.
-  Takes a string with any constant mathematical expression,
+  Takes a String with any constant mathematical expression,
   according to CastleScript syntax, parses it and calculates.
 
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }

@@ -50,7 +50,7 @@ type
   TDynamicStringArray = array of String;
 
   TStringsHelper = class helper for TStrings
-    { Convert TStrings to a dynamic string array. }
+    { Convert TStrings to a dynamic String array. }
     function ToArray: TDynamicStringArray;
 
     { Split the argument into lines (honors any newline convention),
@@ -89,7 +89,7 @@ type
     procedure AssignArray(const A: array of String); deprecated 'use Assign';
     procedure Assign(const A: array of String); {$ifndef FPC} reintroduce; {$endif} overload;
 
-    { Does another string list have equal length and content.
+    { Does another String list have equal Length and content.
 
       Any other TStrings descendant may be equal to this instance,
       we don't require it to be a TCastleStringList instance.
@@ -122,7 +122,7 @@ type
     property L[const Index: Integer]: String read GetL write SetL;
   end;
 
-  { String-to-string map. Note that in simple cases you can also
+  { String-to-String map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
   TStringStringMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, String>)
@@ -168,8 +168,8 @@ const
 
 function RandomString: String;
 
-{ Replace all occurrences of FromPattern string to ToPattern string,
-  within another string S.
+{ Replace all occurrences of FromPattern String to ToPattern String,
+  within another String S.
 
   @code(StringReplaceAllVar(s, from, to)) is actually equivalent to
   simply @code(s := StringReplace(s, from, to, [rfReplaceAll, rfIgnoreCase])).
@@ -179,31 +179,31 @@ procedure StringReplaceAllVar(var S: String;
   const FromPattern, ToPattern: String;
   IgnoreCase: Boolean = true); overload;
 
-{ Insert newline characters into string S, such that each line
+{ Insert newline characters into String S, such that each line
   has at most MaxCol chars.
 
   It tries to insert newline sequence at the last character in AllowedBreakChars but still
   before MaxCol limit, and the character in AllowedBreakChars is deleted in this case.
-  In other words, in most typical situation it simply breaks the string
+  In other words, in most typical situation it simply breaks the String
   where the whitespace is, trying to make the line as long as possible within
   MaxCol limit. If no such character in AllowedBreakChars is found (e.g., you
-  put a long line of non-white characters), it will still break the string
+  put a long line of non-white characters), it will still break the String
   at MaxCol position (so in this exceptional case, it will cause a break
   in the middle of the word).
 
-  While breaking the string in the middle
+  While breaking the String in the middle
   of the word in not nice, this allows us a safe feeling that this
-  will always break the string into MaxCol chunks.
+  will always break the String into MaxCol chunks.
 
   This intelligently recognizes already
-  existing newline characters (#13, #10, #13#10 or #10#13) in the string,
+  existing newline characters (#13, #10, #13#10 or #10#13) in the String,
   so e.g. it will not insert more newline characters when they are not
   necessary.
 
   The Indent is added after every newline.
   This is a bit more powerful than simply specyfing Newline parameter
   as @code(NL + Indent), because this function also adds Indent after existing
-  newlines in the input string. }
+  newlines in the input String. }
 function BreakLine(const S: String; const MaxCol: Integer;
   const AllowedBreakChars: TSetOfChars = WhiteSpaces): String; overload;
 function BreakLine(const S: String; const MaxCol: Integer;
@@ -214,7 +214,7 @@ function BreakLine(const S: String; const MaxCol: Integer;
 function SDeleteChars(const S: String; const excludedChars: TSetOfChars): String;
 
 { Replace all occurrences of characters in FromChars with
-  the new string / character. There are three overloaded versions:
+  the new String / Character. There are three overloaded versions:
 
   @orderedList(
     @item(SReplaceChars(String, String, String) looks in S for characters within
@@ -236,14 +236,14 @@ function SReplaceChars(const S: String; FromChars: TSetOfChars; ToChar: Char): S
 function SReplaceChars(const S: String; FromChar, ToChar: Char): String; overload;
 { @groupEnd }
 
-{ Pad (fill from the left with character C) string S, until length
-  of resulting string is at least Len.
+{ Pad (fill from the left with character C) String S, until length
+  of resulting String is at least Len.
 
   For example, @code(SPad('29', 4, '0')) gives '0029' }
 function SPad(const S: String; len: Integer; c: Char = ' '): String; overload;
 
-{ Pad (fill from the left)  with zeros string S, until length
-  of resulting string is at least Len. It's actually just a shortcut for SPad
+{ Pad (fill from the left)  with zeros String S, until length
+  of resulting String is at least Len. It's actually just a shortcut for SPad
   with padding character set to '0'. }
 function SZeroPad(const S: String; len: Integer): String;
 
@@ -256,12 +256,12 @@ function LoCase(c: Char): Char;
 function CharPos(c: Char; const S: String; Offset: Integer = 1): Integer;
   deprecated 'use SysUtils.Pos or StrUtils.PosEx instead';
 
-{ Find first occurrence of any character in Chars in string S.
+{ Find first occurrence of any character in Chars in String S.
   This is quite like FirstDelimiter but it takes parameter as TSetOfChars
   and has much more sensible name.
 
   BackCharsPos does the same, but from
-  the end of the string (i.e. finds the last occurrence).
+  the end of the String (i.e. finds the last occurrence).
 
   CharsPosEx searches starting from Offset Char.
 
@@ -302,7 +302,7 @@ function PrefixRemove(const Prefix, S: String; IgnoreCase: Boolean): String;
 { Like PrefixRemove, but checks for and removes Suffix. }
 function SuffixRemove(const Suffix, S: String; IgnoreCase: Boolean): String;
 
-{ Appends to a string S DataSize bytes from Data. }
+{ Appends to a String S DataSize bytes from Data. }
 procedure SAppendData(var S: String; const Data; DataSize: Integer); deprecated 'this function is not very useful';
 
 { A pointer to S[CharNum], that is just @@S[CharNum],
@@ -317,7 +317,7 @@ function SCharIs(const S: String; index: Integer; C: Char): Boolean; overload;
 function SCharIs(const S: String; index: Integer; const chars: TSetOfChars): Boolean; overload;
 { @groupEnd }
 
-{ Replace typically unreadable characters in string S with #number notation.
+{ Replace typically unreadable characters in String S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
 function SReadableForm(const S: String): String; overload;
@@ -334,7 +334,7 @@ function CopyPos(const S: String; StartPosition, EndPosition: Integer): String;
   standard Delete takes Count). }
 procedure DeletePos(var S: String; StartPosition, EndPosition: Integer);
 
-(*Find next part in the string S separated by delimiters
+(*Find next part in the String S separated by delimiters
   TokenDelims. More precisely: search S, starting from position
   SeekPos, for the first character that is @italic(not in TokenDelims).
   Then, all subsequent characters that are not in TokenDelims are
@@ -344,14 +344,14 @@ procedure DeletePos(var S: String; StartPosition, EndPosition: Integer);
   SeekPos is advanced to the position of the next character, i.e. the character
   right after the ending character that was in TokenDelims. In other words,
   SeekPos points to the position of the next "unprocessed" character in
-  string S. Often you will want to make another call to NextToken, passing
-  this SeekPos, and this way you can split your string S into parts
+  String S. Often you will want to make another call to NextToken, passing
+  this SeekPos, and this way you can split your String S into parts
   delimited by TokenDelims.
 
   Returns '' if no more tokens available (SeekPos value at the end is
   unspecified).
 
-  Typical use scenario (iterate over all tokens in the string) :
+  Typical use scenario (iterate over all tokens in the String) :
 
   @longCode(#
     SeekPos := 1;
@@ -362,7 +362,7 @@ procedure DeletePos(var S: String; StartPosition, EndPosition: Integer);
     until false;
   #)
 
-  The above example will split the string into parts separated by whitespace.
+  The above example will split the String into parts separated by whitespace.
 
   Note: it's much easier to use CreateTokens instead of this procedure.
   But this procedure gives you quite more flexibility. *)
@@ -371,8 +371,8 @@ function NextToken(const S: String; var SeekPos: Integer;
 
 { NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
   position. This means that it's quite useless when you're interested
-  in @italic(all) tokens inside some string, but it's also more comfortable
-  when you're interested in only @italic(one) token inside some string.
+  in @italic(all) tokens inside some String, but it's also more comfortable
+  when you're interested in only @italic(one) token inside some String.
   When SeekPos = 1, this is the first token. }
 function NextTokenOnce(const S: String; SeekPos: Integer = 1;
   const TokenDelims: TSetOfChars = WhiteSpaces): String;
@@ -386,18 +386,18 @@ function NextTokenOnce(const S: String; SeekPos: Integer = 1;
 function CreateTokens(const S: String;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
-{ Split a string by a character delimiter.
+{ Split a String by a character delimiter.
   For example, @code(SplitString('foo|bar', '|')) returns a list with 2 parts:
   @code('foo') and @code('bar').
 
   The splitting is done "strictly", which means that we always return exactly
-  one more part than the occurences of delimiter in the source string.
+  one more part than the occurences of delimiter in the source String.
 
   In particular, this means that:
   @unorderedList(
-    @item(If the Delimiter does not occur in the source string,
+    @item(If the Delimiter does not occur in the source String,
       then the result is a list with a single part. This applies
-      even if the source string is empty.
+      even if the source String is empty.
 
       @unorderedList(
         @itemSpacing Compact
@@ -406,7 +406,7 @@ function CreateTokens(const S: String;
       )
     )
 
-    @item(If the Delimiter occurs two or more times in a row within the source string,
+    @item(If the Delimiter occurs two or more times in a row within the source String,
       then the we will have one or more empty parts in the resulting list.
 
       @unorderedList(
@@ -416,7 +416,7 @@ function CreateTokens(const S: String;
       )
     )
 
-    @item(f the Delimiter occurs at the very end of the source string,
+    @item(f the Delimiter occurs at the very end of the source String,
       then the very last part of the resulting list will be an empty string.
 
       @unorderedList(
@@ -434,7 +434,7 @@ function CreateTokens(const S: String;
   See also standard TStringList.Delimiter feature. }
 function SplitString(const S: String; const Delimiter: Char): TCastleStringList;
 
-{ Concatenate the string list with a given Delimiter.
+{ Concatenate the String list with a given Delimiter.
   This is the reverse of SplitString.
   @groupBegin }
 function GlueStrings(const Strings: array of String; const Delimiter: Char): String; overload;
@@ -448,7 +448,7 @@ function GlueStrings(const Strings: TStrings; const Delimiter: String): String; 
 
   @param(StartPosition Starts searching for SubText starting from this position.
     Note that the resulting position is still returned with respect
-    to the string beginning. Just like standard PosEx.)
+    to the String beginning. Just like standard PosEx.)
 
   @param(Count Looks only at Count characters from Text.
     You can say that the search is done only within Copy(Text, StartPosition, Count).)
@@ -488,8 +488,8 @@ function SAppendPart(const S, PartSeparator, NextPart: String): String;
 type
   EDeformatError = class(Exception);
 
-{ Parse a string according to the given format, returning the
-  values corresponding to placeholders %x in format string.
+{ Parse a String according to the given format, returning the
+  values corresponding to placeholders %x in format String.
 
   Format parameter is a sequence of white spaces, placeholders like %d or %f,
   and other characters. More precisely:
@@ -528,13 +528,13 @@ type
     @item(@code(%.integer.), @code(%.cardinal.), are like
       @code(%d), but they specify appropriate variable type in Args.)
 
-    @item(@code(%s) in Format means a string (will end on the first whitespace)
+    @item(@code(%s) in Format means a String (will end on the first whitespace)
       in Data. Args should contain a pointer to an AnsiString
       on the appropriate position. Note that I mean it --- a pointer
-      to an AnsiString, not just a string typecasted into a pointer.
+      to an AnsiString, not just a String typecasted into a pointer.
       I.e., if S is AnsiString, Args should contain @@S, not Pointer(S).
 
-      Note that a string may be empty in some cases, e.g. Format = '%d %s'
+      Note that a String may be empty in some cases, e.g. Format = '%d %s'
       and Data = '123 ' will result in the empty string as second Args.)
 
     @item(@code(%%) in Format means a one % sign in Data.)
@@ -564,7 +564,7 @@ type
   wouldn't match. For example, consider Data = 'first  second apple'
   and Format = 'first %s second %s'. With RelaxedWhitespaceChecking
   these things @italic(do not match) --- because the 1st space character
-  in the Format string "consumes" the 1st and 2nd space characters
+  in the Format String "consumes" the 1st and 2nd space characters
   in the Data. Then '%s' is matched to the word 'second', and the
   word 'second' is compared with 'apple' and they do not match.
   If you want such Data and Format to match, you must pass
@@ -665,18 +665,18 @@ function SReplacePatterns(const S: String; const Parameters: TStringStringMap; c
 function SCharsCount(const S: String; C: Char): Cardinal; overload;
 function SCharsCount(const S: String; const Chars: TSetOfChars): Cardinal; overload;
 
-{ Remove from the string S everything after the first hash "#" character.
+{ Remove from the String S everything after the first hash "#" character.
   Removes also this very "#" character.
 
-  If string doesn't contain hash character, it's simply returned.
+  If String doesn't contain hash character, it's simply returned.
 
   Useful for interpreting simple text files when you want to treat
   things after "#" like a comment. }
 function STruncateHash(const S: String): String;
 
-{ Return the value to reproduce exactly string S by Format procedure.
-  Saying simply, this doubles the "%" characters inside the string.
-  The intention is to make such string that
+{ Return the value to reproduce exactly String S by Format procedure.
+  Saying simply, this doubles the "%" characters inside the String.
+  The intention is to make such String that
   @code(Format(SUnformattable(S), []) = S). In other words, "quote"
   any suspicious "%" characters in S for Format. }
 function SUnformattable(const S: String): String;
@@ -713,7 +713,7 @@ type
   @italic(For example), assume that Replaces contains two items:
   @code((c: 'B'; s: '<bold>'), (c: 'b'; s: '</bold>')).
   Then @code(SPercentReplace('100%% of cats are %Bcute%b', Replaces)) will return
-  string @code('100% of cats are <bold>cute</bold>').
+  String @code('100% of cats are <bold>cute</bold>').
 
   EUnknownPercentFormat is raised if we will see two-char sequence
   that starts with PercentChar and then is followed by character that
@@ -747,7 +747,7 @@ type
   PercentChar (that is, we count only actual replacements from Replaces
   array).
 
-  @raises(EUnknownPercentFormat In case of error in InitialFormat string,
+  @raises(EUnknownPercentFormat In case of error in InitialFormat String,
     if ErrorOnUnknownPercentFormat is @true.)
 
   @groupBegin }
@@ -784,7 +784,7 @@ function SPercentReplace(const InitialFormat: String;
 
     @item(%% is replaced with single percent char %.)
 
-    @item(Everything else is just copied to resulting string.
+    @item(Everything else is just copied to resulting String.
       Not recognized %-patterns are also just copied.
       The main purpose of this is to specify filenames with optional
       placeholders, so unrecognized stuff should be gracefully ignored.)
@@ -884,14 +884,14 @@ function IntToStr16(const n: QWord; const minLength: Cardinal = 1): String; over
   to "get" 0x notation. }
 function PointerToStr(Ptr: Pointer): String;
 
-{ Convert string representing binary number to an Integer.
+{ Convert String representing binary number to an Integer.
   String must contain only '0', '1' (digits) and start with an optional sign
   (+ or -).
 
   This is similar to the standard StrUtils.Numb2Dec (with Base = 2) function,
   but this reliably raises EConvertError in case of trouble.
 
-  @raises EConvertError In case of invalid string. }
+  @raises EConvertError In case of invalid String. }
 function Str2ToInt(const S: String): Integer;
 
 { Convert String with hexadecimal number to an Integer.
@@ -902,13 +902,13 @@ function Str2ToInt(const S: String): Integer;
   but it returns an Int64 value. So this is safer and more consistent
   with standard StrToInt.
 
-  @raises EConvertError In case of invalid string. }
+  @raises EConvertError In case of invalid String. }
 function StrHexToInt(const S: String): Int64;
 
 function StrToFloatDef(const S: String; DefValue: Extended): Extended;
   deprecated 'use StrToFloatDefDot in most cases, to have dot as decimal separator';
 
-{ Convert a set to a string representation, in somewhat hacky way.
+{ Convert a set to a String representation, in somewhat hacky way.
   This assumes that given SetVariable is a set value, and the set type
   is "set of [NumStart .. NumEnd]".
 
@@ -939,15 +939,15 @@ function SetToStr(const SetVariable; NumStart, NumEnd: Byte): String;
 function CharSetToStr(const SetVariable: TSetOfChars): String;
 
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
-  If string is empty, this returns @nil, otherwise it works just like
+  If String is empty, this returns @nil, otherwise it works just like
   PChar(S): returns a Pointer(S) with appropriate type cast. }
 function PCharOrNil(const S: String): PChar;
 
 { Replace any number of consecutive whitespace (including newlines)
-  with a single whitespace. This is nice when you have a string
+  with a single whitespace. This is nice when you have a String
   (possibly multiline) supplied by user, and you want to use this
   for some UI item (like window's caption or menu item) --- this
-  "sanitizes" whitespace inside such string. }
+  "sanitizes" whitespace inside such String. }
 function SCompressWhiteSpace(const S: String): String;
 
 type
@@ -956,7 +956,7 @@ type
 { Check that all characters are within a given set.
   Raise exception otherwise (if RaiseExceptionOnError, default)
   or make a warning.
-  @raises(EInvalidChar If string contains an invalid character
+  @raises(EInvalidChar If String contains an invalid character
     and RaiseExceptionOnError = @true.
     The exception string is informative, containing the string value,
     character, character position.) }
@@ -1803,7 +1803,7 @@ begin
   if datapos > Length(data) then
   begin
     { Actually, if next thing in format is %s, we can parse it too
-      (string will just be '') }
+      (String will just be '') }
     if Format[FormPos] = '%' then
     begin
       Inc(formpos);
@@ -2530,7 +2530,7 @@ var
 begin
   ResultPos := 1;
   SPos := 1;
-  SetLength(Result, Length(S)); { resulting string is at most as long as S }
+  SetLength(Result, Length(S)); { resulting String is at most as long as S }
 
   if SCharIs(S, 1, WhiteSpaces) then
   begin

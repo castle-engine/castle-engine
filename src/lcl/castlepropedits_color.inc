@@ -89,7 +89,7 @@ type
   TCastleColorRGBPropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
-    function GetName: shortstring; override;
+    function GetName: ShortString; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
   end;

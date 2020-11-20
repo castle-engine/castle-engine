@@ -39,7 +39,7 @@ function ScreenEffectVertex: String;
 
   Note that to work with OpenGLES, we have to glue all fragment shaders,
   and ScreenEffectFragment must be before the actual shader code.
-  The string returned by this function is guaranteed to end with a newline,
+  The String returned by this function is guaranteed to end with a newline,
   to make it easy.
 
   So you usually want to create screen effect shaders like this:

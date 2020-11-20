@@ -660,7 +660,7 @@ type
 
       On some backend implementations, also some other @link(Device) values may
       be possible. E.g. old Loki implementation of OpenAL allowed some hints
-      to be encoded in Lisp-like language inside the @link(Device) string. }
+      to be encoded in Lisp-like language inside the @link(Device) String. }
     function Devices: TSoundDeviceList;
 
     function DeviceNiceName: String; deprecated 'use DeviceCaption';

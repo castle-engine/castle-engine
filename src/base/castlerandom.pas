@@ -63,14 +63,14 @@ type
 
 { Implementation of MurMur2 hash algorithm
   to make a cryptographic-unsafe but highly uniform
-  32bit hash from a given string very quickly.
+  32bit hash from a given String very quickly.
   It may be used for better initialization of user defined random seeds
   (e.g. "My New World" sounds much better than 6592202398)
   or for better sorting/searching of strings.
   Warning: the hash is deterministic, but the result may be different
   depending on CPU architecture or endianness (test required).
 
-  @param(InputString The input string)
+  @param(InputString The input String)
   @param(Seed Optional parameter enabling initialization
     of the algorithm seed different from default)
   @returns(Unsigned 32-bit integer)
@@ -363,7 +363,7 @@ begin
   p := Data;
   h := Seed xor i; //init the deterministic seed
 
-  //cycle through all bytes of the string in 32 bit blocks
+  //cycle through all bytes of the String in 32 bit blocks
   while (i >= 4) do begin
     k := PLongWord(p)^;   //get next 4 bytes of data and process them
     CycleHash(k);
@@ -396,7 +396,7 @@ end;
 function StringToHash(const InputString: AnsiString; const Seed: LongWord = 0): LongWord;
 begin
   Result := MurMur2(Pointer(InputString), Length(InputString), Seed);
-  //Pointer(InputString) is an untyped pointer to the first character of the string
+  //Pointer(InputString) is an untyped Pointer to the first character of the String
 end;
 
 var GlobalRandom: TCastleRandom;

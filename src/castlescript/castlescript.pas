@@ -179,7 +179,7 @@ type
       To easily create such expression, use @link(ParseIntExpression). }
     function AsInt(const ADefaultValue: Int64 = 0): Int64;
 
-    { Execute expression, return the result as a simple string value.
+    { Execute expression, return the result as a simple String value.
       It assumes that the expression is written to always return String.
       To easily create such expression, use @link(ParseStringExpression). }
     function AsString(const ADefaultValue: String = ''): String;

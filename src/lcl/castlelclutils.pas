@@ -27,7 +27,7 @@ uses Dialogs, Classes, Controls, LCLType, Graphics, EditBtn,
   Suitable for both open and save dialogs (TOpenDialog, TSaveDialog
   both descend from TFileDialog).
 
-  Input filters are either given as a string FileFilters
+  Input filters are either given as a String FileFilters
   (encoded just like for TFileFilterList.AddFiltersFromString),
   or as TFileFilterList instance.
 

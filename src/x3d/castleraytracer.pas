@@ -120,7 +120,7 @@ type
 
     { Do ray-tracing, like @link(Execute),
       additionally gathering some statistics.
-      The statistics will be added to the given string list. }
+      The statistics will be added to the given String list. }
     procedure ExecuteStats(const Stats: TStrings);
   end;
 

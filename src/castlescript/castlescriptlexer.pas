@@ -68,7 +68,7 @@ type
     property TokenBoolean: Boolean read FTokenBoolean;
     property TokenFunctionClass: TCasScriptFunctionClass read FTokenFunctionClass;
 
-    { Position of lexer in the @link(Text) string. }
+    { Position of lexer in the @link(Text) String. }
     property TextPos: Integer read FTextPos;
 
     { Text that this lexer reads. }
@@ -186,7 +186,7 @@ const
    result := false;
   end;
 
-  { Read a string, to a tokString token.
+  { Read a String, to a tokString token.
     Read from current TexPos.
     Update ftoken and fTokenString, and advance TextPos, and return true
     if success.
@@ -269,7 +269,7 @@ const
     zbadac kazdy znak, poczynajac od text[fTextPos], czy rzeczywiscie
     nalezy do identChars.
 
-    Always returns non-empty string (length >= 1) }
+    Always returns non-empty string (Length >= 1) }
   const identStartChars = Letters;
         identChars = identStartChars + digits;
   var startPos: Integer;

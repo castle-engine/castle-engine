@@ -208,7 +208,7 @@ end;
 
 { EALCError ------------------------------------------------------------------ }
 
-constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
+constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: String);
 begin
   FALCErrorNum := AALCErrorNum;
   inherited Create(AMessage);

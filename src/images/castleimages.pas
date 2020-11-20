@@ -4822,7 +4822,7 @@ var
   Format: TImageFormat;
   MimeType: String;
 begin
-  { Do not call SaveImage with MimeType: string parameter, instead calculate
+  { Do not call SaveImage with MimeType: String parameter, instead calculate
     Format here. This way we can make better error messaage. }
   MimeType := URIMimeType(URL);
   if not MimeTypeToImageFormat(MimeType, false, true, Format) then

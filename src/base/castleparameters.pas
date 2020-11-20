@@ -536,7 +536,7 @@ procedure TParameters.Parse(
 
 var I, J, K, OptionNum: Integer;
     HasArgument: Boolean;
-    Argument, OptionName: string;
+    Argument, OptionName: String;
     SeparateArgs: TSeparateArgs;
     SimpleShortOptions: TIntegerList;
 begin

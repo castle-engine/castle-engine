@@ -235,7 +235,7 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-{ GenerateGetTextPo(string) -------------------------------------------------- }
+{ GenerateGetTextPo(String) -------------------------------------------------- }
 
 type
   TFilesHandler = class

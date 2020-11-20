@@ -1485,7 +1485,7 @@ type
 
       If ViewpointDescription = '', they return the first found viewpoint node.
       Otherwise, they look for X3DViewpointNode with description field mathing
-      given string.
+      given String.
 
       If camera properties were found in some node,
       it returns this node. Otherwise it returns nil.

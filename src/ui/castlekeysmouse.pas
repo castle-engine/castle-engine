@@ -603,8 +603,8 @@ const
   Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: Boolean): TMouseWheelDirection;
 
-{ Convert string value back to a key name, reversing KeyToStr.
-  If string does not contain any recognized key name, return DefaultKey. }
+{ Convert String value back to a key name, reversing KeyToStr.
+  If String does not contain any recognized key name, return DefaultKey. }
 function StrToKey(const S: String; const DefaultKey: TKey): TKey;
 
 type

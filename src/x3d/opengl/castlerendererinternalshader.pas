@@ -254,7 +254,7 @@ type
     LightUniformValue2: Single;
     { Calculated by Prepare. Stored as TLightDefine array,
       since TLightShader.Prepare is executed very often and must be fast.
-      Only TLightShader.Code actually changes it to a string. }
+      Only TLightShader.Code actually changes it to a String. }
     Defines: array [0..9] of TLightDefine;
     DefinesCount: Cardinal;
   public
@@ -980,7 +980,7 @@ end;
 
 function TLightShader.Code: TShaderSource;
 
-  { Convert Defines list into a string of GLSL code. }
+  { Convert Defines list into a String of GLSL code. }
   function DefinesStr: String;
   var
     I: Integer;
@@ -3543,7 +3543,7 @@ begin
         We don't add the source code (all PartSource), we just add node
         reference, for reasoning see TShaderCodeHash.AddEffects (equal
         source code may still mean different uniforms).
-        Also, adding a node reference is faster that calculating string hash.
+        Also, adding a node reference is faster that calculating String hash.
 
         Note that our original shader code (from glsl/template*)
         is never added to hash --- there's no need, after all it's
