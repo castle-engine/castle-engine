@@ -2189,7 +2189,7 @@ type
       options obtained by @code(ParseParametersHelp(AllowedOptions))
       (i.e. with the same value of AllowedOptions).
 
-      Returned string may be multiline, but it does not contain
+      Returned String may be multiline, but it does not contain
       the trailing newline (newline char after the last line).
 
       Returned help text conforms to rules in
@@ -2290,10 +2290,10 @@ type
       @param(FileFilters A set of file filters to present to user.
         Pass @nil (default) if you do not want to use file file filters,
         so user will just always see everything. An overloaded version
-        allows you to pass file filters encoded in a single string,
+        allows you to pass file filters encoded in a single String,
         this may be slightly more comfortable for call, see
         TFileFilterList.AddFiltersFromString
-        for explanation how to encode filters in a string.)
+        for explanation how to encode filters in a String.)
 
       @groupBegin }
     function FileDialog(const Title: String; var URL: String;
@@ -2632,7 +2632,7 @@ type
 
     { Describe the changes recorded in variables VideoXxx,
       used by VideoChange and TryVideoChange.
-      This is a multiline string, each line is indented by 2 spaces,
+      This is a multiline String, each line is indented by 2 spaces,
       always ends with CastleUtils.NL. }
     function VideoSettingsDescribe: String;
 
@@ -2717,7 +2717,7 @@ type
       It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindowBase read FMainWindow write SetMainWindow;
 
-    { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
+    { User agent String, when running inside a browser, right now only meaningful when using NPAPI plugin. }
     property UserAgent: String read FUserAgent;
 
     { Default window class to create when environment requires it,

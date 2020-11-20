@@ -18,7 +18,7 @@
 type
   { Collada materials. Data contains TColladaEffect, which is a reference
     to Effects list (it is not owned by this TColladaMaterialsMap). }
-  TColladaMaterialsMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TColladaEffect>;
+  TColladaMaterialsMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TColladaEffect>;
 
 var
   { List of Collada materials. Collada material is just a reference
@@ -38,7 +38,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
 
   function ReadParamAsVector3(Element: TDOMElement): TVector3;
   var
-    AType: string;
+    AType: String;
   begin
     if not Element.AttributeString('type', AType) then
     begin
@@ -55,7 +55,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
 
    function ReadParamAsFloat(Element: TDOMElement): Float;
    var
-     AType: string;
+     AType: String;
    begin
      if not Element.AttributeString('type', AType) then
      begin
@@ -71,13 +71,13 @@ procedure ReadMaterial(MatElement: TDOMElement);
   end;
 
 var
-  MatId: string;
+  MatId: String;
 
   { For Collada < 1.4.x }
   procedure TryCollada13;
   var
     ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
-    ParamName: string;
+    ParamName: String;
     I: TXMLElementIterator;
     Effect: TColladaEffect;
     Appearance: TAppearanceNode;
@@ -163,7 +163,7 @@ var
   procedure TryCollada14;
   var
     InstanceEffect: TDOMElement;
-    EffectId: string;
+    EffectId: String;
     Effect: TColladaEffect;
   begin
     if MatId = '' then Exit;

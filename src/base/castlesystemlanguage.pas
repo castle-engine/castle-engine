@@ -84,7 +84,7 @@ begin
   if Result = '' then
     Result := ADefaultLocale
   else
-    Delete(Result, 6, Length(Result)); //There can be more than the language code and the locale info in the result string.
+    Delete(Result, 6, Length(Result)); //There can be more than the language code and the locale info in the result String.
                                        //For example, on Debian based systems there can be the encoding as suffix. ("en_GB.UTF-8")
                                        //So if we really only want the langauge code and the locale info, we have to delete everything behind it.
 end;

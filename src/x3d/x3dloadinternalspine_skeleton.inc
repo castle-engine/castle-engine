@@ -34,8 +34,8 @@
     { @groupEnd }
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const BaseUrl: string; const Json: TJSONData; const SkinName: String);
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
+    procedure Parse(const BaseUrl: String; const Json: TJSONData; const SkinName: String);
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader;
       const Container: TX3DRootNode);
   end;
 {$endif}
@@ -61,7 +61,7 @@ begin
   inherited;
 end;
 
-procedure TSkeleton.Parse(const BaseUrl: string; const Json: TJSONData; const SkinName: String);
+procedure TSkeleton.Parse(const BaseUrl: String; const Json: TJSONData; const SkinName: String);
 
   procedure CalculateCurrentSkin;
   begin
@@ -84,7 +84,7 @@ procedure TSkeleton.Parse(const BaseUrl: string; const Json: TJSONData; const Sk
 
   procedure SkinLog;
   var
-    S: string;
+    S: String;
     I: Integer;
   begin
     if Skins.Count = 1 then
@@ -143,7 +143,7 @@ begin
   //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
-procedure TSkeleton.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
+procedure TSkeleton.BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader;
   const Container: TX3DRootNode);
 var
   NavigationInfo: TNavigationInfoNode;

@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleInternalNodeInterpolator;
 
 { Load MD3 animation as a sequence of static X3D models. }
-function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
+function LoadMD3Sequence(const URL: String): TNodeInterpolator.TAnimationList;
 
 implementation
 
@@ -58,7 +58,7 @@ type
     destructor Destroy; override;
 
   public
-    Name: string;
+    Name: String;
 
     Vertexes: TMd3VertexList;
     TextureCoords: TMd3TexCoordList;
@@ -90,7 +90,7 @@ type
       Texture URL found there will be trimmed to a name
       (i.e. without directory part, as it usually specifies directory
       within quake/tremulous/etc. data dir, not relative to md3 model dir). }
-    constructor Create(const URL: string);
+    constructor Create(const URL: String);
 
     { Reads MD3 from a stream. The stream must be freely seekable
       (i.e. setting Position to any value must be supported) ---
@@ -100,12 +100,12 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor CreateStream(Stream: TStream; const ATextureURL: string);
+    constructor CreateStream(Stream: TStream; const ATextureURL: String);
 
     destructor Destroy; override;
 
   public
-    Name: string;
+    Name: String;
 
     Surfaces: TMd3SurfaceList;
 
@@ -115,13 +115,13 @@ type
       file (it's not recorded there), it's read (if available)
       from accompanying xxx_default.skin file. It's empty '' if
       no skin file was found, or it didn't specify any texture URL. }
-    TextureURL: string;
+    TextureURL: String;
 
     { Searches for a skin file accompanying given MD3 model URL,
       and reads it. Returns @true and sets TextureURL if skin file
       found and some texture URL was recorded there. }
-    class function ReadSkinFile(const Md3URL: string;
-      out ATextureURL: string): Boolean;
+    class function ReadSkinFile(const Md3URL: String;
+      out ATextureURL: String): Boolean;
   end;
 
 { Load a specific animation frame from a given MD3 model.
@@ -129,7 +129,7 @@ type
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode; forward;
+  const BaseUrl: String): TX3DRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
@@ -276,10 +276,10 @@ end;
 
 { TObject3DMD3 --------------------------------------------------------------- }
 
-constructor TObject3DMD3.Create(const URL: string);
+constructor TObject3DMD3.Create(const URL: String);
 var
   Stream: TStream;
-  ATextureURL: string;
+  ATextureURL: String;
 begin
   if not ReadSkinFile(URL, ATextureURL) then
     ATextureURL := '';
@@ -290,7 +290,7 @@ begin
   finally Stream.Free end;
 end;
 
-constructor TObject3DMD3.CreateStream(Stream: TStream; const ATextureURL: string);
+constructor TObject3DMD3.CreateStream(Stream: TStream; const ATextureURL: String);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -357,14 +357,14 @@ begin
   inherited;
 end;
 
-class function TObject3DMD3.ReadSkinFile(const Md3URL: string;
-  out ATextureURL: string): Boolean;
+class function TObject3DMD3.ReadSkinFile(const Md3URL: String;
+  out ATextureURL: String): Boolean;
 var
   SkinFile: TTextReader;
-  S: string;
-  SkinURL: string;
+  S: String;
+  SkinURL: String;
   CommaPos: Integer;
-  Md3Path, NoExt: string;
+  Md3Path, NoExt: String;
 begin
   Result := false;
   NoExt := DeleteURIExt(Md3URL);
@@ -441,7 +441,7 @@ end;
 { Converting to X3D ---------------------------------------------------------- }
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const BaseUrl: string): TX3DRootNode;
+  const BaseUrl: String): TX3DRootNode;
 var
   Texture: TImageTextureNode;
   SceneBox: TBox3D;
@@ -556,10 +556,10 @@ begin
   end;
 end;
 
-function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
+function LoadMD3Sequence(const URL: String): TNodeInterpolator.TAnimationList;
 var
   Md3: TObject3DMD3;
-  BaseUrl: string;
+  BaseUrl: String;
   I: Integer;
   Animation: TNodeInterpolator.TAnimation;
 begin

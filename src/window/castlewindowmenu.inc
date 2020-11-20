@@ -157,7 +157,7 @@
 
       @unorderedList(
         @item(TMenuItemRadio.Caption will be set to the Items[I]
-          string. Additionally it will be quoted by SQuoteMenuEntryCaption
+          String. Additionally it will be quoted by SQuoteMenuEntryCaption
           to avoid interpreting underscore characters (if QuoteCaption).)
 
         @item(TMenuItemRadio.IntData will be set to BaseIntData + the number
@@ -293,7 +293,7 @@
       to work reliably. Don't change this property afterwards. }
     property Modifiers: TModifierKeys read FModifiers write FModifiers;
 
-    { Returns as S the string that describes key shortcut
+    { Returns as S the String that describes key shortcut
       (@link(KeyString), @link(Key), @link(Modifiers)) and then returns true.
       If KeyString = '' and Key = keyNone then returns false and
       S is undefined. }

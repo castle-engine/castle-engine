@@ -24,7 +24,7 @@ uses X3DNodes;
   This routine is internally used by the @link(LoadNode) to load an STL file.
   See https://en.wikipedia.org/wiki/STL_%28file_format%29 for
   more information about STL. }
-function LoadSTL(const URL: string): TX3DRootNode;
+function LoadSTL(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -59,9 +59,9 @@ var
 
   { Read a word expecting the ExpectedValue. Returns @true if found expected,
     otherwise returns @false (and the warning is already emitted). }
-  function ReadExpect(const ExpectedValue: string): Boolean;
+  function ReadExpect(const ExpectedValue: String): Boolean;
   var
-    S: string;
+    S: String;
   begin
     S := TextReader.Read;
     Result := S = ExpectedValue;
@@ -75,7 +75,7 @@ var
   end;
 
 var
-  S: string;
+  S: String;
   NormalVector: TVector3;
   Triangle: TTriangle3;
   I: Integer;
@@ -166,7 +166,7 @@ begin
   end;
 end;
 
-function LoadSTL(const URL: string): TX3DRootNode;
+function LoadSTL(const URL: String): TX3DRootNode;
 var
   Header: array [0..4] of Char;
   Stream: TStream;

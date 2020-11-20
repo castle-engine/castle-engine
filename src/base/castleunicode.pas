@@ -55,7 +55,7 @@ function UTF8Copy(const S: String; StartCharIndex, CharCount: PtrInt): String;
 { Return unicode character pointed by P.
   CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
 
-  The typical usage of this is to iterate over UTF-8 string char-by-char, like this:
+  The typical usage of this is to iterate over UTF-8 String char-by-char, like this:
 
   @longCode(#
   var
@@ -80,13 +80,13 @@ function UTF8CharacterToUnicode(p: PChar; out CharLen: Integer): TUnicodeChar;
 function UnicodeToUTF8(CodePoint: TUnicodeChar): String;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): Integer;
 
-{ Convert all special Unicode characters in the given UTF-8 string to HTML entities.
-  This is a helpful routine to visualize a string with any Unicode characters
+{ Convert all special Unicode characters in the given UTF-8 String to HTML entities.
+  This is a helpful routine to visualize a String with any Unicode characters
   using simple ASCII.
 
   "Special" Unicode characters is "anything outside of safe ASCII range,
   which is between space and ASCII code 128".
-  The resulting string contains these special characters encoded
+  The resulting String contains these special characters encoded
   as HTML entities that show the Unicode code point in hex.
   Like @code(&#xNNNN;) (see https://en.wikipedia.org/wiki/Unicode_and_HTML ).
   Converts also ampersand @code(&) to @code(&amp;) to prevent ambiguities.

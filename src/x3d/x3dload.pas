@@ -113,9 +113,9 @@ end;
   so you would actually use @code('castle-data:/my_model.x3d') URL instead
   of @code('my_model.x3d').
 }
-function LoadNode(const URL: string;
+function LoadNode(const URL: String;
   const NilOnUnrecognizedFormat: Boolean = false): TX3DRootNode;
-function Load3D(const URL: string;
+function Load3D(const URL: String;
   const AllowStdIn: Boolean = false;
   const NilOnUnrecognizedFormat: Boolean = false): TX3DRootNode; deprecated 'use LoadNode, and note it has one less parameter (AllowStdIn is not implemented anymore)';
 
@@ -169,7 +169,7 @@ const
     Pass here some created and empty instance of TSingleList.)
 }
 procedure Load3DSequence(
-  const URL: string;
+  const URL: String;
   const AllowStdIn: Boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
@@ -203,9 +203,9 @@ uses CastleClassUtils, CastleURIUtils, CastleStringUtils,
 { Load a sequence of nodes to an animation suitable for TNodeInterpolator.
   Allows to read sequence of static models as an animation,
   e.g. Blender can export Wavefront OBJ like that. }
-function LoadSequenceUsingCounter(const URL: string): TX3DRootNode;
+function LoadSequenceUsingCounter(const URL: String): TX3DRootNode;
 
-  function LoadAnimationUsingCounter(const URL: string): TNodeInterpolator.TAnimationList;
+  function LoadAnimationUsingCounter(const URL: String): TNodeInterpolator.TAnimationList;
   const
     FramesPerSecond = 30;
   var
@@ -260,10 +260,10 @@ begin
   finally FreeAndNil(Animations) end;
 end;
 
-function LoadNode(const URL: string;
+function LoadNode(const URL: String;
   const NilOnUnrecognizedFormat: Boolean): TX3DRootNode;
 
-  function LoadAnimFrames(const URL: string): TX3DRootNode;
+  function LoadAnimFrames(const URL: String): TX3DRootNode;
   var
     Animations: TNodeInterpolator.TAnimationList;
   begin
@@ -273,7 +273,7 @@ function LoadNode(const URL: string;
     finally FreeAndNil(Animations) end;
   end;
 
-  function LoadMD3(const URL: string): TX3DRootNode;
+  function LoadMD3(const URL: String): TX3DRootNode;
   var
     Animations: TNodeInterpolator.TAnimationList;
   begin
@@ -284,7 +284,7 @@ function LoadNode(const URL: string;
   end;
 
 var
-  MimeType: string;
+  MimeType: String;
   Gzipped: Boolean;
 begin
   MimeType := URIMimeType(URL, Gzipped);
@@ -358,13 +358,13 @@ begin
       [MimeType, URIDisplay(URL)]);
 end;
 
-function Load3D(const URL: string;
+function Load3D(const URL: String;
   const AllowStdIn, NilOnUnrecognizedFormat: Boolean): TX3DRootNode;
 begin
   Result := LoadNode(URL, NilOnUnrecognizedFormat);
 end;
 
-procedure Load3DSequence(const URL: string;
+procedure Load3DSequence(const URL: String;
   const AllowStdIn: Boolean;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
@@ -404,7 +404,7 @@ procedure Load3DSequence(const URL: string;
   end;
 
 var
-  MimeType: string;
+  MimeType: String;
 begin
   Assert(KeyTimes.Count = 0);
   Assert(KeyNodes.Count = 0);

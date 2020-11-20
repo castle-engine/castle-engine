@@ -694,7 +694,7 @@ var
     end;
   end;
 
-  { Print the string, by adding rectangles to current QuadSet.
+  { Print the String, by adding rectangles to current QuadSet.
     This is somewhat analogous to printing straight in 2D done
     by TCastleFont.Print and TDrawableImage.Draw. }
   procedure Print(X, Y: Single; const S: String; const XScale, YScale: Single);
@@ -767,7 +767,7 @@ var
             ExtraTexOrigin and current Coord* values. This is enough,
             see the specification:
 
-              The texture origin is at the origin of the first string,
+              The texture origin is at the origin of the first String,
               as determined by the justification. The texture is scaled
               equally in both S and T dimensions, with the font height
               representing 1 unit. S increases to the right, and T increases up. }

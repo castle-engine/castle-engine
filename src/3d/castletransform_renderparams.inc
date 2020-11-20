@@ -44,7 +44,7 @@
     { TCastleScene rendered vs all visible. }
     ScenesRendered, ScenesVisible: Cardinal;
 
-    { Present the statistics information as a multi-line string.
+    { Present the statistics information as a multi-line String.
       Display it e.g. by assigning to TCastleLabel.Caption. }
     function ToString: String;
   end;

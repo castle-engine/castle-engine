@@ -25,7 +25,7 @@ interface
 
 uses X3DNodes;
 
-function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
+function LoadWavefrontOBJ(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -36,24 +36,24 @@ uses SysUtils, Classes, Generics.Collections,
 
 type
   TWavefrontMaterial = class
-    Name: string;
+    Name: String;
     AmbientColor, DiffuseColor, SpecularColor, TransmissionColor: TVector3;
     IlluminationModel: Single;
     Opacity: Single;
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
-    DiffuseTextureURL: string;
-    BumpTextureURL: string;
+    DiffuseTextureURL: String;
+    BumpTextureURL: String;
 
     { Initializes material with default values.
       Since Wavefront specification doesn't say what the default values are,
       we just assign something along the lines of default VRML material. }
-    constructor Create(const AName: string);
+    constructor Create(const AName: String);
   end;
 
   TWavefrontMaterialList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
-    function TryFindName(const Name: string): TWavefrontMaterial;
+    function TryFindName(const Name: String): TWavefrontMaterial;
   end;
 
   TWavefrontFace = class
@@ -85,7 +85,7 @@ type
     TexCoord: TTextureCoordinateNode;
     Normal: TNormalNode;
 
-    constructor Create(const URL: string);
+    constructor Create(const URL: String);
     destructor Destroy; override;
 
     property Faces: TWavefrontFaceList read FFaces;
@@ -94,10 +94,10 @@ type
 
   EInvalidOBJFile = class(Exception);
 
-{ Read string to TVector3, ignoring invalid ending,
+{ Read String to TVector3, ignoring invalid ending,
   so it handles even incorrect things like '0 0 0c',
   see https://github.com/castle-engine/castle-engine/pull/76/ }
-function Vector3FromStrPermissive(const S: string): TVector3;
+function Vector3FromStrPermissive(const S: String): TVector3;
 const
   OnlyNums = AllChars - ['0'..'9', '.', '-','+','e','E'];
 var
@@ -121,7 +121,7 @@ end;
 
 { TWavefrontMaterial --------------------------------------------------------- }
 
-constructor TWavefrontMaterial.Create(const AName: string);
+constructor TWavefrontMaterial.Create(const AName: String);
 begin
   inherited Create;
 
@@ -149,7 +149,7 @@ end;
 
 { TWavefrontMaterialList ---------------------------------------------------- }
 
-function TWavefrontMaterialList.TryFindName(const Name: string):
+function TWavefrontMaterialList.TryFindName(const Name: String):
   TWavefrontMaterial;
 var
   I: Integer;
@@ -182,23 +182,23 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const URL: string);
+constructor TObject3DOBJ.Create(const URL: String);
 var
-  BasePath: string;
+  BasePath: String;
 
-  procedure ReadFacesFromOBJLine(const line: string; Material: TWavefrontMaterial);
+  procedure ReadFacesFromOBJLine(const Line: String; Material: TWavefrontMaterial);
   var
     Face: TWavefrontFace;
 
     { Add indexes of next face vertex based on VertexStr. }
-    procedure ReadIndices(const VertexStr: string);
+    procedure ReadIndices(const VertexStr: String);
     var
       VertexSeekPos: Integer;
 
       { Reads and updates VertexStr and VertexSeekPos, and sets
         IndiceExists and adds to IndexList. IndiceExists is set to @false
         if next indice is indeed empty,
-        or if we're standing at the end of VertexStr string.
+        or if we're standing at the end of VertexStr String.
 
         Just call it in sequence to read indices from VertexStr.
         Remember that empty indice may be followed by non-empty,
@@ -266,7 +266,7 @@ var
   var
     SeekPos: Integer;
 
-    function NextVertex: string;
+    function NextVertex: String;
     begin
       Result := NextToken(Line, SeekPos);
       if Result = '' then
@@ -289,13 +289,13 @@ var
       ReadIndices(NextVertex);
   end;
 
-  function ReadTexCoordFromOBJLine(const line: string): TVector2;
+  function ReadTexCoordFromOBJLine(const Line: String): TVector2;
   var
     SeekPos: Integer;
   begin
     SeekPos := 1;
-    result[0] := StrToFloatDot(NextToken(line, SeekPos));
-    result[1] := StrToFloatDot(NextToken(line, SeekPos));
+    result[0] := StrToFloatDot(NextToken(Line, SeekPos));
+    result[1] := StrToFloatDot(NextToken(Line, SeekPos));
     { nie uzywamy DeFormat - bo tex coord w OBJ moze byc 3d (z trzema
       parametrami) a my uzywamy i tak tylko dwoch pierwszych }
   end;
@@ -304,7 +304,7 @@ var
     This takes care of stripping comments.
     If current line is empty or only comment, LineTok = ''.
     Otherwise, LineTok <> '' and LineAfterMarker contains the rest of the line. }
-  procedure ReadLine(Line: string; out LineTok, LineAfterMarker: string);
+  procedure ReadLine(Line: String; out LineTok, LineAfterMarker: String);
   var
     SeekPosAfterMarker: Integer;
   begin
@@ -317,13 +317,13 @@ var
       LineAfterMarker := Trim(SEnding(Line, SeekPosAfterMarker));
   end;
 
-  procedure ReadMaterials(const URL: string);
+  procedure ReadMaterials(const URL: String);
   var
     IsMaterial: Boolean;
 
-    function ReadRGBColor(const Line: string): TVector3;
+    function ReadRGBColor(const Line: String): TVector3;
     var
-      FirstToken: string;
+      FirstToken: String;
     begin
       FirstToken := NextTokenOnce(Line);
       if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
@@ -332,14 +332,14 @@ var
         Result := Vector3FromStrPermissive(Line);
     end;
 
-    procedure CheckIsMaterial(const AttributeName: string);
+    procedure CheckIsMaterial(const AttributeName: String);
     begin
       if not IsMaterial then
         raise EInvalidOBJFile.CreateFmt(
           'Material not named yet, but it''s %s specified', [AttributeName]);
     end;
 
-    function FixBumpTextureUrl(const S: string): string;
+    function FixBumpTextureUrl(const S: String): String;
     var
       P: Integer;
     begin
@@ -351,7 +351,7 @@ var
 
   var
     F: TTextReader;
-    LineTok, LineAfterMarker: string;
+    LineTok, LineAfterMarker: String;
   begin
     { Specification doesn't say what to do when multiple matlib directives
       encountered, i.e. when ReadMaterials is called multiple times.
@@ -442,8 +442,8 @@ var
 
 var
   F: TTextReader;
-  LineTok, LineAfterMarker: string;
-  //GroupName: string;
+  LineTok, LineAfterMarker: String;
+  //GroupName: String;
   UsedMaterial: TWavefrontMaterial;
 begin
   inherited Create;
@@ -508,16 +508,16 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
+function LoadWavefrontOBJ(const URL: String): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
     TODO: would be better to allocate necessary space once, by assigning Count. }
   IndicesCapacity = 100;
 var
-  BaseUrl: string;
+  BaseUrl: String;
 
-  function MatOBJNameToX3DName(const MatOBJName: string): string;
+  function MatOBJNameToX3DName(const MatOBJName: String): String;
   begin
     Result := 'Material_' + MatOBJName;
   end;

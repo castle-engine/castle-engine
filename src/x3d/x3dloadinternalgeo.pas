@@ -24,7 +24,7 @@ interface
 
 uses X3DNodes;
 
-function LoadGEO(const URL: string): TX3DRootNode;
+function LoadGEO(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -41,17 +41,17 @@ type
   public
     Verts: TVector3List;
     Faces: TVector3CardinalList;
-    constructor Create(const URL: string);
+    constructor Create(const URL: String);
     destructor Destroy; override;
   end;
 
-constructor TObject3DGEO.Create(const URL: string);
+constructor TObject3DGEO.Create(const URL: String);
 type
   TGEOFormatFlavor = (gfOld, gfMeshColorFaces, gfMeshColorVerts);
 var
   Flavor: TGEOFormatFlavor;
 
-  function ReadVertexIndex(const S: string): Cardinal;
+  function ReadVertexIndex(const S: String): Cardinal;
   begin
     Result := StrToInt(S);
     { In older format, vertex index is 1-based. }
@@ -60,7 +60,7 @@ var
 
   { Read exactly one line of GEO file, reading new face information.
     Updates Faces. }
-  procedure ReadGEOFace(const Line: string);
+  procedure ReadGEOFace(const Line: String);
   var
     J, ThisPolyCount: Integer;
     FirstVert, LastVert: Cardinal;
@@ -114,7 +114,7 @@ var
 var
   Reader: TTextReader;
   i: Integer;
-  Line: string;
+  Line: String;
   VertsCount, PolysCount, VertsInPolysCount: Integer;
 begin
  inherited Create;
@@ -185,14 +185,14 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-function LoadGEO(const URL: string): TX3DRootNode;
+function LoadGEO(const URL: String): TX3DRootNode;
 var
   geo: TObject3DGEO;
   verts: TCoordinateNode;
   faces: TIndexedFaceSetNode;
   Shape: TShapeNode;
   I: Integer;
-  BaseUrl: string;
+  BaseUrl: String;
 begin
   BaseUrl := AbsoluteURI(URL);
   geo := TObject3DGEO.Create(URL);

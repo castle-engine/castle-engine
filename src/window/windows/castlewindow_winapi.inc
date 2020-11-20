@@ -372,7 +372,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
 
           MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @CharMsgWParam, SizeOf(CharMsgWParam), ...)
 
-        But this was a hack: we treated CharMsgWParam as string
+        But this was a hack: we treated CharMsgWParam as String
         (4 bytes, so 2 characters) in local Windows ANSI code page.
         We then hackishly ignored MultiByteToWideChar result,
         and used first returned WideChar.
@@ -1330,11 +1330,11 @@ function TCastleWindowBase.BackendFileDialog(const Title: String; var FileName: 
      will do with 'c:' }
   end;
 
-  { Prepare string with encoded filter names and patterns, as specified
+  { Prepare String with encoded filter names and patterns, as specified
     in WinAPI OPENFILENAME reference.
 
     Note that Windows encoding of OpenFileName has limitations here, since all filters
-    are passed in a string: pattern cannot contain ';', and WinAPI reference
+    are passed in a String: pattern cannot contain ';', and WinAPI reference
     says that it also cannot contain a space. }
   function MakeStrFilter(FileFilters: TFileFilterList): String;
   var

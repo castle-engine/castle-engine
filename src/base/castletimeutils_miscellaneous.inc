@@ -93,7 +93,7 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 const
   MinDateTime: TDateTime = MinDouble;
 
-{ Convert DateTime to string in the form "date at time". }
+{ Convert DateTime to String in the form "date at time". }
 function DateTimeToAtStr(const DateTime: TDateTime): String;
 
 {$endif read_interface}

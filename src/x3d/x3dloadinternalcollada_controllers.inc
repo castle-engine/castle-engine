@@ -17,8 +17,8 @@
 
 type
   TColladaController = class
-    Name: string;
-    Source: string;
+    Name: String;
+    Source: String;
     BoundShapeMatrix: TMatrix4;
     BoundShapeMatrixIdentity: Boolean;
   end;
@@ -28,14 +28,14 @@ type
   TColladaControllerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaController>)
   public
     { Find a TColladaController with given Name, @nil if not found. }
-    function Find(const Name: string): TColladaController;
+    function Find(const Name: String): TColladaController;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function TColladaControllerList.Find(const Name: string): TColladaController;
+function TColladaControllerList.Find(const Name: String): TColladaController;
 var
   I: Integer;
 begin
@@ -57,7 +57,7 @@ var
 procedure ReadInstanceController(ParentGroup: TAbstractX3DGroupingNode;
   InstantiatingElement: TDOMElement);
 var
-  ControllerId: string;
+  ControllerId: String;
   Controller: TColladaController;
   Group: TAbstractX3DGroupingNode;
   Geometry: TColladaGeometry;

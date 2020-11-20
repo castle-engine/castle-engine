@@ -34,7 +34,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
     function DoingSomething: Boolean; virtual; abstract;
     procedure Backup; virtual;
@@ -55,14 +55,14 @@
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: Boolean; override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: Boolean; override;
   end;
@@ -75,7 +75,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
     function DoingSomething: Boolean; override;
     procedure Backup; override;
@@ -165,7 +165,7 @@ begin
   //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
 end;
 
-procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
+procedure TBoneTimeline.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -236,7 +236,7 @@ begin
     Json.Get('y', 0.0)));
 end;
 
-procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;
@@ -306,7 +306,7 @@ begin
     Json.Get('y', 1.0)));
 end;
 
-procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineScale.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 
   { Combine initial node scale and 2D key scale into a final scale. }
@@ -396,7 +396,7 @@ begin
   Angles.Add(Json.Get('angle', 0.0));
 end;
 
-procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
+procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: String;
   const MaxAnimationTime: Single; const Container: TX3DRootNode);
 var
   I: Integer;

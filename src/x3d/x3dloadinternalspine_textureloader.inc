@@ -24,7 +24,7 @@ type
   public
     { Create an X3D node for given AttachmentName.
       May return @nil, and then TexCoord and TexRect are left undefined. }
-    function UseNode(const AttachmentName: string;
+    function UseNode(const AttachmentName: String;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
       out TexRotated: Boolean): TImageTextureNode; virtual; abstract;
   end;

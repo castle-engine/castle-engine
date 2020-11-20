@@ -28,8 +28,8 @@ uses Classes,
 
   The overloaded version without an explicit Stream will open the URL
   using @link(Download). }
-function LoadGltf(const URL: string): TX3DRootNode;
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const URL: String): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const URL: String): TX3DRootNode;
 
 implementation
 
@@ -827,7 +827,7 @@ end;
 { LoadGltf ------------------------------------------------------------------- }
 
 { Main routine that converts glTF -> X3D nodes, doing most of the work. }
-function LoadGltf(const Stream: TStream; const URL: string): TX3DRootNode;
+function LoadGltf(const Stream: TStream; const URL: String): TX3DRootNode;
 var
   BaseUrl: String;
   Document: TPasGLTF.TDocument;
@@ -2348,7 +2348,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadGltf(const URL: string): TX3DRootNode;
+function LoadGltf(const URL: String): TX3DRootNode;
 var
   Stream: TStream;
 begin

@@ -18,7 +18,7 @@
 type
   TColladaGeometry = class
     { Collada geometry id. }
-    Name: string;
+    Name: String;
     Primitives: TColladaPrimitiveList;
     constructor Create;
     destructor Destroy; override;
@@ -27,7 +27,7 @@ type
   TColladaGeometryList = class ({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
-    function Find(const Name: string): TColladaGeometry;
+    function Find(const Name: String): TColladaGeometry;
   end;
 
 {$endif read_interface}
@@ -45,7 +45,7 @@ begin
   inherited;
 end;
 
-function TColladaGeometryList.Find(const Name: string): TColladaGeometry;
+function TColladaGeometryList.Find(const Name: String): TColladaGeometry;
 var
   I: Integer;
 begin
@@ -69,11 +69,11 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
   Geometry: TColladaGeometry; InstantiatingElement: TDOMElement);
 
   { For Collada material id, return the X3D Appearance (or @nil if not found). }
-  function MaterialToX3D(MaterialId: string;
+  function MaterialToX3D(MaterialId: String;
     InstantiatingElement: TDOMElement): TAppearanceNode;
   var
     BindMaterial, Technique: TDOMElement;
-    InstanceMaterialSymbol, InstanceMaterialTarget: string;
+    InstanceMaterialSymbol, InstanceMaterialTarget: String;
     I: TXMLElementIterator;
     Effect: TColladaEffect;
   begin
@@ -145,7 +145,7 @@ end;
 procedure ReadInstanceGeometry(ParentGroup: TAbstractX3DGroupingNode;
   InstantiatingElement: TDOMElement);
 var
-  GeometryId: string;
+  GeometryId: String;
   Geometry: TColladaGeometry;
 begin
   if InstantiatingElement.AttributeString('url', GeometryId) and
@@ -179,7 +179,7 @@ var
   function ReadDoubleSided(GeometryE: TDOMElement): Boolean;
   var
     Child: TDOMElement;
-    Profile: string;
+    Profile: String;
   begin
     Result := false;
 
@@ -204,7 +204,7 @@ var
   var
     FloatArray, Technique, Accessor: TDOMElement;
     SeekPos, FloatArrayCount, I: Integer;
-    FloatArrayContents, Token, AccessorSource, ParamName, ParamType, FloatArrayId: string;
+    FloatArrayContents, Token, AccessorSource, ParamName, ParamType, FloatArrayId: String;
     Source: TColladaSource;
     It: TXMLElementIterator;
   begin
@@ -341,7 +341,7 @@ var
   procedure ReadVertices(VerticesElement: TDOMElement);
   var
     I: TXMLElementIterator;
-    InputSemantic, InputSourceName, Id: string;
+    InputSemantic, InputSourceName, Id: String;
     InputSource: TColladaSource;
   begin
     if Coord <> nil then
@@ -391,7 +391,7 @@ var
   function ReadPrimitiveCommon(PrimitiveE: TDOMElement): TColladaIndexes;
   var
     I: TXMLElementIterator;
-    InputSemantic, InputSourceId, X3DGeometryName: string;
+    InputSemantic, InputSourceId, X3DGeometryName: String;
     Primitive: TColladaPrimitive;
     InputSource: TColladaSource;
     IndexedFaceSet: TIndexedFaceSetNode;
@@ -732,7 +732,7 @@ var
 var
   Mesh: TDOMElement;
   I: TXMLElementIterator;
-  GeometryId: string;
+  GeometryId: String;
 begin
   if not GeometryElement.AttributeString('id', GeometryId) then
     GeometryId := '';

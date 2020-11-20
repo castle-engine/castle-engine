@@ -22,7 +22,7 @@ interface
 
 uses X3DNodes;
 
-function LoadSpine(URL: string): TX3DRootNode;
+function LoadSpine(URL: String): TX3DRootNode;
 
 var
   { Turn this on to see some additional warnings when loading Spine models.
@@ -89,13 +89,13 @@ type
 
 { Main loading function ------------------------------------------------------ }
 
-function LoadSpine(URL: string): TX3DRootNode;
+function LoadSpine(URL: String): TX3DRootNode;
 
   function CreateTextureLoader(const CustomAtlasName: String): TTextureLoader;
 
-    function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): Boolean;
+    function FindAtlas(const InitialAtlasURL: String; out AtlasURL: String): Boolean;
     var
-      NoExtension: string;
+      NoExtension: String;
     begin
       AtlasURL := InitialAtlasURL;
       if URIFileExists(AtlasURL) then Exit(true);
@@ -125,7 +125,7 @@ function LoadSpine(URL: string): TX3DRootNode;
     end;
 
   var
-    StandardAtlasURL, AtlasURL: string;
+    StandardAtlasURL, AtlasURL: String;
     Atlas: TAtlas;
   begin
     if SpineIgnoreTextures then
@@ -157,7 +157,7 @@ var
   P: TJSONParser;
   S: TStream;
   Skeleton: TSkeleton;
-  SkinName, CustomAtlasName: string;
+  SkinName, CustomAtlasName: String;
   TextureLoader: TTextureLoader;
 begin
   { strip additional info (in the URL anchor, i.e. '#xxx' suffix) }

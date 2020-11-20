@@ -26,52 +26,52 @@
 {$ifdef read_interface}
   TDisplacerNode = class(THAnimDisplacerNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
   THumanoidNode = class(THAnimHumanoidNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
   TJointNode = class(THAnimJointNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
   TSegmentNode = class(THAnimSegmentNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 
   TSiteNode = class(THAnimSiteNode)
   public
-    class function ClassX3DType: string; override;
+    class function ClassX3DType: String; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TDisplacerNode.ClassX3DType: string;
+class function TDisplacerNode.ClassX3DType: String;
 begin
   Result := 'Displacer';
 end;
 
-class function THumanoidNode.ClassX3DType: string;
+class function THumanoidNode.ClassX3DType: String;
 begin
   Result := 'Humanoid';
 end;
 
-class function TJointNode.ClassX3DType: string;
+class function TJointNode.ClassX3DType: String;
 begin
   Result := 'Joint';
 end;
 
-class function TSegmentNode.ClassX3DType: string;
+class function TSegmentNode.ClassX3DType: String;
 begin
   Result := 'Segment';
 end;
 
-class function TSiteNode.ClassX3DType: string;
+class function TSiteNode.ClassX3DType: String;
 begin
   Result := 'Site';
 end;

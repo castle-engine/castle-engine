@@ -29,7 +29,7 @@
     NodeUsedAsChild: Boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const Time: TSingleList; const MaxAnimationTime: Single;
       const Container: TX3DRootNode);
   end;
@@ -64,7 +64,7 @@ begin
   inherited;
 end;
 
-procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: string;
+procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: String;
   const Time: TSingleList; const MaxAnimationTime: Single;
   const Container: TX3DRootNode);
 var
@@ -127,7 +127,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     I, J: Integer;
     JsonOffsets: TJSONArray;
     JsonOffset, O: TJSONObject;
-    SlotName: string;
+    SlotName: String;
     Slot: TSlot;
     Timeline: TDrawOrderTimeline;
   begin
@@ -233,7 +233,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray; const Slots: TSlo
     SlotsByDrawOrder: TSlotsByDrawOrder;
     SlotsToFloatDrawOrder: TSlotsToFloatDrawOrder;
     Timeline: TDrawOrderTimeline;
-    SlotName: string;
+    SlotName: String;
     Slot: TSlot;
     SlotsToFloatDrawOrderPair: TSlotsToFloatDrawOrder.TDictionaryPair;
   begin

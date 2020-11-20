@@ -41,7 +41,7 @@ function LoadX3DXml(X3DElement: TDOMElement; const URL: String): TX3DRootNode; o
 {$ifdef read_implementation}
 
 { Like "Element.AttributeString(AttributeName, Value)",
-  but also decoded the read string using DecodeX3DName. }
+  but also decoded the read String using DecodeX3DName. }
 function XMLAttributeX3DName(const Element: TDOMElement;
   const AttributeName: String; var Value: String): Boolean;
 begin

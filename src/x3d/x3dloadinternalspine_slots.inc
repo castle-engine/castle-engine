@@ -28,7 +28,7 @@
   const
     DrawOrderZ = 0.01;
   var
-    Name: string;
+    Name: String;
     Bone: TBone;
     Color: TCastleColor;
     { Possible attachment names on this slot.
@@ -51,17 +51,17 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: Boolean);
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
   TSlotList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
-    function Find(const SlotName: string): TSlot;
+    function Find(const SlotName: String): TSlot;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: Boolean);
-    procedure BuildNodes(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
     procedure Assign(const Source: TSlotList);
   end;
@@ -101,14 +101,14 @@ begin
   Color := HexToColor(Json.Get('color', 'ffffffff'));
 end;
 
-procedure TSlot.BuildNodes(const BaseUrl: string;
+procedure TSlot.BuildNodes(const BaseUrl: String;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   IsWeightedMeshAttachmentExisted: Boolean = False;
   IsOtherAttachmentExisted: Boolean = False;
 
   { Node for a single AttachmentName. Never @nil. }
-  function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
+  function AttachmentNode(const AttachmentName: String): TAbstractChildNode;
   var
     A: TAttachment;
   begin
@@ -197,7 +197,7 @@ end;
 
 { TSlotList ------------------------------------------------------------------ }
 
-function TSlotList.Find(const SlotName: string): TSlot;
+function TSlotList.Find(const SlotName: String): TSlot;
 var
   Index: Integer;
 begin
@@ -212,7 +212,7 @@ var
   I: Integer;
   Slot: TSlot;
   ChildArray: TJSONArray;
-  ArrayName: string;
+  ArrayName: String;
 begin
   if DragonBonesFormat then
     ArrayName := 'slot'
@@ -232,7 +232,7 @@ begin
     end;
 end;
 
-procedure TSlotList.BuildNodes(const BaseUrl: string;
+procedure TSlotList.BuildNodes(const BaseUrl: String;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   I: Integer;

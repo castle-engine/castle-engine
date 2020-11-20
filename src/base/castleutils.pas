@@ -65,7 +65,7 @@
       Use @link(FormatDot) and FloatToStrDot to reliably output floating point values
       with "dot" as a decimal separator.
       Similarly, use StrToFloatDot, TryStrToFloatDot, StrToFloatDefDot
-      to read string with dot to a float.
+      to read String with dot to a Float.
     )
 
     @item(Makes AnsiString (which is usually just called "String")

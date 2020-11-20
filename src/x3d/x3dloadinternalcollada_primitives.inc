@@ -25,7 +25,7 @@ type
       For Collada 1.4.x, when instantiating geometry you specify which material
       name (inside geometry) corresponds to which material name on Materials
       list. }
-    Material: string;
+    Material: String;
     X3DGeometry: TAbstractGeometryNode;
     destructor Destroy; override;
   end;

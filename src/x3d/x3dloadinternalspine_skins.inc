@@ -18,21 +18,21 @@
 {$ifdef read_interface}
   TSkin = class
     Attachments: TAttachmentList;
-    Name: string;
+    Name: String;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
       const DragonBonesFormat: Boolean);
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
   end;
 
   TSkinList = class(specialize TObjectList<TSkin>)
     { Find by name.
       @raises ESpineReadError If does not exist and NilOnError = @false. }
-    function Find(const Name: string; const NilOnError: Boolean): TSkin;
+    function Find(const Name: String; const NilOnError: Boolean): TSkin;
     procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
       const DragonBonesFormat: Boolean);
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
   end;
 {$endif}
 
@@ -55,7 +55,7 @@ end;
 procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList;
   const DragonBonesFormat: Boolean);
 
-  procedure ParseSlotMap(const Json: TJSONObject; const SlotName: string);
+  procedure ParseSlotMap(const Json: TJSONObject; const SlotName: String);
   var
     I: Integer;
     Attachment: TAttachment;
@@ -80,7 +80,7 @@ begin
       ParseSlotMap(TJSONObject(Json.Items[I]), Json.Names[I]);
 end;
 
-procedure TSkin.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TSkin.BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin
@@ -90,7 +90,7 @@ end;
 
 { TSkinList ------------------------------------------------------------------ }
 
-function TSkinList.Find(const Name: string; const NilOnError: Boolean): TSkin;
+function TSkinList.Find(const Name: String; const NilOnError: Boolean): TSkin;
 var
   I: Integer;
 begin
@@ -206,7 +206,7 @@ begin
     WritelnWarning('Spine JSON skeleton', 'Missing "default" skin definition, Spine JSON is empty');
 end;
 
-procedure TSkinList.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TSkinList.BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin

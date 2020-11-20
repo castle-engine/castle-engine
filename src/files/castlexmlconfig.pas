@@ -375,7 +375,7 @@ type
     function GetURL(const APath: String;
       const EmptyIfNoAttribute: Boolean = false): String;
 
-    { Read string from a text content of given element.
+    { Read String from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
     function GetMultilineText(const APath: String; const DefaultValue: String): String; overload;

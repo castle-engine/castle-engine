@@ -16,10 +16,10 @@
 {$ifdef read_interface}
 
 type
-  { Parse a sequence of integeres inside a string inside an XML element. }
+  { Parse a sequence of integeres inside a String inside an XML element. }
   TIntegersParser = class
   strict private
-    Content: string;
+    Content: String;
     FCurrent: Int64;
     SeekPos: Integer;
     Ended: Boolean;
@@ -42,7 +42,7 @@ end;
 
 function TIntegersParser.GetNext: Boolean;
 var
-  Token: string;
+  Token: String;
 begin
   if Ended then Exit(false);
 

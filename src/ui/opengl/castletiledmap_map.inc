@@ -30,7 +30,7 @@ type
         Name: String;
         { The value of the property. }
         Value: String;
-        { The type of the property. Can be string (default), int, float, bool, color
+        { The type of the property. Can be String (default), int, float, bool, color
           or file (since 0.16, with color and file added in 0.17). }
         AType: String;
       end;
@@ -96,9 +96,9 @@ type
           a unique id. Even if an object was deleted, no object gets the same ID.
           Can not be changed in Tiled Qt. (since Tiled 0.11) }
         Id: Integer;
-        { The name of the object. An arbitrary string. }
+        { The name of the object. An arbitrary String. }
         Name: String;
-        { The type of the object. An arbitrary string. }
+        { The type of the object. An arbitrary String. }
         Type_: String;
         { The x coordinate of the object in pixels. }
         X: Single;

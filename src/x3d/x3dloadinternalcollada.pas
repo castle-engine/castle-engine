@@ -33,7 +33,7 @@ uses X3DNodes;
   @param(AllowKambiExtensions If @true we may use some of our engine specific
     extensions. For example, Material.mirror may be <> 0,
     see [https://castle-engine.io/x3d_extensions.php#section_ext_material_mirror].) }
-function LoadCollada(const URL: string;
+function LoadCollada(const URL: String;
   const AllowKambiExtensions: Boolean = false): TX3DRootNode;
 
 implementation
@@ -115,10 +115,10 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const URL: string;
+function LoadCollada(const URL: String;
   const AllowKambiExtensions: Boolean): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
   ResultModel: TGroupNode absolute Result;
   Version14: Boolean; //< Collada version >= 1.4.x
 
@@ -164,7 +164,7 @@ var
 
 var
   Doc: TXMLDocument;
-  Version: string;
+  Version: String;
   I: TXMLElementIterator;
   LibraryE: TDOMElement;
   Stream: TStream;

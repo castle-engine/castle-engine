@@ -96,7 +96,7 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
   @link(TGenericVector4.ToString TVector4.ToString) methods.
 
   @raises(EConvertError In case of problems during conversion (invalid float
-    or unexpected string end or expected but missed string end).)
+    or unexpected String end or expected but missed string end).)
 
   @groupBegin }
 function Vector2FromStr(const S: String): TVector2;
@@ -285,7 +285,7 @@ begin
       Result.Data[I, J] := V.Data[I, J];
 end;
 
-{ Convert from string -------------------------------------------------------- }
+{ Convert from String -------------------------------------------------------- }
 
 function Vector2FromStr(const S: String): TVector2;
 var

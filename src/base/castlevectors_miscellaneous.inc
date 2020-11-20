@@ -46,7 +46,7 @@ const
 {$ifdef read_implementation}
 
 { Separated from PointsDistance2DSqr, to not slow it down by implicit
-  try/finally section because we use string. }
+  try/finally section because we use String. }
 procedure PointsDistance2DSqr_InvalidIgnoreIndex;
 begin
   raise EInternalError.Create('Invalid IgnoreIndex for PointsDistance2DSqr');

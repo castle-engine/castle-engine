@@ -47,7 +47,7 @@ type
 function LoadX3DClassicInternal(Stream: TPeekCharStream;
   const BaseUrl: String): TX3DRootNode; overload;
 
-{ Load VRML/X3D file in classic encoding from a string. Return it's root node.
+{ Load VRML/X3D file in classic encoding from a String. Return it's root node.
   @raises(EX3DGzipCompressed If the Stream is compressed with gzip.) }
 function LoadX3DClassicFromString(const VRMLContents: String;
   const BaseUrl: String): TX3DRootNode; overload;

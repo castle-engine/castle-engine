@@ -23,7 +23,7 @@ interface
 
 uses X3DNodes;
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const URL: String): TX3DRootNode;
 
 implementation
 
@@ -74,16 +74,16 @@ type
 
   TMaterialMap3ds = record
     Exists: Boolean;
-    MapURL: string;
+    MapURL: String;
     Scale, Offset: TVector2;
   end;
 
   TMaterial3ds = class
   strict private
-    FName: string;
+    FName: String;
     FInitialized: Boolean;
   public
-    property Name: string read FName;
+    property Name: String read FName;
 
     { When @false, this material was found in TTrimesh but was not yet
       defined in 3DS file. }
@@ -105,7 +105,7 @@ type
     ShininessStrenth, Transparency,
       TransparencyFalloff, ReflectBlur :Single; {< By default 0 }
 
-    constructor Create(const AName: string);
+    constructor Create(const AName: String);
 
     { Read CHUNK_MATERIAL, initializing our fields and changing
       @link(Initialized) to @true. }
@@ -116,7 +116,7 @@ type
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
-    function MaterialIndex(const MatName: string): Integer;
+    function MaterialIndex(const MatName: String): Integer;
     { Raises EMaterialNotInitialized if any not TMaterial3ds.Initialized
       material present on the list. You should call it at the end of reading
       3DS file, to make sure all used materials were found in 3DS file.  }
@@ -133,10 +133,10 @@ type
     creating appropriate non-abstract TObject3DS descendant. }
   TObject3DS = class
   strict private
-    FName: string;
+    FName: String;
     FScene: TScene3DS;
   public
-    property Name: string read FName;
+    property Name: String read FName;
     { Scene containing this object. }
     property Scene: Tscene3DS read FScene;
 
@@ -149,7 +149,7 @@ type
 
       You don't have to finish reading at ChunkEndPos, we'll rewind
       the stream position afterwards if necessary. }
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); virtual;
   end;
 
@@ -196,7 +196,7 @@ type
     property FacesCount: Word read FFacesCount;
     { @groupEnd }
 
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
     destructor Destroy; override;
   end;
@@ -210,7 +210,7 @@ type
     property Target: TVector3 read FTarget;
     property Bank: Single read FBank;
     property Lens: Single read FLens;
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
 
     { Camera direction. Calculated from Position and Target. }
@@ -224,7 +224,7 @@ type
     Pos: TVector3;
     Col: TVector3;
     Enabled: Boolean;
-    constructor Create(const AName: string; AScene: TScene3DS;
+    constructor Create(const AName: String; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
@@ -247,7 +247,7 @@ type
     { Autodesk version used to create this 3DS. }
     Version: LongWord;
     constructor Create(Stream: TStream); overload;
-    constructor Create(const URL: string); overload;
+    constructor Create(const URL: String); overload;
     destructor Destroy; override;
   end;
 
@@ -394,7 +394,7 @@ begin
 end;
 *)
 
-procedure Check3dsFile(TrueValue: Boolean; const ErrMessg: string);
+procedure Check3dsFile(TrueValue: Boolean; const ErrMessg: String);
 begin
   if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
 end;
@@ -495,7 +495,7 @@ const
   Default3dsMatSpecular: TVector4 = (Data: (0, 0, 0, 1.0));
   Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
 
-constructor TMaterial3ds.Create(const AName: string);
+constructor TMaterial3ds.Create(const AName: String);
 begin
   inherited Create;
   FName := AName;
@@ -576,7 +576,7 @@ end;
 
 { TMaterial3dsList ----------------------------------------------------- }
 
-function TMaterial3dsList.MaterialIndex(const MatName: string): Integer;
+function TMaterial3dsList.MaterialIndex(const MatName: String): Integer;
 begin
   for result := 0 to Count-1 do
     if Items[result].Name = MatName then exit;
@@ -598,7 +598,7 @@ end;
 procedure TMaterial3dsList.ReadMaterial(Stream: TStream; EndPos: Int64);
 var
   ind: Integer;
-  MatName: string;
+  MatName: String;
   StreamStartPos: Int64;
   h: TChunkHeader;
 begin
@@ -647,7 +647,7 @@ const
 
 { TObject3DS ----------------------------------------------------------------- }
 
-constructor TObject3DS.Create(const AName: string; AScene: TScene3DS;
+constructor TObject3DS.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
@@ -659,7 +659,7 @@ end;
 
 function CreateObject3DS(AScene: TScene3DS; Stream: TStream; const ObjectEndPos: Int64): TObject3DS;
 var
-  ObjName: string;
+  ObjName: String;
   ChunkEndPos: Int64;
   h: TChunkHeader;
 begin
@@ -689,7 +689,7 @@ end;
 
 { TTrimesh3ds --------------------------------------------------------------- }
 
-constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TTrimesh3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 
   { Read FVertsCount, initialize Verts.
@@ -737,7 +737,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
 
     procedure ReadFacemat;
     var
-      MatName: string;
+      MatName: String;
       MatFaceCount: Word;
       FaceNum: Word;
       i, MatIndex: Integer;
@@ -858,7 +858,7 @@ end;
 
 { TCamera3ds --------------------------------------------------------------- }
 
-constructor TCamera3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TCamera3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
@@ -897,7 +897,7 @@ end;
 
 { TLights3ds --------------------------------------------------------------- }
 
-constructor TLight3ds.Create(const AName: string; AScene: TScene3DS;
+constructor TLight3ds.Create(const AName: String; AScene: TScene3DS;
   Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
@@ -963,7 +963,7 @@ begin
   Materials.CheckAllInitialized;
 end;
 
-constructor TScene3DS.Create(const URL: string);
+constructor TScene3DS.Create(const URL: String);
 var
   S: TStream;
 begin
@@ -983,9 +983,9 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const URL: string): TX3DRootNode;
+function Load3DS(const URL: String): TX3DRootNode;
 var
-  BaseUrl: string;
+  BaseUrl: String;
   O3ds: TScene3DS;
 
   { Prefix names with things like "Material_", to make sure these
@@ -997,16 +997,16 @@ var
     effort to keep them unique (to help storing them with DEF/USE),
     if they were unique in 3DS. }
 
-  function MaterialVRMLName(const Mat3dsName: string): string;
+  function MaterialVRMLName(const Mat3dsName: String): String;
   begin Result := 'Material_' + Mat3dsName end;
 
-  function TrimeshVRMLName(const Tri3dsName: string): string;
+  function TrimeshVRMLName(const Tri3dsName: String): String;
   begin Result := 'Trimesh_' + Tri3dsName end;
 
-  function ViewpointVRMLName(const Camera3dsName: string): string;
+  function ViewpointVRMLName(const Camera3dsName: String): String;
   begin Result := 'Camera_' + Camera3dsName end;
 
-  function LightVRMLName(const Light3dsName: string): string;
+  function LightVRMLName(const Light3dsName: String): String;
   begin Result := 'Light_' + Light3dsName end;
 
   procedure AddViewpoints;

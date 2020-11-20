@@ -28,7 +28,7 @@ function ReadMatrix(MatrixElement: TDOMElement): TMatrix4;
 var
   SeekPos: Integer;
   Row, Col: Integer;
-  Token, Content: string;
+  Token, Content: String;
 begin
   Content := MatrixElement.TextData;
 
@@ -52,11 +52,11 @@ end;
 function ReadLookAt(MatrixElement: TDOMElement): TMatrix4;
 var
   SeekPos: Integer;
-  Content: string;
+  Content: String;
 
   function ReadVector(out Vector: TVector3): Boolean;
   var
-    Token: string;
+    Token: String;
     I: Integer;
   begin
     Result := true;

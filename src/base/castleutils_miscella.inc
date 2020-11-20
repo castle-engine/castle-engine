@@ -102,7 +102,7 @@ function SCompilerDescription: String;
 { Print some common info for programs released on
   [https://castle-engine.io/].
   This is useful only for programs released on this WWW page by Michalis.
-  Resulting string is multiline.
+  Resulting String is multiline.
 
   @param(DisplayApplicationName Short application name.
     Usually you should take it from ApplicationName.)
@@ -111,7 +111,7 @@ function SCompilerDescription: String;
     Usually you should take it from
     @link(TCastleApplicationProperties.Version ApplicationProperties.Version).)
 
-  @param(WrapLines If true then resulting string will not have lines
+  @param(WrapLines If true then resulting String will not have lines
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: String;

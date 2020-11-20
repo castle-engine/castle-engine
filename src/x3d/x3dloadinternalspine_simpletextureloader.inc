@@ -15,7 +15,7 @@
 
 type
   { Texture nodes, indexed by attachment name. }
-  TImageTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TImageTextureNode>;
+  TImageTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<String, TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,
@@ -23,16 +23,16 @@ type
   TSimpleTextureLoader = class(TTextureLoader)
   strict private
     Nodes: TImageTextureNodeMap;
-    BaseUrl: string;
+    BaseUrl: String;
   public
-    constructor Create(const ABaseUrl: string);
+    constructor Create(const ABaseUrl: String);
     destructor Destroy; override;
-    function UseNode(const AttachmentName: string;
+    function UseNode(const AttachmentName: String;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
       out TexRotated: Boolean): TImageTextureNode; override;
   end;
 
-constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
+constructor TSimpleTextureLoader.Create(const ABaseUrl: String);
 begin
   inherited Create;
   BaseUrl := ABaseUrl;
@@ -45,7 +45,7 @@ begin
   inherited;
 end;
 
-function TSimpleTextureLoader.UseNode(const AttachmentName: string;
+function TSimpleTextureLoader.UseNode(const AttachmentName: String;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
   out TexRotated: Boolean): TImageTextureNode;
 begin

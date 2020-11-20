@@ -26,7 +26,7 @@ var
 procedure ReadVisualScene(VisualScenesSwitch: TSwitchNode;
   VisualSceneElement: TDOMElement);
 var
-  VisualSceneId: string;
+  VisualSceneId: String;
   Group: TGroupNode;
 begin
   if not VisualSceneElement.AttributeString('id', VisualSceneId) then
@@ -43,7 +43,7 @@ end;
 procedure ReadLibraryVisualScenes(LibraryElement: TDOMElement);
 var
   I: TXMLElementIterator;
-  LibraryId: string;
+  LibraryId: String;
   VisualScenesSwitch: TSwitchNode;
 begin
   if not LibraryElement.AttributeString('id', LibraryId) then
@@ -69,12 +69,12 @@ end;
 { Read <scene> element. }
 procedure ReadSceneElement(SceneElement: TDOMElement);
 var
-  SceneId: string;
+  SceneId: String;
 
   procedure Collada14;
   var
     InstanceVisualScene: TDOMElement;
-    VisualSceneId: string;
+    VisualSceneId: String;
     VisualScene: TAbstractChildNode;
   begin
     InstanceVisualScene := SceneElement.ChildElement(

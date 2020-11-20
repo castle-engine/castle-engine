@@ -56,10 +56,10 @@ function URIDeleteAnchor(const URI: String;
   @unorderedList(
     @item("%xx" sequence ends unexpectedly at the end of the string.
       That is, string ends with "%" or "%x". In this case we simply
-      keep "%" or "%x" in resulting string.)
+      keep "%" or "%x" in resulting String.)
 
     @item("xx" in "%xx" sequence is not a valid hexadecimal number.
-      In this case we also simply keep "%xx" in resulting string.)
+      In this case we also simply keep "%xx" in resulting String.)
   )
 }
 function RawURIDecode(const S: String): String;
@@ -452,7 +452,7 @@ var
   I, ResultI: Integer;
   DecodedChar: Char;
 begin
-  { Allocate Result string at the beginning, to save time later for
+  { Allocate Result String at the beginning, to save time later for
     memory reallocations. We can do this, since we know that final
     Result is shorter or equal to S. }
   SetLength(Result, Length(S));
@@ -483,7 +483,7 @@ end;
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
-function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): Boolean;
+function URIProtocolIndex(const S: String; out FirstCharacter, Colon: Integer): Boolean;
 const
   { These constants match URIParser algorithm, which in turn follows RFC. }
   ALPHA = ['A'..'Z', 'a'..'z'];

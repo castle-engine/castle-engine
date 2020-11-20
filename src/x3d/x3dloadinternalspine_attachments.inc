@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   TAttachment = class abstract
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
-    SlotName, AttachmentName: string;
+    SlotName, AttachmentName: String;
     { The real attachment name.
 
       For image attachment this refers to texture loader (e.g. atlas) region name.
@@ -28,7 +28,7 @@
       For path this refers to path name.
       Multiple slots may refer to the same path name,
       and it does *not* have to be the same path geometry then. }
-    Name: string;
+    Name: String;
     Node: TTransformNode;
     NodeUsedAsChild: Boolean;
     Material: TUnlitMaterialNode; //< initialized together with Node, always inside
@@ -37,8 +37,8 @@
     { Create and parse correct TAttachment descendant.
       May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
-      const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
+      const ASlotName, AnAttachmentName: String; const Bones: TBoneList): TAttachment;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); virtual; abstract;
     { Some attachments (skinnedmesh) can be attached only to a single bone
       at a time, and must be transformed from world to bone space. }
     procedure TransformToBoneSpace(const Bone: TBone); virtual;
@@ -49,10 +49,10 @@
     Scale: TVector2;
     Rotation: Single;
     Width, Height: Integer;
-    Path: string;
+    Path: String;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
-    function BuildGeometry(const BaseUrl: string;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: Boolean): TAbstractGeometryNode; virtual;
   end;
@@ -72,7 +72,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    function BuildGeometry(const BaseUrl: string;
+    function BuildGeometry(const BaseUrl: String;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
       const TexRotated: Boolean): TAbstractGeometryNode; override;
   end;
@@ -114,7 +114,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TClippingAttachment = class(TAttachment)
@@ -122,13 +122,13 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
-    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
+    procedure BuildNodes(const BaseUrl: String; const TextureLoader: TTextureLoader); override;
   end;
 
   TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
-    function Find(const SlotName, AttachmentName: string;
+    function Find(const SlotName, AttachmentName: String;
       const FallbackList: TAttachmentList;
       const NilWhenNotFound: Boolean): TAttachment;
   end;
@@ -139,9 +139,9 @@
 { TAttachment ---------------------------------------------------------------- }
 
 class function TAttachment.CreateAndParse(const Json: TJSONObject;
-  const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
+  const ASlotName, AnAttachmentName: String; const Bones: TBoneList): TAttachment;
 var
-  TypeName: string;
+  TypeName: String;
 begin
   TypeName := Json.Get('type', 'region');
   if TypeName = 'mesh' then
@@ -221,13 +221,13 @@ begin
   Path := Json.Get('path', '');
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string;
+procedure TRegionAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   TexRect: TQuadTexRect;
   TexCoord: TQuadTexCoord;
   Shape: TShapeNode;
-  AtlasRegionName: string;
+  AtlasRegionName: String;
   TexRotated: Boolean;
 begin
   if Node <> nil then
@@ -260,7 +260,7 @@ begin
   Shape.Material := Material;
 end;
 
-function TRegionAttachment.BuildGeometry(const BaseUrl: string;
+function TRegionAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: Boolean): TAbstractGeometryNode;
 var
@@ -336,7 +336,7 @@ begin
   Hull := Json.Get('hull', 0);
 end;
 
-function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
+function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: String;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
   const TexRotated: Boolean): TAbstractGeometryNode;
 var
@@ -560,7 +560,7 @@ begin
     WritelnWarning('Spine "path" attachment has unexpected "lengths" count: expected %d, has %d', [VertexCount div 3, Lengths.Count]);
 end;
 
-procedure TPathAttachment.BuildNodes(const BaseUrl: string;
+procedure TPathAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 var
   Shape: TShapeNode;
@@ -627,7 +627,7 @@ begin
     WritelnWarning('Spine "clipping" attachment has unexpected "vertices" count: expected %d, has %d', [VertexCount, Vertices.Count]);
 end;
 
-procedure TClippingAttachment.BuildNodes(const BaseUrl: string;
+procedure TClippingAttachment.BuildNodes(const BaseUrl: String;
   const TextureLoader: TTextureLoader);
 
   procedure VisualizeClipPolygon;
@@ -703,12 +703,12 @@ end;
 
 { TAttachmentList ------------------------------------------------------------ }
 
-function TAttachmentList.Find(const SlotName, AttachmentName: string;
+function TAttachmentList.Find(const SlotName, AttachmentName: String;
   const FallbackList: TAttachmentList;
   const NilWhenNotFound: Boolean): TAttachment;
 var
   I: Integer;
-  Err: string;
+  Err: String;
 begin
   for I := 0 to Count - 1 do
     if (Items[I].SlotName = SlotName) and

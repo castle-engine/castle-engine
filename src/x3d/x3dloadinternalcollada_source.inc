@@ -20,7 +20,7 @@ type
     in Collada. It may contain only data for some specific purpose (like positions
     or normals or tex coords) or be interleaved with other data. }
   TColladaSource = class
-    Name: string;
+    Name: String;
     Floats: TFloatList;
     Params: TCastleStringList;
     { Collada <accessor> description of vectors inside Floats.
@@ -61,7 +61,7 @@ type
   TColladaSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
-    function Find(const Name: string): TColladaSource;
+    function Find(const Name: String): TColladaSource;
   end;
 
 {$endif read_interface}
@@ -189,7 +189,7 @@ begin
   end;
 end;
 
-function TColladaSourceList.Find(const Name: string): TColladaSource;
+function TColladaSourceList.Find(const Name: String): TColladaSource;
 var
   I: Integer;
 begin

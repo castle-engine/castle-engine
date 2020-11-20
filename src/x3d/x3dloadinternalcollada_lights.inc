@@ -35,7 +35,7 @@ var
   Point: TPointLightNode;
   Directional: TDirectionalLightNode;
   Spot: TSpotLightNode;
-  Id, Profile: string;
+  Id, Profile: String;
   TechniqueE, LightE, ExtraE: TDOMElement;
   FalloffAngle, Radius: Float;
   LightColor: TVector3;
