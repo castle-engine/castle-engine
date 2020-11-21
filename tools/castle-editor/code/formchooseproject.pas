@@ -57,7 +57,7 @@ type
     procedure UpdateWarningFpcLazarus;
     { Open ProjectForm.
       ManifestUrl may be absolute or relative here. }
-    procedure ProjectOpen(ManifestUrl: string);
+    procedure ProjectOpen(ManifestUrl: String);
   public
 
   end;
@@ -80,7 +80,7 @@ uses CastleConfig, CastleLCLUtils, CastleURIUtils, CastleUtils,
 procedure TChooseProjectForm.Show;
 begin
   {$ifdef MSWINDOWS}
-  Application.ShowMainForm := True;
+  Application.ShowMainForm := true;
   {$else}
   inherited Show;
   {$endif}
@@ -89,13 +89,13 @@ end;
 procedure TChooseProjectForm.Hide;
 begin
   {$ifdef MSWINDOWS}
-  Application.ShowMainForm := False;
+  Application.ShowMainForm := false;
   {$else}
   inherited Hide;
   {$endif}
 end;
 
-procedure TChooseProjectForm.ProjectOpen(ManifestUrl: string);
+procedure TChooseProjectForm.ProjectOpen(ManifestUrl: String);
 begin
   ManifestUrl := AbsoluteURI(ManifestUrl);
 

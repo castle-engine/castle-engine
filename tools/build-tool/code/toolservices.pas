@@ -26,25 +26,25 @@ type
   TService = class
   private
     FParameters: TStringStringMap;
-    FName: string;
+    FName: String;
   public
-    constructor Create(const Name: string = '');
+    constructor Create(const Name: String = '');
     destructor Destroy; override;
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    property Name: string read FName;
+    property Name: String read FName;
     property Parameters: TStringStringMap read FParameters;
   end;
 
   TServiceList = class(specialize TObjectList<TService>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function HasService(const Name: string): Boolean;
-    procedure AddService(const Name: string);
+    function HasService(const Name: String): Boolean;
+    procedure AddService(const Name: String);
     { Find service by name.
       Returns @nil if not found.
       You can check HasService earlier, if HasService('xxx') = @true then Service('xxx')
       will never be @nil. }
-    function Service(const Name: string): TService;
+    function Service(const Name: String): TService;
   end;
 
 implementation
@@ -54,7 +54,7 @@ uses Classes, XMLRead, XMLWrite,
 
 { TService ---------------------------------------------------------- }
 
-constructor TService.Create(const Name: string);
+constructor TService.Create(const Name: String);
 begin
   inherited Create;
   FParameters := TStringStringMap.Create;
@@ -104,7 +104,7 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TServiceList.HasService(const Name: string): Boolean;
+function TServiceList.HasService(const Name: String): Boolean;
 var
   I: Integer;
 begin
@@ -114,7 +114,7 @@ begin
   Result := false;
 end;
 
-function TServiceList.Service(const Name: string): TService;
+function TServiceList.Service(const Name: String): TService;
 var
   I: Integer;
 begin
@@ -124,7 +124,7 @@ begin
   Result := nil;
 end;
 
-procedure TServiceList.AddService(const Name: string);
+procedure TServiceList.AddService(const Name: String);
 var
   NewService: TService;
 begin

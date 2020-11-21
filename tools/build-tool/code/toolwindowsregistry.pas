@@ -23,25 +23,25 @@ interface
 uses CastleUtils, CastleStringUtils;
 
 procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, OutputPath,
-  PluginCompiledFile, Version, Author: string);
+  PluginCompiledFile, Version, Author: String);
 
 implementation
 
 uses SysUtils, Registry;
 
 procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, OutputPath,
-  PluginCompiledFile, Version, Author: string);
+  PluginCompiledFile, Version, Author: String);
 var
   Registry: TRegistry;
 
-  procedure OpenCreateKey(const KeyPath: string);
+  procedure OpenCreateKey(const KeyPath: String);
   begin
     if not Registry.OpenKey(KeyPath, true) then
       raise Exception.Create('Cannot open or create Windows registry key: ' + KeyPath);
   end;
 
 var
-  BaseKeyPath: string;
+  BaseKeyPath: String;
 begin
   Registry := TRegistry.Create;
   try

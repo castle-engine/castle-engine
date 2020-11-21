@@ -161,7 +161,7 @@ end;
 
 procedure UseEditorApplicationData;
 var
-  DataPath: string;
+  DataPath: String;
 begin
   { start by resetting ApplicationDataOverride to empty, to reset
     previous customizations of ApplicationDataOverride done by some editor code. }

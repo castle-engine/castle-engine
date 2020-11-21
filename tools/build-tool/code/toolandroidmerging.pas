@@ -26,15 +26,15 @@ type
   ECannotMergeManifest = class(Exception);
   ECannotMergeBuildGradle = class(Exception);
 
-procedure MergeAndroidManifest(const Source, Destination: string;
+procedure MergeAndroidManifest(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeStringsXml(const Source, Destination: string;
+procedure MergeStringsXml(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeAppend(const Source, Destination: string;
+procedure MergeAppend(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeAndroidMainActivity(const Source, Destination: string;
+procedure MergeAndroidMainActivity(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeBuildGradle(const Source, Destination: string;
+procedure MergeBuildGradle(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 
 implementation
@@ -44,7 +44,7 @@ uses Classes, XMLRead, XMLWrite,
 
 { globals -------------------------------------------------------------------- }
 
-procedure ReadXmlExpandingMacros(out Document: TXMLDocument; const FileName: string;
+procedure ReadXmlExpandingMacros(out Document: TXMLDocument; const FileName: String;
   const ReplaceMacros: TReplaceMacros);
 var
   StringStream: TStringStream;
@@ -56,7 +56,7 @@ begin
   finally FreeAndNil(StringStream) end;
 end;
 
-procedure MergeAndroidManifest(const Source, Destination: string;
+procedure MergeAndroidManifest(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
   SourceXml, DestinationXml: TXMLDocument;
@@ -95,7 +95,7 @@ var
 
   procedure MergeUsesPermission(const SourceUsesPermission: TDOMElement);
   var
-    SourceName: string;
+    SourceName: String;
     I: TXMLElementIterator;
   begin
     SourceName := SourceUsesPermission.AttributeString('android:name');
@@ -167,7 +167,7 @@ begin
   finally FreeAndNil(SourceXml) end;
 end;
 
-procedure MergeStringsXml(const Source, Destination: string;
+procedure MergeStringsXml(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
   SourceXml, DestinationXml: TXMLDocument;
@@ -199,10 +199,10 @@ begin
   finally FreeAndNil(SourceXml) end;
 end;
 
-procedure MergeAppend(const Source, Destination: string;
+procedure MergeAppend(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
-  SourceContents, DestinationContents: string;
+  SourceContents, DestinationContents: String;
 begin
   // if Verbose then
   //   Writeln('Merging "', Source, '" into "', Destination, '"');
@@ -213,12 +213,12 @@ begin
   StringToFile(Destination, DestinationContents);
 end;
 
-procedure MergeAndroidMainActivity(const Source, Destination: string;
+procedure MergeAndroidMainActivity(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 const
   InsertMarker = '/* ANDROID-SERVICES-INITIALIZATION */';
 var
-  SourceContents, DestinationContents: string;
+  SourceContents, DestinationContents: String;
   MarkerPos: Integer;
 begin
   // if Verbose then
@@ -233,14 +233,14 @@ begin
   StringToFile(Destination, DestinationContents);
 end;
 
-procedure MergeBuildGradle(const Source, Destination: string;
+procedure MergeBuildGradle(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
-  DestinationContents: string;
+  DestinationContents: String;
   Doc: TXMLDocument;
 
   { Modify DestinationContents to add information specified in source XML file. }
-  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  procedure MergeItems(const ListElement, ChildElement, Marker: String);
   var
     I: TXMLElementIterator;
     E: TDOMElement;
@@ -266,7 +266,7 @@ var
   end;
 
 var
-  SourceContents: string;
+  SourceContents: String;
   SStream: TStringStream;
 begin
   SourceContents      := ReplaceMacros(FileToString(FilenameToURISafe(Source)));

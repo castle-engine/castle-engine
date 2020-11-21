@@ -33,10 +33,10 @@ type
   );
 
 procedure CompileIOS(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
-procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: String);
 
 function PackageFormatWantsIOSArchive(const PackageFormat: TPackageFormat;
   out ArchiveType: TIosArchiveType; out ExportMethod: String): Boolean;
@@ -48,11 +48,11 @@ procedure ArchiveIOS(const Project: TCastleProject; const ArchiveType: TIosArchi
 procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
-procedure MergeIOSAppDelegate(const Source, Destination: string;
+procedure MergeIOSAppDelegate(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeIOSPodfile(const Source, Destination: string;
+procedure MergeIOSPodfile(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
-procedure MergeIOSInfoPlist(const Source, Destination: string;
+procedure MergeIOSInfoPlist(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 
 implementation
@@ -65,14 +65,14 @@ const
   IOSPartialLibraryName = 'lib_cge_project.a';
 
 procedure CompileIOS(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   FinalExtraOptions: TCastleStringList;
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
-    CompilationOutput, LinkRes, OutputLibrary: string;
+    CompilationOutput, LinkRes, OutputLibrary: String;
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
@@ -134,7 +134,7 @@ begin
   finally FreeAndNil(FinalExtraOptions) end;
 end;
 
-procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
+procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: String);
 var
   Options: TCastleStringList;
 begin
@@ -157,7 +157,7 @@ end;
 procedure PackageIOS(const Project: TCastleProject;
   const UpdateOnlyCode: Boolean);
 var
-  XcodeProject: string;
+  XcodeProject: String;
   UsesCocoaPods: Boolean;
 
   { Generate files for iOS project from templates. }
@@ -168,9 +168,9 @@ var
 
   procedure GenerateServicesFromTemplates;
 
-    procedure ExtractService(const ServiceName: string);
+    procedure ExtractService(const ServiceName: String);
     var
-      TemplatePath: string;
+      TemplatePath: String;
     begin
       TemplatePath := 'ios/services/' + ServiceName + '/';
       Project.ExtractTemplate(TemplatePath, XcodeProject);
@@ -209,7 +209,7 @@ var
 
     procedure SaveResized(const Size: Integer);
     var
-      OutputFile: string;
+      OutputFile: String;
       R: TCastleImage;
     begin
       R := Icon.MakeResized(Size, Size, BestInterpolation);
@@ -292,7 +292,7 @@ var
     procedure SaveResized(const Width, Height: Integer;
       const DefaultImage: TCastleImage);
     var
-      OutputFile: string;
+      OutputFile: String;
       ImageSource, R: TCastleImage;
     begin
       ImageSource := FindBestMatching(Width, Height, DefaultImage);
@@ -348,7 +348,7 @@ var
   procedure FixPbxProjectFile;
   var
     PbxProject: TXcodeProject;
-    PBXContentsGenerated, PBX, PBXFileUrl: string;
+    PBXContentsGenerated, PBX, PBXFileUrl: String;
   begin
     PbxProject := TXcodeProject.Create;
     try
@@ -386,7 +386,7 @@ var
   { Copy compiled library into Xcode project. }
   procedure GenerateLibrary;
   var
-    OutputFileBase: string;
+    OutputFileBase: String;
   begin
     OutputFileBase := ExtractFileName(Project.IOSLibraryFile);
     SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFileBase);
@@ -568,7 +568,7 @@ end;
 type
   ECannotMergeTemplate = class(Exception);
 
-procedure MergeIOSAppDelegate(const Source, Destination: string;
+procedure MergeIOSAppDelegate(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 const
   MarkerImport = '/* IOS-SERVICES-IMPORT */';
@@ -583,9 +583,9 @@ const
     '}';
 
 var
-  DestinationContents: string;
+  DestinationContents: String;
 
-  procedure InsertAtMarker(const Marker, Insertion: string);
+  procedure InsertAtMarker(const Marker, Insertion: String);
   var
     MarkerPos: Integer;
   begin
@@ -597,7 +597,7 @@ var
 
 var
   SourceDocument: TXMLDocument;
-  Import, CreateClass, CreateCode: string;
+  Import, CreateClass, CreateCode: String;
 begin
   SourceDocument := URLReadXML(Source);
   try
@@ -615,12 +615,12 @@ begin
   StringToFile(Destination, DestinationContents);
 end;
 
-procedure MergeIOSPodfile(const Source, Destination: string;
+procedure MergeIOSPodfile(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
-  DestinationContents: string;
+  DestinationContents: String;
 
-  procedure InsertAtMarker(const Marker, Insertion: string);
+  procedure InsertAtMarker(const Marker, Insertion: String);
   var
     MarkerPos: Integer;
   begin
@@ -633,7 +633,7 @@ var
 const
   Marker = '### SERVICES-PODFILES ###';
 var
-  SourceContents: string;
+  SourceContents: String;
 begin
   SourceContents := NL +
     '# ---- Inserted contents of ' + Source + NL +
@@ -645,12 +645,12 @@ begin
   StringToFile(Destination, DestinationContents);
 end;
 
-procedure MergeIOSInfoPlist(const Source, Destination: string;
+procedure MergeIOSInfoPlist(const Source, Destination: String;
   const ReplaceMacros: TReplaceMacros);
 var
-  DestinationContents: string;
+  DestinationContents: String;
 
-  procedure InsertAtMarker(const Marker, Insertion: string);
+  procedure InsertAtMarker(const Marker, Insertion: String);
   var
     MarkerPos: Integer;
   begin
@@ -663,7 +663,7 @@ var
 const
   Marker = '<!-- IOS-SERVICES-PLIST -->';
 var
-  SourceContents: string;
+  SourceContents: String;
 begin
   SourceContents := NL +
     '<!-- Inserted contents of ' + Source + ' -->' + NL +

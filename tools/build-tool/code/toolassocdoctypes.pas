@@ -25,30 +25,30 @@ uses SysUtils, Generics.Collections, DOM,
 type
   TAssocDocTypeFileExt = class
   private
-    FExt, FMime, FIosSystemUti: string;
+    FExt, FMime, FIosSystemUti: String;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    property Ext: string read FExt;
-    property Mime: string read FMime;
-    property IosSystemUti: string read FIosSystemUti;
-    function Uti(const ProjectQualifiedName: string): string;
+    property Ext: String read FExt;
+    property Mime: String read FMime;
+    property IosSystemUti: String read FIosSystemUti;
+    function Uti(const ProjectQualifiedName: String): String;
   end;
 
   TAssocDocType = class(specialize TObjectList<TAssocDocTypeFileExt>)
   private
-    FName, FIcon: string;
+    FName, FIcon: String;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: string): string;
-    function ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: string): string;
-    function ToIntentFilterPathPattern: string;
+    function ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: String): String;
+    function ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: String): String;
+    function ToIntentFilterPathPattern: String;
   end;
 
   TAssociatedDocTypeList = class(specialize TObjectList<TAssocDocType>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
-    function ToIntentFilter: string;
+    function ToPListSection(const ProjectQualifiedName, DefaultIcon: String): String;
+    function ToIntentFilter: String;
   end;
 
 implementation
@@ -65,7 +65,7 @@ begin
   FIosSystemUti := Element.AttributeStringDef('ios_type_identifier', '');
 end;
 
-function TAssocDocTypeFileExt.Uti(const ProjectQualifiedName: string): string;
+function TAssocDocTypeFileExt.Uti(const ProjectQualifiedName: String): String;
 begin
   if Length(FIosSystemUti) > 0 then
      Result := FIosSystemUti else
@@ -95,10 +95,10 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TAssocDocType.ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: string): string;
+function TAssocDocType.ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: String): String;
 var
   I: Integer;
-  FileIcon: string;
+  FileIcon: String;
 begin
   if Count = 0 then
     Exit('');
@@ -128,7 +128,7 @@ begin
             #9#9'</dict>' + NL;
 end;
 
-function TAssocDocType.ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: string): string;
+function TAssocDocType.ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: String): String;
 var
   I: Integer;
 begin
@@ -159,7 +159,7 @@ begin
   end;
 end;
 
-function TAssocDocType.ToIntentFilterPathPattern: string;
+function TAssocDocType.ToIntentFilterPathPattern: String;
 var
   I: Integer;
 begin
@@ -196,9 +196,9 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TAssociatedDocTypeList.ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
+function TAssociatedDocTypeList.ToPListSection(const ProjectQualifiedName, DefaultIcon: String): String;
 var
-  BundleDocumentTypes, ExportedTypeDeclarations: string;
+  BundleDocumentTypes, ExportedTypeDeclarations: String;
   I: Integer;
 begin
   if Count = 0 then
@@ -224,9 +224,9 @@ begin
 end;
 
 // https://stackoverflow.com/questions/3760276/android-intent-filter-associate-app-with-file-extension
-function TAssociatedDocTypeList.ToIntentFilter: string;
+function TAssociatedDocTypeList.ToIntentFilter: String;
 var
-  PathPatterns: string;
+  PathPatterns: String;
   I: Integer;
 begin
   if Count = 0 then

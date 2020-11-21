@@ -27,12 +27,12 @@ procedure NxNotSupported;
 
 { Compile any Pascal unit for Nintendo Switch. }
 procedure CompileNintendoSwitch(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
 { Compile a final library for Nintendo Switch. }
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
 procedure PackageNintendoSwitch(const Project: TCastleProject);
@@ -51,14 +51,14 @@ begin
 end;
 
 procedure CompileNintendoSwitch(
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 begin
   NxNotSupported;
 end;
 
 procedure CompileNintendoSwitchLibrary(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 begin
   NxNotSupported;

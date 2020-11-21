@@ -37,35 +37,35 @@ type
   { Package a project to a directory. }
   TPackageDirectory = class
   private
-    TemporaryDir: string;
-    FPath: string;
-    FTopDirectoryName: string;
+    TemporaryDir: String;
+    FPath: String;
+    FTopDirectoryName: String;
 
     { Absolute path (ends with path delimiter) under which you should
       store your files. They will end up being packaged,
       under TopDirectoryName. }
-    property Path: string read FPath;
-    property TopDirectoryName: string read FTopDirectoryName;
+    property Path: String read FPath;
+    property TopDirectoryName: String read FTopDirectoryName;
   public
     { Create a package.
 
       @param(ATopDirectoryName is the name of the main directory that will
         be visible in the archive, it's usually just a project name.) }
-    constructor Create(const ATopDirectoryName: string);
+    constructor Create(const ATopDirectoryName: String);
     destructor Destroy; override;
 
     { Create final archive. It will be placed within OutputProjectPath.
       PackageName should contain only the base name, without extension. }
-    procedure Make(const OutputProjectPath: string; const PackageFileName: string;
+    procedure Make(const OutputProjectPath: String; const PackageFileName: String;
       const PackageFormat: TPackageFormatNoDefault);
 
     { Add file to the package. SourceFileName must be an absolute filename,
       DestinationFileName must be relative within package. }
-    procedure Add(const SourceFileName, DestinationFileName: string); virtual;
+    procedure Add(const SourceFileName, DestinationFileName: String); virtual;
 
     { Set the Unix executable bit on given file. Name is relative to package path,
       just like DestinationFileName for @link(Add). }
-    procedure MakeExecutable(const Name: string);
+    procedure MakeExecutable(const Name: String);
 
     { Generate auto_generated/CastleDataInformation.xml file inside
       DataName subdirectory of the archive. }
@@ -77,8 +77,8 @@ type
   CurrentDataPath may but doesn't have to end with PathDelim. }
 procedure GenerateDataInformation(const CurrentDataPath: String);
 
-function PackageFormatToString(const O: TPackageFormat): string;
-function StringToPackageFormat(const S: string): TPackageFormat;
+function PackageFormatToString(const O: TPackageFormat): String;
+function StringToPackageFormat(const S: String): TPackageFormat;
 
 implementation
 
@@ -89,7 +89,7 @@ uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
 
 { TPackageDirectory ---------------------------------------------------------- }
 
-constructor TPackageDirectory.Create(const ATopDirectoryName: string);
+constructor TPackageDirectory.Create(const ATopDirectoryName: String);
 begin
   inherited Create;
   FTopDirectoryName := ATopDirectoryName;
@@ -107,12 +107,12 @@ begin
   inherited;
 end;
 
-procedure TPackageDirectory.Make(const OutputProjectPath: string;
-  const PackageFileName: string; const PackageFormat: TPackageFormatNoDefault);
+procedure TPackageDirectory.Make(const OutputProjectPath: String;
+  const PackageFileName: String; const PackageFormat: TPackageFormatNoDefault);
 
   procedure PackageCommand(const PackagingExeName: String; const PackagingParameters: array of String);
   var
-    FullPackageFileName, ProcessOutput, CommandExe: string;
+    FullPackageFileName, ProcessOutput, CommandExe: String;
     ProcessExitStatus: Integer;
   begin
     CommandExe := FindExe(PackagingExeName);
@@ -154,14 +154,14 @@ begin
   end;
 end;
 
-procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: string);
+procedure TPackageDirectory.Add(const SourceFileName, DestinationFileName: String);
 begin
   SmartCopyFile(SourceFileName, Path + DestinationFileName);
   if Verbose then
     Writeln('Package file: ' + DestinationFileName);
 end;
 
-procedure TPackageDirectory.MakeExecutable(const Name: string);
+procedure TPackageDirectory.MakeExecutable(const Name: String);
 begin
   {$ifdef UNIX}
   FpChmod(Path + Name,
@@ -209,7 +209,7 @@ begin
 end;
 
 const
-  PackageFormatNames: array [TPackageFormat] of string = (
+  PackageFormatNames: array [TPackageFormat] of String = (
     'default',
     'directory',
     'zip',
@@ -219,12 +219,12 @@ const
     'ios-archive-app-store'
   );
 
-function PackageFormatToString(const O: TPackageFormat): string;
+function PackageFormatToString(const O: TPackageFormat): String;
 begin
   Result := PackageFormatNames[O];
 end;
 
-function StringToPackageFormat(const S: string): TPackageFormat;
+function StringToPackageFormat(const S: String): TPackageFormat;
 begin
   for Result in TPackageFormat do
     if AnsiSameText(PackageFormatNames[Result], S) then

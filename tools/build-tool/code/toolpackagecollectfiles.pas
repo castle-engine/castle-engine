@@ -87,12 +87,12 @@ end;
 
 procedure TBinaryPackageFiles.Run;
 
-  procedure Exclude(const PathMask: string; const Files: TCastleStringList);
+  procedure Exclude(const PathMask: String; const Files: TCastleStringList);
   const
     IgnoreCase = true;
   var
     I: Integer;
-    PathMaskSlashes, ItemSlashes: string;
+    PathMaskSlashes, ItemSlashes: String;
   begin
     { replace all backslashes with slashes, so that they are equal for comparison }
     PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);

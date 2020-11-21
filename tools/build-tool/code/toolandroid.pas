@@ -28,7 +28,7 @@ uses Classes,
   When Project <> nil, we assume we compile libraries (one of more .so files),
   and their final names must match Project.AndroidLibraryFile(CPU). }
 procedure CompileAndroid(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 
 { Android CPU values supported by the current compiler. }
@@ -41,7 +41,7 @@ function CPUToAndroidArchitecture(const CPU: TCPU): String;
 procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Name, QualifiedName, OutputPath: String);
 
 procedure RunAndroid(const Project: TCastleProject);
 
@@ -68,7 +68,7 @@ begin
 end;
 
 procedure CompileAndroid(const Project: TCastleProject;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: String;
   const SearchPaths, LibraryPaths, ExtraOptions: TStrings);
 var
   CPU: TCPU;
@@ -86,7 +86,7 @@ begin
 end;
 
 const
-  PackageModeToName: array [TCompilationMode] of string = (
+  PackageModeToName: array [TCompilationMode] of String = (
     'release',
     'release' { no valgrind support for Android },
     'debug');
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-function Capitalize(const S: string): string;
+function Capitalize(const S: String): String;
 begin
   Result := S;
   if Result <> '' then
@@ -117,8 +117,8 @@ end;
 
 { Try to find ExeName executable.
   If not found -> exception (if Required) or return '' (if not Required). }
-function FinishExeSearch(const ExeName, BundleName, EnvVarName: string;
-  const Required: Boolean): string;
+function FinishExeSearch(const ExeName, BundleName, EnvVarName: String;
+  const Required: Boolean): String;
 begin
   { try to find on $PATH }
   Result := FindExe(ExeName);
@@ -129,13 +129,13 @@ end;
 
 { Try to find "ndk-build" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
-function NdkBuildExe(const Required: Boolean = true): string;
+function NdkBuildExe(const Required: Boolean = true): String;
 const
   ExeName = 'ndk-build';
   BundleName = 'NDK';
   EnvVarName = 'ANDROID_NDK_HOME';
 var
-  Env: string;
+  Env: String;
 begin
   Result := '';
   { try to find in $ANDROID_NDK_HOME }
@@ -164,13 +164,13 @@ end;
 
 { Try to find "adb" tool executable.
   If not found -> exception (if Required) or return '' (if not Required). }
-function AdbExe(const Required: Boolean = true): string;
+function AdbExe(const Required: Boolean = true): String;
 const
   ExeName = 'adb';
   BundleName = 'SDK';
   EnvVarName = 'ANDROID_HOME';
 var
-  Env: string;
+  Env: String;
 begin
   Result := '';
   { try to find in $ANDROID_HOME }
@@ -189,7 +189,7 @@ end;
 procedure PackageAndroid(const Project: TCastleProject;
   const OS: TOS; const CPUS: TCPUS; const SuggestedPackageMode: TCompilationMode);
 var
-  AndroidProjectPath: string;
+  AndroidProjectPath: String;
 
   { Some utility procedures PackageXxx below.
     They work just like Xxx, but target filename should not contain
@@ -197,12 +197,12 @@ var
     already existing (in case multiple services
     contain the same path inside), but warn about it. }
 
-  procedure PackageCheckForceDirectories(const Dirs: string);
+  procedure PackageCheckForceDirectories(const Dirs: String);
   begin
     CheckForceDirectories(AndroidProjectPath + Dirs);
   end;
 
-  procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
+  procedure PackageSaveImage(const Image: TCastleImage; const FileName: String);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not RegularFileExists(AndroidProjectPath + FileName) then
@@ -211,7 +211,7 @@ var
       WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
   end;
 
-  procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
+  procedure PackageSmartCopyFile(const FileFrom, FileTo: String);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileTo));
     if not RegularFileExists(AndroidProjectPath + FileTo) then
@@ -221,7 +221,7 @@ var
   end;
 
 {
-  procedure PackageStringToFile(const FileTo, Contents: string);
+  procedure PackageStringToFile(const FileTo, Contents: String);
   begin
     if not RegularFileExists(AndroidProjectPath + FileTo) then
     begin
@@ -235,18 +235,18 @@ var
   { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   var
-    DestinationPath: string;
+    DestinationPath: String;
 
-    procedure ExtractService(const ServiceName: string);
+    procedure ExtractService(const ServiceName: String);
     var
-      TemplatePath: string;
+      TemplatePath: String;
     begin
       TemplatePath := 'android/integrated-services/' + ServiceName;
       Project.ExtractTemplate(TemplatePath, DestinationPath);
     end;
 
   var
-    TemplatePath: string;
+    TemplatePath: String;
     I: Integer;
   begin
     { calculate absolute DestinationPath.
@@ -290,10 +290,10 @@ var
   var
     Icon: TCastleImage;
 
-    procedure SaveResized(const Size: Integer; const S: string);
+    procedure SaveResized(const Size: Integer; const S: String);
     var
       R: TCastleImage;
-      Dir: string;
+      Dir: String;
     begin
       R := Icon.MakeResized(Size, Size, BestInterpolation);
       try
@@ -412,13 +412,13 @@ var
   end;
 
 var
-  KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
+  KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: String;
 
   procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
     WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
 
-    procedure LoadSigningProperties(const FileName: string);
+    procedure LoadSigningProperties(const FileName: String);
     var
       S: TStringList;
     begin
@@ -593,7 +593,7 @@ var
   end;
 
 var
-  ApkName: string;
+  ApkName: String;
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
@@ -626,9 +626,9 @@ begin
   Writeln('Build ' + ApkName);
 end;
 
-procedure InstallAndroid(const Name, QualifiedName, OutputPath: string);
+procedure InstallAndroid(const Name, QualifiedName, OutputPath: String);
 var
-  ApkDebugName, ApkReleaseName, ApkName: string;
+  ApkDebugName, ApkReleaseName, ApkName: String;
 begin
   ApkReleaseName := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmRelease] + '.apk');
   ApkDebugName   := CombinePaths(OutputPath, Name + '-' + PackageModeToName[cmDebug  ] + '.apk');
@@ -653,7 +653,7 @@ end;
 
 procedure RunAndroid(const Project: TCastleProject);
 var
-  ActivityName, LogTag: string;
+  ActivityName, LogTag: String;
 begin
   if Project.AndroidProjectType = apBase then
     ActivityName := 'android.app.NativeActivity'

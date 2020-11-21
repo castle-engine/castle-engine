@@ -71,7 +71,7 @@ const
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
   { Call SetCurrentDir to open project within specified directory. }
   procedure ChangeProjectDir(const DirOrManifestFile: String);
@@ -231,7 +231,7 @@ end;
   for this. }
 procedure AdjustApplicationData;
 var
-  DataPath: string;
+  DataPath: String;
 begin
   if CastleEnginePath <> '' then
   begin
@@ -247,7 +247,7 @@ end;
 
 procedure Run;
 var
-  Command, S, FileName: string;
+  Command, S, FileName: String;
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
 begin

@@ -25,32 +25,32 @@ uses DOM,
 
 { Copy file, making sure the destination directory exists
   (eventually creating it), and checking result. }
-procedure SmartCopyFile(const Source, Dest: string);
+procedure SmartCopyFile(const Source, Dest: String);
 
-function FileSize(const FileName: string): Int64;
+function FileSize(const FileName: String): Int64;
 
 var
   { Output path base directory. Empty to use working project directory. }
-  OutputPathBase: string = '';
+  OutputPathBase: String = '';
 
 { Calculate the final location of temporary output files
   (including the castle-engine-output subdir part),
   as an absolute path ending with path delimiter.
   Makes sure the dir exists, if CreateIfNecessary. }
-function TempOutputPath(const WorkingDirectory: string;
-  const CreateIfNecessary: Boolean = true): string;
+function TempOutputPath(const WorkingDirectory: String;
+  const CreateIfNecessary: Boolean = true): String;
 
 type
-  TReplaceMacros = function (const Source: string): string of object;
+  TReplaceMacros = function (const Source: String): String of object;
 
 type
   TImageFileNames = class(TCastleStringList)
   private
-    FBaseUrl: string;
+    FBaseUrl: String;
   public
-    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    property BaseUrl: String read FBaseUrl write FBaseUrl;
     { Find image with given extension, or '' if not found. }
-    function FindExtension(const Extensions: array of string): string;
+    function FindExtension(const Extensions: array of String): String;
     { Find and read an image format that we can process with our CastleImages.
       Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
       @nil if not found. }
@@ -126,13 +126,13 @@ uses Classes, Process, SysUtils,
   CastleFindFiles,
   ToolCommonUtils;
 
-procedure SmartCopyFile(const Source, Dest: string);
+procedure SmartCopyFile(const Source, Dest: String);
 begin
   CheckForceDirectories(ExtractFileDir(Dest));
   CheckCopyFile(Source, Dest);
 end;
 
-function FileSize(const FileName: string): Int64;
+function FileSize(const FileName: String): Int64;
 var
   SourceFile: TFileStream;
 begin
@@ -143,13 +143,13 @@ begin
 end;
 
 var
-  FOutputPath: string;
+  FOutputPath: String;
 
-function TempOutputPath(const WorkingDirectory: string; const CreateIfNecessary: Boolean): string;
+function TempOutputPath(const WorkingDirectory: String; const CreateIfNecessary: Boolean): String;
 const
   OutputNoteContents = {$I ../embedded_templates/template-castle-engine-output-warning.txt.inc};
 var
-  OutputNote: string;
+  OutputNote: String;
 begin
   if FOutputPath = '' then
   begin
@@ -174,7 +174,7 @@ end;
 
 { TImageFileNames ------------------------------------------------------------- }
 
-function TImageFileNames.FindExtension(const Extensions: array of string): string;
+function TImageFileNames.FindExtension(const Extensions: array of String): String;
 var
   I: Integer;
 begin
@@ -187,7 +187,7 @@ end;
 function TImageFileNames.FindReadable: TCastleImage;
 var
   I: Integer;
-  MimeType, URL: string;
+  MimeType, URL: String;
 begin
   for I := 0 to Count - 1 do
   begin
@@ -216,7 +216,7 @@ procedure ReadParameters(const Element: TDOMElement; const Parameters: TStringSt
 var
   ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
-  Key, Value, KeyLower: string;
+  Key, Value, KeyLower: String;
 begin
   if Element <> nil then
   begin

@@ -55,7 +55,7 @@ var
   { Just an indication of from what URL we loaded these Curves /
     where we saved them last time / etc.
     Set only using SetCurvesURL. }
-  CurvesURL: string;
+  CurvesURL: String;
 
   ColorConvexHull: TCastleColor;
   ColorCurveSelected: TCastleColor;
@@ -63,7 +63,7 @@ var
   ColorPointSelected: TCastleColor;
 
   BackgroundImage: TDrawableImage;
-  BackgroundImageURL: string;
+  BackgroundImageURL: String;
 
   SceneZoom: Single = 1;
   SceneMove: TVector2;
@@ -94,7 +94,7 @@ begin
   SelectedChanged;
 end;
 
-procedure SetCurvesURL(const Value: string);
+procedure SetCurvesURL(const Value: String);
 begin
   CurvesURL := Value;
   Window.Caption := Value + ' - Curves plotting';
@@ -110,9 +110,9 @@ const
   SErrSelectCurve = 'You must select some curve.';
   SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
 
-procedure LoadCurves(const NewURL: string);
+procedure LoadCurves(const NewURL: String);
 var
-  ErrMessage: string;
+  ErrMessage: String;
   NewCurves: TCurveList;
   I: Integer;
 begin
@@ -160,9 +160,12 @@ type
 
 procedure TStatusText.Update(const SecondsPassed: Single; var HandleInput: Boolean);
 
-  function IntToStrOrNone(i: Integer): string;
+  function IntToStrOrNone(I: Integer): String;
   begin
-    if i <> -1 then Result := IntToStr(i) else Result := 'none';
+    if I <> -1 then
+      Result := IntToStr(I)
+    else
+      Result := 'none';
   end;
 
 begin
@@ -257,15 +260,15 @@ begin
   end;
 
   { draw all curves and their control points }
-  for i := 0 to Curves.Count-1 do
+  for I := 0 to Curves.Count - 1 do
   begin
-    if i = SelectedCurve then
+    if I = SelectedCurve then
       Color := ColorCurveSelected
     else
       Color := ColorCurveNotSelected;
     if ShowPoints then
-      RenderControlPoints(Curves[i], Color);
-    RenderCurve(Curves[i], RenderSegments, Color, LineWidth);
+      RenderControlPoints(Curves[I], Color);
+    RenderCurve(Curves[I], RenderSegments, Color, LineWidth);
   end;
 
   { draw SelectedPoint }
@@ -296,7 +299,7 @@ begin
   end else
   begin
     Curves[SelectedCurve].ControlPoints.Insert(SelectedPoint+1, NewPoint);
-    SetSelectedPoint(SelectedPoint+1);
+    SetSelectedPoint(SelectedPoint + 1);
   end;
 
   Curves[SelectedCurve].UpdateControlPoints;
@@ -318,21 +321,21 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
     Returns -1, -1 if Curves.Count = 0. }
   var
     SqrDist, SqrBestDist: Single;
-    i, j: Integer;
+    I, J: Integer;
   begin
     SqrBestDist := MaxSingle;
     CurveNum := -1;
     PointNum := -1;
-    for i := 0 to Curves.Count-1 do
-      for j := 0 to Curves[i].ControlPoints.Count-1 do
+    for I := 0 to Curves.Count-1 do
+      for J := 0 to Curves[I].ControlPoints.Count-1 do
       begin
-        SqrDist := Sqr(Curves[i].ControlPoints.Items[j][0] - Point[0]) +
-                   Sqr(Curves[i].ControlPoints.Items[j][1] - Point[1]);
+        SqrDist := Sqr(Curves[I].ControlPoints.Items[J][0] - Point[0]) +
+                   Sqr(Curves[I].ControlPoints.Items[J][1] - Point[1]);
         if SqrDist < SqrBestDist then
         begin
           SqrBestDist := SqrDist;
-          CurveNum := i;
-          PointNum := j;
+          CurveNum := I;
+          PointNum := J;
         end;
       end;
   end;
@@ -532,7 +535,7 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
   procedure OpenFile;
   var
-    S: string;
+    S: String;
   begin
     S := CurvesURL;
     if Window.FileDialog('Open curves from XML file', S, true,
@@ -542,7 +545,7 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
   procedure SaveFile;
   var
-    S: string;
+    S: String;
     NewCurves: TCurveList;
     I: Integer;
   begin
@@ -580,7 +583,7 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
   end;
 
 var
-  S: string;
+  S: String;
 begin
   case MenuItem.IntData of
     4:  OpenFile;
@@ -724,7 +727,7 @@ const
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: Boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  const Argument: String; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
     0:begin
