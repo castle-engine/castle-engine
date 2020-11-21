@@ -22,7 +22,7 @@ type
   TCastleColorPropertyEditor = class(TSubPropertiesEditor)
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
-    function GetName: shortstring; override;
+    function GetName: ShortString; override;
     function GetValue: String; override;
     procedure SetValue(const NewValue: String); override;
   end;
@@ -61,7 +61,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleColorPropertyEditor.GetName: shortstring;
+function TCastleColorPropertyEditor.GetName: ShortString;
 begin
   Result := inherited GetName;
   Result := SuffixRemove('persistent', Result, true);
@@ -123,7 +123,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleColorRGBPropertyEditor.GetName: shortstring;
+function TCastleColorRGBPropertyEditor.GetName: ShortString;
 begin
   Result := inherited GetName;
   Result := SuffixRemove('persistent', Result, true);

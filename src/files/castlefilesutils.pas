@@ -1173,7 +1173,7 @@ var
   bundle: CFBundleRef;
   pathRef: CFURLRef;
   pathCFStr: CFStringRef;
-  pathStr: shortstring;
+  pathStr: ShortString;
 begin
   if not BundlePathCached then
   begin
