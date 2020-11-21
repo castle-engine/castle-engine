@@ -137,7 +137,7 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
     { Does NormalTexture have alpha channel. }
     HasAlpha: boolean;
   begin
-    if ShapeBumpMappingAllowed and
+    if Shape.BumpMappingAllowed and
        (BumpMapping <> bmNone) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
@@ -147,8 +147,8 @@ procedure TGLRenderer.BumpMappingEnable(const Shape: TX3DRendererShape;
         // fix NormalTextureCoordinatesId if needed
         NormalTextureCoordinatesId := Max(0, NormalTextureCoordinatesId);
 
-        ShapeBumpMappingUsed := true;
-        ShapeBumpMappingTextureCoordinatesId := NormalTextureCoordinatesId;
+        Shape.BumpMappingUsed := true;
+        Shape.BumpMappingTextureCoordinatesId := NormalTextureCoordinatesId;
 
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);

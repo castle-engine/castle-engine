@@ -116,7 +116,9 @@ procedure TGLShape.Changed(const InactiveOnly: boolean;
        (Geometry.CoordField.Value is TCoordinateNode) and
        (Geometry.NormalField <> nil) and
        (Geometry.NormalField.Value <> nil) and
-       (Geometry.NormalField.Value is TNormalNode) then
+       (Geometry.NormalField.Value is TNormalNode) and
+       { When bump mapping is used, we need to recalculate tangents/bitangents }
+       (not BumpMappingUsed) then
     begin
       Coords := TCoordinateNode(Geometry.CoordField.Value).FdPoint.Items;
       Normals := TNormalNode(Geometry.NormalField.Value).FdVector.Items;
@@ -133,7 +135,19 @@ begin
       like transformation, clip planes and everything else that is applied
       by renderer every time, and doesn't affect TGeometryArrays. }
     if Changes * [chCoordinate, chNormal] <> [] then
+    begin
       Cache.FreeArrays([vtCoordinate]);
+
+      { When bump mapping is used, upon changing normals -> we need to recalculate tangents/bitangents.
+
+        TODO:
+        - we should pack tangents/bitangents along with normals, to vtCoordinate
+        - currently our castle_tangent_to_object_space, 3x3 floats, it could be only 2 vectors, 3x2 floats
+        - we could use tangent information from file (glTF may provide it),
+          then maybe FastCacheUpdate could work in this case. }
+      if Changes * [chNormal] <> [] then
+        Cache.FreeArrays([vtAttribute]);
+    end;
 
     { Note that Changes may contain both chCoordinate and chTextureCoordinate
       (e.g. in case of batching)
@@ -149,7 +163,7 @@ begin
 
       TODO: Actually Cache.FreeArrays is often not necessary in case of chTextureImage.
       It's only necessary when texture existence changed.
-      This could be optiized more.
+      This could be optimized more.
     }
     if Changes * [chTextureImage, chVisibleVRML1State, chGeometryVRML1State,
       chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then

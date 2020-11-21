@@ -441,6 +441,22 @@ type
     { For implementing TextureCoordinateGenerator.mode = "MIRROR-PLANE". }
     MirrorPlaneUniforms: TMirrorPlaneUniforms;
 
+    { Is bump mapping allowed by the current shape.
+      Fully calculated only after InitMeshRenderer, as determining GeneratorClass
+      is needed to set this. }
+    BumpMappingAllowed: Boolean;
+
+    { Is bump mapping used for current shape.
+      Fully calculated only during render, after BumpMappingAllowed is calculated
+      and after textures are applied.
+      This is determined by BumpMappingAllowed,
+      global BumpMapping, and by the texture information for current
+      shape (whether user provided normal map, height map etc.) }
+    BumpMappingUsed: Boolean;
+
+    { Along with Shape.BumpMappingUsed, this is calculated (use only if Shape.BumpMappingUsed). }
+    BumpMappingTextureCoordinatesId: Cardinal;
+
     destructor Destroy; override;
   end;
 
@@ -463,17 +479,6 @@ type
 
     { ------------------------------------------------------------
       Things usable only during Render. }
-
-    { Is bump mapping allowed by the current shape.
-      Fully calculated only after InitMeshRenderer, as determining GeneratorClass
-      is needed to set this. }
-    ShapeBumpMappingAllowed: boolean;
-    { Is bump mapping used for current shape.
-      This is determined by ShapeBumpMappingAllowed,
-      global BumpMapping, and by the texture information for current
-      shape (whether user provided normal map, height map etc.) }
-    ShapeBumpMappingUsed: boolean;
-    ShapeBumpMappingTextureCoordinatesId: Cardinal;
 
     { How many texture units are used.
 
@@ -2830,14 +2835,14 @@ var
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
       MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape);
-      ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
+      Shape.BumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
 
 begin
-  { default ShapeBumpMapping* state }
-  ShapeBumpMappingAllowed := false;
-  ShapeBumpMappingUsed := false;
+  { default Shape.BumpMapping* state }
+  Shape.BumpMappingAllowed := false;
+  Shape.BumpMappingUsed := false;
 
   { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
@@ -3153,8 +3158,8 @@ begin
         Generator.FogVolumetric := FogVolumetric;
         Generator.FogVolumetricDirection := FogVolumetricDirection;
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-        Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
-        Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
+        Generator.ShapeBumpMappingUsed := Shape.BumpMappingUsed;
+        Generator.ShapeBumpMappingTextureCoordinatesId := Shape.BumpMappingTextureCoordinatesId;
         Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 
