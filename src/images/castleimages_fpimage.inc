@@ -223,25 +223,57 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadFpImage(Stream: TStream;
+function LoadFpImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
-  Reader: TFPCustomImageReader): TEncodedImage;
+  const Reader: TFPCustomImageReader;
+  const ImageFormat: TImageFormat): TEncodedImage;
 var
   FPImage: TInternalCastleFpImage;
+  DetectedClass: TEncodedImageClass;
 begin
+  { Unless exactly 1 image classes is allowed,
+    try to detect best class using format-specific DetectClass function.
+    This may avoid the need for time-consuming Detect(...) call in CreateFromFpImage.
+    Note that we don't limit this detection only to AllowedImageClasses = [] case,
+    as LoadImage is often called with TextureImageClasses or TextureImageClassesAll. }
+  DetectedClass := nil;
+  if (High(AllowedImageClasses) <> 0) and
+     Assigned(ImageFormatInfos[ImageFormat].DetectClass) then
+  begin
+    DetectedClass := ImageFormatInfos[ImageFormat].DetectClass(Stream);
+    if (DetectedClass <> nil) and
+       (not ClassAllowed(DetectedClass, AllowedImageClasses)) then
+    begin
+      DetectedClass := nil; // do not use
+    end;
+    // for debug:
+    // if DetectedClass <> nil then
+    //   WritelnLog('Will use detected image class %s (format %s)', [
+    //     DetectedClass.ClassName,
+    //     ImageFormatInfos[ImageFormat].FormatName
+    //   ]);
+  end;
+
   FPImage := CreateFpImage(0, 0);
   try
     FPImage.UsePalette := false;
     try
       FPImage.LoadFromStream(Stream, Reader);
+    except
       { FPImage.LoadFromStream may raise any kind of Exception (for example,
         in case of invalid JPEG header it just raises generic Exception class).
         Catch it and convert to our EImageLoadError. }
-    except on E: Exception do raise EImageLoadError.Create(E.Message) end;
-    Result := CreateFromFpImage(FPImage, AllowedImageClasses);
+      on E: Exception do
+        raise EImageLoadError.Create(E.Message)
+    end;
+
+    if DetectedClass <> nil then
+      Result := CreateFromFpImage(FPImage, [DetectedClass])
+    else
+      Result := CreateFromFpImage(FPImage, AllowedImageClasses);
   finally
     FreeAndNil(FPImage);
-    FreeAndNil(Reader);
+    Reader.Free;
   end;
 end;
 
@@ -366,16 +398,16 @@ end;
 
 { LoadXxx, SaveXxx for particular image file formats ------------------------- }
 
-function LoadGIF(Stream: TStream;
+function LoadGIF(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create, ifGIF);
 end;
 
-function LoadTGA(Stream: TStream;
+function LoadTGA(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create, ifTGA);
 end;
 
 {
@@ -385,52 +417,52 @@ with "missing RowsPerStrip.."
 function LoadTIFF(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create, ifTIFF);
 end;
 }
 
-function LoadXPM(Stream: TStream;
+function LoadXPM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, ifXPM);
 end;
 
-function LoadPSD(Stream: TStream;
+function LoadPSD(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create, ifPSD);
 end;
 
-function LoadPCX(Stream: TStream;
+function LoadPCX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create, ifPCX);
 end;
 
-function LoadJPEG(Stream: TStream;
+function LoadJPEG(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create, ifJPEG);
 end;
 
-function LoadPNG_FPImage(Stream: TStream;
+function LoadPNG_FPImage(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create, ifPNG);
 end;
 
-function LoadPNM(Stream: TStream;
+function LoadPNM(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create, ifPNM);
 end;
 
-procedure SaveJPEG(Img: TEncodedImage; Stream: TStream);
+procedure SaveJPEG(const Img: TEncodedImage; const Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
 
-procedure SavePNG_FPImage(Img: TEncodedImage; Stream: TStream);
+procedure SavePNG_FPImage(const Img: TEncodedImage; const Stream: TStream);
 var
   Writer: TFPWriterPNG;
 begin

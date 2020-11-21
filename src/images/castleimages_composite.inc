@@ -21,13 +21,13 @@ begin
   finally FreeAndNil(Composite) end;
 end;
 
-function LoadDDS(Stream: TStream;
+function LoadDDS(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadComposite(Stream, AllowedImageClasses, 'image/x-dds');
 end;
 
-function LoadKTX(Stream: TStream;
+function LoadKTX(const Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadComposite(Stream, AllowedImageClasses, 'image/ktx');
@@ -53,7 +53,7 @@ begin
   finally FreeAndNil(Composite) end;
 end;
 
-procedure SaveDDS(Img: TEncodedImage; Stream: TStream);
+procedure SaveDDS(const Img: TEncodedImage; const Stream: TStream);
 begin
   SaveComposite(Img, Stream, 'image/x-dds');
 end;
