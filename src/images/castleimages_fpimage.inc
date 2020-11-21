@@ -141,7 +141,7 @@ end;
 
 { Convert TInternalCastleFpImage to the best TCastleImage class. }
 function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel, and is it grayscale.
@@ -173,71 +173,53 @@ function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
 
 var
   Alpha, Grayscale: boolean;
-  RGBA: TRGBAlphaImage;
+  ImageClass: TEncodedImageClass;
 begin
-  Detect(Alpha, Grayscale);
-
-  Result := nil;
-  try
-    { first try to return the best class for given Alpha/Grayscale combination }
-
+  if High(AllowedImageClasses) = 0 then
+  begin
+    { if AllowedImageClasses forces a specific class, then just create this image class }
+    ImageClass := AllowedImageClasses[0];
+  end else
+  begin
+    { detect Alpha and Grayscale looking at image contents, to determine ImageClass }
+    Detect(Alpha, Grayscale);
     if not Grayscale then
     begin
-      if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and Alpha then
-      begin
-        Result := TRGBAlphaImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end else
-      if ClassAllowed(TRGBImage, AllowedImageClasses) and not Alpha then
-      begin
-        Result := TRGBImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end;
+      if Alpha then
+        ImageClass := TRGBAlphaImage
+      else
+        ImageClass := TRGBImage;
     end else
     begin
-      if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) and Alpha then
-      begin
-        Result := TGrayscaleAlphaImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end else
-      if ClassAllowed(TGrayscaleImage, AllowedImageClasses) and not Alpha then
-      begin
-        Result := TGrayscaleImage.Create;
-        Result.FromFpImage(FPImage);
-        Exit;
-      end;
+      if Alpha then
+        ImageClass := TGrayscaleAlphaImage
+      else
+        ImageClass := TGrayscaleImage;
     end;
 
-    { otherwise, load RGBA and eventually strip some information to satisfy
-      ClassAllowed conditions }
-
-    RGBA := TRGBAlphaImage.Create;
-    RGBA.FromFpImage(FPImage);
-    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
-      Result := RGBA else
-    if ClassAllowed(TRGBImage, AllowedImageClasses) then
+    { if the optimal ImageClass (for these image contents) is not allowed,
+      try to find another class that works, and looses least information. }
+    if not ClassAllowed(ImageClass, AllowedImageClasses) then
     begin
-      Result := RGBA.ToRGBImage;
-      FreeAndNil(RGBA);
-    end else
-    if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
-    begin
-      Result := RGBA.ToGrayscaleImage;
-      FreeAndNil(RGBA);
-    end else
-    if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
-    begin
-      Result := RGBA.ToGrayscaleAlphaImage;
-      FreeAndNil(RGBA);
-    end else
-    begin
-      FreeAndNil(RGBA);
-      raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
+      if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
+        ImageClass := TRGBAlphaImage
+      else
+      if ClassAllowed(TRGBImage, AllowedImageClasses) then
+        ImageClass := TRGBImage
+      else
+      if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
+        ImageClass := TGrayscaleImage
+      else
+      if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
+        ImageClass := TGrayscaleAlphaImage
+      else
+        raise Exception.Create('Cannot load FPImage to any of formats allowed by LoadImage AllowedImageClasses');
     end;
+  end;
 
+  Result := ImageClass.Create;
+  try
+    Result.FromFpImage(FPImage);
   except FreeAndNil(Result); raise end;
 end;
 

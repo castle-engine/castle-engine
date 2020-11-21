@@ -2301,7 +2301,8 @@ begin
     // TODO; ProgressTitle not supported for this
     NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
     try
-      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]);
+      // since we request our own class as output, CreateFromFpImage must return some TCastleImage
+      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]) as TCastleImage;
     finally FreeAndNil(NewFpImage) end;
   end else
   begin
