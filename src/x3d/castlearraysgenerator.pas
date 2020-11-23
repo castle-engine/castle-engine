@@ -664,14 +664,13 @@ type
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
     { Helpers for bump mapping }
-    HasTangentVectors: boolean;
     STangent, TTangent: TVector3;
     AttribTangent, AttribBitangent: TGeometryAttrib;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
-    { Update tangent vectors (HasTangentVectors, STangent, TTangent).
+    { Update tangent vectors (STangent, TTangent).
       Without this, bump mapping will be wrong.
       Give triangle indexes (like IndexNum for GenerateVertex). }
     procedure CalculateTangentVectors(
@@ -2111,44 +2110,31 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
   begin
     GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
-    if HasTangentVectors
-      // TODO do we need this check?
-      and
-      (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
-      (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) then
+    if NormalsFlat then
     begin
-      if NormalsFlat then
-      begin
-        Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := STangent;
-        Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := TTangent;
-      end else
-      begin
-        { If NormalsFlat = false,
-          we want to calculate *local* STangent and TTangent,
-          which are STangent and TTangent adjusted to the current vertex
-          (since every vertex on this face may have a different normal).
-
-          Without doing this, you would see strange artifacts, smoothed
-          faces would look somewhat like flat faces.
-          Conceptually, for smoothed
-          faces, whole tangent space should vary for each vertex, so Normal,
-          and both tangents may be different on each vertex. }
-
-        LocalSTangent := STangent;
-        MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
-
-        LocalTTangent := TTangent;
-        MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
-
-        Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalSTangent;
-        Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalTTangent;
-      end;
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := STangent;
+      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := TTangent;
     end else
     begin
-      { Would be more correct to set LocalSTangent as anything perpendicular
-        to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
-      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Vector3(1, 0, 0);
-      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := Vector3(0, 1, 0);
+      { If NormalsFlat = false,
+        we want to calculate *local* STangent and TTangent,
+        which are STangent and TTangent adjusted to the current vertex
+        (since every vertex on this face may have a different normal).
+
+        Without doing this, you would see strange artifacts, smoothed
+        faces would look somewhat like flat faces.
+        Conceptually, for smoothed
+        faces, whole tangent space should vary for each vertex, so Normal,
+        and both tangents may be different on each vertex. }
+
+      LocalSTangent := STangent;
+      MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+      LocalTTangent := TTangent;
+      MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalSTangent;
+      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalTTangent;
     end;
   end;
 
@@ -2262,7 +2248,6 @@ var
   Triangle3D: TTriangle3;
   TriangleTexCoord: TTriangle2;
 begin
-  HasTangentVectors := false;
   if ShapeBumpMappingUsed then
   begin
     { calculate Triangle3D }
@@ -2274,15 +2259,31 @@ begin
       TriangleTexCoord not initialized. }
     TriangleTexCoord.Data[0].Data[0] := 0.0;
 
-    HasTangentVectors :=
+    if not (
       { calculate TriangleTexCoord }
       GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[0]) and
       GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
       GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
       { calculate STangent, TTangent }
       CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
-      CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
-      (Abs(TVector3.DotProduct(STangent, TTangent)) < 0.95);
+      CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) ) then
+    begin
+      { Would be more correct to set STangent as anything perpendicular
+        to Normal, and TTangent as vector product (normal, LocalSTangent) }
+      STangent := TVector3.One[0];
+      TTangent := TVector3.One[1];
+    end;
+
+    { It *is* possible that we'll get somewhat incorrect tangents in practice,
+      but it's not really useful to check it (at least in non-debug builds)
+      because we don't really have here a better fallback.
+      Using above "TVector3.One[0]" isn't really better. }
+    {
+    if not ( (Abs(TVector3.DotProduct(STangent, TTangent)) < 0.95) and
+             (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
+             (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) ) then
+      WritelnWarning('Tangents are likely incorrect');
+    }
   end;
 end;
 
