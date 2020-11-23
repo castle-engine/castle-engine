@@ -156,10 +156,12 @@ type
     procedure AddTexCoord(const Generation: TTextureCoordinateGeneration;
       const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
-    procedure AddGLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Internal: boolean);
-    function GLSLAttribute(const AType: TGeometryAttribType;
+    function AddGLSLAttribute(const AType: TGeometryAttribType;
+      const Name: string; const Internal: boolean): TGeometryAttrib;
+    function GLSLAttributeIndex(const AType: TGeometryAttribType;
       const Name: string; const Index: Cardinal): PtrUInt;
+    function GLSLAttributeIndex(const AType: TGeometryAttribType;
+      const A: TGeometryAttrib; const Index: Cardinal): PtrUInt;
   public
     constructor Create;
     destructor Destroy; override;
@@ -313,21 +315,28 @@ type
 
     property Attribs: TGeometryAttribList read FAttribs;
 
-    procedure AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
-    procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
+    function AddGLSLAttributeFloat(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector2(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector3(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeVector4(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean): TGeometryAttrib;
+    function AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean): TGeometryAttrib;
 
-    function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
+    function GLSLAttribute(const A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
-    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
-    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
-    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
-    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
-    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
-    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
+    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle; deprecated 'use GLSLAttributeFloat with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2; deprecated 'use GLSLAttributeVector2 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3; deprecated 'use GLSLAttributeVector3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4; deprecated 'use GLSLAttributeVector4 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3; deprecated 'use GLSLAttributeMatrix3 with TGeometryAttrib parameter, it is faster in the usual case';
+    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4; deprecated 'use GLSLAttributeMatrix4 with TGeometryAttrib parameter, it is faster in the usual case';
+
+    function GLSLAttributeFloat(const A: TGeometryAttrib; const Index: Cardinal = 0): PSingle;
+    function GLSLAttributeVector2(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector2;
+    function GLSLAttributeVector3(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector3;
+    function GLSLAttributeVector4(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector4;
+    function GLSLAttributeMatrix3(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix3;
+    function GLSLAttributeMatrix4(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix4;
 
     { Should we use backface-culling (ignore some faces during rendering).
 
@@ -626,8 +635,8 @@ const
   AttribTypeName: array[TGeometryAttribType] of string =
   ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
 
-procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
+  const Name: string; const Internal: boolean): TGeometryAttrib;
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
@@ -637,62 +646,79 @@ const
     SizeOf(TMatrix3),
     SizeOf(TMatrix4)
   );
-var
-  A: TGeometryAttrib;
 begin
-  A := Attribs.Find(Name);
-  if A <> nil then
+  Result := Attribs.Find(Name);
+  if Result <> nil then
   begin
-    if A.AType <> AType then
-      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different type (%s) than currently requested (%s)',
-        [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
-    if A.Internal <> Internal then
-      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different internal (%s) than currently requested (%s)',
-        [Name, BoolToStr(A.Internal, true), BoolToStr(Internal, true)]);
+    if Result.AType <> AType then
+      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different type (%s) than currently requested (%s)', [
+        Name,
+        AttribTypeName[Result.AType],
+        AttribTypeName[AType]
+      ]);
+    if Result.Internal <> Internal then
+      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different internal (%s) than currently requested (%s)', [
+        Name,
+        BoolToStr(Result.Internal, true),
+        BoolToStr(Internal, true)
+      ]);
   end else
   begin
-    A := TGeometryAttrib.Create;
-    A.Name := Name;
-    A.AType := AType;
-    A.Offset := AttributeSize;
-    A.Internal := Internal;
+    Result := TGeometryAttrib.Create;
+    Result.Name := Name;
+    Result.AType := AType;
+    Result.Offset := AttributeSize;
+    Result.Internal := Internal;
     FAttributeSize += AttribSizes[AType];
 
-    Attribs.Add(A);
+    Attribs.Add(Result);
   end;
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atFloat, Name, Internal);
+  Result := AddGLSLAttribute(atFloat, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atVector2, Name, Internal);
+  Result := AddGLSLAttribute(atVector2, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atVector3, Name, Internal);
+  Result := AddGLSLAttribute(atVector3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atVector4, Name, Internal);
+  Result := AddGLSLAttribute(atVector4, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atMatrix3, Name, Internal);
+  Result := AddGLSLAttribute(atMatrix3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
+function TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean): TGeometryAttrib;
 begin
-  AddGLSLAttribute(atMatrix4, Name, Internal);
+  Result := AddGLSLAttribute(atMatrix4, Name, Internal);
 end;
 
-function TGeometryArrays.GLSLAttribute(const AType: TGeometryAttribType;
+function TGeometryArrays.GLSLAttributeIndex(const AType: TGeometryAttribType;
+  const A: TGeometryAttrib; const Index: Cardinal): PtrUInt;
+begin
+  Assert(A.AType = AType, Format('GLSL attribute "%s" is allocated but for different type (%s) than currently requested (%s)', [
+    A.Name,
+    AttribTypeName[A.AType],
+    AttribTypeName[AType]
+  ]));
+
+  { When DataFreed, FAttributeArray is already nil }
+  Result := PtrUInt(FAttributeArray) + A.Offset + Index * AttributeSize;
+end;
+
+function TGeometryArrays.GLSLAttributeIndex(const AType: TGeometryAttribType;
   const Name: string; const Index: Cardinal): PtrUInt;
 var
   A: TGeometryAttrib;
@@ -700,19 +726,12 @@ begin
   A := Attribs.Find(Name);
 
   if A <> nil then
-  begin
-    if A.AType <> AType then
-      raise Exception.CreateFmt('GLSL attribute "%s" is allocated but for different type (%s) than currently requested (%s)',
-        [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
-    { When DataFreed, FAttributeArray is already nil }
-    Result := PtrUInt(FAttributeArray) + A.Offset + Index * AttributeSize;
-    Exit;
-  end;
-
-  raise Exception.CreateFmt('GLSL attribute "%s" is not allocated', [Name]);
+    Result := GLSLAttributeIndex(AType, A, Index)
+  else
+    raise Exception.CreateFmt('GLSL attribute "%s" is not allocated', [Name]);
 end;
 
-function TGeometryArrays.GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt): PtrUInt;
+function TGeometryArrays.GLSLAttribute(const A: TGeometryAttrib; const Offset: PtrUInt): PtrUInt;
 begin
   { When DataFreed, FAttributeArray is already nil }
   Result := PtrUInt(FAttributeArray) + A.Offset + Offset;
@@ -720,32 +739,62 @@ end;
 
 function TGeometryArrays.GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
 begin
-  Result := PSingle(GLSLAttribute(atFloat, Name, Index));
+  Result := PSingle(GLSLAttributeIndex(atFloat, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
 begin
-  Result := PVector2(GLSLAttribute(atVector2, Name, Index));
+  Result := PVector2(GLSLAttributeIndex(atVector2, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
 begin
-  Result := PVector3(GLSLAttribute(atVector3, Name, Index));
+  Result := PVector3(GLSLAttributeIndex(atVector3, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
 begin
-  Result := PVector4(GLSLAttribute(atVector4, Name, Index));
+  Result := PVector4(GLSLAttributeIndex(atVector4, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
 begin
-  Result := PMatrix3(GLSLAttribute(atMatrix3, Name, Index));
+  Result := PMatrix3(GLSLAttributeIndex(atMatrix3, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 begin
-  Result := PMatrix4(GLSLAttribute(atMatrix4, Name, Index));
+  Result := PMatrix4(GLSLAttributeIndex(atMatrix4, Name, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeFloat(const A: TGeometryAttrib; const Index: Cardinal = 0): PSingle;
+begin
+  Result := PSingle(GLSLAttributeIndex(atFloat, A, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeVector2(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector2;
+begin
+  Result := PVector2(GLSLAttributeIndex(atVector2, A, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeVector3(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector3;
+begin
+  Result := PVector3(GLSLAttributeIndex(atVector3, A, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeVector4(const A: TGeometryAttrib; const Index: Cardinal = 0): PVector4;
+begin
+  Result := PVector4(GLSLAttributeIndex(atVector4, A, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeMatrix3(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix3;
+begin
+  Result := PMatrix3(GLSLAttributeIndex(atMatrix3, A, Index));
+end;
+
+function TGeometryArrays.GLSLAttributeMatrix4(const A: TGeometryAttrib; const Index: Cardinal = 0): PMatrix4;
+begin
+  Result := PMatrix4(GLSLAttributeIndex(atMatrix4, A, Index));
 end;
 
 procedure TGeometryArrays.FreeData;

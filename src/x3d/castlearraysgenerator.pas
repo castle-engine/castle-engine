@@ -643,6 +643,7 @@ type
   TAbstractShaderAttribGenerator = class(TAbstractFogGenerator)
   private
     Attrib: TX3DVertexAttributeNodes;
+    AttribPtr: array of TGeometryAttrib;
   protected
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -662,13 +663,10 @@ type
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   strict private
-    const
-      AttribTangent = 'castle_tangent';
-      AttribBitangent = 'castle_bitangent';
-    var
-      { Helpers for bump mapping }
-      HasTangentVectors: boolean;
-      STangent, TTangent: TVector3;
+    { Helpers for bump mapping }
+    HasTangentVectors: boolean;
+    STangent, TTangent: TVector3;
+    AttribTangent, AttribBitangent: TGeometryAttrib;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
@@ -2000,27 +1998,46 @@ var
 begin
   inherited;
   if Attrib <> nil then
+  begin
+    SetLength(AttribPtr, Attrib.Count);
     for I := 0 to Attrib.Count - 1 do
     begin
+      // this will be used later to check, with assert, that all clauses below set Attrib[I]
+      {$ifdef DEBUG} AttribPtr[I] := TGeometryAttrib(Pointer(1)); {$endif}
+
       { call Arrays.AddGLSLAttribute* }
       if Attrib[I] is TFloatVertexAttributeNode then
       begin
         case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
-          1: Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value, false);
-          2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
-          3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
-          4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
-          else WritelnWarning('X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
-            [TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value]));
+          1: AttribPtr[I] := Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value, false);
+          2: AttribPtr[I] := Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
+          3: AttribPtr[I] := Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
+          4: AttribPtr[I] := Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
+          else
+          begin
+            AttribPtr[I] := nil;
+            WritelnWarning('X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
+              [TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value]));
+          end;
         end;
       end else
       if Attrib[I] is TMatrix3VertexAttributeNode then
-        Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false) else
+      begin
+        AttribPtr[I] := Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false);
+      end else
       if Attrib[I] is TMatrix4VertexAttributeNode then
-        Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false) else
+      begin
+        AttribPtr[I] := Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false);
+      end else
+      begin
+        AttribPtr[I] := nil;
         WritelnWarning('X3D', Format('Not handled vertex attribute class %s',
           [Attrib[I].X3DType]));
+      end;
+
+      Assert(AttribPtr[I] <> TGeometryAttrib(Pointer(1))); // all cases above should have set Attrib[I] explicitly
     end;
+  end;
 end;
 
 procedure TAbstractShaderAttribGenerator.GenerateVertex(IndexNum: Integer);
@@ -2039,20 +2056,20 @@ begin
     begin
       { set Arrays.GLSLAttribute*(ArrayIndexNum).
         Note we don't do some warnings here, that were already done
-        in PrepareAttributes. }
+        in PrepareAttributes (and set Attrib[I] = nil). }
       if Attrib[I] is TFloatVertexAttributeNode then
       begin
         case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
-          1: Arrays.GLSLAttributeFloat(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
+          1: Arrays.GLSLAttributeFloat(AttribPtr[I], ArrayIndexNum)^ :=
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
-          2: Arrays.GLSLAttributeVector2(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector2(
+          2: Arrays.GLSLAttributeVector2(AttribPtr[I], ArrayIndexNum)^ := Vector2(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
-          3: Arrays.GLSLAttributeVector3(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector3(
+          3: Arrays.GLSLAttributeVector3(AttribPtr[I], ArrayIndexNum)^ := Vector3(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
-          4: Arrays.GLSLAttributeVector4(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector4(
+          4: Arrays.GLSLAttributeVector4(AttribPtr[I], ArrayIndexNum)^ := Vector4(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
@@ -2060,11 +2077,15 @@ begin
         end;
       end else
       if Attrib[I] is TMatrix3VertexAttributeNode then
-        Arrays.GLSLAttributeMatrix3(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
-          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex] else
+      begin
+        Arrays.GLSLAttributeMatrix3(AttribPtr[I], ArrayIndexNum)^ :=
+          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+      end else
       if Attrib[I] is TMatrix4VertexAttributeNode then
-        Arrays.GLSLAttributeMatrix4(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
+      begin
+        Arrays.GLSLAttributeMatrix4(AttribPtr[I], ArrayIndexNum)^ :=
           TMatrix4VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+      end;
     end;
   end;
 end;
@@ -2076,14 +2097,12 @@ begin
   inherited;
   if ShapeBumpMappingUsed then
   begin
-    Arrays.AddGLSLAttributeVector3(AttribTangent, true);
-    Arrays.AddGLSLAttributeVector3(AttribBitangent, true);
+    AttribTangent := Arrays.AddGLSLAttributeVector3('castle_tangent', true);
+    AttribBitangent := Arrays.AddGLSLAttributeVector3('castle_bitangent', true);
   end;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
-
-// TODO: don't lookup AttribTangent/AttribBitangent each time
 
   procedure SetTangentsBitangents;
   var
