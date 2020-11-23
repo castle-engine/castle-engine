@@ -50,7 +50,7 @@ type
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
       and other Arrays attribute arrays. Calculated in
       each TAbstractCoordinateGenerator.GenerateVertex,
-      always call "inherited" first fro GenerateVertex overrides.
+      always call "inherited" first from GenerateVertex overrides.
 
       There are three cases:
 
@@ -661,10 +661,14 @@ type
       so if you may use NorImplementation = niNone: be sure to override
       GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
-  private
-    { Helpers for bump mapping }
-    HasTangentVectors: boolean;
-    STangent, TTangent: TVector3;
+  strict private
+    const
+      AttribTangent = 'castle_tangent';
+      AttribBitangent = 'castle_bitangent';
+    var
+      { Helpers for bump mapping }
+      HasTangentVectors: boolean;
+      STangent, TTangent: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
@@ -2071,74 +2075,68 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
-    Arrays.AddGLSLAttributeMatrix3('castle_tangent_to_object_space', true);
+  begin
+    Arrays.AddGLSLAttributeVector3(AttribTangent, true);
+    Arrays.AddGLSLAttributeVector3(AttribBitangent, true);
+  end;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
-  procedure DoBumpMapping;
+// TODO: don't lookup AttribTangent/AttribBitangent each time
 
-    function TangentToObjectSpace: TMatrix3;
+  procedure SetTangentsBitangents;
+  var
+    LocalSTangent, LocalTTangent: TVector3;
+    Normal: TVector3;
+  begin
+    GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
-      procedure SetResult(const Normal, STangent, TTangent: TVector3);
-      begin
-        Result.Data[0] := STangent.Data;
-        Result.Data[1] := TTangent.Data;
-        Result.Data[2] := Normal.Data;
-      end;
-
-    var
-      LocalSTangent, LocalTTangent: TVector3;
-      Normal: TVector3;
+    if HasTangentVectors
+      // TODO do we need this check?
+      and
+      (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
+      (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) then
     begin
-      GetNormal(IndexNum, CurrentRangeNumber, Normal);
-
-      if HasTangentVectors and
-        (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
-        (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) then
+      if NormalsFlat then
       begin
-        if NormalsFlat then
-        begin
-          SetResult(Normal, STangent, TTangent);
-        end else
-        begin
-          { If NormalsFlat = false,
-            we want to calculate *local* STangent and TTangent,
-            which are STangent and TTangent adjusted to the current vertex
-            (since every vertex on this face may have a different normal).
-
-            Without doing this, you would see strange artifacts, smoothed
-            faces would look somewhat like flat faces.
-            Conceptually, for smoothed
-            faces, whole tangent space should vary for each vertex, so Normal,
-            and both tangents may be different on each vertex. }
-
-          LocalSTangent := STangent;
-          MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
-
-          LocalTTangent := TTangent;
-          MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
-
-          SetResult(Normal, LocalSTangent, LocalTTangent);
-        end;
+        Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := STangent;
+        Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := TTangent;
       end else
       begin
-        SetResult(Normal,
-          { would be more correct to set LocalSTangent as anything perpendicular
-            to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
-          Vector3(1, 0, 0), Vector3(0, 1, 0));
-      end;
-    end;
+        { If NormalsFlat = false,
+          we want to calculate *local* STangent and TTangent,
+          which are STangent and TTangent adjusted to the current vertex
+          (since every vertex on this face may have a different normal).
 
-  begin
-    Arrays.GLSLAttributeMatrix3('castle_tangent_to_object_space',
-      ArrayIndexNum)^ := TangentToObjectSpace;
+          Without doing this, you would see strange artifacts, smoothed
+          faces would look somewhat like flat faces.
+          Conceptually, for smoothed
+          faces, whole tangent space should vary for each vertex, so Normal,
+          and both tangents may be different on each vertex. }
+
+        LocalSTangent := STangent;
+        MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+        LocalTTangent := TTangent;
+        MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+        Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := LocalSTangent;
+        Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := LocalTTangent;
+      end;
+    end else
+    begin
+      { Would be more correct to set LocalSTangent as anything perpendicular
+        to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
+      Arrays.GLSLAttributeVector3(AttribTangent, ArrayIndexNum)^ := Vector3(1, 0, 0);
+      Arrays.GLSLAttributeVector3(AttribBitangent, ArrayIndexNum)^ := Vector3(0, 1, 0);
+    end;
   end;
 
 begin
   inherited;
   if ShapeBumpMappingUsed then
-    DoBumpMapping;
+    SetTangentsBitangents;
 end;
 
 procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
