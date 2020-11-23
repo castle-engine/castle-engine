@@ -2255,10 +2255,6 @@ begin
     Triangle3D.Data[1] := GetVertex(TriangleIndex2);
     Triangle3D.Data[2] := GetVertex(TriangleIndex3);
 
-    { This is just to shut up FPC 2.2.0 warnings about
-      TriangleTexCoord not initialized. }
-    TriangleTexCoord.Data[0].Data[0] := 0.0;
-
     if not (
       { calculate TriangleTexCoord }
       GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[0]) and
