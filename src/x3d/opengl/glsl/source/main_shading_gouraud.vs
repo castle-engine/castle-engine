@@ -16,6 +16,19 @@ varying vec4 castle_Color;
 attribute vec4 castle_ColorPerVertex;
 #endif
 
+/* Apply per-vertex color, over the base/diffuse/emissive color + alpha. */
+vec4 castle_apply_color_per_vertex(vec4 color)
+{
+  return
+    #if defined(COLOR_PER_VERTEX_REPLACE)
+    castle_ColorPerVertex;
+    #elif defined(COLOR_PER_VERTEX_MODULATE)
+    castle_ColorPerVertex * color;
+    #else
+    color;
+    #endif
+}
+
 /* Include fragment shader utilities used by both Gouraud and Phong shading. */
 /* CASTLE-COMMON-CODE */
 
