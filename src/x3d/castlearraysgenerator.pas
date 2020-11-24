@@ -483,29 +483,27 @@ type
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
 
-    - Usage: set Color or ColorRGBA (at most one of them), ColorPerVertex,
-      ColorIndex.
+    Usage: set Color or ColorRGBA (at most one of them), ColorPerVertex,
+    ColorIndex.
 
-      If Color and ColorRGBA = @nil, this class will not do anything.
-      Otherwise, colors will be used.
+    If Color and ColorRGBA = @nil, this class will not do anything.
+    Otherwise, colors will be used.
 
-      ColorPerVertex specifies per-vertex or per-face.
-      Just like for VRML 1.0, the same restrictions apply:
-      - if you want per-face to work, then GenerateCoordsRange must
-        correspond to a single face.
-      - if you want per-vertex to work, you must use smooth shading.
+    ColorPerVertex specifies per-vertex or per-face.
+    Just like for VRML 1.0, the same restrictions apply:
+    - if you want per-face to work, then GenerateCoordsRange must
+      correspond to a single face.
+    - if you want per-vertex to work, you must use smooth shading.
 
-      ColorIndex: if set and non-empty, then vertex IndexNum or face number will
-      index ColorIndex, and then ColorIndex indexes Color items.
-      Otherwise, for vertex we use CoordIndex (if assigned, otherwise it directly
-      accesses colors)
-      and for face we'll use just face number.
-
-    Everything related to setting VRML 2.0
-    material should be set in Render_MaterialsBegin, and everything
-    related to VRML 2.0 colors is handled in this class.
-    So in summary, this class takes care of everything related to
-    materials / colors. }
+    ColorIndex: if set and non-empty, then
+    - when ColorPerVertex: vertex IndexNum is an index to ColorIndex
+    - when not ColorPerVertex: face number is an index to ColorIndex
+    And then ColorIndex indexes Color items.
+    When ColorIndex is empty:
+    - when ColorPerVertex: vertex IndexNum is an index to CoordIndex
+      and CoordIndex in turn is an index to Color.
+      Unless CoordIndex assigned, then vertex IndexNum indexes Color.
+    - when not ColorPerVertex: face number in an index for Color. }
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
     FaceColor: TVector4;
@@ -518,6 +516,7 @@ type
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
+    procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
@@ -1630,6 +1629,12 @@ begin
        (not ColorPerVertex) then
       AllowIndexed := false;
   end;
+end;
+
+procedure TAbstractColorGenerator.GenerateCoordinateBegin;
+begin
+  inherited;
+  // TODO: most of TAbstractColorGenerator.GenerateVertex (for ColorPerVertex=true) should be here
 end;
 
 procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
