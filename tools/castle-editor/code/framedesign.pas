@@ -226,6 +226,9 @@ type
     procedure CastleControlOpen(Sender: TObject);
     procedure CastleControlResize(Sender: TObject);
     procedure CastleControlUpdate(Sender: TObject);
+    procedure CastleControlDragOver(Sender, Source: TObject; X, Y: Integer;
+  State: TDragState; var Accept: Boolean);
+    procedure CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure ChangeViewportNavigation(
       const NewNavigation: TCastleNavigation);
     function ComponentCaption(const C: TComponent): String;
@@ -336,9 +339,11 @@ implementation
 uses // use Windows unit with FPC 3.0.x, to get TSplitRectType enums
   {$ifdef VER3_0} {$ifdef MSWINDOWS} Windows, {$endif} {$endif}
   TypInfo, StrUtils, Math, Graphics, Types, Dialogs, LCLType,
-  CastleComponentSerialize, CastleUtils, Castle2DSceneManager,
+  CastleComponentSerialize, CastleFileFilters, CastleUtils, Castle2DSceneManager,
   CastleURIUtils, CastleStringUtils, CastleGLUtils, CastleTimeUtils,
-  CastleProjection, CastleScene, CastleLog, CastleThirdPersonNavigation,
+  CastleProjection, CastleScene, CastleLog, CastleShellCtrls,
+  CastleThirdPersonNavigation,
+  X3DLoad,
   EditorUtils, FormProject;
 
 {$R *.lfm}
@@ -993,6 +998,8 @@ begin
   CastleControl.OnOpen := @CastleControlOpen;
   CastleControl.OnUpdate := @CastleControlUpdate;
   CastleControl.StencilBits := 8; // enable shadow volumes
+  CastleControl.OnDragOver := @CastleControlDragOver;
+  CastleControl.OnDragDrop := @CastleControlDragDrop;
 
   {$ifdef DEBUG_GIZMO_PICK}
   TCastleControl.MainControl := CastleControl;
@@ -1773,6 +1780,64 @@ begin
     ModifiedOutsideObjectInspector;
     UpdateDesign;
     //WritelnWarning('CGE needed to explicitly tell editor to refresh hierarchy');
+  end;
+end;
+
+procedure TDesignFrame.CastleControlDragOver(Sender, Source: TObject; X,
+  Y: Integer; State: TDragState; var Accept: Boolean);
+var
+  ShellList: TCastleShellListView;
+  SelectedFileName: String;
+  SelectedURL: String;
+begin
+  if Source is TCastleShellListView then
+  begin
+    ShellList := TCastleShellListView(Source);
+    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+    begin
+      Accept := true;
+    end
+    else
+      Accept := false;
+  end
+  else
+    Accept := false;
+end;
+
+procedure TDesignFrame.CastleControlDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  ShellList: TCastleShellListView;
+  SelectedFileName: String;
+  SelectedURL: String;
+  R: TRegisteredComponent;
+  Scene: TCastleScene;
+begin
+  if Source is TCastleShellListView then
+  begin
+    ShellList := TCastleShellListView(Source);
+    SelectedFileName := ShellList.GetPathFromItem(ShellList.Selected);
+    SelectedURL := FilenameToURISafe(SelectedFileName);
+
+    if TFileFilterList.Matches(LoadScene_FileFilters, SelectedURL) then
+    begin
+      for R in RegisteredComponents do
+      begin
+        if R.ComponentClass = TCastleScene then
+        begin
+          break;
+        end;
+      end;
+
+      AddComponent(R.ComponentClass, R.OnCreate);
+      if GetSelectedComponent is TCastleScene then
+      begin
+        Scene :=  GetSelectedComponent as TCastleScene;
+        Scene.URL := SelectedURL;
+      end;
+    end;
   end;
 end;
 
