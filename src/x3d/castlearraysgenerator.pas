@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2018 Michalis Kamburelis.
+  Copyright 2002-2020 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -175,8 +175,12 @@ type
     procedure PrepareIndexesPrimitives; virtual; abstract;
 
     { Called when constructing Arrays, before the Arrays.Count is set.
+
       Descendants can override this to do stuff like Arrays.AddColor or
-      Arrays.AddAttribute('foo'). Descendants can also set AllowIndexed
+      Arrays.AddAttribute('foo'). After this method, the other code assumes that
+      Arrays.CoordinateSize and Arrays.AttributeSize is fully determined.
+
+      Descendants can also set AllowIndexed
       to @false, if we can't use indexed rendering (because e.g. we have
       colors per-face, which means that the same vertex position may have
       different colors,  which means it has to be duplicated in arrays anyway,
@@ -231,33 +235,9 @@ type
 
   Warning: this is safely usable only for arrays of types that don't
   require initialization / finalization. Otherwise target memory data
-  will be properly referenced.
+  will not be properly referenced.
 
   @raises EAssignInterleavedRangeError When Count < CopyCount. }
-procedure AssignToInterleaved(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
-  Target: Pointer; const Stride, CopyCount: Cardinal); forward;
-
-{ Copy Source contents to given Target memory. Each item in Target
-  is separated by the Stride bytes.
-
-  We copy CopyCount items (you usually want to pass the count of Target
-  data here). Indexes.Count must be >= CopyCount,
-  we check it and eventually raise EAssignInterleavedRangeError.
-
-  Item number I is taken from Items[Indexes[I]].
-  All values on Indexes list must be valid (that is >= 0 and < Source.Count),
-  or we raise EAssignInterleavedRangeError.
-
-  Warning: this is safely usable only for arrays of types that don't
-  require initialization / finalization. Otherwise target memory data
-  will be properly referenced.
-
-  @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
-    or some index points outside of array.) }
-procedure AssignToInterleavedIndexed(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
-  Target: Pointer; const Stride, CopyCount: Cardinal;
-  Indexes: TGeometryIndexList); forward;
-
 procedure AssignToInterleaved(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
   Target: Pointer; const Stride, CopyCount: Cardinal);
 var
@@ -275,6 +255,23 @@ begin
   end;
 end;
 
+{ Copy Source contents to given Target memory. Each item in Target
+  is separated by the Stride bytes.
+
+  We copy CopyCount items (you usually want to pass the count of Target
+  data here). Indexes.Count must be >= CopyCount,
+  we check it and eventually raise EAssignInterleavedRangeError.
+
+  Item number I is taken from Source array, at Indexes[I], like Source[Indexes[I]].
+  All values on Indexes list must be valid (that is >= 0 and < SourceCount),
+  or we raise EAssignInterleavedRangeError.
+
+  Warning: this is safely usable only for arrays of types that don't
+  require initialization / finalization. Otherwise target memory data
+  will not be properly referenced.
+
+  @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
+    or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
   Target: Pointer; const Stride, CopyCount: Cardinal;
   Indexes: TGeometryIndexList);
@@ -299,6 +296,20 @@ begin
       and especially dynamic shading like radiance_transfer. }
     Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
       Target^, SourceItemSize);
+    PtrUInt(Target) += Stride;
+  end;
+end;
+
+{ Like AssignToInterleaved, but there is only one Source value,
+  that should be copied to all destinations. }
+procedure AssignToInterleavedConstant(Source: Pointer; const SourceItemSize: SizeInt;
+  Target: Pointer; const Stride, CopyCount: Cardinal);
+var
+  I: Integer;
+begin
+  for I := 0 to CopyCount - 1 do
+  begin
+    Move(Source^, Target^, SourceItemSize);
     PtrUInt(Target) += Stride;
   end;
 end;
@@ -637,7 +648,7 @@ type
 
   TX3DVertexAttributeNodes = specialize TObjectList<TAbstractVertexAttributeNode>;
 
-  { Handle GLSL attributes from VRML/X3D "attrib" field.
+  { Handle GLSL custom attributes from X3D "attrib" field.
     Descendants don't have to do anything, this just works
     (using TAbstractGeometryNode.Attrib). }
   TAbstractShaderAttribGenerator = class(TAbstractFogGenerator)
@@ -646,7 +657,7 @@ type
     AttribPtr: array of TGeometryAttrib;
   protected
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
-    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
     destructor Destroy; override;
@@ -1346,7 +1357,8 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
       if TexImplementation = tcCoordIndexed then
       begin
         if Arrays.Indexes <> nil then
-          AssignToInterleaved       (TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count) else
+          AssignToInterleaved       (TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count)
+        else
           AssignToInterleavedIndexed(TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
       end else
       begin
@@ -1784,16 +1796,8 @@ end;
 procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 
   procedure SetAllNormals(const Value: TVector3);
-  var
-    N: PVector3;
-    I: Integer;
   begin
-    N := Arrays.Normal;
-    for I := 0 to Arrays.Count - 1 do
-    begin
-      N^ := Value;
-      Arrays.IncNormal(N);
-    end;
+    AssignToInterleavedConstant(@Value, SizeOf(TVector3), Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
   end;
 
 begin
@@ -2039,51 +2043,53 @@ begin
   end;
 end;
 
-procedure TAbstractShaderAttribGenerator.GenerateVertex(IndexNum: Integer);
+procedure TAbstractShaderAttribGenerator.GenerateCoordinateBegin;
+
+  procedure SetAttrib(const TargetAttrib: TGeometryAttrib; const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  var
+    TargetPtr: Pointer;
+  begin
+    TargetPtr := Pointer(Arrays.GLSLAttribute(TargetAttrib));
+    if Arrays.Indexes <> nil then
+      AssignToInterleaved       (SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count)
+    else
+      AssignToInterleavedIndexed(SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
+  end;
+
 var
   I: Integer;
-  VertexIndex: Integer;
+  NumComponents: Integer;
 begin
   inherited;
   if Attrib <> nil then
   begin
-    if CoordIndex <> nil then
-      VertexIndex := CoordIndex.Items.L[IndexNum] else
-      VertexIndex := IndexNum;
-
     for I := 0 to Attrib.Count - 1 do
     begin
-      { set Arrays.GLSLAttribute*(ArrayIndexNum).
-        Note we don't do some warnings here, that were already done
+      { Note we don't do some warnings here, that were already done
         in PrepareAttributes (and set Attrib[I] = nil). }
       if Attrib[I] is TFloatVertexAttributeNode then
       begin
-        case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
-          1: Arrays.GLSLAttributeFloat(AttribPtr[I], ArrayIndexNum)^ :=
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
-          2: Arrays.GLSLAttributeVector2(AttribPtr[I], ArrayIndexNum)^ := Vector2(
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
-          3: Arrays.GLSLAttributeVector3(AttribPtr[I], ArrayIndexNum)^ := Vector3(
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
-          4: Arrays.GLSLAttributeVector4(AttribPtr[I], ArrayIndexNum)^ := Vector4(
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
-               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 3]);
-        end;
+        NumComponents := TFloatVertexAttributeNode(Attrib[I]).NumComponents;
+        { For NumComponents = 1, each TFloatVertexAttributeNode item is one attribute.
+          For NumComponents = 2,3,4:
+          Vector attributes in X3D are expressed using TFloatVertexAttributeNode,
+          with each vector component one after another.
+          We copy them fast, knowing that memory layout of TSingleList is the same as TVectorXxxList. }
+        SetAttrib(AttribPtr[I],
+          TFloatVertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(Single) * NumComponents,
+          TFloatVertexAttributeNode(Attrib[I]).FdValue.Items.Count div NumComponents);
       end else
       if Attrib[I] is TMatrix3VertexAttributeNode then
       begin
-        Arrays.GLSLAttributeMatrix3(AttribPtr[I], ArrayIndexNum)^ :=
-          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+        SetAttrib(AttribPtr[I],
+          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(TMatrix3),
+          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.Items.Count);
       end else
       if Attrib[I] is TMatrix4VertexAttributeNode then
       begin
-        Arrays.GLSLAttributeMatrix4(AttribPtr[I], ArrayIndexNum)^ :=
-          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+        SetAttrib(AttribPtr[I],
+          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.Items.L, SizeOf(TMatrix4),
+          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.Items.Count);
       end;
     end;
   end;
