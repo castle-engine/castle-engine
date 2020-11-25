@@ -31,7 +31,7 @@ type
     Geometry must be based on coordinates when using this,
     that is TAbstractGeometryNode.Coord must return @true. }
   TArraysGenerator = class
-  private
+  strict private
     FShape: TShape;
     FState: TX3DGraphTraverseState;
     FGeometry: TAbstractGeometryNode;
@@ -40,10 +40,15 @@ type
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
 
+    { Generalized version of AssignAttribute, AssignCoordinate. }
+    procedure AssignAttributeOrCoordinate(
+      const TargetPtr: Pointer; const TargetItemSize: SizeInt;
+      const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+  protected
     { How Geometry and State are generated from Shape.
       We have to record it, to use with Shape.Normals* later. }
     OverTriangulate: boolean;
-  protected
+
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TGeometryIndexList;
 
@@ -194,6 +199,14 @@ type
       in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
       or it is not indexed. }
     procedure AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+
+    { Fill some attribute inside Arrays (in the Arrays.CoordinateArray, Arrays.CoordinateSize).
+
+      Suitable for use when the SourceCount corresponds to the original shape Coordinate count,
+      so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
+      in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
+      or it is not indexed. }
+    procedure AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -234,7 +247,7 @@ type
   EAssignInterleavedRangeError = class(Exception);
 
 { Copy Source contents to given Target memory. Each item in Target
-  is separated by the Stride bytes.
+  is separated by the TargetItemSize bytes.
 
   We copy CopyCount items (you usually want to pass the count of Target
   data here). Source.Count must be >= CopyCount,
@@ -245,8 +258,9 @@ type
   will not be properly referenced.
 
   @raises EAssignInterleavedRangeError When Count < CopyCount. }
-procedure AssignToInterleaved(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
-  Target: Pointer; const Stride, CopyCount: Cardinal);
+procedure AssignToInterleaved(
+  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeInt);
 var
   I: Integer;
 begin
@@ -258,12 +272,12 @@ begin
   begin
     Move(Source^, Target^, SourceItemSize);
     PtrUInt(Source) += SourceItemSize;
-    PtrUInt(Target) += Stride;
+    PtrUInt(Target) += TargetItemSize;
   end;
 end;
 
 { Copy Source contents to given Target memory. Each item in Target
-  is separated by the Stride bytes.
+  is separated by the TargetItemSize bytes.
 
   We copy CopyCount items (you usually want to pass the count of Target
   data here). Indexes.Count must be >= CopyCount,
@@ -279,9 +293,10 @@ end;
 
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
-procedure AssignToInterleavedIndexed(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
-  Target: Pointer; const Stride, CopyCount: Cardinal;
-  Indexes: TGeometryIndexList);
+procedure AssignToInterleavedIndexed(
+  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
+  Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  const Indexes: TGeometryIndexList);
 var
   I: Integer;
   Index: TGeometryIndex;
@@ -303,21 +318,22 @@ begin
       and especially dynamic shading like radiance_transfer. }
     Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
       Target^, SourceItemSize);
-    PtrUInt(Target) += Stride;
+    PtrUInt(Target) += TargetItemSize;
   end;
 end;
 
 { Like AssignToInterleaved, but there is only one Source value,
   that should be copied to all destinations. }
-procedure AssignToInterleavedConstant(Source: Pointer; const SourceItemSize: SizeInt;
-  Target: Pointer; const Stride, CopyCount: Cardinal);
+procedure AssignToInterleavedConstant(
+  Target: Pointer; const TargetItemSize, CopyCount: SizeInt;
+  const Source: Pointer; const SourceItemSize: SizeInt);
 var
   I: Integer;
 begin
   for I := 0 to CopyCount - 1 do
   begin
     Move(Source^, Target^, SourceItemSize);
-    PtrUInt(Target) += Stride;
+    PtrUInt(Target) += TargetItemSize;
   end;
 end;
 
@@ -788,18 +804,16 @@ begin
       begin
         Arrays.Indexes := IndexesFromCoordIndex;
         IndexesFromCoordIndex := nil;
-
         Arrays.Count := Coord.Count;
-
-        AssignToInterleaved       (Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
       end else
       begin
+        { Each AssignCoordinate, AssignAttribute will expand the IndexesFromCoordIndex,
+          to specify vertexes multiple times in this case. }
         Arrays.Count := IndexesFromCoordIndex.Count;
-
-        { Expand IndexesFromCoordIndex, to specify vertexes multiple times.
-          Arrays.Indexes is left nil in this case. }
-        AssignToInterleavedIndexed(Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+        Assert(Arrays.Indexes = nil); // leaving Arrays.Indexes empty
       end;
+
+      AssignCoordinate(Arrays.Position, Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count);
 
       if LogShapes then
         WritelnLog('Renderer', Format('Shape %s rendered:' + NL +
@@ -824,7 +838,9 @@ begin
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;
 
-procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+procedure TArraysGenerator.AssignAttributeOrCoordinate(
+  const TargetPtr: Pointer; const TargetItemSize: SizeInt;
+  const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
 begin
   { Following TArraysGenerator.GenerateArrays logic, there are various cases:
 
@@ -854,9 +870,19 @@ begin
   }
 
   if Arrays.CoordinatePreserveGeometryOrder then
-    AssignToInterleaved       (SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count)
+    AssignToInterleaved       (TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount)
   else
-    AssignToInterleavedIndexed(SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
+    AssignToInterleavedIndexed(TargetPtr, TargetItemSize, Arrays.Count, SourcePtr, SourceItemSize, SourceCount, IndexesFromCoordIndex);
+end;
+
+procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+begin
+  AssignAttributeOrCoordinate(TargetPtr, Arrays.AttributeSize, SourcePtr, SourceItemSize, SourceCount);
+end;
+
+procedure TArraysGenerator.AssignCoordinate(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+begin
+  AssignAttributeOrCoordinate(TargetPtr, Arrays.CoordinateSize, SourcePtr, SourceItemSize, SourceCount);
 end;
 
 procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
@@ -1393,34 +1419,13 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
   procedure EnableExplicitTexCoord;
   var
     I: Integer;
-
-    procedure Handle(const TexCoordPtr: Pointer; const TexCoordSize, TexCoordCount: SizeInt);
-    var
-      A: Pointer;
-    begin
-      A := Arrays.TexCoord(I, 0);
-      if TexImplementation = tcCoordIndexed then
-      begin
-        if Arrays.Indexes <> nil then
-          AssignToInterleaved       (TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count)
-        else
-          AssignToInterleavedIndexed(TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
-      end else
-      begin
-        Assert(TexImplementation = tcNonIndexed);
-        Assert(CoordIndex = nil); { tcNonIndexed happens only for non-indexed triangle/quad primitives }
-        Assert(Arrays.Indexes = nil);
-        AssignToInterleaved(TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count);
-      end;
-    end;
-
   begin
     for I := 0 to Arrays.TexCoords.Count - 1 do
       if Arrays.TexCoords[I].Generation = tgExplicit then
         case Arrays.TexCoords[I].Dimensions of
-          2: Handle(TexCoordArray2d[I].Items.L, TexCoordArray2d[I].Items.ItemSize, TexCoordArray2d[I].Items.Count);
-          3: Handle(TexCoordArray3d[I].Items.L, TexCoordArray3d[I].Items.ItemSize, TexCoordArray3d[I].Items.Count);
-          4: Handle(TexCoordArray4d[I].Items.L, TexCoordArray4d[I].Items.ItemSize, TexCoordArray4d[I].Items.Count);
+          2: AssignAttribute(Arrays.TexCoord(I), TexCoordArray2d[I].Items.L, TexCoordArray2d[I].Items.ItemSize, TexCoordArray2d[I].Items.Count);
+          3: AssignAttribute(Arrays.TexCoord(I), TexCoordArray3d[I].Items.L, TexCoordArray3d[I].Items.ItemSize, TexCoordArray3d[I].Items.Count);
+          4: AssignAttribute(Arrays.TexCoord(I), TexCoordArray4d[I].Items.L, TexCoordArray4d[I].Items.ItemSize, TexCoordArray4d[I].Items.Count);
         end;
   end;
 
@@ -1852,26 +1857,15 @@ procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 
   procedure SetAllNormals(const Value: TVector3);
   begin
-    AssignToInterleavedConstant(@Value, SizeOf(TVector3), Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+    AssignToInterleavedConstant(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, @Value, SizeOf(TVector3));
   end;
 
 begin
   inherited;
 
   case NorImplementation of
-    niPerVertexCoordIndexed:
-      begin
-        if Arrays.Indexes <> nil then
-          AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count)
-        else
-          AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
-      end;
-    niPerVertexNonIndexed:
-      if CoordIndex = nil then
-      begin
-        Assert(Arrays.Indexes = nil);
-        AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
-      end;
+    niPerVertexCoordIndexed, niPerVertexNonIndexed:
+      AssignCoordinate(Arrays.Normal, Normals.L, Normals.ItemSize, Normals.Count);
     niOverall: SetAllNormals(NormalsSafe(0));
     niUnlit: SetAllNormals(TVector3.Zero);
   end;

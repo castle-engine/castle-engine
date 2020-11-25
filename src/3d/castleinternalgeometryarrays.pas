@@ -316,10 +316,10 @@ type
     { Add texture coord, with configuration copied from existing texture coord. }
     procedure AddTexCoordCopy(const NewTextureUnit, ExistingTextureUnit: Cardinal);
 
-    function TexCoord(const TextureUnit, Index: Cardinal): Pointer;
-    function TexCoord2D(const TextureUnit, Index: Cardinal): PVector2;
-    function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3;
-    function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4;
+    function TexCoord(const TextureUnit: Cardinal; const Index: Cardinal = 0): Pointer;
+    function TexCoord2D(const TextureUnit: Cardinal; const Index: Cardinal = 0): PVector2;
+    function TexCoord3D(const TextureUnit: Cardinal; const Index: Cardinal = 0): PVector3;
+    function TexCoord4D(const TextureUnit: Cardinal; const Index: Cardinal = 0): PVector4;
 
     property Attribs: TGeometryAttribList read FAttribs;
 
