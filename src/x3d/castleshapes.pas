@@ -1650,17 +1650,6 @@ var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
 
-  function MaterialOpacity: Single;
-  var
-    MatInfo: TMaterialInfo;
-  begin
-    MatInfo := S.MaterialInfo;
-    if MatInfo <> nil then
-      Result := MatInfo.Opacity
-    else
-      Result := 1;
-  end;
-
   procedure TexCoordsNeededForMapping(var Needed: Cardinal; const Mapping: String);
   var
     Index: Integer;
@@ -1793,7 +1782,6 @@ begin
     Generator := GeneratorClass.Create(Self, OverTriangulate);
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
-      Generator.MaterialOpacity := MaterialOpacity;
       Generator.FacesNeeded := true;
       { Leave the rest of Generator properties as default }
       Result := Generator.GenerateArrays;

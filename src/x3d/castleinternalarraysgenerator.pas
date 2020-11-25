@@ -190,7 +190,6 @@ type
     { Assign these before calling GenerateArrays.
       @groupBegin }
     TexCoordsNeeded: Cardinal;
-    MaterialOpacity: Single;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
