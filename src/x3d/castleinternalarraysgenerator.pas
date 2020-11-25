@@ -186,6 +186,14 @@ type
       different colors,  which means it has to be duplicated in arrays anyway,
       so there's no point in indexing). }
     procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
+
+    { Fill some attribute inside Arrays (in the Arrays.AttributeArray, Arrays.AttributeSize).
+
+      Suitable for use when the SourceCount corresponds to the original shape Coordinate count,
+      so the Source array (defined by SourcePtr, SourceItemSize, SourceCount) is accessed
+      in the same way as vertex coordinates: it is either indexed by shape coordIndex/index,
+      or it is not indexed. }
+    procedure AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
   public
     { Assign these before calling GenerateArrays.
       @groupBegin }
@@ -788,7 +796,8 @@ begin
       begin
         Arrays.Count := IndexesFromCoordIndex.Count;
 
-        { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
+        { Expand IndexesFromCoordIndex, to specify vertexes multiple times.
+          Arrays.Indexes is left nil in this case. }
         AssignToInterleavedIndexed(Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
       end;
 
@@ -813,6 +822,41 @@ begin
           [Shape.NiceName, E.Message]));
     end;
   finally FreeAndNil(IndexesFromCoordIndex); end;
+end;
+
+procedure TArraysGenerator.AssignAttribute(const TargetPtr, SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
+begin
+  { Following TArraysGenerator.GenerateArrays logic, there are various cases:
+
+    - Arrays.CoordinatePreserveGeometryOrder = true
+
+      This means:
+      - Arrays.Indexes may be nil or non-nil
+        (it will be nil if geometry has no indexes, like LineSet, PointSet, TriangleSet;
+         it will be non-nil if geometry has indexes, like IndexedFaceSet, IndexedTriangleSet etc.)
+      - IndexesFromCoordIndex is nil when this function is called
+        (TArraysGenerator.GenerateArrays maybe saw it non-nil at some point)
+      - maybe something set "AllowIndexed := false" during PrepareAttributes,
+        maybe not.
+        AllowIndexed is ignored if geometry has no indexes anyway (LineSet, PointSet, TriangleSet).
+      - Arrays.Count = Coord.Count
+      - So the target data layout (in Arrays.AttributeArray) is in the same order
+        as source data (defined by SourcePtr, SourceItemSize, SourceCount)
+
+    - Arrays.CoordinatePreserveGeometryOrder = false
+
+      This means:
+      - Arrays.Indexes = nil
+      - IndexesFromCoordIndex <> nil
+      - something set "AllowIndexed := false" during PrepareAttributes
+      - So we have coordIndex on geometry, but we have to "expand" data when copying,
+        making it non-indexed, because for some reason we cannot render it indexed
+  }
+
+  if Arrays.CoordinatePreserveGeometryOrder then
+    AssignToInterleaved       (SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count)
+  else
+    AssignToInterleavedIndexed(SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
 end;
 
 procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
@@ -2057,14 +2101,8 @@ end;
 procedure TAbstractShaderAttribGenerator.GenerateCoordinateBegin;
 
   procedure SetAttrib(const TargetAttrib: TGeometryAttrib; const SourcePtr: Pointer; const SourceItemSize, SourceCount: SizeInt);
-  var
-    TargetPtr: Pointer;
   begin
-    TargetPtr := Pointer(Arrays.GLSLAttribute(TargetAttrib));
-    if Arrays.Indexes <> nil then
-      AssignToInterleaved       (SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count)
-    else
-      AssignToInterleavedIndexed(SourcePtr, SourceItemSize, SourceCount, TargetPtr, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
+    AssignAttribute(Pointer(Arrays.GLSLAttribute(TargetAttrib)), SourcePtr, SourceItemSize, SourceCount);
   end;
 
 var
