@@ -71,7 +71,7 @@
 '' + LineEnding +
 '     Diffuse color is zero in this case, and we know that it''s not set to non-zero' + LineEnding +
 '     by castle_ColorPerVertexFragment (since that would make the shape "lit").' + LineEnding +
-'     So we don''t use castle_ColorPerVertexFragment,' + LineEnding +
+'     So we don''t use castle_apply_color_per_vertex,' + LineEnding +
 '     and we don''t apply RGB of main_texture_apply (as it would be multiplied by zero).' + LineEnding +
 '  */' + LineEnding +
 '  result = castle_UnlitColor;' + LineEnding +

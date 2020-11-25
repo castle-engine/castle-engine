@@ -103,14 +103,7 @@
   )
 
   The renderer uses arrays in GPU-friendly format defined by TGeometryArrays.
-
-  They have the same number of triangles and vertices as
-  calculated by TAbstractGeometryNode.Triangulate,
-  TAbstractGeometryNode.LocalTriangulate,
-  TAbstractGeometryNode.TrianglesCount,
-  TAbstractGeometryNode.VerticesCount (with OverTriangulate = @true).
 }
-
 unit CastleInternalRenderer;
 
 {$I castleconf.inc}
@@ -123,7 +116,7 @@ uses Classes, SysUtils, Generics.Collections,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage,
-  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
+  CastleInternalGeometryArrays, CastleInternalArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv, CastleBoxes, CastleTransform, CastleRenderOptions;
 
 {$define read_interface}

@@ -60,7 +60,7 @@ uses SysUtils, TypInfo, Math, PasGLTF, PasJSON, Generics.Collections,
     Accessor.DecodeAsXxx. Instead we should load binary data straight to GPU,
     looking at buffers, already exposed by PasGLTF.
     New X3D node, like BufferGeometry (same as X3DOM) will need to be
-    invented for this, and CastleGeometryArrays will need to be rearranged.
+    invented for this, and CastleInternalGeometryArrays will need to be rearranged.
 
   - Morph targets, or their animations, are not supported yet.
 

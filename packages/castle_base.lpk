@@ -96,8 +96,8 @@ See https://castle-engine.io/license.php for details.
         <UnitName Value="CastleFrustum"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/3d/castlegeometryarrays.pas"/>
-        <UnitName Value="CastleGeometryArrays"/>
+        <Filename Value="../src/3d/castleinternalgeometryarrays.pas"/>
+        <UnitName Value="CastleInternalGeometryArrays"/>
       </Item6>
       <Item7>
         <Filename Value="../src/3d/castleinternaloctree.pas"/>
@@ -2362,15 +2362,15 @@ See https://castle-engine.io/license.php for details.
         <Type Value="Include"/>
       </Item568>
       <Item569>
-        <Filename Value="../src/x3d/castlearraysgenerator.pas"/>
-        <UnitName Value="CastleArraysGenerator"/>
+        <Filename Value="../src/x3d/castleinternalarraysgenerator.pas"/>
+        <UnitName Value="CastleInternalArraysGenerator"/>
       </Item569>
       <Item570>
-        <Filename Value="../src/x3d/castlearraysgenerator_geometry3d.inc"/>
+        <Filename Value="../src/x3d/castleinternalarraysgenerator_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item570>
       <Item571>
-        <Filename Value="../src/x3d/castlearraysgenerator_rendering.inc"/>
+        <Filename Value="../src/x3d/castleinternalarraysgenerator_rendering.inc"/>
         <Type Value="Include"/>
       </Item571>
       <Item572>

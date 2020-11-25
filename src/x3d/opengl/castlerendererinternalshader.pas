@@ -24,7 +24,7 @@ uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleRenderOptions,
-  CastleShapes, CastleRectangles, CastleTransform;
+  CastleShapes, CastleRectangles, CastleTransform, CastleInternalGeometryArrays;
 
 type
   TLightingModel = (lmPhong, lmPhysical, lmUnlit);
@@ -439,7 +439,8 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
-    Lighting, ColorPerVertex: Boolean;
+    Lighting: Boolean;
+    ColorPerVertexType: TColorPerVertexType;
     ColorPerVertexMode: TColorMode;
 
     procedure EnableEffects(Effects: TMFNode;
@@ -615,7 +616,7 @@ type
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
-    procedure EnableColorPerVertex(const AMode: TColorMode);
+    procedure EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -1968,7 +1969,7 @@ begin
   AppearanceEffects := nil;
   GroupEffects := nil;
   Lighting := false;
-  ColorPerVertex := false;
+  ColorPerVertexType := ctNone;
   ColorPerVertexMode := cmReplace;
   FPhongShading := false;
   ShapeBoundingBox := nil;
@@ -2683,11 +2684,10 @@ var
     end;
   end;
 
-  { Must be done after EnableLights (to add define COLOR_PER_VERTEX
-    also to light shader parts). }
+  { Define COLOR_PER_VERTEX* symbols for GLSL. }
   procedure EnableShaderColorPerVertex;
   begin
-    if ColorPerVertex then
+    if ColorPerVertexType <> ctNone then
     begin
       { TODO: need to pass castle_ColorPerVertexFragment onward?
       Plug(stGeometry, GeometryShaderPassColors);
@@ -2705,6 +2705,18 @@ var
           begin
             Define('COLOR_PER_VERTEX_MODULATE', stVertex);
             Define('COLOR_PER_VERTEX_MODULATE', stFragment);
+          end;
+      end;
+      case ColorPerVertexType of
+        ctRgb:
+          begin
+            Define('COLOR_PER_VERTEX_RGB', stVertex);
+            Define('COLOR_PER_VERTEX_RGB', stFragment);
+          end;
+        ctRgbAlpha:
+          begin
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stVertex);
+            Define('COLOR_PER_VERTEX_RGB_ALPHA', stFragment);
           end;
       end;
     end;
@@ -3581,12 +3593,16 @@ begin
   FCodeHash.AddInteger(7);
 end;
 
-procedure TShader.EnableColorPerVertex(const AMode: TColorMode);
+procedure TShader.EnableColorPerVertex(const AMode: TColorMode; const AColorType: TColorPerVertexType);
 begin
+  Assert(AColorType <> ctNone);
   { This will cause appropriate shader later }
-  ColorPerVertex := true;
+  ColorPerVertexType := AColorType;
   ColorPerVertexMode := AMode;
-  FCodeHash.AddInteger((Ord(AMode) + 1) * 29);
+  FCodeHash.AddInteger(
+    (Ord(AMode) + 1) * 29 +
+    (Ord(AColorType) + 1) * 601
+  );
 end;
 
 function TShader.DeclareShadowFunctions: string;

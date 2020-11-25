@@ -14,7 +14,7 @@
 }
 
 { Geometry represented as arrays (TGeometryArrays). }
-unit CastleGeometryArrays;
+unit CastleInternalGeometryArrays;
 
 {$I castleconf.inc}
 
@@ -87,6 +87,8 @@ type
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
 
+  TColorPerVertexType = (ctNone, ctRgb, ctRgbAlpha);
+
   { GLSL attributes array information, for TGeometryArrays. }
   TGeometryAttrib = class
     Name: string;
@@ -133,7 +135,7 @@ type
     FCoordinateSize: Cardinal;
     FCoordinatePreserveGeometryOrder: Boolean;
 
-    FHasColor: boolean;
+    FColorType: TColorPerVertexType;
     FColorMode: TColorMode;
     ColorOffset: Integer;
     FForceUnlit: boolean;
@@ -262,10 +264,16 @@ type
     function Normal(const Index: Cardinal): PVector3;
     procedure IncNormal(var P: PVector3);
 
-    procedure AddColor(const AMode: TColorMode);
-    function Color(const Index: Cardinal = 0): PVector4;
-    procedure IncColor(var P: PVector4);
-    property HasColor: boolean read FHasColor;
+    { Add color-per-vertex attribute.
+      @param AMode Rendering mode, determines what shader does.
+      @param WithAlpha If @true, we have RGBA colors (TVector4), otherwise we have RGB colors (TVector3).
+    }
+    procedure AddColor(const AMode: TColorMode; const WithAlpha: Boolean);
+    { Access attribute created by AddColor(..., false) }
+    function ColorRgb(const Index: Cardinal = 0): PVector3;
+    { Access attribute created by AddColor(..., true) }
+    function ColorRgbAlpha(const Index: Cardinal = 0): PVector4;
+    property ColorType: TColorPerVertexType read FColorType;
     property ColorMode: TColorMode read FColorMode;
 
     { When ForceUnlit, the shape must be rendered like with UnlitMaterial,
@@ -475,29 +483,39 @@ begin
   PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
 end;
 
-procedure TGeometryArrays.AddColor(const AMode: TColorMode);
+procedure TGeometryArrays.AddColor(const AMode: TColorMode; const WithAlpha: Boolean);
 begin
-  if not HasColor then
+  Assert(FColorType = ctNone, 'Color attribute already added');
+
+  FColorMode := AMode;
+  ColorOffset := AttributeSize;
+  if WithAlpha then
   begin
-    FHasColor := true;
-    FColorMode := AMode;
-    ColorOffset := AttributeSize;
+    FColorType := ctRgbAlpha;
     FAttributeSize += SizeOf(TVector4);
+  end else
+  begin
+    FColorType := ctRgb;
+    FAttributeSize += SizeOf(TVector3);
   end;
 end;
 
-function TGeometryArrays.Color(const Index: Cardinal): PVector4;
+function TGeometryArrays.ColorRgbAlpha(const Index: Cardinal): PVector4;
 begin
-  if HasColor then
-    { When DataFreed, FAttributeArray is already nil }
-    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
-      ColorOffset + Index * AttributeSize)) else
-    Result := nil;
+  Assert(FColorType = ctRgbAlpha);
+
+  { When DataFreed, FAttributeArray is already nil }
+  Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
+    ColorOffset + Index * AttributeSize));
 end;
 
-procedure TGeometryArrays.IncColor(var P: PVector4);
+function TGeometryArrays.ColorRgb(const Index: Cardinal): PVector3;
 begin
-  PtrUInt(P) += AttributeSize;
+  Assert(FColorType = ctRgb);
+
+  { When DataFreed, FAttributeArray is already nil }
+  Result := PVector3(PtrUInt(PtrUInt(FAttributeArray) +
+    ColorOffset + Index * AttributeSize));
 end;
 
 procedure TGeometryArrays.AddFogCoord;

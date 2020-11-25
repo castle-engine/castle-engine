@@ -29,7 +29,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
-  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles, CastleImages,
+  X3DTriangles, X3DFields, CastleInternalGeometryArrays, CastleTriangles, CastleImages,
   CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
 const
@@ -1043,7 +1043,7 @@ implementation
 
 uses Generics.Defaults,
   CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
-  CastleStringUtils, CastleArraysGenerator, CastleURIUtils;
+  CastleStringUtils, CastleInternalArraysGenerator, CastleURIUtils;
 
 const
   UnknownTexCoord: TTriangle4 = (Data: (

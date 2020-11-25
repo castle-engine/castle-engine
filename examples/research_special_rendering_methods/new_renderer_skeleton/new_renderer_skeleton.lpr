@@ -39,7 +39,7 @@
 uses SysUtils, TypInfo, Classes,
   CastleVectors, CastleCameras, X3DNodes, CastleSceneCore, CastleShapes,
   CastleTransform, CastleProjection, CastleFrustum,
-  CastleGeometryArrays;
+  CastleInternalGeometryArrays;
 
 var
   { Projection, as a trivial global variable. }

@@ -14,13 +14,13 @@
 }
 
 { Generating TGeometryArrays for VRML/X3D shapes (TArraysGenerator). }
-unit CastleArraysGenerator;
+unit CastleInternalArraysGenerator;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays,
+uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleInternalGeometryArrays,
   CastleVectors;
 
 type
@@ -506,7 +506,10 @@ type
     - when not ColorPerVertex: face number in an index for Color. }
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
-    FaceColor: TVector4;
+    { Per-face color (used when ColorPerVertex=false), used when ColorRGBA is non-nil. }
+    FaceColorRgbAlpha: TCastleColor;
+    { Per-face color (used when ColorPerVertex=false), used when Color is non-nil. }
+    FaceColorRgb: TCastleColorRGB;
   protected
     Color: TMFVec3f;
     ColorRGBA: TMFColorRGBA;
@@ -1561,7 +1564,7 @@ begin
     [ miPerFace, miPerFaceMatIndexed,
       miPerVertexCoordIndexed, miPerVertexMatIndexed ] then
   begin
-    Arrays.AddColor(cmReplace);
+    Arrays.AddColor(cmReplace, true);
     if Mat1Implementation in
       [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
       AllowIndexed := false;
@@ -1585,11 +1588,11 @@ begin
   inherited;
   case Mat1Implementation of
     miPerVertexCoordIndexed:
-      Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(CoordIndex.ItemsSafe[IndexNum]);
+      Arrays.ColorRgbAlpha(ArrayIndexNum)^ := GetMaterial1Color(CoordIndex.ItemsSafe[IndexNum]);
     miPerVertexMatIndexed:
-      Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(MaterialIndex.ItemsSafe[IndexNum]);
+      Arrays.ColorRgbAlpha(ArrayIndexNum)^ := GetMaterial1Color(MaterialIndex.ItemsSafe[IndexNum]);
     miPerFace, miPerFaceMatIndexed:
-      Arrays.Color(ArrayIndexNum)^ := FaceMaterial1Color;
+      Arrays.ColorRgbAlpha(ArrayIndexNum)^ := FaceMaterial1Color;
     else ;
   end;
 end;
@@ -1617,7 +1620,7 @@ begin
   if ColorNode <> nil then
   begin
     Assert((Color <> nil) or (ColorRGBA <> nil));
-    Arrays.AddColor(ColorNode.Mode);
+    Arrays.AddColor(ColorNode.Mode, ColorRGBA <> nil);
     { In case of X3D primitives like IndexedTriangle[Fan/Strip]Set,
       ColorIndex is set but always equal to CoordIndex.
       This means we don't have to disable AllowIndexed (which is beneficial for speed).
@@ -1645,24 +1648,26 @@ begin
     if ColorPerVertex then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
+        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]
+      else
       if CoordIndex <> nil then
-        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
-        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[IndexNum], MaterialOpacity);
+        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]
+      else
+        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[IndexNum];
     end else
-      Arrays.Color(ArrayIndexNum)^ := FaceColor;
+      Arrays.ColorRgb(ArrayIndexNum)^ := FaceColorRgb;
   end else
   if ColorRGBA <> nil then
   begin
     if ColorPerVertex then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
+        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
       if CoordIndex <> nil then
-        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
-        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[IndexNum];
+        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
+        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[IndexNum];
     end else
-      Arrays.Color(ArrayIndexNum)^ := FaceColor;
+      Arrays.ColorRgbAlpha(ArrayIndexNum)^ := FaceColorRgbAlpha;
   end;
 end;
 
@@ -1675,14 +1680,16 @@ begin
   if (Color <> nil) and (not ColorPerVertex) then
   begin
     if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      FaceColor := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
-      FaceColor := Vector4(Color.ItemsSafe[RangeNumber], MaterialOpacity);
+      FaceColorRgb := Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]
+    else
+      FaceColorRgb := Color.ItemsSafe[RangeNumber];
   end else
   if (ColorRGBA <> nil) and (not ColorPerVertex) then
   begin
     if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      FaceColor := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]] else
-      FaceColor := ColorRGBA.ItemsSafe[RangeNumber];
+      FaceColorRgbAlpha := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]
+    else
+      FaceColorRgbAlpha := ColorRGBA.ItemsSafe[RangeNumber];
   end;
 end;
 
@@ -2296,8 +2303,8 @@ end;
 
 { non-abstract generators ---------------------------------------------------- }
 
-{$I castlearraysgenerator_rendering.inc}
-{$I castlearraysgenerator_geometry3d.inc}
+{$I castleinternalarraysgenerator_rendering.inc}
+{$I castleinternalarraysgenerator_geometry3d.inc}
 
 { global routines ------------------------------------------------------------ }
 

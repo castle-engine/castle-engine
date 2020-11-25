@@ -14,7 +14,10 @@ attribute vec3 castle_Normal;
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
-#ifdef COLOR_PER_VERTEX
+#if defined(COLOR_PER_VERTEX_RGB)
+attribute vec3 castle_ColorPerVertex;
+varying vec3 castle_ColorPerVertexFragment;
+#elif defined(COLOR_PER_VERTEX_RGB_ALPHA)
 attribute vec4 castle_ColorPerVertex;
 varying vec4 castle_ColorPerVertexFragment;
 #endif

@@ -69,7 +69,7 @@ void calculate_lighting(out vec4 result, const in vec4 vertex_eye, const in vec3
 
      Diffuse color is zero in this case, and we know that it's not set to non-zero
      by castle_ColorPerVertexFragment (since that would make the shape "lit").
-     So we don't use castle_ColorPerVertexFragment,
+     So we don't use castle_apply_color_per_vertex,
      and we don't apply RGB of main_texture_apply (as it would be multiplied by zero).
   */
   result = castle_UnlitColor;
