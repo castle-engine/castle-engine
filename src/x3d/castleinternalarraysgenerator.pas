@@ -518,21 +518,30 @@ type
       correspond to a single face.
     - if you want per-vertex to work, you must use smooth shading.
 
-    ColorIndex: if set and non-empty, then
-    - when ColorPerVertex: vertex IndexNum is an index to ColorIndex
-    - when not ColorPerVertex: face number is an index to ColorIndex
-    And then ColorIndex indexes Color items.
-    When ColorIndex is empty:
-    - when ColorPerVertex: vertex IndexNum is an index to CoordIndex
-      and CoordIndex in turn is an index to Color.
-      Unless CoordIndex assigned, then vertex IndexNum indexes Color.
-    - when not ColorPerVertex: face number in an index for Color. }
+    ColorIndex:
+
+    - When ColorIndex is set and non-empty (worse optimized, seldom case), then
+
+      - when ColorPerVertex: vertex IndexNum is an index to ColorIndex
+      - when not ColorPerVertex: face number is an index to ColorIndex
+      And then ColorIndex indexes Color items.
+
+    - When ColorIndex is empty (better optimized, common case):
+
+      - when ColorPerVertex: vertex IndexNum is an index to CoordIndex
+        and CoordIndex in turn is an index to Color.
+        Unless CoordIndex assigned, then vertex IndexNum indexes Color.
+      - when not ColorPerVertex: face number in an index for Color.
+
+  }
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
-  private
+  strict private
     { Per-face color (used when ColorPerVertex=false), used when ColorRGBA is non-nil. }
     FaceColorRgbAlpha: TCastleColor;
     { Per-face color (used when ColorPerVertex=false), used when Color is non-nil. }
     FaceColorRgb: TCastleColorRGB;
+    { Is ColorIndex assigned and non-empty. }
+    function UseColorIndex: Boolean;
   protected
     Color: TMFVec3f;
     ColorRGBA: TMFColorRGBA;
@@ -1724,10 +1733,35 @@ begin
   end;
 end;
 
+function TAbstractColorGenerator.UseColorIndex: Boolean;
+begin
+  Result := (ColorIndex <> nil) and (ColorIndex.Count <> 0);
+end;
+
 procedure TAbstractColorGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-  // TODO: most of TAbstractColorGenerator.GenerateVertex (for ColorPerVertex=true) should be here
+
+  { This method, and GenerateVertex, closely fill all possible cases.
+    When possible, this method (which results in more optimal code) takes care
+    of the job, and then GenerateVertex does nothing. }
+
+  if Color <> nil then
+  begin
+    if ColorPerVertex then
+    begin
+      if not UseColorIndex then
+        AssignAttribute(Arrays.ColorRgb, Color.Items.L, Color.Items.ItemSize, Color.Items.Count);
+    end;
+  end else
+  if ColorRGBA <> nil then
+  begin
+    if ColorPerVertex then
+    begin
+      if not UseColorIndex then
+        AssignAttribute(Arrays.ColorRgbAlpha, ColorRGBA.Items.L, ColorRGBA.Items.ItemSize, ColorRGBA.Items.Count);
+    end;
+  end;
 end;
 
 procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
@@ -1737,13 +1771,8 @@ begin
   begin
     if ColorPerVertex then
     begin
-      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]
-      else
-      if CoordIndex <> nil then
-        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]
-      else
-        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[IndexNum];
+      if UseColorIndex then
+        Arrays.ColorRgb(ArrayIndexNum)^ := Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]];
     end else
       Arrays.ColorRgb(ArrayIndexNum)^ := FaceColorRgb;
   end else
@@ -1751,11 +1780,8 @@ begin
   begin
     if ColorPerVertex then
     begin
-      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
-      if CoordIndex <> nil then
-        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
-        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[IndexNum];
+      if UseColorIndex then
+        Arrays.ColorRgbAlpha(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]];
     end else
       Arrays.ColorRgbAlpha(ArrayIndexNum)^ := FaceColorRgbAlpha;
   end;
@@ -1769,14 +1795,14 @@ begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then
   begin
-    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+    if UseColorIndex then
       FaceColorRgb := Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]
     else
       FaceColorRgb := Color.ItemsSafe[RangeNumber];
   end else
   if (ColorRGBA <> nil) and (not ColorPerVertex) then
   begin
-    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+    if UseColorIndex then
       FaceColorRgbAlpha := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]
     else
       FaceColorRgbAlpha := ColorRGBA.ItemsSafe[RangeNumber];
